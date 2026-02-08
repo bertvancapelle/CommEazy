@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.npm
+
+# React Native
+ios/Pods/
+ios/build/
+android/build/
+android/app/build/
+android/.gradle/
+
+# Metro
+.metro-health-check*
+
+# TypeScript
+dist/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Test coverage
+coverage/
+
+# Fastlane
+fastlane/report.xml
+fastlane/screenshots/
+
+# Debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Secrets — NEVER commit
+*.keystore
+*.jks
+*.p12
+*.key
+*.pem
+google-services.json
+GoogleService-Info.plist

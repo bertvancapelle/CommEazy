@@ -1,0 +1,122 @@
+{
+  "app": {
+    "name": "CommEazy"
+  },
+  "onboarding": {
+    "welcome": "Welkom bij CommEazy",
+    "subtitle": "Privé berichten voor het hele gezin",
+    "selectLanguage": "Kies je taal",
+    "continue": "Verder",
+    "phoneNumber": "Telefoonnummer",
+    "phoneHint": "We sturen een verificatiecode",
+    "verifyCode": "Voer de code in",
+    "codeSent": "Code verstuurd naar {{phone}}",
+    "resendCode": "Code opnieuw versturen",
+    "yourName": "Hoe heet je?",
+    "nameHint": "Dit zien anderen in het gesprek",
+    "createPin": "Maak een PIN aan",
+    "pinHint": "Deze PIN beschermt je berichten bij een nieuw toestel",
+    "confirmPin": "Bevestig je PIN",
+    "allSet": "Klaar!",
+    "allSetMessage": "Je kunt nu berichten versturen"
+  },
+  "tabs": {
+    "chats": "Berichten",
+    "contacts": "Contacten",
+    "settings": "Instellingen"
+  },
+  "chat": {
+    "typeMessage": "Schrijf een bericht...",
+    "send": "Verstuur",
+    "photo": "Foto",
+    "camera": "Camera",
+    "gallery": "Fotobibliotheek",
+    "delivered": "Bezorgd",
+    "read": "Gelezen",
+    "sending": "Wordt verstuurd...",
+    "failed": "Niet verstuurd",
+    "retry": "Opnieuw proberen",
+    "today": "Vandaag",
+    "yesterday": "Gisteren",
+    "newChat": "Nieuw gesprek",
+    "newGroup": "Nieuwe groep"
+  },
+  "group": {
+    "create": "Groep aanmaken",
+    "name": "Groepsnaam",
+    "nameHint": "Kies een naam voor de groep",
+    "selectMembers": "Kies leden",
+    "memberCount": "{{count}} leden",
+    "created": "Groep aangemaakt",
+    "you": "Jij"
+  },
+  "call": {
+    "calling": "Bellen...",
+    "incoming": "Inkomend gesprek",
+    "from": "{{name}} belt",
+    "answer": "Opnemen",
+    "decline": "Weigeren",
+    "end": "Ophangen",
+    "mute": "Dempen",
+    "speaker": "Luidspreker",
+    "video": "Video",
+    "duration": "Gespreksduur: {{duration}}"
+  },
+  "contacts": {
+    "title": "Contacten",
+    "add": "Contact toevoegen",
+    "invite": "Uitnodigen voor CommEazy",
+    "verify": "Verifiëren",
+    "verified": "Geverifieerd",
+    "scanQR": "Scan QR-code",
+    "showQR": "Toon mijn QR-code",
+    "verifyInstructions": "Scan elkaars QR-code om te verifiëren dat je berichten veilig zijn"
+  },
+  "settings": {
+    "title": "Instellingen",
+    "language": "Taal",
+    "notifications": "Meldingen",
+    "sound": "Geluid bij berichten",
+    "haptic": "Trillen bij berichten",
+    "textSize": "Tekstgrootte",
+    "reducedMotion": "Minder animaties",
+    "highContrast": "Hoog contrast",
+    "about": "Over CommEazy",
+    "version": "Versie {{version}}",
+    "backup": "Back-up",
+    "createBackup": "Back-up maken",
+    "restoreBackup": "Back-up herstellen",
+    "deleteAccount": "Account verwijderen",
+    "deleteWarning": "Dit verwijdert al je berichten en kan niet ongedaan worden"
+  },
+  "errors": {
+    "E100": "Geen internetverbinding. Controleer je wifi of mobiele data.",
+    "E101": "Verbinding verbroken. We proberen opnieuw te verbinden...",
+    "E103": "Bellen lukt nu niet. Controleer je internetverbinding en probeer het opnieuw.",
+    "E200": "Bericht kon niet versleuteld worden. Probeer het opnieuw.",
+    "E201": "Bericht kon niet ontsleuteld worden. Vraag de afzender het opnieuw te sturen.",
+    "E202": "Beveiligingssleutel niet gevonden. Verifieer dit contact opnieuw.",
+    "E300": "Bericht niet verstuurd. We proberen het opnieuw.",
+    "E301": "{{name}} is nu niet online. Je bericht wordt bewaard en verstuurd zodra {{name}} weer online komt (maximaal 7 dagen).",
+    "E304": "Dit bericht is verlopen na 7 dagen en kan niet meer worden bezorgd.",
+    "E400": "Foto is te groot. Maximaal 10 MB.",
+    "E401": "CommEazy heeft toestemming nodig voor de camera. Ga naar Instellingen om dit aan te zetten.",
+    "E500": "Verificatiecode is ongeldig of verlopen. Probeer het opnieuw.",
+    "E600": "Er is een probleem met de lokale opslag. Start de app opnieuw.",
+    "E601": "Onvoldoende opslagruimte. Maak ruimte vrij op je toestel.",
+    "genericError": "Er ging iets mis. Probeer het opnieuw.",
+    "tryAgain": "Opnieuw proberen"
+  },
+  "accessibility": {
+    "sendButton": "Verstuur bericht",
+    "photoButton": "Stuur een foto",
+    "callButton": "Bel {{name}}",
+    "videoCallButton": "Videobel {{name}}",
+    "backButton": "Terug",
+    "closeButton": "Sluiten",
+    "menuButton": "Menu openen",
+    "messageFrom": "Bericht van {{name}}, {{time}}",
+    "deliveryStatus": "Bericht {{status}}",
+    "unreadMessages": "{{count}} ongelezen berichten"
+  }
+}
