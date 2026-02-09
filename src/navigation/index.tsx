@@ -30,17 +30,27 @@ import { colors, typography, touchTargets } from '@/theme';
 // Placeholder screens — replace with actual implementations
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 
+// Onboarding screens
+import {
+  LanguageSelectScreen,
+  WelcomeScreen,
+  PhoneVerificationScreen,
+  NameInputScreen,
+  PinSetupScreen,
+  CompletionScreen,
+} from '@/screens/onboarding';
+
 // ============================================================
 // Type Definitions
 // ============================================================
 
 export type OnboardingStackParams = {
-  Language: undefined;
+  LanguageSelect: undefined;
   Welcome: undefined;
-  Phone: undefined;
-  PhoneVerify: { phone: string };
-  Profile: undefined;
-  Backup: undefined;
+  PhoneVerification: undefined;
+  NameInput: undefined;
+  PinSetup: { name: string };
+  Completion: { name: string };
 };
 
 export type ChatStackParams = {
@@ -102,17 +112,52 @@ const MainTab = createBottomTabNavigator<MainTabParams>();
 function OnboardingNavigator() {
   return (
     <OnboardingStack.Navigator
+      initialRouteName="LanguageSelect"
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerBackTitleVisible: false,
+        headerTintColor: colors.primary,
+        headerTitleStyle: {
+          ...typography.bodyBold,
+          color: colors.textPrimary,
+        },
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerShadowVisible: false,
         animation: 'slide_from_right',
       }}
     >
-      <OnboardingStack.Screen name="Language" component={PlaceholderScreen} />
-      <OnboardingStack.Screen name="Welcome" component={PlaceholderScreen} />
-      <OnboardingStack.Screen name="Phone" component={PlaceholderScreen} />
-      <OnboardingStack.Screen name="PhoneVerify" component={PlaceholderScreen} />
-      <OnboardingStack.Screen name="Profile" component={PlaceholderScreen} />
-      <OnboardingStack.Screen name="Backup" component={PlaceholderScreen} />
+      <OnboardingStack.Screen
+        name="LanguageSelect"
+        component={LanguageSelectScreen}
+        options={{ headerShown: false }}
+      />
+      <OnboardingStack.Screen
+        name="Welcome"
+        component={WelcomeScreen}
+        options={{ title: '' }}
+      />
+      <OnboardingStack.Screen
+        name="PhoneVerification"
+        component={PhoneVerificationScreen}
+        options={{ title: '' }}
+      />
+      <OnboardingStack.Screen
+        name="NameInput"
+        component={NameInputScreen}
+        options={{ title: '' }}
+      />
+      <OnboardingStack.Screen
+        name="PinSetup"
+        component={PinSetupScreen}
+        options={{ title: '', headerBackVisible: false }}
+      />
+      <OnboardingStack.Screen
+        name="Completion"
+        component={CompletionScreen}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
     </OnboardingStack.Navigator>
   );
 }

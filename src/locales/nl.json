@@ -7,18 +7,29 @@
     "subtitle": "Privé berichten voor het hele gezin",
     "selectLanguage": "Kies je taal",
     "continue": "Verder",
+    "finish": "Voltooien",
     "phoneNumber": "Telefoonnummer",
     "phoneHint": "We sturen een verificatiecode",
     "verifyCode": "Voer de code in",
     "codeSent": "Code verstuurd naar {{phone}}",
     "resendCode": "Code opnieuw versturen",
+    "voiceCallFallback": "Geen SMS? Bel mij",
     "yourName": "Hoe heet je?",
     "nameHint": "Dit zien anderen in het gesprek",
+    "namePlaceholder": "Je naam",
     "createPin": "Maak een PIN aan",
     "pinHint": "Deze PIN beschermt je berichten bij een nieuw toestel",
     "confirmPin": "Bevestig je PIN",
+    "pinMismatch": "De PIN komt niet overeen. Probeer het opnieuw.",
+    "pinWarning": "Schrijf je PIN op en bewaar het op een veilige plek. Zonder deze PIN kun je je account niet herstellen op een nieuw toestel.",
     "allSet": "Klaar!",
-    "allSetMessage": "Je kunt nu berichten versturen"
+    "allSetMessage": "Je kunt nu berichten versturen",
+    "welcomeUser": "Welkom, {{name}}!",
+    "startMessaging": "Begin met berichten",
+    "firstTip": "Voeg je eerste contact toe door een QR-code te scannen of te delen.",
+    "privacyIntro": "Je berichten zijn altijd versleuteld. Alleen jij en je contacten kunnen ze lezen. Wij slaan niets op.",
+    "stepOf": "Stap {{current}} van {{total}}",
+    "stepProgress": "Stap {{current}} van {{total}}"
   },
   "tabs": {
     "chats": "Berichten",
@@ -117,6 +128,8 @@
     "menuButton": "Menu openen",
     "messageFrom": "Bericht van {{name}}, {{time}}",
     "deliveryStatus": "Bericht {{status}}",
-    "unreadMessages": "{{count}} ongelezen berichten"
+    "unreadMessages": "{{count}} ongelezen berichten",
+    "continueToPhoneVerification": "Ga verder naar telefoonverificatie",
+    "countryCode": "Landcode"
   }
 }

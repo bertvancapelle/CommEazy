@@ -5,18 +5,29 @@
     "subtitle": "Private messaging for your whole family",
     "selectLanguage": "Choose your language",
     "continue": "Continue",
+    "finish": "Finish",
     "phoneNumber": "Phone number",
     "phoneHint": "We'll send you a verification code",
     "verifyCode": "Enter the code",
     "codeSent": "Code sent to {{phone}}",
     "resendCode": "Resend code",
+    "voiceCallFallback": "Didn't receive SMS? Call me instead",
     "yourName": "What's your name?",
     "nameHint": "Others will see this in conversations",
+    "namePlaceholder": "Your name",
     "createPin": "Create a PIN",
     "pinHint": "This PIN protects your messages on a new device",
     "confirmPin": "Confirm your PIN",
+    "pinMismatch": "PINs don't match. Please try again.",
+    "pinWarning": "Write down your PIN and keep it in a safe place. Without this PIN you cannot restore your account on a new device.",
     "allSet": "All set!",
-    "allSetMessage": "You can now send messages"
+    "allSetMessage": "You can now send messages",
+    "welcomeUser": "Welcome, {{name}}!",
+    "startMessaging": "Start messaging",
+    "firstTip": "Add your first contact by scanning or sharing a QR code.",
+    "privacyIntro": "Your messages are always encrypted. Only you and your contacts can read them. We store nothing.",
+    "stepOf": "Step {{current}} of {{total}}",
+    "stepProgress": "Step {{current}} of {{total}}"
   },
   "tabs": { "chats": "Messages", "contacts": "Contacts", "settings": "Settings" },
   "chat": {
@@ -111,6 +122,8 @@
     "menuButton": "Open menu",
     "messageFrom": "Message from {{name}}, {{time}}",
     "deliveryStatus": "Message {{status}}",
-    "unreadMessages": "{{count}} unread messages"
+    "unreadMessages": "{{count}} unread messages",
+    "continueToPhoneVerification": "Continue to phone verification",
+    "countryCode": "Country code"
   }
 }

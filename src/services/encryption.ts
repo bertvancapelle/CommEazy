@@ -20,14 +20,11 @@ import type {
   EncryptionService,
   EncryptedPayload,
   EncryptedBackup,
-  EncryptionMode,
   KeyPair,
   Recipient,
 } from './interfaces';
 
 const ENCRYPTION_THRESHOLD = 8;
-const OUTBOX_EXPIRY_DAYS = 7;
-const PBKDF2_ITERATIONS = 100_000;
 const BACKUP_VERSION = 1;
 
 // Keychain service identifiers
@@ -134,7 +131,7 @@ export class SodiumEncryptionService implements EncryptionService {
   async generateQRData(): Promise<string> {
     this.ensureKeys();
     // QR contains: base64 public key + fingerprint
-    const fingerprint = sodium.crypto_generichash(16, this.publicKey!);
+    const fingerprint = sodium.crypto_generichash(16, this.publicKey!, null);
     return JSON.stringify({
       pk: sodium.to_base64(this.publicKey!),
       fp: sodium.to_hex(fingerprint),
@@ -148,7 +145,7 @@ export class SodiumEncryptionService implements EncryptionService {
       if (parsed.pk !== expectedPublicKey) return false;
 
       const pk = sodium.from_base64(parsed.pk);
-      const expectedFingerprint = sodium.to_hex(sodium.crypto_generichash(16, pk));
+      const expectedFingerprint = sodium.to_hex(sodium.crypto_generichash(16, pk, null));
       return parsed.fp === expectedFingerprint;
     } catch {
       return false;

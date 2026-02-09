@@ -31,6 +31,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "__tests__/**/*"],
+  "include": ["src/**/*", "src/types/**/*.d.ts", "__tests__/**/*"],
   "exclude": ["node_modules", "dist", "ios", "android"]
 }

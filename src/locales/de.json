@@ -5,18 +5,29 @@
     "subtitle": "Private Nachrichten für die ganze Familie",
     "selectLanguage": "Wähle deine Sprache",
     "continue": "Weiter",
+    "finish": "Fertig",
     "phoneNumber": "Telefonnummer",
     "phoneHint": "Wir senden dir einen Bestätigungscode",
     "verifyCode": "Code eingeben",
     "codeSent": "Code gesendet an {{phone}}",
     "resendCode": "Code erneut senden",
+    "voiceCallFallback": "Keine SMS erhalten? Ruf mich an",
     "yourName": "Wie heißt du?",
     "nameHint": "Andere sehen diesen Namen im Gespräch",
+    "namePlaceholder": "Dein Name",
     "createPin": "PIN erstellen",
     "pinHint": "Diese PIN schützt deine Nachrichten auf einem neuen Gerät",
     "confirmPin": "PIN bestätigen",
+    "pinMismatch": "Die PINs stimmen nicht überein. Bitte versuche es erneut.",
+    "pinWarning": "Schreib deine PIN auf und bewahre sie an einem sicheren Ort auf. Ohne diese PIN kannst du dein Konto nicht auf einem neuen Gerät wiederherstellen.",
     "allSet": "Fertig!",
-    "allSetMessage": "Du kannst jetzt Nachrichten senden"
+    "allSetMessage": "Du kannst jetzt Nachrichten senden",
+    "welcomeUser": "Willkommen, {{name}}!",
+    "startMessaging": "Nachrichten starten",
+    "firstTip": "Füge deinen ersten Kontakt hinzu, indem du einen QR-Code scannst oder teilst.",
+    "privacyIntro": "Deine Nachrichten sind immer verschlüsselt. Nur du und deine Kontakte können sie lesen. Wir speichern nichts.",
+    "stepOf": "Schritt {{current}} von {{total}}",
+    "stepProgress": "Schritt {{current}} von {{total}}"
   },
   "tabs": { "chats": "Nachrichten", "contacts": "Kontakte", "settings": "Einstellungen" },
   "chat": {
@@ -111,6 +122,8 @@
     "menuButton": "Menü öffnen",
     "messageFrom": "Nachricht von {{name}}, {{time}}",
     "deliveryStatus": "Nachricht {{status}}",
-    "unreadMessages": "{{count}} ungelesene Nachrichten"
+    "unreadMessages": "{{count}} ungelesene Nachrichten",
+    "continueToPhoneVerification": "Weiter zur Telefonverifizierung",
+    "countryCode": "Ländervorwahl"
   }
 }

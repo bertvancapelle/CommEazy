@@ -5,7 +5,7 @@
  * @see services/interfaces.ts for contract
  */
 
-import { client, xml, jid as parseJid } from '@xmpp/client';
+import { client, xml, jid as parseJid, Element } from '@xmpp/client';
 import type {
   XMPPService,
   EncryptedPayload,
@@ -150,7 +150,7 @@ export class XmppJsService implements XMPPService {
       this.setStatus('error');
     });
 
-    this.xmpp.on('stanza', (stanza) => {
+    this.xmpp.on('stanza', (stanza: Element) => {
       if (stanza.is('message')) {
         this.handleIncomingMessage(stanza);
       } else if (stanza.is('presence')) {
@@ -159,7 +159,7 @@ export class XmppJsService implements XMPPService {
     });
   }
 
-  private handleIncomingMessage(stanza: ReturnType<typeof xml>): void {
+  private handleIncomingMessage(stanza: Element): void {
     const from = stanza.attrs.from as string;
     const id = stanza.attrs.id as string;
 
@@ -186,7 +186,7 @@ export class XmppJsService implements XMPPService {
     }
   }
 
-  private handleIncomingPresence(stanza: ReturnType<typeof xml>): void {
+  private handleIncomingPresence(stanza: Element): void {
     const from = stanza.attrs.from as string;
     const type = stanza.attrs.type as string | undefined;
     const status = type === 'unavailable' ? 'offline' : 'online';

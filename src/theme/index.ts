@@ -57,7 +57,7 @@ export const colors = {
 // ============================================================
 
 // Scaled points that respect Dynamic Type / Android font scaling
-function scaledSize(size: number): number {
+export function scaledSize(size: number): number {
   const scale = PixelRatio.getFontScale();
   return Math.round(size * Math.min(scale, 2.0)); // Cap at 2x
 }

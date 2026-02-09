@@ -5,18 +5,29 @@
     "subtitle": "Mensajería privada para toda la familia",
     "selectLanguage": "Elige tu idioma",
     "continue": "Continuar",
+    "finish": "Finalizar",
     "phoneNumber": "Número de teléfono",
     "phoneHint": "Te enviaremos un código de verificación",
     "verifyCode": "Introduce el código",
     "codeSent": "Código enviado a {{phone}}",
     "resendCode": "Reenviar código",
+    "voiceCallFallback": "¿No recibiste el SMS? Llámame",
     "yourName": "¿Cómo te llamas?",
     "nameHint": "Otros verán este nombre en la conversación",
+    "namePlaceholder": "Tu nombre",
     "createPin": "Crea un PIN",
     "pinHint": "Este PIN protege tus mensajes en un nuevo dispositivo",
     "confirmPin": "Confirma tu PIN",
+    "pinMismatch": "Los PIN no coinciden. Inténtalo de nuevo.",
+    "pinWarning": "Anota tu PIN y guárdalo en un lugar seguro. Sin este PIN no podrás restaurar tu cuenta en un nuevo dispositivo.",
     "allSet": "¡Listo!",
-    "allSetMessage": "Ya puedes enviar mensajes"
+    "allSetMessage": "Ya puedes enviar mensajes",
+    "welcomeUser": "¡Bienvenido, {{name}}!",
+    "startMessaging": "Empezar a enviar mensajes",
+    "firstTip": "Añade tu primer contacto escaneando o compartiendo un código QR.",
+    "privacyIntro": "Tus mensajes siempre están cifrados. Solo tú y tus contactos pueden leerlos. No almacenamos nada.",
+    "stepOf": "Paso {{current}} de {{total}}",
+    "stepProgress": "Paso {{current}} de {{total}}"
   },
   "tabs": { "chats": "Mensajes", "contacts": "Contactos", "settings": "Ajustes" },
   "chat": {
@@ -111,6 +122,8 @@
     "menuButton": "Abrir menú",
     "messageFrom": "Mensaje de {{name}}, {{time}}",
     "deliveryStatus": "Mensaje {{status}}",
-    "unreadMessages": "{{count}} mensajes sin leer"
+    "unreadMessages": "{{count}} mensajes sin leer",
+    "continueToPhoneVerification": "Continuar a la verificación del teléfono",
+    "countryCode": "Código de país"
   }
 }

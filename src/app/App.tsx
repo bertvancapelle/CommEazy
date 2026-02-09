@@ -10,7 +10,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { StatusBar, AccessibilityInfo, Platform } from 'react-native';
+import { StatusBar, AccessibilityInfo } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/i18n'; // Initialize i18n

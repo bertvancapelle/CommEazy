@@ -5,18 +5,29 @@
     "subtitle": "Messagerie privée pour toute la famille",
     "selectLanguage": "Choisissez votre langue",
     "continue": "Continuer",
+    "finish": "Terminer",
     "phoneNumber": "Numéro de téléphone",
     "phoneHint": "Nous vous enverrons un code de vérification",
     "verifyCode": "Entrez le code",
     "codeSent": "Code envoyé au {{phone}}",
     "resendCode": "Renvoyer le code",
+    "voiceCallFallback": "Pas de SMS reçu ? Appelez-moi",
     "yourName": "Comment vous appelez-vous ?",
     "nameHint": "Les autres verront ce nom dans la conversation",
+    "namePlaceholder": "Votre nom",
     "createPin": "Créez un code PIN",
     "pinHint": "Ce code PIN protège vos messages sur un nouvel appareil",
     "confirmPin": "Confirmez votre code PIN",
+    "pinMismatch": "Les codes PIN ne correspondent pas. Veuillez réessayer.",
+    "pinWarning": "Notez votre code PIN et gardez-le en lieu sûr. Sans ce code PIN, vous ne pourrez pas restaurer votre compte sur un nouvel appareil.",
     "allSet": "C'est prêt !",
-    "allSetMessage": "Vous pouvez maintenant envoyer des messages"
+    "allSetMessage": "Vous pouvez maintenant envoyer des messages",
+    "welcomeUser": "Bienvenue, {{name}} !",
+    "startMessaging": "Commencer à envoyer des messages",
+    "firstTip": "Ajoutez votre premier contact en scannant ou en partageant un code QR.",
+    "privacyIntro": "Vos messages sont toujours chiffrés. Seuls vous et vos contacts peuvent les lire. Nous ne stockons rien.",
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "stepProgress": "Étape {{current}} sur {{total}}"
   },
   "tabs": { "chats": "Messages", "contacts": "Contacts", "settings": "Réglages" },
   "chat": {
@@ -111,6 +122,8 @@
     "menuButton": "Ouvrir le menu",
     "messageFrom": "Message de {{name}}, {{time}}",
     "deliveryStatus": "Message {{status}}",
-    "unreadMessages": "{{count}} messages non lus"
+    "unreadMessages": "{{count}} messages non lus",
+    "continueToPhoneVerification": "Continuer vers la vérification du téléphone",
+    "countryCode": "Indicatif pays"
   }
 }
