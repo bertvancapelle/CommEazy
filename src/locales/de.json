@@ -19,6 +19,7 @@
     "pinHint": "Diese PIN schützt deine Nachrichten auf einem neuen Gerät",
     "confirmPin": "PIN bestätigen",
     "pinMismatch": "Die PINs stimmen nicht überein. Bitte versuche es erneut.",
+    "clearPin": "Löschen",
     "pinWarning": "Schreib deine PIN auf und bewahre sie an einem sicheren Ort auf. Ohne diese PIN kannst du dein Konto nicht auf einem neuen Gerät wiederherstellen.",
     "allSet": "Fertig!",
     "allSetMessage": "Du kannst jetzt Nachrichten senden",
@@ -115,6 +116,9 @@
     "E500": "Bestätigungscode ist ungültig oder abgelaufen. Bitte versuche es erneut.",
     "E600": "Es gibt ein Problem mit dem lokalen Speicher. Bitte starte die App neu.",
     "E601": "Nicht genügend Speicherplatz. Schaffe Platz auf deinem Gerät.",
+    "invalidCode": "Der Code ist falsch. Bitte überprüfe und versuche es erneut.",
+    "invalidPhone": "Diese Telefonnummer ist nicht gültig. Bitte überprüfe die Nummer.",
+    "tooManyRequests": "Zu viele Versuche. Bitte warte einen Moment und versuche es erneut.",
     "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "tryAgain": "Erneut versuchen"
   },
@@ -133,6 +137,41 @@
     "countryCode": "Ländervorwahl"
   },
   "common": {
-    "loading": "Laden..."
+    "loading": "Laden...",
+    "cancel": "Abbrechen"
+  },
+  "deviceLink": {
+    "choiceTitle": "Wie möchtest du beginnen?",
+    "choiceSubtitle": "Wähle, wie du CommEazy einrichten möchtest",
+    "newAccount": "Neues Konto",
+    "newAccountDescription": "Erstelle ein neues Konto mit deiner Telefonnummer",
+    "newAccountHint": "Starte ein neues Konto mit Telefonverifizierung",
+    "linkDevice": "Mit bestehendem Konto verbinden",
+    "linkDeviceDescription": "Nutze CommEazy auf diesem Gerät mit deinem bestehenden Konto",
+    "linkDeviceHint": "Scanne einen QR-Code von deinem anderen Gerät",
+    "securityNote": "Deine Nachrichten bleiben immer verschlüsselt und privat",
+    "scanTitle": "QR-Code scannen",
+    "pointCamera": "Richte die Kamera auf den QR-Code",
+    "scanInstructions": "Öffne CommEazy auf deinem anderen Gerät und gehe zu Einstellungen > Neues Gerät verbinden",
+    "invalidQR": "Dieser QR-Code ist ungültig. Bitte versuche es erneut.",
+    "connecting": "Verbinden...",
+    "connectingTo": "Verbinden mit {{device}}",
+    "receiving": "Empfangen...",
+    "receivingKeys": "Deine Sicherheitsschlüssel werden sicher übertragen",
+    "success": "Fertig! Dein Gerät ist verbunden.",
+    "connectionFailed": "Verbindung fehlgeschlagen. Bitte versuche es erneut.",
+    "showQRTitle": "Neues Gerät verbinden",
+    "showQRSubtitle": "Scanne diesen QR-Code mit deinem neuen Gerät",
+    "generatingQR": "QR-Code wird erstellt...",
+    "qrExpired": "QR-Code abgelaufen",
+    "qrExpiredMessage": "Erstelle einen neuen QR-Code, um fortzufahren",
+    "generateNew": "Neuer QR-Code",
+    "validFor": "Gültig für",
+    "deviceConnected": "Gerät verbunden!",
+    "step1": "Öffne CommEazy auf deinem neuen Gerät",
+    "step2": "Wähle 'Mit bestehendem Konto verbinden'",
+    "step3": "Scanne diesen QR-Code",
+    "qrPlaceholder": "QR-Code erscheint hier",
+    "qrGenerationFailed": "QR-Code konnte nicht erstellt werden. Bitte versuche es erneut."
   }
 }

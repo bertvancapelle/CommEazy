@@ -24,7 +24,7 @@ export function WelcomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
 
   const handleContinue = () => {
-    navigation.navigate('PhoneVerification');
+    navigation.navigate('DeviceChoice');
   };
 
   return (

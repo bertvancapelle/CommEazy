@@ -3,14 +3,23 @@
  *
  * User creates a 6-digit PIN for backup encryption.
  * Large keypad, senior-friendly.
+ *
+ * Senior-inclusive improvements:
+ * - Button always visible during create step
+ * - Auto-verify on last digit during confirm step
+ * - Show digits (not dots) on mismatch error
+ * - Digits briefly visible when typing
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -30,42 +39,79 @@ export function PinSetupScreen({ navigation, route }: Props) {
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDigitsOnError, setShowDigitsOnError] = useState(false);
+  const [clearCounter, setClearCounter] = useState(0);
+  const isVerifyingRef = useRef(false);
+
+  const currentPin = step === 'create' ? pin : confirmPin;
+  const isComplete = currentPin.length === 6;
+
+  // Auto-verify when confirm PIN is complete
+  useEffect(() => {
+    if (step === 'confirm' && confirmPin.length === 6 && !isVerifyingRef.current) {
+      isVerifyingRef.current = true;
+      verifyAndComplete();
+    }
+  }, [confirmPin, step]);
 
   const handlePinChange = (value: string) => {
     setError(null);
+    setShowDigitsOnError(false);
+
     if (step === 'create') {
       setPin(value);
+      // Dismiss keyboard when 6 digits entered so button is visible
+      if (value.length === 6) {
+        Keyboard.dismiss();
+      }
     } else {
       setConfirmPin(value);
     }
   };
 
-  const handleContinue = async () => {
-    if (step === 'create') {
-      setStep('confirm');
-      return;
-    }
+  const verifyAndComplete = async () => {
+    Keyboard.dismiss();
 
-    // Confirm step
+    // Check if PINs match
     if (pin !== confirmPin) {
       setError(t('onboarding.pinMismatch'));
-      setConfirmPin('');
+      setShowDigitsOnError(true);
+      isVerifyingRef.current = false;
+      // Don't clear confirmPin - show the digits so user can see the mismatch
       return;
     }
 
     setIsLoading(true);
     try {
-      // TODO: Generate key pair and create encrypted backup
-      // const encryptionService = container.get<EncryptionService>('encryption');
-      // await encryptionService.generateKeyPair();
-      // await encryptionService.createBackup(pin);
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // TODO: Store PIN securely for backup encryption
+      await new Promise(resolve => setTimeout(resolve, 500));
       navigation.navigate('Completion', { name });
     } catch (err) {
       setError(t('errors.genericError'));
+      isVerifyingRef.current = false;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleContinue = async () => {
+    Keyboard.dismiss();
+
+    if (step === 'create') {
+      // Move to confirm step
+      setStep('confirm');
+      setConfirmPin('');
+      setError(null);
+      setShowDigitsOnError(false);
+      isVerifyingRef.current = false;
+      return;
+    }
+
+    // In confirm step, if button is pressed (shouldn't happen normally
+    // since auto-verify triggers, but handle it anyway)
+    if (!isVerifyingRef.current) {
+      isVerifyingRef.current = true;
+      await verifyAndComplete();
     }
   };
 
@@ -74,62 +120,103 @@ export function PinSetupScreen({ navigation, route }: Props) {
       setStep('create');
       setConfirmPin('');
       setError(null);
+      setShowDigitsOnError(false);
+      isVerifyingRef.current = false;
     } else {
       navigation.goBack();
     }
   };
 
-  const currentPin = step === 'create' ? pin : confirmPin;
-  const isComplete = currentPin.length === 6;
+  const handleClear = () => {
+    if (step === 'create') {
+      setPin('');
+    } else {
+      setConfirmPin('');
+    }
+    setError(null);
+    setShowDigitsOnError(false);
+    setClearCounter(c => c + 1);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ProgressIndicator currentStep={4} totalSteps={5} />
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.inner}>
+          <ProgressIndicator currentStep={4} totalSteps={5} />
 
-      <View style={styles.content}>
-        <Text style={styles.title}>
-          {step === 'create' ? t('onboarding.createPin') : t('onboarding.confirmPin')}
-        </Text>
-        <Text style={styles.hint}>{t('onboarding.pinHint')}</Text>
+          <View style={styles.content}>
+            <Text style={styles.title}>
+              {step === 'create' ? t('onboarding.createPin') : t('onboarding.confirmPin')}
+            </Text>
+            <Text style={styles.hint}>{t('onboarding.pinHint')}</Text>
 
-        <View style={styles.pinContainer}>
-          <PinInput
-            value={currentPin}
-            onChange={handlePinChange}
-            length={6}
-            error={Boolean(error)}
-            accessibilityLabel={
-              step === 'create' ? t('onboarding.createPin') : t('onboarding.confirmPin')
-            }
-          />
+            <View style={styles.pinContainer}>
+              <PinInput
+                key={`${step}-${clearCounter}`}
+                value={currentPin}
+                onChange={handlePinChange}
+                length={6}
+                error={Boolean(error)}
+                showAllDigits={showDigitsOnError}
+                autoFocus={true}
+                accessibilityLabel={
+                  step === 'create' ? t('onboarding.createPin') : t('onboarding.confirmPin')
+                }
+              />
+            </View>
+
+            {currentPin.length > 0 && (
+              <Button
+                title={t('onboarding.clearPin')}
+                onPress={handleClear}
+                variant="text"
+                style={styles.clearButton}
+              />
+            )}
+
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
+
+            {step === 'create' && (
+              <Text style={styles.warningText}>{t('onboarding.pinWarning')}</Text>
+            )}
+          </View>
+
+          <View style={styles.footer}>
+            {step === 'confirm' && (
+              <Button
+                title={t('accessibility.backButton')}
+                onPress={handleBack}
+                variant="text"
+                style={styles.backButton}
+              />
+            )}
+
+            {/* Always show button in create step; hide in confirm step (auto-verify) unless error */}
+            {(step === 'create' || error) && (
+              <Button
+                title={step === 'create' ? t('onboarding.continue') : t('errors.tryAgain')}
+                onPress={step === 'create' ? handleContinue : handleBack}
+                disabled={step === 'create' && !isComplete}
+                loading={isLoading}
+              />
+            )}
+
+            {step === 'confirm' && !error && (
+              <View style={styles.autoVerifyHint}>
+                <Text style={styles.autoVerifyText}>
+                  {isLoading ? t('common.loading') : ''}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-
-        {error && (
-          <Text style={styles.errorText}>{error}</Text>
-        )}
-
-        <View style={styles.warningBox}>
-          <Text style={styles.warningIcon}>⚠️</Text>
-          <Text style={styles.warningText}>{t('onboarding.pinWarning')}</Text>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        {step === 'confirm' && (
-          <Button
-            title={t('accessibility.backButton')}
-            onPress={handleBack}
-            variant="text"
-            style={styles.backButton}
-          />
-        )}
-        <Button
-          title={step === 'create' ? t('onboarding.continue') : t('onboarding.finish')}
-          onPress={handleContinue}
-          disabled={!isComplete}
-          loading={isLoading}
-        />
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -139,10 +226,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
+  inner: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
   content: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.md,
   },
   title: {
     ...typography.h2,
@@ -153,12 +247,16 @@ const styles = StyleSheet.create({
   hint: {
     ...typography.body,
     color: colors.textSecondary,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
     textAlign: 'center',
   },
   pinContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  clearButton: {
+    alignSelf: 'center',
+    marginBottom: spacing.sm,
   },
   errorText: {
     ...typography.body,
@@ -166,28 +264,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.md,
   },
-  warningBox: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: spacing.lg,
-  },
-  warningIcon: {
-    fontSize: 20,
-    marginRight: spacing.sm,
-  },
   warningText: {
-    ...typography.small,
+    ...typography.body,
     color: colors.textSecondary,
-    flex: 1,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.md,
+    lineHeight: 24,
   },
   footer: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.md,
+    paddingTop: spacing.sm,
+    backgroundColor: colors.background,
   },
   backButton: {
     marginBottom: spacing.sm,
+  },
+  autoVerifyHint: {
+    height: 56, // Same height as button to prevent layout shift
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  autoVerifyText: {
+    ...typography.body,
+    color: colors.textSecondary,
   },
 });

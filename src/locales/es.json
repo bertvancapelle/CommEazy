@@ -19,6 +19,7 @@
     "pinHint": "Este PIN protege tus mensajes en un nuevo dispositivo",
     "confirmPin": "Confirma tu PIN",
     "pinMismatch": "Los PIN no coinciden. Inténtalo de nuevo.",
+    "clearPin": "Borrar",
     "pinWarning": "Anota tu PIN y guárdalo en un lugar seguro. Sin este PIN no podrás restaurar tu cuenta en un nuevo dispositivo.",
     "allSet": "¡Listo!",
     "allSetMessage": "Ya puedes enviar mensajes",
@@ -115,6 +116,9 @@
     "E500": "El código de verificación es inválido o ha expirado. Inténtalo de nuevo.",
     "E600": "Hay un problema con el almacenamiento local. Reinicia la aplicación.",
     "E601": "Espacio de almacenamiento insuficiente. Libera espacio en tu dispositivo.",
+    "invalidCode": "El código es incorrecto. Por favor verifica e inténtalo de nuevo.",
+    "invalidPhone": "Este número de teléfono no es válido. Por favor verifica el número.",
+    "tooManyRequests": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
     "genericError": "Algo salió mal. Inténtalo de nuevo.",
     "tryAgain": "Intentar de nuevo"
   },
@@ -133,6 +137,41 @@
     "countryCode": "Código de país"
   },
   "common": {
-    "loading": "Cargando..."
+    "loading": "Cargando...",
+    "cancel": "Cancelar"
+  },
+  "deviceLink": {
+    "choiceTitle": "¿Cómo quieres empezar?",
+    "choiceSubtitle": "Elige cómo configurar CommEazy",
+    "newAccount": "Nueva cuenta",
+    "newAccountDescription": "Crea una nueva cuenta con tu número de teléfono",
+    "newAccountHint": "Iniciar una nueva cuenta con verificación telefónica",
+    "linkDevice": "Vincular a cuenta existente",
+    "linkDeviceDescription": "Usa CommEazy en este dispositivo con tu cuenta existente",
+    "linkDeviceHint": "Escanea un código QR desde tu otro dispositivo",
+    "securityNote": "Tus mensajes siempre permanecen cifrados y privados",
+    "scanTitle": "Escanear código QR",
+    "pointCamera": "Apunta la cámara al código QR",
+    "scanInstructions": "Abre CommEazy en tu otro dispositivo y ve a Ajustes > Vincular nuevo dispositivo",
+    "invalidQR": "Este código QR no es válido. Inténtalo de nuevo.",
+    "connecting": "Conectando...",
+    "connectingTo": "Conectando con {{device}}",
+    "receiving": "Recibiendo...",
+    "receivingKeys": "Tus claves de seguridad se están transfiriendo de forma segura",
+    "success": "¡Listo! Tu dispositivo está vinculado.",
+    "connectionFailed": "Conexión fallida. Inténtalo de nuevo.",
+    "showQRTitle": "Vincular nuevo dispositivo",
+    "showQRSubtitle": "Escanea este código QR con tu nuevo dispositivo",
+    "generatingQR": "Generando código QR...",
+    "qrExpired": "Código QR expirado",
+    "qrExpiredMessage": "Genera un nuevo código QR para continuar",
+    "generateNew": "Nuevo código QR",
+    "validFor": "Válido durante",
+    "deviceConnected": "¡Dispositivo conectado!",
+    "step1": "Abre CommEazy en tu nuevo dispositivo",
+    "step2": "Elige 'Vincular a cuenta existente'",
+    "step3": "Escanea este código QR",
+    "qrPlaceholder": "El código QR aparecerá aquí",
+    "qrGenerationFailed": "Error al generar el código QR. Inténtalo de nuevo."
   }
 }

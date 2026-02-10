@@ -37,7 +37,10 @@ import { ChatListScreen, ChatScreen } from '@/screens/chat';
 import {
   LanguageSelectScreen,
   WelcomeScreen,
+  DeviceChoiceScreen,
   PhoneVerificationScreen,
+  DeviceLinkScanScreen,
+  DeviceLinkShowQRScreen,
   NameInputScreen,
   PinSetupScreen,
   CompletionScreen,
@@ -50,7 +53,9 @@ import {
 export type OnboardingStackParams = {
   LanguageSelect: undefined;
   Welcome: undefined;
+  DeviceChoice: undefined;
   PhoneVerification: undefined;
+  DeviceLinkScan: undefined;
   NameInput: undefined;
   PinSetup: { name: string };
   Completion: { name: string };
@@ -82,6 +87,7 @@ export type SettingsStackParams = {
   ProfileSettings: undefined;
   BackupSettings: undefined;
   DeviceTransfer: undefined;
+  DeviceLinkShowQR: undefined;
 };
 
 export type MainTabParams = {
@@ -142,8 +148,18 @@ function OnboardingNavigator() {
         options={{ title: '' }}
       />
       <OnboardingStack.Screen
+        name="DeviceChoice"
+        component={DeviceChoiceScreen}
+        options={{ title: '' }}
+      />
+      <OnboardingStack.Screen
         name="PhoneVerification"
         component={PhoneVerificationScreen}
+        options={{ title: '' }}
+      />
+      <OnboardingStack.Screen
+        name="DeviceLinkScan"
+        component={DeviceLinkScanScreen}
         options={{ title: '' }}
       />
       <OnboardingStack.Screen
@@ -224,6 +240,7 @@ function SettingsNavigator() {
       <SettingsStack.Screen name="ProfileSettings" component={PlaceholderScreen} />
       <SettingsStack.Screen name="BackupSettings" component={PlaceholderScreen} />
       <SettingsStack.Screen name="DeviceTransfer" component={PlaceholderScreen} />
+      <SettingsStack.Screen name="DeviceLinkShowQR" component={DeviceLinkShowQRScreen} />
     </SettingsStack.Navigator>
   );
 }

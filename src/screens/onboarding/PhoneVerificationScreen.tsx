@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { colors, typography, spacing } from '@/theme';
 import { Button, TextInput, ProgressIndicator, PinInput } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
@@ -34,6 +35,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
 
   const phoneInputRef = useRef<RNTextInput>(null);
 
@@ -42,14 +44,19 @@ export function PhoneVerificationScreen({ navigation }: Props) {
     setIsLoading(true);
 
     try {
-      // TODO: Integrate Firebase Auth
-      // await auth().signInWithPhoneNumber(`${countryCode}${phoneNumber}`);
-
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+      const confirmationResult = await auth().signInWithPhoneNumber(fullPhoneNumber);
+      setConfirmation(confirmationResult);
       setStep('code');
-    } catch (err) {
-      setError(t('errors.E500'));
+    } catch (err: any) {
+      console.log('Firebase phone auth error:', err.code, err.message);
+      if (err.code === 'auth/invalid-phone-number') {
+        setError(t('errors.invalidPhone'));
+      } else if (err.code === 'auth/too-many-requests') {
+        setError(t('errors.tooManyRequests'));
+      } else {
+        setError(t('errors.E500'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -60,14 +67,18 @@ export function PhoneVerificationScreen({ navigation }: Props) {
     setIsLoading(true);
 
     try {
-      // TODO: Integrate Firebase Auth verification
-      // await confirmationResult.confirm(verificationCode);
-
-      // Simulate verification for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!confirmation) {
+        throw new Error('No confirmation result');
+      }
+      await confirmation.confirm(verificationCode);
       navigation.navigate('NameInput');
-    } catch (err) {
-      setError(t('errors.E500'));
+    } catch (err: any) {
+      console.log('Firebase verify error:', err.code, err.message);
+      if (err.code === 'auth/invalid-verification-code') {
+        setError(t('errors.invalidCode'));
+      } else {
+        setError(t('errors.E500'));
+      }
       setVerificationCode('');
     } finally {
       setIsLoading(false);

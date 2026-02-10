@@ -21,6 +21,7 @@
     "pinHint": "Deze PIN beschermt je berichten bij een nieuw toestel",
     "confirmPin": "Bevestig je PIN",
     "pinMismatch": "De PIN komt niet overeen. Probeer het opnieuw.",
+    "clearPin": "Wissen",
     "pinWarning": "Schrijf je PIN op en bewaar het op een veilige plek. Zonder deze PIN kun je je account niet herstellen op een nieuw toestel.",
     "allSet": "Klaar!",
     "allSetMessage": "Je kunt nu berichten versturen",
@@ -121,6 +122,9 @@
     "E500": "Verificatiecode is ongeldig of verlopen. Probeer het opnieuw.",
     "E600": "Er is een probleem met de lokale opslag. Start de app opnieuw.",
     "E601": "Onvoldoende opslagruimte. Maak ruimte vrij op je toestel.",
+    "invalidCode": "De code is onjuist. Controleer en probeer opnieuw.",
+    "invalidPhone": "Dit telefoonnummer is niet geldig. Controleer het nummer.",
+    "tooManyRequests": "Te veel pogingen. Wacht even en probeer het opnieuw.",
     "genericError": "Er ging iets mis. Probeer het opnieuw.",
     "tryAgain": "Opnieuw proberen"
   },
@@ -139,6 +143,41 @@
     "countryCode": "Landcode"
   },
   "common": {
-    "loading": "Laden..."
+    "loading": "Laden...",
+    "cancel": "Annuleren"
+  },
+  "deviceLink": {
+    "choiceTitle": "Hoe wil je beginnen?",
+    "choiceSubtitle": "Kies hoe je CommEazy wilt instellen",
+    "newAccount": "Nieuw account",
+    "newAccountDescription": "Maak een nieuw account aan met je telefoonnummer",
+    "newAccountHint": "Start een nieuw account met telefoonverificatie",
+    "linkDevice": "Koppel aan bestaand account",
+    "linkDeviceDescription": "Gebruik CommEazy op dit toestel met je bestaande account",
+    "linkDeviceHint": "Scan een QR-code van je andere toestel",
+    "securityNote": "Je berichten blijven altijd versleuteld en privé",
+    "scanTitle": "Scan de QR-code",
+    "pointCamera": "Richt de camera op de QR-code",
+    "scanInstructions": "Open CommEazy op je andere toestel en ga naar Instellingen > Nieuw toestel koppelen",
+    "invalidQR": "Deze QR-code is niet geldig. Probeer opnieuw.",
+    "connecting": "Verbinden...",
+    "connectingTo": "Verbinden met {{device}}",
+    "receiving": "Ontvangen...",
+    "receivingKeys": "Je beveiligingssleutels worden veilig overgedragen",
+    "success": "Gelukt! Je toestel is gekoppeld.",
+    "connectionFailed": "Verbinding mislukt. Probeer het opnieuw.",
+    "showQRTitle": "Nieuw toestel koppelen",
+    "showQRSubtitle": "Scan deze QR-code met je nieuwe toestel",
+    "generatingQR": "QR-code genereren...",
+    "qrExpired": "QR-code verlopen",
+    "qrExpiredMessage": "Genereer een nieuwe QR-code om door te gaan",
+    "generateNew": "Nieuwe QR-code",
+    "validFor": "Geldig voor",
+    "deviceConnected": "Toestel verbonden!",
+    "step1": "Open CommEazy op je nieuwe toestel",
+    "step2": "Kies 'Koppel aan bestaand account'",
+    "step3": "Scan deze QR-code",
+    "qrPlaceholder": "QR-code verschijnt hier",
+    "qrGenerationFailed": "QR-code genereren mislukt. Probeer opnieuw."
   }
 }

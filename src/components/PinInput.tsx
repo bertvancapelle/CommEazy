@@ -6,9 +6,10 @@
  * - High contrast
  * - Clear visual feedback
  * - Accessible
+ * - Shows digit briefly before masking (senior-friendly)
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -25,6 +26,10 @@ interface PinInputProps {
   accessibilityLabel?: string;
   error?: boolean;
   secureTextEntry?: boolean;
+  /** Show all digits (not masked) - used for error display */
+  showAllDigits?: boolean;
+  /** Auto-focus on mount */
+  autoFocus?: boolean;
 }
 
 export function PinInput({
@@ -34,9 +39,49 @@ export function PinInput({
   accessibilityLabel,
   error = false,
   secureTextEntry = true,
+  showAllDigits = false,
+  autoFocus = false,
 }: PinInputProps) {
   const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
+  // Track which digit was just entered (to show briefly before masking)
+  const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
+  const visibleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-focus on mount if requested
+  useEffect(() => {
+    if (autoFocus) {
+      // Small delay to ensure component is mounted
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
+
+  // When value changes, show the last digit briefly
+  useEffect(() => {
+    if (value.length > 0 && secureTextEntry && !showAllDigits) {
+      // Clear any existing timeout
+      if (visibleTimeoutRef.current) {
+        clearTimeout(visibleTimeoutRef.current);
+      }
+
+      // Show the last entered digit
+      setVisibleIndex(value.length - 1);
+
+      // Hide it after 500ms
+      visibleTimeoutRef.current = setTimeout(() => {
+        setVisibleIndex(null);
+      }, 500);
+    }
+
+    return () => {
+      if (visibleTimeoutRef.current) {
+        clearTimeout(visibleTimeoutRef.current);
+      }
+    };
+  }, [value, secureTextEntry, showAllDigits]);
 
   const handlePress = () => {
     inputRef.current?.focus();
@@ -46,6 +91,22 @@ export function PinInput({
     // Only allow digits
     const digits = text.replace(/[^0-9]/g, '').slice(0, length);
     onChange(digits);
+  };
+
+  const getDisplayChar = (char: string | undefined, index: number): string => {
+    if (!char) return '';
+
+    // Always show if showAllDigits is true (error state)
+    if (showAllDigits) return char;
+
+    // Always show if secureTextEntry is false
+    if (!secureTextEntry) return char;
+
+    // Show if this is the digit that was just entered
+    if (index === visibleIndex) return char;
+
+    // Otherwise show dot
+    return '●';
   };
 
   return (
@@ -71,8 +132,8 @@ export function PinInput({
                 isFilled && styles.cellFilled,
               ]}
             >
-              <Text style={styles.cellText}>
-                {char ? (secureTextEntry ? '●' : char) : ''}
+              <Text style={[styles.cellText, error && styles.cellTextError]}>
+                {getDisplayChar(char, index)}
               </Text>
             </View>
           );
@@ -127,6 +188,9 @@ const styles = StyleSheet.create({
   cellText: {
     ...typography.h2,
     color: colors.textPrimary,
+  },
+  cellTextError: {
+    color: colors.error,
   },
   hiddenInput: {
     position: 'absolute',

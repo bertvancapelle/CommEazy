@@ -19,6 +19,7 @@
     "pinHint": "This PIN protects your messages on a new device",
     "confirmPin": "Confirm your PIN",
     "pinMismatch": "PINs don't match. Please try again.",
+    "clearPin": "Clear",
     "pinWarning": "Write down your PIN and keep it in a safe place. Without this PIN you cannot restore your account on a new device.",
     "allSet": "All set!",
     "allSetMessage": "You can now send messages",
@@ -115,6 +116,9 @@
     "E500": "Verification code is invalid or expired. Please try again.",
     "E600": "There's a problem with local storage. Please restart the app.",
     "E601": "Not enough storage space. Free up space on your device.",
+    "invalidCode": "The code is incorrect. Please check and try again.",
+    "invalidPhone": "This phone number is not valid. Please check the number.",
+    "tooManyRequests": "Too many attempts. Please wait a moment and try again.",
     "genericError": "Something went wrong. Please try again.",
     "tryAgain": "Try again"
   },
@@ -133,6 +137,41 @@
     "countryCode": "Country code"
   },
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "cancel": "Cancel"
+  },
+  "deviceLink": {
+    "choiceTitle": "How do you want to start?",
+    "choiceSubtitle": "Choose how to set up CommEazy",
+    "newAccount": "New account",
+    "newAccountDescription": "Create a new account with your phone number",
+    "newAccountHint": "Start a new account with phone verification",
+    "linkDevice": "Link to existing account",
+    "linkDeviceDescription": "Use CommEazy on this device with your existing account",
+    "linkDeviceHint": "Scan a QR code from your other device",
+    "securityNote": "Your messages always stay encrypted and private",
+    "scanTitle": "Scan the QR code",
+    "pointCamera": "Point the camera at the QR code",
+    "scanInstructions": "Open CommEazy on your other device and go to Settings > Link new device",
+    "invalidQR": "This QR code is not valid. Please try again.",
+    "connecting": "Connecting...",
+    "connectingTo": "Connecting to {{device}}",
+    "receiving": "Receiving...",
+    "receivingKeys": "Your security keys are being transferred securely",
+    "success": "Success! Your device is linked.",
+    "connectionFailed": "Connection failed. Please try again.",
+    "showQRTitle": "Link new device",
+    "showQRSubtitle": "Scan this QR code with your new device",
+    "generatingQR": "Generating QR code...",
+    "qrExpired": "QR code expired",
+    "qrExpiredMessage": "Generate a new QR code to continue",
+    "generateNew": "New QR code",
+    "validFor": "Valid for",
+    "deviceConnected": "Device connected!",
+    "step1": "Open CommEazy on your new device",
+    "step2": "Choose 'Link to existing account'",
+    "step3": "Scan this QR code",
+    "qrPlaceholder": "QR code will appear here",
+    "qrGenerationFailed": "Failed to generate QR code. Please try again."
   }
 }
