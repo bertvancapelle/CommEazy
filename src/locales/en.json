@@ -44,7 +44,13 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "newChat": "New chat",
-    "newGroup": "New group"
+    "newGroup": "New group",
+    "noChats": "No conversations yet",
+    "noChatsHint": "Start a conversation with a contact",
+    "startChat": "Start a conversation",
+    "openConversation": "Open this conversation",
+    "messageList": "{{count}} messages",
+    "expired": "Expired"
   },
   "group": {
     "create": "Create group",
@@ -125,5 +131,8 @@
     "unreadMessages": "{{count}} unread messages",
     "continueToPhoneVerification": "Continue to phone verification",
     "countryCode": "Country code"
+  },
+  "common": {
+    "loading": "Loading..."
   }
 }

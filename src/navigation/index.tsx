@@ -30,6 +30,9 @@ import { colors, typography, touchTargets } from '@/theme';
 // Placeholder screens — replace with actual implementations
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 
+// Chat screens
+import { ChatListScreen, ChatScreen } from '@/screens/chat';
+
 // Onboarding screens
 import {
   LanguageSelectScreen,
@@ -163,15 +166,29 @@ function OnboardingNavigator() {
 }
 
 function ChatsNavigator() {
+  const { t } = useTranslation();
+
   return (
     <ChatStack.Navigator
       screenOptions={{
         headerTitleStyle: typography.h3,
         headerBackTitleVisible: false,
+        headerTintColor: colors.primary,
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
       }}
     >
-      <ChatStack.Screen name="ChatList" component={PlaceholderScreen} />
-      <ChatStack.Screen name="ChatDetail" component={PlaceholderScreen} />
+      <ChatStack.Screen
+        name="ChatList"
+        component={ChatListScreen}
+        options={{ title: t('tabs.chats') }}
+      />
+      <ChatStack.Screen
+        name="ChatDetail"
+        component={ChatScreen}
+        options={({ route }) => ({ title: route.params.name })}
+      />
       <ChatStack.Screen name="AudioCall" component={PlaceholderScreen} />
       <ChatStack.Screen name="VideoCall" component={PlaceholderScreen} />
     </ChatStack.Navigator>

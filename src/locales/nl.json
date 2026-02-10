@@ -50,7 +50,13 @@
     "today": "Vandaag",
     "yesterday": "Gisteren",
     "newChat": "Nieuw gesprek",
-    "newGroup": "Nieuwe groep"
+    "newGroup": "Nieuwe groep",
+    "noChats": "Nog geen gesprekken",
+    "noChatsHint": "Start een gesprek met een contact",
+    "startChat": "Start een gesprek",
+    "openConversation": "Open dit gesprek",
+    "messageList": "{{count}} berichten",
+    "expired": "Verlopen"
   },
   "group": {
     "create": "Groep aanmaken",
@@ -131,5 +137,8 @@
     "unreadMessages": "{{count}} ongelezen berichten",
     "continueToPhoneVerification": "Ga verder naar telefoonverificatie",
     "countryCode": "Landcode"
+  },
+  "common": {
+    "loading": "Laden..."
   }
 }

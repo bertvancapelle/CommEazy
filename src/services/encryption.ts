@@ -23,6 +23,7 @@ import type {
   KeyPair,
   Recipient,
 } from './interfaces';
+import { AppError } from './interfaces';
 
 const ENCRYPTION_THRESHOLD = 8;
 const BACKUP_VERSION = 1;
@@ -36,6 +37,15 @@ export class SodiumEncryptionService implements EncryptionService {
   private publicKey: Uint8Array | null = null;
   private privateKey: Uint8Array | null = null;
   private initialized = false;
+  private myJid: string | null = null;
+
+  /**
+   * Set the current user's JID.
+   * Required for decrypt operations in group chats.
+   */
+  setMyJid(jid: string): void {
+    this.myJid = jid;
+  }
 
   async initialize(): Promise<void> {
     await sodium.ready;
@@ -94,20 +104,35 @@ export class SodiumEncryptionService implements EncryptionService {
   ): Promise<EncryptedPayload> {
     this.ensureKeys();
 
+    // Validate recipients (E202: Key not found)
+    if (recipients.length === 0) {
+      throw new AppError('E202', 'encryption', () => {}, {
+        reason: 'no_recipients',
+      });
+    }
+
     const data = typeof plaintext === 'string'
       ? sodium.from_string(plaintext)
       : plaintext;
 
-    // Select encryption mode
-    if (recipients.length === 1) {
-      return this.encryptDirect(data, recipients[0]);
-    }
+    try {
+      // Select encryption mode
+      if (recipients.length === 1) {
+        return this.encryptDirect(data, recipients[0]);
+      }
 
-    if (recipients.length <= ENCRYPTION_THRESHOLD) {
-      return this.encryptToAll(data, recipients);
-    }
+      if (recipients.length <= ENCRYPTION_THRESHOLD) {
+        return this.encryptToAll(data, recipients);
+      }
 
-    return this.encryptSharedKey(data, recipients);
+      return this.encryptSharedKey(data, recipients);
+    } catch (error) {
+      // E200: Encryption failed - NEVER fall back to plaintext
+      throw new AppError('E200', 'encryption', () => {}, {
+        reason: 'encrypt_failed',
+        // NEVER include key material in error context
+      });
+    }
   }
 
   async decrypt(
@@ -116,15 +141,26 @@ export class SodiumEncryptionService implements EncryptionService {
   ): Promise<string> {
     this.ensureKeys();
 
-    switch (payload.mode) {
-      case '1on1':
-        return this.decryptDirect(payload, senderPublicKey);
-      case 'encrypt-to-all':
-        return this.decryptFromAll(payload, senderPublicKey);
-      case 'shared-key':
-        return this.decryptSharedKey(payload, senderPublicKey);
-      default:
-        throw new Error(`Unknown encryption mode: ${payload.mode}`);
+    try {
+      switch (payload.mode) {
+        case '1on1':
+          return this.decryptDirect(payload, senderPublicKey);
+        case 'encrypt-to-all':
+          return this.decryptFromAll(payload, senderPublicKey);
+        case 'shared-key':
+          return this.decryptSharedKey(payload, senderPublicKey);
+        default:
+          throw new AppError('E201', 'encryption', () => {}, {
+            reason: 'unknown_mode',
+          });
+      }
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      // E201: Decryption failed
+      throw new AppError('E201', 'encryption', () => {}, {
+        reason: 'decrypt_failed',
+        // NEVER include key material in error context
+      });
     }
   }
 
@@ -184,20 +220,22 @@ export class SodiumEncryptionService implements EncryptionService {
   }
 
   async restoreBackup(pin: string, backup: EncryptedBackup): Promise<KeyPair> {
-    const salt = sodium.from_base64(backup.salt);
-    const nonce = sodium.from_base64(backup.iv);
-    const encrypted = sodium.from_base64(backup.encrypted);
-
-    const derivedKey = sodium.crypto_pwhash(
-      32,
-      pin,
-      salt,
-      sodium.crypto_pwhash_OPSLIMIT_MODERATE,
-      sodium.crypto_pwhash_MEMLIMIT_MODERATE,
-      sodium.crypto_pwhash_ALG_ARGON2ID13,
-    );
+    let derivedKey: Uint8Array | null = null;
 
     try {
+      const salt = sodium.from_base64(backup.salt);
+      const nonce = sodium.from_base64(backup.iv);
+      const encrypted = sodium.from_base64(backup.encrypted);
+
+      derivedKey = sodium.crypto_pwhash(
+        32,
+        pin,
+        salt,
+        sodium.crypto_pwhash_OPSLIMIT_MODERATE,
+        sodium.crypto_pwhash_MEMLIMIT_MODERATE,
+        sodium.crypto_pwhash_ALG_ARGON2ID13,
+      );
+
       const privateKey = sodium.crypto_secretbox_open_easy(encrypted, nonce, derivedKey);
       const publicKey = sodium.crypto_scalarmult_base(privateKey);
 
@@ -220,8 +258,16 @@ export class SodiumEncryptionService implements EncryptionService {
         publicKey: sodium.to_base64(publicKey),
         privateKey: sodium.to_base64(privateKey),
       };
+    } catch (error) {
+      // E201: Decryption failed (wrong PIN or tampered backup)
+      throw new AppError('E201', 'encryption', () => {}, {
+        reason: 'backup_restore_failed',
+        // NEVER include PIN or key material in error context
+      });
     } finally {
-      sodium.memzero(derivedKey);
+      if (derivedKey) {
+        sodium.memzero(derivedKey);
+      }
     }
   }
 
@@ -377,8 +423,12 @@ export class SodiumEncryptionService implements EncryptionService {
   }
 
   private getMyJid(): string {
-    // TODO: inject from auth context
-    throw new Error('getMyJid not yet implemented — wire up auth context');
+    if (!this.myJid) {
+      throw new AppError('E202', 'encryption', () => {}, {
+        reason: 'jid_not_set',
+      });
+    }
+    return this.myJid;
   }
 
   private ensureInitialized(): void {

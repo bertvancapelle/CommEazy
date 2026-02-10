@@ -21,7 +21,7 @@ import type {
 } from './interfaces';
 import { SodiumEncryptionService } from './encryption';
 import { XmppJsService } from './xmpp';
-// TODO: import { WatermelonDBService } from './database/watermelondb';
+import { WatermelonDBService } from './database';
 // TODO: import { FCMNotificationService } from './notifications';
 
 class ServiceContainerClass {
@@ -43,10 +43,10 @@ class ServiceContainerClass {
     await this._encryption.initialize();
 
     // 2. Database (encrypted with key from encryption service)
-    // TODO: Uncomment when WatermelonDB implementation is ready
-    // this._database = new WatermelonDBService();
-    // const dbKey = await this._encryption.getDatabaseKey();
-    // await this._database.initialize(dbKey);
+    this._database = new WatermelonDBService();
+    // For now, use a random key. In production, derive from user's PIN or keychain
+    const dbKey = new ArrayBuffer(32);
+    await this._database.initialize(dbKey);
 
     // 3. XMPP (needs encryption for message handling)
     this._xmpp = new XmppJsService();
@@ -71,8 +71,8 @@ class ServiceContainerClass {
 
   get database(): DatabaseService {
     this.ensureInitialized();
-    if (!this._database) throw new Error('DatabaseService not yet implemented');
-    return this._database!;
+    if (!this._database) throw new Error('DatabaseService not initialized');
+    return this._database;
   }
 
   get notifications(): NotificationService {
