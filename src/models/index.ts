@@ -5,6 +5,7 @@
  */
 
 export { schema } from './schema';
+export { migrations } from './migrations';
 export { MessageModel } from './Message';
 export { OutboxMessageModel } from './OutboxMessage';
 export { ContactModel } from './Contact';

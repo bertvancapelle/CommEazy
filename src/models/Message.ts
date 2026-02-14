@@ -19,6 +19,7 @@ export class MessageModel extends Model {
   @field('content_type') contentType!: ContentType;
   @field('timestamp') timestamp!: number;
   @field('status') status!: DeliveryStatus;
+  @field('is_read') isRead!: boolean;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 
@@ -29,6 +30,17 @@ export class MessageModel extends Model {
     await this.update(record => {
       record.status = newStatus;
     });
+  }
+
+  /**
+   * Mark message as read
+   */
+  @writer async markAsRead(): Promise<void> {
+    if (!this.isRead) {
+      await this.update(record => {
+        record.isRead = true;
+      });
+    }
   }
 
   /**

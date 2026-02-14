@@ -11,10 +11,10 @@
  * @see .claude/skills/xmpp-specialist/SKILL.md for offline sync protocol
  */
 
-import { v4 as uuidv4 } from 'uuid';
-import sodium from 'libsodium-wrappers';
+import uuid from 'react-native-uuid';
 
 import { ServiceContainer } from './container';
+import { isPlaintextMode } from './mock';
 import type {
   Message,
   OutboxMessage,
@@ -24,12 +24,24 @@ import type {
   Unsubscribe,
   DeliveryStatus,
   Recipient,
+  PresenceShow,
 } from './interfaces';
 import { AppError } from './interfaces';
 import { OutboxMessageModel } from '@/models';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Retry intervals with exponential backoff (in milliseconds)
+// 30s → 1m → 2m → 5m → 15m (max)
+const RETRY_INTERVALS = [
+  30 * 1000,       // 30 seconds
+  60 * 1000,       // 1 minute
+  2 * 60 * 1000,   // 2 minutes
+  5 * 60 * 1000,   // 5 minutes
+  15 * 60 * 1000,  // 15 minutes (max)
+];
+
+/** @deprecated Use ChatListItemWithContact instead */
 export interface ChatListItem {
   chatId: string;
   contactJid: string;
@@ -40,6 +52,14 @@ export interface ChatListItem {
   isOnline: boolean;
 }
 
+/** Chat list item with full contact and message objects */
+export interface ChatListItemWithContact {
+  chatId: string;
+  contact: Contact;
+  lastMessage: Message | null;
+  unreadCount: number;
+}
+
 export interface SendMessageResult {
   messageId: string;
   status: DeliveryStatus;
@@ -48,9 +68,39 @@ export interface SendMessageResult {
 export class ChatService {
   private myJid: string | null = null;
   private myName: string | null = null;
-  private presenceMap: Map<string, boolean> = new Map();
+  private presenceMap: Map<string, PresenceShow> = new Map();
   private unsubscribers: Unsubscribe[] = [];
   private messageListeners: Set<(message: Message) => void> = new Set();
+  private presenceListeners: Set<(jid: string, show: PresenceShow) => void> = new Set();
+  private statusListeners: Set<(messageId: string, status: DeliveryStatus) => void> = new Set();
+
+  // Retry state
+  private retryTimer: NodeJS.Timeout | null = null;
+  private retryAttempt: number = 0;
+  private isRetrying: boolean = false;
+
+  /**
+   * Check if the chat service has been initialized with user credentials.
+   */
+  get isInitialized(): boolean {
+    return this.myJid !== null && this.myName !== null;
+  }
+
+  /**
+   * Get the current user's JID.
+   * Returns null if not initialized.
+   */
+  getMyJid(): string | null {
+    return this.myJid;
+  }
+
+  /**
+   * Get the current user's display name.
+   * Returns null if not initialized.
+   */
+  getMyName(): string | null {
+    return this.myName;
+  }
 
   /**
    * Initialize chat service with current user info.
@@ -71,6 +121,60 @@ export class ChatService {
 
     // Start daily outbox cleanup
     this.scheduleOutboxCleanup();
+
+    // Subscribe to presence from all contacts (required for presence updates)
+    await this.subscribeToAllContactsPresence();
+  }
+
+  /**
+   * Subscribe to presence updates from all contacts.
+   * This is required by XMPP to receive presence (online/offline) notifications.
+   *
+   * In dev mode, only subscribes to real test device JIDs (ik@, oma@) to avoid
+   * warnings about mock contacts that don't exist on the XMPP server.
+   */
+  private async subscribeToAllContactsPresence(): Promise<void> {
+    try {
+      const contacts: Contact[] = [];
+      const unsubscribe = ServiceContainer.database.getContacts().subscribe(c => {
+        contacts.push(...c);
+      });
+      unsubscribe();
+
+      const xmpp = ServiceContainer.xmpp;
+
+      // In dev mode, filter to only real XMPP users to avoid warnings
+      const realXmppJids = __DEV__
+        ? ['ik@commeazy.local', 'oma@commeazy.local']
+        : null;
+
+      for (const contact of contacts) {
+        // Skip mock contacts in dev mode (they don't exist on XMPP server)
+        if (realXmppJids && !realXmppJids.includes(contact.jid)) {
+          continue;
+        }
+
+        try {
+          await xmpp.subscribeToPresence(contact.jid);
+          console.log(`[ChatService] Subscribed to presence of ${contact.jid}`);
+          // Also probe for current presence status immediately
+          await xmpp.probePresence(contact.jid);
+        } catch (error) {
+          console.warn(`[ChatService] Failed to subscribe to ${contact.jid}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('[ChatService] Failed to subscribe to contacts presence:', error);
+    }
+  }
+
+  /**
+   * Refresh presence subscriptions after reconnecting.
+   * Call this when XMPP reconnects to ensure we receive presence updates.
+   */
+  async refreshPresenceSubscriptions(): Promise<void> {
+    console.log('[ChatService] Refreshing presence subscriptions...');
+    await this.subscribeToAllContactsPresence();
   }
 
   /**
@@ -90,22 +194,42 @@ export class ChatService {
       });
     }
 
-    const messageId = uuidv4();
+    const messageId = uuid.v4() as string;
     const timestamp = Date.now();
     const chatId = this.getChatId(contactJid);
 
-    // Prepare recipient
-    const recipient: Recipient = {
-      jid: contactJid,
-      publicKey: sodium.from_base64(contact.publicKey),
-    };
-
     try {
-      // Encrypt message
-      const encryptedPayload = await ServiceContainer.encryption.encrypt(
-        content,
-        [recipient],
-      );
+      let encryptedPayload: EncryptedPayload;
+
+      // DEV MODE: Plaintext mode bypasses encryption for 2-device testing
+      if (__DEV__ && isPlaintextMode()) {
+        console.log('[ChatService] PLAINTEXT MODE: Sending unencrypted message');
+        // Create a "fake" encrypted payload that's actually plaintext
+        encryptedPayload = {
+          mode: 'plaintext' as any, // Special mode for dev testing
+          data: content, // Plain text content
+          metadata: {
+            nonce: 'dev-plaintext-mode',
+            to: contactJid,
+          },
+        };
+      } else {
+        // PRODUCTION: Real encryption
+        // Dynamically import libsodium only when needed (avoids Hermes issues in dev)
+        const { from_base64, base64_variants } = await import('react-native-libsodium');
+
+        // Prepare recipient
+        const recipient: Recipient = {
+          jid: contactJid,
+          publicKey: from_base64(contact.publicKey, base64_variants.ORIGINAL),
+        };
+
+        // Encrypt message
+        encryptedPayload = await ServiceContainer.encryption.encrypt(
+          content,
+          [recipient],
+        );
+      }
 
       // Save to local messages (decrypted for display)
       const message: Message = {
@@ -117,8 +241,12 @@ export class ChatService {
         contentType: 'text',
         timestamp,
         status: 'pending',
+        isRead: true, // Own messages are always "read"
       };
       await ServiceContainer.database.saveMessage(message);
+
+      // Notify listeners so chat list updates
+      this.messageListeners.forEach(listener => listener(message));
 
       // Try to send via XMPP
       const xmpp = ServiceContainer.xmpp;
@@ -139,6 +267,7 @@ export class ChatService {
       }
     } catch (error) {
       // Encryption or database error
+      console.error('sendMessage error:', error);
       if (error instanceof AppError) throw error;
 
       throw new AppError('E300', 'delivery', () => this.retrySendMessage(messageId), {
@@ -164,10 +293,10 @@ export class ChatService {
   /**
    * Get list of all chats with last message info.
    */
-  async getChatList(): Promise<ChatListItem[]> {
+  async getChatList(): Promise<ChatListItemWithContact[]> {
     this.ensureInitialized();
 
-    const chatList: ChatListItem[] = [];
+    const chatList: ChatListItemWithContact[] = [];
     const contacts: Contact[] = [];
 
     // Get all contacts via subscription
@@ -181,21 +310,78 @@ export class ChatService {
       const messages = await ServiceContainer.database.getMessages(chatId, 1);
 
       if (messages.length > 0) {
+        const unreadCount = await ServiceContainer.database.getUnreadCount(chatId);
         chatList.push({
           chatId,
-          contactJid: contact.jid,
-          contactName: contact.name,
-          lastMessage: messages[0].content,
-          lastMessageTime: messages[0].timestamp,
-          unreadCount: 0, // TODO: Implement unread tracking
-          isOnline: this.presenceMap.get(contact.jid) ?? false,
+          contact,
+          lastMessage: messages[0],
+          unreadCount,
         });
       }
     }
 
     // Sort by last message time (newest first)
-    chatList.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+    chatList.sort((a, b) => (b.lastMessage?.timestamp ?? 0) - (a.lastMessage?.timestamp ?? 0));
     return chatList;
+  }
+
+  /**
+   * Observe chat list for real-time updates.
+   * Returns an observable that emits whenever contacts or messages change.
+   */
+  observeChatList(): Observable<ChatListItemWithContact[]> {
+    const subscribers: Set<(chatList: ChatListItemWithContact[]) => void> = new Set();
+
+    // Helper to build and emit chat list
+    const emitChatList = async () => {
+      try {
+        const chatList = await this.getChatList();
+        subscribers.forEach(sub => sub(chatList));
+      } catch (error) {
+        console.error('Failed to build chat list:', error);
+      }
+    };
+
+    // Subscribe to contacts changes and message changes
+    let contactsUnsub: Unsubscribe | null = null;
+    let messageUnsub: Unsubscribe | null = null;
+
+    return {
+      subscribe: (callback) => {
+        subscribers.add(callback);
+
+        // On first subscriber, set up observations
+        if (subscribers.size === 1) {
+          // Re-emit when contacts change
+          contactsUnsub = ServiceContainer.database.getContacts().subscribe(() => {
+            void emitChatList();
+          });
+
+          // Re-emit when new messages arrive
+          messageUnsub = this.onMessage(() => {
+            void emitChatList();
+          });
+        }
+
+        // Emit immediately
+        void emitChatList();
+
+        // Return unsubscribe function
+        return () => {
+          subscribers.delete(callback);
+          if (subscribers.size === 0) {
+            if (contactsUnsub) {
+              contactsUnsub();
+              contactsUnsub = null;
+            }
+            if (messageUnsub) {
+              messageUnsub();
+              messageUnsub = null;
+            }
+          }
+        };
+      },
+    };
   }
 
   /**
@@ -218,20 +404,106 @@ export class ChatService {
   }
 
   /**
-   * Check if a contact is online.
+   * Check if a contact is online (any presence except offline).
    */
   isContactOnline(contactJid: string): boolean {
-    return this.presenceMap.get(contactJid) ?? false;
+    const show = this.presenceMap.get(contactJid);
+    return show !== undefined && show !== 'offline';
+  }
+
+  /**
+   * Get the detailed presence status of a contact.
+   * Returns 'offline' if no presence has been received.
+   */
+  getContactPresence(contactJid: string): PresenceShow {
+    return this.presenceMap.get(contactJid) ?? 'offline';
+  }
+
+  /**
+   * Subscribe to presence changes for real-time status updates.
+   */
+  onPresenceChange(listener: (jid: string, show: PresenceShow) => void): Unsubscribe {
+    this.presenceListeners.add(listener);
+    return () => this.presenceListeners.delete(listener);
+  }
+
+  /**
+   * Subscribe to message status changes (pending → sent → delivered).
+   * Use this to update the UI when delivery receipts arrive.
+   */
+  onMessageStatusChange(listener: (messageId: string, status: DeliveryStatus) => void): Unsubscribe {
+    this.statusListeners.add(listener);
+    return () => this.statusListeners.delete(listener);
+  }
+
+  /**
+   * Mark all messages in a chat as read.
+   * Call this when opening a chat screen.
+   */
+  async markChatAsRead(chatId: string): Promise<void> {
+    await ServiceContainer.database.markAllMessagesAsRead(chatId);
+  }
+
+  /**
+   * Get unread message count for a chat.
+   */
+  async getUnreadCount(chatId: string): Promise<number> {
+    return ServiceContainer.database.getUnreadCount(chatId);
   }
 
   /**
    * Cleanup and disconnect.
    */
   async cleanup(): Promise<void> {
+    this.stopRetryTimer();
     this.unsubscribers.forEach(unsub => unsub());
     this.unsubscribers = [];
     this.messageListeners.clear();
+    this.presenceListeners.clear();
+    this.statusListeners.clear();
     this.presenceMap.clear();
+  }
+
+  /**
+   * Start the outbox retry timer.
+   * Call this when the app comes to the foreground.
+   * Uses exponential backoff: 30s → 1m → 2m → 5m → 15m
+   */
+  startRetryTimer(): void {
+    if (this.retryTimer) {
+      console.log('[ChatService] Retry timer already running');
+      return;
+    }
+
+    // Reset retry attempt counter when starting fresh
+    this.retryAttempt = 0;
+    console.log('[ChatService] Starting outbox retry timer');
+    this.scheduleNextRetry();
+  }
+
+  /**
+   * Stop the outbox retry timer.
+   * Call this when the app goes to the background.
+   */
+  stopRetryTimer(): void {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+      console.log('[ChatService] Stopped outbox retry timer');
+    }
+    this.isRetrying = false;
+  }
+
+  /**
+   * Check if there are pending messages in the outbox.
+   */
+  async hasPendingMessages(): Promise<boolean> {
+    try {
+      const pending = await ServiceContainer.database.getPendingOutbox();
+      return pending.length > 0;
+    } catch {
+      return false;
+    }
   }
 
   // ============================================================
@@ -265,31 +537,64 @@ export class ChatService {
     payload: EncryptedPayload,
     id: string,
   ): Promise<void> {
+    // Defensive check for undefined from
+    if (!from) {
+      console.warn('[ChatService] handleIncomingMessage called with undefined from');
+      return;
+    }
+
+    console.log(`[ChatService] handleIncomingMessage from: ${from}, id: ${id}`);
     try {
+      // Extract bare JID (remove resource like /gajim.ABC123)
+      const bareFrom = from.split('/')[0];
+      console.log(`[ChatService] Looking up contact: ${bareFrom}`);
+
       // Get sender's contact info
-      const contact = await ServiceContainer.database.getContact(from);
+      const contact = await ServiceContainer.database.getContact(bareFrom);
       if (!contact) {
-        console.warn('Received message from unknown contact:', from);
+        console.warn(`[ChatService] Unknown contact: ${bareFrom} — message ignored`);
         return;
       }
+      console.log(`[ChatService] Found contact: ${contact.name}, publicKey length: ${contact.publicKey?.length ?? 0}`);
 
-      // Decrypt message
-      const senderPk = sodium.from_base64(contact.publicKey);
-      const content = await ServiceContainer.encryption.decrypt(payload, senderPk);
+      let content: string;
+
+      // DEV MODE: Check for plaintext mode messages
+      if (__DEV__ && (payload.mode as any) === 'plaintext') {
+        console.log(`[ChatService] PLAINTEXT MODE: Received unencrypted message`);
+        content = payload.data; // Data is plain text in this mode
+      } else {
+        // PRODUCTION: Real decryption
+        // Check if contact has a public key
+        if (!contact.publicKey) {
+          console.warn(`[ChatService] Contact ${contact.name} has no public key — cannot decrypt`);
+          return;
+        }
+
+        // Dynamically import libsodium only when needed (avoids Hermes issues in dev)
+        const { from_base64, base64_variants } = await import('react-native-libsodium');
+
+        // Decrypt message
+        const senderPk = from_base64(contact.publicKey, base64_variants.ORIGINAL);
+        content = await ServiceContainer.encryption.decrypt(payload, senderPk);
+      }
+      console.log(`[ChatService] Message content: ${content.substring(0, 50)}...`);
 
       // Save to database
-      const chatId = this.getChatId(from);
+      const chatId = this.getChatId(bareFrom);
       const message: Message = {
         id,
         chatId,
-        senderId: from,
+        senderId: bareFrom,
         senderName: contact.name,
         content,
         contentType: 'text',
         timestamp: Date.now(),
         status: 'delivered',
+        isRead: false, // Incoming messages start as unread
       };
       await ServiceContainer.database.saveMessage(message);
+      console.log(`[ChatService] Message saved to database`);
 
       // Notify listeners
       this.messageListeners.forEach(listener => listener(message));
@@ -301,14 +606,24 @@ export class ChatService {
 
   private async handleDeliveryReceipt(messageId: string, from: string): Promise<void> {
     try {
+      console.log(`[ChatService] Delivery receipt received for message ${messageId} from ${from}`);
+
       // Update message status to delivered
-      const db = ServiceContainer.database as any;
-      if (typeof db.updateMessageStatus === 'function') {
-        await db.updateMessageStatus(messageId, 'delivered');
+      await ServiceContainer.database.updateMessageStatus(messageId, 'delivered');
+
+      // Also update outbox (may not exist if message was sent directly)
+      try {
+        await ServiceContainer.database.markDelivered(messageId, from);
+      } catch (outboxError: any) {
+        // Ignore "not found" errors - message wasn't in outbox (direct send)
+        if (!outboxError?.message?.includes('not found')) {
+          throw outboxError;
+        }
       }
 
-      // Also update outbox
-      await ServiceContainer.database.markDelivered(messageId, from);
+      // Notify status listeners so UI can update (pending → delivered)
+      console.log(`[ChatService] Notifying ${this.statusListeners.size} status listeners`);
+      this.statusListeners.forEach(listener => listener(messageId, 'delivered'));
     } catch (error) {
       // Non-critical, log and continue
       console.warn('Failed to process delivery receipt:', error);
@@ -317,15 +632,180 @@ export class ChatService {
 
   private async handlePresenceUpdate(
     from: string,
-    status: 'online' | 'offline',
+    show: PresenceShow,
   ): Promise<void> {
-    const wasOnline = this.presenceMap.get(from);
-    const isOnline = status === 'online';
-    this.presenceMap.set(from, isOnline);
+    // Defensive check for undefined from
+    if (!from) {
+      console.warn('[ChatService] handlePresenceUpdate called with undefined from');
+      return;
+    }
 
-    // If contact came online, send pending outbox messages
-    if (!wasOnline && isOnline) {
-      await this.sendPendingOutboxMessages(from);
+    // Extract bare JID (remove resource like /gajim or /mobile)
+    const bareJid = from.split('/')[0];
+
+    const previousShow = this.presenceMap.get(bareJid);
+    // Consider 'unknown' (undefined) as offline for the purpose of triggering message send
+    const wasOnline = previousShow !== undefined && previousShow !== 'offline';
+    const isNowOnline = show !== 'offline';
+
+    this.presenceMap.set(bareJid, show);
+
+    console.log(`[ChatService] Presence: ${bareJid} | prev=${previousShow ?? 'undefined'} wasOnline=${wasOnline} | now=${show} isNowOnline=${isNowOnline}`);
+
+    // Notify presence listeners for UI updates
+    this.presenceListeners.forEach(listener => listener(bareJid, show));
+
+    // If contact came online (from offline or unknown), send pending outbox messages
+    // Also trigger if we have pending messages and contact is online (to handle reconnect scenarios)
+    if (isNowOnline) {
+      // Check if we have pending messages for this contact
+      const hasPending = await this.hasPendingMessagesFor(bareJid);
+      if (hasPending) {
+        console.log(`[ChatService] Contact ${bareJid} is ONLINE and has pending messages - sending now`);
+        await this.sendPendingOutboxMessages(bareJid);
+      } else if (!wasOnline) {
+        console.log(`[ChatService] Contact ${bareJid} came ONLINE (no pending messages)`);
+      }
+    } else if (wasOnline) {
+      console.log(`[ChatService] Contact ${bareJid} went OFFLINE`);
+    }
+  }
+
+  /**
+   * Check if there are pending messages for a specific recipient.
+   */
+  private async hasPendingMessagesFor(recipientJid: string): Promise<boolean> {
+    try {
+      const pending = await ServiceContainer.database.getOutboxForRecipient(recipientJid);
+      return pending.length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  // ============================================================
+  // Private — Outbox Retry Logic
+  // ============================================================
+
+  private scheduleNextRetry(): void {
+    // Get the interval for this attempt (cap at max interval)
+    const intervalIndex = Math.min(this.retryAttempt, RETRY_INTERVALS.length - 1);
+    const interval = RETRY_INTERVALS[intervalIndex];
+
+    const intervalText = interval >= 60000
+      ? `${interval / 60000}m`
+      : `${interval / 1000}s`;
+
+    console.log(`[ChatService] Scheduling retry #${this.retryAttempt + 1} in ${intervalText}`);
+
+    this.retryTimer = setTimeout(() => {
+      void this.executeRetry();
+    }, interval);
+  }
+
+  private async executeRetry(): Promise<void> {
+    if (this.isRetrying) {
+      console.log('[ChatService] Retry already in progress, skipping');
+      return;
+    }
+
+    this.isRetrying = true;
+    this.retryTimer = null;
+
+    try {
+      // Check if XMPP is connected
+      const xmpp = ServiceContainer.xmpp;
+      if (xmpp.getConnectionStatus() !== 'connected') {
+        console.log('[ChatService] XMPP not connected, skipping retry');
+        this.isRetrying = false;
+        this.scheduleNextRetry();
+        return;
+      }
+
+      // Get all pending outbox messages
+      const pending = await ServiceContainer.database.getPendingOutbox();
+
+      if (pending.length === 0) {
+        console.log('[ChatService] No pending messages, stopping retry timer');
+        this.isRetrying = false;
+        // Reset attempt counter for next time
+        this.retryAttempt = 0;
+        return;
+      }
+
+      console.log(`[ChatService] Retrying ${pending.length} pending message(s)...`);
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const msg of pending) {
+        // Check if message has expired
+        if (msg.expiresAt < Date.now()) {
+          console.log(`[ChatService] Message ${msg.id} expired, marking as failed`);
+          await ServiceContainer.database.updateMessageStatus(msg.id, 'expired');
+          await ServiceContainer.database.deleteOutboxMessage(msg.id);
+
+          // Notify status listeners so UI can update (pending → expired)
+          this.statusListeners.forEach(listener => listener(msg.id, 'expired'));
+          continue;
+        }
+
+        const payload = JSON.parse(msg.encryptedContent) as EncryptedPayload;
+
+        // Try to send to each pending recipient
+        for (const recipientJid of msg.pendingTo) {
+          // Check if recipient is online before sending
+          // If offline, skip - the message will be sent when they come online via handlePresenceUpdate
+          const recipientPresence = this.presenceMap.get(recipientJid);
+          const isRecipientOnline = recipientPresence !== undefined && recipientPresence !== 'offline';
+
+          if (!isRecipientOnline) {
+            console.log(`[ChatService] Recipient ${recipientJid} is offline, skipping retry for message ${msg.id}`);
+            continue;
+          }
+
+          try {
+            await xmpp.sendMessage(recipientJid, payload, msg.id);
+            console.log(`[ChatService] Successfully sent message ${msg.id} to ${recipientJid}`);
+
+            // Update message status to 'sent' (receipt will change to 'delivered')
+            await ServiceContainer.database.updateMessageStatus(msg.id, 'sent');
+
+            // Notify status listeners so UI can update (pending → sent)
+            this.statusListeners.forEach(listener => listener(msg.id, 'sent'));
+            successCount++;
+          } catch (error) {
+            console.warn(`[ChatService] Failed to send message ${msg.id} to ${recipientJid}:`, error);
+            failCount++;
+          }
+        }
+      }
+
+      console.log(`[ChatService] Retry complete: ${successCount} sent, ${failCount} failed`);
+
+      // If all messages sent successfully, reset attempt counter
+      if (failCount === 0 && successCount > 0) {
+        this.retryAttempt = 0;
+      } else {
+        // Increment attempt for exponential backoff
+        this.retryAttempt++;
+      }
+
+      // Check if there are still pending messages
+      const stillPending = await ServiceContainer.database.getPendingOutbox();
+      if (stillPending.length > 0) {
+        // Schedule next retry with backoff
+        this.scheduleNextRetry();
+      } else {
+        console.log('[ChatService] All messages delivered, stopping retry timer');
+        this.retryAttempt = 0;
+      }
+    } catch (error) {
+      console.error('[ChatService] Retry error:', error);
+      this.retryAttempt++;
+      this.scheduleNextRetry();
+    } finally {
+      this.isRetrying = false;
     }
   }
 
@@ -354,21 +834,43 @@ export class ChatService {
 
   private async sendPendingOutboxMessages(recipientJid: string): Promise<void> {
     try {
+      console.log(`[ChatService] sendPendingOutboxMessages called for ${recipientJid}`);
+
+      // Check XMPP connection first
+      const xmpp = ServiceContainer.xmpp;
+      if (xmpp.getConnectionStatus() !== 'connected') {
+        console.log(`[ChatService] XMPP not connected, cannot send to ${recipientJid}`);
+        return;
+      }
+
       const pending = await ServiceContainer.database.getOutboxForRecipient(recipientJid);
+      console.log(`[ChatService] Found ${pending.length} pending message(s) for ${recipientJid}`);
+
+      if (pending.length === 0) {
+        console.log(`[ChatService] No pending messages for ${recipientJid}`);
+        return;
+      }
 
       for (const msg of pending) {
+        console.log(`[ChatService] Attempting to send message ${msg.id} to ${recipientJid}`);
         const payload = JSON.parse(msg.encryptedContent) as EncryptedPayload;
 
         try {
-          await ServiceContainer.xmpp.sendMessage(recipientJid, payload, msg.id);
-          // Receipt handler will update outbox when ACK received
+          await xmpp.sendMessage(recipientJid, payload, msg.id);
+          console.log(`[ChatService] ✓ Successfully sent message ${msg.id} to ${recipientJid}`);
+
+          // Update message status to 'sent' (receipt will change to 'delivered')
+          await ServiceContainer.database.updateMessageStatus(msg.id, 'sent');
+
+          // Notify status listeners so UI can update (pending → sent)
+          this.statusListeners.forEach(listener => listener(msg.id, 'sent'));
         } catch (error) {
           // Send failed, keep in outbox for next attempt
-          console.warn('Failed to send pending message:', msg.id);
+          console.warn(`[ChatService] ✗ Failed to send message ${msg.id}:`, error);
         }
       }
     } catch (error) {
-      console.error('Failed to send pending outbox messages:', error);
+      console.error('[ChatService] sendPendingOutboxMessages error:', error);
     }
   }
 
@@ -401,10 +903,7 @@ export class ChatService {
   // ============================================================
 
   private async updateMessageStatus(messageId: string, status: DeliveryStatus): Promise<void> {
-    const db = ServiceContainer.database as any;
-    if (typeof db.updateMessageStatus === 'function') {
-      await db.updateMessageStatus(messageId, status);
-    }
+    await ServiceContainer.database.updateMessageStatus(messageId, status);
   }
 
   private async retrySendMessage(messageId: string): Promise<void> {

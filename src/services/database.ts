@@ -7,12 +7,13 @@
  * @see models/ for schema and model definitions
  */
 
-import { Database } from '@nozbe/watermelondb';
+import { Database, Q } from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
 
 import {
   schema,
+  migrations,
   MessageModel,
   OutboxMessageModel,
   ContactModel,
@@ -33,6 +34,9 @@ import type {
   DeliveryStatus,
   EncryptionMode,
   SupportedLanguage,
+  SubscriptionTier,
+  AgeBracket,
+  Gender,
 } from './interfaces';
 
 export class WatermelonDBService implements DatabaseService {
@@ -48,6 +52,7 @@ export class WatermelonDBService implements DatabaseService {
 
     this.adapter = new SQLiteAdapter({
       schema,
+      migrations,
       dbName: 'commeazy',
       jsi: true, // Enable JSI for better performance
       onSetUpError: error => {
@@ -83,6 +88,9 @@ export class WatermelonDBService implements DatabaseService {
         record.contentType = msg.contentType;
         record.timestamp = msg.timestamp;
         record.status = msg.status;
+        // If isRead is explicitly set, use it; otherwise default to true
+        // (caller should set isRead=false for received messages)
+        record.isRead = msg.isRead ?? true;
       });
     });
   }
@@ -142,13 +150,48 @@ export class WatermelonDBService implements DatabaseService {
     });
   }
 
+  async markMessageAsRead(messageId: string): Promise<void> {
+    const db = this.ensureDatabase();
+    await db.write(async () => {
+      const message = await db.get<MessageModel>('messages').find(messageId);
+      await message.markAsRead();
+    });
+  }
+
+  async markAllMessagesAsRead(chatId: string): Promise<void> {
+    const db = this.ensureDatabase();
+    await db.write(async () => {
+      const collection = db.get<MessageModel>('messages');
+      const unreadMessages = await collection.query(
+        Q.where('chat_id', chatId),
+        Q.where('is_read', false),
+      ).fetch();
+
+      for (const message of unreadMessages) {
+        await message.update(record => {
+          record.isRead = true;
+        });
+      }
+    });
+  }
+
+  async getUnreadCount(chatId: string): Promise<number> {
+    const db = this.ensureDatabase();
+    const collection = db.get<MessageModel>('messages');
+    const count = await collection.query(
+      Q.where('chat_id', chatId),
+      Q.where('is_read', false),
+    ).fetchCount();
+    return count;
+  }
+
   // ============================================================
   // Outbox (7-day retention)
   // ============================================================
 
   async saveOutboxMessage(msg: Omit<OutboxMessage, 'id'>): Promise<OutboxMessage> {
     const db = this.ensureDatabase();
-    const id = uuidv4();
+    const id = uuid.v4() as string;
 
     await db.write(async () => {
       await db.get<OutboxMessageModel>('outbox_messages').create(record => {
@@ -178,6 +221,32 @@ export class WatermelonDBService implements DatabaseService {
     );
 
     return pending.map(m => this.outboxModelToInterface(m));
+  }
+
+  async getPendingOutbox(): Promise<OutboxMessage[]> {
+    const db = this.ensureDatabase();
+    const collection = db.get<OutboxMessageModel>('outbox_messages');
+    const messages = await collection.query().fetch();
+
+    // Filter for non-expired messages that have pending recipients
+    const now = Date.now();
+    const pending = messages.filter(
+      m => m.expiresAt > now && m.pendingTo.length > 0
+    );
+
+    return pending.map(m => this.outboxModelToInterface(m));
+  }
+
+  async deleteOutboxMessage(messageId: string): Promise<void> {
+    const db = this.ensureDatabase();
+    await db.write(async () => {
+      try {
+        const message = await db.get<OutboxMessageModel>('outbox_messages').find(messageId);
+        await message.destroyPermanently();
+      } catch {
+        // Message not found, ignore
+      }
+    });
   }
 
   async markDelivered(messageId: string, recipientJid: string): Promise<void> {
@@ -216,30 +285,37 @@ export class WatermelonDBService implements DatabaseService {
   async saveContact(contact: Contact): Promise<void> {
     const db = this.ensureDatabase();
     await db.write(async () => {
-      // Check if contact exists
+      // Check if contact exists (by userUuid first, fallback to jid for backwards compatibility)
       const existing = await db
         .get<ContactModel>('contacts')
         .query()
         .fetch()
-        .then(contacts => contacts.find(c => c.jid === contact.jid));
+        .then(contacts => contacts.find(c =>
+          (contact.userUuid && c.userUuid === contact.userUuid) || c.jid === contact.jid
+        ));
 
       if (existing) {
         await existing.update(record => {
-          record.name = contact.name;
-          record.phoneNumber = contact.phoneNumber;
-          record.publicKey = contact.publicKey;
-          record.verified = contact.verified;
-          record.lastSeen = contact.lastSeen;
-        });
-      } else {
-        await db.get<ContactModel>('contacts').create(record => {
-          record._raw.id = uuidv4();
+          record.userUuid = contact.userUuid;
           record.jid = contact.jid;
           record.name = contact.name;
           record.phoneNumber = contact.phoneNumber;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
           record.lastSeen = contact.lastSeen;
+          record.photoPath = contact.photoUrl;
+        });
+      } else {
+        await db.get<ContactModel>('contacts').create(record => {
+          record._raw.id = uuid.v4() as string;
+          record.userUuid = contact.userUuid;
+          record.jid = contact.jid;
+          record.name = contact.name;
+          record.phoneNumber = contact.phoneNumber;
+          record.publicKey = contact.publicKey;
+          record.verified = contact.verified;
+          record.lastSeen = contact.lastSeen;
+          record.photoPath = contact.photoUrl;
         });
       }
     });
@@ -364,24 +440,72 @@ export class WatermelonDBService implements DatabaseService {
 
       if (existing.length > 0) {
         await existing[0].update(record => {
+          // Identity - userUuid should NEVER change after initial creation
+          // Only update it if it's missing (migration from v3)
+          if (!record.userUuid && profile.userUuid) {
+            record.userUuid = profile.userUuid;
+          }
           record.jid = profile.jid;
           record.name = profile.name;
           record.phoneNumber = profile.phoneNumber;
           record.publicKey = profile.publicKey;
+
+          // Preferences
           record.language = profile.language;
           record.audioFeedbackEnabled = profile.audioFeedbackEnabled;
           record.hapticFeedbackEnabled = profile.hapticFeedbackEnabled;
+          record.photoPath = profile.photoPath;
+
+          // Subscription
+          record.subscriptionTier = profile.subscriptionTier;
+          record.subscriptionExpires = profile.subscriptionExpires;
+
+          // Demographics
+          record.countryCode = profile.countryCode;
+          record.regionCode = profile.regionCode;
+          record.city = profile.city;
+          record.ageBracket = profile.ageBracket;
+          record.gender = profile.gender;
+
+          // Hold-to-Navigate settings
+          record.longPressDelay = profile.longPressDelay;
+          record.menuButtonPositionX = profile.menuButtonPositionX;
+          record.menuButtonPositionY = profile.menuButtonPositionY;
+          record.edgeExclusionSize = profile.edgeExclusionSize;
         });
       } else {
         await db.get<UserProfileModel>('user_profile').create(record => {
-          record._raw.id = uuidv4();
+          record._raw.id = uuid.v4() as string;
+
+          // Identity - generate UUID at first creation if not provided
+          record.userUuid = profile.userUuid || (uuid.v4() as string);
           record.jid = profile.jid;
           record.name = profile.name;
           record.phoneNumber = profile.phoneNumber;
           record.publicKey = profile.publicKey;
+
+          // Preferences
           record.language = profile.language;
           record.audioFeedbackEnabled = profile.audioFeedbackEnabled;
           record.hapticFeedbackEnabled = profile.hapticFeedbackEnabled;
+          record.photoPath = profile.photoPath;
+
+          // Subscription - default to 'free' for new users
+          record.subscriptionTier = profile.subscriptionTier || 'free';
+          record.subscriptionExpires = profile.subscriptionExpires;
+
+          // Demographics
+          record.countryCode = profile.countryCode;
+          record.regionCode = profile.regionCode;
+          record.city = profile.city;
+          record.ageBracket = profile.ageBracket;
+          record.gender = profile.gender;
+
+          // Hold-to-Navigate settings
+          record.longPressDelay = profile.longPressDelay;
+          record.menuButtonPositionX = profile.menuButtonPositionX;
+          record.menuButtonPositionY = profile.menuButtonPositionY;
+          record.edgeExclusionSize = profile.edgeExclusionSize;
         });
       }
     });
@@ -437,12 +561,14 @@ export class WatermelonDBService implements DatabaseService {
 
   private contactModelToInterface(c: ContactModel): Contact {
     return {
+      userUuid: c.userUuid,
       jid: c.jid,
       name: c.name,
       phoneNumber: c.phoneNumber,
       publicKey: c.publicKey,
       verified: c.verified,
       lastSeen: c.lastSeen,
+      photoUrl: c.photoPath,
     };
   }
 
@@ -459,13 +585,35 @@ export class WatermelonDBService implements DatabaseService {
 
   private userProfileModelToInterface(p: UserProfileModel): UserProfile {
     return {
+      // Identity
+      userUuid: p.userUuid,
       jid: p.jid,
       name: p.name,
       phoneNumber: p.phoneNumber,
       publicKey: p.publicKey,
+
+      // Preferences
       language: p.language as SupportedLanguage,
       audioFeedbackEnabled: p.audioFeedbackEnabled,
       hapticFeedbackEnabled: p.hapticFeedbackEnabled,
+      photoPath: p.photoPath,
+
+      // Subscription
+      subscriptionTier: (p.subscriptionTier || 'free') as SubscriptionTier,
+      subscriptionExpires: p.subscriptionExpires,
+
+      // Demographics
+      countryCode: p.countryCode,
+      regionCode: p.regionCode,
+      city: p.city,
+      ageBracket: p.ageBracket as AgeBracket | undefined,
+      gender: p.gender as Gender | undefined,
+
+      // Hold-to-Navigate settings
+      longPressDelay: p.longPressDelay,
+      menuButtonPositionX: p.menuButtonPositionX,
+      menuButtonPositionY: p.menuButtonPositionY,
+      edgeExclusionSize: p.edgeExclusionSize,
     };
   }
 }

@@ -268,3 +268,132 @@ if (typeof global.TextEncoder === 'undefined') {
   global.TextEncoder = TextEncoder;
   global.TextDecoder = TextDecoder;
 }
+
+// Mock @xmpp/client (ESM module)
+jest.mock('@xmpp/client', () => {
+  const EventEmitter = require('events');
+
+  const mockClient = Object.assign(new EventEmitter(), {
+    status: 'offline',
+    start: jest.fn().mockResolvedValue(undefined),
+    stop: jest.fn().mockResolvedValue(undefined),
+    send: jest.fn().mockResolvedValue(undefined),
+    reconnect: jest.fn(),
+  });
+
+  return {
+    __esModule: true,
+    client: jest.fn(() => mockClient),
+    xml: jest.fn((name, attrs, ...children) => ({
+      name,
+      attrs: attrs || {},
+      children: children || [],
+      getChild: jest.fn(),
+      getChildText: jest.fn(() => ''),
+      toString: jest.fn(() => `<${name}/>`),
+    })),
+    jid: jest.fn((jidString) => ({
+      local: jidString?.split('@')[0] || '',
+      domain: jidString?.split('@')[1]?.split('/')[0] || '',
+      resource: jidString?.split('/')[1] || '',
+      bare: jest.fn(() => jidString?.split('/')[0] || ''),
+      toString: jest.fn(() => jidString || ''),
+    })),
+    default: {
+      client: jest.fn(() => mockClient),
+      xml: jest.fn((name, attrs, ...children) => ({
+        name,
+        attrs: attrs || {},
+        children: children || [],
+      })),
+      jid: jest.fn((jidString) => ({
+        local: jidString?.split('@')[0] || '',
+        domain: jidString?.split('@')[1]?.split('/')[0] || '',
+        resource: jidString?.split('/')[1] || '',
+      })),
+    },
+  };
+});
+
+// Mock react-native-libsodium (native module)
+jest.mock('react-native-libsodium', () => ({
+  ready: Promise.resolve(),
+  crypto_box_NONCEBYTES: 24,
+  crypto_box_PUBLICKEYBYTES: 32,
+  crypto_box_SECRETKEYBYTES: 32,
+  crypto_secretbox_KEYBYTES: 32,
+  crypto_secretbox_NONCEBYTES: 24,
+  randombytes_buf: jest.fn((size) => new Uint8Array(size).fill(0)),
+  crypto_box_keypair: jest.fn(() => ({
+    publicKey: new Uint8Array(32).fill(1),
+    privateKey: new Uint8Array(32).fill(2),
+  })),
+  crypto_box_easy: jest.fn((message) => new Uint8Array(message.length + 16)),
+  crypto_box_open_easy: jest.fn((ciphertext) => ciphertext.slice(0, -16)),
+  crypto_secretbox_easy: jest.fn((message) => new Uint8Array(message.length + 16)),
+  crypto_secretbox_open_easy: jest.fn((ciphertext) => ciphertext.slice(0, -16)),
+  crypto_secretbox_keygen: jest.fn(() => new Uint8Array(32).fill(3)),
+  to_base64: jest.fn((arr) => Buffer.from(arr).toString('base64')),
+  from_base64: jest.fn((str) => new Uint8Array(Buffer.from(str, 'base64'))),
+  from_string: jest.fn((str) => new TextEncoder().encode(str)),
+  to_string: jest.fn((arr) => new TextDecoder().decode(arr)),
+}));
+
+// Mock react-native-device-info
+jest.mock('react-native-device-info', () => ({
+  getUniqueId: jest.fn(() => Promise.resolve('mock-device-id')),
+  getDeviceId: jest.fn(() => 'mock-device'),
+  getDeviceName: jest.fn(() => Promise.resolve('Mock Device')),
+  getSystemName: jest.fn(() => 'iOS'),
+  getSystemVersion: jest.fn(() => '17.0'),
+  getBrand: jest.fn(() => 'Apple'),
+  getModel: jest.fn(() => 'iPhone'),
+  getBuildNumber: jest.fn(() => '1'),
+  getVersion: jest.fn(() => '1.0.0'),
+  isEmulator: jest.fn(() => Promise.resolve(true)),
+}));
+
+// Mock react-native-fs
+jest.mock('react-native-fs', () => ({
+  DocumentDirectoryPath: '/mock/documents',
+  CachesDirectoryPath: '/mock/caches',
+  writeFile: jest.fn().mockResolvedValue(undefined),
+  readFile: jest.fn().mockResolvedValue(''),
+  exists: jest.fn().mockResolvedValue(false),
+  mkdir: jest.fn().mockResolvedValue(undefined),
+  unlink: jest.fn().mockResolvedValue(undefined),
+  stat: jest.fn().mockResolvedValue({ size: 0, isFile: () => true }),
+}));
+
+// Mock react-native-uuid
+jest.mock('react-native-uuid', () => ({
+  v4: jest.fn(() => 'mock-uuid-' + Math.random().toString(36).substr(2, 9)),
+}));
+
+// Mock @react-native-firebase modules
+jest.mock('@react-native-firebase/app', () => ({
+  __esModule: true,
+  default: () => ({
+    name: '[DEFAULT]',
+  }),
+}));
+
+jest.mock('@react-native-firebase/auth', () => ({
+  __esModule: true,
+  default: () => ({
+    currentUser: null,
+    signInWithPhoneNumber: jest.fn(),
+    signOut: jest.fn(),
+    onAuthStateChanged: jest.fn(),
+  }),
+}));
+
+jest.mock('@react-native-firebase/messaging', () => ({
+  __esModule: true,
+  default: () => ({
+    requestPermission: jest.fn().mockResolvedValue(1),
+    getToken: jest.fn().mockResolvedValue('mock-fcm-token'),
+    onMessage: jest.fn(() => jest.fn()),
+    setBackgroundMessageHandler: jest.fn(),
+  }),
+}));

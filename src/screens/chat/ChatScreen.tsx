@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -36,9 +36,12 @@ import {
   touchTargets,
   borderRadius,
 } from '@/theme';
-import { chatService } from '@/services/chat';
-import type { Message, DeliveryStatus, Unsubscribe } from '@/services/interfaces';
+import { MessageStatus } from '@/components';
+import type { Message, DeliveryStatus } from '@/services/interfaces';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import type { ChatStackParams } from '@/navigation';
+import { ServiceContainer } from '@/services/container';
+import { chatService } from '@/services/chat';
 
 type ChatScreenRouteProp = RouteProp<ChatStackParams, 'ChatDetail'>;
 type ChatScreenNavigationProp = NativeStackNavigationProp<ChatStackParams, 'ChatDetail'>;
@@ -54,49 +57,129 @@ export function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Set header title
   useEffect(() => {
     navigation.setOptions({ title: name });
   }, [navigation, name]);
 
-  // Subscribe to messages
+  // Mark all messages as read when entering the chat
   useEffect(() => {
-    const observable = chatService.observeMessages(chatId, MESSAGE_LIMIT);
-    const unsubscribe = observable.subscribe(msgs => {
-      setMessages(msgs);
-    });
-
-    // Also listen for new incoming messages
-    const msgUnsubscribe = chatService.onMessage(msg => {
-      if (msg.chatId === chatId) {
-        AccessibilityInfo.announceForAccessibility(
-          t('accessibility.messageFrom', { name: msg.senderName, time: '' }),
-        );
+    const markAsRead = async () => {
+      if (ServiceContainer.isInitialized && chatService.isInitialized) {
+        await chatService.markChatAsRead(chatId);
       }
+    };
+    void markAsRead();
+  }, [chatId]);
+
+  // Load and observe messages
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
+
+    const loadMessages = async () => {
+      // Small delay to ensure native modules are initialized
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (cancelled) return;
+
+      try {
+        // Try to use real service if initialized
+        if (ServiceContainer.isInitialized) {
+          // Subscribe to real-time message updates
+          const observable = chatService.observeMessages(chatId, MESSAGE_LIMIT);
+          unsubscribe = observable.subscribe(msgs => {
+            if (!cancelled) setMessages(msgs);
+          });
+        } else if (__DEV__) {
+          // Fallback to mock data in dev mode if service not ready
+          const { getMockMessages } = await import('@/services/mock');
+          const mockMsgs = getMockMessages(chatId, MESSAGE_LIMIT);
+          if (!cancelled) setMessages(mockMsgs);
+        } else {
+          if (!cancelled) setMessages([]);
+        }
+      } catch (error) {
+        console.error('Failed to load messages:', error);
+        // Fallback to mock data on error in dev mode
+        if (__DEV__ && !cancelled) {
+          try {
+            const { getMockMessages } = await import('@/services/mock');
+            const mockMsgs = getMockMessages(chatId, MESSAGE_LIMIT);
+            setMessages(mockMsgs);
+          } catch {
+            setMessages([]);
+          }
+        } else if (!cancelled) {
+          setMessages([]);
+        }
+      }
+    };
+
+    void loadMessages();
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
+  }, [chatId]);
+
+  // Subscribe to message status changes (pending → sent → delivered)
+  useEffect(() => {
+    if (!ServiceContainer.isInitialized || !chatService.isInitialized) return;
+
+    const unsubscribe = chatService.onMessageStatusChange((messageId, status) => {
+      console.log(`[ChatScreen] Status change: ${messageId} -> ${status}`);
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
+          msg.id === messageId ? { ...msg, status } : msg,
+        ),
+      );
     });
 
-    return () => {
-      unsubscribe();
-      msgUnsubscribe();
-    };
-  }, [chatId, t]);
+    return unsubscribe;
+  }, []);
 
   const handleSend = useCallback(async () => {
     const text = inputText.trim();
     if (!text || sending) return;
 
+    // Haptic feedback on send
+    ReactNativeHapticFeedback.trigger('impactMedium', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+
     setSending(true);
     setInputText('');
 
     try {
-      // Extract contactJid from chatId (format: "chat:jid1:jid2")
-      const parts = chatId.split(':');
-      const contactJid = parts[1] || parts[2]; // Get the other JID
-
-      await chatService.sendMessage(contactJid, text);
-      AccessibilityInfo.announceForAccessibility(t('chat.sending'));
+      // Try to use real service if fully initialized
+      if (ServiceContainer.isInitialized && chatService.isInitialized) {
+        // Extract contactJid from chatId (format: "chat:jid1:jid2")
+        // JIDs are sorted, so we need to find the one that's NOT the current user
+        const parts = chatId.split(':');
+        const myJid = chatService.getMyJid()!;
+        const contactJid = parts[1] === myJid ? parts[2] : parts[1];
+        await chatService.sendMessage(contactJid, text);
+        AccessibilityInfo.announceForAccessibility(t('chat.sending'));
+      } else if (__DEV__) {
+        // Fallback: add message locally in dev mode
+        // Use mock current user from dev constants
+        const { MOCK_CURRENT_USER } = await import('@/services/mock');
+        const newMessage: Message = {
+          id: `local_${Date.now()}`,
+          chatId,
+          senderId: MOCK_CURRENT_USER.jid,
+          senderName: MOCK_CURRENT_USER.name,
+          content: text,
+          contentType: 'text',
+          timestamp: Date.now(),
+          status: 'sent',
+        };
+        setMessages(prev => [newMessage, ...prev]);
+        AccessibilityInfo.announceForAccessibility(t('chat.sending'));
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
       setInputText(text); // Restore text on failure
@@ -113,37 +196,31 @@ export function ChatScreen() {
     });
   }, []);
 
-  const getStatusText = useCallback(
-    (status: DeliveryStatus): string => {
-      switch (status) {
-        case 'pending':
-          return t('chat.sending');
-        case 'sent':
-          return '✓';
-        case 'delivered':
-          return '✓✓';
-        case 'failed':
-          return t('chat.failed');
-        case 'expired':
-          return t('chat.expired');
-        default:
-          return '';
-      }
-    },
-    [t],
-  );
-
   const renderMessage = useCallback(
     ({ item }: { item: Message }) => {
       // Determine if message is from current user
-      // In a real app, compare with myJid from chatService
-      const isOwn = item.senderId !== route.params.chatId.split(':')[1];
+      // Check against chatService JID or fallback to name comparison
+      const myJid = chatService.getMyJid();
+      const isOwn = myJid
+        ? item.senderId === myJid
+        : item.senderName === 'Ik'; // Fallback for dev mode without service
+
+      // Determine bubble style based on delivery status
+      const isPending = item.status === 'pending';
+      const isFailed = item.status === 'failed' || item.status === 'expired';
+
+      // Get the appropriate bubble style for own messages
+      const getOwnBubbleStyle = () => {
+        if (isFailed) return styles.failedMessage;
+        if (isPending) return styles.pendingMessage;
+        return styles.ownMessage;
+      };
 
       return (
         <View
           style={[
             styles.messageBubble,
-            isOwn ? styles.ownMessage : styles.otherMessage,
+            isOwn ? getOwnBubbleStyle() : styles.otherMessage,
           ]}
           accessible={true}
           accessibilityLabel={t('accessibility.messageFrom', {
@@ -152,37 +229,41 @@ export function ChatScreen() {
           }) + `. ${item.content}`}
           accessibilityHint={
             isOwn
-              ? t('accessibility.deliveryStatus', { status: getStatusText(item.status) })
+              ? t('accessibility.deliveryStatus', { status: t(`status.${item.status}`) })
               : undefined
           }
         >
           <Text
-            style={[styles.messageText, isOwn && styles.ownMessageText]}
+            style={[
+              styles.messageText,
+              isOwn && !isPending && !isFailed && styles.ownMessageText,
+              isPending && styles.pendingMessageText,
+              isFailed && styles.failedMessageText,
+            ]}
             selectable
           >
             {item.content}
           </Text>
 
           <View style={styles.messageFooter}>
-            <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+            <Text
+              style={[
+                styles.messageTime,
+                isOwn && !isPending && !isFailed && styles.ownMessageTime,
+                isPending && styles.pendingMessageTime,
+                isFailed && styles.failedMessageTime,
+              ]}
+            >
               {formatTime(item.timestamp)}
             </Text>
             {isOwn && (
-              <Text
-                style={[
-                  styles.messageStatus,
-                  item.status === 'delivered' && styles.statusDelivered,
-                  item.status === 'failed' && styles.statusFailed,
-                ]}
-              >
-                {getStatusText(item.status)}
-              </Text>
+              <MessageStatus status={item.status} />
             )}
           </View>
         </View>
       );
     },
-    [t, formatTime, getStatusText, route.params.chatId],
+    [t, formatTime],
   );
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
@@ -193,21 +274,24 @@ export function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      {/* Messages list - inverted so newest at bottom */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={keyExtractor}
-        inverted
+      {/* Messages list - sorted oldest to newest, auto-scroll to bottom */}
+      <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.messageList}
         showsVerticalScrollIndicator={false}
-        initialNumToRender={20}
-        maxToRenderPerBatch={10}
-        windowSize={21}
-        removeClippedSubviews={Platform.OS === 'android'}
         accessibilityLabel={t('chat.messageList', { count: messages.length })}
-      />
+        onContentSizeChange={() => {
+          // Auto-scroll to bottom when new messages arrive
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }}
+      >
+        {/* Sort messages by timestamp ascending (oldest first, newest at bottom) */}
+        {[...messages].sort((a, b) => a.timestamp - b.timestamp).map((item) => (
+          <View key={keyExtractor(item)}>
+            {renderMessage({ item, index: 0, separators: {} as any })}
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Input area */}
       <View style={styles.inputContainer}>
@@ -266,6 +350,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderBottomRightRadius: borderRadius.sm,
   },
+  pendingMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: colors.warning,
+    borderBottomRightRadius: borderRadius.sm,
+  },
+  failedMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: colors.error,
+    borderBottomRightRadius: borderRadius.sm,
+  },
   otherMessage: {
     alignSelf: 'flex-start',
     backgroundColor: colors.surface,
@@ -276,6 +370,12 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   ownMessageText: {
+    color: colors.textOnPrimary,
+  },
+  pendingMessageText: {
+    color: colors.textOnPrimary,
+  },
+  failedMessageText: {
     color: colors.textOnPrimary,
   },
   messageFooter: {
@@ -292,15 +392,11 @@ const styles = StyleSheet.create({
   ownMessageTime: {
     color: 'rgba(255, 255, 255, 0.7)',
   },
-  messageStatus: {
-    ...typography.small,
+  pendingMessageTime: {
     color: 'rgba(255, 255, 255, 0.7)',
   },
-  statusDelivered: {
-    color: colors.textOnPrimary,
-  },
-  statusFailed: {
-    color: colors.error,
+  failedMessageTime: {
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   inputContainer: {
     flexDirection: 'row',

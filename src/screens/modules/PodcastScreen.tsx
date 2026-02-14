@@ -1,0 +1,105 @@
+/**
+ * PodcastScreen — Placeholder module for podcast listening
+ *
+ * This is a fake module screen used to test module switching
+ * in the WheelNavigationMenu.
+ */
+
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, typography, spacing } from '@/theme';
+
+export function PodcastScreen() {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top + spacing.xl }]}>
+      <View style={styles.iconContainer}>
+        {/* Microphone icon */}
+        <View style={styles.micBody} />
+        <View style={styles.micBase} />
+        <View style={styles.micStand} />
+      </View>
+
+      <Text style={styles.title}>{t('navigation.podcast')}</Text>
+      <Text style={styles.subtitle}>{t('modules.coming_soon')}</Text>
+
+      <View style={styles.featureList}>
+        <Text style={styles.featureItem}>• {t('modules.podcast.feature1')}</Text>
+        <Text style={styles.featureItem}>• {t('modules.podcast.feature2')}</Text>
+        <Text style={styles.featureItem}>• {t('modules.podcast.feature3')}</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  iconContainer: {
+    width: 120,
+    height: 120,
+    backgroundColor: '#E65100',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  micBody: {
+    position: 'absolute',
+    top: 25,
+    width: 30,
+    height: 45,
+    backgroundColor: colors.textOnPrimary,
+    borderRadius: 15,
+  },
+  micBase: {
+    position: 'absolute',
+    top: 62,
+    width: 50,
+    height: 25,
+    borderWidth: 5,
+    borderColor: colors.textOnPrimary,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    backgroundColor: 'transparent',
+  },
+  micStand: {
+    position: 'absolute',
+    bottom: 18,
+    width: 6,
+    height: 20,
+    backgroundColor: colors.textOnPrimary,
+  },
+  title: {
+    ...typography.h1,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+  featureList: {
+    alignSelf: 'stretch',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: spacing.lg,
+  },
+  featureItem: {
+    ...typography.body,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+});

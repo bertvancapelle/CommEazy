@@ -25,13 +25,22 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 
-import { colors, typography, touchTargets } from '@/theme';
+import { colors, typography } from '@/theme';
+import { HoldToNavigateWrapper } from '@/components/HoldToNavigateWrapper';
 
 // Placeholder screens — replace with actual implementations
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 
 // Chat screens
 import { ChatListScreen, ChatScreen } from '@/screens/chat';
+
+// Contact screens
+import {
+  ContactListScreen,
+  ContactDetailScreen,
+  AddContactScreen,
+  VerifyContactScreen,
+} from '@/screens/contacts';
 
 // Onboarding screens
 import {
@@ -43,8 +52,25 @@ import {
   DeviceLinkShowQRScreen,
   NameInputScreen,
   PinSetupScreen,
+  DemographicsScreen,
+  NavigationTutorialScreen,
   CompletionScreen,
 } from '@/screens/onboarding';
+
+// Settings screens
+import {
+  SettingsMainScreen,
+  ProfileSettingsScreen,
+} from '@/screens/settings';
+
+// Module screens (placeholder for testing wheel navigation)
+import {
+  CallsScreen,
+  VideoCallScreen,
+  EBookScreen,
+  AudioBookScreen,
+  PodcastScreen,
+} from '@/screens/modules';
 
 // ============================================================
 // Type Definitions
@@ -58,6 +84,8 @@ export type OnboardingStackParams = {
   DeviceLinkScan: undefined;
   NameInput: undefined;
   PinSetup: { name: string };
+  Demographics: { name: string };
+  NavigationTutorial: { name: string };
   Completion: { name: string };
 };
 
@@ -71,6 +99,8 @@ export type ChatStackParams = {
 export type ContactStackParams = {
   ContactList: undefined;
   ContactDetail: { jid: string };
+  AddContact: undefined;
+  VerifyContact: { jid: string; name: string };
   QRScanner: undefined;
   QRDisplay: undefined;
 };
@@ -95,6 +125,11 @@ export type MainTabParams = {
   ContactsTab: undefined;
   GroupsTab: undefined;
   SettingsTab: undefined;
+  CallsTab: undefined;
+  VideoCallTab: undefined;
+  EBookTab: undefined;
+  AudioBookTab: undefined;
+  PodcastTab: undefined;
 };
 
 export type RootStackParams = {
@@ -173,6 +208,16 @@ function OnboardingNavigator() {
         options={{ title: '', headerBackVisible: false }}
       />
       <OnboardingStack.Screen
+        name="Demographics"
+        component={DemographicsScreen}
+        options={{ title: '', headerBackVisible: false }}
+      />
+      <OnboardingStack.Screen
+        name="NavigationTutorial"
+        component={NavigationTutorialScreen}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <OnboardingStack.Screen
         name="Completion"
         component={CompletionScreen}
         options={{ headerShown: false, gestureEnabled: false }}
@@ -212,10 +257,39 @@ function ChatsNavigator() {
 }
 
 function ContactsNavigator() {
+  const { t } = useTranslation();
+
   return (
-    <ContactStack.Navigator>
-      <ContactStack.Screen name="ContactList" component={PlaceholderScreen} />
-      <ContactStack.Screen name="ContactDetail" component={PlaceholderScreen} />
+    <ContactStack.Navigator
+      screenOptions={{
+        headerTitleStyle: typography.h3,
+        headerBackTitleVisible: false,
+        headerTintColor: colors.primary,
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <ContactStack.Screen
+        name="ContactList"
+        component={ContactListScreen}
+        options={{ title: t('tabs.contacts') }}
+      />
+      <ContactStack.Screen
+        name="ContactDetail"
+        component={ContactDetailScreen}
+        options={{ title: t('contacts.details') }}
+      />
+      <ContactStack.Screen
+        name="AddContact"
+        component={AddContactScreen}
+        options={{ title: t('contacts.add') }}
+      />
+      <ContactStack.Screen
+        name="VerifyContact"
+        component={VerifyContactScreen}
+        options={({ route }) => ({ title: t('contacts.verify') })}
+      />
       <ContactStack.Screen name="QRScanner" component={PlaceholderScreen} />
       <ContactStack.Screen name="QRDisplay" component={PlaceholderScreen} />
     </ContactStack.Navigator>
@@ -233,14 +307,48 @@ function GroupsNavigator() {
 }
 
 function SettingsNavigator() {
+  const { t } = useTranslation();
+
   return (
-    <SettingsStack.Navigator>
-      <SettingsStack.Screen name="SettingsMain" component={PlaceholderScreen} />
-      <SettingsStack.Screen name="LanguageSettings" component={PlaceholderScreen} />
-      <SettingsStack.Screen name="ProfileSettings" component={PlaceholderScreen} />
-      <SettingsStack.Screen name="BackupSettings" component={PlaceholderScreen} />
-      <SettingsStack.Screen name="DeviceTransfer" component={PlaceholderScreen} />
-      <SettingsStack.Screen name="DeviceLinkShowQR" component={DeviceLinkShowQRScreen} />
+    <SettingsStack.Navigator
+      screenOptions={{
+        headerTitleStyle: typography.h3,
+        headerBackTitleVisible: false,
+        headerTintColor: colors.primary,
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <SettingsStack.Screen
+        name="SettingsMain"
+        component={SettingsMainScreen}
+        options={{ title: t('tabs.settings') }}
+      />
+      <SettingsStack.Screen
+        name="ProfileSettings"
+        component={ProfileSettingsScreen}
+        options={{ title: t('profile.changePhoto') }}
+      />
+      <SettingsStack.Screen
+        name="LanguageSettings"
+        component={PlaceholderScreen}
+        options={{ title: t('settings.language') }}
+      />
+      <SettingsStack.Screen
+        name="BackupSettings"
+        component={PlaceholderScreen}
+        options={{ title: t('settings.backup') }}
+      />
+      <SettingsStack.Screen
+        name="DeviceTransfer"
+        component={PlaceholderScreen}
+      />
+      <SettingsStack.Screen
+        name="DeviceLinkShowQR"
+        component={DeviceLinkShowQRScreen}
+        options={{ title: t('deviceLink.showQRTitle') }}
+      />
     </SettingsStack.Navigator>
   );
 }
@@ -250,49 +358,28 @@ function SettingsNavigator() {
 // ============================================================
 
 function MainNavigator() {
-  const { t } = useTranslation();
-
   return (
-    <MainTab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarLabelStyle: {
-          ...typography.label,
-          fontSize: 14,
-        },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: {
-          height: touchTargets.comfortable,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarItemStyle: {
-          minHeight: touchTargets.minimum,
-        },
-      }}
-    >
-      <MainTab.Screen
-        name="ChatsTab"
-        component={ChatsNavigator}
-        options={{ tabBarLabel: t('tabs.chats') }}
-      />
-      <MainTab.Screen
-        name="ContactsTab"
-        component={ContactsNavigator}
-        options={{ tabBarLabel: t('tabs.contacts') }}
-      />
-      <MainTab.Screen
-        name="GroupsTab"
-        component={GroupsNavigator}
-        options={{ tabBarLabel: t('tabs.groups') }}
-      />
-      <MainTab.Screen
-        name="SettingsTab"
-        component={SettingsNavigator}
-        options={{ tabBarLabel: t('tabs.settings') }}
-      />
-    </MainTab.Navigator>
+    <HoldToNavigateWrapper enabled={true}>
+      <MainTab.Navigator
+        screenOptions={{
+          headerShown: false,
+          // Hide the bottom tab bar completely — navigation is via Hold-to-Navigate
+          tabBarStyle: {
+            display: 'none',
+          },
+        }}
+      >
+        <MainTab.Screen name="ChatsTab" component={ChatsNavigator} />
+        <MainTab.Screen name="ContactsTab" component={ContactsNavigator} />
+        <MainTab.Screen name="GroupsTab" component={GroupsNavigator} />
+        <MainTab.Screen name="SettingsTab" component={SettingsNavigator} />
+        <MainTab.Screen name="CallsTab" component={CallsScreen} />
+        <MainTab.Screen name="VideoCallTab" component={VideoCallScreen} />
+        <MainTab.Screen name="EBookTab" component={EBookScreen} />
+        <MainTab.Screen name="AudioBookTab" component={AudioBookScreen} />
+        <MainTab.Screen name="PodcastTab" component={PodcastScreen} />
+      </MainTab.Navigator>
+    </HoldToNavigateWrapper>
   );
 }
 
@@ -301,17 +388,18 @@ function MainNavigator() {
 // ============================================================
 
 export default function AppNavigator() {
-  // TODO: Check if user has completed onboarding
-  const hasCompletedOnboarding = false;
+  // TODO: Check if user has completed onboarding (from async storage)
+  // Set to true in __DEV__ to skip onboarding during development
+  const hasCompletedOnboarding = __DEV__ ? true : false;
 
   return (
     <NavigationContainer>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        {!hasCompletedOnboarding ? (
-          <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
-        ) : (
-          <RootStack.Screen name="Main" component={MainNavigator} />
-        )}
+      <RootStack.Navigator
+        initialRouteName={hasCompletedOnboarding ? 'Main' : 'Onboarding'}
+        screenOptions={{ headerShown: false }}
+      >
+        <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
+        <RootStack.Screen name="Main" component={MainNavigator} />
       </RootStack.Navigator>
     </NavigationContainer>
   );

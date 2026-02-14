@@ -1,0 +1,128 @@
+/**
+ * WatermelonDB Migrations
+ *
+ * Schema version history:
+ * - v1: Initial schema (messages, outbox, contacts, groups, user_profile)
+ * - v2: Added is_read column to messages for unread tracking
+ * - v3: Added photo_path column to contacts and user_profile for avatars
+ * - v4: Added user_uuid (stable identifier), freemium fields (subscription, demographics)
+ * - v5: Added city field to user_profile for ad targeting
+ * - v6: Added gender field to user_profile
+ * - v7: Added Hold-to-Navigate settings (longPressDelay, menuButtonPosition)
+ * - v8: Added edgeExclusionSize for Hold-to-Navigate accessibility
+ */
+
+import { schemaMigrations, addColumns } from '@nozbe/watermelondb/Schema/migrations';
+
+export const migrations = schemaMigrations({
+  migrations: [
+    // Migration from v1 to v2: Add is_read column
+    {
+      toVersion: 2,
+      steps: [
+        addColumns({
+          table: 'messages',
+          columns: [
+            { name: 'is_read', type: 'boolean' },
+          ],
+        }),
+      ],
+    },
+    // Migration from v2 to v3: Add photo_path for avatars
+    {
+      toVersion: 3,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'photo_path', type: 'string', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'photo_path', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v3 to v4: Add UUID-based identity and freemium fields
+    {
+      toVersion: 4,
+      steps: [
+        // Add user_uuid to contacts (stable identifier)
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'user_uuid', type: 'string' },
+          ],
+        }),
+        // Add user_uuid and freemium fields to user_profile
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            // Stable identifier
+            { name: 'user_uuid', type: 'string' },
+            // Subscription status
+            { name: 'subscription_tier', type: 'string' },
+            { name: 'subscription_expires', type: 'number', isOptional: true },
+            // Demographics (required for free users, optional for premium)
+            { name: 'country_code', type: 'string', isOptional: true },
+            { name: 'region_code', type: 'string', isOptional: true },
+            { name: 'age_bracket', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v4 to v5: Add city field to user_profile
+    {
+      toVersion: 5,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'city', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v5 to v6: Add gender field to user_profile
+    {
+      toVersion: 6,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'gender', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v6 to v7: Add Hold-to-Navigate settings
+    {
+      toVersion: 7,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'long_press_delay', type: 'number', isOptional: true },
+            { name: 'menu_button_position_x', type: 'number', isOptional: true },
+            { name: 'menu_button_position_y', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v7 to v8: Add edge exclusion zone setting
+    {
+      toVersion: 8,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'edge_exclusion_size', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
+  ],
+});

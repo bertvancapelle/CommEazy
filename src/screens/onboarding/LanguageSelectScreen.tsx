@@ -15,8 +15,10 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { SUPPORTED_LANGUAGES } from '@/locales';
@@ -33,11 +35,48 @@ const LANGUAGE_FLAGS: Record<SupportedLanguage, string> = {
   es: '🇪🇸',
 };
 
+// Pre-translation strings for language selection screen
+// These must be shown BEFORE the user selects a language
+// so we show the prompt in all 5 supported languages
+const CHOOSE_LANGUAGE_TEXTS: Record<SupportedLanguage, string> = {
+  en: 'Choose your language',
+  nl: 'Kies je taal',
+  de: 'Wähle deine Sprache',
+  fr: 'Choisissez votre langue',
+  es: 'Elige tu idioma',
+};
+
+// Auto-detected label in all 5 languages
+const AUTO_DETECTED_TEXTS: Record<SupportedLanguage, string> = {
+  en: 'Auto-detected',
+  nl: 'Automatisch gedetecteerd',
+  de: 'Automatisch erkannt',
+  fr: 'Détecté automatiquement',
+  es: 'Detectado automáticamente',
+};
+
+// Haptic feedback helper - senior-inclusive: provides tactile confirmation
+const triggerHaptic = () => {
+  const options = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+  };
+
+  const hapticType = Platform.select({
+    ios: 'impactMedium',
+    android: 'effectClick',
+    default: 'impactMedium',
+  }) as string;
+
+  ReactNativeHapticFeedback.trigger(hapticType, options);
+};
+
 export function LanguageSelectScreen({ navigation }: Props) {
   const { i18n } = useTranslation();
   const currentLanguage = i18n.language as SupportedLanguage;
 
   const handleLanguageSelect = (lang: SupportedLanguage) => {
+    triggerHaptic();
     void i18n.changeLanguage(lang);
     navigation.navigate('Welcome');
   };
@@ -50,8 +89,17 @@ export function LanguageSelectScreen({ navigation }: Props) {
       >
         <View style={styles.header}>
           <Text style={styles.icon}>🌐</Text>
-          <Text style={styles.title}>Choose your language</Text>
-          <Text style={styles.titleTranslated}>Kies je taal</Text>
+          {/* Show the prompt in the user's current detected language first */}
+          <Text style={styles.title}>{CHOOSE_LANGUAGE_TEXTS[currentLanguage]}</Text>
+          {/* Show alternative translations so ALL users can understand */}
+          <View style={styles.alternativeTexts}>
+            {(Object.entries(CHOOSE_LANGUAGE_TEXTS) as [SupportedLanguage, string][])
+              .filter(([lang]) => lang !== currentLanguage)
+              .slice(0, 2) // Show 2 alternatives to keep it clean
+              .map(([lang, text]) => (
+                <Text key={lang} style={styles.titleTranslated}>{text}</Text>
+              ))}
+          </View>
         </View>
 
         <View style={styles.languages}>
@@ -87,7 +135,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
 
         <View style={styles.footer}>
           <Text style={styles.autoDetected}>
-            Auto-detected: {SUPPORTED_LANGUAGES[currentLanguage]}
+            {AUTO_DETECTED_TEXTS[currentLanguage]}: {SUPPORTED_LANGUAGES[currentLanguage]}
           </Text>
         </View>
       </ScrollView>
@@ -123,6 +171,9 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.xs,
+  },
+  alternativeTexts: {
+    marginTop: spacing.sm,
   },
   languages: {
     gap: spacing.md,

@@ -33,7 +33,20 @@
  * ─────────────────────────────────────────────────────────────────
  */
 
-import sodium from 'libsodium-wrappers';
+import {
+  crypto_box_keypair,
+  crypto_box_easy,
+  crypto_box_open_easy,
+  crypto_box_NONCEBYTES,
+  randombytes_buf,
+  to_base64,
+  from_base64,
+  to_hex,
+  from_string,
+  to_string,
+  memzero,
+  ready as sodiumReady,
+} from 'react-native-libsodium';
 import type { KeyPair, UserProfile } from './interfaces';
 
 // QR data version for future compatibility
@@ -75,28 +88,28 @@ export class DeviceLinkService {
    * Initialize sodium (call before any other methods)
    */
   async initialize(): Promise<void> {
-    await sodium.ready;
+    await sodiumReady;
   }
 
   /**
    * Generate QR code data for device linking (called on primary device)
    */
   async generateLinkQR(deviceName: string): Promise<string> {
-    await sodium.ready;
+    await sodiumReady;
 
     // Generate ephemeral key pair for this session
-    const ephemeralKp = sodium.crypto_box_keypair();
+    const ephemeralKp = crypto_box_keypair();
 
     // Create unique session ID
-    const sessionIdBytes = sodium.randombytes_buf(16);
-    const sessionId = sodium.to_hex(sessionIdBytes);
+    const sessionIdBytes = randombytes_buf(16);
+    const sessionId = to_hex(sessionIdBytes);
 
     // Store session
     this.currentSession = {
       sessionId,
       ephemeralKeyPair: {
-        publicKey: sodium.to_base64(ephemeralKp.publicKey),
-        privateKey: sodium.to_base64(ephemeralKp.privateKey),
+        publicKey: to_base64(ephemeralKp.publicKey),
+        privateKey: to_base64(ephemeralKp.privateKey),
       },
       createdAt: Date.now(),
       status: 'pending',
@@ -106,7 +119,7 @@ export class DeviceLinkService {
     const qrData: DeviceLinkQRData = {
       version: QR_VERSION,
       sessionId,
-      publicKey: sodium.to_base64(ephemeralKp.publicKey),
+      publicKey: to_base64(ephemeralKp.publicKey),
       deviceName,
       timestamp: Date.now(),
     };
@@ -153,15 +166,15 @@ export class DeviceLinkService {
     profile: UserProfile,
     tabletPublicKey: string,
   ): Promise<DeviceLinkBundle> {
-    await sodium.ready;
+    await sodiumReady;
 
     if (!this.currentSession) {
       throw new Error('No active linking session');
     }
 
     // Derive shared secret using ephemeral keys
-    const tabletPk = sodium.from_base64(tabletPublicKey);
-    const myPrivateKey = sodium.from_base64(this.currentSession.ephemeralKeyPair.privateKey);
+    const tabletPk = from_base64(tabletPublicKey);
+    const myPrivateKey = from_base64(this.currentSession.ephemeralKeyPair.privateKey);
 
     // Create payload with user's actual keys
     const payload = JSON.stringify({
@@ -170,9 +183,9 @@ export class DeviceLinkService {
     });
 
     // Encrypt with shared secret
-    const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
-    const encrypted = sodium.crypto_box_easy(
-      sodium.from_string(payload),
+    const nonce = randombytes_buf(crypto_box_NONCEBYTES);
+    const encrypted = crypto_box_easy(
+      from_string(payload),
       nonce,
       tabletPk,
       myPrivateKey,
@@ -181,8 +194,8 @@ export class DeviceLinkService {
     this.currentSession.status = 'completed';
 
     return {
-      encryptedKeys: sodium.to_base64(encrypted),
-      nonce: sodium.to_base64(nonce),
+      encryptedKeys: to_base64(encrypted),
+      nonce: to_base64(nonce),
       profile: {
         jid: profile.jid,
         name: profile.name,
@@ -203,25 +216,25 @@ export class DeviceLinkService {
     primaryPublicKey: string,
     myEphemeralPrivateKey: string,
   ): Promise<KeyPair> {
-    await sodium.ready;
+    await sodiumReady;
 
-    const primaryPk = sodium.from_base64(primaryPublicKey);
-    const myPrivateKey = sodium.from_base64(myEphemeralPrivateKey);
-    const nonce = sodium.from_base64(bundle.nonce);
-    const encrypted = sodium.from_base64(bundle.encryptedKeys);
+    const primaryPk = from_base64(primaryPublicKey);
+    const myPrivateKey = from_base64(myEphemeralPrivateKey);
+    const nonce = from_base64(bundle.nonce);
+    const encrypted = from_base64(bundle.encryptedKeys);
 
     // Decrypt the bundle
-    const decrypted = sodium.crypto_box_open_easy(
+    const decrypted = crypto_box_open_easy(
       encrypted,
       nonce,
       primaryPk,
       myPrivateKey,
     );
 
-    const keys = JSON.parse(sodium.to_string(decrypted)) as KeyPair;
+    const keys = JSON.parse(to_string(decrypted)) as KeyPair;
 
     // Zero the ephemeral private key from memory
-    sodium.memzero(myPrivateKey);
+    memzero(myPrivateKey);
 
     return keys;
   }
@@ -230,11 +243,11 @@ export class DeviceLinkService {
    * Generate ephemeral key pair for tablet side
    */
   async generateTabletEphemeralKeys(): Promise<KeyPair> {
-    await sodium.ready;
-    const kp = sodium.crypto_box_keypair();
+    await sodiumReady;
+    const kp = crypto_box_keypair();
     return {
-      publicKey: sodium.to_base64(kp.publicKey),
-      privateKey: sodium.to_base64(kp.privateKey),
+      publicKey: to_base64(kp.publicKey),
+      privateKey: to_base64(kp.privateKey),
     };
   }
 
@@ -269,10 +282,10 @@ export class DeviceLinkService {
     if (this.currentSession) {
       // Zero ephemeral private key
       try {
-        const privateKeyBytes = sodium.from_base64(
+        const privateKeyBytes = from_base64(
           this.currentSession.ephemeralKeyPair.privateKey
         );
-        sodium.memzero(privateKeyBytes);
+        memzero(privateKeyBytes);
       } catch {
         // Ignore if already zeroed
       }

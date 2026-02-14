@@ -85,7 +85,8 @@ export function PinSetupScreen({ navigation, route }: Props) {
     try {
       // TODO: Store PIN securely for backup encryption
       await new Promise(resolve => setTimeout(resolve, 500));
-      navigation.navigate('Completion', { name });
+      // Navigate to Demographics (required for free users)
+      navigation.navigate('Demographics', { name });
     } catch (err) {
       setError(t('errors.genericError'));
       isVerifyingRef.current = false;
@@ -146,7 +147,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.inner}>
-          <ProgressIndicator currentStep={4} totalSteps={5} />
+          <ProgressIndicator currentStep={4} totalSteps={6} />
 
           <View style={styles.content}>
             <Text style={styles.title}>

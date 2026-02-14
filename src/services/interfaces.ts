@@ -17,7 +17,26 @@ export type EncryptionMode = '1on1' | 'encrypt-to-all' | 'shared-key';
 export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'expired';
 export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
 export type SupportedLanguage = 'nl' | 'en' | 'de' | 'fr' | 'es';
+export type SubscriptionTier = 'free' | 'premium';
+export type AgeBracket =
+  | '18-24' | '25-34' | '35-44' | '45-54' | '55-64'
+  | '65-69' | '70-74' | '75-79' | '80-84' | '85-89'
+  | '90-94' | '95-99' | '100-104' | '105-110';
+export type Gender = 'male' | 'female' | 'other';
 export type Unsubscribe = () => void;
+
+/**
+ * XMPP Presence Status
+ * @see XEP-0317: Presence (https://xmpp.org/rfcs/rfc6121.html#presence)
+ *
+ * - available: Online and available (default when no <show> element)
+ * - chat: Free to chat / actively looking to chat
+ * - away: Temporarily away
+ * - xa: Extended away (gone for longer period)
+ * - dnd: Do not disturb
+ * - offline: Not connected
+ */
+export type PresenceShow = 'available' | 'chat' | 'away' | 'xa' | 'dnd' | 'offline';
 
 export interface KeyPair {
   publicKey: string;   // Base64
@@ -52,6 +71,7 @@ export interface Message {
   contentType: ContentType;
   timestamp: number;
   status: DeliveryStatus;
+  isRead?: boolean;          // For unread tracking (optional, defaults based on sender)
 }
 
 export interface OutboxMessage {
@@ -66,12 +86,14 @@ export interface OutboxMessage {
 }
 
 export interface Contact {
-  jid: string;
+  userUuid: string;          // Stable identifier (never changes)
+  jid: string;               // = {userUuid}@commeazy.local
   name: string;
-  phoneNumber: string;
+  phoneNumber?: string;      // Optional (privacy: can be hidden after QR verify)
   publicKey: string;         // Base64
   verified: boolean;         // QR verified
   lastSeen: number;
+  photoUrl?: string;         // Profile photo URL (local file or remote)
 }
 
 export interface Group {
@@ -84,13 +106,115 @@ export interface Group {
 }
 
 export interface UserProfile {
-  jid: string;
-  name: string;
-  phoneNumber: string;
+  // Identity (UUID is stable, phone/name can change)
+  userUuid: string;                      // Stable identifier, generated once at onboarding
+  jid: string;                           // = {userUuid}@commeazy.local
+  name: string;                          // Display name, can change
+  phoneNumber: string;                   // Can change (verified via Firebase)
   publicKey: string;
+
+  // Preferences
   language: SupportedLanguage;
   audioFeedbackEnabled: boolean;
   hapticFeedbackEnabled: boolean;
+  photoPath?: string;                    // Local file path to own avatar
+
+  // Subscription (freemium model)
+  subscriptionTier: SubscriptionTier;    // 'free' | 'premium'
+  subscriptionExpires?: number;          // Timestamp when premium expires
+
+  // Demographics (required for free, optional for premium)
+  countryCode?: string;                  // ISO 3166-1: 'NL', 'BE', 'DE'
+  regionCode?: string;                   // ISO 3166-2: 'NL-NH', 'BE-VLG'
+  city?: string;                         // Free text city name
+  ageBracket?: AgeBracket;               // '18-24', '25-34', etc.
+  gender?: Gender;                       // 'male', 'female', 'other'
+
+  // Hold-to-Navigate settings (accessibility)
+  longPressDelay?: number;               // 500-3000ms, default 1000ms
+  menuButtonPositionX?: number;          // X coordinate (0-1 as percentage of screen width)
+  menuButtonPositionY?: number;          // Y coordinate (0-1 as percentage of screen height)
+  edgeExclusionSize?: number;            // Edge exclusion zone in pixels (0-100, default 40)
+}
+
+/**
+ * Profile completeness validation result
+ */
+export interface ProfileCompleteness {
+  isComplete: boolean;
+  missingFields: ('country' | 'region' | 'city' | 'ageBracket' | 'gender')[];
+}
+
+/**
+ * Validate profile completeness based on subscription tier
+ * Free users must provide demographic data for ad targeting
+ */
+export function validateProfileCompleteness(profile: UserProfile): ProfileCompleteness {
+  // Premium users: all demographic fields are optional
+  if (profile.subscriptionTier === 'premium') {
+    return { isComplete: true, missingFields: [] };
+  }
+
+  // Free users: demographic data is required
+  const missingFields: ('country' | 'region' | 'city' | 'ageBracket' | 'gender')[] = [];
+
+  if (!profile.countryCode) missingFields.push('country');
+  if (!profile.regionCode) missingFields.push('region');
+  if (!profile.city) missingFields.push('city');
+  if (!profile.ageBracket) missingFields.push('ageBracket');
+  if (!profile.gender) missingFields.push('gender');
+
+  return {
+    isComplete: missingFields.length === 0,
+    missingFields,
+  };
+}
+
+/**
+ * Ad targeting context (passed to ad SDK, no personal data)
+ */
+export interface AdTargetingContext {
+  countryCode: string;
+  regionCode: string;
+  city: string;
+  ageBracket: AgeBracket;
+  language: SupportedLanguage;
+}
+
+// ============================================================
+// UUID / JID Helpers
+// ============================================================
+
+/** XMPP domain for CommEazy */
+export const COMMEAZY_DOMAIN = 'commeazy.local';
+
+/**
+ * Generate a JID from a user UUID.
+ * Format: {uuid}@commeazy.local
+ *
+ * @param userUuid - The user's stable UUID (v4)
+ * @returns The XMPP JID for this user
+ */
+export function jidFromUuid(userUuid: string): string {
+  return `${userUuid}@${COMMEAZY_DOMAIN}`;
+}
+
+/**
+ * Extract the UUID from a JID.
+ * Format: {uuid}@commeazy.local → {uuid}
+ *
+ * @param jid - The XMPP JID (may include resource suffix like /mobile)
+ * @returns The user UUID, or null if invalid format
+ */
+export function uuidFromJid(jid: string): string | null {
+  // Remove resource suffix (e.g., /mobile, /desktop)
+  const bareJid = jid.split('/')[0];
+  const parts = bareJid.split('@');
+
+  if (parts.length !== 2) return null;
+  if (parts[1] !== COMMEAZY_DOMAIN) return null;
+
+  return parts[0];
 }
 
 // ============================================================
@@ -107,10 +231,16 @@ export interface DatabaseService {
   getMessages(chatId: string, limit: number, offset?: number): Promise<Message[]>;
   observeMessages(chatId: string, limit: number): Observable<Message[]>;
   deleteMessage(messageId: string): Promise<void>;
+  updateMessageStatus(messageId: string, status: DeliveryStatus): Promise<void>;
+  markMessageAsRead(messageId: string): Promise<void>;
+  markAllMessagesAsRead(chatId: string): Promise<void>;
+  getUnreadCount(chatId: string): Promise<number>;
 
   // Outbox (7-day retention)
   saveOutboxMessage(msg: Omit<OutboxMessage, 'id'>): Promise<OutboxMessage>;
   getOutboxForRecipient(jid: string): Promise<OutboxMessage[]>;
+  getPendingOutbox(): Promise<OutboxMessage[]>;
+  deleteOutboxMessage(messageId: string): Promise<void>;
   markDelivered(messageId: string, recipientJid: string): Promise<void>;
   getExpiredOutbox(): Promise<OutboxMessage[]>;
   cleanupExpiredOutbox(): Promise<number>;
@@ -174,15 +304,22 @@ export interface XMPPService {
   sendMessage(to: string, payload: EncryptedPayload, messageId: string): Promise<void>;
   sendDeliveryReceipt(to: string, messageId: string): Promise<void>;
   sendPresence(show?: 'chat' | 'away' | 'xa' | 'dnd'): Promise<void>;
+  sendUnavailable(): Promise<void>;
+  subscribeToPresence(contactJid: string): Promise<void>;
+  probePresence(contactJid: string): Promise<void>;
 
   // MUC (Group Chat)
   joinMUC(roomJid: string, nickname: string): Promise<void>;
   leaveMUC(roomJid: string): Promise<void>;
   sendMUCMessage(roomJid: string, payload: EncryptedPayload, messageId: string): Promise<void>;
 
+  // Push Notifications (XEP-0357)
+  enablePushNotifications(fcmToken: string, apnsToken?: string): Promise<void>;
+  disablePushNotifications(): Promise<void>;
+
   // Event handlers
   onMessage(handler: (from: string, payload: EncryptedPayload, id: string) => void): Unsubscribe;
-  onPresence(handler: (from: string, status: 'online' | 'offline') => void): Unsubscribe;
+  onPresence(handler: (from: string, show: PresenceShow) => void): Unsubscribe;
   onDeliveryReceipt(handler: (messageId: string, from: string) => void): Unsubscribe;
 }
 
@@ -193,6 +330,7 @@ export interface XMPPService {
 export interface NotificationService {
   initialize(): Promise<void>;
   getToken(): Promise<string>;
+  getApnsToken?(): Promise<string | null>;
   onNotification(handler: (data: NotificationData) => void): Unsubscribe;
 }
 

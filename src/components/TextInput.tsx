@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
   label: {
     ...typography.label,
     color: colors.textPrimary,
+    fontWeight: '700',
     marginBottom: spacing.xs,
   },
   input: {

@@ -14,6 +14,7 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { CommonActions } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, typography, spacing } from '@/theme';
 import { Button, ProgressIndicator } from '@/components';
@@ -21,7 +22,7 @@ import type { OnboardingStackParams } from '@/navigation';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'Completion'>;
 
-export function CompletionScreen({ route }: Props) {
+export function CompletionScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { name } = route.params;
 
@@ -31,13 +32,18 @@ export function CompletionScreen({ route }: Props) {
   }, [t]);
 
   const handleStart = () => {
-    // TODO: Navigate to main app
-    // navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+    // Navigate to main app by resetting the root stack
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      })
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ProgressIndicator currentStep={5} totalSteps={5} />
+      <ProgressIndicator currentStep={6} totalSteps={6} />
 
       <View style={styles.content}>
         <View style={styles.celebration}>

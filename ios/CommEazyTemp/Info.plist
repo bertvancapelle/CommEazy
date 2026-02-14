@@ -20,13 +20,23 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>app-1-657494755504-ios-9b96091cd3d75c8d525375</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
@@ -34,6 +44,12 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>voip</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -48,16 +64,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>app-1-657494755504-ios-9b96091cd3d75c8d525375</string>
-			</array>
-		</dict>
-	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>CommEazy gebruikt Face ID om je berichten en sleutels veilig te bewaren.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>CommEazy gebruikt de camera om profielfoto's te maken.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CommEazy heeft toegang tot je foto's nodig om een profielfoto te kiezen.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CommEazy kan foto's opslaan in je fotobibliotheek.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CommEazy gebruikt de microfoon voor spraak- en videogesprekken.</string>
 </dict>
 </plist>

@@ -3,6 +3,7 @@
     "target": "esnext",
     "module": "commonjs",
     "lib": ["es2021"],
+    "types": ["jest", "node", "react-native"],
     "jsx": "react-native",
     "strict": true,
     "noImplicitAny": true,

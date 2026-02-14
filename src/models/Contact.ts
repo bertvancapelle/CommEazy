@@ -10,12 +10,14 @@ import { field, date, readonly, writer } from '@nozbe/watermelondb/decorators';
 export class ContactModel extends Model {
   static table = 'contacts';
 
-  @field('jid') jid!: string;
+  @field('user_uuid') userUuid!: string;    // Stable identifier (never changes)
+  @field('jid') jid!: string;               // = {userUuid}@commeazy.local
   @field('name') name!: string;
-  @field('phone_number') phoneNumber!: string;
+  @field('phone_number') phoneNumber?: string;  // Optional (privacy: can be hidden)
   @field('public_key') publicKey!: string; // Base64
   @field('verified') verified!: boolean; // QR verified
   @field('last_seen') lastSeen!: number;
+  @field('photo_path') photoPath?: string;  // Local file path to avatar
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 
@@ -51,6 +53,13 @@ export class ContactModel extends Model {
    */
   static queryByJid(collection: ContactModel['collection'], jid: string) {
     return collection.query(Q.where('jid', jid));
+  }
+
+  /**
+   * Query contact by UUID
+   */
+  static queryByUuid(collection: ContactModel['collection'], userUuid: string) {
+    return collection.query(Q.where('user_uuid', userUuid));
   }
 
   /**

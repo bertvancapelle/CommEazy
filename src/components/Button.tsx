@@ -17,8 +17,26 @@ import {
   TextStyle,
   ActivityIndicator,
   AccessibilityRole,
+  Platform,
 } from 'react-native';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
+
+// Haptic feedback helper - senior-inclusive: provides tactile confirmation
+const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'medium') => {
+  const options = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+  };
+
+  const hapticType = Platform.select({
+    ios: type === 'light' ? 'impactLight' : type === 'heavy' ? 'impactHeavy' : 'impactMedium',
+    android: type === 'light' ? 'effectClick' : type === 'heavy' ? 'effectHeavyClick' : 'effectClick',
+    default: 'impactMedium',
+  }) as string;
+
+  ReactNativeHapticFeedback.trigger(hapticType, options);
+};
 
 interface ButtonProps {
   title: string;
@@ -62,10 +80,15 @@ export function Button({
     isDisabled && styles.labelDisabled,
   ].filter(Boolean) as TextStyle[];
 
+  const handlePress = () => {
+    triggerHaptic('medium');
+    onPress();
+  };
+
   return (
     <TouchableOpacity
       style={buttonStyle}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={isDisabled}
       activeOpacity={0.7}
       accessibilityRole={'button' as AccessibilityRole}

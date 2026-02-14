@@ -39,6 +39,16 @@ export const colors = {
   error: '#B71C1C',         // Red 900 — 8.3:1 on white
   info: '#0D47A1',
 
+  // Presence status (XMPP show values)
+  // NOTE: Deze kleuren zijn de fallback. Gebruikers kunnen ze aanpassen
+  // via usePresenceColors hook voor kleurenblindheid ondersteuning.
+  presenceAvailable: '#68C414',   // Groen — online en beschikbaar
+  presenceChat: '#68C414',        // Groen — zelfde als available (ook online)
+  presenceAway: '#FF8F35',        // Oranje — even weg
+  presenceXa: '#F13400',          // Rood — langere tijd weg (not available)
+  presenceDnd: '#F13400',         // Rood — niet storen (met witte balk in UI)
+  presenceOffline: '#A4A4A4',     // Grijs — offline
+
   // Message status
   statusPending: '#757575',
   statusSent: '#0D47A1',
@@ -50,6 +60,10 @@ export const colors = {
   divider: '#E0E0E0',
   disabled: '#9E9E9E',
   overlay: 'rgba(0, 0, 0, 0.5)',
+
+  // Validation
+  errorBackground: '#FFEBEE',   // Light red (Material Red 50) for incomplete fields
+  errorBorder: '#FFCDD2',       // Slightly darker red border
 } as const;
 
 // ============================================================
@@ -105,11 +119,11 @@ export const typography = {
     letterSpacing: 0.1,
   },
 
-  // Small (timestamps, metadata only)
+  // Small (timestamps, metadata - minimum 16pt for senior-inclusive design)
   small: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400' as const,
-    lineHeight: 20,
+    lineHeight: 22,
     letterSpacing: 0.25,
   },
 

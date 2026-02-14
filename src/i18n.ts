@@ -17,12 +17,17 @@ const resources = {
 };
 
 const getDeviceLanguage = (): string => {
-  const locales = RNLocalize.getLocales();
-  if (locales.length > 0) {
-    const languageCode = locales[0].languageCode;
-    if (Object.keys(resources).includes(languageCode)) {
-      return languageCode;
+  try {
+    const locales = RNLocalize.getLocales();
+    if (locales.length > 0) {
+      const languageCode = locales[0].languageCode;
+      if (Object.keys(resources).includes(languageCode)) {
+        return languageCode;
+      }
     }
+  } catch (error) {
+    // Native module might not be ready yet
+    console.warn('[i18n] Failed to get device language:', error);
   }
   return 'nl'; // Default to Dutch
 };
@@ -31,6 +36,8 @@ i18n.use(initReactI18next).init({
   resources,
   lng: getDeviceLanguage(),
   fallbackLng: 'nl',
+  // Use v3 format for Hermes compatibility (no Intl.PluralRules)
+  compatibilityJSON: 'v3',
   interpolation: {
     escapeValue: false,
   },

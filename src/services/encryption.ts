@@ -14,7 +14,60 @@
  * @see poc-encryption-benchmark.js for benchmark data
  */
 
-import sodium from 'libsodium-wrappers';
+import {
+  crypto_box_keypair,
+  crypto_box_easy,
+  crypto_box_open_easy,
+  crypto_box_NONCEBYTES,
+  crypto_secretbox_easy,
+  crypto_secretbox_open_easy,
+  crypto_secretbox_NONCEBYTES,
+  crypto_pwhash,
+  crypto_pwhash_OPSLIMIT_MODERATE,
+  crypto_pwhash_MEMLIMIT_MODERATE,
+  crypto_pwhash_ALG_ARGON2ID13,
+  crypto_generichash,
+  crypto_scalarmult_base,
+  randombytes_buf,
+  to_base64,
+  from_base64,
+  to_hex,
+  to_string,
+  memzero,
+  ready as sodiumReady,
+} from 'react-native-libsodium';
+
+// from_string is not exported by react-native-libsodium native build
+// Manual UTF-8 encoding since TextEncoder is not available in React Native
+const from_string = (str: string): Uint8Array => {
+  const utf8: number[] = [];
+  for (let i = 0; i < str.length; i++) {
+    let charCode = str.charCodeAt(i);
+    if (charCode < 0x80) {
+      utf8.push(charCode);
+    } else if (charCode < 0x800) {
+      utf8.push(0xc0 | (charCode >> 6), 0x80 | (charCode & 0x3f));
+    } else if (charCode >= 0xd800 && charCode < 0xdc00) {
+      // Surrogate pair
+      i++;
+      const low = str.charCodeAt(i);
+      charCode = 0x10000 + ((charCode - 0xd800) << 10) + (low - 0xdc00);
+      utf8.push(
+        0xf0 | (charCode >> 18),
+        0x80 | ((charCode >> 12) & 0x3f),
+        0x80 | ((charCode >> 6) & 0x3f),
+        0x80 | (charCode & 0x3f),
+      );
+    } else {
+      utf8.push(
+        0xe0 | (charCode >> 12),
+        0x80 | ((charCode >> 6) & 0x3f),
+        0x80 | (charCode & 0x3f),
+      );
+    }
+  }
+  return new Uint8Array(utf8);
+};
 import * as Keychain from 'react-native-keychain';
 import type {
   EncryptionService,
@@ -48,7 +101,7 @@ export class SodiumEncryptionService implements EncryptionService {
   }
 
   async initialize(): Promise<void> {
-    await sodium.ready;
+    await sodiumReady;
 
     // Try to load existing keys from Keychain
     const stored = await this.loadKeysFromKeychain();
@@ -63,32 +116,32 @@ export class SodiumEncryptionService implements EncryptionService {
   async generateKeyPair(): Promise<KeyPair> {
     this.ensureInitialized();
 
-    const kp = sodium.crypto_box_keypair();
+    const kp = crypto_box_keypair();
     this.publicKey = kp.publicKey;
     this.privateKey = kp.privateKey;
 
     // Store in Keychain (hardware-backed on iOS/Android)
     await Keychain.setGenericPassword(
       KEY_ACCOUNT_PUBLIC,
-      sodium.to_base64(kp.publicKey),
+      to_base64(kp.publicKey),
       { service: `${KEY_SERVICE}.public` },
     );
     await Keychain.setGenericPassword(
       KEY_ACCOUNT_PRIVATE,
-      sodium.to_base64(kp.privateKey),
+      to_base64(kp.privateKey),
       { service: `${KEY_SERVICE}.private`, accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY },
     );
 
     return {
-      publicKey: sodium.to_base64(kp.publicKey),
-      privateKey: sodium.to_base64(kp.privateKey),
+      publicKey: to_base64(kp.publicKey),
+      privateKey: to_base64(kp.privateKey),
     };
   }
 
   async getPublicKey(): Promise<string> {
     this.ensureInitialized();
     if (!this.publicKey) throw new Error('No key pair generated');
-    return sodium.to_base64(this.publicKey);
+    return to_base64(this.publicKey);
   }
 
   /**
@@ -112,7 +165,7 @@ export class SodiumEncryptionService implements EncryptionService {
     }
 
     const data = typeof plaintext === 'string'
-      ? sodium.from_string(plaintext)
+      ? from_string(plaintext)
       : plaintext;
 
     try {
@@ -128,6 +181,7 @@ export class SodiumEncryptionService implements EncryptionService {
       return this.encryptSharedKey(data, recipients);
     } catch (error) {
       // E200: Encryption failed - NEVER fall back to plaintext
+      console.error('Encryption failed:', error);
       throw new AppError('E200', 'encryption', () => {}, {
         reason: 'encrypt_failed',
         // NEVER include key material in error context
@@ -167,10 +221,10 @@ export class SodiumEncryptionService implements EncryptionService {
   async generateQRData(): Promise<string> {
     this.ensureKeys();
     // QR contains: base64 public key + fingerprint
-    const fingerprint = sodium.crypto_generichash(16, this.publicKey!, null);
+    const fingerprint = crypto_generichash(16, this.publicKey!, null);
     return JSON.stringify({
-      pk: sodium.to_base64(this.publicKey!),
-      fp: sodium.to_hex(fingerprint),
+      pk: to_base64(this.publicKey!),
+      fp: to_hex(fingerprint),
       v: 1,
     });
   }
@@ -180,8 +234,8 @@ export class SodiumEncryptionService implements EncryptionService {
       const parsed = JSON.parse(qrData) as { pk: string; fp: string; v: number };
       if (parsed.pk !== expectedPublicKey) return false;
 
-      const pk = sodium.from_base64(parsed.pk);
-      const expectedFingerprint = sodium.to_hex(sodium.crypto_generichash(16, pk, null));
+      const pk = from_base64(parsed.pk);
+      const expectedFingerprint = to_hex(crypto_generichash(16, pk, null));
       return parsed.fp === expectedFingerprint;
     } catch {
       return false;
@@ -195,26 +249,26 @@ export class SodiumEncryptionService implements EncryptionService {
   async createBackup(pin: string): Promise<EncryptedBackup> {
     this.ensureKeys();
 
-    const salt = sodium.randombytes_buf(16);
-    const derivedKey = sodium.crypto_pwhash(
+    const salt = randombytes_buf(16);
+    const derivedKey = crypto_pwhash(
       32,
       pin,
       salt,
-      sodium.crypto_pwhash_OPSLIMIT_MODERATE,
-      sodium.crypto_pwhash_MEMLIMIT_MODERATE,
-      sodium.crypto_pwhash_ALG_ARGON2ID13,
+      crypto_pwhash_OPSLIMIT_MODERATE,
+      crypto_pwhash_MEMLIMIT_MODERATE,
+      crypto_pwhash_ALG_ARGON2ID13,
     );
 
-    const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
-    const encrypted = sodium.crypto_secretbox_easy(this.privateKey!, nonce, derivedKey);
+    const nonce = randombytes_buf(crypto_secretbox_NONCEBYTES);
+    const encrypted = crypto_secretbox_easy(this.privateKey!, nonce, derivedKey);
 
     // Zero derived key from memory
-    sodium.memzero(derivedKey);
+    memzero(derivedKey);
 
     return {
-      salt: sodium.to_base64(salt),
-      iv: sodium.to_base64(nonce),
-      encrypted: sodium.to_base64(encrypted),
+      salt: to_base64(salt),
+      iv: to_base64(nonce),
+      encrypted: to_base64(encrypted),
       version: BACKUP_VERSION,
     };
   }
@@ -223,21 +277,21 @@ export class SodiumEncryptionService implements EncryptionService {
     let derivedKey: Uint8Array | null = null;
 
     try {
-      const salt = sodium.from_base64(backup.salt);
-      const nonce = sodium.from_base64(backup.iv);
-      const encrypted = sodium.from_base64(backup.encrypted);
+      const salt = from_base64(backup.salt);
+      const nonce = from_base64(backup.iv);
+      const encrypted = from_base64(backup.encrypted);
 
-      derivedKey = sodium.crypto_pwhash(
+      derivedKey = crypto_pwhash(
         32,
         pin,
         salt,
-        sodium.crypto_pwhash_OPSLIMIT_MODERATE,
-        sodium.crypto_pwhash_MEMLIMIT_MODERATE,
-        sodium.crypto_pwhash_ALG_ARGON2ID13,
+        crypto_pwhash_OPSLIMIT_MODERATE,
+        crypto_pwhash_MEMLIMIT_MODERATE,
+        crypto_pwhash_ALG_ARGON2ID13,
       );
 
-      const privateKey = sodium.crypto_secretbox_open_easy(encrypted, nonce, derivedKey);
-      const publicKey = sodium.crypto_scalarmult_base(privateKey);
+      const privateKey = crypto_secretbox_open_easy(encrypted, nonce, derivedKey);
+      const publicKey = crypto_scalarmult_base(privateKey);
 
       this.privateKey = privateKey;
       this.publicKey = publicKey;
@@ -245,18 +299,18 @@ export class SodiumEncryptionService implements EncryptionService {
       // Store restored keys
       await Keychain.setGenericPassword(
         KEY_ACCOUNT_PUBLIC,
-        sodium.to_base64(publicKey),
+        to_base64(publicKey),
         { service: `${KEY_SERVICE}.public` },
       );
       await Keychain.setGenericPassword(
         KEY_ACCOUNT_PRIVATE,
-        sodium.to_base64(privateKey),
+        to_base64(privateKey),
         { service: `${KEY_SERVICE}.private` },
       );
 
       return {
-        publicKey: sodium.to_base64(publicKey),
-        privateKey: sodium.to_base64(privateKey),
+        publicKey: to_base64(publicKey),
+        privateKey: to_base64(privateKey),
       };
     } catch (error) {
       // E201: Decryption failed (wrong PIN or tampered backup)
@@ -266,7 +320,7 @@ export class SodiumEncryptionService implements EncryptionService {
       });
     } finally {
       if (derivedKey) {
-        sodium.memzero(derivedKey);
+        memzero(derivedKey);
       }
     }
   }
@@ -277,14 +331,14 @@ export class SodiumEncryptionService implements EncryptionService {
 
   /** 1-on-1: single crypto_box */
   private encryptDirect(data: Uint8Array, recipient: Recipient): EncryptedPayload {
-    const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
-    const ciphertext = sodium.crypto_box_easy(data, nonce, recipient.publicKey, this.privateKey!);
+    const nonce = randombytes_buf(crypto_box_NONCEBYTES);
+    const ciphertext = crypto_box_easy(data, nonce, recipient.publicKey, this.privateKey!);
 
     return {
       mode: '1on1',
-      data: sodium.to_base64(ciphertext),
+      data: to_base64(ciphertext),
       metadata: {
-        nonce: sodium.to_base64(nonce),
+        nonce: to_base64(nonce),
         to: recipient.jid,
       },
     };
@@ -295,11 +349,11 @@ export class SodiumEncryptionService implements EncryptionService {
     const envelopes: Record<string, { nonce: string; ciphertext: string }> = {};
 
     for (const recipient of recipients) {
-      const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
-      const ciphertext = sodium.crypto_box_easy(data, nonce, recipient.publicKey, this.privateKey!);
+      const nonce = randombytes_buf(crypto_box_NONCEBYTES);
+      const ciphertext = crypto_box_easy(data, nonce, recipient.publicKey, this.privateKey!);
       envelopes[recipient.jid] = {
-        nonce: sodium.to_base64(nonce),
-        ciphertext: sodium.to_base64(ciphertext),
+        nonce: to_base64(nonce),
+        ciphertext: to_base64(ciphertext),
       };
     }
 
@@ -313,31 +367,31 @@ export class SodiumEncryptionService implements EncryptionService {
   /** >8 members: secretbox content + crypto_box key wrapping */
   private encryptSharedKey(data: Uint8Array, recipients: Recipient[]): EncryptedPayload {
     // Generate random message key
-    const messageKey = sodium.randombytes_buf(32);
-    const contentNonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+    const messageKey = randombytes_buf(32);
+    const contentNonce = randombytes_buf(crypto_secretbox_NONCEBYTES);
 
     // Encrypt content once with message key
-    const encryptedContent = sodium.crypto_secretbox_easy(data, contentNonce, messageKey);
+    const encryptedContent = crypto_secretbox_easy(data, contentNonce, messageKey);
 
     // Wrap message key for each recipient
     const wrappedKeys: Record<string, { nonce: string; key: string }> = {};
     for (const recipient of recipients) {
-      const keyNonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
-      const wrappedKey = sodium.crypto_box_easy(messageKey, keyNonce, recipient.publicKey, this.privateKey!);
+      const keyNonce = randombytes_buf(crypto_box_NONCEBYTES);
+      const wrappedKey = crypto_box_easy(messageKey, keyNonce, recipient.publicKey, this.privateKey!);
       wrappedKeys[recipient.jid] = {
-        nonce: sodium.to_base64(keyNonce),
-        key: sodium.to_base64(wrappedKey),
+        nonce: to_base64(keyNonce),
+        key: to_base64(wrappedKey),
       };
     }
 
     // CRITICAL: Zero message key from memory
-    sodium.memzero(messageKey);
+    memzero(messageKey);
 
     return {
       mode: 'shared-key',
       data: JSON.stringify({
-        content: sodium.to_base64(encryptedContent),
-        contentNonce: sodium.to_base64(contentNonce),
+        content: to_base64(encryptedContent),
+        contentNonce: to_base64(contentNonce),
         keys: wrappedKeys,
       }),
       metadata: {},
@@ -349,10 +403,10 @@ export class SodiumEncryptionService implements EncryptionService {
   // ============================================================
 
   private decryptDirect(payload: EncryptedPayload, senderPk: Uint8Array): string {
-    const nonce = sodium.from_base64(payload.metadata.nonce);
-    const ciphertext = sodium.from_base64(payload.data);
-    const plaintext = sodium.crypto_box_open_easy(ciphertext, nonce, senderPk, this.privateKey!);
-    return sodium.to_string(plaintext);
+    const nonce = from_base64(payload.metadata.nonce);
+    const ciphertext = from_base64(payload.data);
+    const plaintext = crypto_box_open_easy(ciphertext, nonce, senderPk, this.privateKey!);
+    return to_string(plaintext);
   }
 
   private decryptFromAll(payload: EncryptedPayload, senderPk: Uint8Array): string {
@@ -364,10 +418,10 @@ export class SodiumEncryptionService implements EncryptionService {
       throw new Error('No envelope for this recipient');
     }
 
-    const nonce = sodium.from_base64(envelope.nonce);
-    const ciphertext = sodium.from_base64(envelope.ciphertext);
-    const plaintext = sodium.crypto_box_open_easy(ciphertext, nonce, senderPk, this.privateKey!);
-    return sodium.to_string(plaintext);
+    const nonce = from_base64(envelope.nonce);
+    const ciphertext = from_base64(envelope.ciphertext);
+    const plaintext = crypto_box_open_easy(ciphertext, nonce, senderPk, this.privateKey!);
+    return to_string(plaintext);
   }
 
   private decryptSharedKey(payload: EncryptedPayload, senderPk: Uint8Array): string {
@@ -385,19 +439,19 @@ export class SodiumEncryptionService implements EncryptionService {
     }
 
     // Unwrap message key
-    const keyNonce = sodium.from_base64(myWrappedKey.nonce);
-    const wrappedKey = sodium.from_base64(myWrappedKey.key);
-    const messageKey = sodium.crypto_box_open_easy(wrappedKey, keyNonce, senderPk, this.privateKey!);
+    const keyNonce = from_base64(myWrappedKey.nonce);
+    const wrappedKey = from_base64(myWrappedKey.key);
+    const messageKey = crypto_box_open_easy(wrappedKey, keyNonce, senderPk, this.privateKey!);
 
     // Decrypt content
-    const contentNonce = sodium.from_base64(parsed.contentNonce);
-    const encryptedContent = sodium.from_base64(parsed.content);
+    const contentNonce = from_base64(parsed.contentNonce);
+    const encryptedContent = from_base64(parsed.content);
 
     try {
-      const plaintext = sodium.crypto_secretbox_open_easy(encryptedContent, contentNonce, messageKey);
-      return sodium.to_string(plaintext);
+      const plaintext = crypto_secretbox_open_easy(encryptedContent, contentNonce, messageKey);
+      return to_string(plaintext);
     } finally {
-      sodium.memzero(messageKey);
+      memzero(messageKey);
     }
   }
 
@@ -412,8 +466,8 @@ export class SodiumEncryptionService implements EncryptionService {
 
       if (pubResult && privResult) {
         return {
-          publicKey: sodium.from_base64(pubResult.password),
-          privateKey: sodium.from_base64(privResult.password),
+          publicKey: from_base64(pubResult.password),
+          privateKey: from_base64(privResult.password),
         };
       }
     } catch {
