@@ -1,16 +1,18 @@
 /**
- * WheelNavigationMenu — Rotating wheel navigation
+ * WheelNavigationMenu — Smart navigation menu with usage-based ordering
  *
- * A 3D rotating wheel for module selection, designed for seniors:
- * - Vertical swipe to rotate through modules
- * - Current module highlighted in center
- * - Haptic feedback on each "tick" (module change)
+ * A streamlined navigation menu designed for seniors:
+ * - Active module (where user came from) always at top
+ * - Top 4 most-used modules shown next
+ * - "Meer" toggle button to see remaining modules
  * - Large touch targets and clear labels
+ * - Haptic feedback on interactions
+ * - Scalable for future module additions
  *
  * @see .claude/skills/ui-designer/SKILL.md#hold-to-navigate
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,7 +22,7 @@ import {
   Dimensions,
   Platform,
   AccessibilityInfo,
-  PanResponder,
+  ScrollView,
   Vibration,
   GestureResponderEvent,
 } from 'react-native';
@@ -35,13 +37,12 @@ import {
   shadows,
 } from '@/theme';
 import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
+import { useModuleUsage, ALL_MODULES } from '@/hooks/useModuleUsage';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
-// Wheel configuration
-const WHEEL_ITEM_HEIGHT = 160;
-const VISIBLE_ITEMS = 3;
-
-// Helper function for modulo that handles negative numbers correctly
-const mod = (n: number, m: number): number => ((n % m) + m) % m;
+// Configuration
+const MODULE_ITEM_HEIGHT = 80;
+const TOP_MODULES_COUNT = 4;
 
 export type NavigationDestination =
   | 'chats'
@@ -55,25 +56,30 @@ export type NavigationDestination =
   | 'audiobook'
   | 'podcast';
 
-interface WheelItem {
+interface ModuleItem {
   id: NavigationDestination;
   labelKey: string;
   icon: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast';
   color: string;
 }
 
-const WHEEL_ITEMS: WheelItem[] = [
-  { id: 'chats', labelKey: 'navigation.chats', icon: 'chat', color: colors.primary },
-  { id: 'contacts', labelKey: 'navigation.contacts', icon: 'contacts', color: '#2E7D32' },
-  { id: 'groups', labelKey: 'navigation.groups', icon: 'groups', color: '#00796B' },
-  { id: 'calls', labelKey: 'navigation.calls', icon: 'phone', color: '#1565C0' },
-  { id: 'videocall', labelKey: 'navigation.videocall', icon: 'video', color: '#C62828' },
-  { id: 'ebook', labelKey: 'navigation.ebook', icon: 'book', color: '#F57C00' },
-  { id: 'audiobook', labelKey: 'navigation.audiobook', icon: 'headphones', color: '#7B1FA2' },
-  { id: 'podcast', labelKey: 'navigation.podcast', icon: 'podcast', color: '#E91E63' },
-  { id: 'settings', labelKey: 'navigation.settings', icon: 'settings', color: '#5E35B1' },
-  { id: 'help', labelKey: 'navigation.help', icon: 'help', color: '#00838F' },
-];
+// Module definitions - can grow as functionality expands
+const MODULE_DEFINITIONS: Record<NavigationDestination, Omit<ModuleItem, 'id'>> = {
+  chats: { labelKey: 'navigation.chats', icon: 'chat', color: colors.primary },
+  contacts: { labelKey: 'navigation.contacts', icon: 'contacts', color: '#2E7D32' },
+  groups: { labelKey: 'navigation.groups', icon: 'groups', color: '#00796B' },
+  calls: { labelKey: 'navigation.calls', icon: 'phone', color: '#1565C0' },
+  videocall: { labelKey: 'navigation.videocall', icon: 'video', color: '#C62828' },
+  ebook: { labelKey: 'navigation.ebook', icon: 'book', color: '#F57C00' },
+  audiobook: { labelKey: 'navigation.audiobook', icon: 'headphones', color: '#7B1FA2' },
+  podcast: { labelKey: 'navigation.podcast', icon: 'podcast', color: '#E91E63' },
+  settings: { labelKey: 'navigation.settings', icon: 'settings', color: '#5E35B1' },
+  help: { labelKey: 'navigation.help', icon: 'help', color: '#00838F' },
+};
+
+function getModuleItem(id: NavigationDestination): ModuleItem {
+  return { id, ...MODULE_DEFINITIONS[id] };
+}
 
 interface WheelNavigationMenuProps {
   onNavigate: (destination: NavigationDestination) => void;
@@ -91,40 +97,41 @@ export function WheelNavigationMenu({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { reducedMotion, triggerHaptic, settings } = useHoldToNavigate();
+  const { recordModuleUsage, getTopModules, getRemainingModules } = useModuleUsage();
+  const { accentColor } = useAccentColor();
 
   const blurIntensity = settings.wheelBlurIntensity;
   const dismissMargin = settings.wheelDismissMargin;
 
-  // Find initial index based on active screen
-  const getInitialIndex = useCallback(() => {
-    if (!activeScreen) return 0;
-    const index = WHEEL_ITEMS.findIndex(item => item.id === activeScreen);
-    return index >= 0 ? index : 0;
-  }, [activeScreen]);
+  // State for showing more modules
+  const [showMore, setShowMore] = useState(false);
 
-  // Current selected index (the item in the center)
-  const [selectedIndex, setSelectedIndex] = useState(getInitialIndex);
-
-  // Animation for visual offset during drag (small movement to show direction)
-  const dragOffset = useRef(new Animated.Value(0)).current;
-
-  // Animation for fade in/out
+  // Animation values
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const contentOpacity = useRef(new Animated.Value(0)).current;
 
-  // Wheel container layout for tap-outside detection
-  const wheelLayout = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  // Container layout for tap-outside detection
+  const containerLayout = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   const { width: screenWidth } = Dimensions.get('window');
 
-  // Reset when menu opens - set selected index to current active screen
+  // Get sorted modules based on usage
+  const topModules = useMemo(() => {
+    const result = getTopModules(activeScreen, TOP_MODULES_COUNT);
+    console.log('[WheelNavigationMenu] topModules computed:', result, 'activeScreen:', activeScreen);
+    return result;
+  }, [activeScreen, getTopModules]);
+
+  const remainingModules = useMemo(() => {
+    const result = getRemainingModules(activeScreen, TOP_MODULES_COUNT);
+    console.log('[WheelNavigationMenu] remainingModules computed:', result);
+    return result;
+  }, [activeScreen, getRemainingModules]);
+
+  // Reset state when menu opens
   useEffect(() => {
     if (visible) {
-      // Always start at the current screen when opening the menu
-      const newIndex = getInitialIndex();
-      console.log('[WheelNavigationMenu] Opening menu, activeScreen:', activeScreen, 'newIndex:', newIndex);
-      setSelectedIndex(newIndex);
-      dragOffset.setValue(0);
+      setShowMore(false);
 
       if (Platform.OS === 'ios') {
         AccessibilityInfo.announceForAccessibility(t('navigation.menu_opened'));
@@ -156,10 +163,10 @@ export function WheelNavigationMenu({
         }),
       ]).start();
     }
-  }, [visible, activeScreen, getInitialIndex, reducedMotion, overlayOpacity, contentOpacity, dragOffset, t]);
+  }, [visible, reducedMotion, overlayOpacity, contentOpacity, t]);
 
   // Haptic feedback
-  const triggerWheelHaptic = useCallback(() => {
+  const triggerItemHaptic = useCallback(() => {
     if (Platform.OS === 'ios') {
       Vibration.vibrate(5);
     } else {
@@ -167,124 +174,12 @@ export function WheelNavigationMenu({
     }
   }, []);
 
-  // Move to a specific index with animation
-  const moveToIndex = useCallback((newIndex: number) => {
-    const normalizedIndex = mod(newIndex, WHEEL_ITEMS.length);
-
-    // Animate drag offset back to 0 with a quick snap
-    Animated.spring(dragOffset, {
-      toValue: 0,
-      tension: 300,
-      friction: 25,
-      useNativeDriver: true,
-    }).start();
-
-    setSelectedIndex(normalizedIndex);
-    triggerWheelHaptic();
-  }, [dragOffset, triggerWheelHaptic]);
-
-  // Swipe thresholds
-  // Minimum swipe distance to move 1 step
-  const MIN_SWIPE_THRESHOLD = WHEEL_ITEM_HEIGHT * 0.25;
-  // Distance per additional step (for multi-step swiping)
-  const STEP_DISTANCE = WHEEL_ITEM_HEIGHT * 0.6;
-  // Maximum steps per swipe (to prevent accidental extreme jumps)
-  const MAX_STEPS = 3;
-
-  // Pan responder for swipe navigation
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dy) > 10;
-      },
-
-      onPanResponderGrant: () => {
-        dragOffset.stopAnimation();
-        dragOffset.setValue(0);
-      },
-
-      onPanResponderMove: (_, gestureState) => {
-        // Allow larger drag for visual feedback during multi-step swipes
-        const maxDrag = WHEEL_ITEM_HEIGHT * 0.6;
-        const clampedDy = Math.max(-maxDrag, Math.min(maxDrag, gestureState.dy));
-        dragOffset.setValue(clampedDy);
-      },
-
-      onPanResponderRelease: (_, gestureState) => {
-        const { dy, vy } = gestureState;
-
-        // Calculate number of steps based on swipe distance AND velocity
-        // Swipe UP (negative dy) = next item (index + 1)
-        // Swipe DOWN (positive dy) = previous item (index - 1)
-        let steps = 0;
-
-        const absDy = Math.abs(dy);
-        const absVy = Math.abs(vy);
-
-        if (absDy >= MIN_SWIPE_THRESHOLD) {
-          // Base steps from distance
-          // First step at MIN_SWIPE_THRESHOLD, then additional steps for each STEP_DISTANCE
-          const distanceSteps = 1 + Math.floor((absDy - MIN_SWIPE_THRESHOLD) / STEP_DISTANCE);
-
-          // Velocity bonus: fast swipes can add extra steps
-          // Velocity > 0.8 adds 1 step, > 1.5 adds 2 steps
-          let velocityBonus = 0;
-          if (absVy > 1.5) {
-            velocityBonus = 2;
-          } else if (absVy > 0.8) {
-            velocityBonus = 1;
-          }
-
-          steps = Math.min(distanceSteps + velocityBonus, MAX_STEPS);
-
-          // Apply direction
-          if (dy < 0) {
-            // Swiped up - go to next items (increase index)
-            steps = steps;
-          } else {
-            // Swiped down - go to previous items (decrease index)
-            steps = -steps;
-          }
-        }
-
-        if (steps !== 0) {
-          // Get current index from state (we need to use a callback to get latest)
-          setSelectedIndex(currentIndex => {
-            const newIndex = mod(currentIndex + steps, WHEEL_ITEMS.length);
-            triggerWheelHaptic();
-            return newIndex;
-          });
-        }
-
-        // Animate back to center
-        Animated.spring(dragOffset, {
-          toValue: 0,
-          tension: 300,
-          friction: 25,
-          useNativeDriver: true,
-        }).start();
-      },
-
-      onPanResponderTerminate: () => {
-        Animated.spring(dragOffset, {
-          toValue: 0,
-          tension: 300,
-          friction: 25,
-          useNativeDriver: true,
-        }).start();
-      },
-    })
-  ).current;
-
-  // Handle item selection
-  const handleSelect = useCallback(() => {
-    const selectedItem = WHEEL_ITEMS[selectedIndex];
-    if (selectedItem) {
-      triggerHaptic();
-      onNavigate(selectedItem.id);
-    }
-  }, [selectedIndex, triggerHaptic, onNavigate]);
+  // Handle module selection
+  const handleModulePress = useCallback((moduleId: NavigationDestination) => {
+    triggerItemHaptic();
+    recordModuleUsage(moduleId);
+    onNavigate(moduleId);
+  }, [triggerItemHaptic, recordModuleUsage, onNavigate]);
 
   // Handle close
   const handleClose = useCallback(() => {
@@ -292,44 +187,44 @@ export function WheelNavigationMenu({
     onClose();
   }, [triggerHaptic, onClose]);
 
+  // Handle "Meer/Terug" toggle
+  const handleToggleMore = useCallback(() => {
+    triggerItemHaptic();
+    setShowMore(prev => !prev);
+  }, [triggerItemHaptic]);
+
   // Handle tap on backdrop
   const handleBackdropPress = useCallback((event: GestureResponderEvent) => {
     const { pageX, pageY } = event.nativeEvent;
-    const wheel = wheelLayout.current;
+    const container = containerLayout.current;
 
-    const isOutsideLeft = pageX < wheel.x - dismissMargin;
-    const isOutsideRight = pageX > wheel.x + wheel.width + dismissMargin;
-    const isOutsideTop = pageY < wheel.y - dismissMargin;
-    const isOutsideBottom = pageY > wheel.y + wheel.height + dismissMargin;
+    const isOutsideLeft = pageX < container.x - dismissMargin;
+    const isOutsideRight = pageX > container.x + container.width + dismissMargin;
+    const isOutsideTop = pageY < container.y - dismissMargin;
+    const isOutsideBottom = pageY > container.y + container.height + dismissMargin;
 
     if (isOutsideLeft || isOutsideRight || isOutsideTop || isOutsideBottom) {
       handleClose();
     }
   }, [dismissMargin, handleClose]);
 
-  // Store wheel layout
-  const handleWheelLayout = useCallback((event: any) => {
+  // Store container layout
+  const handleContainerLayout = useCallback((event: any) => {
     event.target.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-      wheelLayout.current = { x: pageX, y: pageY, width, height };
+      containerLayout.current = { x: pageX, y: pageY, width, height };
     });
   }, []);
-
-  // Handle tap on item
-  const handleItemTap = useCallback((itemIndex: number) => {
-    if (itemIndex === selectedIndex) {
-      handleSelect();
-    } else {
-      moveToIndex(itemIndex);
-    }
-  }, [selectedIndex, handleSelect, moveToIndex]);
 
   if (!visible) {
     return null;
   }
 
-  // Much darker overlay for cleaner UI - less distraction from background
+  // Determine which modules to show
+  const modulesToShow = showMore ? remainingModules : topModules;
+
+  // Calculate overlay background
   const overlayBackgroundOpacity = blurIntensity > 0
-    ? 0.85 + (blurIntensity / 30) * 0.1  // 0.85 to 0.95 based on blur setting
+    ? 0.85 + (blurIntensity / 30) * 0.1
     : 0.92;
 
   return (
@@ -357,113 +252,191 @@ export function WheelNavigationMenu({
         style={[
           styles.content,
           {
-            paddingTop: insets.top + spacing.xl,
-            paddingBottom: insets.bottom + spacing.xl,
+            paddingTop: insets.top + spacing.lg,
+            paddingBottom: insets.bottom + spacing.lg,
             opacity: contentOpacity,
           },
         ]}
         pointerEvents="box-none"
       >
-        <Text style={styles.title}>{t('navigation.huiskamer')}</Text>
-        <Text style={styles.subtitle}>{t('navigation.swipe_to_select')}</Text>
-
-        {/* Wheel container */}
+        {/* Module list container - title removed, users know this is a menu */}
         <View
-          style={[styles.wheelContainer, { width: screenWidth - spacing.lg * 2 }]}
-          {...panResponder.panHandlers}
-          onLayout={handleWheelLayout}
+          style={[styles.moduleContainer, { width: screenWidth - spacing.lg * 2 }]}
+          onLayout={handleContainerLayout}
         >
-          {/* Render 3 visible items: previous, current, next */}
-          {[-1, 0, 1].map((offset) => {
-            const itemIndex = mod(selectedIndex + offset, WHEEL_ITEMS.length);
-            const item = WHEEL_ITEMS[itemIndex];
-            const isCenter = offset === 0;
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            {/* Active module (always at top, highlighted) */}
+            {activeScreen && (
+              <ModuleButton
+                module={getModuleItem(activeScreen)}
+                isActive={true}
+                onPress={() => handleModulePress(activeScreen)}
+                t={t}
+              />
+            )}
 
-            // Base position for this slot
-            const baseY = offset * WHEEL_ITEM_HEIGHT;
+            {/* Divider */}
+            {activeScreen && <View style={styles.divider} />}
 
-            // Visual styling based on position
-            const scale = isCenter ? 1 : 0.75;
-            const itemOpacity = isCenter ? 1 : 0.6;
+            {/* Top modules or remaining modules */}
+            {modulesToShow.map((moduleId) => (
+              <ModuleButton
+                key={moduleId}
+                module={getModuleItem(moduleId)}
+                isActive={false}
+                onPress={() => handleModulePress(moduleId)}
+                t={t}
+              />
+            ))}
 
-            // 3D effect
-            const rotateX = offset === -1 ? '25deg' : offset === 1 ? '-25deg' : '0deg';
-
-            return (
-              <Animated.View
-                key={`slot-${offset}`}
-                style={[
-                  styles.wheelItem,
-                  {
-                    transform: [
-                      // Apply drag offset to all items
-                      { translateY: Animated.add(new Animated.Value(baseY), dragOffset) },
-                      { scale },
-                      { perspective: 1000 },
-                      { rotateX },
-                    ],
-                    opacity: itemOpacity,
-                    zIndex: isCenter ? 10 : 5,
-                  },
-                ]}
-              >
-                <TouchableOpacity
-                  style={[
-                    styles.wheelItemButton,
-                    { backgroundColor: item.color },
-                    isCenter && styles.wheelItemCenter,
-                  ]}
-                  onPress={() => handleItemTap(itemIndex)}
-                  activeOpacity={0.8}
-                  accessible={true}
-                  accessibilityRole="button"
-                  accessibilityLabel={t(item.labelKey)}
-                  accessibilityState={{ selected: isCenter }}
-                  accessibilityHint={isCenter ? t('navigation.tap_to_go') : t('navigation.tap_to_select')}
-                >
-                  <WheelIcon type={item.icon} size={56} />
-                  <Text style={styles.wheelItemLabel}>{t(item.labelKey)}</Text>
-
-                  {/* Desaturation overlay for non-center items */}
-                  {!isCenter && (
-                    <View style={styles.desaturationOverlay} pointerEvents="none" />
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            );
-          })}
-
-          {/* Selection frame */}
-          <View style={styles.selectionFrame} pointerEvents="none" />
+          </ScrollView>
         </View>
 
-        {/* Close button */}
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={handleClose}
-          activeOpacity={0.7}
-          accessible={true}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.close')}
-        >
-          <View style={styles.closeIcon}>
-            <View style={styles.closeIconLine1} />
-            <View style={styles.closeIconLine2} />
-          </View>
-          <Text style={styles.closeButtonText}>{t('common.close')}</Text>
-        </TouchableOpacity>
+        {/* Navigation buttons row - "Terug" and/or "Meer" + "Sluiten" */}
+        <View style={[styles.buttonRow, { width: screenWidth - spacing.lg * 2 }]}>
+          {/* Show split buttons when there are more modules: Terug | Meer side by side */}
+          {remainingModules.length > 0 && showMore && (
+            <>
+              {/* Terug button - returns to top modules */}
+              <TouchableOpacity
+                style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
+                onPress={handleToggleMore}
+                activeOpacity={0.7}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={t('navigation.back')}
+                accessibilityHint={t('navigation.back_hint', 'Toon de meest gebruikte modules')}
+              >
+                <Text style={styles.buttonIcon}>▲</Text>
+                <Text style={styles.buttonText}>{t('navigation.back')}</Text>
+              </TouchableOpacity>
+
+              {/* Close button */}
+              <TouchableOpacity
+                style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
+                onPress={handleClose}
+                activeOpacity={0.7}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <View style={styles.closeIcon}>
+                  <View style={styles.closeIconLine1} />
+                  <View style={styles.closeIconLine2} />
+                </View>
+                <Text style={styles.buttonText}>{t('common.close')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {/* Show split buttons when viewing top modules but more exist: Sluiten | Meer side by side */}
+          {remainingModules.length > 0 && !showMore && (
+            <>
+              {/* Close button */}
+              <TouchableOpacity
+                style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
+                onPress={handleClose}
+                activeOpacity={0.7}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <View style={styles.closeIcon}>
+                  <View style={styles.closeIconLine1} />
+                  <View style={styles.closeIconLine2} />
+                </View>
+                <Text style={styles.buttonText}>{t('common.close')}</Text>
+              </TouchableOpacity>
+
+              {/* Meer button - shows remaining modules */}
+              <TouchableOpacity
+                style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
+                onPress={handleToggleMore}
+                activeOpacity={0.7}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={t('navigation.more')}
+                accessibilityHint={t('navigation.more_hint', 'Toon meer modules')}
+              >
+                <Text style={styles.buttonIcon}>▼</Text>
+                <Text style={styles.buttonText}>{t('navigation.more')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {/* Show only close button when no remaining modules */}
+          {remainingModules.length === 0 && (
+            <TouchableOpacity
+              style={[styles.fullButton, { backgroundColor: accentColor.primary }]}
+              onPress={handleClose}
+              activeOpacity={0.7}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
+            >
+              <View style={styles.closeIcon}>
+                <View style={styles.closeIconLine1} />
+                <View style={styles.closeIconLine2} />
+              </View>
+              <Text style={styles.buttonText}>{t('common.close')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </Animated.View>
     </View>
   );
 }
 
-// Icon component for wheel items
-interface WheelIconProps {
+// Module button component
+interface ModuleButtonProps {
+  module: ModuleItem;
+  isActive: boolean;
+  onPress: () => void;
+  t: (key: string) => string;
+}
+
+function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.moduleButton,
+        { backgroundColor: module.color },
+        isActive && styles.moduleButtonActive,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.8}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={t(module.labelKey)}
+      accessibilityState={{ selected: isActive }}
+      accessibilityHint={isActive
+        ? t('navigation.current_module', 'Dit is je huidige module')
+        : t('navigation.tap_to_go')
+      }
+    >
+      <ModuleIcon type={module.icon} size={40} />
+      <Text style={styles.moduleLabel}>{t(module.labelKey)}</Text>
+      {isActive && (
+        <View style={styles.activeIndicator}>
+          <Text style={styles.activeIndicatorText}>✓</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+// Icon component for modules
+interface ModuleIconProps {
   type: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast';
   size: number;
 }
 
-function WheelIcon({ type, size }: WheelIconProps) {
+function ModuleIcon({ type, size }: ModuleIconProps) {
   switch (type) {
     case 'chat':
       return (
@@ -612,72 +585,95 @@ const styles = StyleSheet.create({
     ...typography.h1,
     color: colors.textOnPrimary,
     textAlign: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.lg,
   },
-  subtitle: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    opacity: 0.9,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
-  wheelContainer: {
-    height: WHEEL_ITEM_HEIGHT * VISIBLE_ITEMS,
+  moduleContainer: {
+    flex: 1,
+    maxHeight: '70%',
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  wheelItem: {
-    position: 'absolute',
-    width: '100%',
-    height: WHEEL_ITEM_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
+  scrollView: {
+    flex: 1,
   },
-  wheelItemButton: {
-    width: '90%',
-    height: WHEEL_ITEM_HEIGHT - 16,
-    borderRadius: borderRadius.lg,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    ...shadows.medium,
+  scrollContent: {
+    paddingVertical: spacing.sm,
   },
-  wheelItemCenter: {
-    borderWidth: 3,
-    borderColor: colors.textOnPrimary,
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginVertical: spacing.sm,
+    marginHorizontal: spacing.md,
   },
-  wheelItemLabel: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-    marginTop: spacing.sm,
-    textAlign: 'center',
-  },
-  desaturationOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    borderRadius: borderRadius.lg,
-  },
-  selectionFrame: {
-    position: 'absolute',
-    width: '94%',
-    height: WHEEL_ITEM_HEIGHT,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: borderRadius.lg + 4,
-    borderStyle: 'dashed',
-  },
-  closeButton: {
+  moduleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
+    marginHorizontal: spacing.sm,
+    marginVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+    minHeight: MODULE_ITEM_HEIGHT,
+    ...shadows.small,
+  },
+  moduleButtonActive: {
+    borderWidth: 3,
+    borderColor: colors.textOnPrimary,
+  },
+  moduleLabel: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    marginLeft: spacing.md,
+    flex: 1,
+  },
+  activeIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeIndicatorText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.md,
     marginTop: spacing.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  halfButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.full,
     minHeight: touchTargets.minimum,
+  },
+  fullButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.full,
+    minHeight: touchTargets.minimum,
+    minWidth: 160,
+  },
+  buttonIcon: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    marginRight: spacing.xs,
+  },
+  buttonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
   },
   closeIcon: {
     width: 24,
@@ -701,10 +697,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textOnPrimary,
     borderRadius: 2,
     transform: [{ rotate: '-45deg' }],
-  },
-  closeButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
   },
 
   // Icon styles

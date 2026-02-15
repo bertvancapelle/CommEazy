@@ -20,6 +20,7 @@ import {
   Easing,
 } from 'react-native';
 import { colors } from '@/theme';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
 interface HoldIndicatorProps {
   /** Whether the indicator is active (user is holding) */
@@ -50,6 +51,9 @@ export function HoldIndicator({
   size = RING_SIZE,
   onComplete,
 }: HoldIndicatorProps) {
+  // Get accent color from user settings
+  const { accentColor } = useAccentColor();
+  const indicatorColor = accentColor.primary;
   const progressAnimation = useRef(new Animated.Value(0)).current;
   const opacityAnimation = useRef(new Animated.Value(0)).current;
   const scaleAnimation = useRef(new Animated.Value(0.5)).current;
@@ -153,7 +157,8 @@ export function HoldIndicator({
             height: size,
             borderRadius: size / 2,
             borderWidth: RING_THICKNESS,
-            borderColor: colors.primary,
+            borderColor: indicatorColor,
+            borderTopColor: indicatorColor,
             // Use clip to show progress (simplified approach)
             transform: [
               {
@@ -168,7 +173,7 @@ export function HoldIndicator({
       />
 
       {/* Center dot */}
-      <View style={styles.centerDot} />
+      <View style={[styles.centerDot, { backgroundColor: indicatorColor }]} />
     </Animated.View>
   );
 }

@@ -60,11 +60,32 @@
   "group": {
     "create": "Créer un groupe",
     "name": "Nom du groupe",
+    "nameTitle": "Nommez votre groupe",
     "nameHint": "Choisissez un nom pour le groupe",
+    "namePlaceholder": "ex. Famille, Amis, ...",
     "selectMembers": "Sélectionner les membres",
+    "selectedCount": "{{count}} sélectionné(s)",
     "memberCount": "{{count}} membres",
     "created": "Groupe créé",
-    "you": "Vous"
+    "you": "Vous",
+    "admin": "Admin",
+    "members": "Membres",
+    "leave": "Quitter le groupe",
+    "leaveConfirm": "Êtes-vous sûr de vouloir quitter ce groupe ?",
+    "addMembers": "Ajouter des membres",
+    "edit": "Modifier le groupe",
+    "editName": "Modifier le nom",
+    "deleteGroup": "Supprimer le groupe",
+    "noGroups": "Pas encore de groupes",
+    "noGroupsHint": "Créez un groupe pour discuter avec plusieurs personnes à la fois",
+    "encryptionInfo": "Tous les messages sont chiffrés de bout en bout ({{mode}})",
+    "encryptToAll": "Chiffrer-pour-tous",
+    "sharedKey": "Clé partagée",
+    "reviewTitle": "Vérifiez votre groupe",
+    "step1": "Nom",
+    "step2": "Membres",
+    "step3": "Vérifier",
+    "stepOf": "Étape {{current}} sur {{total}}"
   },
   "call": {
     "calling": "Appel en cours...",
@@ -124,6 +145,7 @@
     "title": "Réglages",
     "language": "Langue",
     "notifications": "Notifications",
+    "notificationSettings": "Paramètres des notifications",
     "sound": "Sons des messages",
     "haptic": "Vibrer à la réception",
     "textSize": "Taille du texte",
@@ -132,10 +154,15 @@
     "about": "À propos de CommEazy",
     "version": "Version {{version}}",
     "backup": "Sauvegarde",
+    "backupSettings": "Paramètres de sauvegarde",
     "createBackup": "Créer une sauvegarde",
     "restoreBackup": "Restaurer une sauvegarde",
     "deleteAccount": "Supprimer le compte",
     "deleteWarning": "Cela supprime tous vos messages et ne peut pas être annulé",
+    "profile": "Profil",
+    "editProfile": "Modifier le profil",
+    "editProfileHint": "Modifiez votre nom, photo et informations personnelles",
+    "deviceLink": "Nouvel appareil",
     "accessibility": "Accessibilité",
     "holdDelay": "Délai de pression longue",
     "holdDelayHint": "Combien de temps appuyer avant que le menu apparaisse",
@@ -149,7 +176,39 @@
     "wheelBlurOff": "Désactivé",
     "wheelBlurLevel": "Niveau {{level}}",
     "wheelDismissMargin": "Marge de fermeture externe",
-    "wheelDismissMarginPixels": "{{pixels}} pixels"
+    "wheelDismissMarginPixels": "{{pixels}} pixels",
+    "notificationsHint": "Sons et vibrations pour les messages",
+    "notificationsComingSoon": "Les paramètres de notifications seront bientôt disponibles",
+    "backupHint": "Sauvegardez vos messages"
+  },
+  "accessibilitySettings": {
+    "screenHint": "Ajustez les vibrations, sons et navigation",
+    "feedbackTitle": "Retour tactile",
+    "feedbackHint": "Vibrations et sons lors des appuis",
+    "hapticFeedback": "Vibration",
+    "hapticFeedbackHint": "Vibrer lors des appuis sur les boutons",
+    "hapticIntensity": "Intensité des vibrations",
+    "hapticOff": "Désactivé",
+    "hapticVeryLight": "Très légère",
+    "hapticLight": "Légère",
+    "hapticNormal": "Normale",
+    "hapticStrong": "Forte",
+    "audioFeedback": "Son",
+    "audioFeedbackHint": "Jouer un son lors des appuis sur les boutons",
+    "audioBoost": "Amplifier le son",
+    "audioBoostHint": "Augmenter le volume de 20%",
+    "appearanceTitle": "Apparence",
+    "accentColor": "Couleur d'accentuation",
+    "accentColorHint": "Choisissez votre couleur préférée pour les boutons et les éléments mis en évidence",
+    "holdToNavigateTitle": "Navigation",
+    "testFeedback": "Tester le retour"
+  },
+  "theme": {
+    "accentBlue": "Bleu",
+    "accentGreen": "Vert",
+    "accentPurple": "Violet",
+    "accentOrange": "Orange",
+    "accentRed": "Rouge"
   },
   "profile": {
     "changePhoto": "Changer la photo",
@@ -227,7 +286,10 @@
     "searchContacts": "Rechercher des contacts",
     "yourQRCode": "Votre code QR",
     "openContact": "Ouvrir les détails de {{name}}",
-    "contactList": "{{count}} contacts"
+    "contactList": "{{count}} contacts",
+    "groupChat": "Groupe {{name}} avec {{memberCount}} membres",
+    "groupList": "{{count}} groupes",
+    "messageList": "{{count}} messages"
   },
   "common": {
     "loading": "Chargement...",
@@ -237,7 +299,12 @@
     "saving": "Enregistrement...",
     "tryAgain": "Réessayer",
     "goBack": "Retour",
-    "close": "Fermer"
+    "close": "Fermer",
+    "next": "Suivant",
+    "back": "Retour",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier"
   },
   "validation": {
     "profileIncomplete": "Remplissez tous les champs",
@@ -456,7 +523,12 @@
     "menu_button_hint": "Appuyez pour ouvrir le menu. Appuyez longuement pour déplacer.",
     "drag_mode_enabled": "Mode déplacement actif. Faites glisser le bouton vers une nouvelle position.",
     "drag_to_move": "Déplacer",
-    "menu_opened": "Menu ouvert"
+    "menu_opened": "Menu ouvert",
+    "more": "Plus",
+    "back": "Retour",
+    "more_hint": "Afficher plus de modules",
+    "back_hint": "Afficher les modules les plus utilisés",
+    "current_module": "Ceci est votre module actuel"
   },
   "modules": {
     "coming_soon": "Bientôt disponible",
@@ -511,6 +583,32 @@
     "done_announce": "Tutoriel terminé. Vous êtes prêt à utiliser CommEazy.",
     "finish": "C'est parti",
     "skip": "Passer"
+  },
+  "voiceCommands": {
+    "title": "Commandes vocales",
+    "enabled": "Activer les commandes vocales",
+    "enabledHint": "Activer en appuyant longuement avec deux doigts",
+    "listening": "Écoute...",
+    "processing": "Traitement...",
+    "speakNow": "Dites votre commande maintenant",
+    "notUnderstood": "Commande non reconnue. Réessayez.",
+    "recognized": "Commande reconnue !",
+    "youSaid": "Vous avez dit :",
+    "examples": "Essayez de dire :",
+    "example": {
+      "messages": "Messages",
+      "contacts": "Contacts",
+      "settings": "Paramètres",
+      "groups": "Groupes",
+      "call": "Appelle [nom]",
+      "message": "Message à [nom]"
+    },
+    "closeHint": "Fermer les commandes vocales",
+    "twoFingerHint": "Appui long à deux doigts pour les commandes vocales",
+    "permissionTitle": "Accès au microphone",
+    "permissionMessage": "CommEazy a besoin de l'accès au microphone pour les commandes vocales",
+    "permissionDenied": "Accès au microphone refusé. Activez dans les Réglages.",
+    "notAvailable": "Reconnaissance vocale non disponible sur cet appareil"
   },
   "deviceLink": {
     "choiceTitle": "Comment voulez-vous commencer ?",

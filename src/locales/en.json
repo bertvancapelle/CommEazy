@@ -60,11 +60,32 @@
   "group": {
     "create": "Create group",
     "name": "Group name",
+    "nameTitle": "Name your group",
     "nameHint": "Choose a name for the group",
+    "namePlaceholder": "e.g. Family, Friends, ...",
     "selectMembers": "Select members",
+    "selectedCount": "{{count}} selected",
     "memberCount": "{{count}} members",
     "created": "Group created",
-    "you": "You"
+    "you": "You",
+    "admin": "Admin",
+    "members": "Members",
+    "leave": "Leave group",
+    "leaveConfirm": "Are you sure you want to leave this group?",
+    "addMembers": "Add members",
+    "edit": "Edit group",
+    "editName": "Edit name",
+    "deleteGroup": "Delete group",
+    "noGroups": "No groups yet",
+    "noGroupsHint": "Create a group to chat with multiple people at once",
+    "encryptionInfo": "All messages are end-to-end encrypted ({{mode}})",
+    "encryptToAll": "Encrypt-to-all",
+    "sharedKey": "Shared key",
+    "reviewTitle": "Review your group",
+    "step1": "Name",
+    "step2": "Members",
+    "step3": "Review",
+    "stepOf": "Step {{current}} of {{total}}"
   },
   "call": {
     "calling": "Calling...",
@@ -132,10 +153,15 @@
     "about": "About CommEazy",
     "version": "Version {{version}}",
     "backup": "Backup",
+    "backupSettings": "Backup settings",
     "createBackup": "Create backup",
     "restoreBackup": "Restore backup",
     "deleteAccount": "Delete account",
     "deleteWarning": "This deletes all your messages and cannot be undone",
+    "profile": "Profile",
+    "editProfile": "Edit profile",
+    "editProfileHint": "Change your name, photo and personal details",
+    "deviceLink": "New device",
     "accessibility": "Accessibility",
     "holdDelay": "Long press delay",
     "holdDelayHint": "How long to press before menu appears",
@@ -149,7 +175,40 @@
     "wheelBlurOff": "Off",
     "wheelBlurLevel": "Level {{level}}",
     "wheelDismissMargin": "Tap-outside margin",
-    "wheelDismissMarginPixels": "{{pixels}} pixels"
+    "wheelDismissMarginPixels": "{{pixels}} pixels",
+    "notificationSettings": "Notification settings",
+    "notificationsHint": "Sound and vibration for messages",
+    "notificationsComingSoon": "Notification settings will be added soon",
+    "backupHint": "Back up your messages"
+  },
+  "accessibilitySettings": {
+    "screenHint": "Adjust vibrations, sounds and navigation",
+    "feedbackTitle": "Feedback",
+    "feedbackHint": "Vibrations and sounds when tapping",
+    "hapticFeedback": "Vibration",
+    "hapticFeedbackHint": "Vibrate when tapping buttons",
+    "hapticIntensity": "Vibration strength",
+    "hapticOff": "Off",
+    "hapticVeryLight": "Very light",
+    "hapticLight": "Light",
+    "hapticNormal": "Normal",
+    "hapticStrong": "Strong",
+    "audioFeedback": "Sound",
+    "audioFeedbackHint": "Play sound when tapping buttons",
+    "audioBoost": "Boost audio",
+    "audioBoostHint": "Increase volume by 20%",
+    "appearanceTitle": "Appearance",
+    "accentColor": "Accent colour",
+    "accentColorHint": "Choose your preferred colour for buttons and highlights",
+    "holdToNavigateTitle": "Navigation",
+    "testFeedback": "Test feedback"
+  },
+  "theme": {
+    "accentBlue": "Blue",
+    "accentGreen": "Green",
+    "accentPurple": "Purple",
+    "accentOrange": "Orange",
+    "accentRed": "Red"
   },
   "profile": {
     "changePhoto": "Change photo",
@@ -227,7 +286,10 @@
     "searchContacts": "Search contacts",
     "yourQRCode": "Your QR code",
     "openContact": "Open contact details for {{name}}",
-    "contactList": "{{count}} contacts"
+    "contactList": "{{count}} contacts",
+    "groupChat": "Group {{name}} with {{memberCount}} members",
+    "groupList": "{{count}} groups",
+    "messageList": "{{count}} messages"
   },
   "common": {
     "loading": "Loading...",
@@ -237,7 +299,12 @@
     "saving": "Saving...",
     "tryAgain": "Try again",
     "goBack": "Go back",
-    "close": "Close"
+    "close": "Close",
+    "next": "Next",
+    "back": "Back",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit"
   },
   "validation": {
     "profileIncomplete": "Complete all fields",
@@ -456,7 +523,12 @@
     "menu_button_hint": "Tap to open the navigation menu. Long press to reposition.",
     "drag_mode_enabled": "Drag mode active. Drag the button to a new position.",
     "drag_to_move": "Drag me",
-    "menu_opened": "Menu opened"
+    "menu_opened": "Menu opened",
+    "more": "More",
+    "back": "Back",
+    "more_hint": "Show more modules",
+    "back_hint": "Show most used modules",
+    "current_module": "This is your current module"
   },
   "modules": {
     "coming_soon": "Coming soon",
@@ -511,6 +583,32 @@
     "done_announce": "Tutorial complete. You're ready to use CommEazy.",
     "finish": "Get started",
     "skip": "Skip"
+  },
+  "voiceCommands": {
+    "title": "Voice Commands",
+    "enabled": "Enable voice commands",
+    "enabledHint": "Activate with two-finger long press",
+    "listening": "Listening...",
+    "processing": "Processing...",
+    "speakNow": "Speak your command now",
+    "notUnderstood": "Command not recognized. Try again.",
+    "recognized": "Command recognized!",
+    "youSaid": "You said:",
+    "examples": "Try saying:",
+    "example": {
+      "messages": "Messages",
+      "contacts": "Contacts",
+      "settings": "Settings",
+      "groups": "Groups",
+      "call": "Call [name]",
+      "message": "Message [name]"
+    },
+    "closeHint": "Close voice commands",
+    "twoFingerHint": "Two-finger long press for voice commands",
+    "permissionTitle": "Microphone access",
+    "permissionMessage": "CommEazy needs microphone access for voice commands",
+    "permissionDenied": "Microphone access denied. Enable in Settings.",
+    "notAvailable": "Voice recognition not available on this device"
   },
   "deviceLink": {
     "choiceTitle": "How do you want to start?",

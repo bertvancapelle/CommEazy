@@ -18,6 +18,7 @@ import AppNavigator from '@/navigation';
 import { colors } from '@/theme';
 import { ServiceProvider } from '@/hooks/useServices';
 import { HoldToNavigateProvider } from '@/hooks/useHoldToNavigate';
+import { AccentColorProvider } from '@/contexts/AccentColorContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 
@@ -87,9 +88,11 @@ export default function App() {
         backgroundColor={colors.background}
       />
       <ServiceProvider reducedMotion={reducedMotion}>
-        <HoldToNavigateProvider>
-          <AppNavigator />
-        </HoldToNavigateProvider>
+        <AccentColorProvider>
+          <HoldToNavigateProvider>
+            <AppNavigator />
+          </HoldToNavigateProvider>
+        </AccentColorProvider>
       </ServiceProvider>
     </SafeAreaProvider>
   );

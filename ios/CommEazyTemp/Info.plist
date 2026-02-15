@@ -74,5 +74,7 @@
 	<string>CommEazy kan foto's opslaan in je fotobibliotheek.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>CommEazy gebruikt de microfoon voor spraak- en videogesprekken.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>CommEazy gebruikt spraakherkenning om je stemcommando's te begrijpen voor handsfree navigatie.</string>
 </dict>
 </plist>

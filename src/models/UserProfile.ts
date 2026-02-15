@@ -40,6 +40,18 @@ export class UserProfileModel extends Model {
   @field('menu_button_position_x') menuButtonPositionX?: number;   // 0-1 as % of screen width
   @field('menu_button_position_y') menuButtonPositionY?: number;   // 0-1 as % of screen height
   @field('edge_exclusion_size') edgeExclusionSize?: number;        // 0-100px, default 40
+  @field('wheel_blur_intensity') wheelBlurIntensity?: number;      // 0-30, default 15 (v9)
+  @field('wheel_dismiss_margin') wheelDismissMargin?: number;      // 20-100, default 50 (v9)
+
+  // Granular feedback settings (v9)
+  @field('haptic_intensity') hapticIntensity?: string;             // 'off'|'veryLight'|'light'|'normal'|'strong'
+  @field('audio_feedback_boost') audioFeedbackBoost?: boolean;     // +20% volume boost
+
+  // UI personalization (v10)
+  @field('accent_color') accentColor?: string;                     // 'blue'|'green'|'purple'|'orange'|'red'
+
+  // Voice commands (v11)
+  @field('voice_commands_enabled') voiceCommandsEnabled?: boolean; // Two-finger long press activation
 
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
@@ -135,6 +147,15 @@ export class UserProfileModel extends Model {
       if (menuButtonPositionX !== undefined) record.menuButtonPositionX = menuButtonPositionX;
       if (menuButtonPositionY !== undefined) record.menuButtonPositionY = menuButtonPositionY;
       if (edgeExclusionSize !== undefined) record.edgeExclusionSize = edgeExclusionSize;
+    });
+  }
+
+  /**
+   * Update accent color preference
+   */
+  @writer async updateAccentColor(newAccentColor: string): Promise<void> {
+    await this.update(record => {
+      record.accentColor = newAccentColor;
     });
   }
 }

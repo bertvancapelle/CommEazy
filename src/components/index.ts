@@ -21,6 +21,8 @@ export { ProgressIndicator } from './ProgressIndicator';
 export { PinInput } from './PinInput';
 export { PresenceIndicator } from './PresenceIndicator';
 export { ContactAvatar } from './ContactAvatar';
+export { Icon } from './Icon';
+export type { IconName } from './Icon';
 
 // Senior-inclusive pattern components (MANDATORY)
 export { LoadingView } from './LoadingView';

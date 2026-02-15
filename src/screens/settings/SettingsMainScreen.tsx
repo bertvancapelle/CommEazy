@@ -1,15 +1,24 @@
 /**
  * SettingsMainScreen — Main settings menu
  *
+ * Simple design with subsection buttons:
+ * - Profile header (photo + name + tap to edit)
+ * - Language selector
+ * - Subsection buttons with icons:
+ *   - 👤 Profiel → ProfileSettings
+ *   - ♿ Toegankelijkheid → AccessibilitySettings
+ *   - 🔔 Meldingen → NotificationSettings
+ *   - 💾 Back-up → BackupSettings
+ *   - 📱 Nieuw toestel → DeviceLinkShowQR
+ *
  * Senior-inclusive design:
  * - Large profile header with photo and name
- * - Tappable profile to edit
  * - Large touch targets (60pt+)
- * - Clear section labels
- * - Simple one-tap navigation
+ * - Icon + label + chevron for each subsection
  * - VoiceOver support
  *
  * @see .claude/skills/ui-designer/SKILL.md
+ * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
 import React, { useState, useCallback } from 'react';
@@ -19,100 +28,66 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActionSheetIOS,
+  Platform,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar } from '@/components';
+import { ContactAvatar, Icon, type IconName } from '@/components';
 import { getAvatarPath } from '@/services/imageService';
-import { useHoldToNavigate, HOLD_TO_NAVIGATE_CONSTANTS } from '@/hooks/useHoldToNavigate';
+import { useAccentColor } from '@/hooks/useAccentColor';
 import type { SettingsStackParams } from '@/navigation';
+import type { SupportedLanguage } from '@/services/interfaces';
 
 type NavigationProp = NativeStackNavigationProp<SettingsStackParams, 'SettingsMain'>;
 
-interface SettingsRowProps {
+// Flag emojis for languages
+const LANGUAGE_FLAGS: Record<string, string> = {
+  nl: '🇳🇱',
+  en: '🇬🇧',
+  de: '🇩🇪',
+  fr: '🇫🇷',
+  es: '🇪🇸',
+};
+
+// Subsection button component with monochrome icon + label + chevron
+interface SubsectionButtonProps {
+  icon: IconName;
   label: string;
-  value?: string;
   onPress: () => void;
-  accessibilityLabel?: string;
   accessibilityHint?: string;
+  iconColor: string;
 }
 
-function SettingsRow({ label, value, onPress, accessibilityLabel, accessibilityHint }: SettingsRowProps) {
+function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor }: SubsectionButtonProps) {
   return (
     <TouchableOpacity
-      style={styles.settingsRow}
+      style={styles.subsectionButton}
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel || label}
+      accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
     >
-      <Text style={styles.settingsLabel}>{label}</Text>
-      <View style={styles.settingsValueContainer}>
-        {value && <Text style={styles.settingsValue}>{value}</Text>}
-        <Text style={styles.chevron}>›</Text>
+      <View style={styles.subsectionIconContainer}>
+        <Icon name={icon} size={24} color={iconColor} />
       </View>
+      <Text style={styles.subsectionLabel}>{label}</Text>
+      <Icon name="chevron-right" size={20} color={colors.textTertiary} />
     </TouchableOpacity>
   );
 }
 
 export function SettingsMainScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const { accentColor } = useAccentColor();
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-
-  // Hold-to-Navigate settings
-  const {
-    settings: holdSettings,
-    updateLongPressDelay,
-    updateEdgeExclusionSize,
-    updateWheelBlurIntensity,
-    updateWheelDismissMargin,
-  } = useHoldToNavigate();
-
-  // Handle delay slider change (debounced save)
-  const handleDelayChange = useCallback(
-    (value: number) => {
-      // Round to nearest 100ms
-      const roundedValue = Math.round(value / 100) * 100;
-      void updateLongPressDelay(roundedValue);
-    },
-    [updateLongPressDelay],
-  );
-
-  // Handle edge exclusion slider change (debounced save)
-  const handleEdgeExclusionChange = useCallback(
-    (value: number) => {
-      // Round to nearest 5px
-      const roundedValue = Math.round(value / 5) * 5;
-      void updateEdgeExclusionSize(roundedValue);
-    },
-    [updateEdgeExclusionSize],
-  );
-
-  // Handle wheel blur intensity change
-  const handleBlurIntensityChange = useCallback(
-    (value: number) => {
-      // Round to nearest 5
-      const roundedValue = Math.round(value / 5) * 5;
-      void updateWheelBlurIntensity(roundedValue);
-    },
-    [updateWheelBlurIntensity],
-  );
-
-  // Handle wheel dismiss margin change
-  const handleDismissMarginChange = useCallback(
-    (value: number) => {
-      // Round to nearest 10px
-      const roundedValue = Math.round(value / 10) * 10;
-      void updateWheelDismissMargin(roundedValue);
-    },
-    [updateWheelDismissMargin],
-  );
 
   // Load profile data and refresh when screen focuses
   useFocusEffect(
@@ -151,6 +126,49 @@ export function SettingsMainScreen() {
     }, [])
   );
 
+  // Get current language display
+  const currentLanguage = i18n.language as SupportedLanguage;
+  const languageDisplay = `${LANGUAGE_FLAGS[currentLanguage] || ''} ${t(`profile.language.${currentLanguage}`)}`;
+
+  // Available languages
+  const languages: SupportedLanguage[] = ['nl', 'en', 'de', 'fr', 'es'];
+
+  // Handle language selection
+  const handleLanguagePress = useCallback(() => {
+    const options = languages.map(
+      (lang) => `${LANGUAGE_FLAGS[lang]} ${t(`profile.language.${lang}`)}`
+    );
+    options.push(t('common.cancel'));
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex: options.length - 1,
+          title: t('settings.language'),
+        },
+        (buttonIndex) => {
+          if (buttonIndex < languages.length) {
+            void i18n.changeLanguage(languages[buttonIndex]);
+          }
+        }
+      );
+    } else {
+      // Android: Use Alert with buttons
+      Alert.alert(
+        t('settings.language'),
+        undefined,
+        [
+          ...languages.map((lang) => ({
+            text: `${LANGUAGE_FLAGS[lang]} ${t(`profile.language.${lang}`)}`,
+            onPress: () => void i18n.changeLanguage(lang),
+          })),
+          { text: t('common.cancel'), style: 'cancel' as const },
+        ]
+      );
+    }
+  }, [i18n, t]);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Profile header - tappable to edit */}
@@ -169,186 +187,87 @@ export function SettingsMainScreen() {
             size={80}
           />
           {/* Small camera icon */}
-          <View style={styles.cameraIconContainer}>
-            <Text style={styles.cameraIcon}>📷</Text>
+          <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary }]}>
+            <Icon name="camera" size={14} color={colors.textOnPrimary} />
           </View>
         </View>
         <View style={styles.profileInfo}>
           <Text style={styles.profileName}>{displayName || t('common.loading')}</Text>
           <Text style={styles.profileHint}>{t('profile.tapToChange')}</Text>
         </View>
-        <Text style={styles.chevron}>›</Text>
+        <Icon name="chevron-right" size={24} color={colors.textTertiary} />
       </TouchableOpacity>
 
-      {/* Preferences section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.title')}</Text>
+      {/* Language selector - below profile */}
+      <TouchableOpacity
+        style={styles.languageSelector}
+        onPress={handleLanguagePress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={t('settings.language')}
+        accessibilityHint={t('profile.languageHint')}
+      >
+        <Text style={styles.languageLabel}>{t('settings.language')}</Text>
+        <View style={styles.languageValueContainer}>
+          <Text style={[styles.languageValue, { color: accentColor.primary }]}>{languageDisplay}</Text>
+          <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+        </View>
+      </TouchableOpacity>
 
-        <SettingsRow
+      {/* Subsection buttons */}
+      <View style={styles.subsectionsContainer}>
+        {/* Profiel */}
+        <SubsectionButton
+          icon="person"
+          label={t('settings.profile')}
+          onPress={() => navigation.navigate('ProfileSettings')}
+          accessibilityHint={t('settings.editProfileHint')}
+          iconColor={accentColor.primary}
+        />
+
+        {/* Toegankelijkheid */}
+        <SubsectionButton
+          icon="accessibility"
+          label={t('settings.accessibility')}
+          onPress={() => navigation.navigate('AccessibilitySettings')}
+          accessibilityHint={t('accessibilitySettings.screenHint')}
+          iconColor={accentColor.primary}
+        />
+
+        {/* Meldingen - TODO: Create NotificationsSettingsScreen */}
+        <SubsectionButton
+          icon="notifications"
           label={t('settings.notifications')}
           onPress={() => {
-            // TODO: Implement notifications settings
+            // Navigate to placeholder for now - will show "Coming soon" alert
+            // TODO: Create and navigate to NotificationsSettingsScreen
+            Alert.alert(
+              t('common.comingSoon'),
+              t('settings.notificationsComingSoon'),
+              [{ text: t('common.ok') }]
+            );
           }}
+          accessibilityHint={t('settings.notificationsHint')}
+          iconColor={accentColor.primary}
         />
-      </View>
 
-      {/* Account section */}
-      <View style={styles.section}>
-        <SettingsRow
+        {/* Back-up */}
+        <SubsectionButton
+          icon="backup"
           label={t('settings.backup')}
           onPress={() => navigation.navigate('BackupSettings')}
+          accessibilityHint={t('settings.backupHint')}
+          iconColor={accentColor.primary}
         />
 
-        <SettingsRow
-          label={t('deviceLink.showQRTitle')}
+        {/* Nieuw toestel koppelen */}
+        <SubsectionButton
+          icon="device"
+          label={t('settings.deviceLink')}
           onPress={() => navigation.navigate('DeviceLinkShowQR')}
+          accessibilityHint={t('deviceLink.showQRSubtitle')}
+          iconColor={accentColor.primary}
         />
-      </View>
-
-      {/* Accessibility section — Hold-to-Navigate settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.accessibility')}</Text>
-        <Text style={styles.sectionHint}>{t('settings.accessibilityHint')}</Text>
-
-        {/* Long press delay stepper */}
-        <View style={styles.stepperContainer}>
-          <View style={styles.stepperInfo}>
-            <Text style={styles.stepperLabel}>{t('settings.holdDelay')}</Text>
-            <Text style={styles.stepperValue}>
-              {t('settings.holdDelaySeconds', { seconds: (holdSettings.longPressDelay / 1000).toFixed(1) })}
-            </Text>
-          </View>
-          <View style={styles.stepperButtons}>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.longPressDelay <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_LONG_PRESS_DELAY && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleDelayChange(holdSettings.longPressDelay - 250)}
-              disabled={holdSettings.longPressDelay <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_LONG_PRESS_DELAY}
-              accessibilityLabel={t('common.decrease')}
-            >
-              <Text style={styles.stepperButtonText}>−</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.longPressDelay >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_LONG_PRESS_DELAY && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleDelayChange(holdSettings.longPressDelay + 250)}
-              disabled={holdSettings.longPressDelay >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_LONG_PRESS_DELAY}
-              accessibilityLabel={t('common.increase')}
-            >
-              <Text style={styles.stepperButtonText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Edge exclusion stepper */}
-        <View style={styles.stepperContainer}>
-          <View style={styles.stepperInfo}>
-            <Text style={styles.stepperLabel}>{t('settings.edgeExclusion')}</Text>
-            <Text style={styles.stepperValue}>
-              {holdSettings.edgeExclusionSize === 0
-                ? t('settings.edgeExclusionOff')
-                : t('settings.edgeExclusionPixels', { pixels: holdSettings.edgeExclusionSize })}
-            </Text>
-          </View>
-          <View style={styles.stepperButtons}>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.edgeExclusionSize <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_EDGE_EXCLUSION_SIZE && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleEdgeExclusionChange(holdSettings.edgeExclusionSize - 10)}
-              disabled={holdSettings.edgeExclusionSize <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_EDGE_EXCLUSION_SIZE}
-              accessibilityLabel={t('common.decrease')}
-            >
-              <Text style={styles.stepperButtonText}>−</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.edgeExclusionSize >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_EDGE_EXCLUSION_SIZE && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleEdgeExclusionChange(holdSettings.edgeExclusionSize + 10)}
-              disabled={holdSettings.edgeExclusionSize >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_EDGE_EXCLUSION_SIZE}
-              accessibilityLabel={t('common.increase')}
-            >
-              <Text style={styles.stepperButtonText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Wheel blur intensity stepper */}
-        <View style={styles.stepperContainer}>
-          <View style={styles.stepperInfo}>
-            <Text style={styles.stepperLabel}>{t('settings.wheelBlur')}</Text>
-            <Text style={styles.stepperValue}>
-              {holdSettings.wheelBlurIntensity === 0
-                ? t('settings.wheelBlurOff')
-                : t('settings.wheelBlurLevel', { level: holdSettings.wheelBlurIntensity })}
-            </Text>
-          </View>
-          <View style={styles.stepperButtons}>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.wheelBlurIntensity <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_WHEEL_BLUR_INTENSITY && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleBlurIntensityChange(holdSettings.wheelBlurIntensity - 5)}
-              disabled={holdSettings.wheelBlurIntensity <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_WHEEL_BLUR_INTENSITY}
-              accessibilityLabel={t('common.decrease')}
-            >
-              <Text style={styles.stepperButtonText}>−</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.wheelBlurIntensity >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_WHEEL_BLUR_INTENSITY && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleBlurIntensityChange(holdSettings.wheelBlurIntensity + 5)}
-              disabled={holdSettings.wheelBlurIntensity >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_WHEEL_BLUR_INTENSITY}
-              accessibilityLabel={t('common.increase')}
-            >
-              <Text style={styles.stepperButtonText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Wheel dismiss margin stepper */}
-        <View style={styles.stepperContainer}>
-          <View style={styles.stepperInfo}>
-            <Text style={styles.stepperLabel}>{t('settings.wheelDismissMargin')}</Text>
-            <Text style={styles.stepperValue}>
-              {t('settings.wheelDismissMarginPixels', { pixels: holdSettings.wheelDismissMargin })}
-            </Text>
-          </View>
-          <View style={styles.stepperButtons}>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.wheelDismissMargin <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_WHEEL_DISMISS_MARGIN && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleDismissMarginChange(holdSettings.wheelDismissMargin - 10)}
-              disabled={holdSettings.wheelDismissMargin <= HOLD_TO_NAVIGATE_CONSTANTS.MIN_WHEEL_DISMISS_MARGIN}
-              accessibilityLabel={t('common.decrease')}
-            >
-              <Text style={styles.stepperButtonText}>−</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.stepperButton,
-                holdSettings.wheelDismissMargin >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_WHEEL_DISMISS_MARGIN && styles.stepperButtonDisabled,
-              ]}
-              onPress={() => handleDismissMarginChange(holdSettings.wheelDismissMargin + 10)}
-              disabled={holdSettings.wheelDismissMargin >= HOLD_TO_NAVIGATE_CONSTANTS.MAX_WHEEL_DISMISS_MARGIN}
-              accessibilityLabel={t('common.increase')}
-            >
-              <Text style={styles.stepperButtonText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
 
       {/* App info */}
@@ -375,7 +294,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.md,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   avatarContainer: {
     position: 'relative',
@@ -387,14 +306,11 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.primary,
+    // backgroundColor set dynamically via accentColor.primary
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: colors.surface,
-  },
-  cameraIcon: {
-    fontSize: 16,
   },
   profileInfo: {
     flex: 1,
@@ -409,48 +325,60 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
-  section: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.lg,
-    overflow: 'hidden',
-  },
-  sectionTitle: {
-    ...typography.label,
-    color: colors.textSecondary,
-    fontWeight: '700',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  settingsRow: {
+  // Language selector
+  languageSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    minHeight: touchTargets.comfortable,
+  },
+  languageLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  languageValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageValue: {
+    ...typography.body,
+    // color set dynamically via accentColor.primary
+    marginRight: spacing.sm,
+  },
+  // Subsection buttons container
+  subsectionsContainer: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    marginBottom: spacing.lg,
+  },
+  subsectionButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     minHeight: touchTargets.comfortable,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  settingsLabel: {
+  subsectionIconContainer: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  subsectionLabel: {
     ...typography.body,
     color: colors.textPrimary,
     flex: 1,
   },
-  settingsValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settingsValue: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginRight: spacing.sm,
-  },
-  chevron: {
-    ...typography.h2,
-    color: colors.textTertiary,
-  },
+  // Info section
   infoSection: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
@@ -458,54 +386,5 @@ const styles = StyleSheet.create({
   infoText: {
     ...typography.small,
     color: colors.textTertiary,
-  },
-  sectionHint: {
-    ...typography.small,
-    color: colors.textSecondary,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  stepperContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    minHeight: touchTargets.comfortable,
-  },
-  stepperInfo: {
-    flex: 1,
-  },
-  stepperLabel: {
-    ...typography.body,
-    color: colors.textPrimary,
-  },
-  stepperValue: {
-    ...typography.small,
-    color: colors.primary,
-    fontWeight: '600',
-    marginTop: spacing.xs,
-  },
-  stepperButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  stepperButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stepperButtonDisabled: {
-    backgroundColor: colors.border,
-  },
-  stepperButtonText: {
-    ...typography.h2,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
   },
 });

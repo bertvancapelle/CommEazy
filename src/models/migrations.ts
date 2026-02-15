@@ -10,6 +10,9 @@
  * - v6: Added gender field to user_profile
  * - v7: Added Hold-to-Navigate settings (longPressDelay, menuButtonPosition)
  * - v8: Added edgeExclusionSize for Hold-to-Navigate accessibility
+ * - v9: Added hapticIntensity, audioFeedbackBoost, wheelBlurIntensity, wheelDismissMargin
+ * - v10: Added accentColor for UI personalization
+ * - v11: Added voiceCommandsEnabled for two-finger voice commands
  */
 
 import { schemaMigrations, addColumns } from '@nozbe/watermelondb/Schema/migrations';
@@ -120,6 +123,47 @@ export const migrations = schemaMigrations({
           table: 'user_profile',
           columns: [
             { name: 'edge_exclusion_size', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v8 to v9: Add advanced accessibility settings
+    {
+      toVersion: 9,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            // Hold-to-Navigate advanced settings
+            { name: 'wheel_blur_intensity', type: 'number', isOptional: true },
+            { name: 'wheel_dismiss_margin', type: 'number', isOptional: true },
+            // Granular feedback control
+            { name: 'haptic_intensity', type: 'string', isOptional: true },
+            { name: 'audio_feedback_boost', type: 'boolean', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v9 to v10: Add accent color for UI personalization
+    {
+      toVersion: 10,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'accent_color', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v10 to v11: Add voice commands setting
+    {
+      toVersion: 11,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'voice_commands_enabled', type: 'boolean', isOptional: true },
           ],
         }),
       ],

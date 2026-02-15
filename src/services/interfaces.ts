@@ -115,9 +115,18 @@ export interface UserProfile {
 
   // Preferences
   language: SupportedLanguage;
-  audioFeedbackEnabled: boolean;
-  hapticFeedbackEnabled: boolean;
   photoPath?: string;                    // Local file path to own avatar
+
+  // Feedback settings (accessibility)
+  hapticIntensity?: string;              // 'off' | 'veryLight' | 'light' | 'normal' | 'strong'
+  audioFeedbackEnabled?: boolean;        // Play sound on tap (respects silent mode)
+  audioFeedbackBoost?: boolean;          // Boost audio volume by 20%
+  voiceCommandsEnabled?: boolean;        // Enable voice commands via two-finger long press
+  // Legacy fields (kept for backwards compatibility)
+  hapticFeedbackEnabled?: boolean;
+
+  // UI personalization
+  accentColor?: string;                  // 'blue' | 'green' | 'purple' | 'orange' | 'red'
 
   // Subscription (freemium model)
   subscriptionTier: SubscriptionTier;    // 'free' | 'premium'
@@ -135,6 +144,11 @@ export interface UserProfile {
   menuButtonPositionX?: number;          // X coordinate (0-1 as percentage of screen width)
   menuButtonPositionY?: number;          // Y coordinate (0-1 as percentage of screen height)
   edgeExclusionSize?: number;            // Edge exclusion zone in pixels (0-100, default 40)
+  wheelBlurIntensity?: number;           // Blur intensity for navigation wheel (0-30, default 15)
+  wheelDismissMargin?: number;           // Margin for tap-outside-to-dismiss (20-100, default 50)
+
+  // Module usage tracking (for smart navigation ordering)
+  moduleUsageCounts?: { [moduleId: string]: number }; // Usage count per module
 }
 
 /**

@@ -16,6 +16,9 @@
  * - v6: Added gender to user_profile
  * - v7: Added Hold-to-Navigate settings (longPressDelay, menuButtonPosition)
  * - v8: Added edgeExclusionSize for Hold-to-Navigate accessibility
+ * - v9: Added hapticIntensity, audioFeedbackBoost, wheelBlurIntensity, wheelDismissMargin
+ * - v10: Added accentColor for UI personalization
+ * - v11: Added voiceCommandsEnabled for two-finger voice commands
  *
  * @see services/interfaces.ts for domain models
  */
@@ -23,7 +26,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 8,
+  version: 11,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -116,11 +119,23 @@ export const schema = appSchema({
         { name: 'age_bracket', type: 'string', isOptional: true },    // '18-24', '25-34', etc.
         { name: 'gender', type: 'string', isOptional: true },         // 'male', 'female', 'other'
 
-        // Hold-to-Navigate settings (v7: accessibility, v8: edge exclusion)
+        // Hold-to-Navigate settings (v7: accessibility, v8: edge exclusion, v9: blur/dismiss)
         { name: 'long_press_delay', type: 'number', isOptional: true },       // 500-3000ms, default 1000
         { name: 'menu_button_position_x', type: 'number', isOptional: true }, // 0-1 as % of screen width
         { name: 'menu_button_position_y', type: 'number', isOptional: true }, // 0-1 as % of screen height
         { name: 'edge_exclusion_size', type: 'number', isOptional: true },    // 0-100px, default 40
+        { name: 'wheel_blur_intensity', type: 'number', isOptional: true },   // 0-30, default 15 (v9)
+        { name: 'wheel_dismiss_margin', type: 'number', isOptional: true },   // 20-100, default 50 (v9)
+
+        // Feedback settings (v9: granular haptic/audio control)
+        { name: 'haptic_intensity', type: 'string', isOptional: true },       // 'off'|'veryLight'|'light'|'normal'|'strong' (v9)
+        { name: 'audio_feedback_boost', type: 'boolean', isOptional: true },  // +20% volume boost (v9)
+
+        // UI personalization (v10)
+        { name: 'accent_color', type: 'string', isOptional: true },           // 'blue'|'green'|'purple'|'orange'|'red' (v10)
+
+        // Voice commands (v11)
+        { name: 'voice_commands_enabled', type: 'boolean', isOptional: true }, // Two-finger long press (v11)
 
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },

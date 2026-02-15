@@ -67,11 +67,32 @@
   "group": {
     "create": "Groep aanmaken",
     "name": "Groepsnaam",
+    "nameTitle": "Geef je groep een naam",
     "nameHint": "Kies een naam voor de groep",
+    "namePlaceholder": "bijv. Familie, Vrienden, ...",
     "selectMembers": "Kies leden",
+    "selectedCount": "{{count}} geselecteerd",
     "memberCount": "{{count}} leden",
     "created": "Groep aangemaakt",
-    "you": "Jij"
+    "you": "Jij",
+    "admin": "Beheerder",
+    "members": "Leden",
+    "leave": "Groep verlaten",
+    "leaveConfirm": "Weet je zeker dat je deze groep wilt verlaten?",
+    "addMembers": "Leden toevoegen",
+    "edit": "Groep bewerken",
+    "editName": "Naam bewerken",
+    "deleteGroup": "Groep verwijderen",
+    "noGroups": "Nog geen groepen",
+    "noGroupsHint": "Maak een groep om met meerdere mensen tegelijk te chatten",
+    "encryptionInfo": "Alle berichten zijn end-to-end versleuteld ({{mode}})",
+    "encryptToAll": "Versleutel-naar-allen",
+    "sharedKey": "Gedeelde sleutel",
+    "reviewTitle": "Controleer je groep",
+    "step1": "Naam",
+    "step2": "Leden",
+    "step3": "Controleren",
+    "stepOf": "Stap {{current}} van {{total}}"
   },
   "call": {
     "calling": "Bellen...",
@@ -131,6 +152,7 @@
     "title": "Instellingen",
     "language": "Taal",
     "notifications": "Meldingen",
+    "notificationSettings": "Meldinginstellingen",
     "sound": "Geluid bij berichten",
     "haptic": "Trillen bij berichten",
     "textSize": "Tekstgrootte",
@@ -139,10 +161,15 @@
     "about": "Over CommEazy",
     "version": "Versie {{version}}",
     "backup": "Back-up",
+    "backupSettings": "Back-up instellingen",
     "createBackup": "Back-up maken",
     "restoreBackup": "Back-up herstellen",
     "deleteAccount": "Account verwijderen",
     "deleteWarning": "Dit verwijdert al je berichten en kan niet ongedaan worden",
+    "profile": "Profiel",
+    "editProfile": "Profiel bewerken",
+    "editProfileHint": "Wijzig je naam, foto en persoonlijke gegevens",
+    "deviceLink": "Nieuw toestel",
     "accessibility": "Toegankelijkheid",
     "holdDelay": "Lang drukken vertraging",
     "holdDelayHint": "Hoe lang je moet drukken voor het menu",
@@ -156,7 +183,39 @@
     "wheelBlurOff": "Uit",
     "wheelBlurLevel": "Niveau {{level}}",
     "wheelDismissMargin": "Tik-buiten marge",
-    "wheelDismissMarginPixels": "{{pixels}} pixels"
+    "wheelDismissMarginPixels": "{{pixels}} pixels",
+    "notificationsHint": "Geluid en trillen voor berichten",
+    "notificationsComingSoon": "Meldinginstellingen worden binnenkort toegevoegd",
+    "backupHint": "Maak een back-up van je berichten"
+  },
+  "accessibilitySettings": {
+    "screenHint": "Pas trillingen, geluid en navigatie aan",
+    "feedbackTitle": "Feedback",
+    "feedbackHint": "Trillingen en geluid bij het tikken",
+    "hapticFeedback": "Trillen",
+    "hapticFeedbackHint": "Trillen bij tikken op knoppen",
+    "hapticIntensity": "Trilsterkte",
+    "hapticOff": "Uit",
+    "hapticVeryLight": "Heel licht",
+    "hapticLight": "Licht",
+    "hapticNormal": "Normaal",
+    "hapticStrong": "Sterk",
+    "audioFeedback": "Geluid",
+    "audioFeedbackHint": "Geluid bij tikken op knoppen",
+    "audioBoost": "Geluid versterken",
+    "audioBoostHint": "Verhoog volume met 20%",
+    "appearanceTitle": "Weergave",
+    "accentColor": "Accentkleur",
+    "accentColorHint": "Kies je favoriete kleur voor knoppen en accenten",
+    "holdToNavigateTitle": "Navigatie",
+    "testFeedback": "Test feedback"
+  },
+  "theme": {
+    "accentBlue": "Blauw",
+    "accentGreen": "Groen",
+    "accentPurple": "Paars",
+    "accentOrange": "Oranje",
+    "accentRed": "Rood"
   },
   "profile": {
     "changePhoto": "Profielfoto wijzigen",
@@ -234,7 +293,10 @@
     "searchContacts": "Zoek in contacten",
     "yourQRCode": "Jouw QR-code",
     "openContact": "Open contactgegevens van {{name}}",
-    "contactList": "{{count}} contacten"
+    "contactList": "{{count}} contacten",
+    "groupChat": "Groep {{name}} met {{memberCount}} leden",
+    "groupList": "{{count}} groepen",
+    "messageList": "{{count}} berichten"
   },
   "common": {
     "loading": "Laden...",
@@ -244,7 +306,12 @@
     "saving": "Opslaan...",
     "tryAgain": "Opnieuw proberen",
     "goBack": "Terug",
-    "close": "Sluiten"
+    "close": "Sluiten",
+    "next": "Volgende",
+    "back": "Terug",
+    "save": "Opslaan",
+    "delete": "Verwijderen",
+    "edit": "Bewerken"
   },
   "validation": {
     "profileIncomplete": "Vul alle velden in",
@@ -463,7 +530,12 @@
     "menu_button_hint": "Tik om het navigatiemenu te openen. Houd lang ingedrukt om te verplaatsen.",
     "drag_mode_enabled": "Sleepstand actief. Sleep de knop naar een nieuwe positie.",
     "drag_to_move": "Versleep mij",
-    "menu_opened": "Menu geopend"
+    "menu_opened": "Menu geopend",
+    "more": "Meer",
+    "back": "Terug",
+    "more_hint": "Toon meer modules",
+    "back_hint": "Toon de meest gebruikte modules",
+    "current_module": "Dit is je huidige module"
   },
   "modules": {
     "coming_soon": "Binnenkort beschikbaar",
@@ -518,6 +590,32 @@
     "done_announce": "Tutorial voltooid. Je bent klaar om CommEazy te gebruiken.",
     "finish": "Aan de slag",
     "skip": "Overslaan"
+  },
+  "voiceCommands": {
+    "title": "Spraakcommando's",
+    "enabled": "Spraakcommando's inschakelen",
+    "enabledHint": "Activeer met twee vingers lang indrukken",
+    "listening": "Luisteren...",
+    "processing": "Verwerken...",
+    "speakNow": "Spreek je commando nu uit",
+    "notUnderstood": "Commando niet herkend. Probeer opnieuw.",
+    "recognized": "Commando herkend!",
+    "youSaid": "Je zei:",
+    "examples": "Probeer te zeggen:",
+    "example": {
+      "messages": "Berichten",
+      "contacts": "Contacten",
+      "settings": "Instellingen",
+      "groups": "Groepen",
+      "call": "Bel [naam]",
+      "message": "Stuur bericht naar [naam]"
+    },
+    "closeHint": "Sluit spraakcommando's",
+    "twoFingerHint": "Twee vingers lang indrukken voor spraakcommando's",
+    "permissionTitle": "Microfoon toegang",
+    "permissionMessage": "CommEazy heeft toegang tot de microfoon nodig voor spraakcommando's",
+    "permissionDenied": "Microfoon toegang geweigerd. Schakel in via Instellingen.",
+    "notAvailable": "Spraakherkenning niet beschikbaar op dit toestel"
   },
   "deviceLink": {
     "choiceTitle": "Hoe wil je beginnen?",

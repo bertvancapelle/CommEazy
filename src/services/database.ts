@@ -472,6 +472,15 @@ export class WatermelonDBService implements DatabaseService {
           record.menuButtonPositionX = profile.menuButtonPositionX;
           record.menuButtonPositionY = profile.menuButtonPositionY;
           record.edgeExclusionSize = profile.edgeExclusionSize;
+          record.wheelBlurIntensity = profile.wheelBlurIntensity;
+          record.wheelDismissMargin = profile.wheelDismissMargin;
+
+          // Granular feedback settings (v9)
+          record.hapticIntensity = profile.hapticIntensity;
+          record.audioFeedbackBoost = profile.audioFeedbackBoost;
+
+          // Voice commands (v11)
+          record.voiceCommandsEnabled = profile.voiceCommandsEnabled;
         });
       } else {
         await db.get<UserProfileModel>('user_profile').create(record => {
@@ -506,6 +515,15 @@ export class WatermelonDBService implements DatabaseService {
           record.menuButtonPositionX = profile.menuButtonPositionX;
           record.menuButtonPositionY = profile.menuButtonPositionY;
           record.edgeExclusionSize = profile.edgeExclusionSize;
+          record.wheelBlurIntensity = profile.wheelBlurIntensity;
+          record.wheelDismissMargin = profile.wheelDismissMargin;
+
+          // Granular feedback settings (v9)
+          record.hapticIntensity = profile.hapticIntensity;
+          record.audioFeedbackBoost = profile.audioFeedbackBoost;
+
+          // Voice commands (v11)
+          record.voiceCommandsEnabled = profile.voiceCommandsEnabled;
         });
       }
     });
@@ -614,6 +632,15 @@ export class WatermelonDBService implements DatabaseService {
       menuButtonPositionX: p.menuButtonPositionX,
       menuButtonPositionY: p.menuButtonPositionY,
       edgeExclusionSize: p.edgeExclusionSize,
+      wheelBlurIntensity: p.wheelBlurIntensity,
+      wheelDismissMargin: p.wheelDismissMargin,
+
+      // Granular feedback settings (v9)
+      hapticIntensity: p.hapticIntensity,
+      audioFeedbackBoost: p.audioFeedbackBoost,
+
+      // Voice commands (v11)
+      voiceCommandsEnabled: p.voiceCommandsEnabled,
     };
   }
 }
