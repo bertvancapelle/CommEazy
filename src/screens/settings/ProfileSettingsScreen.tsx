@@ -40,6 +40,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
+import { useAccentColor } from '@/hooks/useAccentColor';
 import { ContactAvatar } from '@/components';
 import {
   pickImageFromCamera,
@@ -114,6 +115,7 @@ interface PickerModalProps {
 
 function PickerModal({ visible, title, options, selectedValue, onSelect, onClose }: PickerModalProps) {
   const { t } = useTranslation();
+  const { accentColor } = useAccentColor();
   return (
     <Modal
       visible={visible}
@@ -139,7 +141,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
               key={option.value}
               style={[
                 pickerStyles.option,
-                selectedValue === option.value && pickerStyles.optionSelected,
+                selectedValue === option.value && { backgroundColor: accentColor.primaryLight + '20' },
               ]}
               onPress={() => {
                 onSelect(option.value);
@@ -152,13 +154,13 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
               <Text
                 style={[
                   pickerStyles.optionText,
-                  selectedValue === option.value && pickerStyles.optionTextSelected,
+                  selectedValue === option.value && { color: accentColor.primary, fontWeight: '600' },
                 ]}
               >
                 {option.label}
               </Text>
               {selectedValue === option.value && (
-                <Text style={pickerStyles.checkmark}>✓</Text>
+                <Text style={[pickerStyles.checkmark, { color: accentColor.primary }]}>✓</Text>
               )}
             </TouchableOpacity>
           ))}
@@ -233,6 +235,7 @@ type FieldId = 'name' | 'country' | 'region' | 'city' | 'age' | 'gender';
 export function ProfileSettingsScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
+  const { accentColor } = useAccentColor();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
@@ -728,7 +731,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityHint={t('profile.tapToChange')}
           >
-            <Text style={styles.fieldValue}>{displayName}</Text>
+            <Text style={[styles.fieldValue, { color: accentColor.primary }]}>{displayName}</Text>
             <Text style={styles.editIcon}>✏️</Text>
           </TouchableOpacity>
         )}
@@ -743,7 +746,7 @@ export function ProfileSettingsScreen() {
           accessibilityRole="button"
           accessibilityHint={t('profile.tapToChange')}
         >
-          <Text style={styles.fieldValue}>
+          <Text style={[styles.fieldValue, { color: accentColor.primary }]}>
             {t(`profile.language.${i18n.language as SupportedLanguage}`)}
           </Text>
           <Text style={styles.editIcon}>✏️</Text>
@@ -755,7 +758,7 @@ export function ProfileSettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('onboarding.phoneLabel')}</Text>
         <View style={styles.fieldRow}>
-          <Text style={styles.fieldValue}>{profile?.phoneNumber || '—'}</Text>
+          <Text style={[styles.fieldValue, { color: accentColor.primary }]}>{profile?.phoneNumber || '—'}</Text>
           <Text style={styles.readOnlyIcon}>🔒</Text>
         </View>
         <Text style={styles.fieldHint}>{t('profile.phoneReadOnly')}</Text>
@@ -787,7 +790,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('demographics.countryLabel')}
           >
-            <Text style={[styles.pickerValue, !profile?.countryCode && styles.pickerPlaceholder]}>
+            <Text style={[styles.pickerValue, profile?.countryCode && { color: accentColor.primary }, !profile?.countryCode && styles.pickerPlaceholder]}>
               {profile?.countryCode
                 ? `${COUNTRY_FLAGS[profile.countryCode]} ${t(`demographics.countries.${profile.countryCode}`, profile.countryCode)}`
                 : t('demographics.selectCountry')}
@@ -809,7 +812,7 @@ export function ProfileSettingsScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('demographics.regionLabel')}
             >
-              <Text style={[styles.pickerValue, !profile?.regionCode && styles.pickerPlaceholder]}>
+              <Text style={[styles.pickerValue, profile?.regionCode && { color: accentColor.primary }, !profile?.regionCode && styles.pickerPlaceholder]}>
                 {profile?.regionCode
                   ? t(`demographics.regions.${profile.regionCode}`, profile.regionCode)
                   : t('demographics.selectRegion')}
@@ -827,7 +830,7 @@ export function ProfileSettingsScreen() {
           <Text style={styles.fieldLabel}>{t('demographics.cityLabel')}</Text>
           <TextInput
             ref={cityInputRef}
-            style={[styles.textInput, isCityEmpty && styles.inputError]}
+            style={[styles.textInput, isCityEmpty && styles.inputError, { color: accentColor.primary }]}
             value={cityInput}
             onChangeText={handleCityChange}
             onBlur={handleCityBlur}
@@ -855,7 +858,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('demographics.ageLabel')}
           >
-            <Text style={[styles.pickerValue, !profile?.ageBracket && styles.pickerPlaceholder]}>
+            <Text style={[styles.pickerValue, profile?.ageBracket && { color: accentColor.primary }, !profile?.ageBracket && styles.pickerPlaceholder]}>
               {profile?.ageBracket
                 ? t(`demographics.age.${profile.ageBracket.replace('-', '_').replace('+', '_plus')}`, profile.ageBracket)
                 : t('demographics.selectAge')}
@@ -876,7 +879,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('demographics.genderLabel')}
           >
-            <Text style={[styles.pickerValue, !profile?.gender && styles.pickerPlaceholder]}>
+            <Text style={[styles.pickerValue, profile?.gender && { color: accentColor.primary }, !profile?.gender && styles.pickerPlaceholder]}>
               {profile?.gender
                 ? t(`demographics.gender.${profile.gender}`)
                 : t('demographics.selectGender')}

@@ -5,3 +5,32 @@
  */
 
 export { AccentColorProvider, useAccentColorContext, type AccentColorContextValue } from './AccentColorContext';
+
+export {
+  VoiceFocusProvider,
+  useVoiceFocusContext,
+  useVoiceSessionStatus,
+  useVoiceFocusList,
+  type VoiceFocusContextValue,
+  type VoiceFocusableItem,
+  type VoiceFocusList,
+  type VoiceCommands,
+  type VoiceSessionSettings,
+  type FuzzyMatchResult,
+} from './VoiceFocusContext';
+
+export {
+  VoiceSettingsProvider,
+  useVoiceSettingsContext,
+  useVoiceSettings,
+  useCommandPatterns,
+  type VoiceSettingsContextValue,
+} from './VoiceSettingsContext';
+
+export {
+  VoiceFormProvider,
+  useVoiceFormContext,
+  useVoiceField,
+  useVoiceForm,
+  type VoiceFormContextValue,
+} from './VoiceFormContext';

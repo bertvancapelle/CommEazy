@@ -19,11 +19,19 @@ import { useTranslation } from 'react-i18next';
 import { ServiceContainer } from '@/services/container';
 import type { NavigationDestination } from '@/components/WheelNavigationMenu';
 
+// Mic indicator position type
+export type MicIndicatorPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+// Session control action type
+export type SessionAction = 'stop' | 'next' | 'previous' | 'back' | 'select' | 'send';
+
 // Voice command result
 export interface VoiceCommandResult {
-  type: 'navigation' | 'action' | 'unknown';
+  type: 'navigation' | 'action' | 'session_control' | 'position_change' | 'unknown';
   destination?: NavigationDestination;
   action?: 'call' | 'message';
+  sessionAction?: SessionAction;
+  position?: MicIndicatorPosition;
   contactName?: string;
   rawText: string;
   confidence: number;
@@ -149,21 +157,102 @@ const ACTION_PATTERNS: Record<string, { call: string[]; message: string[] }> = {
   },
 };
 
+// Session control commands (for Voice Session Mode)
+// These control list navigation via VoiceFocusContext
+const SESSION_COMMANDS: Record<string, Array<{ patterns: string[]; action: SessionAction }>> = {
+  nl: [
+    { patterns: ['stop', 'stoppen', 'klaar', 'sluit', 'stop opnemen', 'einde'], action: 'stop' },
+    { patterns: ['volgende', 'verder', 'vooruit'], action: 'next' },
+    { patterns: ['vorige', 'terug naar vorige'], action: 'previous' },
+    { patterns: ['terug', 'ga terug', 'naar terug'], action: 'back' },
+    { patterns: ['open', 'kies', 'selecteer'], action: 'select' },
+    { patterns: ['stuur', 'verzend', 'verstuur', 'stuur bericht', 'verzenden'], action: 'send' },
+  ],
+  en: [
+    { patterns: ['stop', 'done', 'finish', 'close', 'exit', 'stop recording', 'end'], action: 'stop' },
+    { patterns: ['next', 'forward'], action: 'next' },
+    { patterns: ['previous', 'back to previous'], action: 'previous' },
+    { patterns: ['back', 'go back'], action: 'back' },
+    { patterns: ['open', 'select', 'choose'], action: 'select' },
+    { patterns: ['send', 'send message', 'submit'], action: 'send' },
+  ],
+  de: [
+    { patterns: ['stopp', 'fertig', 'schließen', 'beenden', 'aufnahme stoppen', 'ende'], action: 'stop' },
+    { patterns: ['nächste', 'weiter', 'vorwärts'], action: 'next' },
+    { patterns: ['vorherige', 'zurück zur vorherigen'], action: 'previous' },
+    { patterns: ['zurück', 'geh zurück'], action: 'back' },
+    { patterns: ['öffnen', 'wählen', 'auswählen'], action: 'select' },
+    { patterns: ['senden', 'absenden', 'nachricht senden'], action: 'send' },
+  ],
+  fr: [
+    { patterns: ['arrête', 'fini', 'fermer', 'terminer', 'arrêter', 'fin'], action: 'stop' },
+    { patterns: ['suivant', 'prochain', 'avancer'], action: 'next' },
+    { patterns: ['précédent', 'retour au précédent'], action: 'previous' },
+    { patterns: ['retour', 'revenir'], action: 'back' },
+    { patterns: ['ouvrir', 'choisir', 'sélectionner'], action: 'select' },
+    { patterns: ['envoyer', 'envoie', 'envoyer message'], action: 'send' },
+  ],
+  es: [
+    { patterns: ['para', 'parar', 'terminar', 'cerrar', 'salir', 'detener', 'fin', 'listo'], action: 'stop' },
+    { patterns: ['siguiente', 'adelante'], action: 'next' },
+    { patterns: ['anterior', 'volver al anterior'], action: 'previous' },
+    { patterns: ['atrás', 'volver', 'regresar'], action: 'back' },
+    { patterns: ['abrir', 'elegir', 'seleccionar'], action: 'select' },
+    { patterns: ['enviar', 'envía', 'enviar mensaje'], action: 'send' },
+  ],
+};
+
+// Mic position commands (for Voice Session Mode)
+const POSITION_COMMANDS: Record<string, Array<{ patterns: string[]; position: MicIndicatorPosition }>> = {
+  nl: [
+    { patterns: ['microfoon linksboven', 'mic linksboven', 'links boven'], position: 'top-left' },
+    { patterns: ['microfoon rechtsboven', 'mic rechtsboven', 'rechts boven'], position: 'top-right' },
+    { patterns: ['microfoon linksonder', 'mic linksonder', 'links onder'], position: 'bottom-left' },
+    { patterns: ['microfoon rechtsonder', 'mic rechtsonder', 'rechts onder'], position: 'bottom-right' },
+  ],
+  en: [
+    { patterns: ['mic top left', 'microphone top left', 'top left'], position: 'top-left' },
+    { patterns: ['mic top right', 'microphone top right', 'top right'], position: 'top-right' },
+    { patterns: ['mic bottom left', 'microphone bottom left', 'bottom left'], position: 'bottom-left' },
+    { patterns: ['mic bottom right', 'microphone bottom right', 'bottom right'], position: 'bottom-right' },
+  ],
+  de: [
+    { patterns: ['mikrofon oben links', 'mikro oben links', 'oben links'], position: 'top-left' },
+    { patterns: ['mikrofon oben rechts', 'mikro oben rechts', 'oben rechts'], position: 'top-right' },
+    { patterns: ['mikrofon unten links', 'mikro unten links', 'unten links'], position: 'bottom-left' },
+    { patterns: ['mikrofon unten rechts', 'mikro unten rechts', 'unten rechts'], position: 'bottom-right' },
+  ],
+  fr: [
+    { patterns: ['micro haut gauche', 'microphone haut gauche', 'en haut à gauche'], position: 'top-left' },
+    { patterns: ['micro haut droite', 'microphone haut droite', 'en haut à droite'], position: 'top-right' },
+    { patterns: ['micro bas gauche', 'microphone bas gauche', 'en bas à gauche'], position: 'bottom-left' },
+    { patterns: ['micro bas droite', 'microphone bas droite', 'en bas à droite'], position: 'bottom-right' },
+  ],
+  es: [
+    { patterns: ['micro arriba izquierda', 'micrófono arriba izquierda', 'arriba izquierda'], position: 'top-left' },
+    { patterns: ['micro arriba derecha', 'micrófono arriba derecha', 'arriba derecha'], position: 'top-right' },
+    { patterns: ['micro abajo izquierda', 'micrófono abajo izquierda', 'abajo izquierda'], position: 'bottom-left' },
+    { patterns: ['micro abajo derecha', 'micrófono abajo derecha', 'abajo derecha'], position: 'bottom-right' },
+  ],
+};
+
 /**
  * Parse spoken text and match to commands
+ * Priority order: position > session > navigation > action
+ * Position and session commands are checked first as they're more specific
  */
 function parseVoiceCommand(text: string, language: string): VoiceCommandResult {
   const normalizedText = text.toLowerCase().trim();
   const langCode = language.split('-')[0] || 'nl';
 
-  // Try navigation commands first
-  const navCommands = NAVIGATION_COMMANDS[langCode] || NAVIGATION_COMMANDS.nl;
-  for (const { patterns, destination } of navCommands) {
+  // Try position commands first (most specific - for Voice Session Mode)
+  const positionCommands = POSITION_COMMANDS[langCode] || POSITION_COMMANDS.nl;
+  for (const { patterns, position } of positionCommands) {
     for (const pattern of patterns) {
       if (normalizedText.includes(pattern)) {
         return {
-          type: 'navigation',
-          destination,
+          type: 'position_change',
+          position,
           rawText: text,
           confidence: 1.0,
         };
@@ -171,7 +260,9 @@ function parseVoiceCommand(text: string, language: string): VoiceCommandResult {
     }
   }
 
-  // Try action commands (call/message)
+  // Try action commands (call/message) FIRST
+  // These are more specific than session commands and should take priority
+  // e.g., "stuur bericht naar oma" should be an action, not session control "stuur"
   const actionPatterns = ACTION_PATTERNS[langCode] || ACTION_PATTERNS.nl;
 
   // Check for call action
@@ -179,6 +270,7 @@ function parseVoiceCommand(text: string, language: string): VoiceCommandResult {
     if (normalizedText.startsWith(pattern)) {
       const contactName = normalizedText.replace(pattern, '').trim();
       if (contactName) {
+        console.log('[parseVoiceCommand] Call action match! pattern:', pattern, 'contact:', contactName);
         return {
           type: 'action',
           action: 'call',
@@ -195,12 +287,49 @@ function parseVoiceCommand(text: string, language: string): VoiceCommandResult {
     if (normalizedText.startsWith(pattern)) {
       const contactName = normalizedText.replace(pattern, '').trim();
       if (contactName) {
+        console.log('[parseVoiceCommand] Message action match! pattern:', pattern, 'contact:', contactName);
         return {
           type: 'action',
           action: 'message',
           contactName,
           rawText: text,
           confidence: 0.9,
+        };
+      }
+    }
+  }
+
+  // Try session control commands (for Voice Session Mode)
+  const sessionCommands = SESSION_COMMANDS[langCode] || SESSION_COMMANDS.nl;
+  console.log('[parseVoiceCommand] Checking session commands for:', normalizedText);
+  for (const { patterns, action } of sessionCommands) {
+    for (const pattern of patterns) {
+      // Use exact match or word boundary for session commands to avoid false positives
+      // e.g., "stop" should not match "stoppen met roken"
+      const regex = new RegExp(`^${pattern}$|^${pattern}\\s|\\s${pattern}$|\\s${pattern}\\s`, 'i');
+      const matches = regex.test(normalizedText) || normalizedText === pattern;
+      if (matches) {
+        console.log('[parseVoiceCommand] Session command match! pattern:', pattern, 'action:', action);
+        return {
+          type: 'session_control',
+          sessionAction: action,
+          rawText: text,
+          confidence: 1.0,
+        };
+      }
+    }
+  }
+
+  // Try navigation commands
+  const navCommands = NAVIGATION_COMMANDS[langCode] || NAVIGATION_COMMANDS.nl;
+  for (const { patterns, destination } of navCommands) {
+    for (const pattern of patterns) {
+      if (normalizedText.includes(pattern)) {
+        return {
+          type: 'navigation',
+          destination,
+          rawText: text,
+          confidence: 1.0,
         };
       }
     }
@@ -242,12 +371,21 @@ export function useVoiceCommands() {
   // Store last valid partial result - iOS often returns empty final results
   const lastPartialResultRef = useRef<string>('');
 
+  // Silence timeout ref - clear when speech is detected
+  // Declared here so it can be accessed by event listeners
+  const silenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Callback ref for when a result is ready - allows immediate execution without waiting for re-render
   // IMPORTANT: This callback should trigger navigation AND close the overlay
   const onResultReadyRef = useRef<((result: VoiceCommandResult) => void) | null>(null);
 
   // Track if we've already called the callback for this session to prevent duplicates
   const callbackFiredRef = useRef(false);
+
+  // Timestamp of when startListening was last called
+  // Used to ignore onSpeechEnd events that arrive shortly after a restart
+  const lastStartTimeRef = useRef(0);
+  const STALE_EVENT_WINDOW_MS = 300; // Ignore events that arrive within 300ms of a restart
 
   // Load settings from database on mount
   useEffect(() => {
@@ -291,6 +429,7 @@ export function useVoiceCommands() {
 
         // Set up event listeners
         const onSpeechStart = eventEmitterRef.current.addListener('onSpeechStart', () => {
+          console.log('[useVoiceCommands] onSpeechStart received');
           setState(prev => ({
             ...prev,
             isListening: true,
@@ -300,6 +439,16 @@ export function useVoiceCommands() {
         });
 
         const onSpeechEnd = eventEmitterRef.current.addListener('onSpeechEnd', () => {
+          const timeSinceStart = Date.now() - lastStartTimeRef.current;
+          console.log('[useVoiceCommands] onSpeechEnd received, timeSinceStart:', timeSinceStart, 'ms');
+
+          // Ignore onSpeechEnd events that arrive shortly after startListening was called
+          // This prevents stale events from a previous session from resetting our state
+          if (timeSinceStart < STALE_EVENT_WINDOW_MS) {
+            console.log('[useVoiceCommands] Ignoring stale onSpeechEnd (arrived within', STALE_EVENT_WINDOW_MS, 'ms of restart)');
+            return;
+          }
+
           setState(prev => ({
             ...prev,
             isListening: false,
@@ -307,18 +456,37 @@ export function useVoiceCommands() {
         });
 
         const onSpeechPartialResults = eventEmitterRef.current.addListener('onSpeechPartialResults', (event) => {
+          console.log('[useVoiceCommands] onSpeechPartialResults:', event.transcript, 'confidence:', event.confidence);
+
+          // Clear silence timeout - we received speech
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current);
+            silenceTimeoutRef.current = null;
+          }
+
           // Store valid partial results - iOS often returns empty final results
           if (event.transcript && event.transcript.trim()) {
             lastPartialResultRef.current = event.transcript;
 
-            // HIGH-CONFIDENCE PARTIAL RESULT PROCESSING
-            // If we have high confidence (≥0.8), process immediately for faster response
+            // FAST COMMAND PROCESSING
+            // Parse the command first to check if it's a simple, known command
+            const result = parseVoiceCommand(event.transcript, languageRef.current);
             const confidence = event.confidence || 0;
-            if (confidence >= 0.8 && !callbackFiredRef.current) {
-              const result = parseVoiceCommand(event.transcript, languageRef.current);
 
-              // Only process navigation/action commands with high confidence
-              if ((result.type === 'navigation' || result.type === 'action') && onResultReadyRef.current) {
+            // Use lower threshold (0.5) for simple session commands like "volgende", "vorige", "open"
+            // These are short, common words that don't need high confidence
+            const isSimpleCommand = result.type === 'session_control' &&
+              ['next', 'previous', 'select', 'back'].includes(result.sessionAction || '');
+            const requiredConfidence = isSimpleCommand ? 0.5 : 0.8;
+
+            if (confidence >= requiredConfidence && !callbackFiredRef.current) {
+              console.log('[useVoiceCommands] Fast partial result parsed:', result.type, 'confidence:', confidence, 'required:', requiredConfidence);
+
+              // Fire callback for ALL types including 'unknown' - name matching happens in HoldToNavigateWrapper
+              // Previously we only fired for ['navigation', 'action', 'session_control', 'position_change']
+              // but 'unknown' commands need to reach the callback for voice focus name matching (e.g., "Oma")
+              if (onResultReadyRef.current) {
+                console.log('[useVoiceCommands] Firing callback for fast result:', result.type);
                 callbackFiredRef.current = true;
                 setState({
                   isListening: false,
@@ -339,12 +507,22 @@ export function useVoiceCommands() {
         });
 
         const onSpeechResults = eventEmitterRef.current.addListener('onSpeechResults', (event) => {
+          console.log('[useVoiceCommands] onSpeechResults:', event.transcript, 'callbackFired:', callbackFiredRef.current);
+
+          // Clear silence timeout - we received a final result
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current);
+            silenceTimeoutRef.current = null;
+          }
+
           // Use final result if available, otherwise fall back to last partial result
           const transcriptToUse = (event.transcript && event.transcript.trim())
             ? event.transcript
             : lastPartialResultRef.current;
 
+          console.log('[useVoiceCommands] Final transcript to use:', transcriptToUse);
           const result = parseVoiceCommand(transcriptToUse, languageRef.current);
+          console.log('[useVoiceCommands] Final result parsed:', result.type, result);
           lastPartialResultRef.current = '';
 
           setState({
@@ -356,16 +534,29 @@ export function useVoiceCommands() {
           });
 
           // Call the callback if registered and not already fired
-          if (onResultReadyRef.current && !callbackFiredRef.current && (result.type === 'navigation' || result.type === 'action')) {
+          // Include ALL types - unknown commands need to reach HoldToNavigateWrapper for name matching
+          if (onResultReadyRef.current && !callbackFiredRef.current) {
+            console.log('[useVoiceCommands] Firing callback for final result:', result.type);
             callbackFiredRef.current = true;
             onResultReadyRef.current(result);
+          } else {
+            console.log('[useVoiceCommands] NOT firing callback - onResultReady:', !!onResultReadyRef.current, 'callbackFired:', callbackFiredRef.current, 'resultType:', result.type);
           }
         });
 
         const onSpeechError = eventEmitterRef.current.addListener('onSpeechError', (event) => {
-          // Ignore cancellation errors - these are expected when user closes overlay
-          const ignoredCodes = ['201', '216', '301', '1110'];
-          if (ignoredCodes.includes(event.code)) {
+          // Clear silence timeout on error
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current);
+            silenceTimeoutRef.current = null;
+          }
+
+          // Ignore cancellation errors - these are expected when user closes overlay or restarts
+          // Error codes: 201=Cancelled, 216=Request canceled, 301=No speech, 1100=Interrupted, 1110=Audio interrupted
+          const ignoredCodes = ['201', '216', '301', '1100', '1110'];
+          const isCancellation = ignoredCodes.includes(event.code) ||
+            (event.error && (event.error.toLowerCase().includes('cancel') || event.error.toLowerCase().includes('interrupt')));
+          if (isCancellation) {
             // If we have a partial result when cancelled, process it
             if (lastPartialResultRef.current) {
               const transcriptToUse = lastPartialResultRef.current;
@@ -380,7 +571,8 @@ export function useVoiceCommands() {
                 lastResult: result,
               });
 
-              if (onResultReadyRef.current && !callbackFiredRef.current && (result.type === 'navigation' || result.type === 'action')) {
+              // Include ALL types - unknown commands need to reach HoldToNavigateWrapper for name matching
+              if (onResultReadyRef.current && !callbackFiredRef.current) {
                 callbackFiredRef.current = true;
                 onResultReadyRef.current(result);
               }
@@ -424,30 +616,70 @@ export function useVoiceCommands() {
     };
   }, []); // Remove settings.language dependency - we use languageRef instead
 
+  // Track if we're intentionally restarting (to bypass isListening check)
+  const isRestartingRef = useRef(false);
+
+  // Silence timeout constant - if no speech detected within this time, reset to idle state
+  // This prevents the mic from staying in "listening" mode indefinitely
+  const SILENCE_TIMEOUT_MS = 8000; // 8 seconds of silence before resetting
+
+  // Clear silence timeout helper
+  const clearSilenceTimeout = useCallback(() => {
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+  }, []);
+
   /**
    * Start listening for voice commands
+   * @param forceRestart - If true, bypass the isListening check (used when restarting in session mode)
    */
-  const startListening = useCallback(async () => {
-    if (!settings.enabled || state.isListening) return;
+  const startListening = useCallback(async (forceRestart: boolean = false) => {
+    // Allow restart even if currently listening (for Voice Session Mode)
+    if (!settings.enabled) return;
+    if (state.isListening && !forceRestart && !isRestartingRef.current) return;
 
-    // Clear previous state
+    // Record timestamp to detect stale events
+    lastStartTimeRef.current = Date.now();
+    console.log('[useVoiceCommands] startListening called, forceRestart:', forceRestart, 'timestamp:', lastStartTimeRef.current);
+
+    // Clear previous state and timers
     lastPartialResultRef.current = '';
     callbackFiredRef.current = false;
+    isRestartingRef.current = false;
+    clearSilenceTimeout();
 
+    // Start in "waiting for speech" state - NOT listening yet
+    // The mic indicator will be in idle state (no pulsing, faded color)
+    // isListening will be set to true when onSpeechStart fires (user starts speaking)
     setState(prev => ({
       ...prev,
-      isListening: true,
+      isListening: false, // Don't pulse yet - wait for actual speech
       isProcessing: false,
       transcript: '',
       error: null,
       lastResult: null,
     }));
 
+    // Start silence timeout - reset to idle if no speech detected
+    silenceTimeoutRef.current = setTimeout(() => {
+      console.log('[useVoiceCommands] Silence timeout - resetting to idle state');
+      setState(prev => ({
+        ...prev,
+        isListening: false,
+        isProcessing: false,
+      }));
+    }, SILENCE_TIMEOUT_MS);
+
     try {
       if (Platform.OS === 'ios' && speechRecognitionRef.current) {
+        console.log('[useVoiceCommands] Requesting permissions...');
         const permissions = await speechRecognitionRef.current.requestPermissions();
+        console.log('[useVoiceCommands] Permissions:', permissions);
 
         if (!permissions.speechRecognition || !permissions.microphone) {
+          console.log('[useVoiceCommands] Missing permissions, aborting');
           setState(prev => ({
             ...prev,
             error: 'Spraakherkenning vereist microfoon- en spraakherkenningsrechten',
@@ -456,8 +688,11 @@ export function useVoiceCommands() {
           return;
         }
 
+        console.log('[useVoiceCommands] *** CALLING NATIVE startListening with language:', settings.language);
         speechRecognitionRef.current.startListening(settings.language);
+        console.log('[useVoiceCommands] Native startListening called successfully');
       } else {
+        console.log('[useVoiceCommands] No speech recognition module available, Platform:', Platform.OS);
         setState(prev => ({
           ...prev,
           error: 'Spraakherkenning is niet beschikbaar op dit apparaat',
@@ -476,18 +711,25 @@ export function useVoiceCommands() {
 
   /**
    * Stop listening
+   * IMPORTANT: Always calls native module to ensure microphone is released,
+   * even if state.isListening is already false (e.g., after a processed command).
+   * This prevents the orange mic indicator in Dynamic Island from staying on.
    */
   const stopListening = useCallback(() => {
-    if (!state.isListening) {
-      return;
+    // Clear silence timeout
+    clearSilenceTimeout();
+
+    // Update state if needed
+    if (state.isListening) {
+      setState(prev => ({
+        ...prev,
+        isListening: false,
+        isProcessing: true,
+      }));
     }
 
-    setState(prev => ({
-      ...prev,
-      isListening: false,
-      isProcessing: true,
-    }));
-
+    // ALWAYS call native module to ensure microphone is released
+    // Even if state.isListening is false, the native module may still be running
     try {
       if (Platform.OS === 'ios' && speechRecognitionRef.current) {
         speechRecognitionRef.current.stopListening();
@@ -495,7 +737,7 @@ export function useVoiceCommands() {
     } catch (error) {
       console.error('[useVoiceCommands] Failed to stop listening:', error);
     }
-  }, [state.isListening]);
+  }, [state.isListening, clearSilenceTimeout]);
 
   /**
    * Process recognized speech
@@ -557,6 +799,17 @@ export function useVoiceCommands() {
   }, []);
 
   /**
+   * Set processing state explicitly (used during restart delay)
+   */
+  const setProcessingState = useCallback((processing: boolean) => {
+    setState(prev => ({
+      ...prev,
+      isProcessing: processing,
+      isListening: processing ? false : prev.isListening,
+    }));
+  }, []);
+
+  /**
    * Register a callback to be called when a navigation/action result is ready
    * This bypasses React's state batching and calls the callback directly
    */
@@ -575,6 +828,7 @@ export function useVoiceCommands() {
     processTranscript,
     updateEnabled,
     clearState,
+    setProcessingState,
     setOnResultReady,
   };
 }
@@ -597,4 +851,6 @@ function getLanguageCode(language: string): string {
 export const VOICE_COMMAND_PATTERNS = {
   NAVIGATION_COMMANDS,
   ACTION_PATTERNS,
+  SESSION_COMMANDS,
+  POSITION_COMMANDS,
 };

@@ -38,6 +38,13 @@ export { WheelNavigationMenu } from './WheelNavigationMenu';
 export type { NavigationDestination } from './WheelNavigationMenu';
 export { HoldToNavigateWrapper } from './HoldToNavigateWrapper';
 
+// Voice Focus components
+export { VoiceFocusable } from './VoiceFocusable';
+
+// Contact Selection Modal (for multi-match disambiguation)
+export { ContactSelectionModal } from './ContactSelectionModal';
+export type { ContactMatch, ContactSelectionMode, ContactSelectionModalProps } from './ContactSelectionModal';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

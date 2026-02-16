@@ -10,7 +10,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,11 +21,12 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Button, LoadingView } from '@/components';
+import { colors, typography, spacing, touchTargets } from '@/theme';
+import { Button, LoadingView, VoiceFocusable } from '@/components';
+import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { groupChatService, GroupListItem } from '@/services/groupChat';
@@ -35,9 +36,26 @@ type NavigationProp = NativeStackNavigationProp<GroupStackParams, 'GroupList'>;
 export function GroupListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const isFocused = useIsFocused();
   const [groups, setGroups] = useState<GroupListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Voice Focus: Register list items for voice navigation
+  const voiceFocusItems = useMemo(() => {
+    if (!isFocused) return []; // Only register when screen is focused
+    return groups.map((group, index) => ({
+      id: group.groupId,
+      label: group.group.name, // Human-readable name for voice matching
+      index,
+      onSelect: () => handleGroupPress(group),
+    }));
+  }, [groups, isFocused]);
+
+  const { scrollRef, isFocused: isItemFocused, getFocusStyle } = useVoiceFocusList(
+    'group-list',
+    voiceFocusItems
+  );
 
   // Load groups
   useEffect(() => {
@@ -176,72 +194,91 @@ export function GroupListScreen() {
   }, [t]);
 
   const renderGroupItem = useCallback(
-    (item: GroupListItem) => (
-      <TouchableOpacity
-        key={item.groupId}
-        style={styles.groupItem}
-        onPress={() => handleGroupPress(item)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={t('accessibility.groupChat', {
-          name: item.group.name,
-          memberCount: item.group.members.length,
-        })}
-        accessibilityHint={t('chat.openConversation')}
-      >
-        {/* Group icon */}
-        <View style={styles.groupIcon}>
-          <Text style={styles.groupIconText}>
-            {item.group.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
+    (item: GroupListItem, index: number): React.ReactElement => {
+      const focused = isItemFocused(item.groupId);
+      const focusStyle = focused ? getFocusStyle() : undefined;
 
-        {/* Content */}
-        <View style={styles.groupContent}>
-          <View style={styles.groupHeader}>
-            <Text
-              style={styles.groupName}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {item.group.name}
-            </Text>
-            {item.lastMessage && (
-              <Text style={styles.timestamp}>
-                {formatTime(item.lastMessage.timestamp)}
+      return (
+        <VoiceFocusable
+          key={item.groupId}
+          id={item.groupId}
+          label={item.group.name}
+          index={index}
+          onSelect={() => handleGroupPress(item)}
+        >
+          <TouchableOpacity
+            style={[
+              styles.groupItem,
+              focused && {
+                borderColor: focusStyle?.borderColor,
+                borderWidth: focusStyle?.borderWidth,
+                backgroundColor: focusStyle?.backgroundColor,
+              },
+            ]}
+            onPress={() => handleGroupPress(item)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('accessibility.groupChat', {
+              name: item.group.name,
+              memberCount: item.group.members.length,
+            })}
+            accessibilityHint={t('chat.openConversation')}
+          >
+            {/* Group icon */}
+            <View style={styles.groupIcon}>
+              <Text style={styles.groupIconText}>
+                {item.group.name.charAt(0).toUpperCase()}
               </Text>
+            </View>
+
+            {/* Content */}
+            <View style={styles.groupContent}>
+              <View style={styles.groupHeader}>
+                <Text
+                  style={styles.groupName}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {item.group.name}
+                </Text>
+                {item.lastMessage && (
+                  <Text style={styles.timestamp}>
+                    {formatTime(item.lastMessage.timestamp)}
+                  </Text>
+                )}
+              </View>
+
+              {/* Member count */}
+              <Text style={styles.memberCount}>
+                {t('group.memberCount', { count: item.group.members.length })}
+              </Text>
+
+              {/* Last message */}
+              {item.lastMessage && (
+                <Text
+                  style={styles.lastMessage}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  <Text style={styles.senderName}>{item.lastMessage.senderName}: </Text>
+                  {item.lastMessage.content}
+                </Text>
+              )}
+            </View>
+
+            {/* Unread badge */}
+            {item.unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadCount}>
+                  {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                </Text>
+              </View>
             )}
-          </View>
-
-          {/* Member count */}
-          <Text style={styles.memberCount}>
-            {t('group.memberCount', { count: item.group.members.length })}
-          </Text>
-
-          {/* Last message */}
-          {item.lastMessage && (
-            <Text
-              style={styles.lastMessage}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              <Text style={styles.senderName}>{item.lastMessage.senderName}: </Text>
-              {item.lastMessage.content}
-            </Text>
-          )}
-        </View>
-
-        {/* Unread badge */}
-        {item.unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadCount}>
-              {item.unreadCount > 99 ? '99+' : item.unreadCount}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    ),
-    [handleGroupPress, formatTime, t],
+          </TouchableOpacity>
+        </VoiceFocusable>
+      );
+    },
+    [handleGroupPress, formatTime, t, isItemFocused, getFocusStyle],
   );
 
   const renderEmptyList = useCallback(
@@ -266,6 +303,7 @@ export function GroupListScreen() {
   return (
     <View style={styles.container}>
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={groups.length === 0 ? styles.emptyListContent : undefined}
         refreshControl={
           <RefreshControl
@@ -280,7 +318,7 @@ export function GroupListScreen() {
         {groups.length === 0 ? (
           renderEmptyList()
         ) : (
-          groups.map(item => renderGroupItem(item))
+          groups.map((item, index) => renderGroupItem(item, index))
         )}
       </ScrollView>
 
