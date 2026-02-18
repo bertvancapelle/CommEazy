@@ -70,6 +70,17 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
    - ⚠️ Waarschuwingen — bespreken
    - ❌ Blokkeerders — NIET uitvoeren
 5. **Voer uit** alleen als alle validaties slagen
+5b. **Test Validatie** — Zijn tests geschreven? Is coverage ≥80%?
+6. **Skill Standaardisatie Check** — Na nieuwe functionaliteit ALTIJD vragen:
+   - "Moet dit worden toegevoegd aan skills voor standaardisatie?"
+   - "Is dit pattern herbruikbaar in andere modules?"
+   - Zo ja: update SKILL.md en/of CLAUDE.md
+7. **Mini-Retrospectief** — Na elke ontwikkelstap analyseren:
+   - Wat ging goed? Wat kan beter?
+   - Aanbevelingen voor skills?
+8. **Recursieve Implementatie** — Bij skill wijzigingen:
+   - Pas nieuwe regels toe op ALLE bestaande code
+   - Zie `COORDINATION_PROTOCOL.md` voor volledige workflow
 
 ### Automatische Triggers
 
@@ -77,6 +88,8 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 |-------------------|---------------------------|
 | UI componenten, styling | ui-designer, accessibility-specialist |
 | Formuliervelden, inputs | ui-designer, accessibility-specialist |
+| Lijsten met >3 items | ui-designer, accessibility-specialist, react-native-expert |
+| Voice control, spraak | accessibility-specialist, react-native-expert |
 | Encryptie, keys, tokens | security-expert |
 | Database, storage | architecture-lead, security-expert |
 | XMPP, messaging | xmpp-specialist, security-expert |
@@ -87,6 +100,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | CI/CD, deployment | devops-specialist |
 | Onboarding flow | onboarding-recovery-specialist, ui-designer |
 | Performance | performance-optimizer |
+| **Media modules (Radio/Podcast/Audiobook)** | **ui-designer, accessibility-specialist, react-native-expert, ios-specialist** |
 
 ### Conflict Resolutie Hiërarchie
 
@@ -265,6 +279,449 @@ Alle interactieve elementen moeten accessibility labels hebben:
 - Terug-knop altijd zichtbaar en groot
 - Geen verborgen gestures — elk gesture heeft een button alternatief
 
+### 10b. Hold Gesture Exclusivity (VERPLICHT)
+
+**UI PRINCIPE: Bij een long-press gesture wordt ALLEEN de hold-actie uitgevoerd, NIET beide.**
+
+Wanneer een gebruiker een long-press gesture uitvoert (voor navigatie wheel of voice commands),
+mag het onderliggende tappable element NIET ook zijn `onPress` handler uitvoeren.
+
+**Probleem:**
+```typescript
+// FOUT: Beide acties worden uitgevoerd
+// 1. Gebruiker houdt vinger op picker field
+// 2. Na 800ms: hold gesture voltooid → menu opent
+// 3. Vinger loslaten → picker onPress viert ook → field wordt geactiveerd
+```
+
+**Oplossing:**
+CommEazy gebruikt `HoldGestureContext` om dit te voorkomen:
+
+```typescript
+// HoldToNavigateWrapper roept aan wanneer gesture voltooid is:
+holdGesture.consumeGesture();
+
+// Componenten die dit gedrag moeten respecteren gebruiken:
+import { useHoldGestureGuard } from '@/contexts/HoldGestureContext';
+
+function MyComponent({ onPress }: Props) {
+  // Wrap onPress om te skippen wanneer hold gesture net is voltooid
+  const guardedOnPress = useHoldGestureGuard(onPress);
+
+  return (
+    <TouchableOpacity onPress={guardedOnPress}>
+      ...
+    </TouchableOpacity>
+  );
+}
+```
+
+**Wanneer `useHoldGestureGuard` te gebruiken:**
+- Picker fields (land, taal, etc.)
+- Modale triggers
+- Elke tappable die ook lang ingedrukt kan worden
+
+**Implementatie details:**
+- `consumeGesture()` markeert timestamp wanneer hold voltooid is
+- `isGestureConsumed()` checkt of <300ms geleden een gesture was voltooid
+- Guard wrapper skipt onPress automatisch wanneer gesture consumed is
+
+**⚠️ KRITIEK: TouchableOpacity onLongPress Pattern (VERPLICHT)**
+
+React Native's `TouchableOpacity` heeft een belangrijk gedrag:
+- **Zonder `onLongPress`:** `onPress` fired bij ELKE touch release, ongeacht duur
+- **Met `onLongPress`:** `onPress` fired NIET als touch langer dan `delayLongPress` was
+
+Dit is de PRIMAIRE verdediging tegen double-action:
+
+```typescript
+// ❌ FOUT — veroorzaakt double-action
+<TouchableOpacity onPress={() => handleAction()}>
+
+// ✅ GOED — voorkomt double-action
+<TouchableOpacity
+  onPress={() => handleAction()}
+  onLongPress={() => {}}  // Lege handler blokkeert onPress na long-press
+  delayLongPress={300}    // Match HoldGestureContext timing
+>
+```
+
+**Waar dit toepassen:**
+- Alle lijst items (contacten, berichten, stations, episodes)
+- Cards en klikbare rijen
+- Alle `TouchableOpacity` binnen HoldToNavigateWrapper scope
+
+**Twee-laagse bescherming:**
+1. **`onLongPress={() => {}}`** — Primaire blokkade (React Native niveau)
+2. **`useHoldGestureGuard()`** — Backup voor edge cases (HoldGestureContext niveau)
+
+### 11. Voice Interaction Architecture (VERPLICHT)
+
+CommEazy heeft **spraakbesturing als kernfunctie**, niet als optionele toegankelijkheidsfunctie. ALLE modules MOETEN voice interactions ondersteunen volgens deze architectuur.
+
+#### 11.1 Voice Command Framework
+
+Alle voice commands zijn **configureerbaar per gebruiker** en worden centraal beheerd:
+
+```
+src/
+  types/
+    voiceCommands.ts      ← Type definities (VERPLICHT)
+  services/
+    voiceSettings.ts      ← AsyncStorage persistence
+  contexts/
+    VoiceSettingsContext.tsx  ← App-wide settings provider
+    VoiceFocusContext.tsx     ← Focus management voor lijsten
+  hooks/
+    useVoiceCommands.ts       ← Speech recognition + command parsing
+    useVoiceSettings.ts       ← Settings hook
+```
+
+#### 11.2 Command Categorieën
+
+Elke module MOET de relevante command categorieën implementeren:
+
+| Categorie | Commands | Gebruik |
+|-----------|----------|---------|
+| **navigation** | "contacten", "berichten", "instellingen" | Navigatie tussen schermen |
+| **list** | "volgende", "vorige", "open" | Navigatie binnen lijsten |
+| **form** | "pas aan", "wis", "dicteer", "bevestig" | Formulier interacties |
+| **action** | "bel", "stuur bericht", "verwijder" | Directe acties op items |
+| **media** | "stuur", "foto", "speel", "pauze" | Media gerelateerde acties |
+| **session** | "stop", "help" | Voice session control |
+| **confirmation** | "ja", "nee", "annuleer" | Bevestigingsdialogen |
+
+#### 11.3 Standaard Commando's per Taal
+
+Alle commando's hebben synoniemen en zijn beschikbaar in 5 talen:
+
+```typescript
+// types/voiceCommands.ts
+interface VoiceCommand {
+  id: string;                     // 'next', 'previous', 'open', etc.
+  category: VoiceCommandCategory;
+  action: string;                 // Technische actie naam
+  defaultPatterns: Record<Language, string[]>;  // Per taal
+  customPatterns: string[];       // Door gebruiker toegevoegd
+  isEnabled: boolean;
+}
+
+// Voorbeeld: 'next' commando
+const nextCommand: VoiceCommand = {
+  id: 'next',
+  category: 'list',
+  action: 'focusNext',
+  defaultPatterns: {
+    nl: ['volgende', 'verder', 'door'],
+    en: ['next', 'forward'],
+    de: ['nächste', 'weiter'],
+    fr: ['suivant', 'prochain'],
+    es: ['siguiente', 'adelante'],
+  },
+  customPatterns: [],
+  isEnabled: true,
+};
+```
+
+#### 11.4 Voice Session Mode
+
+Na activatie van voice control blijft de sessie actief:
+
+**Activatie:**
+- Twee-vinger tap ergens op scherm
+- Of: tik op FloatingMicIndicator
+
+**Tijdens sessie:**
+- FloatingMicIndicator zichtbaar (zwevende microfoon)
+- Pulserende animatie tijdens luisteren
+- Automatische herstart na elk commando
+- 30s timeout → sessie stopt automatisch
+
+**Implementatie in ELKE module:**
+```typescript
+// Check of voice session actief is
+const { isVoiceSessionActive } = useVoiceFocusContext();
+
+// Registreer acties die via voice bereikbaar moeten zijn
+useVoiceAction('call', handleCall, { label: contactName });
+useVoiceAction('message', handleSendMessage, { label: t('chat.send') });
+```
+
+#### 11.5 Voice Focusable Lijsten (VERPLICHT voor lijsten >3 items)
+
+```typescript
+import { VoiceFocusable, useVoiceFocusList } from '@/contexts/VoiceFocusContext';
+
+function ContactListScreen() {
+  // Registreer lijst — alleen als scherm gefocust is
+  const isFocused = useIsFocused();
+
+  const voiceFocusItems = useMemo(() => {
+    if (!isFocused) return []; // Voorkom registratie op andere tabs
+    return contacts.map((contact, index) => ({
+      id: contact.jid,
+      label: contact.name,  // Menselijke naam voor voice matching
+      index,
+      onSelect: () => handleContactPress(contact),
+    }));
+  }, [contacts, isFocused]);
+
+  const { scrollRef } = useVoiceFocusList('contact-list', voiceFocusItems);
+
+  return (
+    <ScrollView ref={scrollRef}>
+      {contacts.map((contact, index) => (
+        <VoiceFocusable
+          key={contact.jid}
+          id={contact.jid}
+          label={contact.name}
+          index={index}
+          onSelect={() => handleContactPress(contact)}
+        >
+          <ContactListItem contact={contact} />
+        </VoiceFocusable>
+      ))}
+    </ScrollView>
+  );
+}
+```
+
+#### 11.6 Multi-Match Voice Navigation
+
+Bij meerdere matches op een naam (bijv. "maria" → "Oma Maria" + "Tante Maria"):
+
+**Gedrag:**
+1. Eerste/beste match krijgt focus
+2. Systeem kondigt aan: "Oma Maria, 2 resultaten. Zeg 'volgende' voor meer."
+3. "Volgende"/"Vorige" navigeert binnen matches (niet hele lijst)
+4. "Tante Maria, 2 van 2" → context bij elke navigatie
+
+**Filter reset bij:**
+- Nieuwe naam-zoekopdracht (ander woord)
+- Session stop
+- Geen matches gevonden
+
+**Implementatie (automatisch via VoiceFocusContext):**
+```typescript
+// focusByName() slaat matches automatisch op
+const matches = voiceFocus.focusByName('maria');
+// matches.length > 1 → activeNameFilter wordt gezet
+
+// focusNext()/focusPrevious() respecteren activeNameFilter
+// → navigeert binnen matches, niet hele lijst
+
+// Toegang tot huidige filter state:
+const { activeNameFilter, clearNameFilter } = useVoiceFocusContext();
+// activeNameFilter: { query: 'maria', matches: [...], currentIndex: 0 }
+```
+
+**Accessibility announcements (alle 5 talen):**
+- `voiceCommands.multipleMatches`: "{{name}}, {{count}} resultaten gevonden. Zeg 'volgende' voor meer."
+- `voiceCommands.focusedOnMatch`: "{{name}}, {{current}} van {{total}}"
+- `voiceCommands.endOfMatches`: "Terug naar eerste resultaat"
+
+#### 11.7 Voice Focus Styling
+
+- Gefocust item: 4px border in `accentColor.primary`
+- Subtiele achtergrond tint (accent color op 10% opacity)
+- Pulserende border animatie (accent ↔ wit, 600ms)
+- Scale 1.02x (respecteert reduced motion)
+
+#### 11.8 Formulier Voice Interactions
+
+ELKE formulier veld MOET voice dicteren ondersteunen:
+
+```typescript
+function VoiceTextField({
+  label,
+  value,
+  onChangeText,
+  voiceFieldId,  // Uniek ID voor voice targeting
+}: Props) {
+  const { isVoiceSessionActive, registerFormField } = useVoiceFormContext();
+
+  // Registreer veld voor voice targeting
+  useEffect(() => {
+    registerFormField(voiceFieldId, {
+      label,
+      onEdit: () => inputRef.current?.focus(),
+      onClear: () => onChangeText(''),
+      onDictate: (text) => onChangeText(text),
+    });
+  }, [voiceFieldId, label]);
+
+  return (
+    <View>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        ref={inputRef}
+        value={value}
+        onChangeText={onChangeText}
+        accessibilityLabel={label}
+        accessibilityHint={
+          isVoiceSessionActive
+            ? t('a11y.voiceFieldHint', 'Zeg "pas aan" om te bewerken')
+            : undefined
+        }
+      />
+    </View>
+  );
+}
+```
+
+#### 11.8 Bevestigingsdialogen
+
+Destructieve acties MOETEN voice-confirmeerbaar zijn:
+
+```typescript
+// Bij verwijderen, uitloggen, etc.
+showVoiceConfirmation({
+  title: t('confirm.delete.title'),
+  message: t('confirm.delete.message', { name: contactName }),
+  confirmLabel: t('common.delete'),     // "ja" of "verwijder" activeert
+  cancelLabel: t('common.cancel'),      // "nee" of "annuleer" activeert
+  onConfirm: handleDelete,
+  onCancel: closeDialog,
+});
+```
+
+#### 11.9 Voice Settings in Instellingen
+
+Gebruikers kunnen alle commando's bekijken en aanpassen:
+
+```
+Instellingen
+└── Spraakbesturing
+    ├── Spraakbesturing aan/uit
+    ├── Commando's aanpassen
+    │   ├── Navigatie (volgende, vorige, ...)
+    │   ├── Lijsten (open, selecteer, ...)
+    │   ├── Formulieren (pas aan, wis, ...)
+    │   └── Sessie (stop, help, ...)
+    ├── Standaard herstellen
+    └── Exporteren / Importeren
+```
+
+#### 11.10 Module Implementatie Checklist
+
+Bij het bouwen van ELKE nieuwe module, valideer:
+
+- [ ] **Lijsten >3 items:** VoiceFocusable wrappers aanwezig
+- [ ] **Formulieren:** Alle velden voice-dicteerbaar
+- [ ] **Acties:** Primaire acties voice-triggerable
+- [ ] **Bevestigingen:** Destructieve acties via voice bevestigbaar
+- [ ] **Labels:** Alle voice labels zijn menselijke namen (niet technische IDs)
+- [ ] **i18n:** Voice commands in alle 5 talen gedefinieerd
+- [ ] **Settings:** Nieuwe commands toegevoegd aan settings schema
+
+---
+
+### 12. Media Module Design Principles (Radio/Podcast/Audiobook)
+
+Bij het bouwen van media modules (Radio, Podcast, Luisterboek) MOETEN de volgende patterns worden toegepast:
+
+#### 12.1 Mini-Player + Expandable Modal Pattern
+
+**Probleem:** Full-screen players blokkeren navigatie — senioren kunnen niet wisselen tussen tabs terwijl muziek speelt.
+
+**Oplossing:**
+- Content lijst ALTIJD zichtbaar (niet geblokkeerd door player)
+- Mini-player bar aan onderkant (compact, niet blokkerend)
+- Tap op mini-player → expand naar full-screen modal
+- Modal kan altijd gesloten worden met IconButton (chevron-down)
+
+```typescript
+// Mini-player bar
+{isPlaying && (
+  <TouchableOpacity style={styles.miniPlayer} onPress={() => setIsExpanded(true)}>
+    <Image source={{ uri: artwork }} style={styles.miniArtwork} />
+    <Text style={styles.miniTitle}>{station.name}</Text>
+    <IconButton icon={isPlaying ? 'pause' : 'play'} onPress={handlePlayPause} />
+  </TouchableOpacity>
+)}
+
+// Expanded modal
+<Modal visible={isExpanded} animationType="slide">
+  <SafeAreaView style={styles.expandedPlayer}>
+    <IconButton icon="chevron-down" onPress={() => setIsExpanded(false)} />
+    {/* Full player controls */}
+  </SafeAreaView>
+</Modal>
+```
+
+#### 12.2 MediaIndicator in Module Headers
+
+Elke module MOET een MediaIndicator in de header hebben om cross-module media awareness te tonen:
+
+```typescript
+<View style={[styles.moduleHeader, { backgroundColor: MODULE_COLOR }]}>
+  <Icon name="radio" size={28} color={colors.textOnPrimary} />
+  <Text style={styles.moduleTitle}>{t('modules.radio.title')}</Text>
+  <MediaIndicator currentSource="radio" />
+</View>
+```
+
+De `currentSource` prop voorkomt dubbele indicator in de bron-module zelf.
+
+#### 12.3 Welcome Modal voor First-Time Users
+
+**VERPLICHT:** Elke nieuwe module MOET een welcome modal tonen bij eerste gebruik:
+
+```typescript
+// AsyncStorage key: {module}_welcome_shown
+useEffect(() => {
+  AsyncStorage.getItem('radio_welcome_shown').then((value) => {
+    if (!value) setShowWelcome(true);
+  });
+}, []);
+```
+
+Modal bevat genummerde stappen (1, 2, 3...) met duidelijke instructies en één "Begrepen" button.
+
+#### 12.4 Error Banners met TEXT Dismiss Button
+
+Playback errors MOETEN dismissable zijn met een TEKST button (niet icon-only):
+
+```typescript
+{playbackError && (
+  <View style={styles.errorBanner}>
+    <Icon name="warning" color={colors.error} />
+    <Text>{t('modules.radio.playbackErrorTitle')}</Text>
+    {/* TEKST button, niet alleen X icoon */}
+    <TouchableOpacity onPress={() => setPlaybackError(null)}>
+      <Text style={styles.errorDismissText}>{t('common.dismiss')}</Text>
+    </TouchableOpacity>
+  </View>
+)}
+```
+
+#### 12.5 Module-Specific Color Coding
+
+Elke module heeft een unieke kleur consistent met WheelNavigationMenu:
+
+| Module | Kleur | Hex |
+|--------|-------|-----|
+| Radio | Teal | `#00897B` |
+| Podcast | Paars | `#7B1FA2` |
+| Luisterboek | Amber | `#FF8F00` |
+| E-book | Indigo | `#303F9F` |
+
+#### 12.6 Media Module Implementatie Checklist
+
+Bij ELKE nieuwe media module:
+
+- [ ] Mini-player + expandable modal pattern
+- [ ] MediaIndicator in module header met correcte `currentSource`
+- [ ] Welcome modal voor first-time users (AsyncStorage)
+- [ ] Error banner met TEKST dismiss button
+- [ ] Module-specific color consistent met WheelNavigationMenu
+- [ ] Artwork validation via artworkService (geen broken images)
+- [ ] Buffering indicator met reduced motion support
+- [ ] Dynamic bottom padding voor mini-player floating element
+- [ ] VoiceFocusable wrappers voor content lijsten
+- [ ] Accessibility announcements voor playback state changes
+- [ ] iOS `audio` background mode in Info.plist
+
 ---
 
 ### Form Field Styling (MANDATORY)
@@ -360,6 +817,67 @@ sectionTitle: {
   marginBottom: spacing.sm,
   // NO textTransform: 'uppercase' — use normal capitalization
 },
+```
+
+## Logging Richtlijnen
+
+### Log Levels
+
+| Level | Wanneer gebruiken | Production |
+|-------|-------------------|------------|
+| `console.debug()` | Development details, state changes | Gefilterd |
+| `console.info()` | Belangrijke events, user actions | Zichtbaar |
+| `console.warn()` | Recoverable issues, fallbacks | Zichtbaar |
+| `console.error()` | Failures, onverwachte errors | Zichtbaar |
+
+### NOOIT Loggen (PII/Security)
+
+```typescript
+// ❌ NOOIT loggen:
+console.log('User:', user.name, user.phone);        // PII
+console.log('Search:', searchQuery);                 // Kan namen bevatten
+console.log('Key:', encryptionKey);                  // Security
+console.log('Token:', authToken);                    // Security
+console.log('Message:', message.content);            // Privacy
+console.error('Full error:', error);                 // Kan PII bevatten
+
+// ✅ WEL loggen:
+console.info('User logged in');                      // Event zonder PII
+console.info('Search completed', { count: 5 });      // Resultaat, geen query
+console.debug('Encryption completed', { ms: 45 });   // Performance metric
+console.error('Stream failed', { code: error.code }); // Alleen error code
+```
+
+### Performance Logging
+
+```typescript
+// Voor API calls en kritieke operaties
+const start = performance.now();
+await fetchData();
+console.debug('[Module] Operation completed', {
+  operation: 'fetchData',
+  duration: Math.round(performance.now() - start),
+  resultCount: data.length,
+});
+```
+
+### Module Prefix Convention
+
+```typescript
+// Consistent prefix format: [ModuleName]
+console.info('[RadioContext] Station started playing');
+console.warn('[RadioScreen] Using cached stations');
+console.error('[artworkService] Fetch failed', { code: 'TIMEOUT' });
+```
+
+### Logging in useEffect
+
+```typescript
+// Log bij mount/unmount voor debugging
+useEffect(() => {
+  console.debug('[Component] Mounted');
+  return () => console.debug('[Component] Unmounted');
+}, []);
 ```
 
 ## Build Order

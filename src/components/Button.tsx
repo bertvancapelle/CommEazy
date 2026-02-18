@@ -6,6 +6,7 @@
  * - Large text (18pt)
  * - High contrast
  * - Haptic feedback support
+ * - User-customizable accent color support
  */
 
 import React from 'react';
@@ -21,6 +22,7 @@ import {
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
 // Haptic feedback helper - senior-inclusive: provides tactile confirmation
 const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'medium') => {
@@ -61,22 +63,29 @@ export function Button({
   style,
   testID,
 }: ButtonProps) {
+  const { accentColor } = useAccentColor();
   const isDisabled = disabled || loading;
 
+  // Build button styles with accent color
   const buttonStyle: ViewStyle[] = [
     styles.base,
-    variant === 'primary' && styles.primary,
-    variant === 'secondary' && styles.secondary,
+    variant === 'primary' && { backgroundColor: accentColor.primary },
+    variant === 'secondary' && {
+      backgroundColor: colors.background,
+      borderWidth: 2,
+      borderColor: accentColor.primary,
+    },
     variant === 'text' && styles.text,
     isDisabled && styles.disabled,
     style as ViewStyle,
   ].filter(Boolean) as ViewStyle[];
 
+  // Build text styles with accent color
   const textStyle: TextStyle[] = [
     styles.label,
     variant === 'primary' && styles.labelPrimary,
-    variant === 'secondary' && styles.labelSecondary,
-    variant === 'text' && styles.labelText,
+    variant === 'secondary' && { color: accentColor.primary },
+    variant === 'text' && { color: accentColor.primary },
     isDisabled && styles.labelDisabled,
   ].filter(Boolean) as TextStyle[];
 
@@ -99,7 +108,7 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.textOnPrimary : colors.primary}
+          color={variant === 'primary' ? colors.textOnPrimary : accentColor.primary}
           size="small"
         />
       ) : (
@@ -118,14 +127,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primary: {
-    backgroundColor: colors.primary,
-  },
-  secondary: {
-    backgroundColor: colors.background,
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
   text: {
     backgroundColor: 'transparent',
   },
@@ -138,12 +139,6 @@ const styles = StyleSheet.create({
   },
   labelPrimary: {
     color: colors.textOnPrimary,
-  },
-  labelSecondary: {
-    color: colors.primary,
-  },
-  labelText: {
-    color: colors.primary,
   },
   labelDisabled: {
     color: colors.textTertiary,

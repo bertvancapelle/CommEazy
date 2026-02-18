@@ -23,7 +23,7 @@ import type { NavigationDestination } from '@/components/WheelNavigationMenu';
 export type MicIndicatorPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 // Session control action type
-export type SessionAction = 'stop' | 'next' | 'previous' | 'back' | 'select' | 'send';
+export type SessionAction = 'stop' | 'next' | 'previous' | 'back' | 'select' | 'send' | 'edit' | 'clear' | 'dictate' | 'confirm';
 
 // Voice command result
 export interface VoiceCommandResult {
@@ -167,6 +167,11 @@ const SESSION_COMMANDS: Record<string, Array<{ patterns: string[]; action: Sessi
     { patterns: ['terug', 'ga terug', 'naar terug'], action: 'back' },
     { patterns: ['open', 'kies', 'selecteer'], action: 'select' },
     { patterns: ['stuur', 'verzend', 'verstuur', 'stuur bericht', 'verzenden'], action: 'send' },
+    // Form interactions
+    { patterns: ['pas aan', 'wijzig', 'verander', 'bewerk'], action: 'edit' },
+    { patterns: ['wis', 'leeg', 'gooi weg'], action: 'clear' },
+    { patterns: ['dicteer', 'spreek in', 'typ'], action: 'dictate' },
+    { patterns: ['bevestig', 'opslaan'], action: 'confirm' },
   ],
   en: [
     { patterns: ['stop', 'done', 'finish', 'close', 'exit', 'stop recording', 'end'], action: 'stop' },
@@ -175,6 +180,11 @@ const SESSION_COMMANDS: Record<string, Array<{ patterns: string[]; action: Sessi
     { patterns: ['back', 'go back'], action: 'back' },
     { patterns: ['open', 'select', 'choose'], action: 'select' },
     { patterns: ['send', 'send message', 'submit'], action: 'send' },
+    // Form interactions
+    { patterns: ['edit', 'change', 'modify'], action: 'edit' },
+    { patterns: ['clear', 'delete', 'remove', 'empty'], action: 'clear' },
+    { patterns: ['dictate', 'speak', 'type'], action: 'dictate' },
+    { patterns: ['confirm', 'save'], action: 'confirm' },
   ],
   de: [
     { patterns: ['stopp', 'fertig', 'schließen', 'beenden', 'aufnahme stoppen', 'ende'], action: 'stop' },
@@ -183,6 +193,11 @@ const SESSION_COMMANDS: Record<string, Array<{ patterns: string[]; action: Sessi
     { patterns: ['zurück', 'geh zurück'], action: 'back' },
     { patterns: ['öffnen', 'wählen', 'auswählen'], action: 'select' },
     { patterns: ['senden', 'absenden', 'nachricht senden'], action: 'send' },
+    // Form interactions
+    { patterns: ['bearbeiten', 'ändern', 'anpassen'], action: 'edit' },
+    { patterns: ['löschen', 'leeren', 'entfernen'], action: 'clear' },
+    { patterns: ['diktieren', 'sprechen', 'tippen'], action: 'dictate' },
+    { patterns: ['bestätigen', 'speichern'], action: 'confirm' },
   ],
   fr: [
     { patterns: ['arrête', 'fini', 'fermer', 'terminer', 'arrêter', 'fin'], action: 'stop' },
@@ -191,6 +206,11 @@ const SESSION_COMMANDS: Record<string, Array<{ patterns: string[]; action: Sessi
     { patterns: ['retour', 'revenir'], action: 'back' },
     { patterns: ['ouvrir', 'choisir', 'sélectionner'], action: 'select' },
     { patterns: ['envoyer', 'envoie', 'envoyer message'], action: 'send' },
+    // Form interactions
+    { patterns: ['modifier', 'changer', 'éditer'], action: 'edit' },
+    { patterns: ['effacer', 'vider', 'supprimer'], action: 'clear' },
+    { patterns: ['dicter', 'parler', 'taper'], action: 'dictate' },
+    { patterns: ['confirmer', 'enregistrer'], action: 'confirm' },
   ],
   es: [
     { patterns: ['para', 'parar', 'terminar', 'cerrar', 'salir', 'detener', 'fin', 'listo'], action: 'stop' },
@@ -199,6 +219,11 @@ const SESSION_COMMANDS: Record<string, Array<{ patterns: string[]; action: Sessi
     { patterns: ['atrás', 'volver', 'regresar'], action: 'back' },
     { patterns: ['abrir', 'elegir', 'seleccionar'], action: 'select' },
     { patterns: ['enviar', 'envía', 'enviar mensaje'], action: 'send' },
+    // Form interactions
+    { patterns: ['editar', 'cambiar', 'modificar'], action: 'edit' },
+    { patterns: ['borrar', 'limpiar', 'vaciar'], action: 'clear' },
+    { patterns: ['dictar', 'hablar', 'escribir'], action: 'dictate' },
+    { patterns: ['confirmar', 'guardar'], action: 'confirm' },
   ],
 };
 

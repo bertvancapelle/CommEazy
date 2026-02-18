@@ -76,3 +76,6 @@ export const config = {
 } as const;
 
 export type AppConfig = typeof config;
+
+// Re-export dev config for easy access
+export * from './devConfig';

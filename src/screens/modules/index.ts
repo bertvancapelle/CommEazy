@@ -7,6 +7,8 @@
 
 export { CallsScreen } from './CallsScreen';
 export { VideoCallScreen } from './VideoCallScreen';
-export { EBookScreen } from './EBookScreen';
-export { AudioBookScreen } from './AudioBookScreen';
 export { PodcastScreen } from './PodcastScreen';
+export { RadioScreen } from './RadioScreen';
+export { BooksScreen } from './BooksScreen';
+export { BookReaderScreen } from './BookReaderScreen';
+export { BookPlayerScreen } from './BookPlayerScreen';

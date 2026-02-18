@@ -10,7 +10,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,13 @@ import {
   Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
-import { Button, PresenceIndicator, LoadingView } from '@/components';
+import { Button, PresenceIndicator, LoadingView, VoiceFocusable, Icon, MediaIndicator } from '@/components';
+import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import type { ChatStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
@@ -46,12 +48,33 @@ interface ChatListItem {
 
 type NavigationProp = NativeStackNavigationProp<ChatStackParams, 'ChatList'>;
 
+// Module color (consistent with WheelNavigationMenu - uses primary color)
+const CHATS_MODULE_COLOR = colors.primary;
+
 export function ChatListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Voice Focus: Register list items for voice navigation
+  const voiceFocusItems = useMemo(() => {
+    if (!isFocused) return []; // Only register when screen is focused
+    return chats.map((chat, index) => ({
+      id: chat.chatId,
+      label: chat.contactName, // Human-readable name for voice matching
+      index,
+      onSelect: () => handleChatPress(chat),
+    }));
+  }, [chats, isFocused]);
+
+  const { scrollRef, isFocused: isItemFocused, getFocusStyle } = useVoiceFocusList(
+    'chat-list',
+    voiceFocusItems
+  );
 
   // Load chats - delayed to ensure native modules are ready
   useEffect(() => {
@@ -268,62 +291,81 @@ export function ChatListScreen() {
   }, [t]);
 
   const renderChatItem = useCallback(
-    ({ item }: { item: ChatListItem }) => (
-      <TouchableOpacity
-        style={styles.chatItem}
-        onPress={() => handleChatPress(item)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={t('accessibility.messageFrom', {
-          name: item.contactName,
-          time: formatTime(item.lastMessageTime),
-        })}
-        accessibilityHint={t('chat.openConversation')}
-      >
-        {/* Large status indicator - senior-friendly, configurable colors */}
-        <View style={styles.presenceWrapper}>
-          <PresenceIndicator
-            show={item.presenceShow}
-            size={56}
-          />
-        </View>
+    ({ item, index }: { item: ChatListItem; index: number }): React.ReactElement => {
+      const focused = isItemFocused(item.chatId);
+      const focusStyle = focused ? getFocusStyle() : undefined;
 
-        {/* Content */}
-        <View style={styles.chatContent}>
-          <View style={styles.chatHeader}>
-            <Text
-              style={styles.contactName}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {item.contactName}
-            </Text>
-            <Text style={styles.timestamp}>{formatTime(item.lastMessageTime)}</Text>
-          </View>
+      return (
+        <VoiceFocusable
+          id={item.chatId}
+          label={item.contactName}
+          index={index}
+          onSelect={() => handleChatPress(item)}
+        >
+          <TouchableOpacity
+            style={[
+              styles.chatItem,
+              focused && {
+                borderColor: focusStyle?.borderColor,
+                borderWidth: focusStyle?.borderWidth,
+                backgroundColor: focusStyle?.backgroundColor,
+              },
+            ]}
+            onPress={() => handleChatPress(item)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('accessibility.messageFrom', {
+              name: item.contactName,
+              time: formatTime(item.lastMessageTime),
+            })}
+            accessibilityHint={t('chat.openConversation')}
+          >
+            {/* Large status indicator - senior-friendly, configurable colors */}
+            <View style={styles.presenceWrapper}>
+              <PresenceIndicator
+                show={item.presenceShow}
+                size={56}
+              />
+            </View>
 
-          {/* Show up to 2 lines of the last message */}
-          {item.lastMessage ? (
-            <Text
-              style={styles.lastMessage}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {item.lastMessage}
-            </Text>
-          ) : null}
-        </View>
+            {/* Content */}
+            <View style={styles.chatContent}>
+              <View style={styles.chatHeader}>
+                <Text
+                  style={styles.contactName}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {item.contactName}
+                </Text>
+                <Text style={styles.timestamp}>{formatTime(item.lastMessageTime)}</Text>
+              </View>
 
-        {/* Unread badge */}
-        {item.unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadCount}>
-              {item.unreadCount > 99 ? '99+' : item.unreadCount}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    ),
-    [handleChatPress, formatTime, t],
+              {/* Show up to 2 lines of the last message */}
+              {item.lastMessage ? (
+                <Text
+                  style={styles.lastMessage}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
+                  {item.lastMessage}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Unread badge */}
+            {item.unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadCount}>
+                  {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </VoiceFocusable>
+      );
+    },
+    [handleChatPress, formatTime, t, isItemFocused, getFocusStyle],
   );
 
   const keyExtractor = useCallback((item: ChatListItem) => item.chatId, []);
@@ -365,7 +407,20 @@ export function ChatListScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Module Header — consistent with navigation menu, centered */}
+      <View style={[styles.moduleHeader, { backgroundColor: CHATS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.moduleHeaderContent}>
+          <Icon name="chat" size={28} color={colors.textOnPrimary} />
+          <Text style={styles.moduleTitle}>{t('tabs.chats')}</Text>
+        </View>
+        {/* Media indicator — shows when audio/video is playing */}
+        <View style={styles.mediaIndicatorContainer}>
+          <MediaIndicator moduleColor={CHATS_MODULE_COLOR} />
+        </View>
+      </View>
+
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={chats.length === 0 ? styles.emptyListContent : undefined}
         refreshControl={
           <RefreshControl
@@ -380,9 +435,9 @@ export function ChatListScreen() {
         {chats.length === 0 ? (
           renderEmptyList()
         ) : (
-          chats.map((item) => (
+          chats.map((item, index) => (
             <View key={keyExtractor(item)}>
-              {renderChatItem({ item, index: 0, separators: {} as any })}
+              {renderChatItem({ item, index })}
             </View>
           ))
         )}
@@ -409,6 +464,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  moduleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  moduleHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moduleTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+  },
+  mediaIndicatorContainer: {
+    position: 'absolute',
+    right: spacing.md,
+    top: '50%',
+    transform: [{ translateY: 8 }], // Adjust for vertical centering with safe area
   },
   chatItem: {
     flexDirection: 'row',

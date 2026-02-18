@@ -42,6 +42,8 @@ import { ContactSelectionModal, ContactMatch as ModalContactMatch, ContactSelect
 import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
 import { useVoiceCommands, MicIndicatorPosition, VoiceCommandResult } from '@/hooks/useVoiceCommands';
 import { useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
+import { useVoiceFormContext } from '@/contexts/VoiceFormContext';
+import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { ServiceContainer } from '@/services/container';
 import type { Contact } from '@/services/interfaces';
 
@@ -253,9 +255,9 @@ function getTabNameForDestination(destination: NavigationDestination): string {
     case 'settings': return 'SettingsTab';
     case 'calls': return 'CallsTab';
     case 'videocall': return 'VideoCallTab';
-    case 'ebook': return 'EBookTab';
-    case 'audiobook': return 'AudioBookTab';
     case 'podcast': return 'PodcastTab';
+    case 'radio': return 'RadioTab';
+    case 'books': return 'BooksTab';
     case 'help': return 'HelpTab';
     default: return '';
   }
@@ -277,6 +279,7 @@ function getInitialRouteForTab(tabName: string): string {
     case 'EBookTab': return 'EBook';
     case 'AudioBookTab': return 'AudioBook';
     case 'PodcastTab': return 'Podcast';
+    case 'RadioTab': return 'Radio';
     default: return '';
   }
 }
@@ -373,6 +376,13 @@ export function HoldToNavigateWrapper({
 
   // Voice focus context for list navigation (volgende/vorige/open commands)
   const voiceFocus = useVoiceFocusContext();
+
+  // Voice form context for form field interactions (pas aan/wis/dicteer/bevestig commands)
+  const voiceForm = useVoiceFormContext();
+
+  // Hold gesture context for preventing double-action on long-press
+  // When a hold gesture completes, we mark it as consumed so child onPress handlers don't fire
+  const holdGesture = useHoldGestureContextSafe();
 
   // CRITICAL: Ref for voiceFocus.focusByName to avoid stale closures in async callbacks
   // The voiceFocus context updates when lists are registered, but callbacks may have stale references
@@ -621,6 +631,10 @@ export function HoldToNavigateWrapper({
         setIsTwoFingerPressing(false);
         isTwoFingerPressingRef.current = false;
 
+        // CRITICAL: Mark gesture as consumed BEFORE opening overlay
+        // This prevents underlying onPress handlers from firing when fingers are released
+        holdGesture?.consumeGesture();
+
         // Register callback BEFORE opening overlay to ensure it's ready for results
         // CRITICAL: Use refs instead of voiceCommands directly to avoid stale closures
         callbackRegisteredRef.current = true;
@@ -641,6 +655,7 @@ export function HoldToNavigateWrapper({
     voiceCommands.settings.enabled, // Only depend on the enabled setting, not the whole object
     triggerHaptic,
     settings.longPressDelay,
+    holdGesture,
   ]);
 
   const handleTouchStart = useCallback((event: GestureResponderEvent) => {
@@ -693,6 +708,9 @@ export function HoldToNavigateWrapper({
               triggerHaptic();
               setIsPressing(false);
               isPressingRef.current = false;
+              // CRITICAL: Mark gesture as consumed BEFORE opening menu
+              // This prevents underlying onPress handlers from firing when finger is released
+              holdGesture?.consumeGesture();
               openNavigationMenu();
             }
           }, settings.longPressDelay - twoFingerDetectionDelay); // Subtract delay already waited
@@ -718,6 +736,7 @@ export function HoldToNavigateWrapper({
     clearPressTimer,
     clearAllGestureState,
     startTwoFingerGesture,
+    holdGesture,
   ]);
 
   const handleTouchMove = useCallback((event: GestureResponderEvent) => {
@@ -840,14 +859,14 @@ export function HoldToNavigateWrapper({
         case 'videocall':
           navigation.navigate('VideoCallTab' as never);
           break;
-        case 'ebook':
-          navigation.navigate('EBookTab' as never);
-          break;
-        case 'audiobook':
-          navigation.navigate('AudioBookTab' as never);
-          break;
         case 'podcast':
           navigation.navigate('PodcastTab' as never);
+          break;
+        case 'radio':
+          navigation.navigate('RadioTab' as never);
+          break;
+        case 'books':
+          navigation.navigate('BooksTab' as never);
           break;
         case 'help':
           // TODO: Navigate to help screen when implemented
@@ -1214,6 +1233,50 @@ export function HoldToNavigateWrapper({
               restartVoiceSessionListening();
             }
             break;
+
+          // Form interaction commands (VoiceFormContext)
+          case 'edit':
+            // "pas aan [veldnaam]" - extract field name from raw text
+            // The raw text after removing the command pattern is the field name
+            console.log('[HoldToNavigate] Form edit command, rawText:', result.rawText);
+            // For now, just focus the active field. Future: parse field name from rawText
+            if (voiceForm.activeFieldId) {
+              const field = voiceForm.focusFieldByName(result.rawText);
+              if (field.length === 0) {
+                showVoiceFeedback('Geen veld gevonden');
+              }
+            } else {
+              showVoiceFeedback('Zeg "pas aan [veldnaam]"');
+            }
+            if (isVoiceSessionActive) {
+              restartVoiceSessionListening();
+            }
+            break;
+
+          case 'clear':
+            // "wis" - clear the active field
+            console.log('[HoldToNavigate] Form clear command');
+            voiceForm.clearActiveField();
+            if (isVoiceSessionActive) {
+              restartVoiceSessionListening();
+            }
+            break;
+
+          case 'dictate':
+            // "dicteer" - start dictation for active field
+            console.log('[HoldToNavigate] Form dictate command');
+            voiceForm.startDictation();
+            // Note: Don't restart listening - dictation takes over the mic
+            break;
+
+          case 'confirm':
+            // "bevestig" - submit the active form
+            console.log('[HoldToNavigate] Form confirm command');
+            voiceForm.submitForm();
+            if (isVoiceSessionActive) {
+              restartVoiceSessionListening();
+            }
+            break;
         }
         return;
       }
@@ -1389,6 +1452,7 @@ export function HoldToNavigateWrapper({
       stopVoiceSession,
       restartVoiceSessionListening,
       voiceFocus,
+      voiceForm,
       showVoiceFeedback,
       executeContactAction,
       // Note: contactSelectionVisible is NOT in dependencies because we use contactSelectionVisibleRef
@@ -1455,9 +1519,9 @@ export function HoldToNavigateWrapper({
       case 'SettingsTab': return 'settings';
       case 'CallsTab': return 'calls';
       case 'VideoCallTab': return 'videocall';
-      case 'EBookTab': return 'ebook';
-      case 'AudioBookTab': return 'audiobook';
       case 'PodcastTab': return 'podcast';
+      case 'RadioTab': return 'radio';
+      case 'BooksTab': return 'books';
       default: return undefined;
     }
   }, [currentRouteName]);

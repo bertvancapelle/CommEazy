@@ -21,6 +21,7 @@ import {
 } from './mockEncryption';
 import type { Contact, Message, DatabaseService, UserProfile } from '../interfaces';
 import uuid from 'react-native-uuid';
+import { USE_PLAINTEXT_MODE, logDevConfig } from '@/config/devConfig';
 
 // ============================================================
 // Dev Mode State
@@ -36,7 +37,7 @@ interface DevToolsState {
   plaintextMode: boolean; // Bypass encryption for 2-device testing
 }
 
-// Initialize devState - plaintextMode ALWAYS true in dev for testing
+// Initialize devState - plaintextMode is now controlled by devConfig.ts
 let devState: DevToolsState = {
   mockDataSeeded: false,
   simulateOffline: false,
@@ -44,11 +45,12 @@ let devState: DevToolsState = {
   showDevUI: true, // Always show in dev
   logXMPPMessages: false,
   logEncryption: false,
-  plaintextMode: true, // FORCE true - encryption doesn't work with Hermes
+  plaintextMode: USE_PLAINTEXT_MODE, // Controlled by devConfig.ts
 };
 
-// Log initial state
+// Log initial state and config
 console.log('[DevTools] Initial devState.plaintextMode:', devState.plaintextMode);
+logDevConfig();
 
 // ============================================================
 // Mock Data Seeding

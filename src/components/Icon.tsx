@@ -21,6 +21,9 @@ export type IconName =
   | 'backup'
   | 'device'
   | 'chevron-right'
+  | 'chevron-left'
+  | 'chevron-up'
+  | 'chevron-down'
   | 'camera'
   | 'check'
   | 'language'
@@ -28,7 +31,21 @@ export type IconName =
   | 'group'
   | 'chat'
   | 'call'
-  | 'info';
+  | 'info'
+  | 'mic'
+  | 'plus'
+  | 'heart'
+  | 'heart-filled'
+  | 'play'
+  | 'pause'
+  | 'stop'
+  | 'search'
+  | 'radio'
+  | 'podcast'
+  | 'time'
+  | 'list'
+  | 'x'
+  | 'warning';
 
 interface IconProps {
   name: IconName;
@@ -156,6 +173,57 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
         </Svg>
       );
 
+    case 'chevron-left':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M15 6L9 12L15 18"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'chevron-up':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M6 15L12 9L18 15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'chevron-down':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M6 9L12 15L18 9"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'plus':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 5V19M5 12H19"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
     case 'camera':
       return (
         <Svg {...iconProps}>
@@ -261,6 +329,211 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
           <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
           <Path
             d="M12 8V8.01M12 11V16"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'mic':
+      return (
+        <Svg {...iconProps}>
+          <Rect
+            x="9"
+            y="2"
+            width="6"
+            height="11"
+            rx="3"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Path
+            d="M5 10V11C5 14.866 8.13401 18 12 18C15.866 18 19 14.866 19 11V10"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M12 18V22M8 22H16"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'heart':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 21C12 21 4 14.5 4 9C4 6.5 6 4 8.5 4C10.5 4 12 5.5 12 5.5C12 5.5 13.5 4 15.5 4C18 4 20 6.5 20 9C20 14.5 12 21 12 21Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'heart-filled':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 21C12 21 4 14.5 4 9C4 6.5 6 4 8.5 4C10.5 4 12 5.5 12 5.5C12 5.5 13.5 4 15.5 4C18 4 20 6.5 20 9C20 14.5 12 21 12 21Z"
+            fill={color}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'play':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M6 4L20 12L6 20V4Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'pause':
+      return (
+        <Svg {...iconProps}>
+          <Rect x="6" y="4" width="4" height="16" rx="1" stroke={color} strokeWidth={sw} />
+          <Rect x="14" y="4" width="4" height="16" rx="1" stroke={color} strokeWidth={sw} />
+        </Svg>
+      );
+
+    case 'stop':
+      return (
+        <Svg {...iconProps}>
+          <Rect x="5" y="5" width="14" height="14" rx="2" stroke={color} strokeWidth={sw} />
+        </Svg>
+      );
+
+    case 'search':
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="11" cy="11" r="7" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M16 16L21 21"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'radio':
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="14" r="3" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M7 10C7 7.79086 8.79086 6 11 6H13C15.2091 6 17 7.79086 17 10V18C17 19.1046 16.1046 20 15 20H9C7.89543 20 7 19.1046 7 18V10Z"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Path
+            d="M10 6L16 3"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'podcast':
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M8.5 8.5C9.5 7.5 10.6 7 12 7C13.4 7 14.5 7.5 15.5 8.5"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M6 6C7.5 4.5 9.5 3.5 12 3.5C14.5 3.5 16.5 4.5 18 6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M12 15V20"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M9 20H15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'time':
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M12 6V12L16 14"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'list':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M8 6H21M8 12H21M8 18H21"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Circle cx="4" cy="6" r="1" fill={color} />
+          <Circle cx="4" cy="12" r="1" fill={color} />
+          <Circle cx="4" cy="18" r="1" fill={color} />
+        </Svg>
+      );
+
+    case 'x':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M6 6L18 18M6 18L18 6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'warning':
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 3L22 21H2L12 3Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M12 10V14M12 17V17.01"
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"

@@ -18,6 +18,7 @@ import {
   Pressable,
 } from 'react-native';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
 interface PinInputProps {
   length?: number;
@@ -42,6 +43,7 @@ export function PinInput({
   showAllDigits = false,
   autoFocus = false,
 }: PinInputProps) {
+  const { accentColor } = useAccentColor();
   const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
   // Track which digit was just entered (to show briefly before masking)
@@ -127,9 +129,9 @@ export function PinInput({
               key={index}
               style={[
                 styles.cell,
-                isFocused && isCurrentCell && styles.cellFocused,
+                isFocused && isCurrentCell && { borderColor: accentColor.primary },
                 error && styles.cellError,
-                isFilled && styles.cellFilled,
+                isFilled && { borderColor: accentColor.primary, backgroundColor: colors.backgroundSecondary },
               ]}
             >
               <Text style={[styles.cellText, error && styles.cellTextError]}>
@@ -175,15 +177,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.background,
   },
-  cellFocused: {
-    borderColor: colors.primary,
-  },
   cellError: {
     borderColor: colors.error,
-  },
-  cellFilled: {
-    borderColor: colors.primary,
-    backgroundColor: colors.backgroundSecondary,
   },
   cellText: {
     ...typography.h2,

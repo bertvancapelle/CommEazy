@@ -86,8 +86,11 @@ export class FCMNotificationService implements NotificationService {
       // Continue anyway - user can enable later in settings
     }
 
-    // Note: registerDeviceForRemoteMessages() is auto-enabled by default in firebase.json
-    // Only call it if auto-registration is disabled
+    // Note: We don't call registerDeviceForRemoteMessages() manually because:
+    // 1. Firebase auto-registers by default (firebase.json setting)
+    // 2. Manual registration requires valid aps-environment entitlement + provisioning
+    // 3. In development without proper provisioning, this causes errors
+    // The token will be available when the device is properly registered via auto-registration
 
     // Setup foreground message handler
     this.foregroundUnsubscribe = messaging().onMessage(async (message) => {
@@ -108,7 +111,8 @@ export class FCMNotificationService implements NotificationService {
       this.handleMessage(initialMessage);
     }
 
-    // Get the FCM token (for development)
+    // Get the FCM token (for development logging only)
+    // In dev mode without proper provisioning, this will fail silently
     try {
       const token = await this.getToken();
       if (__DEV__ && token) {
@@ -116,7 +120,13 @@ export class FCMNotificationService implements NotificationService {
         console.log('[FCM] Device token (truncated):', token.substring(0, 20) + '...');
       }
     } catch (error) {
-      console.warn('[FCM] Failed to get token:', error);
+      // In dev mode, token retrieval often fails due to missing provisioning
+      // This is expected and not an error - push notifications just won't work locally
+      if (__DEV__) {
+        console.debug('[FCM] Token not available in dev mode (expected without provisioning)');
+      } else {
+        console.warn('[FCM] Failed to get token:', error);
+      }
     }
 
     this.initialized = true;
@@ -162,15 +172,15 @@ export class FCMNotificationService implements NotificationService {
    * Get the FCM device token.
    * This token is used to send push notifications to this device.
    * Should be sent to Prosody for mod_cloud_notify.
+   *
+   * Note: In development without proper provisioning, this will throw.
+   * The caller should handle this gracefully.
    */
   async getToken(): Promise<string> {
-    try {
-      const token = await messaging().getToken();
-      return token;
-    } catch (error) {
-      console.error('[FCM] Failed to get token:', error);
-      throw error;
-    }
+    // Don't wrap in try/catch here - let caller handle the error
+    // This avoids double-logging errors
+    const token = await messaging().getToken();
+    return token;
   }
 
   /**

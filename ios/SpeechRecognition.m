@@ -6,7 +6,7 @@
  */
 
 #import "SpeechRecognition.h"
-#import <React/RCTLog.h>
+#import <React-Core/RCTLog.h>
 
 @implementation SpeechRecognition {
     SFSpeechRecognizer *_speechRecognizer;
@@ -231,10 +231,30 @@ RCT_EXPORT_METHOD(startListening:(NSString *)language) {
     _recognitionTask = [_speechRecognizer recognitionTaskWithRequest:_recognitionRequest resultHandler:^(SFSpeechRecognitionResult * _Nullable result, NSError * _Nullable error) {
 
         if (error) {
-            RCTLogError(@"[SpeechRecognition] Recognition error: %@", error.localizedDescription);
+            // Log ALL errors with their code for debugging
+            RCTLogInfo(@"[SpeechRecognition] Error received - code: %ld, domain: %@, description: %@",
+                      (long)error.code, error.domain, error.localizedDescription);
 
-            // Don't report "cancelled" errors as they're expected when stopping
-            if (error.code != 216 && error.code != 1110) {
+            // Check if this is a cancellation-type error
+            // These are expected when user closes the overlay or stops listening
+            NSString *errorDescription = error.localizedDescription.lowercaseString;
+            BOOL isCancellationError = (error.code == 201 ||
+                                        error.code == 216 ||
+                                        error.code == 301 ||
+                                        error.code == 1110 ||
+                                        [errorDescription containsString:@"cancel"]);
+
+            if (isCancellationError) {
+                RCTLogInfo(@"[SpeechRecognition] Recognition cancelled (expected): %ld", (long)error.code);
+                // Send cancellation error so JavaScript can process any partial results
+                if (self->_hasListeners) {
+                    [self sendEventWithName:@"onSpeechError" body:@{
+                        @"error": @"cancelled",
+                        @"code": [NSString stringWithFormat:@"%ld", (long)error.code]
+                    }];
+                }
+            } else {
+                RCTLogError(@"[SpeechRecognition] Recognition error: %@", error.localizedDescription);
                 if (self->_hasListeners) {
                     [self sendEventWithName:@"onSpeechError" body:@{
                         @"error": error.localizedDescription,

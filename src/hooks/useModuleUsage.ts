@@ -42,25 +42,27 @@ export const ALL_MODULES: NavigationDestination[] = [
   'groups',
   'calls',
   'videocall',
-  'ebook',
-  'audiobook',
   'podcast',
+  'radio',
+  'books',
   'settings',
   'help',
 ];
 
 // Default ordering when no usage data exists
+// Note: Menu shows 1 active module (top) + 4 other modules on first page
+// Radio is prioritized as a key media feature for seniors
 const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'chats',      // Most common use case
   'contacts',   // Second most common
-  'groups',     // Third most common
+  'radio',      // Radio - key media feature, visible on first page
   'calls',      // Phone calls
+  'groups',     // Groups
   'videocall',  // Video calls
+  'books',      // Books - e-books from Gutenberg with optional TTS
+  'podcast',    // Podcasts
   'settings',   // Settings
   'help',       // Help
-  'ebook',      // E-books
-  'audiobook',  // Audiobooks
-  'podcast',    // Podcasts
 ];
 
 export function useModuleUsage(): UseModuleUsageReturn {

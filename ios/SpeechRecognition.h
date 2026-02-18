@@ -12,8 +12,8 @@
  * @see src/hooks/useVoiceCommands.ts
  */
 
-#import <React/RCTBridgeModule.h>
-#import <React/RCTEventEmitter.h>
+#import <React-Core/RCTBridgeModule.h>
+#import <React-Core/RCTEventEmitter.h>
 #import <Speech/Speech.h>
 #import <AVFoundation/AVFoundation.h>
 

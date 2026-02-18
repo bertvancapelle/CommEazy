@@ -16,7 +16,7 @@
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import {
   Switch,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useIsFocused } from '@react-navigation/native';
 
 import {
   colors,
@@ -46,7 +47,8 @@ import {
 } from '@/hooks/useFeedback';
 import { useAccentColor, ACCENT_COLOR_KEYS } from '@/hooks/useAccentColor';
 import { useVoiceCommands } from '@/hooks/useVoiceCommands';
-import { Icon } from '@/components';
+import { Icon, VoiceToggle, VoiceStepper, VoiceFocusable } from '@/components';
+import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 
 // Stepper component for numeric values with +/- buttons
 interface StepperProps {
@@ -280,6 +282,7 @@ function AccentColorPicker({ value, onValueChange, onFeedback }: AccentColorPick
 
 export function AccessibilitySettingsScreen() {
   const { t } = useTranslation();
+  const isFocused = useIsFocused();
 
   // Hold-to-Navigate settings
   const {
@@ -463,8 +466,100 @@ export function AccessibilitySettingsScreen() {
     void triggerFeedback('tap');
   }, [triggerFeedback]);
 
+  // Voice focus items for voice navigation
+  const voiceFocusItems = useMemo(() => {
+    if (!isFocused) return [];
+
+    let index = 0;
+    const items = [
+      {
+        id: 'haptic-feedback',
+        label: t('accessibilitySettings.hapticFeedback'),
+        index: index++,
+        onSelect: () => handleHapticToggle(!isHapticEnabled),
+      },
+      {
+        id: 'audio-feedback',
+        label: t('accessibilitySettings.audioFeedback'),
+        index: index++,
+        onSelect: () => handleAudioToggle(!feedbackSettings.audioFeedbackEnabled),
+      },
+    ];
+
+    // Add audio boost if audio is enabled
+    if (feedbackSettings.audioFeedbackEnabled) {
+      items.push({
+        id: 'audio-boost',
+        label: t('accessibilitySettings.audioBoost'),
+        index: index++,
+        onSelect: () => handleAudioBoostToggle(!feedbackSettings.audioFeedbackBoost),
+      });
+    }
+
+    // Add voice commands toggle
+    items.push({
+      id: 'voice-commands',
+      label: t('voiceCommands.enabled'),
+      index: index++,
+      onSelect: () => handleVoiceToggle(!voiceSettings.enabled),
+    });
+
+    // Add hold-to-navigate steppers
+    items.push(
+      {
+        id: 'hold-delay',
+        label: t('settings.holdDelay'),
+        index: index++,
+        onSelect: () => {}, // Steppers handle their own +/- actions
+      },
+      {
+        id: 'edge-exclusion',
+        label: t('settings.edgeExclusion'),
+        index: index++,
+        onSelect: () => {},
+      },
+      {
+        id: 'wheel-blur',
+        label: t('settings.wheelBlur'),
+        index: index++,
+        onSelect: () => {},
+      },
+      {
+        id: 'wheel-dismiss',
+        label: t('settings.wheelDismissMargin'),
+        index: index++,
+        onSelect: () => {},
+      },
+      {
+        id: 'test-feedback',
+        label: t('accessibilitySettings.testFeedback'),
+        index: index++,
+        onSelect: () => void triggerFeedback('tap'),
+      }
+    );
+
+    return items;
+  }, [
+    isFocused,
+    t,
+    isHapticEnabled,
+    feedbackSettings.audioFeedbackEnabled,
+    feedbackSettings.audioFeedbackBoost,
+    voiceSettings.enabled,
+    handleHapticToggle,
+    handleAudioToggle,
+    handleAudioBoostToggle,
+    handleVoiceToggle,
+    triggerFeedback,
+  ]);
+
+  const { scrollRef, isFocused: isItemFocused, getFocusStyle } = useVoiceFocusList(
+    'accessibility-settings-list',
+    voiceFocusItems
+  );
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Feedback section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('accessibilitySettings.feedbackTitle')}</Text>

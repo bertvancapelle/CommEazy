@@ -208,6 +208,333 @@ setMessages(prev => [...prev, newMsg]); // Grows forever
 
 // ✅ Capped state
 setMessages(prev => [...prev, newMsg].slice(-1000));
+
+// ❌ TouchableOpacity without onLongPress (causes double-action with HoldToNavigate)
+<TouchableOpacity
+  onPress={() => handleItemPress(item)}
+  // PROBLEEM: onPress fires ook na long-press!
+>
+
+// ✅ TouchableOpacity with empty onLongPress (prevents double-action)
+<TouchableOpacity
+  onPress={() => handleItemPress(item)}
+  onLongPress={() => {
+    // Lege handler voorkomt dat onPress fired na long-press
+    // HoldToNavigateWrapper handelt de echte long-press actie af
+  }}
+  delayLongPress={300}  // Match HoldToNavigateWrapper timing
+>
+```
+
+## Double-Action Prevention (KRITIEK)
+
+React Native's `TouchableOpacity` heeft een onderdocumented gedrag:
+- **Zonder `onLongPress`:** `onPress` fired bij ELKE touch release, ongeacht duur
+- **Met `onLongPress`:** `onPress` fired NIET als de touch langer dan `delayLongPress` was
+
+Dit veroorzaakt problemen met HoldToNavigateWrapper waarbij een long-press ZOWEL het menu opent ALS de onderliggende actie triggert.
+
+**Oplossing — VERPLICHT voor alle tappable items in scrollable content:**
+```typescript
+<TouchableOpacity
+  onPress={() => handleAction()}
+  onLongPress={() => {}}  // Lege handler blokkeert onPress na long-press
+  delayLongPress={300}    // Match HoldGestureContext guard window
+>
+```
+
+**Waar dit patroon toepassen:**
+- Lijst items (contacten, stations, episodes, berichten)
+- Cards en klikbare rijen
+- Alle `TouchableOpacity` binnen HoldToNavigateWrapper scope
+
+**Extra beveiliging via HoldGestureContext:**
+```typescript
+import { useHoldGestureGuard } from '@/contexts/HoldGestureContext';
+
+// Wrap handler voor edge case protection
+const guardedPress = useHoldGestureGuard(() => handleItemPress(item));
+```
+
+## Type Consistency (VERPLICHT)
+
+### Centrale Type Definities
+Types die door meerdere componenten worden gebruikt MOETEN centraal gedefinieerd worden:
+
+```typescript
+// ❌ FOUT: Dubbele interface definities
+// In RadioScreen.tsx:
+interface RadioStation { stationuuid: string; url_resolved: string; }
+
+// In RadioContext.tsx:
+export interface RadioStation { id: string; streamUrl: string; }
+
+// ✅ GOED: Centrale definitie in src/types/
+// src/types/radio.ts
+export interface RadioStation {
+  id: string;
+  name: string;
+  streamUrl: string;
+  country: string;
+  countryCode: string;
+  favicon?: string;
+}
+
+// API response type (apart)
+export interface RadioBrowserStation {
+  stationuuid: string;
+  name: string;
+  url_resolved: string;
+  country: string;
+  countrycode: string;
+  favicon: string;
+}
+
+// Mapper functie (getest!)
+export function toRadioStation(api: RadioBrowserStation): RadioStation {
+  return {
+    id: api.stationuuid,
+    name: api.name,
+    streamUrl: api.url_resolved,
+    country: api.country,
+    countryCode: api.countrycode,
+    favicon: api.favicon || undefined,
+  };
+}
+```
+
+### Mapper Functies
+- Elke conversie tussen API types en app types MOET een aparte mapper functie hebben
+- Mapper functies MOETEN unit tests hebben
+- Geen inline object spreads met type assertions (`as RadioStation`)
+
+## Logging Richtlijnen
+
+### Logging Levels
+```typescript
+// ❌ FOUT: Overal console.log
+console.log('[RadioContext] TrackPlayer initialized');
+console.log('[RadioContext] Playing station:', station);
+
+// ✅ GOED: Correcte log levels
+console.debug('[RadioContext] TrackPlayer initialized'); // Development only
+console.info('[RadioContext] Playing station:', station.name); // Geen PII
+console.warn('[RadioContext] Artwork fetch failed, using fallback');
+console.error('[RadioContext] Stream connection failed:', error.code); // Geen full error
+```
+
+### NOOIT Loggen (PII/Security)
+- Gebruikersnamen, telefoonnummers
+- Zoektermen (kunnen namen bevatten)
+- Encryptie keys, tokens
+- Message content
+- Full error stack traces met user data
+
+### Timing Metrics (Performance Logging)
+```typescript
+// Voor API calls en kritieke operaties
+const start = performance.now();
+const stations = await fetchStations();
+console.debug('[RadioScreen] Stations loaded', {
+  duration: Math.round(performance.now() - start),
+  count: stations.length,
+});
+```
+
+## Voice Control Integration (VERPLICHT)
+
+Alle schermen met lijsten moeten Voice Session Mode ondersteunen via VoiceFocusContext.
+
+### VoiceFocusContext Integratie
+
+```typescript
+import { VoiceFocusProvider, VoiceFocusable, useVoiceFocusList } from '@/context/VoiceFocusContext';
+
+// In lijst-scherm:
+function MyListScreen() {
+  const { scrollRef } = useVoiceFocusList(
+    'my-list-id',
+    items.map((item, index) => ({
+      id: item.id,
+      label: item.displayName,  // Gesproken naam voor matching
+      index,
+      onSelect: () => handleSelect(item),
+    }))
+  );
+
+  return (
+    <ScrollView ref={scrollRef}>
+      {items.map((item, index) => (
+        <VoiceFocusable
+          key={item.id}
+          id={item.id}
+          label={item.displayName}
+          index={index}
+          onSelect={() => handleSelect(item)}
+        >
+          <MyListItem item={item} />
+        </VoiceFocusable>
+      ))}
+    </ScrollView>
+  );
+}
+```
+
+### Re-registratie bij Filter/Search
+
+```typescript
+// Bij filter change moet de lijst opnieuw geregistreerd worden
+useEffect(() => {
+  registerList('contacts', filteredContacts.map((c, i) => ({
+    id: c.jid,
+    label: c.name,
+    index: i,
+    onSelect: () => handlePress(c),
+  })));
+}, [filteredContacts, registerList]);
+```
+
+### Performance: Lazy Registration
+
+```typescript
+// Registreer alleen als Voice Session actief is
+const { isVoiceSessionActive } = useVoiceSessionStatus();
+
+useEffect(() => {
+  if (isVoiceSessionActive && items.length > 0) {
+    registerList('my-list', /* ... */);
+    return () => unregisterList('my-list');
+  }
+}, [isVoiceSessionActive, items]);
+```
+
+### ActiveNameFilter Pattern (Multi-Match Navigation)
+
+Wanneer een naam meerdere items matcht (bijv. "maria" → "Oma Maria" + "Tante Maria"),
+moet "volgende"/"vorige" binnen die matches navigeren, niet door de hele lijst.
+
+```typescript
+/** State for tracking multiple matches */
+interface ActiveNameFilter {
+  query: string;              // De zoekopdracht (bijv. "maria")
+  matches: FuzzyMatchResult[]; // Alle gevonden matches
+  currentIndex: number;        // Huidige positie in matches (0-based)
+}
+
+// In VoiceFocusContext:
+const [activeNameFilter, setActiveNameFilter] = useState<ActiveNameFilter | null>(null);
+
+// In focusByName() - wanneer meerdere matches gevonden:
+if (matches.length > 1) {
+  setActiveNameFilter({
+    query: name,
+    matches,
+    currentIndex: 0,
+  });
+}
+
+// In focusNext() - check eerst of er een actieve filter is:
+if (activeNameFilter && activeNameFilter.matches.length > 1) {
+  const nextIndex = (activeNameFilter.currentIndex + 1) % activeNameFilter.matches.length;
+  setActiveNameFilter({ ...activeNameFilter, currentIndex: nextIndex });
+  setFocusedItem(activeList.id, activeNameFilter.matches[nextIndex].item.id);
+  return; // Don't navigate through entire list
+}
+```
+
+### Word-Level Fuzzy Matching
+
+Voice matching moet werken op woord-niveau om natuurlijk taalgebruik te ondersteunen:
+
+```typescript
+function similarityScore(query: string, label: string): number {
+  const queryLower = query.toLowerCase().trim();
+  const labelLower = label.toLowerCase().trim();
+
+  // Exact match
+  if (queryLower === labelLower) return 1.0;
+
+  // Prefix match
+  if (labelLower.startsWith(queryLower) || queryLower.startsWith(labelLower)) {
+    return 0.9;
+  }
+
+  // Word-level matching (NIEUW!)
+  // "maria" moet "Tante Maria" matchen
+  const words = labelLower.split(/\s+/);
+  for (const word of words) {
+    if (word === queryLower) return 0.88;  // Exact word match
+    if (word.startsWith(queryLower) && queryLower.length >= 2) return 0.85;  // Word prefix
+  }
+
+  // Word-level Levenshtein voor typos
+  // "meria" moet "maria" in "Tante Maria" matchen
+  for (const word of words) {
+    if (word.length >= 3) {
+      const wordScore = 1 - levenshteinDistance(queryLower, word) / Math.max(queryLower.length, word.length);
+      if (wordScore >= 0.75) return Math.min(0.85, wordScore);
+    }
+  }
+
+  // Full string Levenshtein fallback
+  return 1 - levenshteinDistance(queryLower, labelLower) / Math.max(queryLower.length, labelLower.length);
+}
+```
+
+### DeviceEventEmitter Pattern (Voice→Screen Communication)
+
+Voor voice commands die specifieke scherm-acties triggeren (bijv. "stuur" in ChatScreen):
+
+```typescript
+// In HoldToNavigateWrapper (voice command handler):
+case 'send':
+  // Emit event voor actieve scherm
+  DeviceEventEmitter.emit('voiceCommand:send');
+  break;
+
+// In ChatScreen (consumer):
+useEffect(() => {
+  const subscription = DeviceEventEmitter.addListener('voiceCommand:send', () => {
+    if (inputText.trim()) {
+      handleSend();
+    } else {
+      AccessibilityInfo.announceForAccessibility(t('chat.nothingToSend'));
+    }
+  });
+
+  return () => subscription.remove();
+}, [handleSend, inputText, t]);
+```
+
+**Convention:**
+- Event naam: `voiceCommand:{action}` (bijv. `voiceCommand:send`, `voiceCommand:delete`)
+- Consumer verantwoordelijk voor validatie (bijv. is er tekst om te sturen?)
+- Altijd cleanup in useEffect return
+
+### Voice Feedback Toast Pattern
+
+Toon tijdelijke feedback wanneer een voice command niet herkend wordt:
+
+```typescript
+// State
+const [voiceFeedbackMessage, setVoiceFeedbackMessage] = useState<string | null>(null);
+const voiceFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+// Show feedback with auto-hide
+const showVoiceFeedback = useCallback((message: string) => {
+  if (voiceFeedbackTimerRef.current) {
+    clearTimeout(voiceFeedbackTimerRef.current);
+  }
+  setVoiceFeedbackMessage(message);
+  voiceFeedbackTimerRef.current = setTimeout(() => {
+    setVoiceFeedbackMessage(null);
+  }, 2500); // Auto-hide after 2.5 seconds
+}, []);
+
+// Usage
+if (matches.length === 0) {
+  showVoiceFeedback(`"${rawText}" niet herkend`);
+}
 ```
 
 ## Quality Checklist
@@ -224,6 +551,289 @@ setMessages(prev => [...prev, newMsg].slice(-1000));
 - [ ] Platform-specific code isolated in .ios.ts/.android.ts
 - [ ] Hermes enabled both platforms
 - [ ] Bundle size within targets
+- [ ] Voice Control: lijsten met >3 items hebben VoiceFocusable wrappers
+- [ ] Voice Control: labels zijn menselijke namen (niet technische IDs)
+- [ ] Voice Control: re-registratie bij filter/search changes
+- [ ] Voice Control: ActiveNameFilter pattern voor multi-match navigatie
+- [ ] Voice Control: Word-level fuzzy matching ("maria" → "Tante Maria")
+- [ ] Voice Control: DeviceEventEmitter voor screen-specifieke acties
+- [ ] Voice Control: Voice feedback toast voor niet-herkende commands
+- [ ] Media modules: MediaIndicator in module header met correcte `currentSource`
+- [ ] Media modules: Welcome modal voor first-time users (AsyncStorage)
+- [ ] Media modules: Artwork validation via artworkService
+- [ ] Media modules: Buffering animatie respecteert `useReducedMotion()`
+- [ ] Media modules: Error banner met TEKST dismiss button (niet icon-only)
+
+## Lessons Learned — Radio Module (februari 2026)
+
+### 1. iOS Background Audio Vereist `audio` Background Mode
+
+**Probleem:** Audio streams faalden met `SwiftAudioEx.AudioPlayerError.PlaybackError error 1`
+
+**Oorzaak:** Info.plist miste `audio` in UIBackgroundModes
+
+**Oplossing:**
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>audio</string>
+  <!-- andere modes -->
+</array>
+```
+
+**Regel:** ALTIJD `audio` background mode toevoegen bij audio/media modules.
+
+### 2. Mini-Player + Expandable Modal Pattern
+
+**Probleem:** Full-screen player blokkeerde navigatie — gebruikers konden niet wisselen tussen tabs terwijl muziek speelde.
+
+**Oplossing:** Mini-player pattern:
+1. **Mini-player bar** onderaan scherm (altijd zichtbaar tijdens playback)
+2. **Station list blijft zichtbaar** en navigeerbaar
+3. **Tap mini-player → expand** naar full-screen modal
+4. **Full-screen modal** met alle controls + close button
+
+```typescript
+// Mini-player state
+const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+
+// Mini-player tappable
+<TouchableOpacity
+  onPress={() => setIsPlayerExpanded(true)}
+  accessibilityHint={t('modules.radio.expandPlayerHint')}
+>
+  {/* Station info + controls */}
+</TouchableOpacity>
+
+// Expanded modal
+<Modal visible={isPlayerExpanded} animationType="slide">
+  {/* Full player with close button */}
+</Modal>
+```
+
+### 3. DeviceEventEmitter voor Cross-Context Error Handling
+
+**Probleem:** Playback errors in RadioContext moesten UI updates triggeren in RadioScreen.
+
+**Oplossing:** DeviceEventEmitter pattern:
+```typescript
+// In Context (emitter):
+TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
+  DeviceEventEmitter.emit('radioPlaybackError', error);
+});
+
+// In Screen (listener):
+useEffect(() => {
+  const subscription = DeviceEventEmitter.addListener(
+    'radioPlaybackError',
+    (error) => {
+      setPlaybackError(true);
+      triggerFeedback('error');
+      AccessibilityInfo.announceForAccessibility(t('...'));
+    }
+  );
+  return () => subscription.remove();
+}, []);
+```
+
+### 4. ScrollView Bottom Padding voor Floating Elements
+
+**Probleem:** Laatste items in lijst werden verborgen achter mini-player.
+
+**Oplossing:** Dynamische bottom padding gebaseerd op player visibility:
+```typescript
+<ScrollView
+  contentContainerStyle={[
+    styles.stationListContent,
+    contextStation && { paddingBottom: MINI_PLAYER_HEIGHT + spacing.md }
+  ]}
+>
+```
+
+### 5. External API Error Handling met Timeout
+
+**Probleem:** Radio Browser API kon traag of onbereikbaar zijn.
+
+**Oplossing:** AbortController met timeout:
+```typescript
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('timeout');
+    }
+    throw error;
+  }
+}
+```
+
+### 6. Stream URL Resolution (url_resolved)
+
+**Probleem:** Radio Browser API geeft soms redirect URLs.
+
+**Oplossing:** Gebruik `url_resolved` als primaire bron, fallback naar `url`:
+```typescript
+streamUrl: station.url_resolved || station.url
+```
+
+### 7. MediaIndicator Component Pattern
+
+**Probleem:** Wanneer gebruiker media afspeelt (radio/podcast/gesprek) en naar andere module navigeert, moet er een visuele indicatie zijn — maar een grote banner bovenaan alle schermen was storend.
+
+**Oplossing:** MediaIndicator component in module headers:
+1. Klein geanimeerd icoon (16×16pt) in de module header
+2. Checkt actieve media via contexts
+3. Verbergt zichzelf als `currentSource` prop matcht (voorkomt dubbele indicator in bron-module)
+4. Pulserende animatie die reduced motion respecteert
+5. Tappable: navigeert naar bron-module
+
+**Implementatie:**
+```typescript
+// In module screen header
+<View style={styles.moduleHeader}>
+  <Icon name="radio" size={28} color={colors.textOnPrimary} />
+  <Text style={styles.moduleTitle}>{t('modules.radio.title')}</Text>
+  {/* MediaIndicator — verbergt zichzelf als bron == currentSource */}
+  <MediaIndicator currentSource="radio" />
+</View>
+```
+
+**Component locatie:** `src/components/MediaIndicator.tsx`
+
+**Pulserende animatie met reduced motion support:**
+```typescript
+useEffect(() => {
+  if (!isActive || reduceMotion) return;
+
+  const animation = Animated.loop(
+    Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 1.2, duration: 600, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1.0, duration: 600, useNativeDriver: true }),
+    ])
+  );
+  animation.start();
+  return () => animation.stop();
+}, [isActive, reduceMotion]);
+```
+
+**Regel:** Elke nieuwe media-producerende module MOET:
+1. Een context implementeren met `isPlaying` state
+2. MediaIndicator toevoegen aan module header met correcte `currentSource`
+
+### 8. Artwork Service Pattern
+
+**Probleem:** Radio stations hebben vaak broken of ontbrekende artwork URLs.
+
+**Oplossing:** Centraal artwork service met caching en fallback:
+- Fetch artwork URL
+- Validate response (is het een afbeelding?)
+- Cache resultaat (positief en negatief)
+- Fallback naar placeholder bij fout
+
+**Implementatie:**
+```typescript
+// src/services/artworkService.ts
+const artworkCache = new Map<string, string | null>();
+
+export async function getValidArtworkUrl(
+  url: string | undefined,
+  fallbackUrl: string = DEFAULT_RADIO_ARTWORK
+): Promise<string> {
+  if (!url) return fallbackUrl;
+
+  // Check cache
+  if (artworkCache.has(url)) {
+    return artworkCache.get(url) || fallbackUrl;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
+      artworkCache.set(url, url);
+      return url;
+    }
+  } catch {
+    // Network error or timeout
+  }
+
+  artworkCache.set(url, null); // Cache negative result
+  return fallbackUrl;
+}
+```
+
+**Regel:** NOOIT artwork URLs direct gebruiken zonder validatie.
+
+### 9. Welcome Modal Pattern voor First-Time Users
+
+**Probleem:** Nieuwe modules vereisen uitleg voor first-time users.
+
+**Oplossing:** AsyncStorage-based welcome modal:
+```typescript
+// State
+const [showWelcome, setShowWelcome] = useState(false);
+
+// Check bij mount
+useEffect(() => {
+  AsyncStorage.getItem('radio_welcome_shown').then((value) => {
+    if (!value) setShowWelcome(true);
+  });
+}, []);
+
+// Dismiss en opslaan
+const handleDismissWelcome = async () => {
+  await AsyncStorage.setItem('radio_welcome_shown', 'true');
+  setShowWelcome(false);
+};
+```
+
+**Storage key convention:** `{module}_welcome_shown` (bijv. `radio_welcome_shown`, `podcast_welcome_shown`)
+
+**Regel:** ELKE nieuwe module MOET een welcome modal implementeren.
+
+### 10. Buffering Animation met Reduced Motion Support
+
+**Probleem:** Pulserende animaties voor buffering states kunnen storend zijn voor gebruikers met vestibulaire stoornissen.
+
+**Oplossing:** Check `useReducedMotion()` hook:
+```typescript
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
+function BufferingIndicator() {
+  const reduceMotion = useReducedMotion();
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (reduceMotion) return; // Skip animatie
+
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.7, duration: 500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.0, duration: 500, useNativeDriver: true }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [reduceMotion]);
+
+  return (
+    <Animated.View style={{ opacity: reduceMotion ? 1 : pulseAnim }}>
+      <ActivityIndicator />
+    </Animated.View>
+  );
+}
+```
+
+**Regel:** ALLE looping animaties MOETEN `useReducedMotion()` respecteren.
 
 ## Collaboration
 

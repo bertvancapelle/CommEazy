@@ -10,13 +10,29 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing } from '@/theme';
+import { Icon, MediaIndicator } from '@/components';
+
+// Module color (consistent with WheelNavigationMenu)
+const EBOOK_MODULE_COLOR = '#F57C00';
 
 export function EBookScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.xl }]}>
+    <View style={styles.container}>
+      {/* Module Header — consistent with navigation menu, centered */}
+      <View style={[styles.moduleHeader, { backgroundColor: EBOOK_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.moduleHeaderContent}>
+          <Icon name="book" size={28} color={colors.textOnPrimary} />
+          <Text style={styles.moduleTitle}>{t('navigation.ebook')}</Text>
+        </View>
+        <View style={styles.mediaIndicatorContainer}>
+          <MediaIndicator moduleColor={EBOOK_MODULE_COLOR} />
+        </View>
+      </View>
+
+      <View style={styles.content}>
       <View style={styles.iconContainer}>
         {/* Book icon */}
         <View style={styles.bookLeft} />
@@ -32,6 +48,7 @@ export function EBookScreen() {
         <Text style={styles.featureItem}>• {t('modules.ebook.feature2')}</Text>
         <Text style={styles.featureItem}>• {t('modules.ebook.feature3')}</Text>
       </View>
+      </View>
     </View>
   );
 }
@@ -40,8 +57,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  moduleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  moduleHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moduleTitle: {
+    ...typography.h2,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
+  },
+  mediaIndicatorContainer: {
+    position: 'absolute',
+    right: spacing.md,
+    top: '50%',
+    transform: [{ translateY: 8 }],
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   iconContainer: {
     width: 120,

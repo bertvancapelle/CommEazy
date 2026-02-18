@@ -24,9 +24,33 @@ Deze matrix definieert **welke skills** moeten valideren voor **elk type wijzigi
 | Formulierveld toevoegen | ui-designer, accessibility-specialist | security-expert (als PII) |
 | Button/interactief element | ui-designer, accessibility-specialist | - |
 | Navigatie wijziging | architecture-lead, ui-designer | - |
+| Wheel Navigation Menu wijziging | ui-designer, accessibility-specialist | architecture-lead |
 | Animatie toevoegen | ui-designer, accessibility-specialist, performance-optimizer | - |
 | Error state ontwerp | ui-designer, accessibility-specialist | - |
 | Loading state | ui-designer, accessibility-specialist | - |
+| Lijst/grid met >3 items | ui-designer, accessibility-specialist, react-native-expert | - |
+
+### Voice Interactions (KERNFUNCTIE)
+
+Voice control is een **kernfunctie** van CommEazy, niet optioneel. ELKE module MOET voice interactions ondersteunen.
+
+| Wijzigingstype | Verplichte Skills | Optionele Skills |
+|----------------|-------------------|------------------|
+| **Lijsten met voice** | ui-designer, accessibility-specialist, react-native-expert | - |
+| Voice command toevoegen | accessibility-specialist, react-native-expert, ui-designer | ios-specialist, android-specialist |
+| Voice Session Mode UI | ui-designer, accessibility-specialist | - |
+| **Formulier met voice** | ui-designer, accessibility-specialist, react-native-expert | - |
+| Voice dictation | ios-specialist, android-specialist, accessibility-specialist | - |
+| Voice confirmation dialog | ui-designer, accessibility-specialist | - |
+| Speech recognition native | ios-specialist, android-specialist, accessibility-specialist | security-expert |
+| Voice settings schema | architecture-lead, ui-designer | - |
+| **Nieuw scherm/module** | ui-designer, accessibility-specialist, react-native-expert | (Voice interaction check verplicht) |
+
+**BELANGRIJK:** Bij ELKE nieuwe module of scherm moet de Voice Interaction Checklist worden doorlopen:
+- Lijsten >3 items: VoiceFocusable wrappers
+- Formulieren: Voice dictation ondersteuning
+- Primaire acties: Voice triggerable
+- Destructieve acties: Voice confirmation
 
 ### Internationalisatie (i18n)
 

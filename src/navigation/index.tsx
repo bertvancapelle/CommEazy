@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, typography } from '@/theme';
 import { HoldToNavigateWrapper } from '@/components/HoldToNavigateWrapper';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
 // Placeholder screens — replace with actual implementations
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
@@ -61,16 +62,30 @@ import {
 import {
   SettingsMainScreen,
   ProfileSettingsScreen,
+  AccessibilitySettingsScreen,
+  VoiceSettingsScreen,
 } from '@/screens/settings';
+
+// Dev screens
+import { PiperTtsTestScreen } from '@/screens/dev/PiperTtsTestScreen';
 
 // Module screens (placeholder for testing wheel navigation)
 import {
   CallsScreen,
   VideoCallScreen,
-  EBookScreen,
-  AudioBookScreen,
   PodcastScreen,
+  RadioScreen,
+  BooksScreen,
+  BookReaderScreen,
+  BookPlayerScreen,
 } from '@/screens/modules';
+
+// Group screens
+import {
+  GroupListScreen,
+  GroupDetailScreen,
+  CreateGroupScreen,
+} from '@/screens/group';
 
 // ============================================================
 // Type Definitions
@@ -115,9 +130,12 @@ export type SettingsStackParams = {
   SettingsMain: undefined;
   LanguageSettings: undefined;
   ProfileSettings: undefined;
+  AccessibilitySettings: undefined;
+  VoiceSettings: undefined;
   BackupSettings: undefined;
   DeviceTransfer: undefined;
   DeviceLinkShowQR: undefined;
+  PiperTtsTest: undefined;  // DEV: Test screen for Piper TTS
 };
 
 export type MainTabParams = {
@@ -127,9 +145,11 @@ export type MainTabParams = {
   SettingsTab: undefined;
   CallsTab: undefined;
   VideoCallTab: undefined;
-  EBookTab: undefined;
-  AudioBookTab: undefined;
   PodcastTab: undefined;
+  RadioTab: undefined;
+  BooksTab: undefined;
+  BookReader: undefined;
+  BookPlayer: undefined;
 };
 
 export type RootStackParams = {
@@ -154,13 +174,15 @@ const MainTab = createBottomTabNavigator<MainTabParams>();
 // ============================================================
 
 function OnboardingNavigator() {
+  const { accentColor } = useAccentColor();
+
   return (
     <OnboardingStack.Navigator
       initialRouteName="LanguageSelect"
       screenOptions={{
         headerShown: true,
         headerBackTitleVisible: false,
-        headerTintColor: colors.primary,
+        headerTintColor: accentColor.primary,
         headerTitleStyle: {
           ...typography.bodyBold,
           color: colors.textPrimary,
@@ -228,13 +250,14 @@ function OnboardingNavigator() {
 
 function ChatsNavigator() {
   const { t } = useTranslation();
+  const { accentColor } = useAccentColor();
 
   return (
     <ChatStack.Navigator
       screenOptions={{
         headerTitleStyle: typography.h3,
         headerBackTitleVisible: false,
-        headerTintColor: colors.primary,
+        headerTintColor: accentColor.primary,
         headerStyle: {
           backgroundColor: colors.background,
         },
@@ -243,7 +266,7 @@ function ChatsNavigator() {
       <ChatStack.Screen
         name="ChatList"
         component={ChatListScreen}
-        options={{ title: t('tabs.chats') }}
+        options={{ headerShown: false }}
       />
       <ChatStack.Screen
         name="ChatDetail"
@@ -258,13 +281,14 @@ function ChatsNavigator() {
 
 function ContactsNavigator() {
   const { t } = useTranslation();
+  const { accentColor } = useAccentColor();
 
   return (
     <ContactStack.Navigator
       screenOptions={{
         headerTitleStyle: typography.h3,
         headerBackTitleVisible: false,
-        headerTintColor: colors.primary,
+        headerTintColor: accentColor.primary,
         headerStyle: {
           backgroundColor: colors.background,
         },
@@ -273,7 +297,7 @@ function ContactsNavigator() {
       <ContactStack.Screen
         name="ContactList"
         component={ContactListScreen}
-        options={{ title: t('tabs.contacts') }}
+        options={{ headerShown: false }}
       />
       <ContactStack.Screen
         name="ContactDetail"
@@ -297,24 +321,49 @@ function ContactsNavigator() {
 }
 
 function GroupsNavigator() {
+  const { t } = useTranslation();
+  const { accentColor } = useAccentColor();
+
   return (
-    <GroupStack.Navigator>
-      <GroupStack.Screen name="GroupList" component={PlaceholderScreen} />
-      <GroupStack.Screen name="GroupDetail" component={PlaceholderScreen} />
-      <GroupStack.Screen name="CreateGroup" component={PlaceholderScreen} />
+    <GroupStack.Navigator
+      screenOptions={{
+        headerTitleStyle: typography.h3,
+        headerBackTitleVisible: false,
+        headerTintColor: accentColor.primary,
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <GroupStack.Screen
+        name="GroupList"
+        component={GroupListScreen}
+        options={{ headerShown: false }}
+      />
+      <GroupStack.Screen
+        name="GroupDetail"
+        component={GroupDetailScreen}
+        options={({ route }) => ({ title: route.params.name })}
+      />
+      <GroupStack.Screen
+        name="CreateGroup"
+        component={CreateGroupScreen}
+        options={{ title: t('group.create') }}
+      />
     </GroupStack.Navigator>
   );
 }
 
 function SettingsNavigator() {
   const { t } = useTranslation();
+  const { accentColor } = useAccentColor();
 
   return (
     <SettingsStack.Navigator
       screenOptions={{
         headerTitleStyle: typography.h3,
         headerBackTitleVisible: false,
-        headerTintColor: colors.primary,
+        headerTintColor: accentColor.primary,
         headerStyle: {
           backgroundColor: colors.background,
         },
@@ -323,12 +372,22 @@ function SettingsNavigator() {
       <SettingsStack.Screen
         name="SettingsMain"
         component={SettingsMainScreen}
-        options={{ title: t('tabs.settings') }}
+        options={{ headerShown: false }}
       />
       <SettingsStack.Screen
         name="ProfileSettings"
         component={ProfileSettingsScreen}
         options={{ title: t('profile.changePhoto') }}
+      />
+      <SettingsStack.Screen
+        name="AccessibilitySettings"
+        component={AccessibilitySettingsScreen}
+        options={{ title: t('settings.accessibility') }}
+      />
+      <SettingsStack.Screen
+        name="VoiceSettings"
+        component={VoiceSettingsScreen}
+        options={{ title: t('voiceSettings.title') }}
       />
       <SettingsStack.Screen
         name="LanguageSettings"
@@ -349,6 +408,14 @@ function SettingsNavigator() {
         component={DeviceLinkShowQRScreen}
         options={{ title: t('deviceLink.showQRTitle') }}
       />
+      {/* DEV: Piper TTS Test Screen */}
+      {__DEV__ && (
+        <SettingsStack.Screen
+          name="PiperTtsTest"
+          component={PiperTtsTestScreen}
+          options={{ title: '🔊 Piper TTS Test' }}
+        />
+      )}
     </SettingsStack.Navigator>
   );
 }
@@ -375,9 +442,11 @@ function MainNavigator() {
         <MainTab.Screen name="SettingsTab" component={SettingsNavigator} />
         <MainTab.Screen name="CallsTab" component={CallsScreen} />
         <MainTab.Screen name="VideoCallTab" component={VideoCallScreen} />
-        <MainTab.Screen name="EBookTab" component={EBookScreen} />
-        <MainTab.Screen name="AudioBookTab" component={AudioBookScreen} />
         <MainTab.Screen name="PodcastTab" component={PodcastScreen} />
+        <MainTab.Screen name="RadioTab" component={RadioScreen} />
+        <MainTab.Screen name="BooksTab" component={BooksScreen} />
+        <MainTab.Screen name="BookReader" component={BookReaderScreen} />
+        <MainTab.Screen name="BookPlayer" component={BookPlayerScreen} />
       </MainTab.Navigator>
     </HoldToNavigateWrapper>
   );

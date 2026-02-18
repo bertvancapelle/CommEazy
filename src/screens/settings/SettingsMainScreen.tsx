@@ -21,7 +21,7 @@
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -33,17 +33,22 @@ import {
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, Icon, type IconName } from '@/components';
+import { ContactAvatar, Icon, VoiceFocusable, MediaIndicator, type IconName } from '@/components';
+import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { getAvatarPath } from '@/services/imageService';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import type { SettingsStackParams } from '@/navigation';
 import type { SupportedLanguage } from '@/services/interfaces';
 
 type NavigationProp = NativeStackNavigationProp<SettingsStackParams, 'SettingsMain'>;
+
+// Module color (consistent with WheelNavigationMenu)
+const SETTINGS_MODULE_COLOR = '#5E35B1';
 
 // Flag emojis for languages
 const LANGUAGE_FLAGS: Record<string, string> = {
@@ -61,12 +66,21 @@ interface SubsectionButtonProps {
   onPress: () => void;
   accessibilityHint?: string;
   iconColor: string;
+  focused?: boolean;
+  focusStyle?: { borderColor: string; borderWidth: number; backgroundColor: string };
 }
 
-function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor }: SubsectionButtonProps) {
+function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, focused, focusStyle }: SubsectionButtonProps) {
   return (
     <TouchableOpacity
-      style={styles.subsectionButton}
+      style={[
+        styles.subsectionButton,
+        focused && focusStyle && {
+          borderColor: focusStyle.borderColor,
+          borderWidth: focusStyle.borderWidth,
+          backgroundColor: focusStyle.backgroundColor,
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityRole="button"
@@ -85,9 +99,39 @@ function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor }
 export function SettingsMainScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  // Settings menu items for voice navigation
+  const settingsItems = useMemo(() => [
+    { id: 'profile', label: t('settings.profile'), onSelect: () => navigation.navigate('ProfileSettings') },
+    { id: 'accessibility', label: t('settings.accessibility'), onSelect: () => navigation.navigate('AccessibilitySettings') },
+    { id: 'voice', label: t('voiceSettings.title'), onSelect: () => navigation.navigate('VoiceSettings') },
+    { id: 'notifications', label: t('settings.notifications'), onSelect: () => {
+      Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
+    }},
+    { id: 'backup', label: t('settings.backup'), onSelect: () => navigation.navigate('BackupSettings') },
+    { id: 'device-link', label: t('settings.deviceLink'), onSelect: () => navigation.navigate('DeviceLinkShowQR') },
+  ], [t, navigation]);
+
+  // Voice Focus: Register settings items for voice navigation
+  const voiceFocusItems = useMemo(() => {
+    if (!isFocused) return []; // Only register when screen is focused
+    return settingsItems.map((item, index) => ({
+      id: item.id,
+      label: item.label,
+      index,
+      onSelect: item.onSelect,
+    }));
+  }, [settingsItems, isFocused]);
+
+  const { scrollRef, isFocused: isItemFocused, getFocusStyle } = useVoiceFocusList(
+    'settings-list',
+    voiceFocusItems
+  );
 
   // Load profile data and refresh when screen focuses
   useFocusEffect(
@@ -170,9 +214,22 @@ export function SettingsMainScreen() {
   }, [i18n, t]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Profile header - tappable to edit */}
-      <TouchableOpacity
+    <View style={styles.container}>
+      {/* Module Header — consistent with navigation menu, centered */}
+      <View style={[styles.moduleHeader, { backgroundColor: SETTINGS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.moduleHeaderContent}>
+          <Icon name="settings" size={28} color={colors.textOnPrimary} />
+          <Text style={styles.moduleTitle}>{t('tabs.settings')}</Text>
+        </View>
+        {/* Media indicator — shows when audio/video is playing */}
+        <View style={styles.mediaIndicatorContainer}>
+          <MediaIndicator moduleColor={SETTINGS_MODULE_COLOR} />
+        </View>
+      </View>
+
+      <ScrollView ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+        {/* Profile header - tappable to edit */}
+        <TouchableOpacity
         style={styles.profileHeader}
         onPress={() => navigation.navigate('ProfileSettings')}
         activeOpacity={0.8}
@@ -217,66 +274,150 @@ export function SettingsMainScreen() {
       {/* Subsection buttons */}
       <View style={styles.subsectionsContainer}>
         {/* Profiel */}
-        <SubsectionButton
-          icon="person"
+        <VoiceFocusable
+          id="profile"
           label={t('settings.profile')}
-          onPress={() => navigation.navigate('ProfileSettings')}
-          accessibilityHint={t('settings.editProfileHint')}
-          iconColor={accentColor.primary}
-        />
+          index={0}
+          onSelect={() => navigation.navigate('ProfileSettings')}
+        >
+          <SubsectionButton
+            icon="person"
+            label={t('settings.profile')}
+            onPress={() => navigation.navigate('ProfileSettings')}
+            accessibilityHint={t('settings.editProfileHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('profile')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
 
         {/* Toegankelijkheid */}
-        <SubsectionButton
-          icon="accessibility"
+        <VoiceFocusable
+          id="accessibility"
           label={t('settings.accessibility')}
-          onPress={() => navigation.navigate('AccessibilitySettings')}
-          accessibilityHint={t('accessibilitySettings.screenHint')}
-          iconColor={accentColor.primary}
-        />
+          index={1}
+          onSelect={() => navigation.navigate('AccessibilitySettings')}
+        >
+          <SubsectionButton
+            icon="accessibility"
+            label={t('settings.accessibility')}
+            onPress={() => navigation.navigate('AccessibilitySettings')}
+            accessibilityHint={t('accessibilitySettings.screenHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('accessibility')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
+
+        {/* Spraakbesturing */}
+        <VoiceFocusable
+          id="voice"
+          label={t('voiceSettings.title')}
+          index={2}
+          onSelect={() => navigation.navigate('VoiceSettings')}
+        >
+          <SubsectionButton
+            icon="mic"
+            label={t('voiceSettings.title')}
+            onPress={() => navigation.navigate('VoiceSettings')}
+            accessibilityHint={t('voiceSettings.enableVoiceControlHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('voice')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
 
         {/* Meldingen - TODO: Create NotificationsSettingsScreen */}
-        <SubsectionButton
-          icon="notifications"
+        <VoiceFocusable
+          id="notifications"
           label={t('settings.notifications')}
-          onPress={() => {
-            // Navigate to placeholder for now - will show "Coming soon" alert
-            // TODO: Create and navigate to NotificationsSettingsScreen
-            Alert.alert(
-              t('common.comingSoon'),
-              t('settings.notificationsComingSoon'),
-              [{ text: t('common.ok') }]
-            );
+          index={3}
+          onSelect={() => {
+            Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
           }}
-          accessibilityHint={t('settings.notificationsHint')}
-          iconColor={accentColor.primary}
-        />
+        >
+          <SubsectionButton
+            icon="notifications"
+            label={t('settings.notifications')}
+            onPress={() => {
+              Alert.alert(
+                t('common.comingSoon'),
+                t('settings.notificationsComingSoon'),
+                [{ text: t('common.ok') }]
+              );
+            }}
+            accessibilityHint={t('settings.notificationsHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('notifications')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
 
         {/* Back-up */}
-        <SubsectionButton
-          icon="backup"
+        <VoiceFocusable
+          id="backup"
           label={t('settings.backup')}
-          onPress={() => navigation.navigate('BackupSettings')}
-          accessibilityHint={t('settings.backupHint')}
-          iconColor={accentColor.primary}
-        />
+          index={4}
+          onSelect={() => navigation.navigate('BackupSettings')}
+        >
+          <SubsectionButton
+            icon="backup"
+            label={t('settings.backup')}
+            onPress={() => navigation.navigate('BackupSettings')}
+            accessibilityHint={t('settings.backupHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('backup')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
 
         {/* Nieuw toestel koppelen */}
-        <SubsectionButton
-          icon="device"
+        <VoiceFocusable
+          id="device-link"
           label={t('settings.deviceLink')}
-          onPress={() => navigation.navigate('DeviceLinkShowQR')}
-          accessibilityHint={t('deviceLink.showQRSubtitle')}
-          iconColor={accentColor.primary}
-        />
-      </View>
+          index={5}
+          onSelect={() => navigation.navigate('DeviceLinkShowQR')}
+        >
+          <SubsectionButton
+            icon="device"
+            label={t('settings.deviceLink')}
+            onPress={() => navigation.navigate('DeviceLinkShowQR')}
+            accessibilityHint={t('deviceLink.showQRSubtitle')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('device-link')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
+        </View>
 
-      {/* App info */}
-      <View style={styles.infoSection}>
-        <Text style={styles.infoText}>
-          {t('settings.version', { version: '1.0.0' })}
-        </Text>
-      </View>
-    </ScrollView>
+        {/* DEV: Development tools section */}
+        {__DEV__ && (
+          <View style={styles.devSection}>
+            <Text style={styles.devSectionTitle}>🛠 Development</Text>
+            <TouchableOpacity
+              style={styles.devButton}
+              onPress={() => navigation.navigate('PiperTtsTest')}
+              accessibilityRole="button"
+              accessibilityLabel="Piper TTS Test"
+            >
+              <Icon name="play" size={24} color="#4CAF50" />
+              <View style={styles.devButtonTextContainer}>
+                <Text style={styles.devButtonTitle}>🔊 Piper TTS Test</Text>
+                <Text style={styles.devButtonSubtitle}>Test offline spraaksynthese</Text>
+              </View>
+              <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* App info */}
+        <View style={styles.infoSection}>
+          <Text style={styles.infoText}>
+            {t('settings.version', { version: '1.0.0' })}
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -284,6 +425,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  moduleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  moduleHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moduleTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+  },
+  mediaIndicatorContainer: {
+    position: 'absolute',
+    right: spacing.md,
+    top: '50%',
+    transform: [{ translateY: 8 }],
+  },
+  scrollView: {
+    flex: 1,
   },
   contentContainer: {
     padding: spacing.lg,
@@ -386,5 +552,41 @@ const styles = StyleSheet.create({
   infoText: {
     ...typography.small,
     color: colors.textTertiary,
+  },
+  // DEV section
+  devSection: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: '#FFB74D',
+  },
+  devSectionTitle: {
+    ...typography.bodyBold,
+    color: '#E65100',
+    marginBottom: spacing.sm,
+  },
+  devButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    minHeight: touchTargets.comfortable,
+  },
+  devButtonTextContainer: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  devButtonTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  devButtonSubtitle: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });

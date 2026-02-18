@@ -42,6 +42,47 @@ These are NOT "elderly accommodations" — they are universal design standards.
 - Spacing between targets: **12pt minimum** (prevent mis-taps)
 - No touch targets smaller than 44×44pt anywhere in the app
 
+### 2b. STATUS BADGES & INDICATORS
+Status badges (completed checkmarks, new episode dots, unread counts) moeten groot genoeg zijn om gezien te worden door senioren:
+
+- **Badge container:** Minimum **28pt diameter** (cirkel) of **28pt hoogte** (pill shape)
+- **Icoon binnen badge:** Minimum **20pt** (bijv. checkmark icoon)
+- **Badge achtergrond:** Solid kleur, NIET alleen een lichte tint
+- **Contrast:** Badge moet duidelijk opvallen tegen de achtergrond
+
+**Voorbeeld implementatie (completed episode badge):**
+```typescript
+completedBadge: {
+  backgroundColor: colors.success,    // Solid groene achtergrond
+  borderRadius: 14,                   // 28pt / 2 voor cirkel
+  width: 28,                          // ≥ 28pt
+  height: 28,                         // ≥ 28pt
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+// Icoon: <Icon name="check" size={20} color={colors.textOnPrimary} />
+```
+
+**❌ FOUT — te kleine badge:**
+```typescript
+// Dit is ONLEESBAAR voor senioren!
+completedBadge: {
+  backgroundColor: colors.successBackground,  // Te licht
+  borderRadius: 10,
+  padding: 2,
+},
+<Icon name="check" size={12} ... />  // 12pt is te klein!
+```
+
+**Badge types en minimum sizes:**
+
+| Badge type | Min. container | Min. icoon | Achtergrond |
+|------------|----------------|------------|-------------|
+| Completed checkmark | 28pt | 20pt | colors.success (solid) |
+| New/unread dot | 12pt | n.v.t. | colors.accent (solid) |
+| Notification count | 24pt | 14pt tekst | colors.error (solid) |
+| Status indicator | 28pt | 20pt | Relevante status kleur |
+
 ### 3. CONTRAST & COLOUR
 - Body text: **WCAG AAA (7:1 ratio)** — #1A1A1A on #FFFFFF
 - Large text (24pt+): WCAG AA (4.5:1) minimum
@@ -170,7 +211,841 @@ Land                          ← Label (vet, boven, buiten rand)
 5. **Dunne rand om ALLE interactieve elementen** — `borderWidth: 1, borderColor: colors.border`
 6. **Afgeronde hoeken** — `borderRadius: borderRadius.md`
 
-### 8. HOLD-TO-NAVIGATE (VERPLICHT)
+### 7b. ZOEKVELDEN (VERPLICHT)
+
+Zoekvelden moeten **twee manieren** bieden om te zoeken: via het toetsenbord EN via een zichtbare knop. Dit is essentieel voor senioren die mogelijk niet weten dat het toetsenbord een "Zoek" actie heeft.
+
+**Waarom beide?**
+- **Toetsenbord "Zoek" knop:** Sneller voor ervaren gebruikers
+- **Zichtbare knop:** Duidelijk voor senioren en nieuwe gebruikers
+- **Consistentie:** Beide triggeren dezelfde zoekfunctie
+
+**Visuele specificatie:**
+```
+┌──────────────────────────────────┬─────────┐
+│ 🔍  Zoek een zender...           │  🔍     │  ← Zichtbare zoekknop (blauw)
+└──────────────────────────────────┴─────────┘
+     ↑ Placeholder met icoon          ↑ Button met search icoon
+```
+
+**Regels:**
+1. **Zichtbare zoekknop ALTIJD aanwezig** — Niet alleen in het toetsenbord
+2. **Gebruik `search` icoon** — Vergrootglas, niet een cirkel of ander icoon
+3. **Knop in accent color** — `backgroundColor: accentColor.primary`
+4. **Toetsenbord type:** `returnKeyType="search"` voor native "Zoek" knop
+5. **Beide triggeren dezelfde functie** — `onSubmitEditing` en knop `onPress` doen hetzelfde
+
+**Implementatie:**
+```typescript
+import { Icon } from '@/components';
+import { useAccentColor } from '@/hooks/useAccentColor';
+
+function SearchField({ onSearch, placeholder }: Props) {
+  const { accentColor } = useAccentColor();
+  const [query, setQuery] = useState('');
+
+  const handleSearch = useCallback(() => {
+    if (query.trim()) {
+      onSearch(query.trim());
+    }
+  }, [query, onSearch]);
+
+  return (
+    <View style={styles.searchContainer}>
+      <View style={styles.searchInputWrapper}>
+        <Icon name="search" size={20} color={colors.textSecondary} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder={placeholder}
+          placeholderTextColor={colors.textTertiary}
+          value={query}
+          onChangeText={setQuery}
+          returnKeyType="search"           // ← Toetsenbord "Zoek" knop
+          onSubmitEditing={handleSearch}   // ← Trigger bij toetsenbord "Zoek"
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+      </View>
+      {/* VERPLICHT: Zichtbare zoekknop */}
+      <TouchableOpacity
+        style={[styles.searchButton, { backgroundColor: accentColor.primary }]}
+        onPress={handleSearch}             // ← Zelfde functie als toetsenbord
+        accessibilityRole="button"
+        accessibilityLabel={t('common.search')}
+      >
+        <Icon name="search" size={24} color={colors.textOnPrimary} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// Styles
+const styles = StyleSheet.create({
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  searchInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    minHeight: touchTargets.comfortable,  // 72pt
+  },
+  searchInput: {
+    flex: 1,
+    ...typography.body,
+    color: colors.textPrimary,
+    marginLeft: spacing.sm,
+    paddingVertical: spacing.md,
+  },
+  searchButton: {
+    width: touchTargets.minimum,          // 60pt
+    height: touchTargets.minimum,         // 60pt
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+```
+
+**Accessibility:**
+- `accessibilityLabel` op de zoekknop: bijv. "Zoek" / "Search" / "Suchen"
+- `accessibilityHint` op het invoerveld: bijv. "Typ om te zoeken, druk op de zoekknop of gebruik de zoekknop op het toetsenbord"
+- Voice command: "zoek [term]" moet ook werken
+
+**i18n keys (alle 5 talen):**
+```json
+{
+  "common": {
+    "search": "Zoek",
+    "searchPlaceholder": "Zoek...",
+    "searchHint": "Typ om te zoeken"
+  }
+}
+```
+
+**FOUT — alleen toetsenbord zoekknop:**
+```typescript
+// ❌ FOUT: Geen zichtbare knop
+<TextInput
+  returnKeyType="search"
+  onSubmitEditing={handleSearch}
+/>
+// Senioren zien mogelijk de toetsenbord "Zoek" niet
+```
+
+**FOUT — verkeerd icoon:**
+```typescript
+// ❌ FOUT: Cirkel i.p.v. vergrootglas
+<TouchableOpacity style={styles.searchButton}>
+  <Icon name="circle" />  {/* FOUT: dit is geen zoek-icoon */}
+</TouchableOpacity>
+```
+
+### 7c. MODULE SCREEN HEADERS (VERPLICHT)
+
+Elk module-scherm MOET een visuele header hebben die de module identificeert. Dit creëert consistentie met het navigatiemenu en helpt senioren begrijpen waar ze zijn in de app.
+
+**Waarom dit patroon?**
+- **Consistentie:** Module kleuren in header matchen met het navigatiemenu
+- **Oriëntatie:** Senioren zien direct welke module actief is
+- **Herkenbaarheid:** Icoon + naam versterken de context
+- **Kortere labels:** Tabs/knoppen kunnen korter omdat de module context al duidelijk is uit de header
+
+**Visuele specificatie:**
+```
+┌─────────────────────────────────────┐
+│  📻  Radio                          │  ← Module header: icoon + naam, gekleurde achtergrond
+│     [module achtergrondkleur]       │
+└─────────────────────────────────────┘
+│                                     │
+│  ┌─────────────┐ ┌─────────────┐   │  ← Tabs kunnen korter: "Zoeken" i.p.v. "Zoek zenders"
+│  │   Zoeken    │ │  Favorieten │   │
+│  └─────────────┘ └─────────────┘   │
+│                                     │
+│  [ rest van de pagina in           │  ← Rest behoudt normale kleuren
+│    standaard kleuren ]              │
+└─────────────────────────────────────┘
+```
+
+**Module kleuren (matchen met WheelNavigationMenu):**
+| Module | Kleur | Hex |
+|--------|-------|-----|
+| Berichten | Blauw | `colors.primary` |
+| Contacten | Groen | `#2E7D32` |
+| Groepen | Teal | `#00796B` |
+| Bellen | Blauw | `#1565C0` |
+| Videobellen | Rood | `#C62828` |
+| E-boeken | Oranje | `#F57C00` |
+| Luisterboeken | Paars | `#7B1FA2` |
+| Podcasts | Roze | `#E91E63` |
+| Radio | Teal | `#00897B` |
+| Instellingen | Paars | `#5E35B1` |
+
+**Implementatie:**
+```typescript
+import { Icon } from '@/components';
+import { colors, typography, spacing, touchTargets } from '@/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Module kleuren (consistent met WheelNavigationMenu)
+const MODULE_COLORS: Record<string, string> = {
+  radio: '#00897B',
+  podcast: '#E91E63',
+  ebook: '#F57C00',
+  audiobook: '#7B1FA2',
+  videocall: '#C62828',
+  calls: '#1565C0',
+  // etc.
+};
+
+function ModuleHeader({ moduleId, icon, title }: {
+  moduleId: string;
+  icon: IconName;
+  title: string;
+}) {
+  const insets = useSafeAreaInsets();
+  const moduleColor = MODULE_COLORS[moduleId] || colors.primary;
+
+  return (
+    <View style={[styles.moduleHeader, { backgroundColor: moduleColor, paddingTop: insets.top + spacing.sm }]}>
+      <View style={styles.moduleHeaderContent}>
+        <Icon name={icon} size={28} color={colors.textOnPrimary} />
+        <Text style={styles.moduleTitle}>{title}</Text>
+      </View>
+    </View>
+  );
+}
+
+// Styles
+moduleHeader: {
+  alignItems: 'center',       // Centreer horizontaal
+  justifyContent: 'center',
+  paddingHorizontal: spacing.md,
+  paddingBottom: spacing.sm,
+},
+moduleHeaderContent: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: spacing.sm,
+},
+moduleTitle: {
+  ...typography.h3,
+  color: colors.textOnPrimary,
+  fontWeight: '700',
+},
+```
+
+**Regels:**
+1. **Header ALTIJD zichtbaar** — Niet scrollbaar, vast bovenaan
+2. **Kleur uit MODULE_COLORS** — Consistent met navigatiemenu
+3. **Icoon + naam** — Beide elementen versterken identificatie
+4. **Tekst in wit** — `colors.textOnPrimary` voor contrast op gekleurde achtergrond
+5. **Safe area respecteren** — `paddingTop: insets.top` voor notch/status bar
+6. **Rest van pagina normaal** — Alleen header heeft module kleur
+
+**i18n keys:**
+```json
+{
+  "modules": {
+    "radio": {
+      "title": "Radio"
+    },
+    "podcast": {
+      "title": "Podcasts"
+    }
+    // etc.
+  }
+}
+```
+
+**FOUT — geen module header:**
+```typescript
+// ❌ FOUT: Scherm start direct met content
+<View style={styles.container}>
+  <View style={styles.tabBar}>...</View>
+  <ScrollView>...</ScrollView>
+</View>
+// Gebruiker weet niet in welke module ze zitten
+```
+
+**GOED — module header aanwezig:**
+```typescript
+// ✅ GOED: Duidelijke module identificatie
+<View style={styles.container}>
+  <ModuleHeader moduleId="radio" icon="radio" title={t('modules.radio.title')} />
+  <View style={styles.tabBar}>...</View>
+  <ScrollView>...</ScrollView>
+</View>
+```
+
+### 7d. TAB/TOGGLE SELECTORS (VERPLICHT)
+
+Bij het wisselen tussen twee weergaven (bijv. "Zoeken" vs "Mijn zenders") moet de actieve/inactieve staat visueel duidelijk zijn. Senioren kunnen anders denken dat tabs actieknoppen zijn.
+
+**Probleem:**
+Tabs zonder duidelijke staat-indicatie lijken actieknoppen:
+```
+┌─────────────┐ ┌─────────────────┐
+│   Zoeken    │ │  Favorieten (1) │   ← Onduidelijk: wat is actief?
+└─────────────┘ └─────────────────┘
+```
+
+**Oplossing — Actief/Inactief patroon:**
+```
+┌───────────────────┐   ┌───────────────────┐
+│ 🔍 Zoek zenders   │   │ ♥ Mijn zenders    │
+│                   │   │      (1)          │
+│  [ dunne rand ]   │   │ [ BLAUWE ACHTER ] │
+└───────────────────┘   └───────────────────┘
+     inactief                 actief
+```
+
+**Regels:**
+1. **Actieve tab:** `backgroundColor: accentColor.primary` (gevuld)
+2. **Inactieve tab:** `borderWidth: 1, borderColor: colors.border` (alleen rand)
+3. **Iconen toevoegen:** Visuele versterking van de functie
+4. **Icoonkleur mee:** Actief = wit (`textOnPrimary`), inactief = grijs (`textSecondary`)
+5. **Duidelijke labels:** Gebruik persoonlijke termen ("Mijn zenders" i.p.v. "Favorieten")
+
+**Implementatie:**
+```typescript
+// Tab bar container
+<View style={styles.tabBar}>
+  {/* Search tab */}
+  <TouchableOpacity
+    style={[
+      styles.tab,
+      !showFavorites
+        ? { backgroundColor: accentColor.primary }
+        : styles.tabInactive,
+    ]}
+    onPress={() => setShowFavorites(false)}
+    accessibilityRole="tab"
+    accessibilityState={{ selected: !showFavorites }}
+    accessibilityLabel={t('modules.radio.searchTab')}
+  >
+    <Icon
+      name="search"
+      size={20}
+      color={!showFavorites ? colors.textOnPrimary : colors.textSecondary}
+    />
+    <Text style={[
+      styles.tabText,
+      !showFavorites && styles.tabTextActive,
+    ]}>
+      {t('modules.radio.search')}
+    </Text>
+  </TouchableOpacity>
+
+  {/* Favorites tab */}
+  <TouchableOpacity
+    style={[
+      styles.tab,
+      showFavorites
+        ? { backgroundColor: accentColor.primary }
+        : styles.tabInactive,
+    ]}
+    onPress={() => setShowFavorites(true)}
+    accessibilityRole="tab"
+    accessibilityState={{ selected: showFavorites }}
+  >
+    <Icon
+      name={showFavorites ? 'heart-filled' : 'heart'}
+      size={20}
+      color={showFavorites ? colors.textOnPrimary : colors.textSecondary}
+    />
+    <Text style={[
+      styles.tabText,
+      showFavorites && styles.tabTextActive,
+    ]}>
+      {t('modules.radio.myStations')} ({favorites.length})
+    </Text>
+  </TouchableOpacity>
+</View>
+
+// Styles
+const styles = StyleSheet.create({
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    gap: spacing.sm,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    minHeight: touchTargets.minimum,  // 60pt
+  },
+  tabInactive: {
+    // Dunne rand maakt duidelijk dat dit een keuze is, geen actie
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tabText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  tabTextActive: {
+    color: colors.textOnPrimary,
+  },
+});
+```
+
+**Accessibility:**
+- `accessibilityRole="tab"` op elke tab
+- `accessibilityState={{ selected: isActive }}` voor screen readers
+- `accessibilityLabel` met duidelijke beschrijving
+
+**Waarom "Mijn zenders" i.p.v. "Favorieten"?**
+- **Persoonlijk:** "Mijn" maakt duidelijk dat dit de opgeslagen items van de gebruiker zijn
+- **Concreet:** "Zenders" is specifieker dan "Favorieten"
+- **Senior-vriendelijk:** Minder abstract dan technische termen
+
+**FOUT — onduidelijke tabs:**
+```typescript
+// ❌ FOUT: Geen visueel verschil tussen actief/inactief
+<TouchableOpacity
+  style={[styles.tab, isActive && { backgroundColor: colors.primary }]}
+>
+  <Text>{label}</Text>
+</TouchableOpacity>
+// Inactieve tab heeft geen rand — lijkt op een actieknop
+```
+
+**FOUT — "Favorieten" als actieknop:**
+```typescript
+// ❌ FOUT: Label klinkt als actie
+<Text>Favorieten (1)</Text>
+// Senioren kunnen denken: "als ik druk, voeg ik iets toe"
+
+// ✅ GOED: Label is beschrijvend
+<Text>Mijn zenders (1)</Text>
+// Duidelijk: dit zijn de opgeslagen zenders
+```
+
+### 7e. KLIKBARE LIJSTITEMS (VERPLICHT)
+
+Alle klikbare lijstitems (zoals episodes, contacten, berichten, zenders) MOETEN een zichtbare rand hebben. Dit maakt duidelijk dat het item interactief is — een knop waar de gebruiker op kan tikken.
+
+**Waarom dit patroon?**
+- **Affordance:** De rand communiceert "dit is klikbaar"
+- **Senioren:** Vaak onduidelijk wat interactief is zonder visuele hint
+- **Consistentie:** Alle interactieve elementen hebben dezelfde visuele taal
+- **Toegankelijkheid:** Helpt ook mensen met cognitieve beperkingen
+
+**Visuele specificatie:**
+```
+┌─────────────────────────────────────┐
+│ [Artwork]  Episode titel           │  ← Klikbaar lijstitem met rand
+│            Duur: 45:23    [▶ Play] │
+│   borderWidth: 1                    │
+│   borderColor: colors.border        │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ [Avatar]   Jan de Vries             │  ← Contact item met rand
+│            Online                   │
+└─────────────────────────────────────┘
+```
+
+**Regels:**
+1. **ALLE klikbare lijstitems:** `borderWidth: 1, borderColor: colors.border`
+2. **Afgeronde hoeken:** `borderRadius: borderRadius.md` (8pt)
+3. **Touch target:** Minimaal 60pt hoogte (`touchTargets.minimum`)
+4. **Achtergrond:** `colors.surface` (lichtgrijze achtergrond)
+5. **Hover/pressed state:** Lichtere achtergrond of accent tint
+
+**Implementatie:**
+```typescript
+// Standaard klikbaar lijstitem stijl
+const styles = StyleSheet.create({
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,                    // ← VERPLICHT: zichtbare rand
+    borderColor: colors.border,        // ← VERPLICHT: standaard randkleur
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    minHeight: touchTargets.minimum,   // 60pt
+  },
+});
+
+// Gebruik in component
+<TouchableOpacity
+  style={styles.listItem}
+  onPress={() => handleItemPress(item)}
+  accessibilityRole="button"
+  accessibilityLabel={item.title}
+>
+  <Image source={item.artwork} style={styles.artwork} />
+  <View style={styles.content}>
+    <Text style={styles.title}>{item.title}</Text>
+    <Text style={styles.subtitle}>{item.subtitle}</Text>
+  </View>
+</TouchableOpacity>
+```
+
+**FOUT — geen rand:**
+```typescript
+// ❌ FOUT: Geen border — onduidelijk dat dit klikbaar is
+listItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: colors.surface,
+  borderRadius: borderRadius.md,
+  // Geen borderWidth of borderColor!
+  padding: spacing.md,
+  minHeight: touchTargets.minimum,
+},
+```
+
+**FOUT — alleen achtergrondkleur:**
+```typescript
+// ❌ FOUT: Achtergrondkleur alleen is onvoldoende affordance
+listItem: {
+  backgroundColor: colors.surfaceSecondary,  // Te subtiel verschil
+  // Geen rand = onduidelijk of dit een knop is
+},
+```
+
+**Wanneer GEEN rand:**
+- **Navigatie-items** in een duidelijke navigatiebalk (bijv. bottom tabs)
+- **Knoppen** die al een duidelijke visuele stijl hebben (bijv. primaire knoppen)
+- **Icoon-only knoppen** volgen het IconButton pattern (sectie 10)
+
+**Checklist:**
+- [ ] Klikbare lijstitems hebben `borderWidth: 1`
+- [ ] Randkleur is `colors.border`
+- [ ] Afgeronde hoeken met `borderRadius.md`
+- [ ] Minimale hoogte van 60pt
+- [ ] AccessibilityRole="button" aanwezig
+- [ ] AccessibilityLabel beschrijft de actie
+
+### 8. VOICE INTERACTION DESIGN (VERPLICHT)
+
+CommEazy heeft **spraakbesturing als kernfunctie**. ALLE UI componenten MOETEN voice interactions ondersteunen.
+
+#### 8.1 Voice Command Categorieën
+
+Bij het ontwerpen van UI, overweeg altijd welke voice commands nodig zijn:
+
+| UI Element | Voice Commando's | Voorbeeld |
+|------------|------------------|-----------|
+| **Lijsten** | "volgende", "vorige", "[naam]", "open" | Contact lijst, chat lijst |
+| **Formulieren** | "pas aan", "wis", "dicteer", "bevestig" | Profiel bewerken, bericht typen |
+| **Acties** | "bel", "stuur bericht", "verwijder" | Contact detail, chat scherm |
+| **Dialogen** | "ja", "nee", "annuleer" | Bevestigingsdialoog |
+| **Media** | "stuur", "foto", "speel", "pauze" | Chat, media player |
+
+#### 8.2 Voice Session Mode UI
+
+**Zwevende Microfoon Indicator:**
+- Positie: rechtsonder (draggable door gebruiker)
+- Grootte: 56pt cirkel
+- Kleuren: `accentColor.primary` (actief), 40% opacity (idle)
+- Pulserende animatie tijdens luisteren
+- Tik om sessie te stoppen
+
+**Voice Focus Styling:**
+- Border: 4px `accentColor.primary`
+- Achtergrond: `accentColor.primary` @ 10% opacity
+- Pulserende border (accent ↔ wit, 600ms cycle)
+- Scale: 1.02x (respecteert reduced motion)
+
+#### 8.3 Lijsten met Voice Control (>3 items)
+
+```typescript
+import { VoiceFocusable, useVoiceFocusList } from '@/contexts/VoiceFocusContext';
+import { useIsFocused } from '@react-navigation/native';
+
+function MyListScreen() {
+  const isFocused = useIsFocused();
+
+  // BELANGRIJK: Alleen items registreren als scherm gefocust is
+  const voiceFocusItems = useMemo(() => {
+    if (!isFocused) return [];
+    return items.map((item, index) => ({
+      id: item.id,
+      label: item.name,  // Menselijke naam, niet technisch ID
+      index,
+      onSelect: () => handlePress(item),
+    }));
+  }, [items, isFocused]);
+
+  const { scrollRef } = useVoiceFocusList('my-list', voiceFocusItems);
+
+  return (
+    <ScrollView ref={scrollRef}>
+      {items.map((item, index) => (
+        <VoiceFocusable
+          key={item.id}
+          id={item.id}
+          label={item.name}
+          index={index}
+          onSelect={() => handlePress(item)}
+        >
+          <MyListItem item={item} />
+        </VoiceFocusable>
+      ))}
+    </ScrollView>
+  );
+}
+```
+
+#### 8.4 Formulieren met Voice Dictation
+
+**Elk invoerveld MOET ondersteunen:**
+- `"pas aan [veldnaam]"` → Focus op veld
+- `"wis"` → Veld leegmaken
+- `"dicteer"` → Voice-to-text invoer
+- `"bevestig"` → Opslaan/versturen
+
+```typescript
+// Voice-enabled text field
+<VoiceTextField
+  voiceFieldId="city"
+  label={t('profile.city')}
+  value={city}
+  onChangeText={setCity}
+/>
+```
+
+#### 8.5 Actie Knoppen met Voice
+
+Primaire acties moeten voice-triggerable zijn:
+
+```typescript
+// Registreer actie voor voice control
+useVoiceAction('call', handleCall, {
+  label: contactName,  // "Bel Oma" triggert deze actie
+});
+
+useVoiceAction('send', handleSend, {
+  label: t('chat.send'),  // "Stuur" triggert deze actie
+});
+```
+
+#### 8.6 Bevestigingsdialogen
+
+Destructieve acties MOETEN voice-confirmeerbaar zijn:
+
+```typescript
+// Voice-enabled confirmation dialog
+<VoiceConfirmationDialog
+  visible={showDeleteConfirm}
+  title={t('confirm.delete.title')}
+  message={t('confirm.delete.message', { name: contactName })}
+  confirmLabel={t('common.delete')}   // "ja" of "verwijder"
+  cancelLabel={t('common.cancel')}    // "nee" of "annuleer"
+  onConfirm={handleDelete}
+  onCancel={() => setShowDeleteConfirm(false)}
+/>
+```
+
+#### 8.7 Standaard Voice Commands per Taal
+
+| Actie | NL | EN | DE | FR | ES |
+|-------|----|----|----|----|-----|
+| Volgende | "volgende", "verder" | "next", "forward" | "nächste", "weiter" | "suivant" | "siguiente" |
+| Vorige | "vorige", "terug" | "previous", "back" | "vorherige", "zurück" | "précédent" | "anterior" |
+| Open | "open", "kies", "selecteer" | "open", "select" | "öffnen", "wählen" | "ouvrir", "choisir" | "abrir", "elegir" |
+| Pas aan | "pas aan", "wijzig" | "edit", "change" | "bearbeiten", "ändern" | "modifier", "changer" | "editar", "cambiar" |
+| Wis | "wis", "leeg", "gooi weg" | "clear", "delete" | "löschen", "leeren" | "effacer", "vider" | "borrar", "limpiar" |
+| Dicteer | "dicteer", "spreek in" | "dictate", "speak" | "diktieren", "sprechen" | "dicter", "parler" | "dictar", "hablar" |
+| Bevestig | "bevestig", "oké", "ja" | "confirm", "ok", "yes" | "bestätigen", "ja" | "confirmer", "oui" | "confirmar", "sí" |
+| Annuleer | "annuleer", "nee", "stop" | "cancel", "no", "stop" | "abbrechen", "nein" | "annuler", "non" | "cancelar", "no" |
+| Stuur | "stuur", "verzend", "verstuur" | "send", "submit" | "senden", "absenden" | "envoyer", "envoie" | "enviar", "envía" |
+
+#### 8.8 Multi-Match Voice Navigation (VERPLICHT)
+
+Bij meerdere matches op een naam (bijv. "maria" → "Oma Maria" + "Tante Maria"):
+
+**Gedrag:**
+1. Eerste/beste match krijgt focus
+2. Systeem kondigt aan: "Oma Maria, 2 resultaten. Zeg 'volgende' voor meer."
+3. "Volgende"/"Vorige" navigeert **binnen matches** (niet hele lijst)
+4. "Tante Maria, 2 van 2" — context bij elke navigatie
+5. Bij wrap-around: "Terug naar eerste resultaat"
+
+**Implementatie (ActiveNameFilter pattern):**
+```typescript
+interface ActiveNameFilter {
+  query: string;           // De zoekopdracht (bijv. "maria")
+  matches: FuzzyMatchResult[];  // Alle gevonden matches
+  currentIndex: number;    // Huidige positie in matches (0-based)
+}
+
+// In focusByName():
+if (matches.length > 1) {
+  setActiveNameFilter({
+    query: name,
+    matches,
+    currentIndex: 0,
+  });
+
+  AccessibilityInfo.announceForAccessibility(
+    t('voiceCommands.multipleMatches', {
+      name: matches[0].item.label,
+      count: matches.length,
+    })
+  );
+}
+
+// In focusNext() - check for active filter first:
+if (activeNameFilter && activeNameFilter.matches.length > 1) {
+  const nextIndex = (activeNameFilter.currentIndex + 1) % activeNameFilter.matches.length;
+  // Navigate within matches, not entire list
+}
+```
+
+**i18n keys (alle 5 talen):**
+```json
+{
+  "voiceCommands": {
+    "focusedOnMatch": "{{name}}, {{current}} van {{total}}",
+    "multipleMatches": "{{name}}, {{count}} resultaten gevonden. Zeg 'volgende' voor meer.",
+    "endOfMatches": "Terug naar eerste resultaat"
+  }
+}
+```
+
+#### 8.9 Word-Level Fuzzy Matching (VERPLICHT)
+
+Voice matching moet werken op **woord-niveau**, niet alleen volledige strings.
+
+**Matching scores:**
+| Match Type | Score | Voorbeeld |
+|------------|-------|-----------|
+| Exact match | 1.0 | "maria" → "Maria" |
+| Prefix match | 0.9 | "mar" → "Maria" |
+| Exact word in label | 0.88 | "maria" → "Tante Maria" |
+| Word prefix in label | 0.85 | "mar" → "Tante Maria" |
+| Typo (Levenshtein) | 0.75+ | "meria" → "Maria" |
+
+**Implementatie:**
+```typescript
+function similarityScore(query: string, label: string): number {
+  const queryLower = query.toLowerCase().trim();
+  const labelLower = label.toLowerCase().trim();
+
+  // Exact match
+  if (queryLower === labelLower) return 1.0;
+
+  // Prefix match
+  if (labelLower.startsWith(queryLower) || queryLower.startsWith(labelLower)) {
+    return 0.9;
+  }
+
+  // Word-level matching
+  const words = labelLower.split(/\s+/);
+  for (const word of words) {
+    if (word === queryLower) return 0.88;  // Exact word
+    if (word.startsWith(queryLower) && queryLower.length >= 2) return 0.85;  // Word prefix
+  }
+
+  // Levenshtein fallback for typos
+  // ...
+}
+```
+
+#### 8.10 Voice Feedback Toast Pattern (VERPLICHT)
+
+Wanneer een voice command niet herkend wordt, toon een tijdelijke feedback toast.
+
+**Visuele specificaties:**
+- Positie: Onder in scherm, boven tab bar (bottom: 120pt)
+- Achtergrond: `rgba(0, 0, 0, 0.85)` (donker, leesbaar)
+- Tekst: Wit, 16pt, fontWeight 500
+- Padding: 12pt verticaal, 20pt horizontaal
+- Border radius: 12pt
+- Auto-hide: 2.5 seconden
+- Z-index: 1001 (boven FloatingMicIndicator)
+
+**Accessibility:**
+- `accessibilityLiveRegion="polite"` voor screen readers
+- Geen haptic feedback (het is al feedback op een fout)
+
+**Implementatie:**
+```typescript
+// State
+const [voiceFeedbackMessage, setVoiceFeedbackMessage] = useState<string | null>(null);
+const voiceFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+// Show feedback
+const showVoiceFeedback = useCallback((message: string) => {
+  if (voiceFeedbackTimerRef.current) {
+    clearTimeout(voiceFeedbackTimerRef.current);
+  }
+  setVoiceFeedbackMessage(message);
+  voiceFeedbackTimerRef.current = setTimeout(() => {
+    setVoiceFeedbackMessage(null);
+  }, 2500);
+}, []);
+
+// Render
+{voiceFeedbackMessage && (
+  <View
+    style={styles.voiceFeedbackToast}
+    accessible={true}
+    accessibilityLiveRegion="polite"
+    accessibilityLabel={voiceFeedbackMessage}
+  >
+    <Text style={styles.voiceFeedbackText}>{voiceFeedbackMessage}</Text>
+  </View>
+)}
+
+// Styles
+voiceFeedbackToast: {
+  position: 'absolute',
+  bottom: 120,
+  left: 20,
+  right: 20,
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  backgroundColor: 'rgba(0, 0, 0, 0.85)',
+  borderRadius: 12,
+  alignItems: 'center',
+  zIndex: 1001,
+},
+voiceFeedbackText: {
+  color: '#FFFFFF',
+  fontSize: 16,
+  fontWeight: '500',
+  textAlign: 'center',
+},
+```
+
+#### 8.11 Voice Interaction Design Regels
+
+1. **ELKE lijst >3 items:** VoiceFocusable wrappers verplicht
+2. **ELKE formulier:** Voice dictation ondersteuning verplicht
+3. **ELKE primaire actie:** Voice trigger verplicht
+4. **ELKE destructieve actie:** Voice confirmation verplicht
+5. **Labels:** Altijd menselijke namen, nooit technische IDs
+6. **Synoniemen:** Minimaal 2 synoniemen per commando per taal
+7. **Feedback:** Haptic + audio bij voice actie (zie accessibility skill)
+8. **i18n:** Alle commands in 5 talen (NL, EN, DE, FR, ES)
+
+### 9. HOLD-TO-NAVIGATE (VERPLICHT)
 
 **"Houd Ingedrukt voor Menu"** — Universele navigatiemethode voor CommEazy.
 
@@ -299,6 +1174,68 @@ const handleRelease = () => {
 - Menu altijd toegankelijk via visible knop voor screen reader gebruikers
 - Introductie tijdens onboarding is VERPLICHT
 
+**⚠️ KRITIEK: Double-Action Prevention Pattern (VERPLICHT)**
+
+React Native's `TouchableOpacity` heeft een gedrag waarbij `onPress` wordt gefired bij ELKE touch release, ongeacht de duur van de press — TENZIJ `onLongPress` is gedefinieerd. Dit veroorzaakt een "double-action" probleem waarbij een long-press ZOWEL het navigatiemenu opent ALS de onderliggende actie triggert.
+
+**Het probleem:**
+```typescript
+// ❌ FOUT — veroorzaakt double-action bij long-press
+<TouchableOpacity
+  onPress={() => handleItemPress(item)}  // Wordt ALTIJD gefired
+  // Geen onLongPress gedefinieerd
+>
+  <ItemContent />
+</TouchableOpacity>
+```
+
+**De oplossing — VERPLICHT voor alle tappable items binnen HoldToNavigateWrapper:**
+```typescript
+// ✅ GOED — voorkomt double-action
+<TouchableOpacity
+  onPress={() => handleItemPress(item)}
+  onLongPress={() => {
+    // Lege handler — voorkomt dat onPress fired na long-press
+    // HoldToNavigateWrapper handelt de echte long-press actie af
+  }}
+  delayLongPress={300}  // Match HoldToNavigateWrapper timing
+>
+  <ItemContent />
+</TouchableOpacity>
+```
+
+**Waarom dit werkt:**
+1. Wanneer `onLongPress` IS gedefinieerd, fired React Native `onPress` NIET na een long-press
+2. De lege handler consumeert de long-press event zonder actie
+3. `delayLongPress={300}` matcht de timing van HoldToNavigateWrapper (300ms guard window)
+4. HoldToNavigateWrapper observeert touches zonder ze te consumeren (via onTouchStart/End)
+
+**Wanneer dit patroon toepassen:**
+- Alle `TouchableOpacity` componenten binnen scrollable content
+- Lijst items (contacten, berichten, stations, episodes, etc.)
+- Cards en klikbare rijen
+- Alle elementen die binnen HoldToNavigateWrapper scope vallen
+
+**Dubbele beveiliging — extra check voor edge cases:**
+```typescript
+import { useHoldGestureGuard } from '@/contexts/HoldGestureContext';
+
+// Optioneel: wrap handler met gesture guard voor extra veiligheid
+const guardedPress = useHoldGestureGuard(() => handleItemPress(item));
+
+<TouchableOpacity
+  onPress={guardedPress}
+  onLongPress={() => {}}  // Nog steeds nodig!
+  delayLongPress={300}
+>
+```
+
+**Checklist voor elk tappable element:**
+- [ ] `onLongPress={() => {}}` aanwezig (ook als leeg)
+- [ ] `delayLongPress={300}` ingesteld
+- [ ] Test: long-press opent ALLEEN menu, niet onderliggende actie
+- [ ] Test: korte tap voert WEL de actie uit
+
 **Onboarding introductie:**
 Tijdens eerste app-gebruik wordt dit patroon uitgelegd en geoefend:
 1. Uitleg: "Houd het scherm ingedrukt om te navigeren"
@@ -306,7 +1243,85 @@ Tijdens eerste app-gebruik wordt dit patroon uitgelegd en geoefend:
 3. Timing instellen: Gebruiker kan delay aanpassen naar eigen comfort
 4. Bevestiging: "Je kunt dit overal in de app gebruiken"
 
-### 9. VELD ICONEN (VERPLICHT)
+### 9b. WHEEL NAVIGATION MENU (VERPLICHT)
+
+Het navigatiemenu (`WheelNavigationMenu.tsx`) toont modules in een overzichtelijke lijst. Hier zijn de VERPLICHTE regels:
+
+**Actieve module indicator:**
+De module waar de gebruiker vandaan komt staat ALTIJD bovenaan en wordt gemarkeerd met ALLEEN een witte border. **GEEN checkmark, chevron, of ander icoon** — de witte border is voldoende om de actieve status aan te geven.
+
+```
+┌─────────────────────────────────────┐
+│ [Radio icoon]  Radio                │ ← Witte border ALLEEN (geen ✓ of >)
+│     borderWidth: 3                  │
+│     borderColor: textOnPrimary      │
+└─────────────────────────────────────┘
+│ [Berichten icoon]  Berichten        │ ← Geen border
+│ [Contacten icoon]  Contacten        │
+│ [Podcast icoon]    Podcast          │
+│ [Bellen icoon]     Bellen           │
+└─────────────────────────────────────┘
+```
+
+**Regels voor actieve module:**
+1. **Alleen witte border** — `borderWidth: 3, borderColor: colors.textOnPrimary`
+2. **GEEN checkmark (✓)** — Dit is overbodig naast de border
+3. **GEEN chevron (>)** — Chevrons zijn voor navigatie naar andere schermen, niet voor status
+4. **GEEN andere indicator** — De border is duidelijk genoeg
+
+**Module paginering:**
+Het menu toont modules in sets van 4 (exclusief de actieve module):
+1. **Actieve module** — Altijd bovenaan
+2. **Top 4 meest gebruikte modules** — Onder de actieve module
+3. **"Meer" knop** — Toont volgende set van modules
+4. **"Terug" knop** — Keert terug naar vorige set
+
+**Module usage tracking:**
+- Elke keer dat een gebruiker naar een module navigeert, wordt dit opgeslagen
+- Modules worden gesorteerd op basis van gebruik (meest gebruikt eerst)
+- Opgeslagen in `UserProfile.moduleUsageCounts` via `useModuleUsage` hook
+
+**Implementatie referentie:**
+```typescript
+// WheelNavigationMenu.tsx — ModuleButton component
+function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.moduleButton,
+        { backgroundColor: module.color },
+        isActive && styles.moduleButtonActive,  // ALLEEN border styling
+      ]}
+      // ...
+    >
+      <ModuleIcon type={module.icon} size={40} />
+      <Text style={styles.moduleLabel}>{t(module.labelKey)}</Text>
+      {/* GEEN activeIndicator, checkmark, of chevron hier! */}
+    </TouchableOpacity>
+  );
+}
+
+// styles
+moduleButtonActive: {
+  borderWidth: 3,
+  borderColor: colors.textOnPrimary,
+},
+```
+
+**FOUT — checkmark of chevron toegevoegd:**
+```typescript
+// ❌ FOUT: Overbodige indicator naast de border
+{isActive && (
+  <View style={styles.activeIndicator}>
+    <Text>✓</Text>  {/* FOUT: niet nodig */}
+  </View>
+)}
+
+// ❌ FOUT: Chevron suggereert navigatie
+{isActive && <Text>›</Text>}  {/* FOUT: verwarrend */}
+```
+
+### 9c. VELD ICONEN (VERPLICHT)
 
 Alle invoervelden moeten een **uniform icoon** hebben aan de rechterkant om bewerkbaarheid aan te geven.
 
@@ -427,6 +1442,526 @@ sectionTitle: {
 },
 ```
 
+### 10. ICON-ONLY BUTTONS (VERPLICHT)
+
+Iconen zonder begeleidende tekst (bijv. hartje voor favorieten, stop-knop, microfoon) moeten **altijd herkenbaar zijn als knoppen**. Senioren kunnen anders denken dat het decoratieve elementen zijn.
+
+**Waarom dit patroon?**
+- Senioren herkennen vaak niet dat een los icoon een interactief element is
+- Een visuele container maakt duidelijk dat het een knop is
+- Consistente styling door de hele app versterkt de herkenbaarheid
+
+**Visuele specificaties:**
+
+| Staat | Container | Icoon | Beschrijving |
+|-------|-----------|-------|--------------|
+| **Rust (inactief)** | 2px rand in accent kleur, transparante achtergrond | Outline icoon in accent kleur | Standaard staat, bijv. leeg hartje |
+| **Rust (actief)** | 2px rand in accent kleur, transparante achtergrond | Gevuld icoon in accent kleur | Na selectie, bijv. gevuld hartje |
+| **Ingedrukt** | Gevuld met accent kleur | Wit icoon | Tijdens het indrukken |
+| **Flash na release** | Kort (200-300ms) terug naar rust staat | — | Visuele bevestiging |
+
+**Visuele weergave:**
+```
+  Rust (inactief):        Rust (actief):          Ingedrukt:
+  ┌─────────────┐        ┌─────────────┐        ┌─────────────┐
+  │             │        │             │        │█████████████│
+  │    ♡        │        │    ♥        │        │    ♥        │
+  │  (accent)   │        │  (accent)   │        │   (wit)     │
+  │             │        │             │        │█████████████│
+  └─────────────┘        └─────────────┘        └─────────────┘
+   2px accent rand        2px accent rand        accent vulling
+```
+
+**Container specificaties:**
+- **Grootte:** 60×60pt minimum (touchTargets.minimum)
+- **Rand:** 2px, accent kleur (`accentColor.primary`)
+- **Border radius:** `borderRadius.md` (8pt) — vierkant met afgeronde hoeken
+- **Icoon grootte:** 24-32pt afhankelijk van context
+
+**Gedrag:**
+1. **Bij indrukken:** Container vult met accent kleur, icoon wordt wit
+2. **Bij loslaten:** Korte flash (200-300ms), dan terug naar rust staat
+3. **Bij actie (bijv. favoriet toevoegen):** Icoon wisselt van outline naar gevuld
+4. **Bij verwijderen uit favorieten:** Toon bevestigingsdialoog "Weet je dit zeker?"
+
+**Reduced Motion:**
+- Bij `prefers-reduced-motion`: Directe state change, geen flash animatie
+
+**Implementatie — IconButton component:**
+```typescript
+import React, { useState, useCallback } from 'react';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { Icon, IconName } from '@/components';
+import { useAccentColor } from '@/hooks/useAccentColor';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useFeedback } from '@/hooks/useFeedback';
+import { colors, borderRadius, touchTargets } from '@/theme';
+
+interface IconButtonProps {
+  /** Icoon naam (outline versie) */
+  icon: IconName;
+  /** Icoon naam wanneer actief (gevulde versie), optioneel */
+  iconActive?: IconName;
+  /** Of de knop in actieve staat is (bijv. favoriet) */
+  isActive?: boolean;
+  /** Callback bij indrukken */
+  onPress: () => void;
+  /** Accessibility label (VERPLICHT) */
+  accessibilityLabel: string;
+  /** Accessibility hint (optioneel) */
+  accessibilityHint?: string;
+  /** Icoon grootte, standaard 28 */
+  size?: number;
+  /** Disabled staat */
+  disabled?: boolean;
+}
+
+export function IconButton({
+  icon,
+  iconActive,
+  isActive = false,
+  onPress,
+  accessibilityLabel,
+  accessibilityHint,
+  size = 28,
+  disabled = false,
+}: IconButtonProps) {
+  const { accentColor } = useAccentColor();
+  const reduceMotion = useReducedMotion();
+  const { triggerFeedback } = useFeedback();
+  const [isPressed, setIsPressed] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
+
+  const handlePressIn = useCallback(() => {
+    setIsPressed(true);
+  }, []);
+
+  const handlePressOut = useCallback(() => {
+    setIsPressed(false);
+
+    // Flash effect na loslaten (tenzij reduced motion)
+    if (!reduceMotion) {
+      setIsFlashing(true);
+      setTimeout(() => setIsFlashing(false), 250);
+    }
+  }, [reduceMotion]);
+
+  const handlePress = useCallback(async () => {
+    await triggerFeedback('tap');
+    onPress();
+  }, [onPress, triggerFeedback]);
+
+  // Bepaal visuele staat
+  const showFilled = isPressed || isFlashing;
+  const currentIcon = isActive ? (iconActive || icon) : icon;
+  const iconColor = showFilled ? colors.textOnPrimary : accentColor.primary;
+
+  return (
+    <TouchableOpacity
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={disabled}
+      style={[
+        styles.container,
+        { borderColor: accentColor.primary },
+        showFilled && { backgroundColor: accentColor.primary },
+        disabled && styles.disabled,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{
+        selected: isActive,
+        disabled,
+      }}
+    >
+      <Icon name={currentIcon} size={size} color={iconColor} />
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    width: touchTargets.minimum,      // 60pt
+    height: touchTargets.minimum,     // 60pt
+    borderWidth: 2,
+    borderRadius: borderRadius.md,    // 8pt
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+});
+```
+
+**Gebruik in schermen:**
+```typescript
+// Favoriet knop (toggle)
+<IconButton
+  icon="heart"
+  iconActive="heart-filled"
+  isActive={isFavorite}
+  onPress={handleToggleFavorite}
+  accessibilityLabel={
+    isFavorite
+      ? t('radio.removeFavorite', { name: station.name })
+      : t('radio.addFavorite', { name: station.name })
+  }
+/>
+
+// Stop knop (actie)
+<IconButton
+  icon="stop"
+  onPress={handleStop}
+  accessibilityLabel={t('radio.stop')}
+/>
+
+// Microfoon knop (actie)
+<IconButton
+  icon="microphone"
+  onPress={handleStartRecording}
+  accessibilityLabel={t('voice.startRecording')}
+/>
+```
+
+**Bevestigingsdialoog bij verwijderen:**
+```typescript
+const handleToggleFavorite = useCallback(async () => {
+  if (isFavorite) {
+    // Toon bevestigingsdialoog bij verwijderen
+    Alert.alert(
+      t('radio.removeFavoriteTitle'),
+      t('radio.removeFavoriteMessage', { name: station.name }),
+      [
+        { text: t('common.no'), style: 'cancel' },
+        {
+          text: t('common.yes'),
+          onPress: () => removeFavorite(station.id),
+          style: 'destructive',
+        },
+      ]
+    );
+  } else {
+    // Direct toevoegen, geen bevestiging nodig
+    addFavorite(station);
+  }
+}, [isFavorite, station]);
+```
+
+**i18n keys (alle 5 talen):**
+```json
+{
+  "radio": {
+    "addFavorite": "Voeg {{name}} toe aan favorieten",
+    "removeFavorite": "Verwijder {{name}} uit favorieten",
+    "removeFavoriteTitle": "Verwijderen uit favorieten?",
+    "removeFavoriteMessage": "Weet je zeker dat je {{name}} wilt verwijderen uit je favorieten?",
+    "stop": "Stop afspelen"
+  },
+  "common": {
+    "yes": "Ja",
+    "no": "Nee"
+  }
+}
+```
+
+**Regels:**
+1. **ALLE icon-only knoppen:** Moeten dit patroon volgen
+2. **Consistente rand:** 2px, accent kleur, door de hele app
+3. **Container altijd zichtbaar:** Transparante achtergrond met rand in rust
+4. **Haptic feedback:** Bij elke interactie
+5. **Accessibility labels:** VERPLICHT, beschrijf de actie
+6. **Bevestiging bij verwijderen:** Destructieve acties vragen altijd bevestiging
+
+**FOUT — icoon zonder container:**
+```typescript
+// ❌ FOUT: Alleen icoon, niet herkenbaar als knop
+<TouchableOpacity onPress={handleFavorite}>
+  <Icon name="heart" size={28} color={colors.textSecondary} />
+</TouchableOpacity>
+// Senioren zien dit niet als interactief element
+```
+
+**GOED — icoon met container:**
+```typescript
+// ✅ GOED: IconButton met duidelijke container
+<IconButton
+  icon="heart"
+  iconActive="heart-filled"
+  isActive={isFavorite}
+  onPress={handleToggleFavorite}
+  accessibilityLabel={t('radio.addFavorite', { name: station.name })}
+/>
+// Duidelijk herkenbaar als knop
+```
+
+### 11. OVERLAYS EN MODALS (VERPLICHT)
+
+Overlays en modals die content vervangen of verbergen MOETEN een ondoorzichtige achtergrond hebben. Senioren raken verward wanneer ze content "door" een overlay heen kunnen zien.
+
+**Waarom dit patroon?**
+- Transparante overlays suggereren dat de achtergrond nog interactief is
+- Senioren kunnen proberen op achtergrond-elementen te tikken
+- Visuele verwarring leidt tot frustratie en verlaten van de app
+
+**Wanneer ONDOORZICHTIG (opaque):**
+- Player view die de station lijst vervangt
+- Full-screen content views
+- Schermen die navigatie blokkeren
+
+**Wanneer SEMI-TRANSPARANT toegestaan:**
+- Modals met duidelijke afbakening (card-style popup)
+- Tijdelijke meldingen (toasts)
+- Overlay achtergrond met duidelijk focusgebied
+
+**Visuele weergave:**
+```
+  FOUT — Transparante overlay:        GOED — Ondoorzichtige overlay:
+  ┌─────────────────────────┐        ┌─────────────────────────┐
+  │ ▶ Player               │        │ ▶ Player               │
+  │ ┌───────────────────┐  │        │ ┌───────────────────┐  │
+  │ │ NPO Radio 1 (60%) │  │        │ │ NPO Radio 1       │  │
+  │ └───────────────────┘  │        │ └───────────────────┘  │
+  │ ░░░ Lijst zichtbaar ░░░│        │                        │
+  │ ░░░ = VERWARREND    ░░░│        │ Geen afleiding        │
+  └─────────────────────────┘        └─────────────────────────┘
+```
+
+**Implementatie:**
+```typescript
+// ❌ FOUT: Transparante achtergrond
+playerOverlay: {
+  flex: 1,
+  backgroundColor: 'transparent',  // Content zichtbaar door overlay
+  // of: geen backgroundColor
+}
+
+// ✅ GOED: Ondoorzichtige achtergrond
+playerOverlay: {
+  flex: 1,
+  backgroundColor: colors.background,  // Volledige dekking
+  width: '100%',  // Volledige breedte
+}
+```
+
+**Regels:**
+1. **Content-vervangende overlays:** ALTIJD ondoorzichtige achtergrond (`colors.background`)
+2. **Full-width:** Overlays die content vervangen moeten 100% breedte hebben
+3. **Consistente kleuren:** Gebruik `colors.background` of `colors.surface`, geen custom kleuren
+4. **Modals:** Semi-transparante achtergrond (60-80% zwart) MET ondoorzichtige content card
+5. **Test:** Verifieer dat gebruikers niet proberen op achtergrond te tikken
+
+**Modal achtergrond vs content:**
+```typescript
+// Modal met semi-transparante achtergrond + ondoorzichtige content
+modalOverlay: {
+  backgroundColor: 'rgba(0, 0, 0, 0.6)',  // Dimmed achtergrond OK
+},
+modalContent: {
+  backgroundColor: colors.surface,  // Content card MOET ondoorzichtig zijn
+  borderRadius: borderRadius.lg,
+  padding: spacing.xl,
+}
+```
+
+### 12. MODULE HEADERS (VERPLICHT)
+
+Elk module scherm MOET een consistente header hebben die:
+- De module identificeert met een kleur uit het navigatie wiel
+- Een icoon + titel toont
+- Visuele consistentie biedt tussen alle modules
+
+**Waarom dit patroon?**
+- Senioren moeten direct weten "waar ben ik?"
+- Consistente headers verminderen cognitieve belasting
+- Kleurcodering helpt bij snelle herkenning
+- Sterke visuele hiërarchie ondersteunt oriëntatie
+
+**Visuele weergave:**
+```
+┌─────────────────────────────────────┐
+│        🎵 Radio                     │ ← Module header (groen, gecentreerd)
+├─────────────────────────────────────┤
+│  [❤️ Favorieten] [🔍 Zoeken]        │ ← Tab bar (altijd zichtbaar)
+├─────────────────────────────────────┤
+│                                     │
+│  Content area...                    │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**Module kleuren (consistent met WheelNavigationMenu):**
+| Module | Kleur | Hex |
+|--------|-------|-----|
+| Radio | Teal | #00897B |
+| Podcast | Deep Purple | #5E35B1 |
+| Audioboek | Indigo | #3949AB |
+| eBook | Brown | #6D4C41 |
+| Berichten | Blue | #1E88E5 |
+| Bellen | Green | #43A047 |
+| Videobellen | Orange | #FB8C00 |
+| Contacten | Purple | #8E24AA |
+| Instellingen | Gray | #546E7A |
+
+**Implementatie:**
+```typescript
+// Definieer module kleur consistent met navigatie
+const MODULE_COLOR = '#00897B';  // Match WheelNavigationMenu
+
+// In component return:
+<View style={styles.container}>
+  {/* Module Header — consistent met navigatie menu, gecentreerd */}
+  <View style={[
+    styles.moduleHeader,
+    { backgroundColor: MODULE_COLOR, paddingTop: insets.top + spacing.sm }
+  ]}>
+    <View style={styles.moduleHeaderContent}>
+      <Icon name="radio" size={28} color={colors.textOnPrimary} />
+      <Text style={styles.moduleTitle}>{t('modules.radio.title')}</Text>
+    </View>
+  </View>
+
+  {/* Rest van de content */}
+</View>
+
+// Styles:
+const styles = StyleSheet.create({
+  moduleHeader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  moduleHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moduleTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
+  },
+});
+```
+
+**Regels:**
+1. **Kleur uit navigatie:** Module header kleur MOET overeenkomen met WheelNavigationMenu kleur
+2. **Icoon + titel:** Altijd beide tonen voor maximale herkenbaarheid
+3. **Gecentreerd:** Header content horizontaal gecentreerd
+4. **Safe area:** `paddingTop: insets.top + spacing.sm` voor safe area
+5. **Consistente typography:** Gebruik `typography.h3` met `fontWeight: '700'`
+6. **Geen navigatie in header:** Back button/navigatie via app-level navigatie, niet in module header
+
+**Checklist voor modules:**
+- [ ] Module header aanwezig met correcte kleur
+- [ ] Icoon + titel gecentreerd
+- [ ] Safe area padding toegepast
+- [ ] Kleur consistent met WheelNavigationMenu
+- [ ] Titel via i18n (`t('modules.[name].title')`)
+
+### 13. NAVIGATIE EN CLOSE BUTTONS (VERPLICHT)
+
+Navigatie-elementen zoals "terug", "sluiten", "klap in" (collapse) zijn **knoppen** en moeten als zodanig gestyled worden met het IconButton pattern. Senioren kunnen anders niet herkennen dat deze elementen interactief zijn.
+
+**Waarom dit patroon?**
+- Een los icoon (bijv. chevron-down, X) ziet er niet uit als een knop
+- Senioren herkennen navigatie-iconen vaak niet als interactief
+- Consistentie met IconButton pattern door de hele app
+- Duidelijke touch targets en visuele feedback
+
+**Wanneer toepassen:**
+| Element | Icoon | Gebruik |
+|---------|-------|---------|
+| **Sluit modal/overlay** | `chevron-down` of `close` | Player sluiten, modal sluiten |
+| **Terug navigatie** | `chevron-left` of `arrow-left` | Terug naar vorig scherm |
+| **Verberg/collapse** | `chevron-down` | Uitgevouwen content inklappen |
+| **Annuleren** | `close` of `x` | Actie annuleren, dialoog sluiten |
+
+**Visuele specificaties (conform IconButton Section 10):**
+- **Container:** 60×60pt minimum (`touchTargets.minimum`)
+- **Rand:** 2px in accent kleur
+- **Achtergrond:** Transparant in rust, accent kleur bij indrukken
+- **Icoon:** Accent kleur in rust, wit bij indrukken
+
+**FOUT — los icoon zonder container:**
+```typescript
+// ❌ FOUT: Icoon zonder duidelijke knop-container
+<TouchableOpacity
+  style={styles.closeButton}
+  onPress={handleClose}
+>
+  <Icon name="chevron-down" size={32} color={colors.textPrimary} />
+</TouchableOpacity>
+
+// Style die NIET werkt:
+closeButton: {
+  padding: spacing.md,  // Geen zichtbare rand!
+}
+```
+
+**GOED — IconButton component:**
+```typescript
+// ✅ GOED: IconButton met zichtbare container
+<View style={styles.closeButtonContainer}>
+  <IconButton
+    icon="chevron-down"
+    onPress={handleClose}
+    accessibilityLabel={t('common.close')}
+    accessibilityHint={t('common.closeHint')}
+    size={28}
+  />
+</View>
+
+// Container voor absolute positionering
+closeButtonContainer: {
+  position: 'absolute',
+  top: spacing.md,
+  left: spacing.md,  // of right: spacing.md
+  zIndex: 10,
+}
+```
+
+**Positionering conventies:**
+| Type | Positie | Voorbeeld |
+|------|---------|-----------|
+| **Modal sluiten** | Links-boven | Expanded player, full-screen modals |
+| **Terug navigatie** | Links-boven | Detail schermen |
+| **Dialoog sluiten** | Rechts-boven | Alert dialogen, pop-ups |
+
+**Regels:**
+1. **ALLE navigatie-iconen:** Moeten IconButton pattern volgen
+2. **Zichtbare container:** Transparante achtergrond met 2px accent rand
+3. **Touch target:** Minimaal 60×60pt
+4. **Positionering:** Consistent (links-boven voor terug/sluiten)
+5. **Accessibility:** Label EN hint verplicht
+6. **i18n:** Labels in alle 5 talen
+
+**i18n keys (alle 5 talen):**
+```json
+{
+  "common": {
+    "close": "Sluiten",
+    "closeHint": "Tik om te sluiten",
+    "back": "Terug",
+    "backHint": "Tik om terug te gaan",
+    "collapse": "Inklappen",
+    "collapseHint": "Tik om in te klappen"
+  }
+}
+```
+
+**Checklist voor navigatie buttons:**
+- [ ] IconButton component gebruikt (niet losse TouchableOpacity + Icon)
+- [ ] 60×60pt container met 2px accent rand
+- [ ] Positionering consistent (links-boven voor close/back)
+- [ ] accessibilityLabel aanwezig
+- [ ] accessibilityHint aanwezig
+- [ ] i18n keys in alle 5 talen
+
 ## Store Compliance — UI
 
 - [ ] iOS: All screens adapted for iPhone SE, iPhone 15 Pro Max, iPad (split view)
@@ -536,6 +2071,7 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 
 - [ ] All text ≥ 18pt (body), ≥ 24pt (headings)
 - [ ] All touch targets ≥ 60×60pt
+- [ ] All status badges/indicators ≥ 28pt diameter met icoon ≥ 20pt (bijv. completed checkmarks, new badges, notification dots)
 - [ ] Contrast ≥ 7:1 (AAA) for body text
 - [ ] Colour never sole indicator (icon/text always paired)
 - [ ] Dynamic Type / font scaling tested at 200%
@@ -554,13 +2090,548 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 - [ ] Uniforme iconen: ✏️ potlood voor profielvelden, › chevron alleen voor navigatie
 - [ ] Keyboard avoidance: KeyboardAvoidingView + auto-scroll bij focus
 - [ ] Invoervelden altijd zichtbaar boven toetsenbord
+- [ ] Zoekvelden: ZOWEL toetsenbord "Zoek" ALS zichtbare zoekknop (beide triggeren zelfde functie)
+- [ ] Zoekvelden: `search` icoon (vergrootglas) in zichtbare knop, NOOIT cirkel of ander icoon
+- [ ] Module screen headers: icoon + naam + module kleur achtergrond (consistent met navigatiemenu)
+- [ ] Module screen headers: safe area insets gerespecteerd, tekst in wit
+- [ ] Tab/toggle selectors: actieve tab = accent achtergrond, inactieve tab = dunne rand
+- [ ] Tab/toggle selectors: iconen + labels, persoonlijke termen ("Mijn zenders" i.p.v. "Favorieten")
+- [ ] Klikbare lijstitems: `borderWidth: 1, borderColor: colors.border` (zichtbare rand voor affordance)
+- [ ] Klikbare lijstitems: `borderRadius: borderRadius.md`, minimale hoogte 60pt
 - [ ] Hold-to-Navigate werkt op ALLE schermen (geen uitzonderingen)
 - [ ] Hold-to-Navigate onboarding introductie aanwezig
 - [ ] longPressDelay instelbaar in Toegankelijkheid settings
 - [ ] Menu button positie is verplaatsbaar (lang drukken + slepen)
 - [ ] Menu button positie wordt opgeslagen en onthouden
 - [ ] Menu button snapt naar schermrand na verplaatsen
+- [ ] **Double-action prevention:** Alle TouchableOpacity binnen scrollable content hebben `onLongPress={() => {}}`
+- [ ] **Double-action prevention:** `delayLongPress={300}` ingesteld op tappable lijst items
+- [ ] **Double-action test:** Long-press opent ALLEEN menu, niet onderliggende actie
+- [ ] Wheel Navigation Menu: actieve module heeft ALLEEN witte border (GEEN checkmark/chevron)
+- [ ] Wheel Navigation Menu: modules in sets van 4 met "Meer"/"Terug" paginering
+- [ ] Wheel Navigation Menu: module usage tracking via useModuleUsage hook
+- [ ] Icon-only buttons: 60×60pt container met 2px accent rand (GEEN losse iconen)
+- [ ] Icon-only buttons: ingedrukt = accent vulling + wit icoon
+- [ ] Icon-only buttons: flash animatie na loslaten (respecteert reduced motion)
+- [ ] Icon-only buttons: bevestigingsdialoog bij verwijderen uit favorieten
+- [ ] Overlays: content-vervangende overlays hebben ondoorzichtige achtergrond (colors.background)
+- [ ] Overlays: geen transparante achtergrond wanneer lijst/content zichtbaar zou zijn
+- [ ] Navigatie buttons: IconButton component gebruikt (GEEN losse TouchableOpacity + Icon)
+- [ ] Navigatie buttons: 60×60pt container met 2px accent rand
+- [ ] Navigatie buttons: positionering consistent (links-boven voor close/back)
+- [ ] Navigatie buttons: accessibilityLabel EN accessibilityHint aanwezig
 - [ ] Tested with 5 senior users (65-80) on working prototype
+
+### Voice Interaction Checklist (VERPLICHT voor alle modules)
+- [ ] **Lijsten >3 items:** VoiceFocusable wrappers aanwezig
+- [ ] **Voice Focus styling:** 4px accent border + 10% tint + pulserende animatie
+- [ ] **Voice labels:** Menselijke namen (niet technische IDs)
+- [ ] **Lijst navigatie:** "volgende"/"vorige" werkt door hele lijst
+- [ ] **Multi-match navigatie:** Bij meerdere matches navigeert "volgende" binnen matches
+- [ ] **Word-level matching:** "maria" matcht "Tante Maria" (score 0.88)
+- [ ] **Voice feedback toast:** Niet-herkende commands tonen feedback (2.5s auto-hide)
+- [ ] **Send command:** "stuur"/"verzend" werkt in chat schermen
+- [ ] **Formulieren:** Alle velden voice-dicteerbaar (`VoiceTextField`)
+- [ ] **Formulier commands:** "pas aan", "wis", "dicteer", "bevestig" werken
+- [ ] **Primaire acties:** Voice-triggerable via `useVoiceAction`
+- [ ] **Destructieve acties:** Voice confirmation dialog aanwezig
+- [ ] **Synoniemen:** Min. 2 synoniemen per command per taal
+- [ ] **i18n:** Alle voice commands in 5 talen gedefinieerd
+- [ ] **Feedback:** Haptic + audio bij voice acties
+- [ ] **Settings integratie:** Nieuwe commands toegevoegd aan voice settings schema
+
+## Lessons Learned — Radio Module (februari 2026)
+
+### 1. Full-Screen Players Blokkeren Navigatie
+
+**Probleem:** Senioren konden niet wisselen tussen tabs/zoeken terwijl muziek speelde omdat de player het hele scherm bedekte.
+
+**Oplossing:** Mini-player pattern met expandable modal:
+- Content lijst ALTIJD zichtbaar
+- Mini-player bar aan onderkant (niet blokkerend)
+- Tap op mini-player → expand naar full-screen modal
+- Modal kan altijd gesloten worden
+
+**Regel:** Media players mogen NOOIT de content list blokkeren.
+
+### 1b. Expanded Player Modal Pattern
+
+**Visuele specificaties:**
+- Ondoorzichtige achtergrond (`colors.background`) — geen transparantie
+- Artwork groot en gecentreerd (200×200pt)
+- Station naam in `typography.h2`
+- Metadata (land, tags) in `typography.small` met `textSecondary`
+- Controls onderaan: Play/Pause + Stop + Favorite
+- **Close button:** IconButton met `chevron-down` icoon, links-boven gepositioneerd
+
+**Implementatie:**
+```typescript
+<Modal visible={isPlayerExpanded} animationType="slide">
+  <SafeAreaView style={styles.expandedPlayer}>
+    {/* Close button — IconButton component! */}
+    <View style={styles.closeButtonContainer}>
+      <IconButton
+        icon="chevron-down"
+        onPress={() => setIsPlayerExpanded(false)}
+        accessibilityLabel={t('common.close')}
+        accessibilityHint={t('common.closeHint')}
+      />
+    </View>
+
+    {/* Artwork */}
+    <Image source={{ uri: station.favicon }} style={styles.expandedArtwork} />
+
+    {/* Station info */}
+    <Text style={styles.expandedTitle}>{station.name}</Text>
+    <Text style={styles.expandedMeta}>{station.country}</Text>
+
+    {/* Controls */}
+    <View style={styles.expandedControls}>
+      <IconButton icon="play" onPress={handlePlay} />
+      <IconButton icon="stop" onPress={handleStop} />
+      <IconButton
+        icon="heart"
+        iconActive="heart-filled"
+        isActive={isFavorite}
+        onPress={handleToggleFavorite}
+      />
+    </View>
+  </SafeAreaView>
+</Modal>
+```
+
+### 2. Navigatie/Close Buttons Moeten IconButton Zijn (Section 13)
+
+**Probleem:** Chevron-down icoon voor "sluiten" was niet herkenbaar als knop voor senioren.
+
+**Oplossing:** IconButton pattern toegepast:
+- 60×60pt container
+- 2px accent border
+- Accent fill bij press
+- accessibilityLabel + accessibilityHint
+
+**Regel:** ALLE navigatie-iconen (close, back, collapse) moeten IconButton component gebruiken.
+
+### 3. Error Banners Moeten Dismissable Zijn
+
+**Probleem:** Playback errors moesten getoond worden zonder de flow te blokkeren.
+
+**Oplossing:** Inline error banner pattern:
+```typescript
+{playbackError && (
+  <View style={styles.playbackErrorBanner}>
+    <Icon name="warning" />
+    <View style={styles.errorTextContainer}>
+      <Text style={styles.errorTitle}>{t('...')}</Text>
+      <Text style={styles.errorMessage}>{t('...')}</Text>
+    </View>
+    <TouchableOpacity onPress={() => setPlaybackError(null)}>
+      <Icon name="close" />
+    </TouchableOpacity>
+  </View>
+)}
+```
+
+**Styling:**
+- `backgroundColor: colors.errorBackground`
+- `borderColor: colors.error`
+- Dismiss button met 60×60pt touch target
+- Auto-clear bij succesvolle actie
+
+### 4. Tab/Toggle Selectors voor Module Views
+
+**Pattern:** "Mijn zenders" vs "Zoeken" tabs met consistente styling:
+- **Actieve tab:** Accent background, wit tekst, icoon
+- **Inactieve tab:** Transparant, dunne border, accent tekst/icoon
+- **Labels:** Persoonlijke termen ("Mijn zenders" niet "Favorieten")
+- **Touch targets:** Minimaal 60pt hoogte
+
+### 5. Floating Elements Vereisen Content Padding
+
+**Probleem:** Mini-player verborg laatste items in de lijst.
+
+**Oplossing:** Dynamische bottom padding:
+```typescript
+contentContainerStyle={[
+  styles.listContent,
+  hasFloatingElement && { paddingBottom: FLOATING_HEIGHT + spacing.md }
+]}
+```
+
+### 6. Module Headers met Kleur-Codering
+
+**Pattern:** Elke module heeft eigen herkenbare kleur (consistent met WheelNavigationMenu):
+- Radio: `#00897B` (teal)
+- Podcast: `#5E35B1` (paars)
+- Etc.
+
+**Implementatie:**
+```typescript
+<View style={[styles.moduleHeader, { backgroundColor: MODULE_COLOR }]}>
+  <Icon name="radio" color={colors.textOnPrimary} />
+  <Text style={styles.moduleTitle}>{t('modules.radio.title')}</Text>
+</View>
+```
+
+### 7. MediaIndicator Component voor Cross-Module Media Awareness
+
+**Probleem:** Gebruikers die muziek/podcast/gesprek hebben lopen en naar een andere module navigeren, moeten weten dat er media actief is — maar een grote banner bovenaan alle schermen was storend.
+
+**Oplossing:** MediaIndicator component in module headers:
+- **Compact design:** Klein geanimeerd icoon (16×16pt) in de module header
+- **Toont alleen bij actieve media:** Verbergt zichzelf als geen media actief
+- **Pulserende animatie:** Valt op zonder storend te zijn
+- **Tappable:** Navigeert naar de bron-module
+- **currentSource prop:** Voorkomt dubbele indicator in de bron-module zelf
+
+**Visuele weergave:**
+```
+┌─────────────────────────────────────┐
+│        📻  Radio   🔊               │  ← Kleine pulserende indicator
+├─────────────────────────────────────┤     (alleen als media elders speelt)
+│  [❤️ Favorieten] [🔍 Zoeken]        │
+```
+
+**Implementatie:**
+```typescript
+// In module header
+<View style={styles.moduleHeader}>
+  <View style={styles.moduleHeaderContent}>
+    <Icon name="radio" size={28} color={colors.textOnPrimary} />
+    <Text style={styles.moduleTitle}>{t('modules.radio.title')}</Text>
+    {/* MediaIndicator — verbergt zichzelf als bron == currentSource */}
+    <MediaIndicator currentSource="radio" />
+  </View>
+</View>
+```
+
+**Component interface:**
+```typescript
+// src/components/MediaIndicator.tsx
+interface MediaIndicatorProps {
+  /** Huidige module — voorkomt dubbele indicator in bron-module */
+  currentSource?: 'radio' | 'podcast' | 'audiobook' | 'call' | 'videocall';
+}
+
+// Gedrag:
+// - Als radio speelt en currentSource="radio" → verbergt zichzelf
+// - Als radio speelt en currentSource="podcast" → toont radio indicator
+// - Tappable: navigeert naar actieve media module
+```
+
+**Animatie (respecteert reduced motion):**
+```typescript
+// Pulserende animatie
+useEffect(() => {
+  if (!isActive || reduceMotion) return;
+
+  const animation = Animated.loop(
+    Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 1.2, duration: 600, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1.0, duration: 600, useNativeDriver: true }),
+    ])
+  );
+  animation.start();
+  return () => animation.stop();
+}, [isActive, reduceMotion]);
+```
+
+**Regel:** Elke media-producerende module MOET:
+1. Zijn status registreren in een context (bijv. RadioContext)
+2. MediaIndicator toevoegen aan de module header met correcte `currentSource`
+
+### 8. Welcome Modal voor First-Time Users
+
+**Probleem:** Senioren weten niet hoe een nieuwe module werkt — ze verlaten de app als eerste indruk verwarrend is.
+
+**Oplossing:** Welcome Modal met genummerde stappen bij eerste gebruik:
+- Modal verschijnt EENMALIG bij eerste bezoek aan module
+- Genummerde stappen (1, 2, 3...) met duidelijke uitleg
+- Elke stap: nummer in cirkel + korte instructie
+- Één "Begrepen" knop onderaan (geen meerdere knoppen)
+- Opgeslagen in AsyncStorage: `{module}_welcome_shown`
+
+**Visuele weergave:**
+```
+┌─────────────────────────────────────┐
+│                                     │
+│         Welkom bij Radio!           │
+│                                     │
+│  ① Zoek een zender via "Zoeken"     │
+│                                     │
+│  ② Tik op een zender om te          │
+│     luisteren                       │
+│                                     │
+│  ③ Voeg favorieten toe met het      │
+│     hartje                          │
+│                                     │
+│                                     │
+│      [ ✓ Begrepen ]                 │  ← Primaire button
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**Implementatie:**
+```typescript
+// Check of welcome al getoond is
+const [showWelcome, setShowWelcome] = useState(false);
+
+useEffect(() => {
+  AsyncStorage.getItem('radio_welcome_shown').then((value) => {
+    if (!value) setShowWelcome(true);
+  });
+}, []);
+
+const handleDismissWelcome = async () => {
+  await AsyncStorage.setItem('radio_welcome_shown', 'true');
+  setShowWelcome(false);
+};
+
+// Welcome Modal
+<Modal visible={showWelcome} transparent animationType="fade">
+  <View style={styles.welcomeOverlay}>
+    <View style={styles.welcomeContent}>
+      <Text style={styles.welcomeTitle}>{t('modules.radio.welcomeTitle')}</Text>
+
+      {/* Genummerde stappen */}
+      <View style={styles.welcomeStep}>
+        <View style={styles.stepNumber}><Text style={styles.stepNumberText}>1</Text></View>
+        <Text style={styles.stepText}>{t('modules.radio.welcomeStep1')}</Text>
+      </View>
+      {/* ... meer stappen ... */}
+
+      <Button
+        title={t('common.understood')}
+        onPress={handleDismissWelcome}
+        variant="primary"
+      />
+    </View>
+  </View>
+</Modal>
+```
+
+**i18n keys:**
+```json
+{
+  "modules": {
+    "radio": {
+      "welcomeTitle": "Welkom bij Radio!",
+      "welcomeStep1": "Zoek een zender via \"Zoeken\" of kies een land",
+      "welcomeStep2": "Tik op een zender om te luisteren",
+      "welcomeStep3": "Voeg favorieten toe met het hartje"
+    }
+  },
+  "common": {
+    "understood": "Begrepen"
+  }
+}
+```
+
+**Regel:** ELKE nieuwe module MOET een Welcome Modal hebben voor first-time users.
+
+### 9. Error Banners met TEXT Dismiss Button
+
+**Probleem:** Inline errors moeten dismissable zijn, maar icon-only dismiss buttons zijn niet herkenbaar voor senioren.
+
+**Oplossing:** Error banner met TEKST button voor dismiss:
+- Banner met warning icoon + titel + message
+- **Dismiss button met TEKST** ("Negeer" / "Sluiten"), niet alleen een X icoon
+- Tekst button is duidelijker voor senioren dan een losstaand X icoon
+- Auto-clear bij succesvolle actie (bijv. playback start)
+
+**Visuele weergave:**
+```
+┌─────────────────────────────────────────────────────┐
+│ ⚠️  Zender niet bereikbaar                          │
+│     Controleer je internetverbinding                │
+│                                           [Negeer]  │  ← TEKST button
+└─────────────────────────────────────────────────────┘
+```
+
+**Implementatie:**
+```typescript
+{playbackError && (
+  <View style={styles.errorBanner}>
+    <Icon name="warning" size={24} color={colors.error} />
+    <View style={styles.errorTextContainer}>
+      <Text style={styles.errorTitle}>{t('modules.radio.playbackErrorTitle')}</Text>
+      <Text style={styles.errorMessage}>{t('modules.radio.playbackErrorMessage')}</Text>
+    </View>
+    {/* TEKST button voor dismiss — niet icon-only! */}
+    <TouchableOpacity
+      style={styles.errorDismissButton}
+      onPress={() => setPlaybackError(null)}
+      accessibilityLabel={t('common.dismiss')}
+    >
+      <Text style={styles.errorDismissText}>{t('common.dismiss')}</Text>
+    </TouchableOpacity>
+  </View>
+)}
+
+// Styles
+errorBanner: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: colors.errorBackground,
+  borderWidth: 1,
+  borderColor: colors.error,
+  borderRadius: borderRadius.md,
+  padding: spacing.md,
+  marginHorizontal: spacing.md,
+  marginBottom: spacing.md,
+},
+errorDismissButton: {
+  minWidth: touchTargets.minimum,
+  minHeight: touchTargets.minimum,
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: spacing.md,
+},
+errorDismissText: {
+  ...typography.body,
+  color: colors.error,
+  fontWeight: '600',
+},
+```
+
+**i18n keys:**
+```json
+{
+  "common": {
+    "dismiss": "Negeer"
+  }
+}
+```
+
+**Regel:** Error dismiss buttons MOETEN tekst hebben, niet alleen een icoon.
+
+### 10. Horizontal Scroll Selector (Country/Category Chips)
+
+**Probleem:** Lange lijsten met landen/categorieën nemen te veel verticale ruimte in.
+
+**Oplossing:** Horizontaal scrollende chips:
+- ScrollView met `horizontal={true}`
+- Chips met module-kleur achtergrond (actief) of border (inactief)
+- Touch targets: minimaal 44pt hoogte
+- Eerste chip is "Alle" / "Populair" als default
+
+**Visuele weergave:**
+```
+┌─────────────────────────────────────────────────────┐
+│  [Alle] [🇳🇱 NL] [🇧🇪 BE] [🇩🇪 DE] [🇫🇷 FR] →      │
+└─────────────────────────────────────────────────────┘
+     ↑ actief        ↑ inactief (scrollbaar)
+```
+
+**Implementatie:**
+```typescript
+<ScrollView
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={styles.countryChipsContainer}
+>
+  {/* "Alle" chip als eerste optie */}
+  <TouchableOpacity
+    style={[
+      styles.countryChip,
+      !selectedCountry && { backgroundColor: MODULE_COLOR },
+      selectedCountry && styles.countryChipInactive,
+    ]}
+    onPress={() => setSelectedCountry(null)}
+    accessibilityRole="radio"
+    accessibilityState={{ selected: !selectedCountry }}
+  >
+    <Text style={[
+      styles.countryChipText,
+      !selectedCountry && { color: colors.textOnPrimary },
+    ]}>
+      {t('common.all')}
+    </Text>
+  </TouchableOpacity>
+
+  {/* Land chips */}
+  {countries.map((country) => (
+    <TouchableOpacity
+      key={country.code}
+      style={[
+        styles.countryChip,
+        selectedCountry === country.code && { backgroundColor: MODULE_COLOR },
+        selectedCountry !== country.code && styles.countryChipInactive,
+      ]}
+      onPress={() => setSelectedCountry(country.code)}
+    >
+      <Text style={styles.countryFlag}>{country.flag}</Text>
+      <Text style={styles.countryChipText}>{country.code}</Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
+
+// Styles
+countryChipsContainer: {
+  paddingHorizontal: spacing.md,
+  paddingVertical: spacing.sm,
+  gap: spacing.sm,
+},
+countryChip: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingHorizontal: spacing.md,
+  paddingVertical: spacing.sm,
+  borderRadius: borderRadius.full,
+  minHeight: 44,
+  gap: spacing.xs,
+},
+countryChipInactive: {
+  backgroundColor: colors.surface,
+  borderWidth: 1,
+  borderColor: colors.border,
+},
+```
+
+**Accessibility:**
+- `accessibilityRole="radio"` voor selectie
+- `showsHorizontalScrollIndicator={false}` — indicator is te klein voor senioren
+- Voice navigatie: "volgende land" / "vorige land" commando's
+
+**Regel:** Horizontale selectors MOETEN een "Alle" optie hebben als eerste item.
+
+### 11. Buffering State UI Pattern
+
+**Probleem:** Gebruikers weten niet of de app bezig is of vastgelopen is.
+
+**Oplossing:** Duidelijke buffering indicator:
+- Pulserende animatie (respecteert reduced motion)
+- Tekst: "Laden..." / "Buffering..."
+- Vervang play-icoon door ActivityIndicator
+
+**Implementatie:**
+```typescript
+// In mini-player of expanded player
+{isBuffering ? (
+  <View style={styles.bufferingContainer}>
+    <ActivityIndicator size="small" color={colors.textOnPrimary} />
+    <Text style={styles.bufferingText}>{t('common.loading')}</Text>
+  </View>
+) : (
+  <IconButton icon={isPlaying ? 'pause' : 'play'} onPress={handlePlayPause} />
+)}
+
+// Pulserende animatie voor artwork tijdens buffering
+useEffect(() => {
+  if (!isBuffering || reduceMotion) return;
+
+  const animation = Animated.loop(
+    Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 0.7, duration: 500, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1.0, duration: 500, useNativeDriver: true }),
+    ])
+  );
+  animation.start();
+  return () => animation.stop();
+}, [isBuffering, reduceMotion]);
+```
+
+**Regel:** ALLE media players MOETEN een buffering state tonen.
 
 ## Collaboration
 

@@ -18,6 +18,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
 interface TextInputProps extends Omit<RNTextInputProps, 'style'> {
   label?: string;
@@ -27,7 +28,8 @@ interface TextInputProps extends Omit<RNTextInputProps, 'style'> {
 }
 
 export const TextInput = forwardRef<RNTextInput, TextInputProps>(
-  ({ label, hint, error, containerStyle, ...props }, ref) => {
+  function TextInputInner({ label, hint, error, containerStyle, ...props }, ref) {
+    const { accentColor } = useAccentColor();
     const hasError = Boolean(error);
 
     return (
@@ -41,7 +43,7 @@ export const TextInput = forwardRef<RNTextInput, TextInputProps>(
           ref={ref}
           style={[styles.input, hasError && styles.inputError]}
           placeholderTextColor={colors.textTertiary}
-          selectionColor={colors.primary}
+          selectionColor={accentColor.primary}
           accessibilityLabel={label}
           accessibilityHint={hint}
           {...props}

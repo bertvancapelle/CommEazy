@@ -7,12 +7,19 @@
  * - Large name text (h3)
  * - Minimal visual elements (photo + name only)
  * - VoiceOver support
+ * - Voice Session Mode navigation (see Voice Control section)
+ *
+ * Voice Control (VERPLICHT voor lijsten >3 items):
+ * - "volgende"/"vorige" navigeert door de lijst
+ * - "Oma" focust direct op contact "Oma" (fuzzy matching)
+ * - "Letter M" springt naar eerste contact met M
+ * - "open" selecteert het gefocuste contact
  *
  * @see .claude/skills/ui-designer/SKILL.md
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,24 +30,65 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, LoadingView } from '@/components';
+import { ContactAvatar, LoadingView, Icon, MediaIndicator } from '@/components';
+import { VoiceFocusable } from '@/components/VoiceFocusable';
+import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import type { Contact } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactList'>;
 
+// Module color (consistent with WheelNavigationMenu)
+const CONTACTS_MODULE_COLOR = '#2E7D32';
+
 export function ContactListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const isFocused = useIsFocused(); // Track if this screen is focused
+  const insets = useSafeAreaInsets();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Voice focus navigation handler
+  const handleContactPress = useCallback(
+    (contact: Contact) => {
+      navigation.navigate('ContactDetail', { jid: contact.jid });
+    },
+    [navigation]
+  );
+
+  // Build voice focusable items from filtered contacts
+  // IMPORTANT: Only provide items when screen is focused to prevent
+  // registering the list when user is on a different tab
+  const voiceFocusItems: VoiceFocusableItem[] = useMemo(() => {
+    console.log(`[ContactListScreen] voiceFocusItems memo - isFocused: ${isFocused}, contacts: ${filteredContacts.length}`);
+    if (!isFocused) {
+      // Screen not focused - return empty array to prevent registration
+      console.log('[ContactListScreen] Screen not focused, returning empty items');
+      return [];
+    }
+    return filteredContacts.map((contact, index) => ({
+      id: contact.jid,
+      label: contact.name, // Human-readable name for voice matching
+      index,
+      onSelect: () => handleContactPress(contact),
+    }));
+  }, [filteredContacts, handleContactPress, isFocused]);
+
+  // Register list for voice focus navigation
+  // VoiceFocusable components handle their own focus styling
+  const { scrollRef } = useVoiceFocusList(
+    'contact-list',
+    voiceFocusItems
+  );
 
   // Load contacts (mock data in dev mode)
   useEffect(() => {
@@ -96,48 +144,53 @@ export function ContactListScreen() {
     setTimeout(() => setRefreshing(false), 500);
   }, []);
 
-  const handleContactPress = useCallback(
-    (contact: Contact) => {
-      navigation.navigate('ContactDetail', { jid: contact.jid });
-    },
-    [navigation]
-  );
-
   const handleAddContact = useCallback(() => {
     navigation.navigate('AddContact' as never);
   }, [navigation]);
 
   const renderContactItem = useCallback(
-    (item: Contact) => (
-      <TouchableOpacity
-        key={item.jid}
-        style={styles.contactItem}
-        onPress={() => handleContactPress(item)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={item.name}
-        accessibilityHint={t('accessibility.openContact', { name: item.name })}
-      >
-        {/* Profile photo */}
-        <ContactAvatar
-          name={item.name}
-          photoUrl={item.photoUrl}
-          size={60}
-        />
+    (item: Contact, index: number) => {
+      // Note: VoiceFocusable now handles focus styling with animated border
+      // We don't need to apply focus styles here anymore
 
-        {/* Name - large and clear */}
-        <Text
-          style={styles.contactName}
-          numberOfLines={1}
-          ellipsizeMode="tail"
+      return (
+        <VoiceFocusable
+          key={item.jid}
+          id={item.jid}
+          label={item.name}
+          index={index}
+          onSelect={() => handleContactPress(item)}
         >
-          {item.name}
-        </Text>
+          <TouchableOpacity
+            style={styles.contactItem}
+            onPress={() => handleContactPress(item)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={item.name}
+            accessibilityHint={t('accessibility.openContact', { name: item.name })}
+          >
+            {/* Profile photo */}
+            <ContactAvatar
+              name={item.name}
+              photoUrl={item.photoUrl}
+              size={60}
+            />
 
-        {/* Chevron indicator */}
-        <Text style={styles.chevron}>›</Text>
-      </TouchableOpacity>
-    ),
+            {/* Name - large and clear */}
+            <Text
+              style={styles.contactName}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.name}
+            </Text>
+
+            {/* Chevron indicator */}
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+        </VoiceFocusable>
+      );
+    },
     [handleContactPress, t]
   );
 
@@ -165,6 +218,18 @@ export function ContactListScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Module Header — consistent with navigation menu, centered */}
+      <View style={[styles.moduleHeader, { backgroundColor: CONTACTS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.moduleHeaderContent}>
+          <Icon name="contacts" size={28} color={colors.textOnPrimary} />
+          <Text style={styles.moduleTitle}>{t('tabs.contacts')}</Text>
+        </View>
+        {/* Media indicator — shows when audio/video is playing */}
+        <View style={styles.mediaIndicatorContainer}>
+          <MediaIndicator moduleColor={CONTACTS_MODULE_COLOR} />
+        </View>
+      </View>
+
       {/* Search bar */}
       <View style={styles.searchContainer}>
         <TextInput
@@ -181,8 +246,9 @@ export function ContactListScreen() {
         />
       </View>
 
-      {/* Contact list */}
+      {/* Contact list with voice focus navigation */}
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={
           filteredContacts.length === 0 ? styles.emptyListContent : undefined
         }
@@ -199,7 +265,7 @@ export function ContactListScreen() {
         {filteredContacts.length === 0 ? (
           renderEmptyList()
         ) : (
-          filteredContacts.map(renderContactItem)
+          filteredContacts.map((contact, index) => renderContactItem(contact, index))
         )}
       </ScrollView>
 
@@ -223,6 +289,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  moduleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  moduleHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moduleTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+  },
+  mediaIndicatorContainer: {
+    position: 'absolute',
+    right: spacing.md,
+    top: '50%',
+    transform: [{ translateY: 8 }],
   },
   searchContainer: {
     paddingHorizontal: spacing.md,

@@ -23,9 +23,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
-import { Button, LoadingView, VoiceFocusable } from '@/components';
+import { Button, LoadingView, VoiceFocusable, Icon, MediaIndicator } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
@@ -33,10 +34,14 @@ import { groupChatService, GroupListItem } from '@/services/groupChat';
 
 type NavigationProp = NativeStackNavigationProp<GroupStackParams, 'GroupList'>;
 
+// Module color (consistent with WheelNavigationMenu)
+const GROUPS_MODULE_COLOR = '#00796B';
+
 export function GroupListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const [groups, setGroups] = useState<GroupListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -302,6 +307,18 @@ export function GroupListScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Module Header — consistent with navigation menu, centered */}
+      <View style={[styles.moduleHeader, { backgroundColor: GROUPS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.moduleHeaderContent}>
+          <Icon name="groups" size={28} color={colors.textOnPrimary} />
+          <Text style={styles.moduleTitle}>{t('tabs.groups')}</Text>
+        </View>
+        {/* Media indicator — shows when audio/video is playing */}
+        <View style={styles.mediaIndicatorContainer}>
+          <MediaIndicator moduleColor={GROUPS_MODULE_COLOR} />
+        </View>
+      </View>
+
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={groups.length === 0 ? styles.emptyListContent : undefined}
@@ -342,6 +359,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  moduleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  moduleHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  moduleTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+  },
+  mediaIndicatorContainer: {
+    position: 'absolute',
+    right: spacing.md,
+    top: '50%',
+    transform: [{ translateY: 8 }],
   },
   groupItem: {
     flexDirection: 'row',

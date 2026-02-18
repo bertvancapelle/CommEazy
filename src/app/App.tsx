@@ -19,8 +19,16 @@ import { colors } from '@/theme';
 import { ServiceProvider } from '@/hooks/useServices';
 import { HoldToNavigateProvider } from '@/hooks/useHoldToNavigate';
 import { AccentColorProvider } from '@/contexts/AccentColorContext';
+import { VoiceFocusProvider } from '@/contexts/VoiceFocusContext';
+import { VoiceSettingsProvider } from '@/contexts/VoiceSettingsContext';
+import { VoiceFormProvider } from '@/contexts/VoiceFormContext';
+import { HoldGestureProvider } from '@/contexts/HoldGestureContext';
+import { RadioProvider } from '@/contexts/RadioContext';
+import { PodcastProvider } from '@/contexts/PodcastContext';
+import { BooksProvider } from '@/contexts/BooksContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
+import { initializePodcastCache } from '@/services/podcastService';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -89,9 +97,23 @@ export default function App() {
       />
       <ServiceProvider reducedMotion={reducedMotion}>
         <AccentColorProvider>
-          <HoldToNavigateProvider>
-            <AppNavigator />
-          </HoldToNavigateProvider>
+          <VoiceSettingsProvider>
+            <VoiceFocusProvider>
+              <VoiceFormProvider>
+                <HoldGestureProvider>
+                  <RadioProvider>
+                    <PodcastProvider>
+                      <BooksProvider>
+                        <HoldToNavigateProvider>
+                          <AppNavigator />
+                        </HoldToNavigateProvider>
+                      </BooksProvider>
+                    </PodcastProvider>
+                  </RadioProvider>
+                </HoldGestureProvider>
+              </VoiceFormProvider>
+            </VoiceFocusProvider>
+          </VoiceSettingsProvider>
         </AccentColorProvider>
       </ServiceProvider>
     </SafeAreaProvider>
@@ -215,5 +237,14 @@ async function initializeApp(): Promise<void> {
     if (!__DEV__) {
       throw error;
     }
+  }
+
+  // Initialize podcast cache service (for rate limiting and caching)
+  try {
+    await initializePodcastCache();
+    console.log('[App] Podcast cache initialized successfully');
+  } catch (error) {
+    console.warn('[App] Podcast cache initialization failed:', error);
+    // Non-critical, continue anyway
   }
 }

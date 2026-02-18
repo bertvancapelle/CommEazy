@@ -122,6 +122,7 @@ export interface UserProfile {
   audioFeedbackEnabled?: boolean;        // Play sound on tap (respects silent mode)
   audioFeedbackBoost?: boolean;          // Boost audio volume by 20%
   voiceCommandsEnabled?: boolean;        // Enable voice commands via two-finger long press
+  voiceMicPosition?: string;             // Mic indicator position for Voice Session Mode: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   // Legacy fields (kept for backwards compatibility)
   hapticFeedbackEnabled?: boolean;
 

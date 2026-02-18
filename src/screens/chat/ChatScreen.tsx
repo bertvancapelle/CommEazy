@@ -23,6 +23,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   AccessibilityInfo,
+  DeviceEventEmitter,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -188,6 +189,23 @@ export function ChatScreen() {
       setSending(false);
     }
   }, [inputText, sending, chatId, t]);
+
+  // Listen for voice command to send message
+  // When user says "stuur" or "verzend", this triggers handleSend
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('voiceCommand:send', () => {
+      console.log('[ChatScreen] Voice command: send');
+      // Only send if there's text to send
+      if (inputText.trim()) {
+        handleSend();
+      } else {
+        // Announce that there's nothing to send
+        AccessibilityInfo.announceForAccessibility(t('chat.nothingToSend'));
+      }
+    });
+
+    return () => subscription.remove();
+  }, [handleSend, inputText, t]);
 
   const formatTime = useCallback((timestamp: number): string => {
     return new Date(timestamp).toLocaleTimeString([], {

@@ -53,5 +53,17 @@ target 'CommEazyTemp' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
+
+    # Configure sherpa-onnx framework and headers for PiperTtsModule
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Add header search path for sherpa-onnx C API
+        config.build_settings['HEADER_SEARCH_PATHS'] ||= ['$(inherited)']
+        config.build_settings['HEADER_SEARCH_PATHS'] << '"$(PODS_ROOT)/../Frameworks/sherpa-onnx-include"'
+
+        # Enable C++17 for sherpa-onnx compatibility
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
   end
 end

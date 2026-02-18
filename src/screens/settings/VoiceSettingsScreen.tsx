@@ -19,7 +19,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,7 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useIsFocused } from '@react-navigation/native';
 
 import {
   colors,
@@ -40,7 +41,8 @@ import {
   touchTargets,
   borderRadius,
 } from '@/theme';
-import { Icon } from '@/components';
+import { Icon, VoiceFocusable, VoiceToggle } from '@/components';
+import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useVoiceSettingsContext } from '@/contexts/VoiceSettingsContext';
 import {
@@ -114,39 +116,46 @@ function CommandRow({
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
+  // Get human-readable command name with fallback
+  const commandName = t(command.nameKey, { defaultValue: command.id });
+
   return (
     <View style={styles.commandContainer}>
       <TouchableOpacity
         style={styles.commandHeader}
         onPress={() => setExpanded(!expanded)}
         accessibilityRole="button"
-        accessibilityLabel={t(command.nameKey)}
+        accessibilityLabel={commandName}
         accessibilityHint={t('voiceSettings.tapToExpand')}
         accessibilityState={{ expanded }}
       >
         <View style={styles.commandInfo}>
-          <Text style={styles.commandName}>{t(command.nameKey)}</Text>
+          <Text style={styles.commandName}>{commandName}</Text>
           <Text style={styles.commandDescription} numberOfLines={1}>
             {patterns.slice(0, 3).join(', ')}
             {patterns.length > 3 ? ` +${patterns.length - 3}` : ''}
           </Text>
         </View>
 
-        {command.canDisable && (
-          <Switch
-            value={isEnabled}
-            onValueChange={onToggle}
-            trackColor={{ false: colors.border, true: accentColorLight }}
-            thumbColor={isEnabled ? accentColor : colors.textTertiary}
-            accessibilityLabel={t('voiceSettings.enableCommand')}
-          />
-        )}
+        {/* Right side controls: switch (if disableable) + chevron */}
+        <View style={styles.commandControls}>
+          {command.canDisable && (
+            <Switch
+              value={isEnabled}
+              onValueChange={onToggle}
+              trackColor={{ false: colors.border, true: accentColorLight }}
+              thumbColor={isEnabled ? accentColor : colors.textTertiary}
+              accessibilityLabel={t('voiceSettings.enableCommand')}
+              style={styles.commandSwitch}
+            />
+          )}
 
-        <Icon
-          name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={20}
-          color={colors.textTertiary}
-        />
+          <Icon
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color={colors.textTertiary}
+          />
+        </View>
       </TouchableOpacity>
 
       {expanded && (
@@ -274,6 +283,8 @@ export function VoiceSettingsScreen() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
   const { settings, setEnabled, resetToDefaults } = useVoiceSettingsContext();
+  const isFocused = useIsFocused();
+  const { isVoiceSessionActive } = useVoiceFocusContext();
 
   // Group commands by category
   const commandsByCategory = React.useMemo(() => {
@@ -328,8 +339,36 @@ export function VoiceSettingsScreen() {
     );
   }, [t, resetToDefaults]);
 
+  // Voice focus items for voice navigation
+  const voiceFocusItems = useMemo(() => {
+    if (!isFocused) return [];
+
+    const items = [
+      {
+        id: 'voice-enabled',
+        label: t('voiceSettings.enableVoiceControl'),
+        index: 0,
+        onSelect: () => void handleGlobalToggle(!settings.isEnabled),
+      },
+      {
+        id: 'reset-defaults',
+        label: t('voiceSettings.resetToDefaults'),
+        index: 1,
+        onSelect: handleResetToDefaults,
+      },
+    ];
+
+    return items;
+  }, [isFocused, t, settings.isEnabled, handleGlobalToggle, handleResetToDefaults]);
+
+  const { scrollRef, isFocused: isItemFocused, getFocusStyle } = useVoiceFocusList(
+    'voice-settings-list',
+    voiceFocusItems
+  );
+
   return (
     <ScrollView
+      ref={scrollRef}
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
@@ -337,15 +376,66 @@ export function VoiceSettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('voiceSettings.generalTitle')}</Text>
 
-        <ToggleRow
+        <VoiceToggle
+          id="voice-enabled"
           label={t('voiceSettings.enableVoiceControl')}
           hint={t('voiceSettings.enableVoiceControlHint')}
           value={settings.isEnabled}
           onValueChange={(v) => void handleGlobalToggle(v)}
-          accentColor={accentColor.primary}
-          accentColorLight={accentColor.primaryLight}
+          index={0}
         />
       </View>
+
+      {/* Tutorial / How to use section */}
+      {settings.isEnabled && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('voiceSettings.howToUseTitle')}</Text>
+
+          {/* Step 1: Starting voice control */}
+          <View style={styles.tutorialStep}>
+            <View style={[styles.tutorialStepNumber, { backgroundColor: accentColor.primary }]}>
+              <Text style={styles.tutorialStepNumberText}>1</Text>
+            </View>
+            <View style={styles.tutorialStepContent}>
+              <Text style={styles.tutorialStepTitle}>{t('voiceSettings.step1Title')}</Text>
+              <Text style={styles.tutorialStepDescription}>{t('voiceSettings.step1Description')}</Text>
+            </View>
+          </View>
+
+          {/* Step 2: Speaking commands */}
+          <View style={styles.tutorialStep}>
+            <View style={[styles.tutorialStepNumber, { backgroundColor: accentColor.primary }]}>
+              <Text style={styles.tutorialStepNumberText}>2</Text>
+            </View>
+            <View style={styles.tutorialStepContent}>
+              <Text style={styles.tutorialStepTitle}>{t('voiceSettings.step2Title')}</Text>
+              <Text style={styles.tutorialStepDescription}>{t('voiceSettings.step2Description')}</Text>
+            </View>
+          </View>
+
+          {/* Step 3: Voice Session Mode */}
+          <View style={styles.tutorialStep}>
+            <View style={[styles.tutorialStepNumber, { backgroundColor: accentColor.primary }]}>
+              <Text style={styles.tutorialStepNumberText}>3</Text>
+            </View>
+            <View style={styles.tutorialStepContent}>
+              <Text style={styles.tutorialStepTitle}>{t('voiceSettings.step3Title')}</Text>
+              <Text style={styles.tutorialStepDescription}>{t('voiceSettings.step3Description')}</Text>
+            </View>
+          </View>
+
+          {/* Quick commands reference */}
+          <View style={styles.quickCommandsBox}>
+            <Text style={styles.quickCommandsTitle}>{t('voiceSettings.quickCommandsTitle')}</Text>
+            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleContacts')}" → {t('voiceSettings.exampleContactsResult')}</Text>
+            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleCall')}" → {t('voiceSettings.exampleCallResult')}</Text>
+            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleMessage')}" → {t('voiceSettings.exampleMessageResult')}</Text>
+            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleNext')}" → {t('voiceSettings.exampleNextResult')}</Text>
+            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleSelect')}" → {t('voiceSettings.exampleSelectResult')}</Text>
+            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleStop')}" → {t('voiceSettings.exampleStopResult')}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Commands by category */}
       {settings.isEnabled && (
@@ -371,16 +461,36 @@ export function VoiceSettingsScreen() {
       )}
 
       {/* Reset button */}
-      <TouchableOpacity
-        style={styles.resetButton}
-        onPress={handleResetToDefaults}
-        accessibilityRole="button"
-        accessibilityLabel={t('voiceSettings.resetToDefaults')}
+      <VoiceFocusable
+        id="reset-defaults"
+        label={t('voiceSettings.resetToDefaults')}
+        index={1}
+        onSelect={handleResetToDefaults}
       >
-        <Text style={styles.resetButtonText}>
-          {t('voiceSettings.resetToDefaults')}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.resetButton,
+            isItemFocused('reset-defaults') && {
+              borderColor: getFocusStyle().borderColor,
+              borderWidth: getFocusStyle().borderWidth,
+              backgroundColor: getFocusStyle().backgroundColor,
+              borderRadius: borderRadius.md,
+            },
+          ]}
+          onPress={handleResetToDefaults}
+          accessibilityRole="button"
+          accessibilityLabel={t('voiceSettings.resetToDefaults')}
+          accessibilityHint={
+            isVoiceSessionActive
+              ? t('a11y.voiceResetHint')
+              : undefined
+          }
+        >
+          <Text style={styles.resetButtonText}>
+            {t('voiceSettings.resetToDefaults')}
+          </Text>
+        </TouchableOpacity>
+      </VoiceFocusable>
 
       {/* Spacer for bottom padding */}
       <View style={styles.bottomSpacer} />
@@ -471,12 +581,20 @@ const styles = StyleSheet.create({
   },
   commandInfo: {
     flex: 1,
-    marginRight: spacing.sm,
+    marginRight: spacing.md,
   },
   commandName: {
     ...typography.body,
     color: colors.textPrimary,
     fontWeight: '600',
+  },
+  commandControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  commandSwitch: {
+    marginRight: spacing.xs,
   },
   commandDescription: {
     ...typography.small,
@@ -523,6 +641,62 @@ const styles = StyleSheet.create({
   addPatternText: {
     ...typography.small,
     fontWeight: '500',
+  },
+  // Tutorial styles
+  tutorialStep: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  tutorialStepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  tutorialStepNumberText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
+  },
+  tutorialStepContent: {
+    flex: 1,
+  },
+  tutorialStepTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  tutorialStepDescription: {
+    ...typography.body,
+    color: colors.textSecondary,
+    lineHeight: 22,
+  },
+  quickCommandsBox: {
+    marginHorizontal: spacing.md,
+    marginVertical: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  quickCommandsTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+  },
+  quickCommandItem: {
+    ...typography.body,
+    color: colors.textSecondary,
+    lineHeight: 26,
   },
   // Reset button
   resetButton: {

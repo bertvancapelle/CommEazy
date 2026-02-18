@@ -24,6 +24,7 @@ import { SodiumEncryptionService } from './encryption';
 import { XmppJsService } from './xmpp';
 import { WatermelonDBService } from './database';
 import { chatService } from './chat';
+import { groupChatService } from './groupChat';
 import { FCMNotificationService, onTokenRefresh } from './notifications';
 
 // Note: Mock data imports moved to dynamic import in initialize() to avoid
@@ -222,6 +223,10 @@ class ServiceContainerClass {
       await chatService.initialize(devUser.jid, devUser.name);
       console.log('[ServiceContainer] ChatService initialized for dev user:', devUser.jid);
 
+      // Initialize GroupChatService
+      await groupChatService.initialize(devUser.jid, devUser.name);
+      console.log('[ServiceContainer] GroupChatService initialized for dev user:', devUser.jid);
+
       // 6. Connect to XMPP server in dev mode
       try {
         await this._xmpp.connect(devUser.jid, devUser.password);
@@ -239,7 +244,12 @@ class ServiceContainerClass {
             console.log('[ServiceContainer] Push notifications registered with Prosody');
           } catch (pushError) {
             // Push registration is optional - app works without it
-            console.warn('[ServiceContainer] Failed to register push notifications:', pushError);
+            // In dev mode, this is expected to fail without proper provisioning
+            if (__DEV__) {
+              console.debug('[ServiceContainer] Push notifications not available in dev mode (expected)');
+            } else {
+              console.warn('[ServiceContainer] Failed to register push notifications:', pushError);
+            }
           }
         } else {
           console.log('[ServiceContainer] Skipping push registration (not available)');
@@ -340,19 +350,22 @@ class ServiceContainerClass {
       }
 
       if (updatedCount > 0) {
-        // NOTE: Keep plaintext mode enabled because libsodium doesn't work with Hermes
-        // TODO: Re-enable encryption when libsodium-wrappers is replaced with native module
-        setPlaintextMode(true);
-        console.log(`[ServiceContainer] Updated ${updatedCount} test device contacts (PLAINTEXT MODE - libsodium incompatible with Hermes)`);
+        // Plaintext mode is now controlled by devConfig.ts
+        // With react-native-libsodium (native module), encryption should work with Hermes
+        const { USE_PLAINTEXT_MODE } = await import('@/config/devConfig');
+        setPlaintextMode(USE_PLAINTEXT_MODE);
+        console.log(`[ServiceContainer] Updated ${updatedCount} test device contacts (plaintextMode: ${USE_PLAINTEXT_MODE})`);
       } else {
-        console.warn('[ServiceContainer] No test device contacts found, keeping plaintext mode');
-        setPlaintextMode(true);
+        console.warn('[ServiceContainer] No test device contacts found, using devConfig setting');
+        const { USE_PLAINTEXT_MODE } = await import('@/config/devConfig');
+        setPlaintextMode(USE_PLAINTEXT_MODE);
       }
     } catch (error) {
       console.error('[ServiceContainer] Failed to setup test device encryption:', error);
-      // Fall back to plaintext mode on error
+      // Fall back to devConfig setting on error
       const { setPlaintextMode } = await import('./mock/devTools');
-      setPlaintextMode(true);
+      const { USE_PLAINTEXT_MODE } = await import('@/config/devConfig');
+      setPlaintextMode(USE_PLAINTEXT_MODE);
     }
   }
 

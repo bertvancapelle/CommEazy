@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/theme';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
 interface LoadingViewProps {
   /** Loading message - defaults to translated "Loading..." */
@@ -32,6 +33,7 @@ export function LoadingView({
   fullscreen = false,
 }: LoadingViewProps) {
   const { t } = useTranslation();
+  const { accentColor } = useAccentColor();
   const displayMessage = message ?? t('common.loading');
 
   return (
@@ -43,7 +45,7 @@ export function LoadingView({
     >
       <ActivityIndicator
         size={size}
-        color={colors.primary}
+        color={accentColor.primary}
       />
       <Text style={styles.message}>{displayMessage}</Text>
     </View>

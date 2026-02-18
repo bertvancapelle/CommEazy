@@ -42,7 +42,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 
 // Configuration
 const MODULE_ITEM_HEIGHT = 80;
-const TOP_MODULES_COUNT = 4;
+const MODULES_PER_PAGE = 4;
 
 export type NavigationDestination =
   | 'chats'
@@ -52,14 +52,14 @@ export type NavigationDestination =
   | 'help'
   | 'calls'
   | 'videocall'
-  | 'ebook'
-  | 'audiobook'
-  | 'podcast';
+  | 'podcast'
+  | 'radio'
+  | 'books';
 
 interface ModuleItem {
   id: NavigationDestination;
   labelKey: string;
-  icon: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast';
+  icon: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast' | 'radio';
   color: string;
 }
 
@@ -70,9 +70,9 @@ const MODULE_DEFINITIONS: Record<NavigationDestination, Omit<ModuleItem, 'id'>> 
   groups: { labelKey: 'navigation.groups', icon: 'groups', color: '#00796B' },
   calls: { labelKey: 'navigation.calls', icon: 'phone', color: '#1565C0' },
   videocall: { labelKey: 'navigation.videocall', icon: 'video', color: '#C62828' },
-  ebook: { labelKey: 'navigation.ebook', icon: 'book', color: '#F57C00' },
-  audiobook: { labelKey: 'navigation.audiobook', icon: 'headphones', color: '#7B1FA2' },
   podcast: { labelKey: 'navigation.podcast', icon: 'podcast', color: '#E91E63' },
+  radio: { labelKey: 'navigation.radio', icon: 'radio', color: '#00897B' },
+  books: { labelKey: 'navigation.books', icon: 'book', color: '#FF8F00' },  // Amber color
   settings: { labelKey: 'navigation.settings', icon: 'settings', color: '#5E35B1' },
   help: { labelKey: 'navigation.help', icon: 'help', color: '#00838F' },
 };
@@ -103,8 +103,8 @@ export function WheelNavigationMenu({
   const blurIntensity = settings.wheelBlurIntensity;
   const dismissMargin = settings.wheelDismissMargin;
 
-  // State for showing more modules
-  const [showMore, setShowMore] = useState(false);
+  // State for pagination — currentPage: 0 = top modules, 1+ = remaining pages
+  const [currentPage, setCurrentPage] = useState(0);
 
   // Animation values
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -115,23 +115,42 @@ export function WheelNavigationMenu({
 
   const { width: screenWidth } = Dimensions.get('window');
 
-  // Get sorted modules based on usage
+  // Get sorted modules based on usage — always use MODULES_PER_PAGE
   const topModules = useMemo(() => {
-    const result = getTopModules(activeScreen, TOP_MODULES_COUNT);
+    const result = getTopModules(activeScreen, MODULES_PER_PAGE);
     console.log('[WheelNavigationMenu] topModules computed:', result, 'activeScreen:', activeScreen);
     return result;
   }, [activeScreen, getTopModules]);
 
   const remainingModules = useMemo(() => {
-    const result = getRemainingModules(activeScreen, TOP_MODULES_COUNT);
+    const result = getRemainingModules(activeScreen, MODULES_PER_PAGE);
     console.log('[WheelNavigationMenu] remainingModules computed:', result);
     return result;
   }, [activeScreen, getRemainingModules]);
 
+  // Calculate total pages (page 0 = top, page 1+ = remaining in chunks of MODULES_PER_PAGE)
+  const totalRemainingPages = Math.ceil(remainingModules.length / MODULES_PER_PAGE);
+  const totalPages = 1 + totalRemainingPages; // page 0 + remaining pages
+
+  // Get modules to show on current page
+  const modulesToShow = useMemo(() => {
+    if (currentPage === 0) {
+      // Page 0: show top modules
+      return topModules;
+    } else {
+      // Page 1+: show slice of remaining modules (4 per page)
+      const startIndex = (currentPage - 1) * MODULES_PER_PAGE;
+      const endIndex = startIndex + MODULES_PER_PAGE;
+      const result = remainingModules.slice(startIndex, endIndex);
+      console.log('[WheelNavigationMenu] page', currentPage, 'showing remaining[', startIndex, '-', endIndex, ']:', result);
+      return result;
+    }
+  }, [currentPage, topModules, remainingModules]);
+
   // Reset state when menu opens
   useEffect(() => {
     if (visible) {
-      setShowMore(false);
+      setCurrentPage(0);
 
       if (Platform.OS === 'ios') {
         AccessibilityInfo.announceForAccessibility(t('navigation.menu_opened'));
@@ -187,10 +206,16 @@ export function WheelNavigationMenu({
     onClose();
   }, [triggerHaptic, onClose]);
 
-  // Handle "Meer/Terug" toggle
-  const handleToggleMore = useCallback(() => {
+  // Handle "Meer" — go to next page, loop back to first page when at end
+  const handleNextPage = useCallback(() => {
     triggerItemHaptic();
-    setShowMore(prev => !prev);
+    setCurrentPage(prev => prev >= totalPages - 1 ? 0 : prev + 1);
+  }, [triggerItemHaptic, totalPages]);
+
+  // Handle "Terug" — go to previous page
+  const handlePrevPage = useCallback(() => {
+    triggerItemHaptic();
+    setCurrentPage(prev => Math.max(prev - 1, 0));
   }, [triggerItemHaptic]);
 
   // Handle tap on backdrop
@@ -219,8 +244,10 @@ export function WheelNavigationMenu({
     return null;
   }
 
-  // Determine which modules to show
-  const modulesToShow = showMore ? remainingModules : topModules;
+  // Pagination state helpers
+  const isOnFirstPage = currentPage === 0;
+  const isOnLastPage = currentPage >= totalPages - 1;
+  const hasMorePages = totalPages > 1;
 
   // Calculate overlay background
   const overlayBackgroundOpacity = blurIntensity > 0
@@ -297,80 +324,64 @@ export function WheelNavigationMenu({
           </ScrollView>
         </View>
 
-        {/* Navigation buttons row - "Terug" and/or "Meer" + "Sluiten" */}
+        {/* Navigation buttons row - pagination controls */}
         <View style={[styles.buttonRow, { width: screenWidth - spacing.lg * 2 }]}>
-          {/* Show split buttons when there are more modules: Terug | Meer side by side */}
-          {remainingModules.length > 0 && showMore && (
+          {/* Layout depends on pagination state */}
+          {hasMorePages ? (
             <>
-              {/* Terug button - returns to top modules */}
-              <TouchableOpacity
-                style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
-                onPress={handleToggleMore}
-                activeOpacity={0.7}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel={t('navigation.back')}
-                accessibilityHint={t('navigation.back_hint', 'Toon de meest gebruikte modules')}
-              >
-                <Text style={styles.buttonIcon}>▲</Text>
-                <Text style={styles.buttonText}>{t('navigation.back')}</Text>
-              </TouchableOpacity>
+              {/* Terug button - show when NOT on first page */}
+              {!isOnFirstPage && (
+                <TouchableOpacity
+                  style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
+                  onPress={handlePrevPage}
+                  activeOpacity={0.7}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('navigation.back')}
+                  accessibilityHint={t('navigation.back_hint', 'Toon de vorige modules')}
+                >
+                  <Text style={styles.buttonIcon}>▲</Text>
+                  <Text style={styles.buttonText}>{t('navigation.back')}</Text>
+                </TouchableOpacity>
+              )}
 
-              {/* Close button */}
-              <TouchableOpacity
-                style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
-                onPress={handleClose}
-                activeOpacity={0.7}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-              >
-                <View style={styles.closeIcon}>
-                  <View style={styles.closeIconLine1} />
-                  <View style={styles.closeIconLine2} />
-                </View>
-                <Text style={styles.buttonText}>{t('common.close')}</Text>
-              </TouchableOpacity>
-            </>
-          )}
+              {/* Close button - show when on first page (left position) */}
+              {isOnFirstPage && (
+                <TouchableOpacity
+                  style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
+                  onPress={handleClose}
+                  activeOpacity={0.7}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                >
+                  <View style={styles.closeIcon}>
+                    <View style={styles.closeIconLine1} />
+                    <View style={styles.closeIconLine2} />
+                  </View>
+                  <Text style={styles.buttonText}>{t('common.close')}</Text>
+                </TouchableOpacity>
+              )}
 
-          {/* Show split buttons when viewing top modules but more exist: Sluiten | Meer side by side */}
-          {remainingModules.length > 0 && !showMore && (
-            <>
-              {/* Close button */}
+              {/* Meer button - always show (loops back to first page at end) */}
               <TouchableOpacity
                 style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
-                onPress={handleClose}
-                activeOpacity={0.7}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-              >
-                <View style={styles.closeIcon}>
-                  <View style={styles.closeIconLine1} />
-                  <View style={styles.closeIconLine2} />
-                </View>
-                <Text style={styles.buttonText}>{t('common.close')}</Text>
-              </TouchableOpacity>
-
-              {/* Meer button - shows remaining modules */}
-              <TouchableOpacity
-                style={[styles.halfButton, { backgroundColor: accentColor.primary }]}
-                onPress={handleToggleMore}
+                onPress={handleNextPage}
                 activeOpacity={0.7}
                 accessible={true}
                 accessibilityRole="button"
                 accessibilityLabel={t('navigation.more')}
-                accessibilityHint={t('navigation.more_hint', 'Toon meer modules')}
+                accessibilityHint={isOnLastPage
+                  ? t('navigation.more_hint_loop', 'Terug naar eerste modules')
+                  : t('navigation.more_hint', 'Toon meer modules')
+                }
               >
-                <Text style={styles.buttonIcon}>▼</Text>
+                <Text style={styles.buttonIcon}>{isOnLastPage ? '↺' : '▼'}</Text>
                 <Text style={styles.buttonText}>{t('navigation.more')}</Text>
               </TouchableOpacity>
             </>
-          )}
-
-          {/* Show only close button when no remaining modules */}
-          {remainingModules.length === 0 && (
+          ) : (
+            /* Only close button when no pagination needed */
             <TouchableOpacity
               style={[styles.fullButton, { backgroundColor: accentColor.primary }]}
               onPress={handleClose}
@@ -421,18 +432,14 @@ function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
     >
       <ModuleIcon type={module.icon} size={40} />
       <Text style={styles.moduleLabel}>{t(module.labelKey)}</Text>
-      {isActive && (
-        <View style={styles.activeIndicator}>
-          <Text style={styles.activeIndicatorText}>✓</Text>
-        </View>
-      )}
+      {/* Active module: white border only, no chevron/checkmark indicator needed */}
     </TouchableOpacity>
   );
 }
 
 // Icon component for modules
 interface ModuleIconProps {
-  type: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast';
+  type: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast' | 'radio';
   size: number;
 }
 
@@ -567,6 +574,54 @@ function ModuleIcon({ type, size }: ModuleIconProps) {
         </View>
       );
 
+    case 'radio':
+      return (
+        <View style={[styles.iconContainer, { width: size, height: size }]}>
+          {/* Radio body */}
+          <View style={[styles.radioBody, {
+            width: size * 0.75,
+            height: size * 0.5,
+            borderRadius: size * 0.08,
+          }]} />
+          {/* Antenna */}
+          <View style={[styles.radioAntenna, {
+            width: size * 0.06,
+            height: size * 0.35,
+            top: size * 0.05,
+            left: size * 0.25,
+            transform: [{ rotate: '-20deg' }],
+          }]} />
+          {/* Speaker circle */}
+          <View style={[styles.radioSpeaker, {
+            width: size * 0.25,
+            height: size * 0.25,
+            borderRadius: size * 0.125,
+            borderWidth: size * 0.04,
+            top: size * 0.35,
+            left: size * 0.18,
+          }]} />
+          {/* Dial lines */}
+          <View style={[styles.radioDialLine, {
+            width: size * 0.2,
+            height: size * 0.04,
+            top: size * 0.38,
+            right: size * 0.18,
+          }]} />
+          <View style={[styles.radioDialLine, {
+            width: size * 0.2,
+            height: size * 0.04,
+            top: size * 0.46,
+            right: size * 0.18,
+          }]} />
+          <View style={[styles.radioDialLine, {
+            width: size * 0.2,
+            height: size * 0.04,
+            top: size * 0.54,
+            right: size * 0.18,
+          }]} />
+        </View>
+      );
+
     default:
       return null;
   }
@@ -625,19 +680,6 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
     marginLeft: spacing.md,
     flex: 1,
-  },
-  activeIndicator: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activeIndicatorText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '700',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -827,5 +869,24 @@ const styles = StyleSheet.create({
   podcastFoot: {
     position: 'absolute',
     backgroundColor: colors.textOnPrimary,
+  },
+  radioBody: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+    top: '30%',
+  },
+  radioAntenna: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+  },
+  radioSpeaker: {
+    position: 'absolute',
+    borderColor: colors.textOnPrimary,
+    backgroundColor: 'transparent',
+  },
+  radioDialLine: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+    borderRadius: 2,
   },
 });

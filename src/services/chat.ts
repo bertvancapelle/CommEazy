@@ -160,7 +160,14 @@ export class ChatService {
           // Also probe for current presence status immediately
           await xmpp.probePresence(contact.jid);
         } catch (error) {
-          console.warn(`[ChatService] Failed to subscribe to ${contact.jid}:`, error);
+          // XMPP not connected yet is expected during startup - subscriptions
+          // will be retried via refreshPresenceSubscriptions() after XMPP connects
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          if (errorMsg.includes('not connected')) {
+            console.debug(`[ChatService] Skipping presence subscription for ${contact.jid} (XMPP not connected yet)`);
+          } else {
+            console.warn(`[ChatService] Failed to subscribe to ${contact.jid}:`, error);
+          }
         }
       }
     } catch (error) {

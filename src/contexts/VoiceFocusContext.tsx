@@ -409,14 +409,14 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
 
     if (settings.timeoutMs > 0) {
       sessionTimeoutRef.current = setTimeout(() => {
-        console.log('[VoiceFocusContext] Session timeout - stopping voice session');
+        console.debug('[VoiceFocusContext] Session timeout - stopping voice session');
         setIsVoiceSessionActive(false);
         // Clear focus state
         setFocusState(new Map());
         setActiveNameFilter(null);
         // Notify parent (HoldToNavigateWrapper) to stop microphone
         if (sessionEndCallbackRef.current) {
-          console.log('[VoiceFocusContext] Calling session end callback');
+          console.debug('[VoiceFocusContext] Calling session end callback');
           sessionEndCallbackRef.current();
         }
         AccessibilityInfo.announceForAccessibility(
@@ -427,8 +427,8 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
   }, [settings.timeoutMs, t]);
 
   const startVoiceSession = useCallback(() => {
-    console.log('[VoiceFocusContext] Starting voice session - setting isVoiceSessionActive to true');
-    console.log('[VoiceFocusContext] Current lists:', Array.from(lists.keys()).join(', '));
+    console.debug('[VoiceFocusContext] Starting voice session - setting isVoiceSessionActive to true');
+    console.debug('[VoiceFocusContext] Current lists:', Array.from(lists.keys()).join(', '));
     setIsVoiceSessionActive(true);
     resetSessionTimeout();
     AccessibilityInfo.announceForAccessibility(
@@ -437,7 +437,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
   }, [resetSessionTimeout, t, lists]);
 
   const stopVoiceSession = useCallback(() => {
-    console.log('[VoiceFocusContext] stopVoiceSession called');
+    console.debug('[VoiceFocusContext] stopVoiceSession called');
     setIsVoiceSessionActive(false);
     if (sessionTimeoutRef.current) {
       clearTimeout(sessionTimeoutRef.current);
@@ -455,7 +455,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
   }, [t]);
 
   const registerSessionEndCallback = useCallback((callback: (() => void) | null) => {
-    console.log('[VoiceFocusContext] Registering session end callback:', !!callback);
+    console.debug('[VoiceFocusContext] Registering session end callback:', !!callback);
     sessionEndCallbackRef.current = callback;
   }, []);
 
@@ -474,7 +474,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
 
   const registerList = useCallback(
     (listId: string, items: VoiceFocusableItem[]) => {
-      console.log(`[VoiceFocusContext] registerList called: ${listId} with ${items.length} items`);
+      console.debug(`[VoiceFocusContext] registerList called: ${listId} with ${items.length} items`);
 
       setLists((prev) => {
         const newLists = new Map(prev);
@@ -494,10 +494,10 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
       // NOTE: This only sets FOCUS (visual highlight), it does NOT call onSelect!
       // The onSelect callback is only called when user says "open"/"kies" via selectFocused()
       const currentFocus = focusState.get(listId);
-      console.log(`[VoiceFocusContext] Current focus for ${listId}: ${currentFocus}`);
+      console.debug(`[VoiceFocusContext] Current focus for ${listId}: ${currentFocus}`);
 
       if (!currentFocus && items.length > 0) {
-        console.log(`[VoiceFocusContext] Auto-focusing first item: ${items[0].id} (${items[0].label}) - visual only, NOT selecting`);
+        console.debug(`[VoiceFocusContext] Auto-focusing first item: ${items[0].id} (${items[0].label}) - visual only, NOT selecting`);
         setFocusState((prev) => {
           const newState = new Map(prev);
           newState.set(listId, items[0].id);
@@ -559,14 +559,14 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
   );
 
   const focusNext = useCallback(() => {
-    console.log('[VoiceFocusContext] focusNext called');
-    console.log('[VoiceFocusContext] activeList:', activeList?.id, 'items:', activeList?.items.length);
-    console.log('[VoiceFocusContext] isVoiceSessionActive:', isVoiceSessionActive);
-    console.log('[VoiceFocusContext] focusedItemId:', focusedItemId);
-    console.log('[VoiceFocusContext] activeNameFilter:', activeNameFilter?.query, 'matches:', activeNameFilter?.matches.length);
+    console.debug('[VoiceFocusContext] focusNext called');
+    console.debug('[VoiceFocusContext] activeList:', activeList?.id, 'items:', activeList?.items.length);
+    console.debug('[VoiceFocusContext] isVoiceSessionActive:', isVoiceSessionActive);
+    console.debug('[VoiceFocusContext] focusedItemId:', focusedItemId);
+    console.debug('[VoiceFocusContext] activeNameFilter:', activeNameFilter?.query, 'matches:', activeNameFilter?.matches.length);
 
     if (!activeList || activeList.items.length === 0) {
-      console.log('[VoiceFocusContext] focusNext: No active list or empty list');
+      console.debug('[VoiceFocusContext] focusNext: No active list or empty list');
       return;
     }
 
@@ -576,7 +576,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
       const nextIndex = (activeNameFilter.currentIndex + 1) % activeNameFilter.matches.length;
       const nextMatch = activeNameFilter.matches[nextIndex];
 
-      console.log('[VoiceFocusContext] focusNext within name filter:', activeNameFilter.query,
+      console.debug('[VoiceFocusContext] focusNext within name filter:', activeNameFilter.query,
         'index:', activeNameFilter.currentIndex, '->', nextIndex,
         'item:', nextMatch.item.label);
 
@@ -614,7 +614,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
       currentIndex >= activeList.items.length - 1 ? 0 : currentIndex + 1;
     const nextItem = activeList.items[nextIndex];
 
-    console.log('[VoiceFocusContext] focusNext: currentIndex:', currentIndex, '-> nextIndex:', nextIndex, 'item:', nextItem.label);
+    console.debug('[VoiceFocusContext] focusNext: currentIndex:', currentIndex, '-> nextIndex:', nextIndex, 'item:', nextItem.label);
 
     setFocusedItem(activeList.id, nextItem.id);
 
@@ -639,7 +639,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
         : activeNameFilter.currentIndex - 1;
       const prevMatch = activeNameFilter.matches[prevIndex];
 
-      console.log('[VoiceFocusContext] focusPrevious within name filter:', activeNameFilter.query,
+      console.debug('[VoiceFocusContext] focusPrevious within name filter:', activeNameFilter.query,
         'index:', activeNameFilter.currentIndex, '->', prevIndex,
         'item:', prevMatch.item.label);
 
@@ -713,16 +713,16 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
       const currentActiveListId = activeListIdRef.current;
       const currentActiveList = currentActiveListId ? currentLists.get(currentActiveListId) : null;
 
-      console.log('[VoiceFocusContext] focusByName called with:', name);
-      console.log('[VoiceFocusContext] - activeListId (ref):', currentActiveListId);
-      console.log('[VoiceFocusContext] - activeList exists (ref):', !!currentActiveList);
-      console.log('[VoiceFocusContext] - registered lists (ref):', Array.from(currentLists.keys()).join(', '));
+      console.debug('[VoiceFocusContext] focusByName called with:', name);
+      console.debug('[VoiceFocusContext] - activeListId (ref):', currentActiveListId);
+      console.debug('[VoiceFocusContext] - activeList exists (ref):', !!currentActiveList);
+      console.debug('[VoiceFocusContext] - registered lists (ref):', Array.from(currentLists.keys()).join(', '));
 
       if (!currentActiveList) {
-        console.log('[VoiceFocusContext] focusByName - NO activeList!');
+        console.debug('[VoiceFocusContext] focusByName - NO activeList!');
         return [];
       }
-      console.log('[VoiceFocusContext] focusByName - activeList has', currentActiveList.items.length, 'items:', currentActiveList.items.map(i => i.label).join(', '));
+      console.debug('[VoiceFocusContext] focusByName - activeList has', currentActiveList.items.length, 'items:', currentActiveList.items.map(i => i.label).join(', '));
 
       const matches = fuzzyMatch(
         name,
@@ -753,7 +753,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
       } else {
         // Multiple matches → store for "volgende"/"vorige" navigation
         // e.g., "maria" matches "Oma Maria" and "Tante Maria"
-        console.log('[VoiceFocusContext] Multiple matches for:', name,
+        console.debug('[VoiceFocusContext] Multiple matches for:', name,
           'count:', matches.length,
           'names:', matches.map(m => m.item.label).join(', '));
 
@@ -817,12 +817,12 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
 
   const resetFocusToFirst = useCallback(() => {
     if (!activeList || activeList.items.length === 0) {
-      console.log('[VoiceFocusContext] resetFocusToFirst: No active list or empty list');
+      console.debug('[VoiceFocusContext] resetFocusToFirst: No active list or empty list');
       return;
     }
 
     const firstItem = activeList.items[0];
-    console.log('[VoiceFocusContext] resetFocusToFirst: Resetting to first item:', firstItem.label);
+    console.debug('[VoiceFocusContext] resetFocusToFirst: Resetting to first item:', firstItem.label);
     setFocusedItem(activeList.id, firstItem.id);
 
     // Announce the focused item
@@ -832,7 +832,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
   }, [activeList, setFocusedItem, t]);
 
   const clearNameFilter = useCallback(() => {
-    console.log('[VoiceFocusContext] Clearing name filter');
+    console.debug('[VoiceFocusContext] Clearing name filter');
     setActiveNameFilter(null);
   }, []);
 
@@ -1065,22 +1065,22 @@ export function useVoiceFocusList(
   // IMPORTANT: We need to re-register when items change while session is active
   // because contacts may load asynchronously after the screen mounts
   useEffect(() => {
-    console.log(`[VoiceFocusList] useEffect triggered - isVoiceSessionActive: ${isVoiceSessionActive}, items: ${items.length}, isRegistered: ${isRegisteredRef.current}`);
+    console.debug(`[VoiceFocusList] useEffect triggered - isVoiceSessionActive: ${isVoiceSessionActive}, items: ${items.length}, isRegistered: ${isRegisteredRef.current}`);
 
     if (isVoiceSessionActive && items.length > 0) {
       // Voice session is active and we have items - register (or re-register)
-      console.log(`[VoiceFocusList] Session active, registering list: ${listId} with ${items.length} items`);
-      console.log(`[VoiceFocusList] Item labels:`, items.map(i => i.label).join(', '));
+      console.debug(`[VoiceFocusList] Session active, registering list: ${listId} with ${items.length} items`);
+      console.debug(`[VoiceFocusList] Item labels:`, items.map(i => i.label).join(', '));
       registerList(listId, items);
       isRegisteredRef.current = true;
     } else if (!isVoiceSessionActive && isRegisteredRef.current) {
       // Voice session ended, unregister
-      console.log(`[VoiceFocusList] Session ended, unregistering list: ${listId}`);
+      console.debug(`[VoiceFocusList] Session ended, unregistering list: ${listId}`);
       unregisterListRef.current(listId);
       isRegisteredRef.current = false;
     } else if (isVoiceSessionActive && items.length === 0 && isRegisteredRef.current) {
       // Items became empty while session is active - unregister
-      console.log(`[VoiceFocusList] Items cleared while session active, unregistering: ${listId}`);
+      console.debug(`[VoiceFocusList] Items cleared while session active, unregistering: ${listId}`);
       unregisterListRef.current(listId);
       isRegisteredRef.current = false;
     }
@@ -1092,7 +1092,7 @@ export function useVoiceFocusList(
     const currentListId = listId;
     return () => {
       if (isRegisteredRef.current) {
-        console.log(`[VoiceFocusList] Unmounting, unregistering list: ${currentListId}`);
+        console.debug(`[VoiceFocusList] Unmounting, unregistering list: ${currentListId}`);
         unregisterListRef.current(currentListId);
         isRegisteredRef.current = false;
       }

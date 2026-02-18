@@ -19,7 +19,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -37,11 +37,12 @@ import {
   TextInputFocusEventData,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { ContactAvatar } from '@/components';
+import { ContactAvatar, VoiceFocusable } from '@/components';
+import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import {
   pickImageFromCamera,
   pickImageFromGallery,
@@ -236,6 +237,8 @@ export function ProfileSettingsScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const { accentColor } = useAccentColor();
+  const screenIsFocused = useIsFocused();
+  const { isVoiceSessionActive } = useVoiceFocusContext();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
@@ -619,6 +622,83 @@ export function ProfileSettingsScreen() {
     label: t(`demographics.gender.${gender}`),
   }));
 
+  // Voice focus items for voice navigation
+  const voiceFocusItems = useMemo(() => {
+    if (!screenIsFocused) return [];
+
+    let index = 0;
+    const items = [
+      {
+        id: 'photo',
+        label: t('profile.changePhoto'),
+        index: index++,
+        onSelect: handleChangePhoto,
+      },
+      {
+        id: 'name',
+        label: t('onboarding.nameLabel'),
+        index: index++,
+        onSelect: handleEditName,
+      },
+      {
+        id: 'language',
+        label: t('settings.language'),
+        index: index++,
+        onSelect: () => setLanguagePickerVisible(true),
+      },
+      {
+        id: 'country',
+        label: t('demographics.countryLabel'),
+        index: index++,
+        onSelect: () => setCountryPickerVisible(true),
+      },
+    ];
+
+    // Add region if country is selected
+    if (profile?.countryCode && REGIONS_BY_COUNTRY[profile.countryCode]) {
+      items.push({
+        id: 'region',
+        label: t('demographics.regionLabel'),
+        index: index++,
+        onSelect: () => setRegionPickerVisible(true),
+      });
+    }
+
+    items.push(
+      {
+        id: 'city',
+        label: t('demographics.cityLabel'),
+        index: index++,
+        onSelect: () => cityInputRef.current?.focus(),
+      },
+      {
+        id: 'age',
+        label: t('demographics.ageLabel'),
+        index: index++,
+        onSelect: () => setAgePickerVisible(true),
+      },
+      {
+        id: 'gender',
+        label: t('demographics.genderLabel'),
+        index: index++,
+        onSelect: () => setGenderPickerVisible(true),
+      }
+    );
+
+    return items;
+  }, [
+    screenIsFocused,
+    t,
+    profile?.countryCode,
+    handleChangePhoto,
+    handleEditName,
+  ]);
+
+  const { scrollRef: voiceScrollRef, isFocused: isItemFocused, getFocusStyle } = useVoiceFocusList(
+    'profile-settings-list',
+    voiceFocusItems
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -658,7 +738,13 @@ export function ProfileSettingsScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <ScrollView
-        ref={scrollViewRef}
+        ref={(ref) => {
+          // Combine both refs for scroll functionality
+          scrollViewRef.current = ref;
+          if (voiceScrollRef) {
+            (voiceScrollRef as React.MutableRefObject<ScrollView | null>).current = ref;
+          }
+        }}
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"

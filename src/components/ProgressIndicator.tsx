@@ -9,6 +9,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/theme';
+import { useAccentColor } from '@/hooks/useAccentColor';
 
 interface ProgressIndicatorProps {
   currentStep: number;
@@ -17,6 +18,7 @@ interface ProgressIndicatorProps {
 
 export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {
   const { t } = useTranslation();
+  const { accentColor } = useAccentColor();
 
   return (
     <View style={styles.container}>
@@ -26,8 +28,8 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
             key={index}
             style={[
               styles.dot,
-              index < currentStep ? styles.dotCompleted : styles.dotPending,
-              index === currentStep - 1 && styles.dotCurrent,
+              index < currentStep ? { backgroundColor: accentColor.primary } : styles.dotPending,
+              index === currentStep - 1 && { backgroundColor: accentColor.primary, width: 24 },
             ]}
             accessibilityElementsHidden
           />
@@ -60,14 +62,6 @@ const styles = StyleSheet.create({
   },
   dotPending: {
     backgroundColor: colors.divider,
-  },
-  dotCompleted: {
-    backgroundColor: colors.primary,
-  },
-  dotCurrent: {
-    backgroundColor: colors.primary,
-    width: 24,
-    borderRadius: 6,
   },
   text: {
     ...typography.small,

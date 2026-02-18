@@ -27,6 +27,76 @@ model: sonnet
 - Store compliance pre-submission testing
 - Performance regression tests
 
+## Parallelle Test Ontwikkeling (VERPLICHT)
+
+Bij het ontwikkelen van nieuwe modules/features MOET de ontwikkelaar tests parallel schrijven:
+
+### Workflow
+1. **VOOR implementatie:**
+   - Test file aanmaken: `__tests__/[Component].test.tsx`
+   - Test skeletons schrijven voor verwachte functionaliteit
+
+2. **TIJDENS implementatie:**
+   - Na elke functie: unit test toevoegen
+   - Na elke component: component test toevoegen
+   - Red-Green-Refactor cyclus volgen
+
+3. **VOOR oplevering:**
+   - Alle tests moeten groen zijn
+   - Coverage moet ≥80% zijn
+   - Geen `any` types in test files
+
+### Minimum Coverage per Component Type
+
+| Component Type | Unit Tests | Integration | E2E |
+|---------------|------------|-------------|-----|
+| Service (API calls) | 90% | 60% | - |
+| Context (state management) | 80% | 70% | - |
+| Screen | 70% | 50% | 1 happy path |
+| UI Component | 80% | - | - |
+| Hook | 85% | - | - |
+
+### Voice Interaction Tests (VERPLICHT voor voice-enabled modules)
+
+```typescript
+describe('Voice Interactions', () => {
+  it('multi-match navigatie werkt correct', async () => {
+    // "maria" matcht met "Oma Maria" + "Tante Maria"
+    const matches = voiceFocus.focusByName('maria');
+    expect(matches.length).toBeGreaterThan(1);
+    expect(matches[0].label).toContain('Maria');
+  });
+
+  it('voice command recognition accuracy ≥95%', async () => {
+    const commands = ['volgende', 'vorige', 'open', 'stop'];
+    const results = await Promise.all(
+      commands.map(cmd => recognizeCommand(cmd))
+    );
+    const accuracy = results.filter(r => r.recognized).length / commands.length;
+    expect(accuracy).toBeGreaterThanOrEqual(0.95);
+  });
+
+  it('VoiceFocusable scroll-into-view werkt', async () => {
+    const { getByTestId } = render(<ListWithVoiceFocus items={100} />);
+    voiceFocus.focusByIndex(99);
+    await waitFor(() => {
+      expect(getByTestId('item-99')).toBeVisible();
+    });
+  });
+});
+```
+
+### Test Naming Convention
+
+```
+[Component].[methode/scenario].[expected outcome]
+
+Voorbeelden:
+- RadioContext.playStation.setsCurrentStation
+- RadioScreen.favoriteToggle.addsToFavorites
+- artworkService.fetchArtwork.returnsCachedResultOnSecondCall
+```
+
 ## Store Compliance — Testing
 
 ### Pre-Submission Test Suite
