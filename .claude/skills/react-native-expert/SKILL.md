@@ -537,6 +537,77 @@ if (matches.length === 0) {
 }
 ```
 
+## ⚠️ API Validatie voor ChipSelector (VERPLICHT)
+
+**KRITIEK:** Voordat `ChipSelector` wordt geïmplementeerd in ENIGE module, MOET grondig gevalideerd worden welke filter opties de API daadwerkelijk ondersteunt:
+
+### Validatie Vragen (ALLEMAAL beantwoorden)
+
+1. **Ondersteunt de API filtering op LAND?**
+   - Welke parameter? (bijv. `country`, `countrycode`, `region`)
+   - Wat verwacht de API? (ISO 3166-1 alpha-2 codes: 'NL', 'US', 'DE')
+   - Filter dit de content of de store/regio?
+
+2. **Ondersteunt de API filtering op TAAL?**
+   - Welke parameter? (bijv. `language`, `lang`, `locale`)
+   - Wat verwacht de API? (ISO 639-1 codes: 'nl', 'en', 'de')
+   - Filter dit de content-taal of iets anders?
+
+3. **Is er een verschil tussen land en taal filtering?**
+   - Sommige APIs (zoals iTunes) filteren op STORE/REGIO, niet op content-taal
+   - Dit betekent: zoeken in US store kan nog steeds Nederlandse content opleveren
+
+### Bekende API Karakteristieken
+
+| API | Land filter | Taal filter | Opmerkingen |
+|-----|-------------|-------------|-------------|
+| **Radio Browser** | ✅ `countrycode` | ✅ `language` | Beide filters werken op content |
+| **iTunes Search** | ✅ `country` | ❌ | Filter is STORE/REGIO, niet content-taal |
+| **Project Gutenberg** | ❌ | ✅ `language` | Alleen taalfilter beschikbaar |
+| **LibriVox** | ❌ | ✅ `language` | Alleen taalfilter beschikbaar |
+
+### ChipSelector Configuratie
+
+Op basis van de API validatie:
+
+```typescript
+// API ondersteunt BEIDE → toggle mode
+<ChipSelector
+  mode={filterMode}
+  options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+  selectedCode={selectedCode}
+  onSelect={setSelectedCode}
+  allowModeToggle={true}
+  onModeChange={setFilterMode}
+/>
+
+// API ondersteunt ALLEEN LAND → country mode, geen toggle
+<ChipSelector
+  mode="country"
+  options={COUNTRIES}
+  selectedCode={selectedCountry}
+  onSelect={setSelectedCountry}
+  // GEEN allowModeToggle
+/>
+
+// API ondersteunt ALLEEN TAAL → language mode, geen toggle
+<ChipSelector
+  mode="language"
+  options={LANGUAGES}
+  selectedCode={selectedLanguage}
+  onSelect={setSelectedLanguage}
+  // GEEN allowModeToggle
+/>
+```
+
+### ❌ NOOIT
+
+- Taalfilter aanbieden als de API het niet ondersteunt
+- Landfilter aanbieden als de API het niet ondersteunt
+- Toggle aanbieden tussen land/taal als slechts één optie werkt
+
+---
+
 ## Quality Checklist
 
 - [ ] TypeScript strict mode, zero `any`
@@ -551,6 +622,7 @@ if (matches.length === 0) {
 - [ ] Platform-specific code isolated in .ios.ts/.android.ts
 - [ ] Hermes enabled both platforms
 - [ ] Bundle size within targets
+- [ ] **ChipSelector: API land/taal ondersteuning gevalideerd VOORDAT implementatie start**
 - [ ] Voice Control: lijsten met >3 items hebben VoiceFocusable wrappers
 - [ ] Voice Control: labels zijn menselijke namen (niet technische IDs)
 - [ ] Voice Control: re-registratie bij filter/search changes
@@ -834,6 +906,257 @@ function BufferingIndicator() {
 ```
 
 **Regel:** ALLE looping animaties MOETEN `useReducedMotion()` respecteren.
+
+---
+
+## 11. Gestandaardiseerde AudioPlayer Componenten (februari 2026)
+
+Na refactoring van Radio, Podcast en Books modules zijn er gestandaardiseerde componenten. Dit zijn de implementatie patterns.
+
+### 11.1 MiniPlayer Component Usage
+
+**Import:**
+```typescript
+import { MiniPlayer } from '@/components';
+```
+
+**TypeScript Interface:**
+```typescript
+interface MiniPlayerProps {
+  artwork: string | null;
+  title: string;
+  subtitle?: string;
+  accentColor: string;
+  isPlaying: boolean;
+  isLoading: boolean;
+  onPress: () => void;
+  onPlayPause: () => void;
+  progressType: 'bar' | 'duration';
+  progress?: number;           // 0-1, voor 'bar' type
+  listenDuration?: number;     // seconds, voor 'duration' type
+  expandAccessibilityLabel?: string;
+  expandAccessibilityHint?: string;
+  showStopButton?: boolean;
+  onStop?: () => void;
+}
+```
+
+**Voorbeeld — Radio Module:**
+```typescript
+{currentStation && !isPlayerExpanded && (
+  <MiniPlayer
+    artwork={station.favicon || null}
+    title={station.name}
+    subtitle={metadata.title || t('modules.radio.liveNow')}
+    accentColor={RADIO_MODULE_COLOR}
+    isPlaying={isPlaying}
+    isLoading={isBuffering}
+    onPress={() => setIsPlayerExpanded(true)}
+    onPlayPause={async () => {
+      if (isPlaying) await pause();
+      else await play();
+    }}
+    progressType="duration"
+    listenDuration={position}
+    showStopButton={true}
+    onStop={stop}
+    expandAccessibilityLabel={t('modules.radio.expandPlayer')}
+  />
+)}
+```
+
+**Voorbeeld — Podcast Module:**
+```typescript
+{currentEpisode && !isPlayerExpanded && (
+  <MiniPlayer
+    artwork={episode.artwork || show.artwork || null}
+    title={episode.title}
+    subtitle={show.title}
+    accentColor={PODCAST_MODULE_COLOR}
+    isPlaying={isPlaying}
+    isLoading={isBuffering}
+    onPress={() => setIsPlayerExpanded(true)}
+    onPlayPause={async () => {
+      if (isPlaying) await pause();
+      else await play();
+    }}
+    progressType="bar"
+    progress={duration > 0 ? position / duration : 0}
+    expandAccessibilityLabel={t('modules.podcast.expandPlayer')}
+  />
+)}
+```
+
+### 11.2 Progress Type Selection
+
+| Content Type | progressType | Reden |
+|--------------|--------------|-------|
+| Live radio stream | `duration` | Geen eindtijd bekend |
+| Podcast episode | `bar` | Bekende duur, seekable |
+| Audiobook chapter | `bar` | Bekende duur, seekable |
+| TTS read-aloud | `bar` | Tekst lengte bekend |
+
+### 11.3 State Synchronization Pattern
+
+MiniPlayer en expanded player moeten dezelfde state tonen. Gebruik een shared context:
+
+```typescript
+// Context structure
+interface AudioContextValue {
+  // Playback state
+  isPlaying: boolean;
+  isLoading: boolean;
+  isBuffering: boolean;
+
+  // Progress tracking
+  position: number;      // Current position in seconds
+  duration: number;      // Total duration in seconds
+
+  // Current content
+  currentItem: AudioItem | null;
+
+  // Actions
+  play: () => Promise<void>;
+  pause: () => Promise<void>;
+  stop: () => Promise<void>;
+  seekTo: (position: number) => Promise<void>;
+}
+```
+
+**Regel:** Nooit separate state in MiniPlayer en expanded player. Altijd uit shared context.
+
+### 11.4 Position Update Throttling
+
+TrackPlayer position updates kunnen 60fps zijn. Throttle voor performance:
+
+```typescript
+// In context provider
+useEffect(() => {
+  let lastUpdate = 0;
+  const THROTTLE_MS = 250; // Update max 4x per seconde
+
+  const subscription = TrackPlayer.addEventListener(
+    Event.PlaybackProgressUpdated,
+    async ({ position, duration }) => {
+      const now = Date.now();
+      if (now - lastUpdate < THROTTLE_MS) return;
+      lastUpdate = now;
+
+      setProgress({ position, duration });
+    }
+  );
+
+  return () => subscription.remove();
+}, []);
+```
+
+### 11.5 Seek During Drag Pattern
+
+SeekSlider component beheert seek position intern tijdens drag:
+
+```typescript
+// Parent component
+const [isSeeking, setIsSeeking] = useState(false);
+const [seekPosition, setSeekPosition] = useState(0);
+
+<SeekSlider
+  value={progress.position}
+  duration={progress.duration}
+  onSeekStart={() => setIsSeeking(true)}
+  onSeeking={(pos) => setSeekPosition(pos)}
+  onSeekEnd={(pos) => {
+    seekTo(pos);
+    setIsSeeking(false);
+  }}
+  accentColor={accentColor}
+/>
+
+// Display time: use seekPosition during drag
+<Text>{formatTime(isSeeking ? seekPosition : progress.position)}</Text>
+```
+
+**Belangrijk:** SeekSlider beheert position INTERN tijdens drag om visual jumping te voorkomen. De `value` prop wordt alleen gebruikt wanneer NIET gesleept wordt.
+
+### 11.6 Control Callback Management
+
+ExpandedAudioPlayer accepteert een `controls` object met optionele callbacks:
+
+```typescript
+interface AudioPlayerControls {
+  skipBackward?: { seconds: number; onPress: () => void };
+  skipForward?: { seconds: number; onPress: () => void };
+  stop?: { onPress: () => void };
+  favorite?: { isFavorite: boolean; onToggle: () => void };
+  speed?: { currentRate: number; onPress: () => void };
+  sleepTimer?: { isActive: boolean; onPress: () => void };
+}
+```
+
+**Pattern — Module-specifieke controls:**
+```typescript
+// Radio: stop + favorite, geen skip/speed
+const radioControls: AudioPlayerControls = {
+  stop: { onPress: handleStop },
+  favorite: {
+    isFavorite: isFavorite(station.id),
+    onToggle: () => toggleFavorite(station),
+  },
+};
+
+// Podcast: skip + speed + sleepTimer, geen stop/favorite
+const podcastControls: AudioPlayerControls = {
+  skipBackward: { seconds: 10, onPress: () => skipBackward(10) },
+  skipForward: { seconds: 30, onPress: () => skipForward(30) },
+  speed: {
+    currentRate: playbackRate,
+    onPress: () => setShowSpeedPicker(true),
+  },
+  sleepTimer: {
+    isActive: sleepTimerMinutes !== null,
+    onPress: () => setShowSleepTimerPicker(true),
+  },
+};
+```
+
+### 11.7 Modal Navigation Pattern
+
+Expanded player is een full-screen modal. Bij secundaire modals (speed picker, sleep timer):
+
+```typescript
+// Expanded player opent speed picker
+const handleSpeedPress = () => {
+  // Sluit expanded player EERST
+  setIsPlayerExpanded(false);
+  // Open speed picker na korte delay (modal animatie)
+  setTimeout(() => setShowSpeedPicker(true), 100);
+};
+
+// Speed picker sluit en keert terug naar expanded player
+const handleSpeedSelect = async (rate: number) => {
+  await setPlaybackRate(rate);
+  setShowSpeedPicker(false);
+  // Terug naar expanded player
+  setTimeout(() => setIsPlayerExpanded(true), 100);
+};
+```
+
+**Regel:** Nooit twee modals tegelijk open. Sluit huidige modal, wacht op animatie, open nieuwe.
+
+### 11.8 AudioPlayer Module Checklist
+
+Bij ELKE nieuwe media module:
+
+- [ ] **MiniPlayer:** Gebruik standaard component uit `@/components`
+- [ ] **progressType:** Correct gekozen (`bar` voor seekable, `duration` voor live)
+- [ ] **showStopButton:** Alleen `true` voor live streams of TTS engines
+- [ ] **State sync:** Alle state uit shared context, niet lokaal
+- [ ] **Position throttling:** Max 4 updates/seconde
+- [ ] **Seek pattern:** Gebruik SeekSlider internal state
+- [ ] **Modal navigation:** Geen dubbele modals
+- [ ] **Error handling:** DeviceEventEmitter voor playback errors
+- [ ] **Cleanup:** TrackPlayer listeners verwijderd in useEffect cleanup
+
+---
 
 ## Collaboration
 

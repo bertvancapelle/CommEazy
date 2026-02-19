@@ -104,6 +104,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | Onboarding flow | onboarding-recovery-specialist, ui-designer |
 | Performance | performance-optimizer |
 | **Media modules (Radio/Podcast/Audiobook)** | **ui-designer, accessibility-specialist, react-native-expert, ios-specialist** |
+| **ChipSelector (Land/Taal filter)** | **architecture-lead, react-native-expert** — API land/taal ondersteuning MOET eerst gevalideerd worden |
 
 ### Conflict Resolutie Hiërarchie
 

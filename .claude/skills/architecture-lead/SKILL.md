@@ -225,6 +225,49 @@ interface DatabaseService {
 }
 ```
 
+## ⚠️ API Validatie voor Land/Taal Filters (VERPLICHT)
+
+**KRITIEK:** Bij ELKE externe API integratie die filtering ondersteunt, MOET gedocumenteerd worden:
+
+### Validatie Protocol
+
+1. **Analyseer de API documentatie** — Welke filter parameters zijn beschikbaar?
+2. **Test de filters** — Werken ze zoals verwacht? Filter op content of op iets anders?
+3. **Documenteer de bevindingen** — Voeg toe aan de "Bekende API Karakteristieken" tabel
+
+### Bekende API Karakteristieken
+
+| API | Land filter | Taal filter | Opmerkingen |
+|-----|-------------|-------------|-------------|
+| **Radio Browser** | ✅ `countrycode` | ✅ `language` | Beide filters werken op content |
+| **iTunes Search** | ✅ `country` | ❌ | Filter is STORE/REGIO, niet content-taal |
+| **Project Gutenberg** | ❌ | ✅ `language` | Alleen taalfilter beschikbaar |
+| **LibriVox** | ❌ | ✅ `language` | Alleen taalfilter beschikbaar |
+
+### Architecturale Beslissing
+
+Bij nieuwe media modules met externe API:
+
+```typescript
+// 1. Definieer in service file welke filters ondersteund zijn
+export const API_CAPABILITIES = {
+  supportsCountryFilter: true,  // of false
+  supportsLanguageFilter: false, // of true
+  filterNote: 'iTunes country param filters by store/region, not content language',
+} as const;
+
+// 2. Gebruik dit in de screen voor ChipSelector configuratie
+const showModeToggle = API_CAPABILITIES.supportsCountryFilter && API_CAPABILITIES.supportsLanguageFilter;
+```
+
+### ❌ NOOIT
+
+- Filter UI aanbieden die de API niet ondersteunt
+- Aannemen dat "country" parameter content-taal filtert (vaak is het store/regio)
+- ChipSelector toggle tonen als slechts één filter type werkt
+
+---
+
 ## Quality Checklist
 
 - [ ] All service interfaces defined before implementation starts
@@ -235,6 +278,7 @@ interface DatabaseService {
 - [ ] i18n framework initialized, all strings externalized
 - [ ] Store compliance reviewed (permissions just-in-time)
 - [ ] Cross-cutting quality gates referenced (see QUALITY_GATES.md)
+- [ ] **API land/taal filter ondersteuning gevalideerd en gedocumenteerd**
 
 ## Collaboration
 
