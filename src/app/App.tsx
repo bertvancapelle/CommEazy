@@ -26,6 +26,7 @@ import { HoldGestureProvider } from '@/contexts/HoldGestureContext';
 import { RadioProvider } from '@/contexts/RadioContext';
 import { PodcastProvider } from '@/contexts/PodcastContext';
 import { BooksProvider } from '@/contexts/BooksContext';
+import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
@@ -107,9 +108,11 @@ export default function App() {
                   <RadioProvider>
                     <PodcastProvider>
                       <BooksProvider>
-                        <HoldToNavigateProvider>
-                          <AppNavigator />
-                        </HoldToNavigateProvider>
+                        <ModuleConfigProvider>
+                          <HoldToNavigateProvider>
+                            <AppNavigator />
+                          </HoldToNavigateProvider>
+                        </ModuleConfigProvider>
                       </BooksProvider>
                     </PodcastProvider>
                   </RadioProvider>

@@ -39,12 +39,14 @@ import {
 import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
 import { useModuleUsage, ALL_MODULES } from '@/hooks/useModuleUsage';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 
 // Configuration
 const MODULE_ITEM_HEIGHT = 80;
 const MODULES_PER_PAGE = 4;
 
-export type NavigationDestination =
+// Static navigation destinations (built-in modules)
+export type StaticNavigationDestination =
   | 'chats'
   | 'contacts'
   | 'groups'
@@ -56,15 +58,49 @@ export type NavigationDestination =
   | 'radio'
   | 'books';
 
+// Dynamic navigation destinations for country-specific modules
+// Format: 'module:{moduleId}' (e.g., 'module:nunl')
+export type DynamicNavigationDestination = `module:${string}`;
+
+// Combined navigation destination type
+export type NavigationDestination =
+  | StaticNavigationDestination
+  | DynamicNavigationDestination;
+
+// Helper to check if destination is dynamic
+export function isDynamicDestination(dest: NavigationDestination): dest is DynamicNavigationDestination {
+  return dest.startsWith('module:');
+}
+
+// Helper to extract module ID from dynamic destination
+export function getModuleIdFromDest(dest: DynamicNavigationDestination): string {
+  return dest.replace('module:', '');
+}
+
+// All available icon types for modules
+export type ModuleIconType =
+  | 'chat'
+  | 'contacts'
+  | 'groups'
+  | 'settings'
+  | 'help'
+  | 'phone'
+  | 'video'
+  | 'book'
+  | 'headphones'
+  | 'podcast'
+  | 'radio'
+  | 'news';  // For country-specific news modules
+
 interface ModuleItem {
   id: NavigationDestination;
   labelKey: string;
-  icon: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast' | 'radio';
+  icon: ModuleIconType;
   color: string;
 }
 
-// Module definitions - can grow as functionality expands
-const MODULE_DEFINITIONS: Record<NavigationDestination, Omit<ModuleItem, 'id'>> = {
+// Static module definitions - built-in modules
+const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<ModuleItem, 'id'>> = {
   chats: { labelKey: 'navigation.chats', icon: 'chat', color: colors.primary },
   contacts: { labelKey: 'navigation.contacts', icon: 'contacts', color: '#2E7D32' },
   groups: { labelKey: 'navigation.groups', icon: 'groups', color: '#00796B' },
@@ -77,8 +113,45 @@ const MODULE_DEFINITIONS: Record<NavigationDestination, Omit<ModuleItem, 'id'>> 
   help: { labelKey: 'navigation.help', icon: 'help', color: '#00838F' },
 };
 
+// Dynamic module definitions - country-specific modules
+// These are loaded from moduleRegistry and mapped to ModuleItem format
+import { getModuleById } from '@/config/moduleRegistry';
+import type { CountryModuleDefinition } from '@/types/modules';
+
+// Map ModuleIconType from registry to WheelNavigationMenu icon type
+function mapModuleIcon(icon: string): ModuleIconType {
+  // Country modules use 'news' icon type
+  if (icon === 'news' || icon === 'newspaper') return 'news';
+  // Fallback for unknown icons
+  return 'news';
+}
+
 function getModuleItem(id: NavigationDestination): ModuleItem {
-  return { id, ...MODULE_DEFINITIONS[id] };
+  // Check if this is a dynamic module destination
+  if (isDynamicDestination(id)) {
+    const moduleId = getModuleIdFromDest(id);
+    const moduleDef = getModuleById(moduleId);
+
+    if (moduleDef) {
+      return {
+        id,
+        labelKey: moduleDef.labelKey,
+        icon: mapModuleIcon(moduleDef.icon),
+        color: moduleDef.color,
+      };
+    }
+
+    // Fallback for unknown dynamic module
+    return {
+      id,
+      labelKey: `modules.${moduleId}.title`,
+      icon: 'news',
+      color: '#757575',
+    };
+  }
+
+  // Static module
+  return { id, ...STATIC_MODULE_DEFINITIONS[id] };
 }
 
 interface WheelNavigationMenuProps {
@@ -97,8 +170,22 @@ export function WheelNavigationMenu({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { reducedMotion, triggerHaptic, settings } = useHoldToNavigate();
-  const { recordModuleUsage, getTopModules, getRemainingModules } = useModuleUsage();
   const { accentColor } = useAccentColor();
+
+  // Get enabled dynamic modules from ModuleConfigContext
+  const { enabledModules, isLoading: modulesLoading } = useModuleConfig();
+
+  // Convert enabled modules to NavigationDestination format
+  const dynamicModules = useMemo(() => {
+    return enabledModules.map(
+      (m): DynamicNavigationDestination => `module:${m.moduleId}`
+    );
+  }, [enabledModules]);
+
+  // Pass dynamic modules to useModuleUsage hook
+  const { recordModuleUsage, getTopModules, getRemainingModules } = useModuleUsage({
+    dynamicModules,
+  });
 
   const blurIntensity = settings.wheelBlurIntensity;
   const dismissMargin = settings.wheelDismissMargin;
@@ -439,7 +526,7 @@ function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
 
 // Icon component for modules
 interface ModuleIconProps {
-  type: 'chat' | 'contacts' | 'groups' | 'settings' | 'help' | 'phone' | 'video' | 'book' | 'headphones' | 'podcast' | 'radio';
+  type: ModuleIconType;
   size: number;
 }
 
@@ -618,6 +705,52 @@ function ModuleIcon({ type, size }: ModuleIconProps) {
             height: size * 0.04,
             top: size * 0.54,
             right: size * 0.18,
+          }]} />
+        </View>
+      );
+
+    case 'news':
+      return (
+        <View style={[styles.iconContainer, { width: size, height: size }]}>
+          {/* Newspaper body - folded paper */}
+          <View style={[styles.newsBody, {
+            width: size * 0.75,
+            height: size * 0.65,
+            borderRadius: size * 0.06,
+          }]} />
+          {/* Headline line */}
+          <View style={[styles.newsHeadline, {
+            width: size * 0.5,
+            height: size * 0.08,
+            top: size * 0.22,
+            left: size * 0.15,
+            borderRadius: size * 0.02,
+          }]} />
+          {/* Text lines */}
+          <View style={[styles.newsLine, {
+            width: size * 0.55,
+            height: size * 0.04,
+            top: size * 0.38,
+            left: size * 0.15,
+          }]} />
+          <View style={[styles.newsLine, {
+            width: size * 0.45,
+            height: size * 0.04,
+            top: size * 0.46,
+            left: size * 0.15,
+          }]} />
+          <View style={[styles.newsLine, {
+            width: size * 0.5,
+            height: size * 0.04,
+            top: size * 0.54,
+            left: size * 0.15,
+          }]} />
+          {/* Fold corner */}
+          <View style={[styles.newsFold, {
+            width: size * 0.15,
+            height: size * 0.15,
+            top: size * 0.15,
+            right: size * 0.13,
           }]} />
         </View>
       );
@@ -888,5 +1021,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: colors.textOnPrimary,
     borderRadius: 2,
+  },
+  // News icon styles
+  newsBody: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+    top: '15%',
+  },
+  newsHeadline: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  newsLine: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 1,
+  },
+  newsFold: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomLeftRadius: 4,
   },
 });

@@ -945,7 +945,67 @@
         "server": "El servicio de radio no está disponible temporalmente",
         "serverTitle": "Error del servidor"
       }
+    },
+    "nunl": {
+      "title": "nu.nl Noticias",
+      "category": "Categoría",
+      "categories": {
+        "algemeen": "General",
+        "sport": "Deportes",
+        "tech": "Tecnología",
+        "economie": "Economía",
+        "film": "Cine",
+        "muziek": "Música",
+        "wetenschap": "Ciencia",
+        "opmerkelijk": "Curioso",
+        "achterklap": "Famosos"
+      },
+      "loading": "Cargando...",
+      "noArticles": "No se encontraron artículos",
+      "noArticlesHint": "Prueba otra categoría",
+      "articleHint": "Toca para leer",
+      "readAloud": "Leer en voz alta",
+      "readAloudHint": "Leer este artículo en voz alta",
+      "readSummary": "Leer resumen",
+      "readFullArticle": "Leer artículo completo",
+      "pause": "Pausar",
+      "stop": "Detener",
+      "close": "Cerrar",
+      "openInBrowser": "Abrir en navegador",
+      "errors": {
+        "network": "Sin conexión a Internet",
+        "networkTitle": "Conexión fallida",
+        "timeout": "La carga tardó demasiado",
+        "timeoutTitle": "Tiempo agotado",
+        "server": "El servicio de noticias no está disponible",
+        "serverTitle": "Error del servidor",
+        "parse": "No se pueden leer los datos de noticias",
+        "parseTitle": "Error de lectura"
+      }
     }
+  },
+  "settings": {
+    "modules": {
+      "title": "Módulos",
+      "subtitle": "Elige qué módulos quieres usar",
+      "enabled": "Activado",
+      "disabled": "Desactivado",
+      "fromYourCountry": "Disponible para tu país",
+      "otherCountries": "Otros países",
+      "autoEnabled": "Activado automáticamente",
+      "tapToEnable": "Toca para activar",
+      "tapToDisable": "Toca para desactivar"
+    }
+  },
+  "articleViewer": {
+    "close": "Cerrar",
+    "readAloud": "Leer en voz alta",
+    "pause": "Pausar",
+    "stop": "Detener",
+    "loading": "Cargando...",
+    "readFullArticle": "Leer artículo completo",
+    "readSummary": "Leer resumen",
+    "ttsUnavailable": "Lectura en voz alta no disponible"
   },
   "navigation_tutorial": {
     "intro_title": "Navegar con Hold-to-Navigate",

@@ -945,7 +945,67 @@
         "server": "The radio service is temporarily unavailable",
         "serverTitle": "Server error"
       }
+    },
+    "nunl": {
+      "title": "nu.nl News",
+      "category": "Category",
+      "categories": {
+        "algemeen": "General",
+        "sport": "Sports",
+        "tech": "Tech",
+        "economie": "Economy",
+        "film": "Film",
+        "muziek": "Music",
+        "wetenschap": "Science",
+        "opmerkelijk": "Remarkable",
+        "achterklap": "Celebrity"
+      },
+      "loading": "Loading...",
+      "noArticles": "No articles found",
+      "noArticlesHint": "Try a different category",
+      "articleHint": "Tap to read",
+      "readAloud": "Read aloud",
+      "readAloudHint": "Read this article aloud",
+      "readSummary": "Read summary",
+      "readFullArticle": "Read full article",
+      "pause": "Pause",
+      "stop": "Stop",
+      "close": "Close",
+      "openInBrowser": "Open in browser",
+      "errors": {
+        "network": "No internet connection",
+        "networkTitle": "Connection failed",
+        "timeout": "Loading took too long",
+        "timeoutTitle": "Timeout",
+        "server": "The news service is unavailable",
+        "serverTitle": "Server error",
+        "parse": "Cannot read news data",
+        "parseTitle": "Read error"
+      }
     }
+  },
+  "settings": {
+    "modules": {
+      "title": "Modules",
+      "subtitle": "Choose which modules you want to use",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "fromYourCountry": "Available for your country",
+      "otherCountries": "Other countries",
+      "autoEnabled": "Automatically enabled",
+      "tapToEnable": "Tap to enable",
+      "tapToDisable": "Tap to disable"
+    }
+  },
+  "articleViewer": {
+    "close": "Close",
+    "readAloud": "Read aloud",
+    "pause": "Pause",
+    "stop": "Stop",
+    "loading": "Loading...",
+    "readFullArticle": "Read full article",
+    "readSummary": "Read summary",
+    "ttsUnavailable": "Read aloud not available"
   },
   "navigation_tutorial": {
     "intro_title": "Navigate with Hold-to-Navigate",

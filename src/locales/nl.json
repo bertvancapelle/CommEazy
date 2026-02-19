@@ -952,7 +952,67 @@
         "server": "De radiodienst is tijdelijk niet beschikbaar",
         "serverTitle": "Serverfout"
       }
+    },
+    "nunl": {
+      "title": "nu.nl Nieuws",
+      "category": "Categorie",
+      "categories": {
+        "algemeen": "Algemeen",
+        "sport": "Sport",
+        "tech": "Tech",
+        "economie": "Economie",
+        "film": "Film",
+        "muziek": "Muziek",
+        "wetenschap": "Wetenschap",
+        "opmerkelijk": "Opmerkelijk",
+        "achterklap": "Achterklap"
+      },
+      "loading": "Laden...",
+      "noArticles": "Geen artikelen gevonden",
+      "noArticlesHint": "Probeer een andere categorie",
+      "articleHint": "Tik om te lezen",
+      "readAloud": "Voorlezen",
+      "readAloudHint": "Lees dit artikel voor",
+      "readSummary": "Samenvatting voorlezen",
+      "readFullArticle": "Volledig artikel voorlezen",
+      "pause": "Pauze",
+      "stop": "Stop",
+      "close": "Sluiten",
+      "openInBrowser": "Open in browser",
+      "errors": {
+        "network": "Geen internetverbinding",
+        "networkTitle": "Verbinding mislukt",
+        "timeout": "Het laden duurde te lang",
+        "timeoutTitle": "Time-out",
+        "server": "De nieuwsdienst is niet beschikbaar",
+        "serverTitle": "Serverfout",
+        "parse": "Kan nieuwsgegevens niet lezen",
+        "parseTitle": "Leesfout"
+      }
     }
+  },
+  "settings": {
+    "modules": {
+      "title": "Modules",
+      "subtitle": "Kies welke modules je wilt gebruiken",
+      "enabled": "Ingeschakeld",
+      "disabled": "Uitgeschakeld",
+      "fromYourCountry": "Beschikbaar voor jouw land",
+      "otherCountries": "Andere landen",
+      "autoEnabled": "Automatisch ingeschakeld",
+      "tapToEnable": "Tik om in te schakelen",
+      "tapToDisable": "Tik om uit te schakelen"
+    }
+  },
+  "articleViewer": {
+    "close": "Sluiten",
+    "readAloud": "Voorlezen",
+    "pause": "Pauze",
+    "stop": "Stop",
+    "loading": "Laden...",
+    "readFullArticle": "Volledig artikel voorlezen",
+    "readSummary": "Samenvatting voorlezen",
+    "ttsUnavailable": "Voorlezen niet beschikbaar"
   },
   "navigation_tutorial": {
     "intro_title": "Navigeren met Hold-to-Navigate",

@@ -246,8 +246,19 @@ interface HoldToNavigateWrapperProps {
 
 /**
  * Convert a NavigationDestination to the corresponding tab name
+ * Supports both static modules and dynamic country-specific modules
  */
 function getTabNameForDestination(destination: NavigationDestination): string {
+  // Check if this is a dynamic module (format: 'module:{moduleId}')
+  if (destination.startsWith('module:')) {
+    const moduleId = destination.replace('module:', '');
+    // Convert moduleId to tab name (e.g., 'nunl' -> 'NuNlTab')
+    // Capitalize first letter and add 'Tab' suffix
+    const tabName = moduleId.charAt(0).toUpperCase() + moduleId.slice(1) + 'Tab';
+    return tabName;
+  }
+
+  // Static modules
   switch (destination) {
     case 'chats': return 'ChatsTab';
     case 'contacts': return 'ContactsTab';
@@ -839,7 +850,19 @@ export function HoldToNavigateWrapper({
         return;
       }
 
-      // Navigate to the appropriate tab/screen
+      // Check if this is a dynamic module (format: 'module:{moduleId}')
+      if (destination.startsWith('module:')) {
+        const tabName = getTabNameForDestination(destination);
+        if (tabName) {
+          console.log('[HoldToNavigate] Navigating to dynamic module tab:', tabName);
+          navigation.navigate(tabName as never);
+        } else {
+          console.warn('[HoldToNavigate] Unknown dynamic module:', destination);
+        }
+        return;
+      }
+
+      // Navigate to the appropriate static tab/screen
       switch (destination) {
         case 'chats':
           navigation.navigate('ChatsTab' as never);

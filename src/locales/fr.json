@@ -945,7 +945,67 @@
         "server": "Le service radio est temporairement indisponible",
         "serverTitle": "Erreur serveur"
       }
+    },
+    "nunl": {
+      "title": "nu.nl Actualités",
+      "category": "Catégorie",
+      "categories": {
+        "algemeen": "Général",
+        "sport": "Sport",
+        "tech": "Tech",
+        "economie": "Économie",
+        "film": "Cinéma",
+        "muziek": "Musique",
+        "wetenschap": "Science",
+        "opmerkelijk": "Insolite",
+        "achterklap": "Célébrités"
+      },
+      "loading": "Chargement...",
+      "noArticles": "Aucun article trouvé",
+      "noArticlesHint": "Essayez une autre catégorie",
+      "articleHint": "Appuyez pour lire",
+      "readAloud": "Lire à voix haute",
+      "readAloudHint": "Lire cet article à voix haute",
+      "readSummary": "Lire le résumé",
+      "readFullArticle": "Lire l'article complet",
+      "pause": "Pause",
+      "stop": "Arrêter",
+      "close": "Fermer",
+      "openInBrowser": "Ouvrir dans le navigateur",
+      "errors": {
+        "network": "Pas de connexion Internet",
+        "networkTitle": "Connexion échouée",
+        "timeout": "Le chargement a pris trop de temps",
+        "timeoutTitle": "Délai dépassé",
+        "server": "Le service d'actualités n'est pas disponible",
+        "serverTitle": "Erreur serveur",
+        "parse": "Impossible de lire les données d'actualités",
+        "parseTitle": "Erreur de lecture"
+      }
     }
+  },
+  "settings": {
+    "modules": {
+      "title": "Modules",
+      "subtitle": "Choisissez les modules que vous souhaitez utiliser",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "fromYourCountry": "Disponible pour votre pays",
+      "otherCountries": "Autres pays",
+      "autoEnabled": "Activé automatiquement",
+      "tapToEnable": "Appuyez pour activer",
+      "tapToDisable": "Appuyez pour désactiver"
+    }
+  },
+  "articleViewer": {
+    "close": "Fermer",
+    "readAloud": "Lire à voix haute",
+    "pause": "Pause",
+    "stop": "Arrêter",
+    "loading": "Chargement...",
+    "readFullArticle": "Lire l'article complet",
+    "readSummary": "Lire le résumé",
+    "ttsUnavailable": "Lecture vocale non disponible"
   },
   "navigation_tutorial": {
     "intro_title": "Naviguer avec Hold-to-Navigate",

@@ -945,7 +945,67 @@
         "server": "Der Radiodienst ist vorübergehend nicht verfügbar",
         "serverTitle": "Serverfehler"
       }
+    },
+    "nunl": {
+      "title": "nu.nl Nachrichten",
+      "category": "Kategorie",
+      "categories": {
+        "algemeen": "Allgemein",
+        "sport": "Sport",
+        "tech": "Technik",
+        "economie": "Wirtschaft",
+        "film": "Film",
+        "muziek": "Musik",
+        "wetenschap": "Wissenschaft",
+        "opmerkelijk": "Bemerkenswert",
+        "achterklap": "Prominente"
+      },
+      "loading": "Wird geladen...",
+      "noArticles": "Keine Artikel gefunden",
+      "noArticlesHint": "Versuche eine andere Kategorie",
+      "articleHint": "Tippen zum Lesen",
+      "readAloud": "Vorlesen",
+      "readAloudHint": "Diesen Artikel vorlesen",
+      "readSummary": "Zusammenfassung vorlesen",
+      "readFullArticle": "Vollständigen Artikel vorlesen",
+      "pause": "Pause",
+      "stop": "Stopp",
+      "close": "Schließen",
+      "openInBrowser": "Im Browser öffnen",
+      "errors": {
+        "network": "Keine Internetverbindung",
+        "networkTitle": "Verbindung fehlgeschlagen",
+        "timeout": "Das Laden hat zu lange gedauert",
+        "timeoutTitle": "Zeitüberschreitung",
+        "server": "Der Nachrichtendienst ist nicht verfügbar",
+        "serverTitle": "Serverfehler",
+        "parse": "Nachrichtendaten können nicht gelesen werden",
+        "parseTitle": "Lesefehler"
+      }
     }
+  },
+  "settings": {
+    "modules": {
+      "title": "Module",
+      "subtitle": "Wähle, welche Module du verwenden möchtest",
+      "enabled": "Aktiviert",
+      "disabled": "Deaktiviert",
+      "fromYourCountry": "Verfügbar für dein Land",
+      "otherCountries": "Andere Länder",
+      "autoEnabled": "Automatisch aktiviert",
+      "tapToEnable": "Tippen zum Aktivieren",
+      "tapToDisable": "Tippen zum Deaktivieren"
+    }
+  },
+  "articleViewer": {
+    "close": "Schließen",
+    "readAloud": "Vorlesen",
+    "pause": "Pause",
+    "stop": "Stopp",
+    "loading": "Wird geladen...",
+    "readFullArticle": "Vollständigen Artikel vorlesen",
+    "readSummary": "Zusammenfassung vorlesen",
+    "ttsUnavailable": "Vorlesen nicht verfügbar"
   },
   "navigation_tutorial": {
     "intro_title": "Navigation mit Hold-to-Navigate",

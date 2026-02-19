@@ -7,9 +7,11 @@
  * Features:
  * - Persists usage counts to database (survives app restarts)
  * - Returns sorted modules by usage frequency
+ * - Supports dynamic country-specific modules from ModuleConfigContext
  * - Scalable for future module additions
  *
  * @see .claude/skills/ui-designer/SKILL.md
+ * @see .claude/plans/COUNTRY_SPECIFIC_MODULES.md
  */
 
 import { useCallback, useMemo, useEffect, useState } from 'react';
@@ -33,6 +35,14 @@ interface UseModuleUsageReturn {
   usageCounts: ModuleUsageCounts;
   /** Whether data is loaded from database */
   isLoaded: boolean;
+  /** All available modules (static + dynamic) */
+  allModules: NavigationDestination[];
+}
+
+// Hook configuration
+interface UseModuleUsageOptions {
+  /** Additional dynamic modules to include (from ModuleConfigContext) */
+  dynamicModules?: NavigationDestination[];
 }
 
 // All available modules - this list can grow as functionality expands
@@ -65,9 +75,16 @@ const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'help',       // Help
 ];
 
-export function useModuleUsage(): UseModuleUsageReturn {
+export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageReturn {
   const [usageCounts, setUsageCounts] = useState<ModuleUsageCounts>({});
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Combine static modules with dynamic modules from ModuleConfigContext
+  const allModules = useMemo(() => {
+    const dynamicModules = options?.dynamicModules ?? [];
+    // Dynamic modules come after static modules in the list
+    return [...ALL_MODULES, ...dynamicModules];
+  }, [options?.dynamicModules]);
 
   // Load usage counts from database on mount
   useEffect(() => {
@@ -134,16 +151,22 @@ export function useModuleUsage(): UseModuleUsageReturn {
   ): NavigationDestination[] => {
     // Filter out the excluded module - always create a new array
     const availableModules = excludeModule
-      ? ALL_MODULES.filter(m => m !== excludeModule)
-      : [...ALL_MODULES];
+      ? allModules.filter(m => m !== excludeModule)
+      : [...allModules];
 
-    // If no usage data, use default ordering
+    // If no usage data, use default ordering for static modules,
+    // then append dynamic modules at the end
     if (Object.keys(usageCounts).length === 0) {
-      const defaultFiltered = DEFAULT_MODULE_ORDER.filter(m => m !== excludeModule);
-      return defaultFiltered.slice(0, count);
+      const staticFiltered = DEFAULT_MODULE_ORDER.filter(m => m !== excludeModule);
+      // Add any dynamic modules that aren't in default order
+      const dynamicModules = availableModules.filter(m =>
+        !DEFAULT_MODULE_ORDER.includes(m as any) && m !== excludeModule
+      );
+      return [...staticFiltered, ...dynamicModules].slice(0, count);
     }
 
     // Sort by usage count (descending), then by default order for ties
+    // Dynamic modules without usage go after static modules
     // Use slice() to create a copy before sorting (sort mutates in place)
     const sorted = [...availableModules].sort((a, b) => {
       const countA = usageCounts[a] || 0;
@@ -153,14 +176,17 @@ export function useModuleUsage(): UseModuleUsageReturn {
         return countB - countA; // Higher count first
       }
 
-      // For ties, use default ordering
-      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a);
-      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b);
-      return defaultIndexA - defaultIndexB;
+      // For ties, use default ordering (dynamic modules get high index)
+      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a as any);
+      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b as any);
+      // If not in default order, put at end (use large number)
+      const indexA = defaultIndexA === -1 ? 1000 : defaultIndexA;
+      const indexB = defaultIndexB === -1 ? 1000 : defaultIndexB;
+      return indexA - indexB;
     });
 
     return sorted.slice(0, count);
-  }, [usageCounts]);
+  }, [usageCounts, allModules]);
 
   // Get remaining modules not in top N
   const getRemainingModules = useCallback((
@@ -170,16 +196,20 @@ export function useModuleUsage(): UseModuleUsageReturn {
     const topModules = getTopModules(excludeModule, topCount);
 
     // Filter out excluded module and top modules
-    const remaining = ALL_MODULES.filter(m =>
+    const remaining = allModules.filter(m =>
       m !== excludeModule && !topModules.includes(m)
     );
 
     // Sort remaining by usage count too
     if (Object.keys(usageCounts).length === 0) {
-      const defaultFiltered = DEFAULT_MODULE_ORDER.filter(m =>
+      const staticFiltered = DEFAULT_MODULE_ORDER.filter(m =>
         m !== excludeModule && !topModules.includes(m)
       );
-      return defaultFiltered;
+      // Add any dynamic modules not in default order
+      const dynamicModules = remaining.filter(m =>
+        !DEFAULT_MODULE_ORDER.includes(m as any)
+      );
+      return [...staticFiltered, ...dynamicModules];
     }
 
     // Use spread to create copy before sorting
@@ -191,11 +221,14 @@ export function useModuleUsage(): UseModuleUsageReturn {
         return countB - countA;
       }
 
-      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a);
-      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b);
-      return defaultIndexA - defaultIndexB;
+      // For ties, use default ordering (dynamic modules get high index)
+      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a as any);
+      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b as any);
+      const indexA = defaultIndexA === -1 ? 1000 : defaultIndexA;
+      const indexB = defaultIndexB === -1 ? 1000 : defaultIndexB;
+      return indexA - indexB;
     });
-  }, [usageCounts, getTopModules]);
+  }, [usageCounts, getTopModules, allModules]);
 
   return {
     recordModuleUsage,
@@ -203,5 +236,6 @@ export function useModuleUsage(): UseModuleUsageReturn {
     getRemainingModules,
     usageCounts,
     isLoaded,
+    allModules,
   };
 }
