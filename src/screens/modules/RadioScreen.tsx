@@ -43,7 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, MediaIndicator, PlayingWaveIcon } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
@@ -200,6 +200,7 @@ export function RadioScreen() {
     play,
     pause,
     stop,
+    position,
   } = useRadioContext();
 
   // State
@@ -581,17 +582,14 @@ export function RadioScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <View style={styles.innerContainer}>
-      {/* Module Header — consistent with navigation menu, centered */}
-      <View style={[styles.moduleHeader, { backgroundColor: RADIO_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.moduleHeaderContent}>
-          <Icon name="radio" size={28} color={colors.textOnPrimary} />
-          <Text style={styles.moduleTitle}>{t('modules.radio.title')}</Text>
-        </View>
-        {/* Media indicator — hidden on RadioScreen when radio is playing */}
-        <View style={styles.mediaIndicatorContainer}>
-          <MediaIndicator moduleColor={RADIO_MODULE_COLOR} currentSource="radio" />
-        </View>
-      </View>
+      {/* Module Header — standardized component with AdMob placeholder */}
+      <ModuleHeader
+        moduleId="radio"
+        icon="radio"
+        title={t('modules.radio.title')}
+        currentSource="radio"
+        showAdMob={true}
+      />
 
       {/* Tab selector: Favorites / Search */}
       {/* Pattern: Active tab = accent color background, Inactive tab = thin border */}
@@ -914,76 +912,30 @@ export function RadioScreen() {
         </ScrollView>
       )}
 
-      {/* Floating Mini-Player — shown when a station is playing */}
-      {/* Tap to expand to full player view */}
+      {/* Floating Mini-Player — using standardized component */}
       {contextStation && !isPlayerExpanded && (
-        <TouchableOpacity
-          style={[styles.miniPlayer, { backgroundColor: accentColor.primary }]}
-          onPress={() => {
-            triggerFeedback('tap');
-            setIsPlayerExpanded(true);
+        <MiniPlayer
+          artwork={metadata.artwork || contextStation.favicon || null}
+          title={contextStation.name}
+          subtitle={isBuffering ? t('modules.radio.buffering') : metadata.title}
+          accentColor={accentColor.primary}
+          isPlaying={isPlaying}
+          isLoading={isPlaybackLoading}
+          onPress={() => setIsPlayerExpanded(true)}
+          onPlayPause={async () => {
+            if (isPlaying) {
+              await pause();
+            } else {
+              await play();
+            }
           }}
-          activeOpacity={0.9}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.radio.expandPlayer')}
-          accessibilityHint={t('modules.radio.expandPlayerHint')}
-        >
-          {/* Station info */}
-          <View style={styles.miniPlayerInfo}>
-            <Text style={styles.miniPlayerStationName} numberOfLines={1}>
-              {contextStation.name}
-            </Text>
-            {(metadata.title || isBuffering) && (
-              <Text style={styles.miniPlayerNowPlaying} numberOfLines={1}>
-                {isBuffering ? t('modules.radio.buffering') : metadata.title}
-              </Text>
-            )}
-          </View>
-
-          {/* Playback controls — stop event propagation */}
-          <View style={styles.miniPlayerControls}>
-            {/* Play/Pause button */}
-            <TouchableOpacity
-              style={styles.miniPlayerButton}
-              onPress={async (e) => {
-                e.stopPropagation();
-                await triggerFeedback('tap');
-                if (isPlaying) {
-                  await pause();
-                } else {
-                  await play();
-                }
-              }}
-              disabled={isPlaybackLoading}
-              accessibilityRole="button"
-              accessibilityLabel={isPlaying ? t('modules.radio.pause') : t('modules.radio.play')}
-            >
-              {isPlaybackLoading ? (
-                <ActivityIndicator size="small" color={colors.textOnPrimary} />
-              ) : (
-                <Icon
-                  name={isPlaying ? 'pause' : 'play'}
-                  size={28}
-                  color={colors.textOnPrimary}
-                />
-              )}
-            </TouchableOpacity>
-
-            {/* Stop button */}
-            <TouchableOpacity
-              style={styles.miniPlayerButton}
-              onPress={async (e) => {
-                e.stopPropagation();
-                await triggerFeedback('tap');
-                await stop();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.radio.stop')}
-            >
-              <Icon name="stop" size={28} color={colors.textOnPrimary} />
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+          progressType="duration"
+          listenDuration={position}
+          showStopButton={true}
+          onStop={stop}
+          expandAccessibilityLabel={t('modules.radio.expandPlayer')}
+          expandAccessibilityHint={t('modules.radio.expandPlayerHint')}
+        />
       )}
 
       {/* Expanded Full Player Modal */}
@@ -1234,72 +1186,8 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  moduleHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  moduleTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-    fontWeight: '700',
-  },
-  mediaIndicatorContainer: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    transform: [{ translateY: 8 }],
-  },
-  // Mini-Player — floating bar at bottom when music is playing
-  miniPlayer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    // Height: touch target + padding
-    minHeight: touchTargets.comfortable,
-    // Shadow for elevation
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  miniPlayerInfo: {
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  miniPlayerStationName: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '700',
-  },
-  miniPlayerNowPlaying: {
-    ...typography.small,
-    color: colors.textOnPrimary,
-    opacity: 0.8,
-    marginTop: spacing.xs,
-  },
-  miniPlayerControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  miniPlayerButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: touchTargets.minimum / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
+  // moduleHeader styles removed — using standardized ModuleHeader component
+  // Mini-Player styles removed — using standardized MiniPlayer component
   // Expanded Player Modal styles
   expandedPlayerOverlay: {
     flex: 1,

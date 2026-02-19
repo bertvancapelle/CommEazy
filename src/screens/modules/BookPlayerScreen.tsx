@@ -40,7 +40,7 @@ import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, MediaIndicator, SeekSlider } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, MiniPlayer, ModuleHeader } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import {
@@ -266,21 +266,18 @@ export function BookPlayerScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Module Header */}
-      <View style={[styles.moduleHeader, { backgroundColor: accentColor.primary }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-        >
-          <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
-        </TouchableOpacity>
-        <Icon name="book" size={28} color={colors.textOnPrimary} />
-        <Text style={styles.moduleTitle}>{t('modules.books.listen')}</Text>
-        <MediaIndicator currentSource="books" />
-      </View>
+    <View style={styles.container}>
+      {/* Module Header — standardized component with AdMob placeholder and back button */}
+      <ModuleHeader
+        moduleId="books"
+        icon="book"
+        title={t('modules.books.listen')}
+        currentSource="books"
+        showAdMob={true}
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+        backButtonLabel={t('common.back')}
+      />
 
       {/* Book Info */}
       <View style={styles.bookInfoContainer}>
@@ -398,63 +395,25 @@ export function BookPlayerScreen() {
         })}
       </ScrollView>
 
-      {/* Mini Player */}
+      {/* Mini Player — using standardized component */}
       {currentChapter && (
-        <TouchableOpacity
-          style={[styles.miniPlayer, { bottom: insets.bottom + spacing.sm }]}
-          onPress={() => setIsPlayerExpanded(true)}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.books.audio.expandPlayer')}
-        >
-          <View style={styles.miniPlayerContent}>
-            {/* Chapter info */}
-            <View style={styles.miniPlayerInfo}>
-              <Text style={styles.miniPlayerTitle} numberOfLines={1}>
-                {currentChapter.title}
-              </Text>
-              <Text style={styles.miniPlayerTime}>
-                {formatTime(charsToSeconds(audioProgress.position))} / {formatTime(charsToSeconds(audioProgress.duration))}
-              </Text>
-            </View>
-
-            {/* Controls */}
-            <View style={styles.miniPlayerControls}>
-              {isAudioLoading ? (
-                <ActivityIndicator size="small" color={colors.textOnPrimary} />
-              ) : (
-                <>
-                  <IconButton
-                    icon={isAudioPlaying ? 'pause' : 'play'}
-                    size={32}
-                    color={colors.textOnPrimary}
-                    onPress={handlePlayPause}
-                    accessibilityLabel={isAudioPlaying ? t('modules.books.audio.pause') : t('modules.books.audio.play')}
-                  />
-                  <IconButton
-                    icon="stop"
-                    size={24}
-                    color="rgba(255, 255, 255, 0.8)"
-                    onPress={handleStop}
-                    accessibilityLabel={t('modules.books.audio.stop')}
-                  />
-                </>
-              )}
-            </View>
-          </View>
-
-          {/* Progress bar */}
-          <View style={styles.miniPlayerProgressContainer}>
-            <View
-              style={[
-                styles.miniPlayerProgressBar,
-                {
-                  width: `${audioProgress.percentage}%`,
-                  backgroundColor: colors.textOnPrimary,
-                },
-              ]}
-            />
-          </View>
-        </TouchableOpacity>
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom }}>
+          <MiniPlayer
+            artwork={currentBook?.coverImage || null}
+            title={currentChapter.title}
+            subtitle={currentBook?.title}
+            accentColor={MODULE_COLOR}
+            isPlaying={isAudioPlaying}
+            isLoading={isAudioLoading}
+            onPress={() => setIsPlayerExpanded(true)}
+            onPlayPause={handlePlayPause}
+            progressType="bar"
+            progress={audioProgress.percentage / 100}
+            showStopButton={true}
+            onStop={handleStop}
+            expandAccessibilityLabel={t('modules.books.audio.expandPlayer')}
+          />
+        </View>
       )}
 
       {/* Expanded Player Modal */}
@@ -807,24 +766,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-
-  // Module Header
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
-  },
-  backButton: {
-    padding: spacing.xs,
-    marginRight: spacing.xs,
-  },
-  moduleTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-    flex: 1,
-  },
+  // moduleHeader styles removed — using standardized ModuleHeader component
 
   // Book Info
   bookInfoContainer: {
@@ -924,51 +866,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Mini Player
-  miniPlayer: {
-    position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
-    backgroundColor: '#FF8F00', // Amber module color
-    borderRadius: borderRadius.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  miniPlayerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  miniPlayerInfo: {
-    flex: 1,
-  },
-  miniPlayerTitle: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
-  },
-  miniPlayerTime: {
-    ...typography.label,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: spacing.xxs,
-  },
-  miniPlayerControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  miniPlayerProgressContainer: {
-    height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  miniPlayerProgressBar: {
-    height: '100%',
-  },
+  // Mini Player styles removed — using standardized MiniPlayer component
 
   // Expanded Player
   expandedPlayerOverlay: {

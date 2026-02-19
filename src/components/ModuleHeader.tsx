@@ -23,7 +23,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from './Icon';
@@ -48,6 +48,12 @@ export interface ModuleHeaderProps {
   showAdMob?: boolean;
   /** AdMob unit ID (optional, uses default if not provided) */
   adMobUnitId?: string;
+  /** Show back button (for detail screens) */
+  showBackButton?: boolean;
+  /** Callback when back button is pressed */
+  onBackPress?: () => void;
+  /** Accessibility label for back button (default: "Terug") */
+  backButtonLabel?: string;
 }
 
 // ============================================================
@@ -82,6 +88,9 @@ export function ModuleHeader({
   currentSource,
   showAdMob = true,
   adMobUnitId,
+  showBackButton = false,
+  onBackPress,
+  backButtonLabel = 'Terug',
 }: ModuleHeaderProps) {
   const insets = useSafeAreaInsets();
   const moduleColor = MODULE_COLORS[moduleId] || colors.primary;
@@ -93,8 +102,18 @@ export function ModuleHeader({
 
       {/* Title Row */}
       <View style={styles.titleRow}>
-        {/* Left: Icon + Title */}
+        {/* Left: Back button (optional) + Icon + Title */}
         <View style={styles.titleContent}>
+          {showBackButton && onBackPress && (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={onBackPress}
+              accessibilityRole="button"
+              accessibilityLabel={backButtonLabel}
+            >
+              <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
+            </TouchableOpacity>
+          )}
           <Icon name={icon} size={28} color={colors.textOnPrimary} />
           <Text style={styles.title}>{title}</Text>
         </View>
@@ -144,6 +163,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,                   // 8pt tussen icon en titel
+  },
+  backButton: {
+    // Senior-inclusive touch target ≥60pt
+    minWidth: touchTargets.minimum,
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.xs,
   },
   title: {
     ...typography.h3,

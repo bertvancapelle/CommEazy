@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, MediaIndicator, SeekSlider, PlayingWaveIcon } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import {
@@ -480,16 +480,14 @@ export function PodcastScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <View style={styles.innerContainer}>
-        {/* Module Header */}
-        <View style={[styles.moduleHeader, { backgroundColor: PODCAST_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
-          <View style={styles.moduleHeaderContent}>
-            <Icon name="podcast" size={28} color={colors.textOnPrimary} />
-            <Text style={styles.moduleTitle}>{t('modules.podcast.title')}</Text>
-          </View>
-          <View style={styles.mediaIndicatorContainer}>
-            <MediaIndicator moduleColor={PODCAST_MODULE_COLOR} currentSource="podcast" />
-          </View>
-        </View>
+        {/* Module Header — standardized component with AdMob placeholder */}
+        <ModuleHeader
+          moduleId="podcast"
+          icon="podcast"
+          title={t('modules.podcast.title')}
+          currentSource="podcast"
+          showAdMob={true}
+        />
 
         {/* Tab selector */}
         <View style={styles.tabBar}>
@@ -798,74 +796,32 @@ export function PodcastScreen() {
           </ScrollView>
         )}
 
-        {/* Mini-player */}
+        {/* Mini-player — using standardized component */}
         {currentEpisode && currentShow && !isPlayerExpanded && !showSpeedPicker && !showSleepTimerPicker && (
-          <TouchableOpacity
-            style={[styles.miniPlayer, { backgroundColor: accentColor.primary }]}
+          <MiniPlayer
+            artwork={currentEpisode.artwork || currentShow.artwork || null}
+            title={currentEpisode.title}
+            subtitle={currentShow.title}
+            accentColor={accentColor.primary}
+            isPlaying={isPlaying}
+            isLoading={isPlaybackLoading}
             onPress={() => {
-              triggerFeedback('tap');
-              // Close any open pickers first
               setShowSpeedPicker(false);
               setShowSleepTimerPicker(false);
               setIsPlayerExpanded(true);
             }}
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.podcast.expandPlayer')}
-            accessibilityHint={t('modules.podcast.expandPlayerHint')}
-          >
-            {/* Artwork */}
-            {(currentEpisode.artwork || currentShow.artwork) && (
-              <Image
-                source={{ uri: currentEpisode.artwork || currentShow.artwork }}
-                style={styles.miniPlayerArtwork}
-              />
-            )}
-
-            {/* Episode info */}
-            <View style={styles.miniPlayerInfo}>
-              <Text style={styles.miniPlayerTitle} numberOfLines={1}>
-                {currentEpisode.title}
-              </Text>
-              <View style={styles.miniPlayerProgress}>
-                <View
-                  style={[
-                    styles.miniPlayerProgressBar,
-                    { width: `${progress.duration > 0 ? (progress.position / progress.duration) * 100 : 0}%` },
-                  ]}
-                />
-              </View>
-            </View>
-
-            {/* Controls */}
-            <View style={styles.miniPlayerControls}>
-              <TouchableOpacity
-                style={styles.miniPlayerButton}
-                onPress={async (e) => {
-                  e.stopPropagation();
-                  await triggerFeedback('tap');
-                  if (isPlaying) {
-                    await pause();
-                  } else {
-                    await play();
-                  }
-                }}
-                disabled={isPlaybackLoading}
-                accessibilityRole="button"
-                accessibilityLabel={isPlaying ? t('modules.podcast.pause') : t('modules.podcast.play')}
-              >
-                {isPlaybackLoading ? (
-                  <ActivityIndicator size="small" color={colors.textOnPrimary} />
-                ) : (
-                  <Icon
-                    name={isPlaying ? 'pause' : 'play'}
-                    size={28}
-                    color={colors.textOnPrimary}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+            onPlayPause={async () => {
+              if (isPlaying) {
+                await pause();
+              } else {
+                await play();
+              }
+            }}
+            progressType="bar"
+            progress={progress.duration > 0 ? progress.position / progress.duration : 0}
+            expandAccessibilityLabel={t('modules.podcast.expandPlayer')}
+            expandAccessibilityHint={t('modules.podcast.expandPlayerHint')}
+          />
         )}
 
         {/* Show Detail Modal */}
@@ -1642,29 +1598,7 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  moduleHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  moduleTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-    fontWeight: '700',
-  },
-  mediaIndicatorContainer: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    transform: [{ translateY: 8 }],
-  },
+  // moduleHeader styles removed — using standardized ModuleHeader component
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,
@@ -1939,58 +1873,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
-  // Mini-player
-  miniPlayer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    minHeight: touchTargets.comfortable,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  miniPlayerArtwork: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.sm,
-    marginRight: spacing.md,
-  },
-  miniPlayerInfo: {
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  miniPlayerTitle: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
-  },
-  miniPlayerProgress: {
-    height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 1.5,
-    marginTop: spacing.xs,
-    overflow: 'hidden',
-  },
-  miniPlayerProgressBar: {
-    height: '100%',
-    backgroundColor: colors.textOnPrimary,
-    borderRadius: 1.5,
-  },
-  miniPlayerControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  miniPlayerButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: touchTargets.minimum / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
+  // Mini-player styles removed — using standardized MiniPlayer component
   // Show Detail Modal
   modalOverlay: {
     flex: 1,
