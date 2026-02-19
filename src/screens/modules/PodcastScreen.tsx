@@ -319,12 +319,12 @@ export function PodcastScreen() {
     setApiError(null);
 
     // Pass appropriate filter based on mode
-    // Podcast API uses language for filtering, but we map country to language if needed
-    const languageFilter = filterMode === 'language'
-      ? selectedLanguage
-      : selectedCountry.toLowerCase(); // Map country code to language (NL -> nl)
+    // searchPodcasts accepts both uppercase country codes ('NL') and lowercase language codes ('nl')
+    const filterParam = filterMode === 'language'
+      ? selectedLanguage   // ISO 639-1 lowercase: 'nl', 'en', 'de', etc.
+      : selectedCountry;   // ISO 3166-1 uppercase: 'NL', 'DE', 'FR', etc.
 
-    const result = await searchPodcasts(searchQuery, languageFilter);
+    const result = await searchPodcasts(searchQuery, filterParam);
 
     if (result.error) {
       setApiError(result.error);
