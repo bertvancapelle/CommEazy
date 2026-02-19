@@ -1343,6 +1343,40 @@ App draait momenteel in mock mode voor development. Zie `MOCK_MODE_CHANGES.md` v
 
 ## Development Environment
 
+### ⚠️ Ontwikkelaar Workflow Voorkeuren (VERPLICHT)
+
+**Claude wordt gebruikt BINNEN Xcode** — NIET via terminal/CLI.
+
+Bij het geven van test- of build-instructies, gebruik ALTIJD Xcode-specifieke commando's:
+
+| Actie | Xcode Commando | NIET gebruiken |
+|-------|----------------|----------------|
+| **Build & Run** | `⌘R` (Cmd+R) | `npm run ios`, `npx react-native run-ios` |
+| **Clean Build** | `⌘⇧K` (Cmd+Shift+K) | `rm -rf build/`, `xcodebuild clean` |
+| **Reload JS** | "Reload op iPhone" (shake device of `⌘R` in simulator) | `r` in Metro terminal |
+| **Stop running** | `⌘.` (Cmd+Period) | `Ctrl+C` in terminal |
+| **Build alleen** | `⌘B` (Cmd+B) | `xcodebuild` |
+
+**Instructie Formaat:**
+
+```markdown
+✅ GOED:
+"Druk op ⌘R om de app te builden en te runnen."
+"Clean build nodig: ⌘⇧K, daarna ⌘R."
+"Reload de app op je iPhone om de wijzigingen te zien."
+
+❌ FOUT:
+"Run `npm run ios` in de terminal."
+"Type `r` in Metro om te reloaden."
+"Execute `npx react-native run-ios`."
+```
+
+**Wanneer Terminal WEL nodig is:**
+- Metro bundler starten (als niet al draait): `npx react-native start`
+- Pod install: `cd ios && pod install`
+- Git operaties
+- Prosody server beheer
+
 ### Prosody XMPP Server
 **BELANGRIJK:** Prosody is NIET geïnstalleerd via Homebrew!
 

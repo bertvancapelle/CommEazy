@@ -186,6 +186,44 @@ function ChatListScreen() {
 - Localize permission descriptions
 - Localize App Store metadata (via App Store Connect)
 
+## Xcode Development Workflow (VERPLICHT)
+
+Claude wordt gebruikt BINNEN Xcode. Gebruik ALTIJD Xcode-specifieke instructies:
+
+### Build & Test Commando's
+
+| Actie | Xcode Shortcut | Beschrijving |
+|-------|----------------|--------------|
+| **Build & Run** | `⌘R` | Build en run op geselecteerde device/simulator |
+| **Build Only** | `⌘B` | Alleen compileren, niet runnen |
+| **Clean Build** | `⌘⇧K` | Build folder wissen |
+| **Stop** | `⌘.` | Huidige run stoppen |
+| **Test Run** | `⌘U` | Unit tests uitvoeren |
+
+### JavaScript Reload
+
+Na JS-only wijzigingen (geen native code):
+- **Simulator:** Druk `⌘R` in simulator venster
+- **Fysiek device:** Schud device of gebruik Debug menu
+
+### Wanneer Clean Build Nodig
+
+- Na wijzigingen in `Podfile`
+- Na native module wijzigingen
+- Bij "build stale" errors
+- Na Xcode update
+
+**Instructie formaat:**
+```
+"Clean build nodig: ⌘⇧K, daarna ⌘R."
+"Reload de app om de wijzigingen te zien."
+```
+
+**NIET gebruiken:**
+- `npm run ios`
+- `npx react-native run-ios`
+- `r` in Metro terminal
+
 ## Quality Checklist
 
 - [ ] Privacy Manifest complete and accurate
