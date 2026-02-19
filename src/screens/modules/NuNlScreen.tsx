@@ -28,9 +28,6 @@ import {
   RefreshControl,
   Image,
   Modal,
-  Platform,
-  AccessibilityInfo,
-  Linking,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,13 +35,14 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticleViewer } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
-import { useNewsArticles, useArticleTts } from '@/hooks/useNewsArticles';
+import { useNewsArticles } from '@/hooks/useNewsArticles';
+import { useArticleTTS } from '@/hooks/useArticleTTS';
 import type { NewsArticle, ModuleCategory } from '@/types/modules';
 
 // ============================================================
@@ -265,132 +263,6 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
 }
 
 // ============================================================
-// Article Detail Modal Component
-// ============================================================
-
-interface ArticleDetailModalProps {
-  article: NewsArticle | null;
-  visible: boolean;
-  onClose: () => void;
-}
-
-function ArticleDetailModal({ article, visible, onClose }: ArticleDetailModalProps) {
-  const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const { accentColor } = useAccentColor();
-  const { getTtsText } = useArticleTts();
-  const { triggerLight } = useFeedback();
-  const [imageError, setImageError] = useState(false);
-
-  // Reset image error when article changes
-  useEffect(() => {
-    setImageError(false);
-  }, [article?.id]);
-
-  const handleOpenInBrowser = useCallback(async () => {
-    if (!article) return;
-    triggerLight();
-    try {
-      await Linking.openURL(article.link);
-    } catch (error) {
-      console.error('[NuNlScreen] Failed to open URL:', error);
-    }
-  }, [article, triggerLight]);
-
-  const handleReadAloud = useCallback(() => {
-    if (!article) return;
-    triggerLight();
-    const text = getTtsText(article);
-    // TODO: Integrate with TTS service
-    console.info('[NuNlScreen] TTS text:', text);
-    // For now, show an alert
-    if (Platform.OS === 'ios') {
-      AccessibilityInfo.announceForAccessibility(text);
-    }
-  }, [article, getTtsText, triggerLight]);
-
-  if (!article) return null;
-
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={[styles.articleModal, { paddingTop: insets.top }]}>
-        {/* Header */}
-        <View style={styles.articleModalHeader}>
-          <IconButton
-            icon="chevron-down"
-            onPress={onClose}
-            size={48}
-            color={colors.textPrimary}
-            accessibilityLabel={t('modules.nunl.close')}
-          />
-          <View style={styles.articleModalActions}>
-            <IconButton
-              icon="volume-up"
-              onPress={handleReadAloud}
-              size={48}
-              color={accentColor.primary}
-              accessibilityLabel={t('modules.nunl.readAloud')}
-            />
-            <IconButton
-              icon="external-link"
-              onPress={handleOpenInBrowser}
-              size={48}
-              color={accentColor.primary}
-              accessibilityLabel={t('modules.nunl.openInBrowser')}
-            />
-          </View>
-        </View>
-
-        {/* Content */}
-        <ScrollView
-          style={styles.articleModalScroll}
-          contentContainerStyle={styles.articleModalContent}
-        >
-          {/* Image */}
-          {article.imageUrl && !imageError && (
-            <Image
-              source={{ uri: article.imageUrl }}
-              style={styles.articleModalImage}
-              resizeMode="cover"
-              onError={() => setImageError(true)}
-              accessibilityIgnoresInvertColors
-            />
-          )}
-
-          {/* Title */}
-          <Text style={styles.articleModalTitle}>{article.title}</Text>
-
-          {/* Date */}
-          <Text style={styles.articleModalDate}>
-            {article.pubDate.toLocaleDateString('nl-NL', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </Text>
-
-          {/* Description */}
-          <Text style={styles.articleModalDescription}>{article.description}</Text>
-
-          {/* Read more prompt */}
-          <View style={styles.readMoreContainer}>
-            <Text style={styles.readMoreText}>
-              Tik op 🔗 om het volledige artikel te lezen op nu.nl
-            </Text>
-          </View>
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-}
-
-// ============================================================
 // Main Screen Component
 // ============================================================
 
@@ -417,6 +289,15 @@ export function NuNlScreen() {
     refresh,
     module,
   } = useNewsArticles(MODULE_ID);
+
+  // TTS for article reading
+  const {
+    startTTS,
+    stopTTS,
+    isPlaying: isTTSPlaying,
+    isLoading: isTTSLoading,
+    progress: ttsProgress,
+  } = useArticleTTS();
 
   // Voice focus for article list
   const voiceFocusItems = useMemo(() => {
@@ -575,11 +456,18 @@ export function NuNlScreen() {
         onDismiss={handleWelcomeDismiss}
       />
 
-      {/* Article Detail Modal */}
-      <ArticleDetailModal
-        article={selectedArticle}
+      {/* Article Viewer */}
+      <ArticleViewer
         visible={selectedArticle !== null}
+        article={selectedArticle}
         onClose={handleArticleClose}
+        accentColor={MODULE_COLOR}
+        onStartTTS={startTTS}
+        onStopTTS={stopTTS}
+        isTTSPlaying={isTTSPlaying}
+        isTTSLoading={isTTSLoading}
+        ttsProgress={ttsProgress}
+        showAdMob
       />
     </View>
   );
@@ -795,60 +683,6 @@ const styles = StyleSheet.create({
   welcomeButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
-  },
-
-  // Article detail modal
-  articleModal: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  articleModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  articleModalActions: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  articleModalScroll: {
-    flex: 1,
-  },
-  articleModalContent: {
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  articleModalImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: borderRadius.md,
-  },
-  articleModalTitle: {
-    ...typography.h2,
-    color: colors.textPrimary,
-  },
-  articleModalDate: {
-    ...typography.caption,
-    color: colors.textSecondary,
-  },
-  articleModalDescription: {
-    ...typography.body,
-    color: colors.textPrimary,
-    lineHeight: 28,
-  },
-  readMoreContainer: {
-    padding: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    marginTop: spacing.md,
-  },
-  readMoreText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
 });
 

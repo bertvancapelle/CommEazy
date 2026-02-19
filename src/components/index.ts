@@ -109,6 +109,10 @@ export type { SearchBarProps, SearchBarRef } from './SearchBar';
 export { ChipSelector } from './ChipSelector';
 export type { ChipSelectorProps, ChipOption, FilterMode } from './ChipSelector';
 
+// ArticleViewer Component (for news modules - Safari View Controller with TTS)
+export { ArticleViewer } from './ArticleViewer';
+export type { ArticleViewerProps } from './ArticleViewer';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

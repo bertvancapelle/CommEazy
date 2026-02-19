@@ -1005,7 +1005,9 @@
     "loading": "Loading...",
     "readFullArticle": "Read full article",
     "readSummary": "Read summary",
-    "ttsUnavailable": "Read aloud not available"
+    "ttsUnavailable": "Read aloud not available",
+    "openInBrowser": "Open in browser",
+    "fullArticleHint": "Tap the link below to read the full article"
   },
   "navigation_tutorial": {
     "intro_title": "Navigate with Hold-to-Navigate",

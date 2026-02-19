@@ -1005,7 +1005,9 @@
     "loading": "Wird geladen...",
     "readFullArticle": "Vollständigen Artikel vorlesen",
     "readSummary": "Zusammenfassung vorlesen",
-    "ttsUnavailable": "Vorlesen nicht verfügbar"
+    "ttsUnavailable": "Vorlesen nicht verfügbar",
+    "openInBrowser": "Im Browser öffnen",
+    "fullArticleHint": "Tippe auf den Link unten, um den vollständigen Artikel zu lesen"
   },
   "navigation_tutorial": {
     "intro_title": "Navigation mit Hold-to-Navigate",

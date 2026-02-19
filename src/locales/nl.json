@@ -1012,7 +1012,9 @@
     "loading": "Laden...",
     "readFullArticle": "Volledig artikel voorlezen",
     "readSummary": "Samenvatting voorlezen",
-    "ttsUnavailable": "Voorlezen niet beschikbaar"
+    "ttsUnavailable": "Voorlezen niet beschikbaar",
+    "openInBrowser": "Open in browser",
+    "fullArticleHint": "Tik op de link hieronder om het volledige artikel te lezen"
   },
   "navigation_tutorial": {
     "intro_title": "Navigeren met Hold-to-Navigate",

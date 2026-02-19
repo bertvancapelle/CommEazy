@@ -1005,7 +1005,9 @@
     "loading": "Chargement...",
     "readFullArticle": "Lire l'article complet",
     "readSummary": "Lire le résumé",
-    "ttsUnavailable": "Lecture vocale non disponible"
+    "ttsUnavailable": "Lecture vocale non disponible",
+    "openInBrowser": "Ouvrir dans le navigateur",
+    "fullArticleHint": "Appuyez sur le lien ci-dessous pour lire l'article complet"
   },
   "navigation_tutorial": {
     "intro_title": "Naviguer avec Hold-to-Navigate",
