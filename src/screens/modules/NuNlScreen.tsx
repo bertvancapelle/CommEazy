@@ -271,7 +271,7 @@ export function NuNlScreen() {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const reducedMotion = useReducedMotion();
-  const { triggerLight } = useFeedback();
+  const { triggerFeedback } = useFeedback();
 
   // State
   const [showWelcome, setShowWelcome] = useState(false);
@@ -329,15 +329,15 @@ export function NuNlScreen() {
 
   // Handle category change
   const handleCategoryChange = useCallback((categoryId: string) => {
-    triggerLight();
+    void triggerFeedback('tap');
     setSelectedCategory(categoryId);
-  }, [setSelectedCategory, triggerLight]);
+  }, [setSelectedCategory, triggerFeedback]);
 
   // Handle article press
   const handleArticlePress = useCallback((article: NewsArticle) => {
-    triggerLight();
+    void triggerFeedback('tap');
     setSelectedArticle(article);
-  }, [triggerLight]);
+  }, [triggerFeedback]);
 
   // Handle article modal close
   const handleArticleClose = useCallback(() => {
@@ -346,9 +346,9 @@ export function NuNlScreen() {
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
-    triggerLight();
+    void triggerFeedback('tap');
     await refresh();
-  }, [refresh, triggerLight]);
+  }, [refresh, triggerFeedback]);
 
   // Get error message
   const errorMessage = useMemo(() => {
