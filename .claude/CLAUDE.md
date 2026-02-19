@@ -1210,12 +1210,66 @@ import { FavoriteButton } from '@/components';
 />
 ```
 
+### SearchBar Component (VERPLICHT voor alle zoekfunctionaliteit)
+
+**Verplichte component:** `SearchBar`
+
+ALLE schermen en modules met zoekfunctionaliteit MOETEN de gestandaardiseerde `SearchBar` component gebruiken. Geen custom TextInput implementaties voor zoeken.
+
+| Screen | SearchBar | Gebruik |
+|--------|-----------|---------|
+| PodcastScreen | ✅ | API zoeken (expliciete submit) |
+| BooksScreen | ✅ | API zoeken (expliciete submit) |
+| ContactListScreen | ✅ | Lokale filter (live filtering) |
+| RadioScreen | ❌ | Geen zoekfunctie (alleen favorieten) |
+
+**Kenmerken:**
+- **Hoogte:** Exact 60pt (gelijk aan zoekknop)
+- **Geen tekst shift:** `includeFontPadding: false` + geen `lineHeight`
+- **Zoekknop:** Altijd naast input, met `accentColor.primary`
+- **Submit:** Enter toets OF tap op vergrootglas
+
+**Implementatie — API zoeken (expliciete submit):**
+```typescript
+import { SearchBar, type SearchBarRef } from '@/components';
+
+const searchInputRef = useRef<SearchBarRef>(null);
+
+<SearchBar
+  ref={searchInputRef}
+  value={searchQuery}
+  onChangeText={setSearchQuery}
+  onSubmit={handleSearch}  // API call
+  placeholder={t('modules.podcast.searchPlaceholder')}
+  searchButtonLabel={t('modules.podcast.searchButton')}
+  maxLength={SEARCH_MAX_LENGTH}
+/>
+```
+
+**Implementatie — Lokale filter (live filtering):**
+```typescript
+import { SearchBar } from '@/components';
+
+<SearchBar
+  value={searchQuery}
+  onChangeText={setSearchQuery}  // Filtert bij elke keystroke
+  onSubmit={() => {}}  // Geen expliciete submit nodig
+  placeholder={t('contacts.searchPlaceholder')}
+  searchButtonLabel={t('contacts.searchButton')}
+/>
+```
+
+**i18n vereisten:**
+- `[module].searchPlaceholder` — Placeholder tekst
+- `[module].searchButton` — Accessibility label voor zoekknop
+
 ### Hoe deze Registry te Gebruiken
 
 **Bij nieuwe module screen:**
 1. Check: Moet deze screen een `ModuleHeader` hebben? → Ja, tenzij uitgezonderd
 2. Check: Heeft deze screen audio playback? → Gebruik `MiniPlayer` + `ExpandedAudioPlayer`
-3. Configureer de juiste props volgens de tabel
+3. Check: Heeft deze screen zoekfunctionaliteit? → Gebruik `SearchBar` (VERPLICHT)
+4. Configureer de juiste props volgens de tabel
 
 **Bij nieuwe standaard component:**
 1. Voeg de component toe aan deze registry
@@ -1235,6 +1289,12 @@ grep -rL "ModuleHeader" src/screens/chat/ChatListScreen.tsx src/screens/contacts
 
 # Check welke screens nog custom moduleHeader styles hebben
 grep -r "moduleHeader:" src/screens/modules/*.tsx src/screens/chat/*.tsx src/screens/contacts/*.tsx src/screens/settings/*.tsx
+
+# Check welke screens met zoekfunctionaliteit nog GEEN SearchBar gebruiken
+grep -rL "SearchBar" src/screens/modules/PodcastScreen.tsx src/screens/modules/BooksScreen.tsx src/screens/contacts/ContactListScreen.tsx
+
+# Check welke screens nog custom searchInput styles hebben (moet SearchBar gebruiken)
+grep -r "searchInput:" src/screens/
 ```
 
 ---

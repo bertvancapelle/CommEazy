@@ -2291,6 +2291,8 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 - [ ] Uniforme iconen: ✏️ potlood voor profielvelden, › chevron alleen voor navigatie
 - [ ] Keyboard avoidance: KeyboardAvoidingView + auto-scroll bij focus
 - [ ] Invoervelden altijd zichtbaar boven toetsenbord
+- [ ] Zoekvelden: ALTIJD `SearchBar` component gebruiken (GEEN custom TextInput)
+- [ ] Zoekvelden: Hoogte exact 60pt (gelijk aan zoekknop)
 - [ ] Zoekvelden: ZOWEL toetsenbord "Zoek" ALS zichtbare zoekknop (beide triggeren zelfde functie)
 - [ ] Zoekvelden: `search` icoon (vergrootglas) in zichtbare knop, NOOIT cirkel of ander icoon
 - [ ] Module screen headers: icoon + naam + module kleur achtergrond (consistent met navigatiemenu)
