@@ -988,6 +988,12 @@
         "serverTitle": "Serverfout",
         "parse": "Kan nieuwsgegevens niet lezen",
         "parseTitle": "Leesfout"
+      },
+      "welcome": {
+        "step1": "Kies een categorie bovenaan het scherm",
+        "step2": "Tik op een artikel om het te lezen",
+        "step3": "Trek naar beneden om te verversen",
+        "understood": "Begrepen"
       }
     }
   },

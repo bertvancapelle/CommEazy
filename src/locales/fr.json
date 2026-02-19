@@ -981,6 +981,12 @@
         "serverTitle": "Erreur serveur",
         "parse": "Impossible de lire les données d'actualités",
         "parseTitle": "Erreur de lecture"
+      },
+      "welcome": {
+        "step1": "Choisissez une catégorie en haut de l'écran",
+        "step2": "Appuyez sur un article pour le lire",
+        "step3": "Tirez vers le bas pour actualiser",
+        "understood": "Compris"
       }
     }
   },

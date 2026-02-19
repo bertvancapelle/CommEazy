@@ -981,6 +981,12 @@
         "serverTitle": "Serverfehler",
         "parse": "Nachrichtendaten können nicht gelesen werden",
         "parseTitle": "Lesefehler"
+      },
+      "welcome": {
+        "step1": "Wähle oben eine Kategorie aus",
+        "step2": "Tippe auf einen Artikel, um ihn zu lesen",
+        "step3": "Ziehe nach unten, um zu aktualisieren",
+        "understood": "Verstanden"
       }
     }
   },

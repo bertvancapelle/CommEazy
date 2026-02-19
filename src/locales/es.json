@@ -981,6 +981,12 @@
         "serverTitle": "Error del servidor",
         "parse": "No se pueden leer los datos de noticias",
         "parseTitle": "Error de lectura"
+      },
+      "welcome": {
+        "step1": "Elige una categoría en la parte superior de la pantalla",
+        "step2": "Toca un artículo para leerlo",
+        "step3": "Desliza hacia abajo para actualizar",
+        "understood": "Entendido"
       }
     }
   },

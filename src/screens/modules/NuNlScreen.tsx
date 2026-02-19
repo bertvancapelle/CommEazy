@@ -223,7 +223,7 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
                 <Text style={styles.stepNumberText}>1</Text>
               </View>
               <Text style={styles.stepText}>
-                Kies een categorie bovenaan het scherm
+                {t('modules.nunl.welcome.step1')}
               </Text>
             </View>
 
@@ -232,7 +232,7 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
                 <Text style={styles.stepNumberText}>2</Text>
               </View>
               <Text style={styles.stepText}>
-                Tik op een artikel om het te lezen
+                {t('modules.nunl.welcome.step2')}
               </Text>
             </View>
 
@@ -241,7 +241,7 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
                 <Text style={styles.stepNumberText}>3</Text>
               </View>
               <Text style={styles.stepText}>
-                Trek naar beneden om te verversen
+                {t('modules.nunl.welcome.step3')}
               </Text>
             </View>
           </View>
@@ -252,9 +252,9 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
             onPress={onDismiss}
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel="Begrepen"
+            accessibilityLabel={t('modules.nunl.welcome.understood')}
           >
-            <Text style={styles.welcomeButtonText}>Begrepen</Text>
+            <Text style={styles.welcomeButtonText}>{t('modules.nunl.welcome.understood')}</Text>
           </TouchableOpacity>
         </View>
       </View>

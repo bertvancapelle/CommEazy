@@ -981,6 +981,12 @@
         "serverTitle": "Server error",
         "parse": "Cannot read news data",
         "parseTitle": "Read error"
+      },
+      "welcome": {
+        "step1": "Choose a category at the top of the screen",
+        "step2": "Tap an article to read it",
+        "step3": "Pull down to refresh",
+        "understood": "Got it"
       }
     }
   },
