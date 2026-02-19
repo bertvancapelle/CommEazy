@@ -309,7 +309,11 @@
     "delete": "Delete",
     "edit": "Edit",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "favorites": "Favorites",
+    "search": "Search",
+    "items": "items",
+    "toggleFavorite": "Toggle favorite for {{name}}"
   },
   "validation": {
     "profileIncomplete": "Complete all fields",
@@ -1166,6 +1170,23 @@
     "activeIndicatorHint": "Tap to return to active stream",
     "audio": "Audio",
     "video": "Video"
+  },
+  "audio": {
+    "play": "Play",
+    "pause": "Pause",
+    "stop": "Stop",
+    "buffering": "Buffering...",
+    "expandPlayer": "Open player",
+    "expandPlayerHint": "Tap to open the full player",
+    "collapsePlayer": "Close player",
+    "playbackSpeed": "Playback speed: {{rate}}",
+    "skipBackward": "{{seconds}} seconds back",
+    "skipForward": "{{seconds}} seconds forward",
+    "sleepTimer": "Sleep timer",
+    "sleepTimerActive": "Sleep timer active: {{minutes}} minutes",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "of": "of"
   },
   "a11y": {
     "voiceFocusHint": "Say \"open\" to select",

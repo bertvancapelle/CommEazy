@@ -316,7 +316,11 @@
     "delete": "Verwijderen",
     "edit": "Bewerken",
     "yes": "Ja",
-    "no": "Nee"
+    "no": "Nee",
+    "favorites": "Favorieten",
+    "search": "Zoeken",
+    "items": "items",
+    "toggleFavorite": "Favoriet aan/uit voor {{name}}"
   },
   "validation": {
     "profileIncomplete": "Vul alle velden in",
@@ -1150,6 +1154,23 @@
     "activeIndicatorHint": "Tik om terug te gaan naar actieve stream",
     "audio": "Audio",
     "video": "Video"
+  },
+  "audio": {
+    "play": "Afspelen",
+    "pause": "Pauzeren",
+    "stop": "Stoppen",
+    "buffering": "Bufferen...",
+    "expandPlayer": "Open speler",
+    "expandPlayerHint": "Tik om de volledige speler te openen",
+    "collapsePlayer": "Sluit speler",
+    "playbackSpeed": "Afspeelsnelheid: {{rate}}",
+    "skipBackward": "{{seconds}} seconden terug",
+    "skipForward": "{{seconds}} seconden vooruit",
+    "sleepTimer": "Slaaptimer",
+    "sleepTimerActive": "Slaaptimer actief: {{minutes}} minuten",
+    "addToFavorites": "Toevoegen aan favorieten",
+    "removeFromFavorites": "Verwijderen uit favorieten",
+    "of": "van"
   },
   "a11y": {
     "voiceFocusHint": "Zeg \"open\" om te selecteren",

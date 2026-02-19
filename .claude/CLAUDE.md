@@ -1169,6 +1169,47 @@ Deze registry documenteert welke **standaard componenten** verplicht zijn voor s
 | PodcastScreen | ✅ | ✅ | `"bar"` |
 | BooksScreen | ✅ | ✅ | `"bar"` |
 
+### Favorite/Search Tab Buttons
+
+**Verplichte componenten:** `FavoriteTabButton`, `SearchTabButton`
+
+Voor modules met favorieten + zoek functionaliteit, gebruik de gestandaardiseerde tab buttons:
+
+| Screen | FavoriteTabButton | SearchTabButton | Gebruik |
+|--------|-------------------|-----------------|---------|
+| RadioScreen | ✅ | ✅ | Tab bar met favorieten/zoeken toggle |
+| PodcastScreen | ✅ | ✅ | Tab bar met favorieten/zoeken toggle |
+| BooksScreen | ❌ | ✅ | Alleen zoeken (geen favorieten) |
+
+**Implementatie:**
+```typescript
+import { FavoriteTabButton, SearchTabButton } from '@/components';
+
+// Tab bar row
+<View style={styles.tabRow}>
+  <FavoriteTabButton
+    isActive={showFavorites}
+    onPress={() => setShowFavorites(true)}
+    count={favorites.length}
+  />
+  <SearchTabButton
+    isActive={!showFavorites}
+    onPress={() => setShowFavorites(false)}
+  />
+</View>
+```
+
+**Voor lijst items (icon-only variant):**
+```typescript
+import { FavoriteButton } from '@/components';
+
+<FavoriteButton
+  isFavorite={isFavorite(item)}
+  onToggle={() => toggleFavorite(item)}
+  accessibilityLabel={t('common.toggleFavorite', { name: item.name })}
+/>
+```
+
 ### Hoe deze Registry te Gebruiken
 
 **Bij nieuwe module screen:**

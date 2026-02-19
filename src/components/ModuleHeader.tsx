@@ -5,10 +5,10 @@
  * ┌──────────────────────────────────────────────────────────────┐
  * │  Safe Area (notch/Dynamic Island)                             │
  * ├──────────────────────────────────────────────────────────────┤
+ * │  [═══════════ AdMob Banner ═══════════════════]              │
+ * ├──────────────────────────────────────────────────────────────┤
  * │  📻 Radio                              🔊 [MediaIndicator]    │
  * │  ↑ Links (spacing.md)                  ↑ Rechts (spacing.md)  │
- * ├──────────────────────────────────────────────────────────────┤
- * │  [═══════════ AdMob Banner ═══════════════════]              │
  * ├──────────────────────────────────────────────────────────────┤
  * │  ─ ─ ─ ─ ─ ─ ─  Separator line (1pt) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
  * └──────────────────────────────────────────────────────────────┘
@@ -28,6 +28,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from './Icon';
 import { MediaIndicator } from './MediaIndicator';
+import { AdMobBanner } from './AdMobBanner';
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import type { IconName } from './Icon';
 
@@ -100,6 +101,13 @@ export function ModuleHeader({
       {/* Safe Area Spacer */}
       <View style={{ height: insets.top }} />
 
+      {/* AdMob Row (optional) — BOVEN de module naam */}
+      {showAdMob && (
+        <View style={styles.adMobRow}>
+          <AdMobBanner unitId={adMobUnitId} size="banner" />
+        </View>
+      )}
+
       {/* Title Row */}
       <View style={styles.titleRow}>
         {/* Left: Back button (optional) + Icon + Title */}
@@ -127,17 +135,6 @@ export function ModuleHeader({
         </View>
       </View>
 
-      {/* AdMob Row (optional) */}
-      {showAdMob && (
-        <View style={styles.adMobRow}>
-          {/* TODO: Implement AdMobBanner component */}
-          {/* <AdMobBanner unitId={adMobUnitId} /> */}
-          <View style={styles.adMobPlaceholder}>
-            <Text style={styles.adMobPlaceholderText}>AdMob Banner</Text>
-          </View>
-        </View>
-      )}
-
       {/* Separator Line */}
       <View style={styles.separator} />
     </View>
@@ -150,14 +147,14 @@ export function ModuleHeader({
 
 const styles = StyleSheet.create({
   container: {
-    // No fixed height — grows with content
+    // Container grows with content
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,    // 16pt padding beide kanten
-    paddingVertical: spacing.sm,       // Compact verticaal
+    paddingVertical: 3,                // Compact: 3px boven en onder
   },
   titleContent: {
     flexDirection: 'row',
@@ -186,19 +183,8 @@ const styles = StyleSheet.create({
   },
   adMobRow: {
     paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.sm,
-  },
-  adMobPlaceholder: {
-    // Temporary placeholder until AdMobBanner is implemented
-    height: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  adMobPlaceholderText: {
-    ...typography.small,
-    color: 'rgba(255, 255, 255, 0.5)',
+    paddingTop: 0,                     // Geen extra afstand boven AdMob
+    paddingBottom: 0,                  // Geen extra afstand onder AdMob
   },
   separator: {
     height: 1,

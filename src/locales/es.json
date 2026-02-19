@@ -309,7 +309,11 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "favorites": "Favoritos",
+    "search": "Buscar",
+    "items": "elementos",
+    "toggleFavorite": "Alternar favorito para {{name}}"
   },
   "validation": {
     "profileIncomplete": "Completa todos los campos",
@@ -1152,6 +1156,23 @@
     "activeIndicatorHint": "Toca para volver a la transmisión activa",
     "audio": "Audio",
     "video": "Video"
+  },
+  "audio": {
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "stop": "Detener",
+    "buffering": "Cargando...",
+    "expandPlayer": "Abrir reproductor",
+    "expandPlayerHint": "Toca para abrir el reproductor completo",
+    "collapsePlayer": "Cerrar reproductor",
+    "playbackSpeed": "Velocidad de reproducción: {{rate}}",
+    "skipBackward": "{{seconds}} segundos atrás",
+    "skipForward": "{{seconds}} segundos adelante",
+    "sleepTimer": "Temporizador de sueño",
+    "sleepTimerActive": "Temporizador activo: {{minutes}} minutos",
+    "addToFavorites": "Añadir a favoritos",
+    "removeFromFavorites": "Eliminar de favoritos",
+    "of": "de"
   },
   "a11y": {
     "voiceFocusHint": "Di \"abrir\" para seleccionar",

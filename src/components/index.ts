@@ -85,6 +85,18 @@ export type { ExpandedAudioPlayerProps, AudioPlayerControls } from './ExpandedAu
 export { ModuleHeader } from './ModuleHeader';
 export type { ModuleHeaderProps } from './ModuleHeader';
 
+// AdMob Banner Component (placeholder until real SDK is installed)
+export { AdMobBanner } from './AdMobBanner';
+export type { AdMobBannerProps } from './AdMobBanner';
+
+// Favorite Button Components (icon-only and tab variants)
+export { FavoriteButton, FavoriteTabButton } from './FavoriteButton';
+export type { FavoriteButtonProps, FavoriteTabButtonProps } from './FavoriteButton';
+
+// Search Button Components (icon-only and tab variants)
+export { SearchButton, SearchTabButton } from './SearchButton';
+export type { SearchButtonProps, SearchTabButtonProps } from './SearchButton';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';
