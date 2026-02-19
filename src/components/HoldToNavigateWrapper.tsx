@@ -252,10 +252,13 @@ function getTabNameForDestination(destination: NavigationDestination): string {
   // Check if this is a dynamic module (format: 'module:{moduleId}')
   if (destination.startsWith('module:')) {
     const moduleId = destination.replace('module:', '');
-    // Convert moduleId to tab name (e.g., 'nunl' -> 'NuNlTab')
-    // Capitalize first letter and add 'Tab' suffix
-    const tabName = moduleId.charAt(0).toUpperCase() + moduleId.slice(1) + 'Tab';
-    return tabName;
+    // Convert moduleId to tab name using a lookup map
+    // This ensures correct capitalization (e.g., 'nunl' -> 'NuNlTab')
+    const moduleTabNameMap: Record<string, string> = {
+      'nunl': 'NuNlTab',
+      // Add more country-specific modules here as they are implemented
+    };
+    return moduleTabNameMap[moduleId] ?? `${moduleId.charAt(0).toUpperCase()}${moduleId.slice(1)}Tab`;
   }
 
   // Static modules
@@ -1545,6 +1548,8 @@ export function HoldToNavigateWrapper({
       case 'PodcastTab': return 'podcast';
       case 'RadioTab': return 'radio';
       case 'BooksTab': return 'books';
+      // Country-specific modules
+      case 'NuNlTab': return 'module:nunl';
       default: return undefined;
     }
   }, [currentRouteName]);
