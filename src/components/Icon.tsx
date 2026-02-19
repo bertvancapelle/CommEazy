@@ -29,6 +29,8 @@ export type IconName =
   | 'language'
   | 'settings'
   | 'group'
+  | 'groups'
+  | 'contacts'
   | 'chat'
   | 'call'
   | 'info'
@@ -36,6 +38,8 @@ export type IconName =
   | 'plus'
   | 'heart'
   | 'heart-filled'
+  | 'book'
+  | 'book-filled'
   | 'play'
   | 'pause'
   | 'stop'
@@ -297,6 +301,43 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
         </Svg>
       );
 
+    case 'groups':
+      // Multiple people icon for group chats
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="9" cy="7" r="3" stroke={color} strokeWidth={sw} />
+          <Circle cx="17" cy="7" r="2" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M2 19C2 16.2386 4.68629 14 9 14C10.5 14 11.8 14.2 12.9 14.6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M14 17C14 14.7909 15.3431 13 17 13C18.6569 13 20 14.7909 20 17"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'contacts':
+      // Address book / contacts icon
+      return (
+        <Svg {...iconProps}>
+          <Rect x="4" y="3" width="16" height="18" rx="2" stroke={color} strokeWidth={sw} />
+          <Circle cx="12" cy="10" r="3" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M8 17C8 15.3431 9.79086 14 12 14C14.2091 14 16 15.3431 16 17"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path d="M2 7H4M2 12H4M2 17H4" stroke={color} strokeWidth={sw} strokeLinecap="round" />
+        </Svg>
+      );
+
     case 'chat':
       return (
         <Svg {...iconProps}>
@@ -381,6 +422,50 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
         <Svg {...iconProps}>
           <Path
             d="M12 21C12 21 4 14.5 4 9C4 6.5 6 4 8.5 4C10.5 4 12 5.5 12 5.5C12 5.5 13.5 4 15.5 4C18 4 20 6.5 20 9C20 14.5 12 21 12 21Z"
+            fill={color}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'book':
+      // Open book icon (outline)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M4 19V5C4 4.44772 4.44772 4 5 4H9C10.6569 4 12 5.34315 12 7V20C12 18.8954 11.1046 18 10 18H5C4.44772 18 4 18.4477 4 19Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M20 19V5C20 4.44772 19.5523 4 19 4H15C13.3431 4 12 5.34315 12 7V20C12 18.8954 12.8954 18 14 18H19C19.5523 18 20 18.4477 20 19Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'book-filled':
+      // Open book icon (filled)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M4 19V5C4 4.44772 4.44772 4 5 4H9C10.6569 4 12 5.34315 12 7V20C12 18.8954 11.1046 18 10 18H5C4.44772 18 4 18.4477 4 19Z"
+            fill={color}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M20 19V5C20 4.44772 19.5523 4 19 4H15C13.3431 4 12 5.34315 12 7V20C12 18.8954 12.8954 18 14 18H19C19.5523 18 20 18.4477 20 19Z"
             fill={color}
             stroke={color}
             strokeWidth={sw}

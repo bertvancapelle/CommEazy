@@ -147,11 +147,11 @@ export function FavoriteTabButton({
         {count > 0 && (
           <View style={[
             styles.countBadge,
-            isActive && styles.countBadgeActive,
+            { backgroundColor: isActive ? 'rgba(255, 255, 255, 0.3)' : accentColor.primary },
           ]}>
             <Text style={[
               styles.countText,
-              isActive && styles.countTextActive,
+              { color: colors.textOnPrimary },
             ]}>
               {count > 99 ? '99+' : count}
             </Text>
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     flexDirection: 'column',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,      // 8pt (was 16pt)
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
@@ -207,9 +207,8 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
   },
 
-  // Count badge styles — FIX: proper centering
+  // Count badge styles — uses accentColor for background
   countBadge: {
-    backgroundColor: colors.border,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -217,20 +216,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  countBadgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
   countText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.textPrimary,
     textAlign: 'center',
-    // FIX: Remove lineHeight to prevent vertical misalignment
-    lineHeight: 14,  // Slightly larger than fontSize for proper centering
+    lineHeight: 14,
     includeFontPadding: false,  // Android: remove extra padding
-  },
-  countTextActive: {
-    color: colors.textOnPrimary,
   },
 });
 

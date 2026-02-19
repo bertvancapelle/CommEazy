@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import {
@@ -489,68 +489,19 @@ export function PodcastScreen() {
           showAdMob={true}
         />
 
-        {/* Tab selector */}
+        {/* Tab selector — uses standardized FavoriteTabButton/SearchTabButton */}
         <View style={styles.tabBar}>
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              showSubscriptions
-                ? { backgroundColor: accentColor.primary }
-                : styles.tabInactive,
-            ]}
+          <FavoriteTabButton
+            isActive={showSubscriptions}
             onPress={() => setShowSubscriptions(true)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: showSubscriptions }}
-            accessibilityLabel={t('modules.podcast.favoritesTab', { count: subscriptions.length })}
-          >
-            <View style={styles.tabIconRow}>
-              <Icon
-                name={showSubscriptions ? 'heart-filled' : 'heart'}
-                size={28}
-                color={showSubscriptions ? colors.textOnPrimary : colors.textSecondary}
-              />
-              {subscriptions.length > 0 && (
-                <View style={[
-                  styles.tabCountBadge,
-                  showSubscriptions && styles.tabCountBadgeActive,
-                ]}>
-                  <Text style={[
-                    styles.tabCountText,
-                    showSubscriptions && styles.tabCountTextActive,
-                  ]}>
-                    {subscriptions.length}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text style={[styles.tabText, showSubscriptions && styles.tabTextActive]}>
-              {t('modules.podcast.favorites')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              !showSubscriptions
-                ? { backgroundColor: accentColor.primary }
-                : styles.tabInactive,
-            ]}
+            count={subscriptions.length}
+            label={t('modules.podcast.favorites')}
+          />
+          <SearchTabButton
+            isActive={!showSubscriptions}
             onPress={() => setShowSubscriptions(false)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: !showSubscriptions }}
-            accessibilityLabel={t('modules.podcast.discoverTab')}
-          >
-            <View style={styles.tabIconRow}>
-              <Icon
-                name="search"
-                size={28}
-                color={!showSubscriptions ? colors.textOnPrimary : colors.textSecondary}
-              />
-            </View>
-            <Text style={[styles.tabText, !showSubscriptions && styles.tabTextActive]}>
-              {t('modules.podcast.discover')}
-            </Text>
-          </TouchableOpacity>
+            label={t('modules.podcast.discover')}
+          />
         </View>
 
         {/* Search section (Discover tab only) */}
@@ -1605,59 +1556,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     gap: spacing.sm,
   },
-  tab: {
-    flex: 1,
-    flexDirection: 'column',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    minHeight: touchTargets.comfortable,
-  },
-  tabInactive: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  tabIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  tabCountBadge: {
-    backgroundColor: colors.border,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: spacing.xs,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabCountBadgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  tabCountText: {
-    ...typography.small,
-    fontSize: 12,
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-  tabCountTextActive: {
-    color: colors.textOnPrimary,
-  },
-  tabText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  tabTextActive: {
-    color: colors.textOnPrimary,
-  },
+  // Tab styles removed — using standardized FavoriteTabButton/SearchTabButton components
   searchSection: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,

@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, SearchTabButton } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
@@ -398,76 +398,19 @@ export function BooksScreen() {
           showAdMob={true}
         />
 
-        {/* Tab selector: Library / Search */}
+        {/* Tab selector — uses standardized LibraryTabButton/SearchTabButton */}
         <View style={styles.tabBar}>
-          {/* Library tab */}
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              showLibrary
-                ? { backgroundColor: accentColor.primary }
-                : styles.tabInactive,
-            ]}
+          <LibraryTabButton
+            isActive={showLibrary}
             onPress={() => setShowLibrary(true)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: showLibrary }}
-            accessibilityLabel={t('modules.books.libraryTab', { count: library.length })}
-          >
-            <View style={styles.tabIconRow}>
-              <Icon
-                name="book"
-                size={28}
-                color={showLibrary ? colors.textOnPrimary : colors.textSecondary}
-              />
-              {library.length > 0 && (
-                <View style={[
-                  styles.tabCountBadge,
-                  showLibrary && styles.tabCountBadgeActive,
-                ]}>
-                  <Text style={[
-                    styles.tabCountText,
-                    showLibrary && styles.tabCountTextActive,
-                  ]}>
-                    {library.length}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text style={[
-              styles.tabText,
-              showLibrary && styles.tabTextActive,
-            ]}>
-              {t('modules.books.library')}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Search tab */}
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              !showLibrary
-                ? { backgroundColor: accentColor.primary }
-                : styles.tabInactive,
-            ]}
+            count={library.length}
+            label={t('modules.books.library')}
+          />
+          <SearchTabButton
+            isActive={!showLibrary}
             onPress={() => setShowLibrary(false)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: !showLibrary }}
-            accessibilityLabel={t('modules.books.searchTab')}
-          >
-            <View style={styles.tabIconRow}>
-              <Icon
-                name="search"
-                size={28}
-                color={!showLibrary ? colors.textOnPrimary : colors.textSecondary}
-              />
-            </View>
-            <Text style={[
-              styles.tabText,
-              !showLibrary && styles.tabTextActive,
-            ]}>
-              {t('modules.books.search')}
-            </Text>
-          </TouchableOpacity>
+            label={t('modules.books.search')}
+          />
         </View>
 
         {/* Search section */}
@@ -1048,64 +991,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // moduleHeader styles removed — using standardized ModuleHeader component
+  // Tab styles removed — using standardized LibraryTabButton/SearchTabButton components
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
     gap: spacing.sm,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'column',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    minHeight: touchTargets.comfortable,
-  },
-  tabInactive: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  tabIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  tabCountBadge: {
-    backgroundColor: colors.border,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: spacing.xs,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabCountBadgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  tabCountText: {
-    ...typography.small,
-    fontSize: 12,
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-  tabCountTextActive: {
-    color: colors.textOnPrimary,
-  },
-  tabText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  tabTextActive: {
-    color: colors.textOnPrimary,
   },
   searchSection: {
     paddingHorizontal: spacing.md,

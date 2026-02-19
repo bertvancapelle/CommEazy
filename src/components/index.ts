@@ -97,6 +97,10 @@ export type { FavoriteButtonProps, FavoriteTabButtonProps } from './FavoriteButt
 export { SearchButton, SearchTabButton } from './SearchButton';
 export type { SearchButtonProps, SearchTabButtonProps } from './SearchButton';
 
+// Library Tab Button Component (for BooksScreen)
+export { LibraryTabButton } from './LibraryTabButton';
+export type { LibraryTabButtonProps } from './LibraryTabButton';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

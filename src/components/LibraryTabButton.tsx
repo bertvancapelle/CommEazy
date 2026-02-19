@@ -1,14 +1,14 @@
 /**
- * SearchButton — Senior-inclusive search button variants
+ * LibraryTabButton — Senior-inclusive library tab button with optional count badge
  *
- * Two variants:
- * 1. Tab button: Shows icon + label (for tab bars, paired with FavoriteTabButton)
- * 2. Icon button: Shows just icon (for compact search triggers)
+ * Similar to FavoriteTabButton but with book icon instead of heart.
+ * Used in BooksScreen for Library/Search tab pattern.
  *
  * Senior-inclusive design:
  * - Touch targets ≥60pt
  * - Haptic feedback on press
- * - Clear visual feedback (active vs inactive)
+ * - Clear visual feedback (filled vs outline book)
+ * - Count badge properly centered
  *
  * @see .claude/CLAUDE.md Section 12 (Media Module Design Principles)
  */
@@ -26,94 +26,42 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 // Types
 // ============================================================
 
-export interface SearchButtonProps {
-  /** Callback when pressed */
-  onPress: () => void;
-  /** Accessibility label */
-  accessibilityLabel?: string;
-  /** Icon size (default: 24) */
-  size?: number;
-  /** Disabled state */
-  disabled?: boolean;
-}
-
-export interface SearchTabButtonProps {
+export interface LibraryTabButtonProps {
   /** Whether this tab is active */
   isActive: boolean;
   /** Callback when pressed */
   onPress: () => void;
-  /** Tab label (default: uses i18n 'common.search') */
+  /** Number of items in library (shows badge if > 0) */
+  count?: number;
+  /** Tab label (default: uses i18n 'common.library') */
   label?: string;
 }
 
 // ============================================================
-// SearchButton — Icon-only variant
+// LibraryTabButton — Tab variant with label and count badge
 // ============================================================
 
 /**
- * Icon-only search button for compact layouts
+ * Tab-style library button with label and optional count badge
  *
  * @example
- * <SearchButton
- *   onPress={() => setShowSearch(true)}
- *   accessibilityLabel={t('common.search')}
+ * <LibraryTabButton
+ *   isActive={showLibrary}
+ *   onPress={() => setShowLibrary(true)}
+ *   count={library.length}
  * />
  */
-export function SearchButton({
-  onPress,
-  accessibilityLabel,
-  size = 24,
-  disabled = false,
-}: SearchButtonProps) {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-  const { triggerFeedback } = useFeedback();
-
-  const handlePress = async () => {
-    await triggerFeedback('tap');
-    onPress();
-  };
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.iconButton,
-        { backgroundColor: accentColor.primary },
-        disabled && styles.disabled,
-      ]}
-      onPress={handlePress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? t('common.search')}
-    >
-      <Icon name="search" size={size} color={colors.textOnPrimary} />
-    </TouchableOpacity>
-  );
-}
-
-// ============================================================
-// SearchTabButton — Tab variant with label
-// ============================================================
-
-/**
- * Tab-style search button with label
- *
- * @example
- * <View style={styles.tabRow}>
- *   <FavoriteTabButton isActive={showFavorites} onPress={() => setShowFavorites(true)} count={favorites.length} />
- *   <SearchTabButton isActive={!showFavorites} onPress={() => setShowFavorites(false)} />
- * </View>
- */
-export function SearchTabButton({
+export function LibraryTabButton({
   isActive,
   onPress,
+  count = 0,
   label,
-}: SearchTabButtonProps) {
+}: LibraryTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
   const { triggerFeedback } = useFeedback();
 
-  const displayLabel = label ?? t('common.search');
+  const displayLabel = label ?? t('common.library');
 
   const handlePress = async () => {
     await triggerFeedback('tap');
@@ -131,14 +79,31 @@ export function SearchTabButton({
       onPress={handlePress}
       accessibilityRole="tab"
       accessibilityState={{ selected: isActive }}
-      accessibilityLabel={displayLabel}
+      accessibilityLabel={
+        count > 0
+          ? `${displayLabel}, ${count} ${t('common.items')}`
+          : displayLabel
+      }
     >
       <View style={styles.tabIconRow}>
         <Icon
-          name="search"
+          name={isActive ? 'book-filled' : 'book'}
           size={28}
           color={isActive ? colors.textOnPrimary : colors.textSecondary}
         />
+        {count > 0 && (
+          <View style={[
+            styles.countBadge,
+            { backgroundColor: isActive ? 'rgba(255, 255, 255, 0.3)' : accentColor.primary },
+          ]}>
+            <Text style={[
+              styles.countText,
+              { color: colors.textOnPrimary },
+            ]}>
+              {count > 99 ? '99+' : count}
+            </Text>
+          </View>
+        )}
       </View>
       <Text style={[
         styles.tabText,
@@ -155,23 +120,11 @@ export function SearchTabButton({
 // ============================================================
 
 const styles = StyleSheet.create({
-  // Icon-only button styles
-  iconButton: {
-    width: touchTargets.minimum,      // 60pt
-    height: touchTargets.minimum,     // 60pt
-    borderRadius: borderRadius.md,    // 12pt
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-
   // Tab button styles
   tab: {
     flex: 1,
     flexDirection: 'column',
-    paddingVertical: spacing.sm,      // 8pt (was 16pt)
+    paddingVertical: spacing.sm,      // 8pt (consistent with FavoriteTabButton)
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
@@ -200,6 +153,23 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.textOnPrimary,
   },
+
+  // Count badge styles — uses accentColor for background
+  countBadge: {
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 14,
+    includeFontPadding: false,  // Android: remove extra padding
+  },
 });
 
-export default SearchButton;
+export default LibraryTabButton;
