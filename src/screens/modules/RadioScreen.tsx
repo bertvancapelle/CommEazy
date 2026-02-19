@@ -133,13 +133,26 @@ async function searchStationsByCountry(
   }
 }
 
+// Map ISO 639-1 language codes to Radio Browser API language names
+// Radio Browser uses full language names, not ISO codes
+const LANGUAGE_CODE_TO_NAME: Record<string, string> = {
+  nl: 'dutch',
+  en: 'english',
+  de: 'german',
+  fr: 'french',
+  es: 'spanish',
+};
+
 async function searchStationsByLanguage(
   languageCode: string,
   limit = 50
 ): Promise<ApiResult<RadioStation[]>> {
+  // Convert ISO 639-1 code to Radio Browser language name
+  const languageName = LANGUAGE_CODE_TO_NAME[languageCode.toLowerCase()] || languageCode;
+
   try {
     const response = await fetchWithTimeout(
-      `${RADIO_BROWSER_API}/stations/bylanguageexact/${languageCode}?limit=${limit}&order=votes&reverse=true&hidebroken=true`,
+      `${RADIO_BROWSER_API}/stations/bylanguageexact/${languageName}?limit=${limit}&order=votes&reverse=true&hidebroken=true`,
       API_TIMEOUT_MS
     );
     if (!response.ok) {
