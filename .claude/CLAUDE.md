@@ -1218,10 +1218,10 @@ ALLE schermen en modules met zoekfunctionaliteit MOETEN de gestandaardiseerde `S
 
 | Screen | SearchBar | Gebruik |
 |--------|-----------|---------|
+| RadioScreen | ✅ | API zoeken (expliciete submit) |
 | PodcastScreen | ✅ | API zoeken (expliciete submit) |
 | BooksScreen | ✅ | API zoeken (expliciete submit) |
 | ContactListScreen | ✅ | Lokale filter (live filtering) |
-| RadioScreen | ❌ | Geen zoekfunctie (alleen favorieten) |
 
 **Kenmerken:**
 - **Hoogte:** Exact 60pt (gelijk aan zoekknop)
@@ -1263,13 +1263,73 @@ import { SearchBar } from '@/components';
 - `[module].searchPlaceholder` — Placeholder tekst
 - `[module].searchButton` — Accessibility label voor zoekknop
 
+### ChipSelector Component (VERPLICHT voor land/taal filters)
+
+**Verplichte component:** `ChipSelector`
+
+ALLE schermen met land- of taalselectie MOETEN de gestandaardiseerde `ChipSelector` component gebruiken. Geen custom horizontale ScrollView + TouchableOpacity implementaties.
+
+| Screen | ChipSelector | Mode | Gebruik |
+|--------|--------------|------|---------|
+| RadioScreen | ✅ | `country` | Selecteer land voor station zoeken |
+| PodcastScreen | ✅ | `language` | Selecteer taal voor podcast zoeken |
+| BooksScreen | ✅ | `language` | Selecteer taal voor boek zoeken |
+
+**Kenmerken:**
+- **Touch targets:** 60pt minimum (senior-inclusive)
+- **Typography:** 18pt (senior-inclusive)
+- **Layout:** Horizontale ScrollView met pill-shaped chips
+- **Label:** Automatisch via `t()` gebaseerd op `mode` prop
+- **Hold-gesture protection:** Ingebouwd
+
+**Props:**
+```typescript
+interface ChipSelectorProps {
+  /** Mode bepaalt label via t() — 'country' toont "Land", 'language' toont "Taal" */
+  mode: 'country' | 'language';
+  /** Lijst van opties (gebruik COUNTRIES uit @/constants/demographics) */
+  options: Array<{ code: string; flag: string; nativeName: string }>;
+  /** Geselecteerde code */
+  selectedCode: string;
+  /** Callback bij selectie */
+  onSelect: (code: string) => void;
+}
+```
+
+**Implementatie:**
+```typescript
+import { ChipSelector } from '@/components';
+import { COUNTRIES } from '@/constants/demographics';
+
+// Land selectie (Radio)
+<ChipSelector
+  mode="country"
+  options={COUNTRIES}
+  selectedCode={selectedCountry}
+  onSelect={handleCountryChange}
+/>
+
+// Taal selectie (Podcast/Books)
+<ChipSelector
+  mode="language"
+  options={COUNTRIES}
+  selectedCode={selectedLanguage}
+  onSelect={handleLanguageChange}
+/>
+```
+
+**i18n keys (automatisch via mode):**
+- `components.chipSelector.country` — "Land" / "Country" / etc.
+- `components.chipSelector.language` — "Taal" / "Language" / etc.
+
 ### Hoe deze Registry te Gebruiken
 
 **Bij nieuwe module screen:**
 1. Check: Moet deze screen een `ModuleHeader` hebben? → Ja, tenzij uitgezonderd
 2. Check: Heeft deze screen audio playback? → Gebruik `MiniPlayer` + `ExpandedAudioPlayer`
 3. Check: Heeft deze screen zoekfunctionaliteit? → Gebruik `SearchBar` (VERPLICHT)
-4. Configureer de juiste props volgens de tabel
+4. Check: Heeft deze screen land/taal selectie? → Gebruik `ChipSelector` (VERPLICHT)
+5. Configureer de juiste props volgens de tabel
 
 **Bij nieuwe standaard component:**
 1. Voeg de component toe aan deze registry

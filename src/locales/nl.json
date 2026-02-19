@@ -2,6 +2,12 @@
   "app": {
     "name": "CommEazy"
   },
+  "components": {
+    "chipSelector": {
+      "country": "Land",
+      "language": "Taal"
+    }
+  },
   "onboarding": {
     "welcome": "Welkom bij CommEazy",
     "subtitle": "Privé berichten voor het hele gezin",

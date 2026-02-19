@@ -27,7 +27,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  TextInput,
   Platform,
   AccessibilityInfo,
   KeyboardAvoidingView,
@@ -43,7 +42,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
@@ -187,7 +186,7 @@ export function RadioScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<SearchBarRef>(null);
 
   // Radio Context for playback
   const {
@@ -591,152 +590,44 @@ export function RadioScreen() {
         showAdMob={true}
       />
 
-      {/* Tab selector: Favorites / Search */}
-      {/* Pattern: Active tab = accent color background, Inactive tab = thin border */}
-      {/* Layout: Icon centered on top (28pt), count badge to the right, label below */}
+      {/* Tab selector: Favorites / Search — using standardized components */}
       <View style={styles.tabBar}>
-        {/* Favorites tab (first) */}
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            showFavorites
-              ? { backgroundColor: accentColor.primary }
-              : styles.tabInactive,
-          ]}
+        <FavoriteTabButton
+          isActive={showFavorites}
           onPress={() => setShowFavorites(true)}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: showFavorites }}
-          accessibilityLabel={t('modules.radio.favoritesTab', { count: favorites.length })}
-        >
-          <View style={styles.tabIconRow}>
-            <Icon
-              name={showFavorites ? 'heart-filled' : 'heart'}
-              size={28}
-              color={showFavorites ? colors.textOnPrimary : colors.textSecondary}
-            />
-            {favorites.length > 0 && (
-              <View style={[
-                styles.tabCountBadge,
-                showFavorites && styles.tabCountBadgeActive,
-              ]}>
-                <Text style={[
-                  styles.tabCountText,
-                  showFavorites && styles.tabCountTextActive,
-                ]}>
-                  {favorites.length}
-                </Text>
-              </View>
-            )}
-          </View>
-          <Text style={[
-            styles.tabText,
-            showFavorites && styles.tabTextActive,
-          ]}>
-            {t('modules.radio.favorites')}
-          </Text>
-        </TouchableOpacity>
-        {/* Search tab (second) */}
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            !showFavorites
-              ? { backgroundColor: accentColor.primary }
-              : styles.tabInactive,
-          ]}
+          count={favorites.length}
+          label={t('modules.radio.favorites')}
+        />
+        <SearchTabButton
+          isActive={!showFavorites}
           onPress={() => setShowFavorites(false)}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: !showFavorites }}
-          accessibilityLabel={t('modules.radio.searchTab')}
-        >
-          <View style={styles.tabIconRow}>
-            <Icon
-              name="search"
-              size={28}
-              color={!showFavorites ? colors.textOnPrimary : colors.textSecondary}
-            />
-          </View>
-          <Text style={[
-            styles.tabText,
-            !showFavorites && styles.tabTextActive,
-          ]}>
-            {t('modules.radio.searchTab')}
-          </Text>
-        </TouchableOpacity>
+          label={t('modules.radio.searchTab')}
+        />
       </View>
 
       {/* Search/Filter section */}
       {!showFavorites && (
         <View style={styles.filterSection}>
-          {/* Country selector */}
+          {/* Country selector — standardized ChipSelector component */}
           <View style={styles.countrySelector}>
-            <Text style={styles.filterLabel}>{t('modules.radio.country')}</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.countryList}
-            >
-              {COUNTRIES.map(country => (
-                <TouchableOpacity
-                  key={country.code}
-                  style={[
-                    styles.countryChip,
-                    selectedCountry === country.code && {
-                      backgroundColor: accentColor.primary,
-                      borderColor: accentColor.primary,
-                    },
-                  ]}
-                  onPress={() => handleCountryChange(country.code)}
-                  onLongPress={() => {
-                    // Empty handler prevents onPress from firing after long press
-                  }}
-                  delayLongPress={300}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selectedCountry === country.code }}
-                  accessibilityLabel={`${country.flag} ${country.nativeName}`}
-                >
-                  <Text style={[
-                    styles.countryChipText,
-                    selectedCountry === country.code && styles.countryChipTextActive,
-                  ]}>
-                    {country.flag} {country.nativeName}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <ChipSelector
+              mode="country"
+              options={COUNTRIES}
+              selectedCode={selectedCountry}
+              onSelect={handleCountryChange}
+            />
           </View>
 
-          {/* Search input */}
-          <View style={styles.searchContainer}>
-            <TextInput
-              ref={searchInputRef}
-              style={styles.searchInput}
-              placeholder={t('modules.radio.searchPlaceholder')}
-              placeholderTextColor={colors.textTertiary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmitEditing={() => {
-                Keyboard.dismiss();
-                handleSearch();
-              }}
-              returnKeyType="search"
-              maxLength={SEARCH_MAX_LENGTH}
-              autoCorrect={false}
-              autoCapitalize="none"
-              accessibilityLabel={t('modules.radio.searchPlaceholder')}
-              accessibilityHint={t('modules.radio.searchHint')}
-            />
-            <TouchableOpacity
-              style={[styles.searchButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => {
-                Keyboard.dismiss();
-                handleSearch();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.radio.searchButton')}
-            >
-              <Icon name="search" size={24} color={colors.textOnPrimary} />
-            </TouchableOpacity>
-          </View>
+          {/* Search input — standardized SearchBar component */}
+          <SearchBar
+            ref={searchInputRef}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmit={handleSearch}
+            placeholder={t('modules.radio.searchPlaceholder')}
+            searchButtonLabel={t('modules.radio.searchButton')}
+            maxLength={SEARCH_MAX_LENGTH}
+          />
         </View>
       )}
 
@@ -1306,61 +1197,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     gap: spacing.sm,
   },
-  tab: {
-    flex: 1,
-    flexDirection: 'column',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    minHeight: touchTargets.comfortable,
-  },
-  tabInactive: {
-    // Inactive tab: thin border instead of filled background
-    // Makes it clear this is a selectable option, not an action button
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  tabIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  tabCountBadge: {
-    backgroundColor: colors.border,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: spacing.xs,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabCountBadgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  tabCountText: {
-    ...typography.small,
-    fontSize: 12,
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-  tabCountTextActive: {
-    color: colors.textOnPrimary,
-  },
-  tabText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  tabTextActive: {
-    color: colors.textOnPrimary,
-  },
+  // Tab styles now in FavoriteTabButton and SearchTabButton components
   filterSection: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
@@ -1368,56 +1205,8 @@ const styles = StyleSheet.create({
   countrySelector: {
     marginBottom: spacing.md,
   },
-  filterLabel: {
-    ...typography.label,
-    color: colors.textSecondary,
-    fontWeight: '700',
-    marginBottom: spacing.xs,
-  },
-  countryList: {
-    gap: spacing.xs,
-  },
-  countryChip: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  countryChipText: {
-    ...typography.small,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  countryChipTextActive: {
-    color: colors.textOnPrimary,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    ...typography.body,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    color: colors.textPrimary,
-    minHeight: touchTargets.minimum,
-  },
-  searchButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // countryList, countryChip, countryChipText, filterLabel removed — using standardized ChipSelector component
+  // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

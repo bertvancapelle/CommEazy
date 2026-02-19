@@ -44,7 +44,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
+import { COUNTRIES } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
@@ -67,12 +68,22 @@ const BOOKS_MODULE_COLOR = '#FF8F00';
 const API_TIMEOUT_MS = 15000;
 
 // Language mapping for Gutenberg (ISO 639-1 to Gutenberg language codes)
+// Maps COUNTRIES code (uppercase) to Gutenberg language code (lowercase)
 const LANGUAGE_MAP: Record<string, string> = {
-  nl: 'nl',
-  en: 'en',
-  de: 'de',
-  fr: 'fr',
-  es: 'es',
+  NL: 'nl',
+  EN: 'en',
+  DE: 'de',
+  FR: 'fr',
+  ES: 'es',
+};
+
+// Map app language to country code for default selection
+const APP_LANG_TO_COUNTRY: Record<string, string> = {
+  nl: 'NL',
+  en: 'EN',
+  de: 'DE',
+  fr: 'FR',
+  es: 'ES',
 };
 
 // ============================================================
@@ -121,6 +132,10 @@ export function BooksScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [apiError, setApiError] = useState<ApiError>(null);
+  // Selected language for search (default: app language)
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    APP_LANG_TO_COUNTRY[i18n.language] || 'EN'
+  );
   // Default to Library tab — seniors want quick access to their downloaded books
   const [showLibrary, setShowLibrary] = useState(true);
   // Welcome modal for first-time users
@@ -135,13 +150,20 @@ export function BooksScreen() {
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedBookForMode, setSelectedBookForMode] = useState<DownloadedBook | null>(null);
 
+  // Handle language change
+  const handleLanguageChange = useCallback((code: string) => {
+    setSelectedLanguage(code);
+    // Clear search results to trigger reload with new language
+    setSearchResults([]);
+  }, []);
+
   // Load popular books callback - defined before useEffects that use it
   const loadPopularBooks = useCallback(async () => {
     setIsSearching(true);
     setApiError(null);
 
     try {
-      const language = LANGUAGE_MAP[i18n.language] || 'en';
+      const language = LANGUAGE_MAP[selectedLanguage] || 'en';
       const result = await getPopularBooks(language);
 
       if (result.error) {
@@ -155,7 +177,7 @@ export function BooksScreen() {
     }
 
     setIsSearching(false);
-  }, [i18n.language]);
+  }, [selectedLanguage]);
 
   // Show welcome modal if library is empty on first load
   useEffect(() => {
@@ -205,7 +227,7 @@ export function BooksScreen() {
     setApiError(null);
 
     try {
-      const language = LANGUAGE_MAP[i18n.language] || 'en';
+      const language = LANGUAGE_MAP[selectedLanguage] || 'en';
       const result = await searchBooks(searchQuery, language);
 
       if (result.error) {
@@ -231,7 +253,7 @@ export function BooksScreen() {
     }
 
     setIsSearching(false);
-  }, [searchQuery, i18n.language, t, triggerFeedback, loadPopularBooks]);
+  }, [searchQuery, selectedLanguage, t, triggerFeedback, loadPopularBooks]);
 
   // Handle book selection
   const handleBookPress = useCallback(async (book: Book | DownloadedBook) => {
@@ -425,6 +447,16 @@ export function BooksScreen() {
               searchButtonLabel={t('modules.books.searchButton')}
               maxLength={SEARCH_MAX_LENGTH}
             />
+
+            {/* Language selector — standardized ChipSelector component */}
+            <View style={styles.languageSelector}>
+              <ChipSelector
+                mode="language"
+                options={COUNTRIES}
+                selectedCode={selectedLanguage}
+                onSelect={handleLanguageChange}
+              />
+            </View>
           </View>
         )}
 
@@ -980,6 +1012,9 @@ const styles = StyleSheet.create({
   searchSection: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
+  },
+  languageSelector: {
+    marginTop: spacing.md,
   },
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   libraryHeader: {

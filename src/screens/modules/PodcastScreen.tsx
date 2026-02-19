@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import {
@@ -517,42 +517,14 @@ export function PodcastScreen() {
               maxLength={SEARCH_MAX_LENGTH}
             />
 
-            {/* Country selector */}
+            {/* Language selector — standardized ChipSelector component */}
             <View style={styles.countrySelector}>
-              <Text style={styles.filterLabel}>{t('modules.podcast.country')}</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.countryScrollContent}
-              >
-                {COUNTRIES.map(country => (
-                  <TouchableOpacity
-                    key={country.code}
-                    style={[
-                      styles.countryChip,
-                      selectedCountry === country.code && {
-                        backgroundColor: accentColor.primary,
-                        borderColor: accentColor.primary,
-                      },
-                    ]}
-                    onPress={() => handleCountryChange(country.code)}
-                    onLongPress={() => {}}
-                    delayLongPress={300}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: selectedCountry === country.code }}
-                    accessibilityLabel={`${country.flag} ${country.nativeName}`}
-                  >
-                    <Text
-                      style={[
-                        styles.countryChipText,
-                        selectedCountry === country.code && styles.countryChipTextActive,
-                      ]}
-                    >
-                      {country.flag} {country.nativeName}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <ChipSelector
+                mode="language"
+                options={COUNTRIES}
+                selectedCode={selectedCountry}
+                onSelect={handleCountryChange}
+              />
             </View>
           </View>
         )}
@@ -1544,33 +1516,7 @@ const styles = StyleSheet.create({
   countrySelector: {
     marginTop: spacing.md,
   },
-  filterLabel: {
-    ...typography.label,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  countryScrollContent: {
-    paddingRight: spacing.md,
-    gap: spacing.xs,
-  },
-  countryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.pill,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: touchTargets.minimum,
-  },
-  countryChipText: {
-    ...typography.body,
-    color: colors.textPrimary,
-  },
-  countryChipTextActive: {
-    color: colors.textOnPrimary,
-  },
+  // filterLabel, countryScrollContent, countryChip, countryChipText removed — using standardized ChipSelector component
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',

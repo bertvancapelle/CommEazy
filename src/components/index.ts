@@ -105,6 +105,10 @@ export type { LibraryTabButtonProps } from './LibraryTabButton';
 export { SearchBar } from './SearchBar';
 export type { SearchBarProps, SearchBarRef } from './SearchBar';
 
+// ChipSelector Component (standardized country/language selector)
+export { ChipSelector } from './ChipSelector';
+export type { ChipSelectorProps, ChipOption } from './ChipSelector';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

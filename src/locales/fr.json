@@ -1,5 +1,11 @@
 {
   "app": { "name": "CommEazy" },
+  "components": {
+    "chipSelector": {
+      "country": "Pays",
+      "language": "Langue"
+    }
+  },
   "onboarding": {
     "welcome": "Bienvenue sur CommEazy",
     "subtitle": "Messagerie privée pour toute la famille",
