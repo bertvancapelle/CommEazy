@@ -84,6 +84,128 @@ docs/
 └── store/ (descriptions-{lang} for App Store + Play Store)
 ```
 
+## News/Content Module Documentation (VERPLICHT)
+
+Bij het toevoegen van nieuwe nieuws/content modules (zoals nu.nl, BBC, etc.), moeten de volgende documentatietaken worden uitgevoerd:
+
+### Module Setup Documentation
+
+```markdown
+# [Module Name] Integration
+
+## Overview
+- **Source:** [RSS feed / API]
+- **Languages:** [Supported languages]
+- **Categories:** [List of content categories]
+
+## Configuration
+```typescript
+const config = {
+  id: 'module_id',
+  name: 'Display Name',
+  rssBaseUrl: 'https://...',
+  categories: ['...'],
+  language: 'xx-XX',
+  accentColor: '#XXXXXX',
+};
+```
+
+## RSS Feed URLs
+- Algemeen: https://...
+- Sport: https://...
+- etc.
+
+## CSS Overrides
+Module-specifieke CSS regels voor WebView:
+```css
+/* Custom styles for this source */
+```
+
+## Known Limitations
+- [Any API/feed limitations]
+- [Rate limits]
+- [Content restrictions]
+```
+
+### Welcome Modal Teksten (5 talen)
+
+```json
+// locales/nl.json
+{
+  "modules": {
+    "[moduleId]": {
+      "welcome": {
+        "title": "Welkom bij [Module]!",
+        "step1": "Tik op een artikel om het te bekijken",
+        "step2": "Kies \"Voorlezen\" om te luisteren",
+        "step3": "Of lees het volledige artikel",
+        "understood": "Begrepen"
+      }
+    }
+  }
+}
+
+// Herhaal voor en.json, de.json, fr.json, es.json
+```
+
+### User Guide Updates
+
+Bij elke nieuwe module, update de user guide met:
+
+1. **Screenshot van module scherm** (5 talen × 4 device sizes)
+2. **Stapsgewijze instructies:**
+   - Hoe de module te openen
+   - Hoe artikelen te filteren (categorieën)
+   - Hoe artikelen te lezen
+   - Hoe artikelen te laten voorlezen
+3. **Probleemoplossing:**
+   - Wat te doen als artikelen niet laden
+   - Wat te doen als voorlezen niet werkt
+
+### i18n Keys voor News Modules
+
+```typescript
+// Standaard keys die ELKE news module MOET hebben:
+
+'modules.[id].title'              // Module naam
+'modules.[id].welcome.title'      // Welcome modal titel
+'modules.[id].welcome.step1'      // Welcome stap 1
+'modules.[id].welcome.step2'      // Welcome stap 2
+'modules.[id].welcome.step3'      // Welcome stap 3
+'modules.[id].welcome.understood' // Welcome knop
+'modules.[id].categories.all'     // "Alle" categorie
+'modules.[id].readAloud'          // "Voorlezen" knop
+'modules.[id].openArticle'        // "Artikel openen" knop
+'modules.[id].loadError'          // Foutmelding laden
+'modules.[id].noArticles'         // Geen artikelen gevonden
+
+// Accessibility keys:
+'a11y.[id].openArticle'           // Hint voor artikel openen
+'a11y.[id].categoryFilter'        // Hint voor categorie filter
+```
+
+### ADR Template voor News Module
+
+```markdown
+# ADR-XXX: [Module Name] Integration
+
+## Context
+Beschrijving waarom deze module wordt toegevoegd.
+
+## Decision
+- RSS feed als data bron
+- 5 minuten caching
+- CSS injection voor senior-friendly reading
+- Dual-engine TTS (Piper voor NL, System voor overig)
+
+## Consequences
+- Positief: [voordelen]
+- Negatief: [nadelen/risico's]
+
+## Status
+Accepted / Proposed / Deprecated
+```
+
 ## Quality Checklist
 
 - [ ] All public APIs have TSDoc with examples
@@ -93,6 +215,10 @@ docs/
 - [ ] ADR for every major decision
 - [ ] No outdated comments in code
 - [ ] Screenshots in guides match current UI
+- [ ] **News modules:** Welcome modal teksten in 5 talen
+- [ ] **News modules:** User guide met screenshots
+- [ ] **News modules:** i18n keys voor alle module teksten
+- [ ] **News modules:** ADR voor module integratie beslissing
 
 ## Collaboration
 

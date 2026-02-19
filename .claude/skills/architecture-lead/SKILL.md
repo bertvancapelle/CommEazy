@@ -268,6 +268,164 @@ const showModeToggle = API_CAPABILITIES.supportsCountryFilter && API_CAPABILITIE
 
 ---
 
+## News/Content Module Service Architecture (VERPLICHT)
+
+Geleerd van de nu.nl module implementatie. Deze patterns zijn verplicht voor ALLE nieuws/content modules.
+
+### Service Layer Pattern
+
+```typescript
+// services/newsService.ts - Technology-agnostic interface
+
+interface NewsServiceInterface {
+  // Core methods
+  fetchArticles(moduleId: string, category?: string): Promise<NewsArticle[]>;
+  fetchFullArticleText(article: NewsArticle): Promise<string | null>;
+  formatForTts(article: NewsArticle): string;
+
+  // Caching
+  getCachedArticles(moduleId: string): NewsArticle[] | null;
+  invalidateCache(moduleId: string): void;
+}
+
+interface NewsArticle {
+  id: string;
+  moduleId: string;         // 'nunl', 'bbc', 'tagesschau', etc.
+  title: string;
+  summary: string;
+  content?: string;         // Full text (if extracted)
+  url: string;
+  artwork?: string;         // Image URL
+  publishedAt: Date;
+  category: string;
+  author?: string;
+}
+```
+
+### RSS Parsing with Caching
+
+```typescript
+// Caching architecture for RSS feeds
+const CACHE_DURATION = 5 * 60 * 1000;  // 5 minutes
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  moduleId: string;
+}
+
+class NewsService implements NewsServiceInterface {
+  private cache = new Map<string, CacheEntry<NewsArticle[]>>();
+
+  async fetchArticles(moduleId: string, category?: string): Promise<NewsArticle[]> {
+    const cacheKey = `${moduleId}:${category || 'all'}`;
+    const cached = this.cache.get(cacheKey);
+
+    // Return cached if still valid
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    }
+
+    // Fetch fresh data
+    const rssUrl = this.getRssUrl(moduleId, category);
+    const articles = await this.parseRssFeed(rssUrl, moduleId);
+
+    // Update cache
+    this.cache.set(cacheKey, {
+      data: articles,
+      timestamp: Date.now(),
+      moduleId,
+    });
+
+    return articles;
+  }
+}
+```
+
+### Full Text Extraction Pattern
+
+```typescript
+// Extract readable content from HTML (for TTS)
+async fetchFullArticleText(article: NewsArticle): Promise<string | null> {
+  try {
+    const response = await fetch(article.url);
+    const html = await response.text();
+
+    // Parse and extract main content
+    // Remove: scripts, styles, nav, footer, ads
+    // Keep: article body, paragraphs
+    const cleanText = this.extractReadableContent(html);
+
+    return cleanText || null;
+  } catch (error) {
+    console.warn(`[newsService] Full text extraction failed for ${article.id}`);
+    return null;  // Fallback to RSS summary
+  }
+}
+
+// Format for TTS playback
+formatForTts(article: NewsArticle): string {
+  // Title + summary, cleaned of HTML
+  return `${article.title}. ${this.stripHtml(article.summary)}`;
+}
+```
+
+### Module Registry Pattern
+
+```typescript
+// Centralized module configuration
+const NEWS_MODULE_REGISTRY: Record<string, NewsModuleConfig> = {
+  nunl: {
+    id: 'nunl',
+    name: 'nu.nl',
+    rssBaseUrl: 'https://www.nu.nl/rss/',
+    categories: ['Algemeen', 'Sport', 'Tech', 'Economie'],
+    defaultCategory: 'Algemeen',
+    language: 'nl-NL',
+    accentColor: '#FF6600',
+    logoAsset: require('@/assets/logos/nunl.png'),
+    cssOverrides: `
+      .breaking-news { background: #FF6600 !important; }
+    `,
+  },
+  bbc: {
+    id: 'bbc',
+    name: 'BBC News',
+    rssBaseUrl: 'https://feeds.bbci.co.uk/news/',
+    categories: ['World', 'UK', 'Technology', 'Science'],
+    defaultCategory: 'World',
+    language: 'en-GB',
+    accentColor: '#BB1919',
+    logoAsset: require('@/assets/logos/bbc.png'),
+    cssOverrides: '',
+  },
+  // ... more modules
+};
+
+// Usage:
+const config = NEWS_MODULE_REGISTRY[moduleId];
+const articles = await newsService.fetchArticles(config.id, category);
+```
+
+### Bekende API Karakteristieken (Update)
+
+| API | Type | Caching | Full Text | Opmerkingen |
+|-----|------|---------|-----------|-------------|
+| **RSS Feeds** | Pull | 5 min | Via scraping | Universeel, meest compatibel |
+| **nu.nl RSS** | Pull | 5 min | Ja | Categories via URL path |
+| **BBC RSS** | Pull | 5 min | Ja | Multiple feed URLs |
+| **Tagesschau RSS** | Pull | 5 min | Ja | German language only |
+
+### Architectural Decisions
+
+| Beslissing | Reden |
+|------------|-------|
+| **5 min caching** | Balans tussen versheid en API belasting |
+| **RSS over API** | Universeel beschikbaar, geen API keys |
+| **Client-side scraping** | Full text extractie voor TTS |
+| **Module registry** | Eenvoudig nieuwe bronnen toevoegen |
+| **Category via URL** | Geen extra API calls nodig |
+
 ## Quality Checklist
 
 - [ ] All service interfaces defined before implementation starts
@@ -279,6 +437,9 @@ const showModeToggle = API_CAPABILITIES.supportsCountryFilter && API_CAPABILITIE
 - [ ] Store compliance reviewed (permissions just-in-time)
 - [ ] Cross-cutting quality gates referenced (see QUALITY_GATES.md)
 - [ ] **API land/taal filter ondersteuning gevalideerd en gedocumenteerd**
+- [ ] **News modules:** RSS caching met 5 min TTL
+- [ ] **News modules:** Full text extraction voor TTS
+- [ ] **News modules:** Module registry pattern gebruikt
 
 ## Collaboration
 

@@ -3167,6 +3167,281 @@ Bij ELKE nieuwe media module:
 
 ---
 
+## 13. News Module Component Patterns (VERPLICHT)
+
+Geleerd van de nu.nl module implementatie (februari 2026). Deze patterns zijn verplicht voor ALLE nieuws/content modules.
+
+### 13.1 Three-Step Article Reading Flow
+
+**Pattern:** Lijst → Preview Modal → Full Article
+
+```
+┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+│  📰 Nieuws          │    │  Article Preview    │    │  Full Article       │
+│─────────────────────│    │─────────────────────│    │─────────────────────│
+│ ┌─────────────────┐ │    │  [Artwork]          │    │  [WebView met CSS]  │
+│ │ Artikel 1      →│ │──▶ │                     │──▶ │                     │
+│ └─────────────────┘ │    │  Titel              │    │  Senior-vriendelijk │
+│ ┌─────────────────┐ │    │  Samenvatting       │    │  18pt font          │
+│ │ Artikel 2      →│ │    │                     │    │  Links uitgeschakeld│
+│ └─────────────────┘ │    │ [Voorlezen] [Lezen] │    │                     │
+│                     │    │     ↑ Twee keuzes   │    │  [🔊 TTS controls]  │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+```
+
+**Waarom dit pattern:**
+- Senioren kunnen content **scannen** in de lijst (titels + thumbnails)
+- Preview modal geeft **keuze** zonder direct te committen aan volledige pagina
+- Full article view is **geoptimaliseerd** voor leesbaarheid
+
+### 13.2 Article Preview Modal
+
+Modal met twee duidelijke keuzes voor de gebruiker:
+
+```typescript
+interface ArticlePreviewModalProps {
+  article: Article;
+  visible: boolean;
+  onClose: () => void;
+  onReadAloud: () => void;      // TTS playback
+  onReadFull: () => void;       // Navigate to full article
+  accentColor: string;          // Module kleur
+}
+
+// Layout:
+// - Artwork (indien beschikbaar, fallback naar module logo)
+// - Titel (bold, 24pt)
+// - Samenvatting (body, 18pt)
+// - Twee knoppen: [🔊 Voorlezen] [📖 Artikel openen]
+```
+
+**Regels:**
+- [ ] Artwork met fallback naar module logo
+- [ ] Titel maximaal 3 regels, daarna ellipsis
+- [ ] Samenvatting maximaal 6 regels
+- [ ] Twee knoppen naast elkaar, gelijke grootte
+- [ ] "Voorlezen" knop start TTS direct (geen navigatie)
+- [ ] "Artikel openen" navigeert naar full article
+
+### 13.3 Article Card met Relative Time
+
+```typescript
+// Gebruik relatieve tijd met locale support
+const relativeTime = formatDistanceToNow(article.publishedAt, {
+  addSuffix: true,
+  locale: getLocale(i18n.language),  // nl, en, de, fr, es
+});
+// "3 uur geleden", "1 dag geleden", etc.
+
+// Layout:
+// ┌───────────────────────────────────────────────┐
+// │ [Thumb]  Titel van het artikel (max 2 lines)  │
+// │          3 uur geleden                        │
+// └───────────────────────────────────────────────┘
+```
+
+**Regels:**
+- [ ] Thumbnail links (64×64pt of groter)
+- [ ] Titel rechts, maximaal 2 regels
+- [ ] Relatieve tijd onder titel (grijs, kleiner font)
+- [ ] Hele card is tappable (niet alleen tekst)
+- [ ] Chevron rechts voor navigatie affordance
+
+### 13.4 Category Chip Selector
+
+Horizontale scrollable chip selector voor content filtering:
+
+```typescript
+interface CategoryChipSelectorProps {
+  categories: Array<{ id: string; label: string }>;
+  selectedId: string;
+  onSelect: (id: string) => void;
+  accentColor: string;
+}
+
+// Visueel:
+// [ Alle ] [ Algemeen ] [ Sport ] [ Tech ] [ ... ] →
+//    ↑ Geselecteerd = accent achtergrond, wit tekst
+//    Niet geselecteerd = witte achtergrond, accent rand
+```
+
+**Regels:**
+- [ ] "Alle" is altijd de eerste optie
+- [ ] Geselecteerde chip: `backgroundColor: accentColor`, `color: white`
+- [ ] Niet-geselecteerde: `borderColor: accentColor`, `backgroundColor: transparent`
+- [ ] Minimum chip height: 44pt
+- [ ] Horizontal scroll met overscroll indicator
+- [ ] Haptic feedback bij selectie
+
+### 13.5 CSS Injection for Senior-Friendly Reading
+
+In WebView voor volledige artikelen, injecteer CSS:
+
+```typescript
+const SENIOR_FRIENDLY_CSS = `
+  body {
+    font-size: 18px !important;
+    line-height: 1.6 !important;
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    padding: 16px !important;
+    background-color: ${colors.background} !important;
+    color: ${colors.textPrimary} !important;
+  }
+
+  /* Disable ALL links */
+  a, a * {
+    pointer-events: none !important;
+    color: ${colors.textPrimary} !important;
+    text-decoration: none !important;
+  }
+
+  /* Hide non-essential elements */
+  header, footer, nav, aside,
+  .ad, .advertisement, .social-share,
+  .comments, .related-articles {
+    display: none !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 8px !important;
+  }
+`;
+
+// Inject via WebView:
+<WebView
+  source={{ uri: article.url }}
+  injectedJavaScript={`
+    const style = document.createElement('style');
+    style.textContent = \`${SENIOR_FRIENDLY_CSS}\`;
+    document.head.appendChild(style);
+    true;
+  `}
+/>
+```
+
+**Regels:**
+- [ ] Links uitgeschakeld (pointer-events: none)
+- [ ] Font 18px minimum
+- [ ] Line height 1.6 voor leesbaarheid
+- [ ] Ads, navigatie, comments verborgen
+- [ ] Module-specifieke CSS regels toevoegbaar
+
+### 13.6 Welcome Modal voor First-Time Users
+
+```typescript
+// Check of welcome is getoond
+const welcomeKey = `${moduleId}_welcome_shown`;
+const [showWelcome, setShowWelcome] = useState(false);
+
+useEffect(() => {
+  AsyncStorage.getItem(welcomeKey).then((value) => {
+    if (!value) setShowWelcome(true);
+  });
+}, []);
+
+const handleDismissWelcome = async () => {
+  await AsyncStorage.setItem(welcomeKey, 'true');
+  setShowWelcome(false);
+};
+
+// Modal layout:
+// ┌─────────────────────────────────────┐
+// │  Welkom bij [Module]!               │
+// │                                     │
+// │  ① Tik op een artikel om het       │
+// │     te bekijken                     │
+// │                                     │
+// │  ② Kies "Voorlezen" om te          │
+// │     luisteren                       │
+// │                                     │
+// │  ③ Of lees het volledige artikel   │
+// │                                     │
+// │        [ Begrepen ]                 │
+// └─────────────────────────────────────┘
+```
+
+**Regels:**
+- [ ] Genummerde stappen (max 5)
+- [ ] Grote tekst (body size)
+- [ ] Eén "Begrepen" knop onderaan
+- [ ] Opslaan in AsyncStorage (`{moduleId}_welcome_shown`)
+- [ ] Alle tekst via i18n
+
+### 13.7 Custom Brand Logo Component
+
+Voor modules met externe bronnen (nu.nl, BBC, etc.):
+
+```typescript
+interface BrandLogoProps {
+  source: 'nunl' | 'bbc' | 'tagesschau' | string;
+  size?: 'small' | 'medium' | 'large';  // 24, 40, 80pt
+  style?: StyleProp<ViewStyle>;
+}
+
+// Gebruik:
+<BrandLogo source="nunl" size="medium" />
+
+// In ArticlePreviewModal als fallback voor artwork:
+{article.artwork ? (
+  <Image source={{ uri: article.artwork }} />
+) : (
+  <BrandLogo source={article.moduleId} size="large" />
+)}
+```
+
+**Regels:**
+- [ ] SVG of high-res PNG (2x, 3x assets)
+- [ ] Consistent sizes: small (24pt), medium (40pt), large (80pt)
+- [ ] Fallback naar module icoon indien logo niet beschikbaar
+- [ ] Accessibiliteit: `accessibilityLabel={t('modules.nunl.title')}`
+
+### 13.8 Error Banner met TEXT Dismiss
+
+```typescript
+// Error banner layout:
+// ┌─────────────────────────────────────────────────┐
+// │ ⚠️  Kan artikel niet laden        [ Verbergen ] │
+// └─────────────────────────────────────────────────┘
+//                                         ↑ TEKST, niet icoon
+
+{error && (
+  <View style={styles.errorBanner}>
+    <Icon name="warning" size={24} color={colors.warning} />
+    <Text style={styles.errorText}>{error}</Text>
+    <TouchableOpacity onPress={() => setError(null)}>
+      <Text style={styles.dismissText}>{t('common.dismiss')}</Text>
+    </TouchableOpacity>
+  </View>
+)}
+```
+
+**Regels:**
+- [ ] Dismiss button is TEKST ("Verbergen"), NIET alleen een X icoon
+- [ ] Icoon links, tekst midden, dismiss rechts
+- [ ] Consistente hoogte (minimaal 48pt)
+- [ ] Haptic feedback bij dismiss
+
+### 13.9 News Module Implementatie Checklist
+
+Bij ELKE nieuwe nieuws/content module:
+
+- [ ] **Three-step flow:** Lijst → Preview Modal → Full Article
+- [ ] **Preview Modal:** Artwork + titel + samenvatting + twee knoppen
+- [ ] **Article Cards:** Thumbnail + titel + relatieve tijd
+- [ ] **Category Chips:** Horizontale scrollable filter
+- [ ] **CSS Injection:** Senior-friendly styling in WebView
+- [ ] **Links disabled:** pointer-events: none in CSS
+- [ ] **Welcome Modal:** First-time user instructies
+- [ ] **Brand Logo:** Custom logo component indien externe bron
+- [ ] **Error Banner:** Text dismiss button (niet icoon-only)
+- [ ] **TTS Integration:** Voorlezen optie in preview modal
+- [ ] **VoiceFocusable:** Artikel lijst items wrapped
+
+---
+
 ## Collaboration
 
 - **With accessibility-specialist**: Validate all components for a11y compliance

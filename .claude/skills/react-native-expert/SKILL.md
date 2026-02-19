@@ -1322,6 +1322,334 @@ Bij ELKE nieuwe media module:
 
 ---
 
+## 13. News/Content Module Implementation (VERPLICHT)
+
+Geleerd van de nu.nl module implementatie. Deze patterns zijn verplicht voor ALLE nieuws/content modules.
+
+### 13.1 Article List Rendering
+
+```typescript
+// Gebruik ScrollView + map voor lijsten <100 items (Hermes FlatList bug)
+// Voor >100 items: FlatList met getItemLayout
+
+import { ScrollView } from 'react-native';
+
+function ArticleList({ articles, onArticlePress }: Props) {
+  const { scrollRef } = useVoiceFocusList('articles', voiceFocusItems);
+
+  return (
+    <ScrollView ref={scrollRef}>
+      {articles.map((article, index) => (
+        <VoiceFocusable
+          key={article.id}
+          id={article.id}
+          label={article.title}  // Menselijke naam voor voice
+          index={index}
+          onSelect={() => onArticlePress(article)}
+        >
+          <ArticleCard article={article} onPress={() => onArticlePress(article)} />
+        </VoiceFocusable>
+      ))}
+    </ScrollView>
+  );
+}
+```
+
+### 13.2 Article Card Component
+
+```typescript
+interface ArticleCardProps {
+  article: NewsArticle;
+  onPress: () => void;
+}
+
+function ArticleCard({ article, onPress }: ArticleCardProps) {
+  const { triggerFeedback } = useFeedback();
+
+  const handlePress = useCallback(() => {
+    void triggerFeedback('tap');
+    onPress();
+  }, [onPress, triggerFeedback]);
+
+  // Relatieve tijd met locale support
+  const relativeTime = formatDistanceToNow(article.publishedAt, {
+    addSuffix: true,
+    locale: getDateFnsLocale(i18n.language),
+  });
+
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={handlePress}
+      onLongPress={() => {}}  // Prevent double-action
+      delayLongPress={300}
+      accessibilityRole="button"
+      accessibilityLabel={article.title}
+      accessibilityHint={t('a11y.openArticle')}
+    >
+      <Image
+        source={{ uri: article.artwork }}
+        style={styles.thumbnail}
+        defaultSource={require('@/assets/placeholder.png')}
+      />
+      <View style={styles.content}>
+        <Text style={styles.title} numberOfLines={2}>
+          {article.title}
+        </Text>
+        <Text style={styles.time}>{relativeTime}</Text>
+      </View>
+      <Icon name="chevron-right" size={24} color={colors.textSecondary} />
+    </TouchableOpacity>
+  );
+}
+```
+
+### 13.3 WebView with CSS Injection
+
+```typescript
+import { WebView } from 'react-native-webview';
+
+function ArticleWebViewer({ article, moduleConfig }: Props) {
+  const colors = useColors();
+
+  // Senior-friendly CSS injection
+  const injectedCSS = useMemo(() => `
+    (function() {
+      const style = document.createElement('style');
+      style.textContent = \`
+        body {
+          font-size: 18px !important;
+          line-height: 1.6 !important;
+          color: ${colors.textPrimary} !important;
+          background: ${colors.background} !important;
+          padding: 16px !important;
+        }
+
+        /* Disable ALL links */
+        a, a * {
+          pointer-events: none !important;
+          color: ${colors.textPrimary} !important;
+          text-decoration: none !important;
+        }
+
+        /* Hide non-content elements */
+        header, footer, nav, aside,
+        .ad, .advertisement, .social-share,
+        .comments, .cookie-banner {
+          display: none !important;
+        }
+
+        /* Module-specific overrides */
+        ${moduleConfig.cssOverrides}
+      \`;
+      document.head.appendChild(style);
+      true;
+    })();
+  `, [colors, moduleConfig.cssOverrides]);
+
+  return (
+    <WebView
+      source={{ uri: article.url }}
+      injectedJavaScript={injectedCSS}
+      javaScriptEnabled={true}
+      onError={(e) => console.warn('[WebView] Error:', e.nativeEvent)}
+    />
+  );
+}
+```
+
+### 13.4 Article Preview Modal with TTS
+
+```typescript
+function ArticlePreviewModal({
+  article,
+  visible,
+  onClose,
+  onReadAloud,
+  onReadFull,
+  moduleConfig,
+}: Props) {
+  const { t } = useTranslation();
+  const { triggerFeedback } = useFeedback();
+
+  const handleReadAloud = useCallback(() => {
+    void triggerFeedback('tap');
+    onClose();
+    onReadAloud();  // Start TTS playback
+  }, [onClose, onReadAloud, triggerFeedback]);
+
+  const handleReadFull = useCallback(() => {
+    void triggerFeedback('tap');
+    onClose();
+    onReadFull();  // Navigate to WebView
+  }, [onClose, onReadFull, triggerFeedback]);
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.overlay}>
+        <View style={styles.content}>
+          {/* Artwork met fallback */}
+          {article.artwork ? (
+            <Image source={{ uri: article.artwork }} style={styles.artwork} />
+          ) : (
+            <BrandLogo source={moduleConfig.id} size="large" />
+          )}
+
+          <Text style={styles.title} numberOfLines={3}>
+            {article.title}
+          </Text>
+
+          <Text style={styles.summary} numberOfLines={6}>
+            {article.summary}
+          </Text>
+
+          {/* Twee actie knoppen */}
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: moduleConfig.accentColor }]}
+              onPress={handleReadAloud}
+            >
+              <Icon name="volume-up" size={24} color="white" />
+              <Text style={styles.buttonText}>{t('modules.news.readAloud')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
+              onPress={handleReadFull}
+            >
+              <Icon name="article" size={24} color={moduleConfig.accentColor} />
+              <Text style={[styles.buttonText, { color: moduleConfig.accentColor }]}>
+                {t('modules.news.openArticle')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+```
+
+### 13.5 Category Chip Selector
+
+```typescript
+interface ChipSelectorProps {
+  categories: Array<{ id: string; label: string }>;
+  selectedId: string;
+  onSelect: (id: string) => void;
+  accentColor: string;
+}
+
+function CategoryChipSelector({ categories, selectedId, onSelect, accentColor }: ChipSelectorProps) {
+  const { triggerFeedback } = useFeedback();
+
+  const handleSelect = useCallback((id: string) => {
+    void triggerFeedback('tap');
+    onSelect(id);
+  }, [onSelect, triggerFeedback]);
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
+      {categories.map((category) => {
+        const isSelected = category.id === selectedId;
+        return (
+          <TouchableOpacity
+            key={category.id}
+            style={[
+              styles.chip,
+              isSelected
+                ? { backgroundColor: accentColor }
+                : { borderColor: accentColor, borderWidth: 2 },
+            ]}
+            onPress={() => handleSelect(category.id)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                { color: isSelected ? 'white' : accentColor },
+              ]}
+            >
+              {category.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+}
+```
+
+### 13.6 useArticleTTS Hook Pattern
+
+```typescript
+// Hook voor TTS playback van artikelen
+// Zie useArticleTTS.ts voor volledige implementatie
+
+function useArticleTTS() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const currentEngineRef = useRef<'piper' | 'system' | null>(null);
+
+  const startTTS = useCallback(async (article: NewsArticle, useFullText: boolean) => {
+    // 1. Bepaal tekst (summary of full text)
+    const text = useFullText
+      ? await newsService.fetchFullArticleText(article) || newsService.formatForTts(article)
+      : newsService.formatForTts(article);
+
+    // 2. Bepaal engine (Piper voor Nederlands)
+    const language = getLanguageForModule(article.moduleId);
+    const usePiper = shouldUsePiperTTS(language);
+
+    // 3. Start playback met juiste engine
+    if (usePiper) {
+      currentEngineRef.current = 'piper';
+      await piperTtsService.speakChunked(text);
+    } else {
+      currentEngineRef.current = 'system';
+      await ttsService.speak(text);
+    }
+
+    setIsPlaying(true);
+  }, []);
+
+  const stopTTS = useCallback(async () => {
+    // Stop BEIDE engines voor safety
+    await piperTtsService.stop();
+    await ttsService.stop();
+    currentEngineRef.current = null;
+    setIsPlaying(false);
+  }, []);
+
+  return { startTTS, stopTTS, isPlaying, progress };
+}
+```
+
+### 13.7 News Module Implementatie Checklist
+
+Bij ELKE nieuwe nieuws/content module:
+
+- [ ] **ScrollView + map:** Voor lijsten <100 items (Hermes bug)
+- [ ] **VoiceFocusable:** Alle artikel cards wrapped
+- [ ] **ArticleCard:** Thumbnail + titel + relatieve tijd + chevron
+- [ ] **onLongPress={() => {}}:** Prevent double-action
+- [ ] **CategoryChipSelector:** Horizontale chips voor filtering
+- [ ] **ArticlePreviewModal:** Twee knoppen (Voorlezen / Openen)
+- [ ] **WebView CSS injection:** Senior-friendly + links disabled
+- [ ] **useArticleTTS:** Dual-engine TTS implementatie
+- [ ] **Module registry:** Config in centraal register
+- [ ] **Brand logo:** Fallback voor ontbrekende artwork
+- [ ] **Error handling:** Error banner met text dismiss
+- [ ] **Welcome modal:** First-time user instructies
+
+---
+
 ## Collaboration
 
 - **With ui-designer**: Implement component specs
