@@ -631,12 +631,6 @@ export function RadioScreen() {
   // Voice command listeners — play first station if none selected
   // Note: play/pause/stop are handled by RadioContext voice listeners
 
-  // Country selector
-  const handleCountryChange = useCallback((countryCode: string) => {
-    setSelectedCountry(countryCode);
-    setSearchQuery('');
-  }, []);
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
