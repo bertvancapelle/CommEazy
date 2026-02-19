@@ -994,7 +994,20 @@
       "otherCountries": "Otros países",
       "autoEnabled": "Activado automáticamente",
       "tapToEnable": "Toca para activar",
-      "tapToDisable": "Toca para desactivar"
+      "tapToDisable": "Toca para desactivar",
+      "yourCountry": "Tu país",
+      "settingsHint": "Gestionar módulos de noticias por país",
+      "infoText": "Los módulos para tu país se activan automáticamente. También puedes activar módulos de otros países.",
+      "moreComingSoon": "Más próximamente",
+      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau y más",
+      "countries": {
+        "NL": "Países Bajos",
+        "BE": "Bélgica",
+        "GB": "Reino Unido",
+        "DE": "Alemania",
+        "FR": "Francia",
+        "ES": "España"
+      }
     }
   },
   "articleViewer": {

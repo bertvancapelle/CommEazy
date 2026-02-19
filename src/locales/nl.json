@@ -1001,7 +1001,20 @@
       "otherCountries": "Andere landen",
       "autoEnabled": "Automatisch ingeschakeld",
       "tapToEnable": "Tik om in te schakelen",
-      "tapToDisable": "Tik om uit te schakelen"
+      "tapToDisable": "Tik om uit te schakelen",
+      "yourCountry": "Jouw land",
+      "settingsHint": "Beheer nieuwsmodules per land",
+      "infoText": "Modules voor jouw land worden automatisch ingeschakeld. Je kunt ook modules uit andere landen inschakelen.",
+      "moreComingSoon": "Meer binnenkort beschikbaar",
+      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau, en meer",
+      "countries": {
+        "NL": "Nederland",
+        "BE": "België",
+        "GB": "Verenigd Koninkrijk",
+        "DE": "Duitsland",
+        "FR": "Frankrijk",
+        "ES": "Spanje"
+      }
     }
   },
   "articleViewer": {

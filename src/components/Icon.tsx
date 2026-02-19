@@ -49,7 +49,8 @@ export type IconName =
   | 'time'
   | 'list'
   | 'x'
-  | 'warning';
+  | 'warning'
+  | 'news';
 
 interface IconProps {
   name: IconName;
@@ -622,6 +623,37 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'news':
+      // Newspaper icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M4 6H20M4 10H16M4 14H12M4 18H8"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="2"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Rect
+            x="14"
+            y="12"
+            width="5"
+            height="5"
+            stroke={color}
+            strokeWidth={sw}
           />
         </Svg>
       );

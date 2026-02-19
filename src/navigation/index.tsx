@@ -64,6 +64,7 @@ import {
   ProfileSettingsScreen,
   AccessibilitySettingsScreen,
   VoiceSettingsScreen,
+  ModulesSettingsScreen,
 } from '@/screens/settings';
 
 // Dev screens
@@ -133,6 +134,7 @@ export type SettingsStackParams = {
   ProfileSettings: undefined;
   AccessibilitySettings: undefined;
   VoiceSettings: undefined;
+  ModulesSettings: undefined;
   BackupSettings: undefined;
   DeviceTransfer: undefined;
   DeviceLinkShowQR: undefined;
@@ -391,6 +393,11 @@ function SettingsNavigator() {
         name="VoiceSettings"
         component={VoiceSettingsScreen}
         options={{ title: t('voiceSettings.title') }}
+      />
+      <SettingsStack.Screen
+        name="ModulesSettings"
+        component={ModulesSettingsScreen}
+        options={{ title: t('modulesSettings.title'), headerShown: false }}
       />
       <SettingsStack.Screen
         name="LanguageSettings"
