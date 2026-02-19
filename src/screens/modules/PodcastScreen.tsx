@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef, type FilterMode } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import {
@@ -57,7 +57,7 @@ import {
   searchPodcasts,
   getPodcastEpisodes,
 } from '@/services/podcastService';
-import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
+import { COUNTRIES } from '@/constants/demographics';
 import { ServiceContainer } from '@/services/container';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -126,10 +126,8 @@ export function PodcastScreen() {
   const [showSubscriptions, setShowSubscriptions] = useState(true);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const hasShownWelcomeRef = useRef(false);
-  // Podcast uses language as default (content is language-based, not country-based)
-  const [selectedLanguage, setSelectedLanguage] = useState('nl');
+  // Podcast uses country filter (iTunes API is store/region-based, not language-based)
   const [selectedCountry, setSelectedCountry] = useState('NL');
-  const [filterMode, setFilterMode] = useState<FilterMode>('language');
 
   // Show detail modal
   const [selectedShow, setSelectedShow] = useState<PodcastShow | null>(null);
@@ -289,25 +287,11 @@ export function PodcastScreen() {
     void loadUserCountry();
   }, []);
 
-  // Handle filter mode change
-  const handleFilterModeChange = useCallback((newMode: FilterMode) => {
-    setFilterMode(newMode);
-    setSearchResults([]); // Clear search when switching modes
-  }, []);
-
   // Handle country change
   const handleCountryChange = useCallback((countryCode: string) => {
     triggerFeedback('tap');
     setSelectedCountry(countryCode);
     // Clear search results when changing country
-    setSearchResults([]);
-  }, [triggerFeedback]);
-
-  // Handle language change
-  const handleLanguageChange = useCallback((languageCode: string) => {
-    triggerFeedback('tap');
-    setSelectedLanguage(languageCode);
-    // Clear search results when changing language
     setSearchResults([]);
   }, [triggerFeedback]);
 
@@ -318,13 +302,8 @@ export function PodcastScreen() {
     setIsLoading(true);
     setApiError(null);
 
-    // Pass appropriate filter based on mode
-    // searchPodcasts accepts both uppercase country codes ('NL') and lowercase language codes ('nl')
-    const filterParam = filterMode === 'language'
-      ? selectedLanguage   // ISO 639-1 lowercase: 'nl', 'en', 'de', etc.
-      : selectedCountry;   // ISO 3166-1 uppercase: 'NL', 'DE', 'FR', etc.
-
-    const result = await searchPodcasts(searchQuery, filterParam);
+    // iTunes API uses country/store parameter (not language)
+    const result = await searchPodcasts(searchQuery, selectedCountry);
 
     if (result.error) {
       setApiError(result.error);
@@ -340,7 +319,7 @@ export function PodcastScreen() {
       }
     }
     setIsLoading(false);
-  }, [searchQuery, selectedCountry, selectedLanguage, filterMode, triggerFeedback, t]);
+  }, [searchQuery, selectedCountry, triggerFeedback, t]);
 
   // Find the last played episode with progress for a show
   const findLastPlayedEpisode = useCallback((episodes: PodcastEpisode[]): PodcastEpisode | null => {
@@ -540,15 +519,13 @@ export function PodcastScreen() {
               maxLength={SEARCH_MAX_LENGTH}
             />
 
-            {/* Language/Country selector — with toggle between modes */}
+            {/* Country selector — iTunes API is store/region-based, not language-based */}
             <View style={styles.countrySelector}>
               <ChipSelector
-                mode={filterMode}
-                options={filterMode === 'language' ? LANGUAGES : COUNTRIES}
-                selectedCode={filterMode === 'language' ? selectedLanguage : selectedCountry}
-                onSelect={filterMode === 'language' ? handleLanguageChange : handleCountryChange}
-                allowModeToggle={true}
-                onModeChange={handleFilterModeChange}
+                mode="country"
+                options={COUNTRIES}
+                selectedCode={selectedCountry}
+                onSelect={handleCountryChange}
               />
             </View>
           </View>
