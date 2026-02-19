@@ -224,6 +224,54 @@ Na JS-only wijzigingen (geen native code):
 - `npx react-native run-ios`
 - `r` in Metro terminal
 
+## Text-to-Speech Native Modules
+
+CommEazy bevat twee TTS native modules:
+
+### TtsModule (System TTS)
+- Gebruikt iOS `AVSpeechSynthesizer`
+- Voor niet-Nederlandse talen (en, de, fr, es)
+- Bridge: `TtsModule.m` / `TtsModule.swift`
+
+### PiperTtsModule (High-Quality Offline TTS)
+- Gebruikt Sherpa-ONNX met Piper VITS models
+- **Primaire engine voor Nederlands** (`nl_NL-rdh-high`)
+- 100% offline, privacy-first
+- Bridge: `PiperTtsModule.m` / `PiperTtsModule.swift`
+
+### Model Bundling
+
+Piper models worden gebundeld in de app:
+
+```
+ios/Assets/piper-models/
+├── nl_NL-rdh-high/          ← PRIMARY (high quality Dutch)
+│   ├── nl_NL-rdh-high.onnx
+│   └── nl_NL-rdh-high.json
+├── nl_BE-nathalie-medium/   ← Fallback (Belgian Dutch)
+│   ├── nl_BE-nathalie-medium.onnx
+│   └── nl_BE-nathalie-medium.json
+└── nl_NL-mls-medium/        ← Fallback (lower quality)
+    ├── nl_NL-mls-medium.onnx
+    └── nl_NL-mls-medium.json
+```
+
+### Build Configuration
+
+In Xcode project:
+1. Models toegevoegd aan "Copy Bundle Resources"
+2. `sherpa_onnx.xcframework` gelinkt
+3. Build settings: `ENABLE_BITCODE = NO` (ONNX requirement)
+
+### Privacy Considerations
+
+- **Piper TTS verwerkt ALLE tekst lokaal**
+- Geen data verlaat het device
+- Geen network calls vanuit TTS modules
+- Voldoet aan zero-server-storage policy
+
+---
+
 ## Quality Checklist
 
 - [ ] Privacy Manifest complete and accurate
@@ -238,6 +286,9 @@ Na JS-only wijzigingen (geen native code):
 - [ ] Hermes engine enabled
 - [ ] VoiceOver full-flow tested
 - [ ] Screenshots generated for all 4 device sizes × 5 languages
+- [ ] **TTS:** Piper models gebundeld in app (nl_NL-rdh-high primary)
+- [ ] **TTS:** sherpa_onnx.xcframework correct gelinkt
+- [ ] **TTS:** ENABLE_BITCODE = NO in build settings
 
 ## Collaboration
 

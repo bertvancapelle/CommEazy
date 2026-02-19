@@ -608,6 +608,166 @@ Op basis van de API validatie:
 
 ---
 
+## 12. Text-to-Speech (TTS) Dual-Engine Architectuur (VERPLICHT)
+
+CommEazy gebruikt twee TTS engines met een strikte hiërarchie voor maximale kwaliteit en privacy.
+
+### 12.1 Engine Selectie
+
+| Taal | Engine | Voice ID |
+|------|--------|----------|
+| **Nederlands (nl-NL, nl-BE)** | Piper TTS | `nl_NL-rdh-high` |
+| Engels (en-GB, en-US) | System TTS | Best available |
+| Duits (de-DE) | System TTS | Best available |
+| Frans (fr-FR) | System TTS | Best available |
+| Spaans (es-ES) | System TTS | Best available |
+
+### 12.2 Service Imports
+
+```typescript
+// Beide services importeren
+import { piperTtsService } from '@/services/piperTtsService';
+import { ttsService } from '@/services/ttsService';
+
+// Engine tracking
+const currentEngineRef = useRef<'piper' | 'system' | null>(null);
+```
+
+### 12.3 Initialisatie Pattern
+
+```typescript
+// Initialiseer BEIDE engines bij mount
+useEffect(() => {
+  const initTTS = async () => {
+    // System TTS (voor non-Dutch)
+    const systemSuccess = await ttsService.initialize();
+    isSystemTtsInitializedRef.current = systemSuccess;
+
+    // Piper TTS (voor Dutch - high quality nl_NL-rdh-high)
+    const piperSuccess = await piperTtsService.initialize();
+    isPiperTtsInitializedRef.current = piperSuccess;
+
+    if (piperSuccess) {
+      console.info('[TTS] Piper initialized with nl_NL-rdh-high voice');
+    }
+  };
+  void initTTS();
+}, []);
+```
+
+### 12.4 Speak Function Pattern
+
+```typescript
+const PIPER_SUPPORTED_LANGUAGES = ['nl-NL', 'nl-BE'];
+
+function shouldUsePiperTTS(language: string): boolean {
+  return PIPER_SUPPORTED_LANGUAGES.some(lang =>
+    language.toLowerCase().startsWith(lang.toLowerCase().split('-')[0])
+  );
+}
+
+const speak = async (text: string, language: string, rate: number = 1.0) => {
+  const usePiper = shouldUsePiperTTS(language) && isPiperTtsInitializedRef.current;
+
+  // Stop any existing playback (BEIDE engines!)
+  await piperTtsService.stop();
+  await ttsService.stop();
+
+  if (usePiper) {
+    currentEngineRef.current = 'piper';
+    // Chunked playback voor betere responsiveness
+    return await piperTtsService.speakChunked(text, rate);
+  } else {
+    currentEngineRef.current = 'system';
+    const voice = await ttsService.getBestVoiceForLanguage(language);
+    return await ttsService.speak(text, voice?.id, rate);
+  }
+};
+```
+
+### 12.5 Stop/Pause/Resume Pattern
+
+```typescript
+const stopTTS = async () => {
+  // ALTIJD beide engines stoppen (safety)
+  await piperTtsService.stop();
+  await ttsService.stop();
+  currentEngineRef.current = null;
+};
+
+const pauseTTS = async () => {
+  if (currentEngineRef.current === 'piper') {
+    await piperTtsService.pause();
+  } else if (currentEngineRef.current === 'system') {
+    await ttsService.pause();
+  }
+};
+
+const resumeTTS = async () => {
+  if (currentEngineRef.current === 'piper') {
+    await piperTtsService.resume();
+  } else if (currentEngineRef.current === 'system') {
+    await ttsService.resume();
+  }
+};
+```
+
+### 12.6 Event Listener Setup
+
+```typescript
+useEffect(() => {
+  // Piper TTS events
+  const unsubPiperProgress = piperTtsService.addEventListener('piperProgress', (event) => {
+    if (currentEngineRef.current === 'piper' && event.progress !== undefined) {
+      setProgress(event.progress / 100);
+    }
+  });
+
+  const unsubPiperComplete = piperTtsService.addEventListener('piperComplete', () => {
+    if (currentEngineRef.current === 'piper') {
+      setIsPlaying(false);
+      setProgress(1);
+      currentEngineRef.current = null;
+    }
+  });
+
+  // System TTS events
+  const unsubProgress = ttsService.onProgress((prog) => {
+    if (currentEngineRef.current === 'system') {
+      setProgress(prog.percentage / 100);
+    }
+  });
+
+  const unsubComplete = ttsService.addEventListener('ttsComplete', () => {
+    if (currentEngineRef.current === 'system') {
+      setIsPlaying(false);
+      setProgress(1);
+      currentEngineRef.current = null;
+    }
+  });
+
+  return () => {
+    unsubPiperProgress();
+    unsubPiperComplete();
+    unsubProgress();
+    unsubComplete();
+  };
+}, []);
+```
+
+### 12.7 TTS Implementatie Checklist
+
+- [ ] **Dual-engine:** Beide `piperTtsService` en `ttsService` geïmporteerd
+- [ ] **Engine tracking:** `currentEngineRef` voor actieve engine
+- [ ] **Initialisatie:** Beide engines geïnitialiseerd bij mount
+- [ ] **Language check:** `shouldUsePiperTTS()` voor engine selectie
+- [ ] **Fallback:** Bij Piper failure, fallback naar system TTS
+- [ ] **Stop safety:** `stopTTS()` stopt BEIDE engines
+- [ ] **Event listeners:** Aparte listeners per engine met engine check
+- [ ] **Cleanup:** Alle listeners verwijderd in useEffect cleanup
+
+---
+
 ## Quality Checklist
 
 - [ ] TypeScript strict mode, zero `any`
@@ -635,6 +795,10 @@ Op basis van de API validatie:
 - [ ] Media modules: Artwork validation via artworkService
 - [ ] Media modules: Buffering animatie respecteert `useReducedMotion()`
 - [ ] Media modules: Error banner met TEKST dismiss button (niet icon-only)
+- [ ] **TTS modules:** Dual-engine architectuur (Piper + System)
+- [ ] **TTS modules:** Nederlands → Piper TTS `nl_NL-rdh-high`
+- [ ] **TTS modules:** Engine tracking via `currentEngineRef`
+- [ ] **TTS modules:** Stop functie stopt BEIDE engines
 
 ## Lessons Learned — Radio Module (februari 2026)
 

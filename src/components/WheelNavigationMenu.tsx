@@ -97,6 +97,8 @@ interface ModuleItem {
   labelKey: string;
   icon: ModuleIconType;
   color: string;
+  /** Custom logo component to render instead of icon (for branded modules like nu.nl) */
+  customLogo?: React.ReactNode;
 }
 
 // Static module definitions - built-in modules
@@ -117,6 +119,7 @@ const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<Module
 // These are loaded from moduleRegistry and mapped to ModuleItem format
 import { getModuleById } from '@/config/moduleRegistry';
 import type { CountryModuleDefinition } from '@/types/modules';
+import { NunlLogo } from './NunlLogo';
 
 // Map ModuleIconType from registry to WheelNavigationMenu icon type
 function mapModuleIcon(icon: string): ModuleIconType {
@@ -124,6 +127,20 @@ function mapModuleIcon(icon: string): ModuleIconType {
   if (icon === 'news' || icon === 'newspaper') return 'news';
   // Fallback for unknown icons
   return 'news';
+}
+
+/**
+ * Custom logos for branded modules (rendered instead of generic icons)
+ * Map moduleId to a React component
+ */
+function getCustomLogoForModule(moduleId: string, size: number): React.ReactNode | undefined {
+  switch (moduleId) {
+    case 'nunl':
+      return <NunlLogo size={size} />;
+    // Add more branded modules here as needed
+    default:
+      return undefined;
+  }
 }
 
 function getModuleItem(id: NavigationDestination): ModuleItem {
@@ -138,6 +155,7 @@ function getModuleItem(id: NavigationDestination): ModuleItem {
         labelKey: moduleDef.labelKey,
         icon: mapModuleIcon(moduleDef.icon),
         color: moduleDef.color,
+        customLogo: getCustomLogoForModule(moduleId, 40),
       };
     }
 
@@ -517,7 +535,14 @@ function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
         : t('navigation.tap_to_go')
       }
     >
-      <ModuleIcon type={module.icon} size={40} />
+      {/* Use custom logo if available, otherwise generic icon */}
+      {module.customLogo ? (
+        <View style={styles.customLogoContainer}>
+          {module.customLogo}
+        </View>
+      ) : (
+        <ModuleIcon type={module.icon} size={40} />
+      )}
       <Text style={styles.moduleLabel}>{t(module.labelKey)}</Text>
       {/* Active module: white border only, no chevron/checkmark indicator needed */}
     </TouchableOpacity>
@@ -813,6 +838,12 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
     marginLeft: spacing.md,
     flex: 1,
+  },
+  customLogoContainer: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonRow: {
     flexDirection: 'row',

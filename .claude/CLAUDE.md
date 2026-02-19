@@ -105,6 +105,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | Performance | performance-optimizer |
 | **Media modules (Radio/Podcast/Audiobook)** | **ui-designer, accessibility-specialist, react-native-expert, ios-specialist** |
 | **ChipSelector (Land/Taal filter)** | **architecture-lead, react-native-expert** — API land/taal ondersteuning MOET eerst gevalideerd worden |
+| **TTS (Text-to-Speech)** | **accessibility-specialist, react-native-expert, ios-specialist** — Nederlands MOET Piper TTS (nl_NL-rdh-high) gebruiken |
 
 ### Conflict Resolutie Hiërarchie
 

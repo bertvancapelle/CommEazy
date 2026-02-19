@@ -52,6 +52,26 @@ Voice control is een **kernfunctie** van CommEazy, niet optioneel. ELKE module M
 - Primaire acties: Voice triggerable
 - Destructieve acties: Voice confirmation
 
+### Text-to-Speech (TTS)
+
+CommEazy gebruikt een **dual-engine TTS architectuur** waarbij Nederlands ALTIJD de high-quality Piper TTS (`nl_NL-rdh-high`) moet gebruiken.
+
+| Wijzigingstype | Verplichte Skills | Optionele Skills |
+|----------------|-------------------|------------------|
+| **Nieuwe TTS functionaliteit** | accessibility-specialist, react-native-expert, ios-specialist | android-specialist |
+| TTS engine selectie | accessibility-specialist, react-native-expert | architecture-lead |
+| Piper model toevoegen | ios-specialist, android-specialist, react-native-expert | performance-optimizer |
+| TTS UI controls | ui-designer, accessibility-specialist | - |
+| TTS progress tracking | react-native-expert, accessibility-specialist | - |
+
+**KRITIEK:** Bij ELKE TTS implementatie moet worden gevalideerd:
+- Nederlands (nl-NL, nl-BE) → Piper TTS `nl_NL-rdh-high`
+- Andere talen → System TTS
+- Engine tracking via `currentEngineRef`
+- Stop functie stopt BEIDE engines
+
+---
+
 ### Internationalisatie (i18n)
 
 | Wijzigingstype | Verplichte Skills | Optionele Skills |

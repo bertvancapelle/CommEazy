@@ -1065,6 +1065,125 @@ Het hoofdmenu van Instellingen volgt dit patroon:
 }
 ```
 
+## Text-to-Speech (TTS) Standaard — HIGH-QUALITY PIPER TTS (VERPLICHT)
+
+### TTS Engine Hiërarchie
+
+CommEazy gebruikt een **dual-engine TTS architectuur** met een strikte hiërarchie:
+
+| Taal | Primaire Engine | Fallback |
+|------|-----------------|----------|
+| **Nederlands (nl-NL, nl-BE)** | Piper TTS (`nl_NL-rdh-high`) | System TTS |
+| Overige talen (en, de, fr, es) | System TTS | - |
+
+**KRITIEK:** Voor Nederlandse content MOET altijd de Piper TTS engine met de `nl_NL-rdh-high` stem worden gebruikt. Dit is de hoogste kwaliteit stem die lokaal (offline, privacy-first) wordt uitgevoerd.
+
+### Waarom Piper TTS voor Nederlands?
+
+1. **Privacy:** 100% lokale verwerking, geen data naar servers
+2. **Kwaliteit:** `nl_NL-rdh-high` is een premium neural voice
+3. **Consistentie:** Dezelfde stem in ALLE modules
+4. **Offline:** Werkt zonder internetverbinding
+
+### Implementatie Patroon
+
+```typescript
+import { piperTtsService } from '@/services/piperTtsService';
+import { ttsService } from '@/services/ttsService';
+
+// Constanten
+const PIPER_SUPPORTED_LANGUAGES = ['nl-NL', 'nl-BE'];
+
+function shouldUsePiperTTS(language: string): boolean {
+  return PIPER_SUPPORTED_LANGUAGES.some(lang =>
+    language.toLowerCase().startsWith(lang.toLowerCase().split('-')[0])
+  );
+}
+
+// In je hook of service:
+const startTTS = async (text: string, language: string) => {
+  const usePiper = shouldUsePiperTTS(language) && isPiperInitialized;
+
+  if (usePiper) {
+    // HIGH-QUALITY Piper TTS voor Nederlands
+    console.info('[TTS] Using Piper TTS (nl_NL-rdh-high)');
+    currentEngineRef.current = 'piper';
+    success = await piperTtsService.speakChunked(text, speechRate);
+  } else {
+    // System TTS voor andere talen
+    console.info('[TTS] Using system TTS for', language);
+    currentEngineRef.current = 'system';
+    const voice = await ttsService.getBestVoiceForLanguage(language);
+    success = await ttsService.speak(text, voice?.id, speechRate);
+  }
+};
+```
+
+### TTS Event Handling
+
+Beide engines emitteren events die apart moeten worden afgehandeld:
+
+```typescript
+// Piper TTS events
+piperTtsService.addEventListener('piperProgress', (event) => {
+  if (currentEngineRef.current === 'piper') {
+    setProgress(event.progress / 100);
+  }
+});
+
+piperTtsService.addEventListener('piperComplete', () => {
+  if (currentEngineRef.current === 'piper') {
+    setIsPlaying(false);
+    setProgress(1);
+  }
+});
+
+// System TTS events
+ttsService.addEventListener('ttsProgress', (event) => {
+  if (currentEngineRef.current === 'system') {
+    setProgress(event.position / event.length);
+  }
+});
+```
+
+### Modules met TTS Functionaliteit
+
+| Module | TTS Gebruik | Engine (NL) |
+|--------|-------------|-------------|
+| **nu.nl nieuws** | Article read-aloud | Piper `nl_NL-rdh-high` |
+| **Audiobooks** | Book narration | Piper `nl_NL-rdh-high` |
+| **Berichten** | Message read-aloud | Piper `nl_NL-rdh-high` |
+| **Tagesschau** | Article read-aloud | System TTS (de-DE) |
+| **BBC** | Article read-aloud | System TTS (en-GB) |
+
+### TTS Accessibility Checklist
+
+- [ ] **Engine selectie:** Nederlands → Piper TTS, andere talen → System TTS
+- [ ] **Fallback:** Bij Piper failure, fallback naar System TTS
+- [ ] **Progress tracking:** Beide engines rapporteren voortgang
+- [ ] **Pause/Resume:** Werkt voor beide engines
+- [ ] **Stop:** Stopt BEIDE engines (safety)
+- [ ] **Announcements:** State changes worden aangekondigd
+- [ ] **Error handling:** Duidelijke foutmeldingen bij TTS failure
+
+### i18n Keys voor TTS
+
+```json
+{
+  "tts": {
+    "loading": "Spraak wordt voorbereid...",
+    "playing": "Aan het voorlezen",
+    "paused": "Gepauzeerd",
+    "stopped": "Gestopt",
+    "error": "Voorlezen mislukt",
+    "readAloud": "Voorlezen",
+    "stop": "Stop"
+  }
+}
+```
+
+---
+
 ## Media Module Accessibility (Radio/Podcast/Audiobook)
 
 ### Announcements tijdens Media Playback
@@ -1231,6 +1350,143 @@ First-time user modals MOETEN:
   </View>
 </Modal>
 ```
+
+---
+
+## Gestandaardiseerde AudioPlayer Accessibility (februari 2026)
+
+Na refactoring zijn er gestandaardiseerde `MiniPlayer` en `ExpandedAudioPlayer` componenten. Beide hebben ingebouwde accessibility — dit zijn de specificaties.
+
+### MiniPlayer Component Accessibility
+
+Het `MiniPlayer` component heeft automatische accessibility:
+
+**Container (TouchableOpacity):**
+```typescript
+accessibilityRole="button"
+accessibilityLabel={expandAccessibilityLabel || t('audio.expandPlayer')}
+accessibilityHint={expandAccessibilityHint || t('audio.expandPlayerHint')}
+```
+
+**Play/Pause Button:**
+```typescript
+accessibilityRole="button"
+accessibilityLabel={isPlaying ? t('audio.pause') : t('audio.play')}
+```
+
+**Stop Button (indien aanwezig):**
+```typescript
+accessibilityRole="button"
+accessibilityLabel={t('audio.stop')}
+```
+
+**Artwork:**
+- `accessibilityIgnoresInvertColors` voor correcte kleuren bij invert
+- Geen separate label (container label bevat titel al)
+
+**Progress Indicator:**
+| Type | Screen Reader Announcement |
+|------|----------------------------|
+| `bar` | Progress percentage via container label |
+| `duration` | Listen time via headphones icon + time |
+
+### ExpandedAudioPlayer Accessibility
+
+**Modal Container:**
+- `accessibilityViewIsModal={true}` — focus trap
+- Automatische focus naar artwork/titel bij openen
+
+**SeekSlider Component:**
+```typescript
+accessibilityRole="adjustable"
+accessibilityLabel={`${t('audio.seekSlider')} at ${Math.round(percentage * 100)}%`}
+accessibilityValue={{
+  min: 0,
+  max: 100,
+  now: Math.round(percentage * 100),
+}}
+accessibilityActions={[
+  { name: 'increment', label: `Forward ${accessibilityStep} seconds` },
+  { name: 'decrement', label: `Back ${accessibilityStep} seconds` },
+]}
+```
+
+**Control Buttons Accessibility Matrix:**
+
+| Control | accessibilityLabel (NL) | accessibilityHint |
+|---------|-------------------------|-------------------|
+| Play | "Afspelen" | - |
+| Pause | "Pauzeren" | - |
+| Stop | "Stoppen" | - |
+| Skip Back | "10 seconden terug" | - |
+| Skip Forward | "30 seconden vooruit" | - |
+| Speed | "Afspeelsnelheid: 1.5x" | "Tik om snelheid aan te passen" |
+| Sleep Timer | "Slaaptimer: actief" of "Slaaptimer" | "Tik om timer in te stellen" |
+| Favorite (active) | "Verwijder uit favorieten" | - |
+| Favorite (inactive) | "Voeg toe aan favorieten" | - |
+| Close | "Sluiten" | "Keer terug naar mini-player" |
+
+### Voice Commands voor AudioPlayer
+
+ALLE audio modules MOETEN deze voice commands ondersteunen:
+
+| Command | Synoniemen (NL) | Actie |
+|---------|-----------------|-------|
+| play | "speel", "start", "afspelen" | Start playback |
+| pause | "pauze", "pauzeer", "stop" | Pause playback |
+| stop | "stop", "stoppen", "uit" | Stop playback |
+| forward | "vooruit", "verder", "skip" | Skip forward |
+| back | "terug", "achteruit" | Skip backward |
+| faster | "sneller", "versnellen" | Increase speed |
+| slower | "langzamer", "vertragen" | Decrease speed |
+| favorite | "favoriet", "bewaar", "opslaan" | Toggle favorite |
+
+**Implementatie:**
+```typescript
+// In expanded player of screen
+useVoiceAction('play', handlePlay, { label: t('audio.play') });
+useVoiceAction('pause', handlePause, { label: t('audio.pause') });
+useVoiceAction('forward', handleSkipForward, { label: t('audio.skipForward') });
+useVoiceAction('back', handleSkipBackward, { label: t('audio.skipBackward') });
+```
+
+### Audio Feedback voor Playback Events
+
+Naast haptic feedback MOET er audio feedback zijn voor screen reader gebruikers:
+
+| Event | AccessibilityInfo.announceForAccessibility |
+|-------|-------------------------------------------|
+| Playback started | `t('a11y.nowPlaying', { name })` |
+| Playback paused | `t('a11y.paused')` |
+| Playback stopped | `t('a11y.stopped')` |
+| Buffering started | `t('a11y.buffering')` |
+| Skip forward | `t('a11y.skippedForward', { seconds: 30 })` |
+| Skip backward | `t('a11y.skippedBackward', { seconds: 10 })` |
+| Speed changed | `t('a11y.speedChanged', { rate: '1.5x' })` |
+| Error | `t('a11y.playbackError')` |
+
+### Conditional Control Visibility
+
+Controls die niet aanwezig zijn (bijv. geen skip buttons voor Radio) worden:
+- **NIET** gerenderd (niet hidden, niet aria-hidden)
+- Screen readers announcen ze dus ook niet
+- Reading order blijft logisch
+
+**REGEL:** Nooit `accessibilityElementsHidden` of `importantForAccessibility="no"` gebruiken om controls te verbergen. Render ze gewoon niet.
+
+### AudioPlayer Accessibility Checklist
+
+Bij ELKE media module:
+
+- [ ] **expandAccessibilityLabel:** Specifiek voor module (bijv. "Open Radio player")
+- [ ] **expandAccessibilityHint:** Context (bijv. "Toont volledige afspeelbesturing")
+- [ ] **Playback announcements:** Alle state changes worden aangekondigd
+- [ ] **Voice commands:** Module-specifieke commands geregistreerd
+- [ ] **SeekSlider:** accessibilityStep correct (standaard 10s)
+- [ ] **Control labels:** Alle labels in 5 talen beschikbaar
+- [ ] **Error handling:** Errors met `accessibilityLiveRegion="assertive"`
+
+---
 
 ## Collaboration
 
