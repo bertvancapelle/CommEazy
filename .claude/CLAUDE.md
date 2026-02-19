@@ -1269,11 +1269,11 @@ import { SearchBar } from '@/components';
 
 ALLE schermen met land- of taalselectie MOETEN de gestandaardiseerde `ChipSelector` component gebruiken. Geen custom horizontale ScrollView + TouchableOpacity implementaties.
 
-| Screen | ChipSelector | Mode | Gebruik |
-|--------|--------------|------|---------|
-| RadioScreen | ✅ | `country` | Selecteer land voor station zoeken |
-| PodcastScreen | ✅ | `language` | Selecteer taal voor podcast zoeken |
-| BooksScreen | ✅ | `language` | Selecteer taal voor boek zoeken |
+| Screen | ChipSelector | defaultMode | allowModeToggle | Gebruik |
+|--------|--------------|-------------|-----------------|---------|
+| RadioScreen | ✅ | `country` | ✅ | Land of taal voor station zoeken |
+| PodcastScreen | ✅ | `language` | ✅ | Taal of land voor podcast zoeken |
+| BooksScreen | ✅ | `language` | ❌ | Alleen taal (Gutenberg API is taal-gebaseerd) |
 
 **Kenmerken:**
 - **Touch targets:** 60pt minimum (senior-inclusive)
@@ -1281,46 +1281,81 @@ ALLE schermen met land- of taalselectie MOETEN de gestandaardiseerde `ChipSelect
 - **Layout:** Horizontale ScrollView met pill-shaped chips
 - **Label:** Automatisch via `t()` gebaseerd op `mode` prop
 - **Hold-gesture protection:** Ingebouwd
+- **Toggle functionaliteit:** Gebruiker kan wisselen tussen land/taal via tap op label
 
 **Props:**
 ```typescript
+import type { FilterMode, ChipOption } from '@/components';
+
 interface ChipSelectorProps {
   /** Mode bepaalt label via t() — 'country' toont "Land", 'language' toont "Taal" */
-  mode: 'country' | 'language';
-  /** Lijst van opties (gebruik COUNTRIES uit @/constants/demographics) */
-  options: Array<{ code: string; flag: string; nativeName: string }>;
+  mode: FilterMode;  // 'country' | 'language'
+  /** Lijst van opties — gebruik COUNTRIES of LANGUAGES uit @/constants/demographics */
+  options: ChipOption[];
   /** Geselecteerde code */
   selectedCode: string;
   /** Callback bij selectie */
   onSelect: (code: string) => void;
+  /** Sta wisselen tussen land/taal toe (optional, default: false) */
+  allowModeToggle?: boolean;
+  /** Callback wanneer mode wisselt (vereist als allowModeToggle=true) */
+  onModeChange?: (mode: FilterMode) => void;
 }
 ```
 
-**Implementatie:**
+**ChipOption interface:**
+```typescript
+interface ChipOption {
+  code: string;      // ISO code (uppercase voor land, lowercase voor taal)
+  flag?: string;     // Emoji vlag (voor landen)
+  icon?: string;     // Emoji icoon (voor talen: 🗣️)
+  nativeName: string; // Naam in eigen taal
+}
+```
+
+**Implementatie — Land/Taal toggle (Radio/Podcast):**
+```typescript
+import { ChipSelector, type FilterMode } from '@/components';
+import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
+
+const [filterMode, setFilterMode] = useState<FilterMode>('country');
+const [selectedCountry, setSelectedCountry] = useState('NL');
+const [selectedLanguage, setSelectedLanguage] = useState('nl');
+
+const handleFilterModeChange = (mode: FilterMode) => {
+  setFilterMode(mode);
+  // Optioneel: herlaad data met nieuwe filter
+};
+
+<ChipSelector
+  mode={filterMode}
+  options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+  selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
+  onSelect={filterMode === 'country' ? setSelectedCountry : setSelectedLanguage}
+  allowModeToggle={true}
+  onModeChange={handleFilterModeChange}
+/>
+```
+
+**Implementatie — Alleen taal (Books):**
 ```typescript
 import { ChipSelector } from '@/components';
-import { COUNTRIES } from '@/constants/demographics';
+import { LANGUAGES } from '@/constants/demographics';
 
-// Land selectie (Radio)
-<ChipSelector
-  mode="country"
-  options={COUNTRIES}
-  selectedCode={selectedCountry}
-  onSelect={handleCountryChange}
-/>
-
-// Taal selectie (Podcast/Books)
 <ChipSelector
   mode="language"
-  options={COUNTRIES}
+  options={LANGUAGES}
   selectedCode={selectedLanguage}
   onSelect={handleLanguageChange}
+  // Geen toggle — Gutenberg API ondersteunt alleen taal
 />
 ```
 
 **i18n keys (automatisch via mode):**
 - `components.chipSelector.country` — "Land" / "Country" / etc.
 - `components.chipSelector.language` — "Taal" / "Language" / etc.
+- `components.chipSelector.searchBy` — "Zoeken op basis van:" (toggle modal)
+- `components.chipSelector.tapToChange` — "{{current}} - tik om te wijzigen"
 
 ### Hoe deze Registry te Gebruiken
 

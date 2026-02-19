@@ -30,6 +30,32 @@ export const AGE_BRACKETS: AgeBracketOption[] = [
 ];
 
 // ============================================================
+// Languages (ISO 639-1)
+// ============================================================
+
+export interface LanguageOption {
+  code: string;        // ISO 639-1 (lowercase: 'nl', 'en', 'de', 'fr', 'es')
+  nameKey: string;     // i18n key for translated name
+  nativeName: string;  // Name in the language itself
+  icon: string;        // Emoji icon (speech bubble or globe, not flag)
+}
+
+/**
+ * Supported languages for CommEazy content search
+ * Used for Podcast and Books modules where content is language-based, not country-based
+ *
+ * Note: No flags here — languages are not tied to specific countries
+ * (e.g., Spanish is spoken in Spain, Mexico, Argentina, etc.)
+ */
+export const LANGUAGES: LanguageOption[] = [
+  { code: 'nl', nameKey: 'demographics.language.nl', nativeName: 'Nederlands', icon: '🗣️' },
+  { code: 'en', nameKey: 'demographics.language.en', nativeName: 'English', icon: '🗣️' },
+  { code: 'de', nameKey: 'demographics.language.de', nativeName: 'Deutsch', icon: '🗣️' },
+  { code: 'fr', nameKey: 'demographics.language.fr', nativeName: 'Français', icon: '🗣️' },
+  { code: 'es', nameKey: 'demographics.language.es', nativeName: 'Español', icon: '🗣️' },
+];
+
+// ============================================================
 // Countries (ISO 3166-1 alpha-2)
 // ============================================================
 
@@ -241,6 +267,22 @@ export function getRegionByCode(regionCode: string): RegionOption | undefined {
   const countryCode = regionCode.split('-')[0];
   const regions = REGIONS[countryCode];
   return regions?.find(r => r.code === regionCode);
+}
+
+/**
+ * Get language by code
+ */
+export function getLanguageByCode(code: string): LanguageOption | undefined {
+  return LANGUAGES.find(l => l.code === code.toLowerCase());
+}
+
+/**
+ * Detect language from app locale
+ */
+export function detectLanguageFromLocale(locale: string): string {
+  const lang = locale.split('-')[0].toLowerCase();
+  const supported = LANGUAGES.find(l => l.code === lang);
+  return supported?.code || 'en';
 }
 
 /**

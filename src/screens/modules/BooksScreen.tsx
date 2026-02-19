@@ -45,7 +45,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
-import { COUNTRIES } from '@/constants/demographics';
+import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
@@ -67,24 +67,8 @@ const BOOKS_MODULE_COLOR = '#FF8F00';
 // API timeout
 const API_TIMEOUT_MS = 15000;
 
-// Language mapping for Gutenberg (ISO 639-1 to Gutenberg language codes)
-// Maps COUNTRIES code (uppercase) to Gutenberg language code (lowercase)
-const LANGUAGE_MAP: Record<string, string> = {
-  NL: 'nl',
-  EN: 'en',
-  DE: 'de',
-  FR: 'fr',
-  ES: 'es',
-};
-
-// Map app language to country code for default selection
-const APP_LANG_TO_COUNTRY: Record<string, string> = {
-  nl: 'NL',
-  en: 'EN',
-  de: 'DE',
-  fr: 'FR',
-  es: 'ES',
-};
+// Note: LANGUAGES constant from demographics.ts now provides language codes directly
+// No mapping needed — LANGUAGES.code is already ISO 639-1 (e.g., 'nl', 'en', 'de')
 
 // ============================================================
 // Types
@@ -134,7 +118,7 @@ export function BooksScreen() {
   const [apiError, setApiError] = useState<ApiError>(null);
   // Selected language for search (default: app language)
   const [selectedLanguage, setSelectedLanguage] = useState(
-    APP_LANG_TO_COUNTRY[i18n.language] || 'EN'
+    detectLanguageFromLocale(i18n.language)
   );
   // Default to Library tab — seniors want quick access to their downloaded books
   const [showLibrary, setShowLibrary] = useState(true);
@@ -163,8 +147,8 @@ export function BooksScreen() {
     setApiError(null);
 
     try {
-      const language = LANGUAGE_MAP[selectedLanguage] || 'en';
-      const result = await getPopularBooks(language);
+      // LANGUAGES.code is already ISO 639-1 (e.g., 'nl', 'en', 'de')
+      const result = await getPopularBooks(selectedLanguage);
 
       if (result.error) {
         setApiError(result.error);
@@ -227,8 +211,8 @@ export function BooksScreen() {
     setApiError(null);
 
     try {
-      const language = LANGUAGE_MAP[selectedLanguage] || 'en';
-      const result = await searchBooks(searchQuery, language);
+      // LANGUAGES.code is already ISO 639-1 (e.g., 'nl', 'en', 'de')
+      const result = await searchBooks(searchQuery, selectedLanguage);
 
       if (result.error) {
         setApiError(result.error);
@@ -449,10 +433,11 @@ export function BooksScreen() {
             />
 
             {/* Language selector — standardized ChipSelector component */}
+            {/* Books only supports language filter (Gutenberg API is language-based) */}
             <View style={styles.languageSelector}>
               <ChipSelector
                 mode="language"
-                options={COUNTRIES}
+                options={LANGUAGES}
                 selectedCode={selectedLanguage}
                 onSelect={handleLanguageChange}
               />

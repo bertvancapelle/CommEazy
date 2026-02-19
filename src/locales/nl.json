@@ -5,7 +5,19 @@
   "components": {
     "chipSelector": {
       "country": "Land",
-      "language": "Taal"
+      "language": "Taal",
+      "searchBy": "Zoeken op basis van:",
+      "tapToChange": "{{current}} - tik om te wijzigen",
+      "tapToChangeHint": "Open menu om te wisselen tussen land en taal"
+    }
+  },
+  "demographics": {
+    "language": {
+      "nl": "Nederlands",
+      "en": "Engels",
+      "de": "Duits",
+      "fr": "Frans",
+      "es": "Spaans"
     }
   },
   "onboarding": {

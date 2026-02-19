@@ -3,7 +3,19 @@
   "components": {
     "chipSelector": {
       "country": "País",
-      "language": "Idioma"
+      "language": "Idioma",
+      "searchBy": "Buscar por:",
+      "tapToChange": "{{current}} - toca para cambiar",
+      "tapToChangeHint": "Abrir menú para cambiar entre país e idioma"
+    }
+  },
+  "demographics": {
+    "language": {
+      "nl": "Neerlandés",
+      "en": "Inglés",
+      "de": "Alemán",
+      "fr": "Francés",
+      "es": "Español"
     }
   },
   "onboarding": {

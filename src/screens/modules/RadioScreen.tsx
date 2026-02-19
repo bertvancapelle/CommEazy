@@ -42,7 +42,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef, type FilterMode } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
@@ -50,7 +50,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
-import { COUNTRIES } from '@/constants/demographics';
+import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
 
 // ============================================================
 // Types
@@ -133,16 +133,44 @@ async function searchStationsByCountry(
   }
 }
 
+async function searchStationsByLanguage(
+  languageCode: string,
+  limit = 50
+): Promise<ApiResult<RadioStation[]>> {
+  try {
+    const response = await fetchWithTimeout(
+      `${RADIO_BROWSER_API}/stations/bylanguageexact/${languageCode}?limit=${limit}&order=votes&reverse=true&hidebroken=true`,
+      API_TIMEOUT_MS
+    );
+    if (!response.ok) {
+      console.error('[RadioScreen] API error:', response.status);
+      return { data: null, error: 'server' };
+    }
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    console.error('[RadioScreen] Failed to fetch stations by language:', error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      return { data: null, error: 'timeout' };
+    }
+    return { data: null, error: 'network' };
+  }
+}
+
 async function searchStationsByName(
   name: string,
   countryCode?: string,
+  languageCode?: string,
   limit = 30
 ): Promise<ApiResult<RadioStation[]>> {
   try {
-    // Use /stations/search endpoint which supports both name and countrycode filtering
+    // Use /stations/search endpoint which supports name, countrycode, and language filtering
     let url = `${RADIO_BROWSER_API}/stations/search?name=${encodeURIComponent(name)}&limit=${limit}&order=votes&reverse=true&hidebroken=true`;
     if (countryCode) {
       url += `&countrycode=${countryCode}`;
+    }
+    if (languageCode) {
+      url += `&language=${languageCode}`;
     }
 
     const response = await fetchWithTimeout(url, API_TIMEOUT_MS);
@@ -206,6 +234,8 @@ export function RadioScreen() {
   const [stations, setStations] = useState<RadioStation[]>([]);
   const [favorites, setFavorites] = useState<FavoriteStation[]>([]);
   const [selectedCountry, setSelectedCountry] = useState('NL');
+  const [selectedLanguage, setSelectedLanguage] = useState('nl');
+  const [filterMode, setFilterMode] = useState<FilterMode>('country');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | null>(null);
@@ -341,17 +371,44 @@ export function RadioScreen() {
   // Note: In-app audio playback disabled until react-native-track-player is configured
   // Currently opens stream in external player (Safari)
 
-  // Search stations when country changes
+  // Search stations when filter changes (country or language)
   useEffect(() => {
     if (!searchQuery) {
-      loadStationsByCountry();
+      loadStations();
     }
-  }, [selectedCountry]);
+  }, [selectedCountry, selectedLanguage, filterMode]);
 
-  const loadStationsByCountry = useCallback(async () => {
+  // Handle filter mode change — reset to appropriate default
+  const handleFilterModeChange = useCallback((newMode: FilterMode) => {
+    setFilterMode(newMode);
+    setSearchQuery(''); // Clear search when switching modes
+    // No need to manually trigger load — useEffect will handle it
+  }, []);
+
+  // Handle country selection
+  const handleCountryChange = useCallback((code: string) => {
+    setSelectedCountry(code);
+    setSearchQuery(''); // Clear search when changing filter
+  }, []);
+
+  // Handle language selection
+  const handleLanguageChange = useCallback((code: string) => {
+    setSelectedLanguage(code);
+    setSearchQuery(''); // Clear search when changing filter
+  }, []);
+
+  const loadStations = useCallback(async () => {
     setIsLoading(true);
     setApiError(null);
-    const result = await searchStationsByCountry(selectedCountry);
+
+    let result: ApiResult<RadioStation[]>;
+
+    if (filterMode === 'country') {
+      result = await searchStationsByCountry(selectedCountry);
+    } else {
+      result = await searchStationsByLanguage(selectedLanguage);
+    }
+
     if (result.error) {
       setApiError(result.error);
       setStations([]);
@@ -364,17 +421,23 @@ export function RadioScreen() {
       setStations(result.data ?? []);
     }
     setIsLoading(false);
-  }, [selectedCountry, triggerFeedback, t]);
+  }, [selectedCountry, selectedLanguage, filterMode, triggerFeedback, t]);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
-      loadStationsByCountry();
+      loadStations();
       return;
     }
     setIsLoading(true);
     setApiError(null);
-    // Pass selectedCountry to filter search results by country
-    const result = await searchStationsByName(searchQuery, selectedCountry);
+
+    // Pass appropriate filter based on mode
+    const result = await searchStationsByName(
+      searchQuery,
+      filterMode === 'country' ? selectedCountry : undefined,
+      filterMode === 'language' ? selectedLanguage : undefined
+    );
+
     if (result.error) {
       setApiError(result.error);
       setStations([]);
@@ -387,7 +450,7 @@ export function RadioScreen() {
       setStations(result.data ?? []);
     }
     setIsLoading(false);
-  }, [searchQuery, selectedCountry, loadStationsByCountry, triggerFeedback, t]);
+  }, [searchQuery, selectedCountry, selectedLanguage, filterMode, loadStations, triggerFeedback, t]);
 
   // Convert RadioScreen station to RadioContext station format
   const toContextStation = useCallback((station: RadioStation | FavoriteStation): RadioContextStation => {
@@ -608,13 +671,15 @@ export function RadioScreen() {
       {/* Search/Filter section */}
       {!showFavorites && (
         <View style={styles.filterSection}>
-          {/* Country selector — standardized ChipSelector component */}
+          {/* Country/Language selector — with toggle between modes */}
           <View style={styles.countrySelector}>
             <ChipSelector
-              mode="country"
-              options={COUNTRIES}
-              selectedCode={selectedCountry}
-              onSelect={handleCountryChange}
+              mode={filterMode}
+              options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+              selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
+              onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
+              allowModeToggle={true}
+              onModeChange={handleFilterModeChange}
             />
           </View>
 
