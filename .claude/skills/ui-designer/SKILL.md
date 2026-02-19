@@ -101,6 +101,70 @@ completedBadge: {
 - Optional sound cues (configurable in Settings)
 - Loading states: spinner + text ("Verbinden..." / "Connecting...")
 
+### 4b. HAPTIC FEEDBACK (VERPLICHT)
+
+**ALLE interactieve elementen MOETEN haptic feedback geven.** Dit is essentieel voor senioren die bevestiging nodig hebben dat hun input is geregistreerd.
+
+**Gebruik altijd de `useFeedback` hook:**
+
+```typescript
+import { useFeedback } from '@/hooks/useFeedback';
+
+function MyScreen() {
+  const { triggerFeedback } = useFeedback();
+
+  const handleButtonPress = useCallback(() => {
+    void triggerFeedback('tap');  // ALTIJD als eerste statement
+    // ... rest van de handler
+  }, [triggerFeedback]);
+
+  return (
+    <TouchableOpacity onPress={handleButtonPress}>
+      <Text>Mijn knop</Text>
+    </TouchableOpacity>
+  );
+}
+```
+
+**Wanneer haptic feedback toevoegen:**
+- Button presses (primair, secundair, alle knoppen)
+- List item taps (contacten, berichten, instellingen)
+- Picker/dropdown selections
+- Navigation actions
+- Form submissions
+- Modal open/close
+- Swipe gestures completion
+
+**Feedback types (via `triggerFeedback`):**
+| Type | Wanneer gebruiken |
+|------|-------------------|
+| `'tap'` | Standaard button press, selectie |
+| `'success'` | Actie succesvol voltooid |
+| `'warning'` | Let op, bevestiging nodig |
+| `'error'` | Actie gefaald |
+| `'navigation'` | Scherm transitie |
+
+**Code review checklist:**
+- [ ] Elke `onPress` handler begint met `void triggerFeedback('tap');`
+- [ ] Elke `useCallback` met interactie heeft `triggerFeedback` in dependencies
+- [ ] Picker selection handlers hebben haptic feedback
+- [ ] Navigation actions hebben haptic feedback
+
+**❌ FOUT — geen haptic:**
+```typescript
+const handlePress = useCallback(() => {
+  navigation.navigate('NextScreen');
+}, [navigation]);
+```
+
+**✅ GOED — met haptic:**
+```typescript
+const handlePress = useCallback(() => {
+  void triggerFeedback('tap');
+  navigation.navigate('NextScreen');
+}, [navigation, triggerFeedback]);
+```
+
 ### 5. FLOW SIMPLICITY
 - **Max 3 steps** per user flow (send message, make call, create group)
 - **Max 2 levels** navigation depth
@@ -349,142 +413,279 @@ const styles = StyleSheet.create({
 </TouchableOpacity>
 ```
 
-### 7c. MODULE SCREEN HEADERS (VERPLICHT)
+### 7c. MODULE HEADER COMPONENT (VERPLICHT)
 
-Elk module-scherm MOET een visuele header hebben die de module identificeert. Dit creëert consistentie met het navigatiemenu en helpt senioren begrijpen waar ze zijn in de app.
+Elk module-scherm MOET een gestandaardiseerde `ModuleHeader` component gebruiken. Dit creëert consistentie met het navigatiemenu en helpt senioren begrijpen waar ze zijn in de app.
+
+**Import:** `import { ModuleHeader } from '@/components';`
 
 **Waarom dit patroon?**
 - **Consistentie:** Module kleuren in header matchen met het navigatiemenu
 - **Oriëntatie:** Senioren zien direct welke module actief is
 - **Herkenbaarheid:** Icoon + naam versterken de context
-- **Kortere labels:** Tabs/knoppen kunnen korter omdat de module context al duidelijk is uit de header
+- **MediaIndicator:** Toont of andere module audio afspeelt
+- **AdMob integratie:** Ruimte voor advertenties binnen de module context
 
-**Visuele specificatie:**
+#### 7c.1 Layout Specificatie
+
+De Module Header heeft een specifieke layout met drie onderdelen:
+
 ```
-┌─────────────────────────────────────┐
-│  📻  Radio                          │  ← Module header: icoon + naam, gekleurde achtergrond
-│     [module achtergrondkleur]       │
-└─────────────────────────────────────┘
-│                                     │
-│  ┌─────────────┐ ┌─────────────┐   │  ← Tabs kunnen korter: "Zoeken" i.p.v. "Zoek zenders"
-│  │   Zoeken    │ │  Favorieten │   │
-│  └─────────────┘ └─────────────┘   │
-│                                     │
-│  [ rest van de pagina in           │  ← Rest behoudt normale kleuren
-│    standaard kleuren ]              │
-└─────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  Safe Area (notch/Dynamic Island)                             │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─ Title Row ───────────────────────────────────────────┐  │
+│  │                                                        │  │
+│  │  📻 Radio                              🔊 [indicator]  │  │
+│  │  ↑                                              ↑      │  │
+│  │  Links: Icon + Title                  Rechts: Media    │  │
+│  │  padding: spacing.md                  padding: spacing.md│  │
+│  │                                       touch: ≥60pt     │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─ AdMob Row (optioneel) ────────────────────────────────┐  │
+│  │                                                        │  │
+│  │  [═══════════ AdMob Banner ═══════════════════]       │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  ─ ─ ─ ─ ─ ─ ─ ─  Separator line  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-**Module kleuren (matchen met WheelNavigationMenu):**
-| Module | Kleur | Hex |
-|--------|-------|-----|
-| Berichten | Blauw | `colors.primary` |
-| Contacten | Groen | `#2E7D32` |
-| Groepen | Teal | `#00796B` |
-| Bellen | Blauw | `#1565C0` |
-| Videobellen | Rood | `#C62828` |
-| E-boeken | Oranje | `#F57C00` |
-| Luisterboeken | Paars | `#7B1FA2` |
-| Podcasts | Roze | `#E91E63` |
-| Radio | Teal | `#00897B` |
-| Instellingen | Paars | `#5E35B1` |
+**Specificaties:**
 
-**Implementatie:**
+| Element | Positie | Padding | Min. grootte |
+|---------|---------|---------|--------------|
+| Icon | Links | `spacing.md` (16pt) | 28×28pt |
+| Title | Na icon | `spacing.sm` gap | typography.h3 |
+| MediaIndicator | Rechts | `spacing.md` (16pt) | 60×60pt touch target |
+| AdMob banner | Onder title row | `spacing.sm` padding | Banner hoogte |
+| Separator | Onderaan | - | 1pt hoogte |
+
+#### 7c.2 Interface
+
 ```typescript
-import { Icon } from '@/components';
-import { colors, typography, spacing, touchTargets } from '@/theme';
+interface ModuleHeaderProps {
+  /** Module identifier for color lookup */
+  moduleId: string;
+  /** Module icon name */
+  icon: IconName;
+  /** Module title (use t('modules.xxx.title')) */
+  title: string;
+  /** Current module source for MediaIndicator filtering */
+  currentSource?: 'radio' | 'podcast' | 'books';
+  /** Show AdMob banner in header (default: true) */
+  showAdMob?: boolean;
+  /** AdMob unit ID (optional, uses default if not provided) */
+  adMobUnitId?: string;
+}
+```
+
+#### 7c.3 Module Kleuren
+
+| Module | Kleur | Hex | moduleId |
+|--------|-------|-----|----------|
+| Radio | Teal | `#00897B` | `radio` |
+| Podcasts | Roze/Pink | `#E91E63` | `podcast` |
+| Luisterboeken | Paars | `#7B1FA2` | `audiobook` |
+| E-boeken | Oranje | `#F57C00` | `ebook` |
+| Videobellen | Rood | `#C62828` | `videocall` |
+| Bellen | Blauw | `#1565C0` | `calls` |
+| Contacten | Groen | `#2E7D32` | `contacts` |
+| Groepen | Teal | `#00796B` | `groups` |
+| Berichten | Blauw | `colors.primary` | `messages` |
+| Instellingen | Paars | `#5E35B1` | `settings` |
+
+#### 7c.4 Implementatie
+
+```typescript
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { Icon, MediaIndicator } from '@/components';
+import { AdMobBanner } from '@/components/AdMobBanner';
+import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { IconName } from '@/components/Icon';
 
 // Module kleuren (consistent met WheelNavigationMenu)
 const MODULE_COLORS: Record<string, string> = {
   radio: '#00897B',
   podcast: '#E91E63',
-  ebook: '#F57C00',
   audiobook: '#7B1FA2',
+  ebook: '#F57C00',
   videocall: '#C62828',
   calls: '#1565C0',
-  // etc.
+  contacts: '#2E7D32',
+  groups: '#00796B',
+  messages: colors.primary,
+  settings: '#5E35B1',
 };
 
-function ModuleHeader({ moduleId, icon, title }: {
-  moduleId: string;
-  icon: IconName;
-  title: string;
-}) {
+export function ModuleHeader({
+  moduleId,
+  icon,
+  title,
+  currentSource,
+  showAdMob = true,
+  adMobUnitId,
+}: ModuleHeaderProps) {
   const insets = useSafeAreaInsets();
   const moduleColor = MODULE_COLORS[moduleId] || colors.primary;
 
   return (
-    <View style={[styles.moduleHeader, { backgroundColor: moduleColor, paddingTop: insets.top + spacing.sm }]}>
-      <View style={styles.moduleHeaderContent}>
-        <Icon name={icon} size={28} color={colors.textOnPrimary} />
-        <Text style={styles.moduleTitle}>{title}</Text>
+    <View style={[styles.container, { backgroundColor: moduleColor }]}>
+      {/* Safe Area Spacer */}
+      <View style={{ height: insets.top }} />
+
+      {/* Title Row */}
+      <View style={styles.titleRow}>
+        {/* Left: Icon + Title */}
+        <View style={styles.titleContent}>
+          <Icon name={icon} size={28} color={colors.textOnPrimary} />
+          <Text style={styles.title}>{title}</Text>
+        </View>
+
+        {/* Right: MediaIndicator */}
+        <View style={styles.mediaIndicatorWrapper}>
+          <MediaIndicator
+            moduleColor={moduleColor}
+            currentSource={currentSource}
+          />
+        </View>
       </View>
+
+      {/* AdMob Row (optional) */}
+      {showAdMob && (
+        <View style={styles.adMobRow}>
+          <AdMobBanner unitId={adMobUnitId} />
+        </View>
+      )}
+
+      {/* Separator Line */}
+      <View style={styles.separator} />
     </View>
   );
 }
 
-// Styles
-moduleHeader: {
-  alignItems: 'center',       // Centreer horizontaal
-  justifyContent: 'center',
-  paddingHorizontal: spacing.md,
-  paddingBottom: spacing.sm,
-},
-moduleHeaderContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: spacing.sm,
-},
-moduleTitle: {
-  ...typography.h3,
-  color: colors.textOnPrimary,
-  fontWeight: '700',
-},
+const styles = StyleSheet.create({
+  container: {
+    // No fixed height — grows with content
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,    // 16pt padding beide kanten
+    paddingVertical: spacing.sm,       // Compact verticaal
+  },
+  titleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,                   // 8pt tussen icon en titel
+  },
+  title: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
+  },
+  mediaIndicatorWrapper: {
+    // Ensure ≥60pt touch target for seniors
+    minWidth: touchTargets.minimum,    // 60pt
+    minHeight: touchTargets.minimum,   // 60pt
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  adMobRow: {
+    paddingHorizontal: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',  // Subtle white line
+  },
+});
 ```
 
-**Regels:**
-1. **Header ALTIJD zichtbaar** — Niet scrollbaar, vast bovenaan
-2. **Kleur uit MODULE_COLORS** — Consistent met navigatiemenu
-3. **Icoon + naam** — Beide elementen versterken identificatie
-4. **Tekst in wit** — `colors.textOnPrimary` voor contrast op gekleurde achtergrond
-5. **Safe area respecteren** — `paddingTop: insets.top` voor notch/status bar
-6. **Rest van pagina normaal** — Alleen header heeft module kleur
+#### 7c.5 Regels
 
-**i18n keys:**
+1. **ALTIJD gestandaardiseerde component gebruiken** — Geen custom headers per module
+2. **Icon + Title LINKS** — Met `spacing.md` (16pt) padding
+3. **MediaIndicator RECHTS** — Met `spacing.md` (16pt) padding en ≥60pt touch target
+4. **AdMob BINNEN de header** — Visueel deel van de gekleurde zone
+5. **Separator ONDERAAN** — Dunne lijn (1pt) als visuele scheiding
+6. **Safe area respecteren** — `insets.top` voor notch/Dynamic Island
+7. **Kleur uit MODULE_COLORS** — Consistent met WheelNavigationMenu
+8. **currentSource meegeven** — Voorkomt dubbele indicator in actieve module
+
+#### 7c.6 Gebruik
+
+```typescript
+// ✅ GOED: Standaard ModuleHeader met alle features
+<View style={styles.container}>
+  <ModuleHeader
+    moduleId="radio"
+    icon="radio"
+    title={t('modules.radio.title')}
+    currentSource="radio"
+    showAdMob={true}
+  />
+  <View style={styles.content}>
+    {/* Rest van de pagina */}
+  </View>
+</View>
+
+// ✅ GOED: Zonder AdMob (bijv. premium gebruiker)
+<ModuleHeader
+  moduleId="podcast"
+  icon="podcast"
+  title={t('modules.podcast.title')}
+  currentSource="podcast"
+  showAdMob={false}
+/>
+
+// ❌ FOUT: Custom header implementatie
+<View style={[styles.customHeader, { backgroundColor: PODCAST_COLOR }]}>
+  <Icon name="podcast" ... />
+  <Text>{t('modules.podcast.title')}</Text>
+  <MediaIndicator ... />
+</View>
+```
+
+#### 7c.7 i18n Keys
+
 ```json
 {
   "modules": {
-    "radio": {
-      "title": "Radio"
-    },
-    "podcast": {
-      "title": "Podcasts"
-    }
-    // etc.
+    "radio": { "title": "Radio" },
+    "podcast": { "title": "Podcasts" },
+    "audiobook": { "title": "Luisterboeken" },
+    "ebook": { "title": "E-boeken" }
   }
 }
 ```
 
-**FOUT — geen module header:**
-```typescript
-// ❌ FOUT: Scherm start direct met content
-<View style={styles.container}>
-  <View style={styles.tabBar}>...</View>
-  <ScrollView>...</ScrollView>
-</View>
-// Gebruiker weet niet in welke module ze zitten
-```
+#### 7c.8 AdMob in Module Header
 
-**GOED — module header aanwezig:**
-```typescript
-// ✅ GOED: Duidelijke module identificatie
-<View style={styles.container}>
-  <ModuleHeader moduleId="radio" icon="radio" title={t('modules.radio.title')} />
-  <View style={styles.tabBar}>...</View>
-  <ScrollView>...</ScrollView>
-</View>
-```
+**Waarom AdMob in de header?**
+- **Visuele integratie:** Banner past bij module context (zelfde kleur zone)
+- **Niet blokkerend:** Scrollbare content begint onder de header
+- **Consistent:** Elke module heeft dezelfde advertentie-positie
+- **Senior-vriendelijk:** Duidelijke scheiding door separator lijn
+
+**AdMob Banner Specificaties:**
+- Positie: Onder de title row, binnen gekleurde zone
+- Padding: `spacing.sm` (8pt) rondom
+- Breedte: Full width minus padding
+- Hoogte: Standard banner hoogte (afhankelijk van device)
+
+**Separator Specificaties:**
+- Kleur: `rgba(255, 255, 255, 0.2)` — subtle wit op gekleurde achtergrond
+- Hoogte: 1pt
+- Positie: Direct onder AdMob (of onder title row als geen AdMob)
 
 ### 7d. TAB/TOGGLE SELECTORS (VERPLICHT)
 
@@ -2632,6 +2833,337 @@ useEffect(() => {
 ```
 
 **Regel:** ALLE media players MOETEN een buffering state tonen.
+
+---
+
+## 12. Gestandaardiseerde AudioPlayer Componenten (februari 2026)
+
+Na refactoring van Radio, Podcast en Books modules zijn er nu **gestandaardiseerde componenten** voor audio players. ALLE nieuwe media modules MOETEN deze componenten gebruiken.
+
+### 12.1 MiniPlayer Component
+
+**Import:** `import { MiniPlayer } from '@/components';`
+
+**Interface:**
+```typescript
+interface MiniPlayerProps {
+  /** Album/podcast/book cover artwork URL (or null for placeholder) */
+  artwork: string | null;
+  /** Main title (station name, episode title, book title) */
+  title: string;
+  /** Optional subtitle (show name, author, now playing info) */
+  subtitle?: string;
+  /** Module accent color (e.g., teal for radio, purple for podcast) */
+  accentColor: string;
+  /** Is currently playing */
+  isPlaying: boolean;
+  /** Is loading/buffering */
+  isLoading: boolean;
+  /** Callback when mini-player is tapped (expand to full player) */
+  onPress: () => void;
+  /** Callback for play/pause button */
+  onPlayPause: () => void;
+  /** Progress display mode */
+  progressType: 'bar' | 'duration';
+  /** Progress value 0-1 (required for 'bar' type) */
+  progress?: number;
+  /** Listen duration in seconds (required for 'duration' type) */
+  listenDuration?: number;
+  /** Accessibility label for the expand action */
+  expandAccessibilityLabel?: string;
+  /** Accessibility hint for the expand action */
+  expandAccessibilityHint?: string;
+  /** Optional stop button (for live streams like radio) */
+  showStopButton?: boolean;
+  /** Callback for stop button */
+  onStop?: () => void;
+}
+```
+
+**Progress Types:**
+
+| Type | Wanneer gebruiken | Voorbeeld |
+|------|-------------------|-----------|
+| `bar` | Seekable content met bekende duur | Podcast episodes, Audiobooks |
+| `duration` | Live streams zonder eindduur | Radio stations |
+
+**Stop Button:**
+
+| Module | showStopButton | Reden |
+|--------|----------------|-------|
+| Radio | `true` | Live stream, stop = disconnect |
+| Podcast | `false` | Pause is voldoende |
+| Audiobook | `true` | TTS engine moet gestopt worden |
+
+**Voorbeeld — Radio (live stream):**
+```typescript
+<MiniPlayer
+  artwork={station.favicon || null}
+  title={station.name}
+  subtitle={metadata.title || t('modules.radio.liveNow')}
+  accentColor={RADIO_MODULE_COLOR}
+  isPlaying={isPlaying}
+  isLoading={isBuffering}
+  onPress={() => setIsPlayerExpanded(true)}
+  onPlayPause={handlePlayPause}
+  progressType="duration"
+  listenDuration={listenDuration}
+  showStopButton={true}
+  onStop={handleStop}
+  expandAccessibilityLabel={t('modules.radio.expandPlayer')}
+/>
+```
+
+**Voorbeeld — Podcast (seekable):**
+```typescript
+<MiniPlayer
+  artwork={episode.artwork || show.artwork || null}
+  title={episode.title}
+  subtitle={show.title}
+  accentColor={PODCAST_MODULE_COLOR}
+  isPlaying={isPlaying}
+  isLoading={isBuffering}
+  onPress={() => setIsPlayerExpanded(true)}
+  onPlayPause={handlePlayPause}
+  progressType="bar"
+  progress={position / duration}
+  expandAccessibilityLabel={t('modules.podcast.expandPlayer')}
+/>
+```
+
+### 12.2 ExpandedAudioPlayer Component
+
+**Import:** `import { ExpandedAudioPlayer } from '@/components';`
+
+**Interface:**
+```typescript
+interface ExpandedAudioPlayerProps {
+  /** Album/podcast/book cover artwork URL */
+  artwork: string | null;
+  /** Main title */
+  title: string;
+  /** Subtitle (show name, author) */
+  subtitle?: string;
+  /** Module accent color */
+  accentColor: string;
+  /** Playback state */
+  isPlaying: boolean;
+  isLoading: boolean;
+  isBuffering: boolean;
+  /** Progress tracking */
+  position: number;
+  duration: number;
+  /** Callbacks */
+  onPlayPause: () => void;
+  onSeek: (position: number) => void;
+  onClose: () => void;
+  /** Control visibility configuration */
+  controls: AudioPlayerControls;
+  /** Show AdMob banner at top of player (default: true) */
+  showAdMob?: boolean;
+  /** AdMob unit ID (optional, uses default if not provided) */
+  adMobUnitId?: string;
+}
+
+interface AudioPlayerControls {
+  /** Show skip backward button (default: false) */
+  skipBackward?: { seconds: number; onPress: () => void };
+  /** Show skip forward button (default: false) */
+  skipForward?: { seconds: number; onPress: () => void };
+  /** Show stop button (default: false) */
+  stop?: { onPress: () => void };
+  /** Show favorite toggle (default: false) */
+  favorite?: { isFavorite: boolean; onToggle: () => void };
+  /** Show speed control (default: false) */
+  speed?: { currentRate: number; onPress: () => void };
+  /** Show sleep timer (default: false) */
+  sleepTimer?: { isActive: boolean; onPress: () => void };
+}
+```
+
+**Control Configuratie per Module:**
+
+| Control | Radio | Podcast | Audiobook |
+|---------|-------|---------|-----------|
+| skipBackward | - | 10s | 10s |
+| skipForward | - | 30s | 30s |
+| stop | ✓ | - | ✓ |
+| favorite | ✓ | - | - |
+| speed | - | ✓ | ✓ |
+| sleepTimer | - | ✓ | ✓ |
+| seekSlider | - | ✓ | ✓ |
+| **showAdMob** | ✓ | ✓ | ✓ |
+
+**Regel:** Controls die niet geconfigureerd zijn worden NIET gerenderd (niet greyed-out, niet hidden — gewoon afwezig).
+
+### 12.3 Visuele Specificaties
+
+**MiniPlayer:**
+- Hoogte: `touchTargets.comfortable` (72pt)
+- Artwork: 48×48pt met `borderRadius.sm`
+- Touch target play/pause: `touchTargets.minimum` (60pt)
+- Background: module `accentColor`
+- Text: `colors.textOnPrimary`
+- Shadow: iOS shadowOpacity 0.15, Android elevation 8
+
+**ExpandedAudioPlayer:**
+- Full-screen modal met `colors.background`
+- Artwork: 240×240pt gecentreerd met shadow
+- SeekSlider: `touchTargets.minimum` (60pt) hoogte, 28pt thumb
+- Main play button: 80×80pt
+- Skip buttons: 60×60pt met duration label
+- Close button: IconButton met `chevron-down`
+
+### 12.4 AdMob in ExpandedAudioPlayer (VERPLICHT)
+
+De ExpandedAudioPlayer MOET een AdMob banner tonen aan de **bovenkant** van het scherm.
+
+#### 12.4.1 Layout Specificatie
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Safe Area (notch/Dynamic Island)                             │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─ Header Row ──────────────────────────────────────────┐  │
+│  │                                                        │  │
+│  │  [˅]                                                   │  │
+│  │   ↑ Close button (chevron-down)                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─ AdMob Row ────────────────────────────────────────────┐  │
+│  │                                                        │  │
+│  │  [═══════════ AdMob Banner ═══════════════════]       │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─ Content ──────────────────────────────────────────────┐  │
+│  │                                                        │  │
+│  │              ┌──────────────────┐                      │  │
+│  │              │                  │                      │  │
+│  │              │     Artwork      │                      │  │
+│  │              │     240×240pt    │                      │  │
+│  │              │                  │                      │  │
+│  │              └──────────────────┘                      │  │
+│  │                                                        │  │
+│  │              Title                                     │  │
+│  │              Subtitle                                  │  │
+│  │                                                        │  │
+│  │         ════════════════════════════                   │  │
+│  │              SeekSlider (60pt)                         │  │
+│  │         0:00                  45:23                    │  │
+│  │                                                        │  │
+│  │              ⏪    ▶    ⏩                              │  │
+│  │                                                        │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+#### 12.4.2 AdMob Specificaties
+
+| Eigenschap | Waarde | Uitleg |
+|------------|--------|--------|
+| Positie | Onder close button, boven artwork | Niet blokkerend voor playback controls |
+| Padding | `spacing.md` (16pt) horizontaal | Consistent met rest van layout |
+| Breedte | Full width minus padding | Maximale zichtbaarheid |
+| Hoogte | Standard banner hoogte | Afhankelijk van device |
+| Achtergrond | `colors.background` | Geen speciale kleur, past in modal |
+
+#### 12.4.3 Waarom AdMob Bovenaan?
+
+1. **Niet blokkerend:** Advertentie interfereert niet met playback controls
+2. **Consistente positie:** Zelfde pattern als Module Header
+3. **Senior-vriendelijk:** Duidelijke scheiding van player controls
+4. **Geen accidentele taps:** Ver van play/pause button
+5. **Scrollbaar:** Bij kleine schermen kan content onder AdMob scrollen
+
+#### 12.4.4 Implementatie
+
+```typescript
+export function ExpandedAudioPlayer({
+  // ... andere props
+  showAdMob = true,
+  adMobUnitId,
+}: ExpandedAudioPlayerProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Modal visible animationType="slide" presentationStyle="fullScreen">
+      <SafeAreaView style={styles.container}>
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          <IconButton
+            icon="chevron-down"
+            size={28}
+            onPress={onClose}
+            accessibilityLabel={t('audio.closePlayer')}
+          />
+        </View>
+
+        {/* AdMob Row (VERPLICHT) */}
+        {showAdMob && (
+          <View style={styles.adMobRow}>
+            <AdMobBanner unitId={adMobUnitId} />
+          </View>
+        )}
+
+        {/* Rest of player content */}
+        <ScrollView contentContainerStyle={styles.content}>
+          {/* Artwork, title, controls... */}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  adMobRow: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+  },
+  content: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+  },
+});
+```
+
+#### 12.4.5 Regels
+
+1. **AdMob ALTIJD bovenaan** — Na close button, voor artwork
+2. **showAdMob default true** — Alleen uitschakelen voor premium gebruikers
+3. **Geen overlap met controls** — AdMob mag nooit playback controls bedekken
+4. **Consistente padding** — Gebruik `spacing.md` (16pt)
+5. **ScrollView voor content** — Bij kleine schermen kan content scrollen onder AdMob
+
+### 12.5 AudioPlayer Implementatie Checklist
+
+Bij ELKE nieuwe media module:
+
+- [ ] **MiniPlayer:** Gebruik standaard component, geen custom implementatie
+- [ ] **ExpandedAudioPlayer:** Gebruik standaard component of module-specifieke modal
+- [ ] **progressType:** Correct type gekozen (bar vs duration)
+- [ ] **showStopButton:** Alleen `true` voor live streams of TTS
+- [ ] **accentColor:** Consistent met WheelNavigationMenu module kleur
+- [ ] **Accessibility:** expandAccessibilityLabel en expandAccessibilityHint
+- [ ] **Haptic:** Automatisch via component (geen extra implementatie)
+- [ ] **Reduced motion:** Automatisch gerespecteerd
+- [ ] **AdMob in ExpandedAudioPlayer:** `showAdMob={true}` (default)
+- [ ] **AdMob in ModuleHeader:** Via ModuleHeader component
+
+---
 
 ## Collaboration
 

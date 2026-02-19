@@ -75,6 +75,16 @@ export { PlayingWaveIcon } from './PlayingWaveIcon';
 export { SeekSlider } from './SeekSlider';
 export type { default as SeekSliderProps } from './SeekSlider';
 
+// Standardized Audio Player Components
+export { MiniPlayer } from './MiniPlayer';
+export type { MiniPlayerProps } from './MiniPlayer';
+export { ExpandedAudioPlayer } from './ExpandedAudioPlayer';
+export type { ExpandedAudioPlayerProps, AudioPlayerControls } from './ExpandedAudioPlayer';
+
+// Module Header Component (standardized header for all module screens)
+export { ModuleHeader } from './ModuleHeader';
+export type { ModuleHeaderProps } from './ModuleHeader';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

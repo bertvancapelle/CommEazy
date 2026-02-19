@@ -81,6 +81,9 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 8. **Recursieve Implementatie** — Bij skill wijzigingen:
    - Pas nieuwe regels toe op ALLE bestaande code
    - Zie `COORDINATION_PROTOCOL.md` voor volledige workflow
+9. **Git Commit & Push Check** — Na elke logische milestone ALTIJD voorstellen:
+   - "Dit is een goed moment om te committen en pushen"
+   - Zie sectie "Git Workflow (VERPLICHT)" hieronder
 
 ### Automatische Triggers
 
@@ -124,6 +127,66 @@ De **architecture-lead** skill is verantwoordelijk voor:
 4. **Security** — E2E encryption verified, keys never logged, zero storage audit
 5. **Performance** — Cold start <3s, 60fps scroll, memory <200MB
 6. **Code Quality** — TypeScript strict, 80% coverage, zero warnings
+
+## Git Workflow (VERPLICHT)
+
+### ⚠️ CRUCIAAL: Claude MOET proactief commits voorstellen
+
+Dit is **niet optioneel**. Na elke logische milestone MOET Claude voorstellen om te committen en pushen.
+
+### Wanneer Committen — ALTIJD voorstellen bij:
+
+| Moment | Voorbeeld |
+|--------|-----------|
+| **Feature voltooid** | Component af en werkend |
+| **Bug gefixt** | Fix voor specifiek probleem |
+| **Refactor voltooid** | Code herstructurering klaar |
+| **Voordat je experimenteert** | "Dit werkt, nu ga ik iets nieuws proberen" |
+| **Einde werksessie** | ALTIJD committen voor je stopt |
+| **Skills/docs update** | CLAUDE.md of SKILL.md gewijzigd |
+
+### Wanneer NIET committen:
+
+- Mid-implementatie (code compileert niet)
+- Met bekende bugs die nog gefixed moeten worden
+- Met debug code (`console.log` overal)
+
+### Wanneer Pushen:
+
+| Situatie | Push? |
+|----------|-------|
+| **Einde werksessie** | ✅ Altijd |
+| **Voor grote refactor** | ✅ Backup |
+| **Na milestone commit** | ✅ Aanbevolen |
+| **Gedeelde branch** | ✅ Vaak |
+
+### Claude's Verantwoordelijkheid
+
+Na het voltooien van een taak MOET Claude zeggen:
+
+```
+✅ [Taak] is voltooid.
+
+📦 **Dit is een goed moment om te committen en pushen.**
+Wijzigingen:
+- [bestand 1]: [korte beschrijving]
+- [bestand 2]: [korte beschrijving]
+
+Zal ik de commit uitvoeren?
+```
+
+### Commit Message Format
+
+```
+[Type]: Korte beschrijving (max 50 chars)
+
+- Detail 1
+- Detail 2
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+```
+
+Types: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`
 
 ## Key Design Decisions
 - **Abstraction layers** — XMPPService and DatabaseService interfaces allow swapping implementations without touching business logic
@@ -649,19 +712,49 @@ Bij het bouwen van media modules (Radio, Podcast, Luisterboek) MOETEN de volgend
 </Modal>
 ```
 
-#### 12.2 MediaIndicator in Module Headers
+#### 12.2 ModuleHeader Component (VERPLICHT)
 
-Elke module MOET een MediaIndicator in de header hebben om cross-module media awareness te tonen:
+Elke module MOET de gestandaardiseerde `ModuleHeader` component gebruiken:
 
 ```typescript
-<View style={[styles.moduleHeader, { backgroundColor: MODULE_COLOR }]}>
-  <Icon name="radio" size={28} color={colors.textOnPrimary} />
-  <Text style={styles.moduleTitle}>{t('modules.radio.title')}</Text>
-  <MediaIndicator currentSource="radio" />
-</View>
+import { ModuleHeader } from '@/components';
+
+// In module screen:
+<ModuleHeader
+  moduleId="radio"
+  icon="radio"
+  title={t('modules.radio.title')}
+  currentSource="radio"
+  showAdMob={true}
+/>
 ```
 
-De `currentSource` prop voorkomt dubbele indicator in de bron-module zelf.
+**ModuleHeader Layout:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Safe Area (notch/Dynamic Island)                             │
+├──────────────────────────────────────────────────────────────┤
+│  📻 Radio                              🔊 [MediaIndicator]    │
+│  ↑ Links (spacing.md)                  ↑ Rechts (spacing.md)  │
+├──────────────────────────────────────────────────────────────┤
+│  [═══════════ AdMob Banner ═══════════════════]              │
+├──────────────────────────────────────────────────────────────┤
+│  ─ ─ ─ ─ ─ ─ ─  Separator line (1pt) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Specificaties:**
+- Icon + Title: LINKS uitgelijnd met `spacing.md` (16pt) padding
+- MediaIndicator: RECHTS uitgelijnd met `spacing.md` (16pt) padding en ≥60pt touch target
+- AdMob: BINNEN de gekleurde header zone, onder de title row
+- Separator: Dunne lijn (1pt) `rgba(255, 255, 255, 0.2)` als visuele scheiding
+
+**Props:**
+- `moduleId`: string — voor kleur lookup
+- `icon`: IconName — module icoon
+- `title`: string — module naam (via t())
+- `currentSource`: 'radio' | 'podcast' | 'books' — voorkomt dubbele MediaIndicator
+- `showAdMob`: boolean — default true, false voor premium users
 
 #### 12.3 Welcome Modal voor First-Time Users
 
@@ -710,8 +803,10 @@ Elke module heeft een unieke kleur consistent met WheelNavigationMenu:
 
 Bij ELKE nieuwe media module:
 
-- [ ] Mini-player + expandable modal pattern
-- [ ] MediaIndicator in module header met correcte `currentSource`
+- [ ] **ModuleHeader component** met `moduleId`, `icon`, `title`, `currentSource`
+- [ ] **AdMob in ModuleHeader** — `showAdMob={true}` (default)
+- [ ] Mini-player + expandable modal pattern (gestandaardiseerde componenten)
+- [ ] **AdMob in ExpandedAudioPlayer** — `showAdMob={true}` (default)
 - [ ] Welcome modal voor first-time users (AsyncStorage)
 - [ ] Error banner met TEKST dismiss button
 - [ ] Module-specific color consistent met WheelNavigationMenu
@@ -721,6 +816,223 @@ Bij ELKE nieuwe media module:
 - [ ] VoiceFocusable wrappers voor content lijsten
 - [ ] Accessibility announcements voor playback state changes
 - [ ] iOS `audio` background mode in Info.plist
+
+---
+
+### 13. Gestandaardiseerde AudioPlayer Architectuur (VERPLICHT)
+
+Alle audio modules (Radio, Podcast, Books/TTS) MOETEN dezelfde gedeelde AudioPlayer componenten gebruiken met configureerbare controls.
+
+#### 13.1 Architectuur Principe
+
+**Eén component, meerdere varianten:** In plaats van aparte players per module, gebruiken we gedeelde componenten met props die bepalen welke controls zichtbaar zijn.
+
+**Niet-gebruikte controls:** Volledig verborgen (niet greyed-out) — dit is eenvoudiger en minder verwarrend voor senioren.
+
+#### 13.2 MiniPlayer Component
+
+```typescript
+interface MiniPlayerProps {
+  // Verplichte props
+  artwork: string | null;
+  title: string;
+  accentColor: string;
+  isPlaying: boolean;
+  isLoading: boolean;
+  onPress: () => void;        // Expand naar full-screen
+  onPlayPause: () => void;
+
+  // Optionele props
+  subtitle?: string;          // Show naam, artiest, auteur
+
+  // Progress indicator variant
+  progressType: 'bar' | 'duration';
+  // bar = percentage balk (Podcast, Books)
+  // duration = "🎧 45:32" luistertijd (Radio)
+
+  progress?: number;          // 0-1, alleen voor "bar" type
+  listenDuration?: number;    // Seconden, alleen voor "duration" type
+
+  // Stop button (optioneel)
+  showStopButton?: boolean;   // Radio/Books: true, Podcast: false
+  onStop?: () => void;        // Stop playback en disconnect
+}
+```
+
+**Per Module:**
+| Module | progressType | showStopButton | Wat wordt getoond |
+|--------|--------------|----------------|-------------------|
+| Radio | `duration` | `true` | "🎧 45:32" + Stop button |
+| Podcast | `bar` | `false` | Progress bar (pause is voldoende) |
+| Books | `bar` | `true` | Progress bar + Stop button (TTS engine) |
+
+#### 13.3 ExpandedAudioPlayer Component
+
+```typescript
+interface ExpandedAudioPlayerProps {
+  // Content
+  artwork: string | null;
+  title: string;
+  subtitle?: string;
+  accentColor: string;
+
+  // Playback state
+  isPlaying: boolean;
+  isLoading: boolean;
+  isBuffering: boolean;
+
+  // Progress (voor seekable content)
+  position?: number;
+  duration?: number;
+  onSeek?: (position: number) => void;
+
+  // Luistertijd (voor live content)
+  listenDuration?: number;
+
+  // Callbacks
+  onPlayPause: () => void;
+  onClose: () => void;
+
+  // AdMob (VERPLICHT)
+  showAdMob?: boolean;        // Default: true
+  adMobUnitId?: string;       // Optioneel, gebruikt default indien niet opgegeven
+
+  // Configureerbare controls (verborgen indien false/undefined)
+  controls: {
+    seekSlider?: boolean;      // Podcast/Books: aan, Radio: uit
+    skipButtons?: boolean;     // Podcast/Books: aan, Radio: uit
+    speedControl?: boolean;    // Podcast/Books: aan, Radio: uit
+    sleepTimer?: boolean;      // Alle modules: aan
+    favorite?: boolean;        // Radio/Podcast: aan, Books: uit
+    listenDuration?: boolean;  // Radio: aan (toont "🎧 45:32")
+  };
+
+  // Control callbacks
+  onSkipBackward?: () => void;
+  onSkipForward?: () => void;
+  onSpeedChange?: (rate: number) => void;
+  onSleepTimerSet?: (minutes: number | null) => void;
+  onFavoriteToggle?: () => void;
+
+  // Current values
+  playbackRate?: number;
+  sleepTimerMinutes?: number | null;
+  isFavorite?: boolean;
+}
+```
+
+**AdMob Layout in ExpandedAudioPlayer:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Safe Area (notch/Dynamic Island)                             │
+├──────────────────────────────────────────────────────────────┤
+│  [˅] Close button                                             │
+├──────────────────────────────────────────────────────────────┤
+│  [═══════════ AdMob Banner ═══════════════════]              │
+├──────────────────────────────────────────────────────────────┤
+│              ┌──────────────────┐                             │
+│              │     Artwork      │                             │
+│              └──────────────────┘                             │
+│              Title / Subtitle                                 │
+│         ════ SeekSlider ════                                  │
+│              ⏪    ▶    ⏩                                     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+#### 13.4 Per Module Configuratie
+
+| Control | Radio | Podcast | Books (TTS) |
+|---------|-------|---------|-------------|
+| **showAdMob** | ✅ | ✅ | ✅ |
+| **seekSlider** | ❌ | ✅ | ✅ |
+| **skipButtons** | ❌ | ✅ (10s/30s) | ✅ (10s/30s) |
+| **stop** | ✅ | ❌ | ✅ |
+| **speedControl** | ❌ | ✅ | ✅ |
+| **sleepTimer** | ✅ | ✅ | ✅ |
+| **favorite** | ✅ | ✅ | ❌ |
+| **listenDuration** | ✅ | ❌ | ❌ |
+
+**Skip Button Durations (standaard):**
+- **Backward:** 10 seconden
+- **Forward:** 30 seconden
+
+Dit verschil is bedoeld: terug-skippen is vaak om iets opnieuw te horen (korte sprong), vooruit-skippen is om content over te slaan (langere sprong).
+
+#### 13.5 Implementatie Voorbeeld
+
+```typescript
+// Radio: Live stream player
+<ExpandedAudioPlayer
+  artwork={station.artwork}
+  title={station.name}
+  subtitle={streamMetadata?.title} // "Artiest - Nummer"
+  accentColor={RADIO_COLOR}
+  isPlaying={isPlaying}
+  isLoading={isLoading}
+  isBuffering={isBuffering}
+  listenDuration={listenDuration}
+  onPlayPause={handlePlayPause}
+  onClose={() => setIsExpanded(false)}
+  showAdMob={true}  // AdMob banner bovenaan
+  controls={{
+    sleepTimer: true,
+    favorite: true,
+    listenDuration: true,
+    // Alle andere controls zijn verborgen
+  }}
+  sleepTimerMinutes={sleepTimer}
+  onSleepTimerSet={setSleepTimer}
+  isFavorite={isFavorite}
+  onFavoriteToggle={handleFavoriteToggle}
+/>
+
+// Podcast: On-demand player
+<ExpandedAudioPlayer
+  artwork={episode.artwork}
+  title={episode.title}
+  subtitle={show.title}
+  accentColor={PODCAST_COLOR}
+  isPlaying={isPlaying}
+  isLoading={isLoading}
+  isBuffering={isBuffering}
+  position={position}
+  duration={duration}
+  onSeek={seekTo}
+  onPlayPause={handlePlayPause}
+  onClose={() => setIsExpanded(false)}
+  showAdMob={true}  // AdMob banner bovenaan
+  controls={{
+    seekSlider: true,
+    skipButtons: true,
+    speedControl: true,
+    sleepTimer: true,
+    favorite: true,
+  }}
+  onSkipBackward={() => skip(-10)}
+  onSkipForward={() => skip(30)}
+  playbackRate={playbackRate}
+  onSpeedChange={setPlaybackRate}
+  sleepTimerMinutes={sleepTimer}
+  onSleepTimerSet={setSleepTimer}
+  isFavorite={isSubscribed}
+  onFavoriteToggle={handleToggleSubscribe}
+/>
+```
+
+#### 13.6 AudioPlayer Implementatie Checklist
+
+Bij het gebruik van AudioPlayer componenten:
+
+- [ ] Gebruik `MiniPlayer` voor compacte weergave onderaan scherm
+- [ ] Gebruik `ExpandedAudioPlayer` voor full-screen modal
+- [ ] **`showAdMob={true}`** in ExpandedAudioPlayer (default)
+- [ ] Configureer `controls` object correct per module type
+- [ ] Radio: `progressType="duration"` met `listenDuration`
+- [ ] Podcast/Books: `progressType="bar"` met `progress`
+- [ ] Alle callbacks geïmplementeerd voor actieve controls
+- [ ] `accentColor` consistent met module kleur
+- [ ] Accessibility labels voor alle controls
+- [ ] Voice commands geregistreerd voor actieve controls
 
 ---
 
