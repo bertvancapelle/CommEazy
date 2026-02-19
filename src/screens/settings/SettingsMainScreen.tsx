@@ -35,20 +35,17 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, Icon, VoiceFocusable, MediaIndicator, type IconName } from '@/components';
+import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, type IconName } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
+import { useFeedback } from '@/hooks/useFeedback';
 import { getAvatarPath } from '@/services/imageService';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import type { SettingsStackParams } from '@/navigation';
 import type { SupportedLanguage } from '@/services/interfaces';
 
 type NavigationProp = NativeStackNavigationProp<SettingsStackParams, 'SettingsMain'>;
-
-// Module color (consistent with WheelNavigationMenu)
-const SETTINGS_MODULE_COLOR = '#5E35B1';
 
 // Flag emojis for languages
 const LANGUAGE_FLAGS: Record<string, string> = {
@@ -99,23 +96,24 @@ function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, 
 export function SettingsMainScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const { triggerFeedback } = useFeedback();
   const isFocused = useIsFocused();
-  const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   // Settings menu items for voice navigation
   const settingsItems = useMemo(() => [
-    { id: 'profile', label: t('settings.profile'), onSelect: () => navigation.navigate('ProfileSettings') },
-    { id: 'accessibility', label: t('settings.accessibility'), onSelect: () => navigation.navigate('AccessibilitySettings') },
-    { id: 'voice', label: t('voiceSettings.title'), onSelect: () => navigation.navigate('VoiceSettings') },
+    { id: 'profile', label: t('settings.profile'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('ProfileSettings'); } },
+    { id: 'accessibility', label: t('settings.accessibility'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AccessibilitySettings'); } },
+    { id: 'voice', label: t('voiceSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('VoiceSettings'); } },
     { id: 'notifications', label: t('settings.notifications'), onSelect: () => {
+      void triggerFeedback('tap');
       Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
     }},
-    { id: 'backup', label: t('settings.backup'), onSelect: () => navigation.navigate('BackupSettings') },
-    { id: 'device-link', label: t('settings.deviceLink'), onSelect: () => navigation.navigate('DeviceLinkShowQR') },
-  ], [t, navigation]);
+    { id: 'backup', label: t('settings.backup'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('BackupSettings'); } },
+    { id: 'device-link', label: t('settings.deviceLink'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('DeviceLinkShowQR'); } },
+  ], [t, navigation, triggerFeedback]);
 
   // Voice Focus: Register settings items for voice navigation
   const voiceFocusItems = useMemo(() => {
@@ -179,6 +177,7 @@ export function SettingsMainScreen() {
 
   // Handle language selection
   const handleLanguagePress = useCallback(() => {
+    void triggerFeedback('tap');
     const options = languages.map(
       (lang) => `${LANGUAGE_FLAGS[lang]} ${t(`profile.language.${lang}`)}`
     );
@@ -211,21 +210,17 @@ export function SettingsMainScreen() {
         ]
       );
     }
-  }, [i18n, t]);
+  }, [i18n, t, triggerFeedback]);
 
   return (
     <View style={styles.container}>
-      {/* Module Header — consistent with navigation menu, centered */}
-      <View style={[styles.moduleHeader, { backgroundColor: SETTINGS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.moduleHeaderContent}>
-          <Icon name="settings" size={28} color={colors.textOnPrimary} />
-          <Text style={styles.moduleTitle}>{t('tabs.settings')}</Text>
-        </View>
-        {/* Media indicator — shows when audio/video is playing */}
-        <View style={styles.mediaIndicatorContainer}>
-          <MediaIndicator moduleColor={SETTINGS_MODULE_COLOR} />
-        </View>
-      </View>
+      {/* Module Header — standardized component */}
+      <ModuleHeader
+        moduleId="settings"
+        icon="settings"
+        title={t('tabs.settings')}
+        showAdMob={false}
+      />
 
       <ScrollView ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {/* Profile header - tappable to edit */}
@@ -425,28 +420,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  moduleHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  moduleTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-  },
-  mediaIndicatorContainer: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    transform: [{ translateY: 8 }],
   },
   scrollView: {
     flex: 1,

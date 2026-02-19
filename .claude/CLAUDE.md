@@ -1152,6 +1152,10 @@ Deze registry documenteert welke **standaard componenten** verplicht zijn voor s
 | AudioBookScreen | ✅ | `false` | - |
 | EBookScreen | ✅ | `false` | - |
 | BookReaderScreen | ⏭️ Uitgezonderd | - | - |
+| **ChatListScreen** | ✅ | `false` | - |
+| **ContactListScreen** | ✅ | `false` | - |
+| **GroupListScreen** | ✅ | `false` | - |
+| **SettingsMainScreen** | ✅ | `false` | - |
 
 **Uitgezonderd:** `BookReaderScreen` heeft een eigen thema-systeem (light/sepia/dark) en daarom een aangepaste header.
 
@@ -1182,11 +1186,14 @@ Deze registry documenteert welke **standaard componenten** verplicht zijn voor s
 Om te controleren of alle screens de juiste componenten gebruiken:
 
 ```bash
-# Check welke screens ModuleHeader nog NIET gebruiken
+# Check welke module screens ModuleHeader nog NIET gebruiken
 grep -rL "ModuleHeader" src/screens/modules/*.tsx
 
+# Check welke main screens ModuleHeader nog NIET gebruiken
+grep -rL "ModuleHeader" src/screens/chat/ChatListScreen.tsx src/screens/contacts/ContactListScreen.tsx src/screens/settings/SettingsMainScreen.tsx
+
 # Check welke screens nog custom moduleHeader styles hebben
-grep -r "moduleHeader:" src/screens/modules/*.tsx
+grep -r "moduleHeader:" src/screens/modules/*.tsx src/screens/chat/*.tsx src/screens/contacts/*.tsx src/screens/settings/*.tsx
 ```
 
 ---

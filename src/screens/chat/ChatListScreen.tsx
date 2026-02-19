@@ -25,11 +25,11 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
-import { Button, PresenceIndicator, LoadingView, VoiceFocusable, Icon, MediaIndicator } from '@/components';
+import { Button, PresenceIndicator, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { ChatStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
@@ -48,14 +48,11 @@ interface ChatListItem {
 
 type NavigationProp = NativeStackNavigationProp<ChatStackParams, 'ChatList'>;
 
-// Module color (consistent with WheelNavigationMenu - uses primary color)
-const CHATS_MODULE_COLOR = colors.primary;
-
 export function ChatListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const { triggerFeedback } = useFeedback();
   const isFocused = useIsFocused();
-  const insets = useSafeAreaInsets();
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -254,15 +251,17 @@ export function ChatListScreen() {
 
   const handleChatPress = useCallback(
     (item: ChatListItem) => {
+      void triggerFeedback('tap');
       navigation.navigate('ChatDetail', {
         chatId: item.chatId,
         name: item.contactName,
       });
     },
-    [navigation],
+    [navigation, triggerFeedback],
   );
 
   const handleNewChat = useCallback(() => {
+    void triggerFeedback('tap');
     // Navigate to contacts tab to start new chat
     // Use parent navigator (Tab Navigator) to switch tabs
     const parentNav = navigation.getParent();
@@ -270,7 +269,7 @@ export function ChatListScreen() {
       parentNav.navigate('ContactsTab');
     }
     AccessibilityInfo.announceForAccessibility(t('chat.newChat'));
-  }, [navigation, t]);
+  }, [navigation, t, triggerFeedback]);
 
   const formatTime = useCallback((timestamp: number): string => {
     const date = new Date(timestamp);
@@ -407,17 +406,13 @@ export function ChatListScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Module Header — consistent with navigation menu, centered */}
-      <View style={[styles.moduleHeader, { backgroundColor: CHATS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.moduleHeaderContent}>
-          <Icon name="chat" size={28} color={colors.textOnPrimary} />
-          <Text style={styles.moduleTitle}>{t('tabs.chats')}</Text>
-        </View>
-        {/* Media indicator — shows when audio/video is playing */}
-        <View style={styles.mediaIndicatorContainer}>
-          <MediaIndicator moduleColor={CHATS_MODULE_COLOR} />
-        </View>
-      </View>
+      {/* Module Header — standardized component */}
+      <ModuleHeader
+        moduleId="messages"
+        icon="chat"
+        title={t('tabs.chats')}
+        showAdMob={false}
+      />
 
       <ScrollView
         ref={scrollRef}
@@ -464,28 +459,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  moduleHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  moduleTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-  },
-  mediaIndicatorContainer: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    transform: [{ translateY: 8 }], // Adjust for vertical centering with safe area
   },
   chatItem: {
     flexDirection: 'row',

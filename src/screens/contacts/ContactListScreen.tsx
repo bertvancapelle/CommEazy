@@ -32,25 +32,22 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, LoadingView, Icon, MediaIndicator } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { Contact } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactList'>;
 
-// Module color (consistent with WheelNavigationMenu)
-const CONTACTS_MODULE_COLOR = '#2E7D32';
-
 export function ContactListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const { triggerFeedback } = useFeedback();
   const isFocused = useIsFocused(); // Track if this screen is focused
-  const insets = useSafeAreaInsets();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,9 +57,10 @@ export function ContactListScreen() {
   // Voice focus navigation handler
   const handleContactPress = useCallback(
     (contact: Contact) => {
+      void triggerFeedback('tap');
       navigation.navigate('ContactDetail', { jid: contact.jid });
     },
-    [navigation]
+    [navigation, triggerFeedback]
   );
 
   // Build voice focusable items from filtered contacts
@@ -145,8 +143,9 @@ export function ContactListScreen() {
   }, []);
 
   const handleAddContact = useCallback(() => {
+    void triggerFeedback('tap');
     navigation.navigate('AddContact' as never);
-  }, [navigation]);
+  }, [navigation, triggerFeedback]);
 
   const renderContactItem = useCallback(
     (item: Contact, index: number) => {
@@ -218,17 +217,13 @@ export function ContactListScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Module Header — consistent with navigation menu, centered */}
-      <View style={[styles.moduleHeader, { backgroundColor: CONTACTS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.moduleHeaderContent}>
-          <Icon name="contacts" size={28} color={colors.textOnPrimary} />
-          <Text style={styles.moduleTitle}>{t('tabs.contacts')}</Text>
-        </View>
-        {/* Media indicator — shows when audio/video is playing */}
-        <View style={styles.mediaIndicatorContainer}>
-          <MediaIndicator moduleColor={CONTACTS_MODULE_COLOR} />
-        </View>
-      </View>
+      {/* Module Header — standardized component */}
+      <ModuleHeader
+        moduleId="contacts"
+        icon="contacts"
+        title={t('tabs.contacts')}
+        showAdMob={false}
+      />
 
       {/* Search bar */}
       <View style={styles.searchContainer}>
@@ -289,28 +284,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  moduleHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  moduleTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-  },
-  mediaIndicatorContainer: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    transform: [{ translateY: 8 }],
   },
   searchContainer: {
     paddingHorizontal: spacing.md,
