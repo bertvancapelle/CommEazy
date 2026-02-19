@@ -404,6 +404,136 @@ Bij elke recursieve update MOET worden gedocumenteerd:
 | OnboardingScreen.tsx | Geen module scherm |
 ```
 
+## Nieuwe Standaard Component Checklist (VERPLICHT!)
+
+### Trigger
+
+Deze checklist is **verplicht** wanneer:
+- Een nieuwe herbruikbare component wordt gemaakt (ModuleHeader, MiniPlayer, etc.)
+- Een bestaande component wordt gepromoveerd tot "standaard" component
+- Een component wordt toegevoegd aan `src/components/index.ts`
+
+### Workflow bij Nieuwe Standaard Component
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 1: Component Creatie                                       │
+│  Maak de component en exporteer via components/index.ts          │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 2: VERPLICHTE Impact Scan                                  │
+│  "Welke bestaande screens moeten deze component gaan gebruiken?" │
+│                                                                  │
+│  → grep/search voor vergelijkbare custom implementaties          │
+│  → Maak lijst van ALLE screens die moeten worden aangepast       │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 3: Migratie Todo Lijst                                     │
+│  Maak TodoWrite items voor ELKE screen die moet migreren         │
+│  → Dit voorkomt dat screens worden vergeten                      │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 4: Recursieve Migratie                                     │
+│  Pas ALLE screens aan voordat de taak als "klaar" wordt gemerkt  │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 5: Update Component Registry                               │
+│  Voeg toe aan CLAUDE.md Component Registry (sectie 14)           │
+│  → Documenteer welke screens de component MOETEN gebruiken       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Voorbeeld: ModuleHeader Component
+
+```markdown
+Nieuwe component: ModuleHeader
+
+STAP 2 - Impact Scan:
+  grep -r "moduleHeader\|module.*header\|MediaIndicator" src/screens/
+
+Resultaat:
+  - RadioScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+  - PodcastScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+  - BooksScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+  - CallsScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+  - VideoCallScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+  - AudioBookScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+  - EBookScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+  - BookPlayerScreen.tsx: custom header ❌ → moet ModuleHeader gebruiken
+
+STAP 3 - Migratie Todo:
+  [ ] RadioScreen.tsx → ModuleHeader
+  [ ] PodcastScreen.tsx → ModuleHeader
+  [ ] BooksScreen.tsx → ModuleHeader
+  ... (8 items totaal)
+
+STAP 4 - Recursieve Migratie:
+  → Alle 8 screens aangepast
+
+STAP 5 - Component Registry:
+  → Toegevoegd aan CLAUDE.md sectie 14
+```
+
+### Waarom dit Verplicht is
+
+Zonder deze workflow ontstaat **technische schuld**:
+- Nieuwe standaard componenten worden niet overal gebruikt
+- Inconsistente UI door de app heen
+- Dubbele code blijft bestaan
+- Moeilijker te onderhouden codebase
+
+---
+
+## Communicatie met Gebruiker
+
+### Vraagstelling (VERPLICHT!)
+
+Bij het stellen van vragen aan de gebruiker MOETEN de volgende regels worden gevolgd:
+
+1. **Eén vraag tegelijk** — Stel vragen ALTIJD één voor één, zodat de gebruiker een duidelijk antwoord kan geven
+2. **Uitzondering: onderlinge afhankelijkheden** — Als vragen onderling afhankelijk zijn, stel ze dan WEL samen zodat de gebruiker de relatie tussen de vragen kan beoordelen
+
+**Voorbeeld — FOUT (te veel vragen tegelijk):**
+```
+Ik heb een paar vragen:
+1. Welke audio modules zijn er?
+2. Wat zijn de functionele verschillen?
+3. Welke visuele inconsistenties zie je?
+4. Moet er context switching zijn?
+```
+
+**Voorbeeld — GOED (één vraag tegelijk):**
+```
+Vraag 1: Welke audio modules zijn er momenteel in de app?
+[wacht op antwoord]
+
+Vraag 2: Wat zijn de belangrijkste functionele verschillen tussen deze modules?
+[wacht op antwoord]
+```
+
+**Voorbeeld — GOED (afhankelijke vragen samen):**
+```
+Deze twee vragen hangen samen, dus stel ik ze samen:
+1. Moet de mini-player voor Radio en Podcast identiek zijn?
+2. Zo ja, welke variant heeft de voorkeur?
+```
+
+### Waarom dit belangrijk is
+
+- Senioren (onze doelgroep) worden overweldigd door te veel vragen tegelijk
+- Duidelijke, gefocuste vragen leiden tot betere antwoorden
+- Het voorkomt miscommunicatie en herwerk
+
+---
+
 ## Handhaving
 
 Dit protocol is **VERPLICHT**. Bij elke wijziging:

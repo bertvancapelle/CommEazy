@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, MediaIndicator } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
@@ -389,17 +389,14 @@ export function BooksScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <View style={styles.innerContainer}>
-        {/* Module Header */}
-        <View style={[styles.moduleHeader, { backgroundColor: BOOKS_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
-          <View style={styles.moduleHeaderContent}>
-            <Icon name="book" size={28} color={colors.textOnPrimary} />
-            <Text style={styles.moduleTitle}>{t('modules.books.title')}</Text>
-          </View>
-          {/* Media indicator */}
-          <View style={styles.mediaIndicatorContainer}>
-            <MediaIndicator moduleColor={BOOKS_MODULE_COLOR} currentSource="books" />
-          </View>
-        </View>
+        {/* Module Header — standardized component with AdMob placeholder */}
+        <ModuleHeader
+          moduleId="books"
+          icon="book"
+          title={t('modules.books.title')}
+          currentSource="books"
+          showAdMob={true}
+        />
 
         {/* Tab selector: Library / Search */}
         <View style={styles.tabBar}>
@@ -1050,29 +1047,7 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  moduleHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  moduleTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-    fontWeight: '700',
-  },
-  mediaIndicatorContainer: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    transform: [{ translateY: 8 }],
-  },
+  // moduleHeader styles removed — using standardized ModuleHeader component
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,

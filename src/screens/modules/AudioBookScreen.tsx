@@ -1,53 +1,45 @@
 /**
  * AudioBookScreen — Placeholder module for audiobook listening
  *
- * This is a fake module screen used to test module switching
+ * This is a placeholder module screen used to test module switching
  * in the WheelNavigationMenu.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing } from '@/theme';
-import { Icon, MediaIndicator } from '@/components';
-
-// Module color (consistent with WheelNavigationMenu)
-const AUDIOBOOK_MODULE_COLOR = '#7B1FA2';
+import { ModuleHeader } from '@/components';
 
 export function AudioBookScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      {/* Module Header — consistent with navigation menu, centered */}
-      <View style={[styles.moduleHeader, { backgroundColor: AUDIOBOOK_MODULE_COLOR, paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.moduleHeaderContent}>
-          <Icon name="headphones" size={28} color={colors.textOnPrimary} />
-          <Text style={styles.moduleTitle}>{t('navigation.audiobook')}</Text>
-        </View>
-        <View style={styles.mediaIndicatorContainer}>
-          <MediaIndicator moduleColor={AUDIOBOOK_MODULE_COLOR} currentSource="audiobook" />
-        </View>
-      </View>
+      {/* Module Header — standardized component with AdMob placeholder */}
+      <ModuleHeader
+        moduleId="audiobook"
+        icon="headphones"
+        title={t('navigation.audiobook')}
+        showAdMob={true}
+      />
 
       <View style={styles.content}>
-      <View style={styles.iconContainer}>
-        {/* Headphones icon */}
-        <View style={styles.headphonesBand} />
-        <View style={styles.headphonesLeft} />
-        <View style={styles.headphonesRight} />
-      </View>
+        <View style={styles.iconContainer}>
+          {/* Headphones icon */}
+          <View style={styles.headphonesBand} />
+          <View style={styles.headphonesLeft} />
+          <View style={styles.headphonesRight} />
+        </View>
 
-      <Text style={styles.title}>{t('navigation.audiobook')}</Text>
-      <Text style={styles.subtitle}>{t('modules.coming_soon')}</Text>
+        <Text style={styles.title}>{t('navigation.audiobook')}</Text>
+        <Text style={styles.subtitle}>{t('modules.coming_soon')}</Text>
 
-      <View style={styles.featureList}>
-        <Text style={styles.featureItem}>• {t('modules.audiobook.feature1')}</Text>
-        <Text style={styles.featureItem}>• {t('modules.audiobook.feature2')}</Text>
-        <Text style={styles.featureItem}>• {t('modules.audiobook.feature3')}</Text>
-      </View>
+        <View style={styles.featureList}>
+          <Text style={styles.featureItem}>• {t('modules.audiobook.feature1')}</Text>
+          <Text style={styles.featureItem}>• {t('modules.audiobook.feature2')}</Text>
+          <Text style={styles.featureItem}>• {t('modules.audiobook.feature3')}</Text>
+        </View>
       </View>
     </View>
   );
@@ -58,29 +50,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  moduleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  moduleHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  moduleTitle: {
-    ...typography.h2,
-    color: colors.textOnPrimary,
-    fontWeight: '700',
-  },
-  mediaIndicatorContainer: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    transform: [{ translateY: 8 }],
-  },
+  // moduleHeader styles removed — using standardized ModuleHeader component
   content: {
     flex: 1,
     alignItems: 'center',

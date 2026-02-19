@@ -10,7 +10,7 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
-import { StatusBar, AccessibilityInfo, AppState, AppStateStatus, Dimensions } from 'react-native';
+import { StatusBar, AccessibilityInfo, AppState, AppStateStatus, Dimensions, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/i18n'; // Initialize i18n
@@ -86,7 +86,10 @@ export default function App() {
   }, []);
 
   if (!isReady) {
-    return null; // Splash screen handled by native side
+    // Return empty View instead of null to keep React Native's UI tree alive
+    // This prevents iOS watchdog timeout during service initialization
+    // The native splash screen remains visible until the app is ready
+    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
   }
 
   return (

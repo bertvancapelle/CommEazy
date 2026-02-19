@@ -1131,6 +1131,66 @@ sectionTitle: {
 },
 ```
 
+---
+
+## 14. Component Registry (VERPLICHT)
+
+Deze registry documenteert welke **standaard componenten** verplicht zijn voor specifieke screen types. Bij het maken van nieuwe screens of refactoring van bestaande screens, MOET deze registry worden geraadpleegd.
+
+### Module Screens
+
+**Verplichte component:** `ModuleHeader`
+
+| Screen | ModuleHeader | showBackButton | currentSource |
+|--------|--------------|----------------|---------------|
+| RadioScreen | ✅ | `false` | `"radio"` |
+| PodcastScreen | ✅ | `false` | `"podcast"` |
+| BooksScreen | ✅ | `false` | `"books"` |
+| BookPlayerScreen | ✅ | `true` | `"books"` |
+| CallsScreen | ✅ | `false` | - |
+| VideoCallScreen | ✅ | `false` | - |
+| AudioBookScreen | ✅ | `false` | - |
+| EBookScreen | ✅ | `false` | - |
+| BookReaderScreen | ⏭️ Uitgezonderd | - | - |
+
+**Uitgezonderd:** `BookReaderScreen` heeft een eigen thema-systeem (light/sepia/dark) en daarom een aangepaste header.
+
+### Audio Player Screens
+
+**Verplichte componenten:** `MiniPlayer`, `ExpandedAudioPlayer`
+
+| Screen | MiniPlayer | ExpandedAudioPlayer | progressType |
+|--------|------------|---------------------|--------------|
+| RadioScreen | ✅ | ✅ | `"duration"` |
+| PodcastScreen | ✅ | ✅ | `"bar"` |
+| BooksScreen | ✅ | ✅ | `"bar"` |
+
+### Hoe deze Registry te Gebruiken
+
+**Bij nieuwe module screen:**
+1. Check: Moet deze screen een `ModuleHeader` hebben? → Ja, tenzij uitgezonderd
+2. Check: Heeft deze screen audio playback? → Gebruik `MiniPlayer` + `ExpandedAudioPlayer`
+3. Configureer de juiste props volgens de tabel
+
+**Bij nieuwe standaard component:**
+1. Voeg de component toe aan deze registry
+2. Documenteer welke screens de component MOETEN gebruiken
+3. Zie `COORDINATION_PROTOCOL.md` sectie "Nieuwe Standaard Component Checklist"
+
+### Compliance Check Command
+
+Om te controleren of alle screens de juiste componenten gebruiken:
+
+```bash
+# Check welke screens ModuleHeader nog NIET gebruiken
+grep -rL "ModuleHeader" src/screens/modules/*.tsx
+
+# Check welke screens nog custom moduleHeader styles hebben
+grep -r "moduleHeader:" src/screens/modules/*.tsx
+```
+
+---
+
 ## Logging Richtlijnen
 
 ### Log Levels
