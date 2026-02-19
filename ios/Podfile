@@ -57,6 +57,9 @@ target 'CommEazyTemp' do
     # Configure sherpa-onnx framework and headers for PiperTtsModule
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
+        # Fix deployment target warnings - set minimum to 15.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+
         # Add header search path for sherpa-onnx C API
         config.build_settings['HEADER_SEARCH_PATHS'] ||= ['$(inherited)']
         config.build_settings['HEADER_SEARCH_PATHS'] << '"$(PODS_ROOT)/../Frameworks/sherpa-onnx-include"'
