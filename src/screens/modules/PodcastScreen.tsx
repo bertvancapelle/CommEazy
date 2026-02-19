@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import {
@@ -85,7 +85,7 @@ export function PodcastScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<SearchBarRef>(null);
 
   // Podcast Context
   const {
@@ -507,36 +507,15 @@ export function PodcastScreen() {
         {/* Search section (Discover tab only) */}
         {!showSubscriptions && (
           <View style={styles.searchSection}>
-            <View style={styles.searchContainer}>
-              <TextInput
-                ref={searchInputRef}
-                style={styles.searchInput}
-                placeholder={t('modules.podcast.searchPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmitEditing={() => {
-                  Keyboard.dismiss();
-                  handleSearch();
-                }}
-                returnKeyType="search"
-                maxLength={SEARCH_MAX_LENGTH}
-                autoCorrect={false}
-                autoCapitalize="none"
-                accessibilityLabel={t('modules.podcast.searchPlaceholder')}
-              />
-              <TouchableOpacity
-                style={[styles.searchButton, { backgroundColor: accentColor.primary }]}
-                onPress={() => {
-                  Keyboard.dismiss();
-                  handleSearch();
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.podcast.searchButton')}
-              >
-                <Icon name="search" size={24} color={colors.textOnPrimary} />
-              </TouchableOpacity>
-            </View>
+            <SearchBar
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder={t('modules.podcast.searchPlaceholder')}
+              searchButtonLabel={t('modules.podcast.searchButton')}
+              maxLength={SEARCH_MAX_LENGTH}
+            />
 
             {/* Country selector */}
             <View style={styles.countrySelector}>
@@ -1561,29 +1540,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    ...typography.body,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    color: colors.textPrimary,
-    minHeight: touchTargets.minimum,
-  },
-  searchButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   countrySelector: {
     marginTop: spacing.md,
   },

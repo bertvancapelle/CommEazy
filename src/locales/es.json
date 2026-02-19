@@ -124,6 +124,7 @@
     "noContacts": "Aún no hay contactos",
     "noContactsHint": "Añade tu primer contacto",
     "searchPlaceholder": "Buscar contactos...",
+    "searchButton": "Buscar",
     "nameLabel": "Nombre",
     "namePlaceholder": "Introduce el nombre",
     "phoneLabel": "Número de teléfono",

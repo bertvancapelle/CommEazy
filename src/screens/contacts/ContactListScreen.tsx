@@ -26,7 +26,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +33,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -222,22 +221,17 @@ export function ContactListScreen() {
         moduleId="contacts"
         icon="contacts"
         title={t('tabs.contacts')}
-        showAdMob={false}
+        showAdMob={true}
       />
 
-      {/* Search bar */}
+      {/* Search bar — standardized SearchBar component */}
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('contacts.searchPlaceholder')}
-          placeholderTextColor={colors.textTertiary}
+        <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          accessibilityLabel={t('contacts.searchPlaceholder')}
-          accessibilityHint={t('accessibility.searchContacts')}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="search"
+          onSubmit={() => {}} // Live filter — no explicit submit needed
+          placeholder={t('contacts.searchPlaceholder')}
+          searchButtonLabel={t('contacts.searchButton')}
         />
       </View>
 
@@ -292,15 +286,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
   },
-  searchInput: {
-    ...typography.body,
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    minHeight: touchTargets.minimum,
-    color: colors.textPrimary,
-  },
+  // searchInput removed — using standardized SearchBar component
   contactItem: {
     flexDirection: 'row',
     alignItems: 'center',

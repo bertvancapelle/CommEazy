@@ -101,6 +101,10 @@ export type { SearchButtonProps, SearchTabButtonProps } from './SearchButton';
 export { LibraryTabButton } from './LibraryTabButton';
 export type { LibraryTabButtonProps } from './LibraryTabButton';
 
+// SearchBar Component (standardized search input with button)
+export { SearchBar } from './SearchBar';
+export type { SearchBarProps, SearchBarRef } from './SearchBar';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

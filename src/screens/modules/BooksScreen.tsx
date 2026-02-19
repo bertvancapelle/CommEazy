@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, SearchTabButton } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
@@ -95,7 +95,7 @@ export function BooksScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<SearchBarRef>(null);
 
   // Books Context
   const {
@@ -416,36 +416,15 @@ export function BooksScreen() {
         {/* Search section */}
         {!showLibrary && (
           <View style={styles.searchSection}>
-            <View style={styles.searchContainer}>
-              <TextInput
-                ref={searchInputRef}
-                style={styles.searchInput}
-                placeholder={t('modules.books.searchPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmitEditing={() => {
-                  Keyboard.dismiss();
-                  handleSearch();
-                }}
-                returnKeyType="search"
-                maxLength={SEARCH_MAX_LENGTH}
-                autoCorrect={false}
-                autoCapitalize="none"
-                accessibilityLabel={t('modules.books.searchPlaceholder')}
-              />
-              <TouchableOpacity
-                style={[styles.searchButton, { backgroundColor: accentColor.primary }]}
-                onPress={() => {
-                  Keyboard.dismiss();
-                  handleSearch();
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.books.searchButton')}
-              >
-                <Icon name="search" size={24} color={colors.textOnPrimary} />
-              </TouchableOpacity>
-            </View>
+            <SearchBar
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder={t('modules.books.searchPlaceholder')}
+              searchButtonLabel={t('modules.books.searchButton')}
+              maxLength={SEARCH_MAX_LENGTH}
+            />
           </View>
         )}
 
@@ -1002,29 +981,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    ...typography.body,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    color: colors.textPrimary,
-    minHeight: touchTargets.minimum,
-  },
-  searchButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   libraryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
