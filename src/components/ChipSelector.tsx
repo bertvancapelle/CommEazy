@@ -158,7 +158,10 @@ export function ChipSelector({
       <TouchableOpacity
         onPress={handleLabelPress}
         disabled={!allowModeToggle}
-        style={styles.labelContainer}
+        style={[
+          styles.labelContainer,
+          allowModeToggle && styles.labelContainerTappable,
+        ]}
         accessibilityRole={allowModeToggle ? 'button' : 'text'}
         accessibilityLabel={allowModeToggle
           ? t('components.chipSelector.tapToChange', { current: displayLabel })
@@ -169,9 +172,14 @@ export function ChipSelector({
           : undefined
         }
       >
-        <Text style={styles.label}>{displayLabel}</Text>
+        <Text style={[
+          styles.label,
+          allowModeToggle && { color: accentColor.primary },
+        ]}>
+          {displayLabel}
+        </Text>
         {allowModeToggle && (
-          <Icon name="chevron-down" size={16} color={colors.textSecondary} />
+          <Icon name="chevron-down" size={18} color={accentColor.primary} />
         )}
       </TouchableOpacity>
 
@@ -323,6 +331,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
     marginBottom: spacing.xs,
+  },
+  labelContainerTappable: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    alignSelf: 'flex-start', // Don't stretch full width
+    minHeight: 44, // Minimum touch target
   },
   label: {
     ...typography.label,
