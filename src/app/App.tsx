@@ -28,6 +28,7 @@ import { PodcastProvider } from '@/contexts/PodcastContext';
 import { BooksProvider } from '@/contexts/BooksContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
 import { CallProvider } from '@/contexts/CallContext';
+import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
@@ -110,11 +111,13 @@ export default function App() {
                     <PodcastProvider>
                       <BooksProvider>
                         <ModuleConfigProvider>
-                          <CallProvider>
-                            <HoldToNavigateProvider>
-                              <AppNavigator />
-                            </HoldToNavigateProvider>
-                          </CallProvider>
+                          <FavoriteLocationsProvider>
+                            <CallProvider>
+                              <HoldToNavigateProvider>
+                                <AppNavigator />
+                              </HoldToNavigateProvider>
+                            </CallProvider>
+                          </FavoriteLocationsProvider>
                         </ModuleConfigProvider>
                       </BooksProvider>
                     </PodcastProvider>

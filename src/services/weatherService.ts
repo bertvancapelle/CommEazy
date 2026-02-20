@@ -493,7 +493,7 @@ class WeatherServiceImpl {
   /**
    * Get rain summary text in language
    */
-  private getRainSummary(summaryKey: string, language: string): string {
+  getRainSummary(summaryKey: string, language: string): string {
     const langCode = language.split('-')[0].toLowerCase();
 
     const summaries: Record<string, Record<string, string>> = {
