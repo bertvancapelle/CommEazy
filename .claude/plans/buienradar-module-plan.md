@@ -24,7 +24,7 @@ Uitbreiding van de bestaande Weather module met een Radar tab die real-time neer
 
 ---
 
-## Fase 1: FavoriteLocationsContext (Fundament)
+## Fase 1: FavoriteLocationsContext (Fundament) ✅ DONE
 
 ### Doel
 Refactor locatiebeheer naar gedeelde Context zodat Weather en Radar dezelfde favorieten gebruiken.
@@ -75,17 +75,17 @@ interface FavoriteLocationsContextValue {
 
 ### Taken
 
-- [ ] **1.1** Maak `FavoriteLocationsContext.tsx`
-- [ ] **1.2** Voeg GPS locatie als vaste "Huidige locatie" optie toe
-- [ ] **1.3** Migreer bestaande `weather_saved_locations` data bij eerste load
-- [ ] **1.4** Wrap App met `FavoriteLocationsProvider`
-- [ ] **1.5** Refactor `useWeather.ts` — verwijder locatie management
-- [ ] **1.6** Refactor `WeatherScreen.tsx` — gebruik context
-- [ ] **1.7** Test: Weather werkt nog steeds correct
+- [x] **1.1** Maak `FavoriteLocationsContext.tsx`
+- [x] **1.2** Voeg GPS locatie als vaste "Huidige locatie" optie toe
+- [x] **1.3** Migreer bestaande `weather_saved_locations` data bij eerste load
+- [x] **1.4** Wrap App met `FavoriteLocationsProvider`
+- [ ] **1.5** Refactor `useWeather.ts` — verwijder locatie management (later)
+- [ ] **1.6** Refactor `WeatherScreen.tsx` — gebruik context (later)
+- [x] **1.7** Test: Weather werkt nog steeds correct
 
 ---
 
-## Fase 2: Weather Module Tabs
+## Fase 2: Weather Module Tabs ✅ DONE
 
 ### Doel
 Voeg tab navigatie toe aan WeatherScreen: "Weer" en "Radar".
@@ -121,15 +121,15 @@ Voeg tab navigatie toe aan WeatherScreen: "Weer" en "Radar".
 
 ### Taken
 
-- [ ] **2.1** Maak `WeatherTab.tsx` — extract weather UI
-- [ ] **2.2** Maak `RadarTab.tsx` — placeholder
-- [ ] **2.3** Voeg tab state en tab buttons toe aan `WeatherScreen.tsx`
-- [ ] **2.4** Voeg i18n keys toe voor tabs
-- [ ] **2.5** Test: Tab switching werkt
+- [x] **2.1** Maak `WeatherTab.tsx` — extract weather UI (inline in WeatherScreen)
+- [x] **2.2** Maak `RadarTab.tsx` — placeholder (RadarPlaceholder component)
+- [x] **2.3** Voeg tab state en tab buttons toe aan `WeatherScreen.tsx`
+- [x] **2.4** Voeg i18n keys toe voor tabs
+- [x] **2.5** Test: Tab switching werkt
 
 ---
 
-## Fase 3: react-native-maps Installatie
+## Fase 3: react-native-maps Installatie ✅ DONE
 
 ### Doel
 Installeer en configureer `react-native-maps` voor iOS en Android.
@@ -139,26 +139,31 @@ Installeer en configureer `react-native-maps` voor iOS en Android.
 **WIJZIGEN: `package.json`**
 ```json
 "dependencies": {
-  "react-native-maps": "^1.10.0"
+  "react-native-maps": "^1.10.3"  // RN 0.73 compatible versie
 }
 ```
 
 **WIJZIGEN: `ios/Podfile`**
-- Maps dependency (indien nodig)
+- Maps dependency automatisch toegevoegd door auto-linking
 
 **WIJZIGEN: `ios/CommEazyTemp/Info.plist`**
-- `NSLocationWhenInUseUsageDescription` (al aanwezig?)
-- `NSLocationAlwaysUsageDescription` (optioneel)
+- `NSLocationWhenInUseUsageDescription` (al aanwezig)
 
 **WIJZIGEN: `android/app/src/main/AndroidManifest.xml`**
-- Google Maps API key meta-data (voor Android)
+- Google Maps API key meta-data (voor Android) — TODO voor Android
+
+### Notities
+
+- Versie 1.27.1 (latest) is NIET compatibel met RN 0.73 (`get_folly_config` error)
+- Versie 1.10.3 werkt correct met RN 0.73
+- Apple Maps wordt gebruikt op iOS (geen Google Maps API key nodig)
 
 ### Taken
 
-- [ ] **3.1** `npm install react-native-maps`
-- [ ] **3.2** `cd ios && pod install`
-- [ ] **3.3** Voeg location permission strings toe (indien niet aanwezig)
-- [ ] **3.4** Test: Basis MapView rendert in RadarTab
+- [x] **3.1** `npm install react-native-maps@1.10.3`
+- [x] **3.2** `cd ios && pod install`
+- [x] **3.3** Voeg location permission strings toe (al aanwezig)
+- [ ] **3.4** Test: Basis MapView rendert in RadarTab (volgende fase)
 
 ---
 

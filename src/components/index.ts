@@ -113,6 +113,25 @@ export type { ChipSelectorProps, ChipOption, FilterMode } from './ChipSelector';
 export { ArticleViewer } from './ArticleViewer';
 export type { ArticleViewerProps } from './ArticleViewer';
 
+// ArticlePreviewModal Component (article preview with choice options)
+export { ArticlePreviewModal } from './ArticlePreviewModal';
+export type { ArticlePreviewModalProps } from './ArticlePreviewModal';
+
+// ArticleWebViewer Component (embedded WebView for full article reading)
+export { ArticleWebViewer } from './ArticleWebViewer';
+export type { ArticleWebViewerProps } from './ArticleWebViewer';
+
+// Nu.nl Logo Component (for source attribution in news module)
+export { NunlLogo } from './NunlLogo';
+
+// Radar Map Component (for weather radar module)
+export { RadarMap } from './RadarMap';
+export type { RadarMapProps } from './RadarMap';
+
+// Time Slider Component (for radar time navigation)
+export { TimeSlider } from './TimeSlider';
+export type { TimeSliderProps } from './TimeSlider';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

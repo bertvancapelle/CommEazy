@@ -27,6 +27,9 @@ export interface WeatherLocation {
   /** Province/state (e.g., "Noord-Holland") */
   admin1?: string;
 
+  /** District/municipality (e.g., "Gemeente Amsterdam") */
+  admin2?: string;
+
   /** Latitude coordinate */
   latitude: number;
 
@@ -310,4 +313,115 @@ export const WMO_WEATHER_CODES: Record<number, WeatherCodeDescription> = {
   95: { nl: 'onweer', en: 'thunderstorm', de: 'Gewitter', fr: 'orage', es: 'tormenta' },
   96: { nl: 'onweer met lichte hagel', en: 'thunderstorm with light hail', de: 'Gewitter mit leichtem Hagel', fr: 'orage avec grêle légère', es: 'tormenta con granizo ligero' },
   99: { nl: 'onweer met zware hagel', en: 'thunderstorm with heavy hail', de: 'Gewitter mit schwerem Hagel', fr: 'orage avec forte grêle', es: 'tormenta con granizo intenso' },
+};
+
+// ============================================================
+// RainViewer Radar Types
+// ============================================================
+
+/**
+ * A single radar frame (past or forecast)
+ */
+export interface RainViewerFrame {
+  /** Unix timestamp (seconds) */
+  time: number;
+
+  /** Tile path segment (e.g., "/radar/1234567890/256/{z}/{x}/{y}/2/1_1.png") */
+  path: string;
+}
+
+/**
+ * RainViewer API radar section
+ */
+export interface RainViewerRadar {
+  /** Past radar frames (~12 frames, 2 hours history) */
+  past: RainViewerFrame[];
+
+  /** Nowcast/forecast frames (~6 frames, 30 min forecast) */
+  nowcast: RainViewerFrame[];
+}
+
+/**
+ * RainViewer API response (weather-maps.json)
+ */
+export interface RainViewerData {
+  /** API version */
+  version: string;
+
+  /** Unix timestamp when data was generated */
+  generated: number;
+
+  /** Host URL for tiles (e.g., "https://tilecache.rainviewer.com") */
+  host: string;
+
+  /** Radar data */
+  radar: RainViewerRadar;
+}
+
+/**
+ * RainViewer tile configuration options
+ */
+export interface RainViewerTileOptions {
+  /** Tile size (256 or 512) */
+  size: 256 | 512;
+
+  /**
+   * Color scheme
+   * 1 = Original
+   * 2 = Universal Blue
+   * 3 = TITAN
+   * 4 = The Weather Channel
+   * 5 = Meteored
+   * 6 = NEXRAD Level III
+   * 7 = Rainbow @ SELEX-SI
+   * 8 = Dark Sky
+   */
+  color: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+  /** Smooth rendering (0 = off, 1 = on) */
+  smooth: 0 | 1;
+
+  /** Snow detection (0 = off, 1 = on) */
+  snow: 0 | 1;
+}
+
+/**
+ * Default radar tile options
+ */
+export const DEFAULT_RADAR_TILE_OPTIONS: RainViewerTileOptions = {
+  size: 256,
+  color: 2, // Universal Blue - best visibility
+  smooth: 1,
+  snow: 1,
+};
+
+/**
+ * Radar module configuration
+ */
+export interface RadarModuleConfig {
+  /** Cache TTL in milliseconds (10 minutes) */
+  cacheTtl: number;
+
+  /** API URL */
+  apiUrl: string;
+
+  /** Default map zoom level */
+  defaultZoom: number;
+
+  /** Max tile zoom level */
+  maxTileZoom: number;
+
+  /** Tile opacity (0-1) */
+  tileOpacity: number;
+}
+
+/**
+ * Default radar module configuration
+ */
+export const RADAR_MODULE_CONFIG: RadarModuleConfig = {
+  cacheTtl: 10 * 60 * 1000, // 10 minutes
+  apiUrl: 'https://api.rainviewer.com/public/weather-maps.json',
+  defaultZoom: 7, // Good for regional view (~200km)
+  maxTileZoom: 12,
+  tileOpacity: 0.7,
 };
