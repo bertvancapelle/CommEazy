@@ -1157,6 +1157,7 @@
         "lastUpdated": "Zuletzt aktualisiert: {{time}}",
         "timeSlider": "Radar-Zeitregler",
         "timeSliderHint": "Schieben, um durch die Zeit zu navigieren",
+        "mapHint": "Zeigt Niederschlagsradar für Ihren Standort",
         "errors": {
           "network": "Radarbild kann nicht geladen werden. Überprüfe deine Internetverbindung.",
           "timeout": "Das Laden dauert zu lange. Bitte versuche es später erneut."

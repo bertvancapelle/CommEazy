@@ -1157,6 +1157,7 @@
         "lastUpdated": "Última actualización: {{time}}",
         "timeSlider": "Control de tiempo del radar",
         "timeSliderHint": "Desliza para navegar en el tiempo",
+        "mapHint": "Muestra el radar de precipitaciones de tu ubicación",
         "errors": {
           "network": "No se puede cargar la imagen del radar. Comprueba tu conexión a internet.",
           "timeout": "La carga está tardando demasiado. Por favor, inténtalo más tarde."

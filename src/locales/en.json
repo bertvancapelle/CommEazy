@@ -1164,6 +1164,7 @@
         "lastUpdated": "Last updated: {{time}}",
         "timeSlider": "Radar time slider",
         "timeSliderHint": "Slide to navigate through time",
+        "mapHint": "Shows precipitation radar for your location",
         "errors": {
           "network": "Cannot load radar image. Check your internet connection.",
           "timeout": "Loading is taking too long. Please try again later."

@@ -1172,6 +1172,7 @@
         "lastUpdated": "Laatst bijgewerkt: {{time}}",
         "timeSlider": "Tijdslider voor radar",
         "timeSliderHint": "Schuif om door de tijd te navigeren",
+        "mapHint": "Toont neerslagradar voor uw locatie",
         "errors": {
           "network": "Kan radarbeeld niet laden. Controleer je internetverbinding.",
           "timeout": "Het laden duurt te lang. Probeer het later opnieuw."

@@ -20,6 +20,7 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useTranslation } from 'react-i18next';
 
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { RADAR_MODULE_CONFIG } from '@/types/weather';
@@ -63,6 +64,7 @@ export function RadarMap({
   markerColor,
   height,
 }: RadarMapProps): React.ReactElement {
+  const { t } = useTranslation();
   const { accentColor } = useAccentColorContext();
 
   // Determine marker color
@@ -167,8 +169,8 @@ export function RadarMap({
         scalesPageToFit={true}
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
-        accessibilityLabel="Buienradar kaart"
-        accessibilityHint="Toont neerslagradar voor uw locatie"
+        accessibilityLabel={t('modules.weather.radar.title')}
+        accessibilityHint={t('modules.weather.radar.mapHint')}
       />
     </View>
   );

@@ -104,8 +104,8 @@ export function TimeSlider({
     <View style={styles.container}>
       {/* Labels row */}
       <View style={styles.labelsRow}>
-        <Text style={styles.labelText}>-2u</Text>
-        <Text style={styles.labelText}>+30min</Text>
+        <Text style={styles.labelText}>{t('modules.weather.radar.past')}</Text>
+        <Text style={styles.labelText}>{t('modules.weather.radar.forecast')}</Text>
       </View>
 
       {/* Slider */}
@@ -129,7 +129,11 @@ export function TimeSlider({
       </View>
 
       {/* Time display */}
-      <View style={styles.timeDisplay}>
+      <View
+        style={styles.timeDisplay}
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`${relativeTime}, ${absoluteTime}`}
+      >
         <Text style={styles.relativeTime}>{relativeTime}</Text>
         <Text style={styles.absoluteTime}>{absoluteTime}</Text>
       </View>

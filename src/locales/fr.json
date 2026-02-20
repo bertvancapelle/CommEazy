@@ -1157,6 +1157,7 @@
         "lastUpdated": "Dernière mise à jour : {{time}}",
         "timeSlider": "Curseur de temps radar",
         "timeSliderHint": "Faites glisser pour naviguer dans le temps",
+        "mapHint": "Affiche le radar de précipitations pour votre position",
         "errors": {
           "network": "Impossible de charger l'image radar. Vérifiez votre connexion internet.",
           "timeout": "Le chargement prend trop de temps. Veuillez réessayer plus tard."

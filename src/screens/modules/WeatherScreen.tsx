@@ -256,9 +256,14 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
       </View>
 
       {/* Legend */}
-      <View style={styles.radarLegend}>
+      <View
+        style={styles.radarLegend}
+        accessibilityLabel={t('modules.weather.radar.legend')}
+        accessibilityHint={`${t('modules.weather.radar.legendLight')} - ${t('modules.weather.radar.legendModerate')} - ${t('modules.weather.radar.legendHeavy')}`}
+        accessibilityRole="image"
+      >
         <Text style={styles.radarLegendLabel}>{t('modules.weather.radar.legendLight')}</Text>
-        <View style={styles.radarLegendGradient}>
+        <View style={styles.radarLegendGradient} accessibilityElementsHidden={true}>
           <View style={[styles.radarLegendColor, { backgroundColor: '#00FF00' }]} />
           <View style={[styles.radarLegendColor, { backgroundColor: '#FFFF00' }]} />
           <View style={[styles.radarLegendColor, { backgroundColor: '#FF8000' }]} />
