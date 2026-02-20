@@ -537,16 +537,23 @@ export function HoldToNavigateWrapper({
     setProcessingStateRef.current = voiceCommands.setProcessingState;
   }, [voiceCommands.setOnResultReady, voiceCommands.startListening, voiceCommands.clearState, voiceCommands.setProcessingState]);
 
+  // Ref to hold voiceCommands functions to avoid dependency on the object
+  const voiceCommandsRef = useRef(voiceCommands);
+  useEffect(() => {
+    voiceCommandsRef.current = voiceCommands;
+  }, [voiceCommands]);
+
   // Register callback to be notified when VoiceFocusContext session ends (timeout)
   // This ensures we stop the microphone when the session times out
+  // NOTE: We use voiceCommandsRef to avoid re-registering on every voiceCommands change
   useEffect(() => {
     const handleSessionEnd = () => {
       console.log('[HoldToNavigate] Session end callback received from VoiceFocusContext');
       // Stop microphone and clear state
       setIsVoiceSessionActive(false);
       isVoiceSessionActiveRef.current = false;
-      voiceCommands.stopListening();
-      voiceCommands.clearState();
+      voiceCommandsRef.current.stopListening();
+      voiceCommandsRef.current.clearState();
       // Clear callback
       callbackRegisteredRef.current = false;
       setOnResultReadyRef.current(null);
@@ -562,7 +569,7 @@ export function HoldToNavigateWrapper({
     return () => {
       voiceFocus.registerSessionEndCallback(null);
     };
-  }, [voiceFocus.registerSessionEndCallback, voiceCommands]);
+  }, [voiceFocus.registerSessionEndCallback]);
 
   // Clear single-finger press timer helper
   const clearPressTimer = useCallback(() => {

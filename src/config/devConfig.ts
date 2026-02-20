@@ -80,13 +80,30 @@ export const TEST_ACCOUNTS = {
     password: 'test123',
     name: 'Oma',
   },
-  // Physical device (iPhone 14)
+  // Physical device (iPhone 14, Bert)
   test: {
     jid: 'test@commeazy.local',
     password: 'test123',
     name: 'Test',
   },
+  // Physical device (Jeanine's iPhone)
+  jeanine: {
+    jid: 'jeanine@commeazy.local',
+    password: 'test123',
+    name: 'Jeanine',
+  },
 } as const;
+
+// ============================================================
+// External API Keys (Development only)
+// ============================================================
+
+/**
+ * OpenWeatherMap API key for radar tiles
+ * Free tier: 1,000,000 calls/month
+ * Get yours at: https://openweathermap.org/api
+ */
+export const OWM_API_KEY = 'f9df16dd02ba0817ebd46cf773c7b6b9';
 
 // ============================================================
 // Helper to log current config

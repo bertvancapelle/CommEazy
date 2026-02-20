@@ -455,7 +455,7 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
   }, [t]);
 
   const registerSessionEndCallback = useCallback((callback: (() => void) | null) => {
-    console.debug('[VoiceFocusContext] Registering session end callback:', !!callback);
+    // NOTE: Removed debug log - this was causing console spam due to frequent re-registration
     sessionEndCallbackRef.current = callback;
   }, []);
 
@@ -476,40 +476,45 @@ export function VoiceFocusProvider({ children }: VoiceFocusProviderProps) {
     (listId: string, items: VoiceFocusableItem[]) => {
       console.debug(`[VoiceFocusContext] registerList called: ${listId} with ${items.length} items`);
 
-      setLists((prev) => {
-        const newLists = new Map(prev);
-        newLists.set(listId, {
-          id: listId,
-          items,
-          focusedItemId: focusState.get(listId) || null,
-          registeredAt: Date.now(),
+      // Use functional updates to avoid dependency on focusState
+      // This prevents the callback from changing when focusState changes
+      setFocusState((prevFocusState) => {
+        const currentFocus = prevFocusState.get(listId);
+
+        setLists((prev) => {
+          const newLists = new Map(prev);
+          newLists.set(listId, {
+            id: listId,
+            items,
+            focusedItemId: currentFocus || null,
+            registeredAt: Date.now(),
+          });
+          return newLists;
         });
-        return newLists;
-      });
 
-      // Q1: Last registered list becomes active (automatic)
-      setActiveListId(listId);
+        // Q1: Last registered list becomes active (automatic)
+        setActiveListId(listId);
 
-      // Auto-focus first item if no item is focused yet (for initial visual feedback)
-      // NOTE: This only sets FOCUS (visual highlight), it does NOT call onSelect!
-      // The onSelect callback is only called when user says "open"/"kies" via selectFocused()
-      const currentFocus = focusState.get(listId);
-      console.debug(`[VoiceFocusContext] Current focus for ${listId}: ${currentFocus}`);
+        // Auto-focus first item if no item is focused yet (for initial visual feedback)
+        // NOTE: This only sets FOCUS (visual highlight), it does NOT call onSelect!
+        // The onSelect callback is only called when user says "open"/"kies" via selectFocused()
+        console.debug(`[VoiceFocusContext] Current focus for ${listId}: ${currentFocus}`);
 
-      if (!currentFocus && items.length > 0) {
-        console.debug(`[VoiceFocusContext] Auto-focusing first item: ${items[0].id} (${items[0].label}) - visual only, NOT selecting`);
-        setFocusState((prev) => {
-          const newState = new Map(prev);
+        if (!currentFocus && items.length > 0) {
+          console.debug(`[VoiceFocusContext] Auto-focusing first item: ${items[0].id} (${items[0].label}) - visual only, NOT selecting`);
+          const newState = new Map(prevFocusState);
           newState.set(listId, items[0].id);
+          // Announce the focused item
+          AccessibilityInfo.announceForAccessibility(
+            t('voiceCommands.focusedOn', { name: items[0].label })
+          );
           return newState;
-        });
-        // Announce the focused item
-        AccessibilityInfo.announceForAccessibility(
-          t('voiceCommands.focusedOn', { name: items[0].label })
-        );
-      }
+        }
+
+        return prevFocusState; // No change needed
+      });
     },
-    [focusState, t]
+    [t]
   );
 
   const unregisterList = useCallback((listId: string) => {
@@ -1064,8 +1069,8 @@ export function useVoiceFocusList(
   // Handle voice session state changes AND item changes
   // IMPORTANT: We need to re-register when items change while session is active
   // because contacts may load asynchronously after the screen mounts
+  // NOTE: Debug logging removed - was causing console spam during normal navigation
   useEffect(() => {
-    console.debug(`[VoiceFocusList] useEffect triggered - isVoiceSessionActive: ${isVoiceSessionActive}, items: ${items.length}, isRegistered: ${isRegisteredRef.current}`);
 
     if (isVoiceSessionActive && items.length > 0) {
       // Voice session is active and we have items - register (or re-register)

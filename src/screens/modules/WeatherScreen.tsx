@@ -51,6 +51,7 @@ import {
   configureRadarService,
   type RadarData,
 } from '@/services/radarService';
+import { OWM_API_KEY } from '@/config/devConfig';
 import type { WeatherLocation, DailyForecast, RadarFrame } from '@/types/weather';
 import { WEATHER_MODULE_CONFIG } from '@/types/weather';
 
@@ -132,12 +133,12 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
     return getRadarTileUrl(frame);
   }, [radarData, allFrames, currentFrameIndex]);
 
-  // Configure radar service on mount
-  // Note: Set OWM API key via configureRadarService({ owmApiKey: '...' }) to enable 2-hour forecast
-  // Without API key, falls back to RainViewer (30 min forecast)
+  // Configure radar service on mount with OWM API key for 2-hour forecast
   useEffect(() => {
-    // TODO: Load OWM API key from secure storage or environment
-    // configureRadarService({ owmApiKey: process.env.OWM_API_KEY });
+    if (OWM_API_KEY) {
+      configureRadarService({ owmApiKey: OWM_API_KEY });
+      console.info('[RadarTab] Configured OpenWeatherMap provider with API key');
+    }
   }, []);
 
   // Fetch radar data on mount and when location changes
