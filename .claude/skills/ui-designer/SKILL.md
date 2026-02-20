@@ -1899,6 +1899,99 @@ const handleToggleFavorite = useCallback(async () => {
 // Duidelijk herkenbaar als knop
 ```
 
+### 10b. ICON VALIDATIE (VERPLICHT)
+
+**VOORDAT een icoon wordt gebruikt in code, MOET worden gevalideerd dat:**
+1. Het icoon bestaat in de `IconName` type definitie (`src/components/Icon.tsx`)
+2. Het icoon een correcte SVG implementatie heeft in de `Icon` component
+3. De icoon naam exact overeenkomt (case-sensitive)
+
+**Waarom dit kritiek is:**
+- De `Icon` component heeft een **fallback naar een lege cirkel** wanneer een icoon naam niet gevonden wordt
+- Dit is visueel NIET herkenbaar als een fout — het toont gewoon een cirkel
+- Senioren begrijpen niet wat een mysterieuze cirkel betekent
+- Dit probleem wordt pas ontdekt tijdens handmatig testen op device
+
+**Validatie stappen:**
+
+1. **Check IconName type** — Open `src/components/Icon.tsx` en zoek naar de `IconName` type definitie
+2. **Verifieer de case** — Icoon namen zijn exact, bijv. `check-all` niet `checkAll` of `CHECK-ALL`
+3. **Check SVG implementatie** — Zoek naar `case 'icoon-naam':` in de switch statement
+
+**Beschikbare iconen (per februari 2026):**
+```typescript
+// Status iconen
+'check'        // Enkele vink (sent)
+'check-all'    // Dubbele vink (delivered)
+'time'         // Klok (pending)
+'alert'        // Waarschuwingsdriehoek (failed/error)
+'warning'      // Alternatieve waarschuwing
+
+// Navigatie
+'chevron-right', 'chevron-left', 'chevron-up', 'chevron-down'
+
+// Media
+'play', 'pause', 'stop', 'volume-up', 'mic'
+
+// Modules
+'radio', 'podcast', 'book', 'book-filled', 'news'
+'weather-sunny', 'weather-cloudy', 'weather-rainy', etc.
+
+// Acties
+'plus', 'x', 'search', 'magnify', 'camera'
+'heart', 'heart-filled', 'trash-can-outline'
+
+// Overig
+'person', 'group', 'groups', 'contacts', 'chat', 'call'
+'settings', 'notifications', 'language', 'info', 'backup', 'device'
+```
+
+**Bij het toevoegen van een NIEUW icoon:**
+
+1. **Voeg toe aan IconName type:**
+```typescript
+export type IconName =
+  | 'bestaand-icoon'
+  | 'nieuw-icoon'  // ← Toevoegen
+  | ...
+```
+
+2. **Voeg SVG case toe:**
+```typescript
+case 'nieuw-icoon':
+  return (
+    <Svg {...iconProps}>
+      <Path d="..." stroke={color} strokeWidth={sw} ... />
+    </Svg>
+  );
+```
+
+3. **Test op device** — Verifieer dat het icoon correct rendert
+
+**Code review checklist voor iconen:**
+- [ ] Icoon naam bestaat in `IconName` type
+- [ ] Geen TypeScript errors over icoon naam
+- [ ] Getest op fysiek device (niet alleen simulator)
+- [ ] Geen mysterieuze cirkels zichtbaar in UI
+
+**Voorbeeld — FOUT (icoon bestaat niet):**
+```typescript
+// ❌ FOUT — 'clock' bestaat niet, zal een cirkel tonen
+<Icon name="clock" size={16} color={colors.textTertiary} />
+
+// ✅ GOED — 'time' is de correcte naam voor een klok icoon
+<Icon name="time" size={16} color={colors.textTertiary} />
+```
+
+**Voorbeeld — FOUT (verkeerde case):**
+```typescript
+// ❌ FOUT — camelCase i.p.v. kebab-case
+<Icon name="checkAll" size={16} color={accentColor.primary} />
+
+// ✅ GOED — kebab-case
+<Icon name="check-all" size={16} color={accentColor.primary} />
+```
+
 ### 11. OVERLAYS EN MODALS (VERPLICHT)
 
 Overlays en modals die content vervangen of verbergen MOETEN een ondoorzichtige achtergrond hebben. Senioren raken verward wanneer ze content "door" een overlay heen kunnen zien.
@@ -2295,6 +2388,11 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 - [ ] Zoekvelden: Hoogte exact 60pt (gelijk aan zoekknop)
 - [ ] Zoekvelden: ZOWEL toetsenbord "Zoek" ALS zichtbare zoekknop (beide triggeren zelfde functie)
 - [ ] Zoekvelden: `search` icoon (vergrootglas) in zichtbare knop, NOOIT cirkel of ander icoon
+- [ ] **Module Search Pattern:** SearchBar ALTIJD op hoofdscherm, NOOIT in een modal (zie CLAUDE.md sectie 15)
+- [ ] **Module Search Pattern:** Tabs gebruiken voor Favorieten/Zoeken (FavoriteTabButton + SearchTabButton)
+- [ ] **Module Search Pattern:** API zoeken = expliciete submit (onSubmit roept zoekfunctie aan)
+- [ ] **Module Search Pattern:** Lokale filter = live filtering (alleen voor lokale data zoals contacten)
+- [ ] **Module Search Pattern:** Geen lege onSubmit — `onSubmit={() => {}}` is VERBODEN voor API zoeken
 - [ ] Module screen headers: icoon + naam + module kleur achtergrond (consistent met navigatiemenu)
 - [ ] Module screen headers: safe area insets gerespecteerd, tekst in wit
 - [ ] Tab/toggle selectors: actieve tab = accent achtergrond, inactieve tab = dunne rand
