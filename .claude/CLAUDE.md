@@ -106,6 +106,8 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Media modules (Radio/Podcast/Audiobook)** | **ui-designer, accessibility-specialist, react-native-expert, ios-specialist** |
 | **ChipSelector (Land/Taal filter)** | **architecture-lead, react-native-expert** — API land/taal ondersteuning MOET eerst gevalideerd worden |
 | **TTS (Text-to-Speech)** | **accessibility-specialist, react-native-expert, ios-specialist** — Nederlands MOET Piper TTS (nl_NL-rdh-high) gebruiken |
+| **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern (sectie 15) MOET worden gevolgd |
+| **Modal met zoekfunctie** | **BLOKKEERDER** — Zoeken mag NOOIT in een modal, zie sectie 15.1 |
 
 ### Conflict Resolutie Hiërarchie
 
@@ -153,14 +155,77 @@ Dit is **niet optioneel**. Na elke logische milestone MOET Claude voorstellen om
 - Met bekende bugs die nog gefixed moeten worden
 - Met debug code (`console.log` overal)
 
-### Wanneer Pushen:
+### ⚠️ Commit + Push ALTIJD Samen
 
-| Situatie | Push? |
-|----------|-------|
-| **Einde werksessie** | ✅ Altijd |
-| **Voor grote refactor** | ✅ Backup |
-| **Na milestone commit** | ✅ Aanbevolen |
-| **Gedeelde branch** | ✅ Vaak |
+**Dit is een gebruikersvoorkeur.** Wanneer Claude vraagt of een commit gemaakt kan worden, voer ALTIJD zowel de commit ALS de push uit. De gebruiker doet ze toch altijd samen.
+
+```bash
+# ALTIJD beide commando's uitvoeren:
+git add . && git commit -m "..." && git push
+```
+
+**Claude's gedrag:**
+- ❌ NIET: "Zal ik committen?" → wacht → "Zal ik pushen?"
+- ✅ WEL: "Zal ik committen en pushen?" → voer beide uit
+
+### Na Push: Wanneer Clean Build Nodig Is
+
+**Clean build is NIET na elke push nodig.** Incrementele builds zijn veel sneller en meestal voldoende.
+
+#### ✅ Clean Build ALLEEN bij:
+
+| Situatie | Waarom |
+|----------|--------|
+| **i18n wijzigingen** | Vertalingen worden gecached door Metro |
+| **Native module wijzigingen** | .mm/.m/.swift bestanden vereisen clean build |
+| **CocoaPods/dependency updates** | Nieuwe libraries moeten volledig gelinkt worden |
+| **"Phantom" build errors** | Errors die niet kloppen met de code |
+| **Branch wissel met grote verschillen** | Voorkomt stale object files |
+
+#### ❌ Geen Clean Build nodig bij:
+
+- Normale TypeScript/JavaScript wijzigingen
+- Styling aanpassingen
+- Component refactoring
+- Nieuwe screens toevoegen
+
+#### Clean Build Procedure (wanneer nodig):
+
+```bash
+# 1. Metro cache reset
+rm -rf /Users/bertvancapelle/Projects/CommEazy/node_modules/.cache
+rm -rf $TMPDIR/metro-* $TMPDIR/haste-map-*
+
+# 2. Xcode DerivedData (alleen CommEazy)
+rm -rf ~/Library/Developer/Xcode/DerivedData/CommEazyTemp-*
+```
+
+Dan in Xcode: **⌘⇧K** (Clean Build) gevolgd door **⌘R** (Build & Run).
+
+#### Maandelijks Onderhoud (optioneel):
+
+```bash
+# Volledige Xcode cache cleanup (~2-8 GB)
+rm -rf ~/Library/Developer/Xcode/DerivedData
+
+# Ongebruikte simulators verwijderen
+xcrun simctl delete unavailable
+```
+
+**Claude's post-push output (standaard):**
+```
+✅ Push voltooid naar origin/main
+
+📱 **Volgende stap:** Druk op ⌘R in Xcode om te builden.
+```
+
+**Claude's post-push output (bij i18n/native wijzigingen):**
+```
+✅ Push voltooid naar origin/main
+
+⚠️ **Clean build aanbevolen** — i18n/native wijzigingen gedetecteerd.
+Voer uit: ⌘⇧K (Clean Build) → ⌘R (Build & Run)
+```
 
 ### Claude's Verantwoordelijkheid
 
@@ -1392,7 +1457,178 @@ grep -rL "SearchBar" src/screens/modules/PodcastScreen.tsx src/screens/modules/B
 
 # Check welke screens nog custom searchInput styles hebben (moet SearchBar gebruiken)
 grep -r "searchInput:" src/screens/
+
+# Check welke screens zoekfunctionaliteit in een Modal hebben (VERBODEN)
+grep -r "Modal.*search\|search.*Modal" src/screens/modules/*.tsx
 ```
+
+---
+
+## 15. Module Search Pattern (VERPLICHT)
+
+**ALLE modules met zoek/discovery functionaliteit** MOETEN dit pattern volgen. Dit garandeert consistente UX across alle modules.
+
+### 15.1 Zoeklocatie: ALTIJD op Hoofdscherm
+
+Zoekfunctionaliteit MOET direct zichtbaar zijn op het hoofdscherm, **NOOIT verborgen in een modal**.
+
+**Waarom?**
+- Senioren verwachten dat zoeken direct beschikbaar is
+- Extra taps naar modals = extra verwarring
+- Consistentie met andere modules (Radio, Podcast, Books)
+
+**✅ CORRECT — Zoeken op hoofdscherm:**
+```
+┌─────────────────────────────────────┐
+│        📻 Radio                     │
+├─────────────────────────────────────┤
+│  [❤️ Favorieten] [🔍 Zoeken]        │  ← Tabs direct zichtbaar
+├─────────────────────────────────────┤
+│  🔍 [__Zoek een zender...__] [🔍]   │  ← SearchBar op hoofdscherm
+├─────────────────────────────────────┤
+│  Zoekresultaten / Content...        │
+└─────────────────────────────────────┘
+```
+
+**❌ FOUT — Zoeken in modal:**
+```
+┌─────────────────────────────────────┐
+│        🌤️ Weer                      │
+├─────────────────────────────────────┤
+│  📍 Amsterdam                    ▼  │  ← Tik om modal te openen
+├─────────────────────────────────────┤
+│  Weerdata...                        │
+│                                     │
+│     ┌─────────────────────┐         │
+│     │ [Modal met zoek]    │         │  ← VERBODEN: verborgen in modal
+│     └─────────────────────┘         │
+└─────────────────────────────────────┘
+```
+
+### 15.2 Tabs: Favorieten vs Zoeken
+
+Modules met zowel favorieten/opgeslagen items ALS zoekfunctionaliteit MOETEN tabs gebruiken:
+
+| Tab | Component | Inhoud |
+|-----|-----------|--------|
+| **Favorieten** | `FavoriteTabButton` | Opgeslagen/favoriete items |
+| **Zoeken** | `SearchTabButton` | Discovery/search interface |
+
+**Implementatie:**
+```typescript
+import { FavoriteTabButton, SearchTabButton } from '@/components';
+
+const [showFavorites, setShowFavorites] = useState(true);
+
+// Tab bar
+<View style={styles.tabBar}>
+  <FavoriteTabButton
+    isActive={showFavorites}
+    onPress={() => setShowFavorites(true)}
+    count={savedLocations.length}
+    label={t('modules.weather.myLocations')}
+  />
+  <SearchTabButton
+    isActive={!showFavorites}
+    onPress={() => setShowFavorites(false)}
+  />
+</View>
+
+// Content based on active tab
+{showFavorites ? (
+  <FavoritesContent />
+) : (
+  <SearchContent />
+)}
+```
+
+### 15.3 Zoekgedrag: API vs Lokaal
+
+| Type | Gedrag | Trigger | Wanneer gebruiken |
+|------|--------|---------|-------------------|
+| **API zoeken** | Expliciete submit | Enter toets OF zoekknop | External APIs (Podcast, Radio, Books, Weather) |
+| **Lokale filter** | Live filtering | Bij elke keystroke | Lokale data (Contacten lijst) |
+
+**API zoeken (expliciete submit):**
+```typescript
+const handleSearch = useCallback(async () => {
+  if (!searchQuery.trim()) return;
+  setIsLoading(true);
+  const results = await searchLocations(searchQuery);
+  setSearchResults(results);
+  setIsLoading(false);
+}, [searchQuery]);
+
+<SearchBar
+  value={searchQuery}
+  onChangeText={setSearchQuery}
+  onSubmit={handleSearch}  // ← Expliciete submit
+  placeholder={t('modules.weather.searchPlaceholder')}
+/>
+```
+
+**Lokale filter (live filtering):**
+```typescript
+// Alleen voor lokale data zoals contactenlijst
+<SearchBar
+  value={searchQuery}
+  onChangeText={(text) => {
+    setSearchQuery(text);
+    filterLocalData(text);  // ← Live filtering
+  }}
+  onSubmit={() => {}}  // Geen expliciete submit nodig
+  placeholder={t('contacts.searchPlaceholder')}
+/>
+```
+
+### 15.4 Weather Module Specifiek
+
+Weather zoekt via **externe API** (Open-Meteo geocoding), dus MOET:
+- ✅ Tabs gebruiken: "Mijn Locaties" | "Zoeken"
+- ✅ SearchBar op hoofdscherm (niet in modal)
+- ✅ Expliciete submit (niet live filtering)
+- ✅ Weerdata tonen wanneer locatie geselecteerd is
+
+**Weather Screen Layout:**
+```
+┌─────────────────────────────────────┐
+│  🌤️ Weer                            │  ← ModuleHeader
+├─────────────────────────────────────┤
+│  [📍 Mijn Locaties] [🔍 Zoeken]     │  ← Tabs
+├─────────────────────────────────────┤
+│                                     │
+│  [Mijn Locaties tab:]               │
+│  - Amsterdam (geselecteerd) ❤️      │
+│  - Rotterdam ❤️                     │
+│  - Utrecht ❤️                       │
+│                                     │
+│  [Zoeken tab:]                      │
+│  🔍 [__Zoek locatie...__] [🔍]      │
+│  Zoekresultaten...                  │
+│                                     │
+├─────────────────────────────────────┤
+│  [Weerdata voor geselecteerde       │
+│   locatie - altijd zichtbaar]       │
+└─────────────────────────────────────┘
+```
+
+### 15.5 Module Search Pattern Checklist
+
+Bij ELKE module met zoekfunctionaliteit:
+
+- [ ] **SearchBar op HOOFDSCHERM** — NOOIT in een modal
+- [ ] **Tabs gebruiken** — FavoriteTabButton + SearchTabButton (indien favorieten)
+- [ ] **API zoeken = expliciete submit** — onSubmit roept zoekfunctie aan
+- [ ] **Lokale filter = live filtering** — alleen voor lokale data
+- [ ] **Geen lege onSubmit** — `onSubmit={() => {}}` is VERBODEN voor API zoeken
+- [ ] **ChipSelector** — voor land/taal filtering (indien van toepassing)
+
+### 15.6 Automatische Trigger
+
+| Wijziging bevat... | Verplichte validatie door |
+|-------------------|---------------------------|
+| **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern MOET worden gevolgd |
+| **Modal met zoekfunctie** | **BLOKKEERDER** — Zoeken mag NOOIT in een modal |
 
 ---
 
