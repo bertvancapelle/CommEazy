@@ -19,7 +19,8 @@ Uitbreiding van de bestaande Weather module met een Radar tab die real-time neer
 | **Module integratie** | Tabs in Weather: "Weer" / "Radar" |
 | **Tijdnavigatie** | Slider (-2u tot +30min) met tijdlabel |
 | **Caching** | On-device, 10 minuten interval |
-| **Proxy server** | Alleen API key hiding (geen rate limiting) |
+| **Proxy server** | Nodig voor Open-Meteo (commercieel gebruik met AdMob vereist API key) |
+| **RainViewer** | Gratis, geen key nodig |
 
 ---
 

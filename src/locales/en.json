@@ -1074,6 +1074,10 @@
     },
     "weather": {
       "title": "Weather",
+      "tabs": {
+        "weather": "Weather",
+        "radar": "Radar"
+      },
       "loading": "Loading weather data...",
       "selectLocation": "Select location",
       "searchLocation": "Search location",
@@ -1127,7 +1131,34 @@
       "low": "Low",
       "precipitation": "Precipitation",
       "noPrecipitation": "Dry",
-      "rainChance": "Rain chance"
+      "rainChance": "Rain chance",
+      "radar": {
+        "title": "Rain Radar",
+        "loading": "Loading radar image...",
+        "noData": "No radar data available",
+        "noDataHint": "Please try again later",
+        "past": "Past hour",
+        "forecast": "Forecast",
+        "now": "Now",
+        "minutesAgo": "{{minutes}} min ago",
+        "minutesAhead": "In {{minutes}} min",
+        "play": "Play animation",
+        "pause": "Pause animation",
+        "zoomIn": "Zoom in",
+        "zoomOut": "Zoom out",
+        "currentLocation": "Current location",
+        "centerOnLocation": "Center on location",
+        "legend": "Legend",
+        "legendLight": "Light rain",
+        "legendModerate": "Moderate rain",
+        "legendHeavy": "Heavy rain",
+        "legendVeryHeavy": "Very heavy rain",
+        "lastUpdated": "Last updated: {{time}}",
+        "errors": {
+          "network": "Cannot load radar image. Check your internet connection.",
+          "timeout": "Loading is taking too long. Please try again later."
+        }
+      }
     }
   },
   "articleViewer": {

@@ -1088,6 +1088,10 @@
     },
     "weather": {
       "title": "Weer",
+      "tabs": {
+        "weather": "Weer",
+        "radar": "Radar"
+      },
       "loading": "Weerdata laden...",
       "selectLocation": "Kies locatie",
       "selectLocationHint": "Tik om een locatie te zoeken",
@@ -1135,7 +1139,34 @@
       "low": "Min",
       "precipitation": "Neerslag",
       "noPrecipitation": "Droog",
-      "rainChance": "Regenkans"
+      "rainChance": "Regenkans",
+      "radar": {
+        "title": "Buienradar",
+        "loading": "Radarbeeld laden...",
+        "noData": "Geen radardata beschikbaar",
+        "noDataHint": "Probeer het later opnieuw",
+        "past": "Afgelopen uur",
+        "forecast": "Voorspelling",
+        "now": "Nu",
+        "minutesAgo": "{{minutes}} min geleden",
+        "minutesAhead": "Over {{minutes}} min",
+        "play": "Animatie afspelen",
+        "pause": "Animatie pauzeren",
+        "zoomIn": "Inzoomen",
+        "zoomOut": "Uitzoomen",
+        "currentLocation": "Huidige locatie",
+        "centerOnLocation": "Centreer op locatie",
+        "legend": "Legenda",
+        "legendLight": "Lichte regen",
+        "legendModerate": "Matige regen",
+        "legendHeavy": "Zware regen",
+        "legendVeryHeavy": "Zeer zware regen",
+        "lastUpdated": "Laatst bijgewerkt: {{time}}",
+        "errors": {
+          "network": "Kan radarbeeld niet laden. Controleer je internetverbinding.",
+          "timeout": "Het laden duurt te lang. Probeer het later opnieuw."
+        }
+      }
     }
   },
   "articleViewer": {

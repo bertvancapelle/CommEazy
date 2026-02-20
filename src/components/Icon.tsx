@@ -74,7 +74,8 @@ export type IconName =
   | 'crosshairs-gps'
   | 'magnify'
   | 'alert'
-  | 'trash-can-outline';
+  | 'trash-can-outline'
+  | 'radar';
 
 interface IconProps {
   name: IconName;
@@ -1131,6 +1132,36 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             strokeWidth={sw}
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'radar':
+      // Radar / rain radar - concentric arcs
+      return (
+        <Svg {...iconProps}>
+          {/* Center dot */}
+          <Circle cx="12" cy="20" r="2" fill={color} />
+          {/* Inner arc */}
+          <Path
+            d="M8 16C9.1 14.9 10.5 14.2 12 14.2C13.5 14.2 14.9 14.9 16 16"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Middle arc */}
+          <Path
+            d="M5 13C6.8 11.2 9.3 10 12 10C14.7 10 17.2 11.2 19 13"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Outer arc */}
+          <Path
+            d="M2 10C4.5 7.5 8 5.8 12 5.8C16 5.8 19.5 7.5 22 10"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
           />
         </Svg>
       );
