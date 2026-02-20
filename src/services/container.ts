@@ -290,7 +290,12 @@ class ServiceContainerClass {
         // 6c. Subscribe to mock contacts' presence (dev only)
         // This sends presence subscription requests so we receive their online status
         const { getMockContactsForDevice } = await import('./mock/mockContacts');
-        const contactsToSubscribe = getMockContactsForDevice(devUser.jid);
+        const { getOtherDevicesPublicKeys } = await import('./mock/testKeys');
+
+        // Get public keys for other test devices
+        const publicKeyMap = await getOtherDevicesPublicKeys(devUser.jid);
+
+        const contactsToSubscribe = getMockContactsForDevice(devUser.jid, publicKeyMap);
         console.log(`[ServiceContainer] Subscribing to ${contactsToSubscribe.length} contacts' presence`);
         for (const contact of contactsToSubscribe) {
           try {

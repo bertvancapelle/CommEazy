@@ -63,10 +63,15 @@ export function CallsScreen() {
       try {
         if (__DEV__) {
           const { getMockContactsForDevice } = await import('@/services/mock');
+          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
           const { chatService } = await import('@/services/chat');
 
           const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
-          const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local');
+
+          // Get public keys for other test devices
+          const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'ik@commeazy.local');
+
+          const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
 
           const sorted = [...deviceContacts].sort((a, b) =>
             a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
@@ -101,10 +106,15 @@ export function CallsScreen() {
     }
   }, [searchQuery, contacts]);
 
-  // Navigate to active call screen when call becomes active
+  // Navigate to active call screen when OUTGOING call is initiated
+  // (Incoming calls are handled by RootNavigator in navigation/index.tsx)
   useEffect(() => {
-    if (activeCall && activeCall.state !== 'ended') {
-      // Navigate to active call screen
+    if (
+      activeCall &&
+      activeCall.direction === 'outgoing' &&
+      activeCall.state !== 'ended'
+    ) {
+      // Navigate to active call screen for outgoing calls
       navigation.navigate('ActiveCall', { callId: activeCall.id });
     }
   }, [activeCall, navigation]);

@@ -130,10 +130,17 @@ export const seedMockData = async (
     // Get device-specific contacts (includes the other test device as a contact)
     // Import chatService lazily to avoid circular dependency at module load time
     const { chatService } = await import('../chat');
+    const { getOtherDevicesPublicKeys } = await import('./testKeys');
     const currentUserJid = chatService.getMyJid();
     const currentUserName = chatService.getMyName();
+
+    // Get public keys for other test devices
+    const publicKeyMap = currentUserJid
+      ? await getOtherDevicesPublicKeys(currentUserJid)
+      : {};
+
     const contactsToSeed = currentUserJid
-      ? getMockContactsForDevice(currentUserJid)
+      ? getMockContactsForDevice(currentUserJid, publicKeyMap)
       : MOCK_CONTACTS;
 
     // Seed user profile with device credentials

@@ -355,7 +355,7 @@ export function SettingsMainScreen() {
           onSelect={() => navigation.navigate('CallSettings')}
         >
           <SubsectionButton
-            icon="phone"
+            icon="call"
             label={t('callSettings.title')}
             onPress={() => navigation.navigate('CallSettings')}
             accessibilityHint={t('callSettings.screenHint')}

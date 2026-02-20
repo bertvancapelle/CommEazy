@@ -189,12 +189,17 @@ async function findAllContactsByName(
     if (__DEV__) {
       // Dynamic import to avoid module loading at bundle time
       const { getMockContactsForDevice } = await import('@/services/mock');
+      const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
       const { chatService } = await import('@/services/chat');
 
       const currentUserJid = chatService.isInitialized
         ? chatService.getMyJid()
         : 'ik@commeazy.local';
-      contacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local');
+
+      // Get public keys for other test devices
+      const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'ik@commeazy.local');
+
+      contacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
     } else {
       // Production: use database service
       // TODO: Implement ServiceContainer.database.getContacts()

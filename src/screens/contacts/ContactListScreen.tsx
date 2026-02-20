@@ -94,11 +94,16 @@ export function ContactListScreen() {
         if (__DEV__) {
           // Dynamic import to avoid module loading at bundle time
           const { getMockContactsForDevice } = await import('@/services/mock');
+          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
           const { chatService } = await import('@/services/chat');
 
           // Get current user JID to show appropriate contacts (other test devices)
           const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
-          const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local');
+
+          // Get public keys for other test devices
+          const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'ik@commeazy.local');
+
+          const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
 
           const sorted = [...deviceContacts].sort((a, b) =>
             a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
