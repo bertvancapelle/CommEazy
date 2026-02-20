@@ -1798,3 +1798,51 @@ Metro starten voor fysiek device op LAN:
 npx react-native start --host 10.10.15.75
 ```
 
+---
+
+## Pre-Production Checklist (VERPLICHT voor App Store)
+
+Deze items MOETEN voltooid zijn voordat de app naar TestFlight/App Store gaat. Claude MOET deze checklist valideren wanneer de gebruiker vraagt om "productie klaar te maken" of "App Store submission".
+
+### Must-Have voor V1.0
+
+| Item | Status | Beschrijving |
+|------|--------|--------------|
+| **TTS Stem Download Service** | ⏳ TODO | Dynamisch downloaden van Piper stemmen per taal (niet bundelen) |
+| | | - Manifest JSON met beschikbare stemmen |
+| | | - CDN/hosting voor stembestanden (~50-100MB per stem) |
+| | | - Onboarding: taal kiezen → stem downloaden → preview |
+| | | - Instellingen: extra stemmen downloaden |
+| **Mock Mode Uitschakelen** | ⏳ TODO | Zie `MOCK_MODE_CHANGES.md` voor alle wijzigingen |
+| **Privacy Manifest (iOS)** | ⏳ TODO | Apple vereist dit voor App Store |
+| **Data Safety Section (Android)** | ⏳ TODO | Google Play vereist dit |
+| **App Icons & Splash Screen** | ⏳ TODO | Finale assets voor alle resoluties |
+| **TURN Server Credentials** | ⏳ TODO | Productie TURN server voor WebRTC |
+| **Firebase Productie Config** | ⏳ TODO | Aparte Firebase project voor productie |
+| **Prosody Productie Server** | ⏳ TODO | Hosted XMPP server (niet lokaal) |
+
+### Nice-to-Have voor V1.0
+
+| Item | Status | Beschrijving |
+|------|--------|--------------|
+| CallKit Integratie | ⏳ TODO | iOS systeem call UI |
+| Android Auto/CarPlay | ⏳ TODO | Handsfree bellen |
+| iPad Multitasking | ⏳ TODO | Split View, Slide Over |
+| Widget | ⏳ TODO | Recent contacts widget |
+
+### V1.1+ Backlog
+
+| Item | Beschrijving |
+|------|--------------|
+| Groepsvideobellen (4+ deelnemers) | SFU server nodig |
+| Spraakberichten | Opnemen en verzenden |
+| Locatie delen | Real-time locatie |
+| Herinneringen | Medicatie, afspraken |
+
+---
+
+**Claude's Validatie:** Wanneer de gebruiker vraagt om productie/release, MOET Claude:
+1. Deze checklist tonen
+2. Alle ⏳ TODO items benoemen
+3. Waarschuwen dat release NIET mogelijk is tot Must-Have items ✅ zijn
+
