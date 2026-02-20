@@ -1823,12 +1823,22 @@ Deze items MOETEN voltooid zijn voordat de app naar TestFlight/App Store gaat. C
 | **TURN Server Credentials** | ⏳ TODO | Productie TURN server voor WebRTC |
 | **Firebase Productie Config** | ⏳ TODO | Aparte Firebase project voor productie |
 | **Prosody Productie Server** | ⏳ TODO | Hosted XMPP server (niet lokaal) |
+| **VoIP Push Notifications** | ⏳ TODO | Inkomende calls wanneer app gesloten is |
+| | | - PushKit framework linken in Xcode |
+| | | - VoIP Push Certificate (Apple Developer Portal) |
+| | | - Server-side push gateway voor call signaling |
+| **CallKit Basis** | ✅ DONE | Native iOS call UI (in-app) |
+| | | - react-native-callkeep geïnstalleerd |
+| | | - Lockscreen UI, mute sync, call history |
+| **Call Error Handling** | ⏳ TODO | Robuuste reconnectie en error recovery |
+| | | - Netwerk verlies tijdens call → automatisch reconnecten |
+| | | - ICE failure → TURN fallback |
+| | | - Timeout handling |
 
 ### Nice-to-Have voor V1.0
 
 | Item | Status | Beschrijving |
 |------|--------|--------------|
-| CallKit Integratie | ⏳ TODO | iOS systeem call UI |
 | Android Auto/CarPlay | ⏳ TODO | Handsfree bellen |
 | iPad Multitasking | ⏳ TODO | Split View, Slide Over |
 | Widget | ⏳ TODO | Recent contacts widget |
