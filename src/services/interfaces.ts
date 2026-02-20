@@ -16,7 +16,7 @@ export type ContentType = 'text' | 'image' | 'video';
 export type EncryptionMode = '1on1' | 'encrypt-to-all' | 'shared-key';
 export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'expired';
 export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
-export type SupportedLanguage = 'nl' | 'en' | 'de' | 'fr' | 'es';
+export type SupportedLanguage = 'nl' | 'en' | 'de' | 'fr' | 'es' | 'it' | 'pl' | 'no' | 'sv' | 'da';
 export type SubscriptionTier = 'free' | 'premium';
 export type AgeBracket =
   | '18-24' | '25-34' | '35-44' | '45-54' | '55-64'

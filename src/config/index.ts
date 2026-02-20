@@ -56,7 +56,7 @@ export const config = {
 
   // Supported languages
   i18n: {
-    supported: ['nl', 'en', 'de', 'fr', 'es'] as const,
+    supported: ['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'no', 'sv', 'da'] as const,
     default: 'en' as const,
   },
 

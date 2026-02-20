@@ -41,6 +41,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { ContactAvatar, VoiceFocusable } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import {
@@ -52,7 +53,7 @@ import {
 import type { UserProfile, AgeBracket, SupportedLanguage, Gender } from '@/services/interfaces';
 
 // Supported languages (matches SupportedLanguage type from interfaces)
-const SUPPORTED_LANGUAGES: readonly SupportedLanguage[] = ['nl', 'en', 'de', 'fr', 'es'];
+const SUPPORTED_LANGUAGES: readonly SupportedLanguage[] = ['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'no', 'sv', 'da'];
 
 // Country and region data with flag emojis
 const COUNTRIES = ['NL', 'BE', 'LU', 'DE', 'AT', 'CH', 'FR', 'ES', 'GB', 'IE', 'US'] as const;
@@ -79,6 +80,11 @@ const LANGUAGE_FLAGS: Record<string, string> = {
   de: '🇩🇪',
   fr: '🇫🇷',
   es: '🇪🇸',
+  it: '🇮🇹',
+  pl: '🇵🇱',
+  no: '🇳🇴',
+  sv: '🇸🇪',
+  da: '🇩🇰',
 };
 
 const REGIONS_BY_COUNTRY: Record<string, string[]> = {
@@ -237,6 +243,7 @@ export function ProfileSettingsScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const { accentColor } = useAccentColor();
+  const { triggerFeedback } = useFeedback();
   const screenIsFocused = useIsFocused();
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -466,6 +473,7 @@ export function ProfileSettingsScreen() {
   }, [t]);
 
   const handleChangePhoto = useCallback(() => {
+    void triggerFeedback('tap');
     Alert.alert(
       t('profile.changePhoto'),
       t('profile.selectSource'),
@@ -516,14 +524,16 @@ export function ProfileSettingsScreen() {
         },
       ]
     );
-  }, [t, saveProfile]);
+  }, [t, saveProfile, triggerFeedback]);
 
   const handleEditName = useCallback(() => {
+    void triggerFeedback('tap');
     setTempName(displayName);
     setEditingName(true);
-  }, [displayName]);
+  }, [displayName, triggerFeedback]);
 
   const handleSaveName = useCallback(async () => {
+    void triggerFeedback('tap');
     const trimmedName = tempName.trim();
     if (trimmedName.length < 2) {
       Alert.alert(t('errors.genericError'), t('onboarding.nameMinLength'));
@@ -532,16 +542,18 @@ export function ProfileSettingsScreen() {
     setDisplayName(trimmedName);
     setEditingName(false);
     await saveProfile({ name: trimmedName });
-  }, [tempName, saveProfile, t]);
+  }, [tempName, saveProfile, t, triggerFeedback]);
 
   const handleCountrySelect = useCallback(async (countryCode: string) => {
+    void triggerFeedback('tap');
     // When country changes, clear region
     await saveProfile({ countryCode, regionCode: undefined });
-  }, [saveProfile]);
+  }, [saveProfile, triggerFeedback]);
 
   const handleRegionSelect = useCallback(async (regionCode: string) => {
+    void triggerFeedback('tap');
     await saveProfile({ regionCode });
-  }, [saveProfile]);
+  }, [saveProfile, triggerFeedback]);
 
   // City is handled with local state to avoid saving on every keystroke
   const handleCityChange = useCallback((newCity: string) => {
@@ -580,19 +592,22 @@ export function ProfileSettingsScreen() {
   }, []);
 
   const handleAgeSelect = useCallback(async (ageBracket: string) => {
+    void triggerFeedback('tap');
     await saveProfile({ ageBracket: ageBracket as AgeBracket });
-  }, [saveProfile]);
+  }, [saveProfile, triggerFeedback]);
 
   const handleLanguageSelect = useCallback(async (language: string) => {
+    void triggerFeedback('tap');
     // Change the app language immediately
     await i18n.changeLanguage(language);
     // Save to profile
     await saveProfile({ language: language as SupportedLanguage });
-  }, [i18n, saveProfile]);
+  }, [i18n, saveProfile, triggerFeedback]);
 
   const handleGenderSelect = useCallback(async (gender: string) => {
+    void triggerFeedback('tap');
     await saveProfile({ gender: gender as Gender });
-  }, [saveProfile]);
+  }, [saveProfile, triggerFeedback]);
 
   // Build picker options with flag emojis
   const languageOptions = SUPPORTED_LANGUAGES.map(lang => ({

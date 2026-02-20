@@ -243,7 +243,12 @@
       "en": "English",
       "de": "Deutsch",
       "fr": "Français",
-      "es": "Español"
+      "es": "Español",
+      "it": "Italiano",
+      "pl": "Polski",
+      "no": "Norsk",
+      "sv": "Svenska",
+      "da": "Dansk"
     }
   },
   "errors": {
@@ -1040,6 +1045,7 @@
         "understood": "Got it"
       },
       "tapForDetails": "Tap for more details",
+      "tapToChangeLocation": "Tap to change location",
       "high": "High",
       "low": "Low",
       "precipitation": "Precipitation",

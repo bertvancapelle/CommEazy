@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteTabButton, SearchTabButton } from '@/components';
+import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteTabButton, SearchTabButton, FavoriteButton } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -148,8 +148,17 @@ function ForecastDay({ day, index, onPress }: ForecastDayProps) {
       <View style={styles.forecastDayInfo}>
         <Icon name={iconName} size={36} color={MODULE_COLOR} />
         <View style={styles.forecastDayText}>
-          <Text style={styles.forecastDayName}>{dayName}</Text>
-          <Text style={styles.forecastCondition}>{weatherDesc}</Text>
+          <Text
+            style={styles.forecastDayName}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {dayName}
+          </Text>
+          <Text style={styles.forecastCondition} numberOfLines={1}>
+            {weatherDesc}
+          </Text>
         </View>
       </View>
       {/* Right: Temperatures + chevron */}
@@ -286,25 +295,166 @@ function DayDetailModal({ visible, day, dayIndex, onClose }: DayDetailModalProps
 interface SearchResultItemProps {
   location: WeatherLocation;
   onPress: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 }
 
-function SearchResultItem({ location, onPress }: SearchResultItemProps) {
+function SearchResultItem({ location, onPress, isFavorite, onToggleFavorite }: SearchResultItemProps) {
+  const { t } = useTranslation();
+
   return (
-    <TouchableOpacity
-      style={styles.searchResultItem}
-      onPress={onPress}
-      activeOpacity={0.7}
-      accessibilityRole="button"
-      accessibilityLabel={`${location.name}, ${location.country}`}
+    <View style={styles.searchResultItem}>
+      <TouchableOpacity
+        style={styles.searchResultContent}
+        onPress={onPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${location.name}, ${location.country}`}
+      >
+        <Icon name="map-marker" size={20} color={MODULE_COLOR} />
+        <View style={styles.searchResultText}>
+          <Text style={styles.searchResultName}>{location.name}</Text>
+          <Text style={styles.searchResultCountry}>
+            {location.admin1 ? `${location.admin1}, ` : ''}{location.country}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <FavoriteButton
+        isFavorite={isFavorite}
+        onToggle={onToggleFavorite}
+        accessibilityLabel={
+          isFavorite
+            ? t('modules.weather.removeFromFavorites', { name: location.name })
+            : t('modules.weather.addToFavorites', { name: location.name })
+        }
+        size={28}
+      />
+    </View>
+  );
+}
+
+// ============================================================
+// Location Picker Modal Component
+// ============================================================
+
+interface LocationPickerModalProps {
+  visible: boolean;
+  locations: WeatherLocation[];
+  currentLocationId: string | null;
+  onSelect: (location: WeatherLocation) => void;
+  onClose: () => void;
+  onRemove: (id: string) => void;
+}
+
+function LocationPickerModal({
+  visible,
+  locations,
+  currentLocationId,
+  onSelect,
+  onClose,
+  onRemove,
+}: LocationPickerModalProps) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { triggerFeedback } = useFeedback();
+
+  const handleClose = () => {
+    void triggerFeedback('tap');
+    onClose();
+  };
+
+  const handleSelect = (location: WeatherLocation) => {
+    void triggerFeedback('tap');
+    onSelect(location);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
     >
-      <Icon name="map-marker" size={20} color={MODULE_COLOR} />
-      <View style={styles.searchResultText}>
-        <Text style={styles.searchResultName}>{location.name}</Text>
-        <Text style={styles.searchResultCountry}>
-          {location.admin1 ? `${location.admin1}, ` : ''}{location.country}
-        </Text>
+      <View style={[styles.locationPickerModal, { paddingTop: insets.top }]}>
+        {/* Fixed Header */}
+        <View style={styles.locationPickerHeader}>
+          <TouchableOpacity
+            style={styles.locationPickerCloseButton}
+            onPress={handleClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          >
+            <Icon name="chevron-down" size={28} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.locationPickerTitle}>{t('modules.weather.myLocations')}</Text>
+          <View style={styles.locationPickerCloseButton} />
+        </View>
+
+        {/* Scrollable Content */}
+        <ScrollView
+          style={styles.locationPickerContent}
+          contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
+        >
+          {locations.length === 0 ? (
+            <View style={styles.locationPickerEmpty}>
+              <Icon name="map-marker-off" size={48} color={colors.textSecondary} />
+              <Text style={styles.locationPickerEmptyText}>
+                {t('modules.weather.noSavedLocations')}
+              </Text>
+            </View>
+          ) : (
+            locations.map((location) => {
+              const isSelected = location.id === currentLocationId;
+              return (
+                <View key={location.id} style={styles.locationPickerItem}>
+                  <TouchableOpacity
+                    style={[
+                      styles.locationPickerItemContent,
+                      isSelected && styles.locationPickerItemSelected,
+                    ]}
+                    onPress={() => handleSelect(location)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${location.name}, ${location.country}`}
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <Icon
+                      name={isSelected ? 'map-marker-check' : 'map-marker'}
+                      size={24}
+                      color={isSelected ? MODULE_COLOR : colors.textSecondary}
+                    />
+                    <View style={styles.locationPickerItemText}>
+                      <Text
+                        style={[
+                          styles.locationPickerItemName,
+                          isSelected && styles.locationPickerItemNameSelected,
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {location.name}
+                      </Text>
+                      <Text style={styles.locationPickerItemCountry} numberOfLines={1}>
+                        {location.admin1 ? `${location.admin1}, ` : ''}{location.country}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Icon name="check" size={24} color={MODULE_COLOR} />
+                    )}
+                  </TouchableOpacity>
+                  {/* Heart icon to unfavorite - consistent with search results */}
+                  <FavoriteButton
+                    isFavorite={true}
+                    onToggle={() => onRemove(location.id)}
+                    accessibilityLabel={t('modules.weather.removeFromFavorites', { name: location.name })}
+                    size={28}
+                  />
+                </View>
+              );
+            })
+          )}
+        </ScrollView>
       </View>
-    </TouchableOpacity>
+    </Modal>
   );
 }
 
@@ -401,6 +551,7 @@ export function WeatherScreen() {
     selectLocation,
     searchLocations,
     clearSearchResults,
+    saveLocation,
     saveCurrentLocation,
     removeLocation,
     refresh,
@@ -416,6 +567,7 @@ export function WeatherScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   // ============================================================
   // Location name validation
@@ -511,6 +663,23 @@ export function WeatherScreen() {
     await saveCurrentLocation();
   }, [saveCurrentLocation, triggerFeedback]);
 
+  // Handle location picker open
+  const handleOpenLocationPicker = useCallback(() => {
+    void triggerFeedback('tap');
+    setShowLocationPicker(true);
+  }, [triggerFeedback]);
+
+  // Handle location picker select
+  const handleLocationPickerSelect = useCallback(async (location: WeatherLocation) => {
+    await selectLocation(location);
+    setShowLocationPicker(false);
+  }, [selectLocation]);
+
+  // Handle location picker remove
+  const handleLocationPickerRemove = useCallback(async (id: string) => {
+    await removeLocation(id);
+  }, [removeLocation]);
+
   // Handle TTS button press
   const handleTtsPress = useCallback((section: 'current' | 'forecast' | 'rain') => {
     void triggerFeedback('tap');
@@ -539,7 +708,7 @@ export function WeatherScreen() {
       <View style={styles.tabBar}>
         <FavoriteTabButton
           isActive={showFavorites}
-          onPress={() => handleTabChange(true)}
+          onPress={handleOpenLocationPicker}
           count={savedLocations.length}
           label={t('modules.weather.myLocations')}
         />
@@ -614,13 +783,24 @@ export function WeatherScreen() {
       {/* Search Results (on search tab) */}
       {!showFavorites && (
         <ScrollView style={styles.searchResults}>
-          {searchResults.map((result) => (
-            <SearchResultItem
-              key={result.id}
-              location={result}
-              onPress={() => handleLocationSelect(result)}
-            />
-          ))}
+          {searchResults.map((result) => {
+            const isFavorite = savedLocations.some((loc) => loc.id === result.id);
+            return (
+              <SearchResultItem
+                key={result.id}
+                location={result}
+                onPress={() => handleLocationSelect(result)}
+                isFavorite={isFavorite}
+                onToggleFavorite={() => {
+                  if (isFavorite) {
+                    removeLocation(result.id);
+                  } else {
+                    saveLocation(result);
+                  }
+                }}
+              />
+            );
+          })}
 
           {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
             <Text style={styles.noResultsText}>{t('modules.weather.noResults')}</Text>
@@ -772,6 +952,16 @@ export function WeatherScreen() {
         day={selectedDayIndex !== null && weather ? weather.daily[selectedDayIndex] : null}
         dayIndex={selectedDayIndex ?? 0}
         onClose={() => setSelectedDayIndex(null)}
+      />
+
+      {/* Location Picker Modal */}
+      <LocationPickerModal
+        visible={showLocationPicker}
+        locations={savedLocations}
+        currentLocationId={weather?.location.id ?? null}
+        onSelect={handleLocationPickerSelect}
+        onClose={() => setShowLocationPicker(false)}
+        onRemove={handleLocationPickerRemove}
       />
 
       {/* Welcome Modal */}
@@ -1020,8 +1210,10 @@ const styles = StyleSheet.create({
   // Forecast card
   forecastCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
+    borderRadius: 0,  // Full width, no rounded corners
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+    marginHorizontal: -spacing.md,  // Compensate for contentContainer padding
     ...shadows.small,
   },
   forecastHeader: {
@@ -1095,15 +1287,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    backgroundColor: colors.background,  // Ensure header has solid background when scrolling
   },
   dayDetailCloseButton: {
     width: touchTargets.minimum,
     height: touchTargets.minimum,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.full,
   },
   dayDetailTitle: {
     ...typography.h3,
@@ -1179,6 +1374,91 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: spacing.xs,
     textAlign: 'center',
+  },
+
+  // Location picker modal
+  locationPickerModal: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  locationPickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  locationPickerCloseButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationPickerTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    flex: 1,
+  },
+  locationPickerContent: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  locationPickerEmpty: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xl * 2,
+    gap: spacing.md,
+  },
+  locationPickerEmptyText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  locationPickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  locationPickerItemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minHeight: touchTargets.comfortable,
+    gap: spacing.md,
+  },
+  locationPickerItemSelected: {
+    borderColor: MODULE_COLOR,
+    borderWidth: 2,
+    backgroundColor: `${MODULE_COLOR}10`,
+  },
+  locationPickerItemText: {
+    flex: 1,
+  },
+  locationPickerItemName: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '500',
+  },
+  locationPickerItemNameSelected: {
+    fontWeight: '700',
+    color: MODULE_COLOR,
+  },
+  locationPickerItemCountry: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 
   // Welcome modal
@@ -1258,12 +1538,20 @@ const styles = StyleSheet.create({
   searchResultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
+    justifyContent: 'space-between',
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
     backgroundColor: colors.background,
     marginBottom: spacing.xs,
     minHeight: touchTargets.minimum,
+    gap: spacing.sm,
+  },
+  searchResultContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   searchResultText: {

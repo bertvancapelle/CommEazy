@@ -250,7 +250,12 @@
       "en": "English",
       "de": "Deutsch",
       "fr": "Français",
-      "es": "Español"
+      "es": "Español",
+      "it": "Italiano",
+      "pl": "Polski",
+      "no": "Norsk",
+      "sv": "Svenska",
+      "da": "Dansk"
     }
   },
   "errors": {
@@ -1041,6 +1046,7 @@
         "understood": "Begrepen"
       },
       "tapForDetails": "Tik voor meer details",
+      "tapToChangeLocation": "Tik om van locatie te wisselen",
       "high": "Max",
       "low": "Min",
       "precipitation": "Neerslag",

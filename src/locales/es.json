@@ -243,7 +243,12 @@
       "en": "English",
       "de": "Deutsch",
       "fr": "Français",
-      "es": "Español"
+      "es": "Español",
+      "it": "Italiano",
+      "pl": "Polski",
+      "no": "Norsk",
+      "sv": "Svenska",
+      "da": "Dansk"
     }
   },
   "errors": {
@@ -1024,6 +1029,7 @@
       "precipitationChance": "Probabilidad de lluvia",
       "dry": "Seco",
       "tapForDetails": "Toca para más detalles",
+      "tapToChangeLocation": "Toca para cambiar de ubicación",
       "high": "Máx",
       "low": "Mín",
       "noPrecipitation": "Seco",

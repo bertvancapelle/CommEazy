@@ -54,6 +54,11 @@ const LANGUAGE_FLAGS: Record<string, string> = {
   de: '🇩🇪',
   fr: '🇫🇷',
   es: '🇪🇸',
+  it: '🇮🇹',
+  pl: '🇵🇱',
+  no: '🇳🇴',
+  sv: '🇸🇪',
+  da: '🇩🇰',
 };
 
 // Subsection button component with monochrome icon + label + chevron
@@ -174,7 +179,7 @@ export function SettingsMainScreen() {
   const languageDisplay = `${LANGUAGE_FLAGS[currentLanguage] || ''} ${t(`profile.language.${currentLanguage}`)}`;
 
   // Available languages
-  const languages: SupportedLanguage[] = ['nl', 'en', 'de', 'fr', 'es'];
+  const languages: SupportedLanguage[] = ['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'no', 'sv', 'da'];
 
   // Handle language selection
   const handleLanguagePress = useCallback(() => {
