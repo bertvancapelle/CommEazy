@@ -29,6 +29,16 @@ const NS_PUSH = 'urn:xmpp:push:0';
 // This is configured in Prosody's mod_cloud_notify
 const FCM_PUSH_SERVICE = 'push.commeazy.local'; // Prosody push component
 
+// Call signaling namespace (custom for CommEazy)
+const NS_CALL = 'urn:commeazy:call:1';
+
+// Call signaling payload type (matches types in call/types.ts)
+interface CallSignalingPayload {
+  type: 'offer' | 'answer' | 'ice-candidate' | 'hangup' | 'decline' | 'busy' | 'ringing' | 'invite';
+  callId: string;
+  [key: string]: unknown;
+}
+
 export class XmppJsService implements XMPPService {
   private xmpp: XMPPClient | null = null;
   private status: ConnectionStatus = 'disconnected';
@@ -36,6 +46,7 @@ export class XmppJsService implements XMPPService {
   private messageHandlers: Set<(from: string, payload: EncryptedPayload, id: string) => void> = new Set();
   private presenceHandlers: Set<(from: string, show: PresenceShow) => void> = new Set();
   private receiptHandlers: Set<(messageId: string, from: string) => void> = new Set();
+  private callSignalingHandlers: Set<(from: string, payload: CallSignalingPayload) => void> = new Set();
   private reconnectAttempts = 0;
   private maxReconnectDelay = 30000; // 30 seconds
   private pushEnabled = false;
@@ -271,6 +282,43 @@ export class XmppJsService implements XMPPService {
     return () => this.receiptHandlers.delete(handler);
   }
 
+  // ---- Call Signaling (WebRTC P2P Calls) ----
+
+  /**
+   * Send call signaling payload to a specific user.
+   * Used for WebRTC SDP/ICE exchange and call control.
+   *
+   * @param to - The JID of the recipient
+   * @param payload - The call signaling payload (offer, answer, ice-candidate, etc.)
+   */
+  async sendCallSignaling(to: string, payload: CallSignalingPayload): Promise<void> {
+    this.ensureConnected();
+
+    // Create call stanza with JSON payload
+    const stanza = xml('message', { to, type: 'chat', id: `call-${payload.callId}-${Date.now()}` },
+      xml('call', { xmlns: NS_CALL }, JSON.stringify(payload)),
+      // Don't request delivery receipt for call signaling (too noisy)
+    );
+
+    await this.xmpp!.send(stanza);
+
+    if (__DEV__) {
+      console.log(`[XMPP] Sent call signaling: ${payload.type} to ${to.split('@')[0]}`);
+    }
+  }
+
+  /**
+   * Register handler for incoming call signaling messages.
+   * Used by CallService to handle WebRTC negotiation.
+   *
+   * @param handler - Callback receiving (from, payload)
+   * @returns Unsubscribe function
+   */
+  onCallSignaling(handler: (from: string, payload: CallSignalingPayload) => void): Unsubscribe {
+    this.callSignalingHandlers.add(handler);
+    return () => this.callSignalingHandlers.delete(handler);
+  }
+
   // ---- Push Notifications (XEP-0357) ----
 
   /**
@@ -424,6 +472,13 @@ export class XmppJsService implements XMPPService {
       return;
     }
 
+    // Check for call signaling stanza
+    const callElement = stanza.getChild('call', NS_CALL);
+    if (callElement) {
+      this.handleIncomingCallSignaling(from, callElement);
+      return;
+    }
+
     // Check for message body
     const body = stanza.getChildText('body');
     if (body) {
@@ -447,6 +502,37 @@ export class XmppJsService implements XMPPService {
           console.warn('[XMPP] Message is not encrypted JSON format');
         }
       }
+    }
+  }
+
+  /**
+   * Handle incoming call signaling stanzas.
+   * Parses the JSON payload and notifies registered handlers.
+   */
+  private handleIncomingCallSignaling(from: string, callElement: Element): void {
+    try {
+      const jsonPayload = callElement.text();
+      if (!jsonPayload) {
+        console.warn('[XMPP] Empty call signaling payload');
+        return;
+      }
+
+      const payload = JSON.parse(jsonPayload) as CallSignalingPayload;
+
+      if (__DEV__) {
+        console.log(`[XMPP] Received call signaling: ${payload.type} from ${from.split('@')[0]}`);
+      }
+
+      // Notify all registered handlers
+      this.callSignalingHandlers.forEach((handler) => {
+        try {
+          handler(from, payload);
+        } catch (handlerError) {
+          console.error('[XMPP] Call signaling handler error:', handlerError);
+        }
+      });
+    } catch (parseError) {
+      console.error('[XMPP] Failed to parse call signaling payload:', parseError);
     }
   }
 

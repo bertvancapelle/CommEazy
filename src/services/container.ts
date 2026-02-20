@@ -94,18 +94,45 @@ const isPhysicalDevice = async (): Promise<boolean> => {
 // Device assignment:
 // - iPhone 17 Pro (simulator, large screen) → ik@commeazy.local
 // - iPhone 16e (simulator, small screen) → oma@commeazy.local
-// - Physical device (iPhone 14) → test@commeazy.local
+// - iPhone 14 (physical, Bert) → test@commeazy.local
+// - Other physical iPhone (Jeanine) → jeanine@commeazy.local
 const getDevUserCredentials = async () => {
   // First check if this is a physical device
   const physical = await isPhysicalDevice();
 
   if (physical) {
-    console.log(`[DEV] Physical device detected, using test account`);
-    return {
-      jid: 'test@commeazy.local',
-      password: 'test123',
-      name: 'Test',
-    };
+    // Differentiate between physical devices using device model
+    try {
+      const DeviceInfo = await import('react-native-device-info');
+      const model = await DeviceInfo.default.getModel();
+      console.log(`[DEV] Physical device model: ${model}`);
+
+      // iPhone 14 (Bert's device) uses test account
+      // Other physical devices (Jeanine's iPhone) use jeanine account
+      if (model.includes('iPhone 14')) {
+        console.log(`[DEV] iPhone 14 detected (Bert), using test account`);
+        return {
+          jid: 'test@commeazy.local',
+          password: 'test123',
+          name: 'Test',
+        };
+      } else {
+        console.log(`[DEV] Other physical device detected (Jeanine), using jeanine account`);
+        return {
+          jid: 'jeanine@commeazy.local',
+          password: 'test123',
+          name: 'Jeanine',
+        };
+      }
+    } catch {
+      // Fallback to test account if DeviceInfo fails
+      console.log(`[DEV] Could not detect device model, using test account`);
+      return {
+        jid: 'test@commeazy.local',
+        password: 'test123',
+        name: 'Test',
+      };
+    }
   }
 
   // Simulator - use screen size to differentiate

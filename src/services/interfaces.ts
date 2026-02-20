@@ -357,10 +357,257 @@ export interface NotificationData {
 }
 
 // ============================================================
+// CallService — WebRTC P2P Video/Voice Calling
+// Implementation: WebRTCCallService
+// ============================================================
+
+/**
+ * Call types
+ * - voice: Audio-only call (microphone)
+ * - video: Audio + video call (microphone + camera)
+ */
+export type CallType = 'voice' | 'video';
+
+/**
+ * Call direction
+ * - incoming: Call received from another user
+ * - outgoing: Call initiated by local user
+ */
+export type CallDirection = 'incoming' | 'outgoing';
+
+/**
+ * Call state machine
+ *
+ * Outgoing call flow:
+ *   idle → ringing → connecting → connected → ended
+ *         ↓
+ *         → ended (if declined/timeout)
+ *
+ * Incoming call flow:
+ *   idle → ringing → connecting → connected → ended
+ *         ↓
+ *         → ended (if declined)
+ */
+export type CallState =
+  | 'idle'           // No active call
+  | 'ringing'        // Outgoing: waiting for answer, Incoming: showing incoming UI
+  | 'connecting'     // ICE negotiation in progress
+  | 'connected'      // Call active, media flowing
+  | 'reconnecting'   // Temporary connection loss, attempting recovery
+  | 'ended';         // Call terminated
+
+/**
+ * Reason why a call ended
+ */
+export type CallEndReason =
+  | 'hangup'         // Local or remote user hung up
+  | 'declined'       // Remote declined incoming call
+  | 'timeout'        // No answer within 30s
+  | 'busy'           // Remote is in another call
+  | 'failed'         // ICE/network connection failed
+  | 'error';         // Unexpected error
+
+/**
+ * A participant in a call (1-on-1 or 3-way)
+ */
+export interface CallParticipant {
+  jid: string;
+  name: string;
+  isMuted: boolean;
+  isVideoEnabled: boolean;
+  connectionState: 'connecting' | 'connected' | 'disconnected';
+}
+
+/**
+ * Active call information
+ * Used for UI state and call management
+ */
+export interface ActiveCall {
+  id: string;                           // Unique call ID (UUID)
+  type: CallType;                       // voice or video
+  direction: CallDirection;             // incoming or outgoing
+  state: CallState;                     // Current call state
+  participants: CallParticipant[];      // All participants (including self for 3-way)
+  startTime?: number;                   // Timestamp when connected (undefined if not yet)
+  duration: number;                     // Call duration in seconds (0 if not connected)
+  isMuted: boolean;                     // Local microphone muted
+  isSpeakerOn: boolean;                 // Speaker mode (vs earpiece)
+  isVideoEnabled: boolean;              // Local camera enabled
+  isFrontCamera: boolean;               // Front or back camera
+}
+
+/**
+ * WebRTC ICE server configuration
+ * STUN for NAT discovery, TURN for relay fallback
+ */
+export interface IceServer {
+  urls: string | string[];
+  username?: string;
+  credential?: string;
+}
+
+/**
+ * CallService Interface
+ *
+ * Provides WebRTC-based P2P video/voice calling with:
+ * - 1-on-1 calls (single PeerConnection)
+ * - 3-way mesh calls (N-1 PeerConnections per user, max 3 participants)
+ *
+ * Signaling is handled via XMPP (XMPPService).
+ * All media processing is on-device (privacy-first).
+ *
+ * @example
+ * ```typescript
+ * // Initiate a video call
+ * const callId = await callService.initiateCall('oma@commeazy.local', 'video');
+ *
+ * // Listen for incoming calls
+ * callService.onIncomingCall((call) => {
+ *   // Show incoming call UI
+ *   navigation.navigate('IncomingCall', { callId: call.id });
+ * });
+ *
+ * // Answer an incoming call
+ * await callService.answerCall(callId);
+ *
+ * // Add a third participant (mesh call)
+ * if (callService.canAddParticipant(callId)) {
+ *   await callService.addParticipant(callId, 'test@commeazy.local');
+ * }
+ * ```
+ */
+export interface CallService {
+  // ============================================================
+  // Lifecycle
+  // ============================================================
+
+  /**
+   * Initialize the call service
+   * Sets up WebRTC, requests permissions, configures ICE servers
+   */
+  initialize(iceServers: IceServer[]): Promise<void>;
+
+  /**
+   * Clean up resources (call this on app terminate)
+   */
+  cleanup(): Promise<void>;
+
+  // ============================================================
+  // Call Management
+  // ============================================================
+
+  /**
+   * Initiate an outgoing call
+   * @param contactJid - The JID of the contact to call
+   * @param type - 'voice' or 'video'
+   * @returns The unique call ID
+   * @throws AppError if contact is offline or permission denied
+   */
+  initiateCall(contactJid: string, type: CallType): Promise<string>;
+
+  /**
+   * Answer an incoming call
+   * @param callId - The call ID from onIncomingCall
+   */
+  answerCall(callId: string): Promise<void>;
+
+  /**
+   * Decline an incoming call
+   * @param callId - The call ID to decline
+   */
+  declineCall(callId: string): Promise<void>;
+
+  /**
+   * End the current call
+   * @param callId - The call ID to end
+   */
+  endCall(callId: string): Promise<void>;
+
+  // ============================================================
+  // 3-Way Mesh Calls
+  // ============================================================
+
+  /**
+   * Add a participant to an existing call (max 3 total)
+   * Creates a new PeerConnection for the mesh
+   * @param callId - The current call ID
+   * @param contactJid - The JID of the participant to add
+   * @throws AppError if call has 3 participants already
+   */
+  addParticipant(callId: string, contactJid: string): Promise<void>;
+
+  /**
+   * Remove a participant from a mesh call
+   * @param callId - The current call ID
+   * @param contactJid - The JID of the participant to remove
+   */
+  removeParticipant(callId: string, contactJid: string): Promise<void>;
+
+  /**
+   * Check if another participant can be added (max 3)
+   * @param callId - The current call ID
+   * @returns true if current participants < 3
+   */
+  canAddParticipant(callId: string): boolean;
+
+  // ============================================================
+  // Local Controls
+  // ============================================================
+
+  /** Toggle local microphone mute */
+  toggleMute(): void;
+
+  /** Toggle speaker mode (speaker vs earpiece) */
+  toggleSpeaker(): void;
+
+  /** Toggle local camera (video calls only) */
+  toggleVideo(): void;
+
+  /** Switch between front and back camera */
+  switchCamera(): void;
+
+  // ============================================================
+  // State & Observables
+  // ============================================================
+
+  /**
+   * Get the current active call (if any)
+   * @returns ActiveCall or null if no call
+   */
+  getActiveCall(): ActiveCall | null;
+
+  /**
+   * Observe call state changes
+   * Emits whenever the active call changes (state, participants, controls)
+   */
+  observeCallState(): Observable<ActiveCall | null>;
+
+  // ============================================================
+  // Event Handlers
+  // ============================================================
+
+  /**
+   * Register handler for incoming calls
+   * Called when a remote user initiates a call to this device
+   * @param handler - Receives the incoming ActiveCall
+   * @returns Unsubscribe function
+   */
+  onIncomingCall(handler: (call: ActiveCall) => void): Unsubscribe;
+
+  /**
+   * Register handler for call ended events
+   * Called when a call ends (local or remote hangup, failure, etc.)
+   * @param handler - Receives callId and reason
+   * @returns Unsubscribe function
+   */
+  onCallEnded(handler: (callId: string, reason: CallEndReason) => void): Unsubscribe;
+}
+
+// ============================================================
 // Error Types
 // ============================================================
 
-export type ErrorCategory = 'network' | 'encryption' | 'delivery' | 'media' | 'auth' | 'storage';
+export type ErrorCategory = 'network' | 'encryption' | 'delivery' | 'media' | 'auth' | 'storage' | 'call';
 
 export class AppError extends Error {
   constructor(

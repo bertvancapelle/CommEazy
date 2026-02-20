@@ -89,6 +89,12 @@ import {
   CreateGroupScreen,
 } from '@/screens/group';
 
+// Call screens
+import {
+  IncomingCallScreen,
+  ActiveCallScreen,
+} from '@/screens/call';
+
 // ============================================================
 // Type Definitions
 // ============================================================
@@ -157,9 +163,17 @@ export type MainTabParams = {
   NuNlTab: undefined;
 };
 
+export type CallStackParams = {
+  IncomingCall: { callId: string };
+  ActiveCall: { callId: string };
+};
+
 export type RootStackParams = {
   Onboarding: undefined;
   Main: undefined;
+  // Call screens presented as modals over everything
+  IncomingCall: { callId: string };
+  ActiveCall: { callId: string };
 };
 
 // ============================================================
@@ -481,6 +495,26 @@ export default function AppNavigator() {
       >
         <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
         <RootStack.Screen name="Main" component={MainNavigator} />
+
+        {/* Call screens — presented as full-screen modals over everything */}
+        <RootStack.Screen
+          name="IncomingCall"
+          component={IncomingCallScreen}
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'fade',
+            gestureEnabled: false, // Can't swipe away incoming call
+          }}
+        />
+        <RootStack.Screen
+          name="ActiveCall"
+          component={ActiveCallScreen}
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'fade',
+            gestureEnabled: false, // Can't swipe away active call
+          }}
+        />
       </RootStack.Navigator>
     </NavigationContainer>
   );

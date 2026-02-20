@@ -27,6 +27,7 @@ import { RadioProvider } from '@/contexts/RadioContext';
 import { PodcastProvider } from '@/contexts/PodcastContext';
 import { BooksProvider } from '@/contexts/BooksContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
+import { CallProvider } from '@/contexts/CallContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
@@ -109,9 +110,11 @@ export default function App() {
                     <PodcastProvider>
                       <BooksProvider>
                         <ModuleConfigProvider>
-                          <HoldToNavigateProvider>
-                            <AppNavigator />
-                          </HoldToNavigateProvider>
+                          <CallProvider>
+                            <HoldToNavigateProvider>
+                              <AppNavigator />
+                            </HoldToNavigateProvider>
+                          </CallProvider>
                         </ModuleConfigProvider>
                       </BooksProvider>
                     </PodcastProvider>

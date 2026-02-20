@@ -34,3 +34,10 @@ export {
   useVoiceForm,
   type VoiceFormContextValue,
 } from './VoiceFormContext';
+
+export {
+  CallProvider,
+  useCall,
+  type CallContextValue,
+  type CallProviderProps,
+} from './CallContext';

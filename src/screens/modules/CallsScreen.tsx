@@ -27,27 +27,35 @@ import {
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import type { Contact, PresenceShow } from '@/services/interfaces';
+import { useCall } from '@/contexts/CallContext';
+import type { Contact, PresenceShow, CallType } from '@/services/interfaces';
+import type { RootStackParams } from '@/navigation';
 
 // Module color — Blue (consistent with WheelNavigationMenu)
 const CALLS_COLOR = '#1565C0';
 
+type CallsNavigationProp = NativeStackNavigationProp<RootStackParams>;
+
 export function CallsScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation<CallsNavigationProp>();
   const { triggerFeedback } = useFeedback();
+  const { initiateCall, activeCall } = useCall();
   const isFocused = useIsFocused();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isInitiatingCall, setIsInitiatingCall] = useState(false);
 
   // Load contacts
   useEffect(() => {
@@ -93,34 +101,58 @@ export function CallsScreen() {
     }
   }, [searchQuery, contacts]);
 
+  // Navigate to active call screen when call becomes active
+  useEffect(() => {
+    if (activeCall && activeCall.state !== 'ended') {
+      // Navigate to active call screen
+      navigation.navigate('ActiveCall', { callId: activeCall.id });
+    }
+  }, [activeCall, navigation]);
+
+  // Handle initiating a call (voice or video)
+  const handleInitiateCall = useCallback(
+    async (contact: Contact, callType: CallType) => {
+      if (isInitiatingCall || activeCall) {
+        console.warn('[CallsScreen] Already in call or initiating');
+        return;
+      }
+
+      void triggerFeedback('tap');
+      setIsInitiatingCall(true);
+
+      try {
+        console.info('[CallsScreen] Starting', callType, 'call to:', contact.jid);
+        await initiateCall(contact.jid, callType);
+        // Navigation happens via the activeCall effect above
+      } catch (error) {
+        console.error('[CallsScreen] Failed to start call:', error);
+        // Show error to user
+        Alert.alert(
+          t('modules.calls.callFailed'),
+          t('modules.calls.callFailedMessage'),
+          [{ text: t('common.ok') }]
+        );
+      } finally {
+        setIsInitiatingCall(false);
+      }
+    },
+    [t, triggerFeedback, initiateCall, isInitiatingCall, activeCall]
+  );
+
   // Handle voice call
   const handleVoiceCall = useCallback(
     (contact: Contact) => {
-      void triggerFeedback('tap');
-      // TODO: Implement WebRTC voice call
-      Alert.alert(
-        t('modules.calls.voiceCallTitle'),
-        t('modules.calls.callStarting', { name: contact.name }),
-        [{ text: t('common.ok') }]
-      );
-      console.log('[CallsScreen] Starting voice call to:', contact.jid);
+      void handleInitiateCall(contact, 'voice');
     },
-    [t, triggerFeedback]
+    [handleInitiateCall]
   );
 
   // Handle video call
   const handleVideoCall = useCallback(
     (contact: Contact) => {
-      void triggerFeedback('tap');
-      // TODO: Implement WebRTC video call
-      Alert.alert(
-        t('modules.calls.videoCallTitle'),
-        t('modules.calls.callStarting', { name: contact.name }),
-        [{ text: t('common.ok') }]
-      );
-      console.log('[CallsScreen] Starting video call to:', contact.jid);
+      void handleInitiateCall(contact, 'video');
     },
-    [t, triggerFeedback]
+    [handleInitiateCall]
   );
 
   // Build voice focusable items
