@@ -19,11 +19,13 @@
  * Max 2 navigation levels (senior-inclusive).
  */
 
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
+
+import { useCall } from '@/contexts/CallContext';
 
 import { colors, typography } from '@/theme';
 import { HoldToNavigateWrapper } from '@/components/HoldToNavigateWrapper';
@@ -65,6 +67,7 @@ import {
   AccessibilitySettingsScreen,
   VoiceSettingsScreen,
   ModulesSettingsScreen,
+  CallSettingsScreen,
 } from '@/screens/settings';
 
 // Dev screens
@@ -141,6 +144,7 @@ export type SettingsStackParams = {
   AccessibilitySettings: undefined;
   VoiceSettings: undefined;
   ModulesSettings: undefined;
+  CallSettings: undefined;  // Call sound and vibration settings
   BackupSettings: undefined;
   DeviceTransfer: undefined;
   DeviceLinkShowQR: undefined;
@@ -414,6 +418,11 @@ function SettingsNavigator() {
         options={{ title: t('modulesSettings.title'), headerShown: false }}
       />
       <SettingsStack.Screen
+        name="CallSettings"
+        component={CallSettingsScreen}
+        options={{ title: t('callSettings.title') }}
+      />
+      <SettingsStack.Screen
         name="LanguageSettings"
         component={PlaceholderScreen}
         options={{ title: t('settings.language') }}
@@ -482,13 +491,52 @@ function MainNavigator() {
 // Root Navigator
 // ============================================================
 
-export default function AppNavigator() {
+/**
+ * Inner navigator that can use useCall hook (inside CallProvider).
+ * Handles automatic navigation to IncomingCall screen.
+ */
+function RootNavigator() {
+  const navigationRef = useNavigationContainerRef<RootStackParams>();
+  const { activeCall } = useCall();
+  const previousCallStateRef = useRef<string | null>(null);
+
   // TODO: Check if user has completed onboarding (from async storage)
   // Set to true in __DEV__ to skip onboarding during development
   const hasCompletedOnboarding = __DEV__ ? true : false;
 
+  // Navigate to IncomingCall when an incoming call is detected
+  useEffect(() => {
+    if (!activeCall) {
+      previousCallStateRef.current = null;
+      return;
+    }
+
+    const currentState = activeCall.state;
+    const previousState = previousCallStateRef.current;
+
+    // Only navigate on state changes
+    if (currentState === previousState) return;
+    previousCallStateRef.current = currentState;
+
+    // Navigate to IncomingCall for incoming ringing calls
+    if (
+      activeCall.direction === 'incoming' &&
+      currentState === 'ringing' &&
+      previousState !== 'ringing'
+    ) {
+      console.info('[Navigation] Navigating to IncomingCall:', activeCall.id);
+      navigationRef.navigate('IncomingCall', { callId: activeCall.id });
+    }
+
+    // Navigate to ActiveCall when call connects
+    if (currentState === 'connected' && previousState !== 'connected') {
+      console.info('[Navigation] Navigating to ActiveCall:', activeCall.id);
+      navigationRef.navigate('ActiveCall', { callId: activeCall.id });
+    }
+  }, [activeCall, navigationRef]);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <RootStack.Navigator
         initialRouteName={hasCompletedOnboarding ? 'Main' : 'Onboarding'}
         screenOptions={{ headerShown: false }}
@@ -518,4 +566,8 @@ export default function AppNavigator() {
       </RootStack.Navigator>
     </NavigationContainer>
   );
+}
+
+export default function AppNavigator() {
+  return <RootNavigator />;
 }

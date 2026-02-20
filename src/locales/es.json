@@ -262,6 +262,30 @@
     "holdToNavigateTitle": "Navegación",
     "testFeedback": "Probar respuesta"
   },
+  "callSettings": {
+    "title": "Ajustes de llamada",
+    "screenHint": "Ajustar tono, tono de marcado y vibración",
+    "ringtoneSection": "Llamadas entrantes",
+    "ringtoneEnabled": "Tono de llamada",
+    "ringtoneEnabledHint": "Reproducir sonido para llamadas entrantes",
+    "ringtoneSound": "Elegir tono",
+    "ringtoneSoundHint": "Selecciona tu tono preferido",
+    "incomingVibration": "Vibración",
+    "incomingVibrationHint": "Vibrar en llamadas entrantes",
+    "outgoingSection": "Llamadas salientes",
+    "dialToneEnabled": "Tono de marcado",
+    "dialToneEnabledHint": "Escuchar 'tuut... tuut...' mientras esperas",
+    "outgoingVibration": "Vibración",
+    "outgoingVibrationHint": "Vibrar mientras suena el teléfono",
+    "ringtones": {
+      "default": "Predeterminado",
+      "classic": "Clásico",
+      "gentle": "Suave",
+      "urgent": "Urgente"
+    },
+    "testRingtone": "Probar tono",
+    "testDialTone": "Probar marcado"
+  },
   "theme": {
     "accentBlue": "Azul",
     "accentGreen": "Verde",
@@ -399,7 +423,12 @@
     "regionLabel": "Región",
     "selectRegion": "Elige tu comunidad",
     "cityLabel": "Ciudad",
+    "selectCity": "Elige tu ciudad",
     "enterCity": "Introduce tu ciudad",
+    "citySearchPlaceholder": "Buscar una ciudad...",
+    "citySearchHint": "Escribe al menos 2 letras para buscar",
+    "noCitiesFound": "No se encontraron ciudades. Intenta con otro término de búsqueda.",
+    "citySearchError": "Error de búsqueda. Comprueba tu conexión a internet.",
     "ageLabel": "Edad",
     "selectAge": "Elige tu rango de edad",
     "genderLabel": "Género",

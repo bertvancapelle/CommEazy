@@ -129,6 +129,13 @@ export interface UserProfile {
   // UI personalization
   accentColor?: string;                  // 'blue' | 'green' | 'purple' | 'orange' | 'red'
 
+  // Call sound settings
+  ringtoneEnabled?: boolean;             // Play ringtone for incoming calls (default: true)
+  ringtoneSound?: string;                // Selected ringtone: 'default' | 'classic' | 'gentle' | 'urgent'
+  dialToneEnabled?: boolean;             // Play dial tone when calling (default: true)
+  incomingCallVibration?: boolean;       // Vibrate on incoming call (default: true)
+  outgoingCallVibration?: boolean;       // Vibrate on outgoing call feedback (default: false)
+
   // Subscription (freemium model)
   subscriptionTier: SubscriptionTier;    // 'free' | 'premium'
   subscriptionExpires?: number;          // Timestamp when premium expires

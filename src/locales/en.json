@@ -262,6 +262,30 @@
     "holdToNavigateTitle": "Navigation",
     "testFeedback": "Test feedback"
   },
+  "callSettings": {
+    "title": "Call Settings",
+    "screenHint": "Adjust ringtone, dial tone, and vibration",
+    "ringtoneSection": "Incoming Calls",
+    "ringtoneEnabled": "Ringtone",
+    "ringtoneEnabledHint": "Play sound for incoming calls",
+    "ringtoneSound": "Choose ringtone",
+    "ringtoneSoundHint": "Select your preferred ringtone",
+    "incomingVibration": "Vibration",
+    "incomingVibrationHint": "Vibrate for incoming calls",
+    "outgoingSection": "Outgoing Calls",
+    "dialToneEnabled": "Dial tone",
+    "dialToneEnabledHint": "Hear 'ring... ring...' while waiting",
+    "outgoingVibration": "Vibration",
+    "outgoingVibrationHint": "Vibrate while phone is ringing",
+    "ringtones": {
+      "default": "Default",
+      "classic": "Classic",
+      "gentle": "Gentle",
+      "urgent": "Urgent"
+    },
+    "testRingtone": "Test ringtone",
+    "testDialTone": "Test dial tone"
+  },
   "theme": {
     "accentBlue": "Blue",
     "accentGreen": "Green",
@@ -399,7 +423,12 @@
     "regionLabel": "Region",
     "selectRegion": "Choose your region",
     "cityLabel": "City",
+    "selectCity": "Select your city",
     "enterCity": "Enter your city",
+    "citySearchPlaceholder": "Search for a city...",
+    "citySearchHint": "Type at least 2 letters to search",
+    "noCitiesFound": "No cities found. Try a different search term.",
+    "citySearchError": "Search failed. Check your internet connection.",
     "ageLabel": "Age",
     "selectAge": "Choose your age range",
     "genderLabel": "Gender",

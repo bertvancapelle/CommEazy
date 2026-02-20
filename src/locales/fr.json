@@ -262,6 +262,30 @@
     "holdToNavigateTitle": "Navigation",
     "testFeedback": "Tester le retour"
   },
+  "callSettings": {
+    "title": "Paramètres d'appel",
+    "screenHint": "Ajuster la sonnerie, la tonalité et la vibration",
+    "ringtoneSection": "Appels entrants",
+    "ringtoneEnabled": "Sonnerie",
+    "ringtoneEnabledHint": "Jouer un son pour les appels entrants",
+    "ringtoneSound": "Choisir la sonnerie",
+    "ringtoneSoundHint": "Sélectionnez votre sonnerie préférée",
+    "incomingVibration": "Vibration",
+    "incomingVibrationHint": "Vibrer pour les appels entrants",
+    "outgoingSection": "Appels sortants",
+    "dialToneEnabled": "Tonalité",
+    "dialToneEnabledHint": "Entendre 'bip... bip...' en attendant",
+    "outgoingVibration": "Vibration",
+    "outgoingVibrationHint": "Vibrer pendant que le téléphone sonne",
+    "ringtones": {
+      "default": "Par défaut",
+      "classic": "Classique",
+      "gentle": "Doux",
+      "urgent": "Urgent"
+    },
+    "testRingtone": "Tester la sonnerie",
+    "testDialTone": "Tester la tonalité"
+  },
   "theme": {
     "accentBlue": "Bleu",
     "accentGreen": "Vert",
@@ -399,7 +423,12 @@
     "regionLabel": "Région",
     "selectRegion": "Choisissez votre région",
     "cityLabel": "Ville",
+    "selectCity": "Choisissez votre ville",
     "enterCity": "Entrez votre ville",
+    "citySearchPlaceholder": "Rechercher une ville...",
+    "citySearchHint": "Tapez au moins 2 lettres pour rechercher",
+    "noCitiesFound": "Aucune ville trouvée. Essayez un autre terme de recherche.",
+    "citySearchError": "Échec de la recherche. Vérifiez votre connexion internet.",
     "ageLabel": "Âge",
     "selectAge": "Choisissez votre tranche d'âge",
     "genderLabel": "Genre",

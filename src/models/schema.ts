@@ -19,14 +19,34 @@
  * - v9: Added hapticIntensity, audioFeedbackBoost, wheelBlurIntensity, wheelDismissMargin
  * - v10: Added accentColor for UI personalization
  * - v11: Added voiceCommandsEnabled for two-finger voice commands
+ * - v12: Added call sound settings (ringtone, dial tone, vibration)
  *
  * @see services/interfaces.ts for domain models
  */
 
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
+/**
+ * Schema Version Constant
+ *
+ * Export this constant for use in migration checks and app version logging.
+ * Always keep this in sync with appSchema({ version: ... }) below.
+ *
+ * When to increment:
+ * - Adding new tables → increment version
+ * - Adding new columns → increment version
+ * - Changing column types → increment version (requires migration)
+ * - Removing columns → increment version (optional, for cleanup)
+ *
+ * Migration strategy (for V1.0+):
+ * - Create migrations.ts with schemaMigrations()
+ * - Add migration steps for each version increment
+ * - Test on fresh install AND on upgrade from previous version
+ */
+export const SCHEMA_VERSION = 12;
+
 export const schema = appSchema({
-  version: 11,
+  version: 12,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -136,6 +156,13 @@ export const schema = appSchema({
 
         // Voice commands (v11)
         { name: 'voice_commands_enabled', type: 'boolean', isOptional: true }, // Two-finger long press (v11)
+
+        // Call sound settings (v12)
+        { name: 'ringtone_enabled', type: 'boolean', isOptional: true },       // Play ringtone for incoming calls
+        { name: 'ringtone_sound', type: 'string', isOptional: true },          // Selected ringtone: 'default'|'classic'|'gentle'|'urgent'
+        { name: 'dial_tone_enabled', type: 'boolean', isOptional: true },      // Play dial tone when calling
+        { name: 'incoming_call_vibration', type: 'boolean', isOptional: true }, // Vibrate on incoming call
+        { name: 'outgoing_call_vibration', type: 'boolean', isOptional: true }, // Vibrate on outgoing call feedback
 
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },

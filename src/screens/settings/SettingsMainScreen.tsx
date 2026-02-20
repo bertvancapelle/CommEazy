@@ -113,6 +113,7 @@ export function SettingsMainScreen() {
     { id: 'accessibility', label: t('settings.accessibility'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AccessibilitySettings'); } },
     { id: 'voice', label: t('voiceSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('VoiceSettings'); } },
     { id: 'modules', label: t('settings.modules.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('ModulesSettings'); } },
+    { id: 'call-settings', label: t('callSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('CallSettings'); } },
     { id: 'notifications', label: t('settings.notifications'), onSelect: () => {
       void triggerFeedback('tap');
       Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
@@ -346,11 +347,29 @@ export function SettingsMainScreen() {
           />
         </VoiceFocusable>
 
+        {/* Bel-instellingen */}
+        <VoiceFocusable
+          id="call-settings"
+          label={t('callSettings.title')}
+          index={4}
+          onSelect={() => navigation.navigate('CallSettings')}
+        >
+          <SubsectionButton
+            icon="phone"
+            label={t('callSettings.title')}
+            onPress={() => navigation.navigate('CallSettings')}
+            accessibilityHint={t('callSettings.screenHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('call-settings')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
+
         {/* Meldingen - TODO: Create NotificationsSettingsScreen */}
         <VoiceFocusable
           id="notifications"
           label={t('settings.notifications')}
-          index={4}
+          index={5}
           onSelect={() => {
             Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
           }}
@@ -376,7 +395,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="backup"
           label={t('settings.backup')}
-          index={5}
+          index={6}
           onSelect={() => navigation.navigate('BackupSettings')}
         >
           <SubsectionButton
@@ -394,7 +413,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="device-link"
           label={t('settings.deviceLink')}
-          index={6}
+          index={7}
           onSelect={() => navigation.navigate('DeviceLinkShowQR')}
         >
           <SubsectionButton

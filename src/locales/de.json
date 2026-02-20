@@ -262,6 +262,30 @@
     "holdToNavigateTitle": "Navigation",
     "testFeedback": "Feedback testen"
   },
+  "callSettings": {
+    "title": "Anrufeinstellungen",
+    "screenHint": "Klingelton, Wählton und Vibration anpassen",
+    "ringtoneSection": "Eingehende Anrufe",
+    "ringtoneEnabled": "Klingelton",
+    "ringtoneEnabledHint": "Ton bei eingehenden Anrufen abspielen",
+    "ringtoneSound": "Klingelton wählen",
+    "ringtoneSoundHint": "Wähle deinen bevorzugten Klingelton",
+    "incomingVibration": "Vibration",
+    "incomingVibrationHint": "Vibrieren bei eingehenden Anrufen",
+    "outgoingSection": "Ausgehende Anrufe",
+    "dialToneEnabled": "Wählton",
+    "dialToneEnabledHint": "Höre 'tut... tut...' während des Wartens",
+    "outgoingVibration": "Vibration",
+    "outgoingVibrationHint": "Vibrieren während das Telefon klingelt",
+    "ringtones": {
+      "default": "Standard",
+      "classic": "Klassisch",
+      "gentle": "Sanft",
+      "urgent": "Dringend"
+    },
+    "testRingtone": "Klingelton testen",
+    "testDialTone": "Wählton testen"
+  },
   "theme": {
     "accentBlue": "Blau",
     "accentGreen": "Grün",
@@ -399,7 +423,12 @@
     "regionLabel": "Bundesland",
     "selectRegion": "Wähle dein Bundesland",
     "cityLabel": "Stadt",
+    "selectCity": "Wähle deine Stadt",
     "enterCity": "Gib deine Stadt ein",
+    "citySearchPlaceholder": "Stadt suchen...",
+    "citySearchHint": "Gib mindestens 2 Buchstaben ein",
+    "noCitiesFound": "Keine Städte gefunden. Versuche einen anderen Suchbegriff.",
+    "citySearchError": "Suche fehlgeschlagen. Überprüfe deine Internetverbindung.",
     "ageLabel": "Alter",
     "selectAge": "Wähle deine Altersgruppe",
     "genderLabel": "Geschlecht",

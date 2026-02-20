@@ -269,6 +269,30 @@
     "holdToNavigateTitle": "Navigatie",
     "testFeedback": "Test feedback"
   },
+  "callSettings": {
+    "title": "Bel-instellingen",
+    "screenHint": "Pas beltoon, kiestoon en trillen aan",
+    "ringtoneSection": "Binnenkomende gesprekken",
+    "ringtoneEnabled": "Beltoon",
+    "ringtoneEnabledHint": "Speel geluid bij binnenkomend gesprek",
+    "ringtoneSound": "Beltoon kiezen",
+    "ringtoneSoundHint": "Selecteer je favoriete beltoon",
+    "incomingVibration": "Trillen",
+    "incomingVibrationHint": "Trilt bij binnenkomend gesprek",
+    "outgoingSection": "Uitgaande gesprekken",
+    "dialToneEnabled": "Kiestoon",
+    "dialToneEnabledHint": "Hoor 'tuut... tuut...' tijdens het wachten",
+    "outgoingVibration": "Trillen",
+    "outgoingVibrationHint": "Trilt terwijl de telefoon overgaat",
+    "ringtones": {
+      "default": "Standaard",
+      "classic": "Klassiek",
+      "gentle": "Zacht",
+      "urgent": "Dringend"
+    },
+    "testRingtone": "Test beltoon",
+    "testDialTone": "Test kiestoon"
+  },
   "theme": {
     "accentBlue": "Blauw",
     "accentGreen": "Groen",
@@ -406,7 +430,12 @@
     "regionLabel": "Provincie",
     "selectRegion": "Kies je provincie",
     "cityLabel": "Stad",
+    "selectCity": "Kies je stad",
     "enterCity": "Voer je stad in",
+    "citySearchPlaceholder": "Zoek een stad...",
+    "citySearchHint": "Typ minimaal 2 letters om te zoeken",
+    "noCitiesFound": "Geen steden gevonden. Probeer een andere zoekterm.",
+    "citySearchError": "Zoeken mislukt. Controleer je internetverbinding.",
     "ageLabel": "Leeftijd",
     "selectAge": "Kies je leeftijd",
     "genderLabel": "Geslacht",

@@ -7,3 +7,4 @@ export { ProfileSettingsScreen } from './ProfileSettingsScreen';
 export { AccessibilitySettingsScreen } from './AccessibilitySettingsScreen';
 export { VoiceSettingsScreen } from './VoiceSettingsScreen';
 export { ModulesSettingsScreen } from './ModulesSettingsScreen';
+export { CallSettingsScreen } from './CallSettingsScreen';

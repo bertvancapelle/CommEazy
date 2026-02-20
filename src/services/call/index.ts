@@ -40,6 +40,7 @@ import {
   type CallInvitePayload,
   type InternalCallState,
 } from './types';
+import { callSoundService, type CallSoundSettings } from './callSoundService';
 
 // ============================================================
 // Helper Functions
@@ -184,8 +185,18 @@ export class WebRTCCallService implements CallService {
     // Start ring timeout
     this.startRingTimeout();
 
+    // Note: Dial tone starts when we receive 'ringing' acknowledgment from remote
+    // See handleCallControl case 'ringing'
+
     this.notifyStateChange();
     return callId;
+  }
+
+  /**
+   * Update call sound settings from user profile
+   */
+  updateSoundSettings(settings: Partial<CallSoundSettings>): void {
+    callSoundService.updateSettings(settings);
   }
 
   async answerCall(callId: string): Promise<void> {
@@ -202,6 +213,9 @@ export class WebRTCCallService implements CallService {
     }
 
     console.info('[CallService] Answering call:', callId);
+
+    // Stop ringtone when answering
+    callSoundService.onIncomingCallEnded();
 
     // Clear ring timeout
     this.clearRingTimeout();
@@ -244,6 +258,9 @@ export class WebRTCCallService implements CallService {
     }
 
     console.info('[CallService] Declining call:', callId);
+
+    // Stop ringtone when declining
+    callSoundService.onIncomingCallEnded();
 
     // Clear ring timeout
     this.clearRingTimeout();
@@ -516,6 +533,9 @@ export class WebRTCCallService implements CallService {
     // Send ringing acknowledgment
     void this.signaling.sendControl(from, payload.callId, 'ringing');
 
+    // Start ringtone for incoming call
+    callSoundService.onIncomingCallRinging();
+
     // Start ring timeout
     this.startRingTimeout();
 
@@ -579,7 +599,10 @@ export class WebRTCCallService implements CallService {
         this.endCallInternal('busy');
         break;
       case 'ringing':
-        // Remote is ringing, update UI if needed
+        // Remote is ringing, start dial tone for caller
+        if (this.currentCall.direction === 'outgoing') {
+          callSoundService.onOutgoingCallRinging();
+        }
         break;
     }
   }
@@ -654,6 +677,11 @@ export class WebRTCCallService implements CallService {
           this.currentCall.state = 'connected';
           this.currentCall.startTime = Date.now();
           this.startDurationInterval();
+
+          // Stop dial tone when call connects
+          if (this.currentCall.direction === 'outgoing') {
+            callSoundService.onOutgoingCallEnded();
+          }
         }
         break;
 
@@ -688,6 +716,9 @@ export class WebRTCCallService implements CallService {
 
     const callId = this.currentCall.id;
     console.info('[CallService] Call ended:', callId, 'reason:', reason);
+
+    // Stop all call sounds
+    callSoundService.stopAll();
 
     // Clear timers
     this.clearRingTimeout();
@@ -777,4 +808,6 @@ export const callService = new WebRTCCallService();
 export { webrtcService } from './webrtcService';
 export { signalingService } from './signalingService';
 export { MeshManager } from './meshManager';
+export { callSoundService } from './callSoundService';
+export type { CallSoundSettings, RingtoneSound } from './callSoundService';
 export * from './types';
