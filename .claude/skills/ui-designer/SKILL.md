@@ -1992,6 +1992,114 @@ case 'nieuw-icoon':
 <Icon name="check-all" size={16} color={accentColor.primary} />
 ```
 
+### 10c. ACCENTCOLOR PROPERTIES (VERPLICHT)
+
+Bij het gebruik van de `useAccentColor` hook, gebruik ALLEEN properties die bestaan in het `AccentColor` type.
+
+**Beschikbare AccentColor properties:**
+
+| Property | Type | Gebruik |
+|----------|------|---------|
+| `primary` | string | Primaire accentkleur voor interactieve elementen |
+| `primaryLight` | string | Lichtere variant voor hover/focus states |
+| `primaryDark` | string | Donkerdere variant voor pressed states |
+| `light` | string | Zeer lichte tint voor achtergronden (Material 50-shade) |
+| `label` | string | i18n key voor de kleur naam |
+
+**AccentColor.light — Lichte Achtergrond Tint:**
+
+De `light` property bevat Material Design 50-shade kleuren voor subtiele achtergronden:
+
+| Accent | light waarde | Gebruik |
+|--------|--------------|---------|
+| Blue | `#E3F2FD` | Lichtblauwe achtergrond |
+| Green | `#E8F5E9` | Lichtgroene achtergrond |
+| Purple | `#F3E5F5` | Lichtpaarse achtergrond |
+| Orange | `#FBE9E7` | Lichtorangje achtergrond |
+| Red | `#FFEBEE` | Lichtrode achtergrond |
+
+**Wanneer accentColor.light gebruiken:**
+- WhatsApp-style message direction styling (uitgaande berichten)
+- Selectie-indicatoren in lijsten
+- Subtiele hover/focus achtergronden
+- Card achtergronden voor gefocuste items
+
+**Implementatie voorbeeld — Message Direction Styling:**
+```typescript
+import { useAccentColor } from '@/hooks/useAccentColor';
+
+function ChatListItem({ message, isFromMe }: Props) {
+  const { accentColor } = useAccentColor();
+
+  return (
+    <View
+      style={[
+        styles.messageRow,
+        // Lichte achtergrond voor uitgaande berichten
+        isFromMe && { backgroundColor: accentColor.light, borderRadius: 6 },
+      ]}
+    >
+      {isFromMe && <StatusIcon status={message.status} />}
+      <Text style={styles.messageText}>{message.text}</Text>
+    </View>
+  );
+}
+```
+
+**❌ FOUT — property bestaat niet:**
+```typescript
+// Dit veroorzaakt undefined backgroundColor!
+<View style={{ backgroundColor: accentColor.lighter }} />
+<View style={{ backgroundColor: accentColor.background }} />
+<View style={{ backgroundColor: accentColor.tint }} />
+```
+
+**✅ GOED — bestaande property:**
+```typescript
+<View style={{ backgroundColor: accentColor.light }} />
+```
+
+### 10d. MESSAGE DIRECTION STYLING (WhatsApp Pattern)
+
+Chat lijsten en conversatie schermen MOETEN duidelijk onderscheid maken tussen uitgaande en inkomende berichten.
+
+**Visuele indicatoren voor uitgaande berichten:**
+1. **Lichte achtergrondkleur** — `accentColor.light` achtergrond
+2. **Status icoon** — Links van het bericht (pending/sent/delivered/failed)
+3. **Geen unread badge** — Uitgaande berichten hebben geen unread indicator
+
+**Status iconen (WhatsApp-style):**
+
+| Status | Icoon | Kleur |
+|--------|-------|-------|
+| `pending` | `time` (klok) | `colors.textTertiary` |
+| `sent` | `check` (enkele vink) | `accentColor.primary` |
+| `delivered` | `check-all` (dubbele vink) | `accentColor.primary` |
+| `failed` | `alert` (driehoek) | `colors.error` |
+
+**Implementatie:**
+```typescript
+const getStatusIcon = useCallback((status?: DeliveryStatus) => {
+  switch (status) {
+    case 'pending':
+      return { name: 'time', color: colors.textTertiary };
+    case 'sent':
+      return { name: 'check', color: accentColor.primary };
+    case 'delivered':
+      return { name: 'check-all', color: accentColor.primary };
+    case 'failed':
+      return { name: 'alert', color: colors.error };
+    default:
+      return null;
+  }
+}, [accentColor.primary]);
+```
+
+**Visuele indicatoren voor inkomende berichten:**
+1. **Geen gekleurde achtergrond** — Standaard wit/surface
+2. **Bold tekst** — Wanneer ongelezen (`fontWeight: '700'`)
+3. **Unread badge** — Ronde badge met aantal (rechts)
+
 ### 11. OVERLAYS EN MODALS (VERPLICHT)
 
 Overlays en modals die content vervangen of verbergen MOETEN een ondoorzichtige achtergrond hebben. Senioren raken verward wanneer ze content "door" een overlay heen kunnen zien.
