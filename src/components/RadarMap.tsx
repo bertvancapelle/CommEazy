@@ -2,7 +2,7 @@
  * RadarMap Component
  *
  * Interactive map with radar overlay for the weather module.
- * Uses Apple Maps on iOS and Google Maps on Android.
+ * Uses WebView with Leaflet.js for reliable cross-platform tile support.
  *
  * Features:
  * - Radar tile overlay from RainViewer
@@ -10,14 +10,18 @@
  * - Pinch-to-zoom support
  * - Centered on provided location
  *
+ * Note: We use WebView + Leaflet instead of react-native-maps because
+ * react-native-maps v1.10.3 has compatibility issues with UrlTile/Marker
+ * on React Native 0.73.
+ *
  * @see .claude/plans/buienradar-module-plan.md
  */
 
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapView, { UrlTile, Marker, Region } from 'react-native-maps';
+import { WebView } from 'react-native-webview';
 
-import { useAccentColor } from '@/contexts/AccentColorContext';
+import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { RADAR_MODULE_CONFIG } from '@/types/weather';
 
 // ============================================================
@@ -44,7 +48,7 @@ export interface RadarMapProps {
   height?: number;
 
   /** Called when user interacts with the map */
-  onRegionChange?: (region: Region) => void;
+  onRegionChange?: (region: { latitude: number; longitude: number }) => void;
 }
 
 // ============================================================
@@ -58,21 +62,88 @@ export function RadarMap({
   showMarker = true,
   markerColor,
   height,
-  onRegionChange,
 }: RadarMapProps): React.ReactElement {
-  const mapRef = useRef<MapView>(null);
-  const { accentColor } = useAccentColor();
+  const { accentColor } = useAccentColorContext();
 
   // Determine marker color
   const dotColor = markerColor || accentColor.primary;
 
-  // Calculate initial region (centered on location)
-  const initialRegion = useMemo<Region>(() => ({
-    latitude,
-    longitude,
-    latitudeDelta: 2.0,  // ~200km visible at this zoom
-    longitudeDelta: 2.0,
-  }), [latitude, longitude]);
+  // Generate the HTML for Leaflet map
+  const mapHtml = useMemo(() => {
+    // Convert {z}/{x}/{y} to Leaflet format if needed
+    const leafletTileUrl = radarTileUrl
+      ? radarTileUrl.replace('{z}', '{z}').replace('{x}', '{x}').replace('{y}', '{y}')
+      : null;
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; overflow: hidden; }
+    #map { height: 100%; width: 100%; }
+    .location-marker {
+      width: 24px;
+      height: 24px;
+      background-color: ${dotColor};
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    // Initialize map
+    var map = L.map('map', {
+      center: [${latitude}, ${longitude}],
+      zoom: ${RADAR_MODULE_CONFIG.defaultZoom},
+      zoomControl: false,
+      attributionControl: false,
+      dragging: true,
+      touchZoom: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: false
+    });
+
+    // Add OpenStreetMap base layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      opacity: 1
+    }).addTo(map);
+
+    ${leafletTileUrl ? `
+    // Add radar overlay
+    L.tileLayer('${leafletTileUrl}', {
+      maxZoom: ${RADAR_MODULE_CONFIG.maxTileZoom},
+      opacity: ${RADAR_MODULE_CONFIG.tileOpacity},
+      tileSize: 256
+    }).addTo(map);
+    ` : ''}
+
+    ${showMarker ? `
+    // Add location marker
+    var markerIcon = L.divIcon({
+      className: 'location-marker-container',
+      html: '<div class="location-marker"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    L.marker([${latitude}, ${longitude}], { icon: markerIcon }).addTo(map);
+    ` : ''}
+  </script>
+</body>
+</html>
+    `;
+  }, [latitude, longitude, radarTileUrl, dotColor, showMarker]);
 
   // Container style
   const containerStyle = useMemo(() => [
@@ -82,49 +153,23 @@ export function RadarMap({
 
   return (
     <View style={containerStyle}>
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={initialRegion}
-        showsUserLocation={false}
-        showsMyLocationButton={false}
-        showsCompass={true}
-        showsScale={true}
-        rotateEnabled={false}
-        pitchEnabled={false}
-        onRegionChangeComplete={onRegionChange}
+      <WebView
+        source={{ html: mapHtml }}
+        style={styles.webview}
+        scrollEnabled={false}
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        originWhitelist={['*']}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={false}
+        scalesPageToFit={true}
+        allowsInlineMediaPlayback={true}
+        mediaPlaybackRequiresUserAction={false}
         accessibilityLabel="Buienradar kaart"
         accessibilityHint="Toont neerslagradar voor uw locatie"
-      >
-        {/* Radar tile overlay */}
-        {radarTileUrl && (
-          <UrlTile
-            urlTemplate={radarTileUrl}
-            maximumZ={RADAR_MODULE_CONFIG.maxTileZoom}
-            tileSize={256}
-            zIndex={1}
-            opacity={RADAR_MODULE_CONFIG.tileOpacity}
-          />
-        )}
-
-        {/* Location marker */}
-        {showMarker && (
-          <Marker
-            coordinate={{ latitude, longitude }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
-          >
-            <View
-              style={[
-                styles.locationDot,
-                { backgroundColor: dotColor },
-              ]}
-            >
-              <View style={styles.locationDotInner} />
-            </View>
-          </Marker>
-        )}
-      </MapView>
+      />
     </View>
   );
 }
@@ -138,27 +183,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 12,
   },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  locationDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Shadow for visibility on any map background
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  locationDotInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'white',
+  webview: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
 });
 

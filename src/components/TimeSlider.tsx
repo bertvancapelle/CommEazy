@@ -20,7 +20,7 @@ import Slider from '@react-native-community/slider';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { useTranslation } from 'react-i18next';
 
-import { useAccentColor } from '@/contexts/AccentColorContext';
+import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { RainViewerFrame } from '@/types/weather';
 import { formatFrameTime, formatFrameAbsoluteTime } from '@/services/rainViewerService';
@@ -54,7 +54,7 @@ export function TimeSlider({
   disabled = false,
 }: TimeSliderProps): React.ReactElement | null {
   const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
+  const { accentColor } = useAccentColorContext();
 
   // Don't render if no frames
   if (frames.length === 0) {

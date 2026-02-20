@@ -65,17 +65,22 @@ export async function fetchRadarFrames(): Promise<RainViewerData> {
     return cache.data;
   }
 
-  console.info('[rainViewerService] Fetching radar frames from API');
+  console.info('[rainViewerService] Fetching radar frames from API:', RADAR_MODULE_CONFIG.apiUrl);
 
   try {
     const response = await fetch(RADAR_MODULE_CONFIG.apiUrl, {
       method: 'GET',
       headers: {
-        Accept: 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'CommEazy/1.0',
       },
     });
 
+    console.debug('[rainViewerService] Response status:', response.status);
+
     if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('[rainViewerService] Error response body:', errorBody);
       throw new Error(`RainViewer API error: ${response.status}`);
     }
 
@@ -122,12 +127,13 @@ export function getRadarTileUrl(
   // RainViewer tile URL format:
   // {host}{path}/{size}/{z}/{x}/{y}/{color}/{smooth}_{snow}.png
   //
-  // Example path from API: "/radar/1234567890"
+  // Note: API response path already includes /v2/radar/ prefix
+  // Example path from API: "/v2/radar/1234567890"
   // Full URL: https://tilecache.rainviewer.com/v2/radar/1234567890/256/{z}/{x}/{y}/2/1_1.png
 
   const { size, color, smooth, snow } = options;
 
-  return `${host}/v2${frame.path}/${size}/{z}/{x}/{y}/${color}/${smooth}_${snow}.png`;
+  return `${host}${frame.path}/${size}/{z}/{x}/{y}/${color}/${smooth}_${snow}.png`;
 }
 
 /**
