@@ -9,6 +9,7 @@
  * - Location marker with accent color
  * - Pinch-to-zoom support
  * - Centered on provided location
+ * - Optimized: Only radar layer updates when time changes (not full page reload)
  *
  * Note: We use WebView + Leaflet instead of react-native-maps because
  * react-native-maps v1.10.3 has compatibility issues with UrlTile/Marker
@@ -17,7 +18,7 @@
  * @see .claude/plans/buienradar-module-plan.md
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
@@ -66,17 +67,14 @@ export function RadarMap({
 }: RadarMapProps): React.ReactElement {
   const { t } = useTranslation();
   const { accentColor } = useAccentColorContext();
+  const webViewRef = useRef<WebView>(null);
 
   // Determine marker color
   const dotColor = markerColor || accentColor.primary;
 
-  // Generate the HTML for Leaflet map
+  // Generate the HTML for Leaflet map (only re-generates when location/marker changes)
+  // The radar tile URL is updated via injectJavaScript for performance
   const mapHtml = useMemo(() => {
-    // Convert {z}/{x}/{y} to Leaflet format if needed
-    const leafletTileUrl = radarTileUrl
-      ? radarTileUrl.replace('{z}', '{z}').replace('{x}', '{x}').replace('{y}', '{y}')
-      : null;
-
     return `
 <!DOCTYPE html>
 <html>
@@ -102,6 +100,9 @@ export function RadarMap({
 <body>
   <div id="map"></div>
   <script>
+    // Global reference to radar layer for dynamic updates
+    var radarLayer = null;
+
     // Initialize map
     var map = L.map('map', {
       center: [${latitude}, ${longitude}],
@@ -121,15 +122,6 @@ export function RadarMap({
       opacity: 1
     }).addTo(map);
 
-    ${leafletTileUrl ? `
-    // Add radar overlay
-    L.tileLayer('${leafletTileUrl}', {
-      maxZoom: ${RADAR_MODULE_CONFIG.maxTileZoom},
-      opacity: ${RADAR_MODULE_CONFIG.tileOpacity},
-      tileSize: 256
-    }).addTo(map);
-    ` : ''}
-
     ${showMarker ? `
     // Add location marker
     var markerIcon = L.divIcon({
@@ -141,11 +133,37 @@ export function RadarMap({
 
     L.marker([${latitude}, ${longitude}], { icon: markerIcon }).addTo(map);
     ` : ''}
+
+    // Function to update radar layer (called from React Native)
+    function updateRadarLayer(tileUrl) {
+      // Remove existing radar layer if present
+      if (radarLayer) {
+        map.removeLayer(radarLayer);
+        radarLayer = null;
+      }
+
+      // Add new radar layer if URL provided
+      if (tileUrl) {
+        radarLayer = L.tileLayer(tileUrl, {
+          maxZoom: ${RADAR_MODULE_CONFIG.maxTileZoom},
+          opacity: ${RADAR_MODULE_CONFIG.tileOpacity},
+          tileSize: 256
+        }).addTo(map);
+      }
+    }
   </script>
 </body>
 </html>
     `;
-  }, [latitude, longitude, radarTileUrl, dotColor, showMarker]);
+  }, [latitude, longitude, dotColor, showMarker]);
+
+  // Update radar layer when tile URL changes (without reloading entire page)
+  useEffect(() => {
+    if (webViewRef.current && radarTileUrl !== undefined) {
+      const script = `updateRadarLayer(${radarTileUrl ? `'${radarTileUrl}'` : 'null'}); true;`;
+      webViewRef.current.injectJavaScript(script);
+    }
+  }, [radarTileUrl]);
 
   // Container style
   const containerStyle = useMemo(() => [
@@ -156,6 +174,7 @@ export function RadarMap({
   return (
     <View style={containerStyle}>
       <WebView
+        ref={webViewRef}
         source={{ html: mapHtml }}
         style={styles.webview}
         scrollEnabled={false}
