@@ -56,7 +56,8 @@ export type StaticNavigationDestination =
   | 'videocall'
   | 'podcast'
   | 'radio'
-  | 'books';
+  | 'books'
+  | 'weather';
 
 // Dynamic navigation destinations for country-specific modules
 // Format: 'module:{moduleId}' (e.g., 'module:nunl')
@@ -90,7 +91,8 @@ export type ModuleIconType =
   | 'headphones'
   | 'podcast'
   | 'radio'
-  | 'news';  // For country-specific news modules
+  | 'news'     // For country-specific news modules
+  | 'weather'; // Weather module
 
 interface ModuleItem {
   id: NavigationDestination;
@@ -111,6 +113,7 @@ const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<Module
   podcast: { labelKey: 'navigation.podcast', icon: 'podcast', color: '#E91E63' },
   radio: { labelKey: 'navigation.radio', icon: 'radio', color: '#00897B' },
   books: { labelKey: 'navigation.books', icon: 'book', color: '#FF8F00' },  // Amber color
+  weather: { labelKey: 'navigation.weather', icon: 'weather', color: '#03A9F4' },  // Sky Blue
   settings: { labelKey: 'navigation.settings', icon: 'settings', color: '#5E35B1' },
   help: { labelKey: 'navigation.help', icon: 'help', color: '#00838F' },
 };
@@ -780,6 +783,55 @@ function ModuleIcon({ type, size }: ModuleIconProps) {
         </View>
       );
 
+    case 'weather':
+      return (
+        <View style={[styles.iconContainer, { width: size, height: size }]}>
+          {/* Sun */}
+          <View style={[styles.weatherSun, {
+            width: size * 0.35,
+            height: size * 0.35,
+            borderRadius: size * 0.175,
+            top: size * 0.1,
+            right: size * 0.15,
+          }]} />
+          {/* Sun rays */}
+          <View style={[styles.weatherRay, {
+            width: size * 0.08,
+            height: size * 0.12,
+            top: size * 0.02,
+            right: size * 0.28,
+          }]} />
+          <View style={[styles.weatherRay, {
+            width: size * 0.12,
+            height: size * 0.08,
+            top: size * 0.24,
+            right: size * 0.02,
+          }]} />
+          {/* Cloud */}
+          <View style={[styles.weatherCloud, {
+            width: size * 0.55,
+            height: size * 0.3,
+            borderRadius: size * 0.15,
+            bottom: size * 0.15,
+            left: size * 0.1,
+          }]} />
+          <View style={[styles.weatherCloudBump, {
+            width: size * 0.25,
+            height: size * 0.25,
+            borderRadius: size * 0.125,
+            bottom: size * 0.3,
+            left: size * 0.15,
+          }]} />
+          <View style={[styles.weatherCloudBump, {
+            width: size * 0.2,
+            height: size * 0.2,
+            borderRadius: size * 0.1,
+            bottom: size * 0.35,
+            left: size * 0.35,
+          }]} />
+        </View>
+      );
+
     default:
       return null;
   }
@@ -1072,5 +1124,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     borderBottomLeftRadius: 4,
+  },
+  // Weather icon styles
+  weatherSun: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+  },
+  weatherRay: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+    borderRadius: 2,
+  },
+  weatherCloud: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+  },
+  weatherCloudBump: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
   },
 });

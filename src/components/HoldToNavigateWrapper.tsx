@@ -272,6 +272,7 @@ function getTabNameForDestination(destination: NavigationDestination): string {
     case 'podcast': return 'PodcastTab';
     case 'radio': return 'RadioTab';
     case 'books': return 'BooksTab';
+    case 'weather': return 'WeatherTab';
     case 'help': return 'HelpTab';
     default: return '';
   }
@@ -893,6 +894,9 @@ export function HoldToNavigateWrapper({
           break;
         case 'books':
           navigation.navigate('BooksTab' as never);
+          break;
+        case 'weather':
+          navigation.navigate('WeatherTab' as never);
           break;
         case 'help':
           // TODO: Navigate to help screen when implemented

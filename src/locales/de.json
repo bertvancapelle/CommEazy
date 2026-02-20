@@ -549,6 +549,7 @@
     "podcast": "Podcast",
     "radio": "Radio",
     "books": "Bücher",
+    "weather": "Wetter",
     "menu_button": "Menü-Taste",
     "menu_button_hint": "Tippen zum Öffnen des Navigationsmenüs. Lang drücken zum Verschieben.",
     "drag_mode_enabled": "Verschiebemodus aktiv. Ziehe die Taste an eine neue Position.",
@@ -947,7 +948,7 @@
       }
     },
     "nunl": {
-      "title": "nu.nl Nachrichten",
+      "title": "© nu.nl",
       "category": "Kategorie",
       "categories": {
         "algemeen": "Allgemein",
@@ -986,6 +987,52 @@
         "step1": "Wähle oben eine Kategorie aus",
         "step2": "Tippe auf einen Artikel, um ihn zu lesen",
         "step3": "Ziehe nach unten, um zu aktualisieren",
+        "understood": "Verstanden"
+      }
+    },
+    "weather": {
+      "title": "Wetter",
+      "loading": "Wetterdaten werden geladen...",
+      "selectLocation": "Standort auswählen",
+      "searchLocation": "Standort suchen",
+      "searchPlaceholder": "Ortsnamen eingeben...",
+      "noResults": "Keine Orte gefunden",
+      "currentWeather": "Aktuelles Wetter",
+      "feelsLike": "Gefühlt",
+      "humidity": "Luftfeuchtigkeit",
+      "wind": "Wind",
+      "rainPrediction": "Regenvorhersage",
+      "viewRadar": "Regenradar anzeigen",
+      "forecast": "7-Tage-Vorhersage",
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "myLocations": "Meine Standorte",
+      "addLocation": "Standort hinzufügen",
+      "noLocation": "Kein Standort ausgewählt",
+      "noLocationHint": "Suche einen Ort, um das Wetter anzuzeigen",
+      "noSavedLocations": "Noch keine gespeicherten Standorte",
+      "saveCurrentLocation": "Aktuellen Standort speichern",
+      "maxLocationsReached": "Maximum 10 Standorte erreicht",
+      "readCurrentWeather": "Aktuelles Wetter vorlesen",
+      "readForecast": "Vorhersage vorlesen",
+      "readRain": "Regenvorhersage vorlesen",
+      "precipitation": "Niederschlag",
+      "precipitationChance": "Regenwahrscheinlichkeit",
+      "dry": "Trocken",
+      "lightRain": "Leichter Regen",
+      "moderateRain": "Mäßiger Regen",
+      "heavyRain": "Starker Regen",
+      "errors": {
+        "network": "Wetterdaten können nicht abgerufen werden. Überprüfe deine Internetverbindung.",
+        "networkTitle": "Verbindungsfehler",
+        "location": "Standort kann nicht ermittelt werden",
+        "locationTitle": "Standortfehler"
+      },
+      "welcome": {
+        "title": "Willkommen bei Wetter!",
+        "step1": "Suche einen Ort oder nutze GPS",
+        "step2": "Sieh aktuelles Wetter und 7-Tage-Vorhersage",
+        "step3": "Tippe auf 'Vorlesen' um das Wetter zu hören",
         "understood": "Verstanden"
       }
     }
@@ -1027,6 +1074,16 @@
     "ttsUnavailable": "Vorlesen nicht verfügbar",
     "openInBrowser": "Im Browser öffnen",
     "fullArticleHint": "Tippe auf den Link unten, um den vollständigen Artikel zu lesen"
+  },
+  "articlePreview": {
+    "title": "Artikel",
+    "abstractLabel": "Zusammenfassung",
+    "whatWouldYouLike": "Was möchtest du tun?",
+    "readAbstract": "Zusammenfassung vorlesen",
+    "readAbstractHint": "Höre dir die Zusammenfassung an",
+    "openFullArticle": "Vollständigen Artikel lesen",
+    "openFullArticleHint": "Den ganzen Artikel mit Vorleseoption anzeigen",
+    "nowPlaying": "Wird vorgelesen"
   },
   "navigation_tutorial": {
     "intro_title": "Navigation mit Hold-to-Navigate",

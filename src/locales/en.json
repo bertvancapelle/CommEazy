@@ -549,6 +549,7 @@
     "podcast": "Podcast",
     "radio": "Radio",
     "books": "Books",
+    "weather": "Weather",
     "menu_button": "Menu button",
     "menu_button_hint": "Tap to open the navigation menu. Long press to reposition.",
     "drag_mode_enabled": "Drag mode active. Drag the button to a new position.",
@@ -947,7 +948,7 @@
       }
     },
     "nunl": {
-      "title": "nu.nl News",
+      "title": "© nu.nl",
       "category": "Category",
       "categories": {
         "algemeen": "General",
@@ -988,6 +989,52 @@
         "step3": "Pull down to refresh",
         "understood": "Got it"
       }
+    },
+    "weather": {
+      "title": "Weather",
+      "loading": "Loading weather data...",
+      "selectLocation": "Select location",
+      "searchLocation": "Search location",
+      "searchPlaceholder": "Enter place name...",
+      "noResults": "No locations found",
+      "currentWeather": "Current weather",
+      "feelsLike": "Feels like",
+      "humidity": "Humidity",
+      "wind": "Wind",
+      "rainPrediction": "Rain prediction",
+      "viewRadar": "View rain radar",
+      "forecast": "7-day forecast",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "myLocations": "My locations",
+      "addLocation": "Add location",
+      "noLocation": "No location selected",
+      "noLocationHint": "Search for a location to view the weather",
+      "noSavedLocations": "No saved locations yet",
+      "saveCurrentLocation": "Save current location",
+      "maxLocationsReached": "Maximum 10 locations reached",
+      "readCurrentWeather": "Read current weather",
+      "readForecast": "Read forecast",
+      "readRain": "Read rain prediction",
+      "precipitation": "Precipitation",
+      "precipitationChance": "Chance of rain",
+      "dry": "Dry",
+      "lightRain": "Light rain",
+      "moderateRain": "Moderate rain",
+      "heavyRain": "Heavy rain",
+      "errors": {
+        "network": "Cannot fetch weather data. Check your internet connection.",
+        "networkTitle": "Connection error",
+        "location": "Cannot determine location",
+        "locationTitle": "Location error"
+      },
+      "welcome": {
+        "title": "Welcome to Weather!",
+        "step1": "Search for a location or use GPS",
+        "step2": "View current weather and 7-day forecast",
+        "step3": "Tap 'Read' to hear the weather aloud",
+        "understood": "Got it"
+      }
     }
   },
   "settings": {
@@ -1026,7 +1073,18 @@
     "readSummary": "Read summary",
     "ttsUnavailable": "Read aloud not available",
     "openInBrowser": "Open in browser",
-    "fullArticleHint": "Tap the link below to read the full article"
+    "fullArticleHint": "Tap the link below to read the full article",
+    "webViewLabel": "Article: {{title}}"
+  },
+  "articlePreview": {
+    "title": "Article",
+    "abstractLabel": "Summary",
+    "whatWouldYouLike": "What would you like to do?",
+    "readAbstract": "Read summary aloud",
+    "readAbstractHint": "Listen to the summary",
+    "openFullArticle": "Read full article",
+    "openFullArticleHint": "View the full article with read aloud option",
+    "nowPlaying": "Reading aloud"
   },
   "navigation_tutorial": {
     "intro_title": "Navigate with Hold-to-Navigate",

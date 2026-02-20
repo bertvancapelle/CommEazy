@@ -55,6 +55,7 @@ export const ALL_MODULES: NavigationDestination[] = [
   'podcast',
   'radio',
   'books',
+  'weather',
   'settings',
   'help',
 ];
@@ -68,6 +69,7 @@ const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'radio',      // Radio - key media feature, visible on first page
   'calls',      // Phone calls
   'groups',     // Groups
+  'weather',    // Weather - useful utility for seniors
   'videocall',  // Video calls
   'books',      // Books - e-books from Gutenberg with optional TTS
   'podcast',    // Podcasts

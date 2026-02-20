@@ -556,6 +556,7 @@
     "podcast": "Podcast",
     "radio": "Radio",
     "books": "Boeken",
+    "weather": "Weer",
     "menu_button": "Menu knop",
     "menu_button_hint": "Tik om het navigatiemenu te openen. Houd lang ingedrukt om te verplaatsen.",
     "drag_mode_enabled": "Sleepstand actief. Sleep de knop naar een nieuwe positie.",
@@ -954,7 +955,7 @@
       }
     },
     "nunl": {
-      "title": "nu.nl Nieuws",
+      "title": "© nu.nl",
       "category": "Categorie",
       "categories": {
         "algemeen": "Algemeen",
@@ -995,6 +996,46 @@
         "step3": "Trek naar beneden om te verversen",
         "understood": "Begrepen"
       }
+    },
+    "weather": {
+      "title": "Weer",
+      "loading": "Weerdata laden...",
+      "selectLocation": "Kies locatie",
+      "selectLocationHint": "Tik om een locatie te zoeken",
+      "searchLocation": "Zoek locatie",
+      "searchPlaceholder": "Voer plaatsnaam in...",
+      "noResults": "Geen locaties gevonden",
+      "currentWeather": "Huidig weer",
+      "feelsLike": "Voelt als",
+      "rainPrediction": "Neerslagverwachting",
+      "viewRadar": "Buienradar bekijken",
+      "forecast": "7-daagse voorspelling",
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "myLocations": "Mijn locaties",
+      "addLocation": "Locatie toevoegen",
+      "noLocation": "Geen locatie geselecteerd",
+      "noLocationHint": "Zoek een locatie om het weer te bekijken",
+      "noSavedLocations": "Nog geen opgeslagen locaties",
+      "saveCurrentLocation": "Huidige locatie opslaan",
+      "maxLocationsReached": "Maximum 10 locaties bereikt",
+      "humidity": "Luchtvochtigheid",
+      "windSpeed": "Windsnelheid",
+      "sunrise": "Zonsopgang",
+      "sunset": "Zonsondergang",
+      "readCurrentWeather": "Huidig weer voorlezen",
+      "readForecast": "Voorspelling voorlezen",
+      "readRain": "Neerslagverwachting voorlezen",
+      "errors": {
+        "network": "Kan weerdata niet ophalen. Controleer je internetverbinding."
+      },
+      "welcome": {
+        "title": "Welkom bij Weer!",
+        "step1": "Zoek een locatie om het weer te bekijken",
+        "step2": "Tik op 'Voorlezen' om het weer te horen",
+        "step3": "Sla maximaal 10 favoriete locaties op",
+        "understood": "Begrepen"
+      }
     }
   },
   "settings": {
@@ -1033,7 +1074,18 @@
     "readSummary": "Samenvatting voorlezen",
     "ttsUnavailable": "Voorlezen niet beschikbaar",
     "openInBrowser": "Open in browser",
-    "fullArticleHint": "Tik op de link hieronder om het volledige artikel te lezen"
+    "fullArticleHint": "Tik op de link hieronder om het volledige artikel te lezen",
+    "webViewLabel": "Artikel: {{title}}"
+  },
+  "articlePreview": {
+    "title": "Artikel",
+    "abstractLabel": "Samenvatting",
+    "whatWouldYouLike": "Wat wil je doen?",
+    "readAbstract": "Lees samenvatting voor",
+    "readAbstractHint": "Luister naar de samenvatting",
+    "openFullArticle": "Lees volledig artikel",
+    "openFullArticleHint": "Bekijk het hele artikel met voorleesoptie",
+    "nowPlaying": "Wordt voorgelezen"
   },
   "navigation_tutorial": {
     "intro_title": "Navigeren met Hold-to-Navigate",

@@ -80,6 +80,7 @@ import {
   BookReaderScreen,
   BookPlayerScreen,
   NuNlScreen,
+  WeatherScreen,
 } from '@/screens/modules';
 
 // Group screens
@@ -153,6 +154,7 @@ export type MainTabParams = {
   BooksTab: undefined;
   BookReader: undefined;
   BookPlayer: undefined;
+  WeatherTab: undefined;
   // Country-specific modules
   NuNlTab: undefined;
 };
@@ -457,6 +459,7 @@ function MainNavigator() {
         <MainTab.Screen name="BooksTab" component={BooksScreen} />
         <MainTab.Screen name="BookReader" component={BookReaderScreen} />
         <MainTab.Screen name="BookPlayer" component={BookPlayerScreen} />
+        <MainTab.Screen name="WeatherTab" component={WeatherScreen} />
         {/* Country-specific modules */}
         <MainTab.Screen name="NuNlTab" component={NuNlScreen} />
       </MainTab.Navigator>

@@ -16,3 +16,6 @@ export { BookPlayerScreen } from './BookPlayerScreen';
 
 // Country-specific modules
 export { NuNlScreen } from './NuNlScreen';
+
+// Static modules (not country-specific)
+export { WeatherScreen } from './WeatherScreen';

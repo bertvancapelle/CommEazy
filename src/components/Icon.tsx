@@ -50,7 +50,8 @@ export type IconName =
   | 'list'
   | 'x'
   | 'warning'
-  | 'news';
+  | 'news'
+  | 'weather-partly-cloudy';
 
 interface IconProps {
   name: IconName;
@@ -654,6 +655,30 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             height="5"
             stroke={color}
             strokeWidth={sw}
+          />
+        </Svg>
+      );
+
+    case 'weather-partly-cloudy':
+      // Weather icon: sun partially behind cloud
+      return (
+        <Svg {...iconProps}>
+          {/* Sun */}
+          <Circle cx="16" cy="8" r="3" stroke={color} strokeWidth={sw} />
+          {/* Sun rays */}
+          <Path
+            d="M16 3V4M21 8H20M19.5 4.5L18.8 5.2M12.5 4.5L13.2 5.2"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Cloud body */}
+          <Path
+            d="M6 17C4.34 17 3 15.66 3 14C3 12.34 4.34 11 6 11C6.09 11 6.18 11.01 6.27 11.02C6.65 9.25 8.16 8 10 8C11.06 8 12.02 8.44 12.71 9.15C13.17 9.06 13.64 9 14 9C16.76 9 19 11.24 19 14C19 16.76 16.76 19 14 19H6C4.34 19 3 17.66 3 16"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </Svg>
       );
