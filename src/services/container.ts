@@ -25,6 +25,7 @@ import { XmppJsService } from './xmpp';
 import { WatermelonDBService } from './database';
 import { chatService } from './chat';
 import { groupChatService } from './groupChat';
+import { callService } from './call';
 import { FCMNotificationService, onTokenRefresh } from './notifications';
 
 // Note: Mock data imports moved to dynamic import in initialize() to avoid
@@ -258,6 +259,10 @@ class ServiceContainerClass {
       try {
         await this._xmpp.connect(devUser.jid, devUser.password);
         console.log('[ServiceContainer] XMPP connected to local Prosody');
+
+        // 6a. Initialize CallService with XMPP for call signaling
+        callService.initializeWithXMPP(this._xmpp, devUser.jid);
+        console.log('[ServiceContainer] CallService initialized with XMPP');
 
         // 6b. Register push notifications with XMPP server (if available)
         if (pushAvailable && this._notifications) {
