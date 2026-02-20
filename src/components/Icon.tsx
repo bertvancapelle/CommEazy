@@ -43,6 +43,7 @@ export type IconName =
   | 'play'
   | 'pause'
   | 'stop'
+  | 'volume-up'
   | 'search'
   | 'radio'
   | 'podcast'
@@ -51,7 +52,23 @@ export type IconName =
   | 'x'
   | 'warning'
   | 'news'
-  | 'weather-partly-cloudy';
+  | 'weather-partly-cloudy'
+  | 'weather-sunny'
+  | 'weather-night'
+  | 'weather-night-partly-cloudy'
+  | 'weather-cloudy'
+  | 'weather-fog'
+  | 'weather-rainy'
+  | 'weather-pouring'
+  | 'weather-snowy'
+  | 'weather-snowy-heavy'
+  | 'weather-lightning-rainy'
+  | 'water-percent'
+  | 'weather-windy'
+  | 'map-marker'
+  | 'crosshairs-gps'
+  | 'magnify'
+  | 'alert';
 
 interface IconProps {
   name: IconName;
@@ -505,6 +522,32 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
         </Svg>
       );
 
+    case 'volume-up':
+      // Speaker with sound waves
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M11 5L6 9H2V15H6L11 19V5Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M15.54 8.46C16.48 9.4 17 10.67 17 12C17 13.33 16.48 14.6 15.54 15.54"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M19.07 4.93C20.94 6.8 22 9.34 22 12C22 14.66 20.94 17.2 19.07 19.07"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
     case 'search':
       return (
         <Svg {...iconProps}>
@@ -675,6 +718,283 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
           {/* Cloud body */}
           <Path
             d="M6 17C4.34 17 3 15.66 3 14C3 12.34 4.34 11 6 11C6.09 11 6.18 11.01 6.27 11.02C6.65 9.25 8.16 8 10 8C11.06 8 12.02 8.44 12.71 9.15C13.17 9.06 13.64 9 14 9C16.76 9 19 11.24 19 14C19 16.76 16.76 19 14 19H6C4.34 19 3 17.66 3 16"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-sunny':
+      // Clear sky / sunny
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="4" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M12 2V4M12 20V22M4 12H2M6.3 6.3L4.9 4.9M17.7 6.3L19.1 4.9M6.3 17.7L4.9 19.1M17.7 17.7L19.1 19.1M22 12H20"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-night':
+      // Clear night / moon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-night-partly-cloudy':
+      // Night with clouds
+      return (
+        <Svg {...iconProps}>
+          {/* Moon */}
+          <Path
+            d="M17 6.5A4 4 0 1013.5 3 3 3 0 0017 6.5z"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          {/* Cloud */}
+          <Path
+            d="M6 17C4.34 17 3 15.66 3 14C3 12.34 4.34 11 6 11C6.09 11 6.18 11.01 6.27 11.02C6.65 9.25 8.16 8 10 8C11.06 8 12.02 8.44 12.71 9.15C13.17 9.06 13.64 9 14 9C16.76 9 19 11.24 19 14C19 16.76 16.76 19 14 19H6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-cloudy':
+      // Overcast / cloudy
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M6 19C3.79 19 2 17.21 2 15C2 12.79 3.79 11 6 11C6.09 11 6.18 11.01 6.27 11.02C6.82 8.67 8.91 7 11.5 7C14.35 7 16.7 9.12 17 11.88C19.21 12.18 21 14.01 21 16.25C21 18.66 19.09 20 17 19H6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-fog':
+      // Fog / mist
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M4 12H20M4 8H20M4 16H16M4 20H12"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-rainy':
+      // Light rain / drizzle
+      return (
+        <Svg {...iconProps}>
+          {/* Cloud */}
+          <Path
+            d="M6 14C4.34 14 3 12.66 3 11C3 9.34 4.34 8 6 8C6.09 8 6.18 8.01 6.27 8.02C6.65 6.25 8.16 5 10 5C11.06 5 12.02 5.44 12.71 6.15C13.17 6.06 13.64 6 14 6C16.76 6 19 8.24 19 11C19 13.76 16.76 16 14 16H6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Rain drops */}
+          <Path
+            d="M8 17V19M12 17V21M16 17V19"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-pouring':
+      // Heavy rain
+      return (
+        <Svg {...iconProps}>
+          {/* Cloud */}
+          <Path
+            d="M6 13C4.34 13 3 11.66 3 10C3 8.34 4.34 7 6 7C6.09 7 6.18 7.01 6.27 7.02C6.65 5.25 8.16 4 10 4C11.06 4 12.02 4.44 12.71 5.15C13.17 5.06 13.64 5 14 5C16.76 5 19 7.24 19 10C19 12.76 16.76 15 14 15H6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Heavy rain drops */}
+          <Path
+            d="M7 16V20M10 17V22M13 16V21M16 17V20"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-snowy':
+      // Light snow
+      return (
+        <Svg {...iconProps}>
+          {/* Cloud */}
+          <Path
+            d="M6 14C4.34 14 3 12.66 3 11C3 9.34 4.34 8 6 8C6.09 8 6.18 8.01 6.27 8.02C6.65 6.25 8.16 5 10 5C11.06 5 12.02 5.44 12.71 6.15C13.17 6.06 13.64 6 14 6C16.76 6 19 8.24 19 11C19 13.76 16.76 16 14 16H6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Snowflakes */}
+          <Circle cx="8" cy="18" r="1" fill={color} />
+          <Circle cx="12" cy="20" r="1" fill={color} />
+          <Circle cx="16" cy="18" r="1" fill={color} />
+        </Svg>
+      );
+
+    case 'weather-snowy-heavy':
+      // Heavy snow / blizzard
+      return (
+        <Svg {...iconProps}>
+          {/* Cloud */}
+          <Path
+            d="M6 12C4.34 12 3 10.66 3 9C3 7.34 4.34 6 6 6C6.09 6 6.18 6.01 6.27 6.02C6.65 4.25 8.16 3 10 3C11.06 3 12.02 3.44 12.71 4.15C13.17 4.06 13.64 4 14 4C16.76 4 19 6.24 19 9C19 11.76 16.76 14 14 14H6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Many snowflakes */}
+          <Circle cx="6" cy="16" r="1" fill={color} />
+          <Circle cx="10" cy="17" r="1" fill={color} />
+          <Circle cx="14" cy="16" r="1" fill={color} />
+          <Circle cx="18" cy="17" r="1" fill={color} />
+          <Circle cx="8" cy="20" r="1" fill={color} />
+          <Circle cx="12" cy="21" r="1" fill={color} />
+          <Circle cx="16" cy="20" r="1" fill={color} />
+        </Svg>
+      );
+
+    case 'weather-lightning-rainy':
+      // Thunderstorm
+      return (
+        <Svg {...iconProps}>
+          {/* Cloud */}
+          <Path
+            d="M6 13C4.34 13 3 11.66 3 10C3 8.34 4.34 7 6 7C6.09 7 6.18 7.01 6.27 7.02C6.65 5.25 8.16 4 10 4C11.06 4 12.02 4.44 12.71 5.15C13.17 5.06 13.64 5 14 5C16.76 5 19 7.24 19 10C19 12.76 16.76 15 14 15H6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Lightning bolt */}
+          <Path
+            d="M13 15L10 19H14L11 23"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'water-percent':
+      // Humidity icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 2C12 2 5 9 5 14C5 17.87 8.13 21 12 21C15.87 21 19 17.87 19 14C19 9 12 2 12 2Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M9 14L15 17M9 17L15 14"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'weather-windy':
+      // Wind icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M9.59 4.59A2 2 0 1111 8H2M12.59 19.41A2 2 0 1014 16H2M17.73 7.73A2.5 2.5 0 1119.5 12H2"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'map-marker':
+      // Location marker
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Circle cx="12" cy="9" r="2.5" stroke={color} strokeWidth={sw} />
+        </Svg>
+      );
+
+    case 'crosshairs-gps':
+      // GPS / current location
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="8" stroke={color} strokeWidth={sw} />
+          <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M12 2V6M12 18V22M2 12H6M18 12H22"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'magnify':
+      // Search / magnifying glass
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="11" cy="11" r="7" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M21 21L16.65 16.65"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'alert':
+      // Warning / alert triangle
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 9V13M12 17H12.01M10.29 3.86L1.82 18C1.64 18.3 1.56 18.65 1.59 18.99C1.62 19.34 1.76 19.67 1.99 19.94C2.22 20.2 2.52 20.4 2.86 20.5C3.2 20.6 3.56 20.6 3.91 20.5H20.09C20.44 20.6 20.8 20.6 21.14 20.5C21.48 20.4 21.78 20.2 22.01 19.94C22.24 19.67 22.38 19.34 22.41 18.99C22.44 18.65 22.36 18.3 22.18 18L13.71 3.86C13.53 3.56 13.27 3.32 12.96 3.15C12.65 2.99 12.32 2.9 11.99 2.9C11.66 2.9 11.34 2.99 11.03 3.15C10.72 3.32 10.47 3.56 10.29 3.86Z"
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"

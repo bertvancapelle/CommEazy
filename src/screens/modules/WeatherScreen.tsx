@@ -27,7 +27,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   Modal,
-  TextInput,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, VoiceFocusable } from '@/components';
+import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteTabButton, SearchTabButton } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -91,13 +90,13 @@ function TTSButton({ isPlaying, isActive, onPress, label, compact }: TTSButtonPr
       accessibilityLabel={isActive ? t('tts.stop') : label}
     >
       <Icon
-        name={isActive ? 'stop' : 'volume-high'}
+        name={isActive ? 'stop' : 'volume-up'}
         size={compact ? 20 : 24}
         color={isActive ? colors.textOnPrimary : MODULE_COLOR}
       />
       {!compact && (
         <Text style={[styles.ttsButtonText, isActive && styles.ttsButtonTextActive]}>
-          {isActive ? t('tts.stop') : t('tts.readAloud')}
+          {isActive ? t('tts.stop') : label}
         </Text>
       )}
     </TouchableOpacity>
@@ -111,42 +110,21 @@ function TTSButton({ isPlaying, isActive, onPress, label, compact }: TTSButtonPr
 interface ForecastDayProps {
   day: DailyForecast;
   index: number;
+  onPress: () => void;
 }
 
-function ForecastDay({ day, index }: ForecastDayProps) {
+function ForecastDay({ day, index, onPress }: ForecastDayProps) {
   const { t, i18n } = useTranslation();
+  const holdGesture = useHoldGestureContextSafe();
 
   const dayName = useMemo(() => {
     if (index === 0) return t('modules.weather.today');
     if (index === 1) return t('modules.weather.tomorrow');
-    return day.date.toLocaleDateString(i18n.language, { weekday: 'short' });
+    return day.date.toLocaleDateString(i18n.language, { weekday: 'long' });
   }, [day.date, index, t, i18n.language]);
 
   const iconName = weatherService.getWeatherIcon(day.weatherCode, true);
-
-  return (
-    <View style={styles.forecastDay}>
-      <Text style={styles.forecastDayName}>{dayName}</Text>
-      <Icon name={iconName} size={32} color={MODULE_COLOR} />
-      <Text style={styles.forecastTempHigh}>{Math.round(day.temperatureMax)}°</Text>
-      <Text style={styles.forecastTempLow}>{Math.round(day.temperatureMin)}°</Text>
-    </View>
-  );
-}
-
-// ============================================================
-// Location Item Component
-// ============================================================
-
-interface LocationItemProps {
-  location: WeatherLocation;
-  isSelected: boolean;
-  onPress: () => void;
-  onLongPress?: () => void;
-}
-
-function LocationItem({ location, isSelected, onPress, onLongPress }: LocationItemProps) {
-  const holdGesture = useHoldGestureContextSafe();
+  const weatherDesc = weatherService.getWeatherDescription(day.weatherCode, i18n.language);
 
   const handlePress = useCallback(() => {
     if (holdGesture?.isGestureConsumed?.()) {
@@ -157,27 +135,147 @@ function LocationItem({ location, isSelected, onPress, onLongPress }: LocationIt
 
   return (
     <TouchableOpacity
-      style={[styles.locationItem, isSelected && styles.locationItemActive]}
+      style={styles.forecastRow}
       onPress={handlePress}
-      onLongPress={onLongPress}
-      delayLongPress={500}
+      onLongPress={() => {}}
+      delayLongPress={300}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={location.name}
-      accessibilityState={{ selected: isSelected }}
+      accessibilityLabel={`${dayName}, ${weatherDesc}, ${Math.round(day.temperatureMax)}° tot ${Math.round(day.temperatureMin)}°`}
+      accessibilityHint={t('modules.weather.tapForDetails')}
     >
-      <Icon
-        name={location.isCurrentLocation ? 'crosshairs-gps' : 'star'}
-        size={20}
-        color={isSelected ? colors.textOnPrimary : MODULE_COLOR}
-      />
-      <Text
-        style={[styles.locationItemText, isSelected && styles.locationItemTextActive]}
-        numberOfLines={1}
-      >
-        {location.name}
-      </Text>
+      {/* Left: Day name and icon */}
+      <View style={styles.forecastDayInfo}>
+        <Icon name={iconName} size={36} color={MODULE_COLOR} />
+        <View style={styles.forecastDayText}>
+          <Text style={styles.forecastDayName}>{dayName}</Text>
+          <Text style={styles.forecastCondition}>{weatherDesc}</Text>
+        </View>
+      </View>
+      {/* Right: Temperatures + chevron */}
+      <View style={styles.forecastTemps}>
+        <Text style={styles.forecastTempHigh}>{Math.round(day.temperatureMax)}°</Text>
+        <Text style={styles.forecastTempLow}>{Math.round(day.temperatureMin)}°</Text>
+        <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+      </View>
     </TouchableOpacity>
+  );
+}
+
+// ============================================================
+// Day Detail Modal Component
+// ============================================================
+
+interface DayDetailModalProps {
+  visible: boolean;
+  day: DailyForecast | null;
+  dayIndex: number;
+  onClose: () => void;
+}
+
+function DayDetailModal({ visible, day, dayIndex, onClose }: DayDetailModalProps) {
+  const { t, i18n } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { triggerFeedback } = useFeedback();
+
+  if (!day) return null;
+
+  const dayName = (() => {
+    if (dayIndex === 0) return t('modules.weather.today');
+    if (dayIndex === 1) return t('modules.weather.tomorrow');
+    return day.date.toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' });
+  })();
+
+  const iconName = weatherService.getWeatherIcon(day.weatherCode, true);
+  const weatherDesc = weatherService.getWeatherDescription(day.weatherCode, i18n.language);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleClose = () => {
+    void triggerFeedback('tap');
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={[styles.dayDetailModal, { paddingTop: insets.top }]}>
+        {/* Header */}
+        <View style={styles.dayDetailHeader}>
+          <TouchableOpacity
+            style={styles.dayDetailCloseButton}
+            onPress={handleClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          >
+            <Icon name="chevron-down" size={28} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.dayDetailTitle}>{dayName}</Text>
+          <View style={styles.dayDetailCloseButton} />
+        </View>
+
+        <ScrollView
+          style={styles.dayDetailContent}
+          contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
+        >
+          {/* Main weather card */}
+          <View style={styles.dayDetailMainCard}>
+            <Icon name={iconName} size={80} color={MODULE_COLOR} />
+            <Text style={styles.dayDetailCondition}>{weatherDesc}</Text>
+            <View style={styles.dayDetailTempRow}>
+              <View style={styles.dayDetailTempItem}>
+                <Text style={styles.dayDetailTempLabel}>{t('modules.weather.high')}</Text>
+                <Text style={styles.dayDetailTempValue}>{Math.round(day.temperatureMax)}°</Text>
+              </View>
+              <View style={styles.dayDetailTempDivider} />
+              <View style={styles.dayDetailTempItem}>
+                <Text style={styles.dayDetailTempLabel}>{t('modules.weather.low')}</Text>
+                <Text style={styles.dayDetailTempValue}>{Math.round(day.temperatureMin)}°</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Details grid */}
+          <View style={styles.dayDetailGrid}>
+            {/* Precipitation */}
+            <View style={styles.dayDetailGridItem}>
+              <Icon name="weather-rainy" size={32} color={MODULE_COLOR} />
+              <Text style={styles.dayDetailGridLabel}>{t('modules.weather.precipitation')}</Text>
+              <Text style={styles.dayDetailGridValue}>
+                {day.precipitationSum > 0 ? `${day.precipitationSum.toFixed(1)} mm` : t('modules.weather.noPrecipitation')}
+              </Text>
+            </View>
+
+            {/* Precipitation probability */}
+            <View style={styles.dayDetailGridItem}>
+              <Icon name="water-percent" size={32} color={MODULE_COLOR} />
+              <Text style={styles.dayDetailGridLabel}>{t('modules.weather.rainChance')}</Text>
+              <Text style={styles.dayDetailGridValue}>{day.precipitationProbability}%</Text>
+            </View>
+
+            {/* Sunrise */}
+            <View style={styles.dayDetailGridItem}>
+              <Icon name="weather-sunny" size={32} color={MODULE_COLOR} />
+              <Text style={styles.dayDetailGridLabel}>{t('modules.weather.sunrise')}</Text>
+              <Text style={styles.dayDetailGridValue}>{formatTime(day.sunrise)}</Text>
+            </View>
+
+            {/* Sunset */}
+            <View style={styles.dayDetailGridItem}>
+              <Icon name="weather-night" size={32} color={MODULE_COLOR} />
+              <Text style={styles.dayDetailGridLabel}>{t('modules.weather.sunset')}</Text>
+              <Text style={styles.dayDetailGridValue}>{formatTime(day.sunset)}</Text>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </Modal>
   );
 }
 
@@ -314,9 +412,35 @@ export function WeatherScreen() {
 
   // UI State
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showLocationSearch, setShowLocationSearch] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(true);  // Tabs: true = Mijn Locaties, false = Zoeken
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+
+  // ============================================================
+  // Location name validation
+  // ============================================================
+  // Only allow letters (including accented), spaces, hyphens, and apostrophes
+  // This covers names like: "Den Haag", "Saint-Tropez", "L'Aquila", "München"
+  const VALID_LOCATION_CHARS = /^[\p{L}\s\-']*$/u;
+
+  // Check if query contains only valid characters
+  const isValidLocationQuery = useCallback((query: string): boolean => {
+    return VALID_LOCATION_CHARS.test(query);
+  }, []);
+
+  // Sanitize input by removing invalid characters
+  const sanitizeLocationInput = useCallback((input: string): string => {
+    // Remove any character that is not a letter, space, hyphen, or apostrophe
+    return input.replace(/[^\p{L}\s\-']/gu, '');
+  }, []);
+
+  // Handle search query change with validation
+  const handleSearchQueryChange = useCallback((text: string) => {
+    // Sanitize the input to only allow valid characters
+    const sanitized = sanitizeLocationInput(text);
+    setSearchQuery(sanitized);
+  }, [sanitizeLocationInput]);
 
   // Voice focus for locations
   const voiceFocusItems = useMemo(() => {
@@ -357,29 +481,29 @@ export function WeatherScreen() {
   const handleLocationSelect = useCallback(async (location: WeatherLocation) => {
     void triggerFeedback('tap');
     await selectLocation(location);
-    setShowLocationSearch(false);
+    // Switch to favorites tab after selecting a location
+    setShowFavorites(true);
     setSearchQuery('');
     clearSearchResults();
   }, [selectLocation, clearSearchResults, triggerFeedback]);
 
-  // Handle search query change
-  const handleSearchChange = useCallback((text: string) => {
-    setSearchQuery(text);
-    void searchLocations(text);
-  }, [searchLocations]);
-
-  // Handle location search modal open
-  const handleOpenSearch = useCallback(() => {
+  // Handle search submit (explicit, not live filtering)
+  const handleSearch = useCallback(async () => {
+    if (!searchQuery.trim()) return;
     void triggerFeedback('tap');
-    setShowLocationSearch(true);
-  }, [triggerFeedback]);
+    await searchLocations(searchQuery);
+  }, [searchQuery, searchLocations, triggerFeedback]);
 
-  // Handle location search modal close
-  const handleCloseSearch = useCallback(() => {
-    setShowLocationSearch(false);
-    setSearchQuery('');
-    clearSearchResults();
-  }, [clearSearchResults]);
+  // Handle tab change
+  const handleTabChange = useCallback((showFavs: boolean) => {
+    void triggerFeedback('tap');
+    setShowFavorites(showFavs);
+    if (showFavs) {
+      // Clear search when switching to favorites
+      setSearchQuery('');
+      clearSearchResults();
+    }
+  }, [triggerFeedback, clearSearchResults]);
 
   // Handle save current location
   const handleSaveLocation = useCallback(async () => {
@@ -411,21 +535,46 @@ export function WeatherScreen() {
         showAdMob
       />
 
-      {/* Location Selector */}
-      <TouchableOpacity
-        style={styles.locationSelector}
-        onPress={handleOpenSearch}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={weather?.location.name || t('modules.weather.selectLocation')}
-        accessibilityHint={t('modules.weather.selectLocationHint')}
-      >
-        <Icon name="map-marker" size={24} color={MODULE_COLOR} />
-        <Text style={styles.locationName} numberOfLines={1}>
-          {weather?.location.name || t('modules.weather.selectLocation')}
-        </Text>
-        <Icon name="chevron-down" size={24} color={colors.textSecondary} />
-      </TouchableOpacity>
+      {/* Tab Bar: Mijn Locaties | Zoeken */}
+      <View style={styles.tabBar}>
+        <FavoriteTabButton
+          isActive={showFavorites}
+          onPress={() => handleTabChange(true)}
+          count={savedLocations.length}
+          label={t('modules.weather.myLocations')}
+        />
+        <SearchTabButton
+          isActive={!showFavorites}
+          onPress={() => handleTabChange(false)}
+        />
+      </View>
+
+      {/* Search Section (only when Zoeken tab active) */}
+      {!showFavorites && (
+        <View style={styles.searchSection}>
+          <SearchBar
+            value={searchQuery}
+            onChangeText={handleSearchQueryChange}
+            onSubmit={handleSearch}
+            placeholder={t('modules.weather.searchPlaceholder')}
+            searchButtonLabel={t('modules.weather.searchButton')}
+            maxLength={50}
+          />
+          {isSearching && (
+            <ActivityIndicator size="small" color={MODULE_COLOR} style={styles.searchSpinner} />
+          )}
+        </View>
+      )}
+
+      {/* Current Location Display (when on favorites tab and location selected) */}
+      {showFavorites && weather && (
+        <View style={styles.currentLocationBar}>
+          <Icon name="map-marker" size={24} color={MODULE_COLOR} />
+          <Text style={styles.currentLocationName} numberOfLines={1}>
+            {weather.location.name}
+          </Text>
+        </View>
+      )}
 
       {/* Error Banner */}
       {error && !isLoading && (
@@ -446,15 +595,15 @@ export function WeatherScreen() {
         </View>
       )}
 
-      {/* Empty State - No location selected */}
-      {!isLoading && !weather && !error && (
+      {/* Empty State - No location selected (on favorites tab) */}
+      {showFavorites && !isLoading && !weather && !error && (
         <View style={styles.emptyContainer}>
           <Icon name="weather-partly-cloudy" size={64} color={colors.textSecondary} />
           <Text style={styles.emptyTitle}>{t('modules.weather.noLocation')}</Text>
           <Text style={styles.emptyHint}>{t('modules.weather.noLocationHint')}</Text>
           <TouchableOpacity
             style={[styles.emptyButton, { backgroundColor: MODULE_COLOR }]}
-            onPress={handleOpenSearch}
+            onPress={() => handleTabChange(false)}
           >
             <Icon name="magnify" size={24} color={colors.textOnPrimary} />
             <Text style={styles.emptyButtonText}>{t('modules.weather.searchLocation')}</Text>
@@ -462,8 +611,29 @@ export function WeatherScreen() {
         </View>
       )}
 
-      {/* Weather Content */}
-      {weather && (
+      {/* Search Results (on search tab) */}
+      {!showFavorites && (
+        <ScrollView style={styles.searchResults}>
+          {searchResults.map((result) => (
+            <SearchResultItem
+              key={result.id}
+              location={result}
+              onPress={() => handleLocationSelect(result)}
+            />
+          ))}
+
+          {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+            <Text style={styles.noResultsText}>{t('modules.weather.noResults')}</Text>
+          )}
+
+          {searchQuery.length < 2 && searchResults.length === 0 && (
+            <Text style={styles.searchHintText}>{t('modules.weather.searchHint')}</Text>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Weather Content (only on favorites tab with weather data) */}
+      {showFavorites && weather && (
         <ScrollView
           ref={scrollRef}
           style={styles.content}
@@ -578,113 +748,31 @@ export function WeatherScreen() {
                 />
               </View>
 
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.forecastScroll}
-              >
+              <View style={styles.forecastList}>
                 {weather.daily.map((day, index) => (
-                  <ForecastDay key={index} day={day} index={index} />
+                  <ForecastDay
+                    key={index}
+                    day={day}
+                    index={index}
+                    onPress={() => {
+                      void triggerFeedback('tap');
+                      setSelectedDayIndex(index);
+                    }}
+                  />
                 ))}
-              </ScrollView>
+              </View>
             </View>
           </VoiceFocusable>
-
-          {/* Saved Locations Card */}
-          <View style={styles.locationsCard}>
-            <View style={styles.locationsHeader}>
-              <Text style={styles.locationsTitle}>{t('modules.weather.myLocations')}</Text>
-              <TouchableOpacity
-                style={styles.addLocationButton}
-                onPress={handleOpenSearch}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.weather.addLocation')}
-              >
-                <Icon name="plus" size={24} color={MODULE_COLOR} />
-                <Text style={styles.addLocationText}>{t('modules.weather.addLocation')}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {savedLocations.length === 0 && (
-              <Text style={styles.noLocationsText}>{t('modules.weather.noSavedLocations')}</Text>
-            )}
-
-            {savedLocations.map((location) => (
-              <LocationItem
-                key={location.id}
-                location={location}
-                isSelected={weather?.location.id === location.id}
-                onPress={() => handleLocationSelect(location)}
-                onLongPress={() => removeLocation(location.id)}
-              />
-            ))}
-
-            {/* Save current location button */}
-            {weather && !savedLocations.some(l => l.id === weather.location.id) && (
-              <TouchableOpacity
-                style={styles.saveLocationButton}
-                onPress={handleSaveLocation}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.weather.saveCurrentLocation')}
-              >
-                <Icon name="star-outline" size={20} color={MODULE_COLOR} />
-                <Text style={styles.saveLocationText}>
-                  {t('modules.weather.saveCurrentLocation')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
         </ScrollView>
       )}
 
-      {/* Location Search Modal */}
-      <Modal
-        visible={showLocationSearch}
-        animationType="slide"
-        transparent
-        onRequestClose={handleCloseSearch}
-      >
-        <View style={styles.searchModalOverlay}>
-          <View style={[styles.searchModalContent, { paddingBottom: insets.bottom + spacing.lg }]}>
-            <View style={styles.searchModalHeader}>
-              <Text style={styles.searchModalTitle}>{t('modules.weather.searchLocation')}</Text>
-              <TouchableOpacity onPress={handleCloseSearch} accessibilityRole="button">
-                <Icon name="close" size={24} color={colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.searchInputContainer}>
-              <Icon name="magnify" size={24} color={colors.textSecondary} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={t('modules.weather.searchPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                value={searchQuery}
-                onChangeText={handleSearchChange}
-                autoFocus
-                returnKeyType="search"
-              />
-              {isSearching && (
-                <ActivityIndicator size="small" color={MODULE_COLOR} />
-              )}
-            </View>
-
-            <ScrollView style={styles.searchResults}>
-              {searchResults.map((result) => (
-                <SearchResultItem
-                  key={result.id}
-                  location={result}
-                  onPress={() => handleLocationSelect(result)}
-                />
-              ))}
-
-              {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-                <Text style={styles.noResultsText}>{t('modules.weather.noResults')}</Text>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      {/* Day Detail Modal */}
+      <DayDetailModal
+        visible={selectedDayIndex !== null}
+        day={selectedDayIndex !== null && weather ? weather.daily[selectedDayIndex] : null}
+        dayIndex={selectedDayIndex ?? 0}
+        onClose={() => setSelectedDayIndex(null)}
+      />
 
       {/* Welcome Modal */}
       <WelcomeModal
@@ -705,8 +793,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Location selector
-  locationSelector: {
+  // Tab bar (Favorieten | Zoeken)
+  tabBar: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+
+  // Search section (on search tab)
+  searchSection: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+
+  // Current location bar (on favorites tab)
+  currentLocationBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
@@ -717,7 +825,7 @@ const styles = StyleSheet.create({
     minHeight: touchTargets.minimum,
     gap: spacing.sm,
   },
-  locationName: {
+  currentLocationName: {
     ...typography.h3,
     color: colors.textPrimary,
     flex: 1,
@@ -926,101 +1034,151 @@ const styles = StyleSheet.create({
     ...typography.h3,
     color: colors.textPrimary,
   },
-  forecastScroll: {
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
+  forecastList: {
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
   },
-  forecastDay: {
-    alignItems: 'center',
-    width: 72,
-    gap: spacing.xs,
-  },
-  forecastDayName: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  forecastTempHigh: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  forecastTempLow: {
-    ...typography.caption,
-    color: colors.textSecondary,
-  },
-
-  // Locations card
-  locationsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    ...shadows.small,
-  },
-  locationsHeader: {
+  forecastRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  locationsTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-  },
-  addLocationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  addLocationText: {
-    ...typography.body,
-    color: MODULE_COLOR,
-    fontWeight: '500',
-  },
-  noLocationsText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    paddingVertical: spacing.md,
-  },
-  locationItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.background,
-    marginBottom: spacing.xs,
-    minHeight: touchTargets.minimum,
-    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  locationItemActive: {
-    backgroundColor: MODULE_COLOR,
-  },
-  locationItemText: {
-    ...typography.body,
-    color: colors.textPrimary,
+  forecastDayInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
     flex: 1,
   },
-  locationItemTextActive: {
-    color: colors.textOnPrimary,
-    fontWeight: '600',
+  forecastDayText: {
+    flex: 1,
   },
-  saveLocationButton: {
+  forecastDayName: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  forecastCondition: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  forecastTemps: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    marginTop: spacing.sm,
-    gap: spacing.xs,
+    gap: spacing.md,
   },
-  saveLocationText: {
+  forecastTempHigh: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    minWidth: 44,
+    textAlign: 'right',
+  },
+  forecastTempLow: {
     ...typography.body,
-    color: MODULE_COLOR,
+    color: colors.textSecondary,
+    minWidth: 44,
+    textAlign: 'right',
+  },
+
+  // Day detail modal
+  dayDetailModal: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  dayDetailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  dayDetailCloseButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayDetailTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    flex: 1,
+    textTransform: 'capitalize',
+  },
+  dayDetailContent: {
+    flex: 1,
+  },
+  dayDetailMainCard: {
+    backgroundColor: colors.surface,
+    margin: spacing.md,
+    padding: spacing.xl,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    ...shadows.small,
+  },
+  dayDetailCondition: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+    textTransform: 'capitalize',
+  },
+  dayDetailTempRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.lg,
+    gap: spacing.xl,
+  },
+  dayDetailTempItem: {
+    alignItems: 'center',
+  },
+  dayDetailTempLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  dayDetailTempValue: {
+    fontSize: 48,
+    fontWeight: '300',
+    color: colors.textPrimary,
+  },
+  dayDetailTempDivider: {
+    width: 1,
+    height: 60,
+    backgroundColor: colors.border,
+  },
+  dayDetailGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
+  },
+  dayDetailGridItem: {
+    width: '47%',
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    ...shadows.small,
+  },
+  dayDetailGridLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  dayDetailGridValue: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
 
   // Welcome modal
@@ -1087,50 +1245,15 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
   },
 
-  // Search modal
-  searchModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  searchModalContent: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    maxHeight: '80%',
-  },
-  searchModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  searchModalTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.background,
-    margin: spacing.md,
-    borderRadius: borderRadius.md,
-    gap: spacing.sm,
-  },
-  searchInput: {
-    ...typography.body,
-    color: colors.textPrimary,
-    flex: 1,
-    paddingVertical: spacing.sm,
+  // Search results
+  searchSpinner: {
+    marginTop: spacing.sm,
+    alignSelf: 'center',
   },
   searchResults: {
     flex: 1,
     paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
   },
   searchResultItem: {
     flexDirection: 'row',
@@ -1161,6 +1284,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: spacing.lg,
     fontStyle: 'italic',
+  },
+  searchHintText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
 });
 

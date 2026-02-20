@@ -996,6 +996,7 @@
       "selectLocation": "Select location",
       "searchLocation": "Search location",
       "searchPlaceholder": "Enter place name...",
+      "searchHint": "Enter a place name and tap the search button",
       "noResults": "No locations found",
       "currentWeather": "Current weather",
       "feelsLike": "Feels like",
@@ -1016,6 +1017,9 @@
       "readCurrentWeather": "Read current weather",
       "readForecast": "Read forecast",
       "readRain": "Read rain prediction",
+      "searchButton": "Search location",
+      "addToFavorites": "Add {{name}} to favorites",
+      "removeFromFavorites": "Remove {{name}} from favorites",
       "precipitation": "Precipitation",
       "precipitationChance": "Chance of rain",
       "dry": "Dry",
@@ -1034,7 +1038,13 @@
         "step2": "View current weather and 7-day forecast",
         "step3": "Tap 'Read' to hear the weather aloud",
         "understood": "Got it"
-      }
+      },
+      "tapForDetails": "Tap for more details",
+      "high": "High",
+      "low": "Low",
+      "precipitation": "Precipitation",
+      "noPrecipitation": "Dry",
+      "rainChance": "Rain chance"
     }
   },
   "settings": {

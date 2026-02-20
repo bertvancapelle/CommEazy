@@ -1004,6 +1004,7 @@
       "selectLocationHint": "Tik om een locatie te zoeken",
       "searchLocation": "Zoek locatie",
       "searchPlaceholder": "Voer plaatsnaam in...",
+      "searchHint": "Typ een plaatsnaam en druk op de zoekknop",
       "noResults": "Geen locaties gevonden",
       "currentWeather": "Huidig weer",
       "feelsLike": "Voelt als",
@@ -1026,6 +1027,9 @@
       "readCurrentWeather": "Huidig weer voorlezen",
       "readForecast": "Voorspelling voorlezen",
       "readRain": "Neerslagverwachting voorlezen",
+      "searchButton": "Zoek locatie",
+      "addToFavorites": "{{name}} toevoegen aan favorieten",
+      "removeFromFavorites": "{{name}} verwijderen uit favorieten",
       "errors": {
         "network": "Kan weerdata niet ophalen. Controleer je internetverbinding."
       },
@@ -1035,7 +1039,13 @@
         "step2": "Tik op 'Voorlezen' om het weer te horen",
         "step3": "Sla maximaal 10 favoriete locaties op",
         "understood": "Begrepen"
-      }
+      },
+      "tapForDetails": "Tik voor meer details",
+      "high": "Max",
+      "low": "Min",
+      "precipitation": "Neerslag",
+      "noPrecipitation": "Droog",
+      "rainChance": "Regenkans"
     }
   },
   "settings": {
