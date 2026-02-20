@@ -274,11 +274,23 @@ export interface MockChatListItem {
   unreadCount: number;
 }
 
-export const getMockChatList = (): MockChatListItem[] => {
+export const getMockChatList = async (): Promise<MockChatListItem[]> => {
   // Get device-specific contacts (includes ik/oma for the other device)
   const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : null;
+
+  // Load public keys for test devices (required for E2E encryption)
+  let publicKeyMap: Record<string, string> = {};
+  if (currentUserJid) {
+    try {
+      const { getOtherDevicesPublicKeys } = await import('./testKeys');
+      publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid);
+    } catch (error) {
+      console.warn('[MockChats] Failed to load test public keys:', error);
+    }
+  }
+
   const contacts = currentUserJid
-    ? getMockContactsForDevice(currentUserJid)
+    ? getMockContactsForDevice(currentUserJid, publicKeyMap)
     : MOCK_CONTACTS;
 
   return contacts.map(contact => {

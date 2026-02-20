@@ -106,7 +106,7 @@ export function ChatListScreen() {
         } else if (__DEV__) {
           // Fallback to mock data in dev mode if service not ready
           const { getMockChatList, getMockContactPresence } = await import('@/services/mock');
-          const mockChats = getMockChatList();
+          const mockChats = await getMockChatList();
           const chatList: ChatListItem[] = mockChats
             .filter(chat => chat.lastMessage) // Only show chats with messages
             .map(chat => ({
@@ -130,7 +130,7 @@ export function ChatListScreen() {
         if (__DEV__ && !cancelled) {
           try {
             const { getMockChatList, getMockContactPresence } = await import('@/services/mock');
-            const mockChats = getMockChatList();
+            const mockChats = await getMockChatList();
             const chatList: ChatListItem[] = mockChats
               .filter(chat => chat.lastMessage)
               .map(chat => ({
@@ -222,7 +222,7 @@ export function ChatListScreen() {
         setChats(items);
       } else if (__DEV__) {
         const { getMockChatList, getMockContactPresence } = await import('@/services/mock');
-        const mockChats = getMockChatList();
+        const mockChats = await getMockChatList();
         const chatList: ChatListItem[] = mockChats
           .filter(chat => chat.lastMessage)
           .map(chat => ({
@@ -411,7 +411,7 @@ export function ChatListScreen() {
         moduleId="messages"
         icon="chat"
         title={t('tabs.chats')}
-        showAdMob={false}
+        showAdMob={true}
       />
 
       <ScrollView

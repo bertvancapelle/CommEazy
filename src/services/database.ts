@@ -481,6 +481,13 @@ export class WatermelonDBService implements DatabaseService {
 
           // Voice commands (v11)
           record.voiceCommandsEnabled = profile.voiceCommandsEnabled;
+
+          // Call sound settings (v12)
+          record.ringtoneEnabled = profile.ringtoneEnabled;
+          record.ringtoneSound = profile.ringtoneSound;
+          record.dialToneEnabled = profile.dialToneEnabled;
+          record.incomingCallVibration = profile.incomingCallVibration;
+          record.outgoingCallVibration = profile.outgoingCallVibration;
         });
       } else {
         await db.get<UserProfileModel>('user_profile').create(record => {
@@ -524,6 +531,13 @@ export class WatermelonDBService implements DatabaseService {
 
           // Voice commands (v11)
           record.voiceCommandsEnabled = profile.voiceCommandsEnabled;
+
+          // Call sound settings (v12)
+          record.ringtoneEnabled = profile.ringtoneEnabled;
+          record.ringtoneSound = profile.ringtoneSound;
+          record.dialToneEnabled = profile.dialToneEnabled;
+          record.incomingCallVibration = profile.incomingCallVibration;
+          record.outgoingCallVibration = profile.outgoingCallVibration;
         });
       }
     });
@@ -641,6 +655,13 @@ export class WatermelonDBService implements DatabaseService {
 
       // Voice commands (v11)
       voiceCommandsEnabled: p.voiceCommandsEnabled,
+
+      // Call sound settings (v12)
+      ringtoneEnabled: p.ringtoneEnabled,
+      ringtoneSound: p.ringtoneSound,
+      dialToneEnabled: p.dialToneEnabled,
+      incomingCallVibration: p.incomingCallVibration,
+      outgoingCallVibration: p.outgoingCallVibration,
     };
   }
 }
