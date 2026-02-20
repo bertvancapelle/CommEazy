@@ -22,6 +22,7 @@ export interface AccentColor {
   primary: string;
   primaryLight: string;
   primaryDark: string;
+  light: string; // Very light tint for backgrounds (10-15% opacity)
   label: string; // i18n key
 }
 
@@ -31,30 +32,35 @@ export const accentColors: Record<AccentColorKey, AccentColor> = {
     primary: '#0D47A1',       // Blue 900 — 12.6:1 on white
     primaryLight: '#1565C0',  // Blue 800 — 8.6:1 on white
     primaryDark: '#0A3069',   // 15.2:1 on white
+    light: '#E3F2FD',         // Blue 50 — light background tint
     label: 'theme.accentBlue',
   },
   green: {
     primary: '#1B5E20',       // Green 900 — 10.3:1 on white
     primaryLight: '#2E7D32',  // Green 800 — 7.3:1 on white
     primaryDark: '#0D3A12',   // 14.8:1 on white
+    light: '#E8F5E9',         // Green 50 — light background tint
     label: 'theme.accentGreen',
   },
   purple: {
     primary: '#4A148C',       // Purple 900 — 12.4:1 on white
     primaryLight: '#6A1B9A',  // Purple 800 — 9.1:1 on white
     primaryDark: '#2E0854',   // 16.2:1 on white
+    light: '#F3E5F5',         // Purple 50 — light background tint
     label: 'theme.accentPurple',
   },
   orange: {
     primary: '#BF360C',       // Deep Orange 900 — 7.2:1 on white
     primaryLight: '#D84315',  // Deep Orange 800 — 5.3:1 on white (AAA large)
     primaryDark: '#8B2508',   // 10.1:1 on white
+    light: '#FBE9E7',         // Deep Orange 50 — light background tint
     label: 'theme.accentOrange',
   },
   red: {
     primary: '#B71C1C',       // Red 900 — 8.3:1 on white
     primaryLight: '#C62828',  // Red 800 — 6.8:1 on white
     primaryDark: '#7F0000',   // 12.5:1 on white
+    light: '#FFEBEE',         // Red 50 — light background tint
     label: 'theme.accentRed',
   },
 };
