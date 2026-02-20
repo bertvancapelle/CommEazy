@@ -1148,6 +1148,8 @@
         "now": "Now",
         "minutesAgo": "{{minutes}} min ago",
         "minutesAhead": "In {{minutes}} min",
+        "hoursAgo": "{{hours}} hours ago",
+        "inMinutes": "In {{minutes}} min",
         "play": "Play animation",
         "pause": "Pause animation",
         "zoomIn": "Zoom in",

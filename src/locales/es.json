@@ -1126,6 +1126,41 @@
         "step2": "Consulta el tiempo actual y pronóstico de 7 días",
         "step3": "Toca 'Leer' para escuchar el tiempo",
         "understood": "Entendido"
+      },
+      "tabs": {
+        "weather": "Tiempo",
+        "radar": "Radar"
+      },
+      "radar": {
+        "title": "Radar de lluvia",
+        "loading": "Cargando imagen del radar...",
+        "noData": "No hay datos del radar disponibles",
+        "noDataHint": "Por favor, inténtalo más tarde",
+        "past": "Última hora",
+        "forecast": "Pronóstico",
+        "now": "Ahora",
+        "minutesAgo": "hace {{minutes}} min",
+        "minutesAhead": "en {{minutes}} min",
+        "hoursAgo": "hace {{hours}} h",
+        "inMinutes": "en {{minutes}} min",
+        "play": "Reproducir animación",
+        "pause": "Pausar animación",
+        "zoomIn": "Acercar",
+        "zoomOut": "Alejar",
+        "currentLocation": "Ubicación actual",
+        "centerOnLocation": "Centrar en ubicación",
+        "legend": "Leyenda",
+        "legendLight": "Lluvia ligera",
+        "legendModerate": "Lluvia moderada",
+        "legendHeavy": "Lluvia intensa",
+        "legendVeryHeavy": "Lluvia muy intensa",
+        "lastUpdated": "Última actualización: {{time}}",
+        "timeSlider": "Control de tiempo del radar",
+        "timeSliderHint": "Desliza para navegar en el tiempo",
+        "errors": {
+          "network": "No se puede cargar la imagen del radar. Comprueba tu conexión a internet.",
+          "timeout": "La carga está tardando demasiado. Por favor, inténtalo más tarde."
+        }
       }
     }
   },

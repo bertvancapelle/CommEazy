@@ -1126,6 +1126,41 @@
         "step2": "Consultez la météo actuelle et les prévisions 7 jours",
         "step3": "Appuyez sur 'Lire' pour écouter la météo",
         "understood": "Compris"
+      },
+      "tabs": {
+        "weather": "Météo",
+        "radar": "Radar"
+      },
+      "radar": {
+        "title": "Radar de pluie",
+        "loading": "Chargement de l'image radar...",
+        "noData": "Aucune donnée radar disponible",
+        "noDataHint": "Veuillez réessayer plus tard",
+        "past": "Dernière heure",
+        "forecast": "Prévisions",
+        "now": "Maintenant",
+        "minutesAgo": "il y a {{minutes}} min",
+        "minutesAhead": "dans {{minutes}} min",
+        "hoursAgo": "il y a {{hours}} h",
+        "inMinutes": "dans {{minutes}} min",
+        "play": "Lire l'animation",
+        "pause": "Pause",
+        "zoomIn": "Zoomer",
+        "zoomOut": "Dézoomer",
+        "currentLocation": "Position actuelle",
+        "centerOnLocation": "Centrer sur la position",
+        "legend": "Légende",
+        "legendLight": "Pluie légère",
+        "legendModerate": "Pluie modérée",
+        "legendHeavy": "Forte pluie",
+        "legendVeryHeavy": "Très forte pluie",
+        "lastUpdated": "Dernière mise à jour : {{time}}",
+        "timeSlider": "Curseur de temps radar",
+        "timeSliderHint": "Faites glisser pour naviguer dans le temps",
+        "errors": {
+          "network": "Impossible de charger l'image radar. Vérifiez votre connexion internet.",
+          "timeout": "Le chargement prend trop de temps. Veuillez réessayer plus tard."
+        }
       }
     }
   },

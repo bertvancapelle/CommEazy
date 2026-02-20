@@ -1126,6 +1126,41 @@
         "step2": "Sieh aktuelles Wetter und 7-Tage-Vorhersage",
         "step3": "Tippe auf 'Vorlesen' um das Wetter zu hören",
         "understood": "Verstanden"
+      },
+      "tabs": {
+        "weather": "Wetter",
+        "radar": "Radar"
+      },
+      "radar": {
+        "title": "Regenradar",
+        "loading": "Radarbild wird geladen...",
+        "noData": "Keine Radardaten verfügbar",
+        "noDataHint": "Bitte versuche es später erneut",
+        "past": "Letzte Stunde",
+        "forecast": "Vorhersage",
+        "now": "Jetzt",
+        "minutesAgo": "vor {{minutes}} Min",
+        "minutesAhead": "in {{minutes}} Min",
+        "hoursAgo": "vor {{hours}} Std",
+        "inMinutes": "in {{minutes}} Min",
+        "play": "Animation abspielen",
+        "pause": "Animation pausieren",
+        "zoomIn": "Vergrößern",
+        "zoomOut": "Verkleinern",
+        "currentLocation": "Aktueller Standort",
+        "centerOnLocation": "Auf Standort zentrieren",
+        "legend": "Legende",
+        "legendLight": "Leichter Regen",
+        "legendModerate": "Mäßiger Regen",
+        "legendHeavy": "Starker Regen",
+        "legendVeryHeavy": "Sehr starker Regen",
+        "lastUpdated": "Zuletzt aktualisiert: {{time}}",
+        "timeSlider": "Radar-Zeitregler",
+        "timeSliderHint": "Schieben, um durch die Zeit zu navigieren",
+        "errors": {
+          "network": "Radarbild kann nicht geladen werden. Überprüfe deine Internetverbindung.",
+          "timeout": "Das Laden dauert zu lange. Bitte versuche es später erneut."
+        }
       }
     }
   },

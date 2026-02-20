@@ -1156,6 +1156,8 @@
         "now": "Nu",
         "minutesAgo": "{{minutes}} min geleden",
         "minutesAhead": "Over {{minutes}} min",
+        "hoursAgo": "{{hours}} uur geleden",
+        "inMinutes": "Over {{minutes}} min",
         "play": "Animatie afspelen",
         "pause": "Animatie pauzeren",
         "zoomIn": "Inzoomen",
