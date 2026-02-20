@@ -4,6 +4,7 @@
  * Collects required demographic data for free users:
  * - Country of origin
  * - Region/Province
+ * - City (via weather API geocoding)
  * - Age bracket
  *
  * This data is required for ad targeting (free tier).
@@ -14,9 +15,10 @@
  * - Clear labels with bold formatting
  * - Simple picker modals
  * - Flag emojis for country recognition
+ * - City search with metadata for disambiguation
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -27,12 +29,16 @@ import {
   Modal,
   Alert,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { weatherService } from '@/services/weatherService';
+import type { WeatherLocation } from '@/types/weather';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { Button, ProgressIndicator } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
 import type { AgeBracket } from '@/services/interfaces';
 
@@ -140,6 +146,276 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
   );
 }
 
+// Helper function to format city display with disambiguation metadata
+function formatCityDisplay(location: WeatherLocation): string {
+  const parts = [location.name];
+
+  // Add admin1 (state/province) if different from city name
+  if (location.admin1 && location.admin1 !== location.name) {
+    parts.push(location.admin1);
+  }
+
+  // Add country
+  if (location.country) {
+    parts.push(location.country);
+  }
+
+  return parts.join(', ');
+}
+
+// City Picker Modal with search functionality
+interface CityPickerModalProps {
+  visible: boolean;
+  onSelect: (location: WeatherLocation) => void;
+  onClose: () => void;
+  language: string;
+  countryCode?: string; // ISO 3166-1 alpha-2 country code to filter results
+}
+
+function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: CityPickerModalProps) {
+  const { t } = useTranslation();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<WeatherLocation[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      setSearchError(null);
+      return;
+    }
+
+    setSearchError(null);
+
+    // Debounce search by 500ms
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await weatherService.searchLocations(searchQuery, language, countryCode);
+        setSearchResults(results);
+        if (results.length === 0) {
+          setSearchError(t('demographics.noCitiesFound'));
+        }
+      } catch (error) {
+        console.error('[DemographicsScreen] City search failed:', error);
+        setSearchError(t('demographics.citySearchError'));
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, language, countryCode, t]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setSearchQuery('');
+      setSearchResults([]);
+      setSearchError(null);
+    }
+  }, [visible]);
+
+  const handleSelectCity = (location: WeatherLocation) => {
+    onSelect(location);
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={cityPickerStyles.container}>
+        <View style={cityPickerStyles.header}>
+          <Text style={cityPickerStyles.title}>{t('demographics.selectCity')}</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            style={cityPickerStyles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          >
+            <Text style={cityPickerStyles.closeText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Search input */}
+        <View style={cityPickerStyles.searchContainer}>
+          <TextInput
+            style={cityPickerStyles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder={t('demographics.citySearchPlaceholder')}
+            placeholderTextColor={colors.textTertiary}
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoFocus={true}
+            accessibilityLabel={t('demographics.citySearchPlaceholder')}
+          />
+          {isSearching && (
+            <ActivityIndicator
+              style={cityPickerStyles.searchSpinner}
+              size="small"
+              color={colors.primary}
+            />
+          )}
+        </View>
+
+        {/* Search hint */}
+        {searchQuery.length === 0 && (
+          <View style={cityPickerStyles.hintContainer}>
+            <Text style={cityPickerStyles.hintText}>
+              {t('demographics.citySearchHint')}
+            </Text>
+          </View>
+        )}
+
+        {/* Search error */}
+        {searchError && !isSearching && (
+          <View style={cityPickerStyles.errorContainer}>
+            <Text style={cityPickerStyles.errorText}>{searchError}</Text>
+          </View>
+        )}
+
+        {/* Search results */}
+        <ScrollView style={cityPickerStyles.resultsList}>
+          {searchResults.map((location) => (
+            <TouchableOpacity
+              key={location.id}
+              style={cityPickerStyles.resultItem}
+              onPress={() => handleSelectCity(location)}
+              accessibilityRole="button"
+              accessibilityLabel={formatCityDisplay(location)}
+            >
+              <View style={cityPickerStyles.resultContent}>
+                <Text style={cityPickerStyles.cityName}>{location.name}</Text>
+                <Text style={cityPickerStyles.cityMeta}>
+                  {[location.admin1, location.country].filter(Boolean).join(', ')}
+                </Text>
+              </View>
+              <Text style={cityPickerStyles.selectIcon}>›</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+const cityPickerStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  title: {
+    ...typography.h3,
+    color: colors.textPrimary,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeText: {
+    ...typography.h3,
+    color: colors.textSecondary,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  searchInput: {
+    flex: 1,
+    ...typography.body,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    color: colors.textPrimary,
+    minHeight: touchTargets.comfortable,
+  },
+  searchSpinner: {
+    marginLeft: spacing.sm,
+  },
+  hintContainer: {
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  hintText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  errorContainer: {
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  errorText: {
+    ...typography.body,
+    color: colors.error,
+    textAlign: 'center',
+  },
+  resultsList: {
+    flex: 1,
+  },
+  resultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minHeight: touchTargets.comfortable,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  resultContent: {
+    flex: 1,
+  },
+  cityName: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  cityMeta: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  selectIcon: {
+    ...typography.h2,
+    color: colors.textTertiary,
+    marginLeft: spacing.sm,
+  },
+});
+
 const pickerStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -200,25 +476,29 @@ const pickerStyles = StyleSheet.create({
 });
 
 export function DemographicsScreen({ route, navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { triggerFeedback } = useFeedback();
   const { name } = route.params;
 
   const [countryCode, setCountryCode] = useState<string | undefined>();
   const [regionCode, setRegionCode] = useState<string | undefined>();
-  const [city, setCity] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<WeatherLocation | undefined>();
   const [ageBracket, setAgeBracket] = useState<AgeBracket | undefined>();
 
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
   const [regionPickerVisible, setRegionPickerVisible] = useState(false);
+  const [cityPickerVisible, setCityPickerVisible] = useState(false);
   const [agePickerVisible, setAgePickerVisible] = useState(false);
 
   const handleCountrySelect = useCallback((code: string) => {
+    void triggerFeedback('tap');
     setCountryCode(code);
     // Clear region when country changes
     setRegionCode(undefined);
-  }, []);
+  }, [triggerFeedback]);
 
   const handleContinue = useCallback(async () => {
+    void triggerFeedback('tap');
     // Validate all fields are filled
     if (!countryCode) {
       Alert.alert(t('demographics.required'), t('demographics.selectCountry'));
@@ -232,8 +512,8 @@ export function DemographicsScreen({ route, navigation }: Props) {
       return;
     }
 
-    if (!city.trim()) {
-      Alert.alert(t('demographics.required'), t('demographics.enterCity'));
+    if (!selectedCity) {
+      Alert.alert(t('demographics.required'), t('demographics.selectCity'));
       return;
     }
 
@@ -252,7 +532,10 @@ export function DemographicsScreen({ route, navigation }: Props) {
           ...profile,
           countryCode,
           regionCode: regionCode || countryCode, // Use country code for countries without regions (LU)
-          city: city.trim(),
+          city: selectedCity.name,
+          // Store city coordinates for weather module integration
+          cityLatitude: selectedCity.latitude,
+          cityLongitude: selectedCity.longitude,
           ageBracket,
         });
       }
@@ -263,7 +546,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
       console.error('Failed to save demographics:', error);
       Alert.alert(t('errors.genericError'));
     }
-  }, [countryCode, regionCode, ageBracket, name, navigation, t]);
+  }, [countryCode, regionCode, selectedCity, ageBracket, name, navigation, t, triggerFeedback]);
 
   // Build picker options
   const countryOptions = COUNTRIES.map(code => ({
@@ -285,7 +568,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
 
   // Check if all required fields are filled
   const hasRegions = countryCode && REGIONS_BY_COUNTRY[countryCode] && REGIONS_BY_COUNTRY[countryCode].length > 1;
-  const isComplete = countryCode && (!hasRegions || regionCode) && city.trim() && ageBracket;
+  const isComplete = countryCode && (!hasRegions || regionCode) && selectedCity && ageBracket;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -334,21 +617,22 @@ export function DemographicsScreen({ route, navigation }: Props) {
           </View>
         )}
 
-        {/* City input field */}
+        {/* City picker (via weather API geocoding) */}
         <View style={styles.fieldContainer}>
           <Text style={styles.fieldLabel}>{t('demographics.cityLabel')}</Text>
-          <TextInput
-            style={styles.textInput}
-            value={city}
-            onChangeText={setCity}
-            placeholder={t('demographics.enterCity')}
-            placeholderTextColor={colors.textTertiary}
-            maxLength={100}
-            autoCapitalize="words"
-            autoCorrect={false}
+          <TouchableOpacity
+            style={styles.pickerRow}
+            onPress={() => setCityPickerVisible(true)}
+            accessibilityRole="button"
             accessibilityLabel={t('demographics.cityLabel')}
-            accessibilityHint={t('demographics.enterCity')}
-          />
+          >
+            <Text style={[styles.pickerValue, !selectedCity && styles.pickerPlaceholder]}>
+              {selectedCity
+                ? formatCityDisplay(selectedCity)
+                : t('demographics.selectCity')}
+            </Text>
+            <Text style={styles.editIcon}>✏️</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Age bracket picker */}
@@ -412,6 +696,14 @@ export function DemographicsScreen({ route, navigation }: Props) {
         onSelect={(value) => setAgeBracket(value as AgeBracket)}
         onClose={() => setAgePickerVisible(false)}
       />
+
+      <CityPickerModal
+        visible={cityPickerVisible}
+        onSelect={setSelectedCity}
+        onClose={() => setCityPickerVisible(false)}
+        language={i18n.language}
+        countryCode={countryCode}
+      />
     </SafeAreaView>
   );
 }
@@ -460,17 +752,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    minHeight: touchTargets.comfortable,
-  },
-  textInput: {
-    ...typography.body,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    color: colors.textPrimary,
     minHeight: touchTargets.comfortable,
   },
   pickerValue: {

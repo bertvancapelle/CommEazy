@@ -53,6 +53,13 @@ export class UserProfileModel extends Model {
   // Voice commands (v11)
   @field('voice_commands_enabled') voiceCommandsEnabled?: boolean; // Two-finger long press activation
 
+  // Call sound settings (v12)
+  @field('ringtone_enabled') ringtoneEnabled?: boolean;             // Play ringtone for incoming calls
+  @field('ringtone_sound') ringtoneSound?: string;                  // 'default'|'classic'|'gentle'|'urgent'
+  @field('dial_tone_enabled') dialToneEnabled?: boolean;            // Play dial tone for outgoing calls
+  @field('incoming_call_vibration') incomingCallVibration?: boolean; // Vibrate for incoming calls
+  @field('outgoing_call_vibration') outgoingCallVibration?: boolean; // Vibrate when outgoing call connects
+
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

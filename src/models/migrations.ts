@@ -13,6 +13,7 @@
  * - v9: Added hapticIntensity, audioFeedbackBoost, wheelBlurIntensity, wheelDismissMargin
  * - v10: Added accentColor for UI personalization
  * - v11: Added voiceCommandsEnabled for two-finger voice commands
+ * - v12: Added call sound settings (ringtone, dial tone, vibration)
  */
 
 import { schemaMigrations, addColumns } from '@nozbe/watermelondb/Schema/migrations';
@@ -164,6 +165,22 @@ export const migrations = schemaMigrations({
           table: 'user_profile',
           columns: [
             { name: 'voice_commands_enabled', type: 'boolean', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v11 to v12: Add call sound settings
+    {
+      toVersion: 12,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'ringtone_enabled', type: 'boolean', isOptional: true },
+            { name: 'ringtone_sound', type: 'string', isOptional: true },
+            { name: 'dial_tone_enabled', type: 'boolean', isOptional: true },
+            { name: 'incoming_call_vibration', type: 'boolean', isOptional: true },
+            { name: 'outgoing_call_vibration', type: 'boolean', isOptional: true },
           ],
         }),
       ],

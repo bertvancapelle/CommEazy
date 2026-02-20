@@ -60,8 +60,11 @@ class WeatherServiceImpl {
 
   /**
    * Search for locations by name
+   * @param query - Search query (min 2 characters)
+   * @param language - Language for results (default: 'nl')
+   * @param countryCode - Optional ISO 3166-1 alpha-2 country code to filter results (e.g., 'NL', 'DE')
    */
-  async searchLocations(query: string, language: string = 'nl'): Promise<WeatherLocation[]> {
+  async searchLocations(query: string, language: string = 'nl', countryCode?: string): Promise<WeatherLocation[]> {
     if (!query || query.length < 2) {
       return [];
     }
@@ -70,6 +73,11 @@ class WeatherServiceImpl {
     url.searchParams.set('name', query);
     url.searchParams.set('count', '10');
     url.searchParams.set('language', language.split('-')[0]); // Use base language code
+
+    // Filter by country if provided
+    if (countryCode) {
+      url.searchParams.set('country', countryCode);
+    }
 
     console.debug('[weatherService] Searching locations:', query);
 
@@ -98,6 +106,7 @@ class WeatherServiceImpl {
         name: result.name,
         country: result.country,
         admin1: result.admin1,
+        admin2: result.admin2,
         latitude: result.latitude,
         longitude: result.longitude,
         isCurrentLocation: false,
