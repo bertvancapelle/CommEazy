@@ -1158,6 +1158,7 @@
         "minutesAhead": "Over {{minutes}} min",
         "hoursAgo": "{{hours}} uur geleden",
         "inMinutes": "Over {{minutes}} min",
+        "inHours": "Over {{hours}} uur",
         "play": "Animatie afspelen",
         "pause": "Animatie pauzeren",
         "zoomIn": "Inzoomen",
@@ -1173,6 +1174,9 @@
         "timeSlider": "Tijdslider voor radar",
         "timeSliderHint": "Schuif om door de tijd te navigeren",
         "mapHint": "Toont neerslagradar voor uw locatie",
+        "attribution": "Databron",
+        "attributionOwm": "Radardata van OpenWeather",
+        "attributionRainViewer": "Radardata van RainViewer",
         "errors": {
           "network": "Kan radarbeeld niet laden. Controleer je internetverbinding.",
           "timeout": "Het laden duurt te lang. Probeer het later opnieuw."

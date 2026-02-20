@@ -1143,6 +1143,7 @@
         "minutesAhead": "en {{minutes}} min",
         "hoursAgo": "hace {{hours}} h",
         "inMinutes": "en {{minutes}} min",
+        "inHours": "en {{hours}} h",
         "play": "Reproducir animación",
         "pause": "Pausar animación",
         "zoomIn": "Acercar",
@@ -1158,6 +1159,9 @@
         "timeSlider": "Control de tiempo del radar",
         "timeSliderHint": "Desliza para navegar en el tiempo",
         "mapHint": "Muestra el radar de precipitaciones de tu ubicación",
+        "attribution": "Fuente de datos",
+        "attributionOwm": "Datos radar de OpenWeather",
+        "attributionRainViewer": "Datos radar de RainViewer",
         "errors": {
           "network": "No se puede cargar la imagen del radar. Comprueba tu conexión a internet.",
           "timeout": "La carga está tardando demasiado. Por favor, inténtalo más tarde."

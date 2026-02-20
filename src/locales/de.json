@@ -1143,6 +1143,7 @@
         "minutesAhead": "in {{minutes}} Min",
         "hoursAgo": "vor {{hours}} Std",
         "inMinutes": "in {{minutes}} Min",
+        "inHours": "in {{hours}} Std",
         "play": "Animation abspielen",
         "pause": "Animation pausieren",
         "zoomIn": "Vergrößern",
@@ -1158,6 +1159,9 @@
         "timeSlider": "Radar-Zeitregler",
         "timeSliderHint": "Schieben, um durch die Zeit zu navigieren",
         "mapHint": "Zeigt Niederschlagsradar für Ihren Standort",
+        "attribution": "Datenquelle",
+        "attributionOwm": "Radardaten von OpenWeather",
+        "attributionRainViewer": "Radardaten von RainViewer",
         "errors": {
           "network": "Radarbild kann nicht geladen werden. Überprüfe deine Internetverbindung.",
           "timeout": "Das Laden dauert zu lange. Bitte versuche es später erneut."

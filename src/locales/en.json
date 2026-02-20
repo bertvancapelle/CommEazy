@@ -1150,6 +1150,7 @@
         "minutesAhead": "In {{minutes}} min",
         "hoursAgo": "{{hours}} hours ago",
         "inMinutes": "In {{minutes}} min",
+        "inHours": "In {{hours}} hours",
         "play": "Play animation",
         "pause": "Pause animation",
         "zoomIn": "Zoom in",
@@ -1165,6 +1166,9 @@
         "timeSlider": "Radar time slider",
         "timeSliderHint": "Slide to navigate through time",
         "mapHint": "Shows precipitation radar for your location",
+        "attribution": "Data source",
+        "attributionOwm": "Radar data by OpenWeather",
+        "attributionRainViewer": "Radar data by RainViewer",
         "errors": {
           "network": "Cannot load radar image. Check your internet connection.",
           "timeout": "Loading is taking too long. Please try again later."

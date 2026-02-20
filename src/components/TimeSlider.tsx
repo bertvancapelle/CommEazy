@@ -2,11 +2,11 @@
  * TimeSlider Component
  *
  * Slider for navigating through radar time frames.
- * Shows past data (-2 hours) and forecast (+30 minutes).
+ * Shows past data (-2 hours) and forecast (+2 hours with OWM, +30 min with RainViewer).
  *
  * Features:
  * - Senior-inclusive touch target (60pt height)
- * - Relative time display ("Nu", "10 min geleden", "Over 15 min")
+ * - Relative time display ("Nu", "10 min geleden", "Over 15 min", "Over 1 uur")
  * - Absolute time display (HH:mm)
  * - Haptic feedback on value changes
  * - i18n support for all 5 languages
@@ -22,16 +22,16 @@ import { useTranslation } from 'react-i18next';
 
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { colors, typography, spacing, touchTargets } from '@/theme';
-import { RainViewerFrame } from '@/types/weather';
-import { formatFrameTime, formatFrameAbsoluteTime } from '@/services/rainViewerService';
+import { RadarFrame } from '@/types/weather';
+import { formatFrameTime, formatFrameAbsoluteTime } from '@/services/radarService';
 
 // ============================================================
 // Props
 // ============================================================
 
 export interface TimeSliderProps {
-  /** Array of all radar frames (past + nowcast) */
-  frames: RainViewerFrame[];
+  /** Array of all radar frames (past + forecast) */
+  frames: RadarFrame[];
 
   /** Currently selected frame index */
   currentIndex: number;

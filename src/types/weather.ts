@@ -316,11 +316,58 @@ export const WMO_WEATHER_CODES: Record<number, WeatherCodeDescription> = {
 };
 
 // ============================================================
-// RainViewer Radar Types
+// Unified Radar Types (supports multiple providers)
 // ============================================================
 
 /**
  * A single radar frame (past or forecast)
+ * Used by both OpenWeatherMap and RainViewer providers
+ */
+export interface RadarFrame {
+  /** Unix timestamp (seconds) */
+  time: number;
+
+  /** Full tile URL template with {z}, {x}, {y} placeholders */
+  path: string;
+}
+
+/**
+ * Radar provider configuration
+ */
+export interface RadarProviderConfig {
+  /** Cache TTL in milliseconds (10 minutes) */
+  cacheTtl: number;
+
+  /** RainViewer API URL (fallback) */
+  rainViewerApiUrl: string;
+
+  /** Default map zoom level */
+  defaultZoom: number;
+
+  /** Max tile zoom level (OWM limit: 7, RainViewer: 12) */
+  maxTileZoom: number;
+
+  /** Tile opacity (0-1) */
+  tileOpacity: number;
+}
+
+/**
+ * Default radar provider configuration
+ */
+export const RADAR_PROVIDER_CONFIG: RadarProviderConfig = {
+  cacheTtl: 10 * 60 * 1000, // 10 minutes
+  rainViewerApiUrl: 'https://api.rainviewer.com/public/weather-maps.json',
+  defaultZoom: 7, // Good for regional view (~200km), within OWM limit
+  maxTileZoom: 7, // OWM max zoom level
+  tileOpacity: 0.7,
+};
+
+// ============================================================
+// Legacy RainViewer Types (for backward compatibility)
+// ============================================================
+
+/**
+ * @deprecated Use RadarFrame instead
  */
 export interface RainViewerFrame {
   /** Unix timestamp (seconds) */
@@ -396,7 +443,7 @@ export const DEFAULT_RADAR_TILE_OPTIONS: RainViewerTileOptions = {
 };
 
 /**
- * Radar module configuration
+ * @deprecated Use RADAR_PROVIDER_CONFIG instead
  */
 export interface RadarModuleConfig {
   /** Cache TTL in milliseconds (10 minutes) */
@@ -416,7 +463,7 @@ export interface RadarModuleConfig {
 }
 
 /**
- * Default radar module configuration
+ * @deprecated Use RADAR_PROVIDER_CONFIG instead
  */
 export const RADAR_MODULE_CONFIG: RadarModuleConfig = {
   cacheTtl: 10 * 60 * 1000, // 10 minutes

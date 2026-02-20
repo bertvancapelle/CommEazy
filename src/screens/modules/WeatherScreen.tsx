@@ -27,6 +27,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Modal,
+  Linking,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,12 +45,13 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { useWeather } from '@/hooks/useWeather';
 import { weatherService } from '@/services/weatherService';
 import {
-  fetchRadarFrames,
-  getAllFrames,
+  getRadarFrames,
   getNowFrameIndex,
   getRadarTileUrl,
-} from '@/services/rainViewerService';
-import type { WeatherLocation, DailyForecast, RainViewerData, RainViewerFrame } from '@/types/weather';
+  configureRadarService,
+  type RadarData,
+} from '@/services/radarService';
+import type { WeatherLocation, DailyForecast, RadarFrame } from '@/types/weather';
 import { WEATHER_MODULE_CONFIG } from '@/types/weather';
 
 // ============================================================
@@ -111,15 +113,15 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
   const insets = useSafeAreaInsets();
 
   // Radar state
-  const [radarData, setRadarData] = useState<RainViewerData | null>(null);
+  const [radarData, setRadarData] = useState<RadarData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
 
-  // Get all frames (past + nowcast)
+  // Get all frames from radar data
   const allFrames = useMemo(() => {
     if (!radarData) return [];
-    return getAllFrames(radarData);
+    return radarData.frames;
   }, [radarData]);
 
   // Current tile URL
@@ -127,8 +129,16 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
     if (!radarData || allFrames.length === 0) return null;
     const frame = allFrames[currentFrameIndex];
     if (!frame) return null;
-    return getRadarTileUrl(radarData.host, frame);
+    return getRadarTileUrl(frame);
   }, [radarData, allFrames, currentFrameIndex]);
+
+  // Configure radar service on mount
+  // Note: Set OWM API key via configureRadarService({ owmApiKey: '...' }) to enable 2-hour forecast
+  // Without API key, falls back to RainViewer (30 min forecast)
+  useEffect(() => {
+    // TODO: Load OWM API key from secure storage or environment
+    // configureRadarService({ owmApiKey: process.env.OWM_API_KEY });
+  }, []);
 
   // Fetch radar data on mount and when location changes
   useEffect(() => {
@@ -139,13 +149,13 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
       setError(null);
 
       try {
-        const data = await fetchRadarFrames();
+        const data = await getRadarFrames();
         if (isMounted) {
           setRadarData(data);
           // Set initial frame to "now"
-          const frames = getAllFrames(data);
-          const nowIndex = getNowFrameIndex(frames);
+          const nowIndex = getNowFrameIndex(data.frames);
           setCurrentFrameIndex(nowIndex);
+          console.info('[RadarTab] Loaded', data.frames.length, 'frames from', data.provider);
         }
       } catch (err) {
         console.error('[RadarTab] Failed to load radar data:', err);
@@ -271,6 +281,25 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
         </View>
         <Text style={styles.radarLegendLabel}>{t('modules.weather.radar.legendHeavy')}</Text>
       </View>
+
+      {/* Attribution (required by OWM/RainViewer) */}
+      <TouchableOpacity
+        style={styles.radarAttribution}
+        onPress={() => {
+          const url = radarData?.provider === 'openweathermap'
+            ? 'https://openweathermap.org/'
+            : 'https://www.rainviewer.com/';
+          void Linking.openURL(url);
+        }}
+        accessibilityRole="link"
+        accessibilityLabel={t('modules.weather.radar.attribution')}
+      >
+        <Text style={styles.radarAttributionText}>
+          {radarData?.provider === 'openweathermap'
+            ? t('modules.weather.radar.attributionOwm')
+            : t('modules.weather.radar.attributionRainViewer')}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -1513,6 +1542,16 @@ const styles = StyleSheet.create({
   radarLegendColor: {
     width: 24,
     height: 12,
+  },
+  radarAttribution: {
+    alignSelf: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  radarAttributionText: {
+    ...typography.small,
+    color: colors.textSecondary,
+    textDecorationLine: 'underline',
   },
 
   // Error banner
