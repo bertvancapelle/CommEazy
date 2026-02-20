@@ -211,7 +211,31 @@
     "wheelDismissMarginPixels": "{{pixels}} piksler",
     "notificationsHint": "Lyd og vibrasjon for meldinger",
     "notificationsComingSoon": "Varslingsinnstillinger blir lagt til snart",
-    "backupHint": "Lag en sikkerhetskopi av meldingene dine"
+    "backupHint": "Lag en sikkerhetskopi av meldingene dine",
+    "modules": {
+      "title": "Moduler",
+      "subtitle": "Velg hvilke moduler du vil bruke",
+      "enabled": "Aktivert",
+      "disabled": "Deaktivert",
+      "fromYourCountry": "Tilgjengelig for ditt land",
+      "otherCountries": "Andre land",
+      "autoEnabled": "Automatisk aktivert",
+      "tapToEnable": "Trykk for å aktivere",
+      "tapToDisable": "Trykk for å deaktivere",
+      "yourCountry": "Ditt land",
+      "settingsHint": "Administrer nyhetsmoduler per land",
+      "infoText": "Moduler for ditt land aktiveres automatisk.",
+      "moreComingSoon": "Flere kommer snart",
+      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau, og mer",
+      "countries": {
+        "NL": "Nederland",
+        "BE": "Belgia",
+        "GB": "Storbritannia",
+        "DE": "Tyskland",
+        "FR": "Frankrike",
+        "ES": "Spania"
+      }
+    }
   },
   "accessibilitySettings": {
     "screenHint": "Juster vibrasjoner, lyd og navigasjon",
@@ -492,7 +516,6 @@
     "settings": "Innstillinger",
     "help": "Hjelp",
     "calls": "Ring",
-    "videocall": "Videosamtale",
     "ebook": "E-bok",
     "audiobook": "Lydbok",
     "podcast": "Podcast",
@@ -513,14 +536,22 @@
   "modules": {
     "coming_soon": "Kommer snart",
     "calls": {
+      "title": "Ring",
+      "searchPlaceholder": "Søk kontakter...",
+      "searchButton": "Søk",
+      "contactList": "{{count}} kontakter tilgjengelig",
+      "noContacts": "Ingen kontakter",
+      "noContactsHint": "Legg til kontakter for å ringe",
+      "voiceCallTitle": "Taleanrop",
+      "videoCallTitle": "Videosamtale",
+      "callStarting": "Ringer {{name}}...",
+      "voiceCallLabel": "Ring {{name}} med tale",
+      "voiceCallHint": "Start et taleanrop",
+      "videoCallLabel": "Ring {{name}} med video",
+      "videoCallHint": "Start en videosamtale",
       "feature1": "Ring via wifi eller mobildata",
-      "feature2": "Høy lydkvalitet",
+      "feature2": "Høykvalitets tale- og videosamtaler",
       "feature3": "Gratis samtaler til andre CommEazy-brukere"
-    },
-    "videocall": {
-      "feature1": "Videosamtaler i høy kvalitet",
-      "feature2": "Ring med flere samtidig",
-      "feature3": "Ansiktsfiltre for ekstra moro"
     },
     "ebook": {
       "feature1": "Les bøker på telefonen eller nettbrettet",
@@ -996,32 +1027,6 @@
         "step2": "Trykk på 'Les høyt' for å høre været",
         "step3": "Lagre opptil 10 favorittsteder",
         "understood": "Forstått"
-      }
-    }
-  },
-  "settings": {
-    "modules": {
-      "title": "Moduler",
-      "subtitle": "Velg hvilke moduler du vil bruke",
-      "enabled": "Aktivert",
-      "disabled": "Deaktivert",
-      "fromYourCountry": "Tilgjengelig for ditt land",
-      "otherCountries": "Andre land",
-      "autoEnabled": "Automatisk aktivert",
-      "tapToEnable": "Trykk for å aktivere",
-      "tapToDisable": "Trykk for å deaktivere",
-      "yourCountry": "Ditt land",
-      "settingsHint": "Administrer nyhetsmoduler per land",
-      "infoText": "Moduler for ditt land aktiveres automatisk.",
-      "moreComingSoon": "Flere kommer snart",
-      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau, og mer",
-      "countries": {
-        "NL": "Nederland",
-        "BE": "Belgia",
-        "GB": "Storbritannia",
-        "DE": "Tyskland",
-        "FR": "Frankrike",
-        "ES": "Spania"
       }
     }
   },

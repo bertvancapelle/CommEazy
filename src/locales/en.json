@@ -199,7 +199,31 @@
     "notificationSettings": "Notification settings",
     "notificationsHint": "Sound and vibration for messages",
     "notificationsComingSoon": "Notification settings will be added soon",
-    "backupHint": "Back up your messages"
+    "backupHint": "Back up your messages",
+    "modules": {
+      "title": "Modules",
+      "subtitle": "Choose which modules you want to use",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "fromYourCountry": "Available for your country",
+      "otherCountries": "Other countries",
+      "autoEnabled": "Automatically enabled",
+      "tapToEnable": "Tap to enable",
+      "tapToDisable": "Tap to disable",
+      "yourCountry": "Your country",
+      "settingsHint": "Manage news modules by country",
+      "infoText": "Modules for your country are automatically enabled. You can also enable modules from other countries.",
+      "moreComingSoon": "More coming soon",
+      "moreComingSoonHint": "NOS, RTL News, VRT, BBC, Tagesschau, and more",
+      "countries": {
+        "NL": "Netherlands",
+        "BE": "Belgium",
+        "GB": "United Kingdom",
+        "DE": "Germany",
+        "FR": "France",
+        "ES": "Spain"
+      }
+    }
   },
   "accessibilitySettings": {
     "screenHint": "Adjust vibrations, sounds and navigation",
@@ -548,7 +572,6 @@
     "settings": "Settings",
     "help": "Help",
     "calls": "Calls",
-    "videocall": "Video call",
     "ebook": "E-book",
     "audiobook": "Audiobook",
     "podcast": "Podcast",
@@ -569,14 +592,22 @@
   "modules": {
     "coming_soon": "Coming soon",
     "calls": {
+      "title": "Calls",
+      "searchPlaceholder": "Search contacts...",
+      "searchButton": "Search",
+      "contactList": "{{count}} contacts available",
+      "noContacts": "No contacts",
+      "noContactsHint": "Add contacts to make calls",
+      "voiceCallTitle": "Voice call",
+      "videoCallTitle": "Video call",
+      "callStarting": "Calling {{name}}...",
+      "voiceCallLabel": "Call {{name}} via voice",
+      "voiceCallHint": "Start a voice call",
+      "videoCallLabel": "Call {{name}} via video",
+      "videoCallHint": "Start a video call",
       "feature1": "Call via wifi or mobile data",
-      "feature2": "High quality audio",
+      "feature2": "High quality voice and video calls",
       "feature3": "Free calls to other CommEazy users"
-    },
-    "videocall": {
-      "feature1": "High quality video calls",
-      "feature2": "Call with multiple people at once",
-      "feature3": "Fun face filters"
     },
     "ebook": {
       "feature1": "Read books on your phone or tablet",
@@ -1051,32 +1082,6 @@
       "precipitation": "Precipitation",
       "noPrecipitation": "Dry",
       "rainChance": "Rain chance"
-    }
-  },
-  "settings": {
-    "modules": {
-      "title": "Modules",
-      "subtitle": "Choose which modules you want to use",
-      "enabled": "Enabled",
-      "disabled": "Disabled",
-      "fromYourCountry": "Available for your country",
-      "otherCountries": "Other countries",
-      "autoEnabled": "Automatically enabled",
-      "tapToEnable": "Tap to enable",
-      "tapToDisable": "Tap to disable",
-      "yourCountry": "Your country",
-      "settingsHint": "Manage news modules by country",
-      "infoText": "Modules for your country are automatically enabled. You can also enable modules from other countries.",
-      "moreComingSoon": "More coming soon",
-      "moreComingSoonHint": "NOS, RTL News, VRT, BBC, Tagesschau, and more",
-      "countries": {
-        "NL": "Netherlands",
-        "BE": "Belgium",
-        "GB": "United Kingdom",
-        "DE": "Germany",
-        "FR": "France",
-        "ES": "Spain"
-      }
     }
   },
   "articleViewer": {

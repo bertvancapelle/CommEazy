@@ -206,7 +206,31 @@
     "wheelDismissMarginPixels": "{{pixels}} pixels",
     "notificationsHint": "Geluid en trillen voor berichten",
     "notificationsComingSoon": "Meldinginstellingen worden binnenkort toegevoegd",
-    "backupHint": "Maak een back-up van je berichten"
+    "backupHint": "Maak een back-up van je berichten",
+    "modules": {
+      "title": "Modules",
+      "subtitle": "Kies welke modules je wilt gebruiken",
+      "enabled": "Ingeschakeld",
+      "disabled": "Uitgeschakeld",
+      "fromYourCountry": "Beschikbaar voor jouw land",
+      "otherCountries": "Andere landen",
+      "autoEnabled": "Automatisch ingeschakeld",
+      "tapToEnable": "Tik om in te schakelen",
+      "tapToDisable": "Tik om uit te schakelen",
+      "yourCountry": "Jouw land",
+      "settingsHint": "Beheer nieuwsmodules per land",
+      "infoText": "Modules voor jouw land worden automatisch ingeschakeld. Je kunt ook modules uit andere landen inschakelen.",
+      "moreComingSoon": "Meer binnenkort beschikbaar",
+      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau, en meer",
+      "countries": {
+        "NL": "Nederland",
+        "BE": "België",
+        "GB": "Verenigd Koninkrijk",
+        "DE": "Duitsland",
+        "FR": "Frankrijk",
+        "ES": "Spanje"
+      }
+    }
   },
   "accessibilitySettings": {
     "screenHint": "Pas trillingen, geluid en navigatie aan",
@@ -555,7 +579,6 @@
     "settings": "Instellingen",
     "help": "Hulp",
     "calls": "Bellen",
-    "videocall": "Video gesprek",
     "ebook": "E-book",
     "audiobook": "Luisterboek",
     "podcast": "Podcast",
@@ -576,14 +599,22 @@
   "modules": {
     "coming_soon": "Binnenkort beschikbaar",
     "calls": {
+      "title": "Bellen",
+      "searchPlaceholder": "Zoek contacten...",
+      "searchButton": "Zoeken",
+      "contactList": "{{count}} contacten beschikbaar",
+      "noContacts": "Geen contacten",
+      "noContactsHint": "Voeg contacten toe om te kunnen bellen",
+      "voiceCallTitle": "Spraakoproep",
+      "videoCallTitle": "Video-oproep",
+      "callStarting": "Bellen naar {{name}}...",
+      "voiceCallLabel": "Bel {{name}} via spraak",
+      "voiceCallHint": "Start een spraakoproep",
+      "videoCallLabel": "Bel {{name}} via video",
+      "videoCallHint": "Start een video-oproep",
       "feature1": "Bel via wifi of mobiel internet",
-      "feature2": "Hoge geluidskwaliteit",
+      "feature2": "Spraak- en video-oproepen in hoge kwaliteit",
       "feature3": "Gratis bellen naar andere CommEazy gebruikers"
-    },
-    "videocall": {
-      "feature1": "Video gesprekken in hoge kwaliteit",
-      "feature2": "Bel met meerdere mensen tegelijk",
-      "feature3": "Gezichtsfilters voor extra plezier"
     },
     "ebook": {
       "feature1": "Lees boeken op je telefoon of tablet",
@@ -1052,32 +1083,6 @@
       "precipitation": "Neerslag",
       "noPrecipitation": "Droog",
       "rainChance": "Regenkans"
-    }
-  },
-  "settings": {
-    "modules": {
-      "title": "Modules",
-      "subtitle": "Kies welke modules je wilt gebruiken",
-      "enabled": "Ingeschakeld",
-      "disabled": "Uitgeschakeld",
-      "fromYourCountry": "Beschikbaar voor jouw land",
-      "otherCountries": "Andere landen",
-      "autoEnabled": "Automatisch ingeschakeld",
-      "tapToEnable": "Tik om in te schakelen",
-      "tapToDisable": "Tik om uit te schakelen",
-      "yourCountry": "Jouw land",
-      "settingsHint": "Beheer nieuwsmodules per land",
-      "infoText": "Modules voor jouw land worden automatisch ingeschakeld. Je kunt ook modules uit andere landen inschakelen.",
-      "moreComingSoon": "Meer binnenkort beschikbaar",
-      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau, en meer",
-      "countries": {
-        "NL": "Nederland",
-        "BE": "België",
-        "GB": "Verenigd Koninkrijk",
-        "DE": "Duitsland",
-        "FR": "Frankrijk",
-        "ES": "Spanje"
-      }
     }
   },
   "articleViewer": {

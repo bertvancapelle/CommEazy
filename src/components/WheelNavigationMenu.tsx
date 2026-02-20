@@ -52,8 +52,7 @@ export type StaticNavigationDestination =
   | 'groups'
   | 'settings'
   | 'help'
-  | 'calls'
-  | 'videocall'
+  | 'calls'  // Combined voice + video calling
   | 'podcast'
   | 'radio'
   | 'books'
@@ -108,8 +107,7 @@ const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<Module
   chats: { labelKey: 'navigation.chats', icon: 'chat', color: colors.primary },
   contacts: { labelKey: 'navigation.contacts', icon: 'contacts', color: '#2E7D32' },
   groups: { labelKey: 'navigation.groups', icon: 'groups', color: '#00796B' },
-  calls: { labelKey: 'navigation.calls', icon: 'phone', color: '#1565C0' },
-  videocall: { labelKey: 'navigation.videocall', icon: 'video', color: '#C62828' },
+  calls: { labelKey: 'navigation.calls', icon: 'phone', color: '#1565C0' },  // Combined voice + video
   podcast: { labelKey: 'navigation.podcast', icon: 'podcast', color: '#E91E63' },
   radio: { labelKey: 'navigation.radio', icon: 'radio', color: '#00897B' },
   books: { labelKey: 'navigation.books', icon: 'book', color: '#FF8F00' },  // Amber color

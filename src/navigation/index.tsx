@@ -73,7 +73,6 @@ import { PiperTtsTestScreen } from '@/screens/dev/PiperTtsTestScreen';
 // Module screens (placeholder for testing wheel navigation)
 import {
   CallsScreen,
-  VideoCallScreen,
   PodcastScreen,
   RadioScreen,
   BooksScreen,
@@ -147,8 +146,7 @@ export type MainTabParams = {
   ContactsTab: undefined;
   GroupsTab: undefined;
   SettingsTab: undefined;
-  CallsTab: undefined;
-  VideoCallTab: undefined;
+  CallsTab: undefined;  // Combined voice + video calling
   PodcastTab: undefined;
   RadioTab: undefined;
   BooksTab: undefined;
@@ -453,7 +451,6 @@ function MainNavigator() {
         <MainTab.Screen name="GroupsTab" component={GroupsNavigator} />
         <MainTab.Screen name="SettingsTab" component={SettingsNavigator} />
         <MainTab.Screen name="CallsTab" component={CallsScreen} />
-        <MainTab.Screen name="VideoCallTab" component={VideoCallScreen} />
         <MainTab.Screen name="PodcastTab" component={PodcastScreen} />
         <MainTab.Screen name="RadioTab" component={RadioScreen} />
         <MainTab.Screen name="BooksTab" component={BooksScreen} />

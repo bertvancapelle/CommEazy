@@ -211,7 +211,32 @@
     "wheelDismissMarginPixels": "{{pixels}} pixel",
     "notificationsHint": "Suono e vibrazione per i messaggi",
     "notificationsComingSoon": "Le impostazioni notifiche saranno presto disponibili",
-    "backupHint": "Fai il backup dei tuoi messaggi"
+    "backupHint": "Fai il backup dei tuoi messaggi",
+    "modules": {
+      "title": "Moduli",
+      "subtitle": "Scegli quali moduli vuoi usare",
+      "enabled": "Attivato",
+      "disabled": "Disattivato",
+      "fromYourCountry": "Disponibile per il tuo paese",
+      "otherCountries": "Altri paesi",
+      "autoEnabled": "Attivato automaticamente",
+      "tapToEnable": "Tocca per attivare",
+      "tapToDisable": "Tocca per disattivare",
+      "yourCountry": "Il tuo paese",
+      "settingsHint": "Gestisci moduli notizie per paese",
+      "infoText": "I moduli per il tuo paese vengono attivati automaticamente. Puoi anche attivare moduli di altri paesi.",
+      "moreComingSoon": "Altri in arrivo",
+      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau, e altri",
+      "countries": {
+        "NL": "Paesi Bassi",
+        "BE": "Belgio",
+        "GB": "Regno Unito",
+        "DE": "Germania",
+        "FR": "Francia",
+        "ES": "Spagna",
+        "IT": "Italia"
+      }
+    }
   },
   "accessibilitySettings": {
     "screenHint": "Personalizza vibrazione, suono e navigazione",
@@ -565,7 +590,6 @@
     "settings": "Impostazioni",
     "help": "Aiuto",
     "calls": "Chiamate",
-    "videocall": "Videochiamata",
     "ebook": "E-book",
     "audiobook": "Audiolibro",
     "podcast": "Podcast",
@@ -586,14 +610,22 @@
   "modules": {
     "coming_soon": "Prossimamente",
     "calls": {
+      "title": "Chiamate",
+      "searchPlaceholder": "Cerca contatti...",
+      "searchButton": "Cerca",
+      "contactList": "{{count}} contatti disponibili",
+      "noContacts": "Nessun contatto",
+      "noContactsHint": "Aggiungi contatti per chiamare",
+      "voiceCallTitle": "Chiamata vocale",
+      "videoCallTitle": "Videochiamata",
+      "callStarting": "Chiamando {{name}}...",
+      "voiceCallLabel": "Chiama {{name}} con voce",
+      "voiceCallHint": "Avvia una chiamata vocale",
+      "videoCallLabel": "Chiama {{name}} con video",
+      "videoCallHint": "Avvia una videochiamata",
       "feature1": "Chiama tramite WiFi o dati mobili",
-      "feature2": "Alta qualità audio",
+      "feature2": "Chiamate vocali e video in alta qualità",
       "feature3": "Chiamate gratuite verso altri utenti CommEazy"
-    },
-    "videocall": {
-      "feature1": "Videochiamate in alta qualità",
-      "feature2": "Chiama più persone contemporaneamente",
-      "feature3": "Filtri facciali per divertimento extra"
     },
     "ebook": {
       "feature1": "Leggi libri sul telefono o tablet",
@@ -1069,33 +1101,6 @@
         "step2": "Tocca 'Leggi' per ascoltare il meteo",
         "step3": "Salva fino a 10 località preferite",
         "understood": "Capito"
-      }
-    }
-  },
-  "settings": {
-    "modules": {
-      "title": "Moduli",
-      "subtitle": "Scegli quali moduli vuoi usare",
-      "enabled": "Attivato",
-      "disabled": "Disattivato",
-      "fromYourCountry": "Disponibile per il tuo paese",
-      "otherCountries": "Altri paesi",
-      "autoEnabled": "Attivato automaticamente",
-      "tapToEnable": "Tocca per attivare",
-      "tapToDisable": "Tocca per disattivare",
-      "yourCountry": "Il tuo paese",
-      "settingsHint": "Gestisci moduli notizie per paese",
-      "infoText": "I moduli per il tuo paese vengono attivati automaticamente. Puoi anche attivare moduli di altri paesi.",
-      "moreComingSoon": "Altri in arrivo",
-      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau, e altri",
-      "countries": {
-        "NL": "Paesi Bassi",
-        "BE": "Belgio",
-        "GB": "Regno Unito",
-        "DE": "Germania",
-        "FR": "Francia",
-        "ES": "Spagna",
-        "IT": "Italia"
       }
     }
   },

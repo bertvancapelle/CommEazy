@@ -6,8 +6,7 @@
  */
 
 // Built-in modules
-export { CallsScreen } from './CallsScreen';
-export { VideoCallScreen } from './VideoCallScreen';
+export { CallsScreen } from './CallsScreen';  // Combined voice + video calling
 export { PodcastScreen } from './PodcastScreen';
 export { RadioScreen } from './RadioScreen';
 export { BooksScreen } from './BooksScreen';

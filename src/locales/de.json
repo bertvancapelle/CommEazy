@@ -199,7 +199,31 @@
     "wheelDismissMarginPixels": "{{pixels}} Pixel",
     "notificationsHint": "Ton und Vibration für Nachrichten",
     "notificationsComingSoon": "Benachrichtigungseinstellungen werden bald hinzugefügt",
-    "backupHint": "Sichere deine Nachrichten"
+    "backupHint": "Sichere deine Nachrichten",
+    "modules": {
+      "title": "Module",
+      "subtitle": "Wähle, welche Module du verwenden möchtest",
+      "enabled": "Aktiviert",
+      "disabled": "Deaktiviert",
+      "fromYourCountry": "Verfügbar für dein Land",
+      "otherCountries": "Andere Länder",
+      "autoEnabled": "Automatisch aktiviert",
+      "tapToEnable": "Tippen zum Aktivieren",
+      "tapToDisable": "Tippen zum Deaktivieren",
+      "yourCountry": "Dein Land",
+      "settingsHint": "Nachrichtenmodule nach Land verwalten",
+      "infoText": "Module für dein Land werden automatisch aktiviert. Du kannst auch Module aus anderen Ländern aktivieren.",
+      "moreComingSoon": "Mehr demnächst verfügbar",
+      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau und mehr",
+      "countries": {
+        "NL": "Niederlande",
+        "BE": "Belgien",
+        "GB": "Vereinigtes Königreich",
+        "DE": "Deutschland",
+        "FR": "Frankreich",
+        "ES": "Spanien"
+      }
+    }
   },
   "accessibilitySettings": {
     "screenHint": "Vibrationen, Töne und Navigation anpassen",
@@ -548,7 +572,6 @@
     "settings": "Einstellungen",
     "help": "Hilfe",
     "calls": "Anrufen",
-    "videocall": "Videoanruf",
     "ebook": "E-Book",
     "audiobook": "Hörbuch",
     "podcast": "Podcast",
@@ -569,14 +592,22 @@
   "modules": {
     "coming_soon": "Demnächst",
     "calls": {
+      "title": "Anrufen",
+      "searchPlaceholder": "Kontakte suchen...",
+      "searchButton": "Suchen",
+      "contactList": "{{count}} Kontakte verfügbar",
+      "noContacts": "Keine Kontakte",
+      "noContactsHint": "Füge Kontakte hinzu um anzurufen",
+      "voiceCallTitle": "Sprachanruf",
+      "videoCallTitle": "Videoanruf",
+      "callStarting": "{{name}} wird angerufen...",
+      "voiceCallLabel": "{{name}} per Sprache anrufen",
+      "voiceCallHint": "Sprachanruf starten",
+      "videoCallLabel": "{{name}} per Video anrufen",
+      "videoCallHint": "Videoanruf starten",
       "feature1": "Anrufen über WLAN oder mobile Daten",
-      "feature2": "Hochwertige Audioqualität",
+      "feature2": "Hochwertige Sprach- und Videoanrufe",
       "feature3": "Kostenlose Anrufe zu anderen CommEazy-Nutzern"
-    },
-    "videocall": {
-      "feature1": "Hochwertige Videoanrufe",
-      "feature2": "Mit mehreren Personen gleichzeitig anrufen",
-      "feature3": "Lustige Gesichtsfilter"
     },
     "ebook": {
       "feature1": "Bücher auf deinem Handy oder Tablet lesen",
@@ -1049,32 +1080,6 @@
         "step2": "Sieh aktuelles Wetter und 7-Tage-Vorhersage",
         "step3": "Tippe auf 'Vorlesen' um das Wetter zu hören",
         "understood": "Verstanden"
-      }
-    }
-  },
-  "settings": {
-    "modules": {
-      "title": "Module",
-      "subtitle": "Wähle, welche Module du verwenden möchtest",
-      "enabled": "Aktiviert",
-      "disabled": "Deaktiviert",
-      "fromYourCountry": "Verfügbar für dein Land",
-      "otherCountries": "Andere Länder",
-      "autoEnabled": "Automatisch aktiviert",
-      "tapToEnable": "Tippen zum Aktivieren",
-      "tapToDisable": "Tippen zum Deaktivieren",
-      "yourCountry": "Dein Land",
-      "settingsHint": "Nachrichtenmodule nach Land verwalten",
-      "infoText": "Module für dein Land werden automatisch aktiviert. Du kannst auch Module aus anderen Ländern aktivieren.",
-      "moreComingSoon": "Mehr demnächst verfügbar",
-      "moreComingSoonHint": "NOS, RTL Nieuws, VRT, BBC, Tagesschau und mehr",
-      "countries": {
-        "NL": "Niederlande",
-        "BE": "Belgien",
-        "GB": "Vereinigtes Königreich",
-        "DE": "Deutschland",
-        "FR": "Frankreich",
-        "ES": "Spanien"
       }
     }
   },

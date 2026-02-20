@@ -268,7 +268,6 @@ function getTabNameForDestination(destination: NavigationDestination): string {
     case 'groups': return 'GroupsTab';
     case 'settings': return 'SettingsTab';
     case 'calls': return 'CallsTab';
-    case 'videocall': return 'VideoCallTab';
     case 'podcast': return 'PodcastTab';
     case 'radio': return 'RadioTab';
     case 'books': return 'BooksTab';
@@ -290,7 +289,6 @@ function getInitialRouteForTab(tabName: string): string {
     case 'SettingsTab': return 'SettingsMain';
     // Module tabs don't have stacks, they're single screens
     case 'CallsTab': return 'Calls';
-    case 'VideoCallTab': return 'VideoCall';
     case 'EBookTab': return 'EBook';
     case 'AudioBookTab': return 'AudioBook';
     case 'PodcastTab': return 'Podcast';
@@ -882,9 +880,6 @@ export function HoldToNavigateWrapper({
           break;
         case 'calls':
           navigation.navigate('CallsTab' as never);
-          break;
-        case 'videocall':
-          navigation.navigate('VideoCallTab' as never);
           break;
         case 'podcast':
           navigation.navigate('PodcastTab' as never);
@@ -1548,7 +1543,6 @@ export function HoldToNavigateWrapper({
       case 'GroupsTab': return 'groups';
       case 'SettingsTab': return 'settings';
       case 'CallsTab': return 'calls';
-      case 'VideoCallTab': return 'videocall';
       case 'PodcastTab': return 'podcast';
       case 'RadioTab': return 'radio';
       case 'BooksTab': return 'books';
