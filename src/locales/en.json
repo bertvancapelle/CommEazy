@@ -1154,6 +1154,8 @@
         "legendHeavy": "Heavy rain",
         "legendVeryHeavy": "Very heavy rain",
         "lastUpdated": "Last updated: {{time}}",
+        "timeSlider": "Radar time slider",
+        "timeSliderHint": "Slide to navigate through time",
         "errors": {
           "network": "Cannot load radar image. Check your internet connection.",
           "timeout": "Loading is taking too long. Please try again later."

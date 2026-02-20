@@ -1162,6 +1162,8 @@
         "legendHeavy": "Zware regen",
         "legendVeryHeavy": "Zeer zware regen",
         "lastUpdated": "Laatst bijgewerkt: {{time}}",
+        "timeSlider": "Tijdslider voor radar",
+        "timeSliderHint": "Schuif om door de tijd te navigeren",
         "errors": {
           "network": "Kan radarbeeld niet laden. Controleer je internetverbinding.",
           "timeout": "Het laden duurt te lang. Probeer het later opnieuw."

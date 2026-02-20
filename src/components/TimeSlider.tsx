@@ -122,8 +122,8 @@ export function TimeSlider({
           maximumTrackTintColor={colors.border}
           thumbTintColor={accentColor.primary}
           disabled={disabled}
-          accessibilityLabel={t('modules.radar.timeSlider')}
-          accessibilityHint={t('modules.radar.timeSliderHint')}
+          accessibilityLabel={t('modules.weather.radar.timeSlider')}
+          accessibilityHint={t('modules.weather.radar.timeSliderHint')}
           accessibilityRole="adjustable"
         />
       </View>

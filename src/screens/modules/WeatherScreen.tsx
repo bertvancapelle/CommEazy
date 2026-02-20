@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton } from '@/components';
+import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -43,7 +43,13 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useWeather } from '@/hooks/useWeather';
 import { weatherService } from '@/services/weatherService';
-import type { WeatherLocation, DailyForecast } from '@/types/weather';
+import {
+  fetchRadarFrames,
+  getAllFrames,
+  getNowFrameIndex,
+  getRadarTileUrl,
+} from '@/services/rainViewerService';
+import type { WeatherLocation, DailyForecast, RainViewerData, RainViewerFrame } from '@/types/weather';
 import { WEATHER_MODULE_CONFIG } from '@/types/weather';
 
 // ============================================================
@@ -91,32 +97,175 @@ function TabButton({ label, isActive, onPress, icon }: TabButtonProps) {
 }
 
 // ============================================================
-// Radar Placeholder Component
+// Radar Tab Component
 // ============================================================
 
-interface RadarPlaceholderProps {
+interface RadarTabProps {
+  latitude: number | null;
+  longitude: number | null;
   locationName: string | null;
 }
 
-function RadarPlaceholder({ locationName }: RadarPlaceholderProps) {
+function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
-  return (
-    <View style={[styles.radarPlaceholder, { paddingBottom: insets.bottom + spacing.lg }]}>
-      <Icon name="radar" size={80} color={colors.textSecondary} />
-      <Text style={styles.radarPlaceholderTitle}>
-        {t('modules.weather.radar.title')}
-      </Text>
-      {locationName && (
-        <Text style={styles.radarPlaceholderLocation}>
-          📍 {locationName}
+  // Radar state
+  const [radarData, setRadarData] = useState<RainViewerData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+
+  // Get all frames (past + nowcast)
+  const allFrames = useMemo(() => {
+    if (!radarData) return [];
+    return getAllFrames(radarData);
+  }, [radarData]);
+
+  // Current tile URL
+  const currentTileUrl = useMemo(() => {
+    if (!radarData || allFrames.length === 0) return null;
+    const frame = allFrames[currentFrameIndex];
+    if (!frame) return null;
+    return getRadarTileUrl(radarData.host, frame);
+  }, [radarData, allFrames, currentFrameIndex]);
+
+  // Fetch radar data on mount and when location changes
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRadarData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await fetchRadarFrames();
+        if (isMounted) {
+          setRadarData(data);
+          // Set initial frame to "now"
+          const frames = getAllFrames(data);
+          const nowIndex = getNowFrameIndex(frames);
+          setCurrentFrameIndex(nowIndex);
+        }
+      } catch (err) {
+        console.error('[RadarTab] Failed to load radar data:', err);
+        if (isMounted) {
+          setError(t('modules.weather.radar.errors.network'));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadRadarData();
+
+    // Auto-refresh every 10 minutes
+    const refreshInterval = setInterval(() => {
+      void loadRadarData();
+    }, 10 * 60 * 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(refreshInterval);
+    };
+  }, [t]);
+
+  // Handle frame change from slider
+  const handleFrameChange = useCallback((index: number) => {
+    setCurrentFrameIndex(index);
+  }, []);
+
+  // No location selected
+  if (latitude === null || longitude === null) {
+    return (
+      <View style={[styles.radarPlaceholder, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <Icon name="radar" size={80} color={colors.textSecondary} />
+        <Text style={styles.radarPlaceholderTitle}>
+          {t('modules.weather.radar.title')}
         </Text>
+        <Text style={styles.radarPlaceholderHint}>
+          {t('modules.weather.noLocationHint')}
+        </Text>
+      </View>
+    );
+  }
+
+  // Loading state
+  if (isLoading && !radarData) {
+    return (
+      <View style={[styles.radarPlaceholder, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <Icon name="radar" size={80} color={colors.textSecondary} />
+        <Text style={styles.radarPlaceholderTitle}>
+          {t('modules.weather.radar.title')}
+        </Text>
+        {locationName && (
+          <Text style={styles.radarPlaceholderLocation}>
+            📍 {locationName}
+          </Text>
+        )}
+        <Text style={styles.radarPlaceholderHint}>
+          {t('modules.weather.radar.loading')}
+        </Text>
+        <ActivityIndicator size="large" color={MODULE_COLOR} style={{ marginTop: spacing.lg }} />
+      </View>
+    );
+  }
+
+  // Error state
+  if (error && !radarData) {
+    return (
+      <View style={[styles.radarPlaceholder, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <Icon name="alert" size={80} color={colors.error} />
+        <Text style={styles.radarPlaceholderTitle}>
+          {t('modules.weather.radar.noData')}
+        </Text>
+        <Text style={styles.radarPlaceholderHint}>{error}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.radarContainer, { paddingBottom: insets.bottom }]}>
+      {/* Location name */}
+      {locationName && (
+        <View style={styles.radarLocationBar}>
+          <Icon name="map-marker" size={20} color={MODULE_COLOR} />
+          <Text style={styles.radarLocationName}>{locationName}</Text>
+        </View>
       )}
-      <Text style={styles.radarPlaceholderHint}>
-        {t('modules.weather.radar.loading')}
-      </Text>
-      <ActivityIndicator size="large" color={MODULE_COLOR} style={{ marginTop: spacing.lg }} />
+
+      {/* Radar Map */}
+      <View style={styles.radarMapContainer}>
+        <RadarMap
+          latitude={latitude}
+          longitude={longitude}
+          radarTileUrl={currentTileUrl}
+          showMarker={true}
+        />
+      </View>
+
+      {/* Time Slider */}
+      <View style={styles.radarSliderContainer}>
+        <TimeSlider
+          frames={allFrames}
+          currentIndex={currentFrameIndex}
+          onIndexChange={handleFrameChange}
+        />
+      </View>
+
+      {/* Legend */}
+      <View style={styles.radarLegend}>
+        <Text style={styles.radarLegendLabel}>{t('modules.weather.radar.legendLight')}</Text>
+        <View style={styles.radarLegendGradient}>
+          <View style={[styles.radarLegendColor, { backgroundColor: '#00FF00' }]} />
+          <View style={[styles.radarLegendColor, { backgroundColor: '#FFFF00' }]} />
+          <View style={[styles.radarLegendColor, { backgroundColor: '#FF8000' }]} />
+          <View style={[styles.radarLegendColor, { backgroundColor: '#FF0000' }]} />
+        </View>
+        <Text style={styles.radarLegendLabel}>{t('modules.weather.radar.legendHeavy')}</Text>
+      </View>
     </View>
   );
 }
@@ -1060,7 +1209,11 @@ export function WeatherScreen() {
 
       {/* RADAR TAB CONTENT */}
       {activeTab === 'radar' && (
-        <RadarPlaceholder locationName={weather?.location.name ?? null} />
+        <RadarTab
+          latitude={weather?.location.latitude ?? null}
+          longitude={weather?.location.longitude ?? null}
+          locationName={weather?.location.name ?? null}
+        />
       )}
 
       {/* Day Detail Modal */}
@@ -1183,7 +1336,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
 
-  // Radar placeholder
+  // Radar placeholder (loading/error states)
   radarPlaceholder: {
     flex: 1,
     alignItems: 'center',
@@ -1206,6 +1359,62 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+
+  // Radar container (main radar view)
+  radarContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  radarLocationBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  radarLocationName: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  radarMapContainer: {
+    flex: 1,
+    margin: spacing.md,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  radarSliderContainer: {
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: spacing.sm,
+  },
+  radarLegend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+  },
+  radarLegendLabel: {
+    ...typography.small,
+    color: colors.textSecondary,
+  },
+  radarLegendGradient: {
+    flexDirection: 'row',
+    height: 12,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  radarLegendColor: {
+    width: 24,
+    height: 12,
   },
 
   // Error banner
