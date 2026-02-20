@@ -7,6 +7,11 @@ import en from './locales/en.json';
 import de from './locales/de.json';
 import fr from './locales/fr.json';
 import es from './locales/es.json';
+import it from './locales/it.json';
+import pl from './locales/pl.json';
+import no from './locales/no.json';
+import sv from './locales/sv.json';
+import da from './locales/da.json';
 
 const resources = {
   nl: { translation: nl },
@@ -14,6 +19,11 @@ const resources = {
   de: { translation: de },
   fr: { translation: fr },
   es: { translation: es },
+  it: { translation: it },
+  pl: { translation: pl },
+  no: { translation: no },
+  sv: { translation: sv },
+  da: { translation: da },
 };
 
 const getDeviceLanguage = (): string => {
