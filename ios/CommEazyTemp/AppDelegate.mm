@@ -4,6 +4,7 @@
 #import <Firebase.h>
 #import <FirebaseMessaging/FirebaseMessaging.h>
 #import <UserNotifications/UserNotifications.h>
+#import "RNCallKeep.h"
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate, FIRMessagingDelegate>
 @end
@@ -29,12 +30,22 @@
         NSLog(@"[Push] Notification permission denied: %@", error.localizedDescription);
       }
     }];
-  
+
   // Register for remote notifications - this is required for APNs!
   dispatch_async(dispatch_get_main_queue(), ^{
     [[UIApplication sharedApplication] registerForRemoteNotifications];
     NSLog(@"[Push] Registered for remote notifications");
   });
+
+  // Setup CallKeep (CallKit wrapper)
+  // This enables native iOS call UI for incoming/outgoing calls
+  [RNCallKeep setup:@{
+    @"appName": @"CommEazy",
+    @"maximumCallGroups": @1,
+    @"maximumCallsPerCallGroup": @3,
+    @"supportsVideo": @YES,
+    @"includesCallsInRecents": @YES
+  }];
 
   self.moduleName = @"CommEazyTemp";
   // You can add your custom initial props in the dictionary below.
@@ -76,7 +87,7 @@
 {
   // Pass APNs token to Firebase
   [FIRMessaging messaging].APNSToken = deviceToken;
-  
+
   // Log the APNs token for debugging
   const unsigned char *bytes = (const unsigned char *)[deviceToken bytes];
   NSMutableString *tokenString = [NSMutableString stringWithCapacity:[deviceToken length] * 2];
@@ -127,6 +138,13 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   // Post notification for React Native to listen to
   NSDictionary *dataDict = @{@"token": fcmToken ?: @""};
   [[NSNotificationCenter defaultCenter] postNotificationName:@"FCMToken" object:nil userInfo:dataDict];
+}
+
+// MARK: - CallKeep Continue User Activity (Siri, Recents)
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+{
+  return [RNCallKeep application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
 }
 
 @end

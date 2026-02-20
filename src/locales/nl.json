@@ -140,6 +140,12 @@
     "connecting": "Verbinden...",
     "reconnecting": "Opnieuw verbinden..."
   },
+  "calls": {
+    "alreadyInCall": "Al in gesprek",
+    "alreadyInCallMessage": "Je bent al in een gesprek. Beëindig eerst het huidige gesprek.",
+    "callFailed": "Bellen mislukt",
+    "callFailedMessage": "Kon geen verbinding maken. Controleer je internetverbinding en probeer het opnieuw."
+  },
   "contacts": {
     "title": "Contacten",
     "add": "Contact toevoegen",
@@ -153,9 +159,8 @@
     "details": "Contactgegevens",
     "startChat": "Stuur bericht",
     "call": "Bellen",
-    "callDisabled": "Bellen niet beschikbaar",
-    "callDisabledMessage": "Bellen wordt binnenkort toegevoegd.",
-    "comingSoon": "Binnenkort",
+    "voiceCall": "Bellen",
+    "videoCall": "Videobellen",
     "reverify": "Opnieuw verifiëren",
     "delete": "Verwijderen",
     "deleteTitle": "Contact verwijderen",
@@ -377,6 +382,8 @@
     "enterPhoneNumber": "Voer telefoonnummer in",
     "addContact": "Contact toevoegen",
     "startChatHint": "Stuur een bericht naar {{name}}",
+    "voiceCallHint": "Start een spraakoproep met {{name}}",
+    "videoCallHint": "Start een video-oproep met {{name}}",
     "deleteContactHint": "Verwijder {{name}} uit je contacten",
     "searchContacts": "Zoek in contacten",
     "yourQRCode": "Jouw QR-code",

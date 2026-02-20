@@ -294,7 +294,7 @@ export function CallsScreen() {
     () => (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIconContainer}>
-          <Icon name="people" size={64} color={colors.textTertiary} />
+          <Icon name="contacts" size={64} color={colors.textTertiary} />
         </View>
         <Text style={styles.emptyTitle}>{t('modules.calls.noContacts')}</Text>
         <Text style={styles.emptySubtitle}>{t('modules.calls.noContactsHint')}</Text>

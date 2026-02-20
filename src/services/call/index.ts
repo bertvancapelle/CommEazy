@@ -41,6 +41,7 @@ import {
   type InternalCallState,
 } from './types';
 import { callSoundService, type CallSoundSettings } from './callSoundService';
+import { callKitService } from './callKitService';
 
 // ============================================================
 // Helper Functions
@@ -97,6 +98,38 @@ export class WebRTCCallService implements CallService {
       onCallControl: this.handleCallControl.bind(this),
       onCallInvite: this.handleCallInvite.bind(this),
     });
+
+    // Set up CallKit for native iOS call UI
+    try {
+      await callKitService.setup();
+      callKitService.setHandlers({
+        onAnswerCall: (callUUID) => {
+          const callId = callKitService.getCallId(callUUID);
+          if (callId) {
+            void this.answerCall(callId);
+          }
+        },
+        onEndCall: (callUUID) => {
+          const callId = callKitService.getCallId(callUUID);
+          if (callId) {
+            void this.endCall(callId);
+          }
+        },
+        onMuteCall: (_callUUID, muted) => {
+          if (this.currentCall && this.currentCall.localMedia.isMuted !== muted) {
+            this.toggleMute();
+          }
+        },
+        onDTMF: (_callUUID, _digits) => {
+          // DTMF not used in CommEazy
+        },
+        onAudioSessionActivated: () => {
+          console.info('[CallService] CallKit audio session activated');
+        },
+      });
+    } catch (error) {
+      console.warn('[CallService] CallKit setup failed, continuing without native UI:', error);
+    }
 
     console.info('[CallService] Initialized');
   }
@@ -184,6 +217,14 @@ export class WebRTCCallService implements CallService {
 
     // Start ring timeout
     this.startRingTimeout();
+
+    // Report outgoing call to CallKit for native UI
+    callKitService.startOutgoingCall(
+      callId,
+      contactJid,
+      participantName,
+      type === 'video'
+    );
 
     // Note: Dial tone starts when we receive 'ringing' acknowledgment from remote
     // See handleCallControl case 'ringing'
@@ -381,6 +422,8 @@ export class WebRTCCallService implements CallService {
     const isMuted = this.webrtc.toggleMute();
     if (this.currentCall) {
       this.currentCall.localMedia.isMuted = isMuted;
+      // Sync mute state with CallKit
+      callKitService.setMuted(this.currentCall.id, isMuted);
       this.notifyStateChange();
     }
   }
@@ -533,7 +576,16 @@ export class WebRTCCallService implements CallService {
     // Send ringing acknowledgment
     void this.signaling.sendControl(from, payload.callId, 'ringing');
 
-    // Start ringtone for incoming call
+    // Display native iOS call UI via CallKit
+    // This shows the incoming call on lockscreen!
+    callKitService.displayIncomingCall(
+      payload.callId,
+      from,
+      participantName,
+      payload.callType === 'video'
+    );
+
+    // Start ringtone for incoming call (CallKit also plays its own)
     callSoundService.onIncomingCallRinging();
 
     // Start ring timeout
@@ -681,6 +733,8 @@ export class WebRTCCallService implements CallService {
           // Stop dial tone when call connects
           if (this.currentCall.direction === 'outgoing') {
             callSoundService.onOutgoingCallEnded();
+            // Report to CallKit that outgoing call is now connected
+            callKitService.reportOutgoingCallConnected(this.currentCall.id);
           }
         }
         break;
@@ -723,6 +777,9 @@ export class WebRTCCallService implements CallService {
     // Clear timers
     this.clearRingTimeout();
     this.clearDurationInterval();
+
+    // Report to CallKit
+    callKitService.endCall(callId);
 
     // Clean up mesh and media
     this.mesh.cleanup();
@@ -808,6 +865,7 @@ export const callService = new WebRTCCallService();
 export { webrtcService } from './webrtcService';
 export { signalingService } from './signalingService';
 export { MeshManager } from './meshManager';
-export { callSoundService } from './callSoundService';
+export { callSoundService, DEFAULT_CALL_SOUND_SETTINGS } from './callSoundService';
 export type { CallSoundSettings, RingtoneSound } from './callSoundService';
+export { callKitService } from './callKitService';
 export * from './types';

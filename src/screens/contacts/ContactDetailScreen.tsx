@@ -29,7 +29,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar } from '@/components';
+import { ContactAvatar, Icon } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
+import { useCall } from '@/contexts/CallContext';
 import type { Contact } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
@@ -39,6 +41,8 @@ type ContactDetailRouteProp = RouteProp<ContactStackParams, 'ContactDetail'>;
 export function ContactDetailScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const { triggerFeedback } = useFeedback();
+  const { initiateCall, isInCall } = useCall();
   const route = useRoute<ContactDetailRouteProp>();
   const { jid } = route.params;
 
@@ -71,6 +75,7 @@ export function ContactDetailScreen() {
   }, [jid]);
 
   const handleStartChat = useCallback(async () => {
+    void triggerFeedback('tap');
     if (contact) {
       // Generate proper chat ID (format: chat:jid1:jid2, sorted)
       let myJid = 'ik@commeazy.local'; // Default fallback
@@ -91,24 +96,69 @@ export function ContactDetailScreen() {
         params: { chatId, name: contact.name },
       });
     }
-  }, [contact, navigation]);
+  }, [contact, navigation, triggerFeedback]);
 
-  const handleCall = useCallback(() => {
-    // Disabled for now - show coming soon message
-    Alert.alert(
-      t('contacts.callDisabled'),
-      t('contacts.callDisabledMessage'),
-      [{ text: t('common.ok'), style: 'default' }]
-    );
-  }, [t]);
+  const handleVoiceCall = useCallback(async () => {
+    void triggerFeedback('tap');
+    if (!contact) return;
+
+    if (isInCall) {
+      Alert.alert(
+        t('calls.alreadyInCall'),
+        t('calls.alreadyInCallMessage'),
+        [{ text: t('common.ok'), style: 'default' }]
+      );
+      return;
+    }
+
+    try {
+      await initiateCall(contact.jid, 'voice');
+      // Navigation to call screen is handled by CallContext/CallOverlay
+    } catch (error) {
+      console.error('[ContactDetail] Failed to start voice call:', error);
+      Alert.alert(
+        t('calls.callFailed'),
+        t('calls.callFailedMessage'),
+        [{ text: t('common.ok'), style: 'default' }]
+      );
+    }
+  }, [contact, isInCall, initiateCall, t, triggerFeedback]);
+
+  const handleVideoCall = useCallback(async () => {
+    void triggerFeedback('tap');
+    if (!contact) return;
+
+    if (isInCall) {
+      Alert.alert(
+        t('calls.alreadyInCall'),
+        t('calls.alreadyInCallMessage'),
+        [{ text: t('common.ok'), style: 'default' }]
+      );
+      return;
+    }
+
+    try {
+      await initiateCall(contact.jid, 'video');
+      // Navigation to call screen is handled by CallContext/CallOverlay
+    } catch (error) {
+      console.error('[ContactDetail] Failed to start video call:', error);
+      Alert.alert(
+        t('calls.callFailed'),
+        t('calls.callFailedMessage'),
+        [{ text: t('common.ok'), style: 'default' }]
+      );
+    }
+  }, [contact, isInCall, initiateCall, t, triggerFeedback]);
 
   const handleVerify = useCallback(() => {
+    void triggerFeedback('tap');
     if (contact) {
       navigation.navigate('VerifyContact' as never, { jid: contact.jid, name: contact.name } as never);
     }
-  }, [contact, navigation]);
+  }, [contact, navigation, triggerFeedback]);
 
   const handleDelete = useCallback(() => {
+    void triggerFeedback('tap');
     if (!contact) return;
 
     Alert.alert(
@@ -143,7 +193,7 @@ export function ContactDetailScreen() {
         },
       ]
     );
-  }, [contact, jid, navigation, t]);
+  }, [contact, jid, navigation, t, triggerFeedback]);
 
   if (loading) {
     return (
@@ -220,21 +270,42 @@ export function ContactDetailScreen() {
           accessibilityLabel={t('contacts.startChat')}
           accessibilityHint={t('accessibility.startChatHint', { name: contact.name })}
         >
+          <Icon name="chatbubble" size={24} color={colors.textOnPrimary} />
           <Text style={styles.primaryButtonText}>{t('contacts.startChat')}</Text>
         </TouchableOpacity>
 
-        {/* Secondary: Call button (disabled) */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.disabledButton]}
-          onPress={handleCall}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={t('contacts.call')}
-          accessibilityState={{ disabled: true }}
-        >
-          <Text style={styles.disabledButtonText}>{t('contacts.call')}</Text>
-          <Text style={styles.comingSoonText}>{t('contacts.comingSoon')}</Text>
-        </TouchableOpacity>
+        {/* Call buttons row: Voice + Video side by side */}
+        <View style={styles.callButtonsRow}>
+          {/* Voice call button */}
+          <TouchableOpacity
+            style={[styles.callButton, styles.voiceCallButton]}
+            onPress={handleVoiceCall}
+            activeOpacity={0.7}
+            disabled={isInCall}
+            accessibilityRole="button"
+            accessibilityLabel={t('contacts.voiceCall')}
+            accessibilityHint={t('accessibility.voiceCallHint', { name: contact.name })}
+            accessibilityState={{ disabled: isInCall }}
+          >
+            <Icon name="call" size={28} color={colors.textOnPrimary} />
+            <Text style={styles.callButtonText}>{t('contacts.voiceCall')}</Text>
+          </TouchableOpacity>
+
+          {/* Video call button */}
+          <TouchableOpacity
+            style={[styles.callButton, styles.videoCallButton]}
+            onPress={handleVideoCall}
+            activeOpacity={0.7}
+            disabled={isInCall}
+            accessibilityRole="button"
+            accessibilityLabel={t('contacts.videoCall')}
+            accessibilityHint={t('accessibility.videoCallHint', { name: contact.name })}
+            accessibilityState={{ disabled: isInCall }}
+          >
+            <Icon name="videocam" size={28} color={colors.textOnPrimary} />
+            <Text style={styles.callButtonText}>{t('contacts.videoCall')}</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Verify/Reverify button */}
         {!contact.verified && (
@@ -378,6 +449,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
@@ -390,27 +462,37 @@ const styles = StyleSheet.create({
     ...typography.button,
     color: colors.textOnPrimary,
   },
+  callButtonsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  callButton: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.large,
+  },
+  voiceCallButton: {
+    backgroundColor: colors.success,
+  },
+  videoCallButton: {
+    backgroundColor: '#7B1FA2', // Purple for video (consistent with moduleColors.podcast)
+  },
+  callButtonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
+    fontSize: 16,
+  },
   warningButton: {
     backgroundColor: colors.warning,
   },
   warningButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
-  },
-  disabledButton: {
-    backgroundColor: colors.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: colors.disabled,
-  },
-  disabledButtonText: {
-    ...typography.button,
-    color: colors.disabled,
-  },
-  comingSoonText: {
-    ...typography.small,
-    color: colors.disabled,
-    fontStyle: 'italic',
-    marginLeft: spacing.sm,
   },
   dangerButton: {
     backgroundColor: colors.background,
