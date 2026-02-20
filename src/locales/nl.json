@@ -1123,6 +1123,12 @@
       "searchButton": "Zoek locatie",
       "addToFavorites": "{{name}} toevoegen aan favorieten",
       "removeFromFavorites": "{{name}} verwijderen uit favorieten",
+      "currentLocation": "Huidige locatie",
+      "currentLocationHint": "Gebruik uw GPS locatie",
+      "gpsError": "Kan locatie niet bepalen",
+      "gpsPermissionDenied": "Locatietoegang geweigerd. Sta locatietoegang toe in Instellingen.",
+      "gpsUnavailable": "GPS niet beschikbaar",
+      "gpsTimeout": "Locatiebepaling duurde te lang. Probeer het opnieuw.",
       "errors": {
         "network": "Kan weerdata niet ophalen. Controleer je internetverbinding."
       },

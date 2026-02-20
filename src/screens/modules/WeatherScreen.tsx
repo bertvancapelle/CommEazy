@@ -565,6 +565,10 @@ interface LocationPickerModalProps {
   onSelect: (location: WeatherLocation) => void;
   onClose: () => void;
   onRemove: (id: string) => void;
+  onRequestGps: () => void;
+  isLoadingGps: boolean;
+  gpsError: string | null;
+  gpsLocationId: string | null;
 }
 
 function LocationPickerModal({
@@ -574,6 +578,10 @@ function LocationPickerModal({
   onSelect,
   onClose,
   onRemove,
+  onRequestGps,
+  isLoadingGps,
+  gpsError,
+  gpsLocationId,
 }: LocationPickerModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -588,6 +596,13 @@ function LocationPickerModal({
     void triggerFeedback('tap');
     onSelect(location);
   };
+
+  const handleGpsPress = () => {
+    void triggerFeedback('tap');
+    onRequestGps();
+  };
+
+  const isGpsSelected = currentLocationId === 'current';
 
   return (
     <Modal
@@ -616,6 +631,53 @@ function LocationPickerModal({
           style={styles.locationPickerContent}
           contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
         >
+          {/* GPS Location Option - Always at top */}
+          <TouchableOpacity
+            style={[
+              styles.locationPickerItemContent,
+              styles.gpsLocationItem,
+              isGpsSelected && styles.locationPickerItemSelected,
+            ]}
+            onPress={handleGpsPress}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.weather.currentLocation')}
+            accessibilityHint={t('modules.weather.currentLocationHint')}
+            accessibilityState={{ selected: isGpsSelected }}
+            disabled={isLoadingGps}
+          >
+            {isLoadingGps ? (
+              <ActivityIndicator size="small" color={MODULE_COLOR} />
+            ) : (
+              <Icon
+                name="crosshairs-gps"
+                size={24}
+                color={isGpsSelected ? MODULE_COLOR : colors.textSecondary}
+              />
+            )}
+            <View style={styles.locationPickerItemText}>
+              <Text
+                style={[
+                  styles.locationPickerItemName,
+                  isGpsSelected && styles.locationPickerItemNameSelected,
+                ]}
+                numberOfLines={1}
+              >
+                {t('modules.weather.currentLocation')}
+              </Text>
+              <Text style={styles.locationPickerItemCountry} numberOfLines={1}>
+                {gpsError ? t(gpsError) : t('modules.weather.currentLocationHint')}
+              </Text>
+            </View>
+            {isGpsSelected && !isLoadingGps && (
+              <Icon name="check" size={24} color={MODULE_COLOR} />
+            )}
+          </TouchableOpacity>
+
+          {/* Divider */}
+          {locations.length > 0 && <View style={styles.locationPickerDivider} />}
+
+          {/* Saved Locations */}
           {locations.length === 0 ? (
             <View style={styles.locationPickerEmpty}>
               <Icon name="map-marker-off" size={48} color={colors.textSecondary} />
@@ -758,6 +820,14 @@ export function WeatherScreen() {
   const isFocused = useIsFocused();
   const reducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+
+  // GPS location from FavoriteLocationsContext
+  const {
+    currentLocation: gpsLocation,
+    requestCurrentLocation,
+    isLoadingGps,
+    gpsError,
+  } = useFavoriteLocations();
 
   // Weather data hook
   const {
@@ -913,6 +983,25 @@ export function WeatherScreen() {
   const handleLocationPickerRemove = useCallback(async (id: string) => {
     await removeLocation(id);
   }, [removeLocation]);
+
+  // Handle GPS location request from picker
+  const handleGpsRequest = useCallback(async () => {
+    await requestCurrentLocation();
+    // After GPS location is obtained, select it and close picker
+    if (gpsLocation) {
+      // Convert FavoriteLocation to WeatherLocation format
+      const weatherLocation: WeatherLocation = {
+        id: gpsLocation.id,
+        name: gpsLocation.name,
+        latitude: gpsLocation.latitude,
+        longitude: gpsLocation.longitude,
+        country: gpsLocation.country,
+        admin1: gpsLocation.admin1,
+      };
+      await selectLocation(weatherLocation);
+      setShowLocationPicker(false);
+    }
+  }, [requestCurrentLocation, gpsLocation, selectLocation]);
 
   // Handle TTS button press
   const handleTtsPress = useCallback((section: 'current' | 'forecast' | 'rain') => {
@@ -1232,6 +1321,10 @@ export function WeatherScreen() {
         onSelect={handleLocationPickerSelect}
         onClose={() => setShowLocationPicker(false)}
         onRemove={handleLocationPickerRemove}
+        onRequestGps={handleGpsRequest}
+        isLoadingGps={isLoadingGps}
+        gpsError={gpsError}
+        gpsLocationId={gpsLocation?.id ?? null}
       />
 
       {/* Welcome Modal */}
@@ -1855,6 +1948,14 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textSecondary,
     marginTop: 2,
+  },
+  gpsLocationItem: {
+    marginBottom: spacing.sm,
+  },
+  locationPickerDivider: {
+    height: 1,
+    backgroundColor: colors.divider,
+    marginVertical: spacing.md,
   },
 
   // Welcome modal

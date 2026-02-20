@@ -27,13 +27,11 @@ import React, {
   useMemo,
   type ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation from '@react-native-community/geolocation';
 import { weatherService } from '@/services/weatherService';
 import type { GeocodingResult } from '@/types/weather';
-
-// NOTE: GPS functionality requires @react-native-community/geolocation
-// Install in Fase 8: npm install @react-native-community/geolocation
-// For now, GPS features will show a "not available" message
 
 // ============================================================
 // Constants
@@ -294,18 +292,55 @@ export function FavoriteLocationsProvider({ children }: FavoriteLocationsProvide
     setGpsError(null);
 
     try {
-      // TODO: Fase 8 - Install @react-native-community/geolocation
-      // For now, show a placeholder message
-      console.warn('[FavoriteLocationsContext] GPS not yet implemented - install @react-native-community/geolocation in Fase 8');
+      // Request location permission and get current position
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        Geolocation.getCurrentPosition(
+          (pos) => resolve(pos),
+          (error) => reject(error),
+          {
+            enableHighAccuracy: true,
+            timeout: GPS_TIMEOUT_MS,
+            maximumAge: 60000, // Accept cached position up to 1 minute old
+          }
+        );
+      });
 
-      // Placeholder: Use a default location (Amsterdam) for testing
+      const { latitude, longitude } = position.coords;
+      console.info('[FavoriteLocationsContext] GPS position:', { latitude, longitude });
+
+      // Reverse geocode to get location name
+      let locationName = 'Huidige locatie';
+      let country: string | undefined;
+      let admin1: string | undefined;
+
+      try {
+        // Use weatherService to search for nearest location
+        const searchResults = await weatherService.searchLocations(
+          `${latitude.toFixed(2)},${longitude.toFixed(2)}`,
+          'nl'
+        );
+
+        // If no results from coordinate search, try reverse geocoding via Open-Meteo
+        // For now, just use a fallback name
+        if (searchResults.length > 0) {
+          const nearest = searchResults[0];
+          locationName = nearest.name;
+          country = nearest.country;
+          admin1 = nearest.admin1;
+        }
+      } catch (geocodeError) {
+        // Fallback: use coordinates as name
+        console.warn('[FavoriteLocationsContext] Reverse geocoding failed:', geocodeError);
+        locationName = 'Huidige locatie';
+      }
+
       const gpsLocation: FavoriteLocation = {
         id: CURRENT_LOCATION_ID,
-        name: 'Huidige locatie',
-        latitude: 52.3676,
-        longitude: 4.9041,
-        country: 'Netherlands',
-        admin1: 'Noord-Holland',
+        name: locationName,
+        latitude,
+        longitude,
+        country,
+        admin1,
         isCurrentLocation: true,
       };
 
@@ -316,11 +351,28 @@ export function FavoriteLocationsProvider({ children }: FavoriteLocationsProvide
         setSelectedLocationId(CURRENT_LOCATION_ID);
       }
 
-      console.info('[FavoriteLocationsContext] GPS placeholder location set (Amsterdam)');
+      console.info('[FavoriteLocationsContext] GPS location set:', gpsLocation.name, { latitude, longitude });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'unknown';
-      console.error('[FavoriteLocationsContext] GPS error:', errorMessage);
-      setGpsError('modules.weather.gpsError');
+      const geoError = error as GeolocationPositionError;
+      let errorKey = 'modules.weather.gpsError';
+
+      if (geoError.code === 1) {
+        // PERMISSION_DENIED
+        errorKey = 'modules.weather.gpsPermissionDenied';
+        console.warn('[FavoriteLocationsContext] GPS permission denied');
+      } else if (geoError.code === 2) {
+        // POSITION_UNAVAILABLE
+        errorKey = 'modules.weather.gpsUnavailable';
+        console.warn('[FavoriteLocationsContext] GPS position unavailable');
+      } else if (geoError.code === 3) {
+        // TIMEOUT
+        errorKey = 'modules.weather.gpsTimeout';
+        console.warn('[FavoriteLocationsContext] GPS timeout');
+      } else {
+        console.error('[FavoriteLocationsContext] GPS error:', geoError.message);
+      }
+
+      setGpsError(errorKey);
     } finally {
       setIsLoadingGps(false);
     }
