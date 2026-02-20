@@ -42,6 +42,22 @@ import {
 } from './types';
 
 // ============================================================
+// Helper Functions
+// ============================================================
+
+/**
+ * Normalize JID by removing the resource suffix
+ * e.g., "user@domain/resource" -> "user@domain"
+ *
+ * This is necessary because XMPP messages arrive with full JID (including resource),
+ * but we store participants by their bare JID.
+ */
+function normalizeJid(jid: string): string {
+  const slashIndex = jid.indexOf('/');
+  return slashIndex > 0 ? jid.substring(0, slashIndex) : jid;
+}
+
+// ============================================================
 // WebRTC Call Service Implementation
 // ============================================================
 
@@ -181,21 +197,40 @@ export class WebRTCCallService implements CallService {
       throw new Error('[CallService] Cannot answer outgoing call');
     }
 
+    if (!this.currentCall.pendingOfferSdp) {
+      throw new Error('[CallService] No pending offer SDP');
+    }
+
     console.info('[CallService] Answering call:', callId);
 
     // Clear ring timeout
     this.clearRingTimeout();
 
-    // Start local media
-    await this.webrtc.startLocalMedia(this.currentCall.type);
-    this.currentCall.localMedia = this.webrtc.getLocalMediaState();
-
     // Get the caller JID (first participant)
     const callerJid = Array.from(this.currentCall.participants.keys())[0];
 
-    // Create answer
+    // CORRECT ORDER for WebRTC answer flow:
+    // 1. Start local media first
+    console.info('[CallService] Step 1: Starting local media');
+    await this.webrtc.startLocalMedia(this.currentCall.type);
+    this.currentCall.localMedia = this.webrtc.getLocalMediaState();
+
+    // 2. Add local tracks to the PeerConnection BEFORE setting remote description
+    // This ensures the tracks are available when creating the answer
+    console.info('[CallService] Step 2: Adding local tracks to PeerConnection');
+    this.mesh.addLocalTracksToAllConnections();
+
+    // 3. Set the remote description (the offer)
+    console.info('[CallService] Step 3: Setting remote description');
+    await this.mesh.setRemoteDescription(callerJid, this.currentCall.pendingOfferSdp);
+
+    // 4. Create and send answer
+    console.info('[CallService] Step 4: Creating and sending answer');
     const answer = await this.mesh.createAnswer(callerJid);
     await this.signaling.sendAnswer(callerJid, callId, answer);
+
+    // Clean up pending SDP
+    delete this.currentCall.pendingOfferSdp;
 
     // Update state
     this.currentCall.state = 'connecting';
@@ -447,9 +482,9 @@ export class WebRTCCallService implements CallService {
     // Add caller as participant
     const peerState = this.mesh.addParticipant(from, participantName);
 
-    // Set remote description (the offer)
+    // Parse the SDP - we'll set it when answering
+    // DON'T set remote description here - we need to add local tracks first when answering
     const sdp = CallSignalingService.parseSdp(payload.sdp);
-    void this.mesh.setRemoteDescription(from, sdp);
 
     // Create internal call state
     this.currentCall = {
@@ -474,6 +509,8 @@ export class WebRTCCallService implements CallService {
         isFrontCamera: true,
       },
       isSpeakerOn: payload.callType === 'video',
+      // Store the pending offer SDP for when we answer
+      pendingOfferSdp: sdp,
     };
 
     // Send ringing acknowledgment
@@ -494,14 +531,17 @@ export class WebRTCCallService implements CallService {
       return;
     }
 
-    console.info('[CallService] Received answer from:', from);
+    // Normalize JID (strip resource suffix)
+    // XMPP sends full JID like "user@domain/resource" but we store bare JID "user@domain"
+    const bareJid = normalizeJid(from);
+    console.info('[CallService] Received answer from:', from, '(normalized:', bareJid + ')');
 
     // Clear ring timeout
     this.clearRingTimeout();
 
     // Set remote description (the answer)
     const sdp = CallSignalingService.parseSdp(payload.sdp);
-    void this.mesh.setRemoteDescription(from, sdp);
+    void this.mesh.setRemoteDescription(bareJid, sdp);
 
     // Update state
     this.currentCall.state = 'connecting';
@@ -514,8 +554,10 @@ export class WebRTCCallService implements CallService {
       return;
     }
 
+    // Normalize JID (strip resource suffix)
+    const bareJid = normalizeJid(from);
     const candidate = CallSignalingService.parseIceCandidate(payload.candidate);
-    void this.mesh.addIceCandidate(from, candidate);
+    void this.mesh.addIceCandidate(bareJid, candidate);
   }
 
   private handleCallControl(from: string, payload: CallControlPayload): void {

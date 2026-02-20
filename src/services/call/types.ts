@@ -118,6 +118,8 @@ export interface InternalCallState {
   isSpeakerOn: boolean;
   ringTimeout?: ReturnType<typeof setTimeout>;
   durationInterval?: ReturnType<typeof setInterval>;
+  /** Pending offer SDP for incoming calls - set when answering */
+  pendingOfferSdp?: RTCSessionDescription;
 }
 
 // ============================================================
@@ -127,11 +129,34 @@ export interface InternalCallState {
 /**
  * Default ICE servers for development
  * Production should use CommEazy's own STUN/TURN servers
+ *
+ * TURN server is essential for NAT traversal when direct P2P fails.
+ * Without TURN, calls will stay in "connecting" state indefinitely
+ * when both devices are behind symmetric NAT.
  */
 export const DEFAULT_ICE_SERVERS = [
-  // Google's public STUN server (fallback)
+  // Google's public STUN servers (for discovering public IP)
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+
+  // OpenRelay TURN server (free, for development/testing only)
+  // Production: Replace with CommEazy's own Coturn server
+  // See: https://www.metered.ca/tools/openrelay/
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
 ];
 
 /**

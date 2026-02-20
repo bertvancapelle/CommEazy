@@ -260,8 +260,18 @@ export class WebRTCService {
     // ICE candidate event
     connection.onicecandidate = (event: { candidate: RTCIceCandidate | null }) => {
       if (event.candidate && this.onIceCandidate) {
-        console.debug('[WebRTC] ICE candidate for', jid);
+        // Log candidate type for debugging (host/srflx/relay)
+        const candidateStr = event.candidate.candidate || '';
+        let candidateType = 'unknown';
+        if (candidateStr.includes('typ host')) candidateType = 'host (local)';
+        else if (candidateStr.includes('typ srflx')) candidateType = 'srflx (STUN)';
+        else if (candidateStr.includes('typ relay')) candidateType = 'relay (TURN)';
+        else if (candidateStr.includes('typ prflx')) candidateType = 'prflx (peer reflexive)';
+
+        console.info('[WebRTC] ICE candidate for', jid, '-', candidateType);
         this.onIceCandidate(jid, event.candidate);
+      } else if (!event.candidate) {
+        console.info('[WebRTC] ICE gathering complete for', jid);
       }
     };
 
@@ -284,9 +294,25 @@ export class WebRTCService {
       }
     };
 
-    // ICE connection state change
+    // ICE connection state change — this is often more reliable than connectionState
     connection.oniceconnectionstatechange = () => {
-      console.debug('[WebRTC] ICE connection state for', jid, ':', connection.iceConnectionState);
+      const iceState = connection.iceConnectionState;
+      console.info('[WebRTC] ICE connection state for', jid, ':', iceState);
+
+      // Some WebRTC implementations don't fire connectionstatechange properly
+      // so we also notify on iceConnectionState changes
+      if (this.onConnectionStateChange) {
+        // Map ICE states to connection states for consistency
+        const mappedState = this.mapIceStateToConnectionState(iceState);
+        if (mappedState) {
+          this.onConnectionStateChange(jid, mappedState);
+        }
+      }
+    };
+
+    // ICE gathering state change for debugging
+    connection.onicegatheringstatechange = () => {
+      console.debug('[WebRTC] ICE gathering state for', jid, ':', connection.iceGatheringState);
     };
 
     // Negotiation needed
@@ -341,11 +367,27 @@ export class WebRTCService {
     state.isNegotiating = true;
 
     try {
+      console.info('[WebRTC] Creating answer for:', state.jid);
+      console.info('[WebRTC] Signaling state before createAnswer:', state.connection.signalingState);
+
       const answer = await state.connection.createAnswer();
+
+      // Log SDP to verify audio/video tracks are included
+      if (answer.sdp) {
+        const hasAudio = answer.sdp.includes('m=audio');
+        const hasVideo = answer.sdp.includes('m=video');
+        console.info('[WebRTC] Answer SDP contains - audio:', hasAudio, 'video:', hasVideo);
+      }
+
       await state.connection.setLocalDescription(answer);
 
-      console.info('[WebRTC] Created answer for:', state.jid);
+      console.info('[WebRTC] Created and set answer for:', state.jid);
+      console.info('[WebRTC] Signaling state after setLocalDescription:', state.connection.signalingState);
+
       return answer;
+    } catch (error) {
+      console.error('[WebRTC] Failed to create answer:', error);
+      throw error;
     } finally {
       state.isNegotiating = false;
     }
@@ -359,32 +401,58 @@ export class WebRTCService {
     sdp: RTCSessionDescription
   ): Promise<void> {
     console.info('[WebRTC] Setting remote description for:', state.jid, 'type:', sdp.type);
+    console.info('[WebRTC] Signaling state before setRemoteDescription:', state.connection.signalingState);
+
+    // Log SDP to verify audio/video tracks are included
+    if (sdp.sdp) {
+      const hasAudio = sdp.sdp.includes('m=audio');
+      const hasVideo = sdp.sdp.includes('m=video');
+      console.info('[WebRTC] Remote SDP contains - audio:', hasAudio, 'video:', hasVideo);
+    }
 
     await state.connection.setRemoteDescription(sdp);
 
+    console.info('[WebRTC] Signaling state after setRemoteDescription:', state.connection.signalingState);
+
     // Process queued ICE candidates
+    const queueLength = state.iceCandidatesQueue.length;
+    if (queueLength > 0) {
+      console.info('[WebRTC] Processing', queueLength, 'queued ICE candidates');
+    }
     while (state.iceCandidatesQueue.length > 0) {
       const candidate = state.iceCandidatesQueue.shift();
       if (candidate) {
-        await state.connection.addIceCandidate(candidate);
+        try {
+          await state.connection.addIceCandidate(candidate);
+        } catch (error) {
+          console.error('[WebRTC] Failed to add queued ICE candidate:', error);
+        }
       }
     }
   }
 
   /**
-   * Add an ICE candidate
+   * Add an ICE candidate from remote peer
    */
   async addIceCandidate(state: PeerConnectionState, candidate: RTCIceCandidate): Promise<void> {
+    // Log candidate type for debugging
+    const candidateStr = (candidate as any).candidate || '';
+    let candidateType = 'unknown';
+    if (candidateStr.includes('typ host')) candidateType = 'host (local)';
+    else if (candidateStr.includes('typ srflx')) candidateType = 'srflx (STUN)';
+    else if (candidateStr.includes('typ relay')) candidateType = 'relay (TURN)';
+    else if (candidateStr.includes('typ prflx')) candidateType = 'prflx (peer reflexive)';
+
     // Queue if remote description not set yet
     if (!state.connection.remoteDescription) {
-      console.debug('[WebRTC] Queuing ICE candidate for:', state.jid);
+      console.info('[WebRTC] Queuing remote ICE candidate for:', state.jid, '-', candidateType);
       state.iceCandidatesQueue.push(candidate);
       return;
     }
 
     try {
       await state.connection.addIceCandidate(candidate);
-      console.debug('[WebRTC] Added ICE candidate for:', state.jid);
+      console.info('[WebRTC] Added remote ICE candidate for:', state.jid, '-', candidateType);
     } catch (error) {
       console.error('[WebRTC] Failed to add ICE candidate:', error);
     }
@@ -393,6 +461,32 @@ export class WebRTCService {
   // ============================================================
   // Track Management (for mesh calls)
   // ============================================================
+
+  /**
+   * Add local tracks to an existing PeerConnection
+   * Used when local media is started AFTER the PeerConnection was created
+   * (e.g., when answering an incoming call)
+   */
+  addTracksToConnection(state: PeerConnectionState): void {
+    if (!this.localMedia.stream) {
+      console.warn('[WebRTC] No local media to add to connection');
+      return;
+    }
+
+    const tracks = this.localMedia.stream.getTracks();
+    console.info('[WebRTC] Adding', tracks.length, 'local tracks to connection for:', state.jid);
+
+    tracks.forEach((track: MediaStreamTrack) => {
+      if (this.localMedia.stream) {
+        try {
+          state.connection.addTrack(track, this.localMedia.stream);
+          console.info('[WebRTC] Added track:', track.kind, 'enabled:', track.enabled, 'to:', state.jid);
+        } catch (error) {
+          console.error('[WebRTC] Failed to add track:', track.kind, 'error:', error);
+        }
+      }
+    });
+  }
 
   /**
    * Replace local tracks in an existing PeerConnection
@@ -411,6 +505,33 @@ export class WebRTCService {
         console.info('[WebRTC] Replaced track for:', state.jid, 'kind:', oldTrack.kind);
         break;
       }
+    }
+  }
+
+  // ============================================================
+  // State Mapping Helpers
+  // ============================================================
+
+  /**
+   * Map ICE connection state to unified connection state
+   * This is needed because some platforms don't fire connectionstatechange reliably
+   */
+  private mapIceStateToConnectionState(iceState: string): string | null {
+    switch (iceState) {
+      case 'new':
+      case 'checking':
+        return 'connecting';
+      case 'connected':
+      case 'completed':
+        return 'connected';
+      case 'disconnected':
+        return 'disconnected';
+      case 'failed':
+        return 'failed';
+      case 'closed':
+        return 'closed';
+      default:
+        return null;
     }
   }
 

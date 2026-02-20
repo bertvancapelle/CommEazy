@@ -261,6 +261,20 @@ export class MeshManager {
   }
 
   // ============================================================
+  // Track Management
+  // ============================================================
+
+  /**
+   * Add local tracks to all existing PeerConnections
+   * Called after local media is started (e.g., when answering a call)
+   */
+  addLocalTracksToAllConnections(): void {
+    this.participants.forEach((participant) => {
+      this.webrtc.addTracksToConnection(participant.peerState);
+    });
+  }
+
+  // ============================================================
   // Remote Stream Access
   // ============================================================
 
