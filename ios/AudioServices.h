@@ -7,7 +7,7 @@
  * @see src/hooks/useFeedback.ts
  */
 
-#import <React-Core/RCTBridgeModule.h>
+#import <React/RCTBridgeModule.h>
 
 @interface AudioServices : NSObject <RCTBridgeModule>
 

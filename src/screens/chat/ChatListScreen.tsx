@@ -26,14 +26,15 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { colors, typography, spacing, touchTargets } from '@/theme';
+import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Button, PresenceIndicator, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useAccentColor } from '@/hooks/useAccentColor';
 import type { ChatStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
-import type { PresenceShow } from '@/services/interfaces';
+import type { PresenceShow, DeliveryStatus } from '@/services/interfaces';
 
 // ChatListItem type for this screen
 interface ChatListItem {
@@ -44,6 +45,8 @@ interface ChatListItem {
   lastMessageTime: number;
   unreadCount: number;
   presenceShow: PresenceShow;
+  lastMessageIsFromMe: boolean;  // true = I sent last message, false = they sent it
+  lastMessageStatus?: DeliveryStatus;  // Only relevant when lastMessageIsFromMe = true
 }
 
 type NavigationProp = NativeStackNavigationProp<ChatStackParams, 'ChatList'>;
@@ -52,6 +55,7 @@ export function ChatListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const { triggerFeedback } = useFeedback();
+  const { accentColor } = useAccentColor();
   const isFocused = useIsFocused();
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -88,36 +92,49 @@ export function ChatListScreen() {
         if (ServiceContainer.isInitialized && chatService.isInitialized) {
           // Subscribe to real-time chat list updates
           const observable = chatService.observeChatList();
+          const myJid = chatService.getMyJid();
           unsubscribe = observable.subscribe(chatList => {
             if (!cancelled) {
-              const items: ChatListItem[] = chatList.map(chat => ({
-                chatId: chat.chatId,
-                contactJid: chat.contact.jid,
-                contactName: chat.contact.name,
-                lastMessage: chat.lastMessage?.content ?? '',
-                lastMessageTime: chat.lastMessage?.timestamp ?? 0,
-                unreadCount: chat.unreadCount,
-                presenceShow: chatService.getContactPresence(chat.contact.jid),
-              }));
+              const items: ChatListItem[] = chatList.map(chat => {
+                const lastMsg = chat.lastMessage;
+                const isFromMe = lastMsg ? lastMsg.senderId === myJid : false;
+                return {
+                  chatId: chat.chatId,
+                  contactJid: chat.contact.jid,
+                  contactName: chat.contact.name,
+                  lastMessage: lastMsg?.content ?? '',
+                  lastMessageTime: lastMsg?.timestamp ?? 0,
+                  unreadCount: chat.unreadCount,
+                  presenceShow: chatService.getContactPresence(chat.contact.jid),
+                  lastMessageIsFromMe: isFromMe,
+                  lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+                };
+              });
               setChats(items);
               setLoading(false);
             }
           });
         } else if (__DEV__) {
           // Fallback to mock data in dev mode if service not ready
-          const { getMockChatList, getMockContactPresence } = await import('@/services/mock');
+          const { getMockChatList, getMockContactPresence, MOCK_CURRENT_USER } = await import('@/services/mock');
           const mockChats = await getMockChatList();
           const chatList: ChatListItem[] = mockChats
             .filter(chat => chat.lastMessage) // Only show chats with messages
-            .map(chat => ({
-              chatId: chat.chatId,
-              contactJid: chat.contact.jid,
-              contactName: chat.contact.name,
-              lastMessage: chat.lastMessage?.content ?? '',
-              lastMessageTime: chat.lastMessage?.timestamp ?? 0,
-              unreadCount: chat.unreadCount,
-              presenceShow: getMockContactPresence(chat.contact),
-            }));
+            .map(chat => {
+              const lastMsg = chat.lastMessage;
+              const isFromMe = lastMsg ? lastMsg.senderId === MOCK_CURRENT_USER.jid : false;
+              return {
+                chatId: chat.chatId,
+                contactJid: chat.contact.jid,
+                contactName: chat.contact.name,
+                lastMessage: lastMsg?.content ?? '',
+                lastMessageTime: lastMsg?.timestamp ?? 0,
+                unreadCount: chat.unreadCount,
+                presenceShow: getMockContactPresence(chat.contact),
+                lastMessageIsFromMe: isFromMe,
+                lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+              };
+            });
           if (!cancelled) setChats(chatList);
           if (!cancelled) setLoading(false);
         } else {
@@ -129,19 +146,25 @@ export function ChatListScreen() {
         // Fallback to mock data on error in dev mode
         if (__DEV__ && !cancelled) {
           try {
-            const { getMockChatList, getMockContactPresence } = await import('@/services/mock');
+            const { getMockChatList, getMockContactPresence, MOCK_CURRENT_USER } = await import('@/services/mock');
             const mockChats = await getMockChatList();
             const chatList: ChatListItem[] = mockChats
               .filter(chat => chat.lastMessage)
-              .map(chat => ({
-                chatId: chat.chatId,
-                contactJid: chat.contact.jid,
-                contactName: chat.contact.name,
-                lastMessage: chat.lastMessage?.content ?? '',
-                lastMessageTime: chat.lastMessage?.timestamp ?? 0,
-                unreadCount: chat.unreadCount,
-                presenceShow: getMockContactPresence(chat.contact),
-              }));
+              .map(chat => {
+                const lastMsg = chat.lastMessage;
+                const isFromMe = lastMsg ? lastMsg.senderId === MOCK_CURRENT_USER.jid : false;
+                return {
+                  chatId: chat.chatId,
+                  contactJid: chat.contact.jid,
+                  contactName: chat.contact.name,
+                  lastMessage: lastMsg?.content ?? '',
+                  lastMessageTime: lastMsg?.timestamp ?? 0,
+                  unreadCount: chat.unreadCount,
+                  presenceShow: getMockContactPresence(chat.contact),
+                  lastMessageIsFromMe: isFromMe,
+                  lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+                };
+              });
             setChats(chatList);
           } catch {
             setChats([]);
@@ -189,15 +212,22 @@ export function ChatListScreen() {
     try {
       if (ServiceContainer.isInitialized && chatService.isInitialized) {
         const chatList = await chatService.getChatList();
-        const items: ChatListItem[] = chatList.map(chat => ({
-          chatId: chat.chatId,
-          contactJid: chat.contact.jid,
-          contactName: chat.contact.name,
-          lastMessage: chat.lastMessage?.content ?? '',
-          lastMessageTime: chat.lastMessage?.timestamp ?? 0,
-          unreadCount: chat.unreadCount,
-          presenceShow: chatService.getContactPresence(chat.contact.jid),
-        }));
+        const myJid = chatService.getMyJid();
+        const items: ChatListItem[] = chatList.map(chat => {
+          const lastMsg = chat.lastMessage;
+          const isFromMe = lastMsg ? lastMsg.senderId === myJid : false;
+          return {
+            chatId: chat.chatId,
+            contactJid: chat.contact.jid,
+            contactName: chat.contact.name,
+            lastMessage: lastMsg?.content ?? '',
+            lastMessageTime: lastMsg?.timestamp ?? 0,
+            unreadCount: chat.unreadCount,
+            presenceShow: chatService.getContactPresence(chat.contact.jid),
+            lastMessageIsFromMe: isFromMe,
+            lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+          };
+        });
         setChats(items);
       }
     } catch (error) {
@@ -210,30 +240,43 @@ export function ChatListScreen() {
       // Try to use real service if fully initialized
       if (ServiceContainer.isInitialized && chatService.isInitialized) {
         const chatList = await chatService.getChatList();
-        const items: ChatListItem[] = chatList.map(chat => ({
-          chatId: chat.chatId,
-          contactJid: chat.contact.jid,
-          contactName: chat.contact.name,
-          lastMessage: chat.lastMessage?.content ?? '',
-          lastMessageTime: chat.lastMessage?.timestamp ?? 0,
-          unreadCount: chat.unreadCount,
-          presenceShow: chatService.getContactPresence(chat.contact.jid),
-        }));
-        setChats(items);
-      } else if (__DEV__) {
-        const { getMockChatList, getMockContactPresence } = await import('@/services/mock');
-        const mockChats = await getMockChatList();
-        const chatList: ChatListItem[] = mockChats
-          .filter(chat => chat.lastMessage)
-          .map(chat => ({
+        const myJid = chatService.getMyJid();
+        const items: ChatListItem[] = chatList.map(chat => {
+          const lastMsg = chat.lastMessage;
+          const isFromMe = lastMsg ? lastMsg.senderId === myJid : false;
+          return {
             chatId: chat.chatId,
             contactJid: chat.contact.jid,
             contactName: chat.contact.name,
-            lastMessage: chat.lastMessage?.content ?? '',
-            lastMessageTime: chat.lastMessage?.timestamp ?? 0,
+            lastMessage: lastMsg?.content ?? '',
+            lastMessageTime: lastMsg?.timestamp ?? 0,
             unreadCount: chat.unreadCount,
-            presenceShow: getMockContactPresence(chat.contact),
-          }));
+            presenceShow: chatService.getContactPresence(chat.contact.jid),
+            lastMessageIsFromMe: isFromMe,
+            lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+          };
+        });
+        setChats(items);
+      } else if (__DEV__) {
+        const { getMockChatList, getMockContactPresence, MOCK_CURRENT_USER } = await import('@/services/mock');
+        const mockChats = await getMockChatList();
+        const chatList: ChatListItem[] = mockChats
+          .filter(chat => chat.lastMessage)
+          .map(chat => {
+            const lastMsg = chat.lastMessage;
+            const isFromMe = lastMsg ? lastMsg.senderId === MOCK_CURRENT_USER.jid : false;
+            return {
+              chatId: chat.chatId,
+              contactJid: chat.contact.jid,
+              contactName: chat.contact.name,
+              lastMessage: lastMsg?.content ?? '',
+              lastMessageTime: lastMsg?.timestamp ?? 0,
+              unreadCount: chat.unreadCount,
+              presenceShow: getMockContactPresence(chat.contact),
+              lastMessageIsFromMe: isFromMe,
+              lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+            };
+          });
         setChats(chatList);
       } else {
         setChats([]);
@@ -289,10 +332,31 @@ export function ChatListScreen() {
     return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
   }, [t]);
 
+  // Helper to get status icon for outgoing messages (WhatsApp style)
+  const getStatusIcon = useCallback((status?: DeliveryStatus): { name: 'time' | 'check' | 'check-all' | 'alert'; color: string } | null => {
+    switch (status) {
+      case 'pending':
+        return { name: 'time', color: colors.textTertiary };  // Clock icon
+      case 'sent':
+        return { name: 'check', color: accentColor.primary };  // Single check in accent
+      case 'delivered':
+        return { name: 'check-all', color: accentColor.primary };  // Double check in accent
+      case 'failed':
+        return { name: 'alert', color: colors.error };  // Alert triangle
+      default:
+        return null;
+    }
+  }, [accentColor.primary]);
+
   const renderChatItem = useCallback(
     ({ item, index }: { item: ChatListItem; index: number }): React.ReactElement => {
       const focused = isItemFocused(item.chatId);
       const focusStyle = focused ? getFocusStyle() : undefined;
+
+      // Message direction styling
+      const isFromMe = item.lastMessageIsFromMe;
+      const hasUnread = item.unreadCount > 0;
+      const statusIcon = isFromMe ? getStatusIcon(item.lastMessageStatus) : null;
 
       return (
         <VoiceFocusable
@@ -304,6 +368,7 @@ export function ChatListScreen() {
           <TouchableOpacity
             style={[
               styles.chatItem,
+              // No accent background on row - only message text gets accent color
               focused && {
                 borderColor: focusStyle?.borderColor,
                 borderWidth: focusStyle?.borderWidth,
@@ -331,7 +396,11 @@ export function ChatListScreen() {
             <View style={styles.chatContent}>
               <View style={styles.chatHeader}>
                 <Text
-                  style={styles.contactName}
+                  style={[
+                    styles.contactName,
+                    // Bold for unread incoming messages
+                    hasUnread && !isFromMe && { fontWeight: '800' },
+                  ]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -340,21 +409,43 @@ export function ChatListScreen() {
                 <Text style={styles.timestamp}>{formatTime(item.lastMessageTime)}</Text>
               </View>
 
-              {/* Show up to 2 lines of the last message */}
+              {/* Show up to 2 lines of the last message with status indicator */}
               {item.lastMessage ? (
-                <Text
-                  style={styles.lastMessage}
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
+                <View
+                  style={[
+                    styles.lastMessageRow,
+                    // Light accent background for outgoing messages (WhatsApp style)
+                    isFromMe && { backgroundColor: accentColor.light, borderRadius: 6 },
+                  ]}
                 >
-                  {item.lastMessage}
-                </Text>
+                  {/* Status icon for outgoing messages */}
+                  {statusIcon && (
+                    <View style={styles.statusIconWrapper}>
+                      <Icon
+                        name={statusIcon.name}
+                        size={16}
+                        color={statusIcon.color}
+                      />
+                    </View>
+                  )}
+                  <Text
+                    style={[
+                      styles.lastMessage,
+                      // Bold for unread incoming messages
+                      hasUnread && !isFromMe && { fontWeight: '700', color: colors.textPrimary },
+                    ]}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
+                    {item.lastMessage}
+                  </Text>
+                </View>
               ) : null}
             </View>
 
-            {/* Unread badge */}
-            {item.unreadCount > 0 && (
-              <View style={styles.unreadBadge}>
+            {/* Unread badge - only show for incoming messages */}
+            {hasUnread && !isFromMe && (
+              <View style={[styles.unreadBadge, { backgroundColor: accentColor.primary }]}>
                 <Text style={styles.unreadCount}>
                   {item.unreadCount > 99 ? '99+' : item.unreadCount}
                 </Text>
@@ -364,7 +455,7 @@ export function ChatListScreen() {
         </VoiceFocusable>
       );
     },
-    [handleChatPress, formatTime, t, isItemFocused, getFocusStyle],
+    [handleChatPress, formatTime, t, isItemFocused, getFocusStyle, accentColor, getStatusIcon],
   );
 
   const keyExtractor = useCallback((item: ChatListItem) => item.chatId, []);
@@ -496,6 +587,17 @@ const styles = StyleSheet.create({
   lastMessage: {
     ...typography.body,
     color: colors.textSecondary,
+    flex: 1,
+  },
+  lastMessageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  statusIconWrapper: {
+    marginRight: spacing.xs,
+    marginTop: 3, // Align with text baseline
   },
   unreadBadge: {
     minWidth: 24,
@@ -507,9 +609,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   unreadCount: {
-    ...typography.label,
     color: colors.textOnPrimary,
-    fontSize: 16,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 24, // Match badge height for perfect vertical centering
+    textAlign: 'center',
+    includeFontPadding: false, // Android: remove extra padding
   },
   emptyContainer: {
     flex: 1,

@@ -26,6 +26,7 @@ export type IconName =
   | 'chevron-down'
   | 'camera'
   | 'check'
+  | 'check-all'
   | 'language'
   | 'settings'
   | 'group'
@@ -66,9 +67,12 @@ export type IconName =
   | 'water-percent'
   | 'weather-windy'
   | 'map-marker'
+  | 'map-marker-check'
+  | 'map-marker-off'
   | 'crosshairs-gps'
   | 'magnify'
-  | 'alert';
+  | 'alert'
+  | 'trash-can-outline';
 
 interface IconProps {
   name: IconName;
@@ -266,6 +270,27 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
         <Svg {...iconProps}>
           <Path
             d="M5 13L9 17L19 7"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'check-all':
+      // Double checkmark for "delivered" status (WhatsApp style)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M2 13L6 17L16 7"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M8 13L12 17L22 7"
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"
@@ -957,6 +982,74 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             strokeLinejoin="round"
           />
           <Circle cx="12" cy="9" r="2.5" stroke={color} strokeWidth={sw} />
+        </Svg>
+      );
+
+    case 'map-marker-check':
+      // Location marker with checkmark
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M9 9L11 11L15 7"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'map-marker-off':
+      // Location marker crossed out (no locations)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M19 9C19 5.13 15.87 2 12 2"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M3 3L21 21"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'trash-can-outline':
+      // Trash can / delete
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M9 3V4H4V6H5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V6H20V4H15V3H9Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M10 9V17M14 9V17"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
         </Svg>
       );
 
