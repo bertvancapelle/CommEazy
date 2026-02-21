@@ -873,7 +873,7 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
 // ============================================================
 
 export function WeatherScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const reducedMotion = useReducedMotion();
@@ -1261,7 +1261,7 @@ export function WeatherScreen() {
                   </View>
 
                   <Text style={styles.condition}>
-                    {weatherService.getWeatherDescription(weather.current.weatherCode, t('locale'))}
+                    {weatherService.getWeatherDescription(weather.current.weatherCode, i18n.language)}
                   </Text>
 
                   <View style={styles.weatherDetails}>
@@ -1279,39 +1279,37 @@ export function WeatherScreen() {
                     </View>
                   </View>
 
-                  <TTSButton
-                    isPlaying={isTtsPlaying}
-                    isActive={isTtsPlaying && ttsSection === 'current'}
-                    onPress={() => handleTtsPress('current')}
-                    label={t('modules.weather.readCurrentWeather')}
-                  />
+                  <View style={styles.ttsButtonRow}>
+                    <TTSButton
+                      isPlaying={isTtsPlaying}
+                      isActive={isTtsPlaying && ttsSection === 'current'}
+                      onPress={() => handleTtsPress('current')}
+                      label={t('modules.weather.readCurrentWeather')}
+                      compact
+                    />
+                  </View>
                 </View>
               </VoiceFocusable>
 
-              {/* Rain Prediction Card */}
+              {/* Rain Prediction Row - Compact layout */}
               <VoiceFocusable
                 id="rain-prediction"
                 label={t('modules.weather.rainPrediction')}
                 index={1}
                 onSelect={() => handleTtsPress('rain')}
               >
-                <View style={styles.rainCard}>
-                  <View style={styles.rainHeader}>
-                    <Icon name="weather-rainy" size={32} color={MODULE_COLOR} />
-                    <View style={styles.rainTextContainer}>
-                      <Text style={styles.rainTitle}>{t('modules.weather.rainPrediction')}</Text>
-                      <Text style={styles.rainSummary}>
-                        {weatherService.getRainSummary(weather.rain.summary, t('locale'))}
-                      </Text>
-                    </View>
-                    <TTSButton
-                      isPlaying={isTtsPlaying}
-                      isActive={isTtsPlaying && ttsSection === 'rain'}
-                      onPress={() => handleTtsPress('rain')}
-                      label={t('modules.weather.readRain')}
-                      compact
-                    />
-                  </View>
+                <View style={styles.rainRow}>
+                  <Icon name="weather-rainy" size={24} color={MODULE_COLOR} />
+                  <Text style={styles.rainText}>
+                    {weatherService.getRainSummary(weather.rain.summary, i18n.language)}
+                  </Text>
+                  <TTSButton
+                    isPlaying={isTtsPlaying}
+                    isActive={isTtsPlaying && ttsSection === 'rain'}
+                    onPress={() => handleTtsPress('rain')}
+                    label={t('modules.weather.readRain')}
+                    compact
+                  />
                 </View>
               </VoiceFocusable>
 
@@ -1759,31 +1757,26 @@ const styles = StyleSheet.create({
   ttsButtonTextActive: {
     color: colors.textOnPrimary,
   },
-
-  // Rain card
-  rainCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    ...shadows.small,
+  ttsButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
-  rainHeader: {
+
+  // Rain prediction row - compact inline layout
+  rainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    ...shadows.small,
   },
-  rainTextContainer: {
-    flex: 1,
-  },
-  rainTitle: {
-    ...typography.label,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  rainSummary: {
+  rainText: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '500',
+    flex: 1,
   },
 
   // Forecast card
