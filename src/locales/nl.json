@@ -1177,6 +1177,9 @@
         "attribution": "Databron",
         "attributionOwm": "Radardata van OpenWeather",
         "attributionRainViewer": "Radardata van RainViewer",
+        "attributionKnmi": "Radardata van KNMI",
+        "noForecastWarning": "Geen voorspelling beschikbaar op dit moment. De radar toont alleen recente gegevens.",
+        "noPastWarning": "Geen historische gegevens beschikbaar op dit moment.",
         "errors": {
           "network": "Kan radarbeeld niet laden. Controleer je internetverbinding.",
           "timeout": "Het laden duurt te lang. Probeer het later opnieuw."

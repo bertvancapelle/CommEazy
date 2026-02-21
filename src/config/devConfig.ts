@@ -105,6 +105,13 @@ export const TEST_ACCOUNTS = {
  */
 export const OWM_API_KEY = 'f9df16dd02ba0817ebd46cf773c7b6b9';
 
+/**
+ * KNMI Data Platform API key for radar forecast (Netherlands)
+ * 2 hour forecast, 5 minute intervals, 1km resolution
+ * Register at: https://developer.dataplatform.knmi.nl/register
+ */
+export const KNMI_API_KEY = 'eyJvcmciOiI1ZTU1NGUxOTI3NGE5NjAwMDEyYTNlYjEiLCJpZCI6ImE2MjI1YjEzY2FjMzQ2ZTVhNWQ1YzRjMGUyZWY0NWNkIiwiaCI6Im11cm11cjEyOCJ9';
+
 // ============================================================
 // Helper to log current config
 // ============================================================

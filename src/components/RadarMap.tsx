@@ -5,7 +5,9 @@
  * Uses WebView with Leaflet.js for reliable cross-platform tile support.
  *
  * Features:
- * - Radar tile overlay from RainViewer
+ * - Radar tile overlay from multiple providers:
+ *   - KNMI (Netherlands): WMS format with BBOX parameter
+ *   - RainViewer (worldwide): Standard {z}/{x}/{y} tile format
  * - Location marker with accent color
  * - Pinch-to-zoom support
  * - Centered on provided location
@@ -24,7 +26,7 @@ import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
 
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
-import { RADAR_MODULE_CONFIG } from '@/types/weather';
+import { RADAR_PROVIDER_CONFIG } from '@/types/weather';
 
 // ============================================================
 // Props
@@ -106,7 +108,7 @@ export function RadarMap({
     // Initialize map
     var map = L.map('map', {
       center: [${latitude}, ${longitude}],
-      zoom: ${RADAR_MODULE_CONFIG.defaultZoom},
+      zoom: ${RADAR_PROVIDER_CONFIG.defaultZoom},
       zoomControl: false,
       attributionControl: false,
       dragging: true,
@@ -135,6 +137,7 @@ export function RadarMap({
     ` : ''}
 
     // Function to update radar layer (called from React Native)
+    // Supports both standard tile URLs ({z}/{x}/{y}) and WMS URLs ({bbox-epsg-3857})
     function updateRadarLayer(tileUrl) {
       // Remove existing radar layer if present
       if (radarLayer) {
@@ -144,11 +147,52 @@ export function RadarMap({
 
       // Add new radar layer if URL provided
       if (tileUrl) {
-        radarLayer = L.tileLayer(tileUrl, {
-          maxZoom: ${RADAR_MODULE_CONFIG.maxTileZoom},
-          opacity: ${RADAR_MODULE_CONFIG.tileOpacity},
-          tileSize: 256
-        }).addTo(map);
+        // Check if this is a WMS URL (KNMI uses {bbox-epsg-3857} placeholder)
+        var isWms = tileUrl.indexOf('bbox-epsg-3857') !== -1 || tileUrl.indexOf('SERVICE=WMS') !== -1;
+
+        if (isWms) {
+          // KNMI WMS format: parse URL and use Leaflet TileLayer.WMS
+          // The URL already contains all WMS params, we just need to handle BBOX
+          var urlParts = tileUrl.split('?');
+          var baseUrl = urlParts[0];
+          var params = new URLSearchParams(urlParts[1] || '');
+
+          // Remove BBOX from params (Leaflet will add it)
+          params.delete('BBOX');
+
+          // Create WMS layer
+          radarLayer = L.tileLayer.wms(baseUrl + '?' + params.toString(), {
+            layers: params.get('LAYERS') || 'precipitation',
+            format: 'image/png',
+            transparent: true,
+            version: '1.3.0',
+            crs: L.CRS.EPSG3857,
+            maxZoom: ${RADAR_PROVIDER_CONFIG.maxTileZoom},
+            opacity: ${RADAR_PROVIDER_CONFIG.tileOpacity},
+            tileSize: 256
+          }).addTo(map);
+
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'log',
+            message: 'Using KNMI WMS layer'
+          }));
+        } else {
+          // Standard tile URL format (RainViewer uses {z}/{x}/{y})
+          radarLayer = L.tileLayer(tileUrl, {
+            maxZoom: ${RADAR_PROVIDER_CONFIG.maxTileZoom},
+            opacity: ${RADAR_PROVIDER_CONFIG.tileOpacity},
+            tileSize: 256,
+            errorTileUrl: ''  // Don't show error tiles
+          }).addTo(map);
+        }
+
+        // Listen for tile load errors (only log errors, not successes)
+        radarLayer.on('tileerror', function(error) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'error',
+            message: 'Tile load error: ' + (error.tile ? error.tile.src : 'unknown')
+          }));
+        });
       }
     }
   </script>
@@ -157,11 +201,35 @@ export function RadarMap({
     `;
   }, [latitude, longitude, dotColor, showMarker]);
 
+  // Track if WebView is ready
+  const webViewReady = useRef(false);
+  const pendingTileUrl = useRef<string | null>(null);
+
+  // Handle WebView load complete - inject initial radar layer
+  const handleWebViewLoadEnd = () => {
+    webViewReady.current = true;
+    console.debug('[RadarMap] WebView loaded, injecting initial radar layer');
+
+    // Use pending URL or current prop
+    const urlToLoad = pendingTileUrl.current || radarTileUrl;
+    if (urlToLoad && webViewRef.current) {
+      const script = `updateRadarLayer('${urlToLoad}'); true;`;
+      webViewRef.current.injectJavaScript(script);
+      console.debug('[RadarMap] Initial radar layer injected');
+    }
+  };
+
   // Update radar layer when tile URL changes (without reloading entire page)
   useEffect(() => {
-    if (webViewRef.current && radarTileUrl !== undefined) {
-      const script = `updateRadarLayer(${radarTileUrl ? `'${radarTileUrl}'` : 'null'}); true;`;
+    if (!radarTileUrl) return;
+
+    if (webViewReady.current && webViewRef.current) {
+      // WebView is ready, inject immediately
+      const script = `updateRadarLayer('${radarTileUrl}'); true;`;
       webViewRef.current.injectJavaScript(script);
+    } else {
+      // WebView not ready yet, store for later
+      pendingTileUrl.current = radarTileUrl;
     }
   }, [radarTileUrl]);
 
@@ -170,6 +238,20 @@ export function RadarMap({
     styles.container,
     height ? { height } : { flex: 1 },
   ], [height]);
+
+  // Handle messages from WebView (for debugging tile loads)
+  const handleWebViewMessage = (event: { nativeEvent: { data: string } }) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'error') {
+        console.warn('[RadarMap]', data.message);
+      } else if (data.type === 'log') {
+        console.debug('[RadarMap]', data.message);
+      }
+    } catch {
+      // Ignore non-JSON messages
+    }
+  };
 
   return (
     <View style={containerStyle}>
@@ -188,6 +270,8 @@ export function RadarMap({
         scalesPageToFit={true}
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
+        onMessage={handleWebViewMessage}
+        onLoadEnd={handleWebViewLoadEnd}
         accessibilityLabel={t('modules.weather.radar.title')}
         accessibilityHint={t('modules.weather.radar.mapHint')}
       />

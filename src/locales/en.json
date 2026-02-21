@@ -1169,6 +1169,9 @@
         "attribution": "Data source",
         "attributionOwm": "Radar data by OpenWeather",
         "attributionRainViewer": "Radar data by RainViewer",
+        "attributionKnmi": "Radar data by KNMI",
+        "noForecastWarning": "No forecast available at the moment. The radar only shows recent data.",
+        "noPastWarning": "No historical data available at the moment.",
         "errors": {
           "network": "Cannot load radar image. Check your internet connection.",
           "timeout": "Loading is taking too long. Please try again later."

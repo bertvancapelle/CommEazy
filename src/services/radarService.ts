@@ -2,41 +2,43 @@
  * Radar Service
  *
  * Unified radar tile service that supports multiple providers:
- * - OpenWeatherMap: 2 hour forecast (Europe), requires API key
- * - RainViewer: 30 min forecast, no API key required (fallback)
+ * - KNMI: 2 hour forecast (Netherlands only), API key required, high resolution
+ * - RainViewer: 30 min forecast, no API key required, worldwide (fallback)
+ *
+ * Location-based provider selection:
+ * - NL locations (lat 50.5-53.7, lon 3.2-7.3) → KNMI
+ * - All other locations → RainViewer
  *
  * Features:
  * - Generate radar tile URLs with timestamps
  * - Calculate available time frames (past + forecast)
  * - 10-minute memory cache
- * - Automatic fallback to RainViewer if OWM fails
+ * - Automatic fallback to RainViewer if KNMI fails
  *
- * @see https://openweathermap.org/api/global-precipitation-map-forecast
+ * @see https://developer.dataplatform.knmi.nl/wms
  * @see https://www.rainviewer.com/api.html
  */
 
 import { RADAR_PROVIDER_CONFIG, RadarFrame } from '@/types/weather';
+import { KNMI_API_KEY } from '@/config/devConfig';
 
 // ============================================================
 // Types
 // ============================================================
 
-export type RadarProvider = 'openweathermap' | 'rainviewer';
+export type RadarProvider = 'knmi' | 'rainviewer';
 
 export interface RadarServiceConfig {
-  /** Active provider */
-  provider: RadarProvider;
+  /** KNMI API key (required for KNMI provider) */
+  knmiApiKey?: string;
 
-  /** OpenWeatherMap API key (required for OWM provider) */
-  owmApiKey?: string;
-
-  /** Past duration in minutes (default: 120 = 2 hours) */
+  /** Past duration in minutes (default: 60 for balanced view) */
   pastMinutes: number;
 
-  /** Forecast duration in minutes (default: 120 = 2 hours for OWM, 30 for RainViewer) */
+  /** Forecast duration in minutes (KNMI: 120, RainViewer: 30) */
   forecastMinutes: number;
 
-  /** Frame interval in minutes (default: 10) */
+  /** Frame interval in minutes (KNMI: 5, RainViewer: 10) */
   frameIntervalMinutes: number;
 }
 
@@ -49,6 +51,29 @@ export interface RadarData {
 
   /** When data was generated */
   generated: number;
+
+  /** Number of past frames (before "now") */
+  pastFrameCount: number;
+
+  /** Number of forecast frames (after "now") */
+  forecastFrameCount: number;
+}
+
+// ============================================================
+// Netherlands Bounding Box
+// ============================================================
+
+/**
+ * Check if coordinates are within Netherlands
+ * Bounding box: lat 50.5-53.7, lon 3.2-7.3
+ */
+export function isInNetherlands(latitude: number, longitude: number): boolean {
+  return (
+    latitude >= 50.5 &&
+    latitude <= 53.7 &&
+    longitude >= 3.2 &&
+    longitude <= 7.3
+  );
 }
 
 // ============================================================
@@ -56,11 +81,10 @@ export interface RadarData {
 // ============================================================
 
 const DEFAULT_CONFIG: RadarServiceConfig = {
-  provider: 'openweathermap',
-  owmApiKey: undefined, // Must be set in environment or config
-  pastMinutes: 120, // 2 hours
-  forecastMinutes: 120, // 2 hours (OWM Europe limit)
-  frameIntervalMinutes: 10,
+  knmiApiKey: KNMI_API_KEY,
+  pastMinutes: 60, // 1 hour past (balanced slider)
+  forecastMinutes: 120, // 2 hours forecast (KNMI)
+  frameIntervalMinutes: 5, // 5 minute intervals (KNMI resolution)
 };
 
 let config: RadarServiceConfig = { ...DEFAULT_CONFIG };
@@ -71,8 +95,7 @@ let config: RadarServiceConfig = { ...DEFAULT_CONFIG };
 export function configureRadarService(newConfig: Partial<RadarServiceConfig>): void {
   config = { ...config, ...newConfig };
   console.info('[radarService] Configuration updated:', {
-    provider: config.provider,
-    hasApiKey: !!config.owmApiKey,
+    hasKnmiKey: !!config.knmiApiKey,
     pastMinutes: config.pastMinutes,
     forecastMinutes: config.forecastMinutes,
   });
@@ -85,12 +108,14 @@ export function configureRadarService(newConfig: Partial<RadarServiceConfig>): v
 interface CacheEntry {
   data: RadarData;
   fetchedAt: number;
+  locationKey: string; // Cache per location to handle provider switching
 }
 
 let cache: CacheEntry | null = null;
 
-function isCacheValid(): boolean {
+function isCacheValid(locationKey: string): boolean {
   if (!cache) return false;
+  if (cache.locationKey !== locationKey) return false;
   const now = Date.now();
   return now - cache.fetchedAt < RADAR_PROVIDER_CONFIG.cacheTtl;
 }
@@ -101,81 +126,162 @@ export function clearRadarCache(): void {
 }
 
 // ============================================================
-// Frame Generation
+// KNMI Provider (Netherlands)
 // ============================================================
 
 /**
- * Round timestamp to nearest 10-minute interval
- */
-function roundToInterval(timestamp: number, intervalMinutes: number): number {
-  const intervalSeconds = intervalMinutes * 60;
-  return Math.floor(timestamp / intervalSeconds) * intervalSeconds;
-}
-
-/**
- * Generate frame timestamps for past + forecast
- */
-function generateFrameTimestamps(
-  pastMinutes: number,
-  forecastMinutes: number,
-  intervalMinutes: number
-): number[] {
-  const now = Math.floor(Date.now() / 1000);
-  const roundedNow = roundToInterval(now, intervalMinutes);
-  const intervalSeconds = intervalMinutes * 60;
-
-  const timestamps: number[] = [];
-
-  // Past frames
-  const pastFrameCount = Math.floor(pastMinutes / intervalMinutes);
-  for (let i = pastFrameCount; i > 0; i--) {
-    timestamps.push(roundedNow - i * intervalSeconds);
-  }
-
-  // Current frame
-  timestamps.push(roundedNow);
-
-  // Forecast frames
-  const forecastFrameCount = Math.floor(forecastMinutes / intervalMinutes);
-  for (let i = 1; i <= forecastFrameCount; i++) {
-    timestamps.push(roundedNow + i * intervalSeconds);
-  }
-
-  return timestamps;
-}
-
-// ============================================================
-// OpenWeatherMap Provider
-// ============================================================
-
-/**
- * Generate OpenWeatherMap radar tile URL
+ * Generate KNMI WMS tile URL for a specific timestamp
  *
- * URL format: https://maps.openweathermap.org/maps/2.0/radar/forecast/{z}/{x}/{y}?appid={key}&tm={timestamp}
+ * KNMI uses WMS (Web Map Service) standard with TIME parameter.
+ * Layer: precipitation forecast (precipitationfc)
+ *
+ * WMS URL format:
+ * https://api.dataplatform.knmi.nl/wms/adaguc-server?
+ *   DATASET=radar_forecast
+ *   &SERVICE=WMS
+ *   &VERSION=1.3.0
+ *   &REQUEST=GetMap
+ *   &LAYERS=precipitation
+ *   &CRS=EPSG:3857
+ *   &BBOX={bbox}
+ *   &WIDTH=256
+ *   &HEIGHT=256
+ *   &FORMAT=image/png
+ *   &TRANSPARENT=true
+ *   &TIME={iso_timestamp}
+ *
+ * For Leaflet TileLayer.WMS, we use the URL template format
  */
-function getOWMTileUrl(timestamp: number, apiKey: string): string {
-  // Note: {z}, {x}, {y} are placeholders for Leaflet
-  return `https://maps.openweathermap.org/maps/2.0/radar/forecast/{z}/{x}/{y}?appid=${apiKey}&tm=${timestamp}`;
+function getKNMIWmsUrl(timestamp: number, apiKey: string): string {
+  // Convert Unix timestamp to ISO format for WMS TIME parameter
+  const date = new Date(timestamp * 1000);
+  const isoTime = date.toISOString();
+
+  // KNMI WMS endpoint with API key in Authorization header
+  // For tile layers, we need to embed the key as a query param since headers don't work
+  // The Leaflet TileLayer.WMS will handle the {s}, {z}, {x}, {y} placeholders
+  const baseUrl = 'https://api.dataplatform.knmi.nl/wms/adaguc-server';
+
+  // Build WMS GetMap URL template for Leaflet
+  // Note: Leaflet's TileLayer.WMS handles the BBOX calculation automatically
+  const params = new URLSearchParams({
+    DATASET: 'radar_forecast',
+    SERVICE: 'WMS',
+    VERSION: '1.3.0',
+    REQUEST: 'GetMap',
+    LAYERS: 'precipitation',
+    CRS: 'EPSG:3857',
+    WIDTH: '256',
+    HEIGHT: '256',
+    FORMAT: 'image/png',
+    TRANSPARENT: 'true',
+    TIME: isoTime,
+    api_key: apiKey, // KNMI accepts API key as query param
+  });
+
+  // Return URL template - Leaflet will add BBOX
+  // We use a special format that RadarMap's Leaflet can parse
+  return `${baseUrl}?${params.toString()}&BBOX={bbox}`;
 }
 
 /**
- * Generate frames for OpenWeatherMap provider
+ * Generate KNMI tile URL in standard {z}/{x}/{y} format
+ * Uses the KNMI Adaguc WMS-Tile endpoint
  */
-function generateOWMFrames(apiKey: string): RadarFrame[] {
-  const timestamps = generateFrameTimestamps(
-    config.pastMinutes,
-    config.forecastMinutes,
-    config.frameIntervalMinutes
-  );
+function getKNMITileUrl(timestamp: number, apiKey: string): string {
+  const date = new Date(timestamp * 1000);
+  const isoTime = date.toISOString();
 
-  return timestamps.map((time) => ({
-    time,
-    path: getOWMTileUrl(time, apiKey),
-  }));
+  // Use WMS-T (tiled WMS) endpoint compatible with Leaflet
+  // Format: standard {z}/{x}/{y} tile coordinates
+  return `https://api.dataplatform.knmi.nl/wms/adaguc-server?` +
+    `DATASET=radar_forecast&` +
+    `SERVICE=WMS&` +
+    `VERSION=1.3.0&` +
+    `REQUEST=GetMap&` +
+    `LAYERS=precipitation&` +
+    `CRS=EPSG:3857&` +
+    `WIDTH=256&` +
+    `HEIGHT=256&` +
+    `FORMAT=image/png&` +
+    `TRANSPARENT=true&` +
+    `TIME=${encodeURIComponent(isoTime)}&` +
+    `api_key=${apiKey}&` +
+    `BBOX={bbox-epsg-3857}`;
+}
+
+interface KNMIResult {
+  frames: RadarFrame[];
+  pastFrameCount: number;
+  forecastFrameCount: number;
+}
+
+/**
+ * Generate frames for KNMI provider
+ *
+ * KNMI Radar Forecast 2.0:
+ * - 25 time steps: now to +120 minutes (2 hours)
+ * - 5 minute intervals
+ * - 1km resolution
+ *
+ * We also add past frames using historical radar data
+ */
+async function fetchKNMIFrames(): Promise<KNMIResult> {
+  if (!config.knmiApiKey) {
+    throw new Error('KNMI API key not configured');
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const intervalSeconds = config.frameIntervalMinutes * 60;
+
+  // Round to nearest 5-minute interval
+  const roundedNow = Math.floor(now / intervalSeconds) * intervalSeconds;
+
+  const frames: RadarFrame[] = [];
+
+  // Generate past frames (1 hour = 12 frames at 5-min intervals)
+  const pastFrameCount = Math.floor(config.pastMinutes / config.frameIntervalMinutes);
+  for (let i = pastFrameCount; i > 0; i--) {
+    const timestamp = roundedNow - i * intervalSeconds;
+    frames.push({
+      time: timestamp,
+      path: getKNMITileUrl(timestamp, config.knmiApiKey),
+    });
+  }
+
+  // Add current frame
+  frames.push({
+    time: roundedNow,
+    path: getKNMITileUrl(roundedNow, config.knmiApiKey),
+  });
+
+  // Generate forecast frames (2 hours = 24 frames at 5-min intervals)
+  const forecastFrameCount = Math.floor(config.forecastMinutes / config.frameIntervalMinutes);
+  for (let i = 1; i <= forecastFrameCount; i++) {
+    const timestamp = roundedNow + i * intervalSeconds;
+    frames.push({
+      time: timestamp,
+      path: getKNMITileUrl(timestamp, config.knmiApiKey),
+    });
+  }
+
+  console.debug('[radarService] KNMI frames generated:', {
+    past: pastFrameCount,
+    forecast: forecastFrameCount,
+    total: frames.length,
+    firstTime: new Date(frames[0].time * 1000).toLocaleTimeString(),
+    lastTime: new Date(frames[frames.length - 1].time * 1000).toLocaleTimeString(),
+  });
+
+  return {
+    frames,
+    pastFrameCount,
+    forecastFrameCount,
+  };
 }
 
 // ============================================================
-// RainViewer Provider (Fallback)
+// RainViewer Provider (Worldwide Fallback)
 // ============================================================
 
 interface RainViewerApiResponse {
@@ -188,10 +294,19 @@ interface RainViewerApiResponse {
   };
 }
 
+interface RainViewerResult {
+  frames: RadarFrame[];
+  pastFrameCount: number;
+  forecastFrameCount: number;
+}
+
 /**
  * Fetch frames from RainViewer API
+ *
+ * RainViewer provides ~2 hours past + ~30 min forecast (nowcast).
+ * We balance the frames so "now" appears roughly in the middle of the slider.
  */
-async function fetchRainViewerFrames(): Promise<RadarFrame[]> {
+async function fetchRainViewerFrames(): Promise<RainViewerResult> {
   const response = await fetch(RADAR_PROVIDER_CONFIG.rainViewerApiUrl, {
     method: 'GET',
     headers: {
@@ -210,17 +325,49 @@ async function fetchRainViewerFrames(): Promise<RadarFrame[]> {
     throw new Error('Invalid RainViewer API response');
   }
 
-  // Combine past and nowcast frames
-  const allFrames = [...(data.radar.past || []), ...(data.radar.nowcast || [])];
-
   // Convert to RadarFrame format with full tile URLs
-  return allFrames
-    .sort((a, b) => a.time - b.time)
+  // RainViewer API returns paths like "/v2/radar/1234567890" (without tile coords)
+  // We need to append: /256/{z}/{x}/{y}/{color}/{smooth}_{snow}.png
+  // Color 2 = Universal Blue, Smooth 1, Snow 1
+  const pastFrames = (data.radar.past || [])
     .map((frame) => ({
       time: frame.time,
-      // RainViewer URL format: {host}{path}/256/{z}/{x}/{y}/2/1_1.png
       path: `${data.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
-    }));
+    }))
+    .sort((a, b) => a.time - b.time);
+
+  const forecastFrames = (data.radar.nowcast || [])
+    .map((frame) => ({
+      time: frame.time,
+      path: `${data.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+    }))
+    .sort((a, b) => a.time - b.time);
+
+  // Debug: Log first tile URL to verify format
+  if (pastFrames.length > 0) {
+    console.debug('[radarService] RainViewer sample URL:', pastFrames[0].path.replace('{z}/{x}/{y}', '7/67/42'));
+  }
+
+  // Balance frames so "now" is roughly in the middle
+  const forecastCount = forecastFrames.length;
+  let maxPastFrames = forecastCount > 0 ? forecastCount + 1 : 6;
+  maxPastFrames = Math.max(maxPastFrames, 4);
+
+  const balancedPastFrames = pastFrames.slice(-maxPastFrames);
+  const allFrames = [...balancedPastFrames, ...forecastFrames];
+
+  console.debug('[radarService] RainViewer frames:', {
+    totalPast: pastFrames.length,
+    keptPast: balancedPastFrames.length,
+    forecast: forecastCount,
+    total: allFrames.length,
+  });
+
+  return {
+    frames: allFrames,
+    pastFrameCount: balancedPastFrames.length,
+    forecastFrameCount: forecastCount,
+  };
 }
 
 // ============================================================
@@ -228,57 +375,82 @@ async function fetchRainViewerFrames(): Promise<RadarFrame[]> {
 // ============================================================
 
 /**
- * Get radar frames from configured provider
+ * Get radar frames based on location
  *
- * Returns cached data if valid, otherwise fetches new data.
- * Falls back to RainViewer if OpenWeatherMap fails.
+ * - Netherlands → KNMI (2 hour forecast, high resolution)
+ * - Elsewhere → RainViewer (30 min forecast, worldwide)
+ *
+ * Automatically falls back to RainViewer if KNMI fails.
  */
-export async function getRadarFrames(): Promise<RadarData> {
-  // Return cached data if valid
-  if (isCacheValid() && cache) {
-    console.debug('[radarService] Returning cached data');
+export async function getRadarFrames(
+  latitude?: number,
+  longitude?: number
+): Promise<RadarData> {
+  // Determine provider based on location
+  const useKNMI = latitude !== undefined &&
+    longitude !== undefined &&
+    isInNetherlands(latitude, longitude) &&
+    !!config.knmiApiKey;
+
+  const locationKey = useKNMI ? 'nl' : 'world';
+
+  // Return cached data if valid for this location
+  if (isCacheValid(locationKey) && cache) {
+    console.debug('[radarService] Returning cached data for', locationKey);
     return cache.data;
   }
 
   let frames: RadarFrame[];
-  let provider: RadarProvider = config.provider;
+  let pastFrameCount = 0;
+  let forecastFrameCount = 0;
+  let provider: RadarProvider;
 
-  try {
-    if (config.provider === 'openweathermap' && config.owmApiKey) {
-      console.info('[radarService] Generating OpenWeatherMap frames');
-      frames = generateOWMFrames(config.owmApiKey);
-    } else {
-      // Fallback to RainViewer
-      console.info('[radarService] Fetching RainViewer frames');
-      frames = await fetchRainViewerFrames();
-      provider = 'rainviewer';
-    }
-  } catch (error) {
-    console.warn('[radarService] Primary provider failed, trying fallback:', error);
-
-    // Try RainViewer as fallback
+  if (useKNMI) {
     try {
-      frames = await fetchRainViewerFrames();
+      console.info('[radarService] Fetching KNMI frames (Netherlands)');
+      const result = await fetchKNMIFrames();
+      frames = result.frames;
+      pastFrameCount = result.pastFrameCount;
+      forecastFrameCount = result.forecastFrameCount;
+      provider = 'knmi';
+    } catch (error) {
+      console.warn('[radarService] KNMI failed, falling back to RainViewer:', error);
+      // Fallback to RainViewer
+      const result = await fetchRainViewerFrames();
+      frames = result.frames;
+      pastFrameCount = result.pastFrameCount;
+      forecastFrameCount = result.forecastFrameCount;
       provider = 'rainviewer';
-    } catch (fallbackError) {
-      console.error('[radarService] Both providers failed:', fallbackError);
-      throw fallbackError;
     }
+  } else {
+    // Use RainViewer for non-NL locations
+    console.info('[radarService] Fetching RainViewer frames (worldwide)');
+    const result = await fetchRainViewerFrames();
+    frames = result.frames;
+    pastFrameCount = result.pastFrameCount;
+    forecastFrameCount = result.forecastFrameCount;
+    provider = 'rainviewer';
   }
 
   const data: RadarData = {
     frames,
     provider,
     generated: Math.floor(Date.now() / 1000),
+    pastFrameCount,
+    forecastFrameCount,
   };
 
   // Update cache
   cache = {
     data,
     fetchedAt: Date.now(),
+    locationKey,
   };
 
-  console.info('[radarService] Loaded', frames.length, 'frames from', provider);
+  console.info('[radarService] Loaded', frames.length, 'frames from', provider, {
+    past: pastFrameCount,
+    forecast: forecastFrameCount,
+  });
 
   return data;
 }
@@ -286,7 +458,7 @@ export async function getRadarFrames(): Promise<RadarData> {
 /**
  * Get tile URL for a specific frame
  *
- * The frame.path already contains the full URL template with {z}, {x}, {y} placeholders
+ * The frame.path contains the URL template with placeholders
  */
 export function getRadarTileUrl(frame: RadarFrame): string {
   return frame.path;
@@ -329,7 +501,7 @@ export function formatFrameTime(
 
   // Within 2.5 minutes of "now"
   if (Math.abs(diffMinutes) < 3) {
-    return t ? t('modules.radar.now') : 'Nu';
+    return t ? t('modules.weather.radar.now') : 'Nu';
   }
 
   if (diffMinutes < 0) {
@@ -338,22 +510,22 @@ export function formatFrameTime(
     if (absMinutes >= 60) {
       const hours = Math.round(absMinutes / 60);
       return t
-        ? t('modules.radar.hoursAgo', { hours })
+        ? t('modules.weather.radar.hoursAgo', { hours })
         : `${hours} uur geleden`;
     }
     return t
-      ? t('modules.radar.minutesAgo', { minutes: absMinutes })
+      ? t('modules.weather.radar.minutesAgo', { minutes: absMinutes })
       : `${absMinutes} min geleden`;
   } else {
     // Future
     if (diffMinutes >= 60) {
       const hours = Math.round(diffMinutes / 60);
       return t
-        ? t('modules.radar.inHours', { hours })
+        ? t('modules.weather.radar.inHours', { hours })
         : `Over ${hours} uur`;
     }
     return t
-      ? t('modules.radar.inMinutes', { minutes: diffMinutes })
+      ? t('modules.weather.radar.inMinutes', { minutes: diffMinutes })
       : `Over ${diffMinutes} min`;
   }
 }
@@ -380,6 +552,7 @@ export const radarService = {
   formatFrameTime,
   formatFrameAbsoluteTime,
   clearCache: clearRadarCache,
+  isInNetherlands,
 };
 
 export default radarService;

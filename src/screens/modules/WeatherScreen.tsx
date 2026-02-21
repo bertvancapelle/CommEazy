@@ -48,10 +48,9 @@ import {
   getRadarFrames,
   getNowFrameIndex,
   getRadarTileUrl,
-  configureRadarService,
+  clearRadarCache,
   type RadarData,
 } from '@/services/radarService';
-import { OWM_API_KEY } from '@/config/devConfig';
 import type { WeatherLocation, DailyForecast, RadarFrame } from '@/types/weather';
 import { WEATHER_MODULE_CONFIG } from '@/types/weather';
 
@@ -117,7 +116,8 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
   const [radarData, setRadarData] = useState<RadarData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  // Start with -1 to indicate "not yet initialized", will be set to nowIndex after data loads
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(-1);
 
   // Get all frames from radar data
   const allFrames = useMemo(() => {
@@ -125,23 +125,17 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
     return radarData.frames;
   }, [radarData]);
 
-  // Current tile URL
+  // Current tile URL (only calculate when frame index is valid)
   const currentTileUrl = useMemo(() => {
-    if (!radarData || allFrames.length === 0) return null;
+    if (!radarData || allFrames.length === 0 || currentFrameIndex < 0) return null;
     const frame = allFrames[currentFrameIndex];
     if (!frame) return null;
     return getRadarTileUrl(frame);
   }, [radarData, allFrames, currentFrameIndex]);
 
-  // Configure radar service on mount with OWM API key for 2-hour forecast
-  useEffect(() => {
-    if (OWM_API_KEY) {
-      configureRadarService({ owmApiKey: OWM_API_KEY });
-      console.info('[RadarTab] Configured OpenWeatherMap provider with API key');
-    }
-  }, []);
-
   // Fetch radar data on mount and when location changes
+  // Provider selection: KNMI for Netherlands, RainViewer for other locations
+  // Frames are balanced so "now" appears in the middle of the slider
   useEffect(() => {
     let isMounted = true;
 
@@ -150,13 +144,25 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
       setError(null);
 
       try {
-        const data = await getRadarFrames();
+        // Clear cache to ensure we get fresh balanced frames
+        clearRadarCache();
+        // Pass location coordinates for provider selection (KNMI for NL, RainViewer for others)
+        const data = await getRadarFrames(latitude ?? undefined, longitude ?? undefined);
         if (isMounted) {
           setRadarData(data);
-          // Set initial frame to "now"
+          // Set initial frame to "now" (should now be near the middle due to balancing)
           const nowIndex = getNowFrameIndex(data.frames);
           setCurrentFrameIndex(nowIndex);
-          console.info('[RadarTab] Loaded', data.frames.length, 'frames from', data.provider);
+
+          // Log time range for debugging
+          const firstFrame = data.frames[0];
+          const lastFrame = data.frames[data.frames.length - 1];
+          console.info('[RadarTab] Loaded', data.frames.length, 'balanced frames:', {
+            first: new Date(firstFrame.time * 1000).toLocaleTimeString(),
+            last: new Date(lastFrame.time * 1000).toLocaleTimeString(),
+            nowIndex,
+            nowPosition: `${nowIndex}/${data.frames.length - 1}`,
+          });
         }
       } catch (err) {
         console.error('[RadarTab] Failed to load radar data:', err);
@@ -181,7 +187,7 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
       isMounted = false;
       clearInterval(refreshInterval);
     };
-  }, [t]);
+  }, [t, latitude, longitude]);
 
   // Handle frame change from slider
   const handleFrameChange = useCallback((index: number) => {
@@ -257,14 +263,18 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
         />
       </View>
 
-      {/* Time Slider */}
-      <View style={styles.radarSliderContainer}>
-        <TimeSlider
-          frames={allFrames}
-          currentIndex={currentFrameIndex}
-          onIndexChange={handleFrameChange}
-        />
-      </View>
+      {/* Time Slider - only render when frame index is initialized */}
+      {currentFrameIndex >= 0 && (
+        <View style={styles.radarSliderContainer}>
+          <TimeSlider
+            frames={allFrames}
+            currentIndex={currentFrameIndex}
+            onIndexChange={handleFrameChange}
+            pastFrameCount={radarData?.pastFrameCount ?? 0}
+            forecastFrameCount={radarData?.forecastFrameCount ?? 0}
+          />
+        </View>
+      )}
 
       {/* Legend */}
       <View
@@ -283,24 +293,37 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
         <Text style={styles.radarLegendLabel}>{t('modules.weather.radar.legendHeavy')}</Text>
       </View>
 
-      {/* Attribution (required by OWM/RainViewer) */}
-      <TouchableOpacity
-        style={styles.radarAttribution}
-        onPress={() => {
-          const url = radarData?.provider === 'openweathermap'
-            ? 'https://openweathermap.org/'
-            : 'https://www.rainviewer.com/';
-          void Linking.openURL(url);
-        }}
-        accessibilityRole="link"
-        accessibilityLabel={t('modules.weather.radar.attribution')}
-      >
-        <Text style={styles.radarAttributionText}>
-          {radarData?.provider === 'openweathermap'
-            ? t('modules.weather.radar.attributionOwm')
-            : t('modules.weather.radar.attributionRainViewer')}
-        </Text>
-      </TouchableOpacity>
+      {/* Provider indicator + Attribution */}
+      <View style={styles.radarFooter}>
+        {/* Provider badge */}
+        <View style={[
+          styles.providerBadge,
+          radarData?.provider === 'knmi' && styles.providerBadgeKnmi,
+        ]}>
+          <Text style={styles.providerBadgeText}>
+            {radarData?.provider === 'knmi' ? 'KNMI' : 'RainViewer'}
+          </Text>
+        </View>
+
+        {/* Attribution link */}
+        <TouchableOpacity
+          style={styles.radarAttribution}
+          onPress={() => {
+            const url = radarData?.provider === 'knmi'
+              ? 'https://dataplatform.knmi.nl/'
+              : 'https://www.rainviewer.com/';
+            void Linking.openURL(url);
+          }}
+          accessibilityRole="link"
+          accessibilityLabel={t('modules.weather.radar.attribution')}
+        >
+          <Text style={styles.radarAttributionText}>
+            {radarData?.provider === 'knmi'
+              ? t('modules.weather.radar.attributionKnmi')
+              : t('modules.weather.radar.attributionRainViewer')}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -1544,10 +1567,32 @@ const styles = StyleSheet.create({
     width: 24,
     height: 12,
   },
-  radarAttribution: {
-    alignSelf: 'center',
-    paddingVertical: spacing.xs,
+  radarFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+  },
+  providerBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.textSecondary,
+    borderRadius: borderRadius.sm,
+  },
+  providerBadgeKnmi: {
+    backgroundColor: '#0066CC', // KNMI blue
+  },
+  providerBadgeText: {
+    ...typography.small,
+    color: colors.textOnPrimary,
+    fontWeight: '600',
+  },
+  radarAttribution: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
   },
   radarAttributionText: {
     ...typography.small,
