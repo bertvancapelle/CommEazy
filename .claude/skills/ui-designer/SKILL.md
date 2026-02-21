@@ -3648,9 +3648,151 @@ Bij ELKE nieuwe nieuws/content module:
 
 ---
 
+## 14. Apple Liquid Glass Compliance (VERPLICHT)
+
+### 14.1 Principe
+
+Apple Liquid Glass is het nieuwe design systeem voor iOS/iPadOS 26+. CommEazy MOET dit ondersteunen met progressive enhancement:
+- **iOS/iPadOS 26+:** UIGlassEffect met module-specifieke tint kleuren
+- **iOS <26 / Android:** Solid color fallback (bestaande module kleuren)
+
+### 14.2 Wanneer Liquid Glass Toepassen
+
+Liquid Glass MOET worden toegepast op:
+- **ModuleHeader** — Alle module schermen
+- **MiniPlayer** — Compacte audio player bar
+- **ExpandedAudioPlayer** — Full-screen audio player (play button)
+- **Cards met achtergrondkleur** — Module-specifieke cards
+- **Tab bars met accent kleur** — Actieve tab indicators
+
+Liquid Glass NIET toepassen op:
+- **Overlay modals** — Donkere transparante achtergrond blijft
+- **WheelNavigationMenu** — Menu overlay, geen glass effect
+- **Tekst elementen** — Alleen container achtergronden
+
+### 14.3 Implementatie Vereisten
+
+**Verplichte `moduleId` prop:**
+```typescript
+// ✅ GOED — moduleId voor Liquid Glass tint
+<MiniPlayer
+  moduleId="radio"
+  artwork={artwork}
+  title={title}
+  // ...
+/>
+
+// ❌ FOUT — Geen moduleId, Liquid Glass werkt niet
+<MiniPlayer
+  artwork={artwork}
+  title={title}
+  // ...
+/>
+```
+
+**LiquidGlassView wrapper:**
+```typescript
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+
+// Container met Liquid Glass
+<LiquidGlassView
+  moduleId="podcast"
+  fallbackColor={colors.podcast}
+  glassStyle="regular"  // of "clear" voor transparanter effect
+  style={styles.header}
+>
+  <Text>Content op glass</Text>
+</LiquidGlassView>
+```
+
+**Glass Style Opties:**
+- `"regular"` — Standaard glass effect (default)
+- `"clear"` — Meer transparant glass effect
+
+### 14.4 Module Tint Kleuren
+
+Alle modules MOETEN geregistreerd zijn in `MODULE_TINT_COLORS`:
+
+| Module | moduleId | Tint Color | Fallback |
+|--------|----------|------------|----------|
+| Radio | `radio` | `#00897B` | `#00897B` |
+| Podcast | `podcast` | `#7B1FA2` | `#7B1FA2` |
+| Books | `books` | `#FF8F00` | `#FF8F00` |
+| E-book | `ebook` | `#303F9F` | `#303F9F` |
+| News | `news` | `#D32F2F` | `#D32F2F` |
+| Weather | `weather` | `#0288D1` | `#0288D1` |
+| Contacts | `contacts` | `#388E3C` | `#388E3C` |
+| Chat | `chat` | `#1976D2` | `#1976D2` |
+| Calls | `calls` | `#7B1FA2` | `#7B1FA2` |
+| Settings | `settings` | `#607D8B` | `#607D8B` |
+
+**Nieuwe module toevoegen:**
+```typescript
+// src/types/liquidGlass.ts
+export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleColor> = {
+  // ... bestaande modules
+  newModule: {
+    tintColor: '#HEXCODE',
+    fallbackColor: '#HEXCODE',
+  },
+};
+```
+
+### 14.5 Accessibility
+
+Liquid Glass MOET accessibility respecteren:
+
+```typescript
+// Context checkt automatisch:
+// - Platform support (iOS 26+)
+// - User setting (forceDisabled)
+// - System setting (Reduce Transparency)
+
+const isEnabled = useMemo(() => {
+  return (
+    platform.isSupported &&
+    !settings.forceDisabled &&
+    !accessibility.reduceTransparencyEnabled  // ← Systeem instelling
+  );
+}, [platform, settings, accessibility]);
+```
+
+**Gebruiker controle:**
+- Instellingen → Weergave → Liquid Glass aan/uit
+- Instellingen → Weergave → Tint intensiteit (0-100%)
+
+### 14.6 Validatie Checklist
+
+Bij ELKE nieuwe UI component:
+
+- [ ] **Achtergrondkleur?** → Check of Liquid Glass van toepassing is
+- [ ] **moduleId prop?** → VERPLICHT voor LiquidGlassView/MiniPlayer/ModuleHeader
+- [ ] **Module geregistreerd?** → Check MODULE_TINT_COLORS
+- [ ] **Fallback getest?** → Test op iOS <26 / Android
+- [ ] **Reduce Transparency?** → Respecteert systeem instelling
+- [ ] **User setting?** → Respecteert app instelling
+
+### 14.7 Debug Logging
+
+Alle Liquid Glass componenten loggen status:
+```
+[LiquidGlass] iOS version detected: 26, min required: 26, supported: true
+[LiquidGlassView] moduleId=radio, isEnabled=true, useNativeGlass=true
+[MiniPlayer] moduleId=radio, useLiquidGlass=true
+```
+
+Bij problemen, check:
+1. **iOS versie:** Moet ≥26 zijn
+2. **moduleId prop:** Moet aanwezig zijn
+3. **Context provider:** LiquidGlassProvider moet in app tree staan
+4. **Reduce Transparency:** Systeem instelling checken
+
+---
+
 ## Collaboration
 
 - **With accessibility-specialist**: Validate all components for a11y compliance
 - **With react-native-expert**: Component implementation, performance
 - **With documentation-writer**: User guides with UI screenshots in 10 languages
 - **With onboarding-recovery**: First-use flow design
+- **With ios-specialist**: Liquid Glass native implementation on iOS 26+

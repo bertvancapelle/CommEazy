@@ -114,6 +114,9 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Chat/message styling** | **ui-designer** — WhatsApp-style message direction pattern, zie SKILL.md sectie 10d |
 | **Device-specifieke navigation** | **architecture-lead, ui-designer** — UX Consistentie Principe (sectie 10c) MOET worden gevolgd |
 | **Long-press gesture implementatie** | **architecture-lead, ui-designer** — Wheel menu op ALLE devices, zie sectie 10c |
+| **UI met achtergrondkleur (iOS)** | **ui-designer, ios-specialist** — Liquid Glass compliance voor iOS/iPadOS 26+, zie SKILL.md sectie 14 |
+| **MiniPlayer/ModuleHeader/Cards** | **ui-designer** — `moduleId` prop VERPLICHT voor Liquid Glass |
+| **Nieuwe module** | **ui-designer** — Module MOET geregistreerd zijn in MODULE_TINT_COLORS |
 
 ### Conflict Resolutie Hiërarchie
 

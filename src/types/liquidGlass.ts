@@ -19,6 +19,12 @@
 export const LIQUID_GLASS_MIN_IOS_VERSION = 26;
 
 /**
+ * Glass effect style variants
+ * Maps to UIGlassEffect.Style in iOS 26+
+ */
+export type GlassStyle = 'regular' | 'clear';
+
+/**
  * Platform support status for Liquid Glass
  */
 export interface LiquidGlassPlatformSupport {

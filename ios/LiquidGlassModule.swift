@@ -69,9 +69,6 @@ class LiquidGlassNativeView: UIView {
     // Visual effect view for glass effect
     private var glassEffectView: UIVisualEffectView?
 
-    // Content container for React Native children
-    private var contentContainer: UIView?
-
     // ============================================================
     // MARK: Props from React Native
     // ============================================================
@@ -120,20 +117,8 @@ class LiquidGlassNativeView: UIView {
     }
 
     private func setupView() {
-        // Create content container for React Native children
-        contentContainer = UIView()
-        contentContainer?.translatesAutoresizingMaskIntoConstraints = false
-
-        if let container = contentContainer {
-            addSubview(container)
-            NSLayoutConstraint.activate([
-                container.leadingAnchor.constraint(equalTo: leadingAnchor),
-                container.trailingAnchor.constraint(equalTo: trailingAnchor),
-                container.topAnchor.constraint(equalTo: topAnchor),
-                container.bottomAnchor.constraint(equalTo: bottomAnchor),
-            ])
-        }
-
+        // React Native handles its own layout, so we don't need a container
+        // Children will be added directly to this view
         updateGlassEffect()
     }
 
@@ -145,34 +130,24 @@ class LiquidGlassNativeView: UIView {
         // Remove existing effect
         glassEffectView?.removeFromSuperview()
 
-        // Check iOS 26 availability
-        // NOTE: When iOS 26 SDK is available, uncomment the UIGlassEffect code
-        #if swift(>=5.9)
+        // Check iOS 26 availability for UIGlassEffect
         if #available(iOS 26, *) {
-            // TODO: iOS 26 - Uncomment when SDK is available
-            // createLiquidGlassEffect()
-            // return
-
-            // For now, use fallback
-            createFallbackBackground()
+            createLiquidGlassEffect()
         } else {
             createFallbackBackground()
         }
-        #else
-        createFallbackBackground()
-        #endif
     }
 
     /// Creates the actual UIGlassEffect (iOS 26+)
-    /// NOTE: This code will be uncommented when iOS 26 SDK is available
-    /*
     @available(iOS 26.0, *)
     private func createLiquidGlassEffect() {
         // Determine glass style
-        let style: UIGlassEffect.Style = glassStyle == "prominent" ? .prominent : .regular
+        // UIGlassEffect.Style has: .regular (standard) and .clear (transparent)
+        // We map "prominent" to .regular and "clear" to .clear
+        let style: UIGlassEffect.Style = glassStyle == "clear" ? .clear : .regular
 
         // Create glass effect
-        let effect = UIGlassEffect(style: style)
+        var effect = UIGlassEffect(style: style)
 
         // Apply tint color with intensity
         if let baseColor = UIColor(hexString: tintColorHex) {
@@ -196,9 +171,8 @@ class LiquidGlassNativeView: UIView {
 
         glassEffectView = effectView
 
-        NSLog("[LiquidGlass] Created UIGlassEffect with tint: %@, intensity: %.2f", tintColorHex, tintIntensity)
+        NSLog("[LiquidGlass] Created UIGlassEffect with tint: %@, intensity: %.2f, style: %@", tintColorHex, tintIntensity, glassStyle)
     }
-    */
 
     /// Creates a solid background fallback for iOS <26
     private func createFallbackBackground() {
@@ -226,10 +200,11 @@ class LiquidGlassNativeView: UIView {
         glassEffectView?.frame = bounds
     }
 
-    // React Native inserts children into the first subview
-    // We need to redirect to content container
+    // React Native children are added directly to this view
     override func insertReactSubview(_ subview: UIView!, at atIndex: Int) {
-        contentContainer?.insertSubview(subview, at: atIndex)
+        // Insert after glass effect view (if present)
+        let insertIndex = glassEffectView != nil ? atIndex + 1 : atIndex
+        insertSubview(subview, at: insertIndex)
     }
 
     override func removeReactSubview(_ subview: UIView!) {
@@ -237,7 +212,8 @@ class LiquidGlassNativeView: UIView {
     }
 
     override func reactSubviews() -> [UIView]! {
-        return contentContainer?.subviews ?? []
+        // Return all subviews except the glass effect view
+        return subviews.filter { $0 !== glassEffectView }
     }
 }
 
