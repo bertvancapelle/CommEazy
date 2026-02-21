@@ -21,3 +21,12 @@ export type { AdaptiveNavigationProps, SplitViewLayoutProps } from './AdaptiveNa
 
 export { AdaptiveNavigationWrapper } from './AdaptiveNavigationWrapper';
 export type { AdaptiveNavigationWrapperProps } from './AdaptiveNavigationWrapper';
+
+export { ModulePanel } from './ModulePanel';
+export type { ModulePanelProps } from './ModulePanel';
+
+export { PanelNavigator } from './PanelNavigator';
+export type { PanelNavigatorProps } from './PanelNavigator';
+
+export { DraggableDivider } from './DraggableDivider';
+export type { DraggableDividerProps } from './DraggableDivider';

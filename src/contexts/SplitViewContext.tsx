@@ -158,7 +158,7 @@ export function SplitViewProvider({ children }: SplitViewProviderProps) {
 
         if (savedRatio) {
           const ratio = parseFloat(savedRatio);
-          if (ratio >= 0.25 && ratio <= 0.50) {
+          if (ratio >= 0.25 && ratio <= 0.75) {
             setPanelRatioState(ratio);
           }
         }
@@ -214,8 +214,8 @@ export function SplitViewProvider({ children }: SplitViewProviderProps) {
   // ============================================================
 
   const setPanelRatio = useCallback((ratio: number) => {
-    // Clamp ratio between 0.25 and 0.50
-    const clampedRatio = Math.max(0.25, Math.min(0.50, ratio));
+    // Clamp ratio between 0.25 and 0.75 (user can resize panels more freely)
+    const clampedRatio = Math.max(0.25, Math.min(0.75, ratio));
     setPanelRatioState(clampedRatio);
     AsyncStorage.setItem(STORAGE_KEY_PANEL_RATIO, clampedRatio.toString()).catch((error) => {
       console.warn('[SplitViewContext] Failed to save panel ratio:', error);
