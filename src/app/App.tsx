@@ -27,6 +27,7 @@ import { RadioProvider } from '@/contexts/RadioContext';
 import { PodcastProvider } from '@/contexts/PodcastContext';
 import { BooksProvider } from '@/contexts/BooksContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
+import { NavigationProvider } from '@/contexts/NavigationContext';
 import { CallProvider } from '@/contexts/CallContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ServiceContainer } from '@/services/container';
@@ -111,13 +112,15 @@ export default function App() {
                     <PodcastProvider>
                       <BooksProvider>
                         <ModuleConfigProvider>
-                          <FavoriteLocationsProvider>
-                            <CallProvider>
-                              <HoldToNavigateProvider>
-                                <AppNavigator />
-                              </HoldToNavigateProvider>
-                            </CallProvider>
-                          </FavoriteLocationsProvider>
+                          <NavigationProvider>
+                            <FavoriteLocationsProvider>
+                              <CallProvider>
+                                <HoldToNavigateProvider>
+                                  <AppNavigator />
+                                </HoldToNavigateProvider>
+                              </CallProvider>
+                            </FavoriteLocationsProvider>
+                          </NavigationProvider>
                         </ModuleConfigProvider>
                       </BooksProvider>
                     </PodcastProvider>

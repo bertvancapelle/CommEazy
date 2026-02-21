@@ -18,3 +18,6 @@ export type { SidebarProps } from './Sidebar';
 
 export { AdaptiveNavigation, SplitViewLayout } from './AdaptiveNavigation';
 export type { AdaptiveNavigationProps, SplitViewLayoutProps } from './AdaptiveNavigation';
+
+export { AdaptiveNavigationWrapper } from './AdaptiveNavigationWrapper';
+export type { AdaptiveNavigationWrapperProps } from './AdaptiveNavigationWrapper';

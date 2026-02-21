@@ -28,7 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { useCall } from '@/contexts/CallContext';
 
 import { colors, typography } from '@/theme';
-import { HoldToNavigateWrapper } from '@/components/HoldToNavigateWrapper';
+import { AdaptiveNavigationWrapper } from '@/components/navigation';
 import { useAccentColor } from '@/hooks/useAccentColor';
 
 // Placeholder screens — replace with actual implementations
@@ -459,11 +459,11 @@ function SettingsNavigator() {
 
 function MainNavigator() {
   return (
-    <HoldToNavigateWrapper enabled={true}>
+    <AdaptiveNavigationWrapper enabled={true}>
       <MainTab.Navigator
         screenOptions={{
           headerShown: false,
-          // Hide the bottom tab bar completely — navigation is via Hold-to-Navigate
+          // Hide the bottom tab bar completely — navigation is via Hold-to-Navigate (iPhone) or Sidebar (iPad)
           tabBarStyle: {
             display: 'none',
           },
@@ -483,7 +483,7 @@ function MainNavigator() {
         {/* Country-specific modules */}
         <MainTab.Screen name="NuNlTab" component={NuNlScreen} />
       </MainTab.Navigator>
-    </HoldToNavigateWrapper>
+    </AdaptiveNavigationWrapper>
   );
 }
 

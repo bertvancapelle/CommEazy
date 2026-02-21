@@ -143,6 +143,7 @@ export {
   Sidebar,
   AdaptiveNavigation,
   SplitViewLayout,
+  AdaptiveNavigationWrapper,
 } from './navigation';
 export type {
   ModuleItemProps,
@@ -152,4 +153,5 @@ export type {
   SidebarProps,
   AdaptiveNavigationProps,
   SplitViewLayoutProps,
+  AdaptiveNavigationWrapperProps,
 } from './navigation';
