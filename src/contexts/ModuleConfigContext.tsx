@@ -96,7 +96,8 @@ export function ModuleConfigProvider({ children }: ModuleConfigProviderProps) {
     try {
       if (ServiceContainer.isInitialized) {
         const profile = await ServiceContainer.database.getUserProfile();
-        return profile?.country ?? null;
+        // Use countryCode from profile (ISO 3166-1 alpha-2 code like 'NL', 'BE', 'DE')
+        return profile?.countryCode ?? null;
       }
     } catch (error) {
       console.warn('[ModuleConfigContext] Failed to load user country:', error);

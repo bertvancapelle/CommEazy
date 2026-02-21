@@ -79,7 +79,7 @@ class WeatherServiceImpl {
       url.searchParams.set('country', countryCode);
     }
 
-    console.debug('[weatherService] Searching locations:', query);
+    console.debug('[weatherService] Searching locations:', query, 'countryCode:', countryCode, 'URL:', url.toString());
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -101,7 +101,28 @@ class WeatherServiceImpl {
 
       const data: GeocodingResponse = await response.json();
 
-      const locations: WeatherLocation[] = (data.results || []).map((result) => ({
+      // Map country codes to country names for client-side filtering
+      // Open-Meteo returns localized country names, so we need to match them
+      const COUNTRY_NAME_MAP: Record<string, string[]> = {
+        NL: ['Nederland', 'Netherlands', 'Niederlande', 'Pays-Bas', 'Países Bajos', 'Paesi Bassi'],
+        BE: ['België', 'Belgium', 'Belgien', 'Belgique', 'Bélgica', 'Belgio'],
+        DE: ['Duitsland', 'Germany', 'Deutschland', 'Allemagne', 'Alemania', 'Germania'],
+        FR: ['Frankrijk', 'France', 'Frankreich', 'Francia'],
+        ES: ['Spanje', 'Spain', 'Spanien', 'Espagne', 'España', 'Spagna'],
+        GB: ['Verenigd Koninkrijk', 'United Kingdom', 'Großbritannien', 'Royaume-Uni', 'Reino Unido', 'Regno Unito'],
+        US: ['Verenigde Staten', 'United States', 'Vereinigte Staaten', 'États-Unis', 'Estados Unidos', 'Stati Uniti'],
+        AT: ['Oostenrijk', 'Austria', 'Österreich', 'Autriche', 'Austria'],
+        CH: ['Zwitserland', 'Switzerland', 'Schweiz', 'Suisse', 'Suiza', 'Svizzera'],
+        LU: ['Luxemburg', 'Luxembourg', 'Luxemburgo', 'Lussemburgo'],
+        IE: ['Ierland', 'Ireland', 'Irland', 'Irlande', 'Irlanda'],
+        IT: ['Italië', 'Italy', 'Italien', 'Italie', 'Italia'],
+        PT: ['Portugal'],
+        NO: ['Noorwegen', 'Norway', 'Norwegen', 'Norvège', 'Noruega', 'Norvegia'],
+        SE: ['Zweden', 'Sweden', 'Schweden', 'Suède', 'Suecia', 'Svezia'],
+        DK: ['Denemarken', 'Denmark', 'Dänemark', 'Danemark', 'Dinamarca', 'Danimarca'],
+      };
+
+      let locations: WeatherLocation[] = (data.results || []).map((result) => ({
         id: `${result.latitude},${result.longitude}`,
         name: result.name,
         country: result.country,
@@ -112,6 +133,17 @@ class WeatherServiceImpl {
         isCurrentLocation: false,
         isFavorite: false,
       }));
+
+      // Client-side filtering: Open-Meteo's country param is a "preference", not strict filter
+      // So we filter results to only include the requested country
+      if (countryCode && COUNTRY_NAME_MAP[countryCode]) {
+        const allowedNames = COUNTRY_NAME_MAP[countryCode];
+        const beforeCount = locations.length;
+        locations = locations.filter((loc) =>
+          allowedNames.some((name) => loc.country?.toLowerCase() === name.toLowerCase())
+        );
+        console.debug('[weatherService] Client-side filtered from', beforeCount, 'to', locations.length, 'for country:', countryCode);
+      }
 
       console.info('[weatherService] Found', locations.length, 'locations');
       return locations;

@@ -52,6 +52,7 @@ import {
 } from '@/services/imageService';
 import { weatherService } from '@/services/weatherService';
 import type { WeatherLocation } from '@/types/weather';
+import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 import type { UserProfile, AgeBracket, SupportedLanguage, Gender } from '@/services/interfaces';
 
 // Supported languages (matches SupportedLanguage type from interfaces)
@@ -291,6 +292,7 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
     searchTimeoutRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
+        console.debug('[CityPickerModal] Searching with countryCode:', countryCode, 'query:', searchQuery);
         const results = await weatherService.searchLocations(searchQuery, language, countryCode);
         setSearchResults(results);
         if (results.length === 0) {
@@ -519,6 +521,7 @@ export function ProfileSettingsScreen() {
   const { triggerFeedback } = useFeedback();
   const screenIsFocused = useIsFocused();
   const { isVoiceSessionActive } = useVoiceFocusContext();
+  const { refresh: refreshModules } = useModuleConfig();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
@@ -818,8 +821,13 @@ export function ProfileSettingsScreen() {
   const handleCountrySelect = useCallback(async (countryCode: string) => {
     void triggerFeedback('tap');
     // When country changes, clear region
-    await saveProfile({ countryCode, regionCode: undefined });
-  }, [saveProfile, triggerFeedback]);
+    const saved = await saveProfile({ countryCode, regionCode: undefined });
+    // Refresh enabled modules based on new country (e.g., Nu.nl for Netherlands)
+    if (saved) {
+      console.info('[ProfileSettingsScreen] Country changed to', countryCode, '- refreshing modules');
+      await refreshModules();
+    }
+  }, [saveProfile, triggerFeedback, refreshModules]);
 
   const handleRegionSelect = useCallback(async (regionCode: string) => {
     void triggerFeedback('tap');
