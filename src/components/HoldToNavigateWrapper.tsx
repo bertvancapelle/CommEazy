@@ -31,6 +31,7 @@ import {
   AppState,
   AppStateStatus,
   DeviceEventEmitter,
+  LayoutChangeEvent,
 } from 'react-native';
 import { useNavigation, NavigationProp, CommonActions, StackActions } from '@react-navigation/native';
 
@@ -511,6 +512,11 @@ export function HoldToNavigateWrapper({
   const [finger1Position, setFinger1Position] = useState({ x: 0, y: 0 });
   const [finger2Position, setFinger2Position] = useState({ x: 0, y: 0 });
 
+  // Track wrapper's screen position for coordinate conversion
+  // On iPad with sidebar layout, the wrapper doesn't start at (0,0)
+  // We need to subtract this offset from pageX/pageY to get local coordinates
+  const wrapperOffset = useRef({ x: 0, y: 0 });
+
   // Delay before committing to single-finger gesture (allows second finger to arrive)
   // On physical devices, fingers don't arrive at exactly the same time
   const twoFingerDetectionDelay = 80; // ms to wait for second finger
@@ -630,17 +636,23 @@ export function HoldToNavigateWrapper({
     const touch1 = touches?.[0];
     const touch2 = touches?.[1];
 
-    // Store individual finger positions for rendering two indicators
+    // Convert absolute screen coordinates to local coordinates
+    // This is needed for iPad Split View where the wrapper doesn't start at (0,0)
+    const offsetX = wrapperOffset.current.x;
+    const offsetY = wrapperOffset.current.y;
+
+    // Store individual finger positions for rendering two indicators (using local coordinates)
     if (touch1) {
-      setFinger1Position({ x: touch1.pageX, y: touch1.pageY });
+      setFinger1Position({ x: touch1.pageX - offsetX, y: touch1.pageY - offsetY });
     }
     if (touch2) {
-      setFinger2Position({ x: touch2.pageX, y: touch2.pageY });
+      setFinger2Position({ x: touch2.pageX - offsetX, y: touch2.pageY - offsetY });
     }
 
     // Calculate center point between two fingers (for start position tracking)
-    const centerX = touch1 && touch2 ? (touch1.pageX + touch2.pageX) / 2 : pageX;
-    const centerY = touch1 && touch2 ? (touch1.pageY + touch2.pageY) / 2 : pageY;
+    // Note: pageX/pageY passed in are already converted to local coordinates
+    const centerX = touch1 && touch2 ? ((touch1.pageX - offsetX) + (touch2.pageX - offsetX)) / 2 : pageX;
+    const centerY = touch1 && touch2 ? ((touch1.pageY - offsetY) + (touch2.pageY - offsetY)) / 2 : pageY;
 
     twoFingerStartPosition.current = { x: centerX, y: centerY };
     setPressPosition({ x: centerX, y: centerY });
@@ -686,7 +698,13 @@ export function HoldToNavigateWrapper({
   const handleTouchStart = useCallback((event: GestureResponderEvent) => {
     if (!enabled || isNavigationMenuOpen || isVoiceOverlayVisible) return;
 
-    const { pageX, pageY } = event.nativeEvent;
+    // Convert absolute screen coordinates to local coordinates
+    // This is needed for iPad Split View where the wrapper doesn't start at (0,0)
+    const rawPageX = event.nativeEvent.pageX;
+    const rawPageY = event.nativeEvent.pageY;
+    const pageX = rawPageX - wrapperOffset.current.x;
+    const pageY = rawPageY - wrapperOffset.current.y;
+
     const touches = event.nativeEvent.touches;
     const touchCount = touches?.length ?? 1;
     const previousTouchCount = currentTouchCount.current;
@@ -705,12 +723,12 @@ export function HoldToNavigateWrapper({
     if (touchCount === 1) {
       // SINGLE FINGER: Navigation wheel gesture
       // But wait briefly in case a second finger is coming (for two-finger gesture)
-      // Check if touch is valid (not in edge zone)
-      if (!isTouchValid(pageX, pageY, 1)) {
+      // Check if touch is valid (not in edge zone) - use raw coordinates for edge detection
+      if (!isTouchValid(rawPageX, rawPageY, 1)) {
         return;
       }
 
-      // Store position for potential gesture
+      // Store position for potential gesture (use local coordinates for indicator)
       startPosition.current = { x: pageX, y: pageY };
       setPressPosition({ x: pageX, y: pageY });
       hasMoved.current = false;
@@ -765,7 +783,13 @@ export function HoldToNavigateWrapper({
   ]);
 
   const handleTouchMove = useCallback((event: GestureResponderEvent) => {
-    const { pageX, pageY } = event.nativeEvent;
+    // Convert absolute screen coordinates to local coordinates
+    // This is needed for iPad Split View where the wrapper doesn't start at (0,0)
+    const rawPageX = event.nativeEvent.pageX;
+    const rawPageY = event.nativeEvent.pageY;
+    const pageX = rawPageX - wrapperOffset.current.x;
+    const pageY = rawPageY - wrapperOffset.current.y;
+
     const touches = event.nativeEvent.touches;
     const touchCount = touches?.length ?? 1;
     const previousTouchCount = currentTouchCount.current;
@@ -806,11 +830,13 @@ export function HoldToNavigateWrapper({
 
     // Handle two-finger movement (SAME 10px threshold)
     if (isTwoFingerPressingRef.current && touchCount === 2) {
-      // Calculate center point between two fingers
+      // Calculate center point between two fingers (using local coordinates)
       const touch1 = touches?.[0];
       const touch2 = touches?.[1];
-      const centerX = touch1 && touch2 ? (touch1.pageX + touch2.pageX) / 2 : pageX;
-      const centerY = touch1 && touch2 ? (touch1.pageY + touch2.pageY) / 2 : pageY;
+      const offsetX = wrapperOffset.current.x;
+      const offsetY = wrapperOffset.current.y;
+      const centerX = touch1 && touch2 ? ((touch1.pageX - offsetX) + (touch2.pageX - offsetX)) / 2 : pageX;
+      const centerY = touch1 && touch2 ? ((touch1.pageY - offsetY) + (touch2.pageY - offsetY)) / 2 : pageY;
 
       const dx = centerX - twoFingerStartPosition.current.x;
       const dy = centerY - twoFingerStartPosition.current.y;
@@ -1564,9 +1590,35 @@ export function HoldToNavigateWrapper({
     }
   }, [currentRouteName]);
 
+  // Handle layout changes to track wrapper's screen position
+  // This is needed for iPad Split View where the wrapper doesn't start at (0,0)
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    // Use measure() to get the wrapper's absolute screen position
+    // LayoutChangeEvent only gives us relative dimensions, not screen position
+    const { target } = event.nativeEvent;
+    if (target) {
+      // Cast to any to access measure() which isn't in TypeScript types
+      const viewRef = event.target as any;
+      if (viewRef && typeof viewRef.measure === 'function') {
+        viewRef.measure((
+          _x: number,
+          _y: number,
+          _width: number,
+          _height: number,
+          screenX: number,
+          screenY: number
+        ) => {
+          wrapperOffset.current = { x: screenX, y: screenY };
+          console.debug('[HoldToNavigate] Wrapper offset updated:', { x: screenX, y: screenY });
+        });
+      }
+    }
+  }, []);
+
   return (
     <View
       style={styles.container}
+      onLayout={handleLayout}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
