@@ -26,7 +26,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import { useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
 import { useNavigationContext } from '@/contexts/NavigationContext';
@@ -70,7 +70,10 @@ export function MenuModule({ panelId }: MenuModuleProps) {
     (moduleId: NavigationDestination) => {
       // Haptic feedback
       if (Platform.OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        ReactNativeHapticFeedback.trigger('impactMedium', {
+          enableVibrateFallback: true,
+          ignoreAndroidSystemSettings: false,
+        });
       }
 
       // Replace this panel's module
