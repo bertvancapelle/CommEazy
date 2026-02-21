@@ -68,6 +68,9 @@ class LiquidGlassNativeView: UIView {
 
     // Visual effect view for glass effect
     private var glassEffectView: UIVisualEffectView?
+    
+    // Track if we've received props from React Native
+    private var hasReceivedProps = false
 
     // ============================================================
     // MARK: Props from React Native
@@ -75,7 +78,10 @@ class LiquidGlassNativeView: UIView {
 
     /// Tint color in hex format (e.g., "#00897B")
     @objc var tintColorHex: String = "#007AFF" {
-        didSet { updateGlassEffect() }
+        didSet {
+            hasReceivedProps = true
+            updateGlassEffect()
+        }
     }
 
     /// Tint intensity (0.0 - 1.0)
@@ -94,6 +100,7 @@ class LiquidGlassNativeView: UIView {
             layer.cornerRadius = cornerRadius
             glassEffectView?.layer.cornerRadius = cornerRadius
             clipsToBounds = cornerRadius > 0
+            updateGlassEffect()
         }
     }
 
@@ -119,7 +126,8 @@ class LiquidGlassNativeView: UIView {
     private func setupView() {
         // React Native handles its own layout, so we don't need a container
         // Children will be added directly to this view
-        updateGlassEffect()
+        // NOTE: Don't call updateGlassEffect() here - wait for props to be set via didSet
+        // The effect will be created when tintColorHex is set from React Native
     }
 
     // ============================================================
@@ -127,11 +135,18 @@ class LiquidGlassNativeView: UIView {
     // ============================================================
 
     private func updateGlassEffect() {
+        // Only update if we've received props from React Native
+        guard hasReceivedProps else {
+            NSLog("[LiquidGlass] Skipping update - waiting for props from React Native")
+            return
+        }
+        
         // Remove existing effect
         glassEffectView?.removeFromSuperview()
 
         // Check iOS 26 availability for UIGlassEffect
         if #available(iOS 26, *) {
+            // Use real UIGlassEffect on iOS 26+
             createLiquidGlassEffect()
         } else {
             createFallbackBackground()
@@ -141,24 +156,41 @@ class LiquidGlassNativeView: UIView {
     /// Creates the actual UIGlassEffect (iOS 26+)
     @available(iOS 26.0, *)
     private func createLiquidGlassEffect() {
-        // Determine glass style
-        // UIGlassEffect.Style has: .regular (standard) and .clear (transparent)
-        // We map "prominent" to .regular and "clear" to .clear
-        let style: UIGlassEffect.Style = glassStyle == "clear" ? .clear : .regular
-
-        // Create glass effect
-        var effect = UIGlassEffect(style: style)
-
-        // Apply tint color with intensity
+        // Create glass effect with tint
+        var effect = UIGlassEffect()
+        
+        // Apply tint color to the glass effect
         if let baseColor = UIColor(hexString: tintColorHex) {
-            effect.tintColor = baseColor.withAlphaComponent(tintIntensity)
+            effect.tintColor = baseColor
         }
 
-        // Create visual effect view
+        // Create visual effect view with the glass effect
         let effectView = UIVisualEffectView(effect: effect)
         effectView.translatesAutoresizingMaskIntoConstraints = false
         effectView.layer.cornerRadius = cornerRadius
         effectView.clipsToBounds = cornerRadius > 0
+        
+        // Add a subtle colored overlay inside the glass for visibility
+        // This ensures the module color is visible while glass effect shows through
+        if let baseColor = UIColor(hexString: tintColorHex) {
+            let colorOverlay = UIView()
+            colorOverlay.translatesAutoresizingMaskIntoConstraints = false
+            // Low opacity (0.4) so glass effect is visible underneath
+            colorOverlay.backgroundColor = baseColor.withAlphaComponent(0.4)
+            colorOverlay.layer.cornerRadius = cornerRadius
+            colorOverlay.clipsToBounds = cornerRadius > 0
+            
+            effectView.contentView.addSubview(colorOverlay)
+            NSLayoutConstraint.activate([
+                colorOverlay.leadingAnchor.constraint(equalTo: effectView.contentView.leadingAnchor),
+                colorOverlay.trailingAnchor.constraint(equalTo: effectView.contentView.trailingAnchor),
+                colorOverlay.topAnchor.constraint(equalTo: effectView.contentView.topAnchor),
+                colorOverlay.bottomAnchor.constraint(equalTo: effectView.contentView.bottomAnchor),
+            ])
+        }
+        
+        // Set our background to clear so glass can show through
+        backgroundColor = .clear
 
         // Insert as background (behind content)
         insertSubview(effectView, at: 0)
@@ -171,7 +203,55 @@ class LiquidGlassNativeView: UIView {
 
         glassEffectView = effectView
 
-        NSLog("[LiquidGlass] Created UIGlassEffect with tint: %@, intensity: %.2f, style: %@", tintColorHex, tintIntensity, glassStyle)
+        NSLog("[LiquidGlass] Created UIGlassEffect - tint: %@, radius: %.1f, frame: %@", 
+              tintColorHex, cornerRadius, NSCoder.string(for: bounds))
+    }
+    
+    /// Creates a blur effect with tinted overlay as visible alternative
+    /// This provides a glass-like effect that's always visible
+    private func createBlurWithTintEffect() {
+        // Use a more prominent blur style for visibility
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.layer.cornerRadius = cornerRadius
+        blurView.clipsToBounds = cornerRadius > 0
+        
+        // Add a tinted overlay on top of the blur with moderate opacity
+        // Lower opacity (0.5) makes the blur effect more visible
+        if let baseColor = UIColor(hexString: tintColorHex) {
+            let tintOverlay = UIView()
+            tintOverlay.translatesAutoresizingMaskIntoConstraints = false
+            // Use moderate opacity (0.5) so blur effect is clearly visible
+            tintOverlay.backgroundColor = baseColor.withAlphaComponent(0.5)
+            tintOverlay.layer.cornerRadius = cornerRadius
+            tintOverlay.clipsToBounds = cornerRadius > 0
+            
+            blurView.contentView.addSubview(tintOverlay)
+            NSLayoutConstraint.activate([
+                tintOverlay.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
+                tintOverlay.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor),
+                tintOverlay.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
+                tintOverlay.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor),
+            ])
+        }
+        
+        // Clear our background so blur shows through
+        backgroundColor = .clear
+
+        // Insert as background (index 0 = behind all React Native children)
+        insertSubview(blurView, at: 0)
+        NSLayoutConstraint.activate([
+            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            blurView.topAnchor.constraint(equalTo: topAnchor),
+            blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+
+        glassEffectView = blurView
+
+        NSLog("[LiquidGlass] Created blur+tint effect - tint: %@, radius: %.1f, subviews: %d", 
+              tintColorHex, cornerRadius, subviews.count)
     }
 
     /// Creates a solid background fallback for iOS <26
@@ -194,10 +274,20 @@ class LiquidGlassNativeView: UIView {
     // ============================================================
     // MARK: Layout
     // ============================================================
+    
+    private var lastBounds: CGRect = .zero
 
     override func layoutSubviews() {
         super.layoutSubviews()
         glassEffectView?.frame = bounds
+        
+        // Recreate effect if bounds changed significantly (first layout or resize)
+        // This ensures the glass effect is created after the view has its proper size
+        if hasReceivedProps && !bounds.isEmpty && bounds != lastBounds {
+            lastBounds = bounds
+            NSLog("[LiquidGlass] layoutSubviews - recreating effect with bounds: %@", NSCoder.string(for: bounds))
+            updateGlassEffect()
+        }
     }
 
     // React Native children are added directly to this view
