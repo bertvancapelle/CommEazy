@@ -14,6 +14,7 @@
  * Static navigation destinations (built-in modules)
  */
 export type StaticNavigationDestination =
+  | 'menu'      // iPad Split View: Menu module (initial left panel)
   | 'chats'
   | 'contacts'
   | 'groups'
@@ -68,6 +69,7 @@ export function getModuleIdFromDest(dest: DynamicNavigationDestination): string 
  * All available icon types for modules
  */
 export type ModuleIconType =
+  | 'menu'      // iPad Split View: Menu icon
   | 'chat'
   | 'contacts'
   | 'groups'

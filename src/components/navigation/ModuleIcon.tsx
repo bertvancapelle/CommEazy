@@ -37,6 +37,49 @@ export function ModuleIcon({
   color = colors.textOnPrimary,
 }: ModuleIconProps) {
   switch (type) {
+    case 'menu':
+      // Hamburger menu icon (three horizontal lines)
+      return (
+        <View style={[styles.iconContainer, { width: size, height: size }]}>
+          <View
+            style={[
+              styles.menuLine,
+              {
+                width: size * 0.7,
+                height: size * 0.08,
+                top: size * 0.22,
+                borderRadius: size * 0.04,
+                backgroundColor: color,
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.menuLine,
+              {
+                width: size * 0.7,
+                height: size * 0.08,
+                top: size * 0.46,
+                borderRadius: size * 0.04,
+                backgroundColor: color,
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.menuLine,
+              {
+                width: size * 0.7,
+                height: size * 0.08,
+                top: size * 0.70,
+                borderRadius: size * 0.04,
+                backgroundColor: color,
+              },
+            ]}
+          />
+        </View>
+      );
+
     case 'chat':
       return (
         <View style={[styles.iconContainer, { width: size, height: size }]}>
@@ -656,6 +699,11 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // Menu icon (hamburger)
+  menuLine: {
+    position: 'absolute',
   },
 
   // Chat icon

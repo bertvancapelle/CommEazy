@@ -649,8 +649,15 @@
     "sections": {
       "communication": "Kommunikation",
       "media": "Medien",
-      "modules": "Extras"
+      "modules": "Extras",
+      "system": "System"
     }
+  },
+  "splitView": {
+    "menu": "Menü",
+    "chooseModule": "Modul auswählen",
+    "leftPanel": "Linkes Panel",
+    "rightPanel": "Rechtes Panel"
   },
   "modules": {
     "coming_soon": "Demnächst",

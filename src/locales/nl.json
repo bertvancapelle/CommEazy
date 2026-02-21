@@ -653,8 +653,15 @@
     "sections": {
       "communication": "Communicatie",
       "media": "Media",
-      "modules": "Extra"
+      "modules": "Extra",
+      "system": "Systeem"
     }
+  },
+  "splitView": {
+    "menu": "Menu",
+    "chooseModule": "Kies een module",
+    "leftPanel": "Linker paneel",
+    "rightPanel": "Rechter paneel"
   },
   "modules": {
     "coming_soon": "Binnenkort beschikbaar",

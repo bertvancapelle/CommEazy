@@ -554,8 +554,15 @@
     "sections": {
       "communication": "Kommunikasjon",
       "media": "Media",
-      "modules": "Ekstra"
+      "modules": "Ekstra",
+      "system": "System"
     }
+  },
+  "splitView": {
+    "menu": "Meny",
+    "chooseModule": "Velg en modul",
+    "leftPanel": "Venstre panel",
+    "rightPanel": "Høyre panel"
   },
   "modules": {
     "coming_soon": "Kommer snart",
