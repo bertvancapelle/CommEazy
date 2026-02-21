@@ -109,8 +109,27 @@ export const OWM_API_KEY = 'f9df16dd02ba0817ebd46cf773c7b6b9';
  * KNMI Data Platform API key for radar forecast (Netherlands)
  * 2 hour forecast, 5 minute intervals, 1km resolution
  * Register at: https://developer.dataplatform.knmi.nl/register
+ *
+ * Note: KNMI requires API key as Authorization header, so we use a local proxy.
  */
 export const KNMI_API_KEY = 'eyJvcmciOiI1ZTU1NGUxOTI3NGE5NjAwMDEyYTNlYjEiLCJpZCI6ImE2MjI1YjEzY2FjMzQ2ZTVhNWQ1YzRjMGUyZWY0NWNkIiwiaCI6Im11cm11cjEyOCJ9';
+
+/**
+ * KNMI Proxy URL (local development server)
+ *
+ * The proxy adds the Authorization header that WebView/Leaflet cannot add.
+ * Start with: ./scripts/knmi-proxy-start.sh
+ * Stop with:  ./scripts/knmi-proxy-stop.sh
+ *
+ * Set to null to disable KNMI and use RainViewer instead.
+ *
+ * NOTE: Currently disabled because the KNMI API key above doesn't have
+ * WMS access. You need to request WMS access at:
+ * https://dataplatform.knmi.nl/dataset/radar-reflectivity-composites-2-0
+ *
+ * When you have a valid key, set this to: 'http://10.10.15.75:3001/knmi-wms'
+ */
+export const KNMI_PROXY_URL: string | null = null;
 
 // ============================================================
 // Helper to log current config

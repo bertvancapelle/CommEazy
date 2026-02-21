@@ -20,7 +20,7 @@
  */
 
 import { RADAR_PROVIDER_CONFIG, RadarFrame } from '@/types/weather';
-import { KNMI_API_KEY } from '@/config/devConfig';
+import { KNMI_API_KEY, KNMI_PROXY_URL } from '@/config/devConfig';
 
 // ============================================================
 // Types
@@ -185,16 +185,20 @@ function getKNMIWmsUrl(timestamp: number, apiKey: string): string {
 }
 
 /**
- * Generate KNMI tile URL in standard {z}/{x}/{y} format
- * Uses the KNMI Adaguc WMS-Tile endpoint
+ * Generate KNMI tile URL via local proxy
+ *
+ * The proxy adds the Authorization header that WebView/Leaflet cannot add.
+ * Start the proxy with: ./scripts/knmi-proxy-start.sh
+ *
+ * URL format: http://10.10.15.75:3001/knmi-wms?url=<encoded_knmi_url>
+ * The proxy forwards to KNMI with Authorization header and returns the tile.
  */
-function getKNMITileUrl(timestamp: number, apiKey: string): string {
+function getKNMITileUrl(timestamp: number, _apiKey: string): string {
   const date = new Date(timestamp * 1000);
   const isoTime = date.toISOString();
 
-  // Use WMS-T (tiled WMS) endpoint compatible with Leaflet
-  // Format: standard {z}/{x}/{y} tile coordinates
-  return `https://api.dataplatform.knmi.nl/wms/adaguc-server?` +
+  // Build the actual KNMI WMS URL (without api_key - proxy adds Authorization header)
+  const knmiUrl = `https://api.dataplatform.knmi.nl/wms/adaguc-server?` +
     `DATASET=radar_forecast&` +
     `SERVICE=WMS&` +
     `VERSION=1.3.0&` +
@@ -206,8 +210,19 @@ function getKNMITileUrl(timestamp: number, apiKey: string): string {
     `FORMAT=image/png&` +
     `TRANSPARENT=true&` +
     `TIME=${encodeURIComponent(isoTime)}&` +
-    `api_key=${apiKey}&` +
     `BBOX={bbox-epsg-3857}`;
+
+  // Wrap in proxy URL
+  // Note: We encode the KNMI URL but keep {bbox-epsg-3857} as placeholder
+  // The RadarMap Leaflet code will replace this before making the request
+  if (KNMI_PROXY_URL) {
+    // URL will be: http://10.10.15.75:3001/knmi-wms?url=https://api.dataplatform.knmi.nl/...&BBOX={bbox-epsg-3857}
+    // RadarMap's Leaflet will replace {bbox-epsg-3857} with actual coordinates
+    return `${KNMI_PROXY_URL}?url=${encodeURIComponent(knmiUrl.replace('&BBOX={bbox-epsg-3857}', ''))}&BBOX={bbox-epsg-3857}`;
+  }
+
+  // Fallback: direct KNMI URL (won't work without proxy)
+  return knmiUrl;
 }
 
 interface KNMIResult {
@@ -377,31 +392,25 @@ async function fetchRainViewerFrames(): Promise<RainViewerResult> {
 /**
  * Get radar frames based on location
  *
- * Currently uses RainViewer for all locations (30 min forecast, worldwide).
+ * Provider selection:
+ * - Netherlands + proxy available → KNMI (2 hour forecast, high resolution)
+ * - Elsewhere or no proxy → RainViewer (30 min forecast, worldwide)
  *
- * TODO: Enable KNMI when we have a proxy server
- * KNMI requires API key as HTTP Authorization header, which WebView/Leaflet
- * cannot add to tile requests. We need a backend proxy to add the header.
- * When enabled: Netherlands → KNMI (2 hour forecast, high resolution)
+ * KNMI requires the local proxy server to add Authorization header.
+ * Start proxy with: ./scripts/knmi-proxy-start.sh
  *
- * @see https://developer.dataplatform.knmi.nl/wms (requires Authorization header)
+ * @see https://developer.dataplatform.knmi.nl/wms
  */
 export async function getRadarFrames(
   latitude?: number,
   longitude?: number
 ): Promise<RadarData> {
-  // TODO: Enable KNMI when we have a proxy server that adds Authorization header
-  // KNMI WMS requires: Authorization: {api_key} header
-  // WebView/Leaflet cannot add custom headers to tile requests
-  //
-  // Future implementation:
-  // const useKNMI = latitude !== undefined &&
-  //   longitude !== undefined &&
-  //   isInNetherlands(latitude, longitude) &&
-  //   !!config.knmiApiKey;
-
-  // For now, always use RainViewer (free, no auth required)
-  const useKNMI = false;
+  // Use KNMI for Netherlands locations when proxy is configured
+  const useKNMI = latitude !== undefined &&
+    longitude !== undefined &&
+    isInNetherlands(latitude, longitude) &&
+    !!config.knmiApiKey &&
+    !!KNMI_PROXY_URL;
 
   const locationKey = useKNMI ? 'nl' : 'world';
 

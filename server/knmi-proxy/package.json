@@ -1,0 +1,13 @@
+{
+  "name": "knmi-proxy",
+  "version": "1.0.0",
+  "description": "Local proxy server for KNMI WMS API (adds Authorization header)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
