@@ -13,10 +13,9 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useDeviceType, type DeviceInfo } from '@/hooks/useDeviceType';
 import { useModuleConfig } from '@/contexts/ModuleConfigContext';
@@ -37,6 +36,13 @@ import { getModuleById } from '@/config/moduleRegistry';
  * These are always available regardless of country/settings
  */
 const STATIC_MODULES: ModuleDefinition[] = [
+  {
+    id: 'menu',
+    labelKey: 'navigation.menu',
+    icon: 'menu',
+    color: '#455A64',
+    sidebarGroup: 'footer',
+  },
   {
     id: 'chats',
     labelKey: 'navigation.chats',
@@ -113,6 +119,9 @@ const STATIC_MODULES: ModuleDefinition[] = [
 // Context Types
 // ============================================================
 
+/** Callback type for actual navigation (provided by component inside NavigationContainer) */
+export type NavigateCallback = (screenName: string) => void;
+
 interface NavigationContextValue {
   // Device info
   device: DeviceInfo;
@@ -137,6 +146,8 @@ interface NavigationContextValue {
   // Navigation
   /** Navigate to a module */
   navigateTo: (destination: NavigationDestination) => void;
+  /** Register navigation callback (called from inside NavigationContainer) */
+  setNavigateCallback: (callback: NavigateCallback | null) => void;
 
   // iPhone-specific (wheel menu)
   /** Is the wheel menu currently visible (iPhone only) */
@@ -170,7 +181,6 @@ interface NavigationProviderProps {
 export function NavigationProvider({ children }: NavigationProviderProps) {
   const device = useDeviceType();
   const { enabledModules, getEnabledModuleDefinition } = useModuleConfig();
-  const navigation = useNavigation<NativeStackNavigationProp<Record<string, undefined>>>();
 
   // ============================================================
   // State
@@ -179,6 +189,13 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
   const [activeModule, setActiveModule] = useState<NavigationDestination | null>(null);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Navigation callback - set by component inside NavigationContainer
+  const navigateCallbackRef = useRef<NavigateCallback | null>(null);
+
+  const setNavigateCallback = useCallback((callback: NavigateCallback | null) => {
+    navigateCallbackRef.current = callback;
+  }, []);
 
   // ============================================================
   // Modules
@@ -267,28 +284,32 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
       } else {
         // Static destination: map to screen name
         const screenMap: Record<string, string> = {
-          chats: 'ChatList',
-          contacts: 'ContactList',
-          groups: 'GroupList',
-          calls: 'Calls',
-          settings: 'SettingsMain',
+          chats: 'ChatsTab',
+          contacts: 'ContactsTab',
+          groups: 'GroupsTab',
+          calls: 'CallsTab',
+          settings: 'SettingsTab',
           help: 'Help',
-          radio: 'Radio',
-          podcast: 'Podcast',
-          books: 'Books',
-          weather: 'Weather',
+          radio: 'RadioTab',
+          podcast: 'PodcastTab',
+          books: 'BooksTab',
+          weather: 'WeatherTab',
         };
         screenName = screenMap[destination] || destination;
       }
 
-      // Navigate (wrapped in try-catch for screens that might not exist)
-      try {
-        navigation.navigate(screenName as never);
-      } catch (error) {
-        console.warn('[NavigationContext] Failed to navigate to:', screenName, error);
+      // Navigate using callback if available
+      if (navigateCallbackRef.current) {
+        try {
+          navigateCallbackRef.current(screenName);
+        } catch (error) {
+          console.warn('[NavigationContext] Failed to navigate to:', screenName, error);
+        }
+      } else {
+        console.warn('[NavigationContext] No navigation callback registered');
       }
     },
-    [device.isPhone, navigation]
+    [device.isPhone]
   );
 
   // ============================================================
@@ -327,6 +348,7 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
       activeModule,
       setActiveModule,
       navigateTo,
+      setNavigateCallback,
       isWheelOpen,
       openWheel,
       closeWheel,
@@ -339,6 +361,7 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
       getModulesByGroup,
       activeModule,
       navigateTo,
+      setNavigateCallback,
       isWheelOpen,
       openWheel,
       closeWheel,

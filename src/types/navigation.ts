@@ -122,7 +122,7 @@ export interface ModuleDefinition {
 export const MODULE_SIDEBAR_GROUPS = {
   primary: ['chats', 'contacts', 'groups', 'calls'] as const,
   secondary: ['radio', 'podcast', 'books', 'weather'] as const,
-  footer: ['settings', 'help'] as const,
+  footer: ['menu', 'settings', 'help'] as const,
 } as const;
 
 /**
