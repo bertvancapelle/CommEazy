@@ -111,6 +111,8 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Icon component gebruik** | **ui-designer** — Icoon MOET bestaan in IconName type, zie SKILL.md sectie 10b |
 | **AccentColor properties** | **ui-designer** — Alleen bestaande properties gebruiken (primary/primaryLight/primaryDark/light/label), zie SKILL.md sectie 10c |
 | **Chat/message styling** | **ui-designer** — WhatsApp-style message direction pattern, zie SKILL.md sectie 10d |
+| **Device-specifieke navigation** | **architecture-lead, ui-designer** — UX Consistentie Principe (sectie 10c) MOET worden gevolgd |
+| **Long-press gesture implementatie** | **architecture-lead, ui-designer** — Wheel menu op ALLE devices, zie sectie 10c |
 
 ### Conflict Resolutie Hiërarchie
 
@@ -555,6 +557,51 @@ Dit is de PRIMAIRE verdediging tegen double-action:
 **Twee-laagse bescherming:**
 1. **`onLongPress={() => {}}`** — Primaire blokkade (React Native niveau)
 2. **`useHoldGestureGuard()`** — Backup voor edge cases (HoldGestureContext niveau)
+
+### 10c. UX Consistentie Principe (VERPLICHT)
+
+**UI PRINCIPE: Dezelfde gesture MOET hetzelfde gedrag opleveren, ongeacht device of scherm.**
+
+Long-press navigatie MOET consistent zijn over:
+- **iPhone (single-pane):** Long-press → WheelNavigationMenu (circulair)
+- **iPad Split View (dual-pane):** Long-press → WheelNavigationMenu (circulair)
+
+Dit voorkomt verwarring bij senioren die wisselen tussen iPhone en iPad, of bij gebruik van dezelfde iPad in verschillende oriëntaties.
+
+**❌ FOUT — Inconsistente UX:**
+```typescript
+// iPhone: WheelNavigationMenu (circulair)
+// iPad: ModulePickerModal (lijst)
+// → Senioren raken in de war bij device-wissel
+```
+
+**✅ GOED — Consistente UX:**
+```typescript
+// ModulePanel (iPad Split View)
+<WheelNavigationMenu
+  visible={isWheelMenuOpen}
+  onNavigate={handleWheelNavigate}  // → setPanelModule(panelId, destination)
+  onClose={handleWheelClose}
+  activeScreen={moduleId}
+/>
+
+// HoldToNavigateWrapper (iPhone)
+<WheelNavigationMenu
+  visible={isWheelMenuOpen}
+  onNavigate={onNavigate}
+  onClose={handleClose}
+  activeScreen={activeScreen}
+/>
+```
+
+**Wanneer dit principe te controleren:**
+- Nieuwe navigatie componenten
+- Device-specifieke layouts (iPhone vs iPad)
+- Gesture handlers
+
+**Implementatie locaties:**
+- `src/components/navigation/ModulePanel.tsx` — iPad Split View panels
+- `src/components/HoldToNavigateWrapper.tsx` — iPhone/universal
 
 ### 11. Voice Interaction Architecture (VERPLICHT)
 
@@ -1860,14 +1907,39 @@ sudo prosodyctl status
 ```
 
 ### Test Devices
-- **iPhone 17 Pro**: ik@commeazy.local (simulator)
-- **iPhone 16e**: oma@commeazy.local (simulator)
-- **iPhone 14**: test@commeazy.local (fysiek device)
 
-Metro starten voor fysiek device op LAN:
+| Device | Account | Type |
+|--------|---------|------|
+| iPhone 17 Pro | ik@commeazy.local | Simulator |
+| iPhone 16e | oma@commeazy.local | Simulator |
+| iPad (any) | ipad@commeazy.local | Simulator |
+| iPhone 14 (Bert) | test@commeazy.local | Fysiek |
+| iPhone (Jeanine) | jeanine@commeazy.local | Fysiek |
+
+### Metro Bundler Configuratie
+
+**Één Metro instance ondersteunt ALLE devices** (simulators + fysiek) met `--host 0.0.0.0`:
+
 ```bash
-npx react-native start --host 10.10.15.75
+cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0
 ```
+
+| Interface | Adres | Wie gebruikt het |
+|-----------|-------|------------------|
+| Loopback | `127.0.0.1:8081` | Simulators (iPhone + iPad) |
+| LAN | `10.10.15.75:8081` | Fysieke devices |
+
+**Wanneer gebruiker zegt "herstart Metro":**
+1. Kill bestaande Metro processen:
+   ```bash
+   lsof -ti:8081 | xargs kill -9 2>/dev/null
+   ```
+2. Geef gebruiker dit commando om in Terminal te plakken:
+   ```bash
+   cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0
+   ```
+
+**Let op:** Claude kan Metro NIET zelf starten via Bash (npx niet in PATH). Geef altijd het commando aan de gebruiker.
 
 ---
 

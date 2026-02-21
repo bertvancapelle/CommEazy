@@ -22,9 +22,9 @@ import { View, StyleSheet, useWindowDimensions } from 'react-native';
 
 import { useSplitViewContext } from '@/contexts/SplitViewContext';
 import { ModulePanel } from './ModulePanel';
-import { ModulePickerModal } from './ModulePickerModal';
 import { DraggableDivider } from './DraggableDivider';
 import { colors } from '@/theme';
+// Note: ModulePickerModal removed — WheelNavigationMenu is now used for consistent UX
 
 // ============================================================
 // Component
@@ -37,8 +37,6 @@ export function SplitViewLayout() {
     rightPanel,
     panelRatio,
     setPanelRatio,
-    activePickerPanel,
-    closeModulePicker,
   } = useSplitViewContext();
 
   // Calculate panel widths (DraggableDivider handles its own touch area)
@@ -69,13 +67,8 @@ export function SplitViewLayout() {
         />
       </View>
 
-      {/* Module Picker Modal (shown when long-pressing a panel) */}
-      {activePickerPanel !== null && (
-        <ModulePickerModal
-          targetPanel={activePickerPanel}
-          onClose={closeModulePicker}
-        />
-      )}
+      {/* Note: WheelNavigationMenu is now rendered inside each ModulePanel
+          for consistent UX with iPhone (long-press opens wheel, not list modal) */}
     </View>
   );
 }
