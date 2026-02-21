@@ -272,7 +272,10 @@
     "accentColor": "Aksentfarge",
     "accentColorHint": "Velg favorittfargen for knapper og aksenter",
     "holdToNavigateTitle": "Navigasjon",
-    "testFeedback": "Test tilbakemelding"
+    "testFeedback": "Test tilbakemelding",
+    "ttsSpeed": "Lesehastighet",
+    "ttsSpeedHint": "Langsommere lesing er lettere å følge",
+    "ttsSpeedOption": "{{percent}} hastighet"
   },
   "theme": {
     "accentBlue": "Blå",

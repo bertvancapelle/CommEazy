@@ -19,6 +19,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { weatherService } from '@/services/weatherService';
 import { piperTtsService } from '@/services/piperTtsService';
 import { ttsService } from '@/services/ttsService';
+import { useTtsSettings } from '@/hooks/useTtsSettings';
 import type { WeatherData, WeatherLocation, WeatherTtsSection } from '@/types/weather';
 import i18n from '@/i18n';
 
@@ -87,6 +88,9 @@ export function useWeather(): UseWeatherReturn {
   const isPiperTtsInitializedRef = useRef(false);
   const isSystemTtsInitializedRef = useRef(false);
   const currentEngineRef = useRef<'piper' | 'system' | null>(null);
+
+  // TTS settings (speech rate from user preferences)
+  const { speechRate } = useTtsSettings();
 
   // =====================
   // Initialization
@@ -315,6 +319,7 @@ export function useWeather(): UseWeatherReturn {
 
   /**
    * Speak text with appropriate TTS engine
+   * Uses speechRate from user settings (0.7 - 1.1)
    */
   const speakText = useCallback(async (text: string, section: WeatherTtsSection) => {
     const language = i18n.language;
@@ -331,9 +336,9 @@ export function useWeather(): UseWeatherReturn {
       let success = false;
 
       if (usePiper) {
-        console.info('[useWeather] Using Piper TTS for Dutch');
+        console.info('[useWeather] Using Piper TTS for Dutch at speed:', speechRate);
         currentEngineRef.current = 'piper';
-        success = await piperTtsService.speakChunked(text);
+        success = await piperTtsService.speakChunked(text, speechRate);
 
         if (!success) {
           // Fallback to system TTS
@@ -358,7 +363,7 @@ export function useWeather(): UseWeatherReturn {
       setTtsSection(null);
       currentEngineRef.current = null;
     }
-  }, [shouldUsePiperTTS]);
+  }, [shouldUsePiperTTS, speechRate]);
 
   const readCurrentWeather = useCallback(async () => {
     if (!weather) return;

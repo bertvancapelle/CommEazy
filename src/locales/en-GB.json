@@ -268,7 +268,10 @@
     "accentColor": "Accent colour",
     "accentColorHint": "Choose your preferred colour for buttons and highlights",
     "holdToNavigateTitle": "Navigation",
-    "testFeedback": "Test feedback"
+    "testFeedback": "Test feedback",
+    "ttsSpeed": "Reading speed",
+    "ttsSpeedHint": "Slower reading is easier to follow",
+    "ttsSpeedOption": "{{percent}} speed"
   },
   "callSettings": {
     "title": "Call Settings",

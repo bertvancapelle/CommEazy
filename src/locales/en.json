@@ -133,6 +133,12 @@
     "connecting": "Connecting...",
     "reconnecting": "Reconnecting..."
   },
+  "calls": {
+    "alreadyInCall": "Already in a call",
+    "alreadyInCallMessage": "You are already in a call. End the current call first.",
+    "callFailed": "Call failed",
+    "callFailedMessage": "Could not connect. Check your internet connection and try again."
+  },
   "contacts": {
     "title": "Contacts",
     "add": "Add contact",
@@ -174,7 +180,9 @@
     "verificationSuccess": "Verification successful!",
     "verificationSuccessMessage": "{{name}} is now verified",
     "verificationFailed": "Verification failed",
-    "verificationFailedMessage": "The QR code doesn't match. Please try again."
+    "verificationFailedMessage": "The QR code doesn't match. Please try again.",
+    "voiceCall": "Voice call",
+    "videoCall": "Video call"
   },
   "settings": {
     "title": "Settings",
@@ -260,7 +268,10 @@
     "accentColor": "Accent colour",
     "accentColorHint": "Choose your preferred colour for buttons and highlights",
     "holdToNavigateTitle": "Navigation",
-    "testFeedback": "Test feedback"
+    "testFeedback": "Test feedback",
+    "ttsSpeed": "Reading speed",
+    "ttsSpeedHint": "Slower reading is easier to follow",
+    "ttsSpeedOption": "{{percent}} speed"
   },
   "callSettings": {
     "title": "Call Settings",
@@ -379,7 +390,9 @@
     "groupList": "{{count}} groups",
     "messageList": "{{count}} messages",
     "voiceFocusHint": "Say \"open\" to select",
-    "textInputHint": "Enter text for {{label}}"
+    "textInputHint": "Enter text for {{label}}",
+    "voiceCallHint": "Start a voice call with {{name}}",
+    "videoCallHint": "Start a video call with {{name}}"
   },
   "common": {
     "loading": "Loading...",
@@ -1083,11 +1096,15 @@
       "searchLocation": "Search location",
       "searchPlaceholder": "Enter place name...",
       "searchHint": "Enter a place name and tap the search button",
+      "selectLocationHint": "Tap to search for a location",
       "noResults": "No locations found",
       "currentWeather": "Current weather",
       "feelsLike": "Feels like",
       "humidity": "Humidity",
       "wind": "Wind",
+      "windSpeed": "Wind speed",
+      "sunrise": "Sunrise",
+      "sunset": "Sunset",
       "rainPrediction": "Rain prediction",
       "viewRadar": "View rain radar",
       "forecast": "7-day forecast",
@@ -1111,7 +1128,7 @@
       "gpsError": "Cannot determine location",
       "gpsPermissionDenied": "Location access denied. Allow location access in Settings.",
       "gpsUnavailable": "GPS not available",
-      "gpsTimeout": "Location lookup took too long. Please try again.",
+      "gpsTimeout": "Location request timed out",
       "precipitation": "Precipitation",
       "precipitationChance": "Chance of rain",
       "dry": "Dry",
@@ -1190,7 +1207,7 @@
     "ttsUnavailable": "Read aloud not available",
     "openInBrowser": "Open in browser",
     "fullArticleHint": "Tap the link below to read the full article",
-    "webViewLabel": "Article: {{title}}"
+    "webViewLabel": "Article content"
   },
   "articlePreview": {
     "title": "Article",

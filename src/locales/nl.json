@@ -272,7 +272,10 @@
     "accentColor": "Accentkleur",
     "accentColorHint": "Kies je favoriete kleur voor knoppen en accenten",
     "holdToNavigateTitle": "Navigatie",
-    "testFeedback": "Test feedback"
+    "testFeedback": "Test feedback",
+    "ttsSpeed": "Voorleessnelheid",
+    "ttsSpeedHint": "Langzamer voorlezen is makkelijker te volgen",
+    "ttsSpeedOption": "{{percent}} snelheid"
   },
   "callSettings": {
     "title": "Bel-instellingen",

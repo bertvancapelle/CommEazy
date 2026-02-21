@@ -272,7 +272,10 @@
     "accentColor": "Cor de destaque",
     "accentColorHint": "Escolha a sua cor favorita para botões e destaques",
     "holdToNavigateTitle": "Navegação",
-    "testFeedback": "Testar feedback"
+    "testFeedback": "Testar feedback",
+    "ttsSpeed": "Velocidade de leitura",
+    "ttsSpeedHint": "Leitura mais lenta é mais fácil de acompanhar",
+    "ttsSpeedOption": "Velocidade {{percent}}"
   },
   "callSettings": {
     "title": "Definições de chamada",

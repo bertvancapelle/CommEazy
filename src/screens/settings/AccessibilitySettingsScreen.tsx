@@ -47,6 +47,7 @@ import {
 } from '@/hooks/useFeedback';
 import { useAccentColor, ACCENT_COLOR_KEYS } from '@/hooks/useAccentColor';
 import { useVoiceCommands } from '@/hooks/useVoiceCommands';
+import { useTtsSettings, TTS_SPEED_OPTIONS, type TtsSpeechRate } from '@/hooks/useTtsSettings';
 import { Icon, VoiceToggle, VoiceStepper, VoiceFocusable } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 
@@ -280,6 +281,51 @@ function AccentColorPicker({ value, onValueChange, onFeedback }: AccentColorPick
   );
 }
 
+// TTS Speech Rate selector component
+interface TtsSpeechRateSelectorProps {
+  value: TtsSpeechRate;
+  onValueChange: (rate: TtsSpeechRate) => void;
+  accentColor: string;
+}
+
+function TtsSpeechRateSelector({ value, onValueChange, accentColor }: TtsSpeechRateSelectorProps) {
+  const { t } = useTranslation();
+
+  return (
+    <View style={styles.ttsSpeedContainer}>
+      <Text style={styles.ttsSpeedLabel}>{t('accessibilitySettings.ttsSpeed')}</Text>
+      <Text style={styles.ttsSpeedHint}>{t('accessibilitySettings.ttsSpeedHint')}</Text>
+      <View style={styles.ttsSpeedOptions}>
+        {TTS_SPEED_OPTIONS.map(({ value: optionValue, label }) => {
+          const isSelected = value === optionValue;
+          return (
+            <TouchableOpacity
+              key={optionValue}
+              style={[
+                styles.ttsSpeedOption,
+                isSelected && { borderColor: accentColor, backgroundColor: accentColor + '20' },
+              ]}
+              onPress={() => onValueChange(optionValue)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={t('accessibilitySettings.ttsSpeedOption', { percent: label })}
+            >
+              <Text
+                style={[
+                  styles.ttsSpeedOptionText,
+                  isSelected && { color: accentColor, fontWeight: '700' },
+                ]}
+              >
+                {label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export function AccessibilitySettingsScreen() {
   const { t } = useTranslation();
   const isFocused = useIsFocused();
@@ -310,6 +356,9 @@ export function AccessibilitySettingsScreen() {
     settings: voiceSettings,
     updateEnabled: updateVoiceEnabled,
   } = useVoiceCommands();
+
+  // TTS settings
+  const { speechRate, updateSpeechRate } = useTtsSettings();
 
   // Derived state: is haptic enabled?
   const isHapticEnabled = feedbackSettings.hapticIntensity !== 'off';
@@ -617,6 +666,16 @@ export function AccessibilitySettingsScreen() {
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
         />
+
+        {/* TTS Speech Rate selector */}
+        <TtsSpeechRateSelector
+          value={speechRate}
+          onValueChange={(rate) => {
+            void updateSpeechRate(rate);
+            void triggerFeedback('tap');
+          }}
+          accentColor={accentColor.primary}
+        />
       </View>
 
       {/* Appearance section */}
@@ -895,5 +954,43 @@ const styles = StyleSheet.create({
   testButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
+  },
+  // TTS Speech Rate selector styles
+  ttsSpeedContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  ttsSpeedLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  ttsSpeedHint: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  ttsSpeedOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  ttsSpeedOption: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ttsSpeedOptionText: {
+    ...typography.body,
+    color: colors.textPrimary,
   },
 });

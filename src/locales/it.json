@@ -273,7 +273,10 @@
     "accentColor": "Colore accento",
     "accentColorHint": "Scegli il tuo colore preferito per pulsanti e accenti",
     "holdToNavigateTitle": "Navigazione",
-    "testFeedback": "Testa feedback"
+    "testFeedback": "Testa feedback",
+    "ttsSpeed": "Velocità di lettura",
+    "ttsSpeedHint": "Una lettura più lenta è più facile da seguire",
+    "ttsSpeedOption": "Velocità {{percent}}"
   },
   "theme": {
     "accentBlue": "Blu",

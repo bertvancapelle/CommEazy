@@ -1247,6 +1247,7 @@ export function WeatherScreen() {
                 onSelect={() => handleTtsPress('current')}
               >
                 <View style={styles.currentWeatherCard}>
+                  {/* Main weather display: icon + temp + TTS button centered on one row */}
                   <View style={styles.currentWeatherMain}>
                     <Icon
                       name={weatherService.getWeatherIcon(weather.current.weatherCode, weather.current.isDay)}
@@ -1261,6 +1262,13 @@ export function WeatherScreen() {
                         {t('modules.weather.feelsLike')} {Math.round(weather.current.feelsLike)}°
                       </Text>
                     </View>
+                    <TTSButton
+                      isPlaying={isTtsPlaying}
+                      isActive={isTtsPlaying && ttsSection === 'current'}
+                      onPress={() => handleTtsPress('current')}
+                      label={t('modules.weather.readCurrentWeather')}
+                      compact
+                    />
                   </View>
 
                   <Text style={styles.condition}>
@@ -1296,16 +1304,6 @@ export function WeatherScreen() {
                       </Text>
                     </View>
                   </View>
-
-                  <View style={styles.ttsButtonRow}>
-                    <TTSButton
-                      isPlaying={isTtsPlaying}
-                      isActive={isTtsPlaying && ttsSection === 'current'}
-                      onPress={() => handleTtsPress('current')}
-                      label={t('modules.weather.readCurrentWeather')}
-                      compact
-                    />
-                  </View>
                 </View>
               </VoiceFocusable>
 
@@ -1317,8 +1315,9 @@ export function WeatherScreen() {
                 onSelect={() => handleTtsPress('forecast')}
               >
                 <View style={styles.forecastCard}>
-                  <View style={styles.forecastHeader}>
-                    <Text style={styles.forecastTitle}>{t('modules.weather.forecast')}</Text>
+                  {/* Title centered, then TTS button centered below */}
+                  <Text style={styles.forecastTitle}>{t('modules.weather.forecast')}</Text>
+                  <View style={styles.forecastTtsRow}>
                     <TTSButton
                       isPlaying={isTtsPlaying}
                       isActive={isTtsPlaying && ttsSection === 'forecast'}
@@ -1437,8 +1436,7 @@ const styles = StyleSheet.create({
   locationBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: spacing.md,
-    paddingRight: spacing.sm,
+    paddingHorizontal: spacing.md,  // Match tabBar padding for alignment
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
@@ -1683,7 +1681,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   currentWeatherTemp: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   temperature: {
     fontSize: 64,
@@ -1706,7 +1704,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: spacing.xl,
-    marginBottom: spacing.lg,
   },
   weatherDetail: {
     flexDirection: 'row',
@@ -1753,10 +1750,6 @@ const styles = StyleSheet.create({
   ttsButtonTextActive: {
     color: colors.textOnPrimary,
   },
-  ttsButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
 
   // Forecast card
   forecastCard: {
@@ -1767,15 +1760,16 @@ const styles = StyleSheet.create({
     marginHorizontal: -spacing.md,  // Compensate for contentContainer padding
     ...shadows.small,
   },
-  forecastHeader: {
+  forecastTtsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   forecastTitle: {
     ...typography.h3,
     color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
   forecastList: {
     gap: spacing.sm,

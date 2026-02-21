@@ -133,6 +133,12 @@
     "reconnecting": "Reconectando...",
     "duration": "Duración de la llamada: {{duration}}"
   },
+  "calls": {
+    "alreadyInCall": "Ya en llamada",
+    "alreadyInCallMessage": "Ya estás en una llamada. Termina la llamada actual primero.",
+    "callFailed": "Llamada fallida",
+    "callFailedMessage": "No se pudo conectar. Verifica tu conexión a internet e inténtalo de nuevo."
+  },
   "contacts": {
     "title": "Contactos",
     "add": "Añadir contacto",
@@ -174,7 +180,9 @@
     "verificationSuccess": "¡Verificación exitosa!",
     "verificationSuccessMessage": "{{name}} está ahora verificado",
     "verificationFailed": "Verificación fallida",
-    "verificationFailedMessage": "El código QR no coincide. Inténtalo de nuevo."
+    "verificationFailedMessage": "El código QR no coincide. Inténtalo de nuevo.",
+    "voiceCall": "Llamar",
+    "videoCall": "Videollamada"
   },
   "settings": {
     "title": "Ajustes",
@@ -260,7 +268,10 @@
     "accentColor": "Color de acento",
     "accentColorHint": "Elige tu color preferido para botones y elementos destacados",
     "holdToNavigateTitle": "Navegación",
-    "testFeedback": "Probar respuesta"
+    "testFeedback": "Probar respuesta",
+    "ttsSpeed": "Velocidad de lectura",
+    "ttsSpeedHint": "Leer más lento es más fácil de seguir",
+    "ttsSpeedOption": "Velocidad {{percent}}"
   },
   "callSettings": {
     "title": "Ajustes de llamada",
@@ -379,7 +390,9 @@
     "groupList": "{{count}} grupos",
     "messageList": "{{count}} mensajes",
     "voiceFocusHint": "Di \"abrir\" para seleccionar",
-    "textInputHint": "Introducir texto para {{label}}"
+    "textInputHint": "Introducir texto para {{label}}",
+    "voiceCallHint": "Iniciar una llamada de voz con {{name}}",
+    "videoCallHint": "Iniciar una videollamada con {{name}}"
   },
   "common": {
     "loading": "Cargando...",
@@ -1079,11 +1092,15 @@
       "searchLocation": "Buscar ubicación",
       "searchPlaceholder": "Introduce un nombre de lugar...",
       "searchHint": "Introduce un nombre de lugar y pulsa el botón de búsqueda",
+      "selectLocationHint": "Toca para buscar una ubicación",
       "noResults": "No se encontraron ubicaciones",
       "currentWeather": "Tiempo actual",
       "feelsLike": "Sensación térmica",
       "humidity": "Humedad",
       "wind": "Viento",
+      "windSpeed": "Velocidad del viento",
+      "sunrise": "Amanecer",
+      "sunset": "Atardecer",
       "rainPrediction": "Predicción de lluvia",
       "viewRadar": "Ver radar de lluvia",
       "forecast": "Pronóstico 7 días",
@@ -1102,6 +1119,11 @@
       "searchButton": "Buscar ubicación",
       "addToFavorites": "Añadir {{name}} a favoritos",
       "removeFromFavorites": "Quitar {{name}} de favoritos",
+      "currentLocationHint": "Usar tu ubicación GPS",
+      "gpsError": "No se puede determinar la ubicación",
+      "gpsPermissionDenied": "Acceso a ubicación denegado. Permite el acceso en Configuración.",
+      "gpsUnavailable": "GPS no disponible",
+      "gpsTimeout": "Tiempo de espera de ubicación agotado",
       "precipitation": "Precipitación",
       "precipitationChance": "Probabilidad de lluvia",
       "dry": "Seco",
@@ -1182,7 +1204,8 @@
     "readSummary": "Leer resumen",
     "ttsUnavailable": "Lectura en voz alta no disponible",
     "openInBrowser": "Abrir en navegador",
-    "fullArticleHint": "Toca el enlace de abajo para leer el artículo completo"
+    "fullArticleHint": "Toca el enlace de abajo para leer el artículo completo",
+    "webViewLabel": "Contenido del artículo"
   },
   "articlePreview": {
     "title": "Artículo",
