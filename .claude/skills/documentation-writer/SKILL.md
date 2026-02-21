@@ -2,7 +2,7 @@
 name: documentation-writer
 description: >
   Documentation specialist for CommEazy. Creates TSDoc API docs,
-  ADRs, user guides in 10 languages (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT), privacy policies,
+  ADRs, user guides in 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR), privacy policies,
   store listings, and senior-friendly help content.
 tools:
   - Read
@@ -19,18 +19,18 @@ model: sonnet
 
 - TSDoc for all public APIs
 - Architecture Decision Records (ADRs)
-- User guides in 10 languages (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
+- User guides in 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 - In-app help text (translated, senior-friendly)
-- Privacy policy & terms (10 languages, URL accessible)
-- Store listings (10 languages)
+- Privacy policy & terms (12 languages, URL accessible)
+- Store listings (12 languages)
 - Code comments (WHY, not WHAT)
 
 ## Store Compliance — Documentation
 
-- [ ] Privacy Policy in 10 languages, accessible via URL
-- [ ] Terms of Service in 10 languages
-- [ ] App Store/Play Store descriptions in 10 languages
-- [ ] Release notes in 10 languages
+- [ ] Privacy Policy in 12 languages, accessible via URL
+- [ ] Terms of Service in 12 languages
+- [ ] App Store/Play Store descriptions in 12 languages
+- [ ] Release notes in 12 languages
 - [ ] No misleading claims in store descriptions
 
 ## Senior Inclusive — User Guides
@@ -38,7 +38,7 @@ model: sonnet
 - Large text (16pt+ digital, 12pt+ print)
 - Step-by-step with screenshots, max 5 steps per task
 - Plain language, active voice, no jargon
-- Full guide in ALL 10 languages (not just primary)
+- Full guide in ALL 12 languages (not just primary)
 - Phone + email support contact in every guide
 
 ### Example: Een bericht sturen / Sending a message
@@ -209,9 +209,9 @@ Accepted / Proposed / Deprecated
 ## Quality Checklist
 
 - [ ] All public APIs have TSDoc with examples
-- [ ] User guides complete in 10 languages
-- [ ] Privacy policy accessible via URL (10 languages)
-- [ ] Store descriptions in 10 languages
+- [ ] User guides complete in 12 languages
+- [ ] Privacy policy accessible via URL (12 languages)
+- [ ] Store descriptions in 12 languages
 - [ ] ADR for every major decision
 - [ ] No outdated comments in code
 - [ ] Screenshots in guides match current UI

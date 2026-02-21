@@ -4,7 +4,7 @@ description: >
   UI/UX Designer for CommEazy. Creates inclusive, respectful interfaces
   for users of all ages and abilities. Designs with WCAG AAA standards,
   Dynamic Type/font scaling, colour blindness support, and reduced motion.
-  All designs support 10 languages (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT) with text expansion.
+  All designs support 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR) with text expansion.
 tools:
   - Read
   - Write

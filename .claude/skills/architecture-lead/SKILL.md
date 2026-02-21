@@ -4,7 +4,7 @@ description: >
   Lead Architect for CommEazy. Designs system architecture, data flows,
   service interfaces, and makes technology decisions. Ensures all architectural
   choices support store compliance (Apple/Google), senior-inclusive design,
-  i18n (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT), and zero-server-storage privacy model.
+  i18n (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR), and zero-server-storage privacy model.
 tools:
   - Read
   - Write

@@ -11,12 +11,12 @@ Privacy-first family communication app. End-to-end encrypted messaging, photos, 
 - **Auth:** Firebase Auth (phone verification only)
 - **Push:** Firebase Cloud Messaging
 - **Calls:** WebRTC (P2P via Coturn STUN/TURN)
-- **Languages:** NL, EN, DE, FR, ES, IT, NO, SV, DA, PT (react-i18next) — 10 talen
+- **Languages:** NL, EN, EN-GB, DE, FR, ES, IT, NO, SV, DA, PT, PT-BR (react-i18next) — 12 talen
 
 ## Non-Negotiable Requirements
 1. **Zero server storage** — Prosody routes only, never stores message content
 2. **Senior-inclusive UX** — Body ≥18pt, touch ≥60pt, WCAG AAA, max 3 steps per flow
-3. **10-language support** — All UI strings via t(), zero hardcoded text (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
+3. **12-language support** — All UI strings via t(), zero hardcoded text (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 4. **Store compliance** — Apple Privacy Manifest + Google Data Safety Section
 5. **Encryption export** — US BIS Self-Classification Report filed
 
@@ -32,7 +32,7 @@ src/
   components/       ← Reusable UI components
   navigation/       ← React Navigation setup (max 2 levels)
   hooks/            ← Custom React hooks
-  locales/          ← i18n translation files (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
+  locales/          ← i18n translation files (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
   theme/            ← Colours, typography, spacing (senior-inclusive)
   config/           ← App configuration
   models/           ← WatermelonDB models

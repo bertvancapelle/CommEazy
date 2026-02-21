@@ -3,7 +3,7 @@ name: devops-specialist
 description: >
   DevOps & CI/CD specialist for CommEazy. Manages build pipelines,
   automated testing, store deployment (TestFlight/Play Console),
-  automated accessibility audits, screenshot generation for 10 languages
+  automated accessibility audits, screenshot generation for 12 languages
   × 3 platforms, and infrastructure (Prosody, Coturn).
 tools:
   - Read
@@ -22,7 +22,7 @@ model: sonnet
 - iOS build & TestFlight deployment (Fastlane)
 - Android build & Play Console deployment (Fastlane)
 - Automated testing in pipeline (unit, integration, a11y)
-- Automated screenshot generation (10 languages × device sizes)
+- Automated screenshot generation (12 languages × device sizes)
 - Bundle size monitoring (fail build if >25MB iOS, >20MB Android)
 - Performance regression detection
 - Prosody server management & monitoring
@@ -38,9 +38,9 @@ lane :release_ios do
   increment_build_number
   build_app(scheme: "CommEazy", configuration: "Release")
   
-  # Automated screenshots in 10 languages
+  # Automated screenshots in 12 languages
   capture_screenshots(
-    languages: ["nl-NL", "en-US", "de-DE", "fr-FR", "es-ES", "it-IT", "nb-NO", "sv-SE", "da-DK", "pt-PT"],
+    languages: ["nl-NL", "en-US", "en-GB", "de-DE", "fr-FR", "es-ES", "it-IT", "nb-NO", "sv-SE", "da-DK", "pt-PT", "pt-BR"],
     devices: ["iPhone 15 Pro Max", "iPhone SE (3rd generation)", "iPad Pro (12.9-inch)", "iPad Air"]
   )
   
@@ -60,12 +60,12 @@ lane :release_android do
 end
 ```
 
-### Screenshot Automation (10 Languages × Devices)
+### Screenshot Automation (12 Languages × Devices)
 ```
 Total screenshots needed:
-  iOS: 10 languages × 4 devices × ~6 screens = 240 screenshots
-  Android: 10 languages × 3 devices × ~6 screens = 180 screenshots
-  Total: 420 screenshots per release
+  iOS: 12 languages × 4 devices × ~6 screens = 288 screenshots
+  Android: 12 languages × 3 devices × ~6 screens = 216 screenshots
+  Total: 504 screenshots per release
 
 Automation: Fastlane snapshot (iOS) + screengrab (Android)
 Triggered: On every release branch merge
@@ -104,7 +104,7 @@ jobs:
   i18n-validation:
     runs-on: ubuntu-latest
     steps:
-      - run: npm run test:i18n     # All 10 languages complete
+      - run: npm run test:i18n     # All 12 languages complete
 
   accessibility-audit:
     runs-on: ubuntu-latest
@@ -171,7 +171,7 @@ jobs:
 
 ## Senior Inclusive — DevOps Impact
 
-- **Automated screenshot generation**: Ensures store screenshots are always current and in all 10 languages
+- **Automated screenshot generation**: Ensures store screenshots are always current and in all 12 languages
 - **Performance regression tests**: Catch performance degradation before it reaches users on older devices
 - **Accessibility tests in CI**: No a11y regression reaches production
 - **Gradual rollout**: Use staged rollout (Google Play) and phased release (App Store) to catch issues early
@@ -185,7 +185,7 @@ jobs:
 - [ ] Bundle size checked (fail if over limit)
 - [ ] iOS builds and deploys to TestFlight
 - [ ] Android builds and deploys to Play Console internal track
-- [ ] Screenshots automated for 10 languages × all devices
+- [ ] Screenshots automated for 12 languages × all devices
 - [ ] Prosody zero-storage audit automated (weekly)
 - [ ] SSL certificates auto-renewed
 - [ ] Monitoring alerts configured (Prosody, Coturn)

@@ -249,7 +249,7 @@ find /var/lib/prosody/ -name "*.dat" -newer /var/lib/prosody/ -exec ls -la {} \;
 - [ ] Privacy Manifest (iOS) complete
 - [ ] Data Safety Section (Android) complete
 - [ ] QR verification tested with senior users (large viewfinder)
-- [ ] Security messages translated in 10 languages (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
+- [ ] Security messages translated in 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 - [ ] Error messages never expose key material or crypto details
 
 ## Collaboration

@@ -19,7 +19,7 @@ model: sonnet
 ## Core Responsibilities
 
 - First-use onboarding flow (language → phone → setup → first chat)
-- Language selection (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT) at first launch
+- Language selection (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR) at first launch
 - Phone verification (Firebase Auth)
 - Key pair generation (automatic, transparent to user)
 - Contact discovery and QR-based key verification
@@ -256,7 +256,7 @@ function BackupPinSetup() {
 - [ ] Key backup encrypted (PBKDF2, 600k iterations)
 - [ ] Device migration flow tested end-to-end
 - [ ] Wrong PIN handling (3 attempts + lockout)
-- [ ] All onboarding text translated (10 languages)
+- [ ] All onboarding text translated (12 languages)
 - [ ] Progress indicator visible ("Stap X van Y")
 - [ ] Back button available on every screen
 - [ ] No timeout during onboarding
