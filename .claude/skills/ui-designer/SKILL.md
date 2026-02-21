@@ -4,7 +4,7 @@ description: >
   UI/UX Designer for CommEazy. Creates inclusive, respectful interfaces
   for users of all ages and abilities. Designs with WCAG AAA standards,
   Dynamic Type/font scaling, colour blindness support, and reduced motion.
-  All designs support 5 languages (NL/EN/DE/FR/ES) with text expansion.
+  All designs support 10 languages (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT) with text expansion.
 tools:
   - Read
   - Write
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
 - `accessibilityHint` op het invoerveld: bijv. "Typ om te zoeken, druk op de zoekknop of gebruik de zoekknop op het toetsenbord"
 - Voice command: "zoek [term]" moet ook werken
 
-**i18n keys (alle 5 talen):**
+**i18n keys (alle 10 talen):**
 ```json
 {
   "common": {
@@ -1118,7 +1118,7 @@ if (activeNameFilter && activeNameFilter.matches.length > 1) {
 }
 ```
 
-**i18n keys (alle 5 talen):**
+**i18n keys (alle 10 talen):**
 ```json
 {
   "voiceCommands": {
@@ -1244,7 +1244,7 @@ voiceFeedbackText: {
 5. **Labels:** Altijd menselijke namen, nooit technische IDs
 6. **Synoniemen:** Minimaal 2 synoniemen per commando per taal
 7. **Feedback:** Haptic + audio bij voice actie (zie accessibility skill)
-8. **i18n:** Alle commands in 5 talen (NL, EN, DE, FR, ES)
+8. **i18n:** Alle commands in 10 talen (NL, EN, DE, FR, ES, IT, NO, SV, DA, PT)
 
 ### 9. HOLD-TO-NAVIGATE (VERPLICHT)
 
@@ -1852,7 +1852,7 @@ const handleToggleFavorite = useCallback(async () => {
 }, [isFavorite, station]);
 ```
 
-**i18n keys (alle 5 talen):**
+**i18n keys (alle 10 talen):**
 ```json
 {
   "radio": {
@@ -2340,9 +2340,9 @@ closeButtonContainer: {
 3. **Touch target:** Minimaal 60×60pt
 4. **Positionering:** Consistent (links-boven voor terug/sluiten)
 5. **Accessibility:** Label EN hint verplicht
-6. **i18n:** Labels in alle 5 talen
+6. **i18n:** Labels in alle 10 talen
 
-**i18n keys (alle 5 talen):**
+**i18n keys (alle 10 talen):**
 ```json
 {
   "common": {
@@ -2362,7 +2362,7 @@ closeButtonContainer: {
 - [ ] Positionering consistent (links-boven voor close/back)
 - [ ] accessibilityLabel aanwezig
 - [ ] accessibilityHint aanwezig
-- [ ] i18n keys in alle 5 talen
+- [ ] i18n keys in alle 10 talen
 
 ## Store Compliance — UI
 
@@ -2371,7 +2371,7 @@ closeButtonContainer: {
 - [ ] iPadOS: 2-column layout when width ≥ 768pt
 - [ ] Safe area insets respected (notch, home indicator, camera cutout)
 - [ ] Dark mode supported (optional for MVP, but architecture must support it)
-- [ ] Screenshots for store in all 5 languages
+- [ ] Screenshots for store in all 10 languages
 
 ## i18n Layout Considerations
 
@@ -2545,7 +2545,7 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 - [ ] **Primaire acties:** Voice-triggerable via `useVoiceAction`
 - [ ] **Destructieve acties:** Voice confirmation dialog aanwezig
 - [ ] **Synoniemen:** Min. 2 synoniemen per command per taal
-- [ ] **i18n:** Alle voice commands in 5 talen gedefinieerd
+- [ ] **i18n:** Alle voice commands in 10 talen gedefinieerd
 - [ ] **Feedback:** Haptic + audio bij voice acties
 - [ ] **Settings integratie:** Nieuwe commands toegevoegd aan voice settings schema
 
@@ -3652,5 +3652,5 @@ Bij ELKE nieuwe nieuws/content module:
 
 - **With accessibility-specialist**: Validate all components for a11y compliance
 - **With react-native-expert**: Component implementation, performance
-- **With documentation-writer**: User guides with UI screenshots in 5 languages
+- **With documentation-writer**: User guides with UI screenshots in 10 languages
 - **With onboarding-recovery**: First-use flow design

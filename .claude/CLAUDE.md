@@ -11,12 +11,12 @@ Privacy-first family communication app. End-to-end encrypted messaging, photos, 
 - **Auth:** Firebase Auth (phone verification only)
 - **Push:** Firebase Cloud Messaging
 - **Calls:** WebRTC (P2P via Coturn STUN/TURN)
-- **Languages:** NL, EN, DE, FR, ES (react-i18next)
+- **Languages:** NL, EN, DE, FR, ES, IT, NO, SV, DA, PT (react-i18next) — 10 talen
 
 ## Non-Negotiable Requirements
 1. **Zero server storage** — Prosody routes only, never stores message content
 2. **Senior-inclusive UX** — Body ≥18pt, touch ≥60pt, WCAG AAA, max 3 steps per flow
-3. **5-language support** — All UI strings via t(), zero hardcoded text
+3. **10-language support** — All UI strings via t(), zero hardcoded text (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
 4. **Store compliance** — Apple Privacy Manifest + Google Data Safety Section
 5. **Encryption export** — US BIS Self-Classification Report filed
 
@@ -32,7 +32,7 @@ src/
   components/       ← Reusable UI components
   navigation/       ← React Navigation setup (max 2 levels)
   hooks/            ← Custom React hooks
-  locales/          ← i18n translation files (NL/EN/DE/FR/ES)
+  locales/          ← i18n translation files (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
   theme/            ← Colours, typography, spacing (senior-inclusive)
   config/           ← App configuration
   models/           ← WatermelonDB models
@@ -130,10 +130,61 @@ De **architecture-lead** skill is verantwoordelijk voor:
 ## Quality Gates (ALL code must pass)
 1. **Store Compliance** — Privacy Manifest (iOS), Data Safety (Android)
 2. **Senior Inclusive** — Typography, touch targets, contrast, VoiceOver/TalkBack
-3. **i18n** — All 5 languages, text expansion tested, no hardcoded strings
+3. **i18n** — All 10 languages, text expansion tested, no hardcoded strings
 4. **Security** — E2E encryption verified, keys never logged, zero storage audit
 5. **Performance** — Cold start <3s, 60fps scroll, memory <200MB
 6. **Code Quality** — TypeScript strict, 80% coverage, zero warnings
+
+## Ondersteunde Talen (10 talen)
+
+CommEazy ondersteunt de volgende 10 talen. ALLE i18n keys moeten in ALLE talen aanwezig zijn.
+
+| Code | Taal | Bestand | Native naam |
+|------|------|---------|-------------|
+| `nl` | Nederlands | `nl.json` | Nederlands |
+| `en` | Engels | `en.json` | English |
+| `de` | Duits | `de.json` | Deutsch |
+| `fr` | Frans | `fr.json` | Français |
+| `es` | Spaans | `es.json` | Español |
+| `it` | Italiaans | `it.json` | Italiano |
+| `no` | Noors | `no.json` | Norsk |
+| `sv` | Zweeds | `sv.json` | Svenska |
+| `da` | Deens | `da.json` | Dansk |
+| `pt` | Portugees | `pt.json` | Português |
+
+### Text Expansion per Taal
+
+Bij het ontwerpen van UI, houd rekening met text expansion:
+
+| Taal | Expansie vs Engels | Voorbeeld |
+|------|-------------------|-----------|
+| Duits | +30% | "Settings" → "Einstellungen" |
+| Frans | +20% | "Send" → "Envoyer" |
+| Spaans | +15% | "Contact" → "Contacto" |
+| Nederlands | +10% | "Message" → "Bericht" |
+| Italiaans | +15% | "Send" → "Invia" |
+| Portugees | +20% | "Settings" → "Configurações" |
+| Noors | +10% | "Send" → "Send" |
+| Zweeds | +10% | "Send" → "Skicka" |
+| Deens | +10% | "Send" → "Send" |
+
+### i18n Validatie Commando
+
+```bash
+# Check welke keys ontbreken in een taal t.o.v. nl.json
+node -e "
+const nl = require('./src/locales/nl.json');
+const target = require('./src/locales/[TAAL].json');
+const getKeys = (obj, prefix = '') => Object.entries(obj).flatMap(([k, v]) =>
+  typeof v === 'object' ? getKeys(v, prefix + k + '.') : [prefix + k]
+);
+const nlKeys = new Set(getKeys(nl));
+const targetKeys = new Set(getKeys(target));
+const missing = [...nlKeys].filter(k => !targetKeys.has(k));
+console.log('Missing keys:', missing.length);
+missing.forEach(k => console.log('  -', k));
+"
+```
 
 ## Git Workflow (VERPLICHT)
 
@@ -526,7 +577,7 @@ Elke module MOET de relevante command categorieën implementeren:
 
 #### 11.3 Standaard Commando's per Taal
 
-Alle commando's hebben synoniemen en zijn beschikbaar in 5 talen:
+Alle commando's hebben synoniemen en zijn beschikbaar in 10 talen:
 
 ```typescript
 // types/voiceCommands.ts
@@ -648,7 +699,7 @@ const { activeNameFilter, clearNameFilter } = useVoiceFocusContext();
 // activeNameFilter: { query: 'maria', matches: [...], currentIndex: 0 }
 ```
 
-**Accessibility announcements (alle 5 talen):**
+**Accessibility announcements (alle 10 talen):**
 - `voiceCommands.multipleMatches`: "{{name}}, {{count}} resultaten gevonden. Zeg 'volgende' voor meer."
 - `voiceCommands.focusedOnMatch`: "{{name}}, {{current}} van {{total}}"
 - `voiceCommands.endOfMatches`: "Terug naar eerste resultaat"
@@ -744,7 +795,7 @@ Bij het bouwen van ELKE nieuwe module, valideer:
 - [ ] **Acties:** Primaire acties voice-triggerable
 - [ ] **Bevestigingen:** Destructieve acties via voice bevestigbaar
 - [ ] **Labels:** Alle voice labels zijn menselijke namen (niet technische IDs)
-- [ ] **i18n:** Voice commands in alle 5 talen gedefinieerd
+- [ ] **i18n:** Voice commands in alle 10 talen gedefinieerd
 - [ ] **Settings:** Nieuwe commands toegevoegd aan settings schema
 
 ---

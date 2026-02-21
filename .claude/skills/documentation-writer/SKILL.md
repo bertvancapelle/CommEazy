@@ -2,7 +2,7 @@
 name: documentation-writer
 description: >
   Documentation specialist for CommEazy. Creates TSDoc API docs,
-  ADRs, user guides in 5 languages (NL/EN/DE/FR/ES), privacy policies,
+  ADRs, user guides in 10 languages (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT), privacy policies,
   store listings, and senior-friendly help content.
 tools:
   - Read
@@ -19,18 +19,18 @@ model: sonnet
 
 - TSDoc for all public APIs
 - Architecture Decision Records (ADRs)
-- User guides in 5 languages (NL/EN/DE/FR/ES)
+- User guides in 10 languages (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
 - In-app help text (translated, senior-friendly)
-- Privacy policy & terms (5 languages, URL accessible)
-- Store listings (5 languages)
+- Privacy policy & terms (10 languages, URL accessible)
+- Store listings (10 languages)
 - Code comments (WHY, not WHAT)
 
 ## Store Compliance — Documentation
 
-- [ ] Privacy Policy in 5 languages, accessible via URL
-- [ ] Terms of Service in 5 languages
-- [ ] App Store/Play Store descriptions in 5 languages
-- [ ] Release notes in 5 languages
+- [ ] Privacy Policy in 10 languages, accessible via URL
+- [ ] Terms of Service in 10 languages
+- [ ] App Store/Play Store descriptions in 10 languages
+- [ ] Release notes in 10 languages
 - [ ] No misleading claims in store descriptions
 
 ## Senior Inclusive — User Guides
@@ -38,7 +38,7 @@ model: sonnet
 - Large text (16pt+ digital, 12pt+ print)
 - Step-by-step with screenshots, max 5 steps per task
 - Plain language, active voice, no jargon
-- Full guide in ALL 5 languages (not just primary)
+- Full guide in ALL 10 languages (not just primary)
 - Phone + email support contact in every guide
 
 ### Example: Een bericht sturen / Sending a message
@@ -127,7 +127,7 @@ Module-specifieke CSS regels voor WebView:
 - [Content restrictions]
 ```
 
-### Welcome Modal Teksten (5 talen)
+### Welcome Modal Teksten (10 talen)
 
 ```json
 // locales/nl.json
@@ -145,14 +145,14 @@ Module-specifieke CSS regels voor WebView:
   }
 }
 
-// Herhaal voor en.json, de.json, fr.json, es.json
+// Herhaal voor en.json, de.json, fr.json, es.json, it.json, no.json, sv.json, da.json, pt.json
 ```
 
 ### User Guide Updates
 
 Bij elke nieuwe module, update de user guide met:
 
-1. **Screenshot van module scherm** (5 talen × 4 device sizes)
+1. **Screenshot van module scherm** (10 talen × 4 device sizes)
 2. **Stapsgewijze instructies:**
    - Hoe de module te openen
    - Hoe artikelen te filteren (categorieën)
@@ -209,13 +209,13 @@ Accepted / Proposed / Deprecated
 ## Quality Checklist
 
 - [ ] All public APIs have TSDoc with examples
-- [ ] User guides complete in 5 languages
-- [ ] Privacy policy accessible via URL (5 languages)
-- [ ] Store descriptions in 5 languages
+- [ ] User guides complete in 10 languages
+- [ ] Privacy policy accessible via URL (10 languages)
+- [ ] Store descriptions in 10 languages
 - [ ] ADR for every major decision
 - [ ] No outdated comments in code
 - [ ] Screenshots in guides match current UI
-- [ ] **News modules:** Welcome modal teksten in 5 talen
+- [ ] **News modules:** Welcome modal teksten in 10 talen
 - [ ] **News modules:** User guide met screenshots
 - [ ] **News modules:** i18n keys voor alle module teksten
 - [ ] **News modules:** ADR voor module integratie beslissing

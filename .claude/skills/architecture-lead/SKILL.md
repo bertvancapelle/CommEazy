@@ -4,7 +4,7 @@ description: >
   Lead Architect for CommEazy. Designs system architecture, data flows,
   service interfaces, and makes technology decisions. Ensures all architectural
   choices support store compliance (Apple/Google), senior-inclusive design,
-  i18n (NL/EN/DE/FR/ES), and zero-server-storage privacy model.
+  i18n (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT), and zero-server-storage privacy model.
 tools:
   - Read
   - Write
@@ -124,6 +124,11 @@ const resources = {
   de: { translation: require('./locales/de.json') },
   fr: { translation: require('./locales/fr.json') },
   es: { translation: require('./locales/es.json') },
+  it: { translation: require('./locales/it.json') },
+  no: { translation: require('./locales/no.json') },
+  sv: { translation: require('./locales/sv.json') },
+  da: { translation: require('./locales/da.json') },
+  pt: { translation: require('./locales/pt.json') },
 };
 
 i18n.use(initReactI18next).init({

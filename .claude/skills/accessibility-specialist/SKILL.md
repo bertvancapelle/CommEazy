@@ -576,7 +576,7 @@ Bij meerdere matches op dezelfde naam MOET de gebruiker altijd weten:
 2. **Welke match** ze zien (bij elke navigatie)
 3. **Wanneer ze terugkeren** naar het begin (wrap-around)
 
-**i18n keys (VERPLICHT in alle 5 talen):**
+**i18n keys (VERPLICHT in alle 10 talen):**
 ```json
 {
   "voiceCommands": {
@@ -676,7 +676,7 @@ Wanneer een voice command niet herkend wordt:
 - [ ] "ja"/"nee" werkt betrouwbaar
 
 **Multi-taal:**
-- [ ] Voice commands werken in alle 5 talen
+- [ ] Voice commands werken in alle 10 talen
 - [ ] Synoniemen per taal gedefinieerd
 - [ ] Fuzzy matching voor dialecten/accenten
 
@@ -1033,7 +1033,7 @@ Het hoofdmenu van Instellingen volgt dit patroon:
 - [ ] Automated a11y tests pass in CI (axe-core or equivalent)
 - [ ] Colour blindness simulator test (3 types)
 - [ ] Font scaling test at all system sizes
-- [ ] i18n: accessibility labels translated in 5 languages
+- [ ] i18n: accessibility labels translated in 10 languages
 
 ## i18n — Accessibility Labels
 
@@ -1483,7 +1483,7 @@ Bij ELKE media module:
 - [ ] **Playback announcements:** Alle state changes worden aangekondigd
 - [ ] **Voice commands:** Module-specifieke commands geregistreerd
 - [ ] **SeekSlider:** accessibilityStep correct (standaard 10s)
-- [ ] **Control labels:** Alle labels in 5 talen beschikbaar
+- [ ] **Control labels:** Alle labels in 10 talen beschikbaar
 - [ ] **Error handling:** Errors met `accessibilityLiveRegion="assertive"`
 
 ---

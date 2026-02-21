@@ -22,7 +22,7 @@ model: sonnet
 - Encryption round-trip tests
 - XMPP connection & offline sync tests
 - Accessibility automated tests (VoiceOver/TalkBack)
-- i18n coverage validation (all 5 languages)
+- i18n coverage validation (all 10 languages: NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
 - Senior user testing protocol (with working prototype)
 - Store compliance pre-submission testing
 - Performance regression tests
@@ -268,7 +268,7 @@ describe('Senior Flow: Send Message', () => {
 - [ ] Encryption round-trip tests pass (all 3 modes)
 - [ ] Outbox 7-day TTL + cleanup tested
 - [ ] XMPP connection/reconnection tested
-- [ ] i18n: all 5 languages have complete translations
+- [ ] i18n: all 10 languages have complete translations (NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
 - [ ] E2E: core flows pass on iOS and Android
 - [ ] Accessibility: VoiceOver + TalkBack automated checks
 - [ ] Performance: message list 1000 items renders < 1sec

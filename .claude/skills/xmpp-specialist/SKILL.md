@@ -211,7 +211,7 @@ All connection and delivery status messages must be translated:
 - [ ] Outbox 7-day TTL implemented
 - [ ] Expired message cleanup runs daily
 - [ ] Offline sync: pending messages resent on presence
-- [ ] Connection status shown in plain language (5 languages)
+- [ ] Connection status shown in plain language (10 languages: NL/EN/DE/FR/ES/IT/NO/SV/DA/PT)
 - [ ] No persistent background connection (use push to wake)
 
 ## Collaboration
