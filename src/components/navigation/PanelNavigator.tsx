@@ -4,12 +4,18 @@
  * Provides navigation context for each panel, enabling sub-navigation
  * (e.g., ContactList → ContactDetail) within the panel.
  *
- * Each module that needs sub-navigation gets its own Stack Navigator.
+ * Each module that needs sub-navigation gets its own Stack Navigator
+ * wrapped in an independent NavigationContainer.
+ *
+ * IMPORTANT: We use NavigationContainer with independent={true} to create
+ * isolated navigation contexts for each panel. This allows multiple
+ * navigators to coexist without conflicting with the root navigator.
  *
  * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
  */
 
 import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
@@ -105,31 +111,32 @@ const SettingsPanelStack = createNativeStackNavigator<SettingsPanelParams>();
 // ============================================================
 
 function ChatPanelNavigator() {
-  const { t } = useTranslation();
   const { accentColor } = useAccentColor();
 
   return (
-    <ChatPanelStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <ChatPanelStack.Screen
-        name="ChatList"
-        component={ChatListScreen}
-        options={{ headerShown: false }}
-      />
-      <ChatPanelStack.Screen
-        name="ChatDetail"
-        component={ChatScreen}
-        options={({ route }) => ({ title: route.params.name })}
-      />
-    </ChatPanelStack.Navigator>
+    <NavigationContainer independent={true}>
+      <ChatPanelStack.Navigator
+        screenOptions={{
+          headerTitleStyle: typography.h3,
+          headerBackTitleVisible: false,
+          headerTintColor: accentColor.primary,
+          headerStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      >
+        <ChatPanelStack.Screen
+          name="ChatList"
+          component={ChatListScreen}
+          options={{ headerShown: false }}
+        />
+        <ChatPanelStack.Screen
+          name="ChatDetail"
+          component={ChatScreen}
+          options={({ route }) => ({ title: route.params.name })}
+        />
+      </ChatPanelStack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -138,37 +145,39 @@ function ContactPanelNavigator() {
   const { accentColor } = useAccentColor();
 
   return (
-    <ContactPanelStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <ContactPanelStack.Screen
-        name="ContactList"
-        component={ContactListScreen}
-        options={{ headerShown: false }}
-      />
-      <ContactPanelStack.Screen
-        name="ContactDetail"
-        component={ContactDetailScreen}
-        options={{ title: t('contacts.details') }}
-      />
-      <ContactPanelStack.Screen
-        name="AddContact"
-        component={AddContactScreen}
-        options={{ title: t('contacts.add') }}
-      />
-      <ContactPanelStack.Screen
-        name="VerifyContact"
-        component={VerifyContactScreen}
-        options={{ title: t('contacts.verify') }}
-      />
-    </ContactPanelStack.Navigator>
+    <NavigationContainer independent={true}>
+      <ContactPanelStack.Navigator
+        screenOptions={{
+          headerTitleStyle: typography.h3,
+          headerBackTitleVisible: false,
+          headerTintColor: accentColor.primary,
+          headerStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      >
+        <ContactPanelStack.Screen
+          name="ContactList"
+          component={ContactListScreen}
+          options={{ headerShown: false }}
+        />
+        <ContactPanelStack.Screen
+          name="ContactDetail"
+          component={ContactDetailScreen}
+          options={{ title: t('contacts.details') }}
+        />
+        <ContactPanelStack.Screen
+          name="AddContact"
+          component={AddContactScreen}
+          options={{ title: t('contacts.add') }}
+        />
+        <ContactPanelStack.Screen
+          name="VerifyContact"
+          component={VerifyContactScreen}
+          options={{ title: t('contacts.verify') }}
+        />
+      </ContactPanelStack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -177,32 +186,34 @@ function GroupPanelNavigator() {
   const { accentColor } = useAccentColor();
 
   return (
-    <GroupPanelStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <GroupPanelStack.Screen
-        name="GroupList"
-        component={GroupListScreen}
-        options={{ headerShown: false }}
-      />
-      <GroupPanelStack.Screen
-        name="GroupDetail"
-        component={GroupDetailScreen}
-        options={({ route }) => ({ title: route.params.name })}
-      />
-      <GroupPanelStack.Screen
-        name="CreateGroup"
-        component={CreateGroupScreen}
-        options={{ title: t('group.create') }}
-      />
-    </GroupPanelStack.Navigator>
+    <NavigationContainer independent={true}>
+      <GroupPanelStack.Navigator
+        screenOptions={{
+          headerTitleStyle: typography.h3,
+          headerBackTitleVisible: false,
+          headerTintColor: accentColor.primary,
+          headerStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      >
+        <GroupPanelStack.Screen
+          name="GroupList"
+          component={GroupListScreen}
+          options={{ headerShown: false }}
+        />
+        <GroupPanelStack.Screen
+          name="GroupDetail"
+          component={GroupDetailScreen}
+          options={({ route }) => ({ title: route.params.name })}
+        />
+        <GroupPanelStack.Screen
+          name="CreateGroup"
+          component={CreateGroupScreen}
+          options={{ title: t('group.create') }}
+        />
+      </GroupPanelStack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -211,47 +222,49 @@ function SettingsPanelNavigator() {
   const { accentColor } = useAccentColor();
 
   return (
-    <SettingsPanelStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <SettingsPanelStack.Screen
-        name="SettingsMain"
-        component={SettingsMainScreen}
-        options={{ headerShown: false }}
-      />
-      <SettingsPanelStack.Screen
-        name="ProfileSettings"
-        component={ProfileSettingsScreen}
-        options={{ title: t('profile.changePhoto') }}
-      />
-      <SettingsPanelStack.Screen
-        name="AccessibilitySettings"
-        component={AccessibilitySettingsScreen}
-        options={{ title: t('settings.accessibility') }}
-      />
-      <SettingsPanelStack.Screen
-        name="VoiceSettings"
-        component={VoiceSettingsScreen}
-        options={{ title: t('voiceSettings.title') }}
-      />
-      <SettingsPanelStack.Screen
-        name="ModulesSettings"
-        component={ModulesSettingsScreen}
-        options={{ title: t('modulesSettings.title'), headerShown: false }}
-      />
-      <SettingsPanelStack.Screen
-        name="CallSettings"
-        component={CallSettingsScreen}
-        options={{ title: t('callSettings.title') }}
-      />
-    </SettingsPanelStack.Navigator>
+    <NavigationContainer independent={true}>
+      <SettingsPanelStack.Navigator
+        screenOptions={{
+          headerTitleStyle: typography.h3,
+          headerBackTitleVisible: false,
+          headerTintColor: accentColor.primary,
+          headerStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      >
+        <SettingsPanelStack.Screen
+          name="SettingsMain"
+          component={SettingsMainScreen}
+          options={{ headerShown: false }}
+        />
+        <SettingsPanelStack.Screen
+          name="ProfileSettings"
+          component={ProfileSettingsScreen}
+          options={{ title: t('profile.changePhoto') }}
+        />
+        <SettingsPanelStack.Screen
+          name="AccessibilitySettings"
+          component={AccessibilitySettingsScreen}
+          options={{ title: t('settings.accessibility') }}
+        />
+        <SettingsPanelStack.Screen
+          name="VoiceSettings"
+          component={VoiceSettingsScreen}
+          options={{ title: t('voiceSettings.title') }}
+        />
+        <SettingsPanelStack.Screen
+          name="ModulesSettings"
+          component={ModulesSettingsScreen}
+          options={{ title: t('modulesSettings.title'), headerShown: false }}
+        />
+        <SettingsPanelStack.Screen
+          name="CallSettings"
+          component={CallSettingsScreen}
+          options={{ title: t('callSettings.title') }}
+        />
+      </SettingsPanelStack.Navigator>
+    </NavigationContainer>
   );
 }
 
