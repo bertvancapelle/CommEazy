@@ -274,23 +274,33 @@ class WeatherServiceImpl {
     const todayPrecip = data.daily.precipitation_sum[0];
     const todayProb = data.daily.precipitation_probability_max[0];
 
+    // Base rain data always included
+    const baseRainData = {
+      precipitationMm: todayPrecip,
+      precipitationProbability: todayProb,
+    };
+
     if (current.precipitation > 0) {
       return {
+        ...baseRainData,
         summary: 'raining_now',
         nextRainTime: new Date(),
         nextRainIntensity: current.precipitation > 5 ? 'heavy' : current.precipitation > 1 ? 'moderate' : 'light',
       };
     } else if (todayProb > 70) {
       return {
+        ...baseRainData,
         summary: 'rain_expected',
         nextRainIntensity: todayPrecip > 10 ? 'heavy' : todayPrecip > 3 ? 'moderate' : 'light',
       };
     } else if (todayProb > 30) {
       return {
+        ...baseRainData,
         summary: 'rain_possible',
       };
     } else {
       return {
+        ...baseRainData,
         summary: 'dry_weather',
       };
     }
@@ -375,26 +385,77 @@ class WeatherServiceImpl {
 
   /**
    * Format current weather for TTS
+   * Includes: location, temperature, feels like, condition, precipitation (mm + %), humidity, wind speed
    */
   formatCurrentWeatherForTts(weather: WeatherData, language: string): string {
     const condition = this.getWeatherDescription(weather.current.weatherCode, language);
     const temp = Math.round(weather.current.temperature);
+    const feelsLike = Math.round(weather.current.feelsLike);
     const humidity = weather.current.humidity;
-    const rainSummary = this.getRainSummary(weather.rain.summary, language);
 
+    // Wind speed: mph for English, km/h for others
     const langCode = language.split('-')[0].toLowerCase();
+    const windSpeed = Math.round(weather.current.windSpeed);
+    const windSpeedMph = Math.round(weather.current.windSpeed * 0.621371);
+
+    // Precipitation data
+    const precipMm = weather.rain.precipitationMm ?? 0;
+    const precipProb = weather.rain.precipitationProbability ?? 0;
+
+    // Build precipitation text per language
+    const getPrecipText = (): string => {
+      if (precipMm === 0 && precipProb === 0) {
+        switch (langCode) {
+          case 'nl': return 'Geen neerslag verwacht';
+          case 'de': return 'Kein Niederschlag erwartet';
+          case 'fr': return 'Pas de précipitations prévues';
+          case 'es': return 'No se esperan precipitaciones';
+          case 'it': return 'Nessuna precipitazione prevista';
+          case 'no': return 'Ingen nedbør forventet';
+          case 'sv': return 'Ingen nederbörd förväntas';
+          case 'da': return 'Ingen nedbør forventet';
+          case 'pt': return 'Sem precipitação prevista';
+          default: return 'No precipitation expected';
+        }
+      }
+
+      switch (langCode) {
+        case 'nl': return `Neerslag: ${precipMm.toFixed(1)} millimeter, ${precipProb} procent kans`;
+        case 'de': return `Niederschlag: ${precipMm.toFixed(1)} Millimeter, ${precipProb} Prozent Wahrscheinlichkeit`;
+        case 'fr': return `Précipitations: ${precipMm.toFixed(1)} millimètres, ${precipProb} pour cent de chance`;
+        case 'es': return `Precipitación: ${precipMm.toFixed(1)} milímetros, ${precipProb} por ciento de probabilidad`;
+        case 'it': return `Precipitazioni: ${precipMm.toFixed(1)} millimetri, ${precipProb} percento di probabilità`;
+        case 'no': return `Nedbør: ${precipMm.toFixed(1)} millimeter, ${precipProb} prosent sjanse`;
+        case 'sv': return `Nederbörd: ${precipMm.toFixed(1)} millimeter, ${precipProb} procent chans`;
+        case 'da': return `Nedbør: ${precipMm.toFixed(1)} millimeter, ${precipProb} procent chance`;
+        case 'pt': return `Precipitação: ${precipMm.toFixed(1)} milímetros, ${precipProb} por cento de chance`;
+        default: return `Precipitation: ${precipMm.toFixed(1)} millimeters, ${precipProb} percent chance`;
+      }
+    };
+
+    const precipText = getPrecipText();
 
     switch (langCode) {
       case 'nl':
-        return `Het weer in ${weather.location.name}. Het is nu ${temp} graden, ${condition}. De luchtvochtigheid is ${humidity} procent. ${rainSummary}.`;
+        return `Het weer in ${weather.location.name}. Het is nu ${temp} graden, voelt als ${feelsLike} graden, ${condition}. ${precipText}. De luchtvochtigheid is ${humidity} procent. De wind is ${windSpeed} kilometer per uur.`;
       case 'de':
-        return `Das Wetter in ${weather.location.name}. Es sind jetzt ${temp} Grad, ${condition}. Die Luftfeuchtigkeit beträgt ${humidity} Prozent. ${rainSummary}.`;
+        return `Das Wetter in ${weather.location.name}. Es sind jetzt ${temp} Grad, gefühlt ${feelsLike} Grad, ${condition}. ${precipText}. Die Luftfeuchtigkeit beträgt ${humidity} Prozent. Der Wind weht mit ${windSpeed} Kilometer pro Stunde.`;
       case 'fr':
-        return `La météo à ${weather.location.name}. Il fait actuellement ${temp} degrés, ${condition}. L'humidité est de ${humidity} pour cent. ${rainSummary}.`;
+        return `La météo à ${weather.location.name}. Il fait actuellement ${temp} degrés, ressenti ${feelsLike} degrés, ${condition}. ${precipText}. L'humidité est de ${humidity} pour cent. Le vent souffle à ${windSpeed} kilomètres par heure.`;
       case 'es':
-        return `El tiempo en ${weather.location.name}. Actualmente ${temp} grados, ${condition}. La humedad es del ${humidity} por ciento. ${rainSummary}.`;
-      default: // en
-        return `Weather in ${weather.location.name}. Currently ${temp} degrees, ${condition}. Humidity ${humidity} percent. ${rainSummary}.`;
+        return `El tiempo en ${weather.location.name}. Actualmente ${temp} grados, sensación de ${feelsLike} grados, ${condition}. ${precipText}. La humedad es del ${humidity} por ciento. El viento sopla a ${windSpeed} kilómetros por hora.`;
+      case 'it':
+        return `Il meteo a ${weather.location.name}. Attualmente ${temp} gradi, percepiti ${feelsLike} gradi, ${condition}. ${precipText}. L'umidità è del ${humidity} percento. Il vento soffia a ${windSpeed} chilometri orari.`;
+      case 'no':
+        return `Været i ${weather.location.name}. Det er nå ${temp} grader, føles som ${feelsLike} grader, ${condition}. ${precipText}. Luftfuktigheten er ${humidity} prosent. Vinden er ${windSpeed} kilometer i timen.`;
+      case 'sv':
+        return `Vädret i ${weather.location.name}. Det är nu ${temp} grader, känns som ${feelsLike} grader, ${condition}. ${precipText}. Luftfuktigheten är ${humidity} procent. Vinden är ${windSpeed} kilometer i timmen.`;
+      case 'da':
+        return `Vejret i ${weather.location.name}. Det er nu ${temp} grader, føles som ${feelsLike} grader, ${condition}. ${precipText}. Luftfugtigheden er ${humidity} procent. Vinden er ${windSpeed} kilometer i timen.`;
+      case 'pt':
+        return `O tempo em ${weather.location.name}. Atualmente ${temp} graus, sensação de ${feelsLike} graus, ${condition}. ${precipText}. A umidade é de ${humidity} por cento. O vento sopra a ${windSpeed} quilômetros por hora.`;
+      default: // en - uses mph for wind
+        return `Weather in ${weather.location.name}. Currently ${temp} degrees, feels like ${feelsLike} degrees, ${condition}. ${precipText}. Humidity ${humidity} percent. Wind speed ${windSpeedMph} miles per hour.`;
     }
   }
 
@@ -450,7 +511,20 @@ class WeatherServiceImpl {
       en: 'Precipitation forecast:',
     };
 
-    return `${prefix[langCode as keyof typeof prefix] || prefix.en} ${rainSummary}.`;
+    // Add mm info if rain is expected
+    let mmInfo = '';
+    if (weather.rain.precipitationMm !== undefined && weather.rain.precipitationMm > 0) {
+      const mmText = {
+        nl: `Verwachte hoeveelheid: ${weather.rain.precipitationMm.toFixed(1)} millimeter`,
+        de: `Erwartete Menge: ${weather.rain.precipitationMm.toFixed(1)} Millimeter`,
+        fr: `Quantité prévue : ${weather.rain.precipitationMm.toFixed(1)} millimètres`,
+        es: `Cantidad esperada: ${weather.rain.precipitationMm.toFixed(1)} milímetros`,
+        en: `Expected amount: ${weather.rain.precipitationMm.toFixed(1)} millimeters`,
+      };
+      mmInfo = ` ${mmText[langCode as keyof typeof mmText] || mmText.en}.`;
+    }
+
+    return `${prefix[langCode as keyof typeof prefix] || prefix.en} ${rainSummary}.${mmInfo}`;
   }
 
   /**

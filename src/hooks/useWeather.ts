@@ -52,6 +52,7 @@ export interface UseWeatherReturn {
   selectLocation: (location: WeatherLocation) => Promise<void>;
   searchLocations: (query: string) => Promise<void>;
   clearSearchResults: () => void;
+  saveLocation: (location: WeatherLocation) => Promise<void>;
   saveCurrentLocation: () => Promise<void>;
   removeLocation: (id: string) => Promise<void>;
   refresh: () => Promise<void>;
@@ -211,7 +212,17 @@ export function useWeather(): UseWeatherReturn {
   }, []);
 
   const searchLocations = useCallback(async (query: string) => {
+    // Validate minimum length
     if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    // Validate characters: only letters (including accented), spaces, hyphens, apostrophes
+    // This regex uses Unicode property escapes for international character support
+    const validCharsRegex = /^[\p{L}\s\-']+$/u;
+    if (!validCharsRegex.test(query)) {
+      console.warn('[useWeather] Invalid characters in search query, skipping API call');
       setSearchResults([]);
       return;
     }
@@ -231,6 +242,19 @@ export function useWeather(): UseWeatherReturn {
   const clearSearchResults = useCallback(() => {
     setSearchResults([]);
   }, []);
+
+  const saveLocation = useCallback(async (location: WeatherLocation) => {
+    try {
+      await weatherService.saveLocation(location);
+      await loadSavedLocations();
+      console.info('[useWeather] Location saved:', location.name);
+    } catch (err) {
+      console.error('[useWeather] Save error:', err);
+      if (err instanceof Error && err.message === 'max_locations_reached') {
+        setError('modules.weather.maxLocationsReached');
+      }
+    }
+  }, [loadSavedLocations]);
 
   const saveCurrentLocation = useCallback(async () => {
     if (!weather) return;
@@ -408,6 +432,7 @@ export function useWeather(): UseWeatherReturn {
     selectLocation,
     searchLocations,
     clearSearchResults,
+    saveLocation,
     saveCurrentLocation,
     removeLocation,
     refresh,

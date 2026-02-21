@@ -85,8 +85,8 @@ export interface FavoriteLocationsContextValue {
   removeLocation: (id: string) => Promise<void>;
 
   // GPS
-  /** Request current GPS location */
-  requestCurrentLocation: () => Promise<void>;
+  /** Request current GPS location, returns the location or null on error */
+  requestCurrentLocation: () => Promise<FavoriteLocation | null>;
   /** Whether GPS lookup is in progress */
   isLoadingGps: boolean;
   /** GPS error message (if any) */
@@ -287,7 +287,7 @@ export function FavoriteLocationsProvider({ children }: FavoriteLocationsProvide
   // GPS
   // ============================================================
 
-  const requestCurrentLocation = useCallback(async () => {
+  const requestCurrentLocation = useCallback(async (): Promise<FavoriteLocation | null> => {
     setIsLoadingGps(true);
     setGpsError(null);
 
@@ -352,6 +352,9 @@ export function FavoriteLocationsProvider({ children }: FavoriteLocationsProvide
       }
 
       console.info('[FavoriteLocationsContext] GPS location set:', gpsLocation.name, { latitude, longitude });
+
+      // Return the location so callers can use it immediately
+      return gpsLocation;
     } catch (error) {
       const geoError = error as GeolocationPositionError;
       let errorKey = 'modules.weather.gpsError';
@@ -373,6 +376,7 @@ export function FavoriteLocationsProvider({ children }: FavoriteLocationsProvide
       }
 
       setGpsError(errorKey);
+      return null;
     } finally {
       setIsLoadingGps(false);
     }

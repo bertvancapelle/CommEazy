@@ -1044,22 +1044,25 @@ export function WeatherScreen() {
 
   // Handle GPS location request from picker
   const handleGpsRequest = useCallback(async () => {
-    await requestCurrentLocation();
-    // After GPS location is obtained, select it and close picker
-    if (gpsLocation) {
+    // requestCurrentLocation now returns the location directly
+    const location = await requestCurrentLocation();
+
+    // If GPS location was obtained, select it and close picker
+    if (location) {
       // Convert FavoriteLocation to WeatherLocation format
       const weatherLocation: WeatherLocation = {
-        id: gpsLocation.id,
-        name: gpsLocation.name,
-        latitude: gpsLocation.latitude,
-        longitude: gpsLocation.longitude,
-        country: gpsLocation.country,
-        admin1: gpsLocation.admin1,
+        id: location.id,
+        name: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        country: location.country,
+        admin1: location.admin1,
       };
       await selectLocation(weatherLocation);
       setShowLocationPicker(false);
     }
-  }, [requestCurrentLocation, gpsLocation, selectLocation]);
+    // If null returned, GPS failed - error is shown via gpsError state
+  }, [requestCurrentLocation, selectLocation]);
 
   // Handle TTS button press
   const handleTtsPress = useCallback((section: 'current' | 'forecast' | 'rain') => {
@@ -1265,16 +1268,31 @@ export function WeatherScreen() {
                   </Text>
 
                   <View style={styles.weatherDetails}>
+                    {/* Precipitation - mm and % */}
+                    <View style={styles.weatherDetail}>
+                      <Icon name="weather-rainy" size={20} color={colors.textSecondary} />
+                      <Text style={styles.weatherDetailText}>
+                        {weather.rain.precipitationMm !== undefined
+                          ? `${weather.rain.precipitationMm.toFixed(1)} mm`
+                          : '0.0 mm'}
+                        {weather.rain.precipitationProbability !== undefined &&
+                          ` · ${weather.rain.precipitationProbability}%`}
+                      </Text>
+                    </View>
+                    {/* Humidity */}
                     <View style={styles.weatherDetail}>
                       <Icon name="water-percent" size={20} color={colors.textSecondary} />
                       <Text style={styles.weatherDetailText}>
                         {weather.current.humidity}%
                       </Text>
                     </View>
+                    {/* Wind speed - locale-based units (en → mph, others → km/h) */}
                     <View style={styles.weatherDetail}>
                       <Icon name="weather-windy" size={20} color={colors.textSecondary} />
                       <Text style={styles.weatherDetailText}>
-                        {Math.round(weather.current.windSpeed)} km/h
+                        {i18n.language === 'en' || i18n.language === 'en-GB'
+                          ? `${Math.round(weather.current.windSpeed * 0.621371)} mph`
+                          : `${Math.round(weather.current.windSpeed)} km/h`}
                       </Text>
                     </View>
                   </View>
@@ -1291,33 +1309,11 @@ export function WeatherScreen() {
                 </View>
               </VoiceFocusable>
 
-              {/* Rain Prediction Row - Compact layout */}
-              <VoiceFocusable
-                id="rain-prediction"
-                label={t('modules.weather.rainPrediction')}
-                index={1}
-                onSelect={() => handleTtsPress('rain')}
-              >
-                <View style={styles.rainRow}>
-                  <Icon name="weather-rainy" size={24} color={MODULE_COLOR} />
-                  <Text style={styles.rainText}>
-                    {weatherService.getRainSummary(weather.rain.summary, i18n.language)}
-                  </Text>
-                  <TTSButton
-                    isPlaying={isTtsPlaying}
-                    isActive={isTtsPlaying && ttsSection === 'rain'}
-                    onPress={() => handleTtsPress('rain')}
-                    label={t('modules.weather.readRain')}
-                    compact
-                  />
-                </View>
-              </VoiceFocusable>
-
               {/* 7-Day Forecast Card */}
               <VoiceFocusable
                 id="forecast"
                 label={t('modules.weather.forecast')}
-                index={2}
+                index={1}
                 onSelect={() => handleTtsPress('forecast')}
               >
                 <View style={styles.forecastCard}>
@@ -1760,23 +1756,6 @@ const styles = StyleSheet.create({
   ttsButtonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-  },
-
-  // Rain prediction row - compact inline layout
-  rainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-    ...shadows.small,
-  },
-  rainText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    flex: 1,
   },
 
   // Forecast card
