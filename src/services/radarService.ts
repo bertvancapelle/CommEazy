@@ -377,20 +377,31 @@ async function fetchRainViewerFrames(): Promise<RainViewerResult> {
 /**
  * Get radar frames based on location
  *
- * - Netherlands → KNMI (2 hour forecast, high resolution)
- * - Elsewhere → RainViewer (30 min forecast, worldwide)
+ * Currently uses RainViewer for all locations (30 min forecast, worldwide).
  *
- * Automatically falls back to RainViewer if KNMI fails.
+ * TODO: Enable KNMI when we have a proxy server
+ * KNMI requires API key as HTTP Authorization header, which WebView/Leaflet
+ * cannot add to tile requests. We need a backend proxy to add the header.
+ * When enabled: Netherlands → KNMI (2 hour forecast, high resolution)
+ *
+ * @see https://developer.dataplatform.knmi.nl/wms (requires Authorization header)
  */
 export async function getRadarFrames(
   latitude?: number,
   longitude?: number
 ): Promise<RadarData> {
-  // Determine provider based on location
-  const useKNMI = latitude !== undefined &&
-    longitude !== undefined &&
-    isInNetherlands(latitude, longitude) &&
-    !!config.knmiApiKey;
+  // TODO: Enable KNMI when we have a proxy server that adds Authorization header
+  // KNMI WMS requires: Authorization: {api_key} header
+  // WebView/Leaflet cannot add custom headers to tile requests
+  //
+  // Future implementation:
+  // const useKNMI = latitude !== undefined &&
+  //   longitude !== undefined &&
+  //   isInNetherlands(latitude, longitude) &&
+  //   !!config.knmiApiKey;
+
+  // For now, always use RainViewer (free, no auth required)
+  const useKNMI = false;
 
   const locationKey = useKNMI ? 'nl' : 'world';
 
@@ -423,8 +434,8 @@ export async function getRadarFrames(
       provider = 'rainviewer';
     }
   } else {
-    // Use RainViewer for non-NL locations
-    console.info('[radarService] Fetching RainViewer frames (worldwide)');
+    // Use RainViewer (free, worldwide, no auth required)
+    console.info('[radarService] Fetching RainViewer frames');
     const result = await fetchRainViewerFrames();
     frames = result.frames;
     pastFrameCount = result.pastFrameCount;
