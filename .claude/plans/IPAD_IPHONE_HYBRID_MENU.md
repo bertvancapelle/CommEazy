@@ -4,15 +4,15 @@
 
 Ontwerp een hybride navigatie-architectuur die:
 - Op **iPhone** het bestaande WheelNavigationMenu (hold-to-navigate) behoudt
-- Op **iPad** een sidebar-gebaseerde navigatie biedt met split-view support
+- Op **iPad** een **Split View** biedt met twee onafhankelijke module panelen
 - **Code sharing** maximaliseert tussen beide platforms
 - **Senior-inclusive design** principes respecteert (≥60pt touch targets, WCAG AAA)
 
 ---
 
-## Huidige Situatie
+## Architectuur Overzicht
 
-### WheelNavigationMenu (iPhone)
+### iPhone: WheelNavigationMenu (ongewijzigd)
 ```
 ┌─────────────────────────────────────┐
 │  Hold anywhere → Wheel appears      │
@@ -29,16 +29,147 @@ Ontwerp een hybride navigatie-architectuur die:
 └─────────────────────────────────────┘
 ```
 
-### Kenmerken
-- Hold-gesture activatie (1000ms default)
-- Pagination (4 modules per pagina)
-- Usage-based ordering
-- Two-finger gesture voor voice commands
-- Full-screen overlay
+### iPad: Split View met Module Panelen
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│  ┌─────────────────────────┐  ┌──────────────────────────────────────┐ │
+│  │    LINKER PANEEL        │  │        RECHTER PANEEL                │ │
+│  │       (33%)             │  │           (67%)                      │ │
+│  │                         │  │                                      │ │
+│  │  ┌───────────────────┐  │  │  ┌────────────────────────────────┐  │ │
+│  │  │ [Module Content]  │  │  │  │ [Module Content]               │  │ │
+│  │  │                   │  │  │  │                                │  │ │
+│  │  │ Long-press →      │  │  │  │ Long-press →                   │  │ │
+│  │  │ Module Picker     │  │  │  │ Module Picker                  │  │ │
+│  │  │                   │  │  │  │                                │  │ │
+│  │  └───────────────────┘  │  │  └────────────────────────────────┘  │ │
+│  │                         │  │                                      │ │
+│  └─────────────────────────┘  └──────────────────────────────────────┘ │
+│                                                                         │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Architectuur Overzicht
+## iPad Split View Specificatie
+
+### Initiële Staat bij Opstart
+| Paneel | Breedte | Module |
+|--------|---------|--------|
+| Links | 33% | **Menu** (module picker) |
+| Rechts | 67% | **Contacten** |
+
+### Module Selectie Gedrag
+1. Gebruiker selecteert module uit Menu in linker paneel
+2. Geselecteerde module **vervangt het Menu** in dat paneel
+3. Menu is nu niet meer zichtbaar
+
+### Menu Opnieuw Openen
+- **Long-press** in een paneel → Module Picker opent voor DAT paneel
+- Consistent met iPhone long-press voor WheelNavigationMenu
+- Picker toont alle beschikbare modules
+
+### Duplicatie Toegestaan
+- Dezelfde module MAG in beide panelen tegelijk staan
+- Bijv: Contacten links + Contacten rechts is valide
+
+### Paneel Verhoudingen
+- **Default:** 33% links / 67% rechts (gebalanceerd)
+- **Instelbaar:** Gebruiker kan dit aanpassen in Instellingen
+- Opgeslagen in AsyncStorage per gebruiker
+
+### Voice Commands Scope (BELANGRIJK)
+- **Two-finger long-press** activeert voice commands **alleen voor de module in dat paneel**
+- Links paneel two-finger → voice voor linker module
+- Rechts paneel two-finger → voice voor rechter module
+- Dit voorkomt ambiguïteit over welke module de voice command ontvangt
+
+---
+
+## Visuele Flow
+
+### Stap 1: Opstart
+```
+┌──────────────────────┬───────────────────────────────────────┐
+│                      │                                       │
+│   📋 MENU            │   👥 CONTACTEN                        │
+│                      │                                       │
+│   • Berichten        │   Oma Maria                           │
+│   • Contacten        │   Papa                                │
+│   • Groepen          │   Tante Maria                         │
+│   • Bellen           │   Buurman Henk                        │
+│   ─────────          │                                       │
+│   • Radio            │                                       │
+│   • Podcast          │                                       │
+│   • Boeken           │                                       │
+│   • Weer             │                                       │
+│   ─────────          │                                       │
+│   • Instellingen     │                                       │
+│                      │                                       │
+└──────────────────────┴───────────────────────────────────────┘
+```
+
+### Stap 2: Gebruiker selecteert "Radio" in Menu
+```
+┌──────────────────────┬───────────────────────────────────────┐
+│                      │                                       │
+│   📻 RADIO           │   👥 CONTACTEN                        │
+│                      │                                       │
+│   [Zoekbalk]         │   Oma Maria                           │
+│                      │   Papa                                │
+│   NPO Radio 1        │   Tante Maria                         │
+│   NPO Radio 2        │   Buurman Henk                        │
+│   3FM                │                                       │
+│   Radio 538          │                                       │
+│   Sky Radio          │                                       │
+│                      │                                       │
+│   ▶️ Nu: NPO Radio 1 │                                       │
+│                      │                                       │
+└──────────────────────┴───────────────────────────────────────┘
+```
+
+### Stap 3: Long-press in rechter paneel → Module Picker
+```
+┌──────────────────────┬───────────────────────────────────────┐
+│                      │                                       │
+│   📻 RADIO           │   ┌─────────────────────────────────┐ │
+│                      │   │                                 │ │
+│   [Zoekbalk]         │   │   Kies een module               │ │
+│                      │   │                                 │ │
+│   NPO Radio 1        │   │   [Berichten] [Contacten]       │ │
+│   NPO Radio 2        │   │   [Groepen]   [Bellen]          │ │
+│   3FM                │   │   [Radio]     [Podcast]         │ │
+│   Radio 538          │   │   [Boeken]    [Weer]            │ │
+│   Sky Radio          │   │   [Instellingen]                │ │
+│                      │   │                                 │ │
+│   ▶️ Nu: NPO Radio 1 │   │           [Annuleer]            │ │
+│                      │   └─────────────────────────────────┘ │
+└──────────────────────┴───────────────────────────────────────┘
+```
+
+### Stap 4: Gebruiker selecteert "Weer"
+```
+┌──────────────────────┬───────────────────────────────────────┐
+│                      │                                       │
+│   📻 RADIO           │   🌤️ WEER                             │
+│                      │                                       │
+│   [Zoekbalk]         │   📍 Amsterdam                        │
+│                      │                                       │
+│   NPO Radio 1        │   ☀️ 18°C                             │
+│   NPO Radio 2        │   Zonnig met wolken                   │
+│   3FM                │                                       │
+│   Radio 538          │   Vandaag: 14° - 19°                  │
+│   Sky Radio          │   Morgen:  12° - 17°                  │
+│                      │   Overmorgen: 15° - 21°               │
+│   ▶️ Nu: NPO Radio 1 │                                       │
+│                      │                                       │
+└──────────────────────┴───────────────────────────────────────┘
+```
+
+---
+
+## Component Architectuur
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -54,464 +185,387 @@ Ontwerp een hybride navigatie-architectuur die:
 │              ▼                               ▼                  │
 │  ┌─────────────────────┐         ┌─────────────────────┐       │
 │  │   PhoneNavigation   │         │   TabletNavigation  │       │
-│  │  (WheelMenu)        │         │  (Sidebar + Split)  │       │
+│  │  (WheelMenu)        │         │  (SplitView)        │       │
 │  └─────────────────────┘         └─────────────────────┘       │
+│                                             │                   │
+│                              ┌──────────────┴──────────────┐   │
+│                              ▼                              ▼   │
+│                  ┌─────────────────┐          ┌─────────────────┐
+│                  │   LeftPanel     │          │   RightPanel    │
+│                  │  (ModuleHost)   │          │   (ModuleHost)  │
+│                  └─────────────────┘          └─────────────────┘
 └────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Fase 1: Device Detection & Abstractie
+## Fase 1: Device Detection & Context
 
-### 1.1 Device Type Hook
+### 1.1 useDeviceType Hook (bestaand, uitbreiden)
 
 ```typescript
 // src/hooks/useDeviceType.ts
 
-import { useWindowDimensions, Platform } from 'react-native';
-
-export type DeviceType = 'phone' | 'tablet';
-
-interface DeviceInfo {
-  deviceType: DeviceType;
+export interface DeviceInfo {
+  deviceType: 'phone' | 'tablet';
+  isPhone: boolean;
+  isTablet: boolean;
   isLandscape: boolean;
   screenWidth: number;
   screenHeight: number;
-  isCompact: boolean;     // True voor iPhone + iPad in Slide Over
-  isRegular: boolean;     // True voor iPad in full/split view
 }
 
 export function useDeviceType(): DeviceInfo {
   const { width, height } = useWindowDimensions();
 
-  // iPad detection: width >= 768pt in portrait
-  // OF check Platform.isPad (iOS only)
   const isTablet = Platform.OS === 'ios'
     ? Platform.isPad
     : Math.min(width, height) >= 600;
 
-  const isLandscape = width > height;
-
-  // Compact = iPhone OR iPad in Slide Over (width < 400)
-  const isCompact = !isTablet || width < 400;
-  const isRegular = isTablet && width >= 400;
-
   return {
     deviceType: isTablet ? 'tablet' : 'phone',
-    isLandscape,
+    isPhone: !isTablet,
+    isTablet,
+    isLandscape: width > height,
     screenWidth: width,
     screenHeight: height,
-    isCompact,
-    isRegular,
   };
 }
 ```
 
-### 1.2 Navigation Strategy Interface
+### 1.2 SplitViewContext (nieuw)
 
 ```typescript
-// src/navigation/types.ts
+// src/contexts/SplitViewContext.tsx
 
-import type { NavigationDestination } from '@/types/navigation';
+interface PanelState {
+  moduleId: NavigationDestination;
+  // Panel-specific state (scroll position, etc.)
+}
 
-export interface NavigationStrategy {
-  /** Render de navigatie UI (sidebar, wheel, etc.) */
-  renderNavigation: () => React.ReactNode;
+interface SplitViewContextValue {
+  // Panel modules
+  leftPanel: PanelState;
+  rightPanel: PanelState;
 
-  /** Navigeer naar een module */
-  navigateTo: (destination: NavigationDestination) => void;
+  // Panel actions
+  setLeftModule: (moduleId: NavigationDestination) => void;
+  setRightModule: (moduleId: NavigationDestination) => void;
 
-  /** Check of de navigatie zichtbaar is */
-  isVisible: boolean;
+  // Panel ratio (stored in settings)
+  panelRatio: number;  // 0.33 = 33% left, 67% right
+  setPanelRatio: (ratio: number) => void;
 
-  /** Toon/verberg navigatie (voor wheel: open/close) */
-  setVisible: (visible: boolean) => void;
+  // Module picker
+  activePickerPanel: 'left' | 'right' | null;
+  openModulePicker: (panel: 'left' | 'right') => void;
+  closeModulePicker: () => void;
+
+  // Voice scope
+  activeVoicePanel: 'left' | 'right' | null;
+  setActiveVoicePanel: (panel: 'left' | 'right' | null) => void;
+}
+
+export function SplitViewProvider({ children }: { children: ReactNode }) {
+  // Default: Menu links, Contacten rechts
+  const [leftPanel, setLeftPanel] = useState<PanelState>({
+    moduleId: 'menu'
+  });
+  const [rightPanel, setRightPanel] = useState<PanelState>({
+    moduleId: 'contacts'
+  });
+
+  const [panelRatio, setPanelRatioState] = useState(0.33);
+  const [activePickerPanel, setActivePickerPanel] = useState<'left' | 'right' | null>(null);
+  const [activeVoicePanel, setActiveVoicePanel] = useState<'left' | 'right' | null>(null);
+
+  // Load ratio from settings
+  useEffect(() => {
+    AsyncStorage.getItem('ipad_panel_ratio').then(saved => {
+      if (saved) setPanelRatioState(parseFloat(saved));
+    });
+  }, []);
+
+  const setPanelRatio = useCallback((ratio: number) => {
+    setPanelRatioState(ratio);
+    AsyncStorage.setItem('ipad_panel_ratio', ratio.toString());
+  }, []);
+
+  // ... rest of implementation
 }
 ```
 
 ---
 
-## Fase 2: Gedeelde Module Configuratie
+## Fase 2: Split View Layout
 
-### 2.1 Unified Module Registry
-
-```typescript
-// src/config/moduleRegistry.ts (uitgebreid)
-
-export interface ModuleDefinition {
-  id: NavigationDestination;
-  labelKey: string;              // i18n key
-  icon: ModuleIconType;          // Icon type
-  color: string;                 // Brand color
-  customLogo?: React.ComponentType<{ size: number }>;
-
-  // Platform-specifieke opties
-  showInSidebar?: boolean;       // Default: true
-  showInWheel?: boolean;         // Default: true
-  sidebarGroup?: 'primary' | 'secondary' | 'footer';
-}
-
-// Gegroepeerde modules voor sidebar
-export const MODULE_GROUPS = {
-  primary: ['chats', 'contacts', 'groups', 'calls'],
-  secondary: ['radio', 'podcast', 'books', 'weather'],
-  footer: ['settings', 'help'],
-} as const;
-```
-
-### 2.2 Shared Module Item Component
-
-```typescript
-// src/components/ModuleItem.tsx
-
-interface ModuleItemProps {
-  module: ModuleDefinition;
-  isActive: boolean;
-  onPress: () => void;
-
-  // Layout variants
-  variant: 'wheel' | 'sidebar' | 'compact';
-
-  // Sizing
-  size?: 'small' | 'medium' | 'large';
-}
-
-export function ModuleItem({
-  module,
-  isActive,
-  onPress,
-  variant,
-  size = 'medium',
-}: ModuleItemProps) {
-  const { t } = useTranslation();
-  const { triggerFeedback } = useFeedback();
-
-  const handlePress = useCallback(() => {
-    triggerFeedback('tap');
-    onPress();
-  }, [onPress, triggerFeedback]);
-
-  const containerStyle = useMemo(() => {
-    switch (variant) {
-      case 'wheel':
-        return [styles.wheelItem, isActive && styles.wheelItemActive];
-      case 'sidebar':
-        return [styles.sidebarItem, isActive && styles.sidebarItemActive];
-      case 'compact':
-        return [styles.compactItem, isActive && styles.compactItemActive];
-    }
-  }, [variant, isActive]);
-
-  return (
-    <TouchableOpacity
-      style={containerStyle}
-      onPress={handlePress}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isActive }}
-      accessibilityLabel={t(module.labelKey)}
-    >
-      {module.customLogo ? (
-        <module.customLogo size={size === 'large' ? 40 : 24} />
-      ) : (
-        <ModuleIcon name={module.icon} size={size === 'large' ? 40 : 24} />
-      )}
-      <Text style={styles.label}>{t(module.labelKey)}</Text>
-    </TouchableOpacity>
-  );
-}
-```
-
----
-
-## Fase 3: iPad Sidebar Navigatie
-
-### 3.1 Layout
-
-```
-iPad Landscape (Split View):
-┌─────────────────────────────────────────────────────────────────────┐
-│  ┌────────────────┐  ┌────────────────────────────────────────────┐ │
-│  │   SIDEBAR      │  │              CONTENT AREA                  │ │
-│  │   (320pt)      │  │              (remaining width)             │ │
-│  │                │  │                                            │ │
-│  │  ┌──────────┐  │  │                                            │ │
-│  │  │ Berichten│◀─┼──┼─ Active indicator                          │ │
-│  │  │ Contacten│  │  │                                            │ │
-│  │  │ Groepen  │  │  │                                            │ │
-│  │  │ Bellen   │  │  │                                            │ │
-│  │  └──────────┘  │  │                                            │ │
-│  │                │  │                                            │ │
-│  │  ── Media ──   │  │                                            │ │
-│  │  │ Radio    │  │  │                                            │ │
-│  │  │ Podcast  │  │  │                                            │ │
-│  │  │ Boeken   │  │  │                                            │ │
-│  │  │ Weer     │  │  │                                            │ │
-│  │  └──────────┘  │  │                                            │ │
-│  │                │  │                                            │ │
-│  │  ┌──────────┐  │  │                                            │ │
-│  │  │ Instellin│  │  │                                            │ │
-│  │  │ Help     │  │  │                                            │ │
-│  │  └──────────┘  │  │                                            │ │
-│  └────────────────┘  └────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────┘
-
-iPad Portrait (Collapsible Sidebar):
-┌────────────────────────────────────────────────┐
-│  [≡]  Content Title                    [···]   │
-├────────────────────────────────────────────────┤
-│  ┌────┐                                        │
-│  │    │  CONTENT AREA                          │
-│  │ S  │  (full width when sidebar collapsed)  │
-│  │ I  │                                        │
-│  │ D  │  Sidebar slides in from left           │
-│  │ E  │  on hamburger tap                      │
-│  │ B  │                                        │
-│  │ A  │                                        │
-│  │ R  │                                        │
-│  └────┘                                        │
-└────────────────────────────────────────────────┘
-```
-
-### 3.2 Sidebar Component
-
-```typescript
-// src/components/navigation/Sidebar.tsx
-
-interface SidebarProps {
-  modules: ModuleDefinition[];
-  activeModule: NavigationDestination;
-  onModuleSelect: (module: NavigationDestination) => void;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-}
-
-export function Sidebar({
-  modules,
-  activeModule,
-  onModuleSelect,
-  isCollapsed,
-  onToggleCollapse,
-}: SidebarProps) {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-
-  const groupedModules = useMemo(() => ({
-    primary: modules.filter(m => MODULE_GROUPS.primary.includes(m.id)),
-    secondary: modules.filter(m => MODULE_GROUPS.secondary.includes(m.id)),
-    footer: modules.filter(m => MODULE_GROUPS.footer.includes(m.id)),
-  }), [modules]);
-
-  return (
-    <View style={[styles.sidebar, isCollapsed && styles.sidebarCollapsed]}>
-      {/* Header with collapse button */}
-      <View style={styles.sidebarHeader}>
-        <TouchableOpacity
-          style={styles.collapseButton}
-          onPress={onToggleCollapse}
-          accessibilityLabel={t(isCollapsed ? 'nav.expand' : 'nav.collapse')}
-        >
-          <Icon name={isCollapsed ? 'menu' : 'chevron-left'} size={24} />
-        </TouchableOpacity>
-        {!isCollapsed && (
-          <Text style={styles.sidebarTitle}>CommEazy</Text>
-        )}
-      </View>
-
-      <ScrollView style={styles.sidebarContent}>
-        {/* Primary modules */}
-        <View style={styles.moduleGroup}>
-          {groupedModules.primary.map(module => (
-            <ModuleItem
-              key={module.id}
-              module={module}
-              isActive={activeModule === module.id}
-              onPress={() => onModuleSelect(module.id)}
-              variant={isCollapsed ? 'compact' : 'sidebar'}
-            />
-          ))}
-        </View>
-
-        {/* Divider */}
-        {!isCollapsed && (
-          <View style={styles.divider}>
-            <Text style={styles.dividerText}>{t('nav.media')}</Text>
-          </View>
-        )}
-
-        {/* Secondary modules (Media) */}
-        <View style={styles.moduleGroup}>
-          {groupedModules.secondary.map(module => (
-            <ModuleItem
-              key={module.id}
-              module={module}
-              isActive={activeModule === module.id}
-              onPress={() => onModuleSelect(module.id)}
-              variant={isCollapsed ? 'compact' : 'sidebar'}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Footer modules (Settings, Help) */}
-      <View style={styles.sidebarFooter}>
-        {groupedModules.footer.map(module => (
-          <ModuleItem
-            key={module.id}
-            module={module}
-            isActive={activeModule === module.id}
-            onPress={() => onModuleSelect(module.id)}
-            variant={isCollapsed ? 'compact' : 'sidebar'}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  sidebar: {
-    width: 320,
-    backgroundColor: colors.surface,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
-  },
-  sidebarCollapsed: {
-    width: 72,  // Icon-only mode
-  },
-  // ... more styles
-});
-```
-
-### 3.3 Split View Layout
+### 2.1 SplitViewLayout Component
 
 ```typescript
 // src/components/navigation/SplitViewLayout.tsx
 
 interface SplitViewLayoutProps {
-  children: React.ReactNode;
+  children?: ReactNode;  // Not used - panels render modules
 }
 
-export function SplitViewLayout({ children }: SplitViewLayoutProps) {
-  const { isLandscape, screenWidth } = useDeviceType();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(!isLandscape);
-  const { activeModule, navigateTo, modules } = useNavigationContext();
+export function SplitViewLayout({}: SplitViewLayoutProps) {
+  const {
+    leftPanel,
+    rightPanel,
+    panelRatio,
+    activePickerPanel,
+    closeModulePicker,
+  } = useSplitViewContext();
 
-  // Auto-collapse in portrait, expand in landscape
-  useEffect(() => {
-    setSidebarCollapsed(!isLandscape);
-  }, [isLandscape]);
+  const { width: screenWidth } = useWindowDimensions();
+
+  const leftWidth = screenWidth * panelRatio;
+  const rightWidth = screenWidth * (1 - panelRatio);
 
   return (
     <View style={styles.container}>
-      <Sidebar
-        modules={modules}
-        activeModule={activeModule}
-        onModuleSelect={navigateTo}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
-      />
-      <View style={styles.content}>
-        {children}
+      {/* Left Panel */}
+      <View style={[styles.panel, { width: leftWidth }]}>
+        <ModulePanel
+          panelId="left"
+          moduleId={leftPanel.moduleId}
+        />
       </View>
+
+      {/* Divider */}
+      <View style={styles.divider} />
+
+      {/* Right Panel */}
+      <View style={[styles.panel, { width: rightWidth }]}>
+        <ModulePanel
+          panelId="right"
+          moduleId={rightPanel.moduleId}
+        />
+      </View>
+
+      {/* Module Picker Modal */}
+      {activePickerPanel && (
+        <ModulePickerModal
+          targetPanel={activePickerPanel}
+          onClose={closeModulePicker}
+        />
+      )}
     </View>
+  );
+}
+```
+
+### 2.2 ModulePanel Component
+
+```typescript
+// src/components/navigation/ModulePanel.tsx
+
+interface ModulePanelProps {
+  panelId: 'left' | 'right';
+  moduleId: NavigationDestination;
+}
+
+export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
+  const { openModulePicker, setActiveVoicePanel } = useSplitViewContext();
+
+  // Long-press handler for module picker
+  const handleLongPress = useCallback(() => {
+    openModulePicker(panelId);
+  }, [panelId, openModulePicker]);
+
+  // Two-finger long-press handler for voice
+  const handleTwoFingerLongPress = useCallback(() => {
+    setActiveVoicePanel(panelId);
+    // Trigger voice commands for THIS panel's module
+  }, [panelId, setActiveVoicePanel]);
+
+  // Render the module content
+  const ModuleComponent = getModuleComponent(moduleId);
+
+  return (
+    <View
+      style={styles.panelContainer}
+      onLongPress={handleLongPress}
+    >
+      {/* Two-finger gesture detector */}
+      <TwoFingerGestureDetector onLongPress={handleTwoFingerLongPress}>
+        <ModuleComponent panelId={panelId} />
+      </TwoFingerGestureDetector>
+    </View>
+  );
+}
+
+// Map module IDs to components
+function getModuleComponent(moduleId: NavigationDestination) {
+  const componentMap: Record<NavigationDestination, React.ComponentType<any>> = {
+    menu: MenuModule,
+    chats: ChatsModule,
+    contacts: ContactsModule,
+    groups: GroupsModule,
+    calls: CallsModule,
+    radio: RadioModule,
+    podcast: PodcastModule,
+    books: BooksModule,
+    weather: WeatherModule,
+    settings: SettingsModule,
+    help: HelpModule,
+  };
+  return componentMap[moduleId] || MenuModule;
+}
+```
+
+### 2.3 ModulePickerModal Component
+
+```typescript
+// src/components/navigation/ModulePickerModal.tsx
+
+interface ModulePickerModalProps {
+  targetPanel: 'left' | 'right';
+  onClose: () => void;
+}
+
+export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalProps) {
+  const { t } = useTranslation();
+  const { modules } = useNavigationContext();
+  const { setLeftModule, setRightModule } = useSplitViewContext();
+
+  const handleModuleSelect = useCallback((moduleId: NavigationDestination) => {
+    if (targetPanel === 'left') {
+      setLeftModule(moduleId);
+    } else {
+      setRightModule(moduleId);
+    }
+    onClose();
+  }, [targetPanel, setLeftModule, setRightModule, onClose]);
+
+  return (
+    <Modal
+      visible
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.title}>{t('nav.chooseModule')}</Text>
+
+          <View style={styles.moduleGrid}>
+            {modules.map(module => (
+              <TouchableOpacity
+                key={module.id}
+                style={styles.moduleButton}
+                onPress={() => handleModuleSelect(module.id)}
+                accessibilityRole="button"
+                accessibilityLabel={t(module.labelKey)}
+              >
+                <ModuleIcon name={module.icon} size={32} color={module.color} />
+                <Text style={styles.moduleLabel}>{t(module.labelKey)}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 ```
 
 ---
 
-## Fase 4: Unified Navigation Provider
+## Fase 3: Menu Module
 
-### 4.1 Navigation Context
+### 3.1 MenuModule Component (nieuw)
 
 ```typescript
-// src/contexts/NavigationContext.tsx
+// src/components/modules/MenuModule.tsx
 
-interface NavigationContextValue {
-  // Current state
-  activeModule: NavigationDestination;
-  modules: ModuleDefinition[];
-
-  // Actions
-  navigateTo: (destination: NavigationDestination) => void;
-
-  // Device-specific
-  deviceType: DeviceType;
-
-  // For wheel menu (iPhone)
-  isWheelOpen: boolean;
-  openWheel: () => void;
-  closeWheel: () => void;
-
-  // For sidebar (iPad)
-  isSidebarCollapsed: boolean;
-  toggleSidebar: () => void;
+interface MenuModuleProps {
+  panelId: 'left' | 'right';
 }
 
-export function NavigationProvider({ children }: { children: React.ReactNode }) {
-  const { deviceType, isLandscape } = useDeviceType();
-  const navigation = useNavigation();
+export function MenuModule({ panelId }: MenuModuleProps) {
+  const { t } = useTranslation();
+  const { modules, getModulesByGroup } = useNavigationContext();
+  const { setLeftModule, setRightModule } = useSplitViewContext();
 
-  const [activeModule, setActiveModule] = useState<NavigationDestination>('chats');
-  const [isWheelOpen, setIsWheelOpen] = useState(false);
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const groupedModules = getModulesByGroup();
 
-  // Get modules from registry + enabled dynamic modules
-  const { enabledModules } = useModuleConfig();
-  const modules = useMemo(() => {
-    const staticModules = Object.values(STATIC_MODULE_DEFINITIONS);
-    const dynamicModules = enabledModules.map(getModuleDefinition);
-    return [...staticModules, ...dynamicModules];
-  }, [enabledModules]);
-
-  // Navigate to module
-  const navigateTo = useCallback((destination: NavigationDestination) => {
-    setActiveModule(destination);
-    recordModuleUsage(destination);
-
-    // Close wheel on iPhone
-    if (deviceType === 'phone') {
-      setIsWheelOpen(false);
+  const handleModuleSelect = useCallback((moduleId: NavigationDestination) => {
+    // Replace this panel's content with the selected module
+    if (panelId === 'left') {
+      setLeftModule(moduleId);
+    } else {
+      setRightModule(moduleId);
     }
-
-    // Navigate to screen
-    const tabName = getTabNameForDestination(destination);
-    navigation.navigate(tabName);
-  }, [deviceType, navigation]);
-
-  const value = useMemo(() => ({
-    activeModule,
-    modules,
-    navigateTo,
-    deviceType,
-    isWheelOpen,
-    openWheel: () => setIsWheelOpen(true),
-    closeWheel: () => setIsWheelOpen(false),
-    isSidebarCollapsed,
-    toggleSidebar: () => setSidebarCollapsed(prev => !prev),
-  }), [activeModule, modules, navigateTo, deviceType, isWheelOpen, isSidebarCollapsed]);
+  }, [panelId, setLeftModule, setRightModule]);
 
   return (
-    <NavigationContext.Provider value={value}>
-      {children}
-    </NavigationContext.Provider>
+    <ScrollView style={styles.container}>
+      {/* Primary modules */}
+      <View style={styles.group}>
+        {groupedModules.primary.map(module => (
+          <ModuleListItem
+            key={module.id}
+            module={module}
+            onPress={() => handleModuleSelect(module.id)}
+          />
+        ))}
+      </View>
+
+      <View style={styles.divider}>
+        <Text style={styles.dividerText}>{t('nav.media')}</Text>
+      </View>
+
+      {/* Secondary modules (Media) */}
+      <View style={styles.group}>
+        {groupedModules.secondary.map(module => (
+          <ModuleListItem
+            key={module.id}
+            module={module}
+            onPress={() => handleModuleSelect(module.id)}
+          />
+        ))}
+      </View>
+
+      <View style={styles.divider} />
+
+      {/* Footer modules */}
+      <View style={styles.group}>
+        {groupedModules.footer.map(module => (
+          <ModuleListItem
+            key={module.id}
+            module={module}
+            onPress={() => handleModuleSelect(module.id)}
+          />
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 ```
 
-### 4.2 Adaptive Navigation Wrapper
+---
+
+## Fase 4: Adaptive Navigation Wrapper Update
+
+### 4.1 Updated AdaptiveNavigationWrapper
 
 ```typescript
-// src/components/navigation/AdaptiveNavigation.tsx
+// src/components/navigation/AdaptiveNavigationWrapper.tsx
 
-export function AdaptiveNavigation({ children }: { children: React.ReactNode }) {
-  const { deviceType } = useDeviceType();
+export function AdaptiveNavigationWrapper({ children }: { children: ReactNode }) {
+  const device = useDeviceType();
 
-  if (deviceType === 'tablet') {
+  if (device.isTablet) {
+    // iPad: Split View with module panels
     return (
-      <SplitViewLayout>
-        {children}
-      </SplitViewLayout>
+      <SplitViewProvider>
+        <SplitViewLayout />
+      </SplitViewProvider>
     );
   }
 
@@ -526,79 +580,102 @@ export function AdaptiveNavigation({ children }: { children: React.ReactNode }) 
 
 ---
 
-## Fase 5: Voice Commands Integratie
+## Fase 5: Voice Commands per Panel
 
-### 5.1 Platform-Onafhankelijke Voice Commands
-
-Voice commands werken identiek op beide platforms:
-
-| Commando | Actie |
-|----------|-------|
-| "berichten" | Navigeer naar Chats |
-| "contacten" | Navigeer naar Contacts |
-| "radio" | Navigeer naar Radio |
-| etc. | etc. |
-
-### 5.2 Two-Finger Gesture op iPad
-
-Op iPad blijft de two-finger long-press beschikbaar voor voice commands, ook met sidebar zichtbaar.
-
----
-
-## Fase 6: iPad-Specifieke Features
-
-### 6.1 Keyboard Shortcuts
+### 5.1 Panel-Scoped Voice Commands
 
 ```typescript
-// src/hooks/useKeyboardShortcuts.ts
+// src/hooks/useVoiceCommands.ts (uitbreiden)
 
-export function useKeyboardShortcuts() {
-  const { navigateTo } = useNavigationContext();
+export function useVoiceCommands(panelId?: 'left' | 'right') {
+  const { activeVoicePanel } = useSplitViewContext();
+  const device = useDeviceType();
 
-  useEffect(() => {
-    // ⌘1 = Berichten, ⌘2 = Contacten, etc.
-    const shortcuts = {
-      '1': 'chats',
-      '2': 'contacts',
-      '3': 'groups',
-      '4': 'calls',
-      '5': 'radio',
-      '6': 'podcast',
-      '7': 'books',
-      '8': 'weather',
-      '9': 'settings',
-      '0': 'help',
-    };
+  // On iPad, only process commands if this panel is active
+  const isActive = useMemo(() => {
+    if (device.isPhone) return true;  // iPhone: always active
+    if (!panelId) return true;  // No panel specified
+    return activeVoicePanel === panelId;
+  }, [device.isPhone, panelId, activeVoicePanel]);
 
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.metaKey && shortcuts[event.key]) {
-        event.preventDefault();
-        navigateTo(shortcuts[event.key]);
-      }
-    };
-
-    // Add keyboard listener (iOS specific)
-    // ...
-  }, [navigateTo]);
+  // ... existing voice command logic, but filter by isActive
 }
 ```
 
-### 6.2 Drag & Drop Support
-
-Voor toekomstige versies: drag & drop van content tussen sidebar modules.
-
-### 6.3 Pointer/Trackpad Support
+### 5.2 TwoFingerGestureDetector Component
 
 ```typescript
-// iPad met Magic Keyboard/Trackpad
-const styles = StyleSheet.create({
-  sidebarItem: {
-    // Hover states voor pointer
-    ':hover': {
-      backgroundColor: colors.surfaceHover,
-    },
-  },
-});
+// src/components/TwoFingerGestureDetector.tsx
+
+interface TwoFingerGestureDetectorProps {
+  children: ReactNode;
+  onLongPress: () => void;
+  delayMs?: number;
+}
+
+export function TwoFingerGestureDetector({
+  children,
+  onLongPress,
+  delayMs = 1000,
+}: TwoFingerGestureDetectorProps) {
+  const touchCount = useRef(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTouchStart = useCallback((event: GestureResponderEvent) => {
+    touchCount.current = event.nativeEvent.touches.length;
+
+    if (touchCount.current === 2) {
+      // Start timer for long-press
+      timerRef.current = setTimeout(() => {
+        onLongPress();
+      }, delayMs);
+    }
+  }, [onLongPress, delayMs]);
+
+  const handleTouchEnd = useCallback(() => {
+    touchCount.current = 0;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  return (
+    <View
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      style={{ flex: 1 }}
+    >
+      {children}
+    </View>
+  );
+}
+```
+
+---
+
+## Fase 6: Settings voor Panel Ratio
+
+### 6.1 iPad Layout Settings
+
+```typescript
+// In SettingsScreen.tsx
+
+// Add to settings options (iPad only):
+{device.isTablet && (
+  <SettingsSection title={t('settings.ipadLayout.title')}>
+    <SettingsSlider
+      label={t('settings.ipadLayout.panelRatio')}
+      value={panelRatio}
+      onChange={setPanelRatio}
+      minimumValue={0.25}
+      maximumValue={0.5}
+      step={0.05}
+      formatValue={(v) => `${Math.round(v * 100)}% / ${Math.round((1 - v) * 100)}%`}
+    />
+  </SettingsSection>
+)}
 ```
 
 ---
@@ -606,24 +683,34 @@ const styles = StyleSheet.create({
 ## Implementatie Volgorde
 
 ### Sprint 1: Foundation
-1. [ ] `useDeviceType` hook implementeren
-2. [ ] `ModuleItem` component maken (shared)
-3. [ ] `NavigationContext` uitbreiden met device-aware state
+1. [x] `useDeviceType` hook (bestaand)
+2. [ ] `SplitViewContext` maken
+3. [ ] `SplitViewProvider` implementeren
 
-### Sprint 2: Sidebar
-4. [ ] `Sidebar` component maken
-5. [ ] `SplitViewLayout` component maken
-6. [ ] Sidebar styling (collapsed/expanded states)
+### Sprint 2: Layout Components
+4. [ ] `SplitViewLayout` component
+5. [ ] `ModulePanel` component
+6. [ ] `ModulePickerModal` component
 
-### Sprint 3: Integration
-7. [ ] `AdaptiveNavigation` wrapper maken
-8. [ ] Integreren in App root
-9. [ ] Testen op iPad simulator + device
+### Sprint 3: Menu Module
+7. [ ] `MenuModule` component
+8. [ ] `ModuleListItem` component
+9. [ ] Module grouping logic
 
-### Sprint 4: Polish
-10. [ ] Keyboard shortcuts implementeren
-11. [ ] Landscape/portrait transitions
-12. [ ] Accessibility audit (VoiceOver op iPad)
+### Sprint 4: Integration
+10. [ ] Update `AdaptiveNavigationWrapper`
+11. [ ] Integrate `SplitViewProvider` in App
+12. [ ] Test op iPad simulator
+
+### Sprint 5: Voice & Gestures
+13. [ ] `TwoFingerGestureDetector` component
+14. [ ] Panel-scoped voice commands
+15. [ ] Long-press gesture for module picker
+
+### Sprint 6: Settings & Polish
+16. [ ] Panel ratio settings
+17. [ ] Persist panel state (which modules are open)
+18. [ ] Accessibility audit
 
 ---
 
@@ -631,64 +718,75 @@ const styles = StyleSheet.create({
 
 ```
 src/
-  hooks/
-    useDeviceType.ts              ← NEW: Device detection
-    useKeyboardShortcuts.ts       ← NEW: iPad keyboard shortcuts
+  contexts/
+    SplitViewContext.tsx          ← NEW: iPad split view state
 
   components/
     navigation/
-      index.ts                    ← NEW: Navigation component exports
-      AdaptiveNavigation.tsx      ← NEW: Device-aware wrapper
-      Sidebar.tsx                 ← NEW: iPad sidebar
-      SplitViewLayout.tsx         ← NEW: iPad split view
-      ModuleItem.tsx              ← NEW: Shared module button
-    WheelNavigationMenu.tsx       ← MODIFY: Extract shared logic
-    HoldToNavigateWrapper.tsx     ← MODIFY: Only for phone
+      SplitViewLayout.tsx         ← NEW: iPad split view container
+      ModulePanel.tsx             ← NEW: Panel wrapper with gestures
+      ModulePickerModal.tsx       ← NEW: Module selection modal
+      AdaptiveNavigationWrapper.tsx  ← MODIFY: Add iPad path
 
-  contexts/
-    NavigationContext.tsx         ← NEW: Unified navigation state
+    modules/
+      MenuModule.tsx              ← NEW: Module list for initial state
+      ModuleListItem.tsx          ← NEW: Module button in list
 
-  config/
-    moduleRegistry.ts             ← MODIFY: Add sidebar groups
+    TwoFingerGestureDetector.tsx  ← NEW: Two-finger gesture handling
+
+  hooks/
+    useDeviceType.ts              ← EXISTS: No changes needed
+    useVoiceCommands.ts           ← MODIFY: Add panel scope
 ```
 
 ---
 
-## Backward Compatibility
+## i18n Keys (nieuw)
 
-| Aspect | Aanpak |
-|--------|--------|
-| Bestaande iPhone UX | 100% behouden — geen wijzigingen |
-| WheelNavigationMenu | Blijft werken, alleen op iPhone |
-| Voice commands | Werken op beide platforms |
-| Module ordering | Shared logic, platform-onafhankelijk |
-| Usage tracking | Unified across devices |
+```json
+{
+  "nav": {
+    "chooseModule": "Kies een module",
+    "media": "Media",
+    "leftPanel": "Linker paneel",
+    "rightPanel": "Rechter paneel"
+  },
+  "settings": {
+    "ipadLayout": {
+      "title": "iPad Layout",
+      "panelRatio": "Paneel verhouding"
+    }
+  }
+}
+```
 
 ---
 
 ## Senior-Inclusive Design Checklist
 
-- [ ] Sidebar touch targets ≥60pt
-- [ ] Text ≥18pt in sidebar labels
-- [ ] WCAG AAA contrast in sidebar
+- [ ] Touch targets ≥60pt in module picker
+- [ ] Text ≥18pt in module labels
+- [ ] WCAG AAA contrast
 - [ ] Haptic feedback op module selectie
-- [ ] VoiceOver support voor sidebar
-- [ ] Keyboard shortcuts communiceren via Help
-- [ ] Consistent iconografie met wheel menu
+- [ ] VoiceOver support voor split view
+- [ ] Clear visual indication welk paneel actief is
+- [ ] Long-press duur consistent met iPhone (1000ms)
 
 ---
 
 ## Test Scenario's
 
-| Test | Platform | Verwacht |
-|------|----------|----------|
-| Portrait sidebar | iPad | Collapsed, hamburger to open |
-| Landscape sidebar | iPad | Expanded, 320pt width |
-| Hold gesture | iPhone | Wheel menu opens |
-| Hold gesture | iPad | Nothing (sidebar is primary) |
-| Two-finger hold | Both | Voice commands active |
-| ⌘1 shortcut | iPad | Navigates to Chats |
-| Module tap | Both | Navigates + records usage |
+| Test | Verwacht Resultaat |
+|------|-------------------|
+| iPad opstart | Links: Menu, Rechts: Contacten |
+| Tap module in Menu | Module vervangt Menu in linker paneel |
+| Long-press rechter paneel | Module picker opent voor rechter paneel |
+| Selecteer module in picker | Module laadt in dat paneel |
+| Two-finger long-press links | Voice commands actief voor linker module |
+| Two-finger long-press rechts | Voice commands actief voor rechter module |
+| Zelfde module in beide panelen | Werkt (duplicatie toegestaan) |
+| Panel ratio wijzigen in settings | Panelen resizen correct |
+| App herstarten | Panel ratio blijft behouden |
 
 ---
 
@@ -696,10 +794,10 @@ src/
 
 | Risico | Mitigatie |
 |--------|-----------|
-| Sidebar te breed op kleine iPads | Min-width 320pt, collapsible |
-| Wheel gesture conflicten op iPad | Disable wheel, use sidebar only |
-| Performance met split view | Lazy load module screens |
-| i18n text expansion | Flexible sidebar width |
+| Performance met twee module renders | Lazy loading per module |
+| Memory bij zware modules (Radio) | Cleanup bij panel switch |
+| Gesture conflicten | Clear gesture priority |
+| State sync tussen panelen | Shared contexts |
 
 ---
 
@@ -711,5 +809,6 @@ src/
 
 ---
 
-*Plan gemaakt: 2026-02-21*
+*Plan bijgewerkt: 2026-02-21*
 *Status: Klaar voor review*
+*Vorige versie: Sidebar architectuur (vervangen door Split View)*
