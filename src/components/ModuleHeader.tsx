@@ -13,12 +13,18 @@
  * │  ─ ─ ─ ─ ─ ─ ─  Separator line (1pt) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
  * └──────────────────────────────────────────────────────────────┘
  *
+ * Liquid Glass Support (iOS 26+):
+ * - Uses LiquidGlassView wrapper when available
+ * - Falls back to solid color on iOS <26 and Android
+ * - Module tint colors defined in MODULE_TINT_COLORS
+ *
  * Senior-inclusive design:
  * - Touch targets ≥60pt for MediaIndicator
  * - High contrast text on colored background
  * - Consistent layout across all modules
  *
  * @see .claude/CLAUDE.md Section 12.2 (ModuleHeader Component)
+ * @see .claude/CLAUDE.md Section 16 (Liquid Glass Compliance)
  * @see .claude/skills/ui-designer/SKILL.md Section 7c
  */
 
@@ -29,7 +35,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { MediaIndicator } from './MediaIndicator';
 import { AdMobBanner } from './AdMobBanner';
+import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets } from '@/theme';
+import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
+import type { ModuleColorId } from '@/types/liquidGlass';
 import type { IconName } from './Icon';
 
 // ============================================================
@@ -55,6 +64,8 @@ export interface ModuleHeaderProps {
   onBackPress?: () => void;
   /** Accessibility label for back button (default: "Terug") */
   backButtonLabel?: string;
+  /** Custom logo component to render instead of icon (for source attribution) */
+  customLogo?: React.ReactNode;
 }
 
 // ============================================================
@@ -76,6 +87,8 @@ const MODULE_COLORS: Record<string, string> = {
   groups: '#00796B',     // Teal (darker)
   messages: '#1976D2',   // Blue (primary)
   settings: '#5E35B1',   // Deep Purple
+  nunl: '#E65100',       // nu.nl Orange
+  weather: '#03A9F4',    // Sky Blue
 };
 
 // ============================================================
@@ -92,12 +105,18 @@ export function ModuleHeader({
   showBackButton = false,
   onBackPress,
   backButtonLabel = 'Terug',
+  customLogo,
 }: ModuleHeaderProps) {
   const insets = useSafeAreaInsets();
   const moduleColor = MODULE_COLORS[moduleId] || colors.primary;
 
-  return (
-    <View style={[styles.container, { backgroundColor: moduleColor }]}>
+  // Check if Liquid Glass is available (safe to call outside provider)
+  const liquidGlassContext = useLiquidGlassContextSafe();
+  const useLiquidGlass = liquidGlassContext?.isEnabled ?? false;
+
+  // Common header content
+  const headerContent = (
+    <>
       {/* Safe Area Spacer */}
       <View style={{ height: insets.top }} />
 
@@ -122,7 +141,7 @@ export function ModuleHeader({
               <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
             </TouchableOpacity>
           )}
-          <Icon name={icon} size={28} color={colors.textOnPrimary} />
+          {customLogo ? customLogo : <Icon name={icon} size={28} color={colors.textOnPrimary} />}
           <Text style={styles.title}>{title}</Text>
         </View>
 
@@ -137,6 +156,25 @@ export function ModuleHeader({
 
       {/* Separator Line */}
       <View style={styles.separator} />
+    </>
+  );
+
+  // Use LiquidGlassView when available, otherwise fallback to solid color View
+  if (useLiquidGlass) {
+    return (
+      <LiquidGlassView
+        moduleId={moduleId as ModuleColorId}
+        style={styles.container}
+        cornerRadius={0}
+      >
+        {headerContent}
+      </LiquidGlassView>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: moduleColor }]}>
+      {headerContent}
     </View>
   );
 }

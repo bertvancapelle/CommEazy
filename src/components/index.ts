@@ -132,6 +132,10 @@ export type { RadarMapProps } from './RadarMap';
 export { TimeSlider } from './TimeSlider';
 export type { TimeSliderProps } from './TimeSlider';
 
+// Liquid Glass View (Apple iOS 26+ glass effects with fallback)
+export { LiquidGlassView } from './LiquidGlassView';
+export type { LiquidGlassViewProps } from './LiquidGlassView';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

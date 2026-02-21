@@ -57,3 +57,10 @@ export {
   type WheelMenuContextValue,
   type WheelMenuRequest,
 } from './WheelMenuContext';
+
+export {
+  LiquidGlassProvider,
+  useLiquidGlassContext,
+  useLiquidGlassContextSafe,
+  useLiquidGlassEnabled,
+} from './LiquidGlassContext';

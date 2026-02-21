@@ -10,6 +10,10 @@
  * - favorite: Favorite/heart button
  * - listenDuration: Duration counter for live streams
  *
+ * Liquid Glass Support (iOS 26+):
+ * - Play button uses LiquidGlassView when available and moduleId provided
+ * - Provides subtle glass effect on the main control
+ *
  * Senior-inclusive design:
  * - Touch targets ≥60pt
  * - High contrast text
@@ -18,6 +22,7 @@
  * - Reduced motion support
  *
  * @see .claude/CLAUDE.md Section 13 (Gestandaardiseerde AudioPlayer Architectuur)
+ * @see .claude/CLAUDE.md Section 16 (Liquid Glass Compliance)
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
@@ -39,8 +44,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, type IconName } from './Icon';
 import { SeekSlider } from './SeekSlider';
+import { LiquidGlassView } from './LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
 // Types
@@ -63,6 +71,8 @@ export interface AudioPlayerControls {
 }
 
 export interface ExpandedAudioPlayerProps {
+  /** Module ID for Liquid Glass tint color (e.g., 'radio', 'podcast', 'books') */
+  moduleId?: ModuleColorId;
   /** Is the modal visible */
   visible: boolean;
   /** Album/podcast/book cover artwork URL (or null for placeholder) */
@@ -71,7 +81,7 @@ export interface ExpandedAudioPlayerProps {
   title: string;
   /** Optional subtitle (show name, author) */
   subtitle?: string;
-  /** Module accent color (e.g., teal for radio, purple for podcast) */
+  /** Module accent color (e.g., teal for radio, purple for podcast) - used as fallback */
   accentColor: string;
   /** Placeholder icon when no artwork is available */
   placeholderIcon?: IconName;
@@ -160,6 +170,7 @@ function formatTime(seconds: number): string {
 // ============================================================
 
 export function ExpandedAudioPlayer({
+  moduleId,
   visible,
   artwork,
   title,
@@ -193,6 +204,10 @@ export function ExpandedAudioPlayer({
   const insets = useSafeAreaInsets();
   const { triggerFeedback } = useFeedback();
   const isReducedMotion = useReducedMotion();
+
+  // Check if Liquid Glass is available
+  const liquidGlassContext = useLiquidGlassContextSafe();
+  const useLiquidGlass = liquidGlassContext?.isEnabled && moduleId;
 
   // Pulse animation for artwork when playing
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -403,24 +418,51 @@ export function ExpandedAudioPlayer({
               </TouchableOpacity>
             )}
 
-            {/* Play/Pause button */}
-            <TouchableOpacity
-              style={[styles.mainPlayButton, { backgroundColor: accentColor }]}
-              onPress={handlePlayPause}
-              disabled={isLoading}
-              accessibilityRole="button"
-              accessibilityLabel={isPlaying ? t('audio.pause') : t('audio.play')}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="large" color={colors.textOnPrimary} />
-              ) : (
-                <Icon
-                  name={isPlaying ? 'pause' : 'play'}
-                  size={40}
-                  color={colors.textOnPrimary}
-                />
-              )}
-            </TouchableOpacity>
+            {/* Play/Pause button - with Liquid Glass when available */}
+            {useLiquidGlass && moduleId ? (
+              <LiquidGlassView
+                moduleId={moduleId}
+                fallbackColor={accentColor}
+                style={styles.mainPlayButtonGlass}
+                cornerRadius={40}
+              >
+                <TouchableOpacity
+                  style={styles.mainPlayButtonContent}
+                  onPress={handlePlayPause}
+                  disabled={isLoading}
+                  accessibilityRole="button"
+                  accessibilityLabel={isPlaying ? t('audio.pause') : t('audio.play')}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="large" color={colors.textOnPrimary} />
+                  ) : (
+                    <Icon
+                      name={isPlaying ? 'pause' : 'play'}
+                      size={40}
+                      color={colors.textOnPrimary}
+                    />
+                  )}
+                </TouchableOpacity>
+              </LiquidGlassView>
+            ) : (
+              <TouchableOpacity
+                style={[styles.mainPlayButton, { backgroundColor: accentColor }]}
+                onPress={handlePlayPause}
+                disabled={isLoading}
+                accessibilityRole="button"
+                accessibilityLabel={isPlaying ? t('audio.pause') : t('audio.play')}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="large" color={colors.textOnPrimary} />
+                ) : (
+                  <Icon
+                    name={isPlaying ? 'pause' : 'play'}
+                    size={40}
+                    color={colors.textOnPrimary}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
 
             {/* Skip forward */}
             {controls.skipButtons && onSkipForward && (
@@ -659,6 +701,28 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
+  },
+  mainPlayButtonGlass: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  mainPlayButtonContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   favoriteButton: {
     marginTop: spacing.lg,

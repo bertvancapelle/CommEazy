@@ -19,6 +19,7 @@ Privacy-first family communication app. End-to-end encrypted messaging, photos, 
 3. **12-language support** — All UI strings via t(), zero hardcoded text (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 4. **Store compliance** — Apple Privacy Manifest + Google Data Safety Section
 5. **Encryption export** — US BIS Self-Classification Report filed
+6. **Apple Platform Compliance (Liquid Glass)** — iOS/iPadOS 26+ must use Liquid Glass effects with module tint colors; graceful fallback to solid colors on iOS <26 and Android. See section 16.
 
 ## Project Structure
 ```
@@ -1940,6 +1941,59 @@ cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cac
    ```
 
 **Let op:** Claude kan Metro NIET zelf starten via Bash (npx niet in PATH). Geef altijd het commando aan de gebruiker.
+
+---
+
+## 16. Apple Liquid Glass Compliance (iOS/iPadOS 26+)
+
+### Principe
+
+CommEazy MOET Apple's Liquid Glass design systeem ondersteunen op devices die iOS/iPadOS 26+ draaien. Dit is een **Non-Negotiable Requirement** (zie punt 6).
+
+### Kernregels
+
+1. **Progressive Enhancement** — Liquid Glass op iOS 26+, solid color fallback op iOS <26 en Android
+2. **Module Tint Colors** — Bestaande module kleuren worden Liquid Glass tints met instelbare intensiteit
+3. **User Control** — Gebruiker kan tint intensiteit aanpassen (0-100%) in Instellingen
+4. **Accessibility First** — Respecteer "Reduce Transparency" systeem instelling
+5. **Backward Compatibility** — App MOET functioneel blijven op iOS 15+ en Android 8+
+
+### Technische Architectuur
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    React Native Layer                        │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  LiquidGlassContext (settings, platform detection)  │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  LiquidGlassView (wrapper component)                │    │
+│  │  - iOS 26+: renders native UIGlassEffect           │    │
+│  │  - iOS <26 / Android: renders solid color View     │    │
+│  └─────────────────────────────────────────────────────┘    │
+├─────────────────────────────────────────────────────────────┤
+│                    Native iOS Layer                          │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  LiquidGlassModule.swift (@available iOS 26)        │    │
+│  │  - UIGlassEffect with custom tint                  │    │
+│  │  - Intensity control via effect configuration      │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Validatie Triggers
+
+| Wijziging bevat... | Verplichte validatie |
+|-------------------|----------------------|
+| UI component met achtergrondkleur | Liquid Glass compliance check |
+| ModuleHeader, MiniPlayer, Cards | MOET LiquidGlassView gebruiken |
+| Nieuwe module | MOET module kleur in LIQUID_GLASS_COLORS registreren |
+
+### Gefaseerde Implementatie
+
+Zie `.claude/plans/LIQUID_GLASS_IMPLEMENTATION.md` voor het volledige implementatieplan.
+
+**BELANGRIJK:** Implementatie gebeurt stap-voor-stap met expliciete goedkeuring per fase.
 
 ---
 
