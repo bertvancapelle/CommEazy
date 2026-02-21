@@ -281,6 +281,23 @@ xcrun simctl delete unavailable
 Voer uit: ⌘⇧K (Clean Build) → ⌘R (Build & Run)
 ```
 
+### ⚠️ Na ELKE Push: ZIP Backup van .claude/ Configuratie
+
+**Dit is een gebruikersvoorkeur.** Na elke succesvolle push MOET Claude automatisch een ZIP backup maken van de `.claude/` configuratie folder.
+
+```bash
+# ALTIJD uitvoeren na git push:
+cd /Users/bertvancapelle/Projects/CommEazy && \
+zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
+```
+
+**Output na backup:**
+```
+📦 Config backup: ~/Projects/CommEazy-claude-config-YYYYMMDD.zip
+```
+
+**Reden:** De `.claude/` folder bevat ~200KB aan waardevolle project instructies, skill definities en workflows die buiten git ook bewaard moeten blijven.
+
 ### Claude's Verantwoordelijkheid
 
 Na het voltooien van een taak MOET Claude zeggen:
