@@ -20,13 +20,16 @@ import {
   StyleSheet,
   Platform,
   Vibration,
+  AccessibilityInfo,
   type GestureResponderEvent,
+  type LayoutChangeEvent,
 } from 'react-native';
 
 import { useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
 import { useHoldGestureContext } from '@/contexts/HoldGestureContext';
+import { useWheelMenuContext } from '@/contexts/WheelMenuContext';
 import { PanelNavigator } from './PanelNavigator';
-import { WheelNavigationMenu } from '@/components/WheelNavigationMenu';
+import { HoldIndicator } from '@/components/HoldIndicator';
 import type { NavigationDestination } from '@/types/navigation';
 import { colors } from '@/theme';
 
@@ -56,16 +59,51 @@ export interface ModulePanelProps {
 // ============================================================
 
 export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
-  const { setPanelModule, setActiveVoicePanel } = useSplitViewContext();
+  const { setActiveVoicePanel } = useSplitViewContext();
   const holdGesture = useHoldGestureContext();
-
-  // WheelNavigationMenu visibility state — consistent UX with iPhone
-  const [isWheelMenuOpen, setIsWheelMenuOpen] = useState(false);
+  const wheelMenu = useWheelMenuContext();
 
   // Touch tracking refs
   const touchCountRef = useRef(0);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const twoFingerTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // HoldIndicator state
+  const [isHolding, setIsHolding] = useState(false);
+  const [holdPosition, setHoldPosition] = useState({ x: 0, y: 0 });
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  // Track container's screen position for coordinate conversion
+  // pageX/pageY are absolute screen coordinates, but HoldIndicator is rendered
+  // inside the ModulePanel, so we need to convert to local coordinates
+  const containerOffset = useRef({ x: 0, y: 0 });
+
+  // Check reduced motion preference
+  React.useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
+  }, []);
+
+  // Track container position on layout
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const { target } = event.nativeEvent;
+    if (target) {
+      // Use measure() to get absolute screen position
+      const viewRef = event.target as any;
+      if (viewRef && typeof viewRef.measure === 'function') {
+        viewRef.measure((
+          _x: number,
+          _y: number,
+          _width: number,
+          _height: number,
+          screenX: number,
+          screenY: number
+        ) => {
+          containerOffset.current = { x: screenX, y: screenY };
+          console.log('[ModulePanel] Container offset updated:', { x: screenX, y: screenY });
+        });
+      }
+    }
+  }, []);
 
   // ============================================================
   // Haptic Feedback
@@ -80,24 +118,14 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
   }, []);
 
   // ============================================================
-  // WheelNavigationMenu Handlers
+  // WheelNavigationMenu Handler
   // ============================================================
 
   const openWheelMenu = useCallback(() => {
     triggerHaptic();
-    setIsWheelMenuOpen(true);
-  }, [triggerHaptic]);
-
-  const handleWheelNavigate = useCallback((destination: NavigationDestination) => {
-    // Set the module for this panel
-    setPanelModule(panelId, destination);
-    setIsWheelMenuOpen(false);
-  }, [panelId, setPanelModule]);
-
-  const handleWheelClose = useCallback(() => {
-    triggerHaptic();
-    setIsWheelMenuOpen(false);
-  }, [triggerHaptic]);
+    // Open menu via context — renders at root level for full-screen overlay
+    wheelMenu.openMenu(panelId, moduleId);
+  }, [triggerHaptic, wheelMenu, panelId, moduleId]);
 
   // ============================================================
   // Gesture Handlers
@@ -119,17 +147,37 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
       const touchCount = event.nativeEvent.touches.length;
       touchCountRef.current = touchCount;
 
+      console.log('[ModulePanel] handleTouchStart', { touchCount, panelId });
+
       clearTimers();
 
       if (touchCount === 1) {
+        // Capture touch position for HoldIndicator
+        // Convert absolute screen coordinates to local coordinates
+        const { pageX, pageY } = event.nativeEvent;
+        const localX = pageX - containerOffset.current.x;
+        const localY = pageY - containerOffset.current.y;
+        console.log('[ModulePanel] Single finger touch, starting hold indicator', {
+          pageX, pageY,
+          offset: containerOffset.current,
+          local: { x: localX, y: localY },
+        });
+        setHoldPosition({ x: localX, y: localY });
+        setIsHolding(true);
+
         // Single finger: start long-press timer for WheelNavigationMenu
         // UX CONSISTENCY: Same behavior as iPhone — opens wheel menu, not list modal
         longPressTimerRef.current = setTimeout(() => {
+          console.log('[ModulePanel] Long press timer completed, opening menu');
           // Consume gesture to prevent underlying elements from firing
           holdGesture?.consumeGesture();
+          setIsHolding(false);
           openWheelMenu();
         }, LONG_PRESS_DURATION);
       } else if (touchCount === 2) {
+        // Two fingers: cancel single-finger hold indicator
+        setIsHolding(false);
+
         // Two fingers: start timer for voice commands
         twoFingerTimerRef.current = setTimeout(() => {
           holdGesture?.consumeGesture();
@@ -144,11 +192,15 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
 
   const handleTouchMove = useCallback(() => {
     // Any movement cancels the long-press
+    console.log('[ModulePanel] handleTouchMove - cancelling hold');
+    setIsHolding(false);
     clearTimers();
   }, [clearTimers]);
 
   const handleTouchEnd = useCallback(() => {
+    console.log('[ModulePanel] handleTouchEnd');
     touchCountRef.current = 0;
+    setIsHolding(false);
     clearTimers();
   }, [clearTimers]);
 
@@ -159,6 +211,7 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
   return (
     <View
       style={styles.container}
+      onLayout={handleLayout}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -166,14 +219,17 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
     >
       <PanelNavigator panelId={panelId} moduleId={moduleId} />
 
-      {/* WheelNavigationMenu — consistent UX with iPhone
-          Opens on long-press, allows selecting any module for this panel */}
-      <WheelNavigationMenu
-        visible={isWheelMenuOpen}
-        onNavigate={handleWheelNavigate}
-        onClose={handleWheelClose}
-        activeScreen={moduleId}
+      {/* HoldIndicator shows animated ring during long press */}
+      <HoldIndicator
+        isActive={isHolding}
+        duration={LONG_PRESS_DURATION}
+        x={holdPosition.x}
+        y={holdPosition.y}
+        reducedMotion={reducedMotion}
       />
+
+      {/* WheelNavigationMenu is rendered at root level via WheelMenuContext
+          for full-screen overlay on iPad Split View */}
     </View>
   );
 }

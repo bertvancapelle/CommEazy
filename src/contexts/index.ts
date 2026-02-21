@@ -47,4 +47,13 @@ export {
   useNavigationContext,
   useNavigationContextSafe,
   type NavigationContextValue,
+  type NavigateCallback,
 } from './NavigationContext';
+
+export {
+  WheelMenuProvider,
+  useWheelMenuContext,
+  useWheelMenuContextSafe,
+  type WheelMenuContextValue,
+  type WheelMenuRequest,
+} from './WheelMenuContext';
