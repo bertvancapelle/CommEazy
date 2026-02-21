@@ -648,7 +648,13 @@
     "back": "Terug",
     "more_hint": "Toon meer modules",
     "back_hint": "Toon de meest gebruikte modules",
-    "current_module": "Dit is je huidige module"
+    "current_module": "Dit is je huidige module",
+    "sidebar": "Navigatiemenu",
+    "sections": {
+      "communication": "Communicatie",
+      "media": "Media",
+      "modules": "Extra"
+    }
   },
   "modules": {
     "coming_soon": "Binnenkort beschikbaar",

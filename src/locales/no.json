@@ -549,7 +549,13 @@
     "back": "Tilbake",
     "more_hint": "Vis flere moduler",
     "back_hint": "Vis de mest brukte modulene",
-    "current_module": "Dette er din nåværende modul"
+    "current_module": "Dette er din nåværende modul",
+    "sidebar": "Navigasjonsmeny",
+    "sections": {
+      "communication": "Kommunikasjon",
+      "media": "Media",
+      "modules": "Ekstra"
+    }
   },
   "modules": {
     "coming_soon": "Kommer snart",

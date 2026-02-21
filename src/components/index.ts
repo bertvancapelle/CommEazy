@@ -135,3 +135,21 @@ export type { TimeSliderProps } from './TimeSlider';
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';
+
+// Adaptive Navigation Components (iPad/iPhone hybrid menu)
+export {
+  ModuleItem,
+  ModuleIcon,
+  Sidebar,
+  AdaptiveNavigation,
+  SplitViewLayout,
+} from './navigation';
+export type {
+  ModuleItemProps,
+  ModuleItemVariant,
+  ModuleItemSize,
+  ModuleIconProps,
+  SidebarProps,
+  AdaptiveNavigationProps,
+  SplitViewLayoutProps,
+} from './navigation';

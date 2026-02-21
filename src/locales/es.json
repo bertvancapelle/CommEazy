@@ -644,7 +644,13 @@
     "back": "Atrás",
     "more_hint": "Mostrar más módulos",
     "back_hint": "Mostrar los módulos más usados",
-    "current_module": "Este es tu módulo actual"
+    "current_module": "Este es tu módulo actual",
+    "sidebar": "Menú de navegación",
+    "sections": {
+      "communication": "Comunicación",
+      "media": "Medios",
+      "modules": "Extras"
+    }
   },
   "modules": {
     "coming_soon": "Próximamente",

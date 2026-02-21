@@ -41,3 +41,10 @@ export {
   type CallContextValue,
   type CallProviderProps,
 } from './CallContext';
+
+export {
+  NavigationProvider,
+  useNavigationContext,
+  useNavigationContextSafe,
+  type NavigationContextValue,
+} from './NavigationContext';

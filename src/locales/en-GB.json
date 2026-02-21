@@ -647,7 +647,13 @@
     "back": "Back",
     "more_hint": "Show more modules",
     "back_hint": "Show most used modules",
-    "current_module": "This is your current module"
+    "current_module": "This is your current module",
+    "sidebar": "Navigation menu",
+    "sections": {
+      "communication": "Communication",
+      "media": "Media",
+      "modules": "Extras"
+    }
   },
   "modules": {
     "coming_soon": "Coming soon",

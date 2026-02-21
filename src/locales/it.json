@@ -623,7 +623,13 @@
     "back": "Indietro",
     "more_hint": "Mostra altri moduli",
     "back_hint": "Mostra i moduli più usati",
-    "current_module": "Questo è il tuo modulo attuale"
+    "current_module": "Questo è il tuo modulo attuale",
+    "sidebar": "Menu di navigazione",
+    "sections": {
+      "communication": "Comunicazione",
+      "media": "Media",
+      "modules": "Extra"
+    }
   },
   "modules": {
     "coming_soon": "Prossimamente",
