@@ -188,14 +188,14 @@ export function AppleMusicScreen() {
   // ============================================================
 
   const voiceFocusItems = useMemo(() => {
-    if (!isFocused || !searchResults.songs) return [];
+    if (!isFocused || !searchResults?.songs) return [];
     return searchResults.songs.map((song, index) => ({
       id: song.id,
       label: `${song.title} ${song.artistName}`,
       index,
       onSelect: () => handlePlaySong(song),
     }));
-  }, [isFocused, searchResults.songs, handlePlaySong]);
+  }, [isFocused, searchResults?.songs, handlePlaySong]);
 
   const { scrollRef } = useVoiceFocusList('apple-music-songs', voiceFocusItems);
 
@@ -305,7 +305,7 @@ export function AppleMusicScreen() {
         </View>
       )}
 
-      {searchResults.songs && searchResults.songs.length > 0 && (
+      {searchResults?.songs && searchResults.songs.length > 0 && (
         <ScrollView
           ref={scrollRef}
           style={styles.resultsList}
@@ -314,7 +314,7 @@ export function AppleMusicScreen() {
           <Text style={styles.sectionTitle}>
             {t('modules.appleMusic.search.songsTitle')}
           </Text>
-          {searchResults.songs.map((song, index) => (
+          {searchResults?.songs?.map((song, index) => (
             <VoiceFocusable
               key={song.id}
               id={song.id}
@@ -525,7 +525,7 @@ export function AppleMusicScreen() {
           isPlaying={isPlaying}
           isLoading={isPlaybackLoading}
           progressType="bar"
-          progress={playbackState.currentTime / (playbackState.duration || 1)}
+          progress={(playbackState?.currentTime ?? 0) / (playbackState?.duration || 1)}
           onPress={() => setIsPlayerExpanded(true)}
           onPlayPause={handlePlayPause}
         />
@@ -543,8 +543,8 @@ export function AppleMusicScreen() {
           isPlaying={isPlaying}
           isLoading={isPlaybackLoading}
           isBuffering={false}
-          position={playbackState.currentTime}
-          duration={playbackState.duration}
+          position={playbackState?.currentTime ?? 0}
+          duration={playbackState?.duration ?? 0}
           onSeek={() => {}}
           onPlayPause={handlePlayPause}
           onClose={() => setIsPlayerExpanded(false)}

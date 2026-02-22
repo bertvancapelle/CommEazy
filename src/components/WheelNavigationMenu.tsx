@@ -834,6 +834,54 @@ function ModuleIcon({ type, size }: ModuleIconProps) {
         </View>
       );
 
+    case 'appleMusic':
+      return (
+        <View style={[styles.iconContainer, { width: size, height: size }]}>
+          {/* Apple Music logo - musical note with gradient-like effect */}
+          {/* Note head */}
+          <View style={[styles.appleMusicNoteHead, {
+            width: size * 0.28,
+            height: size * 0.22,
+            borderRadius: size * 0.11,
+            bottom: size * 0.15,
+            left: size * 0.12,
+            transform: [{ rotate: '-20deg' }],
+          }]} />
+          {/* Note stem */}
+          <View style={[styles.appleMusicNoteStem, {
+            width: size * 0.08,
+            height: size * 0.55,
+            bottom: size * 0.28,
+            left: size * 0.32,
+          }]} />
+          {/* Note flag/beam */}
+          <View style={[styles.appleMusicNoteFlag, {
+            width: size * 0.25,
+            height: size * 0.15,
+            borderTopRightRadius: size * 0.15,
+            borderBottomRightRadius: size * 0.08,
+            top: size * 0.12,
+            left: size * 0.40,
+          }]} />
+          {/* Second note head (for beamed notes) */}
+          <View style={[styles.appleMusicNoteHead, {
+            width: size * 0.22,
+            height: size * 0.18,
+            borderRadius: size * 0.09,
+            bottom: size * 0.22,
+            right: size * 0.15,
+            transform: [{ rotate: '-20deg' }],
+          }]} />
+          {/* Second note stem */}
+          <View style={[styles.appleMusicNoteStem, {
+            width: size * 0.08,
+            height: size * 0.42,
+            bottom: size * 0.32,
+            right: size * 0.18,
+          }]} />
+        </View>
+      );
+
     default:
       return null;
   }
@@ -1142,6 +1190,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textOnPrimary,
   },
   weatherCloudBump: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+  },
+  // Apple Music icon styles
+  appleMusicNoteHead: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+  },
+  appleMusicNoteStem: {
+    position: 'absolute',
+    backgroundColor: colors.textOnPrimary,
+    borderRadius: 2,
+  },
+  appleMusicNoteFlag: {
     position: 'absolute',
     backgroundColor: colors.textOnPrimary,
   },
