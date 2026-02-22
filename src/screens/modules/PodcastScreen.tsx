@@ -72,6 +72,12 @@ const SEARCH_MAX_LENGTH = 100;
 const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 const SLEEP_TIMER_OPTIONS = [15, 30, 45, 60, 90]; // minutes
 
+// Layout constants for overlay positioning
+// ModuleHeader height: icon row (44pt) + AdMob placeholder (50pt) + separator + padding
+const MODULE_HEADER_HEIGHT = 120;
+// MiniPlayer height: touchTargets.comfortable (72pt) + vertical padding
+const MINI_PLAYER_HEIGHT = 84;
+
 // ============================================================
 // Component
 // ============================================================
@@ -475,24 +481,25 @@ export function PodcastScreen() {
     });
   };
 
+  // Calculate dynamic padding for content to extend under overlays
+  const contentPaddingTop = MODULE_HEADER_HEIGHT + insets.top;
+  const contentPaddingBottom = currentEpisode && !isPlayerExpanded && !showSpeedPicker && !showSleepTimerPicker
+    ? MINI_PLAYER_HEIGHT + insets.bottom
+    : insets.bottom;
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <View style={styles.innerContainer}>
-        {/* Module Header — standardized component with AdMob placeholder */}
-        <ModuleHeader
-          moduleId="podcast"
-          icon="podcast"
-          title={t('modules.podcast.title')}
-          currentSource="podcast"
-          showAdMob={true}
-        />
-
+      {/* ============================================================
+          CONTENT LAYER — Extends full height under overlays
+          Content scrolls UNDER the ModuleHeader and MiniPlayer
+          ============================================================ */}
+      <View style={styles.contentLayer}>
         {/* Tab selector — uses standardized FavoriteTabButton/SearchTabButton */}
-        <View style={styles.tabBar}>
+        <View style={[styles.tabBar, { marginTop: contentPaddingTop + spacing.md }]}>
           <FavoriteTabButton
             isActive={showSubscriptions}
             onPress={() => setShowSubscriptions(true)}
@@ -610,7 +617,8 @@ export function PodcastScreen() {
             style={styles.showList}
             contentContainerStyle={[
               styles.showListContent,
-              currentEpisode && { paddingBottom: touchTargets.comfortable + spacing.md },
+              // Add bottom padding for MiniPlayer overlay when visible
+              { paddingBottom: contentPaddingBottom + spacing.md },
             ]}
           >
             {displayedShows.map((show, index) => {
@@ -699,10 +707,31 @@ export function PodcastScreen() {
             })}
           </ScrollView>
         )}
+      </View>
+
+      {/* ============================================================
+          OVERLAY LAYER — Absolute positioned over content
+          Contains ModuleHeader (top) and MiniPlayer (bottom)
+          pointerEvents="box-none" allows touches to pass through
+          ============================================================ */}
+      <View style={styles.overlayLayer} pointerEvents="box-none">
+        {/* Module Header — absolute positioned at top */}
+        <ModuleHeader
+          moduleId="podcast"
+          icon="podcast"
+          title={t('modules.podcast.title')}
+          currentSource="podcast"
+          showAdMob={true}
+          style={styles.absoluteHeader}
+        />
+
+        {/* Spacer pushes MiniPlayer to bottom */}
+        <View style={styles.overlaySpacer} pointerEvents="none" />
 
         {/* Mini-player — using standardized component */}
         {currentEpisode && currentShow && !isPlayerExpanded && !showSpeedPicker && !showSleepTimerPicker && (
           <MiniPlayer
+            moduleId="podcast"
             artwork={currentEpisode.artwork || currentShow.artwork || null}
             title={currentEpisode.title}
             subtitle={currentShow.title}
@@ -725,10 +754,12 @@ export function PodcastScreen() {
             progress={progress.duration > 0 ? progress.position / progress.duration : 0}
             expandAccessibilityLabel={t('modules.podcast.expandPlayer')}
             expandAccessibilityHint={t('modules.podcast.expandPlayerHint')}
+            style={styles.absolutePlayer}
           />
         )}
+      </View>
 
-        {/* Show Detail Modal */}
+      {/* Show Detail Modal */}
         <Modal
           visible={selectedShow !== null}
           transparent={true}
@@ -1479,13 +1510,12 @@ export function PodcastScreen() {
           </View>
         </Modal>
 
-        {/* Voice hint */}
-        {isVoiceSessionActive && (
-          <View style={styles.voiceHint}>
-            <Text style={styles.voiceHintText}>{t('modules.podcast.voiceHint')}</Text>
-          </View>
-        )}
-      </View>
+      {/* Voice hint */}
+      {isVoiceSessionActive && (
+        <View style={styles.voiceHint}>
+          <Text style={styles.voiceHintText}>{t('modules.podcast.voiceHint')}</Text>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -1499,10 +1529,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  innerContainer: {
+  // ============================================================
+  // Overlay Architecture Styles (for Liquid Glass transparency)
+  // ============================================================
+  contentLayer: {
     flex: 1,
+    // Content extends full height — padding handled by contentPaddingTop/Bottom
   },
-  // moduleHeader styles removed — using standardized ModuleHeader component
+  overlayLayer: {
+    ...StyleSheet.absoluteFillObject,
+    // pointerEvents="box-none" set on component allows touches to pass through
+  },
+  absoluteHeader: {
+    // ModuleHeader positioned at top of overlay
+    // No explicit positioning needed — it's the first child in flex column
+  },
+  overlaySpacer: {
+    flex: 1,
+    // Pushes MiniPlayer to bottom
+  },
+  absolutePlayer: {
+    // MiniPlayer positioned at bottom of overlay
+    // No explicit positioning needed — it's the last child in flex column
+  },
+  // ============================================================
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,

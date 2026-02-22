@@ -90,6 +90,12 @@ interface FavoriteStation {
 const RADIO_BROWSER_API = 'https://de1.api.radio-browser.info/json';
 const API_TIMEOUT_MS = 10000; // 10 seconds timeout
 
+// Layout constants for overlay positioning
+// ModuleHeader height: icon row (44pt) + AdMob placeholder (50pt) + separator + padding
+const MODULE_HEADER_HEIGHT = 120;
+// MiniPlayer height: touchTargets.comfortable (72pt) + vertical padding
+const MINI_PLAYER_HEIGHT = 84;
+
 type ApiResult<T> = {
   data: T | null;
   error: 'network' | 'timeout' | 'server' | null;
@@ -644,91 +650,92 @@ export function RadioScreen() {
   // Voice command listeners — play first station if none selected
   // Note: play/pause/stop are handled by RadioContext voice listeners
 
+  // Calculate dynamic padding for content to extend under overlays
+  const contentPaddingTop = MODULE_HEADER_HEIGHT + insets.top;
+  const contentPaddingBottom = contextStation && !isPlayerExpanded
+    ? MINI_PLAYER_HEIGHT + insets.bottom
+    : insets.bottom;
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <View style={styles.innerContainer}>
-      {/* Module Header — standardized component with AdMob placeholder */}
-      <ModuleHeader
-        moduleId="radio"
-        icon="radio"
-        title={t('modules.radio.title')}
-        currentSource="radio"
-        showAdMob={true}
-      />
-
-      {/* Tab selector: Favorites / Search — using standardized components */}
-      <View style={styles.tabBar}>
-        <FavoriteTabButton
-          isActive={showFavorites}
-          onPress={() => setShowFavorites(true)}
-          count={favorites.length}
-          label={t('modules.radio.favorites')}
-        />
-        <SearchTabButton
-          isActive={!showFavorites}
-          onPress={() => setShowFavorites(false)}
-          label={t('modules.radio.searchTab')}
-        />
-      </View>
-
-      {/* Search/Filter section */}
-      {!showFavorites && (
-        <View style={styles.filterSection}>
-          {/* Country/Language selector — with toggle between modes */}
-          <View style={styles.countrySelector}>
-            <ChipSelector
-              mode={filterMode}
-              options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
-              selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
-              onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
-              allowModeToggle={true}
-              onModeChange={handleFilterModeChange}
-            />
-          </View>
-
-          {/* Search input — standardized SearchBar component */}
-          <SearchBar
-            ref={searchInputRef}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmit={handleSearch}
-            placeholder={t('modules.radio.searchPlaceholder')}
-            searchButtonLabel={t('modules.radio.searchButton')}
-            maxLength={SEARCH_MAX_LENGTH}
+      {/* ============================================================
+          CONTENT LAYER — Extends full height under overlays
+          Content scrolls UNDER the ModuleHeader and MiniPlayer
+          ============================================================ */}
+      <View style={styles.contentLayer}>
+        {/* Tab selector: Favorites / Search — using standardized components */}
+        <View style={[styles.tabBar, { marginTop: contentPaddingTop + spacing.md }]}>
+          <FavoriteTabButton
+            isActive={showFavorites}
+            onPress={() => setShowFavorites(true)}
+            count={favorites.length}
+            label={t('modules.radio.favorites')}
+          />
+          <SearchTabButton
+            isActive={!showFavorites}
+            onPress={() => setShowFavorites(false)}
+            label={t('modules.radio.searchTab')}
           />
         </View>
-      )}
 
-      {/* Playback Error Banner — shown when a stream fails */}
-      {playbackError && (
-        <View style={styles.playbackErrorBanner}>
-          <Icon name="warning" size={24} color={colors.error} />
-          <View style={styles.playbackErrorTextContainer}>
-            <Text style={styles.playbackErrorTitle}>
-              {t('modules.radio.playbackErrorTitle')}
-            </Text>
-            <Text style={styles.playbackErrorMessage}>
-              {t('modules.radio.playbackErrorMessage')}
-            </Text>
+        {/* Search/Filter section */}
+        {!showFavorites && (
+          <View style={styles.filterSection}>
+            {/* Country/Language selector — with toggle between modes */}
+            <View style={styles.countrySelector}>
+              <ChipSelector
+                mode={filterMode}
+                options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+                selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
+                onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
+                allowModeToggle={true}
+                onModeChange={handleFilterModeChange}
+              />
+            </View>
+
+            {/* Search input — standardized SearchBar component */}
+            <SearchBar
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder={t('modules.radio.searchPlaceholder')}
+              searchButtonLabel={t('modules.radio.searchButton')}
+              maxLength={SEARCH_MAX_LENGTH}
+            />
           </View>
-          {/* Senior-inclusive: Text button instead of icon-only button */}
-          <TouchableOpacity
-            style={[styles.playbackErrorDismiss, { backgroundColor: accentColor.primary }]}
-            onPress={() => {
-              triggerFeedback('tap');
-              setPlaybackError(null);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Text style={styles.playbackErrorDismissText}>{t('common.close')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        )}
+
+        {/* Playback Error Banner — shown when a stream fails */}
+        {playbackError && (
+          <View style={styles.playbackErrorBanner}>
+            <Icon name="warning" size={24} color={colors.error} />
+            <View style={styles.playbackErrorTextContainer}>
+              <Text style={styles.playbackErrorTitle}>
+                {t('modules.radio.playbackErrorTitle')}
+              </Text>
+              <Text style={styles.playbackErrorMessage}>
+                {t('modules.radio.playbackErrorMessage')}
+              </Text>
+            </View>
+            {/* Senior-inclusive: Text button instead of icon-only button */}
+            <TouchableOpacity
+              style={[styles.playbackErrorDismiss, { backgroundColor: accentColor.primary }]}
+              onPress={() => {
+                triggerFeedback('tap');
+                setPlaybackError(null);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
+            >
+              <Text style={styles.playbackErrorDismissText}>{t('common.close')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
       {/* Station list — ALWAYS visible, with bottom padding for mini-player */}
       {isLoading ? (
@@ -785,8 +792,8 @@ export function RadioScreen() {
           style={styles.stationList}
           contentContainerStyle={[
             styles.stationListContent,
-            // Add bottom padding when mini-player is visible
-            contextStation && { paddingBottom: touchTargets.comfortable + spacing.md },
+            // Add bottom padding for MiniPlayer overlay when visible
+            { paddingBottom: contentPaddingBottom + spacing.md },
           ]}
         >
           {displayedStations.map((station, index) => {
@@ -874,32 +881,55 @@ export function RadioScreen() {
           })}
         </ScrollView>
       )}
+      </View>
 
-      {/* Floating Mini-Player — using standardized component */}
-      {contextStation && !isPlayerExpanded && (
-        <MiniPlayer
-          artwork={metadata.artwork || contextStation.favicon || null}
-          title={contextStation.name}
-          subtitle={isBuffering ? t('modules.radio.buffering') : metadata.title}
-          accentColor={accentColor.primary}
-          isPlaying={isPlaying}
-          isLoading={isPlaybackLoading}
-          onPress={() => setIsPlayerExpanded(true)}
-          onPlayPause={async () => {
-            if (isPlaying) {
-              await pause();
-            } else {
-              await play();
-            }
-          }}
-          progressType="duration"
-          listenDuration={position}
-          showStopButton={true}
-          onStop={stop}
-          expandAccessibilityLabel={t('modules.radio.expandPlayer')}
-          expandAccessibilityHint={t('modules.radio.expandPlayerHint')}
+      {/* ============================================================
+          OVERLAY LAYER — Absolute positioned over content
+          Contains ModuleHeader (top) and MiniPlayer (bottom)
+          pointerEvents="box-none" allows touches to pass through
+          ============================================================ */}
+      <View style={styles.overlayLayer} pointerEvents="box-none">
+        {/* Module Header — absolute positioned at top */}
+        <ModuleHeader
+          moduleId="radio"
+          icon="radio"
+          title={t('modules.radio.title')}
+          currentSource="radio"
+          showAdMob={true}
+          style={styles.absoluteHeader}
         />
-      )}
+
+        {/* Spacer pushes MiniPlayer to bottom */}
+        <View style={styles.overlaySpacer} pointerEvents="none" />
+
+        {/* Floating Mini-Player — absolute positioned at bottom */}
+        {contextStation && !isPlayerExpanded && (
+          <MiniPlayer
+            moduleId="radio"
+            artwork={metadata.artwork || contextStation.favicon || null}
+            title={contextStation.name}
+            subtitle={isBuffering ? t('modules.radio.buffering') : metadata.title}
+            accentColor={accentColor.primary}
+            isPlaying={isPlaying}
+            isLoading={isPlaybackLoading}
+            onPress={() => setIsPlayerExpanded(true)}
+            onPlayPause={async () => {
+              if (isPlaying) {
+                await pause();
+              } else {
+                await play();
+              }
+            }}
+            progressType="duration"
+            listenDuration={position}
+            showStopButton={true}
+            onStop={stop}
+            expandAccessibilityLabel={t('modules.radio.expandPlayer')}
+            expandAccessibilityHint={t('modules.radio.expandPlayerHint')}
+            style={styles.absolutePlayer}
+          />
+        )}
+      </View>
 
       {/* Expanded Full Player Modal */}
       <Modal
@@ -1132,7 +1162,6 @@ export function RadioScreen() {
           </View>
         </View>
       </Modal>
-      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -1146,11 +1175,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  innerContainer: {
+  // ============================================================
+  // Overlay Architecture Styles (for Liquid Glass transparency)
+  // ============================================================
+  contentLayer: {
     flex: 1,
+    // Content extends full height — padding handled by contentPaddingTop/Bottom
   },
-  // moduleHeader styles removed — using standardized ModuleHeader component
-  // Mini-Player styles removed — using standardized MiniPlayer component
+  overlayLayer: {
+    ...StyleSheet.absoluteFillObject,
+    // pointerEvents="box-none" set on component allows touches to pass through
+  },
+  absoluteHeader: {
+    // ModuleHeader positioned at top of overlay
+    // No explicit positioning needed — it's the first child in flex column
+  },
+  overlaySpacer: {
+    flex: 1,
+    // Pushes MiniPlayer to bottom
+  },
+  absolutePlayer: {
+    // MiniPlayer positioned at bottom of overlay
+    // No explicit positioning needed — it's the last child in flex column
+  },
+  // ============================================================
   // Expanded Player Modal styles
   expandedPlayerOverlay: {
     flex: 1,

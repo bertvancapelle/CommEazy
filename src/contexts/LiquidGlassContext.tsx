@@ -46,6 +46,7 @@ import {
  */
 function detectPlatformSupport(): LiquidGlassPlatformSupport {
   if (Platform.OS !== 'ios') {
+    console.debug('[LiquidGlass] Platform is not iOS, Liquid Glass disabled');
     return {
       isSupported: false,
       iosVersion: null,
@@ -58,8 +59,11 @@ function detectPlatformSupport(): LiquidGlassPlatformSupport {
   const versionString = String(Platform.Version);
   const majorVersion = parseInt(versionString.split('.')[0], 10);
 
+  const isSupported = majorVersion >= LIQUID_GLASS_MIN_IOS_VERSION;
+  console.info(`[LiquidGlass] iOS version detected: ${majorVersion}, min required: ${LIQUID_GLASS_MIN_IOS_VERSION}, supported: ${isSupported}`);
+
   return {
-    isSupported: majorVersion >= LIQUID_GLASS_MIN_IOS_VERSION,
+    isSupported,
     iosVersion: majorVersion,
     platform: 'ios',
   };

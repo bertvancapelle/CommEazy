@@ -144,10 +144,12 @@ class LiquidGlassNativeView: UIView {
         // Remove existing effect
         glassEffectView?.removeFromSuperview()
 
-        // Check iOS 26 availability for UIGlassEffect
+        // Use blur + tint effect for visible glass-like appearance
+        // UIGlassEffect requires content behind it to blur, which doesn't work
+        // for module headers on solid backgrounds. UIBlurEffect with tint overlay
+        // provides a consistent glass-like effect that's always visible.
         if #available(iOS 26, *) {
-            // Use real UIGlassEffect on iOS 26+
-            createLiquidGlassEffect()
+            createBlurWithTintEffect()
         } else {
             createFallbackBackground()
         }
@@ -207,39 +209,69 @@ class LiquidGlassNativeView: UIView {
               tintColorHex, cornerRadius, NSCoder.string(for: bounds))
     }
     
-    /// Creates a blur effect with tinted overlay as visible alternative
-    /// This provides a glass-like effect that's always visible
+    /// Creates a REAL blur effect that can see through to content underneath
+    /// This requires the view to be positioned as an overlay OVER the content (absolute positioning)
+    ///
+    /// Architecture for true transparency:
+    /// - MiniPlayer/ModuleHeader must be position:absolute OVER the ScrollView content
+    /// - Content ScrollView must extend UNDER the overlay
+    /// - UIBlurEffect will then blur the content that's visually behind it
     private func createBlurWithTintEffect() {
-        // Use a more prominent blur style for visibility
-        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        guard let baseColor = UIColor(hexString: tintColorHex) else {
+            createFallbackBackground()
+            return
+        }
+
+        // === REAL UIBlurEffect for true see-through transparency ===
+        // Use systemThinMaterial for a subtle, modern blur
+        let blurStyle: UIBlurEffect.Style = glassStyle == "prominent"
+            ? .systemThickMaterial
+            : .systemThinMaterial
+        let blurEffect = UIBlurEffect(style: blurStyle)
         let blurView = UIVisualEffectView(effect: blurEffect)
         blurView.translatesAutoresizingMaskIntoConstraints = false
         blurView.layer.cornerRadius = cornerRadius
         blurView.clipsToBounds = cornerRadius > 0
-        
-        // Add a tinted overlay on top of the blur with moderate opacity
-        // Lower opacity (0.5) makes the blur effect more visible
-        if let baseColor = UIColor(hexString: tintColorHex) {
-            let tintOverlay = UIView()
-            tintOverlay.translatesAutoresizingMaskIntoConstraints = false
-            // Use moderate opacity (0.5) so blur effect is clearly visible
-            tintOverlay.backgroundColor = baseColor.withAlphaComponent(0.5)
-            tintOverlay.layer.cornerRadius = cornerRadius
-            tintOverlay.clipsToBounds = cornerRadius > 0
-            
-            blurView.contentView.addSubview(tintOverlay)
-            NSLayoutConstraint.activate([
-                tintOverlay.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
-                tintOverlay.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor),
-                tintOverlay.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
-                tintOverlay.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor),
-            ])
-        }
-        
-        // Clear our background so blur shows through
+
+        // === Tint overlay INSIDE the blur's contentView ===
+        // This adds the module color on top of the blur
+        let tintOverlay = UIView()
+        tintOverlay.translatesAutoresizingMaskIntoConstraints = false
+        // Use tintIntensity to control how much color shows (0.3-0.6 works well)
+        let adjustedIntensity = min(max(tintIntensity * 0.6, 0.3), 0.7)
+        tintOverlay.backgroundColor = baseColor.withAlphaComponent(adjustedIntensity)
+        tintOverlay.layer.cornerRadius = cornerRadius
+        tintOverlay.clipsToBounds = cornerRadius > 0
+        blurView.contentView.addSubview(tintOverlay)
+
+        NSLayoutConstraint.activate([
+            tintOverlay.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
+            tintOverlay.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor),
+            tintOverlay.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
+            tintOverlay.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor),
+        ])
+
+        // === Top edge highlight for glass-like depth ===
+        let highlightView = UIView()
+        highlightView.translatesAutoresizingMaskIntoConstraints = false
+        highlightView.backgroundColor = UIColor.white.withAlphaComponent(0.25)
+        blurView.contentView.addSubview(highlightView)
+
+        NSLayoutConstraint.activate([
+            highlightView.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
+            highlightView.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor),
+            highlightView.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
+            highlightView.heightAnchor.constraint(equalToConstant: 1.0),
+        ])
+
+        // === Outer border for definition ===
+        blurView.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+        blurView.layer.borderWidth = 0.5
+
+        // Clear our background so blur can see through
         backgroundColor = .clear
 
-        // Insert as background (index 0 = behind all React Native children)
+        // Insert blur view as background (at index 0, behind React children)
         insertSubview(blurView, at: 0)
         NSLayoutConstraint.activate([
             blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -250,8 +282,8 @@ class LiquidGlassNativeView: UIView {
 
         glassEffectView = blurView
 
-        NSLog("[LiquidGlass] Created blur+tint effect - tint: %@, radius: %.1f, subviews: %d", 
-              tintColorHex, cornerRadius, subviews.count)
+        NSLog("[LiquidGlass] Created REAL UIBlurEffect - tint: %@, intensity: %.2f, radius: %.1f, frame: %@",
+              tintColorHex, adjustedIntensity, cornerRadius, NSCoder.string(for: bounds))
     }
 
     /// Creates a solid background fallback for iOS <26

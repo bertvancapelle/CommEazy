@@ -54,8 +54,10 @@ interface LiquidGlassNativeViewProps {
 }
 
 // Only require native component on iOS
+// Note: ViewManager name is "LiquidGlassViewManager", React Native strips "Manager" suffix
+// So the registered name is "LiquidGlassView" (not "LiquidGlassNativeView")
 const LiquidGlassNativeView = Platform.OS === 'ios'
-  ? requireNativeComponent<LiquidGlassNativeViewProps>('LiquidGlassNativeView')
+  ? requireNativeComponent<LiquidGlassNativeViewProps>('LiquidGlassView')
   : null;
 
 // ============================================================
@@ -152,6 +154,9 @@ export function LiquidGlassView({
 
   // Determine if we should use native glass effect
   const useNativeGlass = context.isEnabled && Platform.OS === 'ios' && LiquidGlassNativeView;
+
+  // Debug logging for Liquid Glass usage
+  console.debug(`[LiquidGlassView] moduleId=${moduleId}, isEnabled=${context.isEnabled}, useNativeGlass=${useNativeGlass}, tintColor=${colors.tintColor}`);
 
   // ============================================================
   // Render

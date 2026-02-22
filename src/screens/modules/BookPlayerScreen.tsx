@@ -72,6 +72,12 @@ const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 const SLEEP_TIMER_OPTIONS = [15, 30, 45, 60, 90]; // minutes
 const TTS_CHARS_PER_SECOND = 15; // For time estimation
 
+// Layout constants for overlay positioning
+// ModuleHeader height: icon row (44pt) + AdMob placeholder (50pt) + separator + padding
+const MODULE_HEADER_HEIGHT = 120;
+// MiniPlayer height: touchTargets.comfortable (72pt) + vertical padding
+const MINI_PLAYER_HEIGHT = 84;
+
 // ============================================================
 // Component
 // ============================================================
@@ -265,43 +271,42 @@ export function BookPlayerScreen() {
     );
   }
 
+  // Calculate dynamic padding for content to extend under overlays
+  const contentPaddingTop = MODULE_HEADER_HEIGHT + insets.top;
+  const contentPaddingBottom = currentChapter
+    ? MINI_PLAYER_HEIGHT + insets.bottom
+    : insets.bottom;
+
   return (
     <View style={styles.container}>
-      {/* Module Header — standardized component with AdMob placeholder and back button */}
-      <ModuleHeader
-        moduleId="books"
-        icon="book"
-        title={t('modules.books.listen')}
-        currentSource="books"
-        showAdMob={true}
-        showBackButton={true}
-        onBackPress={() => navigation.goBack()}
-        backButtonLabel={t('common.back')}
-      />
+      {/* ============================================================
+          CONTENT LAYER — Extends full height under overlays
+          Content scrolls UNDER the ModuleHeader and MiniPlayer
+          ============================================================ */}
+      <View style={styles.contentLayer}>
+        {/* Book Info */}
+        <View style={[styles.bookInfoContainer, { marginTop: contentPaddingTop + spacing.md }]}>
+          <Text style={styles.bookTitle} numberOfLines={2}>
+            {currentBook.title}
+          </Text>
+          <Text style={styles.bookAuthor} numberOfLines={1}>
+            {currentBook.author}
+          </Text>
+          <Text style={styles.chapterCount}>
+            {t('modules.books.audio.chapterCount', { count: chapters.length })}
+          </Text>
+        </View>
 
-      {/* Book Info */}
-      <View style={styles.bookInfoContainer}>
-        <Text style={styles.bookTitle} numberOfLines={2}>
-          {currentBook.title}
-        </Text>
-        <Text style={styles.bookAuthor} numberOfLines={1}>
-          {currentBook.author}
-        </Text>
-        <Text style={styles.chapterCount}>
-          {t('modules.books.audio.chapterCount', { count: chapters.length })}
-        </Text>
-      </View>
-
-      {/* Chapter List */}
-      <ScrollView
-        ref={scrollRef}
-        style={styles.chapterList}
-        contentContainerStyle={[
-          styles.chapterListContent,
-          { paddingBottom: currentChapter ? 120 + insets.bottom : insets.bottom + spacing.lg },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
+        {/* Chapter List */}
+        <ScrollView
+          ref={scrollRef}
+          style={styles.chapterList}
+          contentContainerStyle={[
+            styles.chapterListContent,
+            { paddingBottom: contentPaddingBottom + spacing.lg },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
         {chapters.map((chapter, index) => {
           const isCurrentChapter = currentChapterIndex === index && (isAudioPlaying || isAudioPaused);
           const completed = isChapterCompleted(index);
@@ -394,11 +399,34 @@ export function BookPlayerScreen() {
           );
         })}
       </ScrollView>
+      </View>
 
-      {/* Mini Player — using standardized component */}
-      {currentChapter && (
-        <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom }}>
+      {/* ============================================================
+          OVERLAY LAYER — Absolute positioned over content
+          Contains ModuleHeader (top) and MiniPlayer (bottom)
+          pointerEvents="box-none" allows touches to pass through
+          ============================================================ */}
+      <View style={styles.overlayLayer} pointerEvents="box-none">
+        {/* Module Header — absolute positioned at top */}
+        <ModuleHeader
+          moduleId="books"
+          icon="book"
+          title={t('modules.books.listen')}
+          currentSource="books"
+          showAdMob={true}
+          showBackButton={true}
+          onBackPress={() => navigation.goBack()}
+          backButtonLabel={t('common.back')}
+          style={styles.absoluteHeader}
+        />
+
+        {/* Spacer pushes MiniPlayer to bottom */}
+        <View style={styles.overlaySpacer} pointerEvents="none" />
+
+        {/* Mini Player — using standardized component */}
+        {currentChapter && (
           <MiniPlayer
+            moduleId="books"
             artwork={currentBook?.coverImage || null}
             title={currentChapter.title}
             subtitle={currentBook?.title}
@@ -412,9 +440,10 @@ export function BookPlayerScreen() {
             showStopButton={true}
             onStop={handleStop}
             expandAccessibilityLabel={t('modules.books.audio.expandPlayer')}
+            style={styles.absolutePlayer}
           />
-        </View>
-      )}
+        )}
+      </View>
 
       {/* Expanded Player Modal */}
       <Modal
@@ -766,9 +795,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  // moduleHeader styles removed — using standardized ModuleHeader component
 
+  // ============================================================
+  // Overlay Architecture Styles
+  // ============================================================
+
+  // Content layer — scrollable content that extends under overlays
+  contentLayer: {
+    flex: 1,
+  },
+
+  // Overlay layer — absolute positioned container for header and mini player
+  overlayLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  // ModuleHeader positioning (top of overlay layer)
+  absoluteHeader: {
+    // No additional styles needed — ModuleHeader handles its own layout
+  },
+
+  // Spacer pushes MiniPlayer to bottom of overlay layer
+  overlaySpacer: {
+    flex: 1,
+  },
+
+  // MiniPlayer positioning (bottom of overlay layer)
+  absolutePlayer: {
+    // No additional styles needed — MiniPlayer handles its own layout
+  },
+
+  // ============================================================
   // Book Info
+  // ============================================================
   bookInfoContainer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,

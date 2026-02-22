@@ -30,6 +30,8 @@ import {
   ActivityIndicator,
   Image,
   Platform,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -77,6 +79,12 @@ export interface MiniPlayerProps {
   showStopButton?: boolean;
   /** Callback for stop button */
   onStop?: () => void;
+  /**
+   * Optional style override for container positioning
+   * Used for absolute positioning when MiniPlayer overlays content
+   * @example style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
+   */
+  style?: StyleProp<ViewStyle>;
 }
 
 // ============================================================
@@ -118,6 +126,7 @@ export function MiniPlayer({
   expandAccessibilityHint,
   showStopButton = false,
   onStop,
+  style,
 }: MiniPlayerProps) {
   const { t } = useTranslation();
   const { triggerFeedback } = useFeedback();
@@ -125,6 +134,9 @@ export function MiniPlayer({
   // Check if Liquid Glass is available
   const liquidGlassContext = useLiquidGlassContextSafe();
   const useLiquidGlass = liquidGlassContext?.isEnabled && moduleId;
+
+  // Debug logging
+  console.debug(`[MiniPlayer] moduleId=${moduleId}, contextExists=${!!liquidGlassContext}, isEnabled=${liquidGlassContext?.isEnabled}, useLiquidGlass=${useLiquidGlass}`);
 
   const handlePress = useCallback(async () => {
     await triggerFeedback('tap');
@@ -231,7 +243,7 @@ export function MiniPlayer({
       <LiquidGlassView
         moduleId={moduleId}
         fallbackColor={accentColor}
-        style={styles.container}
+        style={[styles.container, style]}
         cornerRadius={0}
       >
         <TouchableOpacity
@@ -250,7 +262,7 @@ export function MiniPlayer({
 
   return (
     <TouchableOpacity
-      style={[styles.container, styles.touchableContent, { backgroundColor: accentColor }]}
+      style={[styles.container, styles.touchableContent, { backgroundColor: accentColor }, style]}
       onPress={handlePress}
       activeOpacity={0.9}
       accessibilityRole="button"
@@ -283,7 +295,6 @@ const styles = StyleSheet.create({
     }),
   },
   touchableContent: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,

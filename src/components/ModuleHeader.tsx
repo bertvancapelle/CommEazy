@@ -29,7 +29,14 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from './Icon';
@@ -66,6 +73,12 @@ export interface ModuleHeaderProps {
   backButtonLabel?: string;
   /** Custom logo component to render instead of icon (for source attribution) */
   customLogo?: React.ReactNode;
+  /**
+   * Optional style override for container positioning
+   * Used for absolute positioning when ModuleHeader overlays content
+   * @example style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
+   */
+  style?: StyleProp<ViewStyle>;
 }
 
 // ============================================================
@@ -106,6 +119,7 @@ export function ModuleHeader({
   onBackPress,
   backButtonLabel = 'Terug',
   customLogo,
+  style,
 }: ModuleHeaderProps) {
   const insets = useSafeAreaInsets();
   const moduleColor = MODULE_COLORS[moduleId] || colors.primary;
@@ -164,7 +178,7 @@ export function ModuleHeader({
     return (
       <LiquidGlassView
         moduleId={moduleId as ModuleColorId}
-        style={styles.container}
+        style={[styles.container, style]}
         cornerRadius={0}
       >
         {headerContent}
@@ -173,7 +187,7 @@ export function ModuleHeader({
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: moduleColor }]}>
+    <View style={[styles.container, { backgroundColor: moduleColor }, style]}>
       {headerContent}
     </View>
   );
