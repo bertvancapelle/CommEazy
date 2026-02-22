@@ -264,6 +264,41 @@ Dit is **niet optioneel**. Na elke logische milestone MOET Claude voorstellen om
 - Met bekende bugs die nog gefixed moeten worden
 - Met debug code (`console.log` overal)
 
+### ⚠️ Git LFS voor Grote Bestanden (VERPLICHT)
+
+**GitHub blokkeert bestanden >100MB.** CommEazy gebruikt Git LFS voor grote binaire bestanden.
+
+**Geconfigureerd in `.gitattributes`:**
+```
+*.onnx filter=lfs diff=lfs merge=lfs -text    # Piper TTS modellen (~60-73MB)
+*.a filter=lfs diff=lfs merge=lfs -text       # sherpa-onnx static libraries (~77-157MB)
+```
+
+**Bij nieuwe grote bestanden (>50MB):**
+1. Voeg bestandstype toe aan `.gitattributes`
+2. Run `git lfs track "*.extensie"`
+3. Commit `.gitattributes` eerst
+4. Dan commit het grote bestand
+
+**Git LFS installatie (eenmalig per machine):**
+```bash
+brew install git-lfs
+git lfs install
+```
+
+**Bij "Large files detected" error:**
+```bash
+# Migreer bestaande grote bestanden naar LFS
+git stash
+git lfs migrate import --include="*.onnx,*.a" --everything
+git stash pop
+git push --force-with-lease
+```
+
+**Huidige LFS-tracked bestandstypes:**
+- `*.onnx` — Piper TTS spraakmodellen (Nederlands, etc.)
+- `*.a` — Native static libraries (sherpa-onnx)
+
 ### ⚠️ Commit + Push ALTIJD Samen
 
 **Dit is een gebruikersvoorkeur.** Wanneer Claude vraagt of een commit gemaakt kan worden, voer ALTIJD zowel de commit ALS de push uit. De gebruiker doet ze toch altijd samen.
