@@ -94,6 +94,8 @@ export interface SearchResults {
 export interface PlaybackState {
   status: 'playing' | 'paused' | 'stopped' | 'interrupted' | 'seekingForward' | 'seekingBackward' | 'unknown';
   playbackTime: number;
+  currentTime: number;  // Alias for playbackTime
+  duration: number;     // Current song duration in seconds
   shuffleMode: ShuffleMode;
   repeatMode: RepeatMode;
 }

@@ -270,21 +270,31 @@ class AppleMusicModule: RCTEventEmitter {
                   reject: @escaping RCTPromiseRejectBlock) {
         Task {
             do {
+                NSLog("[AppleMusicModule] playSong called with ID: \(songId)")
+                
                 // Fetch the song from catalog
                 let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
                 let response = try await request.response()
                 
                 guard let song = response.items.first else {
+                    NSLog("[AppleMusicModule] Song not found in catalog: \(songId)")
                     reject("SONG_NOT_FOUND", "Song with ID \(songId) not found in catalog", nil)
                     return
                 }
                 
+                NSLog("[AppleMusicModule] Found song: '\(song.title)' by \(song.artistName), duration: \(song.duration ?? 0)s")
+                
                 // Set queue and play
                 player.queue = [song]
+                NSLog("[AppleMusicModule] Queue set, calling play()")
                 try await player.play()
+                
+                NSLog("[AppleMusicModule] play() completed successfully")
+                NSLog("[AppleMusicModule] Player state: \(player.state.playbackStatus)")
                 
                 resolve(["success": true])
             } catch {
+                NSLog("[AppleMusicModule] playSong error: \(error.localizedDescription)")
                 reject("PLAY_ERROR", "Failed to play catalog song: \(error.localizedDescription)", error)
             }
         }
@@ -598,6 +608,7 @@ class AppleMusicModule: RCTEventEmitter {
                 guard hasListeners else { continue }
 
                 let stateDict = buildPlaybackState()
+                NSLog("[AppleMusicModule] Playback state changed: \(stateDict["status"] ?? "unknown"), time: \(stateDict["currentTime"] ?? 0)")
                 sendEvent(withName: "onPlaybackStateChange", body: stateDict)
 
                 // Also check if now playing changed
@@ -665,9 +676,19 @@ class AppleMusicModule: RCTEventEmitter {
             statusString = "unknown"
         }
         
+        // Get duration from current queue entry
+        var duration: Double = 0
+        if let entry = player.queue.currentEntry,
+           case .song(let song) = entry.item,
+           let songDuration = song.duration {
+            duration = songDuration
+        }
+        
         return [
             "status": statusString,
             "playbackTime": player.playbackTime,
+            "currentTime": player.playbackTime,  // Alias for React Native compatibility
+            "duration": duration,
             "shuffleMode": player.state.shuffleMode == .songs ? "songs" : "off",
             "repeatMode": repeatModeToString(player.state.repeatMode)
         ]
@@ -704,13 +725,29 @@ class AppleMusicModule: RCTEventEmitter {
     }
 
     private func songToDictionary(_ song: Song) -> [String: Any] {
+        // Get artwork URL with detailed logging
+        let artworkURL: String
+        if let artwork = song.artwork {
+            if let url = artwork.url(width: 300, height: 300) {
+                let httpUrl = url.httpURLString
+                NSLog("[AppleMusicModule] Artwork URL for '\(song.title)': original=\(url.absoluteString), http=\(httpUrl)")
+                artworkURL = httpUrl
+            } else {
+                NSLog("[AppleMusicModule] Artwork URL for '\(song.title)': url(width:height:) returned nil")
+                artworkURL = ""
+            }
+        } else {
+            NSLog("[AppleMusicModule] Artwork for '\(song.title)': no artwork available")
+            artworkURL = ""
+        }
+        
         return [
             "id": song.id.rawValue,
             "title": song.title,
             "artistName": song.artistName,
             "albumTitle": song.albumTitle ?? "",
             "duration": song.duration ?? 0,
-            "artworkUrl": song.artwork?.url(width: 300, height: 300)?.httpURLString ?? "",
+            "artworkUrl": artworkURL,
             "trackNumber": song.trackNumber ?? 0,
             "discNumber": song.discNumber ?? 1,
             "isExplicit": song.contentRating == .explicit

@@ -421,9 +421,11 @@ class FullPlayerNativeView: UIView {
             // Loading indicator - centered on play button
             loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
-            
-            // No bottom anchor needed - content is fixed, not scrolling
         ])
+        
+        // Bottom constraint for secondary controls - ensures proper spacing from bottom
+        // Use greaterThanOrEqualTo to prevent clipping on smaller screens
+        stopButton.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -Layout.padding).isActive = true
     }
     
     // MARK: - Actions

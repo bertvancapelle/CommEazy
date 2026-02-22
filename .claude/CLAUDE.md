@@ -10,6 +10,80 @@
 - Build errors zijn direct beschikbaar via `GetBuildLog` en `XcodeListNavigatorIssues`
 - Previews kunnen worden gerenderd met `RenderPreview`
 
+## ⚠️ Werkprincipe voor Gebruikersgerichte Features (VERPLICHT)
+
+**Dit principe geldt voor ALLE gebruikersgerichte features** (niet voor technische fixes zoals bug fixes, refactoring, of infrastructuur).
+
+### Kernregels
+
+1. **Wees kritisch, maak geen aannames**
+   - Neem nooit aan dat je de intentie van de gebruiker begrijpt
+   - Valideer elke aanname expliciet voordat je handelt
+   - Bij twijfel: vraag, implementeer niet
+
+2. **Stel vragen één voor één**
+   - Nooit meerdere vragen tegelijk stellen
+   - Wacht op antwoord voordat je de volgende vraag stelt
+   - Dit voorkomt verwarring en zorgt voor duidelijke besluitvorming
+
+3. **Deel je interpretatie VOORDAT je uitvoert**
+   - Geef een samenvatting van wat je denkt dat de gebruiker vraagt
+   - Beschrijf wat je van plan bent te doen
+   - Wacht op bevestiging voordat je begint
+
+4. **Denk vanuit het senior-perspectief**
+   - Onze primaire gebruikers zijn senioren (65+)
+   - Veel van hen hebben weinig ervaring met smartphones/tablets
+   - Vraag jezelf af: "Zou mijn oma/opa dit begrijpen en kunnen gebruiken?"
+   - Vermijd technisch jargon in UX beslissingen
+
+### Wanneer WEL toepassen
+
+- Nieuwe features of functionaliteit
+- UI/UX wijzigingen
+- Navigatie aanpassingen
+- Interactie patronen
+- Teksten en labels
+- Flow wijzigingen
+
+### Wanneer NIET toepassen
+
+- Bug fixes (technische correcties)
+- Performance optimalisaties
+- Code refactoring
+- Build/deployment issues
+- Dependency updates
+
+### Voorbeeld Workflow
+
+```
+Gebruiker: "Ik wil een knop toevoegen"
+
+Claude (GOED):
+"Voordat ik begin, wil ik zeker weten dat ik je vraag goed begrijp.
+
+Je wilt een knop toevoegen. Mijn eerste vraag:
+Waar moet deze knop komen — op een bestaand scherm of een nieuw scherm?"
+
+[Wacht op antwoord]
+
+"Duidelijk, op het contactenlijst scherm. Volgende vraag:
+Wat moet er gebeuren als een senior op deze knop tikt?"
+
+[Wacht op antwoord]
+
+"Begrepen. Mijn interpretatie:
+- Knop op contactenlijst scherm
+- Bij tap: opent nieuw contact formulier
+- Moet duidelijk zichtbaar zijn voor senioren (groot, helder contrast)
+
+Klopt dit? Dan ga ik nu implementeren."
+
+Claude (FOUT):
+"Ik voeg een knop toe met een plus-icoon rechtsboven die een modal opent
+voor nieuwe contacten. Hier is de code..."
+```
+
 ## What is CommEazy?
 Privacy-first family communication app. End-to-end encrypted messaging, photos, and video calls for families — designed specifically for seniors (65+) while being enjoyable for all ages.
 

@@ -711,10 +711,18 @@ export function AppleMusicScreen() {
     currentSong &&
     !isPlayerExpanded;
 
-  // Calculate bottom padding - Glass Player handles its own spacing
+  // Determine if Glass Player mini is visible (iOS 26+)
+  const isGlassMiniVisible = isGlassPlayerAvailable && isGlassPlayerVisible && currentSong;
+
+  // Calculate bottom padding
+  // Both React Native MiniPlayer and Glass Player mini window need bottom padding
+  // Glass Player floating bar: 88pt height + 20pt margin + safe area
+  const GLASS_MINI_PLAYER_HEIGHT = 88 + 20;
   const bottomPadding = shouldShowRNMiniPlayer
     ? MINI_PLAYER_HEIGHT + spacing.md
-    : spacing.md;
+    : isGlassMiniVisible
+      ? GLASS_MINI_PLAYER_HEIGHT + spacing.md
+      : spacing.md;
 
   return (
     <View style={styles.container}>
