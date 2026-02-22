@@ -1912,13 +1912,15 @@ sudo prosodyctl status
 
 ### Test Devices
 
-| Device | Account | Type |
-|--------|---------|------|
-| iPhone 17 Pro | ik@commeazy.local | Simulator |
-| iPhone 16e | oma@commeazy.local | Simulator |
-| iPad (any) | ipad@commeazy.local | Simulator |
-| iPhone 14 (Bert) | test@commeazy.local | Fysiek |
-| iPhone (Jeanine) | jeanine@commeazy.local | Fysiek |
+| Device | Account | Type | iOS Versie |
+|--------|---------|------|------------|
+| iPhone 17 Pro | ik@commeazy.local | Simulator | iOS 26 (Xcode sim) |
+| iPhone 16e | oma@commeazy.local | Simulator | iOS 26 (Xcode sim) |
+| iPad (any) | ipad@commeazy.local | Simulator | iOS 26 (Xcode sim) |
+| iPhone 14 (Bert) | test@commeazy.local | Fysiek | **iOS 26.4 BETA** |
+| iPhone (Jeanine) | jeanine@commeazy.local | Fysiek | **iOS 26.3 (officieel)** |
+
+**⚠️ BELANGRIJK:** Beide fysieke test devices draaien iOS 26+! UIGlassEffect en Liquid Glass zijn beschikbaar.
 
 ### Metro Bundler Configuratie
 
@@ -1991,6 +1993,68 @@ CommEazy MOET Apple's Liquid Glass design systeem ondersteunen op devices die iO
 | UI component met achtergrondkleur | Liquid Glass compliance check |
 | ModuleHeader, MiniPlayer, Cards | MOET LiquidGlassView gebruiken |
 | Nieuwe module | MOET module kleur in LIQUID_GLASS_COLORS registreren |
+| **Player feature wijziging** | **MOET in BEIDE players (RN + Native)** |
+| **Nieuwe playback state** | **MOET door bridge layer naar beide players** |
+
+### 100% Feature Parity Regel (VERPLICHT)
+
+**KRITIEK:** De React Native player en native Liquid Glass player MOETEN 100% functioneel identiek zijn.
+
+#### Waarom?
+- Gebruiker mag geen verschil merken tussen iOS <26 en iOS 26+
+- Consistente UX ongeacht platform versie
+- Geen "missing feature" klachten van iOS 26+ gebruikers
+
+#### Feature Parity Checklist
+
+Bij ELKE wijziging aan player functionaliteit:
+
+| Feature | React Native Player | Native Glass Player | Status |
+|---------|--------------------|--------------------|--------|
+| Play/Pause toggle | ✅ | ✅ | Parity |
+| Stop button | ✅ | ✅ | Parity |
+| Loading indicator | ✅ Spinner | ✅ UIActivityIndicatorView | Parity |
+| Buffering animation | ✅ Opacity pulse | ✅ CABasicAnimation pulse | Parity |
+| Listen duration | ✅ "🎧 45:32" | ✅ headphones.circle + label | Parity |
+| Progress bar | ✅ | ✅ UISlider | Parity |
+| Seek slider | ✅ | ✅ | Parity |
+| Skip buttons | ✅ | ✅ | Parity |
+| Speed control | ✅ | ✅ | Parity |
+| Sleep timer | ✅ | ✅ | Parity |
+| Favorite toggle | ✅ | ✅ | Parity |
+| Artwork display | ✅ | ✅ | Parity |
+
+#### Implementatie Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 1: Feature in React Native Player                         │
+│  Implementeer de feature in MiniPlayer.tsx / ExpandedAudioPlayer│
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 2: Bridge Layer Update                                     │
+│  Update glassPlayer.ts types en updatePlaybackState() call       │
+│  Voeg nieuwe parameters toe aan GlassPlayerPlaybackState         │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 3: Native Swift Implementation                             │
+│  Update PlaybackState struct in GlassPlayerWindow.swift          │
+│  Update MiniPlayerNativeView.swift                               │
+│  Update FullPlayerNativeView.swift                               │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 4: Validatie                                               │
+│  Test op iOS <26 (React Native player)                           │
+│  Test op iOS 26+ (Native Glass player)                           │
+│  Vergelijk visueel en functioneel                                │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ### Gefaseerde Implementatie
 

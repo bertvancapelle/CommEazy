@@ -272,6 +272,192 @@ In Xcode project:
 
 ---
 
+## Liquid Glass Native Player (iOS 26+)
+
+### Architectuur
+
+CommEazy heeft een dual-player systeem:
+- **iOS <26 / Android:** React Native player (`MiniPlayer.tsx`, `ExpandedAudioPlayer.tsx`)
+- **iOS 26+:** Native Liquid Glass player (`GlassPlayerWindow.swift`, `*NativeView.swift`)
+
+### 100% Feature Parity Regel
+
+**KRITIEK:** Elke feature in React Native player MOET 1:1 bestaan in native player.
+
+Zie `CLAUDE.md` sectie 16 voor de volledige Feature Parity Checklist.
+
+### Bestanden Structuur
+
+```
+ios/GlassPlayerWindow/
+├── GlassPlayerWindowModule.swift     ← React Native bridge (@objc)
+├── GlassPlayerWindow.swift           ← UIWindow subclass met player states
+├── MiniPlayerNativeView.swift        ← Compacte player view
+├── FullPlayerNativeView.swift        ← Expanded player view
+└── GlassPlayerWindow-Bridging-Header.h
+```
+
+### Bridge Layer Pattern
+
+React Native communiceert met native via `NativeModules`:
+
+```typescript
+// TypeScript (glassPlayer.ts)
+interface GlassPlayerPlaybackState {
+  isPlaying: boolean;
+  isLoading?: boolean;      // ← Nieuwe state parameters
+  isBuffering?: boolean;    // ← moeten ALTIJD doorgegeven worden
+  progress?: number;
+  position?: number;
+  duration?: number;
+  listenDuration?: number;
+  showStopButton?: boolean;
+  isFavorite?: boolean;
+}
+
+// Aanroep
+this.nativeModule.updatePlaybackState(state);
+```
+
+```swift
+// Swift (GlassPlayerWindowModule.swift)
+@objc func updatePlaybackState(_ state: NSDictionary) {
+    glassPlayerWindow?.updatePlaybackState(state)
+}
+
+// Swift (GlassPlayerWindow.swift)
+struct PlaybackState {
+    let isPlaying: Bool
+    let isLoading: Bool       // ← Parse uit NSDictionary
+    let isBuffering: Bool     // ← met defaults
+    let progress: Float?
+    let listenDuration: TimeInterval?
+    // etc.
+
+    init(from dict: NSDictionary) {
+        self.isPlaying = dict["isPlaying"] as? Bool ?? false
+        self.isLoading = dict["isLoading"] as? Bool ?? false
+        self.isBuffering = dict["isBuffering"] as? Bool ?? false
+        // etc.
+    }
+}
+```
+
+### Native Animation Patterns
+
+**Loading Indicator:**
+```swift
+private let loadingIndicator = UIActivityIndicatorView(style: .medium)
+
+func setupLoadingIndicator() {
+    loadingIndicator.color = .white
+    loadingIndicator.hidesWhenStopped = true
+    contentView.addSubview(loadingIndicator)
+}
+
+func updateLoadingState(_ isLoading: Bool) {
+    if isLoading {
+        loadingIndicator.startAnimating()
+        playPauseButton.alpha = 0.5
+    } else {
+        loadingIndicator.stopAnimating()
+        playPauseButton.alpha = 1.0
+    }
+}
+```
+
+**Buffering Pulse Animation:**
+```swift
+private var isBuffering: Bool = false
+
+private func updateBufferingState() {
+    if isBuffering {
+        startBufferingAnimation()
+    } else {
+        stopBufferingAnimation()
+    }
+}
+
+private func startBufferingAnimation() {
+    // Prevent duplicate animations
+    if artworkImageView.layer.animation(forKey: "bufferingPulse") != nil {
+        return
+    }
+
+    let pulseAnimation = CABasicAnimation(keyPath: "opacity")
+    pulseAnimation.fromValue = 1.0
+    pulseAnimation.toValue = 0.5
+    pulseAnimation.duration = 0.8
+    pulseAnimation.autoreverses = true
+    pulseAnimation.repeatCount = .infinity
+    pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    artworkImageView.layer.add(pulseAnimation, forKey: "bufferingPulse")
+}
+
+private func stopBufferingAnimation() {
+    artworkImageView.layer.removeAnimation(forKey: "bufferingPulse")
+    artworkImageView.layer.opacity = 1.0
+}
+```
+
+**Listen Duration Display:**
+```swift
+private func formatDuration(_ seconds: TimeInterval) -> String {
+    let hours = Int(seconds) / 3600
+    let minutes = (Int(seconds) % 3600) / 60
+    let secs = Int(seconds) % 60
+
+    if hours > 0 {
+        return String(format: "%d:%02d:%02d", hours, minutes, secs)
+    } else {
+        return String(format: "%d:%02d", minutes, secs)
+    }
+}
+
+// In updatePlaybackState:
+if let duration = playbackState.listenDuration {
+    listenDurationLabel.text = formatDuration(duration)
+    listenDurationLabel.isHidden = false
+    listenIcon.isHidden = false  // SF Symbol: "headphones.circle"
+} else {
+    listenDurationLabel.isHidden = true
+    listenIcon.isHidden = true
+}
+```
+
+### iOS Version Checks
+
+```swift
+@available(iOS 26, *)
+class GlassPlayerWindow: UIWindow {
+    // Liquid Glass effects
+    private func setupGlassEffect() {
+        let glassEffect = UIGlassEffect()
+        glassEffect.tintColor = tintColor
+        // Apply effect...
+    }
+}
+
+// In Module
+@objc func isAvailable(_ resolve: @escaping RCTPromiseResolveBlock,
+                       reject: @escaping RCTPromiseRejectBlock) {
+    if #available(iOS 26, *) {
+        resolve(true)
+    } else {
+        resolve(false)
+    }
+}
+```
+
+### Collaboration met react-native-expert
+
+Bij player wijzigingen:
+1. **react-native-expert** implementeert RN component wijziging
+2. **ios-specialist** implementeert matching native Swift wijziging
+3. **BEIDE** valideren feature parity voor merge
+
+---
+
 ## Quality Checklist
 
 - [ ] Privacy Manifest complete and accurate
@@ -289,6 +475,11 @@ In Xcode project:
 - [ ] **TTS:** Piper models gebundeld in app (nl_NL-rdh-high primary)
 - [ ] **TTS:** sherpa_onnx.xcframework correct gelinkt
 - [ ] **TTS:** ENABLE_BITCODE = NO in build settings
+- [ ] **Liquid Glass:** 100% feature parity met React Native player
+- [ ] **Liquid Glass:** Loading indicator geïmplementeerd
+- [ ] **Liquid Glass:** Buffering animation geïmplementeerd
+- [ ] **Liquid Glass:** Listen duration display geïmplementeerd
+- [ ] **Liquid Glass:** @available(iOS 26, *) guards correct
 
 ## Collaboration
 

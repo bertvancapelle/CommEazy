@@ -138,6 +138,9 @@ De volgende wijzigingen triggeren **altijd** specifieke skill validaties:
 | **Nieuwe module/feature** | **testing-qa, architecture-lead** |
 | **API integratie** | **testing-qa (mock tests), performance-optimizer** |
 | **Logging toevoegingen** | **security-expert (PII check)** |
+| **Player feature wijziging** | **ios-specialist, react-native-expert** — 100% Feature Parity vereist |
+| **Liquid Glass native code** | **ios-specialist** — Swift @available(iOS 26, *) |
+| **Bridge layer updates** | **ios-specialist, react-native-expert** — NativeModule interface |
 
 ## Conflict Resolutie
 
@@ -534,6 +537,197 @@ Deze twee vragen hangen samen, dus stel ik ze samen:
 
 ---
 
+## Plan Adherence Protocol (VERPLICHT)
+
+### Principe
+
+Wanneer een feature of wijziging een bijbehorend plan heeft in `.claude/plans/`, MOET het plan worden gevolgd. Afwijkingen zijn NIET toegestaan zonder expliciete goedkeuring van de gebruiker.
+
+### Workflow bij Geplande Features
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 1: PLAN OPHALEN                                            │
+│  VOORDAT je begint met implementatie:                            │
+│  → Check of er een plan bestaat in .claude/plans/                │
+│  → Lees het VOLLEDIGE plan, niet alleen de titel                 │
+│  → Identificeer alle specificaties en requirements               │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 2: PLAN VALIDATIE                                          │
+│  VOORDAT je code schrijft:                                       │
+│  → Vergelijk je voorgestelde aanpak met het plan                 │
+│  → Bij ELKE afwijking: vraag de gebruiker expliciet              │
+│  → "Het plan specificeert X, maar ik was van plan Y.             │
+│     Wil je X (zoals in het plan) of Y (mijn alternatief)?"       │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 3: IMPLEMENTATIE MET REFERENTIE                            │
+│  Tijdens implementatie:                                          │
+│  → Voeg @see commentaar toe: `@see .claude/plans/FEATURE.md`     │
+│  → Gebruik TodoWrite om plan items te tracken                    │
+│  → Markeer items als voltooid in je communicatie                 │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 4: POST-IMPLEMENTATIE VALIDATIE                            │
+│  Na implementatie:                                               │
+│  → Vergelijk resultaat met plan specificaties                    │
+│  → Documenteer afwijkingen en waarom                             │
+│  → Update plan status (indien van toepassing)                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Automatische Trigger
+
+| Situatie | Actie |
+|----------|-------|
+| Gebruiker vraagt om feature met naam die overeenkomt met een plan | **ALTIJD** plan lezen VOORDAT je begint |
+| Plan bestand wordt genoemd in @see commentaar | Plan lezen om context te begrijpen |
+| Implementatie wijkt af van verwachting | Check of er een plan is dat gevolgd had moeten worden |
+
+### Waarom dit Verplicht is
+
+Zonder dit protocol:
+- Plans worden genegeerd of verkeerd geïnterpreteerd
+- Implementaties wijken af van afgesproken ontwerpen
+- Gebruiker verwacht X, agent levert Y
+- Tijd verspild aan herwerk
+
+### Voorbeeld: Afwijking Detectie
+
+```
+Situatie: Feature "iPad Navigation" gevraagd
+Plan: .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
+
+FOUT (wat NIET mag):
+  → Agent leest plan niet
+  → Agent implementeert eigen interpretatie van "iPad navigation"
+  → Resultaat wijkt af van plan
+
+GOED (wat WEL moet):
+  → Agent leest IPAD_IPHONE_HYBRID_MENU.md
+  → Agent vergelijkt specificaties met voorgestelde aanpak
+  → Bij verschil: "Het plan specificeert Sidebar met collapsible state,
+    maar ik overweeg een Split View. Welke aanpak wil je?"
+  → Implementeert volgens bevestigde aanpak
+```
+
+---
+
+## React Native ↔ Native Feature Parity Protocol (VERPLICHT)
+
+### Principe
+
+Wanneer CommEazy een feature heeft die zowel in React Native ALS in native iOS code bestaat (bijv. Liquid Glass Player), MOET elke wijziging in BEIDE implementaties worden doorgevoerd.
+
+### Wanneer van toepassing?
+
+| Component | React Native | Native iOS | Parity Vereist |
+|-----------|-------------|------------|----------------|
+| MiniPlayer | `MiniPlayer.tsx` | `MiniPlayerNativeView.swift` | **JA** |
+| ExpandedPlayer | `ExpandedAudioPlayer.tsx` | `FullPlayerNativeView.swift` | **JA** |
+| Glass Window | N/A (fallback alleen) | `GlassPlayerWindow.swift` | **JA** |
+| Bridge Layer | `glassPlayer.ts` | `GlassPlayerWindowModule.swift` | **JA** |
+
+### Verplichte Workflow bij Player Wijzigingen
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 1: IMPACT ANALYSE                                          │
+│  "Welke component(en) worden geraakt?"                           │
+│  → Check Feature Parity tabel in CLAUDE.md sectie 16             │
+│  → Identificeer ALLE locaties (RN + Native) die moeten wijzigen  │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 2: REACT NATIVE EERST                                      │
+│  Implementeer de wijziging in React Native components            │
+│  → MiniPlayer.tsx                                                │
+│  → ExpandedAudioPlayer.tsx                                       │
+│  → RadioContext.tsx / PodcastContext.tsx (indien state)          │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 3: BRIDGE LAYER                                            │
+│  Update de TypeScript bridge EN Swift module interface           │
+│  → glassPlayer.ts: GlassPlayerPlaybackState type                 │
+│  → GlassPlayerWindowModule.swift: updatePlaybackState params     │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 4: NATIVE SWIFT                                            │
+│  Implementeer dezelfde feature in native Swift views             │
+│  → MiniPlayerNativeView.swift                                    │
+│  → FullPlayerNativeView.swift                                    │
+│  → GlassPlayerWindow.swift (PlaybackState struct)                │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 5: PARITY VALIDATIE                                        │
+│  Test BEIDE implementaties:                                      │
+│  → iOS <26 simulator: React Native player                        │
+│  → iOS 26+ simulator/device: Native Glass player                 │
+│  → Vergelijk visueel EN functioneel                              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Bestanden die ALTIJD samen wijzigen
+
+| Wijziging in... | Moet ook wijzigen in... |
+|-----------------|-------------------------|
+| `MiniPlayer.tsx` | `MiniPlayerNativeView.swift` |
+| `ExpandedAudioPlayer.tsx` | `FullPlayerNativeView.swift` |
+| `glassPlayer.ts` types | `GlassPlayerWindow.swift` PlaybackState |
+| `useGlassPlayer.ts` callbacks | `GlassPlayerWindowModule.swift` events |
+
+### Native Animation Patterns (Referentie)
+
+Voor consistente animaties tussen RN en Native:
+
+**Loading State:**
+```swift
+// Native equivalent van <ActivityIndicator />
+let loadingIndicator = UIActivityIndicatorView(style: .medium)
+loadingIndicator.startAnimating()  // Start
+loadingIndicator.stopAnimating()   // Stop (hides automatically)
+```
+
+**Buffering Pulse:**
+```swift
+// Native equivalent van Animated.timing opacity pulse
+let pulseAnimation = CABasicAnimation(keyPath: "opacity")
+pulseAnimation.fromValue = 1.0
+pulseAnimation.toValue = 0.5
+pulseAnimation.duration = 0.8
+pulseAnimation.autoreverses = true
+pulseAnimation.repeatCount = .infinity
+artworkImageView.layer.add(pulseAnimation, forKey: "bufferingPulse")
+
+// Cleanup
+artworkImageView.layer.removeAnimation(forKey: "bufferingPulse")
+artworkImageView.layer.opacity = 1.0
+```
+
+### Automatische Trigger
+
+| Wijziging bevat... | Verplichte actie |
+|-------------------|------------------|
+| `MiniPlayer.tsx` feature | **BLOKKEERDER** tot `MiniPlayerNativeView.swift` ook gewijzigd |
+| `ExpandedAudioPlayer.tsx` feature | **BLOKKEERDER** tot `FullPlayerNativeView.swift` ook gewijzigd |
+| Nieuwe playback state parameter | **BEIDE** bridge en native structs updaten |
+
+---
+
 ## Handhaving
 
 Dit protocol is **VERPLICHT**. Bij elke wijziging:
@@ -547,6 +741,10 @@ Dit protocol is **VERPLICHT**. Bij elke wijziging:
 7. **ALTIJD Mini-Retrospectief uitvoeren na afronden van ontwikkelstap!**
 8. **ALTIJD Uitgebreide Analyse uitvoeren na afronden van module!**
 9. **Bij skill wijzigingen: ALTIJD recursieve implementatie op bestaande code!**
+10. **ALTIJD Plan Adherence Protocol volgen bij geplande features!**
+    - Check `.claude/plans/` voor bestaande plannen VOORDAT je begint
+    - Lees het VOLLEDIGE plan
+    - Bij afwijking: vraag EERST de gebruiker
 
 ### Prioriteit van Recursieve Updates
 
