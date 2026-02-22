@@ -39,6 +39,11 @@ if (__DEV__) {
   LogBox.ignoreLogs([
     'Require cycle:',
     'Non-serializable values were found in the navigation state',
+    // XMPP connection errors when Prosody server is not running
+    // The app continues to work in mock mode without XMPP
+    '[XMPP] Error event:',
+    'Connection refused',
+    "The operation couldn't be completed",
   ]);
 }
 

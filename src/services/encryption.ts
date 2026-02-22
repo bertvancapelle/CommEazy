@@ -31,6 +31,7 @@ import {
   randombytes_buf,
   to_base64,
   from_base64,
+  base64_variants,
   to_hex,
   to_string,
   memzero,
@@ -121,27 +122,28 @@ export class SodiumEncryptionService implements EncryptionService {
     this.privateKey = kp.privateKey;
 
     // Store in Keychain (hardware-backed on iOS/Android)
+    // Use ORIGINAL variant for consistent encoding across all services
     await Keychain.setGenericPassword(
       KEY_ACCOUNT_PUBLIC,
-      to_base64(kp.publicKey),
+      to_base64(kp.publicKey, base64_variants.ORIGINAL),
       { service: `${KEY_SERVICE}.public` },
     );
     await Keychain.setGenericPassword(
       KEY_ACCOUNT_PRIVATE,
-      to_base64(kp.privateKey),
+      to_base64(kp.privateKey, base64_variants.ORIGINAL),
       { service: `${KEY_SERVICE}.private`, accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY },
     );
 
     return {
-      publicKey: to_base64(kp.publicKey),
-      privateKey: to_base64(kp.privateKey),
+      publicKey: to_base64(kp.publicKey, base64_variants.ORIGINAL),
+      privateKey: to_base64(kp.privateKey, base64_variants.ORIGINAL),
     };
   }
 
   async getPublicKey(): Promise<string> {
     this.ensureInitialized();
     if (!this.publicKey) throw new Error('No key pair generated');
-    return to_base64(this.publicKey);
+    return to_base64(this.publicKey, base64_variants.ORIGINAL);
   }
 
   /**
@@ -223,7 +225,7 @@ export class SodiumEncryptionService implements EncryptionService {
     // QR contains: base64 public key + fingerprint
     const fingerprint = crypto_generichash(16, this.publicKey!, null);
     return JSON.stringify({
-      pk: to_base64(this.publicKey!),
+      pk: to_base64(this.publicKey!, base64_variants.ORIGINAL),
       fp: to_hex(fingerprint),
       v: 1,
     });
@@ -234,7 +236,7 @@ export class SodiumEncryptionService implements EncryptionService {
       const parsed = JSON.parse(qrData) as { pk: string; fp: string; v: number };
       if (parsed.pk !== expectedPublicKey) return false;
 
-      const pk = from_base64(parsed.pk);
+      const pk = from_base64(parsed.pk, base64_variants.ORIGINAL);
       const expectedFingerprint = to_hex(crypto_generichash(16, pk, null));
       return parsed.fp === expectedFingerprint;
     } catch {
@@ -266,9 +268,9 @@ export class SodiumEncryptionService implements EncryptionService {
     memzero(derivedKey);
 
     return {
-      salt: to_base64(salt),
-      iv: to_base64(nonce),
-      encrypted: to_base64(encrypted),
+      salt: to_base64(salt, base64_variants.ORIGINAL),
+      iv: to_base64(nonce, base64_variants.ORIGINAL),
+      encrypted: to_base64(encrypted, base64_variants.ORIGINAL),
       version: BACKUP_VERSION,
     };
   }
@@ -277,9 +279,10 @@ export class SodiumEncryptionService implements EncryptionService {
     let derivedKey: Uint8Array | null = null;
 
     try {
-      const salt = from_base64(backup.salt);
-      const nonce = from_base64(backup.iv);
-      const encrypted = from_base64(backup.encrypted);
+      // Backup data uses ORIGINAL variant
+      const salt = from_base64(backup.salt, base64_variants.ORIGINAL);
+      const nonce = from_base64(backup.iv, base64_variants.ORIGINAL);
+      const encrypted = from_base64(backup.encrypted, base64_variants.ORIGINAL);
 
       derivedKey = crypto_pwhash(
         32,
@@ -296,21 +299,21 @@ export class SodiumEncryptionService implements EncryptionService {
       this.privateKey = privateKey;
       this.publicKey = publicKey;
 
-      // Store restored keys
+      // Store restored keys with ORIGINAL variant
       await Keychain.setGenericPassword(
         KEY_ACCOUNT_PUBLIC,
-        to_base64(publicKey),
+        to_base64(publicKey, base64_variants.ORIGINAL),
         { service: `${KEY_SERVICE}.public` },
       );
       await Keychain.setGenericPassword(
         KEY_ACCOUNT_PRIVATE,
-        to_base64(privateKey),
+        to_base64(privateKey, base64_variants.ORIGINAL),
         { service: `${KEY_SERVICE}.private` },
       );
 
       return {
-        publicKey: to_base64(publicKey),
-        privateKey: to_base64(privateKey),
+        publicKey: to_base64(publicKey, base64_variants.ORIGINAL),
+        privateKey: to_base64(privateKey, base64_variants.ORIGINAL),
       };
     } catch (error) {
       // E201: Decryption failed (wrong PIN or tampered backup)
@@ -336,9 +339,9 @@ export class SodiumEncryptionService implements EncryptionService {
 
     return {
       mode: '1on1',
-      data: to_base64(ciphertext),
+      data: to_base64(ciphertext, base64_variants.ORIGINAL),
       metadata: {
-        nonce: to_base64(nonce),
+        nonce: to_base64(nonce, base64_variants.ORIGINAL),
         to: recipient.jid,
       },
     };
@@ -352,8 +355,8 @@ export class SodiumEncryptionService implements EncryptionService {
       const nonce = randombytes_buf(crypto_box_NONCEBYTES);
       const ciphertext = crypto_box_easy(data, nonce, recipient.publicKey, this.privateKey!);
       envelopes[recipient.jid] = {
-        nonce: to_base64(nonce),
-        ciphertext: to_base64(ciphertext),
+        nonce: to_base64(nonce, base64_variants.ORIGINAL),
+        ciphertext: to_base64(ciphertext, base64_variants.ORIGINAL),
       };
     }
 
@@ -379,8 +382,8 @@ export class SodiumEncryptionService implements EncryptionService {
       const keyNonce = randombytes_buf(crypto_box_NONCEBYTES);
       const wrappedKey = crypto_box_easy(messageKey, keyNonce, recipient.publicKey, this.privateKey!);
       wrappedKeys[recipient.jid] = {
-        nonce: to_base64(keyNonce),
-        key: to_base64(wrappedKey),
+        nonce: to_base64(keyNonce, base64_variants.ORIGINAL),
+        key: to_base64(wrappedKey, base64_variants.ORIGINAL),
       };
     }
 
@@ -390,8 +393,8 @@ export class SodiumEncryptionService implements EncryptionService {
     return {
       mode: 'shared-key',
       data: JSON.stringify({
-        content: to_base64(encryptedContent),
-        contentNonce: to_base64(contentNonce),
+        content: to_base64(encryptedContent, base64_variants.ORIGINAL),
+        contentNonce: to_base64(contentNonce, base64_variants.ORIGINAL),
         keys: wrappedKeys,
       }),
       metadata: {},
@@ -403,8 +406,8 @@ export class SodiumEncryptionService implements EncryptionService {
   // ============================================================
 
   private decryptDirect(payload: EncryptedPayload, senderPk: Uint8Array): string {
-    const nonce = from_base64(payload.metadata.nonce);
-    const ciphertext = from_base64(payload.data);
+    const nonce = from_base64(payload.metadata.nonce, base64_variants.ORIGINAL);
+    const ciphertext = from_base64(payload.data, base64_variants.ORIGINAL);
     const plaintext = crypto_box_open_easy(ciphertext, nonce, senderPk, this.privateKey!);
     return to_string(plaintext);
   }
@@ -418,8 +421,8 @@ export class SodiumEncryptionService implements EncryptionService {
       throw new Error('No envelope for this recipient');
     }
 
-    const nonce = from_base64(envelope.nonce);
-    const ciphertext = from_base64(envelope.ciphertext);
+    const nonce = from_base64(envelope.nonce, base64_variants.ORIGINAL);
+    const ciphertext = from_base64(envelope.ciphertext, base64_variants.ORIGINAL);
     const plaintext = crypto_box_open_easy(ciphertext, nonce, senderPk, this.privateKey!);
     return to_string(plaintext);
   }
@@ -439,13 +442,13 @@ export class SodiumEncryptionService implements EncryptionService {
     }
 
     // Unwrap message key
-    const keyNonce = from_base64(myWrappedKey.nonce);
-    const wrappedKey = from_base64(myWrappedKey.key);
+    const keyNonce = from_base64(myWrappedKey.nonce, base64_variants.ORIGINAL);
+    const wrappedKey = from_base64(myWrappedKey.key, base64_variants.ORIGINAL);
     const messageKey = crypto_box_open_easy(wrappedKey, keyNonce, senderPk, this.privateKey!);
 
     // Decrypt content
-    const contentNonce = from_base64(parsed.contentNonce);
-    const encryptedContent = from_base64(parsed.content);
+    const contentNonce = from_base64(parsed.contentNonce, base64_variants.ORIGINAL);
+    const encryptedContent = from_base64(parsed.content, base64_variants.ORIGINAL);
 
     try {
       const plaintext = crypto_secretbox_open_easy(encryptedContent, contentNonce, messageKey);
@@ -465,9 +468,10 @@ export class SodiumEncryptionService implements EncryptionService {
       const privResult = await Keychain.getGenericPassword({ service: `${KEY_SERVICE}.private` });
 
       if (pubResult && privResult) {
+        // Use ORIGINAL variant to match the encoding used in testKeys.ts and container.ts
         return {
-          publicKey: from_base64(pubResult.password),
-          privateKey: from_base64(privResult.password),
+          publicKey: from_base64(pubResult.password, base64_variants.ORIGINAL),
+          privateKey: from_base64(privResult.password, base64_variants.ORIGINAL),
         };
       }
     } catch {

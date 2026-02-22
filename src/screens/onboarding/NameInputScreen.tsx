@@ -18,15 +18,18 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, typography, spacing } from '@/theme';
 import { Button, TextInput, ProgressIndicator } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'NameInput'>;
 
 export function NameInputScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { triggerFeedback } = useFeedback();
   const [name, setName] = useState('');
 
   const handleContinue = () => {
+    void triggerFeedback('tap');
     // TODO: Save name to user profile
     navigation.navigate('PinSetup', { name });
   };

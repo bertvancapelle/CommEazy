@@ -57,9 +57,15 @@ interface ToggleRowProps {
   onValueChange: (value: boolean) => void;
   accentColor: string;
   accentColorLight: string;
+  triggerHaptic: () => void;
 }
 
-function ToggleRow({ label, hint, value, onValueChange, accentColor, accentColorLight }: ToggleRowProps) {
+function ToggleRow({ label, hint, value, onValueChange, accentColor, accentColorLight, triggerHaptic }: ToggleRowProps) {
+  const handleValueChange = (newValue: boolean) => {
+    triggerHaptic();
+    onValueChange(newValue);
+  };
+
   return (
     <View style={styles.toggleContainer}>
       <View style={styles.toggleLabelContainer}>
@@ -68,7 +74,7 @@ function ToggleRow({ label, hint, value, onValueChange, accentColor, accentColor
       </View>
       <Switch
         value={value}
-        onValueChange={onValueChange}
+        onValueChange={handleValueChange}
         trackColor={{ false: colors.border, true: accentColorLight }}
         thumbColor={value ? accentColor : colors.textTertiary}
         accessibilityLabel={label}
@@ -88,12 +94,18 @@ interface RingtoneSelectorProps {
   onValueChange: (sound: RingtoneSound) => void;
   accentColor: string;
   accentColorLight: string;
+  triggerHaptic: () => void;
 }
 
 const RINGTONE_OPTIONS: RingtoneSound[] = ['default', 'classic', 'gentle', 'urgent'];
 
-function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight }: RingtoneSelectorProps) {
+function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight, triggerHaptic }: RingtoneSelectorProps) {
   const { t } = useTranslation();
+
+  const handleRingtonePress = (ringtone: RingtoneSound) => {
+    triggerHaptic();
+    onValueChange(ringtone);
+  };
 
   return (
     <View style={styles.ringtoneSelectorContainer}>
@@ -109,7 +121,7 @@ function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight 
                 styles.ringtoneOption,
                 isSelected && { borderColor: accentColor, backgroundColor: accentColorLight + '20' },
               ]}
-              onPress={() => onValueChange(ringtone)}
+              onPress={() => handleRingtonePress(ringtone)}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
               accessibilityLabel={t(`callSettings.ringtones.${ringtone}`)}
@@ -139,7 +151,12 @@ export function CallSettingsScreen() {
   const { t } = useTranslation();
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
-  const { triggerFeedback, settings: feedbackSettings } = useFeedback();
+  const { triggerFeedback } = useFeedback();
+
+  // Haptic feedback for toggles - always triggers on any toggle change
+  const triggerToggleHaptic = useCallback(() => {
+    void triggerFeedback('tap');
+  }, [triggerFeedback]);
 
   // Settings state
   const [ringtoneEnabled, setRingtoneEnabled] = useState(DEFAULT_CALL_SOUND_SETTINGS.ringtoneEnabled);
@@ -197,15 +214,12 @@ export function CallSettingsScreen() {
     }
   }, []);
 
-  // Handle ringtone toggle
+  // Handle ringtone toggle (haptic feedback handled by ToggleRow)
   const handleRingtoneToggle = useCallback((enabled: boolean) => {
     setRingtoneEnabled(enabled);
     callSoundService.updateSettings({ ringtoneEnabled: enabled });
     void saveSetting('ringtoneEnabled', enabled);
-    if (enabled) {
-      void triggerFeedback('tap');
-    }
-  }, [saveSetting, triggerFeedback]);
+  }, [saveSetting]);
 
   // Handle ringtone sound change
   const handleRingtoneSoundChange = useCallback((sound: RingtoneSound) => {
@@ -218,49 +232,26 @@ export function CallSettingsScreen() {
     setTimeout(() => callSoundService.stopRingtone(), 2000); // Stop after 2 seconds
   }, [saveSetting]);
 
-  // Handle dial tone toggle
+  // Handle dial tone toggle (haptic feedback handled by ToggleRow)
   const handleDialToneToggle = useCallback((enabled: boolean) => {
     setDialToneEnabled(enabled);
     callSoundService.updateSettings({ dialToneEnabled: enabled });
     void saveSetting('dialToneEnabled', enabled);
-    if (enabled) {
-      void triggerFeedback('tap');
-    }
-  }, [saveSetting, triggerFeedback]);
+  }, [saveSetting]);
 
-  // Handle incoming vibration toggle
+  // Handle incoming vibration toggle (haptic feedback handled by ToggleRow)
   const handleIncomingVibrationToggle = useCallback((enabled: boolean) => {
     setIncomingVibration(enabled);
     callSoundService.updateSettings({ incomingCallVibration: enabled });
     void saveSetting('incomingCallVibration', enabled);
-    if (enabled) {
-      void triggerFeedback('tap');
-    }
-  }, [saveSetting, triggerFeedback]);
+  }, [saveSetting]);
 
-  // Handle outgoing vibration toggle
+  // Handle outgoing vibration toggle (haptic feedback handled by ToggleRow)
   const handleOutgoingVibrationToggle = useCallback((enabled: boolean) => {
     setOutgoingVibration(enabled);
     callSoundService.updateSettings({ outgoingCallVibration: enabled });
     void saveSetting('outgoingCallVibration', enabled);
-    if (enabled) {
-      void triggerFeedback('tap');
-    }
-  }, [saveSetting, triggerFeedback]);
-
-  // Test ringtone
-  const handleTestRingtone = useCallback(() => {
-    void triggerFeedback('tap');
-    callSoundService.startRingtone();
-    setTimeout(() => callSoundService.stopRingtone(), 3000); // Play for 3 seconds
-  }, [triggerFeedback]);
-
-  // Test dial tone
-  const handleTestDialTone = useCallback(() => {
-    void triggerFeedback('tap');
-    callSoundService.startDialTone();
-    setTimeout(() => callSoundService.stopDialTone(), 3000); // Play for 3 seconds
-  }, [triggerFeedback]);
+  }, [saveSetting]);
 
   // Voice focus items
   const voiceFocusItems = useMemo(() => {
@@ -292,18 +283,6 @@ export function CallSettingsScreen() {
         index: index++,
         onSelect: () => handleOutgoingVibrationToggle(!outgoingVibration),
       },
-      {
-        id: 'test-ringtone',
-        label: t('callSettings.testRingtone'),
-        index: index++,
-        onSelect: handleTestRingtone,
-      },
-      {
-        id: 'test-dial-tone',
-        label: t('callSettings.testDialTone'),
-        index: index++,
-        onSelect: handleTestDialTone,
-      },
     ];
   }, [
     isFocused,
@@ -316,8 +295,6 @@ export function CallSettingsScreen() {
     handleIncomingVibrationToggle,
     handleDialToneToggle,
     handleOutgoingVibrationToggle,
-    handleTestRingtone,
-    handleTestDialTone,
   ]);
 
   const { scrollRef } = useVoiceFocusList('call-settings-list', voiceFocusItems);
@@ -336,6 +313,7 @@ export function CallSettingsScreen() {
           onValueChange={handleRingtoneToggle}
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
+          triggerHaptic={triggerToggleHaptic}
         />
 
         {/* Ringtone sound selector (only shown when enabled) */}
@@ -345,6 +323,7 @@ export function CallSettingsScreen() {
             onValueChange={handleRingtoneSoundChange}
             accentColor={accentColor.primary}
             accentColorLight={accentColor.primaryLight}
+            triggerHaptic={triggerToggleHaptic}
           />
         )}
 
@@ -356,6 +335,7 @@ export function CallSettingsScreen() {
           onValueChange={handleIncomingVibrationToggle}
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
+          triggerHaptic={triggerToggleHaptic}
         />
       </View>
 
@@ -371,6 +351,7 @@ export function CallSettingsScreen() {
           onValueChange={handleDialToneToggle}
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
+          triggerHaptic={triggerToggleHaptic}
         />
 
         {/* Outgoing vibration toggle */}
@@ -381,30 +362,8 @@ export function CallSettingsScreen() {
           onValueChange={handleOutgoingVibrationToggle}
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
+          triggerHaptic={triggerToggleHaptic}
         />
-      </View>
-
-      {/* Test buttons */}
-      <View style={styles.testButtonsContainer}>
-        <TouchableOpacity
-          style={[styles.testButton, { backgroundColor: accentColor.primary }]}
-          onPress={handleTestRingtone}
-          accessibilityRole="button"
-          accessibilityLabel={t('callSettings.testRingtone')}
-        >
-          <Icon name="phone" size={24} color={colors.textOnPrimary} />
-          <Text style={styles.testButtonText}>{t('callSettings.testRingtone')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.testButton, { backgroundColor: accentColor.primary }]}
-          onPress={handleTestDialTone}
-          accessibilityRole="button"
-          accessibilityLabel={t('callSettings.testDialTone')}
-        >
-          <Icon name="phone-outgoing" size={24} color={colors.textOnPrimary} />
-          <Text style={styles.testButtonText}>{t('callSettings.testDialTone')}</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -492,25 +451,5 @@ const styles = StyleSheet.create({
   ringtoneOptionText: {
     ...typography.body,
     color: colors.textPrimary,
-  },
-  // Test buttons
-  testButtonsContainer: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  testButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    minHeight: touchTargets.comfortable,
-  },
-  testButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
   },
 });

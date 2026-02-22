@@ -192,6 +192,55 @@ missing.forEach(k => console.log('  -', k));
 "
 ```
 
+## Code Formatting (VERPLICHT)
+
+### JSON Bestanden
+
+**ALLE JSON bestanden** MOETEN consistent geformatteerd zijn met:
+- **2-space indentation** (geen tabs)
+- **Multiline format** (één property per regel)
+- **Trailing newline** (bestand eindigt met `\n`)
+
+**❌ FOUT — Compact/single-line format:**
+```json
+{"app":{"name":"CommEazy"},"tabs":{"chats":"Berichten","contacts":"Contacten"}}
+```
+
+**✅ GOED — Multiline format:**
+```json
+{
+  "app": {
+    "name": "CommEazy"
+  },
+  "tabs": {
+    "chats": "Berichten",
+    "contacts": "Contacten"
+  }
+}
+```
+
+### Prettier Configuratie
+
+Project gebruikt Prettier voor automatische formatting. Configuratie in `.prettierrc`:
+
+```json
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "endOfLine": "lf"
+}
+```
+
+**NPM Scripts:**
+- `npm run format:locales` — Format alleen locale JSON bestanden
+- `npm run format` — Format alle TypeScript en JSON bestanden
+
+### Wanneer te Formatteren
+
+- **Na handmatige JSON edits** — Run `npm run format:locales`
+- **Bij merge conflicts in JSON** — Format na conflict resolution
+- **Bij nieuwe locale bestanden** — Zorg dat ze multiline format gebruiken
+
 ## Git Workflow (VERPLICHT)
 
 ### ⚠️ CRUCIAAL: Claude MOET proactief commits voorstellen

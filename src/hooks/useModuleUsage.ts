@@ -46,12 +46,12 @@ interface UseModuleUsageOptions {
 }
 
 // All available modules - this list can grow as functionality expands
+// Note: 'calls' handles both voice and video calls (combined module)
 export const ALL_MODULES: NavigationDestination[] = [
   'chats',
   'contacts',
   'groups',
-  'calls',
-  'videocall',
+  'calls',      // Combined voice + video calling
   'podcast',
   'radio',
   'books',
@@ -67,10 +67,9 @@ const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'chats',      // Most common use case
   'contacts',   // Second most common
   'radio',      // Radio - key media feature, visible on first page
-  'calls',      // Phone calls
+  'calls',      // Phone + video calls (combined)
   'groups',     // Groups
   'weather',    // Weather - useful utility for seniors
-  'videocall',  // Video calls
   'books',      // Books - e-books from Gutenberg with optional TTS
   'podcast',    // Podcasts
   'settings',   // Settings

@@ -15,7 +15,9 @@
     "test:a11y": "jest --testPathPattern=accessibility",
     "test:encryption": "jest --testPathPattern=encryption",
     "bundle:analyze": "react-native-bundle-visualizer",
-    "clean": "watchman watch-del-all && rm -rf node_modules ios/Pods && npm install && cd ios && pod install"
+    "clean": "watchman watch-del-all && rm -rf node_modules ios/Pods && npm install && cd ios && pod install",
+    "format:locales": "prettier --write 'src/locales/*.json'",
+    "format": "prettier --write 'src/**/*.{ts,tsx,json}'"
   },
   "dependencies": {
     "@bam.tech/react-native-image-resizer": "^3.0.11",
@@ -83,6 +85,7 @@
     "@typescript-eslint/parser": "^7.3.0",
     "babel-plugin-module-resolver": "^5.0.0",
     "detox": "^20.20.0",
+    "prettier": "^3.2.5",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^4.6.0",

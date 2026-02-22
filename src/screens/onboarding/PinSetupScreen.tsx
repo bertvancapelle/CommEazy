@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, typography, spacing } from '@/theme';
 import { Button, ProgressIndicator, PinInput } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'PinSetup'>;
@@ -33,6 +34,7 @@ type PinStep = 'create' | 'confirm';
 
 export function PinSetupScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { triggerFeedback } = useFeedback();
   const { name } = route.params;
   const [step, setStep] = useState<PinStep>('create');
   const [pin, setPin] = useState('');
@@ -96,6 +98,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
   };
 
   const handleContinue = async () => {
+    void triggerFeedback('tap');
     Keyboard.dismiss();
 
     if (step === 'create') {
@@ -117,6 +120,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
   };
 
   const handleBack = () => {
+    void triggerFeedback('tap');
     if (step === 'confirm') {
       setStep('create');
       setConfirmPin('');
@@ -129,6 +133,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
   };
 
   const handleClear = () => {
+    void triggerFeedback('tap');
     if (step === 'create') {
       setPin('');
     } else {

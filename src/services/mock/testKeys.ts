@@ -22,6 +22,7 @@ import {
   crypto_generichash,
   to_base64,
   from_base64,
+  base64_variants,
   ready as sodiumReady,
 } from 'react-native-libsodium';
 
@@ -29,11 +30,15 @@ import {
 const IK_SEED = 'commeazy_dev_test_keypair_ik_v1';
 const OMA_SEED = 'commeazy_dev_test_keypair_oma_v1';
 const TEST_SEED = 'commeazy_dev_test_keypair_test_v1';
+const JEANINE_SEED = 'commeazy_dev_test_keypair_jeanine_v1';
+const IPAD_SEED = 'commeazy_dev_test_keypair_ipad_v1';
 
 // Cached keypairs (generated once on first access)
 let ikKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let omaKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let testKeypairCache: { publicKey: string; privateKey: string } | null = null;
+let jeanineKeypairCache: { publicKey: string; privateKey: string } | null = null;
+let ipadKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let sodiumReadyPromise: Promise<void> | null = null;
 
 /**
@@ -60,9 +65,10 @@ const generateKeypairFromSeed = async (seedString: string): Promise<{ publicKey:
   // Generate keypair from seed
   const keypair = crypto_box_seed_keypair(seed);
 
+  // Use ORIGINAL variant for consistent encoding/decoding
   return {
-    publicKey: to_base64(keypair.publicKey),
-    privateKey: to_base64(keypair.privateKey),
+    publicKey: to_base64(keypair.publicKey, base64_variants.ORIGINAL),
+    privateKey: to_base64(keypair.privateKey, base64_variants.ORIGINAL),
   };
 };
 
@@ -94,7 +100,7 @@ export const getOmaKeypair = async (): Promise<{ publicKey: string; privateKey: 
 
 /**
  * Get or generate the test keypair for 'test@commeazy.local'.
- * Used for physical test devices (e.g., iPhone 14).
+ * Used for physical test devices (e.g., iPhone 14, Bert).
  */
 export const getTestKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
@@ -104,6 +110,34 @@ export const getTestKeypair = async (): Promise<{ publicKey: string; privateKey:
     console.log('[TestKeys] Generated TEST keypair:', testKeypairCache.publicKey.substring(0, 20) + '...');
   }
   return testKeypairCache;
+};
+
+/**
+ * Get or generate the test keypair for 'jeanine@commeazy.local'.
+ * Used for Jeanine's physical iPhone.
+ */
+export const getJeanineKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+  if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
+
+  if (!jeanineKeypairCache) {
+    jeanineKeypairCache = await generateKeypairFromSeed(JEANINE_SEED);
+    console.log('[TestKeys] Generated JEANINE keypair:', jeanineKeypairCache.publicKey.substring(0, 20) + '...');
+  }
+  return jeanineKeypairCache;
+};
+
+/**
+ * Get or generate the test keypair for 'ipad@commeazy.local'.
+ * Used for iPad simulator testing.
+ */
+export const getIpadKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+  if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
+
+  if (!ipadKeypairCache) {
+    ipadKeypairCache = await generateKeypairFromSeed(IPAD_SEED);
+    console.log('[TestKeys] Generated IPAD keypair:', ipadKeypairCache.publicKey.substring(0, 20) + '...');
+  }
+  return ipadKeypairCache;
 };
 
 /**
@@ -120,6 +154,10 @@ export const getTestKeypairForJid = async (jid: string): Promise<{ publicKey: st
       return getOmaKeypair();
     case 'test@commeazy.local':
       return getTestKeypair();
+    case 'jeanine@commeazy.local':
+      return getJeanineKeypair();
+    case 'ipad@commeazy.local':
+      return getIpadKeypair();
     default:
       return null;
   }
@@ -141,7 +179,7 @@ export const getTestPublicKeyForJid = async (jid: string): Promise<string | null
 export const getOtherDevicesPublicKeys = async (myJid: string): Promise<Record<string, string>> => {
   if (!__DEV__) return {};
 
-  const allTestJids = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local'];
+  const allTestJids = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local'];
   const otherJids = allTestJids.filter(jid => jid !== myJid);
 
   const result: Record<string, string> = {};

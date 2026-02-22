@@ -27,6 +27,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 
@@ -46,6 +47,7 @@ const COUNTRY_CODES = [
 export function AddContactScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const { triggerFeedback } = useFeedback();
 
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -68,6 +70,7 @@ export function AddContactScreen() {
   const handleSave = useCallback(async () => {
     if (!canSave || saving) return;
 
+    void triggerFeedback('tap');
     setSaving(true);
 
     try {
@@ -103,16 +106,18 @@ export function AddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [canSave, saving, countryCode, phoneNumber, name, navigation, t]);
+  }, [canSave, saving, countryCode, phoneNumber, name, navigation, t, triggerFeedback]);
 
   const toggleCountryCodes = useCallback(() => {
+    void triggerFeedback('tap');
     setShowCountryCodes((prev) => !prev);
-  }, []);
+  }, [triggerFeedback]);
 
   const selectCountryCode = useCallback((code: string) => {
+    void triggerFeedback('tap');
     setCountryCode(code);
     setShowCountryCodes(false);
-  }, []);
+  }, [triggerFeedback]);
 
   return (
     <KeyboardAvoidingView

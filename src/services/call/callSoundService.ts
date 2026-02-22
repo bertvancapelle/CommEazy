@@ -22,6 +22,12 @@ import type { HapticIntensity } from '@/hooks/useFeedback';
 // Native AudioServices module (from iOS native code)
 const { AudioServices } = NativeModules;
 
+// Debug: Check if AudioServices is available
+console.log('[CallSoundService] AudioServices module available:', !!AudioServices);
+if (AudioServices) {
+  console.log('[CallSoundService] AudioServices methods:', Object.keys(AudioServices));
+}
+
 // ============================================================
 // Types
 // ============================================================
@@ -59,17 +65,18 @@ export const DEFAULT_CALL_SOUND_SETTINGS: CallSoundSettings = {
 // ============================================================
 // iOS System Sound IDs for ringtones
 // Reference: https://iphonedev.wiki/index.php/AudioServices
+// These are AUDIBLE system sounds, not silent alerts
 // ============================================================
 
 const IOS_RINGTONE_SOUNDS: Record<RingtoneSound, number> = {
-  default: 1000,  // New Mail - classic iPhone sound
-  classic: 1005,  // New Voicemail - very recognizable
-  gentle: 1013,   // Mail Sent - soft whoosh-like sound
-  urgent: 1016,   // Tweet sent - urgent sounding
+  default: 1007,  // SMS Received (tri-tone) - VERY recognizable
+  classic: 1005,  // Voicemail - classic sound
+  gentle: 1003,   // Mail Received - softer
+  urgent: 1020,   // Anticipate - alert sound
 };
 
-// Dial tone sound ID (phone line busy/ringing tone)
-const IOS_DIAL_TONE = 1074; // "JBL_Begin" - good for dial tone simulation
+// Dial tone sound ID - phone line ringing simulation
+const IOS_DIAL_TONE = 1109; // Tink - short clear tone for dial pattern
 
 // ============================================================
 // CallSoundService Class
@@ -143,15 +150,29 @@ class CallSoundService {
 
   /**
    * Play the selected ringtone sound once
+   * Uses boosted alert sound for better audibility
    */
   private playRingtoneSound(): void {
+    const soundId = IOS_RINGTONE_SOUNDS[this.settings.ringtoneSound] || IOS_RINGTONE_SOUNDS.default;
+    console.debug('[CallSoundService] Playing ringtone sound ID:', soundId);
+
     if (Platform.OS === 'ios') {
-      const soundId = IOS_RINGTONE_SOUNDS[this.settings.ringtoneSound] || IOS_RINGTONE_SOUNDS.default;
-      AudioServices?.playAlertSound(soundId);
+      if (!AudioServices) {
+        console.error('[CallSoundService] AudioServices native module NOT available!');
+        return;
+      }
+
+      // Use boosted alert for ringtones (louder, with vibration)
+      console.log('[CallSoundService] Calling AudioServices.playBoostedAlertSound with ID:', soundId);
+      try {
+        AudioServices.playBoostedAlertSound(soundId);
+        console.log('[CallSoundService] playBoostedAlertSound called successfully');
+      } catch (error) {
+        console.error('[CallSoundService] Error calling playBoostedAlertSound:', error);
+      }
     } else {
       // Android: Use system ringtone
-      // Note: For production, we should use a proper ringtone library
-      AudioServices?.playAlertSound(0); // Uses default system sound
+      AudioServices?.playAlertSound(0);
     }
   }
 

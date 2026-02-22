@@ -45,6 +45,8 @@ const MOCK_UUIDS = {
   ik: 'e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b',
   oma: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c',
   test: 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d',
+  jeanine: 'b8c9d0e1-f2a3-4b8c-5d9e-6f7a8b9c0d1e',
+  ipad: 'c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f',
 };
 
 // Mock contacts with Dutch family-themed personas
@@ -123,6 +125,24 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
   },
+  'jeanine@commeazy.local': {
+    userUuid: MOCK_UUIDS.jeanine,
+    jid: 'jeanine@commeazy.local',
+    name: 'Jeanine',
+    phoneNumber: '+31600000004',
+    publicKey: '', // Will be set dynamically with real key
+    verified: true,
+    lastSeen: 0, // Unknown - presence comes from XMPP
+  },
+  'ipad@commeazy.local': {
+    userUuid: MOCK_UUIDS.ipad,
+    jid: 'ipad@commeazy.local',
+    name: 'iPad (simulator)',
+    phoneNumber: '+31600000005',
+    publicKey: '', // Will be set dynamically with real key
+    verified: true,
+    lastSeen: 0, // Unknown - presence comes from XMPP
+  },
 };
 
 // Backward compatibility aliases
@@ -130,7 +150,7 @@ const IK_AS_CONTACT = TEST_DEVICE_CONTACTS['ik@commeazy.local'];
 const OMA_AS_CONTACT = TEST_DEVICE_CONTACTS['oma@commeazy.local'];
 
 // All test device JIDs
-const TEST_DEVICE_JIDS = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local'];
+const TEST_DEVICE_JIDS = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local'];
 
 // Export function to get contacts based on current user
 // Call this AFTER encryption is initialized to get real public keys

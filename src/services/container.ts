@@ -95,6 +95,7 @@ const isPhysicalDevice = async (): Promise<boolean> => {
 // Device assignment:
 // - iPhone 17 Pro (simulator, large screen) → ik@commeazy.local
 // - iPhone 16e (simulator, small screen) → oma@commeazy.local
+// - iPad (simulator) → ipad@commeazy.local
 // - iPhone 14 (physical, Bert) → test@commeazy.local
 // - Other physical iPhone (Jeanine) → jeanine@commeazy.local
 const getDevUserCredentials = async () => {
@@ -145,15 +146,29 @@ const getDevUserCredentials = async () => {
   const height = windowDims.height > 0 ? windowDims.height : screenDims.height;
   const screenSize = width * height;
 
+  // iPad detection: iPads have much larger screens
+  // iPad mini: 744x1133 = ~843,000 points
+  // iPad Air/Pro 11": 820x1180 = ~968,000 points
+  // iPad Pro 12.9": 1024x1366 = ~1,400,000 points
+  // Use 600,000 as threshold (well above any iPhone, well below any iPad)
+  const isIPad = screenSize > 600000;
+
   // iPhone 16e: 390x844 = 329,160 points
   // iPhone 17 Pro: 393x852 = 334,836 points OR 402x874 = 351,348 points
   // Use 335,000 as threshold (between 16e and smallest Pro)
   const isSmallDevice = screenSize < 335000;
 
   console.log(`[DEV] Screen dimensions: window=${windowDims.width}x${windowDims.height}, screen=${screenDims.width}x${screenDims.height}`);
-  console.log(`[DEV] Using: ${width}x${height} = ${screenSize} (threshold: 335000, isSmall: ${isSmallDevice})`);
+  console.log(`[DEV] Using: ${width}x${height} = ${screenSize} (isIPad: ${isIPad}, isSmall: ${isSmallDevice})`);
 
-  if (isSmallDevice) {
+  if (isIPad) {
+    console.log(`[DEV] iPad simulator detected, using ipad account`);
+    return {
+      jid: 'ipad@commeazy.local',
+      password: 'test123',
+      name: 'iPad',
+    };
+  } else if (isSmallDevice) {
     console.log(`[DEV] Small simulator detected, using oma account`);
     return {
       jid: 'oma@commeazy.local',
@@ -417,8 +432,7 @@ class ServiceContainerClass {
     // We need to overwrite them with our test keys
     // This is done by accessing the Keychain directly
     const Keychain = await import('react-native-keychain');
-    const libsodium = await import('react-native-libsodium');
-    const { from_base64 } = libsodium;
+    const { from_base64, base64_variants } = await import('react-native-libsodium');
 
     const KEY_SERVICE = 'com.commeazy.keys';
 
@@ -435,8 +449,9 @@ class ServiceContainerClass {
 
     // Re-initialize encryption service to load the new keys
     // Note: This is a hack for dev mode only
-    (this._encryption as any).publicKey = from_base64(keypair.publicKey);
-    (this._encryption as any).privateKey = from_base64(keypair.privateKey);
+    // CRITICAL: Must use base64_variants.ORIGINAL to match the encoding from testKeys.ts
+    (this._encryption as any).publicKey = from_base64(keypair.publicKey, base64_variants.ORIGINAL);
+    (this._encryption as any).privateKey = from_base64(keypair.privateKey, base64_variants.ORIGINAL);
 
     console.log('[ServiceContainer] Replaced encryption keys with test keypair');
   }

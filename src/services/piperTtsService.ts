@@ -65,6 +65,23 @@ const MAX_CHUNK_LENGTH = 2000;
 // ============================================================
 
 const BUNDLED_VOICES: PiperVoice[] = [
+  // Primary Dutch voice - Netherlands Dutch male (highest quality)
+  {
+    id: 'nl_NL-rdh-high',
+    name: 'Nederlands (RDH)',
+    language: 'nl-NL',
+    quality: 'high',
+    modelPath: 'piper-models/nl_NL-rdh-high',
+  },
+  // Fallback - Belgian Dutch female
+  {
+    id: 'nl_BE-nathalie-medium',
+    name: 'Nederlands (Nathalie)',
+    language: 'nl-BE',
+    quality: 'medium',
+    modelPath: 'piper-models/nl_BE-nathalie-medium',
+  },
+  // Fallback Dutch voice - Netherlands Dutch (lower quality)
   {
     id: 'nl_NL-mls-medium',
     name: 'Dutch (MLS)',

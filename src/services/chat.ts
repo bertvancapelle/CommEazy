@@ -225,10 +225,42 @@ export class ChatService {
         // Dynamically import libsodium only when needed (avoids Hermes issues in dev)
         const { from_base64, base64_variants } = await import('react-native-libsodium');
 
+        // Get the recipient's public key
+        let recipientPublicKey = contact.publicKey;
+
+        // DEV MODE: If public key is missing, try to load it from test keys
+        if (__DEV__ && (!recipientPublicKey || recipientPublicKey.length === 0)) {
+          console.warn(`[ChatService] Contact ${contactJid} has no public key, trying test keys...`);
+          try {
+            const { getTestPublicKeyForJid } = await import('./mock/testKeys');
+            const testKey = await getTestPublicKeyForJid(contactJid);
+            if (testKey) {
+              recipientPublicKey = testKey;
+              // Also update the database so future sends work
+              await ServiceContainer.database.saveContact({
+                ...contact,
+                publicKey: testKey,
+              });
+              console.log(`[ChatService] Loaded test key for ${contactJid} and saved to database`);
+            }
+          } catch (testKeyError) {
+            console.warn(`[ChatService] Failed to load test key for ${contactJid}:`, testKeyError);
+          }
+        }
+
+        // Validate public key before attempting encryption
+        if (!recipientPublicKey || recipientPublicKey.length === 0) {
+          console.error(`[ChatService] Cannot send to ${contactJid}: no public key available`);
+          throw new AppError('E202', 'encryption', () => {}, {
+            reason: 'missing_public_key',
+            contactJid,
+          });
+        }
+
         // Prepare recipient
         const recipient: Recipient = {
           jid: contactJid,
-          publicKey: from_base64(contact.publicKey, base64_variants.ORIGINAL),
+          publicKey: from_base64(recipientPublicKey, base64_variants.ORIGINAL),
         };
 
         // Encrypt message
@@ -572,8 +604,31 @@ export class ChatService {
         content = payload.data; // Data is plain text in this mode
       } else {
         // PRODUCTION: Real decryption
-        // Check if contact has a public key
-        if (!contact.publicKey) {
+        // Get the sender's public key
+        let senderPublicKey = contact.publicKey;
+
+        // DEV MODE: If public key is missing, try to load it from test keys
+        if (__DEV__ && (!senderPublicKey || senderPublicKey.length === 0)) {
+          console.warn(`[ChatService] Sender ${bareFrom} has no public key, trying test keys...`);
+          try {
+            const { getTestPublicKeyForJid } = await import('./mock/testKeys');
+            const testKey = await getTestPublicKeyForJid(bareFrom);
+            if (testKey) {
+              senderPublicKey = testKey;
+              // Also update the database so future receives work
+              await ServiceContainer.database.saveContact({
+                ...contact,
+                publicKey: testKey,
+              });
+              console.log(`[ChatService] Loaded test key for ${bareFrom} and saved to database`);
+            }
+          } catch (testKeyError) {
+            console.warn(`[ChatService] Failed to load test key for ${bareFrom}:`, testKeyError);
+          }
+        }
+
+        // Check if we have a public key now
+        if (!senderPublicKey || senderPublicKey.length === 0) {
           console.warn(`[ChatService] Contact ${contact.name} has no public key — cannot decrypt`);
           return;
         }
@@ -582,7 +637,7 @@ export class ChatService {
         const { from_base64, base64_variants } = await import('react-native-libsodium');
 
         // Decrypt message
-        const senderPk = from_base64(contact.publicKey, base64_variants.ORIGINAL);
+        const senderPk = from_base64(senderPublicKey, base64_variants.ORIGINAL);
         content = await ServiceContainer.encryption.decrypt(payload, senderPk);
       }
       console.log(`[ChatService] Message content: ${content.substring(0, 50)}...`);

@@ -21,6 +21,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { colors, typography, spacing } from '@/theme';
 import { Button, TextInput, ProgressIndicator, PinInput } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'PhoneVerification'>;
@@ -29,6 +30,7 @@ type VerificationStep = 'phone' | 'code';
 
 export function PhoneVerificationScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { triggerFeedback } = useFeedback();
   const [step, setStep] = useState<VerificationStep>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+31');
@@ -40,6 +42,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
   const phoneInputRef = useRef<RNTextInput>(null);
 
   const handleSendCode = async () => {
+    void triggerFeedback('tap');
     setError(null);
     setIsLoading(true);
 
@@ -63,6 +66,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
   };
 
   const handleVerifyCode = async () => {
+    void triggerFeedback('tap');
     setError(null);
     setIsLoading(true);
 
@@ -86,11 +90,13 @@ export function PhoneVerificationScreen({ navigation }: Props) {
   };
 
   const handleResendCode = async () => {
+    void triggerFeedback('tap');
     setVerificationCode('');
     await handleSendCode();
   };
 
   const handleRequestVoiceCall = async () => {
+    void triggerFeedback('tap');
     setError(null);
     setIsLoading(true);
 

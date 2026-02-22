@@ -29,6 +29,7 @@ import {
   Linking,
   Platform,
   AccessibilityInfo,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -210,7 +211,7 @@ export function ArticleViewer({
 }: ArticleViewerProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { triggerLight, triggerMedium } = useFeedback();
+  const { triggerFeedback } = useFeedback();
   const reducedMotion = useReducedMotion();
 
   // State
@@ -232,18 +233,18 @@ export function ArticleViewer({
   const handleTTSPress = useCallback(() => {
     if (!article) return;
 
-    triggerLight();
+    void triggerFeedback('tap');
 
     if (isTTSPlaying) {
       onStopTTS?.();
     } else {
       onStartTTS?.(article, useFullText);
     }
-  }, [article, isTTSPlaying, useFullText, onStartTTS, onStopTTS, triggerLight]);
+  }, [article, isTTSPlaying, useFullText, onStartTTS, onStopTTS, triggerFeedback]);
 
   // Handle full text toggle
   const handleFullTextToggle = useCallback(() => {
-    triggerLight();
+    void triggerFeedback('tap');
     setUseFullText((prev) => !prev);
 
     // If already playing, restart with new setting
@@ -254,13 +255,13 @@ export function ArticleViewer({
         onStartTTS?.(article, !useFullText);
       }, 100);
     }
-  }, [article, isTTSPlaying, useFullText, onStartTTS, onStopTTS, triggerLight]);
+  }, [article, isTTSPlaying, useFullText, onStartTTS, onStopTTS, triggerFeedback]);
 
   // Handle open in browser
   const handleOpenInBrowser = useCallback(async () => {
     if (!article) return;
 
-    triggerMedium();
+    void triggerFeedback('navigation');
     setIsOpeningBrowser(true);
 
     try {
@@ -277,17 +278,17 @@ export function ArticleViewer({
     } finally {
       setIsOpeningBrowser(false);
     }
-  }, [article, triggerMedium]);
+  }, [article, triggerFeedback]);
 
   // Handle close
   const handleClose = useCallback(() => {
-    triggerLight();
+    void triggerFeedback('tap');
     // Stop TTS if playing
     if (isTTSPlaying) {
       onStopTTS?.();
     }
     onClose();
-  }, [isTTSPlaying, onStopTTS, onClose, triggerLight]);
+  }, [isTTSPlaying, onStopTTS, onClose, triggerFeedback]);
 
   if (!article) return null;
 
@@ -328,8 +329,12 @@ export function ArticleViewer({
           </View>
         )}
 
-        {/* Content */}
-        <View style={styles.content}>
+        {/* Content - Scrollable */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={true}
+        >
           {/* Article Title */}
           <Text style={styles.title} accessibilityRole="header">
             {article.title}
@@ -364,7 +369,7 @@ export function ArticleViewer({
               <Icon name="external-link" size={16} color={accentColor} />
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
 
         {/* TTS Controls (fixed at bottom) */}
         <View style={[styles.ttsControls, { paddingBottom: insets.bottom + spacing.md }]}>
@@ -430,11 +435,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
 
-  // Content
-  content: {
+  // Scrollable content
+  scrollView: {
     flex: 1,
+  },
+  content: {
     padding: spacing.lg,
     gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   title: {
     ...typography.h2,

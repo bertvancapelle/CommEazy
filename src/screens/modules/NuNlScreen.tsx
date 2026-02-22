@@ -35,7 +35,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticleViewer } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -275,7 +275,8 @@ export function NuNlScreen() {
 
   // State
   const [showWelcome, setShowWelcome] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const [previewArticle, setPreviewArticle] = useState<NewsArticle | null>(null);
+  const [fullArticle, setFullArticle] = useState<NewsArticle | null>(null);
 
   // News data
   const {
@@ -306,7 +307,7 @@ export function NuNlScreen() {
       id: article.id,
       label: article.title,
       index,
-      onSelect: () => setSelectedArticle(article),
+      onSelect: () => setPreviewArticle(article),
     }));
   }, [articles, isFocused]);
 
@@ -333,15 +334,33 @@ export function NuNlScreen() {
     setSelectedCategory(categoryId);
   }, [setSelectedCategory, triggerFeedback]);
 
-  // Handle article press
+  // Handle article press - opens preview modal first
   const handleArticlePress = useCallback((article: NewsArticle) => {
     void triggerFeedback('tap');
-    setSelectedArticle(article);
+    setPreviewArticle(article);
   }, [triggerFeedback]);
 
-  // Handle article modal close
-  const handleArticleClose = useCallback(() => {
-    setSelectedArticle(null);
+  // Handle preview modal close
+  const handlePreviewClose = useCallback(() => {
+    setPreviewArticle(null);
+  }, []);
+
+  // Handle "Read Abstract" - start TTS with summary, keep modal open
+  const handleReadAbstract = useCallback((article: NewsArticle) => {
+    // DON'T close the modal - keep it open so user can see the article while listening
+    // Start TTS with summary only (useFullText = false)
+    startTTS(article, false);
+  }, [startTTS]);
+
+  // Handle "Open Full Article" - close preview and open full article viewer
+  const handleOpenFullArticle = useCallback((article: NewsArticle) => {
+    setPreviewArticle(null);
+    setFullArticle(article);
+  }, []);
+
+  // Handle full article viewer close
+  const handleFullArticleClose = useCallback(() => {
+    setFullArticle(null);
   }, []);
 
   // Handle refresh
@@ -373,6 +392,7 @@ export function NuNlScreen() {
         icon="news"
         title={t('modules.nunl.title')}
         showAdMob
+        customLogo={<NunlLogo size={32} />}
       />
 
       {/* Category Chips */}
@@ -456,17 +476,29 @@ export function NuNlScreen() {
         onDismiss={handleWelcomeDismiss}
       />
 
-      {/* Article Viewer */}
-      <ArticleViewer
-        visible={selectedArticle !== null}
-        article={selectedArticle}
-        onClose={handleArticleClose}
+      {/* Article Preview Modal (first step) */}
+      <ArticlePreviewModal
+        visible={previewArticle !== null}
+        article={previewArticle}
+        onClose={handlePreviewClose}
+        onReadAbstract={handleReadAbstract}
+        onOpenFullArticle={handleOpenFullArticle}
+        accentColor={MODULE_COLOR}
+        isTTSPlaying={isTTSPlaying}
+        isTTSLoading={isTTSLoading}
+        onStopTTS={stopTTS}
+      />
+
+      {/* Full Article WebViewer (second step - embedded browser with TTS option) */}
+      <ArticleWebViewer
+        visible={fullArticle !== null}
+        article={fullArticle}
+        onClose={handleFullArticleClose}
         accentColor={MODULE_COLOR}
         onStartTTS={startTTS}
         onStopTTS={stopTTS}
         isTTSPlaying={isTTSPlaying}
         isTTSLoading={isTTSLoading}
-        ttsProgress={ttsProgress}
         showAdMob
       />
     </View>

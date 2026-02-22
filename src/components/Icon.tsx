@@ -90,7 +90,12 @@ export type IconName =
   | 'alert'
   | 'trash-can-outline'
   | 'radar'
-  | 'appleMusic';
+  | 'appleMusic'
+  | 'shuffle'
+  | 'repeat'
+  | 'repeat-one'
+  | 'heart-outline'
+  | 'musical-notes';
 
 interface IconProps {
   name: IconName;
@@ -1454,6 +1459,85 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
           {/* Musical note shape similar to Apple Music icon */}
           <Path
             d="M19 3V15.5C19 17.433 17.433 19 15.5 19C13.567 19 12 17.433 12 15.5C12 13.567 13.567 12 15.5 12C16.1 12 16.67 12.14 17.17 12.38V6.25L9 8.35V17.5C9 19.433 7.433 21 5.5 21C3.567 21 2 19.433 2 17.5C2 15.567 3.567 14 5.5 14C6.1 14 6.67 14.14 7.17 14.38V5.5L19 3Z"
+            fill={color}
+          />
+        </Svg>
+      );
+
+    case 'shuffle':
+      // Shuffle / random arrows
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M14.83 13.41L13.42 14.82L16.59 17.99L13.41 21.17L14.83 22.58L19.42 18L14.83 13.41Z"
+            fill={color}
+          />
+          <Path
+            d="M14.83 1.41L19.42 5.99L14.83 10.58L13.41 9.17L15.59 7H11.17C10.5 7 9.92 7.28 9.5 7.72L4.09 15.28C3.66 15.72 3.09 16 2.41 16H2V18H2.41C3.09 18 3.66 17.72 4.09 17.28L9.5 9.72C9.92 9.28 10.5 9 11.17 9H15.59L13.42 11.17L14.83 12.58L19.42 8L14.83 3.41L14.83 1.41Z"
+            fill={color}
+          />
+        </Svg>
+      );
+
+    case 'repeat':
+      // Repeat / loop arrows
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M17 17H7V14L3 18L7 22V19H19V13H17V17Z"
+            fill={color}
+          />
+          <Path
+            d="M7 7H17V10L21 6L17 2V5H5V11H7V7Z"
+            fill={color}
+          />
+        </Svg>
+      );
+
+    case 'repeat-one':
+      // Repeat one / loop single
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M17 17H7V14L3 18L7 22V19H19V13H17V17Z"
+            fill={color}
+          />
+          <Path
+            d="M7 7H17V10L21 6L17 2V5H5V11H7V7Z"
+            fill={color}
+          />
+          <Path
+            d="M13 15V9H12L10 10V11H11.5V15H13Z"
+            fill={color}
+          />
+        </Svg>
+      );
+
+    case 'heart-outline':
+      // Heart outline (unfilled)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12.1 18.55L12 18.65L11.89 18.55C7.14 14.24 4 11.39 4 8.5C4 6.5 5.5 5 7.5 5C9.04 5 10.54 6 11.07 7.36H12.93C13.46 6 14.96 5 16.5 5C18.5 5 20 6.5 20 8.5C20 11.39 16.86 14.24 12.1 18.55ZM16.5 3C14.76 3 13.09 3.81 12 5.08C10.91 3.81 9.24 3 7.5 3C4.42 3 2 5.41 2 8.5C2 12.27 5.4 15.36 10.55 20.03L12 21.35L13.45 20.03C18.6 15.36 22 12.27 22 8.5C22 5.41 19.58 3 16.5 3Z"
+            fill={color}
+          />
+        </Svg>
+      );
+
+    case 'musical-notes':
+      // Musical notes / beamed notes
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M9 3V15.5C9 17.433 7.433 19 5.5 19C3.567 19 2 17.433 2 15.5C2 13.567 3.567 12 5.5 12C6.1 12 6.67 12.14 7.17 12.38V3H9Z"
+            fill={color}
+          />
+          <Path
+            d="M22 3V15.5C22 17.433 20.433 19 18.5 19C16.567 19 15 17.433 15 15.5C15 13.567 16.567 12 18.5 12C19.1 12 19.67 12.14 20.17 12.38V3H22Z"
+            fill={color}
+          />
+          <Path
+            d="M7 3H22V5H7V3Z"
             fill={color}
           />
         </Svg>

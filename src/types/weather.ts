@@ -130,6 +130,12 @@ export interface RainPrediction {
 
   /** Expected rain intensity */
   nextRainIntensity?: RainIntensity;
+
+  /** Expected precipitation amount in mm (today) */
+  precipitationMm?: number;
+
+  /** Precipitation probability percentage (0-100) */
+  precipitationProbability?: number;
 }
 
 // ============================================================
@@ -358,8 +364,8 @@ export const RADAR_PROVIDER_CONFIG: RadarProviderConfig = {
   cacheTtl: 10 * 60 * 1000, // 10 minutes
   rainViewerApiUrl: 'https://api.rainviewer.com/public/weather-maps.json',
   defaultZoom: 7, // Good for regional view (~200km), within OWM limit
-  maxTileZoom: 7, // OWM max zoom level
-  tileOpacity: 0.7,
+  maxTileZoom: 12, // RainViewer supports up to 12
+  tileOpacity: 0.85, // Increased for better visibility
 };
 
 // ============================================================

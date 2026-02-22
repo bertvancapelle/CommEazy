@@ -173,19 +173,9 @@ export function ModuleHeader({
     </>
   );
 
-  // Use LiquidGlassView when available, otherwise fallback to solid color View
-  if (useLiquidGlass) {
-    return (
-      <LiquidGlassView
-        moduleId={moduleId as ModuleColorId}
-        style={[styles.container, style]}
-        cornerRadius={0}
-      >
-        {headerContent}
-      </LiquidGlassView>
-    );
-  }
-
+  // ModuleHeader uses solid color background, NOT Liquid Glass
+  // Liquid Glass is reserved for floating elements (MiniPlayer, ExpandedPlayer)
+  // that overlay content and benefit from transparency effects
   return (
     <View style={[styles.container, { backgroundColor: moduleColor }, style]}>
       {headerContent}

@@ -7,6 +7,16 @@
  * - TTS controls to read the article aloud
  * - Close button to return to article list
  *
+ * Cookie Consent Handling:
+ * - Auto-accepts OneTrust GDPR cookie consent popup
+ * - Uses sharedCookiesEnabled to persist consent across sessions
+ * - Injects JavaScript before page load to suppress popup
+ *
+ * URL Filtering (Security):
+ * - Only nu.nl URLs are allowed to load in WebView
+ * - External links are blocked (no browser redirect)
+ * - Prevents accidental navigation away from article
+ *
  * Senior-inclusive design:
  * - Large touch targets (60pt+)
  * - Clear button labels
@@ -24,8 +34,9 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -36,11 +47,180 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { NewsArticle } from '@/types/modules';
 
 // ============================================================
+// Allowed Domains for URL Filtering
+// ============================================================
+
+/**
+ * List of allowed domains for WebView navigation.
+ * Only URLs matching these domains will be loaded.
+ * All other URLs are blocked to prevent accidental navigation.
+ */
+const ALLOWED_DOMAINS = [
+  'nu.nl',
+  'www.nu.nl',
+  'm.nu.nl',
+  // CDN domains used by nu.nl for images/assets
+  'media.nu.nl',
+  'images.nu.nl',
+];
+
+/**
+ * Blocked domains for ad/tracking (extra safety layer)
+ * These are blocked even if they somehow pass the allowed check
+ */
+const BLOCKED_DOMAINS = [
+  'googlesyndication.com',
+  'doubleclick.net',
+  'googleadservices.com',
+  'facebook.com',
+  'facebook.net',
+  'twitter.com',
+  'linkedin.com',
+  'onetrust.com', // Cookie consent provider (we handle this ourselves)
+  'cookielaw.org',
+];
+
+// ============================================================
+// Cookie Consent Auto-Accept Script
+// ============================================================
+
+/**
+ * JavaScript injected BEFORE page content loads.
+ * This script auto-accepts the OneTrust GDPR cookie consent popup.
+ *
+ * How it works:
+ * 1. Waits for OneTrust to initialize
+ * 2. Clicks the accept button (#onetrust-accept-btn-handler)
+ * 3. Hides the overlay immediately via CSS
+ * 4. Sets up a MutationObserver to catch late-loading popups
+ *
+ * Platform notes:
+ * - Works on both iOS and Android
+ * - Uses sharedCookiesEnabled to persist consent
+ */
+const COOKIE_CONSENT_SCRIPT = `
+(function() {
+  'use strict';
+
+  // === IMMEDIATE CSS HIDE ===
+  // Hide cookie banner immediately before it even renders
+  var hideStyle = document.createElement('style');
+  hideStyle.id = 'commeazy-cookie-hide';
+  hideStyle.textContent = \`
+    /* OneTrust cookie banner - hide everything */
+    #onetrust-consent-sdk,
+    #onetrust-banner-sdk,
+    .onetrust-pc-dark-filter,
+    .ot-fade-in,
+    [class*="onetrust"],
+    [id*="onetrust"],
+    /* Generic cookie banner selectors */
+    [class*="cookie-banner"],
+    [class*="cookie-consent"],
+    [class*="cookie-notice"],
+    [class*="gdpr"],
+    [class*="privacy-banner"],
+    /* Overlay/backdrop */
+    .ot-sdk-container,
+    #ot-sdk-btn-container {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    /* Restore body scroll if locked */
+    body.ot-overflow-hidden,
+    html.ot-overflow-hidden {
+      overflow: auto !important;
+      position: static !important;
+    }
+  \`;
+  (document.head || document.documentElement).appendChild(hideStyle);
+
+  // === AUTO-ACCEPT FUNCTION ===
+  function acceptCookies() {
+    // Try multiple selectors for the accept button
+    var selectors = [
+      '#onetrust-accept-btn-handler',
+      '.onetrust-accept-btn-handler',
+      '[id*="accept"]',
+      'button[title*="Accept"]',
+      'button[title*="Accepteren"]', // Dutch
+      'button[title*="Akkoord"]',    // Dutch alternative
+    ];
+
+    for (var i = 0; i < selectors.length; i++) {
+      var btn = document.querySelector(selectors[i]);
+      if (btn && typeof btn.click === 'function') {
+        try {
+          btn.click();
+          console.log('[CommEazy] Cookie consent auto-accepted');
+          return true;
+        } catch (e) {
+          // Silently continue
+        }
+      }
+    }
+
+    // Also try OneTrust API directly if available
+    if (typeof OneTrust !== 'undefined' && OneTrust.AllowAll) {
+      try {
+        OneTrust.AllowAll();
+        console.log('[CommEazy] Cookie consent accepted via OneTrust API');
+        return true;
+      } catch (e) {
+        // Silently continue
+      }
+    }
+
+    return false;
+  }
+
+  // === MUTATION OBSERVER ===
+  // Watch for cookie banner appearing and auto-accept
+  var observer = new MutationObserver(function(mutations) {
+    if (acceptCookies()) {
+      observer.disconnect();
+    }
+  });
+
+  // Start observing once DOM is ready
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+
+  // === RETRY ATTEMPTS ===
+  // Try to accept cookies at various stages of page load
+  var attempts = 0;
+  var maxAttempts = 10;
+  var retryInterval = setInterval(function() {
+    attempts++;
+    if (acceptCookies() || attempts >= maxAttempts) {
+      clearInterval(retryInterval);
+    }
+  }, 500);
+
+  // === CLEANUP ===
+  // Disconnect observer after 10 seconds to save resources
+  setTimeout(function() {
+    observer.disconnect();
+    clearInterval(retryInterval);
+  }, 10000);
+
+})();
+true;
+`;
+
+// ============================================================
 // CSS Injection for improved readability
 // ============================================================
 
 /**
- * CSS injection script for nu.nl articles
+ * CSS injection script for nu.nl articles (runs AFTER page load)
  *
  * Senior-inclusive improvements:
  * - Larger font sizes (body 20px, headings proportionally larger)
@@ -61,6 +241,34 @@ const NUNL_CSS_INJECTION = `
   var style = document.createElement('style');
   style.type = 'text/css';
   style.innerHTML = \`
+    /* === HIDE COOKIE CONSENT (backup for COOKIE_CONSENT_SCRIPT) === */
+    /* OneTrust GDPR consent popup - hide everything */
+    #onetrust-consent-sdk,
+    #onetrust-banner-sdk,
+    .onetrust-pc-dark-filter,
+    .ot-fade-in,
+    [class*="onetrust"],
+    [id*="onetrust"],
+    .ot-sdk-container,
+    #ot-sdk-btn-container,
+    /* Generic cookie banners */
+    [class*="cookie-banner"],
+    [class*="cookie-consent"],
+    [class*="cookie-notice"],
+    [class*="gdpr"],
+    [class*="privacy-banner"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    /* Restore body scroll if OneTrust locked it */
+    body.ot-overflow-hidden,
+    html.ot-overflow-hidden {
+      overflow: auto !important;
+      position: static !important;
+    }
+
     /* === HIDE CLUTTER === */
     /* Navigation, headers, footers */
     header, footer, nav,
@@ -283,6 +491,70 @@ export function ArticleWebViewer({
     webViewRef.current?.reload();
   }, []);
 
+  /**
+   * URL Filter Handler
+   *
+   * Controls which URLs can be loaded in the WebView.
+   * This prevents users from accidentally navigating away from the article
+   * by tapping on ads, related articles, or external links.
+   *
+   * Behavior:
+   * - Allow: nu.nl domains (main site, mobile, media CDN)
+   * - Block: Everything else (ads, tracking, external links)
+   * - Block: Known ad/tracking domains even if they somehow match
+   *
+   * Platform differences:
+   * - iOS: onShouldStartLoadWithRequest is called for ALL requests
+   * - Android: Only called for main frame navigation, not iframes/resources
+   *   For Android, we also use setSupportMultipleWindows={false}
+   *
+   * @param request - Navigation request from WebView
+   * @returns true to allow, false to block
+   */
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: WebViewNavigation): boolean => {
+      const { url } = request;
+
+      // Always allow about:blank and data: URLs (internal WebView pages)
+      if (url.startsWith('about:') || url.startsWith('data:')) {
+        return true;
+      }
+
+      // Parse the URL to extract domain
+      let domain: string;
+      try {
+        const urlObj = new URL(url);
+        domain = urlObj.hostname.toLowerCase();
+      } catch {
+        // Invalid URL - block it
+        console.debug('[ArticleWebViewer] Blocked invalid URL');
+        return false;
+      }
+
+      // Check against blocked domains first (ad networks, trackers)
+      for (const blocked of BLOCKED_DOMAINS) {
+        if (domain.includes(blocked)) {
+          console.debug('[ArticleWebViewer] Blocked ad/tracking domain:', domain);
+          return false;
+        }
+      }
+
+      // Check if domain is in allowed list
+      const isAllowed = ALLOWED_DOMAINS.some((allowed) => {
+        // Exact match or subdomain match
+        return domain === allowed || domain.endsWith('.' + allowed);
+      });
+
+      if (!isAllowed) {
+        console.debug('[ArticleWebViewer] Blocked external URL:', domain);
+        return false;
+      }
+
+      return true;
+    },
+    [],
+  );
+
   if (!article) return null;
 
   return (
@@ -349,25 +621,77 @@ export function ArticleWebViewer({
               ref={webViewRef}
               source={{ uri: article.link }}
               style={styles.webView}
+              // ============================================================
+              // Load Event Handlers
+              // ============================================================
               onLoadStart={handleLoadStart}
               onLoadEnd={handleLoadEnd}
               onError={handleError}
               startInLoadingState={false}
+              // ============================================================
+              // URL Filtering (Problem 2: Prevent external navigation)
+              // ============================================================
+              // This callback is called before any URL is loaded.
+              // We use it to block navigation to external sites.
+              // Only nu.nl domains are allowed - everything else is blocked.
+              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+              // Android: Block new windows/tabs from opening
+              // This prevents ads from opening in new browser tabs
+              setSupportMultipleWindows={false}
+              // Android: Additional protection - don't open links in external browser
+              // Note: cacheEnabled helps with performance after first load
+              cacheEnabled={true}
+              // ============================================================
+              // Cookie Consent (Problem 1: Auto-accept GDPR popup)
+              // ============================================================
+              // Enable shared cookies so consent persists across sessions
+              // This means users only see the popup once (auto-accepted)
+              sharedCookiesEnabled={true}
+              // Third-party cookies needed for OneTrust consent to work
+              thirdPartyCookiesEnabled={true}
+              // Inject cookie consent script BEFORE page content loads
+              // This hides the OneTrust popup immediately and auto-accepts
+              injectedJavaScriptBeforeContentLoaded={COOKIE_CONSENT_SCRIPT}
+              // ============================================================
+              // CSS/JS Injection (Senior-friendly styling)
+              // ============================================================
+              // Inject CSS AFTER page load for improved readability:
+              // - Larger fonts (20px body, 32px h1)
+              // - Better line height (1.7)
+              // - Hide ads, navigation, clutter
+              // - Disable links (pointer-events: none)
+              injectedJavaScript={NUNL_CSS_INJECTION}
+              // JavaScript must be enabled for injections to work
               javaScriptEnabled={true}
+              // ============================================================
+              // General WebView Settings
+              // ============================================================
+              // DOM storage for modern web features
               domStorageEnabled={true}
+              // Scale page to fit viewport
               scalesPageToFit={true}
+              // Allow video playback inline (not fullscreen)
               allowsInlineMediaPlayback={true}
               mediaPlaybackRequiresUserAction={false}
-              // Improve scrolling performance
+              // ============================================================
+              // Scrolling Performance
+              // ============================================================
               decelerationRate="normal"
               showsVerticalScrollIndicator={true}
               showsHorizontalScrollIndicator={false}
-              // Block popups and new windows
-              setSupportMultipleWindows={false}
-              // CSS injection for improved readability
-              // Larger fonts, hide ads/navigation, better spacing
-              injectedJavaScript={NUNL_CSS_INJECTION}
+              // iOS: Bounce effect when scrolling past content
+              bounces={true}
+              // iOS: Overscroll behavior
+              overScrollMode="always"
+              // ============================================================
+              // Security
+              // ============================================================
+              // Allow only HTTPS (iOS 9+/Android uses this by default)
+              // Note: nu.nl uses HTTPS, so this is fine
+              mixedContentMode="never"
+              // ============================================================
               // Accessibility
+              // ============================================================
               accessibilityLabel={t('articleViewer.webViewLabel', { title: article.title })}
             />
           )}

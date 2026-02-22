@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+ios/build/
+android/app/build/
+
+# Generated files
+*.lock
+package-lock.json
+yarn.lock
+
+# iOS specific
+ios/Pods/
+ios/*.xcworkspace/
+ios/*.xcodeproj/
+
+# Android specific
+android/.gradle/
+android/gradlew
+android/gradlew.bat
+
+# Metro bundler
+.metro-health-check*
+
+# Cache
+.cache/

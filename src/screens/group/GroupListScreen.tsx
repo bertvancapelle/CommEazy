@@ -307,7 +307,7 @@ export function GroupListScreen() {
         moduleId="groups"
         icon="groups"
         title={t('tabs.groups')}
-        showAdMob={false}
+        showAdMob={true}
       />
 
       <ScrollView

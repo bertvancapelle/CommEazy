@@ -66,8 +66,8 @@ class LiquidGlassModule: NSObject {
 @objc(LiquidGlassNativeView)
 class LiquidGlassNativeView: UIView {
 
-    // Visual effect view for glass effect
-    private var glassEffectView: UIVisualEffectView?
+    // Glass effect view (UIVisualEffectView on iOS 26+, UIView for fallback)
+    private var glassEffectView: UIView?
     
     // Track if we've received props from React Native
     private var hasReceivedProps = false
@@ -79,6 +79,7 @@ class LiquidGlassNativeView: UIView {
     /// Tint color in hex format (e.g., "#00897B")
     @objc var tintColorHex: String = "#007AFF" {
         didSet {
+            NSLog("[LiquidGlass] 🎨 tintColorHex set to: %@ (was: %@)", tintColorHex, oldValue)
             hasReceivedProps = true
             updateGlassEffect()
         }
@@ -128,6 +129,9 @@ class LiquidGlassNativeView: UIView {
         // Children will be added directly to this view
         // NOTE: Don't call updateGlassEffect() here - wait for props to be set via didSet
         // The effect will be created when tintColorHex is set from React Native
+        
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        NSLog("[LiquidGlass] 🔧 setupView() called - iOS %d.%d.%d", version.majorVersion, version.minorVersion, version.patchVersion)
     }
 
     // ============================================================
@@ -140,73 +144,143 @@ class LiquidGlassNativeView: UIView {
             NSLog("[LiquidGlass] Skipping update - waiting for props from React Native")
             return
         }
-        
+
         // Remove existing effect
         glassEffectView?.removeFromSuperview()
 
-        // Use blur + tint effect for visible glass-like appearance
-        // UIGlassEffect requires content behind it to blur, which doesn't work
-        // for module headers on solid backgrounds. UIBlurEffect with tint overlay
-        // provides a consistent glass-like effect that's always visible.
+        // iOS 26+: Use real UIGlassEffect for authentic Liquid Glass
+        // iOS <26: Fall back to solid color
         if #available(iOS 26, *) {
-            createBlurWithTintEffect()
+            NSLog("[LiquidGlass] iOS 26+ detected - using REAL UIGlassEffect")
+            createLiquidGlassEffect()
         } else {
+            NSLog("[LiquidGlass] iOS <26 - using fallback")
             createFallbackBackground()
         }
     }
 
     /// Creates the actual UIGlassEffect (iOS 26+)
+    /// Uses Apple's native Liquid Glass material with module tint color
+    ///
+    /// HYBRID APPROACH: UIBlurEffect base + UIGlassEffect overlay + visual enhancements
+    /// This ensures visible glass effect even when React Native content isn't blurrable
     @available(iOS 26.0, *)
     private func createLiquidGlassEffect() {
-        // Create glass effect with tint
-        var effect = UIGlassEffect()
-        
-        // Apply tint color to the glass effect
-        if let baseColor = UIColor(hexString: tintColorHex) {
-            effect.tintColor = baseColor
+        guard let baseColor = UIColor(hexString: tintColorHex) else {
+            NSLog("[LiquidGlass] WARNING: Failed to parse tintColorHex: %@", tintColorHex)
+            createFallbackBackground()
+            return
         }
 
-        // Create visual effect view with the glass effect
-        let effectView = UIVisualEffectView(effect: effect)
-        effectView.translatesAutoresizingMaskIntoConstraints = false
-        effectView.layer.cornerRadius = cornerRadius
-        effectView.clipsToBounds = cornerRadius > 0
-        
-        // Add a subtle colored overlay inside the glass for visibility
-        // This ensures the module color is visible while glass effect shows through
-        if let baseColor = UIColor(hexString: tintColorHex) {
-            let colorOverlay = UIView()
-            colorOverlay.translatesAutoresizingMaskIntoConstraints = false
-            // Low opacity (0.4) so glass effect is visible underneath
-            colorOverlay.backgroundColor = baseColor.withAlphaComponent(0.4)
-            colorOverlay.layer.cornerRadius = cornerRadius
-            colorOverlay.clipsToBounds = cornerRadius > 0
-            
-            effectView.contentView.addSubview(colorOverlay)
-            NSLayoutConstraint.activate([
-                colorOverlay.leadingAnchor.constraint(equalTo: effectView.contentView.leadingAnchor),
-                colorOverlay.trailingAnchor.constraint(equalTo: effectView.contentView.trailingAnchor),
-                colorOverlay.topAnchor.constraint(equalTo: effectView.contentView.topAnchor),
-                colorOverlay.bottomAnchor.constraint(equalTo: effectView.contentView.bottomAnchor),
-            ])
-        }
-        
-        // Set our background to clear so glass can show through
-        backgroundColor = .clear
+        // === Container for all glass layers ===
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.layer.cornerRadius = cornerRadius
+        containerView.layer.cornerCurve = .continuous
+        containerView.clipsToBounds = true
 
-        // Insert as background (behind content)
-        insertSubview(effectView, at: 0)
+        // === Layer 1: UIBlurEffect base for frosted glass foundation ===
+        // This provides the "frosted" appearance even without native content behind
+        let blurEffect = UIBlurEffect(style: .systemThinMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(blurView)
+
         NSLayoutConstraint.activate([
-            effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            effectView.topAnchor.constraint(equalTo: topAnchor),
-            effectView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            blurView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            blurView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            blurView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
 
-        glassEffectView = effectView
+        // === Layer 2: Semi-transparent tint color overlay ===
+        // Gives the glass its characteristic module color
+        // Lower opacity (30%) for more transparency/glass feel
+        let tintOverlay = UIView()
+        tintOverlay.translatesAutoresizingMaskIntoConstraints = false
+        tintOverlay.backgroundColor = baseColor.withAlphaComponent(0.30)
+        containerView.addSubview(tintOverlay)
 
-        NSLog("[LiquidGlass] Created UIGlassEffect - tint: %@, radius: %.1f, frame: %@", 
-              tintColorHex, cornerRadius, NSCoder.string(for: bounds))
+        NSLayoutConstraint.activate([
+            tintOverlay.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            tintOverlay.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            tintOverlay.topAnchor.constraint(equalTo: containerView.topAnchor),
+            tintOverlay.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
+
+        // === Layer 3: UIGlassEffect for Liquid Glass highlights and interactivity ===
+        var glassEffect = UIGlassEffect()
+        glassEffect.tintColor = baseColor.withAlphaComponent(0.3)  // Subtle tint, main color from layer 2
+        glassEffect.isInteractive = true  // Glass highlights on touch
+
+        let glassView = UIVisualEffectView(effect: glassEffect)
+        glassView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(glassView)
+
+        NSLayoutConstraint.activate([
+            glassView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            glassView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            glassView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            glassView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
+
+        // === Layer 4: Top specular highlight (glass reflection) ===
+        let highlightGradient = CAGradientLayer()
+        highlightGradient.colors = [
+            UIColor.white.withAlphaComponent(0.45).cgColor,  // Bright at top
+            UIColor.white.withAlphaComponent(0.15).cgColor,  // Fade
+            UIColor.clear.cgColor,                            // Transparent
+        ]
+        highlightGradient.locations = [0.0, 0.15, 0.4]
+        highlightGradient.startPoint = CGPoint(x: 0.5, y: 0.0)
+        highlightGradient.endPoint = CGPoint(x: 0.5, y: 1.0)
+
+        let highlightView = UIView()
+        highlightView.translatesAutoresizingMaskIntoConstraints = false
+        highlightView.layer.addSublayer(highlightGradient)
+        highlightView.isUserInteractionEnabled = false
+        containerView.addSubview(highlightView)
+
+        NSLayoutConstraint.activate([
+            highlightView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            highlightView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            highlightView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            highlightView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
+
+        // Store gradient for bounds updates
+        self.gradientLayerRef = highlightGradient
+
+        // === Layer 5: Glass edge border ===
+        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.35).cgColor
+        containerView.layer.borderWidth = 0.5
+
+        // === Layer 6: Subtle inner glow/shadow for depth ===
+        containerView.layer.shadowColor = UIColor.white.cgColor
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 0)
+        containerView.layer.shadowOpacity = 0.15
+        containerView.layer.shadowRadius = 3
+        containerView.layer.masksToBounds = false  // Allow shadow to show
+
+        // Clear our background so layers can show
+        backgroundColor = .clear
+
+        // Insert container as background (behind React Native children)
+        insertSubview(containerView, at: 0)
+        NSLayoutConstraint.activate([
+            containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            containerView.topAnchor.constraint(equalTo: topAnchor),
+            containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+
+        glassEffectView = containerView
+
+        // Log for debugging
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        NSLog("[LiquidGlass] ✅ Created HYBRID Glass Effect (iOS %d.%d.%d) - layers: UIBlurEffect + tint @30%% + UIGlassEffect + highlight gradient + border, tint: %@, radius: %.1f",
+              version.majorVersion, version.minorVersion, version.patchVersion,
+              tintColorHex, cornerRadius)
     }
     
     /// Creates a REAL blur effect that can see through to content underneath
@@ -216,75 +290,106 @@ class LiquidGlassNativeView: UIView {
     /// - MiniPlayer/ModuleHeader must be position:absolute OVER the ScrollView content
     /// - Content ScrollView must extend UNDER the overlay
     /// - UIBlurEffect will then blur the content that's visually behind it
+    /// Creates a visually distinct "frosted glass" effect
+    /// Since UIBlurEffect only blurs native iOS views behind it (not React Native content),
+    /// we create a glass-like appearance using layered effects that work regardless of view hierarchy
     private func createBlurWithTintEffect() {
         guard let baseColor = UIColor(hexString: tintColorHex) else {
             createFallbackBackground()
             return
         }
 
-        // === REAL UIBlurEffect for true see-through transparency ===
-        // Use systemThinMaterial for a subtle, modern blur
-        let blurStyle: UIBlurEffect.Style = glassStyle == "prominent"
-            ? .systemThickMaterial
-            : .systemThinMaterial
-        let blurEffect = UIBlurEffect(style: blurStyle)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        blurView.layer.cornerRadius = cornerRadius
-        blurView.clipsToBounds = cornerRadius > 0
+        // === Container view for all glass effect layers ===
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.layer.cornerRadius = cornerRadius
+        containerView.clipsToBounds = cornerRadius > 0
 
-        // === Tint overlay INSIDE the blur's contentView ===
-        // This adds the module color on top of the blur
-        let tintOverlay = UIView()
-        tintOverlay.translatesAutoresizingMaskIntoConstraints = false
-        // Use tintIntensity to control how much color shows (0.3-0.6 works well)
-        let adjustedIntensity = min(max(tintIntensity * 0.6, 0.3), 0.7)
-        tintOverlay.backgroundColor = baseColor.withAlphaComponent(adjustedIntensity)
-        tintOverlay.layer.cornerRadius = cornerRadius
-        tintOverlay.clipsToBounds = cornerRadius > 0
-        blurView.contentView.addSubview(tintOverlay)
+        // === Layer 1: Base color with high saturation, lower opacity ===
+        // This creates the "colored glass" foundation
+        let baseLayer = UIView()
+        baseLayer.translatesAutoresizingMaskIntoConstraints = false
+        // Use 70% opacity for rich color that still feels glass-like
+        baseLayer.backgroundColor = baseColor.withAlphaComponent(0.70)
+        containerView.addSubview(baseLayer)
 
         NSLayoutConstraint.activate([
-            tintOverlay.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
-            tintOverlay.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor),
-            tintOverlay.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
-            tintOverlay.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor),
+            baseLayer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            baseLayer.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            baseLayer.topAnchor.constraint(equalTo: containerView.topAnchor),
+            baseLayer.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
 
-        // === Top edge highlight for glass-like depth ===
-        let highlightView = UIView()
-        highlightView.translatesAutoresizingMaskIntoConstraints = false
-        highlightView.backgroundColor = UIColor.white.withAlphaComponent(0.25)
-        blurView.contentView.addSubview(highlightView)
+        // === Layer 2: White gradient overlay for glass depth ===
+        // Creates the "frosted" appearance with light diffusion
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor.white.withAlphaComponent(0.35).cgColor,  // Top: more light
+            UIColor.white.withAlphaComponent(0.10).cgColor,  // Middle: subtle
+            UIColor.white.withAlphaComponent(0.05).cgColor,  // Bottom: minimal
+        ]
+        gradientLayer.locations = [0.0, 0.3, 1.0]
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+
+        let gradientView = UIView()
+        gradientView.translatesAutoresizingMaskIntoConstraints = false
+        gradientView.layer.addSublayer(gradientLayer)
+        containerView.addSubview(gradientView)
 
         NSLayoutConstraint.activate([
-            highlightView.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
-            highlightView.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor),
-            highlightView.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
+            gradientView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            gradientView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            gradientView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            gradientView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
+
+        // Store gradient layer for bounds updates
+        self.gradientLayerRef = gradientLayer
+
+        // === Layer 3: Top edge highlight (specular reflection) ===
+        let highlightView = UIView()
+        highlightView.translatesAutoresizingMaskIntoConstraints = false
+        highlightView.backgroundColor = UIColor.white.withAlphaComponent(0.50)
+        containerView.addSubview(highlightView)
+
+        NSLayoutConstraint.activate([
+            highlightView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            highlightView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            highlightView.topAnchor.constraint(equalTo: containerView.topAnchor),
             highlightView.heightAnchor.constraint(equalToConstant: 1.0),
         ])
 
-        // === Outer border for definition ===
-        blurView.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
-        blurView.layer.borderWidth = 0.5
+        // === Layer 4: Outer border for definition ===
+        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.30).cgColor
+        containerView.layer.borderWidth = 0.5
 
-        // Clear our background so blur can see through
+        // === Layer 5: Inner shadow for depth (via additional border) ===
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 1)
+        containerView.layer.shadowOpacity = 0.10
+        containerView.layer.shadowRadius = 2
+
+        // Clear our background
         backgroundColor = .clear
 
-        // Insert blur view as background (at index 0, behind React children)
-        insertSubview(blurView, at: 0)
+        // Insert container as background (at index 0, behind React children)
+        insertSubview(containerView, at: 0)
         NSLayoutConstraint.activate([
-            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            blurView.topAnchor.constraint(equalTo: topAnchor),
-            blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            containerView.topAnchor.constraint(equalTo: topAnchor),
+            containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
 
-        glassEffectView = blurView
+        glassEffectView = containerView
 
-        NSLog("[LiquidGlass] Created REAL UIBlurEffect - tint: %@, intensity: %.2f, radius: %.1f, frame: %@",
-              tintColorHex, adjustedIntensity, cornerRadius, NSCoder.string(for: bounds))
+        NSLog("[LiquidGlass] Created FROSTED GLASS effect - tint: %@, radius: %.1f, frame: %@",
+              tintColorHex, cornerRadius, NSCoder.string(for: bounds))
     }
+
+    // Reference to gradient layer for bounds updates
+    private var gradientLayerRef: CAGradientLayer?
 
     /// Creates a solid background fallback for iOS <26
     private func createFallbackBackground() {
@@ -312,7 +417,12 @@ class LiquidGlassNativeView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         glassEffectView?.frame = bounds
-        
+
+        // Update gradient layer frame if present (for frosted glass fallback)
+        if let gradientLayer = gradientLayerRef {
+            gradientLayer.frame = bounds
+        }
+
         // Recreate effect if bounds changed significantly (first layout or resize)
         // This ensures the glass effect is created after the view has its proper size
         if hasReceivedProps && !bounds.isEmpty && bounds != lastBounds {

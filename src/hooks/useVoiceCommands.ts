@@ -70,10 +70,8 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
     { patterns: ['groepen', 'groep', 'groepsgesprek'], destination: 'groups' },
     // Settings - many variations including "open instellingen menu"
     { patterns: ['instellingen', 'instelling', 'settings', 'opties', 'configuratie', 'voorkeuren'], destination: 'settings' },
-    // Calls
-    { patterns: ['bellen', 'telefoon', 'telefoneren', 'oproep', 'oproepen'], destination: 'calls' },
-    // Video calls
-    { patterns: ['video', 'videobellen', 'videogesprek', 'videocall'], destination: 'videocall' },
+    // Calls (voice + video combined)
+    { patterns: ['bellen', 'telefoon', 'telefoneren', 'oproep', 'oproepen', 'video', 'videobellen', 'videogesprek', 'videocall'], destination: 'calls' },
     // E-book
     { patterns: ['boek', 'lezen', 'e-book', 'ebook', 'boeken'], destination: 'ebook' },
     // Audiobook
@@ -88,8 +86,7 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
     { patterns: ['contacts', 'contact', 'people'], destination: 'contacts' },
     { patterns: ['groups', 'group'], destination: 'groups' },
     { patterns: ['settings', 'options', 'preferences'], destination: 'settings' },
-    { patterns: ['call', 'phone', 'calling'], destination: 'calls' },
-    { patterns: ['video', 'video call', 'facetime'], destination: 'videocall' },
+    { patterns: ['call', 'phone', 'calling', 'video', 'video call', 'facetime'], destination: 'calls' },
     { patterns: ['book', 'read', 'e-book', 'ebook'], destination: 'ebook' },
     { patterns: ['audiobook', 'audio book', 'listen'], destination: 'audiobook' },
     { patterns: ['podcast', 'podcasts'], destination: 'podcast' },
@@ -100,8 +97,7 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
     { patterns: ['kontakte', 'kontakt', 'personen'], destination: 'contacts' },
     { patterns: ['gruppen', 'gruppe'], destination: 'groups' },
     { patterns: ['einstellungen', 'optionen'], destination: 'settings' },
-    { patterns: ['anrufen', 'telefon', 'telefonieren'], destination: 'calls' },
-    { patterns: ['video', 'videoanruf', 'videogespräch'], destination: 'videocall' },
+    { patterns: ['anrufen', 'telefon', 'telefonieren', 'video', 'videoanruf', 'videogespräch'], destination: 'calls' },
     { patterns: ['buch', 'lesen', 'e-book', 'ebook'], destination: 'ebook' },
     { patterns: ['hörbuch', 'audiobook', 'hören'], destination: 'audiobook' },
     { patterns: ['podcast', 'podcasts'], destination: 'podcast' },
@@ -112,8 +108,7 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
     { patterns: ['contacts', 'contact', 'personnes'], destination: 'contacts' },
     { patterns: ['groupes', 'groupe'], destination: 'groups' },
     { patterns: ['paramètres', 'réglages', 'options'], destination: 'settings' },
-    { patterns: ['appeler', 'téléphone', 'appel'], destination: 'calls' },
-    { patterns: ['vidéo', 'appel vidéo', 'visio'], destination: 'videocall' },
+    { patterns: ['appeler', 'téléphone', 'appel', 'vidéo', 'appel vidéo', 'visio'], destination: 'calls' },
     { patterns: ['livre', 'lire', 'e-book', 'ebook'], destination: 'ebook' },
     { patterns: ['livre audio', 'audiobook', 'écouter'], destination: 'audiobook' },
     { patterns: ['podcast', 'podcasts'], destination: 'podcast' },
@@ -124,8 +119,7 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
     { patterns: ['contactos', 'contacto', 'personas'], destination: 'contacts' },
     { patterns: ['grupos', 'grupo'], destination: 'groups' },
     { patterns: ['ajustes', 'configuración', 'opciones'], destination: 'settings' },
-    { patterns: ['llamar', 'teléfono', 'llamada'], destination: 'calls' },
-    { patterns: ['video', 'videollamada'], destination: 'videocall' },
+    { patterns: ['llamar', 'teléfono', 'llamada', 'video', 'videollamada'], destination: 'calls' },
     { patterns: ['libro', 'leer', 'e-book', 'ebook'], destination: 'ebook' },
     { patterns: ['audiolibro', 'audiobook', 'escuchar'], destination: 'audiobook' },
     { patterns: ['podcast', 'podcasts'], destination: 'podcast' },

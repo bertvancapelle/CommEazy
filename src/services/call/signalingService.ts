@@ -11,7 +11,7 @@
  * @see types.ts for signaling payload types
  */
 
-import type { RTCSessionDescription, RTCIceCandidate } from 'react-native-webrtc';
+import { RTCSessionDescription, RTCIceCandidate } from 'react-native-webrtc';
 import type { CallType, Unsubscribe } from '../interfaces';
 import {
   NS_CALL,
