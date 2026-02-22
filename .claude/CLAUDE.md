@@ -473,6 +473,54 @@ zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
 
 **Reden:** De `.claude/` folder bevat ~200KB aan waardevolle project instructies, skill definities en workflows die buiten git ook bewaard moeten blijven.
 
+### ⚠️ Na ELKE Push: Valideer Metro en Prosody Status
+
+**Dit is een gebruikersvoorkeur.** Na elke succesvolle push MOET Claude de status van Metro en Prosody valideren.
+
+**Stappen (VERPLICHT na push):**
+
+1. **Valideer Prosody status:**
+   ```bash
+   prosodyctl status
+   ```
+   - Als Prosody NIET draait: Meld dit aan gebruiker met `prosodyctl start` commando
+
+2. **Valideer Metro status:**
+   ```bash
+   lsof -i :8081 | head -3
+   ```
+   - Als Metro NIET draait: Meld dit aan gebruiker met het volledige Metro start commando
+
+3. **Valideer Prosody WebSocket:**
+   ```bash
+   lsof -i :5280 | head -3
+   ```
+   - Als poort 5280 niet luistert: Prosody draait maar WebSocket module is niet actief
+
+**Claude's post-push output met validatie:**
+```
+✅ Push voltooid naar origin/main
+📦 Config backup: ~/Projects/CommEazy-claude-config-YYYYMMDD.zip
+
+🔍 **Service Status:**
+✅ Prosody: draait (pid XXXX)
+✅ Metro: draait op :8081
+✅ WebSocket: luistert op :5280
+
+📱 **Volgende stap:** Druk op ⌘R in Xcode om te builden.
+```
+
+**Of bij problemen:**
+```
+✅ Push voltooid naar origin/main
+📦 Config backup: ~/Projects/CommEazy-claude-config-YYYYMMDD.zip
+
+🔍 **Service Status:**
+❌ Prosody: NIET actief — run `prosodyctl start`
+❌ Metro: NIET actief — run:
+   cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0
+```
+
 ### Claude's Verantwoordelijkheid
 
 Na het voltooien van een taak MOET Claude zeggen:
