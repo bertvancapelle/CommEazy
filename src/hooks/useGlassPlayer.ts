@@ -32,6 +32,7 @@ import {
   glassPlayer,
   type GlassPlayerContent,
   type GlassPlayerPlaybackState,
+  type GlassPlayerFullConfig,
   type GlassPlayerSeekEvent,
   type GlassPlayerSleepTimerEvent,
   type GlassPlayerSpeedEvent,
@@ -92,6 +93,8 @@ export interface UseGlassPlayerReturn {
   updateContent: (content: Partial<GlassPlayerContent>) => void;
   /** Update playback state */
   updatePlaybackState: (state: GlassPlayerPlaybackState) => void;
+  /** Configure full player controls (which buttons to show/hide) */
+  configureControls: (controls: GlassPlayerFullConfig) => void;
 }
 
 // ============================================================
@@ -256,6 +259,10 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     glassPlayer.updatePlaybackState(state);
   }, []);
 
+  const configureControls = useCallback((controls: GlassPlayerFullConfig): void => {
+    glassPlayer.configureControls(controls);
+  }, []);
+
   return {
     isAvailable,
     isCheckingAvailability,
@@ -267,6 +274,7 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     hide,
     updateContent,
     updatePlaybackState,
+    configureControls,
   };
 }
 

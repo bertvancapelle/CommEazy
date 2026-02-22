@@ -459,6 +459,11 @@ class GlassPlayerWindow: UIWindow {
             tintColor: currentTintColor
         )
     }
+
+    func configureControls(_ controls: NSDictionary) {
+        NSLog("[GlassPlayer] configureControls called with: \(controls)")
+        fullPlayerView.configure(controls: controls)
+    }
 }
 
 // ============================================================

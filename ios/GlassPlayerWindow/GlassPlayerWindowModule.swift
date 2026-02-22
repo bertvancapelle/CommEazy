@@ -153,6 +153,16 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         }
     }
 
+    /// Configure full player controls (which buttons to show/hide)
+    @objc
+    func configureControls(_ controls: NSDictionary) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                self.glassWindow?.configureControls(controls)
+            }
+        }
+    }
+
     // ============================================================
     // MARK: Window Management
     // ============================================================

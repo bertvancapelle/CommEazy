@@ -121,6 +121,7 @@ interface GlassPlayerWindowModuleInterface {
   hidePlayer(): Promise<boolean>;
   updateContent(config: Partial<GlassPlayerContent>): void;
   updatePlaybackState(state: GlassPlayerPlaybackState): void;
+  configureControls(controls: GlassPlayerFullConfig): void;
 }
 
 // ============================================================
@@ -257,6 +258,18 @@ class GlassPlayerService {
     }
 
     this.nativeModule.updatePlaybackState(state);
+  }
+
+  /**
+   * Configure full player controls (which buttons to show/hide)
+   */
+  configureControls(controls: GlassPlayerFullConfig): void {
+    if (!this.nativeModule) {
+      return;
+    }
+
+    console.debug('[GlassPlayer] configureControls:', controls);
+    this.nativeModule.configureControls(controls);
   }
 
   /**

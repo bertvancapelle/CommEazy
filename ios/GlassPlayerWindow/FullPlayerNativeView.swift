@@ -570,13 +570,15 @@ class FullPlayerNativeView: UIView {
     }
     
     func updateContent(title: String, subtitle: String?, artworkURL: String?) {
+        NSLog("[GlassPlayer Full] updateContent - title: \(title), subtitle: \(subtitle ?? "nil"), artworkURL: \(artworkURL ?? "nil")")
         titleLabel.text = title
         subtitleLabel.text = subtitle
         subtitleLabel.isHidden = subtitle == nil
         
-        if let urlString = artworkURL, let url = URL(string: urlString) {
+        if let urlString = artworkURL, !urlString.isEmpty, let url = URL(string: urlString) {
             loadImage(from: url)
         } else {
+            NSLog("[GlassPlayer Full] No artwork URL or empty string")
             artworkImageView.image = nil
         }
     }
@@ -737,12 +739,19 @@ class FullPlayerNativeView: UIView {
     }
     
     private func loadImage(from url: URL) {
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            guard let data = data, error == nil,
-                  let image = UIImage(data: data) else {
+        NSLog("[GlassPlayer Full] Loading image from URL: \(url.absoluteString)")
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            if let error = error {
+                NSLog("[GlassPlayer Full] Image load error: \(error.localizedDescription)")
                 return
             }
             
+            guard let data = data, let image = UIImage(data: data) else {
+                NSLog("[GlassPlayer Full] Image load failed - no data or invalid image. Response: \(String(describing: response))")
+                return
+            }
+            
+            NSLog("[GlassPlayer Full] Image loaded successfully, size: \(image.size)")
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image
             }

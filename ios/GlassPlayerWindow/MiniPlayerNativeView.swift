@@ -235,14 +235,16 @@ class MiniPlayerNativeView: UIView {
     // MARK: - Public Methods
     
     func updateContent(title: String, subtitle: String?, artworkURL: String?) {
+        NSLog("[GlassPlayer Mini] updateContent - title: \(title), subtitle: \(subtitle ?? "nil"), artworkURL: \(artworkURL ?? "nil")")
         titleLabel.text = title
         subtitleLabel.text = subtitle
         subtitleLabel.isHidden = subtitle == nil
         
         // Load artwork
-        if let urlString = artworkURL, let url = URL(string: urlString) {
+        if let urlString = artworkURL, !urlString.isEmpty, let url = URL(string: urlString) {
             loadImage(from: url)
         } else {
+            NSLog("[GlassPlayer Mini] No artwork URL or empty string")
             artworkImageView.image = nil
         }
     }
@@ -347,12 +349,19 @@ class MiniPlayerNativeView: UIView {
     // MARK: - Image Loading
     
     private func loadImage(from url: URL) {
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            guard let data = data, error == nil,
-                  let image = UIImage(data: data) else {
+        NSLog("[GlassPlayer Mini] Loading image from URL: \(url.absoluteString)")
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            if let error = error {
+                NSLog("[GlassPlayer Mini] Image load error: \(error.localizedDescription)")
                 return
             }
             
+            guard let data = data, let image = UIImage(data: data) else {
+                NSLog("[GlassPlayer Mini] Image load failed - no data or invalid image. Response: \(String(describing: response))")
+                return
+            }
+            
+            NSLog("[GlassPlayer Mini] Image loaded successfully, size: \(image.size)")
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image
             }

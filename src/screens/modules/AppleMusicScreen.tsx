@@ -154,6 +154,7 @@ export function AppleMusicScreen() {
     hide: hideGlassPlayer,
     updateContent: updateGlassContent,
     updatePlaybackState: updateGlassPlaybackState,
+    configureControls: configureGlassControls,
   } = useGlassPlayer({
     onPlayPause: async () => {
       if (isPlaying) {
@@ -186,6 +187,15 @@ export function AppleMusicScreen() {
     onSleepTimerSet: (minutes: number | null) => {
       // Sleep timer not implemented for Apple Music yet
     },
+    onShuffleToggle: () => {
+      // Toggle shuffle mode
+      setShuffleMode(shuffleMode === 'off' ? 'songs' : 'off');
+    },
+    onRepeatToggle: () => {
+      // Cycle through: off -> all -> one -> off
+      const nextMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
+      setRepeatMode(nextMode);
+    },
   });
 
   // ============================================================
@@ -202,6 +212,18 @@ export function AppleMusicScreen() {
       ? currentSong.artworkUrl.replace('{w}', '300').replace('{h}', '300')
       : null;
 
+    // Configure controls for Apple Music (skip buttons, shuffle, repeat, etc.)
+    configureGlassControls({
+      seekSlider: true,
+      skipButtons: true,
+      speedControl: false,
+      sleepTimer: true,
+      favorite: true,
+      stopButton: false,
+      shuffle: true,
+      repeat: true,
+    });
+
     showGlassMiniPlayer({
       moduleId: 'appleMusic',
       tintColorHex: APPLE_MUSIC_COLOR,
@@ -212,7 +234,7 @@ export function AppleMusicScreen() {
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
       showStopButton: false,
     });
-  }, [isGlassPlayerAvailable, currentSong, isFocused, showGlassMiniPlayer]);
+  }, [isGlassPlayerAvailable, currentSong, isFocused, showGlassMiniPlayer, configureGlassControls]);
 
   // Effect 2: Update playback state when playing/paused changes
   useEffect(() => {
@@ -263,6 +285,40 @@ export function AppleMusicScreen() {
       hideGlassPlayer();
     }
   }, [currentSong, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+
+  // Effect 6: Re-show native player when navigating back to screen with active playback
+  useEffect(() => {
+    if (isFocused && isGlassPlayerAvailable && currentSong && !isGlassPlayerVisible) {
+      console.debug('[AppleMusicScreen] Re-showing Glass Player after navigation');
+
+      const artworkUrl = currentSong.artworkUrl?.startsWith('http')
+        ? currentSong.artworkUrl.replace('{w}', '300').replace('{h}', '300')
+        : null;
+
+      // Configure controls for Apple Music
+      configureGlassControls({
+        seekSlider: true,
+        skipButtons: true,
+        speedControl: false,
+        sleepTimer: true,
+        favorite: true,
+        stopButton: false,
+        shuffle: true,
+        repeat: true,
+      });
+
+      showGlassMiniPlayer({
+        moduleId: 'appleMusic',
+        tintColorHex: APPLE_MUSIC_COLOR,
+        artwork: artworkUrl,
+        title: currentSong.title,
+        subtitle: currentSong.artistName,
+        progressType: 'bar',
+        progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
+        showStopButton: false,
+      });
+    }
+  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, playbackState, showGlassMiniPlayer, configureGlassControls]);
 
   // ============================================================
   // Handlers

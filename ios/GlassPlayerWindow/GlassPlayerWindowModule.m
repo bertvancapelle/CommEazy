@@ -29,4 +29,6 @@ RCT_EXTERN_METHOD(updateContent:(NSDictionary *)config)
 
 RCT_EXTERN_METHOD(updatePlaybackState:(NSDictionary *)state)
 
+RCT_EXTERN_METHOD(configureControls:(NSDictionary *)controls)
+
 @end
