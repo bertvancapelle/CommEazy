@@ -56,6 +56,7 @@ export const ALL_MODULES: NavigationDestination[] = [
   'radio',
   'books',
   'weather',
+  'appleMusic', // Apple Music integration
   'settings',
   'help',
 ];
@@ -70,6 +71,7 @@ const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'calls',      // Phone + video calls (combined)
   'groups',     // Groups
   'weather',    // Weather - useful utility for seniors
+  'appleMusic', // Apple Music integration
   'books',      // Books - e-books from Gutenberg with optional TTS
   'podcast',    // Podcasts
   'settings',   // Settings
