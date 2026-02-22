@@ -64,3 +64,23 @@ export {
   useLiquidGlassContextSafe,
   useLiquidGlassEnabled,
 } from './LiquidGlassContext';
+
+export {
+  AppleMusicProvider,
+  useAppleMusicContext,
+  useAppleMusicContextSafe,
+  useAppleMusicState,
+  useAppleMusicControls,
+  useAppleMusicSearch,
+  type AppleMusicContextValue,
+  type AppleMusicAuthStatus,
+  type AppleMusicSong,
+  type AppleMusicAlbum,
+  type AppleMusicArtist,
+  type AppleMusicPlaylist,
+  type SearchResults,
+  type PlaybackState,
+  type ShuffleMode,
+  type RepeatMode,
+  type PlatformCapabilities,
+} from './AppleMusicContext';

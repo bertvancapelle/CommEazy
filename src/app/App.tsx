@@ -27,6 +27,7 @@ import { HoldGestureProvider } from '@/contexts/HoldGestureContext';
 import { RadioProvider } from '@/contexts/RadioContext';
 import { PodcastProvider } from '@/contexts/PodcastContext';
 import { BooksProvider } from '@/contexts/BooksContext';
+import { AppleMusicProvider } from '@/contexts/AppleMusicContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { CallProvider } from '@/contexts/CallContext';
@@ -113,7 +114,8 @@ export default function App() {
                   <RadioProvider>
                     <PodcastProvider>
                       <BooksProvider>
-                        <ModuleConfigProvider>
+                        <AppleMusicProvider>
+                          <ModuleConfigProvider>
                           <NavigationProvider>
                             <FavoriteLocationsProvider>
                               <CallProvider>
@@ -123,7 +125,8 @@ export default function App() {
                               </CallProvider>
                             </FavoriteLocationsProvider>
                           </NavigationProvider>
-                        </ModuleConfigProvider>
+                          </ModuleConfigProvider>
+                        </AppleMusicProvider>
                       </BooksProvider>
                     </PodcastProvider>
                   </RadioProvider>
