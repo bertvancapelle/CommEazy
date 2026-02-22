@@ -1463,7 +1463,8 @@
     "activeIndicatorLabel": "{{type}} actief",
     "activeIndicatorHint": "Tik om terug te gaan naar actieve stream",
     "audio": "Audio",
-    "video": "Video"
+    "video": "Video",
+    "sleepTimerActive": "Slaaptimer actief"
   },
   "audio": {
     "play": "Afspelen",

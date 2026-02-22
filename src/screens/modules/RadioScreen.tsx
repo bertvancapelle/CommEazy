@@ -235,6 +235,7 @@ export function RadioScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const searchInputRef = useRef<SearchBarRef>(null);
+  const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Radio Context for playback
   const {
@@ -248,11 +249,13 @@ export function RadioScreen() {
     pause,
     stop,
     position,
+    setSleepTimerActive,
   } = useRadioContext();
 
   // Glass Player for iOS 26+ Liquid Glass effect
   const {
     isAvailable: isGlassPlayerAvailable,
+    isCheckingAvailability: isCheckingGlassPlayerAvailability,
     isVisible: isGlassPlayerVisible,
     isExpanded: isGlassPlayerExpanded,
     showMiniPlayer: showGlassMiniPlayer,
@@ -284,7 +287,59 @@ export function RadioScreen() {
       // Native player closed
       setIsPlayerExpanded(false);
     },
+    onFavoriteToggle: () => {
+      // Toggle favorite for currently playing station
+      if (contextStation) {
+        const station = favorites.find(f => f.id === contextStation.id) ||
+          stations.find(s => s.stationuuid === contextStation.id);
+        if (station) {
+          handleToggleFavorite(station);
+        }
+      }
+    },
+    onSleepTimerSet: (minutes: number | null) => {
+      // Clear existing timer if any
+      if (sleepTimerRef.current) {
+        clearTimeout(sleepTimerRef.current);
+        sleepTimerRef.current = null;
+      }
+
+      if (minutes === null) {
+        console.log('[RadioScreen] Sleep timer disabled');
+        setSleepTimerActive(false);
+        return;
+      }
+
+      // minutes === 0 means 30 seconds (for testing - TODO: remove before production)
+      const durationMs = minutes === 0 ? 30 * 1000 : minutes * 60 * 1000;
+      console.log('[RadioScreen] Sleep timer set:', minutes === 0 ? '30 seconds (TEST)' : `${minutes} minutes`);
+
+      // Update context so MediaIndicator shows the moon icon
+      setSleepTimerActive(true);
+
+      sleepTimerRef.current = setTimeout(async () => {
+        console.log('[RadioScreen] Sleep timer triggered - stopping playback');
+        await stop();
+        sleepTimerRef.current = null;
+        setSleepTimerActive(false);
+      }, durationMs);
+    },
   });
+
+  // Debug: Log Glass Player availability
+  useEffect(() => {
+    console.log('[RadioScreen] isCheckingGlassPlayerAvailability:', isCheckingGlassPlayerAvailability, 'isGlassPlayerAvailable:', isGlassPlayerAvailable);
+  }, [isCheckingGlassPlayerAvailability, isGlassPlayerAvailable]);
+
+  // Cleanup sleep timer on unmount
+  useEffect(() => {
+    return () => {
+      if (sleepTimerRef.current) {
+        clearTimeout(sleepTimerRef.current);
+        sleepTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // State
   const [stations, setStations] = useState<RadioStation[]>([]);
@@ -343,9 +398,18 @@ export function RadioScreen() {
     }
   }, [contextStation, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
-  // Show/update Glass Player when station is playing (iOS 26+)
+  // Hide Glass Player when navigating away from this screen
   useEffect(() => {
-    if (!isGlassPlayerAvailable || !contextStation) {
+    if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
+      // User navigated to another module — hide the mini player
+      hideGlassPlayer();
+    }
+  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+
+  // Show/update Glass Player when station is playing (iOS 26+)
+  // Only show when this screen is focused
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !contextStation || !isFocused) {
       return;
     }
 
@@ -367,6 +431,7 @@ export function RadioScreen() {
     metadata.title,
     showGlassMiniPlayer,
     isBuffering,
+    isFocused,
     t,
   ]);
 
@@ -376,11 +441,17 @@ export function RadioScreen() {
       return;
     }
 
+    // Check if current station is a favorite
+    const currentIsFavorite = contextStation
+      ? favorites.some(f => f.id === contextStation.id)
+      : false;
+
     updateGlassPlaybackState({
       isPlaying,
       isLoading: isPlaybackLoading,
       isBuffering,
       showStopButton: true,
+      isFavorite: currentIsFavorite,
       // For radio, we track listen duration, not progress
     });
   }, [
@@ -390,6 +461,8 @@ export function RadioScreen() {
     isPlaybackLoading,
     isBuffering,
     updateGlassPlaybackState,
+    contextStation,
+    favorites,
   ]);
 
   // Update Glass Player content when metadata changes
@@ -769,8 +842,9 @@ export function RadioScreen() {
   // For iOS 26+, the native Glass Player Window handles its own positioning
   // so we don't need extra bottom padding. For older iOS/Android, we need
   // padding for the React Native MiniPlayer overlay.
-  const needsMiniPlayerPadding = !isGlassPlayerAvailable && contextStation && !isPlayerExpanded;
-  const contentPaddingBottom = needsMiniPlayerPadding
+  // IMPORTANT: Only show RN MiniPlayer when availability check is COMPLETE and Glass Player is NOT available
+  const shouldShowRNMiniPlayer = !isCheckingGlassPlayerAvailability && !isGlassPlayerAvailable && contextStation && !isPlayerExpanded;
+  const contentPaddingBottom = shouldShowRNMiniPlayer
     ? MINI_PLAYER_HEIGHT + insets.bottom
     : insets.bottom;
 
@@ -1022,8 +1096,9 @@ export function RadioScreen() {
 
         {/* Floating Mini-Player — absolute positioned at bottom
             ONLY shown when Glass Player is NOT available (iOS <26 or Android)
-            On iOS 26+, the native GlassPlayerWindow handles this */}
-        {!isGlassPlayerAvailable && contextStation && !isPlayerExpanded && (
+            On iOS 26+, the native GlassPlayerWindow handles this
+            IMPORTANT: Wait for availability check to complete before rendering */}
+        {shouldShowRNMiniPlayer && (
           <MiniPlayer
             moduleId="radio"
             artwork={metadata.artwork || contextStation.favicon || null}
@@ -1053,8 +1128,9 @@ export function RadioScreen() {
 
       {/* Expanded Full Player Modal
           ONLY shown when Glass Player is NOT available (iOS <26 or Android)
-          On iOS 26+, the native GlassPlayerWindow handles this */}
-      {!isGlassPlayerAvailable && (
+          On iOS 26+, the native GlassPlayerWindow handles this
+          IMPORTANT: Wait for availability check to complete before rendering */}
+      {!isCheckingGlassPlayerAvailability && !isGlassPlayerAvailable && (
       <Modal
         visible={isPlayerExpanded && !!contextStation}
         transparent={true}

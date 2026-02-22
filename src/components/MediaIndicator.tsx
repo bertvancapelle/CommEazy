@@ -19,6 +19,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   TouchableOpacity,
   AccessibilityInfo,
@@ -111,7 +112,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const bar3Anim = useRef(new Animated.Value(0.4)).current;
 
   // Radio context
-  const { isPlaying: isRadioPlaying, currentStation } = useRadioContext();
+  const { isPlaying: isRadioPlaying, currentStation, sleepTimerActive } = useRadioContext();
 
   // Podcast context (safe - returns null if provider not ready)
   const podcastContext = usePodcastContextSafe();
@@ -212,25 +213,45 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   // For reduced motion: show static bars
   const staticHeight = reducedMotion ? 0.5 : undefined;
 
+  // Check if sleep timer is active for the current media source
+  const showSleepTimerIndicator = activeMedia?.source === 'radio' && sleepTimerActive;
+
   return (
-    <TouchableOpacity
-      style={[
-        styles.container,
-        {
-          backgroundColor: contrastColors.fill,
-          borderColor: contrastColors.border,
-        },
-      ]}
-      onPress={handlePress}
-      activeOpacity={0.8}
-      accessibilityRole="button"
-      accessibilityLabel={t('media.activeIndicatorLabel', {
-        type: isVideo ? t('media.video') : t('media.audio'),
-      })}
-      accessibilityHint={t('media.activeIndicatorHint')}
-    >
-      {/* Animated waveform bars */}
-      <View style={styles.waveContainer}>
+    <View style={styles.indicatorRow}>
+      {/* Sleep timer indicator (moon) - shown before waveform when active */}
+      {showSleepTimerIndicator && (
+        <View
+          style={[
+            styles.sleepTimerBadge,
+            {
+              backgroundColor: contrastColors.fill,
+              borderColor: contrastColors.border,
+            },
+          ]}
+          accessibilityLabel={t('media.sleepTimerActive')}
+        >
+          <Text style={styles.moonIcon}>🌙</Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[
+          styles.container,
+          {
+            backgroundColor: contrastColors.fill,
+            borderColor: contrastColors.border,
+          },
+        ]}
+        onPress={handlePress}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={t('media.activeIndicatorLabel', {
+          type: isVideo ? t('media.video') : t('media.audio'),
+        })}
+        accessibilityHint={t('media.activeIndicatorHint')}
+      >
+        {/* Animated waveform bars */}
+        <View style={styles.waveContainer}>
         {isVideo ? (
           // Video: wider bars with play triangle
           <>
@@ -284,7 +305,8 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
           </>
         )}
       </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -294,7 +316,14 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
 
 const INDICATOR_SIZE = 36;
 
+const SLEEP_BADGE_SIZE = 28;
+
 const styles = StyleSheet.create({
+  indicatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   container: {
     width: INDICATOR_SIZE,
     height: INDICATOR_SIZE,
@@ -308,6 +337,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
+  },
+  sleepTimerBadge: {
+    width: SLEEP_BADGE_SIZE,
+    height: SLEEP_BADGE_SIZE,
+    borderRadius: SLEEP_BADGE_SIZE / 2,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Shadow for depth
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  moonIcon: {
+    fontSize: 14,
   },
   waveContainer: {
     flexDirection: 'row',

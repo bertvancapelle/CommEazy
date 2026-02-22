@@ -258,13 +258,13 @@ class FullPlayerNativeView: UIView {
         speedButton.isHidden = true
         contentView.addSubview(speedButton)
         
-        // Sleep timer
+        // Sleep timer - starts with outline moon (white), filled moon (yellow) when active
         let sleepConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-        sleepButton.setImage(UIImage(systemName: "moon.fill", withConfiguration: sleepConfig), for: .normal)
+        sleepButton.setImage(UIImage(systemName: "moon", withConfiguration: sleepConfig), for: .normal)
         sleepButton.tintColor = .white
         sleepButton.addTarget(self, action: #selector(handleSleepTap), for: .touchUpInside)
         sleepButton.translatesAutoresizingMaskIntoConstraints = false
-        sleepButton.accessibilityLabel = "Slaaptimer"
+        sleepButton.accessibilityLabel = "Slaaptimer uit"
         contentView.addSubview(sleepButton)
         
         // Favorite

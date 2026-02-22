@@ -69,6 +69,10 @@ export interface RadioContextValue {
   showPlayer: boolean;
   setShowPlayer: (show: boolean) => void;
 
+  // Sleep timer state (for MediaIndicator)
+  sleepTimerActive: boolean;
+  setSleepTimerActive: (active: boolean) => void;
+
   // Playback controls
   playStation: (station: RadioStation) => Promise<void>;
   play: () => Promise<void>;
@@ -164,6 +168,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
   const [showPlayer, setShowPlayer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [sleepTimerActive, setSleepTimerActive] = useState(false);
 
   // Derived state from playback state
   const isPlaying = playbackState.state === State.Playing;
@@ -411,6 +416,8 @@ export function RadioProvider({ children }: RadioProviderProps) {
       metadata,
       showPlayer,
       setShowPlayer,
+      sleepTimerActive,
+      setSleepTimerActive,
       playStation,
       play,
       pause,
@@ -425,7 +432,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
       currentStation,
       metadata,
       showPlayer,
-      setShowPlayer,
+      sleepTimerActive,
       playStation,
       play,
       pause,

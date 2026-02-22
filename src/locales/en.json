@@ -1492,7 +1492,8 @@
     "activeIndicatorLabel": "{{type}} active",
     "activeIndicatorHint": "Tap to return to active stream",
     "audio": "Audio",
-    "video": "Video"
+    "video": "Video",
+    "sleepTimerActive": "Sleep timer active"
   },
   "audio": {
     "play": "Play",
