@@ -278,6 +278,7 @@ function getTabNameForDestination(destination: NavigationDestination): string {
     case 'radio': return 'RadioTab';
     case 'books': return 'BooksTab';
     case 'weather': return 'WeatherTab';
+    case 'appleMusic': return 'AppleMusicTab';
     case 'help': return 'HelpTab';
     default: return '';
   }
@@ -299,6 +300,7 @@ function getInitialRouteForTab(tabName: string): string {
     case 'AudioBookTab': return 'AudioBook';
     case 'PodcastTab': return 'Podcast';
     case 'RadioTab': return 'Radio';
+    case 'AppleMusicTab': return 'AppleMusic';
     default: return '';
   }
 }
@@ -696,6 +698,12 @@ export function HoldToNavigateWrapper({
   ]);
 
   const handleTouchStart = useCallback((event: GestureResponderEvent) => {
+    console.log('[HoldToNavigate] handleTouchStart:', {
+      enabled,
+      isNavigationMenuOpen,
+      isVoiceOverlayVisible,
+      touchCount: event.nativeEvent.touches?.length ?? 1,
+    });
     if (!enabled || isNavigationMenuOpen || isVoiceOverlayVisible) return;
 
     // Convert absolute screen coordinates to local coordinates
@@ -724,7 +732,13 @@ export function HoldToNavigateWrapper({
       // SINGLE FINGER: Navigation wheel gesture
       // But wait briefly in case a second finger is coming (for two-finger gesture)
       // Check if touch is valid (not in edge zone) - use raw coordinates for edge detection
-      if (!isTouchValid(rawPageX, rawPageY, 1)) {
+      const touchValid = isTouchValid(rawPageX, rawPageY, 1);
+      console.log('[HoldToNavigate] Touch validity check:', {
+        rawPageX,
+        rawPageY,
+        touchValid,
+      });
+      if (!touchValid) {
         return;
       }
 
@@ -746,7 +760,13 @@ export function HoldToNavigateWrapper({
           // Start long press timer - opens wheel directly when complete
           clearPressTimer();
           pressTimer.current = setTimeout(() => {
+            console.log('[HoldToNavigate] Long press timer fired:', {
+              hasMoved: hasMoved.current,
+              isPressing: isPressingRef.current,
+              touchCount: currentTouchCount.current,
+            });
             if (!hasMoved.current && isPressingRef.current && currentTouchCount.current === 1) {
+              console.log('[HoldToNavigate] All checks passed, opening navigation menu');
               longPressCompleted.current = true;
               triggerHaptic();
               setIsPressing(false);
@@ -930,6 +950,9 @@ export function HoldToNavigateWrapper({
           break;
         case 'weather':
           navigation.navigate('WeatherTab' as never);
+          break;
+        case 'appleMusic':
+          navigation.navigate('AppleMusicTab' as never);
           break;
         case 'help':
           // TODO: Navigate to help screen when implemented
@@ -1584,6 +1607,7 @@ export function HoldToNavigateWrapper({
       case 'PodcastTab': return 'podcast';
       case 'RadioTab': return 'radio';
       case 'BooksTab': return 'books';
+      case 'AppleMusicTab': return 'appleMusic';
       // Country-specific modules
       case 'NuNlTab': return 'module:nunl';
       default: return undefined;

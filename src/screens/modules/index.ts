@@ -12,6 +12,7 @@ export { RadioScreen } from './RadioScreen';
 export { BooksScreen } from './BooksScreen';
 export { BookReaderScreen } from './BookReaderScreen';
 export { BookPlayerScreen } from './BookPlayerScreen';
+export { AppleMusicScreen } from './AppleMusicScreen';
 
 // Country-specific modules
 export { NuNlScreen } from './NuNlScreen';

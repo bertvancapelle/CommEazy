@@ -56,7 +56,8 @@ export type StaticNavigationDestination =
   | 'podcast'
   | 'radio'
   | 'books'
-  | 'weather';
+  | 'weather'
+  | 'appleMusic';  // Apple Music integration
 
 // Dynamic navigation destinations for country-specific modules
 // Format: 'module:{moduleId}' (e.g., 'module:nunl')
@@ -90,8 +91,9 @@ export type ModuleIconType =
   | 'headphones'
   | 'podcast'
   | 'radio'
-  | 'news'     // For country-specific news modules
-  | 'weather'; // Weather module
+  | 'news'        // For country-specific news modules
+  | 'weather'     // Weather module
+  | 'appleMusic'; // Apple Music module
 
 interface ModuleItem {
   id: NavigationDestination;
@@ -112,6 +114,7 @@ const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<Module
   radio: { labelKey: 'navigation.radio', icon: 'radio', color: '#00897B' },
   books: { labelKey: 'navigation.books', icon: 'book', color: '#FF8F00' },  // Amber color
   weather: { labelKey: 'navigation.weather', icon: 'weather', color: '#03A9F4' },  // Sky Blue
+  appleMusic: { labelKey: 'navigation.appleMusic', icon: 'appleMusic', color: '#FC3C44' },  // Apple Music red
   settings: { labelKey: 'navigation.settings', icon: 'settings', color: '#5E35B1' },
   help: { labelKey: 'navigation.help', icon: 'help', color: '#00838F' },
 };
@@ -346,6 +349,7 @@ export function WheelNavigationMenu({
     });
   }, []);
 
+  console.log('[WheelNavigationMenu] render called, visible:', visible);
   if (!visible) {
     return null;
   }

@@ -25,8 +25,10 @@ export type IconName =
   | 'chevron-up'
   | 'chevron-down'
   | 'camera'
+  | 'camera-reverse'
   | 'check'
   | 'check-all'
+  | 'checkmark'
   | 'language'
   | 'settings'
   | 'group'
@@ -43,6 +45,7 @@ export type IconName =
   | 'heart-filled'
   | 'book'
   | 'book-filled'
+  | 'book-open'
   | 'play'
   | 'pause'
   | 'stop'
@@ -51,10 +54,21 @@ export type IconName =
   | 'radio'
   | 'podcast'
   | 'time'
+  | 'clock'
   | 'list'
   | 'x'
   | 'warning'
+  | 'alert-circle'
   | 'news'
+  | 'document-text'
+  | 'folder'
+  | 'trash'
+  | 'external-link'
+  | 'globe'
+  | 'headphones'
+  | 'headset'
+  | 'star'
+  | 'gauge'
   | 'weather-partly-cloudy'
   | 'weather-sunny'
   | 'weather-night'
@@ -75,7 +89,8 @@ export type IconName =
   | 'magnify'
   | 'alert'
   | 'trash-can-outline'
-  | 'radar';
+  | 'radar'
+  | 'appleMusic';
 
 interface IconProps {
   name: IconName;
@@ -1162,6 +1177,284 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'camera-reverse':
+      // Camera flip / switch camera
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M3 9C3 7.89543 3.89543 7 5 7H6.5L8 5H16L17.5 7H19C20.1046 7 21 7.89543 21 9V18C21 19.1046 20.1046 20 19 20H5C3.89543 20 3 19.1046 3 18V9Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M9 13L12 10L15 13M15 14L12 17L9 14"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'checkmark':
+      // Alias for check
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M5 13L9 17L19 7"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'book-open':
+      // Open book icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M2 4V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V4"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M12 4V20"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Path
+            d="M2 4C4 6 7 7 12 7C17 7 20 6 22 4"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'clock':
+      // Alias for time
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M12 6V12L16 14"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'alert-circle':
+      // Alert with circle
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M12 8V12M12 16V16.01"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'document-text':
+      // Document with text lines
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M14 2V8H20M8 13H16M8 17H16M8 9H10"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'folder':
+      // Folder icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M22 19C22 20.1046 21.1046 21 20 21H4C2.89543 21 2 20.1046 2 19V5C2 3.89543 2.89543 3 4 3H9L11 6H20C21.1046 6 22 6.89543 22 8V19Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'trash':
+      // Trash can
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M3 6H5H21M19 6V20C19 21.1 18.1 22 17 22H7C5.9 22 5 21.1 5 20V6M8 6V4C8 2.9 8.9 2 10 2H14C15.1 2 16 2.9 16 4V6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M10 11V17M14 11V17"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'external-link':
+      // External link / open in new window
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M18 13V19C18 20.1 17.1 21 16 21H5C3.9 21 3 20.1 3 19V8C3 6.9 3.9 6 5 6H11"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M15 3H21V9M10 14L21 3"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'globe':
+      // Globe / world
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M3 12H21M12 3C14.5 5.5 15.5 8.5 15.5 12C15.5 15.5 14.5 18.5 12 21M12 3C9.5 5.5 8.5 8.5 8.5 12C8.5 15.5 9.5 18.5 12 21"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'headphones':
+      // Headphones
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M3 18V12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12V18"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M21 18C21 19.6569 19.6569 21 18 21H17C15.3431 21 14 19.6569 14 18V15C14 13.3431 15.3431 12 17 12H21V18Z"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Path
+            d="M3 18C3 19.6569 4.34315 21 6 21H7C8.65685 21 10 19.6569 10 18V15C10 13.3431 8.65685 12 7 12H3V18Z"
+            stroke={color}
+            strokeWidth={sw}
+          />
+        </Svg>
+      );
+
+    case 'headset':
+      // Headset with microphone
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M3 18V12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12V18"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M21 18C21 19.6569 19.6569 21 18 21H17C15.3431 21 14 19.6569 14 18V15C14 13.3431 15.3431 12 17 12H21V18Z"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Path
+            d="M3 18C3 19.6569 4.34315 21 6 21H7C8.65685 21 10 19.6569 10 18V15C10 13.3431 8.65685 12 7 12H3V18Z"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Path
+            d="M18 21V22C18 22.5304 17.7893 23.0391 17.4142 23.4142C17.0391 23.7893 16.5304 24 16 24H12"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'star':
+      // Star
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'gauge':
+      // Speed / gauge / speedometer
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M12 7V12L15 15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M5 12H6M18 12H19M12 5V6M7.05 7.05L7.76 7.76M16.95 7.05L16.24 7.76"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'appleMusic':
+      // Apple Music logo - musical note with rounded corners
+      return (
+        <Svg {...iconProps}>
+          {/* Musical note shape similar to Apple Music icon */}
+          <Path
+            d="M19 3V15.5C19 17.433 17.433 19 15.5 19C13.567 19 12 17.433 12 15.5C12 13.567 13.567 12 15.5 12C16.1 12 16.67 12.14 17.17 12.38V6.25L9 8.35V17.5C9 19.433 7.433 21 5.5 21C3.567 21 2 19.433 2 17.5C2 15.567 3.567 14 5.5 14C6.1 14 6.67 14.14 7.17 14.38V5.5L19 3Z"
+            fill={color}
           />
         </Svg>
       );

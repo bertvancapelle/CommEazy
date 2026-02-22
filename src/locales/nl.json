@@ -658,6 +658,7 @@
     "radio": "Radio",
     "books": "Boeken",
     "weather": "Weer",
+    "appleMusic": "Apple Music",
     "menu_button": "Menu knop",
     "menu_button_hint": "Tik om het navigatiemenu te openen. Houd lang ingedrukt om te verplaatsen.",
     "drag_mode_enabled": "Sleepstand actief. Sleep de knop naar een nieuwe positie.",
@@ -1220,6 +1221,54 @@
           "timeout": "Het laden duurt te lang. Probeer het later opnieuw."
         }
       }
+    },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Zoeken",
+        "library": "Bibliotheek",
+        "playlists": "Afspeellijsten"
+      },
+      "search": {
+        "placeholder": "Zoek muziek...",
+        "button": "Zoeken",
+        "songsTitle": "Nummers",
+        "albumsTitle": "Albums",
+        "artistsTitle": "Artiesten",
+        "playlistsTitle": "Afspeellijsten",
+        "noResults": "Geen muziek gevonden",
+        "error": "Zoeken mislukt. Probeer het opnieuw."
+      },
+      "library": {
+        "comingSoon": "Bibliotheek komt binnenkort"
+      },
+      "playlists": {
+        "comingSoon": "Afspeellijsten komen binnenkort"
+      },
+      "authRequired": {
+        "title": "Apple Music Toegang",
+        "description": "Geef CommEazy toegang tot Apple Music om naar je favoriete muziek te luisteren.",
+        "button": "Toegang geven"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music niet geïnstalleerd",
+          "description": "Download de Apple Music app om muziek te luisteren.",
+          "downloadButton": "Download in Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Open Apple Music om naar muziek te luisteren.",
+          "openButton": "Open Apple Music"
+        }
+      },
+      "play": "Afspelen: {{title}}",
+      "pause": "Pauzeren",
+      "next": "Volgend nummer",
+      "previous": "Vorig nummer",
+      "shuffle": "Willekeurig",
+      "repeat": "Herhalen",
+      "nowPlaying": "Nu aan het spelen"
     }
   },
   "articleViewer": {

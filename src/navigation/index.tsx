@@ -84,6 +84,7 @@ import {
   BookPlayerScreen,
   NuNlScreen,
   WeatherScreen,
+  AppleMusicScreen,
 } from '@/screens/modules';
 
 // Group screens
@@ -165,6 +166,7 @@ export type MainTabParams = {
   BookReader: undefined;
   BookPlayer: undefined;
   WeatherTab: undefined;
+  AppleMusicTab: undefined;  // Apple Music integration
   // Country-specific modules
   NuNlTab: undefined;
 };
@@ -487,6 +489,7 @@ function MainNavigator() {
         <MainTab.Screen name="BookReader" component={BookReaderScreen} />
         <MainTab.Screen name="BookPlayer" component={BookPlayerScreen} />
         <MainTab.Screen name="WeatherTab" component={WeatherScreen} />
+        <MainTab.Screen name="AppleMusicTab" component={AppleMusicScreen} />
         {/* Country-specific modules */}
         <MainTab.Screen name="NuNlTab" component={NuNlScreen} />
       </MainTab.Navigator>
