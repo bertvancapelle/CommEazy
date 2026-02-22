@@ -360,7 +360,7 @@ export function AppleMusicScreen() {
         </ScrollView>
       )}
 
-      {!isSearching && !searchResults.songs?.length && searchQuery && (
+      {!isSearching && !searchResults?.songs?.length && searchQuery && (
         <View style={styles.emptyState}>
           <Icon name="search" size={48} color={colors.textSecondary} />
           <Text style={styles.emptyStateText}>
