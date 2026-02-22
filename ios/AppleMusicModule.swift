@@ -135,8 +135,16 @@ class AppleMusicModule: RCTEventEmitter {
                        limit: Int,
                        resolve: @escaping RCTPromiseResolveBlock,
                        reject: @escaping RCTPromiseRejectBlock) {
+        
         Task {
             do {
+                // First verify authorization status
+                let authStatus = MusicAuthorization.currentStatus
+                guard authStatus == .authorized else {
+                    reject("AUTH_ERROR", "MusicKit not authorized. Status: \(authStatus)", nil)
+                    return
+                }
+                
                 var results: [String: Any] = [:]
                 
                 // Search for songs
@@ -173,7 +181,16 @@ class AppleMusicModule: RCTEventEmitter {
                 
                 resolve(results)
             } catch {
-                reject("SEARCH_ERROR", "Catalog search failed: \(error.localizedDescription)", error)
+                // Detailed error logging
+                let nsError = error as NSError
+                let errorInfo = """
+                    Domain: \(nsError.domain)
+                    Code: \(nsError.code)
+                    Description: \(error.localizedDescription)
+                    UserInfo: \(nsError.userInfo)
+                    """
+                print("[AppleMusicModule] Search error details: \(errorInfo)")
+                reject("SEARCH_ERROR", "Search failed [\(nsError.domain):\(nsError.code)]: \(error.localizedDescription)", error)
             }
         }
     }
@@ -186,8 +203,15 @@ class AppleMusicModule: RCTEventEmitter {
                       limit: Int,
                       resolve: @escaping RCTPromiseResolveBlock,
                       reject: @escaping RCTPromiseRejectBlock) {
+        
         Task {
             do {
+                // First verify authorization status
+                let authStatus = MusicAuthorization.currentStatus
+                guard authStatus == .authorized else {
+                    reject("AUTH_ERROR", "MusicKit not authorized. Status: \(authStatus)", nil)
+                    return
+                }
                 var results: [String: Any] = [:]
                 
                 // Get top songs

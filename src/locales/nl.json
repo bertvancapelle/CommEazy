@@ -1268,7 +1268,15 @@
       "previous": "Vorig nummer",
       "shuffle": "Willekeurig",
       "repeat": "Herhalen",
-      "nowPlaying": "Nu aan het spelen"
+      "nowPlaying": "Nu aan het spelen",
+      "playing": "Aan het afspelen",
+      "paused": "Gepauzeerd",
+      "stopped": "Gestopt",
+      "resumed": "Hervat",
+      "playError": {
+        "title": "Kan nummer niet afspelen",
+        "message": "Er is een probleem met het afspelen van dit nummer. Controleer je Apple Music abonnement."
+      }
     }
   },
   "articleViewer": {

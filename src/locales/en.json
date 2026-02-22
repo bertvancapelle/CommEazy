@@ -1274,7 +1274,15 @@
       "previous": "Previous track",
       "shuffle": "Shuffle",
       "repeat": "Repeat",
-      "nowPlaying": "Now playing"
+      "nowPlaying": "Now playing",
+      "playing": "Playing",
+      "paused": "Paused",
+      "stopped": "Stopped",
+      "resumed": "Resumed",
+      "playError": {
+        "title": "Cannot play song",
+        "message": "There was a problem playing this song. Please check your Apple Music subscription."
+      }
     }
   },
   "articleViewer": {

@@ -1,5 +1,15 @@
 # CommEazy — Agent Teams Master Context
 
+## ⚠️ Claude Draait Binnen Xcode
+
+**BELANGRIJK:** Claude wordt aangeroepen vanuit Xcode's ingebouwde AI assistant, NIET via terminal/CLI.
+
+**Implicaties:**
+- Gebruik Xcode commando's (`⌘R`, `⌘⇧K`, `⌘B`) in plaats van terminal commando's (`npm run ios`, etc.)
+- Xcode MCP tools (XcodeRead, XcodeWrite, XcodeGrep, etc.) zijn beschikbaar en worden geprefereerd
+- Build errors zijn direct beschikbaar via `GetBuildLog` en `XcodeListNavigatorIssues`
+- Previews kunnen worden gerenderd met `RenderPreview`
+
 ## What is CommEazy?
 Privacy-first family communication app. End-to-end encrypted messaging, photos, and video calls for families — designed specifically for seniors (65+) while being enjoyable for all ages.
 

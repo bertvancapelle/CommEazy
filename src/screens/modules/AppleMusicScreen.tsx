@@ -20,7 +20,7 @@
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -54,12 +54,10 @@ import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusCo
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import {
   useAppleMusicContext,
-  useAppleMusicState,
-  useAppleMusicControls,
-  useAppleMusicSearch,
   type AppleMusicSong,
   type AppleMusicAlbum,
   type AppleMusicPlaylist,
+  type SearchResults,
 } from '@/contexts/AppleMusicContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -99,38 +97,35 @@ export function AppleMusicScreen() {
   // Apple Music Context
   const {
     authStatus,
+    isAuthorized,
     capabilities,
     requestAuthorization,
     openPlayStore,
     openAppleMusicApp,
-  } = useAppleMusicContext();
-
-  const {
+    // Playback
     isPlaying,
     isLoading: isPlaybackLoading,
-    currentSong,
+    nowPlaying: currentSong,
     playbackState,
     shuffleMode,
     repeatMode,
-  } = useAppleMusicState();
-
-  const {
-    play,
+    // Controls
+    playSong,
     pause,
+    resume,
     stop,
     skipToNext,
     skipToPrevious,
     setShuffleMode,
     setRepeatMode,
-  } = useAppleMusicControls();
-
-  const {
+    // Search
     searchCatalog,
-    isSearching,
-    searchResults,
-    searchError,
-    clearSearch,
-  } = useAppleMusicSearch();
+  } = useAppleMusicContext();
+
+  // Local search state (context returns Promise, we manage state here)
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   // State
   const [activeTab, setActiveTab] = useState<TabType>('search');
@@ -139,17 +134,44 @@ export function AppleMusicScreen() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Check if platform supports full functionality
-  const hasFullSupport = capabilities.hasMusicKit && capabilities.canPlayback;
+  const hasFullSupport = capabilities?.hasMusicKit && capabilities?.canPlayback;
   const isAndroid = Platform.OS === 'android';
+  const isIOS = Platform.OS === 'ios';
 
   // ============================================================
   // Handlers
   // ============================================================
 
   const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim()) return;
-    await searchCatalog(searchQuery);
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) return;
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      console.log('[AppleMusicScreen] Searching for:', trimmedQuery);
+      const results = await searchCatalog(trimmedQuery);
+      console.log('[AppleMusicScreen] Search results:', {
+        songs: results.songs?.length ?? 0,
+        albums: results.albums?.length ?? 0,
+        artists: results.artists?.length ?? 0,
+        playlists: results.playlists?.length ?? 0,
+      });
+      setSearchResults(results);
+    } catch (error) {
+      console.error('[AppleMusicScreen] Search error:', error);
+      setSearchError(error instanceof Error ? error.message : 'Search failed');
+    } finally {
+      setIsSearching(false);
+    }
   }, [searchQuery, searchCatalog]);
+
+  const clearSearch = useCallback(() => {
+    setSearchResults(null);
+    setSearchError(null);
+    setSearchQuery('');
+  }, []);
 
   const handleAuthorize = useCallback(async () => {
     const success = await requestAuthorization();
@@ -160,18 +182,26 @@ export function AppleMusicScreen() {
 
   const handlePlaySong = useCallback(async (song: AppleMusicSong) => {
     triggerFeedback('medium');
-    // playSong is available via context but we need to add it
-    // For now, we'll show the song in the player
-  }, [triggerFeedback]);
+    try {
+      console.log('[AppleMusicScreen] Playing song:', song.id, song.title);
+      await playSong(song.id);
+    } catch (error) {
+      console.error('[AppleMusicScreen] Play song error:', error);
+      Alert.alert(
+        t('modules.appleMusic.playError.title'),
+        t('modules.appleMusic.playError.message')
+      );
+    }
+  }, [playSong, triggerFeedback, t]);
 
   const handlePlayPause = useCallback(() => {
     triggerFeedback('light');
     if (isPlaying) {
       pause();
     } else {
-      play();
+      resume();
     }
-  }, [isPlaying, play, pause, triggerFeedback]);
+  }, [isPlaying, pause, resume, triggerFeedback]);
 
   const handleOpenPlayStore = useCallback(async () => {
     triggerFeedback('medium');
@@ -330,9 +360,9 @@ export function AppleMusicScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
               >
-                {song.artworkURL ? (
+                {song.artworkUrl ? (
                   <Image
-                    source={{ uri: song.artworkURL.replace('{w}', '60').replace('{h}', '60') }}
+                    source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
                     style={styles.songArtwork}
                   />
                 ) : (
@@ -518,7 +548,7 @@ export function AppleMusicScreen() {
       {/* Mini Player (iOS only, when playing) */}
       {!isAndroid && currentSong && (
         <MiniPlayer
-          artwork={currentSong.artworkURL?.replace('{w}', '120').replace('{h}', '120') || null}
+          artwork={currentSong.artworkUrl?.replace('{w}', '120').replace('{h}', '120') || null}
           title={currentSong.title}
           subtitle={currentSong.artistName}
           accentColor={APPLE_MUSIC_COLOR}
@@ -536,7 +566,7 @@ export function AppleMusicScreen() {
         <ExpandedAudioPlayer
           visible={isPlayerExpanded}
           moduleId="appleMusic"
-          artwork={currentSong?.artworkURL?.replace('{w}', '600').replace('{h}', '600') || null}
+          artwork={currentSong?.artworkUrl?.replace('{w}', '600').replace('{h}', '600') || null}
           title={currentSong?.title || ''}
           subtitle={currentSong?.artistName}
           accentColor={APPLE_MUSIC_COLOR}
