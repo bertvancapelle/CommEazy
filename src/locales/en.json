@@ -1559,7 +1559,14 @@
     "sleepTimerActive": "Sleep timer active: {{minutes}} minutes",
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
-    "of": "of"
+    "of": "of",
+    "shuffle": "Shuffle",
+    "shuffleOn": "Shuffle on",
+    "shuffleOff": "Shuffle off",
+    "repeat": "Repeat",
+    "repeatOff": "Repeat off",
+    "repeatOne": "Repeat this song",
+    "repeatAll": "Repeat all"
   },
   "a11y": {
     "voiceFocusHint": "Say \"open\" to select",

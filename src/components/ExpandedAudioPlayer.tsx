@@ -54,6 +54,12 @@ import type { ModuleColorId } from '@/types/liquidGlass';
 // Types
 // ============================================================
 
+/** Shuffle mode for music playback */
+export type ShuffleMode = 'off' | 'songs';
+
+/** Repeat mode for music playback */
+export type RepeatMode = 'off' | 'one' | 'all';
+
 /** Configurable controls for the expanded player */
 export interface AudioPlayerControls {
   /** Show seek slider (for content with known duration) */
@@ -68,6 +74,10 @@ export interface AudioPlayerControls {
   favorite?: boolean;
   /** Show listen duration counter (for live streams) */
   listenDuration?: boolean;
+  /** Show shuffle button (for music) */
+  shuffle?: boolean;
+  /** Show repeat button (for music) */
+  repeat?: boolean;
 }
 
 export interface ExpandedAudioPlayerProps {
@@ -145,6 +155,18 @@ export interface ExpandedAudioPlayerProps {
   isFavorite?: boolean;
   /** Callback when favorite button is pressed */
   onFavoritePress?: () => void;
+
+  // Shuffle (when controls.shuffle is true)
+  /** Current shuffle mode */
+  shuffleMode?: ShuffleMode;
+  /** Callback when shuffle button is pressed */
+  onShufflePress?: () => void;
+
+  // Repeat (when controls.repeat is true)
+  /** Current repeat mode */
+  repeatMode?: RepeatMode;
+  /** Callback when repeat button is pressed */
+  onRepeatPress?: () => void;
 }
 
 // ============================================================
@@ -199,6 +221,10 @@ export function ExpandedAudioPlayer({
   onSleepTimerPress,
   isFavorite = false,
   onFavoritePress,
+  shuffleMode = 'off',
+  onShufflePress,
+  repeatMode = 'off',
+  onRepeatPress,
 }: ExpandedAudioPlayerProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -279,6 +305,16 @@ export function ExpandedAudioPlayer({
     await triggerFeedback('tap');
     onFavoritePress?.();
   }, [onFavoritePress, triggerFeedback]);
+
+  const handleShufflePress = useCallback(async () => {
+    await triggerFeedback('tap');
+    onShufflePress?.();
+  }, [onShufflePress, triggerFeedback]);
+
+  const handleRepeatPress = useCallback(async () => {
+    await triggerFeedback('tap');
+    onRepeatPress?.();
+  }, [onRepeatPress, triggerFeedback]);
 
   const handleSeekStart = useCallback(() => {
     setIsSeeking(true);
@@ -498,25 +534,74 @@ export function ExpandedAudioPlayer({
             )}
           </View>
 
-          {/* Favorite button (below main controls) */}
-          {controls.favorite && onFavoritePress && (
-            <TouchableOpacity
-              style={styles.favoriteButton}
-              onPress={handleFavoritePress}
-              accessibilityRole="button"
-              accessibilityLabel={
-                isFavorite
-                  ? t('audio.removeFromFavorites')
-                  : t('audio.addToFavorites')
-              }
-              accessibilityState={{ selected: isFavorite }}
-            >
-              <Icon
-                name={isFavorite ? 'heart' : 'heart-outline'}
-                size={28}
-                color={isFavorite ? accentColor : colors.textSecondary}
-              />
-            </TouchableOpacity>
+          {/* Secondary controls row (shuffle, favorite, repeat) */}
+          {(controls.shuffle || controls.favorite || controls.repeat) && (
+            <View style={styles.secondaryControlsRow}>
+              {/* Shuffle button (for music) */}
+              {controls.shuffle && onShufflePress && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleShufflePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    shuffleMode === 'songs'
+                      ? t('audio.shuffleOn')
+                      : t('audio.shuffleOff')
+                  }
+                  accessibilityState={{ selected: shuffleMode === 'songs' }}
+                >
+                  <Icon
+                    name="shuffle"
+                    size={28}
+                    color={shuffleMode === 'songs' ? accentColor : colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+
+              {/* Favorite button */}
+              {controls.favorite && onFavoritePress && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleFavoritePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isFavorite
+                      ? t('audio.removeFromFavorites')
+                      : t('audio.addToFavorites')
+                  }
+                  accessibilityState={{ selected: isFavorite }}
+                >
+                  <Icon
+                    name={isFavorite ? 'heart' : 'heart-outline'}
+                    size={28}
+                    color={isFavorite ? accentColor : colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+
+              {/* Repeat button (for music) */}
+              {controls.repeat && onRepeatPress && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleRepeatPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    repeatMode === 'off'
+                      ? t('audio.repeatOff')
+                      : repeatMode === 'one'
+                        ? t('audio.repeatOne')
+                        : t('audio.repeatAll')
+                  }
+                  accessibilityState={{ selected: repeatMode !== 'off' }}
+                >
+                  <Icon
+                    name={repeatMode === 'one' ? 'repeat-one' : 'repeat'}
+                    size={28}
+                    color={repeatMode !== 'off' ? accentColor : colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
           )}
 
           {/* Buffering text */}
@@ -724,8 +809,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  favoriteButton: {
+  secondaryControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: spacing.lg,
+    gap: spacing.xl,
+  },
+  iconButton: {
     width: touchTargets.minimum,
     height: touchTargets.minimum,
     justifyContent: 'center',

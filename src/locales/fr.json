@@ -1475,7 +1475,14 @@
     "sleepTimerActive": "Minuterie active : {{minutes}} minutes",
     "addToFavorites": "Ajouter aux favoris",
     "removeFromFavorites": "Retirer des favoris",
-    "of": "de"
+    "of": "de",
+    "shuffle": "Aléatoire",
+    "shuffleOn": "Aléatoire activé",
+    "shuffleOff": "Aléatoire désactivé",
+    "repeat": "Répéter",
+    "repeatOff": "Répéter désactivé",
+    "repeatOne": "Répéter ce titre",
+    "repeatAll": "Tout répéter"
   },
   "a11y": {
     "voiceFocusHint": "Dites \"ouvrir\" pour sélectionner",

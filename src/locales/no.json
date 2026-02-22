@@ -1322,7 +1322,14 @@
     "sleepTimerActive": "Søvntimer aktiv: {{minutes}} minutter",
     "addToFavorites": "Legg til i favoritter",
     "removeFromFavorites": "Fjern fra favoritter",
-    "of": "av"
+    "of": "av",
+    "shuffle": "Tilfeldig",
+    "shuffleOn": "Tilfeldig på",
+    "shuffleOff": "Tilfeldig av",
+    "repeat": "Gjenta",
+    "repeatOff": "Gjenta av",
+    "repeatOne": "Gjenta denne sangen",
+    "repeatAll": "Gjenta alle"
   },
   "a11y": {
     "voiceFocusHint": "Si \"åpne\" for å velge",

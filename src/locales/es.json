@@ -1475,7 +1475,14 @@
     "sleepTimerActive": "Temporizador activo: {{minutes}} minutos",
     "addToFavorites": "Añadir a favoritos",
     "removeFromFavorites": "Eliminar de favoritos",
-    "of": "de"
+    "of": "de",
+    "shuffle": "Aleatorio",
+    "shuffleOn": "Aleatorio activado",
+    "shuffleOff": "Aleatorio desactivado",
+    "repeat": "Repetir",
+    "repeatOff": "Repetir desactivado",
+    "repeatOne": "Repetir esta canción",
+    "repeatAll": "Repetir todo"
   },
   "a11y": {
     "voiceFocusHint": "Di \"abrir\" para seleccionar",

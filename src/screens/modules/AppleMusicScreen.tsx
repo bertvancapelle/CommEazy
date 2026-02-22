@@ -30,7 +30,6 @@ import {
   ActivityIndicator,
   Platform,
   Image,
-  Modal,
   Linking,
   Alert,
 } from 'react-native';
@@ -532,39 +531,44 @@ export function AppleMusicScreen() {
         />
       )}
 
-      {/* Expanded Player Modal (iOS only) */}
+      {/* Expanded Player (iOS only) - ExpandedAudioPlayer has its own Modal */}
       {!isAndroid && (
-        <Modal
+        <ExpandedAudioPlayer
           visible={isPlayerExpanded}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setIsPlayerExpanded(false)}
-        >
-          <ExpandedAudioPlayer
-            artwork={currentSong?.artworkURL?.replace('{w}', '600').replace('{h}', '600') || null}
-            title={currentSong?.title || ''}
-            subtitle={currentSong?.artistName}
-            accentColor={APPLE_MUSIC_COLOR}
-            isPlaying={isPlaying}
-            isLoading={isPlaybackLoading}
-            isBuffering={false}
-            position={playbackState.currentTime}
-            duration={playbackState.duration}
-            onSeek={() => {}}
-            onPlayPause={handlePlayPause}
-            onClose={() => setIsPlayerExpanded(false)}
-            showAdMob={true}
-            controls={{
-              seekSlider: true,
-              skipButtons: true,
-              speedControl: false,
-              sleepTimer: true,
-              favorite: true,
-            }}
-            onSkipBackward={skipToPrevious}
-            onSkipForward={skipToNext}
-          />
-        </Modal>
+          moduleId="appleMusic"
+          artwork={currentSong?.artworkURL?.replace('{w}', '600').replace('{h}', '600') || null}
+          title={currentSong?.title || ''}
+          subtitle={currentSong?.artistName}
+          accentColor={APPLE_MUSIC_COLOR}
+          isPlaying={isPlaying}
+          isLoading={isPlaybackLoading}
+          isBuffering={false}
+          position={playbackState.currentTime}
+          duration={playbackState.duration}
+          onSeek={() => {}}
+          onPlayPause={handlePlayPause}
+          onClose={() => setIsPlayerExpanded(false)}
+          showAdMob={true}
+          controls={{
+            seekSlider: true,
+            skipButtons: true,
+            speedControl: false,
+            sleepTimer: true,
+            favorite: true,
+            shuffle: true,
+            repeat: true,
+          }}
+          onSkipBackward={skipToPrevious}
+          onSkipForward={skipToNext}
+          shuffleMode={shuffleMode}
+          onShufflePress={() => setShuffleMode(shuffleMode === 'off' ? 'songs' : 'off')}
+          repeatMode={repeatMode}
+          onRepeatPress={() => {
+            // Cycle through: off -> all -> one -> off
+            const nextMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
+            setRepeatMode(nextMode);
+          }}
+        />
       )}
     </View>
   );

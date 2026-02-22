@@ -1396,7 +1396,14 @@
     "sleepTimerActive": "Timer attivo: {{minutes}} minuti",
     "addToFavorites": "Aggiungi ai preferiti",
     "removeFromFavorites": "Rimuovi dai preferiti",
-    "of": "di"
+    "of": "di",
+    "shuffle": "Casuale",
+    "shuffleOn": "Casuale attivo",
+    "shuffleOff": "Casuale disattivo",
+    "repeat": "Ripeti",
+    "repeatOff": "Ripeti disattivo",
+    "repeatOne": "Ripeti brano",
+    "repeatAll": "Ripeti tutto"
   },
   "tts": {
     "stop": "Ferma"

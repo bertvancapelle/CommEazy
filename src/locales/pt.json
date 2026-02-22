@@ -1490,7 +1490,14 @@
     "sleepTimerActive": "Temporizador de sono ativo: {{minutes}} minutos",
     "addToFavorites": "Adicionar aos favoritos",
     "removeFromFavorites": "Remover dos favoritos",
-    "of": "de"
+    "of": "de",
+    "shuffle": "Aleatório",
+    "shuffleOn": "Aleatório ligado",
+    "shuffleOff": "Aleatório desligado",
+    "repeat": "Repetir",
+    "repeatOff": "Repetir desligado",
+    "repeatOne": "Repetir esta música",
+    "repeatAll": "Repetir todas"
   },
   "a11y": {
     "voiceFocusHint": "Diga \"abrir\" para selecionar",

@@ -1530,7 +1530,14 @@
     "sleepTimerActive": "Slaaptimer actief: {{minutes}} minuten",
     "addToFavorites": "Toevoegen aan favorieten",
     "removeFromFavorites": "Verwijderen uit favorieten",
-    "of": "van"
+    "of": "van",
+    "shuffle": "Willekeurig",
+    "shuffleOn": "Willekeurig aan",
+    "shuffleOff": "Willekeurig uit",
+    "repeat": "Herhalen",
+    "repeatOff": "Herhalen uit",
+    "repeatOne": "Herhaal dit nummer",
+    "repeatAll": "Herhaal alles"
   },
   "a11y": {
     "voiceFocusHint": "Zeg \"open\" om te selecteren",

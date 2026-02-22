@@ -1475,7 +1475,14 @@
     "sleepTimerActive": "Schlaftimer aktiv: {{minutes}} Minuten",
     "addToFavorites": "Zu Favoriten hinzufügen",
     "removeFromFavorites": "Aus Favoriten entfernen",
-    "of": "von"
+    "of": "von",
+    "shuffle": "Zufällig",
+    "shuffleOn": "Zufällig an",
+    "shuffleOff": "Zufällig aus",
+    "repeat": "Wiederholen",
+    "repeatOff": "Wiederholen aus",
+    "repeatOne": "Diesen Titel wiederholen",
+    "repeatAll": "Alles wiederholen"
   },
   "a11y": {
     "voiceFocusHint": "Sage \"öffnen\" zum Auswählen",
