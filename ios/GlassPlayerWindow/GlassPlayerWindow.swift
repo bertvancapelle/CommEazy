@@ -212,6 +212,10 @@ class GlassPlayerWindow: UIWindow {
 
     func showMini(with config: NSDictionary) {
         updateContent(config)
+        
+        // Reset sleep timer state when showing new content
+        // (in case previous session had a timer that expired)
+        fullPlayerView.resetSleepTimer()
 
         guard currentState == .hidden else {
             // Already showing, just update content
@@ -264,9 +268,10 @@ class GlassPlayerWindow: UIWindow {
         let topSafe = safeAreaTop
         let bottomSafe = safeAreaBottom
         
-        // Full player floats above all content with small margins
-        // Start just below the safe area (notch/Dynamic Island)
-        let topOffset = topSafe + fullPlayerMargin
+        // Full player floats below the module header
+        // Module header height (from React Native) = 120pt including safe area
+        let moduleHeaderHeight: CGFloat = 120
+        let topOffset = topSafe + moduleHeaderHeight + fullPlayerMargin
         
         // Full player with margins all around for floating glass effect
         let fullFrame = CGRect(
@@ -358,6 +363,9 @@ class GlassPlayerWindow: UIWindow {
     func hide() {
         guard currentState != .hidden else { return }
 
+        // Reset sleep timer state when hiding player
+        fullPlayerView.resetSleepTimer()
+
         UIView.animate(withDuration: 0.25) {
             self.alpha = 0
         } completion: { _ in
@@ -423,11 +431,16 @@ class GlassPlayerWindow: UIWindow {
         let playbackState = PlaybackState(from: state)
         miniPlayerView.updatePlaybackState(
             isPlaying: playbackState.isPlaying,
+            isLoading: playbackState.isLoading,
+            isBuffering: playbackState.isBuffering,
             progress: playbackState.progress,
+            listenDuration: playbackState.listenDuration,
             showStopButton: playbackState.showStopButton
         )
         fullPlayerView.updatePlaybackState(
             isPlaying: playbackState.isPlaying,
+            isLoading: playbackState.isLoading,
+            isBuffering: playbackState.isBuffering,
             position: playbackState.position,
             duration: playbackState.duration,
             isFavorite: playbackState.isFavorite
@@ -540,6 +553,7 @@ struct PlaybackState {
     let progress: Float?
     let position: Float?
     let duration: Float?
+    let listenDuration: TimeInterval?
     let showStopButton: Bool
     let isFavorite: Bool
 
@@ -548,6 +562,7 @@ struct PlaybackState {
         progress = (state["progress"] as? NSNumber)?.floatValue
         position = (state["position"] as? NSNumber)?.floatValue
         duration = (state["duration"] as? NSNumber)?.floatValue
+        listenDuration = (state["listenDuration"] as? NSNumber)?.doubleValue
         showStopButton = state["showStopButton"] as? Bool ?? false
         isFavorite = state["isFavorite"] as? Bool ?? false
         isLoading = state["isLoading"] as? Bool ?? false

@@ -49,7 +49,10 @@ class GlassPlayerWindowModule: RCTEventEmitter {
             "onSeek",
             "onSkipForward",
             "onSkipBackward",
-            "onClose"
+            "onClose",
+            "onFavoriteToggle",
+            "onSleepTimerSet",
+            "onSpeedChange"
         ]
     }
 
@@ -206,5 +209,21 @@ extension GlassPlayerWindowModule: GlassPlayerWindowEventDelegate {
 
     func playerDidClose() {
         sendEvent(withName: "onClose", body: nil)
+    }
+    
+    func playerDidTapFavorite() {
+        sendEvent(withName: "onFavoriteToggle", body: nil)
+    }
+    
+    func playerDidSetSleepTimer(_ minutes: NSNumber?) {
+        if let mins = minutes {
+            sendEvent(withName: "onSleepTimerSet", body: ["minutes": mins.intValue])
+        } else {
+            sendEvent(withName: "onSleepTimerSet", body: ["minutes": NSNull()])
+        }
+    }
+    
+    func playerDidChangeSpeed(_ speed: Float) {
+        sendEvent(withName: "onSpeedChange", body: ["speed": speed])
     }
 }

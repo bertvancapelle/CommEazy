@@ -52,7 +52,27 @@ class GlassPlayerView: UIView {
 
     private func setupGlassEffect() {
         backgroundColor = .clear
-        clipsToBounds = true
+        clipsToBounds = false  // Allow glow to extend outside bounds
+        
+        // Rounded corners for floating appearance
+        layer.cornerRadius = 24
+        layer.cornerCurve = .continuous
+
+        // === Layer 0: Subtle dark base for visibility ===
+        let baseLayer = UIView()
+        baseLayer.translatesAutoresizingMaskIntoConstraints = false
+        baseLayer.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        baseLayer.layer.cornerRadius = 24
+        baseLayer.layer.cornerCurve = .continuous
+        baseLayer.clipsToBounds = true
+        addSubview(baseLayer)
+        
+        NSLayoutConstraint.activate([
+            baseLayer.leadingAnchor.constraint(equalTo: leadingAnchor),
+            baseLayer.trailingAnchor.constraint(equalTo: trailingAnchor),
+            baseLayer.topAnchor.constraint(equalTo: topAnchor),
+            baseLayer.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
 
         // === Layer 1: UIGlassEffect — Real Liquid Glass! ===
         var glassEffect = UIGlassEffect()
@@ -60,6 +80,9 @@ class GlassPlayerView: UIView {
 
         let effectView = UIVisualEffectView(effect: glassEffect)
         effectView.translatesAutoresizingMaskIntoConstraints = false
+        effectView.layer.cornerRadius = 24
+        effectView.layer.cornerCurve = .continuous
+        effectView.clipsToBounds = true
         addSubview(effectView)
 
         NSLayoutConstraint.activate([
@@ -71,11 +94,14 @@ class GlassPlayerView: UIView {
 
         glassEffectView = effectView
 
-        // === Layer 2: Tint overlay ===
+        // === Layer 2: Tint overlay (50% opacity for visibility) ===
         let tint = UIView()
         tint.translatesAutoresizingMaskIntoConstraints = false
-        tint.backgroundColor = currentTintColor.withAlphaComponent(0.25)
+        tint.backgroundColor = currentTintColor.withAlphaComponent(0.50)
         tint.isUserInteractionEnabled = false
+        tint.layer.cornerRadius = 24
+        tint.layer.cornerCurve = .continuous
+        tint.clipsToBounds = true
         addSubview(tint)
 
         NSLayoutConstraint.activate([
@@ -87,25 +113,35 @@ class GlassPlayerView: UIView {
 
         tintOverlay = tint
 
-        // === Layer 3: Top highlight gradient (specular reflection) ===
+        // === Layer 3: Highlight glow AROUND entire view (floating effect) ===
+        // Using shadow to create the "glow" effect around the glass
+        layer.shadowColor = UIColor.white.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 0)
+        layer.shadowOpacity = 0.5
+        layer.shadowRadius = 12
+
+        // === Layer 4: Inner highlight gradient (top specular + subtle bottom) ===
         let gradient = CAGradientLayer()
         gradient.colors = [
-            UIColor.white.withAlphaComponent(0.40).cgColor,
-            UIColor.white.withAlphaComponent(0.15).cgColor,
-            UIColor.clear.cgColor,
+            UIColor.white.withAlphaComponent(0.50).cgColor,  // Bright top
+            UIColor.white.withAlphaComponent(0.10).cgColor,  // Fade middle-top
+            UIColor.clear.cgColor,                            // Clear middle
+            UIColor.white.withAlphaComponent(0.05).cgColor,  // Subtle bottom glow
+            UIColor.white.withAlphaComponent(0.15).cgColor,  // Bottom edge
         ]
-        gradient.locations = [0.0, 0.15, 0.35]
+        gradient.locations = [0.0, 0.12, 0.5, 0.88, 1.0]
         gradient.startPoint = CGPoint(x: 0.5, y: 0.0)
         gradient.endPoint = CGPoint(x: 0.5, y: 1.0)
+        gradient.cornerRadius = 24
         layer.addSublayer(gradient)
 
         highlightGradient = gradient
 
-        // === Layer 4: Border ===
-        layer.borderColor = UIColor.white.withAlphaComponent(0.30).cgColor
-        layer.borderWidth = 0.5
+        // === Layer 5: Border (all around for floating effect) ===
+        layer.borderColor = UIColor.white.withAlphaComponent(0.40).cgColor
+        layer.borderWidth = 1.0
 
-        NSLog("[GlassPlayerView] Setup complete with UIGlassEffect")
+        NSLog("[GlassPlayerView] Setup complete with UIGlassEffect + 50%% tint + glow around")
     }
 
     // ============================================================
@@ -133,7 +169,7 @@ class GlassPlayerView: UIView {
         currentTintColor = color
 
         UIView.animate(withDuration: 0.2) {
-            self.tintOverlay?.backgroundColor = color.withAlphaComponent(0.25)
+            self.tintOverlay?.backgroundColor = color.withAlphaComponent(0.50)
         }
 
         // Update glass effect tint

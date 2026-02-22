@@ -40,21 +40,27 @@ class MiniPlayerNativeView: UIView {
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let progressView = UIProgressView()
+    private let listenDurationLabel = UILabel()
+    private let loadingIndicator = UIActivityIndicatorView(style: .medium)
     private let playPauseButton = UIButton(type: .system)
     private let stopButton = UIButton(type: .system)
     
     private var isPlaying: Bool = false
+    private var isLoading: Bool = false
+    private var isBuffering: Bool = false
     private var showStopButton: Bool = true
     private var showProgressBar: Bool = false
+    private var showListenDuration: Bool = false
+    private var listenDuration: TimeInterval = 0
     
     // MARK: - Constants
     
     private enum Layout {
-        static let height: CGFloat = 80
-        static let padding: CGFloat = 12
-        static let artworkSize: CGFloat = 56
-        static let buttonSize: CGFloat = 60
-        static let titleFontSize: CGFloat = 18
+        static let height: CGFloat = 88  // Larger for better visibility
+        static let padding: CGFloat = 14
+        static let artworkSize: CGFloat = 64  // Larger artwork for visibility
+        static let buttonSize: CGFloat = 60   // Senior-inclusive touch targets
+        static let titleFontSize: CGFloat = 18  // Senior-inclusive typography
         static let subtitleFontSize: CGFloat = 14
         static let progressHeight: CGFloat = 3
     }
@@ -76,6 +82,7 @@ class MiniPlayerNativeView: UIView {
     // MARK: - UI Setup
     
     private func setupUI() {
+        // Clear background — GlassPlayerView provides the glass effect behind us
         backgroundColor = .clear
         
         // Artwork
@@ -108,6 +115,20 @@ class MiniPlayerNativeView: UIView {
         progressView.translatesAutoresizingMaskIntoConstraints = false
         progressView.isHidden = true
         addSubview(progressView)
+        
+        // Listen duration label (for radio: "🎧 45:32")
+        listenDurationLabel.font = .monospacedDigitSystemFont(ofSize: 12, weight: .medium)
+        listenDurationLabel.textColor = UIColor.white.withAlphaComponent(0.8)
+        listenDurationLabel.text = "🎧 0:00"
+        listenDurationLabel.translatesAutoresizingMaskIntoConstraints = false
+        listenDurationLabel.isHidden = true
+        addSubview(listenDurationLabel)
+        
+        // Loading indicator
+        loadingIndicator.color = .white
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        loadingIndicator.hidesWhenStopped = true
+        addSubview(loadingIndicator)
         
         // Play/Pause button
         let playConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
@@ -159,6 +180,14 @@ class MiniPlayerNativeView: UIView {
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            
+            // Listen duration label (below subtitle)
+            listenDurationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            listenDurationLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 4),
+            
+            // Loading indicator (centered on play button)
+            loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
             
             // Progress bar
             progressView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -218,9 +247,20 @@ class MiniPlayerNativeView: UIView {
         }
     }
     
-    func updatePlaybackState(isPlaying: Bool, progress: Float?, showStopButton: Bool) {
+    func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, progress: Float?, listenDuration: TimeInterval?, showStopButton: Bool) {
         self.isPlaying = isPlaying
+        self.isLoading = isLoading
+        self.isBuffering = isBuffering
         self.showStopButton = showStopButton
+        
+        // Update loading indicator
+        if isLoading {
+            loadingIndicator.startAnimating()
+            playPauseButton.isHidden = true
+        } else {
+            loadingIndicator.stopAnimating()
+            playPauseButton.isHidden = false
+        }
         
         // Update play/pause icon
         let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
@@ -231,12 +271,69 @@ class MiniPlayerNativeView: UIView {
         // Update stop button visibility
         stopButton.isHidden = !showStopButton
         
-        // Update progress
+        // Update progress bar (for podcast/books)
         if let progress = progress {
             progressView.isHidden = false
             progressView.progress = progress
+            listenDurationLabel.isHidden = true
         } else {
             progressView.isHidden = true
+        }
+        
+        // Update listen duration (for radio)
+        if let duration = listenDuration {
+            self.listenDuration = duration
+            listenDurationLabel.isHidden = false
+            listenDurationLabel.text = "🎧 \(formatDuration(duration))"
+            progressView.isHidden = true
+        } else if progress == nil {
+            listenDurationLabel.isHidden = true
+        }
+        
+        // Update buffering state
+        updateBufferingState()
+    }
+    
+    private func updateBufferingState() {
+        if isBuffering {
+            startBufferingAnimation()
+        } else {
+            stopBufferingAnimation()
+        }
+    }
+    
+    private func startBufferingAnimation() {
+        // Check if animation is already running
+        if artworkImageView.layer.animation(forKey: "bufferingPulse") != nil {
+            return
+        }
+        
+        // Pulse animation on artwork opacity
+        let pulseAnimation = CABasicAnimation(keyPath: "opacity")
+        pulseAnimation.fromValue = 1.0
+        pulseAnimation.toValue = 0.5
+        pulseAnimation.duration = 0.8
+        pulseAnimation.autoreverses = true
+        pulseAnimation.repeatCount = .infinity
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        artworkImageView.layer.add(pulseAnimation, forKey: "bufferingPulse")
+    }
+    
+    private func stopBufferingAnimation() {
+        artworkImageView.layer.removeAnimation(forKey: "bufferingPulse")
+        artworkImageView.layer.opacity = 1.0
+    }
+    
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let totalSeconds = Int(seconds)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let secs = totalSeconds % 60
+        
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, secs)
+        } else {
+            return String(format: "%d:%02d", minutes, secs)
         }
     }
     

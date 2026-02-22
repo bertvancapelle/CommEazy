@@ -81,8 +81,13 @@ class FullPlayerNativeView: UIView {
     private let sleepButton = UIButton(type: .system)
     private let favoriteButton = UIButton(type: .system)
     
+    // Loading indicator (overlay on play button)
+    private let loadingIndicator = UIActivityIndicatorView(style: .medium)
+    
     // State
     private var isPlaying: Bool = false
+    private var isLoading: Bool = false
+    private var isBuffering: Bool = false
     private var isFavorite: Bool = false
     private var currentSpeed: Float = 1.0
     private var sleepTimerMinutes: Int? = nil
@@ -136,6 +141,7 @@ class FullPlayerNativeView: UIView {
         setupSeekControls()
         setupPlaybackControls()
         setupSecondaryControls()
+        setupLoadingIndicator()
         setupConstraints()
     }
     
@@ -277,6 +283,13 @@ class FullPlayerNativeView: UIView {
         contentView.addSubview(favoriteButton)
     }
     
+    private func setupLoadingIndicator() {
+        loadingIndicator.color = .white
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        loadingIndicator.hidesWhenStopped = true
+        contentView.addSubview(loadingIndicator)
+    }
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Content view fills the entire view - no scrolling
@@ -366,6 +379,10 @@ class FullPlayerNativeView: UIView {
             favoriteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -(Layout.padding + 20)),
             favoriteButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             favoriteButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            
+            // Loading indicator - centered on play button
+            loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
             
             // No bottom anchor needed - content is fixed, not scrolling
         ])
@@ -512,15 +529,29 @@ class FullPlayerNativeView: UIView {
         }
     }
     
-    func updatePlaybackState(isPlaying: Bool, position: Float?, duration: Float?, isFavorite: Bool) {
+    func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, position: Float?, duration: Float?, isFavorite: Bool) {
         self.isPlaying = isPlaying
+        self.isLoading = isLoading
+        self.isBuffering = isBuffering
         self.isFavorite = isFavorite
+        
+        // Update loading indicator
+        if isLoading {
+            loadingIndicator.startAnimating()
+            playPauseButton.alpha = 0.5
+        } else {
+            loadingIndicator.stopAnimating()
+            playPauseButton.alpha = 1.0
+        }
         
         // Update play/pause icon
         let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
         let iconName = isPlaying ? "pause.fill" : "play.fill"
         playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
         playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
+        
+        // Update buffering state on artwork
+        updateBufferingState()
         
         // Update seek slider
         if let position = position, let duration = duration, duration > 0 {
@@ -541,6 +572,12 @@ class FullPlayerNativeView: UIView {
             seekSlider.minimumTrackTintColor = color
             playPauseButton.backgroundColor = color.withAlphaComponent(0.3)
         }
+    }
+    
+    /// Reset sleep timer state (called when player is hidden or new content starts)
+    func resetSleepTimer() {
+        sleepTimerMinutes = nil
+        updateSleepButton()
     }
     
     // MARK: - Helper Methods
@@ -573,6 +610,36 @@ class FullPlayerNativeView: UIView {
         let minutes = totalSeconds / 60
         let secs = totalSeconds % 60
         return String(format: "%d:%02d", minutes, secs)
+    }
+    
+    private func updateBufferingState() {
+        if isBuffering {
+            startBufferingAnimation()
+        } else {
+            stopBufferingAnimation()
+        }
+    }
+    
+    private func startBufferingAnimation() {
+        // Check if animation is already running
+        if artworkImageView.layer.animation(forKey: "bufferingPulse") != nil {
+            return
+        }
+        
+        // Pulse animation on artwork opacity
+        let pulseAnimation = CABasicAnimation(keyPath: "opacity")
+        pulseAnimation.fromValue = 1.0
+        pulseAnimation.toValue = 0.5
+        pulseAnimation.duration = 0.8
+        pulseAnimation.autoreverses = true
+        pulseAnimation.repeatCount = .infinity
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        artworkImageView.layer.add(pulseAnimation, forKey: "bufferingPulse")
+    }
+    
+    private func stopBufferingAnimation() {
+        artworkImageView.layer.removeAnimation(forKey: "bufferingPulse")
+        artworkImageView.layer.opacity = 1.0
     }
     
     private func loadImage(from url: URL) {
