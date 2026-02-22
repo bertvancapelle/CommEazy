@@ -1210,6 +1210,54 @@
           "timeout": "Loading is taking too long. Please try again later."
         }
       }
+    },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Search",
+        "library": "Library",
+        "playlists": "Playlists"
+      },
+      "search": {
+        "placeholder": "Search music...",
+        "button": "Search",
+        "songsTitle": "Songs",
+        "albumsTitle": "Albums",
+        "artistsTitle": "Artists",
+        "playlistsTitle": "Playlists",
+        "noResults": "No music found",
+        "error": "Search failed. Please try again."
+      },
+      "library": {
+        "comingSoon": "Library coming soon"
+      },
+      "playlists": {
+        "comingSoon": "Playlists coming soon"
+      },
+      "authRequired": {
+        "title": "Apple Music Access",
+        "description": "Give CommEazy access to Apple Music to listen to your favourite music.",
+        "button": "Grant Access"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music not installed",
+          "description": "Download the Apple Music app to listen to music.",
+          "downloadButton": "Download from Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Open Apple Music to listen to music.",
+          "openButton": "Open Apple Music"
+        }
+      },
+      "play": "Play: {{title}}",
+      "pause": "Pause",
+      "next": "Next track",
+      "previous": "Previous track",
+      "shuffle": "Shuffle",
+      "repeat": "Repeat",
+      "nowPlaying": "Now playing"
     }
   },
   "articleViewer": {

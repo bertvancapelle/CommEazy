@@ -1136,6 +1136,54 @@
         "step3": "Salva fino a 10 località preferite",
         "understood": "Capito"
       }
+    },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Cerca",
+        "library": "Libreria",
+        "playlists": "Playlist"
+      },
+      "search": {
+        "placeholder": "Cerca musica...",
+        "button": "Cerca",
+        "songsTitle": "Brani",
+        "albumsTitle": "Album",
+        "artistsTitle": "Artisti",
+        "playlistsTitle": "Playlist",
+        "noResults": "Nessuna musica trovata",
+        "error": "Ricerca fallita. Riprova."
+      },
+      "library": {
+        "comingSoon": "Libreria in arrivo"
+      },
+      "playlists": {
+        "comingSoon": "Playlist in arrivo"
+      },
+      "authRequired": {
+        "title": "Accesso Apple Music",
+        "description": "Consenti a CommEazy di accedere ad Apple Music per ascoltare la tua musica preferita.",
+        "button": "Consenti accesso"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music non installato",
+          "description": "Scarica l'app Apple Music per ascoltare musica.",
+          "downloadButton": "Scarica da Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Apri Apple Music per ascoltare musica.",
+          "openButton": "Apri Apple Music"
+        }
+      },
+      "play": "Riproduci: {{title}}",
+      "pause": "Pausa",
+      "next": "Brano successivo",
+      "previous": "Brano precedente",
+      "shuffle": "Casuale",
+      "repeat": "Ripeti",
+      "nowPlaying": "In riproduzione"
     }
   },
   "articleViewer": {

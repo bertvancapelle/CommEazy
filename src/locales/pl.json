@@ -985,6 +985,54 @@
         "understood": "Rozumiem"
       }
     },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Szukaj",
+        "library": "Biblioteka",
+        "playlists": "Playlisty"
+      },
+      "search": {
+        "placeholder": "Szukaj muzyki...",
+        "button": "Szukaj",
+        "songsTitle": "Utwory",
+        "albumsTitle": "Albumy",
+        "artistsTitle": "Artyści",
+        "playlistsTitle": "Playlisty",
+        "noResults": "Nie znaleziono muzyki",
+        "error": "Wyszukiwanie nieudane. Spróbuj ponownie."
+      },
+      "library": {
+        "comingSoon": "Biblioteka wkrótce"
+      },
+      "playlists": {
+        "comingSoon": "Playlisty wkrótce"
+      },
+      "authRequired": {
+        "title": "Dostęp do Apple Music",
+        "description": "Zezwól CommEazy na dostęp do Apple Music, aby słuchać ulubionej muzyki.",
+        "button": "Zezwól na dostęp"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music nie jest zainstalowany",
+          "description": "Pobierz aplikację Apple Music, aby słuchać muzyki.",
+          "downloadButton": "Pobierz z Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Otwórz Apple Music, aby słuchać muzyki.",
+          "openButton": "Otwórz Apple Music"
+        }
+      },
+      "play": "Odtwórz: {{title}}",
+      "pause": "Pauza",
+      "next": "Następny utwór",
+      "previous": "Poprzedni utwór",
+      "shuffle": "Losowo",
+      "repeat": "Powtórz",
+      "nowPlaying": "Teraz gra"
+    },
     "weather": {
       "title": "Pogoda",
       "loading": "Ładowanie danych pogodowych...",

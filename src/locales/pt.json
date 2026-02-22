@@ -1230,6 +1230,54 @@
           "timeout": "O carregamento está a demorar muito. Tente novamente mais tarde."
         }
       }
+    },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Pesquisar",
+        "library": "Biblioteca",
+        "playlists": "Listas"
+      },
+      "search": {
+        "placeholder": "Pesquisar música...",
+        "button": "Pesquisar",
+        "songsTitle": "Músicas",
+        "albumsTitle": "Álbuns",
+        "artistsTitle": "Artistas",
+        "playlistsTitle": "Listas de reprodução",
+        "noResults": "Nenhuma música encontrada",
+        "error": "Pesquisa falhou. Tente novamente."
+      },
+      "library": {
+        "comingSoon": "Biblioteca em breve"
+      },
+      "playlists": {
+        "comingSoon": "Listas em breve"
+      },
+      "authRequired": {
+        "title": "Acesso ao Apple Music",
+        "description": "Permita que o CommEazy aceda ao Apple Music para ouvir a sua música favorita.",
+        "button": "Permitir acesso"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music não instalado",
+          "description": "Transfira a app Apple Music para ouvir música.",
+          "downloadButton": "Transferir da Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Abra o Apple Music para ouvir música.",
+          "openButton": "Abrir Apple Music"
+        }
+      },
+      "play": "Reproduzir: {{title}}",
+      "pause": "Pausa",
+      "next": "Faixa seguinte",
+      "previous": "Faixa anterior",
+      "shuffle": "Aleatório",
+      "repeat": "Repetir",
+      "nowPlaying": "A reproduzir agora"
     }
   },
   "articleViewer": {

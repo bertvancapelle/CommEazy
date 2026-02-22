@@ -1062,6 +1062,54 @@
         "step3": "Lagre opptil 10 favorittsteder",
         "understood": "Forstått"
       }
+    },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Søk",
+        "library": "Bibliotek",
+        "playlists": "Spillelister"
+      },
+      "search": {
+        "placeholder": "Søk etter musikk...",
+        "button": "Søk",
+        "songsTitle": "Sanger",
+        "albumsTitle": "Album",
+        "artistsTitle": "Artister",
+        "playlistsTitle": "Spillelister",
+        "noResults": "Ingen musikk funnet",
+        "error": "Søk mislyktes. Prøv igjen."
+      },
+      "library": {
+        "comingSoon": "Bibliotek kommer snart"
+      },
+      "playlists": {
+        "comingSoon": "Spillelister kommer snart"
+      },
+      "authRequired": {
+        "title": "Apple Music-tilgang",
+        "description": "Gi CommEazy tilgang til Apple Music for å lytte til favorittmusikken din.",
+        "button": "Gi tilgang"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music ikke installert",
+          "description": "Last ned Apple Music-appen for å lytte til musikk.",
+          "downloadButton": "Last ned fra Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Åpne Apple Music for å lytte til musikk.",
+          "openButton": "Åpne Apple Music"
+        }
+      },
+      "play": "Spill: {{title}}",
+      "pause": "Pause",
+      "next": "Neste spor",
+      "previous": "Forrige spor",
+      "shuffle": "Tilfeldig",
+      "repeat": "Gjenta",
+      "nowPlaying": "Spilles nå"
     }
   },
   "articleViewer": {

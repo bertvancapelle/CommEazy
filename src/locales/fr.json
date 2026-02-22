@@ -1206,6 +1206,54 @@
           "timeout": "Le chargement prend trop de temps. Veuillez réessayer plus tard."
         }
       }
+    },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Rechercher",
+        "library": "Bibliothèque",
+        "playlists": "Playlists"
+      },
+      "search": {
+        "placeholder": "Rechercher de la musique...",
+        "button": "Rechercher",
+        "songsTitle": "Morceaux",
+        "albumsTitle": "Albums",
+        "artistsTitle": "Artistes",
+        "playlistsTitle": "Playlists",
+        "noResults": "Aucune musique trouvée",
+        "error": "Échec de la recherche. Veuillez réessayer."
+      },
+      "library": {
+        "comingSoon": "Bibliothèque bientôt disponible"
+      },
+      "playlists": {
+        "comingSoon": "Playlists bientôt disponibles"
+      },
+      "authRequired": {
+        "title": "Accès Apple Music",
+        "description": "Autorisez CommEazy à accéder à Apple Music pour écouter votre musique préférée.",
+        "button": "Autoriser l'accès"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music non installé",
+          "description": "Téléchargez l'app Apple Music pour écouter de la musique.",
+          "downloadButton": "Télécharger sur Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Ouvrez Apple Music pour écouter de la musique.",
+          "openButton": "Ouvrir Apple Music"
+        }
+      },
+      "play": "Lecture : {{title}}",
+      "pause": "Pause",
+      "next": "Piste suivante",
+      "previous": "Piste précédente",
+      "shuffle": "Aléatoire",
+      "repeat": "Répéter",
+      "nowPlaying": "En cours de lecture"
     }
   },
   "articleViewer": {

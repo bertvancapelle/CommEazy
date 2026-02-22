@@ -1206,6 +1206,54 @@
           "timeout": "La carga está tardando demasiado. Por favor, inténtalo más tarde."
         }
       }
+    },
+    "appleMusic": {
+      "title": "Apple Music",
+      "tabs": {
+        "search": "Buscar",
+        "library": "Biblioteca",
+        "playlists": "Listas"
+      },
+      "search": {
+        "placeholder": "Buscar música...",
+        "button": "Buscar",
+        "songsTitle": "Canciones",
+        "albumsTitle": "Álbumes",
+        "artistsTitle": "Artistas",
+        "playlistsTitle": "Listas de reproducción",
+        "noResults": "No se encontró música",
+        "error": "Error en la búsqueda. Inténtalo de nuevo."
+      },
+      "library": {
+        "comingSoon": "Biblioteca próximamente"
+      },
+      "playlists": {
+        "comingSoon": "Listas próximamente"
+      },
+      "authRequired": {
+        "title": "Acceso a Apple Music",
+        "description": "Permite que CommEazy acceda a Apple Music para escuchar tu música favorita.",
+        "button": "Dar acceso"
+      },
+      "android": {
+        "notInstalled": {
+          "title": "Apple Music no instalado",
+          "description": "Descarga la app Apple Music para escuchar música.",
+          "downloadButton": "Descargar en Play Store"
+        },
+        "installed": {
+          "title": "Apple Music",
+          "description": "Abre Apple Music para escuchar música.",
+          "openButton": "Abrir Apple Music"
+        }
+      },
+      "play": "Reproducir: {{title}}",
+      "pause": "Pausar",
+      "next": "Siguiente canción",
+      "previous": "Canción anterior",
+      "shuffle": "Aleatorio",
+      "repeat": "Repetir",
+      "nowPlaying": "Reproduciendo ahora"
     }
   },
   "articleViewer": {
