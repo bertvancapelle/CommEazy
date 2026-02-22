@@ -49,6 +49,7 @@ import { useRadioContext, type RadioStation as RadioContextStation } from '@/con
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import { ServiceContainer } from '@/services/container';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
 
@@ -249,6 +250,42 @@ export function RadioScreen() {
     position,
   } = useRadioContext();
 
+  // Glass Player for iOS 26+ Liquid Glass effect
+  const {
+    isAvailable: isGlassPlayerAvailable,
+    isVisible: isGlassPlayerVisible,
+    isExpanded: isGlassPlayerExpanded,
+    showMiniPlayer: showGlassMiniPlayer,
+    expandToFull: expandGlassPlayer,
+    collapseToMini: collapseGlassPlayer,
+    hide: hideGlassPlayer,
+    updateContent: updateGlassContent,
+    updatePlaybackState: updateGlassPlaybackState,
+  } = useGlassPlayer({
+    onPlayPause: async () => {
+      if (isPlaying) {
+        await pause();
+      } else {
+        await play();
+      }
+    },
+    onStop: async () => {
+      await stop();
+    },
+    onExpand: () => {
+      // Native player expanded — sync state
+      setIsPlayerExpanded(true);
+    },
+    onCollapse: () => {
+      // Native player collapsed — sync state
+      setIsPlayerExpanded(false);
+    },
+    onClose: () => {
+      // Native player closed
+      setIsPlayerExpanded(false);
+    },
+  });
+
   // State
   const [stations, setStations] = useState<RadioStation[]>([]);
   const [favorites, setFavorites] = useState<FavoriteStation[]>([]);
@@ -299,8 +336,85 @@ export function RadioScreen() {
   useEffect(() => {
     if (!contextStation) {
       setIsPlayerExpanded(false);
+      // Also hide glass player when station stops
+      if (isGlassPlayerAvailable && isGlassPlayerVisible) {
+        hideGlassPlayer();
+      }
     }
-  }, [contextStation]);
+  }, [contextStation, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+
+  // Show/update Glass Player when station is playing (iOS 26+)
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !contextStation) {
+      return;
+    }
+
+    // Show native glass mini player
+    showGlassMiniPlayer({
+      moduleId: 'radio',
+      tintColorHex: RADIO_MODULE_COLOR,
+      artwork: metadata.artwork || contextStation.favicon || null,
+      title: contextStation.name,
+      subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
+      progressType: 'duration',
+      listenDuration: position,
+      showStopButton: true,
+    });
+  }, [
+    isGlassPlayerAvailable,
+    contextStation,
+    metadata.artwork,
+    metadata.title,
+    showGlassMiniPlayer,
+    isBuffering,
+    t,
+  ]);
+
+  // Update Glass Player playback state
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !isGlassPlayerVisible) {
+      return;
+    }
+
+    updateGlassPlaybackState({
+      isPlaying,
+      isLoading: isPlaybackLoading,
+      isBuffering,
+      showStopButton: true,
+      // For radio, we track listen duration, not progress
+    });
+  }, [
+    isGlassPlayerAvailable,
+    isGlassPlayerVisible,
+    isPlaying,
+    isPlaybackLoading,
+    isBuffering,
+    updateGlassPlaybackState,
+  ]);
+
+  // Update Glass Player content when metadata changes
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !isGlassPlayerVisible || !contextStation) {
+      return;
+    }
+
+    updateGlassContent({
+      artwork: metadata.artwork || contextStation.favicon || null,
+      title: contextStation.name,
+      subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
+      listenDuration: position,
+    });
+  }, [
+    isGlassPlayerAvailable,
+    isGlassPlayerVisible,
+    contextStation,
+    metadata.artwork,
+    metadata.title,
+    position,
+    isBuffering,
+    t,
+    updateGlassContent,
+  ]);
 
   // Listen for playback errors from RadioContext
   useEffect(() => {
@@ -652,7 +766,11 @@ export function RadioScreen() {
 
   // Calculate dynamic padding for content to extend under overlays
   const contentPaddingTop = MODULE_HEADER_HEIGHT + insets.top;
-  const contentPaddingBottom = contextStation && !isPlayerExpanded
+  // For iOS 26+, the native Glass Player Window handles its own positioning
+  // so we don't need extra bottom padding. For older iOS/Android, we need
+  // padding for the React Native MiniPlayer overlay.
+  const needsMiniPlayerPadding = !isGlassPlayerAvailable && contextStation && !isPlayerExpanded;
+  const contentPaddingBottom = needsMiniPlayerPadding
     ? MINI_PLAYER_HEIGHT + insets.bottom
     : insets.bottom;
 
@@ -902,8 +1020,10 @@ export function RadioScreen() {
         {/* Spacer pushes MiniPlayer to bottom */}
         <View style={styles.overlaySpacer} pointerEvents="none" />
 
-        {/* Floating Mini-Player — absolute positioned at bottom */}
-        {contextStation && !isPlayerExpanded && (
+        {/* Floating Mini-Player — absolute positioned at bottom
+            ONLY shown when Glass Player is NOT available (iOS <26 or Android)
+            On iOS 26+, the native GlassPlayerWindow handles this */}
+        {!isGlassPlayerAvailable && contextStation && !isPlayerExpanded && (
           <MiniPlayer
             moduleId="radio"
             artwork={metadata.artwork || contextStation.favicon || null}
@@ -931,7 +1051,10 @@ export function RadioScreen() {
         )}
       </View>
 
-      {/* Expanded Full Player Modal */}
+      {/* Expanded Full Player Modal
+          ONLY shown when Glass Player is NOT available (iOS <26 or Android)
+          On iOS 26+, the native GlassPlayerWindow handles this */}
+      {!isGlassPlayerAvailable && (
       <Modal
         visible={isPlayerExpanded && !!contextStation}
         transparent={true}
@@ -1083,6 +1206,7 @@ export function RadioScreen() {
           </View>
         </View>
       </Modal>
+      )}
 
       {/* Voice hint */}
       {isVoiceSessionActive && (
