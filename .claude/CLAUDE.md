@@ -2104,17 +2104,74 @@ cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cac
 | Loopback | `127.0.0.1:8081` | Simulators (iPhone + iPad) |
 | LAN | `10.10.15.75:8081` | Fysieke devices |
 
-**Wanneer gebruiker zegt "herstart Metro":**
-1. Kill bestaande Metro processen:
+**Wanneer gebruiker zegt "herstart Metro" of "start Metro":**
+
+Claude MOET de volgende stappen uitvoeren:
+
+1. **Valideer dat Prosody draait** (VERPLICHT):
+   ```bash
+   prosodyctl status
+   ```
+   - Als Prosody NIET draait: Start eerst Prosody:
+     ```bash
+     prosodyctl start
+     ```
+   - Wacht 2 seconden en valideer opnieuw:
+     ```bash
+     sleep 2 && prosodyctl status
+     ```
+
+2. **Valideer dat Prosody WebSocket luistert** (VERPLICHT):
+   ```bash
+   lsof -i :5280 | head -5
+   ```
+   - Verwachte output: `lua` of `prosody` proces dat luistert
+   - Als geen output: Prosody config fout, check `/opt/homebrew/etc/prosody/prosody.cfg.lua`
+
+3. **Kill bestaande Metro processen**:
    ```bash
    lsof -ti:8081 | xargs kill -9 2>/dev/null
    ```
-2. Geef gebruiker dit commando om in Terminal te plakken:
+
+4. **Geef gebruiker het Metro commando** om in Terminal te plakken:
    ```bash
    cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0
    ```
 
 **Let op:** Claude kan Metro NIET zelf starten via Bash (npx niet in PATH). Geef altijd het commando aan de gebruiker.
+
+### Prosody XMPP Server
+
+**Locatie:** `/opt/homebrew/etc/prosody/prosody.cfg.lua`
+
+**Commando's:**
+```bash
+prosodyctl start      # Start Prosody
+prosodyctl stop       # Stop Prosody
+prosodyctl status     # Check status
+prosodyctl restart    # Herstart Prosody
+```
+
+**Kritieke config voor development:**
+```lua
+-- In /opt/homebrew/etc/prosody/prosody.cfg.lua
+http_ports = { 5280 }
+http_interfaces = { "*" }           -- Luistert op ALLE interfaces
+https_ports = { 5281 }
+https_interfaces = { "*" }
+consider_websocket_secure = true    -- WebSocket als secure behandelen
+cross_domain_websocket = true       -- Cross-domain connecties toestaan
+authentication = "internal_plain"   -- Vereist voor React Native
+```
+
+**Test accounts aanmaken:**
+```bash
+prosodyctl adduser ik@commeazy.local       # Password: test123
+prosodyctl adduser oma@commeazy.local      # Password: test123
+prosodyctl adduser test@commeazy.local     # Password: test123
+prosodyctl adduser jeanine@commeazy.local  # Password: test123
+prosodyctl adduser ipad@commeazy.local     # Password: test123
+```
 
 ---
 

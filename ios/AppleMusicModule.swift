@@ -27,10 +27,16 @@ class AppleMusicModule: RCTEventEmitter {
 
     // MusicKit player instance
     private let player = ApplicationMusicPlayer.shared
-    
+
     // Playback state observation task
     private var playbackStateTask: Task<Void, Never>?
-    
+
+    // Queue observation task
+    private var queueObservationTask: Task<Void, Never>?
+
+    // Track current entry ID to detect changes
+    private var currentEntryId: String?
+
     // Track if we have listeners registered
     private var hasListeners = false
 
@@ -41,10 +47,12 @@ class AppleMusicModule: RCTEventEmitter {
     override init() {
         super.init()
         setupPlaybackStateObserver()
+        setupQueueObserver()
     }
 
     deinit {
         playbackStateTask?.cancel()
+        queueObservationTask?.cancel()
     }
 
     @objc
@@ -557,11 +565,54 @@ class AppleMusicModule: RCTEventEmitter {
     private func setupPlaybackStateObserver() {
         playbackStateTask = Task {
             // Observe playback state changes
-            for await state in player.state.objectWillChange.values {
+            for await _ in player.state.objectWillChange.values {
                 guard hasListeners else { continue }
-                
+
                 let stateDict = buildPlaybackState()
                 sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+
+                // Also check if now playing changed
+                checkNowPlayingChange()
+            }
+        }
+    }
+
+    private func setupQueueObserver() {
+        queueObservationTask = Task {
+            // Observe queue changes
+            for await _ in player.queue.objectWillChange.values {
+                guard hasListeners else { continue }
+
+                // Check if current entry changed
+                checkNowPlayingChange()
+
+                // Send queue update
+                let entries = player.queue.entries
+                let items = entries.compactMap { entry -> [String: Any]? in
+                    guard case .song(let song) = entry.item else { return nil }
+                    return self.songToDictionary(song)
+                }
+                sendEvent(withName: "onQueueChange", body: items)
+            }
+        }
+    }
+
+    private func checkNowPlayingChange() {
+        guard let entry = player.queue.currentEntry else {
+            if currentEntryId != nil {
+                currentEntryId = nil
+                sendEvent(withName: "onNowPlayingItemChange", body: NSNull())
+            }
+            return
+        }
+
+        let entryId = "\(entry.id)"
+        if entryId != currentEntryId {
+            currentEntryId = entryId
+
+            if case .song(let song) = entry.item {
+                let songDict = songToDictionary(song)
+                sendEvent(withName: "onNowPlayingItemChange", body: songDict)
             }
         }
     }

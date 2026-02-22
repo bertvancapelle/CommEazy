@@ -181,7 +181,7 @@ export function AppleMusicScreen() {
   }, [requestAuthorization]);
 
   const handlePlaySong = useCallback(async (song: AppleMusicSong) => {
-    triggerFeedback('medium');
+    triggerFeedback('tap');
     try {
       console.log('[AppleMusicScreen] Playing song:', song.id, song.title);
       await playSong(song.id);
@@ -195,7 +195,7 @@ export function AppleMusicScreen() {
   }, [playSong, triggerFeedback, t]);
 
   const handlePlayPause = useCallback(() => {
-    triggerFeedback('light');
+    triggerFeedback('tap');
     if (isPlaying) {
       pause();
     } else {
@@ -204,12 +204,12 @@ export function AppleMusicScreen() {
   }, [isPlaying, pause, resume, triggerFeedback]);
 
   const handleOpenPlayStore = useCallback(async () => {
-    triggerFeedback('medium');
+    triggerFeedback('tap');
     await openPlayStore();
   }, [openPlayStore, triggerFeedback]);
 
   const handleOpenAppleMusicApp = useCallback(async () => {
-    triggerFeedback('medium');
+    triggerFeedback('tap');
     await openAppleMusicApp();
   }, [openAppleMusicApp, triggerFeedback]);
 
@@ -548,6 +548,7 @@ export function AppleMusicScreen() {
       {/* Mini Player (iOS only, when playing) */}
       {!isAndroid && currentSong && (
         <MiniPlayer
+          moduleId="appleMusic"
           artwork={currentSong.artworkUrl?.replace('{w}', '120').replace('{h}', '120') || null}
           title={currentSong.title}
           subtitle={currentSong.artistName}
