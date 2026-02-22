@@ -56,7 +56,7 @@ class FullPlayerNativeView: UIView {
     
     weak var delegate: FullPlayerNativeViewDelegate?
     
-    private let scrollView = UIScrollView()
+    // Using a plain UIView instead of ScrollView - no scrolling needed
     private let contentView = UIView()
     
     private let closeButton = UIButton(type: .system)
@@ -98,14 +98,15 @@ class FullPlayerNativeView: UIView {
     // MARK: - Constants
     
     private enum Layout {
-        static let padding: CGFloat = 24
-        static let artworkSize: CGFloat = 240
+        static let padding: CGFloat = 20
+        static let artworkSize: CGFloat = 200  // Smaller artwork for more compact player
         static let primaryButtonSize: CGFloat = 84
         static let secondaryButtonSize: CGFloat = 60
         static let closeButtonSize: CGFloat = 60
         static let titleFontSize: CGFloat = 24
         static let subtitleFontSize: CGFloat = 18
         static let timeFontSize: CGFloat = 14
+        static let verticalSpacing: CGFloat = 16  // Reduced vertical spacing
     }
     
     // MARK: - Initialization
@@ -125,13 +126,9 @@ class FullPlayerNativeView: UIView {
     private func setupUI() {
         backgroundColor = .clear
         
-        // ScrollView for content
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.showsVerticalScrollIndicator = false
-        addSubview(scrollView)
-        
+        // Content view - no scrolling, all content fixed position
         contentView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.addSubview(contentView)
+        addSubview(contentView)
         
         setupCloseButton()
         setupArtwork()
@@ -281,46 +278,37 @@ class FullPlayerNativeView: UIView {
     }
     
     private func setupConstraints() {
-        let safeArea = safeAreaLayoutGuide
-        
         NSLayoutConstraint.activate([
-            // ScrollView fills the view
-            scrollView.topAnchor.constraint(equalTo: topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            // Content view fills the entire view - no scrolling
+            contentView.topAnchor.constraint(equalTo: topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: bottomAnchor),
             
-            // Content view
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            
-            // Close button
-            closeButton.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 8),
+            // Close button - directly at top of content (window already handles safe area positioning)
+            closeButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             closeButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
             closeButton.widthAnchor.constraint(equalToConstant: Layout.closeButtonSize),
             closeButton.heightAnchor.constraint(equalToConstant: Layout.closeButtonSize),
             
-            // Artwork
-            artworkImageView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 24),
+            // Artwork - closer to close button for compact layout
+            artworkImageView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: Layout.verticalSpacing),
             artworkImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             artworkImageView.widthAnchor.constraint(equalToConstant: Layout.artworkSize),
             artworkImageView.heightAnchor.constraint(equalToConstant: Layout.artworkSize),
             
-            // Title
-            titleLabel.topAnchor.constraint(equalTo: artworkImageView.bottomAnchor, constant: 24),
+            // Title - closer to artwork
+            titleLabel.topAnchor.constraint(equalTo: artworkImageView.bottomAnchor, constant: Layout.verticalSpacing),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
             
             // Subtitle
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             
-            // Seek container
-            seekContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 32),
+            // Seek container - reduced spacing
+            seekContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: Layout.verticalSpacing),
             seekContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
             seekContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
             seekContainer.heightAnchor.constraint(equalToConstant: 40),
@@ -337,8 +325,8 @@ class FullPlayerNativeView: UIView {
             durationLabel.topAnchor.constraint(equalTo: currentTimeLabel.topAnchor),
             durationLabel.trailingAnchor.constraint(equalTo: seekContainer.trailingAnchor),
             
-            // Playback controls
-            playPauseButton.topAnchor.constraint(equalTo: seekContainer.bottomAnchor, constant: 32),
+            // Playback controls - reduced spacing
+            playPauseButton.topAnchor.constraint(equalTo: seekContainer.bottomAnchor, constant: Layout.verticalSpacing),
             playPauseButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             playPauseButton.widthAnchor.constraint(equalToConstant: Layout.primaryButtonSize),
             playPauseButton.heightAnchor.constraint(equalToConstant: Layout.primaryButtonSize),
@@ -353,29 +341,33 @@ class FullPlayerNativeView: UIView {
             skipForwardButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             skipForwardButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
-            stopButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
-            stopButton.leadingAnchor.constraint(equalTo: skipForwardButton.trailingAnchor, constant: 16),
+            // Secondary controls row - spread horizontally
+            // Layout: [Moon] ... [Stop] ... [Heart]
+            // Stop button in CENTER of secondary row (not next to play button)
+            stopButton.topAnchor.constraint(equalTo: playPauseButton.bottomAnchor, constant: Layout.verticalSpacing + 8),
+            stopButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             stopButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             stopButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
-            // Secondary controls
-            sleepButton.topAnchor.constraint(equalTo: playPauseButton.bottomAnchor, constant: 32),
-            sleepButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            // Sleep button (moon) on the left
+            sleepButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
+            sleepButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding + 20),
             sleepButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             sleepButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
-            speedButton.centerYAnchor.constraint(equalTo: sleepButton.centerYAnchor),
-            speedButton.trailingAnchor.constraint(equalTo: sleepButton.leadingAnchor, constant: -32),
+            // Speed button hidden for radio (positioned but hidden)
+            speedButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
+            speedButton.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -16),
             speedButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             speedButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
-            favoriteButton.centerYAnchor.constraint(equalTo: sleepButton.centerYAnchor),
-            favoriteButton.leadingAnchor.constraint(equalTo: sleepButton.trailingAnchor, constant: 32),
+            // Favorite button (heart) on the right
+            favoriteButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
+            favoriteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -(Layout.padding + 20)),
             favoriteButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             favoriteButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
-            // Content view bottom
-            favoriteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -48),
+            // No bottom anchor needed - content is fixed, not scrolling
         ])
     }
     
@@ -426,16 +418,56 @@ class FullPlayerNativeView: UIView {
     
     @objc private func handleSleepTap() {
         triggerHaptic(.light)
-        // Cycle through: off, 15, 30, 45, 60
-        let options: [Int?] = [nil, 15, 30, 45, 60]
-        if let current = sleepTimerMinutes, let index = options.firstIndex(where: { $0 == current }) {
-            let nextIndex = (index + 1) % options.count
-            sleepTimerMinutes = options[nextIndex]
-        } else {
-            sleepTimerMinutes = 15
+        showSleepTimerPicker()
+    }
+    
+    private func showSleepTimerPicker() {
+        // Create alert controller for sleep timer options
+        let alertController = UIAlertController(
+            title: "Slaaptimer",
+            message: "Kies hoe lang de muziek moet spelen",
+            preferredStyle: .actionSheet
+        )
+        
+        // Add options - including 30 seconds for testing (TODO: remove before production)
+        let options: [(title: String, minutes: Int?)] = [
+            ("30 seconden (TEST)", 0),  // 0 = 30 seconds for testing
+            ("15 minuten", 15),
+            ("30 minuten", 30),
+            ("45 minuten", 45),
+            ("60 minuten", 60),
+            ("Uit", nil)
+        ]
+        
+        for option in options {
+            let action = UIAlertAction(title: option.title, style: .default) { [weak self] _ in
+                self?.sleepTimerMinutes = option.minutes
+                self?.updateSleepButton()
+                self?.delegate?.fullPlayerDidSetSleepTimer(option.minutes)
+            }
+            
+            // Checkmark for current selection
+            if option.minutes == sleepTimerMinutes {
+                action.setValue(true, forKey: "checked")
+            }
+            
+            alertController.addAction(action)
         }
-        updateSleepButton()
-        delegate?.fullPlayerDidSetSleepTimer(sleepTimerMinutes)
+        
+        // Cancel action
+        let cancelAction = UIAlertAction(title: "Annuleren", style: .cancel)
+        alertController.addAction(cancelAction)
+        
+        // Present from the window's root view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            // For iPad, configure popover
+            if let popover = alertController.popoverPresentationController {
+                popover.sourceView = sleepButton
+                popover.sourceRect = sleepButton.bounds
+            }
+            rootVC.present(alertController, animated: true)
+        }
     }
     
     @objc private func handleFavoriteTap() {
