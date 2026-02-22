@@ -35,6 +35,7 @@ import {
   LIQUID_GLASS_MIN_IOS_VERSION,
   MODULE_TINT_COLORS,
 } from '@/types/liquidGlass';
+import { glassPlayer } from '@/services/glassPlayer';
 
 // ============================================================
 // Platform Detection
@@ -103,6 +104,10 @@ export function LiquidGlassProvider({ children }: LiquidGlassProviderProps) {
   // Loading state
   const [isLoading, setIsLoading] = useState(true);
 
+  // Glass Player Window availability (checked once at app start)
+  const [isGlassPlayerAvailable, setIsGlassPlayerAvailable] = useState(false);
+  const [isGlassPlayerCheckComplete, setIsGlassPlayerCheckComplete] = useState(false);
+
   // ============================================================
   // Load Settings from AsyncStorage
   // ============================================================
@@ -126,6 +131,32 @@ export function LiquidGlassProvider({ children }: LiquidGlassProviderProps) {
     }
 
     void loadSettings();
+  }, []);
+
+  // ============================================================
+  // Glass Player Window Availability Check (ONE TIME at app start)
+  // ============================================================
+
+  useEffect(() => {
+    async function checkGlassPlayerAvailability() {
+      try {
+        const available = await glassPlayer.isAvailable();
+        console.info('[LiquidGlassContext] Glass Player available:', available);
+        setIsGlassPlayerAvailable(available);
+      } catch (error) {
+        console.warn('[LiquidGlassContext] Glass Player check failed:', error);
+        setIsGlassPlayerAvailable(false);
+      } finally {
+        setIsGlassPlayerCheckComplete(true);
+      }
+    }
+
+    // Only check on iOS (Android will always be false)
+    if (Platform.OS === 'ios') {
+      void checkGlassPlayerAvailability();
+    } else {
+      setIsGlassPlayerCheckComplete(true);
+    }
   }, []);
 
   // ============================================================
@@ -283,6 +314,9 @@ export function LiquidGlassProvider({ children }: LiquidGlassProviderProps) {
       setForceDisabled,
       getModuleColor,
       getEffectiveTintIntensity,
+      // Glass Player Window availability (for native audio player)
+      isGlassPlayerAvailable,
+      isGlassPlayerCheckComplete,
     }),
     [
       platform,
@@ -293,6 +327,8 @@ export function LiquidGlassProvider({ children }: LiquidGlassProviderProps) {
       setForceDisabled,
       getModuleColor,
       getEffectiveTintIntensity,
+      isGlassPlayerAvailable,
+      isGlassPlayerCheckComplete,
     ]
   );
 

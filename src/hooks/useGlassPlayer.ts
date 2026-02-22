@@ -36,6 +36,7 @@ import {
   type GlassPlayerSleepTimerEvent,
   type GlassPlayerSpeedEvent,
 } from '@/services/glassPlayer';
+import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
 
 // ============================================================
 // Types
@@ -98,8 +99,15 @@ export interface UseGlassPlayerReturn {
 // ============================================================
 
 export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPlayerReturn {
-  const [isAvailable, setIsAvailable] = useState(false);
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(true);
+  // Get availability from context (checked ONCE at app start, no per-component async)
+  const {
+    isGlassPlayerAvailable: isAvailable,
+    isGlassPlayerCheckComplete,
+  } = useLiquidGlassContext();
+
+  // Derive isCheckingAvailability from context
+  const isCheckingAvailability = !isGlassPlayerCheckComplete;
+
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -107,25 +115,12 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  // Check availability on mount
+  // Log when availability changes (for debugging)
   useEffect(() => {
-    let mounted = true;
-
-    const checkAvailability = async () => {
-      const available = await glassPlayer.isAvailable();
-      if (mounted) {
-        setIsAvailable(available);
-        setIsCheckingAvailability(false);
-        console.log('[useGlassPlayer] Availability check complete:', available);
-      }
-    };
-
-    checkAvailability();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    if (isGlassPlayerCheckComplete) {
+      console.debug('[useGlassPlayer] Using cached availability from context:', isAvailable);
+    }
+  }, [isGlassPlayerCheckComplete, isAvailable]);
 
   // Subscribe to events
   useEffect(() => {

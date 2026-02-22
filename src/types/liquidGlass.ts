@@ -296,6 +296,18 @@ export interface LiquidGlassContextValue {
    * Combines user setting with platform support
    */
   getEffectiveTintIntensity: () => number;
+
+  /**
+   * Whether Glass Player Window is available (iOS 26+ native audio player)
+   * Checked ONCE at app start, cached for all screens
+   */
+  isGlassPlayerAvailable: boolean;
+
+  /**
+   * Whether the Glass Player availability check has completed
+   * Screens should wait for this before deciding which player to show
+   */
+  isGlassPlayerCheckComplete: boolean;
 }
 
 // ============================================================
