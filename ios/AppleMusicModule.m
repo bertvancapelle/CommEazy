@@ -53,6 +53,10 @@ RCT_EXTERN_METHOD(playSong:(NSString *)songId
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(playLibrarySong:(NSString *)songId
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(playAlbum:(NSString *)albumId
                   startIndex:(NSInteger)startIndex
                   resolve:(RCTPromiseResolveBlock)resolve

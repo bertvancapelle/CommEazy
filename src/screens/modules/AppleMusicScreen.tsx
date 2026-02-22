@@ -62,6 +62,7 @@ import {
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 
 // ============================================================
 // Constants
@@ -137,6 +138,131 @@ export function AppleMusicScreen() {
   const hasFullSupport = capabilities?.hasMusicKit && capabilities?.canPlayback;
   const isAndroid = Platform.OS === 'android';
   const isIOS = Platform.OS === 'ios';
+
+  // ============================================================
+  // Glass Player (iOS 26+ native Liquid Glass player)
+  // ============================================================
+
+  const {
+    isAvailable: isGlassPlayerAvailable,
+    isCheckingAvailability: isCheckingGlassPlayerAvailability,
+    isVisible: isGlassPlayerVisible,
+    isExpanded: isGlassPlayerExpanded,
+    showMiniPlayer: showGlassMiniPlayer,
+    expandToFull: expandGlassPlayer,
+    collapseToMini: collapseGlassPlayer,
+    hide: hideGlassPlayer,
+    updateContent: updateGlassContent,
+    updatePlaybackState: updateGlassPlaybackState,
+  } = useGlassPlayer({
+    onPlayPause: async () => {
+      if (isPlaying) {
+        await pause();
+      } else {
+        await resume();
+      }
+    },
+    onStop: async () => {
+      await stop();
+    },
+    onExpand: () => {
+      setIsPlayerExpanded(true);
+    },
+    onCollapse: () => {
+      setIsPlayerExpanded(false);
+    },
+    onClose: () => {
+      setIsPlayerExpanded(false);
+    },
+    onSkipForward: async () => {
+      await skipToNext();
+    },
+    onSkipBackward: async () => {
+      await skipToPrevious();
+    },
+    onFavoriteToggle: () => {
+      // Apple Music favorites not implemented yet
+    },
+    onSleepTimerSet: (minutes: number | null) => {
+      // Sleep timer not implemented for Apple Music yet
+    },
+  });
+
+  // ============================================================
+  // Glass Player Effects (iOS 26+ synchronization)
+  // ============================================================
+
+  // Effect 1: Show native mini player when song plays (iOS 26+ only)
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !currentSong || !isFocused) {
+      return;
+    }
+
+    const artworkUrl = currentSong.artworkUrl?.startsWith('http')
+      ? currentSong.artworkUrl.replace('{w}', '300').replace('{h}', '300')
+      : null;
+
+    showGlassMiniPlayer({
+      moduleId: 'appleMusic',
+      tintColorHex: APPLE_MUSIC_COLOR,
+      artwork: artworkUrl,
+      title: currentSong.title,
+      subtitle: currentSong.artistName,
+      progressType: 'bar',
+      progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
+      showStopButton: false,
+    });
+  }, [isGlassPlayerAvailable, currentSong, isFocused, showGlassMiniPlayer]);
+
+  // Effect 2: Update playback state when playing/paused changes
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !isGlassPlayerVisible) {
+      return;
+    }
+
+    updateGlassPlaybackState({
+      isPlaying,
+      isLoading: isPlaybackLoading,
+      isBuffering: false,
+      progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
+      position: playbackState?.currentTime ?? 0,
+      duration: playbackState?.duration ?? 0,
+      isFavorite: false,
+      showStopButton: false,
+    });
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, isPlaybackLoading, playbackState, updateGlassPlaybackState]);
+
+  // Effect 3: Update content when song/metadata changes
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !isGlassPlayerVisible || !currentSong) {
+      return;
+    }
+
+    const artworkUrl = currentSong.artworkUrl?.startsWith('http')
+      ? currentSong.artworkUrl.replace('{w}', '600').replace('{h}', '600')
+      : null;
+
+    updateGlassContent({
+      artwork: artworkUrl,
+      title: currentSong.title,
+      subtitle: currentSong.artistName,
+      progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
+    });
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, playbackState?.currentTime, playbackState?.duration, updateGlassContent]);
+
+  // Effect 4: Hide native player when navigating away
+  useEffect(() => {
+    if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
+      hideGlassPlayer();
+    }
+  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+
+  // Effect 5: Hide native player when song stops
+  useEffect(() => {
+    if (!currentSong && isGlassPlayerAvailable && isGlassPlayerVisible) {
+      hideGlassPlayer();
+    }
+  }, [currentSong, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
   // ============================================================
   // Handlers
@@ -360,7 +486,7 @@ export function AppleMusicScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
               >
-                {song.artworkUrl ? (
+                {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
                   <Image
                     source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
                     style={styles.songArtwork}
@@ -521,8 +647,18 @@ export function AppleMusicScreen() {
   // Render
   // ============================================================
 
-  // Calculate bottom padding for mini-player
-  const bottomPadding = currentSong ? MINI_PLAYER_HEIGHT + spacing.md : spacing.md;
+  // Determine if we should show the React Native MiniPlayer
+  // Only show RN player when Glass Player is NOT available (iOS <26 or Android)
+  const shouldShowRNMiniPlayer =
+    !isCheckingGlassPlayerAvailability &&
+    !isGlassPlayerAvailable &&
+    currentSong &&
+    !isPlayerExpanded;
+
+  // Calculate bottom padding - Glass Player handles its own spacing
+  const bottomPadding = shouldShowRNMiniPlayer
+    ? MINI_PLAYER_HEIGHT + spacing.md
+    : spacing.md;
 
   return (
     <View style={styles.container}>
@@ -545,11 +681,12 @@ export function AppleMusicScreen() {
         {!isAndroid && renderIOSContent()}
       </View>
 
-      {/* Mini Player (iOS only, when playing) */}
-      {!isAndroid && currentSong && (
+      {/* Mini Player (iOS <26 / Android fallback)
+          On iOS 26+, the native GlassPlayerWindow handles this */}
+      {shouldShowRNMiniPlayer && (
         <MiniPlayer
           moduleId="appleMusic"
-          artwork={currentSong.artworkUrl?.replace('{w}', '120').replace('{h}', '120') || null}
+          artwork={currentSong.artworkUrl?.startsWith('http') ? currentSong.artworkUrl.replace('{w}', '120').replace('{h}', '120') : null}
           title={currentSong.title}
           subtitle={currentSong.artistName}
           accentColor={APPLE_MUSIC_COLOR}
@@ -559,15 +696,17 @@ export function AppleMusicScreen() {
           progress={(playbackState?.currentTime ?? 0) / (playbackState?.duration || 1)}
           onPress={() => setIsPlayerExpanded(true)}
           onPlayPause={handlePlayPause}
+          style={styles.miniPlayer}
         />
       )}
 
-      {/* Expanded Player (iOS only) - ExpandedAudioPlayer has its own Modal */}
-      {!isAndroid && (
+      {/* Expanded Player (iOS <26 / Android fallback)
+          On iOS 26+, the native GlassPlayerWindow handles this */}
+      {!isAndroid && !isGlassPlayerExpanded && (
         <ExpandedAudioPlayer
           visible={isPlayerExpanded}
           moduleId="appleMusic"
-          artwork={currentSong?.artworkUrl?.replace('{w}', '600').replace('{h}', '600') || null}
+          artwork={currentSong?.artworkUrl?.startsWith('http') ? currentSong.artworkUrl.replace('{w}', '600').replace('{h}', '600') : null}
           title={currentSong?.title || ''}
           subtitle={currentSong?.artistName}
           accentColor={APPLE_MUSIC_COLOR}
@@ -619,6 +758,12 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+  },
+  miniPlayer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
 
   // Centered container (auth, android screens)

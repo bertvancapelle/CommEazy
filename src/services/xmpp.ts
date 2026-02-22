@@ -18,7 +18,7 @@ import type {
 
 // Dev server configuration
 // Simulators use localhost, physical devices use Mac's LAN IP
-const DEV_SERVER_LAN_IP = '10.10.15.75'; // Mac's fixed LAN IP for physical device testing
+const DEV_SERVER_LAN_IP = '172.20.10.2'; // Mac's LAN IP for physical device testing (update when network changes)
 
 type XMPPClient = ReturnType<typeof client>;
 

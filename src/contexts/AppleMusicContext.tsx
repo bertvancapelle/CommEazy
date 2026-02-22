@@ -400,7 +400,20 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     try {
       setIsLoading(true);
       setShowPlayer(true);
-      await AppleMusicModule.playSong(songId);
+
+      // Detect if this is a library song (starts with "i.") or catalog song
+      // Library songs have IDs like "i.8BCC85DD-ECB5-492B-B88F-733758A37D81"
+      // Catalog songs have numeric IDs like "1234567890"
+      const isLibrarySong = songId.startsWith('i.');
+
+      if (isLibrarySong) {
+        console.debug('[AppleMusicContext] Playing library song:', songId);
+        await AppleMusicModule.playLibrarySong(songId);
+      } else {
+        console.debug('[AppleMusicContext] Playing catalog song:', songId);
+        await AppleMusicModule.playSong(songId);
+      }
+
       AccessibilityInfo.announceForAccessibility(t('modules.appleMusic.playing'));
     } catch (error) {
       setIsLoading(false);

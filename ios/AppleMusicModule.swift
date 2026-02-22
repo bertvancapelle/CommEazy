@@ -263,19 +263,19 @@ class AppleMusicModule: RCTEventEmitter {
     // MARK: - Playback Control
     // ============================================================
 
-    /// Play a song by ID
+    /// Play a song by ID (catalog song)
     @objc
     func playSong(_ songId: String,
                   resolve: @escaping RCTPromiseResolveBlock,
                   reject: @escaping RCTPromiseRejectBlock) {
         Task {
             do {
-                // Fetch the song
+                // Fetch the song from catalog
                 let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
                 let response = try await request.response()
                 
                 guard let song = response.items.first else {
-                    reject("SONG_NOT_FOUND", "Song with ID \(songId) not found", nil)
+                    reject("SONG_NOT_FOUND", "Song with ID \(songId) not found in catalog", nil)
                     return
                 }
                 
@@ -285,7 +285,36 @@ class AppleMusicModule: RCTEventEmitter {
                 
                 resolve(["success": true])
             } catch {
-                reject("PLAY_ERROR", "Failed to play song: \(error.localizedDescription)", error)
+                reject("PLAY_ERROR", "Failed to play catalog song: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Play a library song by ID (local library song)
+    /// Library song IDs start with "i." prefix (e.g., "i.8BCC85DD-...")
+    @objc
+    func playLibrarySong(_ songId: String,
+                         resolve: @escaping RCTPromiseResolveBlock,
+                         reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                // Fetch the song from user's library
+                var request = MusicLibraryRequest<Song>()
+                request.filter(matching: \.id, equalTo: MusicItemID(songId))
+                let response = try await request.response()
+                
+                guard let song = response.items.first else {
+                    reject("SONG_NOT_FOUND", "Song with ID \(songId) not found in library", nil)
+                    return
+                }
+                
+                // Set queue and play
+                player.queue = [song]
+                try await player.play()
+                
+                resolve(["success": true])
+            } catch {
+                reject("PLAY_ERROR", "Failed to play library song: \(error.localizedDescription)", error)
             }
         }
     }
@@ -681,7 +710,7 @@ class AppleMusicModule: RCTEventEmitter {
             "artistName": song.artistName,
             "albumTitle": song.albumTitle ?? "",
             "duration": song.duration ?? 0,
-            "artworkUrl": song.artwork?.url(width: 300, height: 300)?.absoluteString ?? "",
+            "artworkUrl": song.artwork?.url(width: 300, height: 300)?.httpURLString ?? "",
             "trackNumber": song.trackNumber ?? 0,
             "discNumber": song.discNumber ?? 1,
             "isExplicit": song.contentRating == .explicit
@@ -693,7 +722,7 @@ class AppleMusicModule: RCTEventEmitter {
             "id": album.id.rawValue,
             "title": album.title,
             "artistName": album.artistName,
-            "artworkUrl": album.artwork?.url(width: 300, height: 300)?.absoluteString ?? "",
+            "artworkUrl": album.artwork?.url(width: 300, height: 300)?.httpURLString ?? "",
             "trackCount": album.trackCount,
             "releaseDate": album.releaseDate?.description ?? "",
             "isExplicit": album.contentRating == .explicit
@@ -704,7 +733,7 @@ class AppleMusicModule: RCTEventEmitter {
         return [
             "id": artist.id.rawValue,
             "name": artist.name,
-            "artworkUrl": artist.artwork?.url(width: 300, height: 300)?.absoluteString ?? ""
+            "artworkUrl": artist.artwork?.url(width: 300, height: 300)?.httpURLString ?? ""
         ]
     }
 
@@ -713,7 +742,7 @@ class AppleMusicModule: RCTEventEmitter {
             "id": playlist.id.rawValue,
             "name": playlist.name,
             "curatorName": playlist.curatorName ?? "",
-            "artworkUrl": playlist.artwork?.url(width: 300, height: 300)?.absoluteString ?? "",
+            "artworkUrl": playlist.artwork?.url(width: 300, height: 300)?.httpURLString ?? "",
             "description": playlist.standardDescription ?? ""
         ]
     }
@@ -727,5 +756,27 @@ extension Collection {
     /// Safe subscript that returns nil for out-of-bounds indices
     subscript(safe index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
+    }
+}
+
+// ============================================================
+// MARK: - URL Extension for MusicKit Artwork
+// ============================================================
+
+extension URL {
+    /// Filters out musicKit:// URLs that React Native cannot load
+    /// Only returns https:// URLs that can be displayed in Image components
+    var httpURLString: String {
+        if self.scheme == "https" || self.scheme == "http" {
+            return self.absoluteString
+        }
+        // musicKit:// URLs contain a fallback URL in the 'fat' query parameter
+        if self.scheme == "musicKit",
+           let components = URLComponents(url: self, resolvingAgainstBaseURL: false),
+           let fatParam = components.queryItems?.first(where: { $0.name == "fat" })?.value,
+           let decodedURL = fatParam.removingPercentEncoding {
+            return decodedURL
+        }
+        return ""
     }
 }

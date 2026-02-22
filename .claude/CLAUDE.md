@@ -916,6 +916,80 @@ useVoiceAction('call', handleCall, { label: contactName });
 useVoiceAction('message', handleSendMessage, { label: t('chat.send') });
 ```
 
+#### 11.4a Audio Conflict Handling (⚠️ TODO - NIET VERGETEN)
+
+**KRITIEK:** Voice commands MOETEN correct omgaan met actieve audio streams. Dit is nog NIET geïmplementeerd.
+
+**Scenario's en vereist gedrag:**
+
+| Situatie | Bij twee-vinger tap | Voice commands beschikbaar |
+|----------|---------------------|---------------------------|
+| **Geen audio** | Start voice session normaal | Alle commands |
+| **Media speelt** (Radio/Podcast/Music) | Duck audio naar 15% → luister → restore 100% | Alle commands + "pauze", "stop" |
+| **Actief telefoongesprek** | Geen ducking (gesprek prioriteit) | Alleen call-commands: "ophangen", "mute", "luidspreker" |
+| **Actief videogesprek** | Geen ducking (gesprek prioriteit) | Alleen call-commands: "ophangen", "mute", "camera uit" |
+
+**Prioriteit Hiërarchie:**
+```
+1. Call actief?     → ALLEEN call-specifieke voice commands
+2. Audio speelt?    → Duck audio → luister → restore volume
+3. Geen audio?      → Normale voice command flow
+```
+
+**Implementatie vereisten:**
+
+```typescript
+// src/contexts/VoiceSessionContext.tsx
+interface VoiceSessionState {
+  isActive: boolean;
+  activeAudioSource: 'none' | 'media' | 'call' | 'video-call';
+  originalVolume: number;  // Voor restore na ducking
+}
+
+// Bij voice session start:
+const startVoiceSession = async () => {
+  const callState = useCallContext();
+  const mediaState = useMediaPlaybackContext();
+
+  if (callState.isInCall) {
+    // Alleen call-commands registreren
+    setAvailableCommands(CALL_ONLY_COMMANDS);
+    // GEEN audio ducking — gesprek heeft prioriteit
+  } else if (mediaState.isPlaying) {
+    // Duck audio
+    setOriginalVolume(await getSystemVolume());
+    await setSystemVolume(0.15);  // 15%
+    setAvailableCommands(ALL_COMMANDS);
+  } else {
+    setAvailableCommands(ALL_COMMANDS);
+  }
+};
+
+// Bij voice session stop:
+const stopVoiceSession = async () => {
+  if (originalVolume !== null) {
+    await setSystemVolume(originalVolume);  // Restore
+  }
+};
+```
+
+**Native module vereist:**
+- `AudioDuckingModule` voor iOS (AVAudioSession ducking)
+- Volume control via system API
+
+**Bestanden te maken:**
+```
+src/
+  services/
+    audioDucking.ts           ← Cross-platform interface
+  native/
+    ios/
+      AudioDuckingModule.swift  ← AVAudioSession implementation
+      AudioDuckingModule.m      ← Bridge
+```
+
+**Status:** ⏳ TODO — Moet geïmplementeerd worden voor v1.0
+
 #### 11.5 Voice Focusable Lijsten (VERPLICHT voor lijsten >3 items)
 
 ```typescript
@@ -2369,6 +2443,11 @@ Deze items MOETEN voltooid zijn voordat de app naar TestFlight/App Store gaat. C
 | | | - Netwerk verlies tijdens call → automatisch reconnecten |
 | | | - ICE failure → TURN fallback |
 | | | - Timeout handling |
+| **Voice Command Audio Ducking** | ⏳ TODO | Audio conflict handling bij voice commands (zie sectie 11.4a) |
+| | | - Duck media audio naar 15% bij voice session start |
+| | | - Restore volume na voice session stop |
+| | | - Call-only commands tijdens actief gesprek |
+| | | - Native AudioDuckingModule voor iOS |
 
 ### Nice-to-Have voor V1.0
 

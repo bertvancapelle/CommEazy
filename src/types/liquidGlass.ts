@@ -98,6 +98,7 @@ export type ModuleColorId =
   | 'ebook'        // E-book reader
   | 'weather'
   | 'nunl'         // nu.nl news module
+  | 'appleMusic'   // Apple Music module
   | 'help'
   | 'menu';
 
@@ -217,6 +218,12 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
     moduleId: 'nunl',
     tintColor: '#E65100',      // nu.nl Orange
     fallbackColor: '#E65100',
+    lightColor: '#FFFFFF',
+  },
+  appleMusic: {
+    moduleId: 'appleMusic',
+    tintColor: '#FC3C44',      // Apple Music Red/Pink
+    fallbackColor: '#FC3C44',
     lightColor: '#FFFFFF',
   },
 };
