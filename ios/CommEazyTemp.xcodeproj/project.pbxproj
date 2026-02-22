@@ -14,11 +14,23 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7699B88040F8A987B510C191 /* libPods-CommEazyTemp-CommEazyTempTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-CommEazyTemp-CommEazyTempTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		823E16082F48A94000A80AD8 /* AudioServices.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E16072F48A94000A80AD8 /* AudioServices.m */; };
 		824370CF2F45E14200860BF5 /* sherpa_onnx 2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 824370CE2F45E14200860BF5 /* sherpa_onnx 2.xcframework */; };
+		82520A952F4A517A00351FD1 /* LiquidGlassModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82520A942F4A517900351FD1 /* LiquidGlassModule.swift */; };
+		82520A972F4A518100351FD1 /* LiquidGlassViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82520A962F4A518100351FD1 /* LiquidGlassViewManager.swift */; };
+		82520A992F4A518800351FD1 /* LiquidGlassModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 82520A982F4A518800351FD1 /* LiquidGlassModule.m */; };
+		82520A9B2F4A535500351FD1 /* LiquidGlassViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 82520A9A2F4A535500351FD1 /* LiquidGlassViewManager.m */; };
 		8291E0072F46090000C281DA /* PiperTtsModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8291E0062F46090000C281DA /* PiperTtsModule.mm */; };
 		8291E0092F46090100C281DA /* TtsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 8291E0082F46090100C281DA /* TtsModule.m */; };
 		8291E00C2F46094400C281DA /* sherpa-onnx-model-detect.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8291E00B2F46094400C281DA /* sherpa-onnx-model-detect.mm */; };
 		8291E00F2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8291E00E2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm */; };
+		8297F3062F4AB91F00F4069D /* GlassPlayerWindowModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3052F4AB91F00F4069D /* GlassPlayerWindowModule.swift */; };
+		8297F3082F4AB92600F4069D /* GlassPlayerWindowModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3072F4AB92600F4069D /* GlassPlayerWindowModule.m */; };
+		8297F30A2F4AB95400F4069D /* GlassPlayerWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3092F4AB95400F4069D /* GlassPlayerWindow.swift */; };
+		8297F30C2F4AB97100F4069D /* GlassPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F30B2F4AB97100F4069D /* GlassPlayerView.swift */; };
+		8297F30E2F4AB9D600F4069D /* MiniPlayerNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F30D2F4AB9D600F4069D /* MiniPlayerNativeView.swift */; };
+		8297F3102F4ABA1D00F4069D /* FullPlayerNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F30F2F4ABA1D00F4069D /* FullPlayerNativeView.swift */; };
+		8297F3122F4ABAF500F4069D /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3112F4ABAF500F4069D /* UIColorExtensions.swift */; };
 		82BE2E142F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 		82BE2E152F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
@@ -51,7 +63,13 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = CommEazyTemp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8212B7762F3E47AF00278E4E /* CommEazyTemp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CommEazyTemp.entitlements; sourceTree = "<group>"; };
 		8212B7772F3F0E8F00278E4E /* CommEazyTemp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = CommEazyTemp.entitlements; path = CommEazyTemp/CommEazyTemp.entitlements; sourceTree = "<group>"; };
+		823E16062F48A91200A80AD8 /* AudioServices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioServices.h; sourceTree = "<group>"; };
+		823E16072F48A94000A80AD8 /* AudioServices.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioServices.m; sourceTree = "<group>"; };
 		824370CE2F45E14200860BF5 /* sherpa_onnx 2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = "sherpa_onnx 2.xcframework"; sourceTree = "<group>"; };
+		82520A942F4A517900351FD1 /* LiquidGlassModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassModule.swift; sourceTree = "<group>"; };
+		82520A962F4A518100351FD1 /* LiquidGlassViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassViewManager.swift; sourceTree = "<group>"; };
+		82520A982F4A518800351FD1 /* LiquidGlassModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LiquidGlassModule.m; sourceTree = "<group>"; };
+		82520A9A2F4A535500351FD1 /* LiquidGlassViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LiquidGlassViewManager.m; sourceTree = "<group>"; };
 		8291E0032F46089C00C281DA /* PiperTtsModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PiperTtsModule.h; sourceTree = "<group>"; };
 		8291E0042F46089D00C281DA /* TtsModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TtsModule.h; sourceTree = "<group>"; };
 		8291E0052F46089D00C281DA /* sherpa-onnx-common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "sherpa-onnx-common.h"; sourceTree = "<group>"; };
@@ -61,6 +79,13 @@
 		8291E00B2F46094400C281DA /* sherpa-onnx-model-detect.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "sherpa-onnx-model-detect.mm"; sourceTree = "<group>"; };
 		8291E00D2F46094400C281DA /* sherpa-onnx-tts-wrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "sherpa-onnx-tts-wrapper.h"; sourceTree = "<group>"; };
 		8291E00E2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "sherpa-onnx-tts-wrapper.mm"; sourceTree = "<group>"; };
+		8297F3052F4AB91F00F4069D /* GlassPlayerWindowModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPlayerWindowModule.swift; sourceTree = "<group>"; };
+		8297F3072F4AB92600F4069D /* GlassPlayerWindowModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GlassPlayerWindowModule.m; sourceTree = "<group>"; };
+		8297F3092F4AB95400F4069D /* GlassPlayerWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPlayerWindow.swift; sourceTree = "<group>"; };
+		8297F30B2F4AB97100F4069D /* GlassPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassPlayerView.swift; sourceTree = "<group>"; };
+		8297F30D2F4AB9D600F4069D /* MiniPlayerNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerNativeView.swift; sourceTree = "<group>"; };
+		8297F30F2F4ABA1D00F4069D /* FullPlayerNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullPlayerNativeView.swift; sourceTree = "<group>"; };
+		8297F3112F4ABAF500F4069D /* UIColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		82EFD6552F45F86B0009F977 /* PiperTtsTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiperTtsTestView.swift; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; path = "Target Support Files/Pods-CommEazyTemp-CommEazyTempTests/Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -129,6 +154,13 @@
 				8291E00D2F46094400C281DA /* sherpa-onnx-tts-wrapper.h */,
 				8291E00E2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm */,
 				8291E0102F4609D000C281DA /* piper-models 2 */,
+				823E16062F48A91200A80AD8 /* AudioServices.h */,
+				823E16072F48A94000A80AD8 /* AudioServices.m */,
+				82520A942F4A517900351FD1 /* LiquidGlassModule.swift */,
+				82520A962F4A518100351FD1 /* LiquidGlassViewManager.swift */,
+				82520A982F4A518800351FD1 /* LiquidGlassModule.m */,
+				82520A9A2F4A535500351FD1 /* LiquidGlassViewManager.m */,
+				8297F3042F4AB90B00F4069D /* GlassPlayerWindow */,
 			);
 			name = CommEazyTemp;
 			sourceTree = "<group>";
@@ -164,6 +196,20 @@
 			children = (
 			);
 			path = "piper-models 2";
+			sourceTree = "<group>";
+		};
+		8297F3042F4AB90B00F4069D /* GlassPlayerWindow */ = {
+			isa = PBXGroup;
+			children = (
+				8297F3052F4AB91F00F4069D /* GlassPlayerWindowModule.swift */,
+				8297F3072F4AB92600F4069D /* GlassPlayerWindowModule.m */,
+				8297F3092F4AB95400F4069D /* GlassPlayerWindow.swift */,
+				8297F30B2F4AB97100F4069D /* GlassPlayerView.swift */,
+				8297F30D2F4AB9D600F4069D /* MiniPlayerNativeView.swift */,
+				8297F30F2F4ABA1D00F4069D /* FullPlayerNativeView.swift */,
+				8297F3112F4ABAF500F4069D /* UIColorExtensions.swift */,
+			);
+			path = GlassPlayerWindow;
 			sourceTree = "<group>";
 		};
 		82F96B6C2F45DAC8002CE9D8 /* Assets 2 */ = {
@@ -535,10 +581,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
+				8297F30E2F4AB9D600F4069D /* MiniPlayerNativeView.swift in Sources */,
 				8291E00F2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm in Sources */,
+				8297F3082F4AB92600F4069D /* GlassPlayerWindowModule.m in Sources */,
+				82520A9B2F4A535500351FD1 /* LiquidGlassViewManager.m in Sources */,
+				82520A952F4A517A00351FD1 /* LiquidGlassModule.swift in Sources */,
 				8291E0072F46090000C281DA /* PiperTtsModule.mm in Sources */,
+				8297F3102F4ABA1D00F4069D /* FullPlayerNativeView.swift in Sources */,
+				8297F3062F4AB91F00F4069D /* GlassPlayerWindowModule.swift in Sources */,
+				8297F3122F4ABAF500F4069D /* UIColorExtensions.swift in Sources */,
+				82520A992F4A518800351FD1 /* LiquidGlassModule.m in Sources */,
+				823E16082F48A94000A80AD8 /* AudioServices.m in Sources */,
+				8297F30A2F4AB95400F4069D /* GlassPlayerWindow.swift in Sources */,
+				8297F30C2F4AB97100F4069D /* GlassPlayerView.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				8291E00C2F46094400C281DA /* sherpa-onnx-model-detect.mm in Sources */,
+				82520A972F4A518100351FD1 /* LiquidGlassViewManager.swift in Sources */,
 				8291E0092F46090100C281DA /* TtsModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -726,8 +784,11 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = CommEazyTemp;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -852,7 +913,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = CommEazyTemp;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
