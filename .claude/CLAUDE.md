@@ -116,7 +116,82 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Long-press gesture implementatie** | **architecture-lead, ui-designer** — Wheel menu op ALLE devices, zie sectie 10c |
 | **UI met achtergrondkleur (iOS)** | **ui-designer, ios-specialist** — Liquid Glass compliance voor iOS/iPadOS 26+, zie SKILL.md sectie 14 |
 | **MiniPlayer/ModuleHeader/Cards** | **ui-designer** — `moduleId` prop VERPLICHT voor Liquid Glass |
-| **Nieuwe module** | **ui-designer** — Module MOET geregistreerd zijn in MODULE_TINT_COLORS |
+| **Nieuwe module** | **BLOKKEERDER** — Volledige checklist hieronder MOET worden doorlopen |
+
+### Nieuwe Module Validatie Checklist (VERPLICHT)
+
+**⚠️ KRITIEK:** Voordat een nieuwe module getest wordt, MOET Claude ALLE onderstaande punten valideren. Dit voorkomt situaties waar een module is geïmplementeerd maar niet zichtbaar is in het menu, iconen mist, of vertalingen ontbreken.
+
+**Wanneer:** Direct NA implementatie van een nieuwe module, VOOR het testen.
+
+| # | Check | Bestand | Wat valideren |
+|---|-------|---------|---------------|
+| 1 | **NavigationDestination type** | `src/components/WheelNavigationMenu.tsx` | `'moduleId'` toegevoegd aan `NavigationDestination` type |
+| 2 | **ALL_MODULES array** | `src/hooks/useModuleUsage.ts` | `'moduleId'` toegevoegd aan `ALL_MODULES` array |
+| 3 | **DEFAULT_MODULE_ORDER array** | `src/hooks/useModuleUsage.ts` | `'moduleId'` toegevoegd aan `DEFAULT_MODULE_ORDER` array |
+| 4 | **Icon & Color definitie** | `src/components/WheelNavigationMenu.tsx` | Entry in `STATIC_MODULE_DEFINITIONS` met `icon` en `color` |
+| 5 | **Module tint color** | `src/components/WheelNavigationMenu.tsx` | Entry in `MODULE_TINT_COLORS` voor Liquid Glass |
+| 6 | **i18n key NL** | `src/locales/nl.json` | `navigation.moduleId` key aanwezig |
+| 7 | **i18n key EN** | `src/locales/en.json` | `navigation.moduleId` key aanwezig |
+| 8 | **i18n key EN-GB** | `src/locales/en-GB.json` | `navigation.moduleId` key aanwezig |
+| 9 | **i18n key DE** | `src/locales/de.json` | `navigation.moduleId` key aanwezig |
+| 10 | **i18n key FR** | `src/locales/fr.json` | `navigation.moduleId` key aanwezig |
+| 11 | **i18n key ES** | `src/locales/es.json` | `navigation.moduleId` key aanwezig |
+| 12 | **i18n key IT** | `src/locales/it.json` | `navigation.moduleId` key aanwezig |
+| 13 | **i18n key NO** | `src/locales/no.json` | `navigation.moduleId` key aanwezig |
+| 14 | **i18n key SV** | `src/locales/sv.json` | `navigation.moduleId` key aanwezig |
+| 15 | **i18n key DA** | `src/locales/da.json` | `navigation.moduleId` key aanwezig |
+| 16 | **i18n key PT** | `src/locales/pt.json` | `navigation.moduleId` key aanwezig |
+| 17 | **i18n key PT-BR** | `src/locales/pt-BR.json` | `navigation.moduleId` key aanwezig |
+| 18 | **i18n key PL** | `src/locales/pl.json` | `navigation.moduleId` key aanwezig |
+| 19 | **Navigation route** | `src/navigation/index.tsx` | Screen geregistreerd in navigator |
+| 20 | **Screen component** | `src/screens/modules/[Module]Screen.tsx` | Screen bestand bestaat |
+
+**Claude's Verantwoordelijkheid:**
+
+Na het implementeren van een nieuwe module MOET Claude:
+1. Bovenstaande checklist doorlopen
+2. Elke check markeren als ✅ of ❌
+3. Bij ❌: EERST fixen voordat testen wordt voorgesteld
+4. Aan gebruiker rapporteren:
+
+```
+📋 **Nieuwe Module Validatie: [moduleId]**
+
+✅ NavigationDestination type
+✅ ALL_MODULES array
+✅ DEFAULT_MODULE_ORDER array
+✅ Icon & Color definitie
+✅ Module tint color
+✅ i18n (13/13 talen)
+✅ Navigation route
+✅ Screen component
+
+✅ **Module klaar voor testen.** Druk op ⌘R om te builden.
+```
+
+Of bij problemen:
+
+```
+📋 **Nieuwe Module Validatie: [moduleId]**
+
+✅ NavigationDestination type
+❌ ALL_MODULES array — ONTBREEKT
+❌ i18n — 11/13 talen ontbreken
+
+⚠️ **Module NIET klaar voor testen.** Bezig met fixen...
+```
+
+**Validatie Commando (optioneel):**
+
+```bash
+# Controleer of module in alle vereiste locaties aanwezig is
+MODULE="appleMusic" && \
+echo "=== Checking $MODULE ===" && \
+grep -l "$MODULE" src/hooks/useModuleUsage.ts && \
+grep -l "$MODULE" src/components/WheelNavigationMenu.tsx && \
+for f in src/locales/*.json; do grep -l "\"$MODULE\"" "$f" || echo "MISSING: $f"; done
+```
 
 ### Conflict Resolutie Hiërarchie
 
