@@ -31,6 +31,8 @@ import UIKit
     func playerDidTapFavorite()
     func playerDidSetSleepTimer(_ minutes: NSNumber?)
     func playerDidChangeSpeed(_ speed: Float)
+    func playerDidTapShuffle()
+    func playerDidTapRepeat()
 }
 
 // ============================================================
@@ -60,6 +62,7 @@ class GlassPlayerWindow: UIWindow {
     private let glassView: GlassPlayerView
     private let miniPlayerView: MiniPlayerNativeView
     private let fullPlayerView: FullPlayerNativeView
+    private var currentTintColor: UIColor?  // Store for shuffle/repeat coloring
 
     // ============================================================
     // MARK: Layout Constants
@@ -425,6 +428,9 @@ class GlassPlayerWindow: UIWindow {
         miniPlayerView.updateTintColor(content.tintColorHex)
         fullPlayerView.updateTintColor(content.tintColorHex)
         glassView.updateTintColor(content.tintColorHex)
+
+        // Store tint color for shuffle/repeat button coloring
+        currentTintColor = UIColor.fromHex(content.tintColorHex)
     }
 
     func updatePlaybackState(_ state: NSDictionary) {
@@ -444,6 +450,13 @@ class GlassPlayerWindow: UIWindow {
             position: playbackState.position,
             duration: playbackState.duration,
             isFavorite: playbackState.isFavorite
+        )
+
+        // Update shuffle/repeat state
+        fullPlayerView.updateShuffleRepeatState(
+            shuffleMode: playbackState.shuffleMode,
+            repeatMode: playbackState.repeatMode,
+            tintColor: currentTintColor
         )
     }
 }
@@ -512,6 +525,14 @@ extension GlassPlayerWindow: FullPlayerNativeViewDelegate {
     func fullPlayerDidTapFavorite() {
         eventDelegate?.playerDidTapFavorite()
     }
+
+    func fullPlayerDidTapShuffle() {
+        eventDelegate?.playerDidTapShuffle()
+    }
+
+    func fullPlayerDidTapRepeat() {
+        eventDelegate?.playerDidTapRepeat()
+    }
 }
 
 // ============================================================
@@ -556,6 +577,8 @@ struct PlaybackState {
     let listenDuration: TimeInterval?
     let showStopButton: Bool
     let isFavorite: Bool
+    let shuffleMode: String  // "off" | "songs"
+    let repeatMode: String   // "off" | "one" | "all"
 
     init(from state: NSDictionary) {
         isPlaying = state["isPlaying"] as? Bool ?? false
@@ -567,5 +590,7 @@ struct PlaybackState {
         isFavorite = state["isFavorite"] as? Bool ?? false
         isLoading = state["isLoading"] as? Bool ?? false
         isBuffering = state["isBuffering"] as? Bool ?? false
+        shuffleMode = state["shuffleMode"] as? String ?? "off"
+        repeatMode = state["repeatMode"] as? String ?? "off"
     }
 }

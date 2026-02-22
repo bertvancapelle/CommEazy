@@ -52,7 +52,9 @@ class GlassPlayerWindowModule: RCTEventEmitter {
             "onClose",
             "onFavoriteToggle",
             "onSleepTimerSet",
-            "onSpeedChange"
+            "onSpeedChange",
+            "onShuffleToggle",
+            "onRepeatToggle"
         ]
     }
 
@@ -225,5 +227,13 @@ extension GlassPlayerWindowModule: GlassPlayerWindowEventDelegate {
     
     func playerDidChangeSpeed(_ speed: Float) {
         sendEvent(withName: "onSpeedChange", body: ["speed": speed])
+    }
+
+    func playerDidTapShuffle() {
+        sendEvent(withName: "onShuffleToggle", body: nil)
+    }
+
+    func playerDidTapRepeat() {
+        sendEvent(withName: "onRepeatToggle", body: nil)
     }
 }

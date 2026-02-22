@@ -37,6 +37,9 @@ export interface GlassPlayerContent {
   showStopButton?: boolean;
 }
 
+export type ShuffleMode = 'off' | 'songs';
+export type RepeatMode = 'off' | 'one' | 'all';
+
 export interface GlassPlayerPlaybackState {
   /** Is currently playing */
   isPlaying: boolean;
@@ -54,6 +57,10 @@ export interface GlassPlayerPlaybackState {
   showStopButton?: boolean;
   /** Is favorited */
   isFavorite?: boolean;
+  /** Shuffle mode */
+  shuffleMode?: ShuffleMode;
+  /** Repeat mode */
+  repeatMode?: RepeatMode;
 }
 
 export interface GlassPlayerFullConfig {
@@ -69,6 +76,10 @@ export interface GlassPlayerFullConfig {
   favorite?: boolean;
   /** Show stop button */
   stopButton?: boolean;
+  /** Show shuffle button */
+  shuffle?: boolean;
+  /** Show repeat button */
+  repeat?: boolean;
 }
 
 export type GlassPlayerEventType =
@@ -79,10 +90,23 @@ export type GlassPlayerEventType =
   | 'onSeek'
   | 'onSkipForward'
   | 'onSkipBackward'
-  | 'onClose';
+  | 'onClose'
+  | 'onFavoriteToggle'
+  | 'onSleepTimerSet'
+  | 'onSpeedChange'
+  | 'onShuffleToggle'
+  | 'onRepeatToggle';
 
 export interface GlassPlayerSeekEvent {
   position: number;
+}
+
+export interface GlassPlayerSleepTimerEvent {
+  minutes: number | null;
+}
+
+export interface GlassPlayerSpeedEvent {
+  speed: number;
 }
 
 // ============================================================
@@ -278,6 +302,11 @@ class GlassPlayerService {
     this.eventEmitter.removeAllListeners('onSkipForward');
     this.eventEmitter.removeAllListeners('onSkipBackward');
     this.eventEmitter.removeAllListeners('onClose');
+    this.eventEmitter.removeAllListeners('onFavoriteToggle');
+    this.eventEmitter.removeAllListeners('onSleepTimerSet');
+    this.eventEmitter.removeAllListeners('onSpeedChange');
+    this.eventEmitter.removeAllListeners('onShuffleToggle');
+    this.eventEmitter.removeAllListeners('onRepeatToggle');
 
     this.listeners.clear();
   }

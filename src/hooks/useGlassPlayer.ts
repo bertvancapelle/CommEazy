@@ -33,6 +33,8 @@ import {
   type GlassPlayerContent,
   type GlassPlayerPlaybackState,
   type GlassPlayerSeekEvent,
+  type GlassPlayerSleepTimerEvent,
+  type GlassPlayerSpeedEvent,
 } from '@/services/glassPlayer';
 
 // ============================================================
@@ -56,11 +58,23 @@ export interface UseGlassPlayerOptions {
   onSkipBackward?: () => void;
   /** Called when player is closed */
   onClose?: () => void;
+  /** Called when favorite button is tapped */
+  onFavoriteToggle?: () => void;
+  /** Called when sleep timer is set (minutes or null for off) */
+  onSleepTimerSet?: (minutes: number | null) => void;
+  /** Called when playback speed is changed */
+  onSpeedChange?: (speed: number) => void;
+  /** Called when shuffle is toggled */
+  onShuffleToggle?: () => void;
+  /** Called when repeat is toggled */
+  onRepeatToggle?: () => void;
 }
 
 export interface UseGlassPlayerReturn {
   /** Is Glass Player available (iOS 26+) */
   isAvailable: boolean;
+  /** Is availability check still in progress */
+  isCheckingAvailability: boolean;
   /** Is player currently visible */
   isVisible: boolean;
   /** Is player in expanded (full) state */
@@ -85,6 +99,7 @@ export interface UseGlassPlayerReturn {
 
 export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPlayerReturn {
   const [isAvailable, setIsAvailable] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -100,6 +115,8 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
       const available = await glassPlayer.isAvailable();
       if (mounted) {
         setIsAvailable(available);
+        setIsCheckingAvailability(false);
+        console.log('[useGlassPlayer] Availability check complete:', available);
       }
     };
 
@@ -166,6 +183,36 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
       })
     );
 
+    unsubscribers.push(
+      glassPlayer.addEventListener('onFavoriteToggle', () => {
+        optionsRef.current.onFavoriteToggle?.();
+      })
+    );
+
+    unsubscribers.push(
+      glassPlayer.addEventListener('onSleepTimerSet', (data: GlassPlayerSleepTimerEvent) => {
+        optionsRef.current.onSleepTimerSet?.(data.minutes);
+      })
+    );
+
+    unsubscribers.push(
+      glassPlayer.addEventListener('onSpeedChange', (data: GlassPlayerSpeedEvent) => {
+        optionsRef.current.onSpeedChange?.(data.speed);
+      })
+    );
+
+    unsubscribers.push(
+      glassPlayer.addEventListener('onShuffleToggle', () => {
+        optionsRef.current.onShuffleToggle?.();
+      })
+    );
+
+    unsubscribers.push(
+      glassPlayer.addEventListener('onRepeatToggle', () => {
+        optionsRef.current.onRepeatToggle?.();
+      })
+    );
+
     return () => {
       unsubscribers.forEach((unsub) => unsub());
     };
@@ -216,6 +263,7 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
 
   return {
     isAvailable,
+    isCheckingAvailability,
     isVisible,
     isExpanded,
     showMiniPlayer,

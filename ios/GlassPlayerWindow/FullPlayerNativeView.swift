@@ -45,6 +45,8 @@ protocol FullPlayerNativeViewDelegate: AnyObject {
     func fullPlayerDidChangeSpeed(_ speed: Float)
     func fullPlayerDidSetSleepTimer(_ minutes: Int?)
     func fullPlayerDidTapFavorite()
+    func fullPlayerDidTapShuffle()
+    func fullPlayerDidTapRepeat()
 }
 
 // MARK: - FullPlayerNativeView
@@ -77,9 +79,11 @@ class FullPlayerNativeView: UIView {
     private let stopButton = UIButton(type: .system)
     
     // Secondary controls
+    private let shuffleButton = UIButton(type: .system)
     private let speedButton = UIButton(type: .system)
     private let sleepButton = UIButton(type: .system)
     private let favoriteButton = UIButton(type: .system)
+    private let repeatButton = UIButton(type: .system)
     
     // Loading indicator (overlay on play button)
     private let loadingIndicator = UIActivityIndicatorView(style: .medium)
@@ -91,6 +95,8 @@ class FullPlayerNativeView: UIView {
     private var isFavorite: Bool = false
     private var currentSpeed: Float = 1.0
     private var sleepTimerMinutes: Int? = nil
+    private var shuffleMode: String = "off"  // "off" | "songs"
+    private var repeatMode: String = "off"   // "off" | "one" | "all"
     
     // Configuration
     private var showSeekSlider: Bool = false
@@ -99,6 +105,8 @@ class FullPlayerNativeView: UIView {
     private var showSleepTimer: Bool = true
     private var showFavorite: Bool = true
     private var showStopButton: Bool = true
+    private var showShuffle: Bool = false
+    private var showRepeat: Bool = false
     
     // MARK: - Constants
     
@@ -254,6 +262,17 @@ class FullPlayerNativeView: UIView {
     }
     
     private func setupSecondaryControls() {
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+
+        // Shuffle button
+        shuffleButton.setImage(UIImage(systemName: "shuffle", withConfiguration: iconConfig), for: .normal)
+        shuffleButton.tintColor = .white
+        shuffleButton.addTarget(self, action: #selector(handleShuffleTap), for: .touchUpInside)
+        shuffleButton.translatesAutoresizingMaskIntoConstraints = false
+        shuffleButton.accessibilityLabel = "Willekeurig uit"
+        shuffleButton.isHidden = true
+        contentView.addSubview(shuffleButton)
+
         // Speed control
         speedButton.setTitle("1×", for: .normal)
         speedButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
@@ -263,24 +282,31 @@ class FullPlayerNativeView: UIView {
         speedButton.accessibilityLabel = "Afspeelsnelheid"
         speedButton.isHidden = true
         contentView.addSubview(speedButton)
-        
+
         // Sleep timer - starts with outline moon (white), filled moon (yellow) when active
-        let sleepConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-        sleepButton.setImage(UIImage(systemName: "moon", withConfiguration: sleepConfig), for: .normal)
+        sleepButton.setImage(UIImage(systemName: "moon", withConfiguration: iconConfig), for: .normal)
         sleepButton.tintColor = .white
         sleepButton.addTarget(self, action: #selector(handleSleepTap), for: .touchUpInside)
         sleepButton.translatesAutoresizingMaskIntoConstraints = false
         sleepButton.accessibilityLabel = "Slaaptimer uit"
         contentView.addSubview(sleepButton)
-        
+
         // Favorite
-        let favoriteConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-        favoriteButton.setImage(UIImage(systemName: "heart", withConfiguration: favoriteConfig), for: .normal)
+        favoriteButton.setImage(UIImage(systemName: "heart", withConfiguration: iconConfig), for: .normal)
         favoriteButton.tintColor = .white
         favoriteButton.addTarget(self, action: #selector(handleFavoriteTap), for: .touchUpInside)
         favoriteButton.translatesAutoresizingMaskIntoConstraints = false
         favoriteButton.accessibilityLabel = "Favoriet"
         contentView.addSubview(favoriteButton)
+
+        // Repeat button
+        repeatButton.setImage(UIImage(systemName: "repeat", withConfiguration: iconConfig), for: .normal)
+        repeatButton.tintColor = .white
+        repeatButton.addTarget(self, action: #selector(handleRepeatTap), for: .touchUpInside)
+        repeatButton.translatesAutoresizingMaskIntoConstraints = false
+        repeatButton.accessibilityLabel = "Herhalen uit"
+        repeatButton.isHidden = true
+        contentView.addSubview(repeatButton)
     }
     
     private func setupLoadingIndicator() {
@@ -355,30 +381,42 @@ class FullPlayerNativeView: UIView {
             skipForwardButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
             // Secondary controls row - spread horizontally
-            // Layout: [Moon] ... [Stop] ... [Heart]
-            // Stop button in CENTER of secondary row (not next to play button)
+            // Layout: [Shuffle] [Moon] [Stop/center] [Heart] [Repeat]
+            // Stop button in CENTER of secondary row
             stopButton.topAnchor.constraint(equalTo: playPauseButton.bottomAnchor, constant: Layout.verticalSpacing + 8),
             stopButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             stopButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             stopButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            
-            // Sleep button (moon) on the left
+
+            // Shuffle button (far left)
+            shuffleButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
+            shuffleButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
+            shuffleButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            shuffleButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+
+            // Sleep button (moon) - left of center
             sleepButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            sleepButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding + 20),
+            sleepButton.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -16),
             sleepButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             sleepButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            
-            // Speed button hidden for radio (positioned but hidden)
+
+            // Speed button (positioned but often hidden)
             speedButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            speedButton.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -16),
+            speedButton.trailingAnchor.constraint(equalTo: sleepButton.leadingAnchor, constant: -8),
             speedButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             speedButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            
-            // Favorite button (heart) on the right
+
+            // Favorite button (heart) - right of center
             favoriteButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            favoriteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -(Layout.padding + 20)),
+            favoriteButton.leadingAnchor.constraint(equalTo: stopButton.trailingAnchor, constant: 16),
             favoriteButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             favoriteButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+
+            // Repeat button (far right)
+            repeatButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
+            repeatButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
+            repeatButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            repeatButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
             // Loading indicator - centered on play button
             loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
@@ -491,7 +529,17 @@ class FullPlayerNativeView: UIView {
         triggerHaptic()
         delegate?.fullPlayerDidTapFavorite()
     }
-    
+
+    @objc private func handleShuffleTap() {
+        triggerHaptic(.light)
+        delegate?.fullPlayerDidTapShuffle()
+    }
+
+    @objc private func handleRepeatTap() {
+        triggerHaptic(.light)
+        delegate?.fullPlayerDidTapRepeat()
+    }
+
     private func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
         let impact = UIImpactFeedbackGenerator(style: style)
         impact.impactOccurred()
@@ -506,7 +554,9 @@ class FullPlayerNativeView: UIView {
         showSleepTimer = controls["sleepTimer"] as? Bool ?? true
         showFavorite = controls["favorite"] as? Bool ?? true
         showStopButton = controls["stopButton"] as? Bool ?? true
-        
+        showShuffle = controls["shuffle"] as? Bool ?? false
+        showRepeat = controls["repeat"] as? Bool ?? false
+
         // Update visibility
         seekContainer.isHidden = !showSeekSlider
         skipBackwardButton.isHidden = !showSkipButtons
@@ -515,6 +565,8 @@ class FullPlayerNativeView: UIView {
         sleepButton.isHidden = !showSleepTimer
         favoriteButton.isHidden = !showFavorite
         stopButton.isHidden = !showStopButton
+        shuffleButton.isHidden = !showShuffle
+        repeatButton.isHidden = !showRepeat
     }
     
     func updateContent(title: String, subtitle: String?, artworkURL: String?) {
@@ -579,8 +631,50 @@ class FullPlayerNativeView: UIView {
         sleepTimerMinutes = nil
         updateSleepButton()
     }
-    
+
+    /// Update shuffle/repeat state from React Native
+    func updateShuffleRepeatState(shuffleMode: String, repeatMode: String, tintColor: UIColor?) {
+        self.shuffleMode = shuffleMode
+        self.repeatMode = repeatMode
+        updateShuffleButton(tintColor: tintColor)
+        updateRepeatButton(tintColor: tintColor)
+    }
+
     // MARK: - Helper Methods
+
+    private func updateShuffleButton(tintColor: UIColor?) {
+        let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        let isActive = shuffleMode == "songs"
+        shuffleButton.setImage(UIImage(systemName: "shuffle", withConfiguration: config), for: .normal)
+        shuffleButton.tintColor = isActive ? (tintColor ?? .systemBlue) : .white
+        shuffleButton.accessibilityLabel = isActive ? "Willekeurig aan" : "Willekeurig uit"
+    }
+
+    private func updateRepeatButton(tintColor: UIColor?) {
+        let config = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        let iconName: String
+        let accessibilityLabel: String
+        let isActive: Bool
+
+        switch repeatMode {
+        case "one":
+            iconName = "repeat.1"
+            accessibilityLabel = "Herhaal dit nummer"
+            isActive = true
+        case "all":
+            iconName = "repeat"
+            accessibilityLabel = "Herhaal alles"
+            isActive = true
+        default: // "off"
+            iconName = "repeat"
+            accessibilityLabel = "Herhalen uit"
+            isActive = false
+        }
+
+        repeatButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
+        repeatButton.tintColor = isActive ? (tintColor ?? .systemBlue) : .white
+        repeatButton.accessibilityLabel = accessibilityLabel
+    }
     
     private func updateSpeedButton() {
         if currentSpeed == 1.0 {
