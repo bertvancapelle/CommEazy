@@ -91,5 +91,7 @@
 	<string>CommEazy gebruikt de microfoon voor spraak- en videogesprekken.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>CommEazy gebruikt spraakherkenning om je stemcommando's te begrijpen voor handsfree navigatie.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>CommEazy gebruikt Apple Music om je favoriete muziek af te spelen en te doorzoeken.</string>
 </dict>
 </plist>

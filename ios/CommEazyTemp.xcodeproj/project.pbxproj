@@ -31,6 +31,8 @@
 		8297F30E2F4AB9D600F4069D /* MiniPlayerNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F30D2F4AB9D600F4069D /* MiniPlayerNativeView.swift */; };
 		8297F3102F4ABA1D00F4069D /* FullPlayerNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F30F2F4ABA1D00F4069D /* FullPlayerNativeView.swift */; };
 		8297F3122F4ABAF500F4069D /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3112F4ABAF500F4069D /* UIColorExtensions.swift */; };
+		8297F3142F4B265200F4069D /* AppleMusicModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3132F4B265200F4069D /* AppleMusicModule.swift */; };
+		8297F3162F4B266500F4069D /* AppleMusicModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3152F4B266500F4069D /* AppleMusicModule.m */; };
 		82BE2E142F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 		82BE2E152F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
@@ -86,6 +88,8 @@
 		8297F30D2F4AB9D600F4069D /* MiniPlayerNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerNativeView.swift; sourceTree = "<group>"; };
 		8297F30F2F4ABA1D00F4069D /* FullPlayerNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullPlayerNativeView.swift; sourceTree = "<group>"; };
 		8297F3112F4ABAF500F4069D /* UIColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
+		8297F3132F4B265200F4069D /* AppleMusicModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicModule.swift; sourceTree = "<group>"; };
+		8297F3152F4B266500F4069D /* AppleMusicModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppleMusicModule.m; sourceTree = "<group>"; };
 		82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		82EFD6552F45F86B0009F977 /* PiperTtsTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiperTtsTestView.swift; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; path = "Target Support Files/Pods-CommEazyTemp-CommEazyTempTests/Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -161,6 +165,8 @@
 				82520A982F4A518800351FD1 /* LiquidGlassModule.m */,
 				82520A9A2F4A535500351FD1 /* LiquidGlassViewManager.m */,
 				8297F3042F4AB90B00F4069D /* GlassPlayerWindow */,
+				8297F3132F4B265200F4069D /* AppleMusicModule.swift */,
+				8297F3152F4B266500F4069D /* AppleMusicModule.m */,
 			);
 			name = CommEazyTemp;
 			sourceTree = "<group>";
@@ -583,6 +589,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				8297F30E2F4AB9D600F4069D /* MiniPlayerNativeView.swift in Sources */,
 				8291E00F2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm in Sources */,
+				8297F3142F4B265200F4069D /* AppleMusicModule.swift in Sources */,
 				8297F3082F4AB92600F4069D /* GlassPlayerWindowModule.m in Sources */,
 				82520A9B2F4A535500351FD1 /* LiquidGlassViewManager.m in Sources */,
 				82520A952F4A517A00351FD1 /* LiquidGlassModule.swift in Sources */,
@@ -597,6 +604,7 @@
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				8291E00C2F46094400C281DA /* sherpa-onnx-model-detect.mm in Sources */,
 				82520A972F4A518100351FD1 /* LiquidGlassViewManager.swift in Sources */,
+				8297F3162F4B266500F4069D /* AppleMusicModule.m in Sources */,
 				8291E0092F46090100C281DA /* TtsModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
