@@ -95,12 +95,12 @@ Privacy-first family communication app. End-to-end encrypted messaging, photos, 
 - **Auth:** Firebase Auth (phone verification only)
 - **Push:** Firebase Cloud Messaging
 - **Calls:** WebRTC (P2P via Coturn STUN/TURN)
-- **Languages:** NL, EN, EN-GB, DE, FR, ES, IT, NO, SV, DA, PT, PT-BR (react-i18next) — 12 talen
+- **Languages:** 13 talen (react-i18next) — zie `CONSTANTS.md` voor volledige lijst
 
 ## Non-Negotiable Requirements
 1. **Zero server storage** — Prosody routes only, never stores message content
 2. **Senior-inclusive UX** — Body ≥18pt, touch ≥60pt, WCAG AAA, max 3 steps per flow
-3. **12-language support** — All UI strings via t(), zero hardcoded text (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
+3. **13-language support** — All UI strings via t(), zero hardcoded text — zie `CONSTANTS.md`
 4. **Store compliance** — Apple Privacy Manifest + Google Data Safety Section
 5. **Encryption export** — US BIS Self-Classification Report filed
 6. **Apple Platform Compliance (Liquid Glass)** — iOS/iPadOS 26+ must use Liquid Glass effects with module tint colors; graceful fallback to solid colors on iOS <26 and Android. See section 16.
@@ -117,7 +117,7 @@ src/
   components/       ← Reusable UI components
   navigation/       ← React Navigation setup (max 2 levels)
   hooks/            ← Custom React hooks
-  locales/          ← i18n translation files (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
+  locales/          ← i18n translation files (13 talen, zie CONSTANTS.md)
   theme/            ← Colours, typography, spacing (senior-inclusive)
   config/           ← App configuration
   models/           ← WatermelonDB models
@@ -571,38 +571,11 @@ De **architecture-lead** skill is verantwoordelijk voor:
 5. **Performance** — Cold start <3s, 60fps scroll, memory <200MB
 6. **Code Quality** — TypeScript strict, 80% coverage, zero warnings
 
-## Ondersteunde Talen (10 talen)
+## Ondersteunde Talen
 
-CommEazy ondersteunt de volgende 10 talen. ALLE i18n keys moeten in ALLE talen aanwezig zijn.
+> **Zie `CONSTANTS.md` voor de volledige lijst van 13 ondersteunde talen en text expansion percentages.**
 
-| Code | Taal | Bestand | Native naam |
-|------|------|---------|-------------|
-| `nl` | Nederlands | `nl.json` | Nederlands |
-| `en` | Engels | `en.json` | English |
-| `de` | Duits | `de.json` | Deutsch |
-| `fr` | Frans | `fr.json` | Français |
-| `es` | Spaans | `es.json` | Español |
-| `it` | Italiaans | `it.json` | Italiano |
-| `no` | Noors | `no.json` | Norsk |
-| `sv` | Zweeds | `sv.json` | Svenska |
-| `da` | Deens | `da.json` | Dansk |
-| `pt` | Portugees | `pt.json` | Português |
-
-### Text Expansion per Taal
-
-Bij het ontwerpen van UI, houd rekening met text expansion:
-
-| Taal | Expansie vs Engels | Voorbeeld |
-|------|-------------------|-----------|
-| Duits | +30% | "Settings" → "Einstellungen" |
-| Frans | +20% | "Send" → "Envoyer" |
-| Spaans | +15% | "Contact" → "Contacto" |
-| Nederlands | +10% | "Message" → "Bericht" |
-| Italiaans | +15% | "Send" → "Invia" |
-| Portugees | +20% | "Settings" → "Configurações" |
-| Noors | +10% | "Send" → "Send" |
-| Zweeds | +10% | "Send" → "Skicka" |
-| Deens | +10% | "Send" → "Send" |
+ALLE i18n keys moeten in ALLE 13 talen aanwezig zijn.
 
 ### i18n Validatie Commando
 
@@ -631,22 +604,7 @@ missing.forEach(k => console.log('  -', k));
 - Dit maskeert het probleem tijdens development/testing
 - Gebruikers zien plots Nederlandse tekst in hun taal-instellingen
 
-**Verplichte Locales (13 talen):**
-| Taal | Bestand | Status check |
-|------|---------|--------------|
-| Nederlands | `nl.json` | Referentie (altijd compleet) |
-| Engels | `en.json` | Verplicht |
-| Engels (UK) | `en-GB.json` | Verplicht |
-| Duits | `de.json` | Verplicht |
-| Frans | `fr.json` | Verplicht |
-| Spaans | `es.json` | Verplicht |
-| Italiaans | `it.json` | Verplicht |
-| Noors | `no.json` | Verplicht |
-| Zweeds | `sv.json` | Verplicht |
-| Deens | `da.json` | Verplicht |
-| Portugees | `pt.json` | Verplicht |
-| Portugees (BR) | `pt-BR.json` | Verplicht |
-| Pools | `pl.json` | Verplicht |
+**Verplichte Locales:** Zie `CONSTANTS.md` sectie "Ondersteunde Talen (i18n)" voor de volledige lijst van 13 talen.
 
 **Claude's Workflow bij Nieuwe i18n Keys:**
 
