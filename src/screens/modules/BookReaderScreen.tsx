@@ -957,12 +957,14 @@ export function BookReaderScreen() {
                         {voice.quality === 'premium' && (
                           <View style={[
                             styles.recommendedBadge,
+                            { backgroundColor: `${booksModuleColor}20` },
                             voiceQualityStatus.selectedVoice?.id === voice.id && {
                               backgroundColor: 'rgba(255,255,255,0.3)',
                             },
                           ]}>
                             <Text style={[
                               styles.recommendedBadgeText,
+                              { color: booksModuleColor },
                               voiceQualityStatus.selectedVoice?.id === voice.id && {
                                 color: colors.textOnPrimary,
                               },
@@ -1524,7 +1526,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   recommendedBadge: {
-    backgroundColor: `${booksModuleColor}20`,
+    // backgroundColor uses dynamic booksModuleColor inline
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
@@ -1532,7 +1534,7 @@ const styles = StyleSheet.create({
   recommendedBadgeText: {
     ...typography.small,
     fontSize: 11,
-    color: booksModuleColor,
+    // color uses dynamic booksModuleColor inline
     fontWeight: '600',
   },
   voiceSelectionCancelButton: {

@@ -607,7 +607,7 @@ export function BooksScreen() {
                           accessibilityLabel={t('modules.books.coverAlt', { title: book.title })}
                         />
                       ) : (
-                        <View style={[styles.bookCoverImage, styles.bookCoverPlaceholder]}>
+                        <View style={[styles.bookCoverImage, styles.bookCoverPlaceholder, { backgroundColor: booksModuleColor }]}>
                           <Icon name="book" size={32} color={colors.textOnPrimary} />
                         </View>
                       )}
@@ -1183,7 +1183,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   bookCoverPlaceholder: {
-    backgroundColor: booksModuleColor,
+    // backgroundColor uses dynamic booksModuleColor inline
     justifyContent: 'center',
     alignItems: 'center',
   },

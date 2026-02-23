@@ -82,7 +82,7 @@ function CategoryChip({ category, isSelected, onPress, themeColors }: CategoryCh
       style={[
         styles.categoryChip,
         { backgroundColor: themeColors.background, borderColor: themeColors.border },
-        isSelected && styles.categoryChipSelected,
+        isSelected && [styles.categoryChipSelected, { backgroundColor: nunlModuleColor, borderColor: nunlModuleColor }],
       ]}
       onPress={handlePress}
       onLongPress={() => {}} // Prevent onPress after long press
@@ -552,8 +552,7 @@ const styles = StyleSheet.create({
     minHeight: touchTargets.minimum,
   },
   categoryChipSelected: {
-    backgroundColor: nunlModuleColor,
-    borderColor: nunlModuleColor,
+    // backgroundColor and borderColor use dynamic nunlModuleColor inline
   },
   categoryIcon: {
     fontSize: 16,
