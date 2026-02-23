@@ -29,8 +29,9 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, type AccentColorKey } from '@/theme';
+import { darkColors } from '@/theme/darkColors';
 import { Icon, type IconName } from '@/components';
-import { useTheme, type ThemeMode } from '@/contexts/ThemeContext';
+import { useTheme, useColors, type ThemeMode } from '@/contexts/ThemeContext';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { useFeedback } from '@/hooks/useFeedback';
 
@@ -75,15 +76,17 @@ interface ThemeOptionButtonProps {
   isSelected: boolean;
   onSelect: () => void;
   accentColor: string;
+  themeColors: typeof colors;
 }
 
-function ThemeOptionButton({ option, isSelected, onSelect, accentColor }: ThemeOptionButtonProps) {
+function ThemeOptionButton({ option, isSelected, onSelect, accentColor, themeColors }: ThemeOptionButtonProps) {
   const { t } = useTranslation();
 
   return (
     <TouchableOpacity
       style={[
         styles.themeOption,
+        { backgroundColor: themeColors.surface, borderColor: themeColors.border },
         isSelected && { borderColor: accentColor, borderWidth: 3 },
       ]}
       onPress={onSelect}
@@ -95,18 +98,20 @@ function ThemeOptionButton({ option, isSelected, onSelect, accentColor }: ThemeO
       <View
         style={[
           styles.themeIconContainer,
+          { backgroundColor: themeColors.backgroundSecondary },
           isSelected && { backgroundColor: accentColor },
         ]}
       >
         <Icon
           name={option.icon}
           size={28}
-          color={isSelected ? colors.textOnPrimary : colors.textSecondary}
+          color={isSelected ? themeColors.textOnPrimary : themeColors.textSecondary}
         />
       </View>
       <Text
         style={[
           styles.themeLabel,
+          { color: themeColors.textPrimary },
           isSelected && { color: accentColor, fontWeight: '700' },
         ]}
       >
@@ -155,7 +160,8 @@ function ColorSwatch({ colorKey, isSelected, onSelect }: ColorSwatchProps) {
 export function AppearanceSettingsScreen() {
   const { t } = useTranslation();
   const { triggerFeedback } = useFeedback();
-  const { themeMode, resolvedTheme, setThemeMode } = useTheme();
+  const { themeMode, resolvedTheme, isDarkMode, setThemeMode } = useTheme();
+  const themeColors = useColors(); // Dynamic colors based on theme
   const { accentColorKey, accentColor, updateAccentColor } = useAccentColorContext();
 
   // Handle theme selection
@@ -177,11 +183,11 @@ export function AppearanceSettingsScreen() {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Theme Mode Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('appearance.theme.title')}</Text>
-        <Text style={styles.sectionHint}>{t('appearance.theme.hint')}</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.theme.title')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.theme.hint')}</Text>
 
         <View style={styles.themeOptionsContainer}>
           {THEME_OPTIONS.map((option) => (
@@ -191,19 +197,20 @@ export function AppearanceSettingsScreen() {
               isSelected={themeMode === option.mode}
               onSelect={() => void handleThemeSelect(option.mode)}
               accentColor={accentColor.primary}
+              themeColors={themeColors}
             />
           ))}
         </View>
 
         {/* Current theme indicator (when using system) */}
         {themeMode === 'system' && (
-          <View style={styles.systemIndicator}>
+          <View style={[styles.systemIndicator, { backgroundColor: themeColors.backgroundSecondary }]}>
             <Icon
               name={resolvedTheme === 'dark' ? 'moon' : 'sun'}
               size={18}
-              color={colors.textSecondary}
+              color={themeColors.textSecondary}
             />
-            <Text style={styles.systemIndicatorText}>
+            <Text style={[styles.systemIndicatorText, { color: themeColors.textSecondary }]}>
               {t('appearance.theme.currentlyUsing', {
                 theme: t(resolvedTheme === 'dark' ? 'appearance.theme.dark' : 'appearance.theme.light'),
               })}
@@ -214,8 +221,8 @@ export function AppearanceSettingsScreen() {
 
       {/* Accent Color Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('appearance.accentColor.title')}</Text>
-        <Text style={styles.sectionHint}>{t('appearance.accentColor.hint')}</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.accentColor.title')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.accentColor.hint')}</Text>
 
         <View style={styles.colorGrid}>
           {ACCENT_COLOR_KEYS.map((key) => (
@@ -231,7 +238,7 @@ export function AppearanceSettingsScreen() {
         {/* Selected color name */}
         <View style={styles.selectedColorIndicator}>
           <View style={[styles.selectedColorDot, { backgroundColor: accentColor.primary }]} />
-          <Text style={styles.selectedColorText}>
+          <Text style={[styles.selectedColorText, { color: themeColors.textPrimary }]}>
             {accentColor.label}
           </Text>
         </View>
@@ -239,32 +246,38 @@ export function AppearanceSettingsScreen() {
 
       {/* Preview Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('appearance.preview.title')}</Text>
-        <Text style={styles.sectionHint}>{t('appearance.preview.hint')}</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.preview.title')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.preview.hint')}</Text>
 
         {/* Preview card showing current theme + accent */}
-        <View style={styles.previewCard}>
+        <View style={[
+          styles.previewCard,
+          {
+            backgroundColor: themeColors.surface,
+            borderColor: themeColors.border,
+          }
+        ]}>
           <View style={[styles.previewHeader, { backgroundColor: accentColor.primary }]}>
-            <Icon name="chat" size={24} color={colors.textOnPrimary} />
-            <Text style={styles.previewHeaderText}>{t('tabs.chats')}</Text>
+            <Icon name="chat" size={24} color={themeColors.textOnPrimary} />
+            <Text style={[styles.previewHeaderText, { color: themeColors.textOnPrimary }]}>{t('tabs.chats')}</Text>
           </View>
-          <View style={styles.previewContent}>
-            <View style={styles.previewMessage}>
-              <Text style={styles.previewMessageText}>
+          <View style={[styles.previewContent, { backgroundColor: themeColors.background }]}>
+            <View style={[styles.previewMessage, { backgroundColor: themeColors.backgroundSecondary }]}>
+              <Text style={[styles.previewMessageText, { color: themeColors.textPrimary }]}>
                 {t('appearance.preview.sampleMessage')}
               </Text>
             </View>
             <View style={[styles.previewButton, { backgroundColor: accentColor.primary }]}>
-              <Text style={styles.previewButtonText}>{t('common.send')}</Text>
+              <Text style={[styles.previewButtonText, { color: themeColors.textOnPrimary }]}>{t('common.send')}</Text>
             </View>
           </View>
         </View>
       </View>
 
       {/* Info text */}
-      <View style={styles.infoSection}>
-        <Icon name="info" size={18} color={colors.textTertiary} />
-        <Text style={styles.infoText}>
+      <View style={[styles.infoSection, { backgroundColor: themeColors.backgroundSecondary }]}>
+        <Icon name="info" size={18} color={themeColors.textTertiary} />
+        <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
           {t('appearance.info')}
         </Text>
       </View>
