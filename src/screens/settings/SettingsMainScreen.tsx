@@ -111,7 +111,8 @@ export function SettingsMainScreen() {
   const settingsItems = useMemo(() => [
     { id: 'profile', label: t('settings.profile'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('ProfileSettings'); } },
     { id: 'accessibility', label: t('settings.accessibility'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AccessibilitySettings'); } },
-    { id: 'appearance', label: t('settings.liquidGlass.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('LiquidGlassSettings'); } },
+    { id: 'appearance', label: t('appearance.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AppearanceSettings'); } },
+    { id: 'liquid-glass', label: t('settings.liquidGlass.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('LiquidGlassSettings'); } },
     { id: 'voice', label: t('voiceSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('VoiceSettings'); } },
     { id: 'modules', label: t('settings.modules.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('ModulesSettings'); } },
     { id: 'call-settings', label: t('callSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('CallSettings'); } },
@@ -312,11 +313,29 @@ export function SettingsMainScreen() {
           />
         </VoiceFocusable>
 
-        {/* Weergave (Liquid Glass) */}
+        {/* Weergave en Kleuren (Theme + Accent Color) */}
         <VoiceFocusable
           id="appearance"
-          label={t('settings.liquidGlass.title')}
+          label={t('appearance.title')}
           index={2}
+          onSelect={() => navigation.navigate('AppearanceSettings')}
+        >
+          <SubsectionButton
+            icon="sun"
+            label={t('appearance.title')}
+            onPress={() => navigation.navigate('AppearanceSettings')}
+            accessibilityHint={t('appearance.theme.hint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('appearance')}
+            focusStyle={getFocusStyle()}
+          />
+        </VoiceFocusable>
+
+        {/* Liquid Glass effecten (iOS 26+) */}
+        <VoiceFocusable
+          id="liquid-glass"
+          label={t('settings.liquidGlass.title')}
+          index={3}
           onSelect={() => navigation.navigate('LiquidGlassSettings')}
         >
           <SubsectionButton
@@ -325,7 +344,7 @@ export function SettingsMainScreen() {
             onPress={() => navigation.navigate('LiquidGlassSettings')}
             accessibilityHint={t('settings.liquidGlass.subtitle')}
             iconColor={accentColor.primary}
-            focused={isItemFocused('appearance')}
+            focused={isItemFocused('liquid-glass')}
             focusStyle={getFocusStyle()}
           />
         </VoiceFocusable>
@@ -334,7 +353,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="voice"
           label={t('voiceSettings.title')}
-          index={3}
+          index={4}
           onSelect={() => navigation.navigate('VoiceSettings')}
         >
           <SubsectionButton
@@ -352,7 +371,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="modules"
           label={t('settings.modules.title')}
-          index={4}
+          index={5}
           onSelect={() => navigation.navigate('ModulesSettings')}
         >
           <SubsectionButton
@@ -370,7 +389,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="call-settings"
           label={t('callSettings.title')}
-          index={5}
+          index={6}
           onSelect={() => navigation.navigate('CallSettings')}
         >
           <SubsectionButton
@@ -388,7 +407,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="notifications"
           label={t('settings.notifications')}
-          index={6}
+          index={7}
           onSelect={() => {
             Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
           }}
@@ -414,7 +433,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="backup"
           label={t('settings.backup')}
-          index={7}
+          index={8}
           onSelect={() => navigation.navigate('BackupSettings')}
         >
           <SubsectionButton
@@ -432,7 +451,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="device-link"
           label={t('settings.deviceLink')}
-          index={8}
+          index={9}
           onSelect={() => navigation.navigate('DeviceLinkShowQR')}
         >
           <SubsectionButton

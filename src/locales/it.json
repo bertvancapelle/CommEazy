@@ -279,6 +279,30 @@
     "ttsSpeedHint": "Una lettura più lenta è più facile da seguire",
     "ttsSpeedOption": "Velocità {{percent}}"
   },
+  "appearance": {
+    "title": "Aspetto e Colori",
+    "theme": {
+      "title": "Tema",
+      "hint": "Scegli l'aspetto dell'app",
+      "light": "Chiaro",
+      "lightHint": "Sfondo chiaro con testo scuro",
+      "dark": "Scuro",
+      "darkHint": "Sfondo scuro con testo chiaro",
+      "system": "Sistema",
+      "systemHint": "Segue l'impostazione del telefono",
+      "currentlyUsing": "Attualmente: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Colore accento",
+      "hint": "Questo colore viene usato per pulsanti e accenti"
+    },
+    "preview": {
+      "title": "Anteprima",
+      "hint": "Ecco come appare l'app ora",
+      "sampleMessage": "Ciao! Come stai?"
+    },
+    "info": "Le modifiche vengono applicate immediatamente in tutta l'app."
+  },
   "theme": {
     "accentColors": {
       "blue": "Blu",

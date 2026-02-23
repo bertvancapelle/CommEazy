@@ -274,6 +274,30 @@
     "ttsSpeedHint": "Une lecture plus lente est plus facile à suivre",
     "ttsSpeedOption": "Vitesse {{percent}}"
   },
+  "appearance": {
+    "title": "Apparence et Couleurs",
+    "theme": {
+      "title": "Thème",
+      "hint": "Choisissez l'apparence de l'application",
+      "light": "Clair",
+      "lightHint": "Fond clair avec texte foncé",
+      "dark": "Sombre",
+      "darkHint": "Fond sombre avec texte clair",
+      "system": "Système",
+      "systemHint": "Suit le réglage de votre téléphone",
+      "currentlyUsing": "Actuellement : {{theme}}"
+    },
+    "accentColor": {
+      "title": "Couleur d'accent",
+      "hint": "Cette couleur est utilisée pour les boutons et les accents"
+    },
+    "preview": {
+      "title": "Aperçu",
+      "hint": "Voici à quoi ressemble l'application maintenant",
+      "sampleMessage": "Bonjour ! Comment allez-vous ?"
+    },
+    "info": "Les modifications sont appliquées immédiatement dans toute l'application."
+  },
   "callSettings": {
     "title": "Paramètres d'appel",
     "screenHint": "Ajuster la sonnerie, la tonalité et la vibration",

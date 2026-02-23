@@ -274,6 +274,30 @@
     "ttsSpeedHint": "Langsameres Vorlesen ist leichter zu folgen",
     "ttsSpeedOption": "{{percent}} Geschwindigkeit"
   },
+  "appearance": {
+    "title": "Darstellung & Farben",
+    "theme": {
+      "title": "Design",
+      "hint": "Wähle das Aussehen der App",
+      "light": "Hell",
+      "lightHint": "Heller Hintergrund mit dunklem Text",
+      "dark": "Dunkel",
+      "darkHint": "Dunkler Hintergrund mit hellem Text",
+      "system": "System",
+      "systemHint": "Folgt der Einstellung deines Telefons",
+      "currentlyUsing": "Aktuell: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Akzentfarbe",
+      "hint": "Diese Farbe wird für Schaltflächen und Akzente verwendet"
+    },
+    "preview": {
+      "title": "Vorschau",
+      "hint": "So sieht die App jetzt aus",
+      "sampleMessage": "Hallo! Wie geht es dir?"
+    },
+    "info": "Änderungen werden sofort in der gesamten App angewendet."
+  },
   "callSettings": {
     "title": "Anrufeinstellungen",
     "screenHint": "Klingelton, Wählton und Vibration anpassen",

@@ -296,6 +296,30 @@
     "ttsSpeedHint": "Langzamer voorlezen is makkelijker te volgen",
     "ttsSpeedOption": "{{percent}} snelheid"
   },
+  "appearance": {
+    "title": "Weergave en Kleuren",
+    "theme": {
+      "title": "Thema",
+      "hint": "Kies hoe de app eruitziet",
+      "light": "Licht",
+      "lightHint": "Lichte achtergrond met donkere tekst",
+      "dark": "Donker",
+      "darkHint": "Donkere achtergrond met lichte tekst",
+      "system": "Systeem",
+      "systemHint": "Volgt de instelling van je telefoon",
+      "currentlyUsing": "Momenteel: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Accentkleur",
+      "hint": "Deze kleur wordt gebruikt voor knoppen en accenten"
+    },
+    "preview": {
+      "title": "Voorbeeld",
+      "hint": "Zo ziet de app er nu uit",
+      "sampleMessage": "Hallo! Hoe gaat het met je?"
+    },
+    "info": "Wijzigingen worden direct toegepast op de hele app."
+  },
   "callSettings": {
     "title": "Bel-instellingen",
     "screenHint": "Pas beltoon, kiestoon en trillen aan",

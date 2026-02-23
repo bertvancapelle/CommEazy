@@ -91,3 +91,16 @@ export {
   useAudioOrchestratorOptional,
   type AudioSource,
 } from './AudioOrchestratorContext';
+
+export {
+  ThemeProvider,
+  useTheme,
+  useThemeSafe,
+  useColors,
+  useIsDarkMode,
+  getDarkAccentColor,
+  type ThemeMode,
+  type ResolvedTheme,
+  type ColorPalette,
+  type ThemeContextValue,
+} from './ThemeContext';

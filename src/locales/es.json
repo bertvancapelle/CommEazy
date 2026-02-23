@@ -274,6 +274,30 @@
     "ttsSpeedHint": "Leer más lento es más fácil de seguir",
     "ttsSpeedOption": "Velocidad {{percent}}"
   },
+  "appearance": {
+    "title": "Apariencia y Colores",
+    "theme": {
+      "title": "Tema",
+      "hint": "Elige cómo se ve la aplicación",
+      "light": "Claro",
+      "lightHint": "Fondo claro con texto oscuro",
+      "dark": "Oscuro",
+      "darkHint": "Fondo oscuro con texto claro",
+      "system": "Sistema",
+      "systemHint": "Sigue la configuración de tu teléfono",
+      "currentlyUsing": "Actualmente: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Color de acento",
+      "hint": "Este color se usa para botones y acentos"
+    },
+    "preview": {
+      "title": "Vista previa",
+      "hint": "Así se ve la aplicación ahora",
+      "sampleMessage": "¡Hola! ¿Cómo estás?"
+    },
+    "info": "Los cambios se aplican inmediatamente en toda la aplicación."
+  },
   "callSettings": {
     "title": "Ajustes de llamada",
     "screenHint": "Ajustar tono, tono de marcado y vibración",

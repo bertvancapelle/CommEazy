@@ -10,3 +10,4 @@ export { ModulesSettingsScreen } from './ModulesSettingsScreen';
 export { CallSettingsScreen } from './CallSettingsScreen';
 export { LiquidGlassSettingsScreen } from './LiquidGlassSettingsScreen';
 export { ComplianceReportScreen } from './ComplianceReportScreen';
+export { AppearanceSettingsScreen } from './AppearanceSettingsScreen';

@@ -19,6 +19,7 @@ import { colors } from '@/theme';
 import { ServiceProvider } from '@/hooks/useServices';
 import { HoldToNavigateProvider } from '@/hooks/useHoldToNavigate';
 import { AccentColorProvider } from '@/contexts/AccentColorContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LiquidGlassProvider } from '@/contexts/LiquidGlassContext';
 import { VoiceFocusProvider } from '@/contexts/VoiceFocusContext';
 import { VoiceSettingsProvider } from '@/contexts/VoiceSettingsContext';
@@ -106,8 +107,9 @@ export default function App() {
         backgroundColor={colors.background}
       />
       <ServiceProvider reducedMotion={reducedMotion}>
-        <AccentColorProvider>
-          <LiquidGlassProvider>
+        <ThemeProvider>
+          <AccentColorProvider>
+            <LiquidGlassProvider>
             <VoiceSettingsProvider>
             <VoiceFocusProvider>
               <VoiceFormProvider>
@@ -137,8 +139,9 @@ export default function App() {
               </VoiceFormProvider>
             </VoiceFocusProvider>
           </VoiceSettingsProvider>
-          </LiquidGlassProvider>
-        </AccentColorProvider>
+            </LiquidGlassProvider>
+          </AccentColorProvider>
+        </ThemeProvider>
       </ServiceProvider>
     </SafeAreaProvider>
   );

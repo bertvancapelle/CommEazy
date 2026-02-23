@@ -274,6 +274,30 @@
     "ttsSpeedHint": "Slower reading is easier to follow",
     "ttsSpeedOption": "{{percent}} speed"
   },
+  "appearance": {
+    "title": "Appearance & Colours",
+    "theme": {
+      "title": "Theme",
+      "hint": "Choose how the app looks",
+      "light": "Light",
+      "lightHint": "Light background with dark text",
+      "dark": "Dark",
+      "darkHint": "Dark background with light text",
+      "system": "System",
+      "systemHint": "Follows your phone's setting",
+      "currentlyUsing": "Currently using: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Accent Colour",
+      "hint": "This colour is used for buttons and accents"
+    },
+    "preview": {
+      "title": "Preview",
+      "hint": "This is how the app looks now",
+      "sampleMessage": "Hello! How are you doing?"
+    },
+    "info": "Changes are applied immediately throughout the app."
+  },
   "callSettings": {
     "title": "Call Settings",
     "screenHint": "Adjust ringtone, dial tone, and vibration",

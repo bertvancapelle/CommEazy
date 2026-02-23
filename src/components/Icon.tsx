@@ -95,7 +95,12 @@ export type IconName =
   | 'repeat'
   | 'repeat-one'
   | 'heart-outline'
-  | 'musical-notes';
+  | 'musical-notes'
+  | 'shield-checkmark'
+  | 'sun'
+  | 'moon'
+  | 'eye'
+  | 'weather';
 
 interface IconProps {
   name: IconName;
@@ -1539,6 +1544,91 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
           <Path
             d="M7 3H22V5H7V3Z"
             fill={color}
+          />
+        </Svg>
+      );
+
+    case 'shield-checkmark':
+      // Shield with checkmark - compliance / security
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 2L4 6V12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12V6L12 2Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M9 12L11 14L15 10"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'sun':
+      // Sun - light theme
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="5" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M12 2V4M12 20V22M2 12H4M20 12H22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'moon':
+      // Moon - dark theme
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'eye':
+      // Eye - appearance / visibility
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={sw} />
+        </Svg>
+      );
+
+    case 'weather':
+      // Weather - generic weather icon (cloud with sun)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M17.5 19H9C6.24 19 4 16.76 4 14C4 11.24 6.24 9 9 9C9.28 9 9.55 9.02 9.82 9.07C10.94 7.2 12.96 6 15.25 6C18.7 6 21.5 8.8 21.5 12.25C21.5 12.79 21.44 13.31 21.31 13.81"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Circle cx="5" cy="5" r="2" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M5 1V2M5 8V9M1 5H2M8 5H9M2.17 2.17L2.88 2.88M7.12 7.12L7.83 7.83M2.17 7.83L2.88 7.12M7.12 2.88L7.83 2.17"
+            stroke={color}
+            strokeWidth={sw * 0.8}
+            strokeLinecap="round"
           />
         </Svg>
       );

@@ -278,6 +278,30 @@
     "ttsSpeedHint": "Leitura mais lenta é mais fácil de acompanhar",
     "ttsSpeedOption": "Velocidade {{percent}}"
   },
+  "appearance": {
+    "title": "Aparência e Cores",
+    "theme": {
+      "title": "Tema",
+      "hint": "Escolha como o app aparece",
+      "light": "Claro",
+      "lightHint": "Fundo claro com texto escuro",
+      "dark": "Escuro",
+      "darkHint": "Fundo escuro com texto claro",
+      "system": "Sistema",
+      "systemHint": "Segue a configuração do celular",
+      "currentlyUsing": "Atualmente: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Cor de destaque",
+      "hint": "Esta cor é usada para botões e destaques"
+    },
+    "preview": {
+      "title": "Pré-visualização",
+      "hint": "É assim que o app aparece agora",
+      "sampleMessage": "Olá! Como você está?"
+    },
+    "info": "As alterações são aplicadas imediatamente em todo o app."
+  },
   "callSettings": {
     "title": "Configurações de chamada",
     "screenHint": "Ajuste toque, tom de discagem e vibração",

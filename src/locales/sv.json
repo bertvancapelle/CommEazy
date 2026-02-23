@@ -322,6 +322,30 @@
     "ttsSpeedHint": "Långsammare läsning är lättare att följa",
     "ttsSpeedOption": "{{percent}} hastighet"
   },
+  "appearance": {
+    "title": "Utseende och Färger",
+    "theme": {
+      "title": "Tema",
+      "hint": "Välj hur appen ser ut",
+      "light": "Ljus",
+      "lightHint": "Ljus bakgrund med mörk text",
+      "dark": "Mörk",
+      "darkHint": "Mörk bakgrund med ljus text",
+      "system": "System",
+      "systemHint": "Följer telefonens inställning",
+      "currentlyUsing": "Just nu: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Accentfärg",
+      "hint": "Denna färg används för knappar och accenter"
+    },
+    "preview": {
+      "title": "Förhandsvisning",
+      "hint": "Så här ser appen ut nu",
+      "sampleMessage": "Hej! Hur mår du?"
+    },
+    "info": "Ändringar tillämpas omedelbart i hela appen."
+  },
   "theme": {
     "accentColors": {
       "blue": "Blå",

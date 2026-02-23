@@ -70,6 +70,7 @@ import {
   ModulesSettingsScreen,
   CallSettingsScreen,
   LiquidGlassSettingsScreen,
+  AppearanceSettingsScreen,
 } from '@/screens/settings';
 
 // Dev screens
@@ -150,6 +151,7 @@ export type SettingsStackParams = {
   ModulesSettings: undefined;
   CallSettings: undefined;  // Call sound and vibration settings
   LiquidGlassSettings: undefined;  // iOS 26+ Liquid Glass effects
+  AppearanceSettings: undefined;  // Theme (light/dark/system) + Accent color
   BackupSettings: undefined;
   DeviceTransfer: undefined;
   DeviceLinkShowQR: undefined;
@@ -437,6 +439,11 @@ function SettingsNavigator() {
         name="LiquidGlassSettings"
         component={LiquidGlassSettingsScreen}
         options={{ title: t('settings.liquidGlass.title') }}
+      />
+      <SettingsStack.Screen
+        name="AppearanceSettings"
+        component={AppearanceSettingsScreen}
+        options={{ title: t('appearance.title') }}
       />
       <SettingsStack.Screen
         name="LanguageSettings"

@@ -32,6 +32,9 @@ export {
 import { ACCENT_COLORS } from './accentColors';
 export const accentColors = ACCENT_COLORS;
 
+// Dark mode colors
+export { darkColors, darkAccentColors } from './darkColors';
+
 // ============================================================
 // Colors — WCAG AAA (7:1 contrast ratio on white)
 // ============================================================

@@ -276,6 +276,30 @@
     "holdToNavigateTitle": "Nawigacja",
     "testFeedback": "Testuj informacje zwrotne"
   },
+  "appearance": {
+    "title": "Wygląd i Kolory",
+    "theme": {
+      "title": "Motyw",
+      "hint": "Wybierz jak aplikacja wygląda",
+      "light": "Jasny",
+      "lightHint": "Jasne tło z ciemnym tekstem",
+      "dark": "Ciemny",
+      "darkHint": "Ciemne tło z jasnym tekstem",
+      "system": "Systemowy",
+      "systemHint": "Podąża za ustawieniem telefonu",
+      "currentlyUsing": "Aktualnie: {{theme}}"
+    },
+    "accentColor": {
+      "title": "Kolor akcentu",
+      "hint": "Ten kolor jest używany dla przycisków i akcentów"
+    },
+    "preview": {
+      "title": "Podgląd",
+      "hint": "Tak wygląda aplikacja teraz",
+      "sampleMessage": "Cześć! Jak się masz?"
+    },
+    "info": "Zmiany są stosowane natychmiast w całej aplikacji."
+  },
   "theme": {
     "accentColors": {
       "blue": "Niebieski",
