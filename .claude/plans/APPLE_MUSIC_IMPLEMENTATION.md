@@ -1,8 +1,10 @@
 # Apple Music Module — Implementatieplan
 
-## Status: Gedeeltelijk Voltooid ⚠️
+## Status: Gedeeltelijk Voltooid ⚠️ → Alle Features Implementeren ✅
 
 **Laatst bijgewerkt:** 2026-02-23
+
+**Besluit:** Alle 8 originele features + Lyrics worden geïmplementeerd voor v1.0.
 
 ## Overzicht
 
@@ -309,15 +311,43 @@ src/screens/modules/appleMusic/
 
 ## Volgende Stappen
 
-1. **Besluit:** Wil je de ontbrekende discovery features (Recommendations, Genres, Favorites) implementeren voor v1.0?
-2. **Indien ja:** Implementeer native module uitbreidingen eerst
-3. **Valideer Android module** — Check of AppleMusicModule.kt bestaat
-4. **Valideer Native Glass Player** — Check shuffle/repeat in FullPlayerNativeView.swift
-5. **Valideer i18n** — Run completeness check
-6. **Test op fysiek device** — MusicKit werkt niet in simulator
+**Besluit genomen:** ✅ Alle features implementeren!
+
+### Implementatie Volgorde:
+
+1. **Native Module Uitbreiden** (`AppleMusicModule.swift`)
+   - [ ] `getRecommendations()` — MusicPersonalRecommendationsRequest
+   - [ ] `getGenres()` — MusicCatalogGenresRequest
+   - [ ] `getGenreContent(genreId)` — Content per genre
+   - [ ] `getFavorites()` — MusicLibraryRequest
+   - [ ] `addToLibrary(songId)` — Toevoegen aan bibliotheek
+   - [ ] `getLyrics(songId)` — Gesynchroniseerde lyrics (indien beschikbaar)
+
+2. **Bridge Uitbreiden** (`AppleMusicModule.m`)
+   - [ ] Nieuwe methods registreren
+
+3. **React Native Context Uitbreiden** (`AppleMusicContext.tsx`)
+   - [ ] Nieuwe state: recommendations, genres, favorites
+   - [ ] Nieuwe methods: getRecommendations, getGenres, etc.
+
+4. **Discovery Tabs Maken**
+   - [ ] `RecommendationsTab.tsx` — "Voor jou" grid
+   - [ ] `GenresTab.tsx` — Genre browser
+   - [ ] `FavoritesTab.tsx` — Bibliotheek favorieten
+
+5. **Player Uitbreiden**
+   - [ ] `QueueView.tsx` — Queue weergave in expanded player
+   - [ ] `LyricsView.tsx` — Lyrics weergave (indien API beschikbaar)
+
+6. **Validatie**
+   - [ ] Android module check
+   - [ ] Native Glass Player feature parity
+   - [ ] i18n completeness (13 talen)
+   - [ ] Test op fysiek device (MusicKit werkt niet in simulator)
 
 ---
 
 *Oorspronkelijk plan: 2026-02-22*
 *Status update: 2026-02-23*
-*Resterende effort: Medium (discovery features) + Klein (validatie)*
+*Besluit: Alle features implementeren*
+*Resterende effort: Medium-Groot (discovery features + lyrics + UI tabs)*

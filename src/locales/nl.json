@@ -1286,10 +1286,13 @@
       "search": {
         "placeholder": "Zoek muziek...",
         "button": "Zoeken",
+        "filterAll": "Alle",
         "songsTitle": "Nummers",
         "albumsTitle": "Albums",
         "artistsTitle": "Artiesten",
         "playlistsTitle": "Afspeellijsten",
+        "tracks": "nummers",
+        "showAll": "Toon alle {{count}}",
         "noResults": "Geen muziek gevonden",
         "error": "Zoeken mislukt. Probeer het opnieuw."
       },
@@ -1330,6 +1333,13 @@
       "playError": {
         "title": "Kan nummer niet afspelen",
         "message": "Er is een probleem met het afspelen van dit nummer. Controleer je Apple Music abonnement."
+      },
+      "detail": {
+        "topSongs": "Populaire nummers",
+        "albums": "Albums",
+        "playAll": "Alles afspelen",
+        "error": "Kon details niet laden",
+        "by": "Door"
       }
     }
   },
@@ -1599,7 +1609,9 @@
     "repeat": "Herhalen",
     "repeatOff": "Herhalen uit",
     "repeatOne": "Herhaal dit nummer",
-    "repeatAll": "Herhaal alles"
+    "repeatAll": "Herhaal alles",
+    "addToLibrary": "Voeg toe aan bibliotheek",
+    "inLibrary": "In bibliotheek"
   },
   "a11y": {
     "voiceFocusHint": "Zeg \"open\" om te selecteren",

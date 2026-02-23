@@ -1292,10 +1292,13 @@
       "search": {
         "placeholder": "Rechercher de la musique...",
         "button": "Rechercher",
+        "filterAll": "Tous",
         "songsTitle": "Morceaux",
         "albumsTitle": "Albums",
         "artistsTitle": "Artistes",
         "playlistsTitle": "Playlists",
+        "tracks": "titres",
+        "showAll": "Afficher tous ({{count}})",
         "noResults": "Aucune musique trouvée",
         "error": "Échec de la recherche. Veuillez réessayer."
       },
@@ -1328,7 +1331,22 @@
       "previous": "Piste précédente",
       "shuffle": "Aléatoire",
       "repeat": "Répéter",
-      "nowPlaying": "En cours de lecture"
+      "nowPlaying": "En cours de lecture",
+      "playing": "En lecture",
+      "paused": "En pause",
+      "stopped": "Arrêté",
+      "resumed": "Repris",
+      "playError": {
+        "title": "Impossible de lire le morceau",
+        "message": "Un problème est survenu lors de la lecture. Veuillez vérifier votre abonnement Apple Music."
+      },
+      "detail": {
+        "topSongs": "Titres populaires",
+        "albums": "Albums",
+        "playAll": "Tout lire",
+        "error": "Impossible de charger les détails",
+        "by": "Par"
+      }
     }
   },
   "articleViewer": {

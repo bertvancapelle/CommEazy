@@ -48,6 +48,7 @@ import {
   FavoriteTabButton,
   SearchTabButton,
   SearchBar,
+  AppleMusicDetailModal,
   type SearchBarRef,
 } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
@@ -57,6 +58,7 @@ import {
   useAppleMusicContext,
   type AppleMusicSong,
   type AppleMusicAlbum,
+  type AppleMusicArtist,
   type AppleMusicPlaylist,
   type SearchResults,
 } from '@/contexts/AppleMusicContext';
@@ -82,6 +84,12 @@ const MINI_PLAYER_HEIGHT = 84;
 // ============================================================
 
 type TabType = 'search' | 'library' | 'playlists';
+
+// Search result filter types
+type SearchFilterType = 'all' | 'songs' | 'albums' | 'artists' | 'playlists';
+
+// Number of items to show per section in "Alle" tab
+const ITEMS_PER_SECTION = 5;
 
 // ============================================================
 // Component
@@ -129,6 +137,9 @@ export function AppleMusicScreen() {
     setSleepTimerActive,
     // Search
     searchCatalog,
+    // Library
+    addToLibrary,
+    isInLibrary,
   } = useAppleMusicContext();
 
   // Sleep timer hook - shared logic for all audio modules
@@ -148,7 +159,24 @@ export function AppleMusicScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+  const [searchFilter, setSearchFilter] = useState<SearchFilterType>('all');
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Detail modal state
+  const [detailModal, setDetailModal] = useState<{
+    visible: boolean;
+    type: 'artist' | 'album' | 'playlist';
+    id: string;
+    initialData?: AppleMusicArtist | AppleMusicAlbum | AppleMusicPlaylist;
+  }>({
+    visible: false,
+    type: 'album',
+    id: '',
+  });
+
+  // Library state
+  const [currentSongInLibrary, setCurrentSongInLibrary] = useState(false);
+  const [isAddingToLibrary, setIsAddingToLibrary] = useState(false);
 
   // Check if platform supports full functionality
   const hasFullSupport = capabilities?.hasMusicKit && capabilities?.canPlayback;
@@ -254,7 +282,7 @@ export function AppleMusicScreen() {
       speedControl: false,
       sleepTimer: true,
       favorite: true,
-      stopButton: false,
+      stopButton: true,
       shuffle: true,
       repeat: true,
     });
@@ -267,7 +295,7 @@ export function AppleMusicScreen() {
       subtitle: currentSong.artistName,
       progressType: 'bar',
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-      showStopButton: false,
+      showStopButton: true,
     });
   }, [isGlassPlayerAvailable, currentSong, effectiveArtworkUrl, isFocused, showGlassMiniPlayer, configureGlassControls]);
 
@@ -305,7 +333,7 @@ export function AppleMusicScreen() {
       title: currentSong.title,
       subtitle: currentSong.artistName,
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-      showStopButton: false,  // Single source of truth for stop button visibility
+      showStopButton: true,  // Single source of truth for stop button visibility
     });
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, appleMusicColor, updateGlassContent]);
 
@@ -356,9 +384,36 @@ export function AppleMusicScreen() {
     }
   }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState, showGlassMiniPlayer, configureGlassControls]);
 
+  // Effect 8: Check if current song is in library when song changes
+  useEffect(() => {
+    if (!currentSong?.id) {
+      setCurrentSongInLibrary(false);
+      return;
+    }
+
+    // Check library status for current song
+    isInLibrary(currentSong.id)
+      .then(setCurrentSongInLibrary)
+      .catch(() => setCurrentSongInLibrary(false));
+  }, [currentSong?.id, isInLibrary]);
+
   // ============================================================
   // Handlers
   // ============================================================
+
+  const handleAddToLibrary = useCallback(async () => {
+    if (!currentSong?.id || currentSongInLibrary || isAddingToLibrary) return;
+
+    setIsAddingToLibrary(true);
+    try {
+      await addToLibrary(currentSong.id);
+      setCurrentSongInLibrary(true);
+    } catch (error) {
+      console.error('[AppleMusicScreen] Failed to add to library:', error);
+    } finally {
+      setIsAddingToLibrary(false);
+    }
+  }, [currentSong?.id, currentSongInLibrary, isAddingToLibrary, addToLibrary]);
 
   const handleSearch = useCallback(async () => {
     const trimmedQuery = searchQuery.trim();
@@ -526,6 +581,355 @@ export function AppleMusicScreen() {
   // Search Tab Content
   // ============================================================
 
+  // Calculate counts for each filter tab
+  const resultCounts = useMemo(() => ({
+    songs: searchResults?.songs?.length ?? 0,
+    albums: searchResults?.albums?.length ?? 0,
+    artists: searchResults?.artists?.length ?? 0,
+    playlists: searchResults?.playlists?.length ?? 0,
+  }), [searchResults]);
+
+  const totalResults = resultCounts.songs + resultCounts.albums + resultCounts.artists + resultCounts.playlists;
+  const hasAnyResults = totalResults > 0;
+
+  // Render a single song item
+  const renderSongItem = (song: AppleMusicSong, index: number) => (
+    <VoiceFocusable
+      key={song.id}
+      id={song.id}
+      label={`${song.title} ${song.artistName}`}
+      index={index}
+      onSelect={() => handlePlaySong(song)}
+    >
+      <View style={[styles.songItem, { backgroundColor: themeColors.surface }]}>
+        <TouchableOpacity
+          style={styles.songTappableArea}
+          onPress={() => handlePlaySong(song)}
+          onLongPress={() => {}}
+          delayLongPress={300}
+          accessibilityRole="button"
+          accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
+        >
+          {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
+            <Image
+              source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
+              style={styles.songArtwork}
+            />
+          ) : (
+            <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+              <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
+            </View>
+          )}
+          <View style={styles.songInfo}>
+            <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+              {song.title}
+            </Text>
+            <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+              {song.artistName}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <IconButton
+          icon="play"
+          size={40}
+          onPress={() => handlePlaySong(song)}
+          accessibilityLabel={t('modules.appleMusic.play', { title: song.title })}
+        />
+      </View>
+    </VoiceFocusable>
+  );
+
+  // Render a single album item
+  const renderAlbumItem = (album: AppleMusicAlbum, index: number) => (
+    <VoiceFocusable
+      key={album.id}
+      id={album.id}
+      label={`${album.title} ${album.artistName}`}
+      index={index}
+      onSelect={() => handleAlbumPress(album)}
+    >
+      <TouchableOpacity
+        style={[styles.songItem, { backgroundColor: themeColors.surface }]}
+        onPress={() => handleAlbumPress(album)}
+        onLongPress={() => {}}
+        delayLongPress={300}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('modules.appleMusic.search.albumsTitle')}: ${album.title} ${t('common.by')} ${album.artistName}`}
+      >
+        {album.artworkUrl && album.artworkUrl.startsWith('http') ? (
+          <Image
+            source={{ uri: album.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
+            style={styles.songArtwork}
+          />
+        ) : (
+          <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+            <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
+          </View>
+        )}
+        <View style={styles.songInfo}>
+          <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+            {album.title}
+          </Text>
+          <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+            {album.artistName} • {album.trackCount} {t('modules.appleMusic.search.tracks')}
+          </Text>
+        </View>
+        <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
+      </TouchableOpacity>
+    </VoiceFocusable>
+  );
+
+  // Render a single artist item
+  const renderArtistItem = (artist: AppleMusicArtist, index: number) => (
+    <VoiceFocusable
+      key={artist.id}
+      id={artist.id}
+      label={artist.name}
+      index={index}
+      onSelect={() => handleArtistPress(artist)}
+    >
+      <TouchableOpacity
+        style={[styles.songItem, { backgroundColor: themeColors.surface }]}
+        onPress={() => handleArtistPress(artist)}
+        onLongPress={() => {}}
+        delayLongPress={300}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('modules.appleMusic.search.artistsTitle')}: ${artist.name}`}
+      >
+        {artist.artworkUrl && artist.artworkUrl.startsWith('http') ? (
+          <Image
+            source={{ uri: artist.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
+            style={[styles.songArtwork, styles.artistArtwork]}
+          />
+        ) : (
+          <View style={[styles.songArtwork, styles.artistArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+            <Icon name="contacts" size={24} color={themeColors.textSecondary} />
+          </View>
+        )}
+        <View style={styles.songInfo}>
+          <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+            {artist.name}
+          </Text>
+          <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+            {t('modules.appleMusic.search.artistsTitle')}
+          </Text>
+        </View>
+        <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
+      </TouchableOpacity>
+    </VoiceFocusable>
+  );
+
+  // Render a single playlist item
+  const renderPlaylistItem = (playlist: AppleMusicPlaylist, index: number) => (
+    <VoiceFocusable
+      key={playlist.id}
+      id={playlist.id}
+      label={playlist.name}
+      index={index}
+      onSelect={() => handlePlaylistPress(playlist)}
+    >
+      <TouchableOpacity
+        style={[styles.songItem, { backgroundColor: themeColors.surface }]}
+        onPress={() => handlePlaylistPress(playlist)}
+        onLongPress={() => {}}
+        delayLongPress={300}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('modules.appleMusic.search.playlistsTitle')}: ${playlist.name}`}
+      >
+        {playlist.artworkUrl && playlist.artworkUrl.startsWith('http') ? (
+          <Image
+            source={{ uri: playlist.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
+            style={styles.songArtwork}
+          />
+        ) : (
+          <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+            <Icon name="list" size={24} color={themeColors.textSecondary} />
+          </View>
+        )}
+        <View style={styles.songInfo}>
+          <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+            {playlist.name}
+          </Text>
+          <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+            {playlist.curatorName || t('modules.appleMusic.search.playlistsTitle')}
+          </Text>
+        </View>
+        <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
+      </TouchableOpacity>
+    </VoiceFocusable>
+  );
+
+  // Render "Show all X →" button for a section
+  const renderShowAllButton = (filterType: SearchFilterType, count: number) => (
+    <TouchableOpacity
+      style={styles.showAllButton}
+      onPress={() => setSearchFilter(filterType)}
+      accessibilityRole="button"
+      accessibilityLabel={t('modules.appleMusic.search.showAll', { count })}
+    >
+      <Text style={[styles.showAllText, { color: appleMusicColor }]}>
+        {t('modules.appleMusic.search.showAll', { count })} →
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // Handle album tap - open album detail modal
+  const handleAlbumPress = useCallback((album: AppleMusicAlbum) => {
+    triggerFeedback('tap');
+    console.log('[AppleMusicScreen] Album pressed:', album.id, album.title);
+    setDetailModal({
+      visible: true,
+      type: 'album',
+      id: album.id,
+      initialData: album,
+    });
+  }, [triggerFeedback]);
+
+  // Handle artist tap - open artist detail modal
+  const handleArtistPress = useCallback((artist: AppleMusicArtist) => {
+    triggerFeedback('tap');
+    console.log('[AppleMusicScreen] Artist pressed:', artist.id, artist.name);
+    setDetailModal({
+      visible: true,
+      type: 'artist',
+      id: artist.id,
+      initialData: artist,
+    });
+  }, [triggerFeedback]);
+
+  // Handle playlist tap - open playlist detail modal
+  const handlePlaylistPress = useCallback((playlist: AppleMusicPlaylist) => {
+    triggerFeedback('tap');
+    console.log('[AppleMusicScreen] Playlist pressed:', playlist.id, playlist.name);
+    setDetailModal({
+      visible: true,
+      type: 'playlist',
+      id: playlist.id,
+      initialData: playlist,
+    });
+  }, [triggerFeedback]);
+
+  // Close detail modal
+  const handleCloseDetailModal = useCallback(() => {
+    setDetailModal(prev => ({ ...prev, visible: false }));
+  }, []);
+
+  // Render search filter tabs
+  const renderSearchFilterTabs = () => {
+    const filters: { type: SearchFilterType; labelKey: string; icon: 'grid' | 'musical-notes' | 'disc' | 'person' | 'list'; count: number }[] = [
+      { type: 'all', labelKey: 'modules.appleMusic.search.filterAll', icon: 'grid', count: totalResults },
+      { type: 'songs', labelKey: 'modules.appleMusic.search.songsTitle', icon: 'musical-notes', count: resultCounts.songs },
+      { type: 'albums', labelKey: 'modules.appleMusic.search.albumsTitle', icon: 'disc', count: resultCounts.albums },
+      { type: 'artists', labelKey: 'modules.appleMusic.search.artistsTitle', icon: 'person', count: resultCounts.artists },
+      { type: 'playlists', labelKey: 'modules.appleMusic.search.playlistsTitle', icon: 'list', count: resultCounts.playlists },
+    ];
+
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterTabsContainer}
+        contentContainerStyle={styles.filterTabsContent}
+      >
+        {filters.map(({ type, labelKey, icon, count }) => {
+          const isActive = searchFilter === type;
+          return (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.filterTab,
+                isActive && { backgroundColor: appleMusicColor },
+              ]}
+              onPress={() => setSearchFilter(type)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={`${t(labelKey)} (${count})`}
+            >
+              <Icon
+                name={icon}
+                size={20}
+                color={isActive ? themeColors.white : themeColors.textPrimary}
+              />
+              <Text
+                style={[
+                  styles.filterTabCount,
+                  { color: isActive ? themeColors.white : themeColors.textSecondary },
+                ]}
+              >
+                {count}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    );
+  };
+
+  // Render "Alle" (All) tab content - shows sections with limited items
+  const renderAllResults = () => (
+    <>
+      {/* Songs Section */}
+      {resultCounts.songs > 0 && (
+        <View style={styles.resultSection}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.search.songsTitle')}
+          </Text>
+          {searchResults?.songs?.slice(0, ITEMS_PER_SECTION).map((song, index) => renderSongItem(song, index))}
+          {resultCounts.songs > ITEMS_PER_SECTION && renderShowAllButton('songs', resultCounts.songs)}
+        </View>
+      )}
+
+      {/* Albums Section */}
+      {resultCounts.albums > 0 && (
+        <View style={styles.resultSection}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.search.albumsTitle')}
+          </Text>
+          {searchResults?.albums?.slice(0, ITEMS_PER_SECTION).map((album, index) => renderAlbumItem(album, index))}
+          {resultCounts.albums > ITEMS_PER_SECTION && renderShowAllButton('albums', resultCounts.albums)}
+        </View>
+      )}
+
+      {/* Artists Section */}
+      {resultCounts.artists > 0 && (
+        <View style={styles.resultSection}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.search.artistsTitle')}
+          </Text>
+          {searchResults?.artists?.slice(0, ITEMS_PER_SECTION).map((artist, index) => renderArtistItem(artist, index))}
+          {resultCounts.artists > ITEMS_PER_SECTION && renderShowAllButton('artists', resultCounts.artists)}
+        </View>
+      )}
+
+      {/* Playlists Section */}
+      {resultCounts.playlists > 0 && (
+        <View style={styles.resultSection}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.search.playlistsTitle')}
+          </Text>
+          {searchResults?.playlists?.slice(0, ITEMS_PER_SECTION).map((playlist, index) => renderPlaylistItem(playlist, index))}
+          {resultCounts.playlists > ITEMS_PER_SECTION && renderShowAllButton('playlists', resultCounts.playlists)}
+        </View>
+      )}
+    </>
+  );
+
+  // Render filtered results (single type)
+  const renderFilteredResults = () => {
+    switch (searchFilter) {
+      case 'songs':
+        return searchResults?.songs?.map((song, index) => renderSongItem(song, index));
+      case 'albums':
+        return searchResults?.albums?.map((album, index) => renderAlbumItem(album, index));
+      case 'artists':
+        return searchResults?.artists?.map((artist, index) => renderArtistItem(artist, index));
+      case 'playlists':
+        return searchResults?.playlists?.map((playlist, index) => renderPlaylistItem(playlist, index));
+      default:
+        return null;
+    }
+  };
+
   const renderSearchTab = () => (
     <View style={styles.tabContent}>
       <SearchBar
@@ -554,70 +958,25 @@ export function AppleMusicScreen() {
         </View>
       )}
 
-      {searchResults?.songs && searchResults.songs.length > 0 && (
+      {/* Filter tabs - only show when we have results */}
+      {hasAnyResults && renderSearchFilterTabs()}
+
+      {/* Results */}
+      {hasAnyResults && (
         <ScrollView
           ref={scrollRef}
           style={styles.resultsList}
           contentContainerStyle={[
             styles.resultsContent,
-            // Add extra bottom padding for mini player (native Glass or RN) + safe area
             { paddingBottom: bottomPadding + insets.bottom },
           ]}
         >
-          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
-            {t('modules.appleMusic.search.songsTitle')}
-          </Text>
-          {searchResults?.songs?.map((song, index) => (
-            <VoiceFocusable
-              key={song.id}
-              id={song.id}
-              label={`${song.title} ${song.artistName}`}
-              index={index}
-              onSelect={() => handlePlaySong(song)}
-            >
-              <View style={[styles.songItem, { backgroundColor: themeColors.surface }]}>
-                {/* Tappable area: artwork + text info */}
-                <TouchableOpacity
-                  style={styles.songTappableArea}
-                  onPress={() => handlePlaySong(song)}
-                  onLongPress={() => {}}
-                  delayLongPress={300}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
-                >
-                  {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
-                    <Image
-                      source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
-                      style={styles.songArtwork}
-                    />
-                  ) : (
-                    <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
-                      <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
-                    </View>
-                  )}
-                  <View style={styles.songInfo}>
-                    <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                      {song.title}
-                    </Text>
-                    <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                      {song.artistName}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                {/* Separate play button - not nested in TouchableOpacity to avoid double trigger */}
-                <IconButton
-                  icon="play"
-                  size={40}
-                  onPress={() => handlePlaySong(song)}
-                  accessibilityLabel={t('modules.appleMusic.play', { title: song.title })}
-                />
-              </View>
-            </VoiceFocusable>
-          ))}
+          {searchFilter === 'all' ? renderAllResults() : renderFilteredResults()}
         </ScrollView>
       )}
 
-      {!isSearching && !searchResults?.songs?.length && searchQuery && (
+      {/* No results state */}
+      {!isSearching && !hasAnyResults && searchQuery && (
         <View style={styles.emptyState}>
           <Icon name="search" size={48} color={themeColors.textSecondary} />
           <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
@@ -842,6 +1201,7 @@ export function AppleMusicScreen() {
             favorite: true,
             shuffle: true,
             repeat: true,
+            addToLibrary: true,
           }}
           onSkipBackward={skipToPrevious}
           onSkipForward={skipToNext}
@@ -853,8 +1213,20 @@ export function AppleMusicScreen() {
             const nextMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
             setRepeatMode(nextMode);
           }}
+          isInLibrary={currentSongInLibrary}
+          isAddingToLibrary={isAddingToLibrary}
+          onAddToLibraryPress={handleAddToLibrary}
         />
       )}
+
+      {/* Detail Modal for Artist/Album/Playlist */}
+      <AppleMusicDetailModal
+        visible={detailModal.visible}
+        type={detailModal.type}
+        id={detailModal.id}
+        onClose={handleCloseDetailModal}
+        initialData={detailModal.initialData}
+      />
     </View>
   );
 }
@@ -1047,5 +1419,53 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.md,
+  },
+
+  // Filter tabs for search results
+  filterTabsContainer: {
+    flexGrow: 0,
+    marginBottom: spacing.md,
+  },
+  filterTabsContent: {
+    paddingHorizontal: spacing.xs,
+    gap: spacing.sm,
+  },
+  filterTab: {
+    flexDirection: 'row',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  filterTabCount: {
+    ...typography.label,
+    fontWeight: '600',
+  },
+
+  // Result sections
+  resultSection: {
+    marginBottom: spacing.lg,
+  },
+
+  // Show all button
+  showAllButton: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+  },
+  showAllText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+
+  // Artist artwork (rounded)
+  artistArtwork: {
+    borderRadius: 28,  // Half of 56 width for circular
   },
 });

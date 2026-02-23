@@ -841,7 +841,7 @@ export function PodcastScreen() {
                         accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
                       />
                     ) : (
-                      <View style={[styles.showArtwork, styles.showArtworkPlaceholder]}>
+                      <View style={[styles.showArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
                         <Icon name="podcast" size={32} color={colors.textOnPrimary} />
                       </View>
                     )}
@@ -947,7 +947,7 @@ export function PodcastScreen() {
                         style={styles.showDetailArtwork}
                       />
                     ) : (
-                      <View style={[styles.showDetailArtwork, styles.showArtworkPlaceholder]}>
+                      <View style={[styles.showDetailArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
                         <Icon name="podcast" size={48} color={colors.textOnPrimary} />
                       </View>
                     )}
@@ -1122,7 +1122,7 @@ export function PodcastScreen() {
                         style={styles.expandedArtwork}
                       />
                     ) : (
-                      <View style={[styles.expandedArtwork, styles.expandedArtworkPlaceholder]}>
+                      <View style={[styles.expandedArtwork, styles.expandedArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
                         <Icon name="podcast" size={80} color={colors.textOnPrimary} />
                       </View>
                     )}
@@ -1878,7 +1878,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   showArtworkPlaceholder: {
-    backgroundColor: podcastModuleColor,
+    // backgroundColor uses dynamic podcastModuleColor inline
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2072,7 +2072,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   expandedArtworkPlaceholder: {
-    backgroundColor: podcastModuleColor,
+    // backgroundColor uses dynamic podcastModuleColor inline
     justifyContent: 'center',
     alignItems: 'center',
   },

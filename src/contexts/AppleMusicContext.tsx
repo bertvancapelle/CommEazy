@@ -94,6 +94,21 @@ export interface SearchResults {
   playlists?: AppleMusicPlaylist[];
 }
 
+// Detail response types (for detail screens)
+export interface AlbumDetails extends AppleMusicAlbum {
+  tracks: AppleMusicSong[];
+  artists?: AppleMusicArtist[];
+}
+
+export interface ArtistDetails extends AppleMusicArtist {
+  topSongs: AppleMusicSong[];
+  albums: AppleMusicAlbum[];
+}
+
+export interface PlaylistDetails extends AppleMusicPlaylist {
+  tracks: AppleMusicSong[];
+}
+
 export interface PlaybackState {
   status: 'playing' | 'paused' | 'stopped' | 'interrupted' | 'seekingForward' | 'seekingBackward' | 'unknown';
   playbackTime: number;
@@ -135,6 +150,15 @@ export interface AppleMusicContextValue {
   // Search (iOS only)
   searchCatalog: (query: string, types?: string[], limit?: number) => Promise<SearchResults>;
   getTopCharts: (types?: string[], limit?: number) => Promise<SearchResults>;
+
+  // Content Details (iOS only, for detail screens)
+  getAlbumDetails: (albumId: string) => Promise<AlbumDetails>;
+  getArtistDetails: (artistId: string) => Promise<ArtistDetails>;
+  getPlaylistDetails: (playlistId: string) => Promise<PlaylistDetails>;
+
+  // Library Management (iOS only)
+  addToLibrary: (songId: string) => Promise<boolean>;
+  isInLibrary: (songId: string) => Promise<boolean>;
 
   // Playback (iOS only)
   playbackState: PlaybackState | null;
@@ -428,6 +452,80 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [isIOS]);
 
   // ============================================================
+  // Content Details (iOS only, for detail screens)
+  // ============================================================
+
+  const getAlbumDetails = useCallback(async (albumId: string): Promise<AlbumDetails> => {
+    if (!isIOS || !AppleMusicModule) {
+      throw new Error('Album details not available on Android');
+    }
+
+    try {
+      return await AppleMusicModule.getAlbumDetails(albumId);
+    } catch (error) {
+      console.error('[AppleMusicContext] Get album details error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  const getArtistDetails = useCallback(async (artistId: string): Promise<ArtistDetails> => {
+    if (!isIOS || !AppleMusicModule) {
+      throw new Error('Artist details not available on Android');
+    }
+
+    try {
+      return await AppleMusicModule.getArtistDetails(artistId);
+    } catch (error) {
+      console.error('[AppleMusicContext] Get artist details error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  const getPlaylistDetails = useCallback(async (playlistId: string): Promise<PlaylistDetails> => {
+    if (!isIOS || !AppleMusicModule) {
+      throw new Error('Playlist details not available on Android');
+    }
+
+    try {
+      return await AppleMusicModule.getPlaylistDetails(playlistId);
+    } catch (error) {
+      console.error('[AppleMusicContext] Get playlist details error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  // ============================================================
+  // Library Management (iOS only)
+  // ============================================================
+
+  const addToLibrary = useCallback(async (songId: string): Promise<boolean> => {
+    if (!isIOS || !AppleMusicModule) {
+      console.warn('[AppleMusicContext] Library management not available on Android');
+      return false;
+    }
+
+    try {
+      return await AppleMusicModule.addToLibrary(songId);
+    } catch (error) {
+      console.error('[AppleMusicContext] Add to library error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  const isInLibrary = useCallback(async (songId: string): Promise<boolean> => {
+    if (!isIOS || !AppleMusicModule) {
+      return false;
+    }
+
+    try {
+      return await AppleMusicModule.isInLibrary(songId);
+    } catch (error) {
+      console.error('[AppleMusicContext] Is in library error:', error);
+      return false;
+    }
+  }, [isIOS]);
+
+  // ============================================================
   // Playback Control (iOS only)
   // ============================================================
 
@@ -700,6 +798,15 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       searchCatalog,
       getTopCharts,
 
+      // Content Details
+      getAlbumDetails,
+      getArtistDetails,
+      getPlaylistDetails,
+
+      // Library Management
+      addToLibrary,
+      isInLibrary,
+
       // Playback
       playbackState,
       nowPlaying,
@@ -750,6 +857,11 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       checkSubscription,
       searchCatalog,
       getTopCharts,
+      getAlbumDetails,
+      getArtistDetails,
+      getPlaylistDetails,
+      addToLibrary,
+      isInLibrary,
       playbackState,
       nowPlaying,
       effectiveArtworkUrl,

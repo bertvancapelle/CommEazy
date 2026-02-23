@@ -136,6 +136,9 @@ export type { TimeSliderProps } from './TimeSlider';
 export { LiquidGlassView } from './LiquidGlassView';
 export type { LiquidGlassViewProps } from './LiquidGlassView';
 
+// Apple Music Components
+export { AppleMusicDetailModal } from './appleMusic';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

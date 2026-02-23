@@ -126,4 +126,32 @@ RCT_EXTERN_METHOD(getPlaybackState:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(getNowPlaying:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
+// ============================================================
+// MARK: - Content Details (for detail screens)
+// ============================================================
+
+RCT_EXTERN_METHOD(getAlbumDetails:(NSString *)albumId
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(getArtistDetails:(NSString *)artistId
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(getPlaylistDetails:(NSString *)playlistId
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+// ============================================================
+// MARK: - Library Management
+// ============================================================
+
+RCT_EXTERN_METHOD(addToLibrary:(NSString *)songId
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(isInLibrary:(NSString *)songId
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 @end

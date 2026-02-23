@@ -1110,10 +1110,13 @@
       "search": {
         "placeholder": "Szukaj muzyki...",
         "button": "Szukaj",
+        "filterAll": "Wszystkie",
         "songsTitle": "Utwory",
         "albumsTitle": "Albumy",
         "artistsTitle": "Artyści",
         "playlistsTitle": "Playlisty",
+        "tracks": "utworów",
+        "showAll": "Pokaż wszystkie ({{count}})",
         "noResults": "Nie znaleziono muzyki",
         "error": "Wyszukiwanie nieudane. Spróbuj ponownie."
       },
@@ -1146,7 +1149,22 @@
       "previous": "Poprzedni utwór",
       "shuffle": "Losowo",
       "repeat": "Powtórz",
-      "nowPlaying": "Teraz gra"
+      "nowPlaying": "Teraz gra",
+      "playing": "Odtwarzanie",
+      "paused": "Wstrzymano",
+      "stopped": "Zatrzymano",
+      "resumed": "Wznowiono",
+      "playError": {
+        "title": "Nie można odtworzyć utworu",
+        "message": "Wystąpił problem z odtwarzaniem. Sprawdź swoją subskrypcję Apple Music."
+      },
+      "detail": {
+        "topSongs": "Popularne utwory",
+        "albums": "Albumy",
+        "playAll": "Odtwórz wszystko",
+        "error": "Nie można załadować szczegółów",
+        "by": "Autor"
+      }
     },
     "weather": {
       "title": "Pogoda",

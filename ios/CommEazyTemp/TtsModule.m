@@ -60,29 +60,25 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_METHOD(initialize:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     RCTLogInfo(@"[TtsModule] Initializing...");
-    
+
     NSError *error = nil;
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    
+
+    // Use MixWithOthers + DuckOthers so TTS can play alongside music
+    // This prevents activation failures when Apple Music is playing
     [session setCategory:AVAudioSessionCategoryPlayback
                     mode:AVAudioSessionModeDefault
-                 options:AVAudioSessionCategoryOptionDuckOthers
+                 options:(AVAudioSessionCategoryOptionMixWithOthers | AVAudioSessionCategoryOptionDuckOthers)
                    error:&error];
-    
+
     if (error) {
         RCTLogError(@"[TtsModule] Audio session category error: %@", error.localizedDescription);
         resolve(@NO);
         return;
     }
-    
-    [session setActive:YES error:&error];
-    
-    if (error) {
-        RCTLogError(@"[TtsModule] Audio session activation error: %@", error.localizedDescription);
-        resolve(@NO);
-        return;
-    }
-    
+
+    // Don't force-activate session here - let it activate when speech starts
+    // This prevents conflicts with already-active audio sessions (Apple Music, etc.)
     RCTLogInfo(@"[TtsModule] Initialized successfully");
     resolve(@YES);
 }

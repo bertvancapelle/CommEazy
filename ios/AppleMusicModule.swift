@@ -951,6 +951,48 @@ class AppleMusicModule: RCTEventEmitter {
         ]
     }
 
+    /// Convert Track enum (can be Song or MusicVideo) to dictionary
+    /// Used for album tracks and playlist tracks
+    private func trackToDictionary(_ track: Track) -> [String: Any] {
+        switch track {
+        case .song(let song):
+            return songToDictionary(song)
+        case .musicVideo(let musicVideo):
+            // Handle music video case
+            var artworkURL = ""
+            if let artwork = musicVideo.artwork,
+               let url = artwork.url(width: 300, height: 300) {
+                artworkURL = url.httpURLString
+            }
+            return [
+                "id": musicVideo.id.rawValue,
+                "title": musicVideo.title,
+                "artistName": musicVideo.artistName,
+                "albumTitle": "",
+                "duration": musicVideo.duration ?? 0,
+                "artworkUrl": artworkURL,
+                "artworkBgColor": "",
+                "trackNumber": 0,
+                "discNumber": 1,
+                "isExplicit": musicVideo.contentRating == .explicit,
+                "isMusicVideo": true
+            ]
+        @unknown default:
+            return [
+                "id": "",
+                "title": "Unknown",
+                "artistName": "",
+                "albumTitle": "",
+                "duration": 0,
+                "artworkUrl": "",
+                "artworkBgColor": "",
+                "trackNumber": 0,
+                "discNumber": 1,
+                "isExplicit": false
+            ]
+        }
+    }
+
     private func albumToDictionary(_ album: Album) -> [String: Any] {
         return [
             "id": album.id.rawValue,
@@ -979,6 +1021,175 @@ class AppleMusicModule: RCTEventEmitter {
             "artworkUrl": playlist.artwork?.url(width: 300, height: 300)?.httpURLString ?? "",
             "description": playlist.standardDescription ?? ""
         ]
+    }
+
+    // ============================================================
+    // MARK: - Content Details (for detail screens)
+    // ============================================================
+
+    /// Get album details including all tracks
+    /// Returns album info + array of songs
+    @objc
+    func getAlbumDetails(_ albumId: String,
+                         resolve: @escaping RCTPromiseResolveBlock,
+                         reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                // Fetch the album with tracks
+                var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: MusicItemID(albumId))
+                request.properties = [.tracks, .artists]
+                let response = try await request.response()
+
+                guard let album = response.items.first else {
+                    reject("ALBUM_NOT_FOUND", "Album with ID \(albumId) not found", nil)
+                    return
+                }
+
+                var result = albumToDictionary(album)
+
+                // Add tracks (Track is an enum that can be Song or MusicVideo)
+                if let tracks = album.tracks {
+                    result["tracks"] = tracks.map { trackToDictionary($0) }
+                } else {
+                    result["tracks"] = []
+                }
+
+                // Add artist info if available
+                if let artists = album.artists {
+                    result["artists"] = artists.map { artistToDictionary($0) }
+                }
+
+                resolve(result)
+            } catch {
+                reject("ALBUM_ERROR", "Failed to get album details: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get artist details including top songs and albums
+    /// Returns artist info + topSongs array + albums array
+    @objc
+    func getArtistDetails(_ artistId: String,
+                          resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                // Fetch the artist with related content
+                var request = MusicCatalogResourceRequest<Artist>(matching: \.id, equalTo: MusicItemID(artistId))
+                request.properties = [.topSongs, .albums]
+                let response = try await request.response()
+
+                guard let artist = response.items.first else {
+                    reject("ARTIST_NOT_FOUND", "Artist with ID \(artistId) not found", nil)
+                    return
+                }
+
+                var result = artistToDictionary(artist)
+
+                // Add top songs
+                if let topSongs = artist.topSongs {
+                    result["topSongs"] = Array(topSongs.prefix(10)).map { songToDictionary($0) }
+                } else {
+                    result["topSongs"] = []
+                }
+
+                // Add albums
+                if let albums = artist.albums {
+                    result["albums"] = Array(albums.prefix(20)).map { albumToDictionary($0) }
+                } else {
+                    result["albums"] = []
+                }
+
+                resolve(result)
+            } catch {
+                reject("ARTIST_ERROR", "Failed to get artist details: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get playlist details including all tracks
+    /// Returns playlist info + array of songs
+    @objc
+    func getPlaylistDetails(_ playlistId: String,
+                            resolve: @escaping RCTPromiseResolveBlock,
+                            reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                // Fetch the playlist with tracks
+                var request = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: MusicItemID(playlistId))
+                request.properties = [.tracks]
+                let response = try await request.response()
+
+                guard let playlist = response.items.first else {
+                    reject("PLAYLIST_NOT_FOUND", "Playlist with ID \(playlistId) not found", nil)
+                    return
+                }
+
+                var result = playlistToDictionary(playlist)
+
+                // Add tracks (Track is an enum that can be Song or MusicVideo)
+                if let tracks = playlist.tracks {
+                    result["tracks"] = tracks.map { trackToDictionary($0) }
+                } else {
+                    result["tracks"] = []
+                }
+
+                resolve(result)
+            } catch {
+                reject("PLAYLIST_ERROR", "Failed to get playlist details: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    // ============================================================
+    // MARK: - Library Management
+    // ============================================================
+
+    /// Add a song to the user's library
+    /// Requires Apple Music subscription
+    @objc
+    func addToLibrary(_ songId: String,
+                      resolve: @escaping RCTPromiseResolveBlock,
+                      reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                // Fetch the song first
+                var request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
+                let response = try await request.response()
+
+                guard let song = response.items.first else {
+                    reject("SONG_NOT_FOUND", "Song with ID \(songId) not found", nil)
+                    return
+                }
+
+                // Add to library
+                try await MusicLibrary.shared.add(song)
+
+                resolve(true)
+            } catch {
+                reject("ADD_TO_LIBRARY_ERROR", "Failed to add song to library: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Check if a song is in the user's library
+    @objc
+    func isInLibrary(_ songId: String,
+                     resolve: @escaping RCTPromiseResolveBlock,
+                     reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                // Search in user's library for this song ID
+                var request = MusicLibraryRequest<Song>()
+                request.filter(matching: \.id, equalTo: MusicItemID(songId))
+                let response = try await request.response()
+
+                resolve(!response.items.isEmpty)
+            } catch {
+                // If library access fails, assume not in library
+                resolve(false)
+            }
+        }
     }
 }
 

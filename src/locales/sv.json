@@ -1128,10 +1128,13 @@
       "search": {
         "placeholder": "Sök musik...",
         "button": "Sök",
+        "filterAll": "Alla",
         "songsTitle": "Låtar",
         "albumsTitle": "Album",
         "artistsTitle": "Artister",
         "playlistsTitle": "Spellistor",
+        "tracks": "spår",
+        "showAll": "Visa alla ({{count}})",
         "noResults": "Ingen musik hittades",
         "error": "Sökning misslyckades. Försök igen."
       },
@@ -1164,7 +1167,22 @@
       "previous": "Föregående spår",
       "shuffle": "Slumpa",
       "repeat": "Upprepa",
-      "nowPlaying": "Spelas nu"
+      "nowPlaying": "Spelas nu",
+      "playing": "Spelar",
+      "paused": "Pausad",
+      "stopped": "Stoppad",
+      "resumed": "Återupptagen",
+      "playError": {
+        "title": "Kan inte spela låten",
+        "message": "Det uppstod ett problem vid uppspelning. Kontrollera ditt Apple Music-abonnemang."
+      },
+      "detail": {
+        "topSongs": "Populära låtar",
+        "albums": "Album",
+        "playAll": "Spela alla",
+        "error": "Kunde inte ladda detaljer",
+        "by": "Av"
+      }
     }
   },
   "articleViewer": {

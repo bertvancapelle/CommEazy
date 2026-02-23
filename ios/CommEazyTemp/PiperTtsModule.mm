@@ -63,18 +63,21 @@ RCT_EXPORT_METHOD(initialize:(NSString *)modelDir
     RCTLogInfo(@"[PiperTtsModule] Initializing with model: %@", modelDir);
 
     // Configure audio session for playback
+    // Use MixWithOthers + DuckOthers so TTS can play alongside music
+    // This prevents activation failures when Apple Music is playing
     NSError *error = nil;
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [session setCategory:AVAudioSessionCategoryPlayback
                     mode:AVAudioSessionModeDefault
-                 options:AVAudioSessionCategoryOptionDuckOthers
+                 options:(AVAudioSessionCategoryOptionMixWithOthers | AVAudioSessionCategoryOptionDuckOthers)
                    error:&error];
 
     if (error) {
         RCTLogError(@"[PiperTtsModule] Audio session error: %@", error.localizedDescription);
     }
 
-    [session setActive:YES error:&error];
+    // Don't force-activate session here - let it activate when audio plays
+    // This prevents conflicts with already-active audio sessions (Apple Music, etc.)
 
     // Find model in app bundle
     NSString *modelPath = nil;

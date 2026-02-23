@@ -1292,10 +1292,13 @@
       "search": {
         "placeholder": "Musik suchen...",
         "button": "Suchen",
+        "filterAll": "Alle",
         "songsTitle": "Songs",
         "albumsTitle": "Alben",
         "artistsTitle": "Künstler",
         "playlistsTitle": "Playlists",
+        "tracks": "Titel",
+        "showAll": "Alle {{count}} anzeigen",
         "noResults": "Keine Musik gefunden",
         "error": "Suche fehlgeschlagen. Bitte erneut versuchen."
       },
@@ -1328,7 +1331,22 @@
       "previous": "Vorheriger Titel",
       "shuffle": "Zufällig",
       "repeat": "Wiederholen",
-      "nowPlaying": "Wird gerade gespielt"
+      "nowPlaying": "Wird gerade gespielt",
+      "playing": "Wird abgespielt",
+      "paused": "Pausiert",
+      "stopped": "Gestoppt",
+      "resumed": "Fortgesetzt",
+      "playError": {
+        "title": "Titel kann nicht abgespielt werden",
+        "message": "Bei der Wiedergabe ist ein Problem aufgetreten. Bitte überprüfe dein Apple Music Abo."
+      },
+      "detail": {
+        "topSongs": "Top-Songs",
+        "albums": "Alben",
+        "playAll": "Alle abspielen",
+        "error": "Details konnten nicht geladen werden",
+        "by": "Von"
+      }
     }
   },
   "articleViewer": {

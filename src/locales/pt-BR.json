@@ -1318,10 +1318,13 @@
       "search": {
         "placeholder": "Buscar música...",
         "button": "Buscar",
+        "filterAll": "Todos",
         "songsTitle": "Músicas",
         "albumsTitle": "Álbuns",
         "artistsTitle": "Artistas",
         "playlistsTitle": "Playlists",
+        "tracks": "faixas",
+        "showAll": "Mostrar todos ({{count}})",
         "noResults": "Nenhuma música encontrada",
         "error": "Busca falhou. Tente novamente."
       },
@@ -1354,7 +1357,22 @@
       "previous": "Faixa anterior",
       "shuffle": "Aleatório",
       "repeat": "Repetir",
-      "nowPlaying": "Tocando agora"
+      "nowPlaying": "Tocando agora",
+      "playing": "Tocando",
+      "paused": "Pausado",
+      "stopped": "Parado",
+      "resumed": "Retomado",
+      "playError": {
+        "title": "Não foi possível reproduzir a música",
+        "message": "Ocorreu um problema ao reproduzir esta música. Verifique sua assinatura Apple Music."
+      },
+      "detail": {
+        "topSongs": "Músicas populares",
+        "albums": "Álbuns",
+        "playAll": "Reproduzir tudo",
+        "error": "Não foi possível carregar os detalhes",
+        "by": "Por"
+      }
     }
   },
   "articleViewer": {

@@ -1294,10 +1294,13 @@
       "search": {
         "placeholder": "Search music...",
         "button": "Search",
+        "filterAll": "All",
         "songsTitle": "Songs",
         "albumsTitle": "Albums",
         "artistsTitle": "Artists",
         "playlistsTitle": "Playlists",
+        "tracks": "tracks",
+        "showAll": "Show all {{count}}",
         "noResults": "No music found",
         "error": "Search failed. Please try again."
       },
@@ -1338,6 +1341,13 @@
       "playError": {
         "title": "Cannot play song",
         "message": "There was a problem playing this song. Please check your Apple Music subscription."
+      },
+      "detail": {
+        "topSongs": "Top songs",
+        "albums": "Albums",
+        "playAll": "Play all",
+        "error": "Could not load details",
+        "by": "By"
       }
     }
   },
@@ -1630,7 +1640,9 @@
     "repeat": "Repeat",
     "repeatOff": "Repeat off",
     "repeatOne": "Repeat this song",
-    "repeatAll": "Repeat all"
+    "repeatAll": "Repeat all",
+    "addToLibrary": "Add to library",
+    "inLibrary": "In library"
   },
   "a11y": {
     "voiceFocusHint": "Say \"open\" to select",

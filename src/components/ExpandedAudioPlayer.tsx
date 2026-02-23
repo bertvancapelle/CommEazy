@@ -78,6 +78,8 @@ export interface AudioPlayerControls {
   shuffle?: boolean;
   /** Show repeat button (for music) */
   repeat?: boolean;
+  /** Show add to library button (for Apple Music) */
+  addToLibrary?: boolean;
 }
 
 export interface ExpandedAudioPlayerProps {
@@ -167,6 +169,14 @@ export interface ExpandedAudioPlayerProps {
   repeatMode?: RepeatMode;
   /** Callback when repeat button is pressed */
   onRepeatPress?: () => void;
+
+  // Add to Library (when controls.addToLibrary is true)
+  /** Is item already in library */
+  isInLibrary?: boolean;
+  /** Is add to library operation loading */
+  isAddingToLibrary?: boolean;
+  /** Callback when add to library button is pressed */
+  onAddToLibraryPress?: () => void;
 }
 
 // ============================================================
@@ -225,6 +235,9 @@ export function ExpandedAudioPlayer({
   onShufflePress,
   repeatMode = 'off',
   onRepeatPress,
+  isInLibrary = false,
+  isAddingToLibrary = false,
+  onAddToLibraryPress,
 }: ExpandedAudioPlayerProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -315,6 +328,11 @@ export function ExpandedAudioPlayer({
     await triggerFeedback('tap');
     onRepeatPress?.();
   }, [onRepeatPress, triggerFeedback]);
+
+  const handleAddToLibraryPress = useCallback(async () => {
+    await triggerFeedback('tap');
+    onAddToLibraryPress?.();
+  }, [onAddToLibraryPress, triggerFeedback]);
 
   const handleSeekStart = useCallback(() => {
     setIsSeeking(true);
@@ -534,8 +552,8 @@ export function ExpandedAudioPlayer({
             )}
           </View>
 
-          {/* Secondary controls row (shuffle, favorite, repeat) */}
-          {(controls.shuffle || controls.favorite || controls.repeat) && (
+          {/* Secondary controls row (shuffle, favorite, addToLibrary, repeat) */}
+          {(controls.shuffle || controls.favorite || controls.addToLibrary || controls.repeat) && (
             <View style={styles.secondaryControlsRow}>
               {/* Shuffle button (for music) */}
               {controls.shuffle && onShufflePress && (
@@ -576,6 +594,32 @@ export function ExpandedAudioPlayer({
                     size={28}
                     color={isFavorite ? accentColor : colors.textSecondary}
                   />
+                </TouchableOpacity>
+              )}
+
+              {/* Add to Library button (for Apple Music) */}
+              {controls.addToLibrary && onAddToLibraryPress && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleAddToLibraryPress}
+                  disabled={isInLibrary || isAddingToLibrary}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isInLibrary
+                      ? t('audio.inLibrary')
+                      : t('audio.addToLibrary')
+                  }
+                  accessibilityState={{ selected: isInLibrary, disabled: isAddingToLibrary }}
+                >
+                  {isAddingToLibrary ? (
+                    <ActivityIndicator size="small" color={accentColor} />
+                  ) : (
+                    <Icon
+                      name={isInLibrary ? 'check' : 'plus'}
+                      size={28}
+                      color={isInLibrary ? accentColor : colors.textSecondary}
+                    />
+                  )}
                 </TouchableOpacity>
               )}
 

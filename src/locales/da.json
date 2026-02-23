@@ -1128,10 +1128,13 @@
       "search": {
         "placeholder": "Søg musik...",
         "button": "Søg",
+        "filterAll": "Alle",
         "songsTitle": "Sange",
         "albumsTitle": "Album",
         "artistsTitle": "Kunstnere",
         "playlistsTitle": "Playlister",
+        "tracks": "numre",
+        "showAll": "Vis alle ({{count}})",
         "noResults": "Ingen musik fundet",
         "error": "Søgning mislykkedes. Prøv igen."
       },
@@ -1164,7 +1167,22 @@
       "previous": "Forrige nummer",
       "shuffle": "Bland",
       "repeat": "Gentag",
-      "nowPlaying": "Spiller nu"
+      "nowPlaying": "Spiller nu",
+      "playing": "Afspiller",
+      "paused": "Pauset",
+      "stopped": "Stoppet",
+      "resumed": "Genoptaget",
+      "playError": {
+        "title": "Kan ikke afspille sangen",
+        "message": "Der opstod et problem under afspilning. Tjek dit Apple Music-abonnement."
+      },
+      "detail": {
+        "topSongs": "Populære sange",
+        "albums": "Album",
+        "playAll": "Afspil alle",
+        "error": "Kunne ikke indlæse detaljer",
+        "by": "Af"
+      }
     }
   },
   "articleViewer": {

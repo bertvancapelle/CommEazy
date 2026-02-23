@@ -96,6 +96,8 @@ export type IconName =
   | 'repeat-one'
   | 'heart-outline'
   | 'musical-notes'
+  | 'grid'
+  | 'disc'
   | 'shield-checkmark'
   | 'sun'
   | 'moon'
@@ -1545,6 +1547,27 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             d="M7 3H22V5H7V3Z"
             fill={color}
           />
+        </Svg>
+      );
+
+    case 'grid':
+      // 2x2 grid for "all" view
+      return (
+        <Svg {...iconProps}>
+          <Rect x="3" y="3" width="8" height="8" rx="2" stroke={color} strokeWidth={sw} />
+          <Rect x="13" y="3" width="8" height="8" rx="2" stroke={color} strokeWidth={sw} />
+          <Rect x="3" y="13" width="8" height="8" rx="2" stroke={color} strokeWidth={sw} />
+          <Rect x="13" y="13" width="8" height="8" rx="2" stroke={color} strokeWidth={sw} />
+        </Svg>
+      );
+
+    case 'disc':
+      // Vinyl disc / album
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
+          <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={sw} />
+          <Circle cx="12" cy="12" r="1" fill={color} />
         </Svg>
       );
 

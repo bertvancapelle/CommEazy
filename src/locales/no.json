@@ -1178,10 +1178,13 @@
       "search": {
         "placeholder": "Søk etter musikk...",
         "button": "Søk",
+        "filterAll": "Alle",
         "songsTitle": "Sanger",
         "albumsTitle": "Album",
         "artistsTitle": "Artister",
         "playlistsTitle": "Spillelister",
+        "tracks": "spor",
+        "showAll": "Vis alle ({{count}})",
         "noResults": "Ingen musikk funnet",
         "error": "Søk mislyktes. Prøv igjen."
       },
@@ -1214,7 +1217,22 @@
       "previous": "Forrige spor",
       "shuffle": "Tilfeldig",
       "repeat": "Gjenta",
-      "nowPlaying": "Spilles nå"
+      "nowPlaying": "Spilles nå",
+      "playing": "Spiller",
+      "paused": "Pauset",
+      "stopped": "Stoppet",
+      "resumed": "Gjenopptatt",
+      "playError": {
+        "title": "Kan ikke spille sangen",
+        "message": "Det oppstod et problem med avspillingen. Vennligst sjekk Apple Music-abonnementet ditt."
+      },
+      "detail": {
+        "topSongs": "Populære sanger",
+        "albums": "Album",
+        "playAll": "Spill alle",
+        "error": "Kunne ikke laste detaljer",
+        "by": "Av"
+      }
     }
   },
   "articleViewer": {

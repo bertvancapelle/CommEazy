@@ -1252,10 +1252,13 @@
       "search": {
         "placeholder": "Cerca musica...",
         "button": "Cerca",
+        "filterAll": "Tutti",
         "songsTitle": "Brani",
         "albumsTitle": "Album",
         "artistsTitle": "Artisti",
         "playlistsTitle": "Playlist",
+        "tracks": "brani",
+        "showAll": "Mostra tutti ({{count}})",
         "noResults": "Nessuna musica trovata",
         "error": "Ricerca fallita. Riprova."
       },
@@ -1288,7 +1291,22 @@
       "previous": "Brano precedente",
       "shuffle": "Casuale",
       "repeat": "Ripeti",
-      "nowPlaying": "In riproduzione"
+      "nowPlaying": "In riproduzione",
+      "playing": "In riproduzione",
+      "paused": "In pausa",
+      "stopped": "Fermato",
+      "resumed": "Ripreso",
+      "playError": {
+        "title": "Impossibile riprodurre il brano",
+        "message": "Si è verificato un problema durante la riproduzione. Verifica il tuo abbonamento Apple Music."
+      },
+      "detail": {
+        "topSongs": "Brani popolari",
+        "albums": "Album",
+        "playAll": "Riproduci tutto",
+        "error": "Impossibile caricare i dettagli",
+        "by": "Di"
+      }
     }
   },
   "articleViewer": {

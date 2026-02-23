@@ -275,7 +275,7 @@ export function CallsScreen() {
 
               {/* Video call button */}
               <TouchableOpacity
-                style={[styles.callButton, styles.videoCallButton]}
+                style={[styles.callButton, { backgroundColor: callsModuleColor }]}
                 onPress={() => handleVideoCall(contact)}
                 onLongPress={() => {}} // Prevent double-action
                 delayLongPress={300}
@@ -426,9 +426,7 @@ const styles = StyleSheet.create({
   voiceCallButton: {
     backgroundColor: colors.success, // Green for voice call
   },
-  videoCallButton: {
-    backgroundColor: callsModuleColor, // Blue for video call
-  },
+  // videoCallButton uses dynamic callsModuleColor inline
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
