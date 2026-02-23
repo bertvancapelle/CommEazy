@@ -183,6 +183,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | XMPP, messaging | xmpp-specialist, security-expert |
 | Navigatie | architecture-lead, ui-designer |
 | i18n, vertalingen | ui-designer, documentation-writer |
+| **Nieuwe i18n keys toevoegen** | **BLOKKEERDER** — ALLE 13 locale bestanden MOETEN worden bijgewerkt, zie sectie "i18n Completeness Validatie" |
 | Native modules | ios-specialist OF android-specialist |
 | Tests | testing-qa |
 | CI/CD, deployment | devops-specialist |
@@ -418,6 +419,81 @@ console.log('Missing keys:', missing.length);
 missing.forEach(k => console.log('  -', k));
 "
 ```
+
+### i18n Completeness Validatie (BLOKKEERDER)
+
+**⚠️ KRITIEK:** Wanneer NIEUWE i18n keys worden toegevoegd, MOETEN ALLE 13 locale bestanden worden bijgewerkt in DEZELFDE commit.
+
+**Waarom?**
+- i18next valt terug naar de default taal (nl) wanneer een key ontbreekt
+- Dit maskeert het probleem tijdens development/testing
+- Gebruikers zien plots Nederlandse tekst in hun taal-instellingen
+
+**Verplichte Locales (13 talen):**
+| Taal | Bestand | Status check |
+|------|---------|--------------|
+| Nederlands | `nl.json` | Referentie (altijd compleet) |
+| Engels | `en.json` | Verplicht |
+| Engels (UK) | `en-GB.json` | Verplicht |
+| Duits | `de.json` | Verplicht |
+| Frans | `fr.json` | Verplicht |
+| Spaans | `es.json` | Verplicht |
+| Italiaans | `it.json` | Verplicht |
+| Noors | `no.json` | Verplicht |
+| Zweeds | `sv.json` | Verplicht |
+| Deens | `da.json` | Verplicht |
+| Portugees | `pt.json` | Verplicht |
+| Portugees (BR) | `pt-BR.json` | Verplicht |
+| Pools | `pl.json` | Verplicht |
+
+**Claude's Workflow bij Nieuwe i18n Keys:**
+
+1. **Identificeer** alle nieuwe keys die worden toegevoegd
+2. **Valideer** dat elke key in ALLE 13 locale bestanden wordt toegevoegd
+3. **Vertaal** naar elke taal (machine-vertaling is acceptabel, later te verfijnen)
+4. **Rapporteer** aan gebruiker:
+
+```
+📋 **i18n Completeness Check**
+
+Nieuwe keys toegevoegd:
+- settings.newFeature.title
+- settings.newFeature.description
+
+✅ Alle 13 locale bestanden bijgewerkt:
+   nl.json, en.json, en-GB.json, de.json, fr.json, es.json,
+   it.json, no.json, sv.json, da.json, pt.json, pt-BR.json, pl.json
+```
+
+**Validatie Script (na wijzigingen):**
+
+```bash
+# Vergelijk alle locale bestanden met nl.json (referentie)
+for lang in en en-GB de fr es it no sv da pt pt-BR pl; do
+  echo "=== Checking $lang.json ==="
+  node -e "
+    const nl = require('./src/locales/nl.json');
+    const target = require('./src/locales/${lang}.json');
+    const getKeys = (obj, prefix = '') => Object.entries(obj).flatMap(([k, v]) =>
+      typeof v === 'object' ? getKeys(v, prefix + k + '.') : [prefix + k]
+    );
+    const nlKeys = new Set(getKeys(nl));
+    const targetKeys = new Set(getKeys(target));
+    const missing = [...nlKeys].filter(k => !targetKeys.has(k));
+    if (missing.length > 0) {
+      console.log('❌ Missing', missing.length, 'keys:');
+      missing.slice(0, 5).forEach(k => console.log('   -', k));
+      if (missing.length > 5) console.log('   ... and', missing.length - 5, 'more');
+    } else {
+      console.log('✅ Complete');
+    }
+  "
+done
+```
+
+**Wanneer NIET te blokkeren:**
+- Typo fixes in bestaande vertalingen
+- Aanpassen van bestaande tekst (key blijft hetzelfde)
 
 ## Code Formatting (VERPLICHT)
 
