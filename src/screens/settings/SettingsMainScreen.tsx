@@ -39,6 +39,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, type IconName } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { getAvatarPath } from '@/services/imageService';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -70,13 +71,15 @@ interface SubsectionButtonProps {
   iconColor: string;
   focused?: boolean;
   focusStyle?: { borderColor: string; borderWidth: number; backgroundColor: string };
+  themeColors: typeof colors;
 }
 
-function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, focused, focusStyle }: SubsectionButtonProps) {
+function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, focused, focusStyle, themeColors }: SubsectionButtonProps) {
   return (
     <TouchableOpacity
       style={[
         styles.subsectionButton,
+        { borderBottomColor: themeColors.border },
         focused && focusStyle && {
           borderColor: focusStyle.borderColor,
           borderWidth: focusStyle.borderWidth,
@@ -92,8 +95,8 @@ function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, 
       <View style={styles.subsectionIconContainer}>
         <Icon name={icon} size={24} color={iconColor} />
       </View>
-      <Text style={styles.subsectionLabel}>{label}</Text>
-      <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+      <Text style={[styles.subsectionLabel, { color: themeColors.textPrimary }]}>{label}</Text>
+      <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
     </TouchableOpacity>
   );
 }
@@ -104,6 +107,7 @@ export function SettingsMainScreen() {
   const { triggerFeedback } = useFeedback();
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors(); // Dynamic colors based on theme
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
@@ -222,7 +226,7 @@ export function SettingsMainScreen() {
   }, [i18n, t, triggerFeedback]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header — standardized component */}
       <ModuleHeader
         moduleId="settings"
@@ -234,7 +238,7 @@ export function SettingsMainScreen() {
       <ScrollView ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {/* Profile header - tappable to edit */}
         <TouchableOpacity
-        style={styles.profileHeader}
+        style={[styles.profileHeader, { backgroundColor: themeColors.surface }]}
         onPress={() => navigation.navigate('ProfileSettings')}
         activeOpacity={0.8}
         accessibilityRole="button"
@@ -248,35 +252,35 @@ export function SettingsMainScreen() {
             size={80}
           />
           {/* Small camera icon */}
-          <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary }]}>
-            <Icon name="camera" size={14} color={colors.textOnPrimary} />
+          <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary, borderColor: themeColors.surface }]}>
+            <Icon name="camera" size={14} color={themeColors.textOnPrimary} />
           </View>
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{displayName || t('common.loading')}</Text>
-          <Text style={styles.profileHint}>{t('profile.tapToChange')}</Text>
+          <Text style={[styles.profileName, { color: themeColors.textPrimary }]}>{displayName || t('common.loading')}</Text>
+          <Text style={[styles.profileHint, { color: themeColors.textSecondary }]}>{t('profile.tapToChange')}</Text>
         </View>
-        <Icon name="chevron-right" size={24} color={colors.textTertiary} />
+        <Icon name="chevron-right" size={24} color={themeColors.textTertiary} />
       </TouchableOpacity>
 
       {/* Language selector - below profile */}
       <TouchableOpacity
-        style={styles.languageSelector}
+        style={[styles.languageSelector, { backgroundColor: themeColors.surface }]}
         onPress={handleLanguagePress}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={t('settings.language')}
         accessibilityHint={t('profile.languageHint')}
       >
-        <Text style={styles.languageLabel}>{t('settings.language')}</Text>
+        <Text style={[styles.languageLabel, { color: themeColors.textPrimary }]}>{t('settings.language')}</Text>
         <View style={styles.languageValueContainer}>
           <Text style={[styles.languageValue, { color: accentColor.primary }]}>{languageDisplay}</Text>
-          <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+          <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
         </View>
       </TouchableOpacity>
 
       {/* Subsection buttons */}
-      <View style={styles.subsectionsContainer}>
+      <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
         {/* Profiel */}
         <VoiceFocusable
           id="profile"
@@ -292,6 +296,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('profile')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -310,6 +315,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('accessibility')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -328,6 +334,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('appearance')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -346,6 +353,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('liquid-glass')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -364,6 +372,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('voice')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -382,6 +391,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('modules')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -400,6 +410,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('call-settings')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -426,6 +437,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('notifications')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -444,6 +456,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('backup')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
 
@@ -462,6 +475,7 @@ export function SettingsMainScreen() {
             iconColor={accentColor.primary}
             focused={isItemFocused('device-link')}
             focusStyle={getFocusStyle()}
+            themeColors={themeColors}
           />
         </VoiceFocusable>
         </View>
@@ -471,24 +485,24 @@ export function SettingsMainScreen() {
           <View style={styles.devSection}>
             <Text style={styles.devSectionTitle}>🛠 Development</Text>
             <TouchableOpacity
-              style={styles.devButton}
+              style={[styles.devButton, { backgroundColor: themeColors.surface }]}
               onPress={() => navigation.navigate('PiperTtsTest')}
               accessibilityRole="button"
               accessibilityLabel="Piper TTS Test"
             >
               <Icon name="play" size={24} color="#4CAF50" />
               <View style={styles.devButtonTextContainer}>
-                <Text style={styles.devButtonTitle}>🔊 Piper TTS Test</Text>
-                <Text style={styles.devButtonSubtitle}>Test offline spraaksynthese</Text>
+                <Text style={[styles.devButtonTitle, { color: themeColors.textPrimary }]}>🔊 Piper TTS Test</Text>
+                <Text style={[styles.devButtonSubtitle, { color: themeColors.textSecondary }]}>Test offline spraaksynthese</Text>
               </View>
-              <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+              <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </TouchableOpacity>
           </View>
         )}
 
         {/* App info */}
         <View style={styles.infoSection}>
-          <Text style={styles.infoText}>
+          <Text style={[styles.infoText, { color: themeColors.textTertiary }]}>
             {t('settings.version', { version: '1.0.0' })}
           </Text>
         </View>

@@ -53,6 +53,7 @@ import { useVoiceCommands } from '@/hooks/useVoiceCommands';
 import { useTtsSettings, TTS_SPEED_OPTIONS, type TtsSpeechRate } from '@/hooks/useTtsSettings';
 import { Icon, VoiceToggle, VoiceStepper, VoiceFocusable } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
+import { useColors } from '@/contexts/ThemeContext';
 
 // Stepper component for numeric values with +/- buttons
 interface StepperProps {
@@ -338,6 +339,7 @@ function TtsSpeechRateSelector({ value, onValueChange, accentColor }: TtsSpeechR
 export function AccessibilitySettingsScreen() {
   const { t } = useTranslation();
   const isFocused = useIsFocused();
+  const themeColors = useColors(); // Dynamic colors based on theme
 
   // Hold-to-Navigate settings
   const {
@@ -620,11 +622,11 @@ export function AccessibilitySettingsScreen() {
   );
 
   return (
-    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Feedback section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('accessibilitySettings.feedbackTitle')}</Text>
-        <Text style={styles.sectionHint}>{t('accessibilitySettings.feedbackHint')}</Text>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('accessibilitySettings.feedbackTitle')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('accessibilitySettings.feedbackHint')}</Text>
 
         {/* Haptic feedback toggle */}
         <ToggleRow
@@ -691,8 +693,8 @@ export function AccessibilitySettingsScreen() {
       </View>
 
       {/* Appearance section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('accessibilitySettings.appearanceTitle')}</Text>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('accessibilitySettings.appearanceTitle')}</Text>
         <AccentColorPicker
           value={accentColorKey}
           onValueChange={handleAccentColorChange}
@@ -701,9 +703,9 @@ export function AccessibilitySettingsScreen() {
       </View>
 
       {/* Hold-to-Navigate section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('accessibilitySettings.holdToNavigateTitle')}</Text>
-        <Text style={styles.sectionHint}>{t('settings.accessibilityHint')}</Text>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('accessibilitySettings.holdToNavigateTitle')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('settings.accessibilityHint')}</Text>
 
         {/* Long press delay */}
         <Stepper
@@ -767,12 +769,12 @@ export function AccessibilitySettingsScreen() {
         accessibilityRole="button"
         accessibilityLabel={t('accessibilitySettings.testFeedback')}
       >
-        <Text style={styles.testButtonText}>{t('accessibilitySettings.testFeedback')}</Text>
+        <Text style={[styles.testButtonText, { color: themeColors.textOnPrimary }]}>{t('accessibilitySettings.testFeedback')}</Text>
       </TouchableOpacity>
 
       {/* Compliance Report link */}
       <TouchableOpacity
-        style={styles.complianceLink}
+        style={[styles.complianceLink, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
         onPress={() => navigation.navigate('ComplianceReport')}
         accessibilityRole="button"
         accessibilityLabel={t('accessibilitySettings.complianceReport')}
@@ -781,15 +783,15 @@ export function AccessibilitySettingsScreen() {
         <View style={styles.complianceLinkContent}>
           <Icon name="shield-checkmark" size={32} color={accentColor.primary} />
           <View style={styles.complianceLinkText}>
-            <Text style={styles.complianceLinkLabel}>
+            <Text style={[styles.complianceLinkLabel, { color: themeColors.textPrimary }]}>
               {t('accessibilitySettings.complianceReport')}
             </Text>
-            <Text style={styles.complianceLinkHint}>
+            <Text style={[styles.complianceLinkHint, { color: themeColors.textSecondary }]}>
               {t('accessibilitySettings.complianceReportHint')}
             </Text>
           </View>
         </View>
-        <Icon name="chevron-right" size={24} color={colors.textTertiary} />
+        <Icon name="chevron-right" size={24} color={themeColors.textTertiary} />
       </TouchableOpacity>
     </ScrollView>
   );

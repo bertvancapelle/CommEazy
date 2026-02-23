@@ -19,7 +19,7 @@ import { colors } from '@/theme';
 import { ServiceProvider } from '@/hooks/useServices';
 import { HoldToNavigateProvider } from '@/hooks/useHoldToNavigate';
 import { AccentColorProvider } from '@/contexts/AccentColorContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider, useTheme, useColors } from '@/contexts/ThemeContext';
 import { LiquidGlassProvider } from '@/contexts/LiquidGlassContext';
 import { VoiceFocusProvider } from '@/contexts/VoiceFocusContext';
 import { VoiceSettingsProvider } from '@/contexts/VoiceSettingsContext';
@@ -37,6 +37,21 @@ import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
+
+/**
+ * ThemedStatusBar — Dynamically updates StatusBar based on theme
+ */
+function ThemedStatusBar() {
+  const { isDarkMode } = useTheme();
+  const themeColors = useColors();
+
+  return (
+    <StatusBar
+      barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+      backgroundColor={themeColors.background}
+    />
+  );
+}
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -102,12 +117,9 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.background}
-      />
       <ServiceProvider reducedMotion={reducedMotion}>
         <ThemeProvider>
+          <ThemedStatusBar />
           <AccentColorProvider>
             <LiquidGlassProvider>
             <VoiceSettingsProvider>
