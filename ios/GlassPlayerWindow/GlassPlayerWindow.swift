@@ -155,7 +155,7 @@ class GlassPlayerWindow: UIWindow {
         rootVC.view.backgroundColor = .clear
         rootViewController = rootVC
 
-        NSLog("[GlassPlayer] Window setup complete - windowLevel: \(windowLevel.rawValue)")
+
     }
 
     private func setupViews() {
@@ -195,7 +195,7 @@ class GlassPlayerWindow: UIWindow {
             fullPlayerView.bottomAnchor.constraint(equalTo: glassView.bottomAnchor),
         ])
         
-        NSLog("[GlassPlayer] setupViews complete - constraints activated")
+
     }
 
     private func setupGestures() {
@@ -223,14 +223,12 @@ class GlassPlayerWindow: UIWindow {
         // Reset sleep timer when showing NEW content (different song)
         if contentChanged {
             fullPlayerView.resetSleepTimer()
-            NSLog("[GlassPlayer] showMini - new content, reset sleep timer")
         }
         
         updateContent(config)
 
         guard currentState == .hidden else {
             // Already showing, just update content
-            NSLog("[GlassPlayer] showMini - already visible, just updating content")
             return
         }
 
@@ -250,7 +248,7 @@ class GlassPlayerWindow: UIWindow {
         )
         frame = windowFrame
 
-        NSLog("[GlassPlayer] showMini - screenBounds: \(screenBounds), safeAreaBottom: \(bottomSafe), windowHeight: \(windowHeight), frame: \(windowFrame)")
+
 
         // Layout views
         layoutViewsForMini()
@@ -260,16 +258,7 @@ class GlassPlayerWindow: UIWindow {
         makeKeyAndVisible()
         alpha = 1  // Set to 1 directly (animation was skipped for debugging)
 
-        // Log all windows to verify hierarchy
-        if let scene = windowScene {
-            NSLog("[GlassPlayer] All windows in scene:")
-            for (index, window) in scene.windows.enumerated() {
-                NSLog("[GlassPlayer]   Window \(index): level=\(window.windowLevel.rawValue), isHidden=\(window.isHidden), alpha=\(window.alpha), frame=\(window.frame)")
-            }
-        }
-
         currentState = .mini
-        NSLog("[GlassPlayer] ✅ Mini player now visible - isHidden: \(isHidden), alpha: \(alpha), frame: \(frame), windowLevel: \(windowLevel.rawValue)")
     }
 
     func expandToFull() {
@@ -318,7 +307,6 @@ class GlassPlayerWindow: UIWindow {
                 self.fullPlayerView.alpha = 1
             } completion: { _ in
                 self.currentState = .full
-                NSLog("[GlassPlayer] Expanded to full player - frame: \(fullFrame)")
             }
         }
     }
@@ -366,7 +354,6 @@ class GlassPlayerWindow: UIWindow {
                 self.layoutViewsForMini()
             } completion: { _ in
                 self.currentState = .mini
-                NSLog("[GlassPlayer] Collapsed to mini player - frame: \(miniFrame)")
             }
         }
     }
@@ -382,7 +369,6 @@ class GlassPlayerWindow: UIWindow {
         } completion: { _ in
             self.isHidden = true
             self.currentState = .hidden
-            NSLog("[GlassPlayer] Hidden")
         }
     }
 
@@ -395,7 +381,6 @@ class GlassPlayerWindow: UIWindow {
             UIView.animate(withDuration: 0.15) {
                 self.alpha = 0
             }
-            NSLog("[GlassPlayer] Temporarily hidden (navigation menu)")
         } else {
             // Restore correct frame and layout based on current state BEFORE animating alpha
             restoreCorrectFrameForState()
@@ -403,7 +388,6 @@ class GlassPlayerWindow: UIWindow {
             UIView.animate(withDuration: 0.2) {
                 self.alpha = 1
             }
-            NSLog("[GlassPlayer] Restored from temporary hide - state: \(currentState)")
         }
     }
     
@@ -432,7 +416,6 @@ class GlassPlayerWindow: UIWindow {
             fullPlayerView.isHidden = true
             fullPlayerView.alpha = 0
             layoutViewsForMini()
-            NSLog("[GlassPlayer] restoreCorrectFrameForState - restored MINI frame: \(miniFrame)")
             
         case .full:
             // Restore full player frame
@@ -454,7 +437,6 @@ class GlassPlayerWindow: UIWindow {
             fullPlayerView.isHidden = false
             fullPlayerView.alpha = 1
             layoutViewsForFull()
-            NSLog("[GlassPlayer] restoreCorrectFrameForState - restored FULL frame: \(fullFrame)")
             
         case .hidden:
             // Should not reach here due to guard, but handle anyway
@@ -467,18 +449,13 @@ class GlassPlayerWindow: UIWindow {
     // ============================================================
 
     private func layoutViewsForMini() {
-        guard let rootView = rootViewController?.view else {
-            NSLog("[GlassPlayer] layoutViewsForMini - rootView is nil!")
-            return
-        }
+        guard let rootView = rootViewController?.view else { return }
 
         // Ensure rootView matches window bounds
         rootView.frame = bounds
         
         // Force layout update for Auto Layout constraints
         rootView.layoutIfNeeded()
-        
-        NSLog("[GlassPlayer] layoutViewsForMini - bounds: \(bounds), glassView.frame: \(glassView.frame), miniPlayerView.frame: \(miniPlayerView.frame)")
     }
 
     private func layoutViewsForFull() {
@@ -489,8 +466,6 @@ class GlassPlayerWindow: UIWindow {
         
         // Force layout update for Auto Layout constraints
         rootView.layoutIfNeeded()
-        
-        NSLog("[GlassPlayer] layoutViewsForFull - bounds: \(bounds)")
     }
 
     // ============================================================
@@ -509,7 +484,6 @@ class GlassPlayerWindow: UIWindow {
             subtitle: content.subtitle,
             artworkURL: content.artwork
         )
-        NSLog("[GlassPlayer] updateContent - calling updateTintColor with: \(content.tintColorHex)")
         miniPlayerView.updateTintColor(content.tintColorHex)
         fullPlayerView.updateTintColor(content.tintColorHex)
         glassView.updateTintColor(content.tintColorHex)
@@ -546,7 +520,6 @@ class GlassPlayerWindow: UIWindow {
     }
 
     func configureControls(_ controls: NSDictionary) {
-        NSLog("[GlassPlayer] configureControls called with: \(controls)")
         fullPlayerView.configure(controls: controls)
     }
 }
@@ -643,24 +616,13 @@ struct PlayerContent {
     init(from config: NSDictionary) {
         moduleId = config["moduleId"] as? String ?? "radio"
         tintColorHex = config["tintColorHex"] as? String ?? "#00897B"
-        NSLog("[GlassPlayer] PlayerContent - moduleId: \(moduleId), tintColorHex: \(tintColorHex)")
         
-        // Parse artwork URL - check what we received from React Native
+        // Parse artwork URL
         let rawArtwork = config["artwork"]
-        if let artworkString = rawArtwork as? String {
-            if artworkString.isEmpty {
-                artwork = nil
-                NSLog("[GlassPlayer] PlayerContent - artwork is EMPTY STRING")
-            } else {
-                artwork = artworkString
-                NSLog("[GlassPlayer] PlayerContent - artwork URL: \(artworkString.prefix(100))...")
-            }
-        } else if rawArtwork == nil || rawArtwork is NSNull {
-            artwork = nil
-            NSLog("[GlassPlayer] PlayerContent - artwork is NULL")
+        if let artworkString = rawArtwork as? String, !artworkString.isEmpty {
+            artwork = artworkString
         } else {
             artwork = nil
-            NSLog("[GlassPlayer] PlayerContent - artwork has unexpected type: \(type(of: rawArtwork))")
         }
         
         title = config["title"] as? String ?? ""
@@ -701,7 +663,5 @@ struct PlaybackState {
         isBuffering = state["isBuffering"] as? Bool ?? false
         shuffleMode = state["shuffleMode"] as? String ?? "off"
         repeatMode = state["repeatMode"] as? String ?? "off"
-        
-        NSLog("[GlassPlayer] PlaybackState parsed - position: \(position ?? -1), duration: \(duration ?? -1), shuffle: \(shuffleMode), repeat: \(repeatMode)")
     }
 }

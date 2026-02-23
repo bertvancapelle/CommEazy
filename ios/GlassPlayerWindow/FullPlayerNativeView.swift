@@ -465,17 +465,8 @@ class FullPlayerNativeView: UIView {
     @objc private func handlePlayPause() {
         triggerHaptic()
 
-        // OPTIMISTIC UI UPDATE: Immediately toggle the icon before delegate callback
-        // This prevents the "double-tap" feel where native waits for RN round-trip
-        let newIsPlaying = !isPlaying
-        isPlaying = newIsPlaying
-
-        let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
-        let iconName = newIsPlaying ? "pause.fill" : "play.fill"
-        playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
-        playPauseButton.accessibilityLabel = newIsPlaying ? "Pauzeren" : "Afspelen"
-
-        NSLog("[GlassPlayer Full] handlePlayPause - optimistic update to isPlaying: \(newIsPlaying)")
+        // NO optimistic UI update - React Native is the single source of truth
+        // The UI will update when RN calls updatePlaybackState with the new state
 
         delegate?.fullPlayerDidTapPlayPause()
     }
@@ -489,7 +480,6 @@ class FullPlayerNativeView: UIView {
         // Haptic feedback when starting to drag
         triggerHaptic(.light)
         isSeeking = true  // Block updates from updatePlaybackState while dragging
-        NSLog("[GlassPlayer Full] Seek slider touch down - isSeeking=true")
     }
 
     @objc private func handleSeekTouchUp() {
@@ -498,14 +488,12 @@ class FullPlayerNativeView: UIView {
         
         // Calculate final position and send seek event ONLY on release
         let positionInSeconds = Double(seekSlider.value) * currentDuration
-        NSLog("[GlassPlayer Full] Seek slider touch up - seeking to \(positionInSeconds)s")
         
         // Send seek event to React Native (only on release, not during drag)
         delegate?.fullPlayerDidSeek(to: Float(positionInSeconds))
         
         // Allow updates again AFTER sending seek
         isSeeking = false
-        NSLog("[GlassPlayer Full] Seek slider touch up - isSeeking=false")
     }
 
     @objc private func handleSeekChange() {
@@ -643,8 +631,6 @@ class FullPlayerNativeView: UIView {
     }
     
     func updateContent(title: String, subtitle: String?, artworkURL: String?) {
-        NSLog("[GlassPlayer Full] updateContent - title: '\(title)', subtitle: \(subtitle ?? "nil"), artworkURL: \(artworkURL ?? "nil")")
-        
         // Ensure title is set and visible
         titleLabel.text = title
         titleLabel.isHidden = false
@@ -659,36 +645,22 @@ class FullPlayerNativeView: UIView {
         setNeedsLayout()
         layoutIfNeeded()
         
-        // Debug: log label frame after next layout pass
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            NSLog("[GlassPlayer Full] After layout - titleLabel: frame=\(self.titleLabel.frame), text='\(self.titleLabel.text ?? "nil")', isHidden=\(self.titleLabel.isHidden), alpha=\(self.titleLabel.alpha)")
-            NSLog("[GlassPlayer Full] After layout - subtitleLabel: frame=\(self.subtitleLabel.frame), text='\(self.subtitleLabel.text ?? "nil")', isHidden=\(self.subtitleLabel.isHidden), alpha=\(self.subtitleLabel.alpha)")
-        }
-        
         if let urlString = artworkURL, !urlString.isEmpty, let url = URL(string: urlString) {
             loadImage(from: url)
         } else {
-            NSLog("[GlassPlayer Full] No artwork URL or empty string")
             artworkImageView.image = nil
         }
     }
     
     func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, position: Float?, duration: Float?, isFavorite: Bool) {
-        // Track if playback state actually changed to avoid UI flicker
-        // The optimistic UI update in handlePlayPause already sets the correct state,
-        // so this will only trigger if state differs (e.g., external state change)
-        let playStateChanged = self.isPlaying != isPlaying
         let loadingStateChanged = self.isLoading != isLoading
-
-        NSLog("[GlassPlayer Full] updatePlaybackState - isPlaying: \(isPlaying), current: \(self.isPlaying), changed: \(playStateChanged)")
 
         self.isPlaying = isPlaying
         self.isLoading = isLoading
         self.isBuffering = isBuffering
         self.isFavorite = isFavorite
 
-        // Update loading indicator (only if changed)
+        // Update loading indicator
         if loadingStateChanged {
             if isLoading {
                 loadingIndicator.startAnimating()
@@ -699,13 +671,12 @@ class FullPlayerNativeView: UIView {
             }
         }
 
-        // Update play/pause icon (only if state changed to prevent flicker)
-        if playStateChanged {
-            let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
-            let iconName = isPlaying ? "pause.fill" : "play.fill"
-            playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
-            playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
-        }
+        // ALWAYS update play/pause icon based on React Native state
+        // React Native is the single source of truth
+        let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
+        let iconName = isPlaying ? "pause.fill" : "play.fill"
+        playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
+        playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
         
         // Update buffering state on artwork
         updateBufferingState()
@@ -718,16 +689,11 @@ class FullPlayerNativeView: UIView {
             // Only update slider if user is NOT currently dragging it
             if !isSeeking {
                 let progress = position / duration
-                NSLog("[GlassPlayer Full] Updating seek slider: progress=\(progress), position=\(position), duration=\(duration)")
                 seekSlider.value = Float(progress)
                 currentTimeLabel.text = formatTime(position)
-            } else {
-                NSLog("[GlassPlayer Full] Skipping seek slider update - user is seeking")
             }
             // Always update duration label
             durationLabel.text = formatTime(duration)
-        } else {
-            NSLog("[GlassPlayer Full] Skipping seek slider update - position or duration invalid")
         }
         
         // Update favorite
@@ -857,39 +823,21 @@ class FullPlayerNativeView: UIView {
     }
     
     private func loadImage(from url: URL) {
-        NSLog("[GlassPlayer Full] Loading image from URL: \(url.absoluteString)")
-        
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            if let error = error {
-                NSLog("[GlassPlayer Full] Image load error: \(error.localizedDescription)")
-                return
-            }
+            if error != nil { return }
             
             // Check HTTP response
-            if let httpResponse = response as? HTTPURLResponse {
-                NSLog("[GlassPlayer Full] HTTP response status: \(httpResponse.statusCode)")
-                if httpResponse.statusCode != 200 {
-                    NSLog("[GlassPlayer Full] HTTP error: \(httpResponse.statusCode)")
-                    return
-                }
-            }
-            
-            guard let data = data, !data.isEmpty else {
-                NSLog("[GlassPlayer Full] Image load failed - no data or empty data")
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 return
             }
             
-            NSLog("[GlassPlayer Full] Received \(data.count) bytes of image data")
-            
-            guard let image = UIImage(data: data) else {
-                NSLog("[GlassPlayer Full] Failed to create UIImage from data")
+            guard let data = data, !data.isEmpty, let image = UIImage(data: data) else {
                 return
             }
             
-            NSLog("[GlassPlayer Full] Image loaded successfully, size: \(image.size)")
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image
             }

@@ -62,7 +62,7 @@ class MiniPlayerNativeView: UIView {
         static let buttonSize: CGFloat = 60   // Senior-inclusive touch targets
         static let titleFontSize: CGFloat = 18  // Senior-inclusive typography
         static let subtitleFontSize: CGFloat = 14
-        static let progressHeight: CGFloat = 3
+        static let progressHeight: CGFloat = 6  // Thicker for better visibility
     }
     
     // MARK: - Initialization
@@ -109,11 +109,15 @@ class MiniPlayerNativeView: UIView {
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(subtitleLabel)
         
-        // Progress bar
+        // Progress bar - styled for visibility within glass effect
         progressView.progressTintColor = .white
         progressView.trackTintColor = UIColor.white.withAlphaComponent(0.3)
         progressView.translatesAutoresizingMaskIntoConstraints = false
         progressView.isHidden = true
+        progressView.layer.cornerRadius = Layout.progressHeight / 2
+        progressView.clipsToBounds = true
+        // Make track slightly visible for context
+        progressView.trackTintColor = UIColor.black.withAlphaComponent(0.2)
         addSubview(progressView)
         
         // Listen duration label (for radio: "🎧 45:32")
@@ -189,10 +193,11 @@ class MiniPlayerNativeView: UIView {
             loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
             
-            // Progress bar
-            progressView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            progressView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            progressView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            // Progress bar - positioned INSIDE the content area, below subtitle
+            // Aligned with text content, not edge-to-edge
+            progressView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            progressView.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -8),
+            progressView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 8),
             progressView.heightAnchor.constraint(equalToConstant: Layout.progressHeight),
         ])
     }
@@ -221,17 +226,8 @@ class MiniPlayerNativeView: UIView {
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.impactOccurred()
 
-        // OPTIMISTIC UI UPDATE: Immediately toggle the icon before delegate callback
-        // This prevents the "double-tap" feel where native waits for RN round-trip
-        let newIsPlaying = !isPlaying
-        isPlaying = newIsPlaying
-
-        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
-        let iconName = newIsPlaying ? "pause.fill" : "play.fill"
-        playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
-        playPauseButton.accessibilityLabel = newIsPlaying ? "Pauzeren" : "Afspelen"
-
-        NSLog("[GlassPlayer Mini] handlePlayPause - optimistic update to isPlaying: \(newIsPlaying)")
+        // NO optimistic UI update - React Native is the single source of truth
+        // The UI will update when RN calls updatePlaybackState with the new state
 
         delegate?.miniPlayerDidTapPlayPause()
     }
@@ -247,7 +243,6 @@ class MiniPlayerNativeView: UIView {
     // MARK: - Public Methods
     
     func updateContent(title: String, subtitle: String?, artworkURL: String?) {
-        NSLog("[GlassPlayer Mini] updateContent - title: \(title), subtitle: \(subtitle ?? "nil"), artworkURL: \(artworkURL ?? "nil")")
         titleLabel.text = title
         subtitleLabel.text = subtitle
         subtitleLabel.isHidden = subtitle == nil
@@ -256,26 +251,19 @@ class MiniPlayerNativeView: UIView {
         if let urlString = artworkURL, !urlString.isEmpty, let url = URL(string: urlString) {
             loadImage(from: url)
         } else {
-            NSLog("[GlassPlayer Mini] No artwork URL or empty string")
             artworkImageView.image = nil
         }
     }
     
     func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, progress: Float?, listenDuration: TimeInterval?, showStopButton: Bool) {
-        // Track if playback state actually changed to avoid UI flicker
-        // The optimistic UI update in handlePlayPause already sets the correct state,
-        // so this will only trigger if state differs (e.g., external state change)
-        let playStateChanged = self.isPlaying != isPlaying
         let loadingStateChanged = self.isLoading != isLoading
-
-        NSLog("[GlassPlayer Mini] updatePlaybackState - isPlaying: \(isPlaying), current: \(self.isPlaying), changed: \(playStateChanged)")
 
         self.isPlaying = isPlaying
         self.isLoading = isLoading
         self.isBuffering = isBuffering
         self.showStopButton = showStopButton
 
-        // Update loading indicator (only if changed)
+        // Update loading indicator
         if loadingStateChanged {
             if isLoading {
                 loadingIndicator.startAnimating()
@@ -286,13 +274,12 @@ class MiniPlayerNativeView: UIView {
             }
         }
 
-        // Update play/pause icon (only if state changed to prevent flicker)
-        if playStateChanged {
-            let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
-            let iconName = isPlaying ? "pause.fill" : "play.fill"
-            playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
-            playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
-        }
+        // ALWAYS update play/pause icon based on React Native state
+        // React Native is the single source of truth
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+        let iconName = isPlaying ? "pause.fill" : "play.fill"
+        playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
+        playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
         
         // Update stop button visibility
         stopButton.isHidden = !showStopButton
@@ -373,39 +360,21 @@ class MiniPlayerNativeView: UIView {
     // MARK: - Image Loading
     
     private func loadImage(from url: URL) {
-        NSLog("[GlassPlayer Mini] Loading image from URL: \(url.absoluteString)")
-        
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            if let error = error {
-                NSLog("[GlassPlayer Mini] Image load error: \(error.localizedDescription)")
-                return
-            }
+            if error != nil { return }
             
             // Check HTTP response
-            if let httpResponse = response as? HTTPURLResponse {
-                NSLog("[GlassPlayer Mini] HTTP response status: \(httpResponse.statusCode)")
-                if httpResponse.statusCode != 200 {
-                    NSLog("[GlassPlayer Mini] HTTP error: \(httpResponse.statusCode)")
-                    return
-                }
-            }
-            
-            guard let data = data, !data.isEmpty else {
-                NSLog("[GlassPlayer Mini] Image load failed - no data or empty data")
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 return
             }
             
-            NSLog("[GlassPlayer Mini] Received \(data.count) bytes of image data")
-            
-            guard let image = UIImage(data: data) else {
-                NSLog("[GlassPlayer Mini] Failed to create UIImage from data")
+            guard let data = data, !data.isEmpty, let image = UIImage(data: data) else {
                 return
             }
             
-            NSLog("[GlassPlayer Mini] Image loaded successfully, size: \(image.size)")
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image
             }
