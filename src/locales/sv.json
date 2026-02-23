@@ -12,6 +12,13 @@
     }
   },
   "demographics": {
+    "language": {
+      "nl": "Nederländska",
+      "en": "Engelska",
+      "de": "Tyska",
+      "fr": "Franska",
+      "es": "Spanska"
+    },
     "title": "Berätta om dig själv",
     "subtitle": "Detta hjälper oss att visa relevanta annonser",
     "premiumNote": "Som premiumanvändare är detta valfritt",
@@ -188,6 +195,12 @@
     "ringing": "Ringer...",
     "connecting": "Ansluter...",
     "reconnecting": "Återansluter..."
+  },
+  "calls": {
+    "alreadyInCall": "Redan i samtal",
+    "alreadyInCallMessage": "Du är redan i ett samtal. Avsluta det nuvarande samtalet först.",
+    "callFailed": "Samtal misslyckades",
+    "callFailedMessage": "Kunde inte ansluta. Kontrollera din internetanslutning och försök igen."
   },
   "contacts": {
     "title": "Kontakter",
@@ -386,6 +399,30 @@
     "accentPurple": "Lila",
     "accentOrange": "Orange",
     "accentRed": "Röd"
+  },
+  "callSettings": {
+    "title": "Samtalsinställningar",
+    "screenHint": "Anpassa ringsignal, uppringningston och vibration",
+    "ringtoneSection": "Inkommande samtal",
+    "ringtoneEnabled": "Ringsignal",
+    "ringtoneEnabledHint": "Spela ljud vid inkommande samtal",
+    "ringtoneSound": "Välj ringsignal",
+    "ringtoneSoundHint": "Välj din favoritringsignal",
+    "incomingVibration": "Vibration",
+    "incomingVibrationHint": "Vibrera vid inkommande samtal",
+    "outgoingSection": "Utgående samtal",
+    "dialToneEnabled": "Uppringningston",
+    "dialToneEnabledHint": "Hör 'tuut... tuut...' medan du väntar",
+    "outgoingVibration": "Vibration",
+    "outgoingVibrationHint": "Vibrera medan telefonen ringer",
+    "ringtones": {
+      "default": "Standard",
+      "classic": "Klassisk",
+      "gentle": "Mjuk",
+      "urgent": "Brådskande"
+    },
+    "testRingtone": "Testa ringsignal",
+    "testDialTone": "Testa uppringningston"
   },
   "profile": {
     "changePhoto": "Ändra profilbild",

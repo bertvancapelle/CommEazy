@@ -145,6 +145,12 @@
     "connecting": "Łączenie...",
     "reconnecting": "Ponowne łączenie..."
   },
+  "calls": {
+    "alreadyInCall": "Już w rozmowie",
+    "alreadyInCallMessage": "Już prowadzisz rozmowę. Najpierw zakończ bieżącą rozmowę.",
+    "callFailed": "Połączenie nieudane",
+    "callFailedMessage": "Nie można się połączyć. Sprawdź połączenie internetowe i spróbuj ponownie."
+  },
   "contacts": {
     "title": "Kontakty",
     "add": "Dodaj kontakt",
@@ -343,6 +349,30 @@
     "accentPurple": "Fioletowy",
     "accentOrange": "Pomarańczowy",
     "accentRed": "Czerwony"
+  },
+  "callSettings": {
+    "title": "Ustawienia połączeń",
+    "screenHint": "Dostosuj dzwonek, ton wybierania i wibracje",
+    "ringtoneSection": "Połączenia przychodzące",
+    "ringtoneEnabled": "Dzwonek",
+    "ringtoneEnabledHint": "Odtwarzaj dźwięk przy połączeniu przychodzącym",
+    "ringtoneSound": "Wybierz dzwonek",
+    "ringtoneSoundHint": "Wybierz ulubiony dzwonek",
+    "incomingVibration": "Wibracje",
+    "incomingVibrationHint": "Wibruj przy połączeniu przychodzącym",
+    "outgoingSection": "Połączenia wychodzące",
+    "dialToneEnabled": "Ton wybierania",
+    "dialToneEnabledHint": "Słyszysz 'tuut... tuut...' podczas oczekiwania",
+    "outgoingVibration": "Wibracje",
+    "outgoingVibrationHint": "Wibruj podczas dzwonienia telefonu",
+    "ringtones": {
+      "default": "Domyślny",
+      "classic": "Klasyczny",
+      "gentle": "Delikatny",
+      "urgent": "Pilny"
+    },
+    "testRingtone": "Testuj dzwonek",
+    "testDialTone": "Testuj ton wybierania"
   },
   "profile": {
     "changePhoto": "Zmień zdjęcie profilowe",
@@ -608,6 +638,12 @@
       "media": "Media",
       "modules": "Dodatki"
     }
+  },
+  "splitView": {
+    "menu": "Menu",
+    "chooseModule": "Wybierz moduł",
+    "leftPanel": "Lewy panel",
+    "rightPanel": "Prawy panel"
   },
   "modules": {
     "coming_soon": "Wkrótce",

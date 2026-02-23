@@ -145,6 +145,12 @@
     "connecting": "Kobler til...",
     "reconnecting": "Kobler til på nytt..."
   },
+  "calls": {
+    "alreadyInCall": "Allerede i samtale",
+    "alreadyInCallMessage": "Du er allerede i en samtale. Avslutt den nåværende samtalen først.",
+    "callFailed": "Samtalen mislyktes",
+    "callFailedMessage": "Kunne ikke koble til. Sjekk internettforbindelsen og prøv igjen."
+  },
   "contacts": {
     "title": "Kontakter",
     "add": "Legg til kontakt",
@@ -342,6 +348,30 @@
     "accentPurple": "Lilla",
     "accentOrange": "Oransje",
     "accentRed": "Rød"
+  },
+  "callSettings": {
+    "title": "Samtaleinnstillinger",
+    "screenHint": "Tilpass ringetone, oppringningstone og vibrasjon",
+    "ringtoneSection": "Innkommende samtaler",
+    "ringtoneEnabled": "Ringetone",
+    "ringtoneEnabledHint": "Spill lyd ved innkommende samtale",
+    "ringtoneSound": "Velg ringetone",
+    "ringtoneSoundHint": "Velg din favorittringetone",
+    "incomingVibration": "Vibrasjon",
+    "incomingVibrationHint": "Vibrer ved innkommende samtale",
+    "outgoingSection": "Utgående samtaler",
+    "dialToneEnabled": "Oppringningstone",
+    "dialToneEnabledHint": "Hør 'tuut... tuut...' mens du venter",
+    "outgoingVibration": "Vibrasjon",
+    "outgoingVibrationHint": "Vibrer mens telefonen ringer",
+    "ringtones": {
+      "default": "Standard",
+      "classic": "Klassisk",
+      "gentle": "Myk",
+      "urgent": "Hastende"
+    },
+    "testRingtone": "Test ringetone",
+    "testDialTone": "Test oppringningstone"
   },
   "profile": {
     "changePhoto": "Endre profilbilde",

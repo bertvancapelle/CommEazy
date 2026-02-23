@@ -11,15 +11,6 @@
       "tapToChangeHint": "Open menu om te wisselen tussen land en taal"
     }
   },
-  "demographics": {
-    "language": {
-      "nl": "Nederlands",
-      "en": "Engels",
-      "de": "Duits",
-      "fr": "Frans",
-      "es": "Spaans"
-    }
-  },
   "onboarding": {
     "welcome": "Welkom bij CommEazy",
     "subtitle": "Privé berichten voor het hele gezin",
@@ -491,6 +482,13 @@
     "discardChanges": "Wijzigingen negeren"
   },
   "demographics": {
+    "language": {
+      "nl": "Nederlands",
+      "en": "Engels",
+      "de": "Duits",
+      "fr": "Frans",
+      "es": "Spaans"
+    },
     "title": "Vertel ons over jezelf",
     "subtitle": "Dit helpt ons relevante advertenties te tonen",
     "premiumNote": "Als premium gebruiker is dit optioneel",

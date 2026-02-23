@@ -145,6 +145,12 @@
     "connecting": "Connessione...",
     "reconnecting": "Riconnessione..."
   },
+  "calls": {
+    "alreadyInCall": "Già in chiamata",
+    "alreadyInCallMessage": "Sei già in una chiamata. Termina prima la chiamata in corso.",
+    "callFailed": "Chiamata fallita",
+    "callFailedMessage": "Impossibile connettersi. Controlla la connessione internet e riprova."
+  },
   "contacts": {
     "title": "Contatti",
     "add": "Aggiungi contatto",
@@ -343,6 +349,30 @@
     "accentPurple": "Viola",
     "accentOrange": "Arancione",
     "accentRed": "Rosso"
+  },
+  "callSettings": {
+    "title": "Impostazioni chiamate",
+    "screenHint": "Personalizza suoneria, tono di chiamata e vibrazione",
+    "ringtoneSection": "Chiamate in arrivo",
+    "ringtoneEnabled": "Suoneria",
+    "ringtoneEnabledHint": "Riproduci suono per chiamate in arrivo",
+    "ringtoneSound": "Scegli suoneria",
+    "ringtoneSoundHint": "Seleziona la tua suoneria preferita",
+    "incomingVibration": "Vibrazione",
+    "incomingVibrationHint": "Vibra per chiamate in arrivo",
+    "outgoingSection": "Chiamate in uscita",
+    "dialToneEnabled": "Tono di chiamata",
+    "dialToneEnabledHint": "Ascolta 'tuut... tuut...' durante l'attesa",
+    "outgoingVibration": "Vibrazione",
+    "outgoingVibrationHint": "Vibra mentre il telefono squilla",
+    "ringtones": {
+      "default": "Predefinita",
+      "classic": "Classica",
+      "gentle": "Delicata",
+      "urgent": "Urgente"
+    },
+    "testRingtone": "Testa suoneria",
+    "testDialTone": "Testa tono di chiamata"
   },
   "profile": {
     "changePhoto": "Cambia foto profilo",

@@ -12,6 +12,13 @@
     }
   },
   "demographics": {
+    "language": {
+      "nl": "Nederlandsk",
+      "en": "Engelsk",
+      "de": "Tysk",
+      "fr": "Fransk",
+      "es": "Spansk"
+    },
     "title": "Fortæl os om dig selv",
     "subtitle": "Dette hjælper os med at vise relevante annoncer",
     "premiumNote": "Som premiumbruger er dette valgfrit",
@@ -188,6 +195,12 @@
     "ringing": "Ringer...",
     "connecting": "Forbinder...",
     "reconnecting": "Forbinder igen..."
+  },
+  "calls": {
+    "alreadyInCall": "Allerede i opkald",
+    "alreadyInCallMessage": "Du er allerede i et opkald. Afslut det nuværende opkald først.",
+    "callFailed": "Opkald mislykkedes",
+    "callFailedMessage": "Kunne ikke oprette forbindelse. Kontroller din internetforbindelse og prøv igen."
   },
   "contacts": {
     "title": "Kontakter",
@@ -386,6 +399,30 @@
     "accentPurple": "Lilla",
     "accentOrange": "Orange",
     "accentRed": "Rød"
+  },
+  "callSettings": {
+    "title": "Opkaldsindstillinger",
+    "screenHint": "Tilpas ringetone, opkaldstone og vibration",
+    "ringtoneSection": "Indkommende opkald",
+    "ringtoneEnabled": "Ringetone",
+    "ringtoneEnabledHint": "Afspil lyd ved indkommende opkald",
+    "ringtoneSound": "Vælg ringetone",
+    "ringtoneSoundHint": "Vælg din yndlingsringetone",
+    "incomingVibration": "Vibration",
+    "incomingVibrationHint": "Vibrer ved indkommende opkald",
+    "outgoingSection": "Udgående opkald",
+    "dialToneEnabled": "Opkaldstone",
+    "dialToneEnabledHint": "Hør 'tuut... tuut...' mens du venter",
+    "outgoingVibration": "Vibration",
+    "outgoingVibrationHint": "Vibrer mens telefonen ringer",
+    "ringtones": {
+      "default": "Standard",
+      "classic": "Klassisk",
+      "gentle": "Blød",
+      "urgent": "Urgent"
+    },
+    "testRingtone": "Test ringetone",
+    "testDialTone": "Test opkaldstone"
   },
   "profile": {
     "changePhoto": "Ændr profilbillede",

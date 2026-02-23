@@ -495,6 +495,63 @@ done
 - Typo fixes in bestaande vertalingen
 - Aanpassen van bestaande tekst (key blijft hetzelfde)
 
+### Configuratie Bestanden Uniformiteit (VERPLICHT)
+
+**⚠️ KRITIEK:** Alle configuratie bestanden van hetzelfde type MOETEN identieke structuur hebben.
+
+**Waarom?**
+- Inconsistente structuur maakt diff-vergelijkingen moeilijk
+- Merge conflicts zijn lastiger op te lossen
+- Validatie scripts werken niet betrouwbaar
+- Technische schuld accumuleert over tijd
+
+**Geldt voor:**
+- `src/locales/*.json` — Alle i18n bestanden
+- Andere configuratie bestanden (indien aanwezig)
+
+**Uniformiteitsregels:**
+
+1. **Identieke key volgorde** — Alle bestanden MOETEN dezelfde key volgorde hebben
+2. **Identieke nesting** — Secties moeten op dezelfde diepte staan
+3. **Master bestand** — `nl.json` is de referentie voor structuur
+4. **Nieuwe keys** — Toevoegen op EXACT dezelfde locatie in ALLE bestanden
+
+**Validatie Script:**
+
+```bash
+# Vergelijk key volgorde tussen nl.json en andere locale
+node -e "
+const nl = require('./src/locales/nl.json');
+const target = require('./src/locales/[TAAL].json');
+const getKeys = (obj, prefix = '') => Object.entries(obj).flatMap(([k, v]) =>
+  typeof v === 'object' && v !== null ? [prefix + k, ...getKeys(v, prefix + k + '.')] : [prefix + k]
+);
+const nlKeys = getKeys(nl);
+const targetKeys = getKeys(target);
+const orderDiff = nlKeys.filter((k, i) => targetKeys[i] !== k);
+if (orderDiff.length > 0) {
+  console.log('❌ Key volgorde verschilt op:', orderDiff.slice(0, 5));
+} else {
+  console.log('✅ Identieke structuur');
+}
+"
+```
+
+**Normalisatie Procedure (eenmalig):**
+
+Wanneer structuurverschillen worden ontdekt:
+1. Gebruik `nl.json` als master
+2. Genereer genormaliseerde versies van alle andere locales
+3. Behoud de vertalingen, herstel de key volgorde
+4. Commit als "chore(i18n): Normalize locale file structure"
+
+**Claude's Verantwoordelijkheid:**
+
+Bij ELKE wijziging aan configuratie bestanden:
+1. Controleer of de wijziging de structuur consistent houdt
+2. Voeg nieuwe keys toe op EXACT dezelfde locatie in ALLE bestanden
+3. Bij ontdekking van structuurverschillen: meld dit en bied normalisatie aan
+
 ## Code Formatting (VERPLICHT)
 
 ### JSON Bestanden
