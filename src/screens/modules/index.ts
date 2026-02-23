@@ -13,6 +13,8 @@ export { BooksScreen } from './BooksScreen';
 export { BookReaderScreen } from './BookReaderScreen';
 export { BookPlayerScreen } from './BookPlayerScreen';
 export { AppleMusicScreen } from './AppleMusicScreen';
+export { EBookScreen } from './EBookScreen';
+export { AudioBookScreen } from './AudioBookScreen';
 
 // Country-specific modules
 export { NuNlScreen } from './NuNlScreen';

@@ -87,6 +87,8 @@ import {
   NuNlScreen,
   WeatherScreen,
   AppleMusicScreen,
+  EBookScreen,
+  AudioBookScreen,
 } from '@/screens/modules';
 
 // Group screens
@@ -504,6 +506,8 @@ function MainNavigator() {
         <MainTab.Screen name="BookPlayer" component={BookPlayerScreen} />
         <MainTab.Screen name="WeatherTab" component={WeatherScreen} />
         <MainTab.Screen name="AppleMusicTab" component={AppleMusicScreen} />
+        <MainTab.Screen name="EBookTab" component={EBookScreen} />
+        <MainTab.Screen name="AudioBookTab" component={AudioBookScreen} />
         {/* Country-specific modules */}
         <MainTab.Screen name="NuNlTab" component={NuNlScreen} />
       </MainTab.Navigator>
