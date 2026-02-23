@@ -267,6 +267,7 @@
     "appearanceTitle": "Appearance",
     "accentColor": "Accent colour",
     "accentColorHint": "Choose your preferred colour for buttons and highlights",
+    "accentColorSelectHint": "Double-tap to select this colour",
     "holdToNavigateTitle": "Navigation",
     "testFeedback": "Test feedback",
     "ttsSpeed": "Reading speed",

@@ -315,6 +315,7 @@
     "appearanceTitle": "Utseende",
     "accentColor": "Accentfärg",
     "accentColorHint": "Välj favoritfärg för knappar och accenter",
+    "accentColorSelectHint": "Dubbeltryck för att välja denna färg",
     "holdToNavigateTitle": "Navigering",
     "testFeedback": "Testa återkoppling",
     "ttsSpeed": "Läshastighet",

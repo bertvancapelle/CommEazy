@@ -267,6 +267,7 @@
     "appearanceTitle": "Apparence",
     "accentColor": "Couleur d'accentuation",
     "accentColorHint": "Choisissez votre couleur préférée pour les boutons et les éléments mis en évidence",
+    "accentColorSelectHint": "Appuyez deux fois pour sélectionner cette couleur",
     "holdToNavigateTitle": "Navigation",
     "testFeedback": "Tester le retour",
     "ttsSpeed": "Vitesse de lecture",

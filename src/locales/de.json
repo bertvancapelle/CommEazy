@@ -267,6 +267,7 @@
     "appearanceTitle": "Darstellung",
     "accentColor": "Akzentfarbe",
     "accentColorHint": "Wähle deine bevorzugte Farbe für Schaltflächen und Hervorhebungen",
+    "accentColorSelectHint": "Doppeltippen, um diese Farbe auszuwählen",
     "holdToNavigateTitle": "Navigation",
     "testFeedback": "Feedback testen",
     "ttsSpeed": "Vorlesegeschwindigkeit",

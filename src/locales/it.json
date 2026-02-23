@@ -272,6 +272,7 @@
     "appearanceTitle": "Aspetto",
     "accentColor": "Colore accento",
     "accentColorHint": "Scegli il tuo colore preferito per pulsanti e accenti",
+    "accentColorSelectHint": "Tocca due volte per selezionare questo colore",
     "holdToNavigateTitle": "Navigazione",
     "testFeedback": "Testa feedback",
     "ttsSpeed": "Velocità di lettura",

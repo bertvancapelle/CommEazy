@@ -272,6 +272,7 @@
     "appearanceTitle": "Wygląd",
     "accentColor": "Kolor akcentu",
     "accentColorHint": "Wybierz swój ulubiony kolor dla przycisków i akcentów",
+    "accentColorSelectHint": "Dotknij dwukrotnie, aby wybrać ten kolor",
     "holdToNavigateTitle": "Nawigacja",
     "testFeedback": "Testuj informacje zwrotne"
   },

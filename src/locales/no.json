@@ -271,6 +271,7 @@
     "appearanceTitle": "Utseende",
     "accentColor": "Aksentfarge",
     "accentColorHint": "Velg favorittfargen for knapper og aksenter",
+    "accentColorSelectHint": "Dobbelttrykk for å velge denne fargen",
     "holdToNavigateTitle": "Navigasjon",
     "testFeedback": "Test tilbakemelding",
     "ttsSpeed": "Lesehastighet",

@@ -36,6 +36,7 @@ import {
   borderRadius,
   accentColors,
   type AccentColorKey,
+  ACCENT_COLOR_GRID,
 } from '@/theme';
 import {
   useHoldToNavigate,
@@ -45,7 +46,7 @@ import {
   useFeedback,
   type HapticIntensity,
 } from '@/hooks/useFeedback';
-import { useAccentColor, ACCENT_COLOR_KEYS } from '@/hooks/useAccentColor';
+import { useAccentColor } from '@/hooks/useAccentColor';
 import { useVoiceCommands } from '@/hooks/useVoiceCommands';
 import { useTtsSettings, TTS_SPEED_OPTIONS, type TtsSpeechRate } from '@/hooks/useTtsSettings';
 import { Icon, VoiceToggle, VoiceStepper, VoiceFocusable } from '@/components';
@@ -233,7 +234,8 @@ function HapticIntensitySelector({ value, onValueChange, onDemoIntensity, accent
   );
 }
 
-// Accent color picker component
+// Accent color picker component — 4×3 grid layout
+// Uses ACCENT_COLOR_GRID for structured display
 interface AccentColorPickerProps {
   value: AccentColorKey;
   onValueChange: (color: AccentColorKey) => void;
@@ -252,30 +254,35 @@ function AccentColorPicker({ value, onValueChange, onFeedback }: AccentColorPick
     <View style={styles.colorPickerContainer}>
       <Text style={styles.colorPickerLabel}>{t('accessibilitySettings.accentColor')}</Text>
       <Text style={styles.colorPickerHint}>{t('accessibilitySettings.accentColorHint')}</Text>
-      <View style={styles.colorOptions}>
-        {ACCENT_COLOR_KEYS.map((colorKey) => {
-          const isSelected = value === colorKey;
-          const color = accentColors[colorKey];
-          return (
-            <TouchableOpacity
-              key={colorKey}
-              style={[
-                styles.colorOption,
-                { borderColor: isSelected ? color.primary : colors.border },
-              ]}
-              onPress={() => handleSelect(colorKey)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: isSelected }}
-              accessibilityLabel={t(color.label)}
-            >
-              <View style={[styles.colorSwatch, { backgroundColor: color.primary }]}>
-                {isSelected && (
-                  <Icon name="check" size={24} color={colors.textOnPrimary} />
-                )}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={styles.colorGrid}>
+        {ACCENT_COLOR_GRID.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.colorRow}>
+            {row.map((colorKey) => {
+              const isSelected = value === colorKey;
+              const color = accentColors[colorKey];
+              return (
+                <TouchableOpacity
+                  key={colorKey}
+                  style={[
+                    styles.colorOption,
+                    { borderColor: isSelected ? color.primary : colors.border },
+                  ]}
+                  onPress={() => handleSelect(colorKey)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={t(color.label)}
+                  accessibilityHint={t('accessibilitySettings.accentColorSelectHint')}
+                >
+                  <View style={[styles.colorSwatch, { backgroundColor: color.primary }]}>
+                    {isSelected && (
+                      <Icon name="check" size={24} color={colors.textOnPrimary} />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -905,7 +912,7 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
   },
-  // Accent color picker styles
+  // Accent color picker styles — 4×3 grid layout
   colorPickerContainer: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
@@ -921,7 +928,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.md,
   },
-  colorOptions: {
+  colorGrid: {
+    gap: spacing.sm,
+  },
+  colorRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: spacing.sm,
@@ -933,7 +943,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     padding: 4,
     minHeight: touchTargets.minimum,
-    maxWidth: touchTargets.large,
+    maxHeight: touchTargets.large,
   },
   colorSwatch: {
     flex: 1,
