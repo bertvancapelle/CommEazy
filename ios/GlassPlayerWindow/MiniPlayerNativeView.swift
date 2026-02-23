@@ -250,25 +250,33 @@ class MiniPlayerNativeView: UIView {
     }
     
     func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, progress: Float?, listenDuration: TimeInterval?, showStopButton: Bool) {
+        // Track if playback state actually changed to avoid UI flicker
+        let playStateChanged = self.isPlaying != isPlaying
+        let loadingStateChanged = self.isLoading != isLoading
+
         self.isPlaying = isPlaying
         self.isLoading = isLoading
         self.isBuffering = isBuffering
         self.showStopButton = showStopButton
-        
-        // Update loading indicator
-        if isLoading {
-            loadingIndicator.startAnimating()
-            playPauseButton.isHidden = true
-        } else {
-            loadingIndicator.stopAnimating()
-            playPauseButton.isHidden = false
+
+        // Update loading indicator (only if changed)
+        if loadingStateChanged {
+            if isLoading {
+                loadingIndicator.startAnimating()
+                playPauseButton.isHidden = true
+            } else {
+                loadingIndicator.stopAnimating()
+                playPauseButton.isHidden = false
+            }
         }
-        
-        // Update play/pause icon
-        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
-        let iconName = isPlaying ? "pause.fill" : "play.fill"
-        playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
-        playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
+
+        // Update play/pause icon (only if state changed to prevent flicker)
+        if playStateChanged {
+            let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+            let iconName = isPlaying ? "pause.fill" : "play.fill"
+            playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
+            playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
+        }
         
         // Update stop button visibility
         stopButton.isHidden = !showStopButton
@@ -350,14 +358,34 @@ class MiniPlayerNativeView: UIView {
     
     private func loadImage(from url: URL) {
         NSLog("[GlassPlayer Mini] Loading image from URL: \(url.absoluteString)")
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let error = error {
                 NSLog("[GlassPlayer Mini] Image load error: \(error.localizedDescription)")
                 return
             }
             
-            guard let data = data, let image = UIImage(data: data) else {
-                NSLog("[GlassPlayer Mini] Image load failed - no data or invalid image. Response: \(String(describing: response))")
+            // Check HTTP response
+            if let httpResponse = response as? HTTPURLResponse {
+                NSLog("[GlassPlayer Mini] HTTP response status: \(httpResponse.statusCode)")
+                if httpResponse.statusCode != 200 {
+                    NSLog("[GlassPlayer Mini] HTTP error: \(httpResponse.statusCode)")
+                    return
+                }
+            }
+            
+            guard let data = data, !data.isEmpty else {
+                NSLog("[GlassPlayer Mini] Image load failed - no data or empty data")
+                return
+            }
+            
+            NSLog("[GlassPlayer Mini] Received \(data.count) bytes of image data")
+            
+            guard let image = UIImage(data: data) else {
+                NSLog("[GlassPlayer Mini] Failed to create UIImage from data")
                 return
             }
             

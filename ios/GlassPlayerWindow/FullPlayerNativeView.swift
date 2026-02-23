@@ -586,34 +586,48 @@ class FullPlayerNativeView: UIView {
     }
     
     func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, position: Float?, duration: Float?, isFavorite: Bool) {
+        // Track if playback state actually changed to avoid UI flicker
+        let playStateChanged = self.isPlaying != isPlaying
+        let loadingStateChanged = self.isLoading != isLoading
+
         self.isPlaying = isPlaying
         self.isLoading = isLoading
         self.isBuffering = isBuffering
         self.isFavorite = isFavorite
-        
-        // Update loading indicator
-        if isLoading {
-            loadingIndicator.startAnimating()
-            playPauseButton.alpha = 0.5
-        } else {
-            loadingIndicator.stopAnimating()
-            playPauseButton.alpha = 1.0
+
+        NSLog("[GlassPlayer Full] updatePlaybackState - isPlaying: \(isPlaying), position: \(position ?? -1), duration: \(duration ?? -1), playStateChanged: \(playStateChanged)")
+
+        // Update loading indicator (only if changed)
+        if loadingStateChanged {
+            if isLoading {
+                loadingIndicator.startAnimating()
+                playPauseButton.alpha = 0.5
+            } else {
+                loadingIndicator.stopAnimating()
+                playPauseButton.alpha = 1.0
+            }
         }
-        
-        // Update play/pause icon
-        let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
-        let iconName = isPlaying ? "pause.fill" : "play.fill"
-        playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
-        playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
+
+        // Update play/pause icon (only if state changed to prevent flicker)
+        if playStateChanged {
+            let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
+            let iconName = isPlaying ? "pause.fill" : "play.fill"
+            playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
+            playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
+        }
         
         // Update buffering state on artwork
         updateBufferingState()
         
         // Update seek slider
         if let position = position, let duration = duration, duration > 0 {
-            seekSlider.value = position / duration
+            let progress = position / duration
+            NSLog("[GlassPlayer Full] Updating seek slider: progress=\(progress), position=\(position), duration=\(duration)")
+            seekSlider.value = progress
             currentTimeLabel.text = formatTime(position)
             durationLabel.text = formatTime(duration)
+        } else {
+            NSLog("[GlassPlayer Full] Skipping seek slider update - position or duration invalid")
         }
         
         // Update favorite
@@ -742,14 +756,34 @@ class FullPlayerNativeView: UIView {
     
     private func loadImage(from url: URL) {
         NSLog("[GlassPlayer Full] Loading image from URL: \(url.absoluteString)")
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let error = error {
                 NSLog("[GlassPlayer Full] Image load error: \(error.localizedDescription)")
                 return
             }
             
-            guard let data = data, let image = UIImage(data: data) else {
-                NSLog("[GlassPlayer Full] Image load failed - no data or invalid image. Response: \(String(describing: response))")
+            // Check HTTP response
+            if let httpResponse = response as? HTTPURLResponse {
+                NSLog("[GlassPlayer Full] HTTP response status: \(httpResponse.statusCode)")
+                if httpResponse.statusCode != 200 {
+                    NSLog("[GlassPlayer Full] HTTP error: \(httpResponse.statusCode)")
+                    return
+                }
+            }
+            
+            guard let data = data, !data.isEmpty else {
+                NSLog("[GlassPlayer Full] Image load failed - no data or empty data")
+                return
+            }
+            
+            NSLog("[GlassPlayer Full] Received \(data.count) bytes of image data")
+            
+            guard let image = UIImage(data: data) else {
+                NSLog("[GlassPlayer Full] Failed to create UIImage from data")
                 return
             }
             

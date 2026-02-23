@@ -231,7 +231,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     const nowPlayingSubscription = eventEmitter.addListener(
       'onNowPlayingItemChange',
       (item: AppleMusicSong | null) => {
-        console.log('[AppleMusicContext] Now playing changed:', item?.title);
+        console.log('[AppleMusicContext] Now playing changed:', item?.title, 'artworkUrl:', item?.artworkUrl);
         setNowPlaying(item);
       }
     );

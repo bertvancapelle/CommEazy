@@ -33,6 +33,7 @@ import { colors, spacing } from '@/theme';
 import { useRadioContext } from '@/contexts/RadioContext';
 import { usePodcastContextSafe } from '@/contexts/PodcastContext';
 import { useBooksContextSafe } from '@/contexts/BooksContext';
+import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
@@ -92,6 +93,7 @@ const MEDIA_TABS: Record<string, string> = {
   radio: 'RadioTab',
   podcast: 'PodcastTab',
   books: 'BooksTab',
+  appleMusic: 'AppleMusicTab',
   audioCall: 'CallsTab',
   videoCall: 'VideoCallTab',
 };
@@ -124,20 +126,28 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const isBooksReading = booksContext?.isSpeaking ?? false;
   const currentBook = booksContext?.currentBook ?? null;
 
+  // Apple Music context (safe - returns null if provider not ready)
+  const appleMusicContext = useAppleMusicContextSafe();
+  const isAppleMusicPlaying = appleMusicContext?.isPlaying ?? false;
+  const appleMusicNowPlaying = appleMusicContext?.nowPlaying ?? null;
+  // TODO: Add sleepTimerActive to AppleMusicContext when sleep timer is implemented
+  const appleMusicSleepTimerActive = false;
+
   // TODO: Add other media contexts when implemented
   // const { isInCall: isInAudioCall } = useAudioCallContext();
   // const { isInCall: isInVideoCall } = useVideoCallContext();
 
   // Determine active media type
   const getActiveMedia = useCallback((): { type: MediaType; source: string } | null => {
-    // Priority: video calls > audio calls > radio/podcast/books
+    // Priority: video calls > audio calls > apple music > radio/podcast/books
     // if (isInVideoCall) return { type: 'video', source: 'videoCall' };
     // if (isInAudioCall) return { type: 'audio', source: 'audioCall' };
+    if (isAppleMusicPlaying && appleMusicNowPlaying) return { type: 'audio', source: 'appleMusic' };
     if (isRadioPlaying && currentStation) return { type: 'audio', source: 'radio' };
     if (isPodcastPlaying && currentEpisode) return { type: 'audio', source: 'podcast' };
     if (isBooksReading && currentBook) return { type: 'audio', source: 'books' };
     return null;
-  }, [isRadioPlaying, currentStation, isPodcastPlaying, currentEpisode, isBooksReading, currentBook]);
+  }, [isAppleMusicPlaying, appleMusicNowPlaying, isRadioPlaying, currentStation, isPodcastPlaying, currentEpisode, isBooksReading, currentBook]);
 
   const activeMedia = getActiveMedia();
 
@@ -214,7 +224,9 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const staticHeight = reducedMotion ? 0.5 : undefined;
 
   // Check if sleep timer is active for the current media source
-  const showSleepTimerIndicator = activeMedia?.source === 'radio' && sleepTimerActive;
+  const showSleepTimerIndicator =
+    (activeMedia?.source === 'radio' && sleepTimerActive) ||
+    (activeMedia?.source === 'appleMusic' && appleMusicSleepTimerActive);
 
   return (
     <View style={styles.indicatorRow}>

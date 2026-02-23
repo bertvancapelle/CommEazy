@@ -34,6 +34,9 @@ class AppleMusicModule: RCTEventEmitter {
     // Queue observation task
     private var queueObservationTask: Task<Void, Never>?
 
+    // Periodic time update timer (for progress slider)
+    private var timeUpdateTimer: Timer?
+
     // Track current entry ID to detect changes
     private var currentEntryId: String?
 
@@ -53,6 +56,7 @@ class AppleMusicModule: RCTEventEmitter {
     deinit {
         playbackStateTask?.cancel()
         queueObservationTask?.cancel()
+        stopTimeUpdateTimer()
     }
 
     @objc
@@ -271,27 +275,39 @@ class AppleMusicModule: RCTEventEmitter {
         Task {
             do {
                 NSLog("[AppleMusicModule] playSong called with ID: \(songId)")
-                
+
                 // Fetch the song from catalog
                 let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
                 let response = try await request.response()
-                
+
                 guard let song = response.items.first else {
                     NSLog("[AppleMusicModule] Song not found in catalog: \(songId)")
                     reject("SONG_NOT_FOUND", "Song with ID \(songId) not found in catalog", nil)
                     return
                 }
-                
+
                 NSLog("[AppleMusicModule] Found song: '\(song.title)' by \(song.artistName), duration: \(song.duration ?? 0)s")
-                
+
                 // Set queue and play
                 player.queue = [song]
                 NSLog("[AppleMusicModule] Queue set, calling play()")
                 try await player.play()
-                
+
                 NSLog("[AppleMusicModule] play() completed successfully")
                 NSLog("[AppleMusicModule] Player state: \(player.state.playbackStatus)")
-                
+
+                // Start time update timer immediately after successful play
+                DispatchQueue.main.async { [weak self] in
+                    self?.startTimeUpdateTimer()
+                }
+
+                // Send immediate state update
+                if self.hasListeners {
+                    let stateDict = self.buildPlaybackState()
+                    NSLog("[AppleMusicModule] Sending initial playing state: \(stateDict)")
+                    self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+                }
+
                 resolve(["success": true])
             } catch {
                 NSLog("[AppleMusicModule] playSong error: \(error.localizedDescription)")
@@ -308,22 +324,42 @@ class AppleMusicModule: RCTEventEmitter {
                          reject: @escaping RCTPromiseRejectBlock) {
         Task {
             do {
+                NSLog("[AppleMusicModule] playLibrarySong called with ID: \(songId)")
+
                 // Fetch the song from user's library
                 var request = MusicLibraryRequest<Song>()
                 request.filter(matching: \.id, equalTo: MusicItemID(songId))
                 let response = try await request.response()
-                
+
                 guard let song = response.items.first else {
+                    NSLog("[AppleMusicModule] Library song not found: \(songId)")
                     reject("SONG_NOT_FOUND", "Song with ID \(songId) not found in library", nil)
                     return
                 }
-                
+
+                NSLog("[AppleMusicModule] Found library song: '\(song.title)' by \(song.artistName)")
+
                 // Set queue and play
                 player.queue = [song]
                 try await player.play()
-                
+
+                NSLog("[AppleMusicModule] Library song playing successfully")
+
+                // Start time update timer immediately after successful play
+                DispatchQueue.main.async { [weak self] in
+                    self?.startTimeUpdateTimer()
+                }
+
+                // Send immediate state update
+                if self.hasListeners {
+                    let stateDict = self.buildPlaybackState()
+                    NSLog("[AppleMusicModule] Sending initial playing state: \(stateDict)")
+                    self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+                }
+
                 resolve(["success": true])
             } catch {
+                NSLog("[AppleMusicModule] playLibrarySong error: \(error.localizedDescription)")
                 reject("PLAY_ERROR", "Failed to play library song: \(error.localizedDescription)", error)
             }
         }
@@ -393,7 +429,21 @@ class AppleMusicModule: RCTEventEmitter {
     @objc
     func pause(_ resolve: @escaping RCTPromiseResolveBlock,
                reject: @escaping RCTPromiseRejectBlock) {
+        NSLog("[AppleMusicModule] pause() called")
         player.pause()
+
+        // Stop time update timer immediately
+        DispatchQueue.main.async { [weak self] in
+            self?.stopTimeUpdateTimer()
+        }
+
+        // Send immediate state update
+        if hasListeners {
+            let stateDict = buildPlaybackState()
+            NSLog("[AppleMusicModule] Sending paused state: \(stateDict)")
+            sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+        }
+
         resolve(["success": true])
     }
 
@@ -401,11 +451,27 @@ class AppleMusicModule: RCTEventEmitter {
     @objc
     func resume(_ resolve: @escaping RCTPromiseResolveBlock,
                 reject: @escaping RCTPromiseRejectBlock) {
+        NSLog("[AppleMusicModule] resume() called")
         Task {
             do {
                 try await player.play()
+                NSLog("[AppleMusicModule] resume() - play() succeeded, status: \(player.state.playbackStatus)")
+
+                // Start time update timer
+                DispatchQueue.main.async { [weak self] in
+                    self?.startTimeUpdateTimer()
+                }
+
+                // Send immediate state update
+                if self.hasListeners {
+                    let stateDict = self.buildPlaybackState()
+                    NSLog("[AppleMusicModule] Sending playing state after resume: \(stateDict)")
+                    self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+                }
+
                 resolve(["success": true])
             } catch {
+                NSLog("[AppleMusicModule] resume() failed: \(error.localizedDescription)")
                 reject("RESUME_ERROR", "Failed to resume: \(error.localizedDescription)", error)
             }
         }
@@ -608,13 +674,58 @@ class AppleMusicModule: RCTEventEmitter {
                 guard hasListeners else { continue }
 
                 let stateDict = buildPlaybackState()
-                NSLog("[AppleMusicModule] Playback state changed: \(stateDict["status"] ?? "unknown"), time: \(stateDict["currentTime"] ?? 0)")
+                let status = stateDict["status"] as? String ?? "unknown"
+                NSLog("[AppleMusicModule] Playback state changed: \(status), time: \(stateDict["currentTime"] ?? 0)")
                 sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+
+                // Start/stop time update timer based on playback state
+                DispatchQueue.main.async { [weak self] in
+                    if status == "playing" {
+                        self?.startTimeUpdateTimer()
+                    } else {
+                        self?.stopTimeUpdateTimer()
+                    }
+                }
 
                 // Also check if now playing changed
                 checkNowPlayingChange()
             }
         }
+    }
+
+    // ============================================================
+    // MARK: - Periodic Time Update Timer
+    // ============================================================
+
+    /// Start periodic timer to send time updates every 500ms while playing
+    private func startTimeUpdateTimer() {
+        // Don't start if already running
+        guard timeUpdateTimer == nil else { return }
+
+        NSLog("[AppleMusicModule] Starting time update timer")
+        timeUpdateTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            guard let self = self, self.hasListeners else { return }
+
+            // Only send updates while playing
+            guard self.player.state.playbackStatus == .playing else {
+                self.stopTimeUpdateTimer()
+                return
+            }
+
+            let stateDict = self.buildPlaybackState()
+            self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+        }
+        // Add to common run loop mode to ensure timer fires during UI interactions
+        RunLoop.main.add(timeUpdateTimer!, forMode: .common)
+    }
+
+    /// Stop the periodic time update timer
+    private func stopTimeUpdateTimer() {
+        if timeUpdateTimer != nil {
+            NSLog("[AppleMusicModule] Stopping time update timer")
+        }
+        timeUpdateTimer?.invalidate()
+        timeUpdateTimer = nil
     }
 
     private func setupQueueObserver() {
@@ -676,12 +787,34 @@ class AppleMusicModule: RCTEventEmitter {
             statusString = "unknown"
         }
         
-        // Get duration from current queue entry
+        // Get duration and artwork from current queue entry
         var duration: Double = 0
+        var artworkUrl: String = ""
+        var title: String = ""
+        var artistName: String = ""
+        var songId: String = ""
+        
         if let entry = player.queue.currentEntry,
-           case .song(let song) = entry.item,
-           let songDuration = song.duration {
-            duration = songDuration
+           case .song(let song) = entry.item {
+            if let songDuration = song.duration {
+                duration = songDuration
+            }
+            songId = song.id.rawValue
+            title = song.title
+            artistName = song.artistName
+            
+            // Get artwork URL
+            if let artwork = song.artwork {
+                if let url = artwork.url(width: 300, height: 300) {
+                    let httpUrl = url.httpURLString
+                    NSLog("[AppleMusicModule] buildPlaybackState artwork URL: original=\(url.absoluteString), http=\(httpUrl)")
+                    artworkUrl = httpUrl
+                } else {
+                    NSLog("[AppleMusicModule] buildPlaybackState: artwork.url() returned nil")
+                }
+            } else {
+                NSLog("[AppleMusicModule] buildPlaybackState: no artwork available for '\(title)'")
+            }
         }
         
         return [
@@ -690,7 +823,12 @@ class AppleMusicModule: RCTEventEmitter {
             "currentTime": player.playbackTime,  // Alias for React Native compatibility
             "duration": duration,
             "shuffleMode": player.state.shuffleMode == .songs ? "songs" : "off",
-            "repeatMode": repeatModeToString(player.state.repeatMode)
+            "repeatMode": repeatModeToString(player.state.repeatMode),
+            // Include song info for Glass Player
+            "songId": songId,
+            "title": title,
+            "artistName": artistName,
+            "artworkUrl": artworkUrl
         ]
     }
 
@@ -804,16 +942,33 @@ extension URL {
     /// Filters out musicKit:// URLs that React Native cannot load
     /// Only returns https:// URLs that can be displayed in Image components
     var httpURLString: String {
+        NSLog("[AppleMusicModule] httpURLString input: scheme=\(self.scheme ?? "nil"), url=\(self.absoluteString.prefix(100))")
+
         if self.scheme == "https" || self.scheme == "http" {
+            NSLog("[AppleMusicModule] httpURLString: returning https/http URL directly")
             return self.absoluteString
         }
+
         // musicKit:// URLs contain a fallback URL in the 'fat' query parameter
-        if self.scheme == "musicKit",
-           let components = URLComponents(url: self, resolvingAgainstBaseURL: false),
-           let fatParam = components.queryItems?.first(where: { $0.name == "fat" })?.value,
-           let decodedURL = fatParam.removingPercentEncoding {
-            return decodedURL
+        if self.scheme == "musicKit" {
+            NSLog("[AppleMusicModule] httpURLString: musicKit scheme detected, looking for 'fat' param")
+            if let components = URLComponents(url: self, resolvingAgainstBaseURL: false) {
+                NSLog("[AppleMusicModule] httpURLString: queryItems count = \(components.queryItems?.count ?? 0)")
+                if let fatParam = components.queryItems?.first(where: { $0.name == "fat" })?.value {
+                    NSLog("[AppleMusicModule] httpURLString: found 'fat' param: \(fatParam.prefix(100))")
+                    if let decodedURL = fatParam.removingPercentEncoding {
+                        NSLog("[AppleMusicModule] httpURLString: decoded URL: \(decodedURL.prefix(100))")
+                        return decodedURL
+                    }
+                } else {
+                    // Log all query params for debugging
+                    let params = components.queryItems?.map { "\($0.name)=\($0.value?.prefix(20) ?? "nil")" }.joined(separator: ", ") ?? "none"
+                    NSLog("[AppleMusicModule] httpURLString: no 'fat' param found, available params: \(params)")
+                }
+            }
         }
+
+        NSLog("[AppleMusicModule] httpURLString: returning empty string for scheme: \(self.scheme ?? "nil")")
         return ""
     }
 }

@@ -201,6 +201,74 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **UI met achtergrondkleur (iOS)** | **ui-designer, ios-specialist** — Liquid Glass compliance voor iOS/iPadOS 26+, zie SKILL.md sectie 14 |
 | **MiniPlayer/ModuleHeader/Cards** | **ui-designer** — `moduleId` prop VERPLICHT voor Liquid Glass |
 | **Nieuwe module** | **BLOKKEERDER** — Volledige checklist hieronder MOET worden doorlopen |
+| **Audio module toevoegen/wijzigen** | **Zie Module Dependency Matrix hieronder** — MediaIndicator, GlassPlayer, contexts |
+| **Playback feature wijzigen** | **Zie Module Dependency Matrix hieronder** — 100% Feature Parity vereist |
+
+### Module Dependency Matrix (VERPLICHT)
+
+**⚠️ KRITIEK:** Deze matrix voorkomt dat afhankelijke modules worden vergeten bij wijzigingen. Claude MOET deze matrix raadplegen bij ELKE wijziging aan de genoemde categorieën.
+
+**Zie ook:** `COORDINATION_PROTOCOL.md` sectie "Module Dependency Validation" voor de verplichte workflow.
+
+#### 🎵 Audio Module Wijzigingen
+
+| Wanneer je TOEVOEGT/WIJZIGT... | MOET je ook AANPASSEN... |
+|-------------------------------|-------------------------|
+| **Nieuwe audio module** (radio/podcast/books/appleMusic/etc.) | `MediaIndicator.tsx`: MEDIA_TABS mapping, getActiveMedia(), context import |
+| | `contexts/index.ts`: export nieuwe context hook |
+| | `WheelNavigationMenu.tsx`: STATIC_MODULE_DEFINITIONS, MODULE_TINT_COLORS |
+| | 13 locale bestanden: navigation.moduleId key |
+| | `navigation/index.tsx`: Tab.Screen registratie |
+| **Playback state wijziging** | `MiniPlayerNativeView.swift` (iOS 26+ Glass Player) |
+| | `FullPlayerNativeView.swift` (iOS 26+ Glass Player) |
+| | `glassPlayer.ts` bridge types |
+| | React Native MiniPlayer/ExpandedAudioPlayer (feature parity) |
+| **Sleep timer toevoegen aan module** | `MediaIndicator.tsx`: showSleepTimerIndicator check uitbreiden |
+| | Module context: sleepTimerActive state toevoegen |
+| **Now playing metadata** | `GlassPlayerWindow.swift`: PlaybackState struct |
+| | `AppleMusicModule.swift` of module-specifieke native code |
+
+#### 📱 Navigatie Wijzigingen
+
+| Wanneer je TOEVOEGT/WIJZIGT... | MOET je ook AANPASSEN... |
+|-------------------------------|-------------------------|
+| **Nieuwe module** | Zie "Nieuwe Module Validatie Checklist" hieronder |
+| **Tab naam wijziging** | `MediaIndicator.tsx`: MEDIA_TABS mapping |
+| | `HoldToNavigateWrapper.tsx`: destination mappings |
+| **Module verwijderen** | `useModuleUsage.ts`: ALL_MODULES, DEFAULT_MODULE_ORDER |
+| | `WheelNavigationMenu.tsx`: STATIC_MODULE_DEFINITIONS |
+| | `MediaIndicator.tsx`: MEDIA_TABS, getActiveMedia() |
+
+#### 🎨 Liquid Glass (iOS 26+)
+
+| Wanneer je TOEVOEGT/WIJZIGT... | MOET je ook AANPASSEN... |
+|-------------------------------|-------------------------|
+| **Player feature in RN** | Native equivalent in Swift (100% Feature Parity) |
+| **Nieuwe control button** | `MiniPlayerNativeView.swift` EN `FullPlayerNativeView.swift` |
+| **Bridge parameter** | `glassPlayer.ts` types EN `GlassPlayerWindowModule.swift` |
+| **Module tint color** | `WheelNavigationMenu.tsx`: MODULE_TINT_COLORS |
+
+#### 🔊 Context State Wijzigingen
+
+| Wanneer je TOEVOEGT/WIJZIGT... | MOET je ook AANPASSEN... |
+|-------------------------------|-------------------------|
+| **isPlaying state** | `MediaIndicator.tsx`: getActiveMedia() check |
+| **sleepTimerActive state** | `MediaIndicator.tsx`: showSleepTimerIndicator |
+| **nowPlaying/currentItem** | `MediaIndicator.tsx`: null check in getActiveMedia() |
+| **Nieuwe context export** | `contexts/index.ts`: re-export |
+| **Safe context hook** | Component imports: gebruik `useFooContextSafe()` buiten provider |
+
+#### Validatie Commando
+
+```bash
+# Check alle afhankelijkheden voor een audio module
+MODULE="appleMusic" && \
+echo "=== Checking $MODULE dependencies ===" && \
+echo "MediaIndicator:" && grep -c "$MODULE" src/components/MediaIndicator.tsx && \
+echo "MEDIA_TABS:" && grep "appleMusic.*Tab" src/components/MediaIndicator.tsx && \
+echo "WheelNavigation:" && grep -c "$MODULE" src/components/WheelNavigationMenu.tsx && \
+echo "Navigation:" && grep -c "${MODULE^}Tab" src/navigation/index.tsx
+```
 
 ### Nieuwe Module Validatie Checklist (VERPLICHT)
 
@@ -2329,12 +2397,38 @@ Claude MOET de volgende stappen uitvoeren:
    lsof -ti:8081 | xargs kill -9 2>/dev/null
    ```
 
-4. **Geef gebruiker het Metro commando** om in Terminal te plakken:
+4. **Geef gebruiker het Metro commando met gedeelde logging**:
    ```bash
-   cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0
+   cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0 2>&1 | tee /tmp/metro.log
    ```
 
 **Let op:** Claude kan Metro NIET zelf starten via Bash (npx niet in PATH). Geef altijd het commando aan de gebruiker.
+
+### Metro Log Meelezen (Gedeelde Debugging)
+
+**Doel:** Gebruiker en Claude kunnen beiden de Metro logs realtime volgen.
+
+**Workflow:**
+1. **Gebruiker start Metro** met `tee` naar `/tmp/metro.log`:
+   ```bash
+   cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0 2>&1 | tee /tmp/metro.log
+   ```
+
+2. **Claude leest mee** via:
+   ```bash
+   tail -100 /tmp/metro.log   # Laatste 100 regels
+   cat /tmp/metro.log         # Volledige log
+   ```
+
+3. **Gebruiker ziet live output** in het Terminal venster waar Metro draait
+
+**Wanneer Claude de logs moet checken:**
+- Bij bundel fouten of warnings
+- Bij "red screen" errors in de app
+- Bij onverwacht gedrag na JS wijzigingen
+- Wanneer gebruiker vraagt om logs te bekijken
+
+**Log file locatie:** `/tmp/metro.log` (wordt overschreven bij elke Metro start)
 
 ### Prosody XMPP Server
 

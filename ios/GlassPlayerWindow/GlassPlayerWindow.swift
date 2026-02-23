@@ -63,6 +63,7 @@ class GlassPlayerWindow: UIWindow {
     private let miniPlayerView: MiniPlayerNativeView
     private let fullPlayerView: FullPlayerNativeView
     private var currentTintColor: UIColor?  // Store for shuffle/repeat coloring
+    private var lastShownTitle: String = ""  // Track to detect content changes
 
     // ============================================================
     // MARK: Layout Constants
@@ -214,11 +215,18 @@ class GlassPlayerWindow: UIWindow {
     // ============================================================
 
     func showMini(with config: NSDictionary) {
-        updateContent(config)
+        // Check if content changed (new song)
+        let newContent = PlayerContent(from: config)
+        let contentChanged = newContent.title != lastShownTitle
+        lastShownTitle = newContent.title
         
-        // Reset sleep timer state when showing new content
-        // (in case previous session had a timer that expired)
-        fullPlayerView.resetSleepTimer()
+        // Reset sleep timer when showing NEW content (different song)
+        if contentChanged {
+            fullPlayerView.resetSleepTimer()
+            NSLog("[GlassPlayer] showMini - new content, reset sleep timer")
+        }
+        
+        updateContent(config)
 
         guard currentState == .hidden else {
             // Already showing, just update content
@@ -558,7 +566,25 @@ struct PlayerContent {
     init(from config: NSDictionary) {
         moduleId = config["moduleId"] as? String ?? "radio"
         tintColorHex = config["tintColorHex"] as? String ?? "#00897B"
-        artwork = config["artwork"] as? String
+        
+        // Parse artwork URL - check what we received from React Native
+        let rawArtwork = config["artwork"]
+        if let artworkString = rawArtwork as? String {
+            if artworkString.isEmpty {
+                artwork = nil
+                NSLog("[GlassPlayer] PlayerContent - artwork is EMPTY STRING")
+            } else {
+                artwork = artworkString
+                NSLog("[GlassPlayer] PlayerContent - artwork URL: \(artworkString.prefix(100))...")
+            }
+        } else if rawArtwork == nil || rawArtwork is NSNull {
+            artwork = nil
+            NSLog("[GlassPlayer] PlayerContent - artwork is NULL")
+        } else {
+            artwork = nil
+            NSLog("[GlassPlayer] PlayerContent - artwork has unexpected type: \(type(of: rawArtwork))")
+        }
+        
         title = config["title"] as? String ?? ""
         subtitle = config["subtitle"] as? String
         progressType = config["progressType"] as? String ?? "duration"
@@ -597,5 +623,7 @@ struct PlaybackState {
         isBuffering = state["isBuffering"] as? Bool ?? false
         shuffleMode = state["shuffleMode"] as? String ?? "off"
         repeatMode = state["repeatMode"] as? String ?? "off"
+        
+        NSLog("[GlassPlayer] PlaybackState parsed - position: \(position ?? -1), duration: \(duration ?? -1), shuffle: \(shuffleMode), repeat: \(repeatMode)")
     }
 }

@@ -728,6 +728,107 @@ artworkImageView.layer.opacity = 1.0
 
 ---
 
+## Module Dependency Validation (VERPLICHT)
+
+### Doel
+
+Bij wijzigingen aan modules, audio playback, of navigatie MOET Claude de **Module Dependency Matrix** in `CLAUDE.md` raadplegen om te identificeren welke afhankelijke bestanden ook moeten worden aangepast.
+
+### Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 1: IDENTIFICEER WIJZIGINGSTYPE                             │
+│  "Is dit een audio module, navigatie, of Liquid Glass wijziging?"│
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 2: RAADPLEEG DEPENDENCY MATRIX                             │
+│  Open CLAUDE.md sectie "Module Dependency Matrix"                │
+│  → Zoek de relevante categorie (Audio/Navigatie/LiquidGlass)    │
+│  → Identificeer ALLE afhankelijke bestanden                      │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 3: MAAK TODO LIJST                                         │
+│  Voeg TodoWrite items toe voor ELKE afhankelijke locatie         │
+│  → Niet alleen de primaire wijziging                             │
+│  → Ook alle secundaire afhankelijkheden                          │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 4: IMPLEMENTEER ALLE WIJZIGINGEN                           │
+│  Pas ALLE geïdentificeerde bestanden aan                         │
+│  → Markeer todos als completed bij elke stap                     │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STAP 5: VALIDATIE                                               │
+│  Run het validatie commando uit de Matrix                        │
+│  → Bevestig dat alle afhankelijkheden zijn aangepast             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Automatische Triggers
+
+| Wijziging bevat... | Matrix sectie raadplegen |
+|-------------------|--------------------------|
+| Nieuwe audio module | 🎵 Audio Module Wijzigingen |
+| Playback state/feature | 🎵 Audio Module Wijzigingen |
+| Sleep timer | 🎵 Audio Module Wijzigingen |
+| Tab/route wijziging | 📱 Navigatie Wijzigingen |
+| Module toevoegen/verwijderen | 📱 Navigatie Wijzigingen |
+| Native iOS player code | 🎨 Liquid Glass (iOS 26+) |
+| RN player feature | 🎨 Liquid Glass (iOS 26+) |
+| Context state (isPlaying, etc.) | 🔊 Context State Wijzigingen |
+
+### Voorbeeld: Apple Music Toevoegen
+
+```markdown
+Wijziging: Apple Music module toevoegen
+
+STAP 2 - Matrix raadplegen:
+  Categorie: 🎵 Audio Module Wijzigingen → "Nieuwe audio module"
+
+  Afhankelijkheden:
+  - MediaIndicator.tsx: MEDIA_TABS, getActiveMedia(), context import
+  - contexts/index.ts: export
+  - WheelNavigationMenu.tsx: STATIC_MODULE_DEFINITIONS, MODULE_TINT_COLORS
+  - 13 locale bestanden
+  - navigation/index.tsx
+
+STAP 3 - Todo lijst:
+  [ ] AppleMusicScreen implementeren
+  [ ] AppleMusicContext maken
+  [ ] MediaIndicator: MEDIA_TABS toevoegen
+  [ ] MediaIndicator: getActiveMedia() updaten
+  [ ] MediaIndicator: context importeren
+  [ ] WheelNavigationMenu: definitie toevoegen
+  [ ] 13 locale files: i18n keys
+  [ ] navigation: Tab.Screen
+
+STAP 4 - Implementatie:
+  → Alle items worden afgevinkt
+
+STAP 5 - Validatie:
+  → Run validatie commando uit Matrix
+  → Alle checks slagen
+```
+
+### Waarom dit Verplicht is
+
+Zonder deze workflow worden afhankelijkheden vergeten:
+- MediaIndicator toont geen indicator voor nieuwe audio modules
+- Sleep timer werkt niet in andere modules
+- Navigatie faalt naar nieuwe tabs
+- Feature parity breekt tussen RN en native players
+
+---
+
 ## Handhaving
 
 Dit protocol is **VERPLICHT**. Bij elke wijziging:
@@ -745,6 +846,10 @@ Dit protocol is **VERPLICHT**. Bij elke wijziging:
     - Check `.claude/plans/` voor bestaande plannen VOORDAT je begint
     - Lees het VOLLEDIGE plan
     - Bij afwijking: vraag EERST de gebruiker
+11. **ALTIJD Module Dependency Matrix raadplegen bij audio/navigatie/player wijzigingen!**
+    - Check `CLAUDE.md` sectie "Module Dependency Matrix"
+    - Identificeer ALLE afhankelijke bestanden
+    - Maak todo items voor elke locatie
 
 ### Prioriteit van Recursieve Updates
 

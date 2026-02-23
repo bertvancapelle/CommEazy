@@ -208,9 +208,11 @@ export function AppleMusicScreen() {
       return;
     }
 
-    const artworkUrl = currentSong.artworkUrl?.startsWith('http')
-      ? currentSong.artworkUrl.replace('{w}', '300').replace('{h}', '300')
-      : null;
+    // MusicKit returns artwork URLs with dimensions already included (e.g., 300x300)
+    // URLs are already https:// - no template replacement needed
+    const artworkUrl = currentSong.artworkUrl || null;
+
+    console.log('[AppleMusicScreen] Showing Glass Player with artwork:', artworkUrl);
 
     // Configure controls for Apple Music (skip buttons, shuffle, repeat, etc.)
     configureGlassControls({
@@ -251,8 +253,10 @@ export function AppleMusicScreen() {
       duration: playbackState?.duration ?? 0,
       isFavorite: false,
       showStopButton: false,
+      shuffleMode,
+      repeatMode,
     });
-  }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, isPlaybackLoading, playbackState, updateGlassPlaybackState]);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, isPlaybackLoading, playbackState, shuffleMode, repeatMode, updateGlassPlaybackState]);
 
   // Effect 3: Update content when song/metadata changes
   useEffect(() => {
@@ -260,9 +264,8 @@ export function AppleMusicScreen() {
       return;
     }
 
-    const artworkUrl = currentSong.artworkUrl?.startsWith('http')
-      ? currentSong.artworkUrl.replace('{w}', '600').replace('{h}', '600')
-      : null;
+    // MusicKit returns artwork URLs with dimensions already included
+    const artworkUrl = currentSong.artworkUrl || null;
 
     updateGlassContent({
       artwork: artworkUrl,
@@ -291,9 +294,8 @@ export function AppleMusicScreen() {
     if (isFocused && isGlassPlayerAvailable && currentSong && !isGlassPlayerVisible) {
       console.debug('[AppleMusicScreen] Re-showing Glass Player after navigation');
 
-      const artworkUrl = currentSong.artworkUrl?.startsWith('http')
-        ? currentSong.artworkUrl.replace('{w}', '300').replace('{h}', '300')
-        : null;
+      // MusicKit returns artwork URLs with dimensions already included
+      const artworkUrl = currentSong.artworkUrl || null;
 
       // Configure controls for Apple Music
       configureGlassControls({
@@ -750,7 +752,7 @@ export function AppleMusicScreen() {
       {shouldShowRNMiniPlayer && (
         <MiniPlayer
           moduleId="appleMusic"
-          artwork={currentSong.artworkUrl?.startsWith('http') ? currentSong.artworkUrl.replace('{w}', '120').replace('{h}', '120') : null}
+          artwork={currentSong.artworkUrl || null}
           title={currentSong.title}
           subtitle={currentSong.artistName}
           accentColor={APPLE_MUSIC_COLOR}
@@ -770,7 +772,7 @@ export function AppleMusicScreen() {
         <ExpandedAudioPlayer
           visible={isPlayerExpanded}
           moduleId="appleMusic"
-          artwork={currentSong?.artworkUrl?.startsWith('http') ? currentSong.artworkUrl.replace('{w}', '600').replace('{h}', '600') : null}
+          artwork={currentSong?.artworkUrl || null}
           title={currentSong?.title || ''}
           subtitle={currentSong?.artistName}
           accentColor={APPLE_MUSIC_COLOR}
