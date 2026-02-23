@@ -53,6 +53,12 @@ class MiniPlayerNativeView: UIView {
     private var showListenDuration: Bool = false
     private var listenDuration: TimeInterval = 0
     
+    // Dynamic constraints for title and progress bar trailing edge
+    private var titleTrailingToStopConstraint: NSLayoutConstraint?
+    private var titleTrailingToPlayPauseConstraint: NSLayoutConstraint?
+    private var progressTrailingToStopConstraint: NSLayoutConstraint?
+    private var progressTrailingToPlayPauseConstraint: NSLayoutConstraint?
+    
     // MARK: - Constants
     
     private enum Layout {
@@ -134,13 +140,18 @@ class MiniPlayerNativeView: UIView {
         loadingIndicator.hidesWhenStopped = true
         addSubview(loadingIndicator)
         
-        // Play/Pause button
+        // Play/Pause button - use UIButton configuration for better touch feedback
         let playConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
         playPauseButton.setImage(UIImage(systemName: "play.fill", withConfiguration: playConfig), for: .normal)
         playPauseButton.tintColor = .white
         playPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
         playPauseButton.accessibilityLabel = "Afspelen"
+        playPauseButton.isExclusiveTouch = true  // Prevent multi-touch issues
+        playPauseButton.isUserInteractionEnabled = true
+        // Add subtle background for better touch area visibility
+        playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        playPauseButton.layer.cornerRadius = Layout.buttonSize / 2
         addSubview(playPauseButton)
         
         // Stop button
@@ -150,6 +161,11 @@ class MiniPlayerNativeView: UIView {
         stopButton.addTarget(self, action: #selector(handleStop), for: .touchUpInside)
         stopButton.translatesAutoresizingMaskIntoConstraints = false
         stopButton.accessibilityLabel = "Stoppen"
+        stopButton.isExclusiveTouch = true  // Prevent multi-touch issues
+        stopButton.isUserInteractionEnabled = true
+        // Add subtle background for better touch area visibility
+        stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        stopButton.layer.cornerRadius = Layout.buttonSize / 2
         addSubview(stopButton)
         
         setupConstraints()
@@ -157,33 +173,32 @@ class MiniPlayerNativeView: UIView {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Artwork
+            // Artwork - left side
             artworkImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Layout.padding),
             artworkImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             artworkImageView.widthAnchor.constraint(equalToConstant: Layout.artworkSize),
             artworkImageView.heightAnchor.constraint(equalToConstant: Layout.artworkSize),
             
-            // Stop button (rightmost)
-            stopButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Layout.padding),
-            stopButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            stopButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
-            stopButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
-            
-            // Play/Pause button
-            playPauseButton.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor),
+            // Play/Pause button - FAR RIGHT
+            playPauseButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Layout.padding),
             playPauseButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             playPauseButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
             playPauseButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
             
-            // Title
+            // Stop button - left of play/pause when visible
+            stopButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor),
+            stopButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            stopButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            stopButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
+            
+            // Title - between artwork and buttons
             titleLabel.leadingAnchor.constraint(equalTo: artworkImageView.trailingAnchor, constant: Layout.padding),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: playPauseButton.leadingAnchor, constant: -8),
-            titleLabel.topAnchor.constraint(equalTo: artworkImageView.topAnchor, constant: 4),
+            titleLabel.topAnchor.constraint(equalTo: artworkImageView.topAnchor, constant: 2),
             
             // Subtitle
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
             
             // Listen duration label (below subtitle)
             listenDurationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
@@ -193,17 +208,34 @@ class MiniPlayerNativeView: UIView {
             loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
             
-            // Progress bar - positioned INSIDE the content area, below subtitle
-            // Aligned with text content, not edge-to-edge
+            // Progress bar - leading edge same as title
             progressView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            progressView.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -8),
-            progressView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 8),
+            progressView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 6),
             progressView.heightAnchor.constraint(equalToConstant: Layout.progressHeight),
         ])
+        
+        // Dynamic title trailing constraints - only one active at a time
+        // These determine how much space the title/subtitle get
+        titleTrailingToStopConstraint = titleLabel.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -8)
+        titleTrailingToPlayPauseConstraint = titleLabel.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -8)
+        
+        // Dynamic progress bar trailing constraints
+        progressTrailingToStopConstraint = progressView.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -12)
+        progressTrailingToPlayPauseConstraint = progressView.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -12)
+        
+        // Start with stop button visible (default)
+        titleTrailingToStopConstraint?.isActive = true
+        titleTrailingToPlayPauseConstraint?.isActive = false
+        progressTrailingToStopConstraint?.isActive = true
+        progressTrailingToPlayPauseConstraint?.isActive = false
     }
     
     private func setupGestures() {
+        // Tap gesture for expanding to full player
+        // This should NOT interfere with button taps
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        tapGesture.cancelsTouchesInView = false  // Don't cancel touches to subviews
+        tapGesture.delegate = self  // Use delegate to control gesture behavior
         addGestureRecognizer(tapGesture)
         isUserInteractionEnabled = true
     }
@@ -211,13 +243,7 @@ class MiniPlayerNativeView: UIView {
     // MARK: - Actions
     
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
-        let location = gesture.location(in: self)
-        
-        // Don't expand if tapping on buttons
-        if playPauseButton.frame.contains(location) || stopButton.frame.contains(location) {
-            return
-        }
-        
+        // This only fires when NOT tapping on buttons (controlled by shouldReceive)
         delegate?.miniPlayerDidTapExpand()
     }
     
@@ -226,9 +252,7 @@ class MiniPlayerNativeView: UIView {
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.impactOccurred()
 
-        // NO optimistic UI update - React Native is the single source of truth
-        // The UI will update when RN calls updatePlaybackState with the new state
-
+        // Notify delegate immediately - React Native will update playback state
         delegate?.miniPlayerDidTapPlayPause()
     }
     
@@ -281,8 +305,30 @@ class MiniPlayerNativeView: UIView {
         playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
         playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
         
-        // Update stop button visibility
+        // Update stop button visibility and dynamic constraints
+        let stopButtonVisibilityChanged = stopButton.isHidden == showStopButton
         stopButton.isHidden = !showStopButton
+        
+        // Update dynamic constraints when stop button visibility changes
+        if stopButtonVisibilityChanged {
+            if showStopButton {
+                // Stop button visible: title and progress end at stop button
+                titleTrailingToPlayPauseConstraint?.isActive = false
+                titleTrailingToStopConstraint?.isActive = true
+                progressTrailingToPlayPauseConstraint?.isActive = false
+                progressTrailingToStopConstraint?.isActive = true
+            } else {
+                // Stop button hidden: title and progress end at play/pause button (more space!)
+                titleTrailingToStopConstraint?.isActive = false
+                titleTrailingToPlayPauseConstraint?.isActive = true
+                progressTrailingToStopConstraint?.isActive = false
+                progressTrailingToPlayPauseConstraint?.isActive = true
+            }
+            // Animate the constraint change
+            UIView.animate(withDuration: 0.2) {
+                self.layoutIfNeeded()
+            }
+        }
         
         // Update progress bar (for podcast/books)
         if let progress = progress {
@@ -379,5 +425,56 @@ class MiniPlayerNativeView: UIView {
                 self?.artworkImageView.image = image
             }
         }.resume()
+    }
+}
+
+// MARK: - Touch Handling
+
+@available(iOS 26.0, *)
+extension MiniPlayerNativeView {
+    
+    /// Override hitTest to ensure buttons always receive touches
+    /// This is more reliable than gesture recognizer delegates
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        // Check if point is within play/pause button (with padding for easier touch)
+        let playPauseRect = playPauseButton.frame.insetBy(dx: -5, dy: -5)
+        if playPauseRect.contains(point) && !playPauseButton.isHidden {
+            return playPauseButton
+        }
+        
+        // Check if point is within stop button
+        let stopRect = stopButton.frame.insetBy(dx: -5, dy: -5)
+        if stopRect.contains(point) && !stopButton.isHidden {
+            return stopButton
+        }
+        
+        // For all other touches, return self (for expand gesture)
+        return super.hitTest(point, with: event)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+@available(iOS 26.0, *)
+extension MiniPlayerNativeView: UIGestureRecognizerDelegate {
+    
+    /// Additional safety: prevent tap gesture from firing when tapping on buttons
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // Check if the touch view is one of our buttons
+        if touch.view == playPauseButton || touch.view == stopButton {
+            return false
+        }
+        
+        let location = touch.location(in: self)
+        
+        // Double-check with frame containment
+        let playPauseRect = playPauseButton.frame.insetBy(dx: -5, dy: -5)
+        let stopRect = stopButton.frame.insetBy(dx: -5, dy: -5)
+        
+        if playPauseRect.contains(location) || stopRect.contains(location) {
+            return false  // Let the button handle the touch
+        }
+        
+        return true  // Receive gesture for expand tap
     }
 }

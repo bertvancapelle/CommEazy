@@ -36,9 +36,6 @@ import {
   spacing,
   touchTargets,
   borderRadius,
-  accentColors,
-  type AccentColorKey,
-  ACCENT_COLOR_GRID,
 } from '@/theme';
 import {
   useHoldToNavigate,
@@ -237,60 +234,6 @@ function HapticIntensitySelector({ value, onValueChange, onDemoIntensity, accent
   );
 }
 
-// Accent color picker component — 4×3 grid layout
-// Uses ACCENT_COLOR_GRID for structured display
-interface AccentColorPickerProps {
-  value: AccentColorKey;
-  onValueChange: (color: AccentColorKey) => void;
-  onFeedback: () => void;
-}
-
-function AccentColorPicker({ value, onValueChange, onFeedback }: AccentColorPickerProps) {
-  const { t } = useTranslation();
-
-  const handleSelect = (colorKey: AccentColorKey) => {
-    onValueChange(colorKey);
-    onFeedback();
-  };
-
-  return (
-    <View style={styles.colorPickerContainer}>
-      <Text style={styles.colorPickerLabel}>{t('accessibilitySettings.accentColor')}</Text>
-      <Text style={styles.colorPickerHint}>{t('accessibilitySettings.accentColorHint')}</Text>
-      <View style={styles.colorGrid}>
-        {ACCENT_COLOR_GRID.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.colorRow}>
-            {row.map((colorKey) => {
-              const isSelected = value === colorKey;
-              const color = accentColors[colorKey];
-              return (
-                <TouchableOpacity
-                  key={colorKey}
-                  style={[
-                    styles.colorOption,
-                    { borderColor: isSelected ? color.primary : colors.border },
-                  ]}
-                  onPress={() => handleSelect(colorKey)}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={t(color.label)}
-                  accessibilityHint={t('accessibilitySettings.accentColorSelectHint')}
-                >
-                  <View style={[styles.colorSwatch, { backgroundColor: color.primary }]}>
-                    {isSelected && (
-                      <Icon name="check" size={24} color={colors.textOnPrimary} />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 // TTS Speech Rate selector component
 interface TtsSpeechRateSelectorProps {
   value: TtsSpeechRate;
@@ -359,8 +302,8 @@ export function AccessibilitySettingsScreen() {
     triggerFeedback,
   } = useFeedback();
 
-  // Accent color settings
-  const { accentColorKey, accentColor, updateAccentColor } = useAccentColor();
+  // Accent color settings (only using accentColor for styling)
+  const { accentColor } = useAccentColor();
 
   // Navigation for compliance report
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParams>>();
@@ -515,19 +458,6 @@ export function AccessibilitySettingsScreen() {
     },
     [updateVoiceEnabled, triggerFeedback],
   );
-
-  // Handle accent color change
-  const handleAccentColorChange = useCallback(
-    (colorKey: AccentColorKey) => {
-      void updateAccentColor(colorKey);
-    },
-    [updateAccentColor],
-  );
-
-  // Handle feedback for accent color picker
-  const handleAccentColorFeedback = useCallback(() => {
-    void triggerFeedback('tap');
-  }, [triggerFeedback]);
 
   // Voice focus items for voice navigation
   const voiceFocusItems = useMemo(() => {
@@ -689,16 +619,6 @@ export function AccessibilitySettingsScreen() {
             void triggerFeedback('tap');
           }}
           accentColor={accentColor.primary}
-        />
-      </View>
-
-      {/* Appearance section */}
-      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('accessibilitySettings.appearanceTitle')}</Text>
-        <AccentColorPicker
-          value={accentColorKey}
-          onValueChange={handleAccentColorChange}
-          onFeedback={handleAccentColorFeedback}
         />
       </View>
 
@@ -940,45 +860,6 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-  },
-  // Accent color picker styles — 4×3 grid layout
-  colorPickerContainer: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  colorPickerLabel: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '700',
-    marginBottom: spacing.xs,
-  },
-  colorPickerHint: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  colorGrid: {
-    gap: spacing.sm,
-  },
-  colorRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  colorOption: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: borderRadius.md,
-    borderWidth: 3,
-    padding: 4,
-    minHeight: touchTargets.minimum,
-    maxHeight: touchTargets.large,
-  },
-  colorSwatch: {
-    flex: 1,
-    borderRadius: borderRadius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   // Test button
   testButton: {
