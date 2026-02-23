@@ -48,6 +48,8 @@ import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlay
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import {
   usePodcastContext,
   formatTime,
@@ -95,6 +97,9 @@ export function PodcastScreen() {
   const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
 
+  // User-customizable module color for Liquid Glass
+  const podcastModuleColor = useModuleColor('podcast');
+
   // Podcast Context
   const {
     isPlaying,
@@ -125,6 +130,70 @@ export function PodcastScreen() {
     sleepTimerMinutes,
     setSleepTimer,
   } = usePodcastContext();
+
+  // Glass Player for iOS 26+ Liquid Glass effect
+  const {
+    isAvailable: isGlassPlayerAvailable,
+    isVisible: isGlassPlayerVisible,
+    isExpanded: isGlassPlayerExpanded,
+    showMiniPlayer: showGlassMiniPlayer,
+    expandToFull: expandGlassPlayer,
+    collapseToMini: collapseGlassPlayer,
+    hide: hideGlassPlayer,
+    updateContent: updateGlassContent,
+    updatePlaybackState: updateGlassPlaybackState,
+    configureControls: configureGlassControls,
+  } = useGlassPlayer({
+    onPlayPause: async () => {
+      if (isPlaying) {
+        await pause();
+      } else {
+        await play();
+      }
+    },
+    onStop: async () => {
+      await stop();
+    },
+    onExpand: () => {
+      // Native player expanded — sync state
+      setIsPlayerExpanded(true);
+    },
+    onCollapse: () => {
+      // Native player collapsed — sync state
+      setIsPlayerExpanded(false);
+    },
+    onSeek: async (position: number) => {
+      // position is 0-1, convert to seconds
+      const newPosition = position * progress.duration;
+      await seekTo(newPosition);
+    },
+    onSkipForward: async () => {
+      await skipForward();
+    },
+    onSkipBackward: async () => {
+      await skipBackward();
+    },
+    onClose: async () => {
+      // User closed the glass player
+      await stop();
+    },
+    onFavoriteToggle: () => {
+      // Toggle subscription for current show
+      if (currentShow) {
+        if (isSubscribed(currentShow.id)) {
+          unsubscribe(currentShow.id);
+        } else {
+          subscribe(currentShow);
+        }
+      }
+    },
+    onSleepTimerSet: (minutes: number | null) => {
+      setSleepTimer(minutes);
+    },
+    onSpeedChange: (speed: number) => {
+      setPlaybackRate(speed);
+    },
+  });
 
   // State
   const [searchResults, setSearchResults] = useState<PodcastShow[]>([]);
@@ -273,6 +342,104 @@ export function PodcastScreen() {
       setShowWelcomeModal(true);
     }
   }, [subscriptions.length]);
+
+  // ============================================================
+  // Glass Player Effects (iOS 26+ Liquid Glass)
+  // ============================================================
+
+  // Hide Glass Player when navigating away from this screen
+  useEffect(() => {
+    if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
+      hideGlassPlayer();
+    }
+  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+
+  // Show Glass Mini Player when episode is playing
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !currentEpisode || !currentShow || !isFocused) return;
+
+    // Configure full player controls for Podcast
+    configureGlassControls({
+      seekSlider: true,
+      skipButtons: true,
+      speedControl: true,
+      sleepTimer: true,
+      favorite: true,
+      stopButton: false,
+      shuffle: false,
+      repeat: false,
+    });
+
+    // Show mini player with podcast content
+    showGlassMiniPlayer({
+      moduleId: 'podcast',
+      tintColorHex: podcastModuleColor,
+      artwork: currentEpisode.artwork || currentShow.artwork || null,
+      title: currentEpisode.title,
+      subtitle: currentShow.title,
+      progressType: 'bar',
+      progress: progress.duration > 0 ? progress.position / progress.duration : 0,
+      showStopButton: false,
+    });
+  }, [
+    isGlassPlayerAvailable,
+    currentEpisode,
+    currentShow,
+    isFocused,
+    podcastModuleColor,
+    configureGlassControls,
+    showGlassMiniPlayer,
+    progress.position,
+    progress.duration,
+  ]);
+
+  // Update Glass Player playback state
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !currentEpisode) return;
+
+    updateGlassPlaybackState({
+      isPlaying,
+      isLoading: isPlaybackLoading,
+      isBuffering,
+      progress: progress.duration > 0 ? progress.position / progress.duration : 0,
+      position: progress.position,
+      duration: progress.duration,
+      isFavorite: currentShow ? isSubscribed(currentShow.id) : false,
+    });
+  }, [
+    isGlassPlayerAvailable,
+    currentEpisode,
+    currentShow,
+    isPlaying,
+    isPlaybackLoading,
+    isBuffering,
+    progress.position,
+    progress.duration,
+    isSubscribed,
+    updateGlassPlaybackState,
+  ]);
+
+  // Update Glass Player content when metadata changes
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !currentEpisode || !currentShow) return;
+
+    updateGlassContent({
+      tintColorHex: podcastModuleColor,
+      artwork: currentEpisode.artwork || currentShow.artwork || null,
+      title: currentEpisode.title,
+      subtitle: currentShow.title,
+      progress: progress.duration > 0 ? progress.position / progress.duration : 0,
+      showStopButton: false,
+    });
+  }, [
+    isGlassPlayerAvailable,
+    currentEpisode,
+    currentShow,
+    podcastModuleColor,
+    progress.position,
+    progress.duration,
+    updateGlassContent,
+  ]);
 
   // Load user's country from profile
   useEffect(() => {
@@ -730,8 +897,8 @@ export function PodcastScreen() {
         {/* Spacer pushes MiniPlayer to bottom */}
         <View style={styles.overlaySpacer} pointerEvents="none" />
 
-        {/* Mini-player — using standardized component */}
-        {currentEpisode && currentShow && !isPlayerExpanded && !showSpeedPicker && !showSleepTimerPicker && (
+        {/* Mini-player — React Native fallback when Glass Player not available */}
+        {currentEpisode && currentShow && !isPlayerExpanded && !showSpeedPicker && !showSleepTimerPicker && !isGlassPlayerAvailable && (
           <MiniPlayer
             moduleId="podcast"
             artwork={currentEpisode.artwork || currentShow.artwork || null}
@@ -931,9 +1098,9 @@ export function PodcastScreen() {
           </View>
         </Modal>
 
-        {/* Expanded Player Modal */}
+        {/* Expanded Player Modal — React Native fallback when Glass Player not available */}
         <Modal
-          visible={isPlayerExpanded && !!currentEpisode}
+          visible={isPlayerExpanded && !!currentEpisode && !isGlassPlayerAvailable}
           transparent={true}
           animationType={isReducedMotion ? 'none' : 'slide'}
           onRequestClose={() => setIsPlayerExpanded(false)}
