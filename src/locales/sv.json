@@ -370,7 +370,16 @@
     },
     "accentColor": {
       "title": "Accentfärg",
-      "hint": "Denna färg används för knappar och accenter"
+      "hint": "Denna färg används för knappar och accenter",
+      "selectLabel": "Accentfärg",
+      "selectTitle": "Välj accentfärg"
+    },
+    "moduleColors": {
+      "title": "Modulfärger",
+      "hint": "Anpassa färgen för varje modul",
+      "selectColor": "Välj {{color}} för {{module}}",
+      "selectTitle": "Välj färg för {{module}}",
+      "reset": "Återställ standardfärger"
     },
     "preview": {
       "title": "Förhandsvisning",

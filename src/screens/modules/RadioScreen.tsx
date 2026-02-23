@@ -455,6 +455,7 @@ export function RadioScreen() {
       showStopButton: true,
       isFavorite: currentIsFavorite,
       // For radio, we track listen duration, not progress
+      listenDuration: position,
     });
   }, [
     isGlassPlayerAvailable,
@@ -465,6 +466,7 @@ export function RadioScreen() {
     updateGlassPlaybackState,
     contextStation,
     favorites,
+    position,
   ]);
 
   // Update Glass Player content when metadata changes

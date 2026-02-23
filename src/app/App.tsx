@@ -21,6 +21,7 @@ import { HoldToNavigateProvider } from '@/hooks/useHoldToNavigate';
 import { AccentColorProvider } from '@/contexts/AccentColorContext';
 import { ThemeProvider, useTheme, useColors } from '@/contexts/ThemeContext';
 import { LiquidGlassProvider } from '@/contexts/LiquidGlassContext';
+import { ModuleColorsProvider } from '@/contexts/ModuleColorsContext';
 import { VoiceFocusProvider } from '@/contexts/VoiceFocusContext';
 import { VoiceSettingsProvider } from '@/contexts/VoiceSettingsContext';
 import { VoiceFormProvider } from '@/contexts/VoiceFormContext';
@@ -122,6 +123,7 @@ export default function App() {
           <ThemedStatusBar />
           <AccentColorProvider>
             <LiquidGlassProvider>
+              <ModuleColorsProvider>
             <VoiceSettingsProvider>
             <VoiceFocusProvider>
               <VoiceFormProvider>
@@ -151,6 +153,7 @@ export default function App() {
               </VoiceFormProvider>
             </VoiceFocusProvider>
           </VoiceSettingsProvider>
+            </ModuleColorsProvider>
             </LiquidGlassProvider>
           </AccentColorProvider>
         </ThemeProvider>

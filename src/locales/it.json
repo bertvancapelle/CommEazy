@@ -320,7 +320,16 @@
     },
     "accentColor": {
       "title": "Colore accento",
-      "hint": "Questo colore viene usato per pulsanti e accenti"
+      "hint": "Questo colore viene usato per pulsanti e accenti",
+      "selectLabel": "Colore accento",
+      "selectTitle": "Scegli colore accento"
+    },
+    "moduleColors": {
+      "title": "Colori moduli",
+      "hint": "Personalizza il colore di ogni modulo",
+      "selectColor": "Seleziona {{color}} per {{module}}",
+      "selectTitle": "Scegli colore per {{module}}",
+      "reset": "Ripristina colori predefiniti"
     },
     "preview": {
       "title": "Anteprima",

@@ -320,7 +320,16 @@
     },
     "accentColor": {
       "title": "Kolor akcentu",
-      "hint": "Ten kolor jest używany dla przycisków i akcentów"
+      "hint": "Ten kolor jest używany dla przycisków i akcentów",
+      "selectLabel": "Kolor akcentu",
+      "selectTitle": "Wybierz kolor akcentu"
+    },
+    "moduleColors": {
+      "title": "Kolory modułów",
+      "hint": "Dostosuj kolor każdego modułu",
+      "selectColor": "Wybierz {{color}} dla {{module}}",
+      "selectTitle": "Wybierz kolor dla {{module}}",
+      "reset": "Przywróć domyślne kolory"
     },
     "preview": {
       "title": "Podgląd",

@@ -104,3 +104,15 @@ export {
   type ColorPalette,
   type ThemeContextValue,
 } from './ThemeContext';
+
+export {
+  ModuleColorsProvider,
+  useModuleColorsContext,
+  useModuleColorsContextSafe,
+  useModuleColor,
+  CUSTOMIZABLE_MODULES,
+  MODULE_COLOR_OPTIONS,
+  MODULE_LABELS,
+  type ModuleColorsContextValue,
+  type ModuleColorOverrides,
+} from './ModuleColorsContext';

@@ -309,7 +309,16 @@
     },
     "accentColor": {
       "title": "Akzentfarbe",
-      "hint": "Diese Farbe wird für Schaltflächen und Akzente verwendet"
+      "hint": "Diese Farbe wird für Schaltflächen und Akzente verwendet",
+      "selectLabel": "Akzentfarbe",
+      "selectTitle": "Akzentfarbe wählen"
+    },
+    "moduleColors": {
+      "title": "Modulfarben",
+      "hint": "Passen Sie die Farbe jedes Moduls an",
+      "selectColor": "{{color}} für {{module}} auswählen",
+      "selectTitle": "Farbe für {{module}} wählen",
+      "reset": "Standardfarben wiederherstellen"
     },
     "preview": {
       "title": "Vorschau",

@@ -47,12 +47,14 @@ export interface GlassPlayerPlaybackState {
   isLoading?: boolean;
   /** Is buffering mid-playback */
   isBuffering?: boolean;
-  /** Progress 0-1 */
+  /** Progress 0-1 (for podcast/books) */
   progress?: number;
   /** Current position in seconds */
   position?: number;
   /** Total duration in seconds */
   duration?: number;
+  /** Listen duration in seconds (for radio - cumulative listening time) */
+  listenDuration?: number;
   /** Show stop button */
   showStopButton?: boolean;
   /** Is favorited */

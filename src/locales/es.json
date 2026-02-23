@@ -309,7 +309,16 @@
     },
     "accentColor": {
       "title": "Color de acento",
-      "hint": "Este color se usa para botones y acentos"
+      "hint": "Este color se usa para botones y acentos",
+      "selectLabel": "Color de acento",
+      "selectTitle": "Elegir color de acento"
+    },
+    "moduleColors": {
+      "title": "Colores de módulos",
+      "hint": "Personaliza el color de cada módulo",
+      "selectColor": "Seleccionar {{color}} para {{module}}",
+      "selectTitle": "Elegir color para {{module}}",
+      "reset": "Restaurar colores predeterminados"
     },
     "preview": {
       "title": "Vista previa",

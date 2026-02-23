@@ -304,7 +304,16 @@
     },
     "accentColor": {
       "title": "Accentkleur",
-      "hint": "Deze kleur wordt gebruikt voor knoppen en accenten"
+      "hint": "Deze kleur wordt gebruikt voor knoppen en accenten",
+      "selectLabel": "Accentkleur",
+      "selectTitle": "Kies accentkleur"
+    },
+    "moduleColors": {
+      "title": "Module kleuren",
+      "hint": "Pas de kleur van elke module aan",
+      "selectColor": "Selecteer {{color}} voor {{module}}",
+      "selectTitle": "Kies kleur voor {{module}}",
+      "reset": "Standaard kleuren herstellen"
     },
     "preview": {
       "title": "Voorbeeld",

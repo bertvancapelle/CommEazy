@@ -370,7 +370,16 @@
     },
     "accentColor": {
       "title": "Accentfarve",
-      "hint": "Denne farve bruges til knapper og accenter"
+      "hint": "Denne farve bruges til knapper og accenter",
+      "selectLabel": "Accentfarve",
+      "selectTitle": "Vælg accentfarve"
+    },
+    "moduleColors": {
+      "title": "Modulfarver",
+      "hint": "Tilpas farven på hvert modul",
+      "selectColor": "Vælg {{color}} til {{module}}",
+      "selectTitle": "Vælg farve for {{module}}",
+      "reset": "Gendan standardfarver"
     },
     "preview": {
       "title": "Forhåndsvisning",

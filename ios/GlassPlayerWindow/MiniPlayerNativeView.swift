@@ -140,32 +140,38 @@ class MiniPlayerNativeView: UIView {
         loadingIndicator.hidesWhenStopped = true
         addSubview(loadingIndicator)
         
-        // Play/Pause button - use UIButton configuration for better touch feedback
+        // Play/Pause button - configured for reliable single-tap response
         let playConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
         playPauseButton.setImage(UIImage(systemName: "play.fill", withConfiguration: playConfig), for: .normal)
         playPauseButton.tintColor = .white
         playPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
         playPauseButton.accessibilityLabel = "Afspelen"
-        playPauseButton.isExclusiveTouch = true  // Prevent multi-touch issues
+        playPauseButton.isExclusiveTouch = true
         playPauseButton.isUserInteractionEnabled = true
-        // Add subtle background for better touch area visibility
+        playPauseButton.adjustsImageWhenHighlighted = true
+        // Visual feedback: background + highlight state
         playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         playPauseButton.layer.cornerRadius = Layout.buttonSize / 2
+        // Ensure button is in front and receives touches
+        playPauseButton.layer.zPosition = 100
         addSubview(playPauseButton)
         
-        // Stop button
+        // Stop button - configured for reliable single-tap response
         let stopConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
         stopButton.setImage(UIImage(systemName: "stop.fill", withConfiguration: stopConfig), for: .normal)
         stopButton.tintColor = .white
         stopButton.addTarget(self, action: #selector(handleStop), for: .touchUpInside)
         stopButton.translatesAutoresizingMaskIntoConstraints = false
         stopButton.accessibilityLabel = "Stoppen"
-        stopButton.isExclusiveTouch = true  // Prevent multi-touch issues
+        stopButton.isExclusiveTouch = true
         stopButton.isUserInteractionEnabled = true
-        // Add subtle background for better touch area visibility
+        stopButton.adjustsImageWhenHighlighted = true
+        // Visual feedback: background + highlight state
         stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         stopButton.layer.cornerRadius = Layout.buttonSize / 2
+        // Ensure button is in front and receives touches
+        stopButton.layer.zPosition = 100
         addSubview(stopButton)
         
         setupConstraints()
@@ -231,21 +237,12 @@ class MiniPlayerNativeView: UIView {
     }
     
     private func setupGestures() {
-        // Tap gesture for expanding to full player
-        // This should NOT interfere with button taps
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        tapGesture.cancelsTouchesInView = false  // Don't cancel touches to subviews
-        tapGesture.delegate = self  // Use delegate to control gesture behavior
-        addGestureRecognizer(tapGesture)
+        // SIMPLIFIED: No gesture recognizer needed!
+        // hitTest() handles routing: buttons get touches, everything else triggers expand via touchesEnded
         isUserInteractionEnabled = true
     }
     
     // MARK: - Actions
-    
-    @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
-        // This only fires when NOT tapping on buttons (controlled by shouldReceive)
-        delegate?.miniPlayerDidTapExpand()
-    }
     
     @objc private func handlePlayPause() {
         // Haptic feedback
@@ -433,9 +430,15 @@ class MiniPlayerNativeView: UIView {
 @available(iOS 26.0, *)
 extension MiniPlayerNativeView {
     
-    /// Override hitTest to ensure buttons always receive touches
-    /// This is more reliable than gesture recognizer delegates
+    /// Override hitTest to route touches correctly:
+    /// - Button touches → go to button (for .touchUpInside)
+    /// - Other touches → go to self (for touchesEnded → expand)
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        // First check if we should even handle this touch
+        guard self.point(inside: point, with: event) else {
+            return nil
+        }
+        
         // Check if point is within play/pause button (with padding for easier touch)
         let playPauseRect = playPauseButton.frame.insetBy(dx: -5, dy: -5)
         if playPauseRect.contains(point) && !playPauseButton.isHidden {
@@ -448,33 +451,13 @@ extension MiniPlayerNativeView {
             return stopButton
         }
         
-        // For all other touches, return self (for expand gesture)
-        return super.hitTest(point, with: event)
+        // For all other touches, return SELF so we get touchesEnded
+        return self
     }
-}
-
-// MARK: - UIGestureRecognizerDelegate
-
-@available(iOS 26.0, *)
-extension MiniPlayerNativeView: UIGestureRecognizerDelegate {
     
-    /// Additional safety: prevent tap gesture from firing when tapping on buttons
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        // Check if the touch view is one of our buttons
-        if touch.view == playPauseButton || touch.view == stopButton {
-            return false
-        }
-        
-        let location = touch.location(in: self)
-        
-        // Double-check with frame containment
-        let playPauseRect = playPauseButton.frame.insetBy(dx: -5, dy: -5)
-        let stopRect = stopButton.frame.insetBy(dx: -5, dy: -5)
-        
-        if playPauseRect.contains(location) || stopRect.contains(location) {
-            return false  // Let the button handle the touch
-        }
-        
-        return true  // Receive gesture for expand tap
+    /// Handle touches that don't hit buttons - expand to full player
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        delegate?.miniPlayerDidTapExpand()
     }
 }

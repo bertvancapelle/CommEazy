@@ -319,7 +319,16 @@
     },
     "accentColor": {
       "title": "Aksentfarge",
-      "hint": "Denne fargen brukes for knapper og aksenter"
+      "hint": "Denne fargen brukes for knapper og aksenter",
+      "selectLabel": "Aksentfarge",
+      "selectTitle": "Velg aksentfarge"
+    },
+    "moduleColors": {
+      "title": "Modulfarger",
+      "hint": "Tilpass fargen på hver modul",
+      "selectColor": "Velg {{color}} for {{module}}",
+      "selectTitle": "Velg farge for {{module}}",
+      "reset": "Gjenopprett standardfarger"
     },
     "preview": {
       "title": "Forhåndsvisning",

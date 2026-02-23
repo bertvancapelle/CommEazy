@@ -309,7 +309,16 @@
     },
     "accentColor": {
       "title": "Accent Color",
-      "hint": "This color is used for buttons and accents"
+      "hint": "This color is used for buttons and accents",
+      "selectLabel": "Accent Color",
+      "selectTitle": "Choose Accent Color"
+    },
+    "moduleColors": {
+      "title": "Module Colors",
+      "hint": "Customize the color of each module",
+      "selectColor": "Select {{color}} for {{module}}",
+      "selectTitle": "Choose color for {{module}}",
+      "reset": "Reset to Default Colors"
     },
     "preview": {
       "title": "Preview",

@@ -313,7 +313,16 @@
     },
     "accentColor": {
       "title": "Cor de destaque",
-      "hint": "Esta cor é usada para botões e destaques"
+      "hint": "Esta cor é usada para botões e destaques",
+      "selectLabel": "Cor de destaque",
+      "selectTitle": "Escolher cor de destaque"
+    },
+    "moduleColors": {
+      "title": "Cores dos módulos",
+      "hint": "Personalize a cor de cada módulo",
+      "selectColor": "Selecionar {{color}} para {{module}}",
+      "selectTitle": "Escolher cor para {{module}}",
+      "reset": "Restaurar cores padrão"
     },
     "preview": {
       "title": "Pré-visualização",

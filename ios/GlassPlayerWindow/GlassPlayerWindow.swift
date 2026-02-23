@@ -199,15 +199,9 @@ class GlassPlayerWindow: UIWindow {
     }
 
     private func setupGestures() {
-        // Tap on mini player to expand
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMiniPlayerTap))
-        miniPlayerView.addGestureRecognizer(tapGesture)
-    }
-
-    @objc private func handleMiniPlayerTap() {
-        guard currentState == .mini else { return }
-        expandToFull()
-        eventDelegate?.playerDidTapExpand()
+        // NOTE: Do NOT add tap gesture here!
+        // MiniPlayerNativeView handles its own gestures via delegate pattern.
+        // Adding a gesture here would interfere with button touch handling.
     }
 
     // ============================================================

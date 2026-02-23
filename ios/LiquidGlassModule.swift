@@ -195,10 +195,12 @@ class LiquidGlassNativeView: UIView {
 
         // === Layer 2: Semi-transparent tint color overlay ===
         // Gives the glass its characteristic module color
-        // Lower opacity (30%) for more transparency/glass feel
+        // Opacity controlled by user's tintIntensity setting (0.0-1.0)
+        // Map tintIntensity to reasonable alpha range: 0.1 (10%) to 0.6 (60%)
+        let tintAlpha = 0.1 + (tintIntensity * 0.5)  // tintIntensity 0→10%, 0.5→35%, 1.0→60%
         let tintOverlay = UIView()
         tintOverlay.translatesAutoresizingMaskIntoConstraints = false
-        tintOverlay.backgroundColor = baseColor.withAlphaComponent(0.30)
+        tintOverlay.backgroundColor = baseColor.withAlphaComponent(tintAlpha)
         containerView.addSubview(tintOverlay)
 
         NSLayoutConstraint.activate([
@@ -210,7 +212,9 @@ class LiquidGlassNativeView: UIView {
 
         // === Layer 3: UIGlassEffect for Liquid Glass highlights and interactivity ===
         var glassEffect = UIGlassEffect()
-        glassEffect.tintColor = baseColor.withAlphaComponent(0.3)  // Subtle tint, main color from layer 2
+        // Use tintIntensity to control glass effect tint as well
+        let glassAlpha = 0.15 + (tintIntensity * 0.35)  // tintIntensity 0→15%, 0.5→32%, 1.0→50%
+        glassEffect.tintColor = baseColor.withAlphaComponent(glassAlpha)
         glassEffect.isInteractive = true  // Glass highlights on touch
 
         let glassView = UIVisualEffectView(effect: glassEffect)
@@ -278,9 +282,9 @@ class LiquidGlassNativeView: UIView {
 
         // Log for debugging
         let version = ProcessInfo.processInfo.operatingSystemVersion
-        NSLog("[LiquidGlass] ✅ Created HYBRID Glass Effect (iOS %d.%d.%d) - layers: UIBlurEffect + tint @30%% + UIGlassEffect + highlight gradient + border, tint: %@, radius: %.1f",
+        NSLog("[LiquidGlass] ✅ Created HYBRID Glass Effect (iOS %d.%d.%d) - layers: UIBlurEffect + tint @%.0f%% + UIGlassEffect + highlight gradient + border, tint: %@, intensity: %.2f, radius: %.1f",
               version.majorVersion, version.minorVersion, version.patchVersion,
-              tintColorHex, cornerRadius)
+              tintAlpha * 100, tintColorHex, tintIntensity, cornerRadius)
     }
     
     /// Creates a REAL blur effect that can see through to content underneath
