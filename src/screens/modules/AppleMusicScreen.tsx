@@ -305,7 +305,6 @@ export function AppleMusicScreen() {
       position: playbackState?.currentTime ?? 0,
       duration: playbackState?.duration ?? 0,
       isFavorite: false,
-      showStopButton: false,
       shuffleMode,
       repeatMode,
     });
@@ -326,6 +325,7 @@ export function AppleMusicScreen() {
       title: currentSong.title,
       subtitle: currentSong.artistName,
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
+      showStopButton: false,  // Single source of truth for stop button visibility
     });
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, appleMusicColor, updateGlassContent]);
 

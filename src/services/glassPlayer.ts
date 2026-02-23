@@ -55,8 +55,6 @@ export interface GlassPlayerPlaybackState {
   duration?: number;
   /** Listen duration in seconds (for radio - cumulative listening time) */
   listenDuration?: number;
-  /** Show stop button */
-  showStopButton?: boolean;
   /** Is favorited */
   isFavorite?: boolean;
   /** Shuffle mode */

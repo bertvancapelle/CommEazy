@@ -265,6 +265,7 @@ export function RadioScreen() {
     hide: hideGlassPlayer,
     updateContent: updateGlassContent,
     updatePlaybackState: updateGlassPlaybackState,
+    configureControls: configureGlassControls,
   } = useGlassPlayer({
     onPlayPause: async () => {
       if (isPlaying) {
@@ -414,6 +415,18 @@ export function RadioScreen() {
       return;
     }
 
+    // Configure full player controls for Radio module
+    configureGlassControls({
+      seekSlider: false,
+      skipButtons: false,
+      speedControl: false,
+      sleepTimer: true,
+      favorite: true,
+      stopButton: true,
+      shuffle: false,
+      repeat: false,
+    });
+
     // Show native glass mini player with user-customized module color
     showGlassMiniPlayer({
       moduleId: 'radio',
@@ -431,6 +444,7 @@ export function RadioScreen() {
     metadata.artwork,
     metadata.title,
     showGlassMiniPlayer,
+    configureGlassControls,
     isBuffering,
     isFocused,
     radioModuleColor,
@@ -452,7 +466,6 @@ export function RadioScreen() {
       isPlaying,
       isLoading: isPlaybackLoading,
       isBuffering,
-      showStopButton: true,
       isFavorite: currentIsFavorite,
       // For radio, we track listen duration, not progress
       listenDuration: position,
@@ -481,6 +494,7 @@ export function RadioScreen() {
       title: contextStation.name,
       subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
       listenDuration: position,
+      showStopButton: true,  // Single source of truth for stop button visibility
     });
   }, [
     isGlassPlayerAvailable,

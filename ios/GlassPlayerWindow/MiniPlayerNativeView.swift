@@ -263,7 +263,7 @@ class MiniPlayerNativeView: UIView {
     
     // MARK: - Public Methods
     
-    func updateContent(title: String, subtitle: String?, artworkURL: String?) {
+    func updateContent(title: String, subtitle: String?, artworkURL: String?, showStopButton: Bool) {
         titleLabel.text = title
         subtitleLabel.text = subtitle
         subtitleLabel.isHidden = subtitle == nil
@@ -274,15 +274,46 @@ class MiniPlayerNativeView: UIView {
         } else {
             artworkImageView.image = nil
         }
+        
+        // Update stop button visibility (single source of truth via content)
+        updateStopButtonVisibility(showStopButton)
     }
     
-    func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, progress: Float?, listenDuration: TimeInterval?, showStopButton: Bool) {
+    /// Updates stop button visibility and adjusts layout constraints accordingly
+    private func updateStopButtonVisibility(_ show: Bool) {
+        let visibilityChanged = stopButton.isHidden == show
+        self.showStopButton = show
+        stopButton.isHidden = !show
+        
+        // Update dynamic constraints when stop button visibility changes
+        if visibilityChanged {
+            if show {
+                // Stop button visible: title and progress end at stop button
+                titleTrailingToPlayPauseConstraint?.isActive = false
+                titleTrailingToStopConstraint?.isActive = true
+                progressTrailingToPlayPauseConstraint?.isActive = false
+                progressTrailingToStopConstraint?.isActive = true
+            } else {
+                // Stop button hidden: title and progress end at play/pause button (more space!)
+                titleTrailingToStopConstraint?.isActive = false
+                titleTrailingToPlayPauseConstraint?.isActive = true
+                progressTrailingToStopConstraint?.isActive = false
+                progressTrailingToPlayPauseConstraint?.isActive = true
+            }
+            // Animate the constraint change
+            UIView.animate(withDuration: 0.2) {
+                self.layoutIfNeeded()
+            }
+        }
+    }
+    
+    func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, progress: Float?, listenDuration: TimeInterval?) {
         let loadingStateChanged = self.isLoading != isLoading
 
         self.isPlaying = isPlaying
         self.isLoading = isLoading
         self.isBuffering = isBuffering
-        self.showStopButton = showStopButton
+        // showStopButton is now controlled via updateContent() — single source of truth
 
         // Update loading indicator
         if loadingStateChanged {
@@ -302,30 +333,7 @@ class MiniPlayerNativeView: UIView {
         playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
         playPauseButton.accessibilityLabel = isPlaying ? "Pauzeren" : "Afspelen"
         
-        // Update stop button visibility and dynamic constraints
-        let stopButtonVisibilityChanged = stopButton.isHidden == showStopButton
-        stopButton.isHidden = !showStopButton
-        
-        // Update dynamic constraints when stop button visibility changes
-        if stopButtonVisibilityChanged {
-            if showStopButton {
-                // Stop button visible: title and progress end at stop button
-                titleTrailingToPlayPauseConstraint?.isActive = false
-                titleTrailingToStopConstraint?.isActive = true
-                progressTrailingToPlayPauseConstraint?.isActive = false
-                progressTrailingToStopConstraint?.isActive = true
-            } else {
-                // Stop button hidden: title and progress end at play/pause button (more space!)
-                titleTrailingToStopConstraint?.isActive = false
-                titleTrailingToPlayPauseConstraint?.isActive = true
-                progressTrailingToStopConstraint?.isActive = false
-                progressTrailingToPlayPauseConstraint?.isActive = true
-            }
-            // Animate the constraint change
-            UIView.animate(withDuration: 0.2) {
-                self.layoutIfNeeded()
-            }
-        }
+        // Stop button visibility is now controlled via updateContent() — no longer handled here
         
         // Update progress bar (for podcast/books)
         if let progress = progress {

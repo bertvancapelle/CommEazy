@@ -471,7 +471,8 @@ class GlassPlayerWindow: UIWindow {
         miniPlayerView.updateContent(
             title: content.title,
             subtitle: content.subtitle,
-            artworkURL: content.artwork
+            artworkURL: content.artwork,
+            showStopButton: content.showStopButton
         )
         fullPlayerView.updateContent(
             title: content.title,
@@ -493,8 +494,7 @@ class GlassPlayerWindow: UIWindow {
             isLoading: playbackState.isLoading,
             isBuffering: playbackState.isBuffering,
             progress: playbackState.progress,
-            listenDuration: playbackState.listenDuration,
-            showStopButton: playbackState.showStopButton
+            listenDuration: playbackState.listenDuration
         )
         fullPlayerView.updatePlaybackState(
             isPlaying: playbackState.isPlaying,
@@ -640,7 +640,7 @@ struct PlaybackState {
     let position: Float?
     let duration: Float?
     let listenDuration: TimeInterval?
-    let showStopButton: Bool
+    // showStopButton removed — now controlled via PlayerContent only (single source of truth)
     let isFavorite: Bool
     let shuffleMode: String  // "off" | "songs"
     let repeatMode: String   // "off" | "one" | "all"
@@ -651,7 +651,7 @@ struct PlaybackState {
         position = (state["position"] as? NSNumber)?.floatValue
         duration = (state["duration"] as? NSNumber)?.floatValue
         listenDuration = (state["listenDuration"] as? NSNumber)?.doubleValue
-        showStopButton = state["showStopButton"] as? Bool ?? false
+        // showStopButton removed — controlled via PlayerContent
         isFavorite = state["isFavorite"] as? Bool ?? false
         isLoading = state["isLoading"] as? Bool ?? false
         isBuffering = state["isBuffering"] as? Bool ?? false
