@@ -204,6 +204,106 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Nieuwe module** | **BLOKKEERDER** — Volledige checklist hieronder MOET worden doorlopen |
 | **Audio module toevoegen/wijzigen** | **Zie Module Dependency Matrix hieronder** — MediaIndicator, GlassPlayer, contexts |
 | **Playback feature wijzigen** | **Zie Module Dependency Matrix hieronder** — 100% Feature Parity vereist |
+| **Shared component props wijzigen** | **VERPLICHT** — ALLE gebruikers van component MOETEN worden bijgewerkt, zie "Component Props Uniformiteit" |
+| **Nieuw screen toevoegen** | **BLOKKEERDER** — Screen MOET route hebben in `navigation/index.tsx`, zie "Navigation Route Completeness" |
+| **Nieuwe theme kleur toevoegen** | **BLOKKEERDER** — Kleur MOET bestaan in BEIDE `colors.ts` EN `darkColors.ts`, zie "Theme Color Consistency" |
+| **Type export toevoegen** | **VERPLICHT** — Type MOET geëxporteerd worden in relevante `index.ts` bestanden, zie "Type Export Consistency" |
+
+### Consistency Safeguards (VERPLICHT)
+
+Deze safeguards voorkomen inconsistenties in de codebase. Claude MOET deze raadplegen bij relevante wijzigingen.
+
+#### Component Props Uniformiteit
+
+**Trigger:** Shared component krijgt nieuwe/gewijzigde props.
+
+**Regel:** ALLE gebruikers van de component MOETEN worden bijgewerkt.
+
+| Wanneer je WIJZIGT... | MOET je ook AANPASSEN... |
+|----------------------|-------------------------|
+| `ModuleHeader` props | ALLE screens die ModuleHeader gebruiken |
+| `MiniPlayer` props | Radio, Podcast, Books screens |
+| `ExpandedAudioPlayer` props | Alle audio modules |
+| `SearchBar` props | Radio, Podcast, Books, Contacts screens |
+| `ChipSelector` props | Radio, Podcast, Books screens |
+| `Icon` props | ALLE componenten die Icon gebruiken |
+
+**Validatie Commando:**
+```bash
+# Vind alle gebruikers van een component
+COMPONENT="ModuleHeader" && \
+grep -r "import.*$COMPONENT\|<$COMPONENT" src/ --include="*.tsx" | cut -d: -f1 | sort -u
+```
+
+#### Navigation Route Completeness
+
+**Trigger:** Nieuw screen component aangemaakt.
+
+**Regel (BLOKKEERDER):** Screen MOET een route hebben in `navigation/index.tsx`.
+
+| Bestand aangemaakt | MOET aanwezig zijn in |
+|-------------------|----------------------|
+| `src/screens/modules/FooScreen.tsx` | `navigation/index.tsx` als Tab.Screen of Stack.Screen |
+| `src/screens/settings/FooSettingsScreen.tsx` | `navigation/index.tsx` in SettingsStack |
+| `src/screens/call/FooCallScreen.tsx` | `navigation/index.tsx` in CallStack |
+
+**Validatie Commando:**
+```bash
+# Vind screens zonder route
+for screen in src/screens/**/*Screen.tsx; do
+  name=$(basename "$screen" .tsx)
+  if ! grep -q "$name" src/navigation/index.tsx; then
+    echo "MISSING ROUTE: $name"
+  fi
+done
+```
+
+#### Theme Color Consistency
+
+**Trigger:** Nieuwe kleur toegevoegd aan theme.
+
+**Regel (BLOKKEERDER):** Kleur MOET bestaan in BEIDE `colors.ts` EN `darkColors.ts`.
+
+| Kleur toegevoegd aan | MOET ook bestaan in |
+|---------------------|---------------------|
+| `src/theme/colors.ts` | `src/theme/darkColors.ts` |
+| `src/theme/darkColors.ts` | `src/theme/colors.ts` |
+
+**Validatie Commando:**
+```bash
+# Vergelijk color keys
+node -e "
+const light = require('./src/theme/colors.ts');
+const dark = require('./src/theme/darkColors.ts');
+const lightKeys = Object.keys(light.colors || light);
+const darkKeys = Object.keys(dark.darkColors || dark);
+const missingInDark = lightKeys.filter(k => !darkKeys.includes(k));
+const missingInLight = darkKeys.filter(k => !lightKeys.includes(k));
+if (missingInDark.length) console.log('Missing in darkColors:', missingInDark);
+if (missingInLight.length) console.log('Missing in colors:', missingInLight);
+"
+```
+
+#### Type Export Consistency
+
+**Trigger:** Nieuwe type/interface aangemaakt.
+
+**Regel:** Types MOETEN geëxporteerd worden in relevante `index.ts` bestanden.
+
+| Type aangemaakt in | MOET geëxporteerd worden in |
+|-------------------|----------------------------|
+| `src/services/foo/types.ts` | `src/services/foo/index.ts` EN `src/services/index.ts` |
+| `src/contexts/FooContext.tsx` | `src/contexts/index.ts` |
+| `src/components/Foo.tsx` | `src/components/index.ts` |
+| `src/hooks/useFoo.ts` | `src/hooks/index.ts` |
+
+**Validatie Commando:**
+```bash
+# Check of exports compleet zijn voor een type
+TYPE="CallState" && \
+echo "Defined in:" && grep -r "type $TYPE\|interface $TYPE" src/ --include="*.ts" --include="*.tsx" | head -3 && \
+echo "Exported from:" && grep -r "export.*$TYPE" src/*/index.ts
+```
 
 ### Module Dependency Matrix (VERPLICHT)
 
