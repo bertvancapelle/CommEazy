@@ -25,6 +25,7 @@ import {
   Vibration,
 } from 'react-native';
 import { ServiceContainer } from '@/services/container';
+import { glassPlayer } from '@/services/glassPlayer';
 
 // Default values
 const DEFAULT_LONG_PRESS_DELAY = 1000; // 1 second
@@ -229,12 +230,16 @@ export function HoldToNavigateProvider({
     setIsMenuButtonVisible(false); // Hide button when wheel opens
     setIsNavigationMenuOpen(true);
     triggerHaptic();
+    // Hide Glass Player (iOS 26+) so it doesn't overlay the navigation menu
+    glassPlayer.setTemporarilyHidden(true);
   }, [triggerHaptic]);
 
   // Close navigation menu
   const closeNavigationMenu = useCallback(() => {
     setIsNavigationMenuOpen(false);
     setIsMenuButtonVisible(false);
+    // Restore Glass Player visibility (iOS 26+)
+    glassPlayer.setTemporarilyHidden(false);
   }, []);
 
   // Update menu button position (persisted)

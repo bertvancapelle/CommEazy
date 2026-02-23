@@ -386,6 +386,82 @@ class GlassPlayerWindow: UIWindow {
         }
     }
 
+    /// Temporarily hide/show the player window (e.g., when navigation menu is open)
+    /// This does NOT change state - it just hides the window visually
+    func setTemporarilyHidden(_ hidden: Bool) {
+        guard currentState != .hidden else { return }  // Only affects visible players
+
+        if hidden {
+            UIView.animate(withDuration: 0.15) {
+                self.alpha = 0
+            }
+            NSLog("[GlassPlayer] Temporarily hidden (navigation menu)")
+        } else {
+            // Restore correct frame and layout based on current state BEFORE animating alpha
+            restoreCorrectFrameForState()
+            
+            UIView.animate(withDuration: 0.2) {
+                self.alpha = 1
+            }
+            NSLog("[GlassPlayer] Restored from temporary hide - state: \(currentState)")
+        }
+    }
+    
+    /// Restore the correct window frame and view layout for the current state
+    /// Called when restoring from temporary hide to ensure visual consistency
+    private func restoreCorrectFrameForState() {
+        let screenBounds = UIScreen.main.bounds
+        
+        switch currentState {
+        case .mini:
+            // Restore mini player frame
+            let bottomSafe = safeAreaBottom
+            let playerWidth = screenBounds.width - (horizontalMargin * 2)
+            let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
+            
+            let miniFrame = CGRect(
+                x: horizontalMargin,
+                y: screenBounds.height - windowHeight,
+                width: playerWidth,
+                height: miniPlayerHeight
+            )
+            
+            frame = miniFrame
+            miniPlayerView.isHidden = false
+            miniPlayerView.alpha = 1
+            fullPlayerView.isHidden = true
+            fullPlayerView.alpha = 0
+            layoutViewsForMini()
+            NSLog("[GlassPlayer] restoreCorrectFrameForState - restored MINI frame: \(miniFrame)")
+            
+        case .full:
+            // Restore full player frame
+            let topSafe = safeAreaTop
+            let bottomSafe = safeAreaBottom
+            let moduleHeaderHeight: CGFloat = 120
+            let topOffset = topSafe + moduleHeaderHeight + fullPlayerMargin
+            
+            let fullFrame = CGRect(
+                x: fullPlayerMargin,
+                y: topOffset,
+                width: screenBounds.width - (fullPlayerMargin * 2),
+                height: screenBounds.height - topOffset - bottomSafe - fullPlayerMargin
+            )
+            
+            frame = fullFrame
+            miniPlayerView.isHidden = true
+            miniPlayerView.alpha = 0
+            fullPlayerView.isHidden = false
+            fullPlayerView.alpha = 1
+            layoutViewsForFull()
+            NSLog("[GlassPlayer] restoreCorrectFrameForState - restored FULL frame: \(fullFrame)")
+            
+        case .hidden:
+            // Should not reach here due to guard, but handle anyway
+            break
+        }
+    }
+
     // ============================================================
     // MARK: Layout Helpers
     // ============================================================
@@ -433,6 +509,7 @@ class GlassPlayerWindow: UIWindow {
             subtitle: content.subtitle,
             artworkURL: content.artwork
         )
+        NSLog("[GlassPlayer] updateContent - calling updateTintColor with: \(content.tintColorHex)")
         miniPlayerView.updateTintColor(content.tintColorHex)
         fullPlayerView.updateTintColor(content.tintColorHex)
         glassView.updateTintColor(content.tintColorHex)
@@ -566,6 +643,7 @@ struct PlayerContent {
     init(from config: NSDictionary) {
         moduleId = config["moduleId"] as? String ?? "radio"
         tintColorHex = config["tintColorHex"] as? String ?? "#00897B"
+        NSLog("[GlassPlayer] PlayerContent - moduleId: \(moduleId), tintColorHex: \(tintColorHex)")
         
         // Parse artwork URL - check what we received from React Native
         let rawArtwork = config["artwork"]

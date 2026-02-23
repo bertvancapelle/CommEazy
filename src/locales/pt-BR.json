@@ -302,6 +302,20 @@
     "testDialTone": "Testar tom de discagem"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Azul",
+      "green": "Verde",
+      "purple": "Roxo",
+      "orange": "Laranja",
+      "red": "Vermelho",
+      "teal": "Verde-azulado",
+      "pink": "Rosa",
+      "indigo": "Índigo",
+      "brown": "Marrom",
+      "cyan": "Ciano",
+      "olive": "Oliva",
+      "amber": "Âmbar"
+    },
     "accentBlue": "Azul",
     "accentGreen": "Verde",
     "accentPurple": "Roxo",

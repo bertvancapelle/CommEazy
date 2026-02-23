@@ -60,7 +60,7 @@ export interface ModuleHeaderProps {
   /** Module title (use t('modules.xxx.title')) */
   title: string;
   /** Current module source for MediaIndicator filtering */
-  currentSource?: 'radio' | 'podcast' | 'books';
+  currentSource?: 'radio' | 'podcast' | 'books' | 'appleMusic';
   /** Show AdMob banner in header (default: true) */
   showAdMob?: boolean;
   /** AdMob unit ID (optional, uses default if not provided) */
@@ -102,6 +102,7 @@ const MODULE_COLORS: Record<string, string> = {
   settings: '#5E35B1',   // Deep Purple
   nunl: '#E65100',       // nu.nl Orange
   weather: '#03A9F4',    // Sky Blue
+  appleMusic: '#FC3C44', // Apple Music red
 };
 
 // ============================================================

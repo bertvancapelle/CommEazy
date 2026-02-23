@@ -276,6 +276,20 @@
     "testFeedback": "Testuj informacje zwrotne"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Niebieski",
+      "green": "Zielony",
+      "purple": "Fioletowy",
+      "orange": "Pomarańczowy",
+      "red": "Czerwony",
+      "teal": "Morski",
+      "pink": "Różowy",
+      "indigo": "Indygo",
+      "brown": "Brązowy",
+      "cyan": "Cyjan",
+      "olive": "Oliwkowy",
+      "amber": "Bursztynowy"
+    },
     "accentBlue": "Niebieski",
     "accentGreen": "Zielony",
     "accentPurple": "Fioletowy",

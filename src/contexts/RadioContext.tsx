@@ -20,6 +20,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react';
 import {
@@ -36,6 +37,7 @@ import TrackPlayer, {
 import { useTranslation } from 'react-i18next';
 
 import { fetchArtwork } from '@/services/artworkService';
+import { useAudioOrchestrator } from './AudioOrchestratorContext';
 
 // ============================================================
 // Types
@@ -161,6 +163,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
   const { t } = useTranslation();
   const playbackState = usePlaybackState();
   const progress = useProgress();
+  const audioOrchestrator = useAudioOrchestrator();
 
   // State
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
@@ -330,6 +333,9 @@ export function RadioProvider({ children }: RadioProviderProps) {
       }
 
       try {
+        // Request playback from orchestrator (stops other audio sources)
+        await audioOrchestrator.requestPlayback('radio');
+
         setIsLoading(true);
         setCurrentStation(station);
         setMetadata({}); // Clear previous metadata
@@ -363,19 +369,22 @@ export function RadioProvider({ children }: RadioProviderProps) {
         DeviceEventEmitter.emit('radioPlaybackError', error);
       }
     },
-    [isInitialized, t]
+    [isInitialized, audioOrchestrator, t]
   );
 
   const play = useCallback(async () => {
     if (!isInitialized || !currentStation) return;
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('radio');
+
       await TrackPlayer.play();
       AccessibilityInfo.announceForAccessibility(t('modules.radio.resumed'));
     } catch (error) {
       console.error('[RadioContext] Failed to play:', error);
     }
-  }, [isInitialized, currentStation, t]);
+  }, [isInitialized, currentStation, audioOrchestrator, t]);
 
   const pause = useCallback(async () => {
     if (!isInitialized) return;
@@ -397,11 +406,35 @@ export function RadioProvider({ children }: RadioProviderProps) {
       setCurrentStation(null);
       setMetadata({});
       setShowPlayer(false);
+      audioOrchestrator.releasePlayback('radio');
       AccessibilityInfo.announceForAccessibility(t('modules.radio.stopped'));
     } catch (error) {
       console.error('[RadioContext] Failed to stop:', error);
     }
-  }, [isInitialized, t]);
+  }, [isInitialized, audioOrchestrator, t]);
+
+  // ============================================================
+  // Audio Orchestrator Registration
+  // ============================================================
+
+  // Use ref to provide stable stop function for orchestrator
+  const stopRef = useRef(stop);
+  stopRef.current = stop;
+
+  useEffect(() => {
+    // Register radio as an audio source with the orchestrator
+    audioOrchestrator.registerSource('radio', {
+      stop: async () => {
+        // Use ref to always call the latest stop function
+        await stopRef.current();
+      },
+      isPlaying: () => isPlaying,
+    });
+
+    return () => {
+      audioOrchestrator.unregisterSource('radio');
+    };
+  }, [audioOrchestrator, isPlaying]);
 
   // ============================================================
   // Context Value

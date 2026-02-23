@@ -37,6 +37,8 @@ import TrackPlayer, {
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { useAudioOrchestrator } from './AudioOrchestratorContext';
+
 // ============================================================
 // Types
 // ============================================================
@@ -221,6 +223,7 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   const { t } = useTranslation();
   const playbackState = usePlaybackState();
   const trackProgress = useProgress();
+  const audioOrchestrator = useAudioOrchestrator();
 
   // State
   const [currentEpisode, setCurrentEpisode] = useState<PodcastEpisode | null>(null);
@@ -507,6 +510,9 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
       }
 
       try {
+        // Request playback from orchestrator (stops other audio sources)
+        await audioOrchestrator.requestPlayback('podcast');
+
         setIsLoading(true);
         setCurrentEpisode(episode);
         setCurrentShow(show);
@@ -556,19 +562,22 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
         DeviceEventEmitter.emit('podcastPlaybackError', error);
       }
     },
-    [isInitialized, episodeProgress, t]
+    [isInitialized, audioOrchestrator, episodeProgress, t]
   );
 
   const play = useCallback(async () => {
     if (!isInitialized || !currentEpisode) return;
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('podcast');
+
       await TrackPlayer.play();
       AccessibilityInfo.announceForAccessibility(t('modules.podcast.resumed'));
     } catch (error) {
       console.error('[PodcastContext] Failed to play:', error);
     }
-  }, [isInitialized, currentEpisode, t]);
+  }, [isInitialized, currentEpisode, audioOrchestrator, t]);
 
   const pause = useCallback(async () => {
     if (!isInitialized) return;
@@ -618,11 +627,12 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
       setCurrentEpisode(null);
       setCurrentShow(null);
       setSleepTimer(null);
+      audioOrchestrator.releasePlayback('podcast');
       AccessibilityInfo.announceForAccessibility(t('modules.podcast.stopped'));
     } catch (error) {
       console.error('[PodcastContext] Failed to stop:', error);
     }
-  }, [isInitialized, currentEpisode, trackProgress, t, setSleepTimer]);
+  }, [isInitialized, currentEpisode, trackProgress, audioOrchestrator, t, setSleepTimer]);
 
   const seekTo = useCallback(async (position: number) => {
     if (!isInitialized) return;
@@ -748,6 +758,29 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   const isSubscribed = useCallback((showId: string): boolean => {
     return subscriptions.some(s => s.id === showId);
   }, [subscriptions]);
+
+  // ============================================================
+  // Audio Orchestrator Registration
+  // ============================================================
+
+  // Use ref to provide stable stop function for orchestrator
+  const stopRef = useRef(stop);
+  stopRef.current = stop;
+
+  useEffect(() => {
+    // Register podcast as an audio source with the orchestrator
+    audioOrchestrator.registerSource('podcast', {
+      stop: async () => {
+        // Use ref to always call the latest stop function
+        await stopRef.current();
+      },
+      isPlaying: () => isPlaying,
+    });
+
+    return () => {
+      audioOrchestrator.unregisterSource('podcast');
+    };
+  }, [audioOrchestrator, isPlaying]);
 
   // ============================================================
   // Context Value

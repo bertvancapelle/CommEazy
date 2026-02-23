@@ -84,3 +84,10 @@ export {
   type RepeatMode,
   type PlatformCapabilities,
 } from './AppleMusicContext';
+
+export {
+  AudioOrchestratorProvider,
+  useAudioOrchestrator,
+  useAudioOrchestratorOptional,
+  type AudioSource,
+} from './AudioOrchestratorContext';

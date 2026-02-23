@@ -320,6 +320,20 @@
     "testDialTone": "Test kiestoon"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Blauw",
+      "green": "Groen",
+      "purple": "Paars",
+      "orange": "Oranje",
+      "red": "Rood",
+      "teal": "Teal",
+      "pink": "Roze",
+      "indigo": "Indigo",
+      "brown": "Bruin",
+      "cyan": "Cyaan",
+      "olive": "Olijfgroen",
+      "amber": "Amber"
+    },
     "accentBlue": "Blauw",
     "accentGreen": "Groen",
     "accentPurple": "Paars",

@@ -30,18 +30,32 @@ class GlassPlayerView: UIView {
     private var glassEffectView: UIVisualEffectView?
     private var tintOverlay: UIView?
     private var highlightGradient: CAGradientLayer?
-    private var currentTintColor: UIColor = .systemTeal
+    private var currentTintColor: UIColor
 
     // ============================================================
     // MARK: Initialization
     // ============================================================
 
+    /// Initialize with optional tint color (defaults to Radio teal for backward compatibility)
+    init(tintColorHex: String? = nil) {
+        // Parse hex color or use default teal (Radio)
+        if let hex = tintColorHex, let color = UIColor.fromHex(hex) {
+            currentTintColor = color
+        } else {
+            currentTintColor = UIColor(red: 0, green: 0.537, blue: 0.482, alpha: 1.0)  // #00897B Radio teal
+        }
+        super.init(frame: .zero)
+        setupGlassEffect()
+    }
+
     override init(frame: CGRect) {
+        currentTintColor = UIColor(red: 0, green: 0.537, blue: 0.482, alpha: 1.0)  // #00897B Radio teal
         super.init(frame: frame)
         setupGlassEffect()
     }
 
     required init?(coder: NSCoder) {
+        currentTintColor = UIColor(red: 0, green: 0.537, blue: 0.482, alpha: 1.0)  // #00897B Radio teal
         super.init(coder: coder)
         setupGlassEffect()
     }
@@ -77,6 +91,7 @@ class GlassPlayerView: UIView {
         // === Layer 1: UIGlassEffect — Real Liquid Glass! ===
         var glassEffect = UIGlassEffect()
         glassEffect.isInteractive = true  // Glass highlights respond to touch
+        glassEffect.tintColor = currentTintColor.withAlphaComponent(0.3)  // Apply initial tint
 
         let effectView = UIVisualEffectView(effect: glassEffect)
         effectView.translatesAutoresizingMaskIntoConstraints = false
@@ -141,7 +156,10 @@ class GlassPlayerView: UIView {
         layer.borderColor = UIColor.white.withAlphaComponent(0.40).cgColor
         layer.borderWidth = 1.0
 
-        NSLog("[GlassPlayerView] Setup complete with UIGlassEffect + 50%% tint + glow around")
+        // Log initial tint color for debugging
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        currentTintColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        NSLog("[GlassPlayerView] Setup complete - initial tint RGB=(\(Int(r*255)),\(Int(g*255)),\(Int(b*255)))")
     }
 
     // ============================================================
@@ -162,22 +180,29 @@ class GlassPlayerView: UIView {
     /// Update the tint color for the glass effect
     func updateTintColor(_ hexColor: String) {
         guard let color = UIColor.fromHex(hexColor) else {
-            NSLog("[GlassPlayerView] Invalid hex color: \(hexColor)")
+            NSLog("[GlassPlayerView] ❌ Invalid hex color: \(hexColor)")
             return
         }
 
+        // Log RGB values for debugging
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        color.getRed(&r, green: &g, blue: &b, alpha: &a)
+        NSLog("[GlassPlayerView] 🎨 Updating tint color: hex=\(hexColor), RGB=(\(Int(r*255)),\(Int(g*255)),\(Int(b*255)))")
+
         currentTintColor = color
 
+        // Update tint overlay with animation
         UIView.animate(withDuration: 0.2) {
             self.tintOverlay?.backgroundColor = color.withAlphaComponent(0.50)
         }
 
-        // Update glass effect tint
+        // Update glass effect tint - IMPORTANT: UIGlassEffect tintColor affects the glass material
         if var effect = glassEffectView?.effect as? UIGlassEffect {
             effect.tintColor = color.withAlphaComponent(0.3)
             glassEffectView?.effect = effect
+            NSLog("[GlassPlayerView] ✅ UIGlassEffect tint updated")
+        } else {
+            NSLog("[GlassPlayerView] ⚠️ Could not update UIGlassEffect tint")
         }
-
-        NSLog("[GlassPlayerView] Updated tint color to: \(hexColor)")
     }
 }

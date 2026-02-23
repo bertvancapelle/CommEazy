@@ -97,6 +97,9 @@ class FullPlayerNativeView: UIView {
     private var sleepTimerMinutes: Int? = nil
     private var shuffleMode: String = "off"  // "off" | "songs"
     private var repeatMode: String = "off"   // "off" | "one" | "all"
+    private var currentDuration: Double = 0  // Duration in seconds for seek calculations
+    private var isSeeking: Bool = false      // Prevents slider updates while user is dragging
+    private var lastPlayPauseTapTime: Date? = nil  // Prevents state bounce-back after tap
     
     // Configuration
     private var showSeekSlider: Bool = false
@@ -180,18 +183,36 @@ class FullPlayerNativeView: UIView {
     }
     
     private func setupLabels() {
+        // Title label - ensure it has proper height
         titleLabel.font = .systemFont(ofSize: Layout.titleFontSize, weight: .bold)
         titleLabel.textColor = .white
         titleLabel.textAlignment = .center
-        titleLabel.numberOfLines = 2
+        titleLabel.numberOfLines = 2  // Allow 2 lines for long titles
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.adjustsFontSizeToFitWidth = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.setContentHuggingPriority(.required, for: .vertical)
+        titleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        // Add subtle shadow for better visibility on glass
+        titleLabel.layer.shadowColor = UIColor.black.cgColor
+        titleLabel.layer.shadowOffset = CGSize(width: 0, height: 1)
+        titleLabel.layer.shadowRadius = 2
+        titleLabel.layer.shadowOpacity = 0.5
         contentView.addSubview(titleLabel)
-        
+
+        // Subtitle label
         subtitleLabel.font = .systemFont(ofSize: Layout.subtitleFontSize, weight: .regular)
-        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.8)
+        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.9)  // Slightly brighter
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = 1
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleLabel.setContentHuggingPriority(.required, for: .vertical)
+        subtitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        // Add subtle shadow for better visibility on glass
+        subtitleLabel.layer.shadowColor = UIColor.black.cgColor
+        subtitleLabel.layer.shadowOffset = CGSize(width: 0, height: 1)
+        subtitleLabel.layer.shadowRadius = 2
+        subtitleLabel.layer.shadowOpacity = 0.3
         contentView.addSubview(subtitleLabel)
     }
     
@@ -202,7 +223,12 @@ class FullPlayerNativeView: UIView {
         
         seekSlider.minimumTrackTintColor = .white
         seekSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
+        seekSlider.minimumValue = 0
+        seekSlider.maximumValue = 1
+        seekSlider.isContinuous = true  // Update while dragging
         seekSlider.addTarget(self, action: #selector(handleSeekChange), for: .valueChanged)
+        seekSlider.addTarget(self, action: #selector(handleSeekTouchDown), for: .touchDown)
+        seekSlider.addTarget(self, action: #selector(handleSeekTouchUp), for: [.touchUpInside, .touchUpOutside])
         seekSlider.translatesAutoresizingMaskIntoConstraints = false
         seekContainer.addSubview(seekSlider)
         
@@ -233,10 +259,10 @@ class FullPlayerNativeView: UIView {
         skipBackwardButton.isHidden = true
         contentView.addSubview(skipBackwardButton)
         
-        // Play/Pause
+        // Play/Pause - subtle white background, consistent with other controls (no accent color)
         playPauseButton.setImage(UIImage(systemName: "play.fill", withConfiguration: primaryConfig), for: .normal)
         playPauseButton.tintColor = .white
-        playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+        playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)  // Subtle, consistent with other buttons
         playPauseButton.layer.cornerRadius = Layout.primaryButtonSize / 2
         playPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
@@ -336,18 +362,20 @@ class FullPlayerNativeView: UIView {
             artworkImageView.widthAnchor.constraint(equalToConstant: Layout.artworkSize),
             artworkImageView.heightAnchor.constraint(equalToConstant: Layout.artworkSize),
             
-            // Title - closer to artwork
-            titleLabel.topAnchor.constraint(equalTo: artworkImageView.bottomAnchor, constant: Layout.verticalSpacing),
+            // Title - with breathing room above and below, explicit height
+            titleLabel.topAnchor.constraint(equalTo: artworkImageView.bottomAnchor, constant: Layout.verticalSpacing + 8),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
-            
-            // Subtitle
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            titleLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 30),  // Ensure minimum height
+
+            // Subtitle - more spacing between title and subtitle, explicit height
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            subtitleLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 24),  // Ensure minimum height
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            
-            // Seek container - reduced spacing
-            seekContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: Layout.verticalSpacing),
+
+            // Seek container - good spacing below subtitle
+            seekContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: Layout.verticalSpacing + 8),
             seekContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
             seekContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
             seekContainer.heightAnchor.constraint(equalToConstant: 40),
@@ -437,6 +465,22 @@ class FullPlayerNativeView: UIView {
     
     @objc private func handlePlayPause() {
         triggerHaptic()
+
+        // Record tap time to prevent state bounce-back from React Native
+        lastPlayPauseTapTime = Date()
+
+        // OPTIMISTIC UI UPDATE: Immediately toggle the icon before delegate callback
+        // This prevents the "double-tap" feel where native waits for RN round-trip
+        let newIsPlaying = !isPlaying
+        isPlaying = newIsPlaying
+
+        let config = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
+        let iconName = newIsPlaying ? "pause.fill" : "play.fill"
+        playPauseButton.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
+        playPauseButton.accessibilityLabel = newIsPlaying ? "Pauzeren" : "Afspelen"
+
+        NSLog("[GlassPlayer Full] handlePlayPause - optimistic update to isPlaying: \(newIsPlaying)")
+
         delegate?.fullPlayerDidTapPlayPause()
     }
     
@@ -445,10 +489,41 @@ class FullPlayerNativeView: UIView {
         delegate?.fullPlayerDidTapStop()
     }
     
-    @objc private func handleSeekChange() {
-        delegate?.fullPlayerDidSeek(to: seekSlider.value)
+    @objc private func handleSeekTouchDown() {
+        // Haptic feedback when starting to drag
+        triggerHaptic(.light)
+        isSeeking = true  // Block updates from updatePlaybackState while dragging
+        NSLog("[GlassPlayer Full] Seek slider touch down - isSeeking=true")
     }
-    
+
+    @objc private func handleSeekTouchUp() {
+        // Haptic feedback when releasing slider
+        triggerHaptic(.light)
+        
+        // Calculate final position and send seek event ONLY on release
+        let positionInSeconds = Double(seekSlider.value) * currentDuration
+        NSLog("[GlassPlayer Full] Seek slider touch up - seeking to \(positionInSeconds)s")
+        
+        // Send seek event to React Native (only on release, not during drag)
+        delegate?.fullPlayerDidSeek(to: Float(positionInSeconds))
+        
+        // Allow updates again AFTER sending seek
+        isSeeking = false
+        NSLog("[GlassPlayer Full] Seek slider touch up - isSeeking=false")
+    }
+
+    @objc private func handleSeekChange() {
+        // Only update local time label during drag - don't send seek events
+        // The actual seek happens in handleSeekTouchUp
+        let positionInSeconds = Double(seekSlider.value) * currentDuration
+        
+        // Update time label immediately for responsive feel (local only)
+        currentTimeLabel.text = formatTime(Float(positionInSeconds))
+        
+        // DON'T send seek event here - it causes the "spring back" effect
+        // because React Native immediately sends back the old position
+    }
+
     @objc private func handleSkipBackward() {
         triggerHaptic(.light)
         delegate?.fullPlayerDidTapSkipBackward()
@@ -572,10 +647,28 @@ class FullPlayerNativeView: UIView {
     }
     
     func updateContent(title: String, subtitle: String?, artworkURL: String?) {
-        NSLog("[GlassPlayer Full] updateContent - title: \(title), subtitle: \(subtitle ?? "nil"), artworkURL: \(artworkURL ?? "nil")")
+        NSLog("[GlassPlayer Full] updateContent - title: '\(title)', subtitle: \(subtitle ?? "nil"), artworkURL: \(artworkURL ?? "nil")")
+        
+        // Ensure title is set and visible
         titleLabel.text = title
-        subtitleLabel.text = subtitle
-        subtitleLabel.isHidden = subtitle == nil
+        titleLabel.isHidden = false
+        titleLabel.alpha = 1.0
+        
+        // Set subtitle - always show it (even if nil, we still need the space)
+        subtitleLabel.text = subtitle ?? ""
+        subtitleLabel.isHidden = false
+        subtitleLabel.alpha = subtitle != nil ? 1.0 : 0.0
+        
+        // Force layout update to ensure labels are properly positioned
+        setNeedsLayout()
+        layoutIfNeeded()
+        
+        // Debug: log label frame after next layout pass
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            NSLog("[GlassPlayer Full] After layout - titleLabel: frame=\(self.titleLabel.frame), text='\(self.titleLabel.text ?? "nil")', isHidden=\(self.titleLabel.isHidden), alpha=\(self.titleLabel.alpha)")
+            NSLog("[GlassPlayer Full] After layout - subtitleLabel: frame=\(self.subtitleLabel.frame), text='\(self.subtitleLabel.text ?? "nil")', isHidden=\(self.subtitleLabel.isHidden), alpha=\(self.subtitleLabel.alpha)")
+        }
         
         if let urlString = artworkURL, !urlString.isEmpty, let url = URL(string: urlString) {
             loadImage(from: url)
@@ -586,6 +679,19 @@ class FullPlayerNativeView: UIView {
     }
     
     func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, position: Float?, duration: Float?, isFavorite: Bool) {
+        // GRACE PERIOD: Ignore state updates within 500ms of a play/pause tap
+        // This prevents the "bounce-back" where React Native sends stale state
+        if let tapTime = lastPlayPauseTapTime {
+            let elapsed = Date().timeIntervalSince(tapTime)
+            if elapsed < 0.5 {
+                NSLog("[GlassPlayer Full] updatePlaybackState - IGNORING (within 500ms grace period, elapsed: \(Int(elapsed * 1000))ms)")
+                // Still update non-playback state (position, duration, favorite)
+                self.isFavorite = isFavorite
+                updateSeekAndFavorite(position: position, duration: duration, isFavorite: isFavorite)
+                return
+            }
+        }
+
         // Track if playback state actually changed to avoid UI flicker
         let playStateChanged = self.isPlaying != isPlaying
         let loadingStateChanged = self.isLoading != isLoading
@@ -619,12 +725,21 @@ class FullPlayerNativeView: UIView {
         // Update buffering state on artwork
         updateBufferingState()
         
-        // Update seek slider
+        // Update seek slider (but NOT while user is dragging)
         if let position = position, let duration = duration, duration > 0 {
-            let progress = position / duration
-            NSLog("[GlassPlayer Full] Updating seek slider: progress=\(progress), position=\(position), duration=\(duration)")
-            seekSlider.value = progress
-            currentTimeLabel.text = formatTime(position)
+            // Store duration for seek calculations
+            currentDuration = Double(duration)
+
+            // Only update slider if user is NOT currently dragging it
+            if !isSeeking {
+                let progress = position / duration
+                NSLog("[GlassPlayer Full] Updating seek slider: progress=\(progress), position=\(position), duration=\(duration)")
+                seekSlider.value = Float(progress)
+                currentTimeLabel.text = formatTime(position)
+            } else {
+                NSLog("[GlassPlayer Full] Skipping seek slider update - user is seeking")
+            }
+            // Always update duration label
             durationLabel.text = formatTime(duration)
         } else {
             NSLog("[GlassPlayer Full] Skipping seek slider update - position or duration invalid")
@@ -640,7 +755,8 @@ class FullPlayerNativeView: UIView {
     func updateTintColor(_ hexColor: String) {
         if let color = UIColor.fromHex(hexColor) {
             seekSlider.minimumTrackTintColor = color
-            playPauseButton.backgroundColor = color.withAlphaComponent(0.3)
+            // NOTE: Play button keeps subtle white background for consistency
+            // Accent color is only used for progress/seek sliders and active states (favorite, shuffle, repeat)
         }
     }
     
@@ -722,6 +838,26 @@ class FullPlayerNativeView: UIView {
         let minutes = totalSeconds / 60
         let secs = totalSeconds % 60
         return String(format: "%d:%02d", minutes, secs)
+    }
+
+    /// Update seek slider and favorite state only (used during grace period)
+    private func updateSeekAndFavorite(position: Float?, duration: Float?, isFavorite: Bool) {
+        // Update seek slider (but NOT while user is dragging)
+        if let position = position, let duration = duration, duration > 0 {
+            currentDuration = Double(duration)
+            if !isSeeking {
+                let progress = position / duration
+                seekSlider.value = Float(progress)
+                currentTimeLabel.text = formatTime(position)
+            }
+            durationLabel.text = formatTime(duration)
+        }
+
+        // Update favorite
+        let favConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        let favIcon = isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: favIcon, withConfiguration: favConfig), for: .normal)
+        favoriteButton.tintColor = isFavorite ? .systemPink : .white
     }
     
     private func updateBufferingState() {

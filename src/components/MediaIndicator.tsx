@@ -130,8 +130,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const appleMusicContext = useAppleMusicContextSafe();
   const isAppleMusicPlaying = appleMusicContext?.isPlaying ?? false;
   const appleMusicNowPlaying = appleMusicContext?.nowPlaying ?? null;
-  // TODO: Add sleepTimerActive to AppleMusicContext when sleep timer is implemented
-  const appleMusicSleepTimerActive = false;
+  const appleMusicSleepTimerActive = appleMusicContext?.sleepTimerActive ?? false;
 
   // TODO: Add other media contexts when implemented
   // const { isInCall: isInAudioCall } = useAudioCallContext();

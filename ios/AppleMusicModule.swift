@@ -42,6 +42,14 @@ class AppleMusicModule: RCTEventEmitter {
 
     // Track if we have listeners registered
     private var hasListeners = false
+    
+    // MARK: - State Debouncing (prevents UI flicker)
+    // Track last emitted playback status to avoid duplicate events
+    private var lastEmittedStatus: String?
+    // Timestamp of last state event to rate-limit emissions
+    private var lastStateEventTime: CFAbsoluteTime = 0
+    // Minimum interval between state events (100ms)
+    private let minStateEventInterval: CFAbsoluteTime = 0.1
 
     // ============================================================
     // MARK: - RCTEventEmitter Setup
@@ -301,10 +309,12 @@ class AppleMusicModule: RCTEventEmitter {
                     self?.startTimeUpdateTimer()
                 }
 
-                // Send immediate state update
+                // Send immediate state update with debounce reset
                 if self.hasListeners {
                     let stateDict = self.buildPlaybackState()
-                    NSLog("[AppleMusicModule] Sending initial playing state: \(stateDict)")
+                    self.lastEmittedStatus = "playing"  // Update debounce state
+                    self.lastStateEventTime = CFAbsoluteTimeGetCurrent()
+                    NSLog("[AppleMusicModule] Sending initial playing state")
                     self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
                 }
 
@@ -350,10 +360,12 @@ class AppleMusicModule: RCTEventEmitter {
                     self?.startTimeUpdateTimer()
                 }
 
-                // Send immediate state update
+                // Send immediate state update with debounce reset
                 if self.hasListeners {
                     let stateDict = self.buildPlaybackState()
-                    NSLog("[AppleMusicModule] Sending initial playing state: \(stateDict)")
+                    self.lastEmittedStatus = "playing"  // Update debounce state
+                    self.lastStateEventTime = CFAbsoluteTimeGetCurrent()
+                    NSLog("[AppleMusicModule] Sending initial playing state")
                     self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
                 }
 
@@ -437,10 +449,12 @@ class AppleMusicModule: RCTEventEmitter {
             self?.stopTimeUpdateTimer()
         }
 
-        // Send immediate state update
+        // Send immediate state update with debounce reset
         if hasListeners {
             let stateDict = buildPlaybackState()
-            NSLog("[AppleMusicModule] Sending paused state: \(stateDict)")
+            lastEmittedStatus = "paused"  // Update debounce state
+            lastStateEventTime = CFAbsoluteTimeGetCurrent()
+            NSLog("[AppleMusicModule] Sending paused state")
             sendEvent(withName: "onPlaybackStateChange", body: stateDict)
         }
 
@@ -462,10 +476,12 @@ class AppleMusicModule: RCTEventEmitter {
                     self?.startTimeUpdateTimer()
                 }
 
-                // Send immediate state update
+                // Send immediate state update with debounce reset
                 if self.hasListeners {
                     let stateDict = self.buildPlaybackState()
-                    NSLog("[AppleMusicModule] Sending playing state after resume: \(stateDict)")
+                    self.lastEmittedStatus = "playing"  // Update debounce state
+                    self.lastStateEventTime = CFAbsoluteTimeGetCurrent()
+                    NSLog("[AppleMusicModule] Sending playing state after resume")
                     self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
                 }
 
@@ -675,19 +691,33 @@ class AppleMusicModule: RCTEventEmitter {
 
                 let stateDict = buildPlaybackState()
                 let status = stateDict["status"] as? String ?? "unknown"
-                NSLog("[AppleMusicModule] Playback state changed: \(status), time: \(stateDict["currentTime"] ?? 0)")
-                sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+                
+                // DEBOUNCING: Only emit if status actually changed OR enough time has passed
+                let now = CFAbsoluteTimeGetCurrent()
+                let statusChanged = (status != lastEmittedStatus)
+                let enoughTimePassed = (now - lastStateEventTime) >= minStateEventInterval
+                
+                if statusChanged || enoughTimePassed {
+                    // Only log when actually emitting to reduce noise
+                    if statusChanged {
+                        NSLog("[AppleMusicModule] Playback status changed: \(lastEmittedStatus ?? "nil") -> \(status)")
+                    }
+                    
+                    lastEmittedStatus = status
+                    lastStateEventTime = now
+                    sendEvent(withName: "onPlaybackStateChange", body: stateDict)
 
-                // Start/stop time update timer based on playback state
-                DispatchQueue.main.async { [weak self] in
-                    if status == "playing" {
-                        self?.startTimeUpdateTimer()
-                    } else {
-                        self?.stopTimeUpdateTimer()
+                    // Start/stop time update timer based on playback state
+                    DispatchQueue.main.async { [weak self] in
+                        if status == "playing" {
+                            self?.startTimeUpdateTimer()
+                        } else {
+                            self?.stopTimeUpdateTimer()
+                        }
                     }
                 }
 
-                // Also check if now playing changed
+                // Also check if now playing changed (always check, regardless of debouncing)
                 checkNowPlayingChange()
             }
         }
@@ -790,6 +820,7 @@ class AppleMusicModule: RCTEventEmitter {
         // Get duration and artwork from current queue entry
         var duration: Double = 0
         var artworkUrl: String = ""
+        var artworkBgColor: String = ""
         var title: String = ""
         var artistName: String = ""
         var songId: String = ""
@@ -803,17 +834,22 @@ class AppleMusicModule: RCTEventEmitter {
             title = song.title
             artistName = song.artistName
             
-            // Get artwork URL
+            // Get artwork URL and fallback color
             if let artwork = song.artwork {
+                // Get background color for fallback
+                if let bgColor = artwork.backgroundColor,
+                   let components = bgColor.components,
+                   components.count >= 3 {
+                    artworkBgColor = String(format: "#%02X%02X%02X",
+                        Int(components[0] * 255),
+                        Int(components[1] * 255),
+                        Int(components[2] * 255))
+                }
+                
                 if let url = artwork.url(width: 300, height: 300) {
                     let httpUrl = url.httpURLString
-                    NSLog("[AppleMusicModule] buildPlaybackState artwork URL: original=\(url.absoluteString), http=\(httpUrl)")
                     artworkUrl = httpUrl
-                } else {
-                    NSLog("[AppleMusicModule] buildPlaybackState: artwork.url() returned nil")
                 }
-            } else {
-                NSLog("[AppleMusicModule] buildPlaybackState: no artwork available for '\(title)'")
             }
         }
         
@@ -828,7 +864,8 @@ class AppleMusicModule: RCTEventEmitter {
             "songId": songId,
             "title": title,
             "artistName": artistName,
-            "artworkUrl": artworkUrl
+            "artworkUrl": artworkUrl,
+            "artworkBgColor": artworkBgColor
         ]
     }
 
@@ -863,20 +900,41 @@ class AppleMusicModule: RCTEventEmitter {
     }
 
     private func songToDictionary(_ song: Song) -> [String: Any] {
-        // Get artwork URL with detailed logging
-        let artworkURL: String
+        NSLog("[AppleMusicModule] songToDictionary called for: '\(song.title)' by \(song.artistName)")
+        
+        // Get artwork URL - try multiple approaches
+        var artworkURL = ""
+        var artworkBgColor = ""
+        
         if let artwork = song.artwork {
+            NSLog("[AppleMusicModule] Song '\(song.title)' HAS artwork object")
+            
+            // Get background color for fallback (if no URL available)
+            if let bgColor = artwork.backgroundColor,
+               let components = bgColor.components,
+               components.count >= 3 {
+                artworkBgColor = String(format: "#%02X%02X%02X",
+                    Int(components[0] * 255),
+                    Int(components[1] * 255),
+                    Int(components[2] * 255))
+                NSLog("[AppleMusicModule] Song '\(song.title)' has bgColor: \(artworkBgColor)")
+            }
+            
+            // Try to get URL
             if let url = artwork.url(width: 300, height: 300) {
+                NSLog("[AppleMusicModule] Song '\(song.title)' artwork.url() returned: \(url.absoluteString.prefix(150))")
                 let httpUrl = url.httpURLString
-                NSLog("[AppleMusicModule] Artwork URL for '\(song.title)': original=\(url.absoluteString), http=\(httpUrl)")
-                artworkURL = httpUrl
+                if !httpUrl.isEmpty {
+                    artworkURL = httpUrl
+                    NSLog("[AppleMusicModule] Song '\(song.title)' final artworkURL: \(artworkURL.prefix(100))")
+                } else {
+                    NSLog("[AppleMusicModule] Song '\(song.title)': httpURLString returned empty")
+                }
             } else {
-                NSLog("[AppleMusicModule] Artwork URL for '\(song.title)': url(width:height:) returned nil")
-                artworkURL = ""
+                NSLog("[AppleMusicModule] Song '\(song.title)' artwork.url(width:height:) returned nil!")
             }
         } else {
-            NSLog("[AppleMusicModule] Artwork for '\(song.title)': no artwork available")
-            artworkURL = ""
+            NSLog("[AppleMusicModule] Song '\(song.title)' has NO artwork object (nil)")
         }
         
         return [
@@ -886,6 +944,7 @@ class AppleMusicModule: RCTEventEmitter {
             "albumTitle": song.albumTitle ?? "",
             "duration": song.duration ?? 0,
             "artworkUrl": artworkURL,
+            "artworkBgColor": artworkBgColor,  // Fallback color if no URL
             "trackNumber": song.trackNumber ?? 0,
             "discNumber": song.discNumber ?? 1,
             "isExplicit": song.contentRating == .explicit
@@ -942,8 +1001,10 @@ extension URL {
     /// Filters out musicKit:// URLs that React Native cannot load
     /// Only returns https:// URLs that can be displayed in Image components
     var httpURLString: String {
-        NSLog("[AppleMusicModule] httpURLString input: scheme=\(self.scheme ?? "nil"), url=\(self.absoluteString.prefix(100))")
-
+        NSLog("[AppleMusicModule] httpURLString called with URL: \(self.absoluteString.prefix(200))")
+        NSLog("[AppleMusicModule] httpURLString scheme: \(self.scheme ?? "nil")")
+        
+        // Quick path for http/https URLs
         if self.scheme == "https" || self.scheme == "http" {
             NSLog("[AppleMusicModule] httpURLString: returning https/http URL directly")
             return self.absoluteString
@@ -951,24 +1012,38 @@ extension URL {
 
         // musicKit:// URLs contain a fallback URL in the 'fat' query parameter
         if self.scheme == "musicKit" {
-            NSLog("[AppleMusicModule] httpURLString: musicKit scheme detected, looking for 'fat' param")
+            NSLog("[AppleMusicModule] httpURLString: musicKit scheme detected")
             if let components = URLComponents(url: self, resolvingAgainstBaseURL: false) {
-                NSLog("[AppleMusicModule] httpURLString: queryItems count = \(components.queryItems?.count ?? 0)")
-                if let fatParam = components.queryItems?.first(where: { $0.name == "fat" })?.value {
-                    NSLog("[AppleMusicModule] httpURLString: found 'fat' param: \(fatParam.prefix(100))")
-                    if let decodedURL = fatParam.removingPercentEncoding {
-                        NSLog("[AppleMusicModule] httpURLString: decoded URL: \(decodedURL.prefix(100))")
-                        return decodedURL
-                    }
-                } else {
-                    // Log all query params for debugging
-                    let params = components.queryItems?.map { "\($0.name)=\($0.value?.prefix(20) ?? "nil")" }.joined(separator: ", ") ?? "none"
-                    NSLog("[AppleMusicModule] httpURLString: no 'fat' param found, available params: \(params)")
+                let paramNames = components.queryItems?.map { $0.name } ?? []
+                NSLog("[AppleMusicModule] httpURLString: query params available: \(paramNames)")
+                
+                // Try 'fat' parameter first (fallback URL)
+                if let fatParam = components.queryItems?.first(where: { $0.name == "fat" })?.value,
+                   let decodedURL = fatParam.removingPercentEncoding {
+                    NSLog("[AppleMusicModule] httpURLString: found 'fat' param: \(decodedURL.prefix(100))")
+                    return decodedURL
                 }
+                
+                // Try 'u' parameter (some MusicKit URLs use this)
+                if let uParam = components.queryItems?.first(where: { $0.name == "u" })?.value,
+                   let decodedURL = uParam.removingPercentEncoding {
+                    NSLog("[AppleMusicModule] httpURLString: found 'u' param: \(decodedURL.prefix(100))")
+                    return decodedURL
+                }
+                
+                // Try 'url' parameter
+                if let urlParam = components.queryItems?.first(where: { $0.name == "url" })?.value,
+                   let decodedURL = urlParam.removingPercentEncoding {
+                    NSLog("[AppleMusicModule] httpURLString: found 'url' param: \(decodedURL.prefix(100))")
+                    return decodedURL
+                }
+                
+                NSLog("[AppleMusicModule] httpURLString: no known URL param found in musicKit URL")
             }
         }
 
-        NSLog("[AppleMusicModule] httpURLString: returning empty string for scheme: \(self.scheme ?? "nil")")
+        // Last resort: return empty - can't use musicKit:// URLs in React Native
+        NSLog("[AppleMusicModule] httpURLString: returning empty for scheme: \(self.scheme ?? "nil")")
         return ""
     }
 }

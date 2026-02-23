@@ -133,6 +133,17 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         }
     }
 
+    /// Temporarily hide player (e.g., when navigation menu is open)
+    /// This preserves state and allows resuming visibility
+    @objc
+    func setTemporarilyHidden(_ hidden: Bool) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                self.glassWindow?.setTemporarilyHidden(hidden)
+            }
+        }
+    }
+
     /// Update player content (artwork, title, progress, etc.)
     @objc
     func updateContent(_ config: NSDictionary) {

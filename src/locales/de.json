@@ -298,6 +298,20 @@
     "testDialTone": "Wählton testen"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Blau",
+      "green": "Grün",
+      "purple": "Lila",
+      "orange": "Orange",
+      "red": "Rot",
+      "teal": "Teal",
+      "pink": "Rosa",
+      "indigo": "Indigo",
+      "brown": "Braun",
+      "cyan": "Cyan",
+      "olive": "Olive",
+      "amber": "Bernstein"
+    },
     "accentBlue": "Blau",
     "accentGreen": "Grün",
     "accentPurple": "Lila",

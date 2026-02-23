@@ -51,6 +51,7 @@ import {
   type Book,
   type DownloadedBook,
 } from '@/services/gutenbergService';
+import { useAudioOrchestrator } from './AudioOrchestratorContext';
 
 // ============================================================
 // Types
@@ -212,6 +213,7 @@ interface BooksProviderProps {
  */
 export function BooksProvider({ children }: BooksProviderProps) {
   const { t, i18n } = useTranslation();
+  const audioOrchestrator = useAudioOrchestrator();
 
   // ============================================================
   // State
@@ -812,6 +814,9 @@ export function BooksProvider({ children }: BooksProviderProps) {
   const startReadingInternal = useCallback(async () => {
     if (!currentPage) return;
 
+    // Request playback from orchestrator (stops other audio sources)
+    await audioOrchestrator.requestPlayback('books');
+
     setIsLoading(true);
 
     // Get voice for book language
@@ -836,7 +841,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
       console.error('[BooksContext] startReading failed:', error);
       setIsLoading(false);
     }
-  }, [currentPage, currentBook, ttsSettings, i18n.language]);
+  }, [currentPage, currentBook, ttsSettings, i18n.language, audioOrchestrator]);
 
   const startReading = useCallback(async () => {
     await startReadingInternal();
@@ -872,6 +877,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
     setIsPaused(false);
     setShowPlayer(false);
     setTtsProgress({ position: 0, length: 0, percentage: 0 });
+    audioOrchestrator.releasePlayback('books');
 
     // Clear sleep timer
     if (sleepTimerRef.current) {
@@ -882,7 +888,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
     AccessibilityInfo.announceForAccessibility(
       t('modules.books.tts.stop')
     );
-  }, [t]);
+  }, [audioOrchestrator, t]);
 
   // ============================================================
   // Audio Player Actions (Listen Mode)
@@ -1022,6 +1028,9 @@ export function BooksProvider({ children }: BooksProviderProps) {
     console.info('[BooksContext] Playing chapter with Piper TTS:', chapterIndex, chapter.title);
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('books');
+
       setIsAudioLoading(true);
       setCurrentChapter(chapter);
       setCurrentChapterIndex(chapterIndex);
@@ -1099,7 +1108,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
       setIsAudioLoading(false);
       DeviceEventEmitter.emit('booksAudioError', { error });
     }
-  }, [currentBook, chapters, chapterProgressMap, t]);
+  }, [currentBook, chapters, chapterProgressMap, audioOrchestrator, t]);
 
   /**
    * Fallback: Play chapter with system TTS (when Piper is not available)
@@ -1174,6 +1183,9 @@ export function BooksProvider({ children }: BooksProviderProps) {
     if (!currentChapter) return;
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('books');
+
       // Try Piper TTS first, then system TTS
       await piperTtsService.resume();
       await ttsService.resume();
@@ -1186,7 +1198,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
     } catch (error) {
       console.error('[BooksContext] playAudio failed:', error);
     }
-  }, [currentChapter, t]);
+  }, [currentChapter, audioOrchestrator, t]);
 
   /**
    * Pause audio playback (both Piper and system TTS)
@@ -1245,6 +1257,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
       setIsAudioPaused(false);
       setShowPlayer(false);
       setAudioProgress({ position: 0, duration: 0, percentage: 0 });
+      audioOrchestrator.releasePlayback('books');
 
       // Clear sleep timer
       if (sleepTimerRef.current) {
@@ -1258,7 +1271,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
     } catch (error) {
       console.error('[BooksContext] stopAudio failed:', error);
     }
-  }, [currentBook, currentChapter, currentChapterIndex, audioProgress, t]);
+  }, [currentBook, currentChapter, currentChapterIndex, audioProgress, audioOrchestrator, t]);
 
   /**
    * Go to next chapter
@@ -1759,6 +1772,33 @@ export function BooksProvider({ children }: BooksProviderProps) {
 
     console.info('[BooksContext] Selected voice:', voice.name, '(', voice.quality, ') for', language);
   }, [ttsSettings]);
+
+  // ============================================================
+  // Audio Orchestrator Registration
+  // ============================================================
+
+  // Use ref to provide stable stop function for orchestrator
+  const stopAudioRef = useRef(stopAudio);
+  stopAudioRef.current = stopAudio;
+
+  const stopReadingRef = useRef(stopReading);
+  stopReadingRef.current = stopReading;
+
+  useEffect(() => {
+    // Register books as an audio source with the orchestrator
+    audioOrchestrator.registerSource('books', {
+      stop: async () => {
+        // Stop both TTS reading and audio playback
+        await stopReadingRef.current();
+        await stopAudioRef.current();
+      },
+      isPlaying: () => isSpeaking || isAudioPlaying,
+    });
+
+    return () => {
+      audioOrchestrator.unregisterSource('books');
+    };
+  }, [audioOrchestrator, isSpeaking, isAudioPlaying]);
 
   // ============================================================
   // Context Value

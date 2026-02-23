@@ -322,6 +322,20 @@
     "ttsSpeedOption": "{{percent}} hastighed"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Blå",
+      "green": "Grøn",
+      "purple": "Lilla",
+      "orange": "Orange",
+      "red": "Rød",
+      "teal": "Blågrøn",
+      "pink": "Lyserød",
+      "indigo": "Indigo",
+      "brown": "Brun",
+      "cyan": "Cyan",
+      "olive": "Oliven",
+      "amber": "Rav"
+    },
     "accentBlue": "Blå",
     "accentGreen": "Grøn",
     "accentPurple": "Lilla",

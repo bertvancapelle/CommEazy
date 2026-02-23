@@ -279,6 +279,20 @@
     "ttsSpeedOption": "Velocità {{percent}}"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Blu",
+      "green": "Verde",
+      "purple": "Viola",
+      "orange": "Arancione",
+      "red": "Rosso",
+      "teal": "Verde acqua",
+      "pink": "Rosa",
+      "indigo": "Indaco",
+      "brown": "Marrone",
+      "cyan": "Ciano",
+      "olive": "Oliva",
+      "amber": "Ambra"
+    },
     "accentBlue": "Blu",
     "accentGreen": "Verde",
     "accentPurple": "Viola",

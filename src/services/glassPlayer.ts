@@ -122,6 +122,7 @@ interface GlassPlayerWindowModuleInterface {
   updateContent(config: Partial<GlassPlayerContent>): void;
   updatePlaybackState(state: GlassPlayerPlaybackState): void;
   configureControls(controls: GlassPlayerFullConfig): void;
+  setTemporarilyHidden(hidden: boolean): void;
 }
 
 // ============================================================
@@ -270,6 +271,18 @@ class GlassPlayerService {
 
     console.debug('[GlassPlayer] configureControls:', controls);
     this.nativeModule.configureControls(controls);
+  }
+
+  /**
+   * Temporarily hide/show the player (e.g., when navigation menu is open)
+   * This preserves state and allows resuming visibility without affecting playback
+   */
+  setTemporarilyHidden(hidden: boolean): void {
+    if (!this.nativeModule) {
+      return;
+    }
+
+    this.nativeModule.setTemporarilyHidden(hidden);
   }
 
   /**

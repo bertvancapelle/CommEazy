@@ -107,6 +107,7 @@ export function AppleMusicScreen() {
     isPlaying,
     isLoading: isPlaybackLoading,
     nowPlaying: currentSong,
+    effectiveArtworkUrl,
     playbackState,
     shuffleMode,
     repeatMode,
@@ -117,11 +118,17 @@ export function AppleMusicScreen() {
     stop,
     skipToNext,
     skipToPrevious,
+    seekTo,
     setShuffleMode,
     setRepeatMode,
+    // Sleep timer
+    setSleepTimerActive,
     // Search
     searchCatalog,
   } = useAppleMusicContext();
+
+  // Sleep timer ref
+  const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Local search state (context returns Promise, we manage state here)
   const [isSearching, setIsSearching] = useState(false);
@@ -157,6 +164,11 @@ export function AppleMusicScreen() {
     configureControls: configureGlassControls,
   } = useGlassPlayer({
     onPlayPause: async () => {
+      // Native Glass Player handles its own UI state.
+      // We just need to toggle the underlying playback.
+      // NOTE: Don't check isPlaying here - the native side already knows the state
+      // and may have already updated its UI. Just tell MusicKit to toggle.
+      console.log('[AppleMusicScreen] onPlayPause from native, current isPlaying:', isPlaying);
       if (isPlaying) {
         await pause();
       } else {
@@ -175,17 +187,55 @@ export function AppleMusicScreen() {
     onClose: () => {
       setIsPlayerExpanded(false);
     },
+    onSeek: async (position: number) => {
+      // position is in seconds from native player
+      console.log('[AppleMusicScreen] onSeek from native:', position);
+      await seekTo(position);
+    },
     onSkipForward: async () => {
-      await skipToNext();
+      // Skip 30 seconds forward
+      const currentTime = playbackState?.currentTime ?? 0;
+      const duration = playbackState?.duration ?? 0;
+      const newPosition = Math.min(currentTime + 30, duration);
+      console.log('[AppleMusicScreen] Skip forward 30s:', currentTime, '->', newPosition);
+      await seekTo(newPosition);
     },
     onSkipBackward: async () => {
-      await skipToPrevious();
+      // Skip 10 seconds backward
+      const currentTime = playbackState?.currentTime ?? 0;
+      const newPosition = Math.max(currentTime - 10, 0);
+      console.log('[AppleMusicScreen] Skip backward 10s:', currentTime, '->', newPosition);
+      await seekTo(newPosition);
     },
     onFavoriteToggle: () => {
       // Apple Music favorites not implemented yet
     },
     onSleepTimerSet: (minutes: number | null) => {
-      // Sleep timer not implemented for Apple Music yet
+      // Clear existing timer if any
+      if (sleepTimerRef.current) {
+        clearTimeout(sleepTimerRef.current);
+        sleepTimerRef.current = null;
+      }
+
+      if (minutes === null) {
+        console.log('[AppleMusicScreen] Sleep timer disabled');
+        setSleepTimerActive(false);
+        return;
+      }
+
+      // minutes === 0 means 30 seconds (for testing - TODO: remove before production)
+      const durationMs = minutes === 0 ? 30 * 1000 : minutes * 60 * 1000;
+      console.log('[AppleMusicScreen] Sleep timer set:', minutes === 0 ? '30 seconds (TEST)' : `${minutes} minutes`);
+
+      // Update context so MediaIndicator shows the moon icon
+      setSleepTimerActive(true);
+
+      sleepTimerRef.current = setTimeout(async () => {
+        console.log('[AppleMusicScreen] Sleep timer triggered - stopping playback');
+        await stop();
+        sleepTimerRef.current = null;
+        setSleepTimerActive(false);
+      }, durationMs);
     },
     onShuffleToggle: () => {
       // Toggle shuffle mode
@@ -208,9 +258,9 @@ export function AppleMusicScreen() {
       return;
     }
 
-    // MusicKit returns artwork URLs with dimensions already included (e.g., 300x300)
-    // URLs are already https:// - no template replacement needed
-    const artworkUrl = currentSong.artworkUrl || null;
+    // Use effectiveArtworkUrl which prefers cached search result URLs over MusicKit queue URLs
+    // MusicKit queue entries often have musicKit:// URLs that don't work in React Native
+    const artworkUrl = effectiveArtworkUrl;
 
     console.log('[AppleMusicScreen] Showing Glass Player with artwork:', artworkUrl);
 
@@ -236,7 +286,7 @@ export function AppleMusicScreen() {
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
       showStopButton: false,
     });
-  }, [isGlassPlayerAvailable, currentSong, isFocused, showGlassMiniPlayer, configureGlassControls]);
+  }, [isGlassPlayerAvailable, currentSong, effectiveArtworkUrl, isFocused, showGlassMiniPlayer, configureGlassControls]);
 
   // Effect 2: Update playback state when playing/paused changes
   useEffect(() => {
@@ -264,8 +314,8 @@ export function AppleMusicScreen() {
       return;
     }
 
-    // MusicKit returns artwork URLs with dimensions already included
-    const artworkUrl = currentSong.artworkUrl || null;
+    // Use effectiveArtworkUrl which prefers cached search result URLs
+    const artworkUrl = effectiveArtworkUrl;
 
     updateGlassContent({
       artwork: artworkUrl,
@@ -273,29 +323,39 @@ export function AppleMusicScreen() {
       subtitle: currentSong.artistName,
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
     });
-  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, playbackState?.currentTime, playbackState?.duration, updateGlassContent]);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, updateGlassContent]);
 
-  // Effect 4: Hide native player when navigating away
+  // Effect 4: Cleanup sleep timer on unmount
+  useEffect(() => {
+    return () => {
+      if (sleepTimerRef.current) {
+        clearTimeout(sleepTimerRef.current);
+        sleepTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Effect 5: Hide native player when navigating away
   useEffect(() => {
     if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
       hideGlassPlayer();
     }
   }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
-  // Effect 5: Hide native player when song stops
+  // Effect 6: Hide native player when song stops
   useEffect(() => {
     if (!currentSong && isGlassPlayerAvailable && isGlassPlayerVisible) {
       hideGlassPlayer();
     }
   }, [currentSong, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
-  // Effect 6: Re-show native player when navigating back to screen with active playback
+  // Effect 7: Re-show native player when navigating back to screen with active playback
   useEffect(() => {
     if (isFocused && isGlassPlayerAvailable && currentSong && !isGlassPlayerVisible) {
       console.debug('[AppleMusicScreen] Re-showing Glass Player after navigation');
 
-      // MusicKit returns artwork URLs with dimensions already included
-      const artworkUrl = currentSong.artworkUrl || null;
+      // Use effectiveArtworkUrl which prefers cached search result URLs
+      const artworkUrl = effectiveArtworkUrl;
 
       // Configure controls for Apple Music
       configureGlassControls({
@@ -320,7 +380,7 @@ export function AppleMusicScreen() {
         showStopButton: false,
       });
     }
-  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, playbackState, showGlassMiniPlayer, configureGlassControls]);
+  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState, showGlassMiniPlayer, configureGlassControls]);
 
   // ============================================================
   // Handlers
@@ -367,8 +427,9 @@ export function AppleMusicScreen() {
   const handlePlaySong = useCallback(async (song: AppleMusicSong) => {
     triggerFeedback('tap');
     try {
-      console.log('[AppleMusicScreen] Playing song:', song.id, song.title);
-      await playSong(song.id);
+      console.log('[AppleMusicScreen] Playing song:', song.id, song.title, 'artworkUrl:', song.artworkUrl?.substring(0, 60));
+      // Pass the artwork URL from the search result - this is more reliable than MusicKit queue URLs
+      await playSong(song.id, song.artworkUrl);
     } catch (error) {
       console.error('[AppleMusicScreen] Play song error:', error);
       Alert.alert(
@@ -523,7 +584,11 @@ export function AppleMusicScreen() {
         <ScrollView
           ref={scrollRef}
           style={styles.resultsList}
-          contentContainerStyle={styles.resultsContent}
+          contentContainerStyle={[
+            styles.resultsContent,
+            // Add extra bottom padding for mini player (native Glass or RN) + safe area
+            { paddingBottom: bottomPadding + insets.bottom },
+          ]}
         >
           <Text style={styles.sectionTitle}>
             {t('modules.appleMusic.search.songsTitle')}
@@ -536,39 +601,43 @@ export function AppleMusicScreen() {
               index={index}
               onSelect={() => handlePlaySong(song)}
             >
-              <TouchableOpacity
-                style={styles.songItem}
-                onPress={() => handlePlaySong(song)}
-                onLongPress={() => {}}
-                delayLongPress={300}
-                accessibilityRole="button"
-                accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
-              >
-                {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
-                  <Image
-                    source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
-                    style={styles.songArtwork}
-                  />
-                ) : (
-                  <View style={[styles.songArtwork, styles.songArtworkPlaceholder]}>
-                    <Icon name="appleMusic" size={24} color={colors.textSecondary} />
+              <View style={styles.songItem}>
+                {/* Tappable area: artwork + text info */}
+                <TouchableOpacity
+                  style={styles.songTappableArea}
+                  onPress={() => handlePlaySong(song)}
+                  onLongPress={() => {}}
+                  delayLongPress={300}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
+                >
+                  {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
+                    <Image
+                      source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
+                      style={styles.songArtwork}
+                    />
+                  ) : (
+                    <View style={[styles.songArtwork, styles.songArtworkPlaceholder]}>
+                      <Icon name="appleMusic" size={24} color={colors.textSecondary} />
+                    </View>
+                  )}
+                  <View style={styles.songInfo}>
+                    <Text style={styles.songTitle} numberOfLines={1}>
+                      {song.title}
+                    </Text>
+                    <Text style={styles.songArtist} numberOfLines={1}>
+                      {song.artistName}
+                    </Text>
                   </View>
-                )}
-                <View style={styles.songInfo}>
-                  <Text style={styles.songTitle} numberOfLines={1}>
-                    {song.title}
-                  </Text>
-                  <Text style={styles.songArtist} numberOfLines={1}>
-                    {song.artistName}
-                  </Text>
-                </View>
+                </TouchableOpacity>
+                {/* Separate play button - not nested in TouchableOpacity to avoid double trigger */}
                 <IconButton
                   icon="play"
                   size={40}
                   onPress={() => handlePlaySong(song)}
                   accessibilityLabel={t('modules.appleMusic.play', { title: song.title })}
                 />
-              </TouchableOpacity>
+              </View>
             </VoiceFocusable>
           ))}
         </ScrollView>
@@ -732,10 +801,11 @@ export function AppleMusicScreen() {
         moduleId="appleMusic"
         icon="appleMusic"
         title={t('modules.appleMusic.title')}
+        currentSource="appleMusic"
         showAdMob={true}
       />
 
-      <View style={[styles.content, { paddingBottom: bottomPadding + insets.bottom }]}>
+      <View style={styles.content}>
         {/* Android: Show app detection UI */}
         {isAndroid && (
           authStatus === 'app_installed'
@@ -767,8 +837,10 @@ export function AppleMusicScreen() {
       )}
 
       {/* Expanded Player (iOS <26 / Android fallback)
-          On iOS 26+, the native GlassPlayerWindow handles this */}
-      {!isAndroid && !isGlassPlayerExpanded && (
+          On iOS 26+, the native GlassPlayerWindow handles this entirely.
+          We should NOT render the RN player at all when Glass Player is available.
+          Also don't render while checking availability to prevent flash. */}
+      {!isAndroid && !isCheckingGlassPlayerAvailability && !isGlassPlayerAvailable && (
         <ExpandedAudioPlayer
           visible={isPlayerExpanded}
           moduleId="appleMusic"
@@ -938,7 +1010,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   resultsContent: {
-    paddingBottom: spacing.xl,
+    // paddingBottom is set dynamically in contentContainerStyle for mini player
   },
   sectionTitle: {
     ...typography.h3,
@@ -956,6 +1028,12 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     marginBottom: spacing.sm,
     minHeight: touchTargets.comfortable,
+  },
+  songTappableArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   songArtwork: {
     width: 56,

@@ -15,21 +15,25 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { ServiceContainer } from '@/services/container';
 import {
-  accentColors,
+  ACCENT_COLORS,
+  ACCENT_COLOR_KEYS,
   type AccentColorKey,
   type AccentColor,
   DEFAULT_ACCENT_COLOR,
+  isValidAccentColorKey,
 } from '@/theme';
 
 export interface AccentColorContextValue {
-  /** Current accent color key (e.g., 'blue', 'green') */
+  /** Current accent color key (e.g., 'blue', 'green', 'teal', etc.) */
   accentColorKey: AccentColorKey;
   /** Current accent color values */
   accentColor: AccentColor;
+  /** All available accent color keys (for picker UI) */
+  availableColors: AccentColorKey[];
   /** Update the accent color */
   updateAccentColor: (key: AccentColorKey) => Promise<void>;
   /** Get color with accent applied (for dynamic styling) */
-  getColor: (colorName: 'primary' | 'primaryLight' | 'primaryDark') => string;
+  getColor: (colorName: 'primary' | 'primaryLight' | 'primaryDark' | 'light') => string;
   /** Loading state */
   isLoading: boolean;
 }
@@ -57,8 +61,8 @@ export function AccentColorProvider({ children }: AccentColorProviderProps) {
         }
 
         const profile = await ServiceContainer.database.getUserProfile();
-        if (profile?.accentColor && accentColors[profile.accentColor as AccentColorKey]) {
-          setAccentColorKey(profile.accentColor as AccentColorKey);
+        if (profile?.accentColor && isValidAccentColorKey(profile.accentColor)) {
+          setAccentColorKey(profile.accentColor);
         }
       } catch (error) {
         console.error('[AccentColorContext] Failed to load accent color:', error);
@@ -92,21 +96,31 @@ export function AccentColorProvider({ children }: AccentColorProviderProps) {
 
   // Get the current accent color values
   const accentColor = useMemo(() => {
-    return accentColors[accentColorKey];
+    return ACCENT_COLORS[accentColorKey];
   }, [accentColorKey]);
 
-  // Get a specific color with accent applied
-  const getColor = useCallback((colorName: 'primary' | 'primaryLight' | 'primaryDark'): string => {
-    return accentColor[colorName];
-  }, [accentColor]);
+  // All available accent color keys (for picker UI)
+  const availableColors = useMemo(() => ACCENT_COLOR_KEYS, []);
 
-  const value = useMemo(() => ({
-    accentColorKey,
-    accentColor,
-    updateAccentColor,
-    getColor,
-    isLoading,
-  }), [accentColorKey, accentColor, updateAccentColor, getColor, isLoading]);
+  // Get a specific color with accent applied
+  const getColor = useCallback(
+    (colorName: 'primary' | 'primaryLight' | 'primaryDark' | 'light'): string => {
+      return accentColor[colorName];
+    },
+    [accentColor]
+  );
+
+  const value = useMemo(
+    () => ({
+      accentColorKey,
+      accentColor,
+      availableColors,
+      updateAccentColor,
+      getColor,
+      isLoading,
+    }),
+    [accentColorKey, accentColor, availableColors, updateAccentColor, getColor, isLoading]
+  );
 
   return (
     <AccentColorContext.Provider value={value}>

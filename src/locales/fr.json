@@ -298,6 +298,20 @@
     "testDialTone": "Tester la tonalité"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Bleu",
+      "green": "Vert",
+      "purple": "Violet",
+      "orange": "Orange",
+      "red": "Rouge",
+      "teal": "Sarcelle",
+      "pink": "Rose",
+      "indigo": "Indigo",
+      "brown": "Marron",
+      "cyan": "Cyan",
+      "olive": "Olive",
+      "amber": "Ambre"
+    },
     "accentBlue": "Bleu",
     "accentGreen": "Vert",
     "accentPurple": "Violet",

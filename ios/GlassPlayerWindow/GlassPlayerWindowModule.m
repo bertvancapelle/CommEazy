@@ -31,4 +31,6 @@ RCT_EXTERN_METHOD(updatePlaybackState:(NSDictionary *)state)
 
 RCT_EXTERN_METHOD(configureControls:(NSDictionary *)controls)
 
+RCT_EXTERN_METHOD(setTemporarilyHidden:(BOOL)hidden)
+
 @end

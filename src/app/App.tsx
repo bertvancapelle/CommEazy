@@ -31,6 +31,7 @@ import { AppleMusicProvider } from '@/contexts/AppleMusicContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { CallProvider } from '@/contexts/CallContext';
+import { AudioOrchestratorProvider } from '@/contexts/AudioOrchestratorContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
@@ -111,25 +112,27 @@ export default function App() {
             <VoiceFocusProvider>
               <VoiceFormProvider>
                 <HoldGestureProvider>
-                  <RadioProvider>
-                    <PodcastProvider>
-                      <BooksProvider>
-                        <AppleMusicProvider>
-                          <ModuleConfigProvider>
-                          <NavigationProvider>
-                            <FavoriteLocationsProvider>
-                              <CallProvider>
-                                <HoldToNavigateProvider>
-                                  <AppNavigator />
-                                </HoldToNavigateProvider>
-                              </CallProvider>
-                            </FavoriteLocationsProvider>
-                          </NavigationProvider>
-                          </ModuleConfigProvider>
-                        </AppleMusicProvider>
-                      </BooksProvider>
-                    </PodcastProvider>
-                  </RadioProvider>
+                  <AudioOrchestratorProvider>
+                    <RadioProvider>
+                      <PodcastProvider>
+                        <BooksProvider>
+                          <AppleMusicProvider>
+                            <ModuleConfigProvider>
+                            <NavigationProvider>
+                              <FavoriteLocationsProvider>
+                                <CallProvider>
+                                  <HoldToNavigateProvider>
+                                    <AppNavigator />
+                                  </HoldToNavigateProvider>
+                                </CallProvider>
+                              </FavoriteLocationsProvider>
+                            </NavigationProvider>
+                            </ModuleConfigProvider>
+                          </AppleMusicProvider>
+                        </BooksProvider>
+                      </PodcastProvider>
+                    </RadioProvider>
+                  </AudioOrchestratorProvider>
                 </HoldGestureProvider>
               </VoiceFormProvider>
             </VoiceFocusProvider>

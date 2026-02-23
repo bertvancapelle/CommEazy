@@ -298,6 +298,20 @@
     "testDialTone": "Test dial tone"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Blue",
+      "green": "Green",
+      "purple": "Purple",
+      "orange": "Orange",
+      "red": "Red",
+      "teal": "Teal",
+      "pink": "Pink",
+      "indigo": "Indigo",
+      "brown": "Brown",
+      "cyan": "Cyan",
+      "olive": "Olive",
+      "amber": "Amber"
+    },
     "accentBlue": "Blue",
     "accentGreen": "Green",
     "accentPurple": "Purple",

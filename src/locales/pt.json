@@ -302,6 +302,20 @@
     "testDialTone": "Testar tom de marcação"
   },
   "theme": {
+    "accentColors": {
+      "blue": "Azul",
+      "green": "Verde",
+      "purple": "Roxo",
+      "orange": "Laranja",
+      "red": "Vermelho",
+      "teal": "Verde-azulado",
+      "pink": "Rosa",
+      "indigo": "Índigo",
+      "brown": "Castanho",
+      "cyan": "Ciano",
+      "olive": "Azeitona",
+      "amber": "Âmbar"
+    },
     "accentBlue": "Azul",
     "accentGreen": "Verde",
     "accentPurple": "Roxo",

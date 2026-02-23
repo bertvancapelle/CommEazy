@@ -22,6 +22,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react';
 import {
@@ -31,6 +32,8 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+
+import { useAudioOrchestrator } from './AudioOrchestratorContext';
 
 // ============================================================
 // Types
@@ -136,9 +139,12 @@ export interface AppleMusicContextValue {
   // Playback (iOS only)
   playbackState: PlaybackState | null;
   nowPlaying: AppleMusicSong | null;
+  /** Effective artwork URL (prefers search result URL over MusicKit queue URL) */
+  effectiveArtworkUrl: string | null;
   isPlaying: boolean;
   isLoading: boolean;
-  playSong: (songId: string) => Promise<void>;
+  /** Play a song - optionally pass artworkUrl from search results for reliable artwork display */
+  playSong: (songId: string, artworkUrl?: string) => Promise<void>;
   playAlbum: (albumId: string, startIndex?: number) => Promise<void>;
   playPlaylist: (playlistId: string, startIndex?: number) => Promise<void>;
   pause: () => Promise<void>;
@@ -157,6 +163,10 @@ export interface AppleMusicContextValue {
   // Queue (iOS only)
   queue: AppleMusicSong[];
   addToQueue: (songId: string, position?: 'next' | 'last') => Promise<void>;
+
+  // Sleep timer
+  sleepTimerActive: boolean;
+  setSleepTimerActive: (active: boolean) => void;
 
   // Android-specific
   openPlayStore: () => Promise<void>;
@@ -189,6 +199,7 @@ interface AppleMusicProviderProps {
  */
 export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   const { t } = useTranslation();
+  const audioOrchestrator = useAudioOrchestrator();
 
   // Platform detection
   const isIOS = Platform.OS === 'ios';
@@ -203,12 +214,39 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   const [showPlayer, setShowPlayer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
+  const [sleepTimerActive, setSleepTimerActive] = useState(false);
+
+  // Artwork URL from search results (more reliable than MusicKit queue URLs)
+  // Maps song ID to artwork URL
+  const [artworkCache, setArtworkCache] = useState<Map<string, string>>(new Map());
 
   // Derived state
   const isAuthorized = authStatus === 'authorized' || authStatus === 'app_installed';
   const isPlaying = playbackState?.status === 'playing';
   const shuffleMode = playbackState?.shuffleMode ?? 'off';
   const repeatMode = playbackState?.repeatMode ?? 'off';
+
+  // Effective artwork URL: prefer cached URL from search results over MusicKit queue URL
+  // MusicKit queue entries often have musicKit:// URLs that don't work in React Native
+  const effectiveArtworkUrl = useMemo(() => {
+    if (!nowPlaying) return null;
+
+    // First check our cache (artwork URL from search results)
+    const cachedUrl = artworkCache.get(nowPlaying.id);
+    if (cachedUrl) {
+      console.log('[AppleMusicContext] Using cached artwork URL:', cachedUrl.substring(0, 80));
+      return cachedUrl;
+    }
+
+    // Fall back to nowPlaying.artworkUrl (may be musicKit:// which doesn't work)
+    if (nowPlaying.artworkUrl && nowPlaying.artworkUrl.startsWith('https://')) {
+      console.log('[AppleMusicContext] Using nowPlaying artwork URL:', nowPlaying.artworkUrl.substring(0, 80));
+      return nowPlaying.artworkUrl;
+    }
+
+    console.log('[AppleMusicContext] No usable artwork URL available');
+    return null;
+  }, [nowPlaying, artworkCache]);
 
   // ============================================================
   // Native Event Listener (iOS only)
@@ -393,15 +431,28 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Playback Control (iOS only)
   // ============================================================
 
-  const playSong = useCallback(async (songId: string) => {
+  const playSong = useCallback(async (songId: string, artworkUrl?: string) => {
     if (!isIOS || !AppleMusicModule) {
       console.warn('[AppleMusicContext] Playback not available on Android');
       return;
     }
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('appleMusic');
+
       setIsLoading(true);
       setShowPlayer(true);
+
+      // Cache the artwork URL from search results (more reliable than MusicKit queue URLs)
+      if (artworkUrl && artworkUrl.startsWith('https://')) {
+        console.log('[AppleMusicContext] Caching artwork URL for song:', songId, artworkUrl.substring(0, 80));
+        setArtworkCache((prev) => {
+          const newCache = new Map(prev);
+          newCache.set(songId, artworkUrl);
+          return newCache;
+        });
+      }
 
       // Detect if this is a library song (starts with "i.") or catalog song
       // Library songs have IDs like "i.8BCC85DD-ECB5-492B-B88F-733758A37D81"
@@ -422,12 +473,15 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       console.error('[AppleMusicContext] Play song error:', error);
       throw error;
     }
-  }, [isIOS, t]);
+  }, [isIOS, audioOrchestrator, t]);
 
   const playAlbum = useCallback(async (albumId: string, startIndex: number = 0) => {
     if (!isIOS || !AppleMusicModule) return;
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('appleMusic');
+
       setIsLoading(true);
       setShowPlayer(true);
       await AppleMusicModule.playAlbum(albumId, startIndex);
@@ -436,12 +490,15 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       console.error('[AppleMusicContext] Play album error:', error);
       throw error;
     }
-  }, [isIOS]);
+  }, [isIOS, audioOrchestrator]);
 
   const playPlaylist = useCallback(async (playlistId: string, startIndex: number = 0) => {
     if (!isIOS || !AppleMusicModule) return;
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('appleMusic');
+
       setIsLoading(true);
       setShowPlayer(true);
       await AppleMusicModule.playPlaylist(playlistId, startIndex);
@@ -450,7 +507,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       console.error('[AppleMusicContext] Play playlist error:', error);
       throw error;
     }
-  }, [isIOS]);
+  }, [isIOS, audioOrchestrator]);
 
   const pause = useCallback(async () => {
     if (!isIOS || !AppleMusicModule) return;
@@ -467,12 +524,15 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     if (!isIOS || !AppleMusicModule) return;
 
     try {
+      // Request playback from orchestrator (stops other audio sources)
+      await audioOrchestrator.requestPlayback('appleMusic');
+
       await AppleMusicModule.resume();
       AccessibilityInfo.announceForAccessibility(t('modules.appleMusic.resumed'));
     } catch (error) {
       console.error('[AppleMusicContext] Resume error:', error);
     }
-  }, [isIOS, t]);
+  }, [isIOS, audioOrchestrator, t]);
 
   const stop = useCallback(async () => {
     if (!isIOS || !AppleMusicModule) return;
@@ -481,11 +541,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       await AppleMusicModule.stop();
       setShowPlayer(false);
       setNowPlaying(null);
+      audioOrchestrator.releasePlayback('appleMusic');
       AccessibilityInfo.announceForAccessibility(t('modules.appleMusic.stopped'));
     } catch (error) {
       console.error('[AppleMusicContext] Stop error:', error);
     }
-  }, [isIOS, t]);
+  }, [isIOS, audioOrchestrator, t]);
 
   const skipToNext = useCallback(async () => {
     if (!isIOS || !AppleMusicModule) return;
@@ -593,6 +654,29 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [isAndroid]);
 
   // ============================================================
+  // Audio Orchestrator Registration
+  // ============================================================
+
+  // Use ref to provide stable stop function for orchestrator
+  const stopRef = useRef(stop);
+  stopRef.current = stop;
+
+  useEffect(() => {
+    // Register Apple Music as an audio source with the orchestrator
+    audioOrchestrator.registerSource('appleMusic', {
+      stop: async () => {
+        // Use ref to always call the latest stop function
+        await stopRef.current();
+      },
+      isPlaying: () => isPlaying,
+    });
+
+    return () => {
+      audioOrchestrator.unregisterSource('appleMusic');
+    };
+  }, [audioOrchestrator, isPlaying]);
+
+  // ============================================================
   // Context Value
   // ============================================================
 
@@ -619,6 +703,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       // Playback
       playbackState,
       nowPlaying,
+      effectiveArtworkUrl,
       isPlaying,
       isLoading,
       playSong,
@@ -640,6 +725,10 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       // Queue
       queue,
       addToQueue,
+
+      // Sleep timer
+      sleepTimerActive,
+      setSleepTimerActive,
 
       // Android-specific
       openPlayStore,
@@ -663,6 +752,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       getTopCharts,
       playbackState,
       nowPlaying,
+      effectiveArtworkUrl,
       isPlaying,
       isLoading,
       playSong,
@@ -680,6 +770,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       setRepeatModeCallback,
       queue,
       addToQueue,
+      sleepTimerActive,
       openPlayStore,
       openAppleMusicApp,
       openContent,

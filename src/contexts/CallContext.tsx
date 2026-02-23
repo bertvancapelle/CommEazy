@@ -23,6 +23,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react';
 import { Alert, AppState, type AppStateStatus } from 'react-native';
@@ -32,6 +33,7 @@ import type { MediaStream } from 'react-native-webrtc';
 import type { ActiveCall, CallType, CallEndReason, IceServer, Contact } from '@/services/interfaces';
 import { callService, WebRTCCallService } from '@/services/call';
 import { DEFAULT_ICE_SERVERS } from '@/services/call/types';
+import { useAudioOrchestrator } from './AudioOrchestratorContext';
 
 // ============================================================
 // Context Types
@@ -95,6 +97,7 @@ export function CallProvider({
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
   const [isInitialized, setIsInitialized] = useState(false);
+  const audioOrchestrator = useAudioOrchestrator();
 
   // ============================================================
   // Contact Name Lookup
@@ -170,6 +173,9 @@ export function CallProvider({
       setLocalStream(null);
       setRemoteStreams(new Map());
 
+      // Release audio playback when call ends (from any source)
+      audioOrchestrator.releasePlayback('call');
+
       // Notify callback
       if (onCallEnded) {
         onCallEnded(callId, reason);
@@ -181,7 +187,7 @@ export function CallProvider({
       unsubscribeIncoming();
       unsubscribeEnded();
     };
-  }, [isInitialized, onIncomingCall, onCallEnded]);
+  }, [isInitialized, onIncomingCall, onCallEnded, audioOrchestrator]);
 
   // ============================================================
   // App State Handling (background/foreground)
@@ -210,13 +216,16 @@ export function CallProvider({
       }
 
       try {
+        // Stop all other audio sources before starting call
+        await audioOrchestrator.requestPlayback('call');
         await callService.initiateCall(contactJid, type);
       } catch (error) {
         console.error('[CallContext] Failed to initiate call:', error);
+        audioOrchestrator.releasePlayback('call');
         throw error;
       }
     },
-    [isInitialized]
+    [isInitialized, audioOrchestrator]
   );
 
   const answerCall = useCallback(async () => {
@@ -226,12 +235,15 @@ export function CallProvider({
     }
 
     try {
+      // Stop all other audio sources before answering call
+      await audioOrchestrator.requestPlayback('call');
       await callService.answerCall(activeCall.id);
     } catch (error) {
       console.error('[CallContext] Failed to answer call:', error);
+      audioOrchestrator.releasePlayback('call');
       throw error;
     }
-  }, [activeCall]);
+  }, [activeCall, audioOrchestrator]);
 
   const declineCall = useCallback(async () => {
     if (!activeCall) {
@@ -254,10 +266,12 @@ export function CallProvider({
 
     try {
       await callService.endCall(activeCall.id);
+      audioOrchestrator.releasePlayback('call');
     } catch (error) {
       console.error('[CallContext] Failed to end call:', error);
+      audioOrchestrator.releasePlayback('call');
     }
-  }, [activeCall]);
+  }, [activeCall, audioOrchestrator]);
 
   const addParticipant = useCallback(
     async (contactJid: string) => {
@@ -306,6 +320,29 @@ export function CallProvider({
     if (!activeCall) return false;
     return callService.canAddParticipant(activeCall.id);
   }, [activeCall]);
+
+  // ============================================================
+  // Audio Orchestrator Registration
+  // ============================================================
+
+  // Use ref to provide stable endCall function for orchestrator
+  const endCallRef = useRef(endCall);
+  endCallRef.current = endCall;
+
+  useEffect(() => {
+    // Register call as an audio source with the orchestrator
+    audioOrchestrator.registerSource('call', {
+      stop: async () => {
+        // End the call when another audio source requests playback
+        await endCallRef.current();
+      },
+      isPlaying: () => isInCall,
+    });
+
+    return () => {
+      audioOrchestrator.unregisterSource('call');
+    };
+  }, [audioOrchestrator, isInCall]);
 
   // ============================================================
   // Context Value
