@@ -476,6 +476,7 @@ export function RadioScreen() {
     }
 
     updateGlassContent({
+      tintColorHex: radioModuleColor,  // MUST include to prevent fallback to default color
       artwork: metadata.artwork || contextStation.favicon || null,
       title: contextStation.name,
       subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
@@ -489,6 +490,7 @@ export function RadioScreen() {
     metadata.title,
     position,
     isBuffering,
+    radioModuleColor,
     t,
     updateGlassContent,
   ]);

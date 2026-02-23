@@ -468,7 +468,8 @@ Modules met audio playback (radio, podcast, books, appleMusic, etc.) hebben extr
 |---|-------|---------|---------------|
 | 25 | **useModuleColor hook** | Screen component | `const moduleColor = useModuleColor('moduleId')` — GEEN hardcoded kleur constanten |
 | 26 | **Glass Player tintColorHex** | Screen component | `tintColorHex: moduleColor` in `showGlassMiniPlayer()` call |
-| 27 | **UI elementen dynamisch** | Screen component | Alle UI elementen met module kleur gebruiken `moduleColor` variabele, niet hardcoded hex |
+| 27 | **updateGlassContent tintColorHex** | Screen component | `tintColorHex: moduleColor` in ELKE `updateGlassContent()` call — anders fallback naar default kleur! |
+| 28 | **UI elementen dynamisch** | Screen component | Alle UI elementen met module kleur gebruiken `moduleColor` variabele, niet hardcoded hex |
 
 **⚠️ FOUT patroon (NIET DOEN):**
 ```typescript
@@ -487,9 +488,19 @@ import { useModuleColor } from '@/contexts/ModuleColorsContext';
 
 const radioModuleColor = useModuleColor('radio');
 
+// Bij showGlassMiniPlayer
 showGlassMiniPlayer({
   tintColorHex: radioModuleColor,  // ← Respecteert user preferences
 });
+
+// ⚠️ KRITIEK: Ook bij updateGlassContent MOET tintColorHex worden meegegeven!
+// Anders valt native code terug op default kleur #00897B
+updateGlassContent({
+  tintColorHex: radioModuleColor,  // ← VERPLICHT bij elke content update
+  artwork: ...,
+  title: ...,
+});
+```
 
 **Claude's Verantwoordelijkheid:**
 

@@ -321,12 +321,13 @@ export function AppleMusicScreen() {
     const artworkUrl = effectiveArtworkUrl;
 
     updateGlassContent({
+      tintColorHex: appleMusicColor,  // MUST include to prevent fallback to default color
       artwork: artworkUrl,
       title: currentSong.title,
       subtitle: currentSong.artistName,
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
     });
-  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, updateGlassContent]);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, appleMusicColor, updateGlassContent]);
 
   // Effect 4: Cleanup sleep timer on unmount
   useEffect(() => {
