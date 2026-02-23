@@ -651,7 +651,8 @@
     "sections": {
       "communication": "Komunikacja",
       "media": "Media",
-      "modules": "Dodatki"
+      "modules": "Dodatki",
+      "system": "System"
     }
   },
   "splitView": {
@@ -1465,7 +1466,14 @@
     "sleepTimerActive": "Timer aktywny: {{minutes}} minut",
     "addToFavorites": "Dodaj do ulubionych",
     "removeFromFavorites": "Usuń z ulubionych",
-    "of": "z"
+    "of": "z",
+    "shuffle": "Losowo",
+    "shuffleOn": "Losowo włączone",
+    "shuffleOff": "Losowo wyłączone",
+    "repeat": "Powtórz",
+    "repeatOff": "Powtórz wyłączone",
+    "repeatOne": "Powtórz ten utwór",
+    "repeatAll": "Powtórz wszystko"
   },
   "tts": {
     "stop": "Zatrzymaj"
