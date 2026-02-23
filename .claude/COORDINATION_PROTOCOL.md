@@ -141,13 +141,58 @@ De volgende wijzigingen triggeren **altijd** specifieke skill validaties:
 | **Player feature wijziging** | **ios-specialist, react-native-expert** — 100% Feature Parity vereist |
 | **Liquid Glass native code** | **ios-specialist** — Swift @available(iOS 26, *) |
 | **Bridge layer updates** | **ios-specialist, react-native-expert** — NativeModule interface |
+| **Kleuren, contrast, typografie** | **accessibility-specialist** — WCAG AAA + EN 301 549 compliance |
+| **Touch targets, interactie** | **accessibility-specialist** — EN 301 549 §5.5.1 (≥60pt) |
+| **Accessibility props** | **accessibility-specialist** — EN 301 549 §11.4.1.2 |
+
+## Automatische Compliance Validatie (VERPLICHT)
+
+### Build-Time Compliance Check
+
+CommEazy valideert automatisch tegen **WCAG 2.2 AAA** en **EN 301 549 V3.2.1** bij elke build.
+
+**Command:** `npm run compliance:check`
+
+Dit script wordt automatisch uitgevoerd via `prebuild` in package.json.
+
+### Compliance Checks
+
+| Categorie | Wat wordt gecontroleerd | Tool |
+|-----------|------------------------|------|
+| **Contrast** | Alle accent colors ≥7:1 (AAA) | Script |
+| **Touch Targets** | Alle TouchableOpacity ≥60pt | ESLint |
+| **Typography** | Body ≥18pt, headings ≥24pt | ESLint |
+| **i18n** | Alle a11y.* keys in 13 talen | Script |
+| **Accessibility Props** | accessibilityRole + accessibilityLabel | ESLint |
+| **Colour Independence** | Geen colour-only indicators | Manual + hints |
+
+### Bij Compliance Failures
+
+1. **Build wordt geblokkeerd**
+2. Console toont specifieke failures met locatie
+3. Developer moet issues fixen voordat build doorgaat
+
+### In-App Compliance Report
+
+Gebruikers kunnen compliance status bekijken via:
+**Settings → Accessibility → Accessibility Compliance**
+
+De report toont:
+- WCAG AAA status (compliant/partial/non-compliant)
+- EN 301 549 status
+- Known deviations met justificaties
+- Last validation timestamp
+
+Zie: `.claude/plans/ACCESSIBILITY_COMPLIANCE.md`
+
+---
 
 ## Conflict Resolutie
 
 Als skills conflicterende eisen hebben:
 
 1. **Security wint altijd** — Veiligheid gaat voor usability
-2. **Accessibility tweede** — Toegankelijkheid is niet onderhandelbaar
+2. **Accessibility tweede** — Toegankelijkheid is niet onderhandelbaar (WCAG AAA + EN 301 549)
 3. **Senior-inclusive design derde** — Core doelgroep
 4. **Performance vierde** — Belangrijk maar niet ten koste van bovenstaande
 5. **Store compliance** — Moet altijd voldoen (Apple/Google)

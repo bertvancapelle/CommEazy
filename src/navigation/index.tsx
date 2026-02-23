@@ -65,6 +65,7 @@ import {
   SettingsMainScreen,
   ProfileSettingsScreen,
   AccessibilitySettingsScreen,
+  ComplianceReportScreen,
   VoiceSettingsScreen,
   ModulesSettingsScreen,
   CallSettingsScreen,
@@ -144,6 +145,7 @@ export type SettingsStackParams = {
   LanguageSettings: undefined;
   ProfileSettings: undefined;
   AccessibilitySettings: undefined;
+  ComplianceReport: undefined;  // WCAG AAA + EN 301 549 compliance report
   VoiceSettings: undefined;
   ModulesSettings: undefined;
   CallSettings: undefined;  // Call sound and vibration settings
@@ -410,6 +412,11 @@ function SettingsNavigator() {
         name="AccessibilitySettings"
         component={AccessibilitySettingsScreen}
         options={{ title: t('settings.accessibility') }}
+      />
+      <SettingsStack.Screen
+        name="ComplianceReport"
+        component={ComplianceReportScreen}
+        options={{ headerShown: false }}
       />
       <SettingsStack.Screen
         name="VoiceSettings"

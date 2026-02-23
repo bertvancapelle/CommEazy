@@ -14,6 +14,7 @@
     "test:i18n": "node scripts/validate-i18n.js",
     "test:a11y": "jest --testPathPattern=accessibility",
     "test:encryption": "jest --testPathPattern=encryption",
+    "compliance:check": "node scripts/check-compliance.js",
     "bundle:analyze": "react-native-bundle-visualizer",
     "clean": "watchman watch-del-all && rm -rf node_modules ios/Pods && npm install && cd ios && pod install",
     "format:locales": "prettier --write 'src/locales/*.json'",

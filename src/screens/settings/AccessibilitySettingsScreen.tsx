@@ -26,7 +26,9 @@ import {
   Switch,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '@/navigation';
 
 import {
   colors,
@@ -357,6 +359,9 @@ export function AccessibilitySettingsScreen() {
 
   // Accent color settings
   const { accentColorKey, accentColor, updateAccentColor } = useAccentColor();
+
+  // Navigation for compliance report
+  const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParams>>();
 
   // Voice commands settings
   const {
@@ -764,6 +769,28 @@ export function AccessibilitySettingsScreen() {
       >
         <Text style={styles.testButtonText}>{t('accessibilitySettings.testFeedback')}</Text>
       </TouchableOpacity>
+
+      {/* Compliance Report link */}
+      <TouchableOpacity
+        style={styles.complianceLink}
+        onPress={() => navigation.navigate('ComplianceReport')}
+        accessibilityRole="button"
+        accessibilityLabel={t('accessibilitySettings.complianceReport')}
+        accessibilityHint={t('accessibilitySettings.complianceReportHint')}
+      >
+        <View style={styles.complianceLinkContent}>
+          <Icon name="shield-checkmark" size={24} color={accentColor.primary} />
+          <View style={styles.complianceLinkText}>
+            <Text style={styles.complianceLinkLabel}>
+              {t('accessibilitySettings.complianceReport')}
+            </Text>
+            <Text style={styles.complianceLinkHint}>
+              {t('accessibilitySettings.complianceReportHint')}
+            </Text>
+          </View>
+        </View>
+        <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -1002,5 +1029,37 @@ const styles = StyleSheet.create({
   ttsSpeedOptionText: {
     ...typography.body,
     color: colors.textPrimary,
+  },
+  // Compliance link styles
+  complianceLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginTop: spacing.md,
+    minHeight: touchTargets.comfortable,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  complianceLinkContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: spacing.md,
+  },
+  complianceLinkText: {
+    flex: 1,
+  },
+  complianceLinkLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  complianceLinkHint: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
 });

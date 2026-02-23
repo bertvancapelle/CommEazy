@@ -5,7 +5,7 @@ description: >
   of all ages and abilities through VoiceOver (iOS), TalkBack (Android),
   Dynamic Type, font scaling, colour blindness support, reduced motion,
   haptic/audio feedback, and cognitive accessibility. Audits ALL screens
-  and components for WCAG AAA compliance.
+  and components for WCAG AAA + EN 301 549 compliance.
 tools:
   - Read
   - Write
@@ -21,13 +21,15 @@ model: sonnet
 
 - VoiceOver (iOS) and TalkBack (Android) full-flow audits
 - Dynamic Type (iOS) and font scaling (Android) validation
-- WCAG AAA (7:1) contrast compliance
+- **WCAG 2.2 Level AAA** (7:1) contrast compliance
+- **EN 301 549 V3.2.1** European ICT accessibility compliance
 - Colour blindness testing (protanopia, deuteranopia, tritanopia)
 - Reduced motion compliance (prefers-reduced-motion)
 - Haptic feedback design (UIImpactFeedbackGenerator / VibrationEffect)
 - Audio feedback design (optional sound cues)
 - Cognitive accessibility (clear flows, no information overload)
 - Accessibility automated testing in CI/CD
+- **Compliance report generation and maintenance**
 
 ## WHY a Separate Skill?
 
@@ -50,12 +52,72 @@ Accessibility for diverse users is not "make buttons bigger." It requires:
 - **Play Store**: Accessibility label in app metadata
 - **Legal**: Same ADA/EU requirements
 
-### EU Accessibility Act (2025)
+### EU Accessibility Act (2025) + EN 301 549
 CommEazy must comply by June 28, 2025:
 - All UI elements must be perceivable, operable, understandable
 - Text alternatives for non-text content
 - Adaptable to different display settings
 - Keyboard/switch accessible (even if primarily touch)
+
+**EN 301 549 V3.2.1 is the technical standard** that defines how to meet EU Accessibility Act requirements for ICT products. CommEazy validates against both WCAG AAA and EN 301 549.
+
+---
+
+## EN 301 549 Compliance (VERPLICHT)
+
+### Dual Standard Validation
+
+Bij ELKE UI wijziging MOET worden gevalideerd tegen beide standaarden:
+
+| Check | WCAG 2.2 | EN 301 549 | CommEazy Target |
+|-------|----------|------------|-----------------|
+| Text contrast | 1.4.6 (AAA) | 11.1.4.6 | ≥7:1 |
+| UI component contrast | 1.4.11 (AA) | 11.1.4.11 | ≥3:1 |
+| Touch targets | 2.5.8 (AA) | 5.5.1 | ≥60pt (exceeds both) |
+| Colour independence | 1.4.1 (A) | 11.1.4.1 | Never colour-only |
+| Name, role, value | 4.1.2 (A) | 11.4.1.2 | accessibilityRole + Label |
+| Focus visible | 2.4.7 (AA) | 11.2.4.7 | 4px accent border |
+| Timing adjustable | 2.2.1 (A) | 11.2.2.1 | No time limits |
+| Error identification | 3.3.1 (A) | 11.3.3.1 | Clear error messages |
+| Resize text | 1.4.4 (AA) | 11.1.4.4 | Dynamic Type 200% |
+| Reflow | 1.4.10 (AA) | 11.1.4.10 | Content reflows at 320px |
+
+### EN 301 549 Specific Requirements (Mobile)
+
+| Clause | Requirement | CommEazy Implementation |
+|--------|-------------|-------------------------|
+| 5.2 | Activation of accessibility | System a11y APIs |
+| 5.5.1 | Operable parts | 60pt touch targets |
+| 5.5.2 | Parts discernibility | High contrast borders |
+| 5.6.1 | Tactile/auditory status | Haptic + audio feedback |
+| 5.6.2 | Visual status | Visual indicators all states |
+| 5.9 | Simultaneous actions | Single-touch only |
+| 6.1 | Audio bandwidth | ≥8kHz (WebRTC) |
+| 6.5.2 | Video resolution | ≥QVGA |
+| 6.5.3 | Video frame rate | ≥20fps |
+
+### Compliance Validation Workflow
+
+```
+UI Change → Compliance Check → Pass? → Commit
+                  ↓ No
+            Fix Issues → Re-check
+```
+
+**Command:** `npm run compliance:check`
+
+### Compliance Report
+
+CommEazy generates an in-app compliance report accessible via:
+**Settings → Accessibility → Accessibility Compliance**
+
+The report shows:
+- WCAG AAA compliance status
+- EN 301 549 compliance status
+- Known deviations with justifications
+- Last validation timestamp
+
+See: `.claude/plans/ACCESSIBILITY_COMPLIANCE.md`
 
 ## Screen Reader Implementation
 
