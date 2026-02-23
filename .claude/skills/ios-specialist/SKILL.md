@@ -92,7 +92,7 @@ Data Not Collected:
 <key>NSPhotoLibraryUsageDescription</key>
 <string>CommEazy needs access to your photos to share them in chats</string>
 ```
-Note: Localize these strings via `InfoPlist.strings` for all 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR).
+Note: Localize these strings via `InfoPlist.strings` for all 13 languages (see CONSTANTS.md) (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR).
 
 ### Encryption Export
 - Answer "Yes" to encryption question in App Store Connect
@@ -107,8 +107,8 @@ Note: Localize these strings via `InfoPlist.strings` for all 12 languages (NL/EN
 - [ ] Age rating: 4+
 - [ ] Privacy policy URL
 - [ ] Privacy Manifest present
-- [ ] Screenshots in 12 languages (6.5" iPhone, 5.5" iPhone, 12.9" iPad, 11" iPad)
-- [ ] App description in 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
+- [ ] Screenshots in 13 languages (see CONSTANTS.md) (6.5" iPhone, 5.5" iPhone, 12.9" iPad, 11" iPad)
+- [ ] App description in 13 languages (see CONSTANTS.md) (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 - [ ] Encryption export compliance declared
 - [ ] Universal app (iPhone + iPad)
 
@@ -461,7 +461,7 @@ Bij player wijzigingen:
 ## Quality Checklist
 
 - [ ] Privacy Manifest complete and accurate
-- [ ] All permissions have localized descriptions (12 languages)
+- [ ] All permissions have localized descriptions (13 languages (see CONSTANTS.md))
 - [ ] Dynamic Type tested at default, large, and accessibility sizes
 - [ ] iPad Split View and Slide Over functional
 - [ ] Haptic feedback on all interactive elements
@@ -471,7 +471,7 @@ Bij player wijzigingen:
 - [ ] Minimum deployment: iOS 15.0
 - [ ] Hermes engine enabled
 - [ ] VoiceOver full-flow tested
-- [ ] Screenshots generated for all 4 device sizes × 12 languages
+- [ ] Screenshots generated for all 4 device sizes × 13 languages (see CONSTANTS.md)
 - [ ] **TTS:** Piper models gebundeld in app (nl_NL-rdh-high primary)
 - [ ] **TTS:** sherpa_onnx.xcframework correct gelinkt
 - [ ] **TTS:** ENABLE_BITCODE = NO in build settings

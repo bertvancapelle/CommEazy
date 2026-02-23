@@ -69,9 +69,9 @@ Security practices:
 - [ ] IARC content rating completed
 - [ ] Data Safety Section complete
 - [ ] Privacy policy URL
-- [ ] Store listing in 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
+- [ ] Store listing in 13 languages (see CONSTANTS.md) (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 - [ ] Screenshots: Phone (16:9), 7" tablet, 10" tablet
-- [ ] Feature graphic (1024×500) in 12 languages
+- [ ] Feature graphic (1024×500) in 13 languages (see CONSTANTS.md)
 - [ ] Permissions declared with rationale in manifest
 - [ ] POST_NOTIFICATIONS permission (Android 13+)
 - [ ] No QUERY_ALL_PACKAGES unless justified
@@ -189,7 +189,7 @@ WorkManager.getInstance(context).enqueueUniquePeriodicWork("offline_sync", KEEP,
 
 - `res/values-nl/strings.xml`, `res/values-de/strings.xml`, etc.
 - Localize permission rationale dialogs
-- Play Store listing in 12 languages
+- Play Store listing in 13 languages (see CONSTANTS.md)
 
 ## Quality Checklist
 
@@ -204,7 +204,7 @@ WorkManager.getInstance(context).enqueueUniquePeriodicWork("offline_sync", KEEP,
 - [ ] WorkManager configured for background sync
 - [ ] Haptic feedback on all interactive elements
 - [ ] ProGuard/R8 rules correct (no stripped crypto classes)
-- [ ] Screenshots generated for phone + tablet × 12 languages
+- [ ] Screenshots generated for phone + tablet × 13 languages (see CONSTANTS.md)
 
 ## Collaboration
 

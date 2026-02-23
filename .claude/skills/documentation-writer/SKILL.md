@@ -2,7 +2,7 @@
 name: documentation-writer
 description: >
   Documentation specialist for CommEazy. Creates TSDoc API docs,
-  ADRs, user guides in 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR), privacy policies,
+  ADRs, user guides in 13 languages (see CONSTANTS.md) (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR), privacy policies,
   store listings, and senior-friendly help content.
 tools:
   - Read
@@ -19,18 +19,18 @@ model: sonnet
 
 - TSDoc for all public APIs
 - Architecture Decision Records (ADRs)
-- User guides in 12 languages (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
+- User guides in 13 languages (see CONSTANTS.md) (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 - In-app help text (translated, senior-friendly)
-- Privacy policy & terms (12 languages, URL accessible)
-- Store listings (12 languages)
+- Privacy policy & terms (13 languages (see CONSTANTS.md), URL accessible)
+- Store listings (13 languages (see CONSTANTS.md))
 - Code comments (WHY, not WHAT)
 
 ## Store Compliance — Documentation
 
-- [ ] Privacy Policy in 12 languages, accessible via URL
-- [ ] Terms of Service in 12 languages
-- [ ] App Store/Play Store descriptions in 12 languages
-- [ ] Release notes in 12 languages
+- [ ] Privacy Policy in 13 languages (see CONSTANTS.md), accessible via URL
+- [ ] Terms of Service in 13 languages (see CONSTANTS.md)
+- [ ] App Store/Play Store descriptions in 13 languages (see CONSTANTS.md)
+- [ ] Release notes in 13 languages (see CONSTANTS.md)
 - [ ] No misleading claims in store descriptions
 
 ## Senior Inclusive — User Guides
@@ -38,7 +38,7 @@ model: sonnet
 - Large text (16pt+ digital, 12pt+ print)
 - Step-by-step with screenshots, max 5 steps per task
 - Plain language, active voice, no jargon
-- Full guide in ALL 12 languages (not just primary)
+- Full guide in ALL 13 languages (see CONSTANTS.md) (not just primary)
 - Phone + email support contact in every guide
 
 ### Example: Een bericht sturen / Sending a message
@@ -127,7 +127,7 @@ Module-specifieke CSS regels voor WebView:
 - [Content restrictions]
 ```
 
-### Welcome Modal Teksten (10 talen)
+### Welcome Modal Teksten (13 talen (zie CONSTANTS.md))
 
 ```json
 // locales/nl.json
@@ -152,7 +152,7 @@ Module-specifieke CSS regels voor WebView:
 
 Bij elke nieuwe module, update de user guide met:
 
-1. **Screenshot van module scherm** (10 talen × 4 device sizes)
+1. **Screenshot van module scherm** (13 talen (zie CONSTANTS.md) × 4 device sizes)
 2. **Stapsgewijze instructies:**
    - Hoe de module te openen
    - Hoe artikelen te filteren (categorieën)
@@ -209,13 +209,13 @@ Accepted / Proposed / Deprecated
 ## Quality Checklist
 
 - [ ] All public APIs have TSDoc with examples
-- [ ] User guides complete in 12 languages
-- [ ] Privacy policy accessible via URL (12 languages)
-- [ ] Store descriptions in 12 languages
+- [ ] User guides complete in 13 languages (see CONSTANTS.md)
+- [ ] Privacy policy accessible via URL (13 languages (see CONSTANTS.md))
+- [ ] Store descriptions in 13 languages (see CONSTANTS.md)
 - [ ] ADR for every major decision
 - [ ] No outdated comments in code
 - [ ] Screenshots in guides match current UI
-- [ ] **News modules:** Welcome modal teksten in 10 talen
+- [ ] **News modules:** Welcome modal teksten in 13 talen (zie CONSTANTS.md)
 - [ ] **News modules:** User guide met screenshots
 - [ ] **News modules:** i18n keys voor alle module teksten
 - [ ] **News modules:** ADR voor module integratie beslissing

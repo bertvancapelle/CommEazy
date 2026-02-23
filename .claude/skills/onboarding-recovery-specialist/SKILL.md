@@ -249,14 +249,14 @@ function BackupPinSetup() {
 
 ## Quality Checklist
 
-- [ ] Language selection works (10 languages switch entire app)
+- [ ] Language selection works (13 languages (see CONSTANTS.md) switch entire app)
 - [ ] Phone verification completes (SMS + voice fallback)
 - [ ] Key pair generated automatically (user never sees)
 - [ ] Backup PIN setup with LARGE keypad (60pt cells)
 - [ ] Key backup encrypted (PBKDF2, 600k iterations)
 - [ ] Device migration flow tested end-to-end
 - [ ] Wrong PIN handling (3 attempts + lockout)
-- [ ] All onboarding text translated (12 languages)
+- [ ] All onboarding text translated (13 languages (see CONSTANTS.md))
 - [ ] Progress indicator visible ("Stap X van Y")
 - [ ] Back button available on every screen
 - [ ] No timeout during onboarding
@@ -270,4 +270,4 @@ function BackupPinSetup() {
 - **With accessibility-specialist**: Full onboarding flow a11y audit
 - **With ios-specialist + android-specialist**: SMS auto-fill, biometrics
 - **With testing-qa**: Senior testing of onboarding flow
-- **With documentation-writer**: "Getting started" guide in 10 languages
+- **With documentation-writer**: "Getting started" guide in 13 languages (see CONSTANTS.md)
