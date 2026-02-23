@@ -40,6 +40,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ContactAvatar, VoiceFocusable } from '@/components';
@@ -126,6 +127,7 @@ interface PickerModalProps {
 function PickerModal({ visible, title, options, selectedValue, onSelect, onClose }: PickerModalProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   return (
     <Modal
       visible={visible}
@@ -133,16 +135,16 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={pickerStyles.container}>
-        <View style={pickerStyles.header}>
-          <Text style={pickerStyles.title}>{title}</Text>
+      <View style={[pickerStyles.container, { backgroundColor: themeColors.background }]}>
+        <View style={[pickerStyles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[pickerStyles.title, { color: themeColors.textPrimary }]}>{title}</Text>
           <TouchableOpacity
             onPress={onClose}
             style={pickerStyles.closeButton}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
-            <Text style={pickerStyles.closeText}>✕</Text>
+            <Text style={[pickerStyles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
           </TouchableOpacity>
         </View>
         <ScrollView style={pickerStyles.optionsList}>
@@ -151,6 +153,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
               key={option.value}
               style={[
                 pickerStyles.option,
+                { borderBottomColor: themeColors.border },
                 selectedValue === option.value && { backgroundColor: accentColor.primaryLight + '20' },
               ]}
               onPress={() => {
@@ -164,6 +167,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
               <Text
                 style={[
                   pickerStyles.optionText,
+                  { color: themeColors.textPrimary },
                   selectedValue === option.value && { color: accentColor.primary, fontWeight: '600' },
                 ]}
               >
@@ -268,6 +272,7 @@ interface CityPickerModalProps {
 function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: CityPickerModalProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<WeatherLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -334,27 +339,27 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={cityPickerStyles.container}>
-        <View style={cityPickerStyles.header}>
-          <Text style={cityPickerStyles.title}>{t('demographics.selectCity')}</Text>
+      <View style={[cityPickerStyles.container, { backgroundColor: themeColors.background }]}>
+        <View style={[cityPickerStyles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[cityPickerStyles.title, { color: themeColors.textPrimary }]}>{t('demographics.selectCity')}</Text>
           <TouchableOpacity
             onPress={onClose}
             style={cityPickerStyles.closeButton}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
-            <Text style={cityPickerStyles.closeText}>✕</Text>
+            <Text style={[cityPickerStyles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
           </TouchableOpacity>
         </View>
 
         {/* Search input */}
-        <View style={cityPickerStyles.searchContainer}>
+        <View style={[cityPickerStyles.searchContainer, { borderBottomColor: themeColors.border }]}>
           <TextInput
-            style={cityPickerStyles.searchInput}
+            style={[cityPickerStyles.searchInput, { backgroundColor: themeColors.surface, borderColor: themeColors.border, color: themeColors.textPrimary }]}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder={t('demographics.citySearchPlaceholder')}
-            placeholderTextColor={colors.textTertiary}
+            placeholderTextColor={themeColors.textTertiary}
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
@@ -372,7 +377,7 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
         {/* Search hint */}
         {searchQuery.length === 0 && (
           <View style={cityPickerStyles.hintContainer}>
-            <Text style={cityPickerStyles.hintText}>
+            <Text style={[cityPickerStyles.hintText, { color: themeColors.textSecondary }]}>
               {t('demographics.citySearchHint')}
             </Text>
           </View>
@@ -381,7 +386,7 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
         {/* Search error */}
         {searchError && !isSearching && (
           <View style={cityPickerStyles.errorContainer}>
-            <Text style={cityPickerStyles.errorText}>{searchError}</Text>
+            <Text style={[cityPickerStyles.errorText, { color: themeColors.error }]}>{searchError}</Text>
           </View>
         )}
 
@@ -390,18 +395,18 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
           {searchResults.map((location) => (
             <TouchableOpacity
               key={location.id}
-              style={cityPickerStyles.resultItem}
+              style={[cityPickerStyles.resultItem, { borderBottomColor: themeColors.border }]}
               onPress={() => handleSelectCity(location)}
               accessibilityRole="button"
               accessibilityLabel={formatCityDisplay(location)}
             >
               <View style={cityPickerStyles.resultContent}>
-                <Text style={cityPickerStyles.cityName}>{location.name}</Text>
-                <Text style={cityPickerStyles.cityMeta}>
+                <Text style={[cityPickerStyles.cityName, { color: themeColors.textPrimary }]}>{location.name}</Text>
+                <Text style={[cityPickerStyles.cityMeta, { color: themeColors.textSecondary }]}>
                   {[location.admin1, location.country].filter(Boolean).join(', ')}
                 </Text>
               </View>
-              <Text style={cityPickerStyles.selectIcon}>›</Text>
+              <Text style={[cityPickerStyles.selectIcon, { color: themeColors.textTertiary }]}>›</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -518,6 +523,7 @@ export function ProfileSettingsScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
   const screenIsFocused = useIsFocused();
   const { isVoiceSessionActive } = useVoiceFocusContext();
@@ -986,9 +992,9 @@ export function ProfileSettingsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: themeColors.background }]}>
+        <ActivityIndicator size="large" color={accentColor.primary} />
+        <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -1018,7 +1024,7 @@ export function ProfileSettingsScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.keyboardAvoidingContainer}
+      style={[styles.keyboardAvoidingContainer, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
@@ -1030,7 +1036,7 @@ export function ProfileSettingsScreen() {
             (voiceScrollRef as React.MutableRefObject<ScrollView | null>).current = ref;
           }
         }}
-        style={styles.container}
+        style={[styles.container, { backgroundColor: themeColors.background }]}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
@@ -1051,9 +1057,9 @@ export function ProfileSettingsScreen() {
               photoUrl={photoUrl ?? undefined}
               size={120}
             />
-            <View style={styles.cameraIconContainer}>
+            <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary, borderColor: themeColors.background }]}>
               {savingPhoto ? (
-                <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                <ActivityIndicator size="small" color={themeColors.textOnPrimary} />
               ) : (
                 <Text style={styles.cameraIcon}>📷</Text>
               )}
@@ -1064,14 +1070,14 @@ export function ProfileSettingsScreen() {
 
       {/* Name section */}
       <View
-        style={styles.section}
+        style={[styles.section, { backgroundColor: themeColors.surface }]}
         onLayout={(e) => { fieldPositions.current.name = e.nativeEvent.layout.y; }}
       >
-        <Text style={styles.sectionTitle}>{t('onboarding.nameLabel')}</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.nameLabel')}</Text>
         {editingName ? (
           <View style={styles.editNameContainer}>
             <TextInput
-              style={[styles.nameInput, isNameEmpty && styles.inputError]}
+              style={[styles.nameInput, { borderColor: accentColor.primary, color: themeColors.textPrimary, backgroundColor: themeColors.background }, isNameEmpty && styles.inputError]}
               value={tempName}
               onChangeText={setTempName}
               autoFocus
@@ -1083,21 +1089,21 @@ export function ProfileSettingsScreen() {
               accessibilityHint={t('profile.enterYourName')}
             />
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, { backgroundColor: accentColor.primary }]}
               onPress={handleSaveName}
               disabled={saving}
               accessibilityRole="button"
               accessibilityLabel={saving ? t('common.saving') : t('common.done')}
               accessibilityState={{ disabled: saving }}
             >
-              <Text style={styles.saveButtonText}>
+              <Text style={[styles.saveButtonText, { color: themeColors.textOnPrimary }]}>
                 {saving ? t('common.saving') : t('common.done')}
               </Text>
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity
-            style={[styles.fieldRow, isNameEmpty && styles.fieldRowError]}
+            style={[styles.fieldRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isNameEmpty && styles.fieldRowError]}
             onPress={handleEditName}
             accessibilityRole="button"
             accessibilityHint={t('profile.tapToChange')}
@@ -1109,10 +1115,10 @@ export function ProfileSettingsScreen() {
       </View>
 
       {/* Language section - changes UI immediately */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('settings.language')}</Text>
         <TouchableOpacity
-          style={styles.fieldRow}
+          style={[styles.fieldRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={() => setLanguagePickerVisible(true)}
           accessibilityRole="button"
           accessibilityHint={t('profile.tapToChange')}
@@ -1122,31 +1128,31 @@ export function ProfileSettingsScreen() {
           </Text>
           <Text style={styles.editIcon}>✏️</Text>
         </TouchableOpacity>
-        <Text style={styles.fieldHint}>{t('profile.languageHint')}</Text>
+        <Text style={[styles.fieldHint, { color: themeColors.textTertiary }]}>{t('profile.languageHint')}</Text>
       </View>
 
       {/* Phone number (read-only) */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('onboarding.phoneLabel')}</Text>
-        <View style={styles.fieldRow}>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.phoneLabel')}</Text>
+        <View style={[styles.fieldRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
           <Text style={[styles.fieldValue, { color: accentColor.primary }]}>{profile?.phoneNumber || '—'}</Text>
           <Text style={styles.readOnlyIcon}>🔒</Text>
         </View>
-        <Text style={styles.fieldHint}>{t('profile.phoneReadOnly')}</Text>
+        <Text style={[styles.fieldHint, { color: themeColors.textTertiary }]}>{t('profile.phoneReadOnly')}</Text>
       </View>
 
       {/* Demographics section */}
       <View
         ref={demographicsSectionRef}
-        style={styles.section}
+        style={[styles.section, { backgroundColor: themeColors.surface }]}
         onLayout={(e) => { demographicsSectionY.current = e.nativeEvent.layout.y; }}
       >
-        <Text style={styles.sectionTitle}>{t('demographics.title')}</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('demographics.title')}</Text>
         {isFreeUser && (
-          <Text style={styles.sectionSubtitle}>{t('demographics.required')}</Text>
+          <Text style={[styles.sectionSubtitle, { color: themeColors.textTertiary }]}>{t('demographics.required')}</Text>
         )}
         {!isFreeUser && (
-          <Text style={styles.sectionSubtitle}>{t('demographics.premiumNote')}</Text>
+          <Text style={[styles.sectionSubtitle, { color: themeColors.textTertiary }]}>{t('demographics.premiumNote')}</Text>
         )}
 
         {/* Country */}
@@ -1154,14 +1160,14 @@ export function ProfileSettingsScreen() {
           style={styles.fieldContainer}
           onLayout={(e) => { fieldPositions.current.country = e.nativeEvent.layout.y; }}
         >
-          <Text style={styles.fieldLabel}>{t('demographics.countryLabel')}</Text>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.countryLabel')}</Text>
           <TouchableOpacity
-            style={[styles.pickerRow, isCountryEmpty && styles.pickerRowError]}
+            style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isCountryEmpty && styles.pickerRowError]}
             onPress={() => setCountryPickerVisible(true)}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.countryLabel')}
           >
-            <Text style={[styles.pickerValue, profile?.countryCode && { color: accentColor.primary }, !profile?.countryCode && styles.pickerPlaceholder]}>
+            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }, profile?.countryCode && { color: accentColor.primary }, !profile?.countryCode && { color: themeColors.textTertiary }]}>
               {profile?.countryCode
                 ? `${COUNTRY_FLAGS[profile.countryCode]} ${t(`demographics.countries.${profile.countryCode}`, profile.countryCode)}`
                 : t('demographics.selectCountry')}
@@ -1176,14 +1182,14 @@ export function ProfileSettingsScreen() {
             style={styles.fieldContainer}
             onLayout={(e) => { fieldPositions.current.region = e.nativeEvent.layout.y; }}
           >
-            <Text style={styles.fieldLabel}>{t('demographics.regionLabel')}</Text>
+            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.regionLabel')}</Text>
             <TouchableOpacity
-              style={[styles.pickerRow, isRegionEmpty && styles.pickerRowError]}
+              style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isRegionEmpty && styles.pickerRowError]}
               onPress={() => setRegionPickerVisible(true)}
               accessibilityRole="button"
               accessibilityLabel={t('demographics.regionLabel')}
             >
-              <Text style={[styles.pickerValue, profile?.regionCode && { color: accentColor.primary }, !profile?.regionCode && styles.pickerPlaceholder]}>
+              <Text style={[styles.pickerValue, { color: themeColors.textPrimary }, profile?.regionCode && { color: accentColor.primary }, !profile?.regionCode && { color: themeColors.textTertiary }]}>
                 {profile?.regionCode
                   ? t(`demographics.regions.${profile.regionCode}`, profile.regionCode)
                   : t('demographics.selectRegion')}
@@ -1198,14 +1204,14 @@ export function ProfileSettingsScreen() {
           style={styles.fieldContainer}
           onLayout={(e) => { fieldPositions.current.city = e.nativeEvent.layout.y; }}
         >
-          <Text style={styles.fieldLabel}>{t('demographics.cityLabel')}</Text>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.cityLabel')}</Text>
           <TouchableOpacity
-            style={[styles.pickerRow, isCityEmpty && styles.pickerRowError]}
+            style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isCityEmpty && styles.pickerRowError]}
             onPress={() => setCityPickerVisible(true)}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.cityLabel')}
           >
-            <Text style={[styles.pickerValue, cityInput && { color: accentColor.primary }, !cityInput && styles.pickerPlaceholder]}>
+            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }, cityInput && { color: accentColor.primary }, !cityInput && { color: themeColors.textTertiary }]}>
               {cityInput || t('demographics.selectCity')}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
@@ -1217,14 +1223,14 @@ export function ProfileSettingsScreen() {
           style={styles.fieldContainer}
           onLayout={(e) => { fieldPositions.current.age = e.nativeEvent.layout.y; }}
         >
-          <Text style={styles.fieldLabel}>{t('demographics.ageLabel')}</Text>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.ageLabel')}</Text>
           <TouchableOpacity
-            style={[styles.pickerRow, isAgeEmpty && styles.pickerRowError]}
+            style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isAgeEmpty && styles.pickerRowError]}
             onPress={() => setAgePickerVisible(true)}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.ageLabel')}
           >
-            <Text style={[styles.pickerValue, profile?.ageBracket && { color: accentColor.primary }, !profile?.ageBracket && styles.pickerPlaceholder]}>
+            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }, profile?.ageBracket && { color: accentColor.primary }, !profile?.ageBracket && { color: themeColors.textTertiary }]}>
               {profile?.ageBracket
                 ? t(`demographics.age.${profile.ageBracket.replace('-', '_').replace('+', '_plus')}`, profile.ageBracket)
                 : t('demographics.selectAge')}
@@ -1238,14 +1244,14 @@ export function ProfileSettingsScreen() {
           style={styles.fieldContainer}
           onLayout={(e) => { fieldPositions.current.gender = e.nativeEvent.layout.y; }}
         >
-          <Text style={styles.fieldLabel}>{t('demographics.genderLabel')}</Text>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.genderLabel')}</Text>
           <TouchableOpacity
-            style={[styles.pickerRow, isGenderEmpty && styles.pickerRowError]}
+            style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isGenderEmpty && styles.pickerRowError]}
             onPress={() => setGenderPickerVisible(true)}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.genderLabel')}
           >
-            <Text style={[styles.pickerValue, profile?.gender && { color: accentColor.primary }, !profile?.gender && styles.pickerPlaceholder]}>
+            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }, profile?.gender && { color: accentColor.primary }, !profile?.gender && { color: themeColors.textTertiary }]}>
               {profile?.gender
                 ? t(`demographics.gender.${profile.gender}`)
                 : t('demographics.selectGender')}
@@ -1255,8 +1261,8 @@ export function ProfileSettingsScreen() {
         </View>
 
         {missingDemographics && (
-          <View style={styles.warningBox}>
-            <Text style={styles.warningText}>
+          <View style={[styles.warningBox, { backgroundColor: themeColors.warning + '20' }]}>
+            <Text style={[styles.warningText, { color: themeColors.warning }]}>
               ⚠️ {t('demographics.required')}
             </Text>
           </View>
@@ -1265,14 +1271,14 @@ export function ProfileSettingsScreen() {
 
       {/* Dev mode: Show UUID */}
       {__DEV__ && profile?.userUuid && (
-        <View style={styles.devSection}>
-          <Text style={styles.devTitle}>🔧 Dev Info</Text>
-          <Text style={styles.devLabel}>UUID (stable):</Text>
-          <Text style={styles.devValue} selectable>{profile.userUuid}</Text>
-          <Text style={styles.devLabel}>JID:</Text>
-          <Text style={styles.devValue} selectable>{profile.jid}</Text>
-          <Text style={styles.devLabel}>Subscription:</Text>
-          <Text style={styles.devValue}>{profile.subscriptionTier}</Text>
+        <View style={[styles.devSection, { backgroundColor: themeColors.surface, borderColor: accentColor.primary }]}>
+          <Text style={[styles.devTitle, { color: accentColor.primary }]}>🔧 Dev Info</Text>
+          <Text style={[styles.devLabel, { color: themeColors.textSecondary }]}>UUID (stable):</Text>
+          <Text style={[styles.devValue, { color: themeColors.textPrimary }]} selectable>{profile.userUuid}</Text>
+          <Text style={[styles.devLabel, { color: themeColors.textSecondary }]}>JID:</Text>
+          <Text style={[styles.devValue, { color: themeColors.textPrimary }]} selectable>{profile.jid}</Text>
+          <Text style={[styles.devLabel, { color: themeColors.textSecondary }]}>Subscription:</Text>
+          <Text style={[styles.devValue, { color: themeColors.textPrimary }]}>{profile.subscriptionTier}</Text>
         </View>
       )}
 

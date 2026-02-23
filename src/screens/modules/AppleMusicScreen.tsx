@@ -52,6 +52,7 @@ import {
 } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useColors } from '@/contexts/ThemeContext';
 import {
   useAppleMusicContext,
   type AppleMusicSong,
@@ -94,6 +95,7 @@ export function AppleMusicScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
 
   // Apple Music Context
   const {
@@ -481,8 +483,8 @@ export function AppleMusicScreen() {
   const renderAuthRequired = () => (
     <View style={styles.centeredContainer}>
       <Icon name="appleMusic" size={80} color={APPLE_MUSIC_COLOR} />
-      <Text style={styles.authTitle}>{t('modules.appleMusic.authRequired.title')}</Text>
-      <Text style={styles.authDescription}>
+      <Text style={[styles.authTitle, { color: themeColors.textPrimary }]}>{t('modules.appleMusic.authRequired.title')}</Text>
+      <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.authRequired.description')}
       </Text>
       <TouchableOpacity
@@ -491,7 +493,7 @@ export function AppleMusicScreen() {
         accessibilityRole="button"
         accessibilityLabel={t('modules.appleMusic.authRequired.button')}
       >
-        <Text style={styles.authButtonText}>
+        <Text style={[styles.authButtonText, { color: themeColors.white }]}>
           {t('modules.appleMusic.authRequired.button')}
         </Text>
       </TouchableOpacity>
@@ -505,8 +507,8 @@ export function AppleMusicScreen() {
   const renderAndroidNotInstalled = () => (
     <View style={styles.centeredContainer}>
       <Icon name="appleMusic" size={80} color={APPLE_MUSIC_COLOR} />
-      <Text style={styles.authTitle}>{t('modules.appleMusic.android.notInstalled.title')}</Text>
-      <Text style={styles.authDescription}>
+      <Text style={[styles.authTitle, { color: themeColors.textPrimary }]}>{t('modules.appleMusic.android.notInstalled.title')}</Text>
+      <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.android.notInstalled.description')}
       </Text>
       <TouchableOpacity
@@ -515,8 +517,8 @@ export function AppleMusicScreen() {
         accessibilityRole="button"
         accessibilityLabel={t('modules.appleMusic.android.notInstalled.downloadButton')}
       >
-        <Icon name="external-link" size={20} color={colors.white} />
-        <Text style={styles.authButtonText}>
+        <Icon name="external-link" size={20} color={themeColors.white} />
+        <Text style={[styles.authButtonText, { color: themeColors.white }]}>
           {t('modules.appleMusic.android.notInstalled.downloadButton')}
         </Text>
       </TouchableOpacity>
@@ -530,8 +532,8 @@ export function AppleMusicScreen() {
   const renderAndroidInstalled = () => (
     <View style={styles.centeredContainer}>
       <Icon name="appleMusic" size={80} color={APPLE_MUSIC_COLOR} />
-      <Text style={styles.authTitle}>{t('modules.appleMusic.android.installed.title')}</Text>
-      <Text style={styles.authDescription}>
+      <Text style={[styles.authTitle, { color: themeColors.textPrimary }]}>{t('modules.appleMusic.android.installed.title')}</Text>
+      <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.android.installed.description')}
       </Text>
       <TouchableOpacity
@@ -540,8 +542,8 @@ export function AppleMusicScreen() {
         accessibilityRole="button"
         accessibilityLabel={t('modules.appleMusic.android.installed.openButton')}
       >
-        <Icon name="external-link" size={20} color={colors.white} />
-        <Text style={styles.authButtonText}>
+        <Icon name="external-link" size={20} color={themeColors.white} />
+        <Text style={[styles.authButtonText, { color: themeColors.white }]}>
           {t('modules.appleMusic.android.installed.openButton')}
         </Text>
       </TouchableOpacity>
@@ -566,16 +568,16 @@ export function AppleMusicScreen() {
       {isSearching && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={APPLE_MUSIC_COLOR} />
-          <Text style={styles.loadingText}>{t('common.loading')}</Text>
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
         </View>
       )}
 
       {searchError && (
-        <View style={styles.errorBanner}>
-          <Icon name="warning" size={24} color={colors.error} />
-          <Text style={styles.errorText}>{t('modules.appleMusic.search.error')}</Text>
+        <View style={[styles.errorBanner, { backgroundColor: themeColors.errorLight }]}>
+          <Icon name="warning" size={24} color={themeColors.error} />
+          <Text style={[styles.errorText, { color: themeColors.error }]}>{t('modules.appleMusic.search.error')}</Text>
           <TouchableOpacity onPress={clearSearch}>
-            <Text style={styles.errorDismiss}>{t('common.dismiss')}</Text>
+            <Text style={[styles.errorDismiss, { color: themeColors.error }]}>{t('common.dismiss')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -590,7 +592,7 @@ export function AppleMusicScreen() {
             { paddingBottom: bottomPadding + insets.bottom },
           ]}
         >
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
             {t('modules.appleMusic.search.songsTitle')}
           </Text>
           {searchResults?.songs?.map((song, index) => (
@@ -601,7 +603,7 @@ export function AppleMusicScreen() {
               index={index}
               onSelect={() => handlePlaySong(song)}
             >
-              <View style={styles.songItem}>
+              <View style={[styles.songItem, { backgroundColor: themeColors.surface }]}>
                 {/* Tappable area: artwork + text info */}
                 <TouchableOpacity
                   style={styles.songTappableArea}
@@ -617,15 +619,15 @@ export function AppleMusicScreen() {
                       style={styles.songArtwork}
                     />
                   ) : (
-                    <View style={[styles.songArtwork, styles.songArtworkPlaceholder]}>
-                      <Icon name="appleMusic" size={24} color={colors.textSecondary} />
+                    <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                      <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
                     </View>
                   )}
                   <View style={styles.songInfo}>
-                    <Text style={styles.songTitle} numberOfLines={1}>
+                    <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
                       {song.title}
                     </Text>
-                    <Text style={styles.songArtist} numberOfLines={1}>
+                    <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
                       {song.artistName}
                     </Text>
                   </View>
@@ -645,8 +647,8 @@ export function AppleMusicScreen() {
 
       {!isSearching && !searchResults?.songs?.length && searchQuery && (
         <View style={styles.emptyState}>
-          <Icon name="search" size={48} color={colors.textSecondary} />
-          <Text style={styles.emptyStateText}>
+          <Icon name="search" size={48} color={themeColors.textSecondary} />
+          <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
             {t('modules.appleMusic.search.noResults')}
           </Text>
         </View>
@@ -661,8 +663,8 @@ export function AppleMusicScreen() {
   const renderLibraryTab = () => (
     <View style={styles.tabContent}>
       <View style={styles.emptyState}>
-        <Icon name="appleMusic" size={48} color={colors.textSecondary} />
-        <Text style={styles.emptyStateText}>
+        <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
+        <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
           {t('modules.appleMusic.library.comingSoon')}
         </Text>
       </View>
@@ -676,8 +678,8 @@ export function AppleMusicScreen() {
   const renderPlaylistsTab = () => (
     <View style={styles.tabContent}>
       <View style={styles.emptyState}>
-        <Icon name="list" size={48} color={colors.textSecondary} />
-        <Text style={styles.emptyStateText}>
+        <Icon name="list" size={48} color={themeColors.textSecondary} />
+        <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
           {t('modules.appleMusic.playlists.comingSoon')}
         </Text>
       </View>
@@ -697,7 +699,7 @@ export function AppleMusicScreen() {
     return (
       <View style={styles.mainContent}>
         {/* Tab Bar */}
-        <View style={styles.tabBar}>
+        <View style={[styles.tabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
           <TouchableOpacity
             style={[styles.tab, activeTab === 'search' && styles.tabActive]}
             onPress={() => setActiveTab('search')}
@@ -707,11 +709,12 @@ export function AppleMusicScreen() {
             <Icon
               name="search"
               size={20}
-              color={activeTab === 'search' ? APPLE_MUSIC_COLOR : colors.textSecondary}
+              color={activeTab === 'search' ? APPLE_MUSIC_COLOR : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.tabText,
+                { color: themeColors.textSecondary },
                 activeTab === 'search' && { color: APPLE_MUSIC_COLOR },
               ]}
             >
@@ -728,11 +731,12 @@ export function AppleMusicScreen() {
             <Icon
               name="appleMusic"
               size={20}
-              color={activeTab === 'library' ? APPLE_MUSIC_COLOR : colors.textSecondary}
+              color={activeTab === 'library' ? APPLE_MUSIC_COLOR : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.tabText,
+                { color: themeColors.textSecondary },
                 activeTab === 'library' && { color: APPLE_MUSIC_COLOR },
               ]}
             >
@@ -749,11 +753,12 @@ export function AppleMusicScreen() {
             <Icon
               name="list"
               size={20}
-              color={activeTab === 'playlists' ? APPLE_MUSIC_COLOR : colors.textSecondary}
+              color={activeTab === 'playlists' ? APPLE_MUSIC_COLOR : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.tabText,
+                { color: themeColors.textSecondary },
                 activeTab === 'playlists' && { color: APPLE_MUSIC_COLOR },
               ]}
             >
@@ -796,7 +801,7 @@ export function AppleMusicScreen() {
       : spacing.md;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleHeader
         moduleId="appleMusic"
         icon="appleMusic"

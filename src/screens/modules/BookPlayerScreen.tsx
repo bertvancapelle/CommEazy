@@ -43,6 +43,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, IconButton, VoiceFocusable, SeekSlider, MiniPlayer, ModuleHeader } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useColors } from '@/contexts/ThemeContext';
 import {
   useBooksContext,
   useBooksAudioPlayer,
@@ -91,6 +92,7 @@ export function BookPlayerScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const holdGesture = useHoldGestureContextSafe();
+  const themeColors = useColors();
 
   // Accent color for this module
   const accentColor = {
@@ -278,7 +280,7 @@ export function BookPlayerScreen() {
     : insets.bottom;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* ============================================================
           CONTENT LAYER — Extends full height under overlays
           Content scrolls UNDER the ModuleHeader and MiniPlayer

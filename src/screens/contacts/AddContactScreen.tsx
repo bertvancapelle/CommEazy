@@ -27,6 +27,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
@@ -48,6 +49,7 @@ export function AddContactScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
 
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -121,7 +123,7 @@ export function AddContactScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -131,11 +133,11 @@ export function AddContactScreen() {
       >
         {/* Name input */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>{t('contacts.nameLabel')}</Text>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.nameLabel')}</Text>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
             placeholder={t('contacts.namePlaceholder')}
-            placeholderTextColor={colors.textTertiary}
+            placeholderTextColor={themeColors.textTertiary}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -148,25 +150,25 @@ export function AddContactScreen() {
 
         {/* Phone number input */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>{t('contacts.phoneLabel')}</Text>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.phoneLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
             <TouchableOpacity
-              style={styles.countryCodeButton}
+              style={[styles.countryCodeButton, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}
               onPress={toggleCountryCodes}
               accessibilityRole="button"
               accessibilityLabel={t('accessibility.countryCode')}
               accessibilityHint={t('accessibility.selectCountryCode')}
             >
-              <Text style={styles.countryCodeText}>{countryCode}</Text>
-              <Text style={styles.dropdownIcon}>▼</Text>
+              <Text style={[styles.countryCodeText, { color: themeColors.textPrimary }]}>{countryCode}</Text>
+              <Text style={[styles.dropdownIcon, { color: themeColors.textSecondary }]}>▼</Text>
             </TouchableOpacity>
 
             {/* Phone number */}
             <TextInput
-              style={styles.phoneInput}
+              style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
               placeholder={t('contacts.phonePlaceholder')}
-              placeholderTextColor={colors.textTertiary}
+              placeholderTextColor={themeColors.textTertiary}
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"
@@ -178,16 +180,16 @@ export function AddContactScreen() {
 
           {/* Country code dropdown */}
           {showCountryCodes && (
-            <View style={styles.countryCodeDropdown}>
+            <View style={[styles.countryCodeDropdown, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
               {COUNTRY_CODES.map((item) => (
                 <TouchableOpacity
                   key={item.code}
-                  style={styles.countryCodeOption}
+                  style={[styles.countryCodeOption, { borderBottomColor: themeColors.divider }]}
                   onPress={() => selectCountryCode(item.code)}
                   accessibilityRole="button"
                   accessibilityLabel={`${item.country} ${item.code}`}
                 >
-                  <Text style={styles.countryCodeOptionText}>
+                  <Text style={[styles.countryCodeOptionText, { color: themeColors.textPrimary }]}>
                     {item.country} {item.code}
                   </Text>
                 </TouchableOpacity>
@@ -197,13 +199,13 @@ export function AddContactScreen() {
         </View>
 
         {/* Hint text */}
-        <Text style={styles.hintText}>{t('contacts.addHint')}</Text>
+        <Text style={[styles.hintText, { color: themeColors.textSecondary }]}>{t('contacts.addHint')}</Text>
 
         {/* Save button */}
         <TouchableOpacity
           style={[
             styles.saveButton,
-            !canSave && styles.saveButtonDisabled,
+            { backgroundColor: canSave ? themeColors.primary : themeColors.disabled },
           ]}
           onPress={() => void handleSave()}
           disabled={!canSave || saving}
@@ -215,7 +217,7 @@ export function AddContactScreen() {
           <Text
             style={[
               styles.saveButtonText,
-              !canSave && styles.saveButtonTextDisabled,
+              { color: canSave ? themeColors.textOnPrimary : themeColors.textTertiary },
             ]}
           >
             {saving ? t('common.saving') : t('contacts.save')}
@@ -224,14 +226,14 @@ export function AddContactScreen() {
 
         {/* QR alternative */}
         <View style={styles.alternativeContainer}>
-          <Text style={styles.alternativeText}>{t('contacts.orScanQR')}</Text>
+          <Text style={[styles.alternativeText, { color: themeColors.textSecondary }]}>{t('contacts.orScanQR')}</Text>
           <TouchableOpacity
-            style={styles.scanButton}
+            style={[styles.scanButton, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.primary }]}
             onPress={() => navigation.navigate('QRScanner')}
             accessibilityRole="button"
             accessibilityLabel={t('contacts.scanQR')}
           >
-            <Text style={styles.scanButtonText}>{t('contacts.scanQR')}</Text>
+            <Text style={[styles.scanButtonText, { color: themeColors.primary }]}>{t('contacts.scanQR')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

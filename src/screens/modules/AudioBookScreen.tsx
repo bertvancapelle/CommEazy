@@ -10,12 +10,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/theme';
 import { ModuleHeader } from '@/components';
+import { useColors } from '@/contexts/ThemeContext';
 
 export function AudioBookScreen() {
   const { t } = useTranslation();
+  const themeColors = useColors();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header — standardized component with AdMob placeholder */}
       <ModuleHeader
         moduleId="audiobook"
@@ -27,18 +29,18 @@ export function AudioBookScreen() {
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           {/* Headphones icon */}
-          <View style={styles.headphonesBand} />
-          <View style={styles.headphonesLeft} />
-          <View style={styles.headphonesRight} />
+          <View style={[styles.headphonesBand, { borderColor: themeColors.textOnPrimary }]} />
+          <View style={[styles.headphonesLeft, { backgroundColor: themeColors.textOnPrimary }]} />
+          <View style={[styles.headphonesRight, { backgroundColor: themeColors.textOnPrimary }]} />
         </View>
 
-        <Text style={styles.title}>{t('navigation.audiobook')}</Text>
-        <Text style={styles.subtitle}>{t('modules.coming_soon')}</Text>
+        <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('navigation.audiobook')}</Text>
+        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('modules.coming_soon')}</Text>
 
-        <View style={styles.featureList}>
-          <Text style={styles.featureItem}>• {t('modules.audiobook.feature1')}</Text>
-          <Text style={styles.featureItem}>• {t('modules.audiobook.feature2')}</Text>
-          <Text style={styles.featureItem}>• {t('modules.audiobook.feature3')}</Text>
+        <View style={[styles.featureList, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.featureItem, { color: themeColors.textPrimary }]}>• {t('modules.audiobook.feature1')}</Text>
+          <Text style={[styles.featureItem, { color: themeColors.textPrimary }]}>• {t('modules.audiobook.feature2')}</Text>
+          <Text style={[styles.featureItem, { color: themeColors.textPrimary }]}>• {t('modules.audiobook.feature3')}</Text>
         </View>
       </View>
     </View>

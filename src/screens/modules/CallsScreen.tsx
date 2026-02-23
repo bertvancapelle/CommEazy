@@ -36,6 +36,7 @@ import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
+import { useColors } from '@/contexts/ThemeContext';
 import type { Contact, PresenceShow, CallType } from '@/services/interfaces';
 import type { RootStackParams } from '@/navigation';
 
@@ -46,6 +47,7 @@ type CallsNavigationProp = NativeStackNavigationProp<RootStackParams>;
 
 export function CallsScreen() {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const navigation = useNavigation<CallsNavigationProp>();
   const { triggerFeedback } = useFeedback();
   const { initiateCall, activeCall } = useCall();
@@ -188,15 +190,15 @@ export function CallsScreen() {
     switch (presence) {
       case 'chat':
       case undefined: // Default to available if not specified
-        return { color: colors.presenceAvailable, icon: 'checkmark-circle', label: t('presence.available') };
+        return { color: themeColors.presenceAvailable, icon: 'checkmark-circle', label: t('presence.available') };
       case 'away':
-        return { color: colors.presenceAway, icon: 'time', label: t('presence.away') };
+        return { color: themeColors.presenceAway, icon: 'time', label: t('presence.away') };
       case 'xa':
-        return { color: colors.presenceXa, icon: 'close-circle', label: t('presence.xa') };
+        return { color: themeColors.presenceXa, icon: 'close-circle', label: t('presence.xa') };
       case 'dnd':
-        return { color: colors.presenceDnd, icon: 'remove-circle', label: t('presence.dnd') };
+        return { color: themeColors.presenceDnd, icon: 'remove-circle', label: t('presence.dnd') };
       default:
-        return { color: colors.presenceOffline, icon: 'ellipse-outline', label: t('presence.offline') };
+        return { color: themeColors.presenceOffline, icon: 'ellipse-outline', label: t('presence.offline') };
     }
   };
 
@@ -214,7 +216,7 @@ export function CallsScreen() {
           index={index}
           onSelect={() => handleVoiceCall(contact)}
         >
-          <View style={styles.contactItem}>
+          <View style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
             {/* Avatar with presence indicator */}
             <View style={styles.avatarContainer}>
               <ContactAvatar
@@ -226,7 +228,7 @@ export function CallsScreen() {
               <View
                 style={[
                   styles.presenceDot,
-                  { backgroundColor: presenceInfo.color },
+                  { backgroundColor: presenceInfo.color, borderColor: themeColors.surface },
                 ]}
                 accessibilityLabel={presenceInfo.label}
               />
@@ -235,7 +237,7 @@ export function CallsScreen() {
             {/* Name and status */}
             <View style={styles.contactInfo}>
               <Text
-                style={styles.contactName}
+                style={[styles.contactName, { color: themeColors.textPrimary }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
@@ -257,7 +259,7 @@ export function CallsScreen() {
             <View style={styles.callButtons}>
               {/* Voice call button */}
               <TouchableOpacity
-                style={[styles.callButton, styles.voiceCallButton]}
+                style={[styles.callButton, { backgroundColor: themeColors.success }]}
                 onPress={() => handleVoiceCall(contact)}
                 onLongPress={() => {}} // Prevent double-action
                 delayLongPress={300}
@@ -266,7 +268,7 @@ export function CallsScreen() {
                 accessibilityLabel={t('modules.calls.voiceCallLabel', { name: contact.name })}
                 accessibilityHint={t('modules.calls.voiceCallHint')}
               >
-                <Icon name="call" size={24} color={colors.textOnPrimary} />
+                <Icon name="call" size={24} color={themeColors.textOnPrimary} />
               </TouchableOpacity>
 
               {/* Video call button */}
@@ -280,27 +282,27 @@ export function CallsScreen() {
                 accessibilityLabel={t('modules.calls.videoCallLabel', { name: contact.name })}
                 accessibilityHint={t('modules.calls.videoCallHint')}
               >
-                <Icon name="videocam" size={24} color={colors.textOnPrimary} />
+                <Icon name="videocam" size={24} color={themeColors.textOnPrimary} />
               </TouchableOpacity>
             </View>
           </View>
         </VoiceFocusable>
       );
     },
-    [handleVoiceCall, handleVideoCall, t]
+    [handleVoiceCall, handleVideoCall, t, themeColors]
   );
 
   const renderEmptyList = useCallback(
     () => (
       <View style={styles.emptyContainer}>
-        <View style={styles.emptyIconContainer}>
-          <Icon name="contacts" size={64} color={colors.textTertiary} />
+        <View style={[styles.emptyIconContainer, { backgroundColor: themeColors.backgroundSecondary }]}>
+          <Icon name="contacts" size={64} color={themeColors.textTertiary} />
         </View>
-        <Text style={styles.emptyTitle}>{t('modules.calls.noContacts')}</Text>
-        <Text style={styles.emptySubtitle}>{t('modules.calls.noContactsHint')}</Text>
+        <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('modules.calls.noContacts')}</Text>
+        <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>{t('modules.calls.noContactsHint')}</Text>
       </View>
     ),
-    [t]
+    [t, themeColors]
   );
 
   if (loading) {
@@ -308,7 +310,7 @@ export function CallsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header */}
       <ModuleHeader
         moduleId="calls"
@@ -318,7 +320,7 @@ export function CallsScreen() {
       />
 
       {/* Search bar */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: themeColors.background, borderBottomColor: themeColors.divider }]}>
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}

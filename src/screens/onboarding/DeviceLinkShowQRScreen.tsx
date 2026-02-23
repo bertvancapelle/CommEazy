@@ -18,6 +18,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, typography, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button } from '@/components';
 import type { SettingsStackParams } from '@/navigation';
 import { deviceLinkService } from '@/services/deviceLink';
@@ -28,6 +29,7 @@ const SESSION_DURATION_SECONDS = 300; // 5 minutes
 
 export function DeviceLinkShowQRScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const [qrData, setQrData] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,10 +99,10 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>{t('deviceLink.generatingQR')}</Text>
+          <ActivityIndicator size="large" color={themeColors.primary} />
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('deviceLink.generatingQR')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -108,10 +110,10 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>!</Text>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={[styles.errorIcon, { color: themeColors.error }]}>!</Text>
+          <Text style={[styles.errorText, { color: themeColors.error }]}>{error}</Text>
           <Button
             title={t('errors.tryAgain')}
             onPress={generateQR}
@@ -124,11 +126,11 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
 
   if (timeRemaining <= 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={styles.expiredContainer}>
           <Text style={styles.expiredIcon}>⏱</Text>
-          <Text style={styles.expiredTitle}>{t('deviceLink.qrExpired')}</Text>
-          <Text style={styles.expiredText}>{t('deviceLink.qrExpiredMessage')}</Text>
+          <Text style={[styles.expiredTitle, { color: themeColors.textPrimary }]}>{t('deviceLink.qrExpired')}</Text>
+          <Text style={[styles.expiredText, { color: themeColors.textSecondary }]}>{t('deviceLink.qrExpiredMessage')}</Text>
           <Button
             title={t('deviceLink.generateNew')}
             onPress={handleRefresh}
@@ -140,17 +142,17 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>{t('deviceLink.showQRTitle')}</Text>
-        <Text style={styles.subtitle}>{t('deviceLink.showQRSubtitle')}</Text>
+        <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('deviceLink.showQRTitle')}</Text>
+        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('deviceLink.showQRSubtitle')}</Text>
 
         {/* QR Code Display */}
-        <View style={styles.qrContainer}>
+        <View style={[styles.qrContainer, { backgroundColor: colors.white }]}>
           {/* In production: use react-native-qrcode-svg or similar */}
-          <View style={styles.qrPlaceholder}>
-            <Text style={styles.qrPlaceholderText}>QR</Text>
-            <Text style={styles.qrPlaceholderSubtext}>
+          <View style={[styles.qrPlaceholder, { backgroundColor: themeColors.surface }]}>
+            <Text style={[styles.qrPlaceholderText, { color: themeColors.textTertiary }]}>QR</Text>
+            <Text style={[styles.qrPlaceholderSubtext, { color: themeColors.textTertiary }]}>
               {t('deviceLink.qrPlaceholder')}
             </Text>
           </View>
@@ -158,10 +160,11 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
 
         {/* Timer */}
         <View style={styles.timerContainer}>
-          <Text style={styles.timerLabel}>{t('deviceLink.validFor')}</Text>
+          <Text style={[styles.timerLabel, { color: themeColors.textSecondary }]}>{t('deviceLink.validFor')}</Text>
           <Text style={[
             styles.timerValue,
-            timeRemaining < 60 && styles.timerWarning,
+            { color: themeColors.textPrimary },
+            timeRemaining < 60 && { color: themeColors.error },
           ]}>
             {formatTime(timeRemaining)}
           </Text>
@@ -169,20 +172,20 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
 
         {/* Status */}
         {linkStatus === 'connected' && (
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>{t('deviceLink.deviceConnected')}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: themeColors.successLight }]}>
+            <Text style={[styles.statusText, { color: themeColors.success }]}>{t('deviceLink.deviceConnected')}</Text>
           </View>
         )}
 
         {/* Instructions */}
-        <View style={styles.instructions}>
-          <Text style={styles.instructionStep}>
+        <View style={[styles.instructions, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.instructionStep, { color: themeColors.textSecondary }]}>
             1. {t('deviceLink.step1')}
           </Text>
-          <Text style={styles.instructionStep}>
+          <Text style={[styles.instructionStep, { color: themeColors.textSecondary }]}>
             2. {t('deviceLink.step2')}
           </Text>
-          <Text style={styles.instructionStep}>
+          <Text style={[styles.instructionStep, { color: themeColors.textSecondary }]}>
             3. {t('deviceLink.step3')}
           </Text>
         </View>
@@ -202,7 +205,6 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -212,37 +214,31 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.textPrimary,
     textAlign: 'center',
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
   },
   qrContainer: {
     padding: spacing.lg,
-    backgroundColor: colors.white,
     borderRadius: 16,
     marginBottom: spacing.lg,
   },
   qrPlaceholder: {
     width: 200,
     height: 200,
-    backgroundColor: colors.surface,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   qrPlaceholderText: {
     ...typography.h1,
-    color: colors.textTertiary,
   },
   qrPlaceholderSubtext: {
     ...typography.caption,
-    color: colors.textTertiary,
     marginTop: spacing.sm,
     textAlign: 'center',
     paddingHorizontal: spacing.md,
@@ -255,17 +251,11 @@ const styles = StyleSheet.create({
   },
   timerLabel: {
     ...typography.body,
-    color: colors.textSecondary,
   },
   timerValue: {
     ...typography.h3,
-    color: colors.textPrimary,
-  },
-  timerWarning: {
-    color: colors.error,
   },
   statusBadge: {
-    backgroundColor: colors.successLight,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: 8,
@@ -273,18 +263,15 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...typography.bodyBold,
-    color: colors.success,
   },
   instructions: {
     alignSelf: 'stretch',
-    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: spacing.lg,
     gap: spacing.md,
   },
   instructionStep: {
     ...typography.body,
-    color: colors.textSecondary,
   },
   loadingContainer: {
     flex: 1,
@@ -293,7 +280,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.body,
-    color: colors.textSecondary,
     marginTop: spacing.lg,
   },
   errorContainer: {
@@ -304,12 +290,10 @@ const styles = StyleSheet.create({
   },
   errorIcon: {
     fontSize: 64,
-    color: colors.error,
     fontWeight: 'bold',
   },
   errorText: {
     ...typography.body,
-    color: colors.error,
     textAlign: 'center',
     marginTop: spacing.lg,
   },
@@ -324,12 +308,10 @@ const styles = StyleSheet.create({
   },
   expiredTitle: {
     ...typography.h3,
-    color: colors.textPrimary,
     marginTop: spacing.lg,
   },
   expiredText: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },

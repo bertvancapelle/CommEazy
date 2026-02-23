@@ -29,6 +29,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { ContactAvatar, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
@@ -45,6 +46,7 @@ export function ContactDetailScreen() {
   const { initiateCall, isInCall } = useCall();
   const route = useRoute<ContactDetailRouteProp>();
   const { jid } = route.params;
+  const themeColors = useColors();
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,30 +199,30 @@ export function ContactDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: themeColors.background }]}>
+        <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
       </View>
     );
   }
 
   if (!contact) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{t('contacts.notFound')}</Text>
+      <View style={[styles.errorContainer, { backgroundColor: themeColors.background }]}>
+        <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>{t('contacts.notFound')}</Text>
         <TouchableOpacity
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: themeColors.primary }]}
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
           accessibilityLabel={t('accessibility.backButton')}
         >
-          <Text style={styles.backButtonText}>{t('common.goBack')}</Text>
+          <Text style={[styles.backButtonText, { color: themeColors.textOnPrimary }]}>{t('common.goBack')}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Profile header with large photo */}
       <View style={styles.profileHeader}>
         <ContactAvatar
@@ -228,7 +230,7 @@ export function ContactDetailScreen() {
           photoUrl={contact.photoUrl}
           size={120}
         />
-        <Text style={styles.contactName}>{contact.name}</Text>
+        <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{contact.name}</Text>
 
         {/* Verification badge - compact */}
         <View
@@ -240,22 +242,22 @@ export function ContactDetailScreen() {
             contact.verified ? t('contacts.verified') : t('contacts.notVerified')
           }
         >
-          <Text style={styles.verificationIcon}>
+          <Text style={[styles.verificationIcon, { color: themeColors.textOnPrimary }]}>
             {contact.verified ? '✓' : '!'}
           </Text>
-          <Text style={styles.verificationText}>
+          <Text style={[styles.verificationText, { color: themeColors.textOnPrimary }]}>
             {contact.verified ? t('contacts.verified') : t('contacts.notVerified')}
           </Text>
         </View>
       </View>
 
       {/* Contact details section */}
-      <View style={styles.detailsSection}>
-        <Text style={styles.sectionTitle}>{t('contacts.details')}</Text>
+      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.details')}</Text>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t('contacts.phoneLabel')}</Text>
-          <Text style={styles.detailValue}>{contact.phoneNumber}</Text>
+          <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
+          <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.phoneNumber}</Text>
         </View>
       </View>
 
@@ -263,15 +265,15 @@ export function ContactDetailScreen() {
       <View style={styles.actionsContainer}>
         {/* Primary: Chat button */}
         <TouchableOpacity
-          style={[styles.actionButton, styles.primaryButton]}
+          style={[styles.actionButton, styles.primaryButton, { backgroundColor: themeColors.primary }]}
           onPress={handleStartChat}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('contacts.startChat')}
           accessibilityHint={t('accessibility.startChatHint', { name: contact.name })}
         >
-          <Icon name="chatbubble" size={24} color={colors.textOnPrimary} />
-          <Text style={styles.primaryButtonText}>{t('contacts.startChat')}</Text>
+          <Icon name="chatbubble" size={24} color={themeColors.textOnPrimary} />
+          <Text style={[styles.primaryButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.startChat')}</Text>
         </TouchableOpacity>
 
         {/* Call buttons row: Voice + Video side by side */}
@@ -287,8 +289,8 @@ export function ContactDetailScreen() {
             accessibilityHint={t('accessibility.voiceCallHint', { name: contact.name })}
             accessibilityState={{ disabled: isInCall }}
           >
-            <Icon name="call" size={28} color={colors.textOnPrimary} />
-            <Text style={styles.callButtonText}>{t('contacts.voiceCall')}</Text>
+            <Icon name="call" size={28} color={themeColors.textOnPrimary} />
+            <Text style={[styles.callButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.voiceCall')}</Text>
           </TouchableOpacity>
 
           {/* Video call button */}
@@ -302,8 +304,8 @@ export function ContactDetailScreen() {
             accessibilityHint={t('accessibility.videoCallHint', { name: contact.name })}
             accessibilityState={{ disabled: isInCall }}
           >
-            <Icon name="videocam" size={28} color={colors.textOnPrimary} />
-            <Text style={styles.callButtonText}>{t('contacts.videoCall')}</Text>
+            <Icon name="videocam" size={28} color={themeColors.textOnPrimary} />
+            <Text style={[styles.callButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.videoCall')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -316,20 +318,20 @@ export function ContactDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('contacts.verify')}
           >
-            <Text style={styles.warningButtonText}>{t('contacts.verify')}</Text>
+            <Text style={[styles.warningButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.verify')}</Text>
           </TouchableOpacity>
         )}
 
         {/* Delete button - at bottom, less prominent */}
         <TouchableOpacity
-          style={[styles.actionButton, styles.dangerButton]}
+          style={[styles.actionButton, styles.dangerButton, { backgroundColor: themeColors.background, borderColor: themeColors.error }]}
           onPress={handleDelete}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('contacts.delete')}
           accessibilityHint={t('accessibility.deleteContactHint', { name: contact.name })}
         >
-          <Text style={styles.dangerButtonText}>{t('contacts.delete')}</Text>
+          <Text style={[styles.dangerButtonText, { color: themeColors.error }]}>{t('contacts.delete')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

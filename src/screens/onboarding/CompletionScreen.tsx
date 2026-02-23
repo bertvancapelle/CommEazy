@@ -16,7 +16,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { CommonActions } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, typography, spacing } from '@/theme';
+import { typography, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button, ProgressIndicator } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
 
@@ -24,6 +25,7 @@ type Props = NativeStackScreenProps<OnboardingStackParams, 'Completion'>;
 
 export function CompletionScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const { name } = route.params;
 
   useEffect(() => {
@@ -42,22 +44,22 @@ export function CompletionScreen({ route, navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ProgressIndicator currentStep={6} totalSteps={6} />
 
       <View style={styles.content}>
         <View style={styles.celebration}>
           <Text style={styles.emoji}>🎉</Text>
-          <Text style={styles.title}>{t('onboarding.allSet')}</Text>
-          <Text style={styles.message}>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('onboarding.allSet')}</Text>
+          <Text style={[styles.message, { color: themeColors.primary }]}>
             {t('onboarding.welcomeUser', { name })}
           </Text>
-          <Text style={styles.subtitle}>{t('onboarding.allSetMessage')}</Text>
+          <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('onboarding.allSetMessage')}</Text>
         </View>
 
-        <View style={styles.tipBox}>
+        <View style={[styles.tipBox, { backgroundColor: themeColors.backgroundSecondary }]}>
           <Text style={styles.tipIcon}>💡</Text>
-          <Text style={styles.tipText}>{t('onboarding.firstTip')}</Text>
+          <Text style={[styles.tipText, { color: themeColors.textPrimary }]}>{t('onboarding.firstTip')}</Text>
         </View>
       </View>
 
@@ -75,7 +77,6 @@ export function CompletionScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -92,23 +93,19 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h1,
-    color: colors.textPrimary,
     textAlign: 'center',
   },
   message: {
     ...typography.h3,
-    color: colors.primary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.md,
   },
   tipBox: {
-    backgroundColor: colors.backgroundSecondary,
     borderRadius: 16,
     padding: spacing.lg,
     flexDirection: 'row',
@@ -120,7 +117,6 @@ const styles = StyleSheet.create({
   },
   tipText: {
     ...typography.body,
-    color: colors.textPrimary,
     flex: 1,
   },
   footer: {

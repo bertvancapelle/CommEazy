@@ -10,12 +10,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/theme';
 import { ModuleHeader } from '@/components';
+import { useColors } from '@/contexts/ThemeContext';
 
 export function EBookScreen() {
   const { t } = useTranslation();
+  const themeColors = useColors();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header — standardized component with AdMob placeholder */}
       <ModuleHeader
         moduleId="ebook"
@@ -27,18 +29,18 @@ export function EBookScreen() {
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           {/* Book icon */}
-          <View style={styles.bookLeft} />
-          <View style={styles.bookRight} />
-          <View style={styles.bookSpine} />
+          <View style={[styles.bookLeft, { backgroundColor: themeColors.textOnPrimary }]} />
+          <View style={[styles.bookRight, { backgroundColor: themeColors.textOnPrimary }]} />
+          <View style={[styles.bookSpine, { backgroundColor: themeColors.textOnPrimary }]} />
         </View>
 
-        <Text style={styles.title}>{t('navigation.ebook')}</Text>
-        <Text style={styles.subtitle}>{t('modules.coming_soon')}</Text>
+        <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('navigation.ebook')}</Text>
+        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('modules.coming_soon')}</Text>
 
-        <View style={styles.featureList}>
-          <Text style={styles.featureItem}>• {t('modules.ebook.feature1')}</Text>
-          <Text style={styles.featureItem}>• {t('modules.ebook.feature2')}</Text>
-          <Text style={styles.featureItem}>• {t('modules.ebook.feature3')}</Text>
+        <View style={[styles.featureList, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.featureItem, { color: themeColors.textPrimary }]}>• {t('modules.ebook.feature1')}</Text>
+          <Text style={[styles.featureItem, { color: themeColors.textPrimary }]}>• {t('modules.ebook.feature2')}</Text>
+          <Text style={[styles.featureItem, { color: themeColors.textPrimary }]}>• {t('modules.ebook.feature3')}</Text>
         </View>
       </View>
     </View>

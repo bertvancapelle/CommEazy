@@ -20,7 +20,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, typography, spacing } from '@/theme';
+import { typography, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
 import {
@@ -34,6 +35,7 @@ type ScanState = 'scanning' | 'connecting' | 'receiving' | 'complete' | 'error';
 
 export function DeviceLinkScanScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const [scanState, setScanState] = useState<ScanState>('scanning');
   const [error, setError] = useState<string | null>(null);
   const [scannedData, setScannedData] = useState<DeviceLinkQRData | null>(null);
@@ -107,17 +109,17 @@ export function DeviceLinkScanScreen({ navigation }: Props) {
       case 'scanning':
         return (
           <>
-            <View style={styles.cameraPlaceholder}>
-              <Text style={styles.cameraText}>{t('deviceLink.pointCamera')}</Text>
+            <View style={[styles.cameraPlaceholder, { backgroundColor: themeColors.surfaceDark }]}>
+              <Text style={[styles.cameraText, { color: themeColors.textSecondary }]}>{t('deviceLink.pointCamera')}</Text>
               {/* In production: render actual camera view here */}
               <View style={styles.viewfinder}>
-                <View style={[styles.corner, styles.topLeft]} />
-                <View style={[styles.corner, styles.topRight]} />
-                <View style={[styles.corner, styles.bottomLeft]} />
-                <View style={[styles.corner, styles.bottomRight]} />
+                <View style={[styles.corner, styles.topLeft, { borderColor: themeColors.primary }]} />
+                <View style={[styles.corner, styles.topRight, { borderColor: themeColors.primary }]} />
+                <View style={[styles.corner, styles.bottomLeft, { borderColor: themeColors.primary }]} />
+                <View style={[styles.corner, styles.bottomRight, { borderColor: themeColors.primary }]} />
               </View>
             </View>
-            <Text style={styles.instructions}>{t('deviceLink.scanInstructions')}</Text>
+            <Text style={[styles.instructions, { color: themeColors.textSecondary }]}>{t('deviceLink.scanInstructions')}</Text>
 
             {/* Demo button - remove in production */}
             {__DEV__ && (
@@ -134,9 +136,9 @@ export function DeviceLinkScanScreen({ navigation }: Props) {
       case 'connecting':
         return (
           <View style={styles.statusContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.statusText}>{t('deviceLink.connecting')}</Text>
-            <Text style={styles.statusSubtext}>
+            <ActivityIndicator size="large" color={themeColors.primary} />
+            <Text style={[styles.statusText, { color: themeColors.textPrimary }]}>{t('deviceLink.connecting')}</Text>
+            <Text style={[styles.statusSubtext, { color: themeColors.textSecondary }]}>
               {t('deviceLink.connectingTo', { device: scannedData?.deviceName })}
             </Text>
           </View>
@@ -145,25 +147,25 @@ export function DeviceLinkScanScreen({ navigation }: Props) {
       case 'receiving':
         return (
           <View style={styles.statusContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.statusText}>{t('deviceLink.receiving')}</Text>
-            <Text style={styles.statusSubtext}>{t('deviceLink.receivingKeys')}</Text>
+            <ActivityIndicator size="large" color={themeColors.primary} />
+            <Text style={[styles.statusText, { color: themeColors.textPrimary }]}>{t('deviceLink.receiving')}</Text>
+            <Text style={[styles.statusSubtext, { color: themeColors.textSecondary }]}>{t('deviceLink.receivingKeys')}</Text>
           </View>
         );
 
       case 'complete':
         return (
           <View style={styles.statusContainer}>
-            <Text style={styles.successIcon}>✓</Text>
-            <Text style={styles.statusText}>{t('deviceLink.success')}</Text>
+            <Text style={[styles.successIcon, { color: themeColors.success }]}>✓</Text>
+            <Text style={[styles.statusText, { color: themeColors.textPrimary }]}>{t('deviceLink.success')}</Text>
           </View>
         );
 
       case 'error':
         return (
           <View style={styles.statusContainer}>
-            <Text style={styles.errorIcon}>!</Text>
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorIcon, { color: themeColors.error }]}>!</Text>
+            <Text style={[styles.errorText, { color: themeColors.error }]}>{error}</Text>
             <Button
               title={t('errors.tryAgain')}
               onPress={handleRetry}
@@ -175,9 +177,9 @@ export function DeviceLinkScanScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>{t('deviceLink.scanTitle')}</Text>
+        <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('deviceLink.scanTitle')}</Text>
         {renderContent()}
       </View>
 
@@ -197,7 +199,6 @@ export function DeviceLinkScanScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -207,7 +208,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
@@ -215,7 +215,6 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     maxWidth: 300,
-    backgroundColor: colors.surfaceDark,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
@@ -223,7 +222,6 @@ const styles = StyleSheet.create({
   },
   cameraText: {
     ...typography.body,
-    color: colors.textSecondary,
     marginBottom: spacing.lg,
   },
   viewfinder: {
@@ -235,7 +233,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    borderColor: colors.primary,
   },
   topLeft: {
     top: 0,
@@ -267,7 +264,6 @@ const styles = StyleSheet.create({
   },
   instructions: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },
@@ -279,28 +275,23 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...typography.h3,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginTop: spacing.lg,
   },
   statusSubtext: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
   successIcon: {
     fontSize: 64,
-    color: colors.success,
   },
   errorIcon: {
     fontSize: 64,
-    color: colors.error,
     fontWeight: 'bold',
   },
   errorText: {
     ...typography.body,
-    color: colors.error,
     textAlign: 'center',
     marginTop: spacing.lg,
   },

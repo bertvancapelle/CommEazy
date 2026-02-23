@@ -19,7 +19,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
-import { colors, typography, spacing } from '@/theme';
+import { typography, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button, TextInput, ProgressIndicator, PinInput } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
@@ -30,6 +31,7 @@ type VerificationStep = 'phone' | 'code';
 
 export function PhoneVerificationScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
   const [step, setStep] = useState<VerificationStep>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -114,7 +116,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
   const isCodeComplete = verificationCode.length === 6;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ProgressIndicator currentStep={2} totalSteps={5} />
 
       <KeyboardAvoidingView
@@ -129,8 +131,8 @@ export function PhoneVerificationScreen({ navigation }: Props) {
         >
           {step === 'phone' ? (
             <View style={styles.content}>
-              <Text style={styles.title}>{t('onboarding.phoneNumber')}</Text>
-              <Text style={styles.hint}>{t('onboarding.phoneHint')}</Text>
+              <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('onboarding.phoneNumber')}</Text>
+              <Text style={[styles.hint, { color: themeColors.textSecondary }]}>{t('onboarding.phoneHint')}</Text>
 
               <View style={styles.phoneInputContainer}>
                 <TextInput
@@ -155,8 +157,8 @@ export function PhoneVerificationScreen({ navigation }: Props) {
             </View>
           ) : (
             <View style={styles.content}>
-              <Text style={styles.title}>{t('onboarding.verifyCode')}</Text>
-              <Text style={styles.hint}>
+              <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('onboarding.verifyCode')}</Text>
+              <Text style={[styles.hint, { color: themeColors.textSecondary }]}>
                 {t('onboarding.codeSent', { phone: `${countryCode} ${phoneNumber}` })}
               </Text>
 
@@ -170,7 +172,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
               />
 
               {error && (
-                <Text style={styles.errorText}>{error}</Text>
+                <Text style={[styles.errorText, { color: themeColors.error }]}>{error}</Text>
               )}
 
               <View style={styles.fallbackContainer}>
@@ -207,7 +209,6 @@ export function PhoneVerificationScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -222,12 +223,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
   hint: {
     ...typography.body,
-    color: colors.textSecondary,
     marginBottom: spacing.xl,
   },
   phoneInputContainer: {
@@ -242,7 +241,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...typography.body,
-    color: colors.error,
     marginTop: spacing.md,
     textAlign: 'center',
   },

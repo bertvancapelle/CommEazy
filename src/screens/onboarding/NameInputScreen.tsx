@@ -16,7 +16,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, typography, spacing } from '@/theme';
+import { typography, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button, TextInput, ProgressIndicator } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<OnboardingStackParams, 'NameInput'>;
 
 export function NameInputScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
   const [name, setName] = useState('');
 
@@ -37,7 +39,7 @@ export function NameInputScreen({ navigation }: Props) {
   const isValid = name.trim().length >= 2;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ProgressIndicator currentStep={3} totalSteps={5} />
 
       <KeyboardAvoidingView
@@ -46,8 +48,8 @@ export function NameInputScreen({ navigation }: Props) {
         keyboardVerticalOffset={100}
       >
         <View style={styles.content}>
-          <Text style={styles.title}>{t('onboarding.yourName')}</Text>
-          <Text style={styles.hint}>{t('onboarding.nameHint')}</Text>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('onboarding.yourName')}</Text>
+          <Text style={[styles.hint, { color: themeColors.textSecondary }]}>{t('onboarding.nameHint')}</Text>
 
           <TextInput
             value={name}
@@ -75,7 +77,6 @@ export function NameInputScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -87,12 +88,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
   hint: {
     ...typography.body,
-    color: colors.textSecondary,
     marginBottom: spacing.xl,
   },
   footer: {

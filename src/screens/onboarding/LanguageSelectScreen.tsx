@@ -20,7 +20,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
+import { typography, touchTargets, borderRadius, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { SUPPORTED_LANGUAGES } from '@/locales';
 import type { SupportedLanguage } from '@/services/interfaces';
 import type { OnboardingStackParams } from '@/navigation';
@@ -73,6 +74,7 @@ const triggerHaptic = () => {
 
 export function LanguageSelectScreen({ navigation }: Props) {
   const { i18n } = useTranslation();
+  const themeColors = useColors();
   const currentLanguage = i18n.language as SupportedLanguage;
 
   const handleLanguageSelect = (lang: SupportedLanguage) => {
@@ -82,7 +84,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -90,14 +92,14 @@ export function LanguageSelectScreen({ navigation }: Props) {
         <View style={styles.header}>
           <Text style={styles.icon}>🌐</Text>
           {/* Show the prompt in the user's current detected language first */}
-          <Text style={styles.title}>{CHOOSE_LANGUAGE_TEXTS[currentLanguage]}</Text>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{CHOOSE_LANGUAGE_TEXTS[currentLanguage]}</Text>
           {/* Show alternative translations so ALL users can understand */}
           <View style={styles.alternativeTexts}>
             {(Object.entries(CHOOSE_LANGUAGE_TEXTS) as [SupportedLanguage, string][])
               .filter(([lang]) => lang !== currentLanguage)
               .slice(0, 2) // Show 2 alternatives to keep it clean
               .map(([lang, text]) => (
-                <Text key={lang} style={styles.titleTranslated}>{text}</Text>
+                <Text key={lang} style={[styles.titleTranslated, { color: themeColors.textSecondary }]}>{text}</Text>
               ))}
           </View>
         </View>
@@ -109,7 +111,8 @@ export function LanguageSelectScreen({ navigation }: Props) {
                 key={code}
                 style={[
                   styles.languageButton,
-                  currentLanguage === code && styles.languageButtonSelected,
+                  { borderColor: themeColors.border, backgroundColor: themeColors.background },
+                  currentLanguage === code && { borderColor: themeColors.primary, backgroundColor: themeColors.backgroundSecondary },
                 ]}
                 onPress={() => handleLanguageSelect(code)}
                 accessibilityLabel={name}
@@ -120,13 +123,14 @@ export function LanguageSelectScreen({ navigation }: Props) {
                 <Text
                   style={[
                     styles.languageName,
-                    currentLanguage === code && styles.languageNameSelected,
+                    { color: themeColors.textPrimary },
+                    currentLanguage === code && { color: themeColors.primary, fontWeight: '700' },
                   ]}
                 >
                   {name}
                 </Text>
                 {currentLanguage === code && (
-                  <Text style={styles.checkmark}>✓</Text>
+                  <Text style={[styles.checkmark, { color: themeColors.primary }]}>✓</Text>
                 )}
               </TouchableOpacity>
             )
@@ -134,7 +138,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.autoDetected}>
+          <Text style={[styles.autoDetected, { color: themeColors.textTertiary }]}>
             {AUTO_DETECTED_TEXTS[currentLanguage]}: {SUPPORTED_LANGUAGES[currentLanguage]}
           </Text>
         </View>
@@ -146,7 +150,6 @@ export function LanguageSelectScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flexGrow: 1,
@@ -163,12 +166,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.textPrimary,
     textAlign: 'center',
   },
   titleTranslated: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.xs,
   },
@@ -185,13 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderWidth: 2,
-    borderColor: colors.border,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.background,
-  },
-  languageButtonSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.backgroundSecondary,
   },
   flag: {
     fontSize: 28,
@@ -199,16 +194,10 @@ const styles = StyleSheet.create({
   },
   languageName: {
     ...typography.body,
-    color: colors.textPrimary,
     flex: 1,
-  },
-  languageNameSelected: {
-    ...typography.bodyBold,
-    color: colors.primary,
   },
   checkmark: {
     ...typography.h3,
-    color: colors.primary,
   },
   footer: {
     marginTop: spacing.xl,
@@ -216,6 +205,5 @@ const styles = StyleSheet.create({
   },
   autoDetected: {
     ...typography.small,
-    color: colors.textTertiary,
   },
 });

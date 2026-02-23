@@ -19,7 +19,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, typography, spacing, touchTargets } from '@/theme';
+import { typography, spacing, touchTargets } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { ProgressIndicator } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
 
@@ -27,6 +28,7 @@ type Props = NativeStackScreenProps<OnboardingStackParams, 'DeviceChoice'>;
 
 export function DeviceChoiceScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
 
   const handleNewAccount = () => {
     navigation.navigate('PhoneVerification');
@@ -37,59 +39,59 @@ export function DeviceChoiceScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
         <ProgressIndicator currentStep={2} totalSteps={5} />
 
         <View style={styles.header}>
-          <Text style={styles.title}>{t('deviceLink.choiceTitle')}</Text>
-          <Text style={styles.subtitle}>{t('deviceLink.choiceSubtitle')}</Text>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('deviceLink.choiceTitle')}</Text>
+          <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('deviceLink.choiceSubtitle')}</Text>
         </View>
 
         <View style={styles.options}>
           {/* New Account Option */}
           <TouchableOpacity
-            style={styles.optionCard}
+            style={[styles.optionCard, { backgroundColor: themeColors.surface, shadowColor: themeColors.textPrimary }]}
             onPress={handleNewAccount}
             accessibilityRole="button"
             accessibilityLabel={t('deviceLink.newAccount')}
             accessibilityHint={t('deviceLink.newAccountHint')}
           >
-            <View style={styles.iconContainer}>
+            <View style={[styles.iconContainer, { backgroundColor: themeColors.primaryLight }]}>
               <Text style={styles.icon}>📱</Text>
             </View>
             <View style={styles.optionText}>
-              <Text style={styles.optionTitle}>{t('deviceLink.newAccount')}</Text>
-              <Text style={styles.optionDescription}>
+              <Text style={[styles.optionTitle, { color: themeColors.textPrimary }]}>{t('deviceLink.newAccount')}</Text>
+              <Text style={[styles.optionDescription, { color: themeColors.textSecondary }]}>
                 {t('deviceLink.newAccountDescription')}
               </Text>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
           </TouchableOpacity>
 
           {/* Link Device Option */}
           <TouchableOpacity
-            style={styles.optionCard}
+            style={[styles.optionCard, { backgroundColor: themeColors.surface, shadowColor: themeColors.textPrimary }]}
             onPress={handleLinkDevice}
             accessibilityRole="button"
             accessibilityLabel={t('deviceLink.linkDevice')}
             accessibilityHint={t('deviceLink.linkDeviceHint')}
           >
-            <View style={styles.iconContainer}>
+            <View style={[styles.iconContainer, { backgroundColor: themeColors.primaryLight }]}>
               <Text style={styles.icon}>🔗</Text>
             </View>
             <View style={styles.optionText}>
-              <Text style={styles.optionTitle}>{t('deviceLink.linkDevice')}</Text>
-              <Text style={styles.optionDescription}>
+              <Text style={[styles.optionTitle, { color: themeColors.textPrimary }]}>{t('deviceLink.linkDevice')}</Text>
+              <Text style={[styles.optionDescription, { color: themeColors.textSecondary }]}>
                 {t('deviceLink.linkDeviceDescription')}
               </Text>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>{t('deviceLink.securityNote')}</Text>
+          <Text style={[styles.footerText, { color: themeColors.textTertiary }]}>{t('deviceLink.securityNote')}</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -99,7 +101,6 @@ export function DeviceChoiceScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -112,13 +113,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h1,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   options: {
@@ -127,13 +126,11 @@ const styles = StyleSheet.create({
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: spacing.lg,
     minHeight: touchTargets.comfortable,
     ...Platform.select({
       ios: {
-        shadowColor: colors.textPrimary,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -147,7 +144,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -160,16 +156,13 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     ...typography.h3,
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   optionDescription: {
     ...typography.body,
-    color: colors.textSecondary,
   },
   chevron: {
     ...typography.h1,
-    color: colors.textTertiary,
     marginLeft: spacing.sm,
   },
   footer: {
@@ -178,7 +171,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     ...typography.caption,
-    color: colors.textTertiary,
     textAlign: 'center',
   },
 });

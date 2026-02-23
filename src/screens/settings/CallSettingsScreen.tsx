@@ -35,6 +35,7 @@ import {
   touchTargets,
   borderRadius,
 } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback, type HapticIntensity } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
@@ -58,25 +59,26 @@ interface ToggleRowProps {
   accentColor: string;
   accentColorLight: string;
   triggerHaptic: () => void;
+  themeColors: ReturnType<typeof useColors>;
 }
 
-function ToggleRow({ label, hint, value, onValueChange, accentColor, accentColorLight, triggerHaptic }: ToggleRowProps) {
+function ToggleRow({ label, hint, value, onValueChange, accentColor, accentColorLight, triggerHaptic, themeColors }: ToggleRowProps) {
   const handleValueChange = (newValue: boolean) => {
     triggerHaptic();
     onValueChange(newValue);
   };
 
   return (
-    <View style={styles.toggleContainer}>
+    <View style={[styles.toggleContainer, { borderTopColor: themeColors.border }]}>
       <View style={styles.toggleLabelContainer}>
-        <Text style={styles.toggleLabel}>{label}</Text>
-        {hint && <Text style={styles.toggleHint}>{hint}</Text>}
+        <Text style={[styles.toggleLabel, { color: themeColors.textPrimary }]}>{label}</Text>
+        {hint && <Text style={[styles.toggleHint, { color: themeColors.textSecondary }]}>{hint}</Text>}
       </View>
       <Switch
         value={value}
         onValueChange={handleValueChange}
-        trackColor={{ false: colors.border, true: accentColorLight }}
-        thumbColor={value ? accentColor : colors.textTertiary}
+        trackColor={{ false: themeColors.border, true: accentColorLight }}
+        thumbColor={value ? accentColor : themeColors.textTertiary}
         accessibilityLabel={label}
         accessibilityRole="switch"
         accessibilityState={{ checked: value }}
@@ -95,11 +97,12 @@ interface RingtoneSelectorProps {
   accentColor: string;
   accentColorLight: string;
   triggerHaptic: () => void;
+  themeColors: ReturnType<typeof useColors>;
 }
 
 const RINGTONE_OPTIONS: RingtoneSound[] = ['default', 'classic', 'gentle', 'urgent'];
 
-function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight, triggerHaptic }: RingtoneSelectorProps) {
+function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight, triggerHaptic, themeColors }: RingtoneSelectorProps) {
   const { t } = useTranslation();
 
   const handleRingtonePress = (ringtone: RingtoneSound) => {
@@ -108,9 +111,9 @@ function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight,
   };
 
   return (
-    <View style={styles.ringtoneSelectorContainer}>
-      <Text style={styles.ringtoneSelectorLabel}>{t('callSettings.ringtoneSound')}</Text>
-      <Text style={styles.ringtoneSelectorHint}>{t('callSettings.ringtoneSoundHint')}</Text>
+    <View style={[styles.ringtoneSelectorContainer, { borderTopColor: themeColors.border }]}>
+      <Text style={[styles.ringtoneSelectorLabel, { color: themeColors.textPrimary }]}>{t('callSettings.ringtoneSound')}</Text>
+      <Text style={[styles.ringtoneSelectorHint, { color: themeColors.textSecondary }]}>{t('callSettings.ringtoneSoundHint')}</Text>
       <View style={styles.ringtoneOptions}>
         {RINGTONE_OPTIONS.map((ringtone) => {
           const isSelected = value === ringtone;
@@ -119,6 +122,7 @@ function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight,
               key={ringtone}
               style={[
                 styles.ringtoneOption,
+                { borderColor: themeColors.border, backgroundColor: themeColors.surface },
                 isSelected && { borderColor: accentColor, backgroundColor: accentColorLight + '20' },
               ]}
               onPress={() => handleRingtonePress(ringtone)}
@@ -128,6 +132,7 @@ function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight,
             >
               <Text style={[
                 styles.ringtoneOptionText,
+                { color: themeColors.textPrimary },
                 isSelected && { color: accentColor, fontWeight: '700' },
               ]}>
                 {t(`callSettings.ringtones.${ringtone}`)}
@@ -151,6 +156,7 @@ export function CallSettingsScreen() {
   const { t } = useTranslation();
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
 
   // Haptic feedback for toggles - always triggers on any toggle change
@@ -300,10 +306,10 @@ export function CallSettingsScreen() {
   const { scrollRef } = useVoiceFocusList('call-settings-list', voiceFocusItems);
 
   return (
-    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Incoming calls section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('callSettings.ringtoneSection')}</Text>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('callSettings.ringtoneSection')}</Text>
 
         {/* Ringtone toggle */}
         <ToggleRow
@@ -314,6 +320,7 @@ export function CallSettingsScreen() {
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
           triggerHaptic={triggerToggleHaptic}
+          themeColors={themeColors}
         />
 
         {/* Ringtone sound selector (only shown when enabled) */}
@@ -324,6 +331,7 @@ export function CallSettingsScreen() {
             accentColor={accentColor.primary}
             accentColorLight={accentColor.primaryLight}
             triggerHaptic={triggerToggleHaptic}
+            themeColors={themeColors}
           />
         )}
 
@@ -336,12 +344,13 @@ export function CallSettingsScreen() {
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
           triggerHaptic={triggerToggleHaptic}
+          themeColors={themeColors}
         />
       </View>
 
       {/* Outgoing calls section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('callSettings.outgoingSection')}</Text>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('callSettings.outgoingSection')}</Text>
 
         {/* Dial tone toggle */}
         <ToggleRow
@@ -352,6 +361,7 @@ export function CallSettingsScreen() {
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
           triggerHaptic={triggerToggleHaptic}
+          themeColors={themeColors}
         />
 
         {/* Outgoing vibration toggle */}
@@ -363,6 +373,7 @@ export function CallSettingsScreen() {
           accentColor={accentColor.primary}
           accentColorLight={accentColor.primaryLight}
           triggerHaptic={triggerToggleHaptic}
+          themeColors={themeColors}
         />
       </View>
     </ScrollView>

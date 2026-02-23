@@ -32,6 +32,7 @@ import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'VerifyContact'>;
@@ -44,6 +45,7 @@ export function VerifyContactScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<VerifyContactRouteProp>();
   const { jid, name } = route.params;
+  const themeColors = useColors();
 
   const [activeTab, setActiveTab] = useState<TabMode>('show');
   const [qrData, setQrData] = useState<string>('');
@@ -217,29 +219,29 @@ export function VerifyContactScreen() {
       style={styles.tabContent}
       contentContainerStyle={styles.tabContentContainer}
     >
-      <Text style={styles.instructions}>
+      <Text style={[styles.instructions, { color: themeColors.textPrimary }]}>
         {t('contacts.showQRInstructions')}
       </Text>
 
       {loading ? (
-        <View style={styles.qrPlaceholder}>
-          <Text style={styles.loadingText}>{t('common.loading')}</Text>
+        <View style={[styles.qrPlaceholder, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
         </View>
       ) : (
         <View
-          style={styles.qrContainer}
+          style={[styles.qrContainer, { backgroundColor: themeColors.surface }]}
           accessibilityLabel={t('accessibility.yourQRCode')}
         >
           <QRCode
             value={qrData}
             size={220}
-            backgroundColor={colors.surface}
-            color={colors.textPrimary}
+            backgroundColor={themeColors.surface}
+            color={themeColors.textPrimary}
           />
         </View>
       )}
 
-      <Text style={styles.helpText}>
+      <Text style={[styles.helpText, { color: themeColors.textSecondary }]}>
         {t('contacts.verifyInstructions')}
       </Text>
     </ScrollView>
@@ -255,23 +257,23 @@ export function VerifyContactScreen() {
             onReadCode={(event) => void handleQRCodeRead(event)}
           />
           <View style={styles.scanOverlay}>
-            <Text style={styles.scanInstructions}>
+            <Text style={[styles.scanInstructions, { color: themeColors.textOnPrimary }]}>
               {t('contacts.scanQRInstructions', { name })}
             </Text>
           </View>
         </>
       ) : (
         <View style={styles.noCameraContainer}>
-          <Text style={styles.noCameraText}>
+          <Text style={[styles.noCameraText, { color: themeColors.textSecondary }]}>
             {t('contacts.cameraNotAvailable')}
           </Text>
           <TouchableOpacity
-            style={styles.retryButton}
+            style={[styles.retryButton, { backgroundColor: themeColors.primary }]}
             onPress={() => void handleTabChange('scan')}
             accessibilityRole="button"
             accessibilityLabel={t('common.tryAgain')}
           >
-            <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
+            <Text style={[styles.retryButtonText, { color: themeColors.textOnPrimary }]}>{t('common.tryAgain')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -281,34 +283,34 @@ export function VerifyContactScreen() {
   // Success state
   if (verified) {
     return (
-      <View style={styles.successContainer}>
+      <View style={[styles.successContainer, { backgroundColor: themeColors.background }]}>
         <View style={styles.successIcon}>
-          <Text style={styles.successIconText}>✓</Text>
+          <Text style={[styles.successIconText, { color: themeColors.textOnPrimary }]}>✓</Text>
         </View>
-        <Text style={styles.successTitle}>{t('contacts.verified')}</Text>
-        <Text style={styles.successMessage}>
+        <Text style={[styles.successTitle, { color: themeColors.textPrimary }]}>{t('contacts.verified')}</Text>
+        <Text style={[styles.successMessage, { color: themeColors.textSecondary }]}>
           {t('contacts.verificationSuccessMessage', { name })}
         </Text>
         <TouchableOpacity
-          style={styles.doneButton}
+          style={[styles.doneButton, { backgroundColor: themeColors.primary }]}
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
           accessibilityLabel={t('common.done')}
         >
-          <Text style={styles.doneButtonText}>{t('common.done')}</Text>
+          <Text style={[styles.doneButtonText, { color: themeColors.textOnPrimary }]}>{t('common.done')}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Tab bar */}
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === 'show' && styles.tabButtonActive,
+            activeTab === 'show' && [styles.tabButtonActive, { borderBottomColor: themeColors.primary }],
           ]}
           onPress={() => void handleTabChange('show')}
           accessibilityRole="tab"
@@ -318,7 +320,8 @@ export function VerifyContactScreen() {
           <Text
             style={[
               styles.tabButtonText,
-              activeTab === 'show' && styles.tabButtonTextActive,
+              { color: themeColors.textSecondary },
+              activeTab === 'show' && { color: themeColors.primary },
             ]}
           >
             {t('contacts.showMyQR')}
@@ -328,7 +331,7 @@ export function VerifyContactScreen() {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === 'scan' && styles.tabButtonActive,
+            activeTab === 'scan' && [styles.tabButtonActive, { borderBottomColor: themeColors.primary }],
           ]}
           onPress={() => void handleTabChange('scan')}
           accessibilityRole="tab"
@@ -338,7 +341,8 @@ export function VerifyContactScreen() {
           <Text
             style={[
               styles.tabButtonText,
-              activeTab === 'scan' && styles.tabButtonTextActive,
+              { color: themeColors.textSecondary },
+              activeTab === 'scan' && { color: themeColors.primary },
             ]}
           >
             {t('contacts.scanTheirQR')}

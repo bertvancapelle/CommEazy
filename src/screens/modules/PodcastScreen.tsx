@@ -47,6 +47,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useColors } from '@/contexts/ThemeContext';
 import {
   usePodcastContext,
   formatTime,
@@ -91,6 +92,7 @@ export function PodcastScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // Podcast Context
@@ -489,7 +491,7 @@ export function PodcastScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >

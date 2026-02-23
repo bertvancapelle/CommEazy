@@ -27,11 +27,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
-  colors,
   typography,
   spacing,
   borderRadius,
 } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button } from '@/components';
 import { HoldIndicator } from '@/components/HoldIndicator';
 import { DraggableMenuButton } from '@/components/DraggableMenuButton';
@@ -47,6 +47,7 @@ export function NavigationTutorialScreen({
   navigation,
 }: NavigationTutorialScreenProps) {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const insets = useSafeAreaInsets();
   const {
     settings,
@@ -177,16 +178,16 @@ export function NavigationTutorialScreen({
       case 'intro':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>
+            <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
               {t('navigation_tutorial.intro_title')}
             </Text>
-            <Text style={styles.stepDescription}>
+            <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
               {t('navigation_tutorial.intro_description')}
             </Text>
             <View style={styles.illustration}>
               {/* Simple illustration: finger + hold indicator */}
-              <View style={styles.fingerIcon} />
-              <View style={styles.illustrationRing} />
+              <View style={[styles.fingerIcon, { backgroundColor: themeColors.textSecondary }]} />
+              <View style={[styles.illustrationRing, { borderColor: themeColors.primary }]} />
             </View>
             <Button
               title={t('navigation_tutorial.lets_try')}
@@ -200,10 +201,10 @@ export function NavigationTutorialScreen({
       case 'practice':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>
+            <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
               {t('navigation_tutorial.practice_title')}
             </Text>
-            <Text style={styles.stepDescription}>
+            <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
               {t('navigation_tutorial.practice_description')}
             </Text>
 
@@ -212,8 +213,8 @@ export function NavigationTutorialScreen({
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
             >
-              <View style={styles.practiceArea}>
-                <Text style={styles.practiceAreaText}>
+              <View style={[styles.practiceArea, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}>
+                <Text style={[styles.practiceAreaText, { color: themeColors.textSecondary }]}>
                   {practiceCompleted
                     ? t('navigation_tutorial.practice_success')
                     : t('navigation_tutorial.practice_instruction')}
@@ -232,7 +233,7 @@ export function NavigationTutorialScreen({
               />
             )}
 
-            <Text style={styles.hint}>
+            <Text style={[styles.hint, { color: themeColors.textTertiary }]}>
               {t('navigation_tutorial.hold_time', {
                 seconds: (longPressDelay / 1000).toFixed(1),
               })}
@@ -243,16 +244,16 @@ export function NavigationTutorialScreen({
       case 'menu':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>
+            <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
               {t('navigation_tutorial.menu_title')}
             </Text>
-            <Text style={styles.stepDescription}>
+            <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
               {t('navigation_tutorial.menu_description')}
             </Text>
 
             <View style={styles.arrowContainer}>
-              <Text style={styles.arrow}>↓</Text>
-              <Text style={styles.arrowLabel}>
+              <Text style={[styles.arrow, { color: themeColors.primary }]}>↓</Text>
+              <Text style={[styles.arrowLabel, { color: themeColors.primary }]}>
                 {t('navigation_tutorial.tap_the_button')}
               </Text>
             </View>
@@ -262,13 +263,13 @@ export function NavigationTutorialScreen({
       case 'customize':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>
+            <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
               {t('navigation_tutorial.customize_title')}
             </Text>
-            <Text style={styles.stepDescription}>
+            <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
               {t('navigation_tutorial.customize_description')}
             </Text>
-            <Text style={styles.hint}>
+            <Text style={[styles.hint, { color: themeColors.textTertiary }]}>
               {t('navigation_tutorial.customize_hint')}
             </Text>
             <Button
@@ -283,14 +284,14 @@ export function NavigationTutorialScreen({
       case 'done':
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>
+            <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
               {t('navigation_tutorial.done_title')}
             </Text>
-            <Text style={styles.stepDescription}>
+            <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
               {t('navigation_tutorial.done_description')}
             </Text>
-            <View style={styles.checkmark}>
-              <Text style={styles.checkmarkText}>✓</Text>
+            <View style={[styles.checkmark, { backgroundColor: themeColors.success }]}>
+              <Text style={[styles.checkmarkText, { color: themeColors.textOnPrimary }]}>✓</Text>
             </View>
             <Button
               title={t('navigation_tutorial.finish')}
@@ -307,7 +308,7 @@ export function NavigationTutorialScreen({
     <View
       style={[
         styles.container,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { backgroundColor: themeColors.background, paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
       {/* Progress indicator */}
@@ -317,9 +318,10 @@ export function NavigationTutorialScreen({
             key={step}
             style={[
               styles.progressDot,
-              currentStep === step && styles.progressDotActive,
+              { backgroundColor: themeColors.divider },
+              currentStep === step && { backgroundColor: themeColors.primary, width: 16, height: 16, borderRadius: 8 },
               ['intro', 'practice', 'menu', 'customize', 'done'].indexOf(currentStep) > index &&
-                styles.progressDotCompleted,
+                { backgroundColor: themeColors.success },
             ]}
           />
         ))}
@@ -333,7 +335,7 @@ export function NavigationTutorialScreen({
       {/* Skip button */}
       <TouchableWithoutFeedback onPress={skipTutorial}>
         <View style={styles.skipButton}>
-          <Text style={styles.skipButtonText}>
+          <Text style={[styles.skipButtonText, { color: themeColors.textTertiary }]}>
             {t('navigation_tutorial.skip')}
           </Text>
         </View>
@@ -353,7 +355,6 @@ export function NavigationTutorialScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -366,16 +367,6 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.divider,
-  },
-  progressDotActive: {
-    backgroundColor: colors.primary,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-  },
-  progressDotCompleted: {
-    backgroundColor: colors.success,
   },
   content: {
     flex: 1,
@@ -388,13 +379,11 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   stepDescription: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
     paddingHorizontal: spacing.md,
@@ -409,7 +398,6 @@ const styles = StyleSheet.create({
   fingerIcon: {
     width: 30,
     height: 50,
-    backgroundColor: colors.textSecondary,
     borderRadius: 15,
     transform: [{ rotate: '-15deg' }],
   },
@@ -419,16 +407,13 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 4,
-    borderColor: colors.primary,
     borderStyle: 'dashed',
   },
   practiceArea: {
     width: '100%',
     height: 200,
-    backgroundColor: colors.backgroundSecondary,
     borderRadius: borderRadius.lg,
     borderWidth: 2,
-    borderColor: colors.border,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -436,12 +421,10 @@ const styles = StyleSheet.create({
   },
   practiceAreaText: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   hint: {
     ...typography.small,
-    color: colors.textTertiary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
@@ -451,25 +434,21 @@ const styles = StyleSheet.create({
   },
   arrow: {
     fontSize: 48,
-    color: colors.primary,
   },
   arrowLabel: {
     ...typography.body,
-    color: colors.primary,
     fontWeight: '600',
   },
   checkmark: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.success,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
   checkmarkText: {
     fontSize: 48,
-    color: colors.textOnPrimary,
     fontWeight: '700',
   },
   nextButton: {
@@ -482,7 +461,6 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     ...typography.body,
-    color: colors.textTertiary,
     textDecorationLine: 'underline',
   },
 });

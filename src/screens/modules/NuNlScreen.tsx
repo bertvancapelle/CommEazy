@@ -38,6 +38,7 @@ import { colors, typography, spacing, touchTargets, borderRadius, shadows } from
 import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -61,9 +62,10 @@ interface CategoryChipProps {
   category: ModuleCategory;
   isSelected: boolean;
   onPress: () => void;
+  themeColors: ReturnType<typeof useColors>;
 }
 
-function CategoryChip({ category, isSelected, onPress }: CategoryChipProps) {
+function CategoryChip({ category, isSelected, onPress, themeColors }: CategoryChipProps) {
   const { t } = useTranslation();
   const holdGesture = useHoldGestureContextSafe();
 
@@ -79,6 +81,7 @@ function CategoryChip({ category, isSelected, onPress }: CategoryChipProps) {
     <TouchableOpacity
       style={[
         styles.categoryChip,
+        { backgroundColor: themeColors.background, borderColor: themeColors.border },
         isSelected && styles.categoryChipSelected,
       ]}
       onPress={handlePress}
@@ -95,6 +98,7 @@ function CategoryChip({ category, isSelected, onPress }: CategoryChipProps) {
       <Text
         style={[
           styles.categoryLabel,
+          { color: themeColors.textPrimary },
           isSelected && styles.categoryLabelSelected,
         ]}
       >
@@ -112,9 +116,10 @@ interface ArticleCardProps {
   article: NewsArticle;
   index: number;
   onPress: () => void;
+  themeColors: ReturnType<typeof useColors>;
 }
 
-function ArticleCard({ article, index, onPress }: ArticleCardProps) {
+function ArticleCard({ article, index, onPress, themeColors }: ArticleCardProps) {
   const { t } = useTranslation();
   const holdGesture = useHoldGestureContextSafe();
   const [imageError, setImageError] = useState(false);
@@ -148,7 +153,7 @@ function ArticleCard({ article, index, onPress }: ArticleCardProps) {
       onSelect={onPress}
     >
       <TouchableOpacity
-        style={styles.articleCard}
+        style={[styles.articleCard, { backgroundColor: themeColors.surface }]}
         onPress={handlePress}
         onLongPress={() => {}}
         delayLongPress={300}
@@ -167,20 +172,20 @@ function ArticleCard({ article, index, onPress }: ArticleCardProps) {
             accessibilityIgnoresInvertColors
           />
         ) : (
-          <View style={[styles.articleImage, styles.articleImagePlaceholder]}>
-            <Icon name="news" size={40} color={colors.textSecondary} />
+          <View style={[styles.articleImage, styles.articleImagePlaceholder, { backgroundColor: themeColors.background }]}>
+            <Icon name="news" size={40} color={themeColors.textSecondary} />
           </View>
         )}
 
         {/* Content */}
         <View style={styles.articleContent}>
-          <Text style={styles.articleTitle} numberOfLines={2}>
+          <Text style={[styles.articleTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
             {article.title}
           </Text>
-          <Text style={styles.articleDescription} numberOfLines={2}>
+          <Text style={[styles.articleDescription, { color: themeColors.textSecondary }]} numberOfLines={2}>
             {article.description}
           </Text>
-          <Text style={styles.articleTime}>{timeAgo}</Text>
+          <Text style={[styles.articleTime, { color: themeColors.textTertiary }]}>{timeAgo}</Text>
         </View>
       </TouchableOpacity>
     </VoiceFocusable>
@@ -194,9 +199,10 @@ function ArticleCard({ article, index, onPress }: ArticleCardProps) {
 interface WelcomeModalProps {
   visible: boolean;
   onDismiss: () => void;
+  themeColors: ReturnType<typeof useColors>;
 }
 
-function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
+function WelcomeModal({ visible, onDismiss, themeColors }: WelcomeModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
@@ -209,38 +215,38 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
       onRequestClose={onDismiss}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
           {/* Header */}
           <View style={[styles.welcomeHeader, { backgroundColor: MODULE_COLOR }]}>
-            <Icon name="news" size={48} color={colors.textOnPrimary} />
-            <Text style={styles.welcomeTitle}>{t('modules.nunl.title')}</Text>
+            <Icon name="news" size={48} color={themeColors.textOnPrimary} />
+            <Text style={[styles.welcomeTitle, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.title')}</Text>
           </View>
 
           {/* Steps */}
           <View style={styles.welcomeContent}>
             <View style={styles.welcomeStep}>
               <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                <Text style={styles.stepNumberText}>1</Text>
+                <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>1</Text>
               </View>
-              <Text style={styles.stepText}>
+              <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
                 {t('modules.nunl.welcome.step1')}
               </Text>
             </View>
 
             <View style={styles.welcomeStep}>
               <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                <Text style={styles.stepNumberText}>2</Text>
+                <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>2</Text>
               </View>
-              <Text style={styles.stepText}>
+              <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
                 {t('modules.nunl.welcome.step2')}
               </Text>
             </View>
 
             <View style={styles.welcomeStep}>
               <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                <Text style={styles.stepNumberText}>3</Text>
+                <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>3</Text>
               </View>
-              <Text style={styles.stepText}>
+              <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
                 {t('modules.nunl.welcome.step3')}
               </Text>
             </View>
@@ -254,7 +260,7 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
             accessibilityRole="button"
             accessibilityLabel={t('modules.nunl.welcome.understood')}
           >
-            <Text style={styles.welcomeButtonText}>{t('modules.nunl.welcome.understood')}</Text>
+            <Text style={[styles.welcomeButtonText, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.welcome.understood')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -272,6 +278,7 @@ export function NuNlScreen() {
   const isFocused = useIsFocused();
   const reducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
 
   // State
   const [showWelcome, setShowWelcome] = useState(false);
@@ -385,7 +392,7 @@ export function NuNlScreen() {
   }, [error, t]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header */}
       <ModuleHeader
         moduleId={MODULE_ID}
@@ -396,7 +403,7 @@ export function NuNlScreen() {
       />
 
       {/* Category Chips */}
-      <View style={styles.categoryContainer}>
+      <View style={[styles.categoryContainer, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -408,6 +415,7 @@ export function NuNlScreen() {
               category={category}
               isSelected={selectedCategory === category.id}
               onPress={() => handleCategoryChange(category.id)}
+              themeColors={themeColors}
             />
           ))}
         </ScrollView>
@@ -415,11 +423,11 @@ export function NuNlScreen() {
 
       {/* Error Banner */}
       {error && !isLoading && (
-        <View style={styles.errorBanner}>
-          <Icon name="warning" size={24} color={colors.error} />
-          <Text style={styles.errorText}>{errorMessage}</Text>
+        <View style={[styles.errorBanner, { backgroundColor: themeColors.errorLight }]}>
+          <Icon name="warning" size={24} color={themeColors.error} />
+          <Text style={[styles.errorText, { color: themeColors.error }]}>{errorMessage}</Text>
           <TouchableOpacity onPress={handleRefresh}>
-            <Text style={styles.errorDismiss}>{t('common.try_again')}</Text>
+            <Text style={[styles.errorDismiss, { color: themeColors.error }]}>{t('common.try_again')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -428,16 +436,16 @@ export function NuNlScreen() {
       {isLoading && articles.length === 0 && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={MODULE_COLOR} />
-          <Text style={styles.loadingText}>{t('modules.nunl.loading')}</Text>
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('modules.nunl.loading')}</Text>
         </View>
       )}
 
       {/* Empty State */}
       {!isLoading && articles.length === 0 && !error && (
         <View style={styles.emptyContainer}>
-          <Icon name="news" size={64} color={colors.textSecondary} />
-          <Text style={styles.emptyTitle}>{t('modules.nunl.noArticles')}</Text>
-          <Text style={styles.emptyHint}>{t('modules.nunl.noArticlesHint')}</Text>
+          <Icon name="news" size={64} color={themeColors.textSecondary} />
+          <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('modules.nunl.noArticles')}</Text>
+          <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>{t('modules.nunl.noArticlesHint')}</Text>
         </View>
       )}
 
@@ -465,6 +473,7 @@ export function NuNlScreen() {
               article={article}
               index={index}
               onPress={() => handleArticlePress(article)}
+              themeColors={themeColors}
             />
           ))}
         </ScrollView>
@@ -474,6 +483,7 @@ export function NuNlScreen() {
       <WelcomeModal
         visible={showWelcome}
         onDismiss={handleWelcomeDismiss}
+        themeColors={themeColors}
       />
 
       {/* Article Preview Modal (first step) */}

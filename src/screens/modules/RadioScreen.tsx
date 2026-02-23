@@ -45,6 +45,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef, type FilterMode } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -234,6 +235,7 @@ export function RadioScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -850,7 +852,7 @@ export function RadioScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
@@ -904,13 +906,13 @@ export function RadioScreen() {
 
         {/* Playback Error Banner — shown when a stream fails */}
         {playbackError && (
-          <View style={styles.playbackErrorBanner}>
-            <Icon name="warning" size={24} color={colors.error} />
+          <View style={[styles.playbackErrorBanner, { backgroundColor: themeColors.errorBackground, borderColor: themeColors.error }]}>
+            <Icon name="warning" size={24} color={themeColors.error} />
             <View style={styles.playbackErrorTextContainer}>
-              <Text style={styles.playbackErrorTitle}>
+              <Text style={[styles.playbackErrorTitle, { color: themeColors.error }]}>
                 {t('modules.radio.playbackErrorTitle')}
               </Text>
-              <Text style={styles.playbackErrorMessage}>
+              <Text style={[styles.playbackErrorMessage, { color: themeColors.textSecondary }]}>
                 {t('modules.radio.playbackErrorMessage')}
               </Text>
             </View>
@@ -933,14 +935,14 @@ export function RadioScreen() {
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor.primary} />
-          <Text style={styles.loadingText}>{t('modules.radio.loading')}</Text>
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('modules.radio.loading')}</Text>
         </View>
       ) : apiError ? (
         // Error state with user-friendly message and retry button
         <View style={styles.errorContainer}>
-          <Icon name="warning" size={64} color={colors.error} />
-          <Text style={styles.errorTitle}>{t(`modules.radio.errors.${apiError}Title`)}</Text>
-          <Text style={styles.errorMessage}>{t(`modules.radio.errors.${apiError}`)}</Text>
+          <Icon name="warning" size={64} color={themeColors.error} />
+          <Text style={[styles.errorTitle, { color: themeColors.textPrimary }]}>{t(`modules.radio.errors.${apiError}Title`)}</Text>
+          <Text style={[styles.errorMessage, { color: themeColors.textSecondary }]}>{t(`modules.radio.errors.${apiError}`)}</Text>
           <TouchableOpacity
             style={[styles.retryButton, { backgroundColor: accentColor.primary }]}
             onPress={() => {
@@ -955,13 +957,13 @@ export function RadioScreen() {
         </View>
       ) : displayedStations.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name={showFavorites ? 'heart' : 'radio'} size={64} color={colors.textTertiary} />
-          <Text style={styles.emptyText}>
+          <Icon name={showFavorites ? 'heart' : 'radio'} size={64} color={themeColors.textTertiary} />
+          <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
             {showFavorites ? t('modules.radio.noFavorites') : t('modules.radio.noStations')}
           </Text>
           {showFavorites && (
             <>
-              <Text style={styles.emptyHint}>{t('modules.radio.noFavoritesHintExtended')}</Text>
+              <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>{t('modules.radio.noFavoritesHintExtended')}</Text>
               {/* Clear call-to-action button for seniors */}
               <TouchableOpacity
                 style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
@@ -1004,6 +1006,7 @@ export function RadioScreen() {
                 <View
                   style={[
                     styles.stationItem,
+                    { backgroundColor: themeColors.surface },
                     // Playing station: thin accent border instead of background fill
                     isCurrentStation && {
                       borderWidth: 2,
@@ -1042,10 +1045,10 @@ export function RadioScreen() {
                     accessibilityHint={t('modules.radio.stationHint')}
                   >
                     <View style={styles.stationInfo}>
-                      <Text style={styles.stationName} numberOfLines={1}>
+                      <Text style={[styles.stationName, { color: themeColors.textPrimary }]} numberOfLines={1}>
                         {station.name}
                       </Text>
-                      <Text style={styles.stationCountry} numberOfLines={1}>
+                      <Text style={[styles.stationCountry, { color: themeColors.textSecondary }]} numberOfLines={1}>
                         {station.country}
                       </Text>
                     </View>
@@ -1138,7 +1141,7 @@ export function RadioScreen() {
         onRequestClose={() => setIsPlayerExpanded(false)}
         accessibilityViewIsModal={true}
       >
-        <View style={styles.expandedPlayerOverlay}>
+        <View style={[styles.expandedPlayerOverlay, { backgroundColor: themeColors.background }]}>
           <View style={[styles.expandedPlayerContent, { paddingTop: insets.top + spacing.md }]}>
             {/* Large artwork with buffering pulse animation */}
             <Animated.View
@@ -1170,7 +1173,7 @@ export function RadioScreen() {
             {/* Station info */}
             <View style={styles.expandedPlayerInfo}>
               <Text
-                style={styles.expandedPlayerStationName}
+                style={[styles.expandedPlayerStationName, { color: themeColors.textPrimary }]}
                 numberOfLines={1}
                 accessibilityRole="header"
               >
@@ -1180,20 +1183,20 @@ export function RadioScreen() {
               {/* Now playing metadata or country */}
               {metadata.title || metadata.artist ? (
                 <View style={styles.expandedPlayerNowPlaying}>
-                  <Text style={styles.expandedPlayerNowPlayingLabel}>
+                  <Text style={[styles.expandedPlayerNowPlayingLabel, { color: themeColors.textTertiary }]}>
                     {t('modules.radio.nowPlayingLabel')}
                   </Text>
-                  <Text style={styles.expandedPlayerSongTitle} numberOfLines={2}>
+                  <Text style={[styles.expandedPlayerSongTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
                     {metadata.title || contextStation?.name}
                   </Text>
                   {metadata.artist && (
-                    <Text style={styles.expandedPlayerArtistName} numberOfLines={1}>
+                    <Text style={[styles.expandedPlayerArtistName, { color: themeColors.textSecondary }]} numberOfLines={1}>
                       {metadata.artist}
                     </Text>
                   )}
                 </View>
               ) : (
-                <Text style={styles.expandedPlayerCountryText} numberOfLines={1}>
+                <Text style={[styles.expandedPlayerCountryText, { color: themeColors.textSecondary }]} numberOfLines={1}>
                   {contextStation?.country}
                 </Text>
               )}
@@ -1305,34 +1308,34 @@ export function RadioScreen() {
         accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]}>
             {/* Title */}
             <View style={styles.modalHeader}>
               <Icon name="heart" size={48} color={accentColor.primary} />
-              <Text style={styles.modalTitle}>{t('modules.radio.welcomeTitle')}</Text>
+              <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>{t('modules.radio.welcomeTitle')}</Text>
             </View>
 
             {/* Explanation */}
-            <Text style={styles.modalText}>
+            <Text style={[styles.modalText, { color: themeColors.textSecondary }]}>
               {t('modules.radio.welcomeText')}
             </Text>
 
             {/* Steps with heart icon */}
             <View style={styles.modalStep}>
-              <View style={styles.modalStepNumber}>
-                <Text style={styles.modalStepNumberText}>1</Text>
+              <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
+                <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>1</Text>
               </View>
-              <Text style={styles.modalStepText}>
+              <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
                 {t('modules.radio.welcomeStep1')}
               </Text>
             </View>
 
             <View style={styles.modalStep}>
-              <View style={styles.modalStepNumber}>
-                <Text style={styles.modalStepNumberText}>2</Text>
+              <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
+                <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>2</Text>
               </View>
               <View style={styles.modalStepContent}>
-                <Text style={styles.modalStepText}>
+                <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
                   {t('modules.radio.welcomeStep2')}
                 </Text>
                 <Icon

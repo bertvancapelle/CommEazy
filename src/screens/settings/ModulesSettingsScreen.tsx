@@ -31,6 +31,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Icon, VoiceFocusable, IconButton, type IconName } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -77,6 +78,7 @@ interface ModuleToggleRowProps {
   focused?: boolean;
   focusStyle?: { borderColor: string; borderWidth: number; backgroundColor: string };
   accentColor: string;
+  themeColors: ReturnType<typeof useColors>;
 }
 
 function ModuleToggleRow({
@@ -86,6 +88,7 @@ function ModuleToggleRow({
   focused,
   focusStyle,
   accentColor,
+  themeColors,
 }: ModuleToggleRowProps) {
   const { t } = useTranslation();
   const { triggerFeedback } = useFeedback();
@@ -104,6 +107,7 @@ function ModuleToggleRow({
     <View
       style={[
         styles.moduleRow,
+        { borderBottomColor: themeColors.border },
         focused && focusStyle && {
           borderColor: focusStyle.borderColor,
           borderWidth: focusStyle.borderWidth,
@@ -113,14 +117,14 @@ function ModuleToggleRow({
     >
       {/* Module icon with color */}
       <View style={[styles.moduleIconContainer, { backgroundColor: module.color }]}>
-        <Icon name={iconName} size={20} color={colors.textOnPrimary} />
+        <Icon name={iconName} size={20} color={themeColors.textOnPrimary} />
       </View>
 
       {/* Module info */}
       <View style={styles.moduleInfo}>
-        <Text style={styles.moduleName}>{t(module.labelKey)}</Text>
+        <Text style={[styles.moduleName, { color: themeColors.textPrimary }]}>{t(module.labelKey)}</Text>
         {isUserCountry && (
-          <Text style={styles.moduleAutoEnabled}>
+          <Text style={[styles.moduleAutoEnabled, { color: themeColors.textSecondary }]}>
             {t('settings.modules.autoEnabled')}
           </Text>
         )}
@@ -131,11 +135,11 @@ function ModuleToggleRow({
         value={module.isEnabled}
         onValueChange={handleToggle}
         trackColor={{
-          false: colors.border,
+          false: themeColors.border,
           true: accentColor,
         }}
-        thumbColor={module.isEnabled ? colors.textOnPrimary : colors.surface}
-        ios_backgroundColor={colors.border}
+        thumbColor={module.isEnabled ? themeColors.textOnPrimary : themeColors.surface}
+        ios_backgroundColor={themeColors.border}
         accessibilityLabel={t(module.labelKey)}
         accessibilityHint={
           module.isEnabled
@@ -160,6 +164,7 @@ interface CountrySectionProps {
   isItemFocused: (id: string) => boolean;
   getFocusStyle: () => { borderColor: string; borderWidth: number; backgroundColor: string };
   accentColor: string;
+  themeColors: ReturnType<typeof useColors>;
 }
 
 function CountrySection({
@@ -171,6 +176,7 @@ function CountrySection({
   isItemFocused,
   getFocusStyle,
   accentColor,
+  themeColors,
 }: CountrySectionProps) {
   const { t } = useTranslation();
 
@@ -182,10 +188,10 @@ function CountrySection({
       {/* Country header */}
       <View style={styles.countryHeader}>
         <Text style={styles.countryFlag}>{flag}</Text>
-        <Text style={styles.countryName}>{countryName}</Text>
+        <Text style={[styles.countryName, { color: themeColors.textPrimary }]}>{countryName}</Text>
         {isUserCountry && (
           <View style={[styles.yourCountryBadge, { backgroundColor: accentColor }]}>
-            <Text style={styles.yourCountryText}>
+            <Text style={[styles.yourCountryText, { color: themeColors.textOnPrimary }]}>
               {t('settings.modules.yourCountry')}
             </Text>
           </View>
@@ -193,7 +199,7 @@ function CountrySection({
       </View>
 
       {/* Module toggles */}
-      <View style={styles.modulesContainer}>
+      <View style={[styles.modulesContainer, { backgroundColor: themeColors.surface }]}>
         {modules.map((module, index) => (
           <VoiceFocusable
             key={module.id}
@@ -209,6 +215,7 @@ function CountrySection({
               focused={isItemFocused(module.id)}
               focusStyle={getFocusStyle()}
               accentColor={accentColor}
+              themeColors={themeColors}
             />
           </VoiceFocusable>
         ))}
@@ -227,6 +234,7 @@ export function ModulesSettingsScreen() {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
 
   // Module data
@@ -324,9 +332,9 @@ export function ModulesSettingsScreen() {
   }, [sortedCountries, modulesByCountry]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: themeColors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
         <IconButton
           icon="chevron-left"
           onPress={handleBack}
@@ -334,14 +342,14 @@ export function ModulesSettingsScreen() {
           color={accentColor.primary}
           accessibilityLabel={t('common.back')}
         />
-        <Text style={styles.headerTitle}>{t('settings.modules.title')}</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>{t('settings.modules.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       {/* Info box */}
-      <View style={styles.infoBox}>
+      <View style={[styles.infoBox, { backgroundColor: themeColors.surface }]}>
         <Icon name="info" size={20} color={accentColor.primary} />
-        <Text style={styles.infoText}>{t('settings.modules.infoText')}</Text>
+        <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>{t('settings.modules.infoText')}</Text>
       </View>
 
       {/* Module list */}
@@ -361,15 +369,16 @@ export function ModulesSettingsScreen() {
             isItemFocused={isItemFocused}
             getFocusStyle={getFocusStyle}
             accentColor={accentColor.primary}
+            themeColors={themeColors}
           />
         ))}
 
         {/* Coming soon hint */}
         <View style={styles.comingSoonSection}>
-          <Text style={styles.comingSoonTitle}>
+          <Text style={[styles.comingSoonTitle, { color: themeColors.textSecondary }]}>
             {t('settings.modules.moreComingSoon')}
           </Text>
-          <Text style={styles.comingSoonText}>
+          <Text style={[styles.comingSoonText, { color: themeColors.textTertiary }]}>
             {t('settings.modules.moreComingSoonHint')}
           </Text>
         </View>

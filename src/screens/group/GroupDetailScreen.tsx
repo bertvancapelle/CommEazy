@@ -29,6 +29,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { TextInput, LoadingView } from '@/components';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
@@ -44,6 +45,7 @@ export function GroupDetailScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<Props['route']>();
   const { groupId, name } = route.params;
+  const themeColors = useColors();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -216,40 +218,45 @@ export function GroupDetailScreen() {
       return (
         <View
           key={message.id}
-          style={[styles.messageBubble, isOwn ? styles.ownMessage : styles.otherMessage]}
+          style={[
+            styles.messageBubble,
+            isOwn
+              ? [styles.ownMessage, { backgroundColor: themeColors.primary }]
+              : [styles.otherMessage, { backgroundColor: themeColors.surface }],
+          ]}
           accessible={true}
           accessibilityLabel={`${message.senderName}: ${message.content}`}
         >
           {/* Sender name (always show for groups, except own messages) */}
           {!isOwn && (
-            <Text style={styles.senderName}>{message.senderName}</Text>
+            <Text style={[styles.senderName, { color: themeColors.primary }]}>{message.senderName}</Text>
           )}
 
-          <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+          <Text style={[styles.messageText, { color: isOwn ? themeColors.textOnPrimary : themeColors.textPrimary }]}>
             {message.content}
           </Text>
 
           <View style={styles.messageMeta}>
-            <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+            <Text style={[styles.messageTime, { color: isOwn ? themeColors.textOnPrimary + '99' : themeColors.textSecondary }]}>
               {formatTime(message.timestamp)}
             </Text>
             {isOwn && (
-              <Text style={styles.statusIcon}>{getStatusIcon(message.status)}</Text>
+              <Text style={[styles.statusIcon, { color: themeColors.textOnPrimary + '99' }]}>{getStatusIcon(message.status)}</Text>
             )}
           </View>
         </View>
       );
     },
-    [myJid, formatTime, getStatusIcon],
+    [myJid, formatTime, getStatusIcon, themeColors],
   );
 
   const renderMembersList = useCallback(() => {
     if (!group || !showMembers) return null;
 
     return (
-      <View style={styles.membersPanel}>
-        <View style={styles.membersPanelHeader}>
-          <Text style={styles.membersPanelTitle}>
+      <View style={[styles.membersPanel, { backgroundColor: themeColors.surface }]}>
+        <View style={[styles.membersPanelHeader, { borderBottomColor: themeColors.divider }]}>
+          <Text style={[styles.membersPanelTitle, { color: themeColors.textPrimary }]}>
             {t('group.memberCount', { count: group.members.length })}
           </Text>
           <TouchableOpacity
@@ -257,29 +264,29 @@ export function GroupDetailScreen() {
             style={styles.closeButton}
             accessibilityLabel={t('common.close')}
           >
-            <Text style={styles.closeButtonText}>✕</Text>
+            <Text style={[styles.closeButtonText, { color: themeColors.textSecondary }]}>✕</Text>
           </TouchableOpacity>
         </View>
         <ScrollView style={styles.membersList}>
           {group.members.map(memberJid => (
             <View key={memberJid} style={styles.memberItem}>
-              <View style={styles.memberAvatar}>
-                <Text style={styles.memberAvatarText}>
+              <View style={[styles.memberAvatar, { backgroundColor: themeColors.primaryLight }]}>
+                <Text style={[styles.memberAvatarText, { color: themeColors.primary }]}>
                   {memberJid.charAt(0).toUpperCase()}
                 </Text>
               </View>
-              <Text style={styles.memberName}>
+              <Text style={[styles.memberName, { color: themeColors.textPrimary }]}>
                 {memberJid === myJid ? t('group.you') : memberJid.split('@')[0]}
               </Text>
               {memberJid === group.createdBy && (
-                <Text style={styles.adminBadge}>{t('group.admin')}</Text>
+                <Text style={[styles.adminBadge, { color: themeColors.primary }]}>{t('group.admin')}</Text>
               )}
             </View>
           ))}
         </ScrollView>
       </View>
     );
-  }, [group, showMembers, myJid, t]);
+  }, [group, showMembers, myJid, t, themeColors]);
 
   if (loading) {
     return <LoadingView fullscreen message={t('common.loading')} />;
@@ -287,7 +294,7 @@ export function GroupDetailScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={90}
     >
@@ -304,8 +311,8 @@ export function GroupDetailScreen() {
       >
         {messages.length === 0 ? (
           <View style={styles.emptyMessages}>
-            <Text style={styles.emptyText}>{t('chat.noMessages')}</Text>
-            <Text style={styles.emptyHint}>{t('chat.startConversation')}</Text>
+            <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>{t('chat.noMessages')}</Text>
+            <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>{t('chat.startConversation')}</Text>
           </View>
         ) : (
           messages.map(msg => renderMessage(msg))
@@ -313,7 +320,7 @@ export function GroupDetailScreen() {
       </ScrollView>
 
       {/* Input */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { backgroundColor: themeColors.surface, borderTopColor: themeColors.divider }]}>
         <TextInput
           value={inputText}
           onChangeText={setInputText}
@@ -324,14 +331,18 @@ export function GroupDetailScreen() {
           accessibilityLabel={t('chat.typeMessage')}
         />
         <TouchableOpacity
-          style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+          style={[
+            styles.sendButton,
+            { backgroundColor: themeColors.primary },
+            !inputText.trim() && { backgroundColor: themeColors.border },
+          ]}
           onPress={() => void handleSend()}
           disabled={!inputText.trim() || sending}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('accessibility.sendButton')}
         >
-          <Text style={styles.sendButtonText}>↑</Text>
+          <Text style={[styles.sendButtonText, { color: themeColors.textOnPrimary }]}>↑</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -341,7 +352,6 @@ export function GroupDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   headerButton: {
     padding: spacing.sm,
@@ -366,27 +376,23 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   ownMessage: {
-    backgroundColor: colors.primary,
     alignSelf: 'flex-end',
     borderBottomRightRadius: borderRadius.sm,
   },
   otherMessage: {
-    backgroundColor: colors.surface,
     alignSelf: 'flex-start',
     borderBottomLeftRadius: borderRadius.sm,
   },
   senderName: {
     ...typography.label,
     fontWeight: '700',
-    color: colors.primary,
     marginBottom: spacing.xs,
   },
   messageText: {
     ...typography.body,
-    color: colors.textPrimary,
   },
   ownMessageText: {
-    color: colors.textOnPrimary,
+    // Dynamic color applied in JSX
   },
   messageMeta: {
     flexDirection: 'row',
@@ -397,14 +403,12 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     ...typography.small,
-    color: colors.textSecondary,
   },
   ownMessageTime: {
-    color: colors.textOnPrimary + '99',
+    // Dynamic color applied in JSX
   },
   statusIcon: {
     fontSize: 16,
-    color: colors.textOnPrimary + '99',
   },
   emptyMessages: {
     flex: 1,
@@ -414,20 +418,16 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.h3,
-    color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
   emptyHint: {
     ...typography.body,
-    color: colors.textTertiary,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: spacing.md,
-    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.divider,
     gap: spacing.sm,
   },
   textInput: {
@@ -439,16 +439,14 @@ const styles = StyleSheet.create({
     width: touchTargets.minimum,
     height: touchTargets.minimum,
     borderRadius: touchTargets.minimum / 2,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: colors.border,
+    // Dynamic color applied in JSX
   },
   sendButtonText: {
     fontSize: 24,
-    color: colors.textOnPrimary,
     fontWeight: '700',
   },
   membersPanel: {
@@ -457,7 +455,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     width: 280,
-    backgroundColor: colors.surface,
     zIndex: 10,
     elevation: 5,
     shadowColor: '#000',
@@ -471,11 +468,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
   },
   membersPanelTitle: {
     ...typography.h3,
-    color: colors.textPrimary,
   },
   closeButton: {
     width: touchTargets.minimum,
@@ -485,7 +480,6 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 20,
-    color: colors.textSecondary,
   },
   membersList: {
     flex: 1,
@@ -500,7 +494,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -508,16 +501,13 @@ const styles = StyleSheet.create({
   memberAvatarText: {
     ...typography.body,
     fontWeight: '700',
-    color: colors.primary,
   },
   memberName: {
     ...typography.body,
-    color: colors.textPrimary,
     flex: 1,
   },
   adminBadge: {
     ...typography.small,
-    color: colors.primary,
     fontWeight: '700',
   },
 });

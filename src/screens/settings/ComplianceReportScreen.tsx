@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { Icon } from '@/components';
 import {
   colors,
@@ -59,9 +60,10 @@ interface ComplianceAccordionProps {
   title: string;
   summary: ComplianceSummary;
   items: ComplianceItem[];
+  themeColors: ReturnType<typeof useColors>;
 }
 
-function ComplianceAccordion({ title, summary, items }: ComplianceAccordionProps) {
+function ComplianceAccordion({ title, summary, items, themeColors }: ComplianceAccordionProps) {
   const [expanded, setExpanded] = useState(false);
   const { accentColor } = useAccentColorContext();
 
@@ -70,7 +72,7 @@ function ComplianceAccordion({ title, summary, items }: ComplianceAccordionProps
   }, []);
 
   return (
-    <View style={styles.accordion}>
+    <View style={[styles.accordion, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
       <TouchableOpacity
         style={styles.accordionHeader}
         onPress={handleToggle}
@@ -79,11 +81,11 @@ function ComplianceAccordion({ title, summary, items }: ComplianceAccordionProps
         accessibilityLabel={`${title}. ${summary.compliant} of ${summary.total} compliant. ${expanded ? 'Collapse' : 'Expand'} to see details.`}
       >
         <View style={styles.accordionTitleRow}>
-          <Text style={styles.accordionTitle}>{title}</Text>
+          <Text style={[styles.accordionTitle, { color: themeColors.textPrimary }]}>{title}</Text>
           <Icon
             name={expanded ? 'chevron-up' : 'chevron-down'}
             size={24}
-            color={colors.textSecondary}
+            color={themeColors.textSecondary}
           />
         </View>
       </TouchableOpacity>
@@ -92,41 +94,41 @@ function ComplianceAccordion({ title, summary, items }: ComplianceAccordionProps
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
           <Text style={[styles.summaryIcon, { color: getStatusColor('compliant') }]}>✅</Text>
-          <Text style={styles.summaryText}>{summary.compliant} Compliant</Text>
+          <Text style={[styles.summaryText, { color: themeColors.textSecondary }]}>{summary.compliant} Compliant</Text>
         </View>
         {summary.partial > 0 && (
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryIcon, { color: getStatusColor('partial') }]}>⚠️</Text>
-            <Text style={styles.summaryText}>{summary.partial} Partial</Text>
+            <Text style={[styles.summaryText, { color: themeColors.textSecondary }]}>{summary.partial} Partial</Text>
           </View>
         )}
         {summary.nonCompliant > 0 && (
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryIcon, { color: getStatusColor('non-compliant') }]}>❌</Text>
-            <Text style={styles.summaryText}>{summary.nonCompliant} Non-compliant</Text>
+            <Text style={[styles.summaryText, { color: themeColors.textSecondary }]}>{summary.nonCompliant} Non-compliant</Text>
           </View>
         )}
         {summary.notApplicable > 0 && (
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryIcon, { color: getStatusColor('not-applicable') }]}>N/A</Text>
-            <Text style={styles.summaryText}>{summary.notApplicable} Not applicable</Text>
+            <Text style={[styles.summaryText, { color: themeColors.textSecondary }]}>{summary.notApplicable} Not applicable</Text>
           </View>
         )}
       </View>
 
       {/* Expanded Items */}
       {expanded && (
-        <View style={styles.accordionContent}>
+        <View style={[styles.accordionContent, { borderTopColor: themeColors.divider }]}>
           {items.map((item) => (
             <View key={item.id} style={styles.itemRow}>
               <Text style={[styles.itemIcon, { color: getStatusColor(item.status) }]}>
                 {getStatusIcon(item.status)}
               </Text>
               <View style={styles.itemContent}>
-                <Text style={styles.itemId}>{item.id}</Text>
-                <Text style={styles.itemName}>{item.name}</Text>
+                <Text style={[styles.itemId, { color: themeColors.textTertiary }]}>{item.id}</Text>
+                <Text style={[styles.itemName, { color: themeColors.textPrimary }]}>{item.name}</Text>
                 {item.details && (
-                  <Text style={styles.itemDetails}>{item.details}</Text>
+                  <Text style={[styles.itemDetails, { color: themeColors.textSecondary }]}>{item.details}</Text>
                 )}
               </View>
             </View>
@@ -143,9 +145,10 @@ function ComplianceAccordion({ title, summary, items }: ComplianceAccordionProps
 
 interface DeviationsAccordionProps {
   deviations: ComplianceDeviation[];
+  themeColors: ReturnType<typeof useColors>;
 }
 
-function DeviationsAccordion({ deviations }: DeviationsAccordionProps) {
+function DeviationsAccordion({ deviations, themeColors }: DeviationsAccordionProps) {
   const [expanded, setExpanded] = useState(false);
 
   const handleToggle = useCallback(() => {
@@ -157,7 +160,7 @@ function DeviationsAccordion({ deviations }: DeviationsAccordionProps) {
   }
 
   return (
-    <View style={styles.accordion}>
+    <View style={[styles.accordion, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
       <TouchableOpacity
         style={styles.accordionHeader}
         onPress={handleToggle}
@@ -166,11 +169,11 @@ function DeviationsAccordion({ deviations }: DeviationsAccordionProps) {
         accessibilityLabel={`Known Deviations. ${deviations.length} items. ${expanded ? 'Collapse' : 'Expand'} to see details.`}
       >
         <View style={styles.accordionTitleRow}>
-          <Text style={styles.accordionTitle}>Known Deviations</Text>
+          <Text style={[styles.accordionTitle, { color: themeColors.textPrimary }]}>Known Deviations</Text>
           <Icon
             name={expanded ? 'chevron-up' : 'chevron-down'}
             size={24}
-            color={colors.textSecondary}
+            color={themeColors.textSecondary}
           />
         </View>
       </TouchableOpacity>
@@ -178,29 +181,29 @@ function DeviationsAccordion({ deviations }: DeviationsAccordionProps) {
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
           <Text style={[styles.summaryIcon, { color: getStatusColor('partial') }]}>⚠️</Text>
-          <Text style={styles.summaryText}>{deviations.length} deviation(s)</Text>
+          <Text style={[styles.summaryText, { color: themeColors.textSecondary }]}>{deviations.length} deviation(s)</Text>
         </View>
       </View>
 
       {expanded && (
-        <View style={styles.accordionContent}>
+        <View style={[styles.accordionContent, { borderTopColor: themeColors.divider }]}>
           {deviations.map((deviation) => (
             <View key={deviation.itemId} style={styles.deviationRow}>
               <Text style={[styles.itemIcon, { color: getStatusColor('partial') }]}>⚠️</Text>
               <View style={styles.itemContent}>
-                <Text style={styles.deviationTitle}>{deviation.description}</Text>
-                <Text style={styles.deviationLabel}>Justification:</Text>
-                <Text style={styles.deviationText}>{deviation.justification}</Text>
+                <Text style={[styles.deviationTitle, { color: themeColors.textPrimary }]}>{deviation.description}</Text>
+                <Text style={[styles.deviationLabel, { color: themeColors.textTertiary }]}>Justification:</Text>
+                <Text style={[styles.deviationText, { color: themeColors.textSecondary }]}>{deviation.justification}</Text>
                 {deviation.workaround && (
                   <>
-                    <Text style={styles.deviationLabel}>Workaround:</Text>
-                    <Text style={styles.deviationText}>{deviation.workaround}</Text>
+                    <Text style={[styles.deviationLabel, { color: themeColors.textTertiary }]}>Workaround:</Text>
+                    <Text style={[styles.deviationText, { color: themeColors.textSecondary }]}>{deviation.workaround}</Text>
                   </>
                 )}
                 {deviation.plannedRemediation && (
                   <>
-                    <Text style={styles.deviationLabel}>Planned:</Text>
-                    <Text style={styles.deviationText}>{deviation.plannedRemediation}</Text>
+                    <Text style={[styles.deviationLabel, { color: themeColors.textTertiary }]}>Planned:</Text>
+                    <Text style={[styles.deviationText, { color: themeColors.textSecondary }]}>{deviation.plannedRemediation}</Text>
                   </>
                 )}
               </View>
@@ -219,6 +222,7 @@ function DeviationsAccordion({ deviations }: DeviationsAccordionProps) {
 export function ComplianceReportScreen() {
   const navigation = useNavigation();
   const { accentColor } = useAccentColorContext();
+  const themeColors = useColors();
 
   // Calculate summaries
   const wcagSummary = useMemo(() => calculateSummary(WCAG_ITEMS), []);
@@ -235,7 +239,7 @@ export function ComplianceReportScreen() {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: accentColor.primary }]}>
         <TouchableOpacity
@@ -244,9 +248,9 @@ export function ComplianceReportScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
+          <Icon name="chevron-left" size={28} color={themeColors.textOnPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Accessibility Compliance</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.textOnPrimary }]}>Accessibility Compliance</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -259,6 +263,7 @@ export function ComplianceReportScreen() {
           title="WCAG 2.2 AAA"
           summary={wcagSummary}
           items={WCAG_ITEMS}
+          themeColors={themeColors}
         />
 
         {/* EN 301 549 */}
@@ -266,16 +271,17 @@ export function ComplianceReportScreen() {
           title="EN 301 549 V3.2.1"
           summary={en301549Summary}
           items={EN301549_ITEMS}
+          themeColors={themeColors}
         />
 
         {/* Deviations */}
-        <DeviationsAccordion deviations={DEVIATIONS} />
+        <DeviationsAccordion deviations={DEVIATIONS} themeColors={themeColors} />
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={styles.footerDivider} />
-          <Text style={styles.footerText}>Report generated: {reportDate}</Text>
-          <Text style={styles.footerText}>App version: 1.0.0</Text>
+          <View style={[styles.footerDivider, { backgroundColor: themeColors.divider }]} />
+          <Text style={[styles.footerText, { color: themeColors.textTertiary }]}>Report generated: {reportDate}</Text>
+          <Text style={[styles.footerText, { color: themeColors.textTertiary }]}>App version: 1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

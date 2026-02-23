@@ -37,6 +37,7 @@ import {
   touchTargets,
   borderRadius,
 } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { MessageStatus } from '@/components';
 import type { Message, DeliveryStatus } from '@/services/interfaces';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -53,6 +54,7 @@ export function ChatScreen() {
   const { t } = useTranslation();
   const route = useRoute<ChatScreenRouteProp>();
   const navigation = useNavigation<ChatScreenNavigationProp>();
+  const themeColors = useColors();
   const { chatId, name } = route.params;
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -229,16 +231,18 @@ export function ChatScreen() {
 
       // Get the appropriate bubble style for own messages
       const getOwnBubbleStyle = () => {
-        if (isFailed) return styles.failedMessage;
-        if (isPending) return styles.pendingMessage;
-        return styles.ownMessage;
+        if (isFailed) return { backgroundColor: themeColors.error };
+        if (isPending) return { backgroundColor: themeColors.warning };
+        return { backgroundColor: themeColors.primary };
       };
 
       return (
         <View
           style={[
             styles.messageBubble,
-            isOwn ? getOwnBubbleStyle() : styles.otherMessage,
+            isOwn
+              ? [styles.ownMessage, getOwnBubbleStyle()]
+              : [styles.otherMessage, { backgroundColor: themeColors.surface }],
           ]}
           accessible={true}
           accessibilityLabel={t('accessibility.messageFrom', {
@@ -254,9 +258,8 @@ export function ChatScreen() {
           <Text
             style={[
               styles.messageText,
-              isOwn && !isPending && !isFailed && styles.ownMessageText,
-              isPending && styles.pendingMessageText,
-              isFailed && styles.failedMessageText,
+              { color: themeColors.textPrimary },
+              isOwn && { color: themeColors.textOnPrimary },
             ]}
             selectable
           >
@@ -267,9 +270,8 @@ export function ChatScreen() {
             <Text
               style={[
                 styles.messageTime,
-                isOwn && !isPending && !isFailed && styles.ownMessageTime,
-                isPending && styles.pendingMessageTime,
-                isFailed && styles.failedMessageTime,
+                { color: themeColors.textTertiary },
+                isOwn && { color: 'rgba(255, 255, 255, 0.7)' },
               ]}
             >
               {formatTime(item.timestamp)}
@@ -281,14 +283,14 @@ export function ChatScreen() {
         </View>
       );
     },
-    [t, formatTime],
+    [t, formatTime, themeColors],
   );
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.backgroundSecondary }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
@@ -312,13 +314,13 @@ export function ChatScreen() {
       </ScrollView>
 
       {/* Input area */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { backgroundColor: themeColors.surface, borderTopColor: themeColors.divider }]}>
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary }]}
           value={inputText}
           onChangeText={setInputText}
           placeholder={t('chat.typeMessage')}
-          placeholderTextColor={colors.textTertiary}
+          placeholderTextColor={themeColors.textTertiary}
           multiline
           maxLength={2000}
           accessibilityLabel={t('chat.typeMessage')}
@@ -329,7 +331,8 @@ export function ChatScreen() {
         <TouchableOpacity
           style={[
             styles.sendButton,
-            (!inputText.trim() || sending) && styles.sendButtonDisabled,
+            { backgroundColor: themeColors.primary },
+            (!inputText.trim() || sending) && { backgroundColor: themeColors.disabled },
           ]}
           onPress={handleSend}
           disabled={!inputText.trim() || sending}
@@ -338,7 +341,7 @@ export function ChatScreen() {
           accessibilityLabel={t('accessibility.sendButton')}
           accessibilityState={{ disabled: !inputText.trim() || sending }}
         >
-          <Text style={styles.sendButtonText}>
+          <Text style={[styles.sendButtonText, { color: themeColors.textOnPrimary }]}>
             {sending ? '...' : '→'}
           </Text>
         </TouchableOpacity>
@@ -350,7 +353,6 @@ export function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundSecondary,
   },
   messageList: {
     paddingHorizontal: spacing.md,
@@ -365,36 +367,14 @@ const styles = StyleSheet.create({
   },
   ownMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: colors.primary,
-    borderBottomRightRadius: borderRadius.sm,
-  },
-  pendingMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.warning,
-    borderBottomRightRadius: borderRadius.sm,
-  },
-  failedMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.error,
     borderBottomRightRadius: borderRadius.sm,
   },
   otherMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.surface,
     borderBottomLeftRadius: borderRadius.sm,
   },
   messageText: {
     ...typography.body,
-    color: colors.textPrimary,
-  },
-  ownMessageText: {
-    color: colors.textOnPrimary,
-  },
-  pendingMessageText: {
-    color: colors.textOnPrimary,
-  },
-  failedMessageText: {
-    color: colors.textOnPrimary,
   },
   messageFooter: {
     flexDirection: 'row',
@@ -405,52 +385,33 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     ...typography.small,
-    color: colors.textTertiary,
-  },
-  ownMessageTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  pendingMessageTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  failedMessageTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.divider,
   },
   textInput: {
     flex: 1,
     minHeight: touchTargets.minimum,
     maxHeight: 120,
-    backgroundColor: colors.backgroundSecondary,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     ...typography.input,
-    color: colors.textPrimary,
     marginRight: spacing.sm,
   },
   sendButton: {
     width: touchTargets.minimum,
     height: touchTargets.minimum,
     borderRadius: touchTargets.minimum / 2,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendButtonDisabled: {
-    backgroundColor: colors.disabled,
-  },
   sendButtonText: {
     fontSize: 24,
-    color: colors.textOnPrimary,
     fontWeight: '600',
   },
 });

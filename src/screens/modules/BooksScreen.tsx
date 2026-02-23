@@ -48,6 +48,7 @@ import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, Searc
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
 import { searchBooks, getPopularBooks } from '@/services/gutenbergService';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -90,6 +91,7 @@ export function BooksScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // Books Context
@@ -390,7 +392,7 @@ export function BooksScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >

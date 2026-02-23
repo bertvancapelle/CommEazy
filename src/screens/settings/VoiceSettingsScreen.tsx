@@ -41,6 +41,7 @@ import {
   touchTargets,
   borderRadius,
 } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Icon, VoiceFocusable, VoiceToggle } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -64,6 +65,7 @@ interface ToggleRowProps {
   onValueChange: (value: boolean) => void;
   accentColor: string;
   accentColorLight: string;
+  themeColors: ReturnType<typeof useColors>;
 }
 
 function ToggleRow({
@@ -73,18 +75,19 @@ function ToggleRow({
   onValueChange,
   accentColor,
   accentColorLight,
+  themeColors,
 }: ToggleRowProps) {
   return (
-    <View style={styles.toggleContainer}>
+    <View style={[styles.toggleContainer, { borderTopColor: themeColors.border }]}>
       <View style={styles.toggleLabelContainer}>
-        <Text style={styles.toggleLabel}>{label}</Text>
-        {hint && <Text style={styles.toggleHint}>{hint}</Text>}
+        <Text style={[styles.toggleLabel, { color: themeColors.textPrimary }]}>{label}</Text>
+        {hint && <Text style={[styles.toggleHint, { color: themeColors.textSecondary }]}>{hint}</Text>}
       </View>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: colors.border, true: accentColorLight }}
-        thumbColor={value ? accentColor : colors.textTertiary}
+        trackColor={{ false: themeColors.border, true: accentColorLight }}
+        thumbColor={value ? accentColor : themeColors.textTertiary}
         accessibilityLabel={label}
         accessibilityRole="switch"
         accessibilityState={{ checked: value }}
@@ -102,6 +105,7 @@ interface CommandRowProps {
   onAddPattern: () => void;
   accentColor: string;
   accentColorLight: string;
+  themeColors: ReturnType<typeof useColors>;
 }
 
 function CommandRow({
@@ -112,6 +116,7 @@ function CommandRow({
   onAddPattern,
   accentColor,
   accentColorLight,
+  themeColors,
 }: CommandRowProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -120,7 +125,7 @@ function CommandRow({
   const commandName = t(command.nameKey, { defaultValue: command.id });
 
   return (
-    <View style={styles.commandContainer}>
+    <View style={[styles.commandContainer, { borderTopColor: themeColors.border }]}>
       <TouchableOpacity
         style={styles.commandHeader}
         onPress={() => setExpanded(!expanded)}
@@ -130,8 +135,8 @@ function CommandRow({
         accessibilityState={{ expanded }}
       >
         <View style={styles.commandInfo}>
-          <Text style={styles.commandName}>{commandName}</Text>
-          <Text style={styles.commandDescription} numberOfLines={1}>
+          <Text style={[styles.commandName, { color: themeColors.textPrimary }]}>{commandName}</Text>
+          <Text style={[styles.commandDescription, { color: themeColors.textSecondary }]} numberOfLines={1}>
             {patterns.slice(0, 3).join(', ')}
             {patterns.length > 3 ? ` +${patterns.length - 3}` : ''}
           </Text>
@@ -143,8 +148,8 @@ function CommandRow({
             <Switch
               value={isEnabled}
               onValueChange={onToggle}
-              trackColor={{ false: colors.border, true: accentColorLight }}
-              thumbColor={isEnabled ? accentColor : colors.textTertiary}
+              trackColor={{ false: themeColors.border, true: accentColorLight }}
+              thumbColor={isEnabled ? accentColor : themeColors.textTertiary}
               accessibilityLabel={t('voiceSettings.enableCommand')}
               style={styles.commandSwitch}
             />
@@ -153,21 +158,21 @@ function CommandRow({
           <Icon
             name={expanded ? 'chevron-up' : 'chevron-down'}
             size={20}
-            color={colors.textTertiary}
+            color={themeColors.textTertiary}
           />
         </View>
       </TouchableOpacity>
 
       {expanded && (
-        <View style={styles.commandExpanded}>
-          <Text style={styles.patternsLabel}>{t('voiceSettings.patterns')}</Text>
+        <View style={[styles.commandExpanded, { backgroundColor: themeColors.background }]}>
+          <Text style={[styles.patternsLabel, { color: themeColors.textSecondary }]}>{t('voiceSettings.patterns')}</Text>
 
           {/* Pattern chips */}
           <View style={styles.patternsContainer}>
             {patterns.map((pattern, index) => (
               <View
                 key={`${pattern}-${index}`}
-                style={[styles.patternChip, { borderColor: accentColor }]}
+                style={[styles.patternChip, { borderColor: accentColor, backgroundColor: themeColors.surface }]}
               >
                 <Text style={[styles.patternText, { color: accentColor }]}>
                   "{pattern}"
@@ -200,6 +205,7 @@ interface CategorySectionProps {
   commands: VoiceCommand[];
   accentColor: string;
   accentColorLight: string;
+  themeColors: ReturnType<typeof useColors>;
 }
 
 function CategorySection({
@@ -207,6 +213,7 @@ function CategorySection({
   commands,
   accentColor,
   accentColorLight,
+  themeColors,
 }: CategorySectionProps) {
   const { t } = useTranslation();
   const {
@@ -254,8 +261,8 @@ function CategorySection({
   );
 
   return (
-    <View style={styles.categorySection}>
-      <Text style={styles.categoryTitle}>{t(CATEGORY_I18N_KEYS[category])}</Text>
+    <View style={[styles.categorySection, { borderTopColor: themeColors.border }]}>
+      <Text style={[styles.categoryTitle, { color: themeColors.textSecondary }]}>{t(CATEGORY_I18N_KEYS[category])}</Text>
 
       {commands.map((command) => (
         <CommandRow
@@ -269,6 +276,7 @@ function CategorySection({
           onAddPattern={() => handleAddPattern(command.id, t(command.nameKey))}
           accentColor={accentColor}
           accentColorLight={accentColorLight}
+          themeColors={themeColors}
         />
       ))}
     </View>
@@ -282,6 +290,7 @@ function CategorySection({
 export function VoiceSettingsScreen() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   const { settings, setEnabled, resetToDefaults } = useVoiceSettingsContext();
   const isFocused = useIsFocused();
   const { isVoiceSessionActive } = useVoiceFocusContext();
@@ -369,12 +378,12 @@ export function VoiceSettingsScreen() {
   return (
     <ScrollView
       ref={scrollRef}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       contentContainerStyle={styles.contentContainer}
     >
       {/* Global settings section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('voiceSettings.generalTitle')}</Text>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('voiceSettings.generalTitle')}</Text>
 
         <VoiceToggle
           id="voice-enabled"
@@ -388,60 +397,60 @@ export function VoiceSettingsScreen() {
 
       {/* Tutorial / How to use section */}
       {settings.isEnabled && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('voiceSettings.howToUseTitle')}</Text>
+        <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('voiceSettings.howToUseTitle')}</Text>
 
           {/* Step 1: Starting voice control */}
-          <View style={styles.tutorialStep}>
+          <View style={[styles.tutorialStep, { borderTopColor: themeColors.border }]}>
             <View style={[styles.tutorialStepNumber, { backgroundColor: accentColor.primary }]}>
-              <Text style={styles.tutorialStepNumberText}>1</Text>
+              <Text style={[styles.tutorialStepNumberText, { color: themeColors.textOnPrimary }]}>1</Text>
             </View>
             <View style={styles.tutorialStepContent}>
-              <Text style={styles.tutorialStepTitle}>{t('voiceSettings.step1Title')}</Text>
-              <Text style={styles.tutorialStepDescription}>{t('voiceSettings.step1Description')}</Text>
+              <Text style={[styles.tutorialStepTitle, { color: themeColors.textPrimary }]}>{t('voiceSettings.step1Title')}</Text>
+              <Text style={[styles.tutorialStepDescription, { color: themeColors.textSecondary }]}>{t('voiceSettings.step1Description')}</Text>
             </View>
           </View>
 
           {/* Step 2: Speaking commands */}
-          <View style={styles.tutorialStep}>
+          <View style={[styles.tutorialStep, { borderTopColor: themeColors.border }]}>
             <View style={[styles.tutorialStepNumber, { backgroundColor: accentColor.primary }]}>
-              <Text style={styles.tutorialStepNumberText}>2</Text>
+              <Text style={[styles.tutorialStepNumberText, { color: themeColors.textOnPrimary }]}>2</Text>
             </View>
             <View style={styles.tutorialStepContent}>
-              <Text style={styles.tutorialStepTitle}>{t('voiceSettings.step2Title')}</Text>
-              <Text style={styles.tutorialStepDescription}>{t('voiceSettings.step2Description')}</Text>
+              <Text style={[styles.tutorialStepTitle, { color: themeColors.textPrimary }]}>{t('voiceSettings.step2Title')}</Text>
+              <Text style={[styles.tutorialStepDescription, { color: themeColors.textSecondary }]}>{t('voiceSettings.step2Description')}</Text>
             </View>
           </View>
 
           {/* Step 3: Voice Session Mode */}
-          <View style={styles.tutorialStep}>
+          <View style={[styles.tutorialStep, { borderTopColor: themeColors.border }]}>
             <View style={[styles.tutorialStepNumber, { backgroundColor: accentColor.primary }]}>
-              <Text style={styles.tutorialStepNumberText}>3</Text>
+              <Text style={[styles.tutorialStepNumberText, { color: themeColors.textOnPrimary }]}>3</Text>
             </View>
             <View style={styles.tutorialStepContent}>
-              <Text style={styles.tutorialStepTitle}>{t('voiceSettings.step3Title')}</Text>
-              <Text style={styles.tutorialStepDescription}>{t('voiceSettings.step3Description')}</Text>
+              <Text style={[styles.tutorialStepTitle, { color: themeColors.textPrimary }]}>{t('voiceSettings.step3Title')}</Text>
+              <Text style={[styles.tutorialStepDescription, { color: themeColors.textSecondary }]}>{t('voiceSettings.step3Description')}</Text>
             </View>
           </View>
 
           {/* Quick commands reference */}
-          <View style={styles.quickCommandsBox}>
-            <Text style={styles.quickCommandsTitle}>{t('voiceSettings.quickCommandsTitle')}</Text>
-            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleContacts')}" → {t('voiceSettings.exampleContactsResult')}</Text>
-            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleCall')}" → {t('voiceSettings.exampleCallResult')}</Text>
-            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleMessage')}" → {t('voiceSettings.exampleMessageResult')}</Text>
-            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleNext')}" → {t('voiceSettings.exampleNextResult')}</Text>
-            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleSelect')}" → {t('voiceSettings.exampleSelectResult')}</Text>
-            <Text style={styles.quickCommandItem}>• "{t('voiceSettings.exampleStop')}" → {t('voiceSettings.exampleStopResult')}</Text>
+          <View style={[styles.quickCommandsBox, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}>
+            <Text style={[styles.quickCommandsTitle, { color: themeColors.textPrimary }]}>{t('voiceSettings.quickCommandsTitle')}</Text>
+            <Text style={[styles.quickCommandItem, { color: themeColors.textSecondary }]}>• "{t('voiceSettings.exampleContacts')}" → {t('voiceSettings.exampleContactsResult')}</Text>
+            <Text style={[styles.quickCommandItem, { color: themeColors.textSecondary }]}>• "{t('voiceSettings.exampleCall')}" → {t('voiceSettings.exampleCallResult')}</Text>
+            <Text style={[styles.quickCommandItem, { color: themeColors.textSecondary }]}>• "{t('voiceSettings.exampleMessage')}" → {t('voiceSettings.exampleMessageResult')}</Text>
+            <Text style={[styles.quickCommandItem, { color: themeColors.textSecondary }]}>• "{t('voiceSettings.exampleNext')}" → {t('voiceSettings.exampleNextResult')}</Text>
+            <Text style={[styles.quickCommandItem, { color: themeColors.textSecondary }]}>• "{t('voiceSettings.exampleSelect')}" → {t('voiceSettings.exampleSelectResult')}</Text>
+            <Text style={[styles.quickCommandItem, { color: themeColors.textSecondary }]}>• "{t('voiceSettings.exampleStop')}" → {t('voiceSettings.exampleStopResult')}</Text>
           </View>
         </View>
       )}
 
       {/* Commands by category */}
       {settings.isEnabled && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('voiceSettings.commandsTitle')}</Text>
-          <Text style={styles.sectionHint}>{t('voiceSettings.commandsHint')}</Text>
+        <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('voiceSettings.commandsTitle')}</Text>
+          <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('voiceSettings.commandsHint')}</Text>
 
           {categoryOrder.map((category) => {
             const commands = commandsByCategory.get(category);
@@ -454,6 +463,7 @@ export function VoiceSettingsScreen() {
                 commands={commands}
                 accentColor={accentColor.primary}
                 accentColorLight={accentColor.primaryLight}
+                themeColors={themeColors}
               />
             );
           })}
@@ -486,7 +496,7 @@ export function VoiceSettingsScreen() {
               : undefined
           }
         >
-          <Text style={styles.resetButtonText}>
+          <Text style={[styles.resetButtonText, { color: themeColors.error }]}>
             {t('voiceSettings.resetToDefaults')}
           </Text>
         </TouchableOpacity>

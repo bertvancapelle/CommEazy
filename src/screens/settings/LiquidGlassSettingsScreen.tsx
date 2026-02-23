@@ -32,10 +32,12 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, LiquidGlassView } from '@/components';
 import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useColors } from '@/contexts/ThemeContext';
 
 export function LiquidGlassSettingsScreen() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   const {
     platform,
     settings,
@@ -50,24 +52,24 @@ export function LiquidGlassSettingsScreen() {
   // ============================================================
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Platform Status Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.liquidGlass.currentPlatform')}</Text>
-        <View style={styles.statusCard}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('settings.liquidGlass.currentPlatform')}</Text>
+        <View style={[styles.statusCard, { backgroundColor: themeColors.surface }]}>
           <View style={styles.statusRow}>
             <Icon
               name={platform.isSupported ? 'checkmark-circle' : 'close-circle'}
               size={24}
-              color={platform.isSupported ? colors.success : colors.textTertiary}
+              color={platform.isSupported ? themeColors.success : themeColors.textTertiary}
             />
             <View style={styles.statusTextContainer}>
-              <Text style={styles.statusLabel}>
+              <Text style={[styles.statusLabel, { color: themeColors.textPrimary }]}>
                 {platform.platform === 'ios'
                   ? t('settings.liquidGlass.iosVersion', { version: platform.iosVersion })
                   : t('settings.liquidGlass.android')}
               </Text>
-              <Text style={styles.statusHint}>
+              <Text style={[styles.statusHint, { color: themeColors.textSecondary }]}>
                 {platform.isSupported
                   ? t('settings.liquidGlass.enabled')
                   : t('settings.liquidGlass.iosRequired')}
@@ -80,13 +82,13 @@ export function LiquidGlassSettingsScreen() {
       {/* Accessibility Warning (if reduce transparency is enabled) */}
       {accessibility.reduceTransparencyEnabled && (
         <View style={styles.section}>
-          <View style={[styles.warningCard, { borderColor: colors.warning }]}>
-            <Icon name="warning" size={24} color={colors.warning} />
+          <View style={[styles.warningCard, { backgroundColor: themeColors.surface, borderColor: themeColors.warning }]}>
+            <Icon name="warning" size={24} color={themeColors.warning} />
             <View style={styles.warningTextContainer}>
-              <Text style={styles.warningTitle}>
+              <Text style={[styles.warningTitle, { color: themeColors.warning }]}>
                 {t('settings.liquidGlass.reduceTransparency')}
               </Text>
-              <Text style={styles.warningHint}>
+              <Text style={[styles.warningHint, { color: themeColors.textSecondary }]}>
                 {t('settings.liquidGlass.reduceTransparencyHint')}
               </Text>
             </View>
@@ -99,20 +101,20 @@ export function LiquidGlassSettingsScreen() {
         <>
           {/* Force Disable Toggle */}
           <View style={styles.section}>
-            <View style={styles.settingRow}>
+            <View style={[styles.settingRow, { backgroundColor: themeColors.surface }]}>
               <View style={styles.settingLabelContainer}>
-                <Text style={styles.settingLabel}>
+                <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
                   {t('settings.liquidGlass.forceDisable')}
                 </Text>
-                <Text style={styles.settingHint}>
+                <Text style={[styles.settingHint, { color: themeColors.textSecondary }]}>
                   {t('settings.liquidGlass.forceDisableHint')}
                 </Text>
               </View>
               <Switch
                 value={settings.forceDisabled}
                 onValueChange={setForceDisabled}
-                trackColor={{ false: colors.border, true: accentColor.primary }}
-                thumbColor={Platform.OS === 'android' ? colors.surface : undefined}
+                trackColor={{ false: themeColors.border, true: accentColor.primary }}
+                thumbColor={Platform.OS === 'android' ? themeColors.surface : undefined}
                 accessibilityLabel={t('settings.liquidGlass.forceDisable')}
               />
             </View>
@@ -121,13 +123,13 @@ export function LiquidGlassSettingsScreen() {
           {/* Tint Intensity Slider (only if not force-disabled) */}
           {!settings.forceDisabled && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
                 {t('settings.liquidGlass.tintIntensity')}
               </Text>
-              <Text style={styles.sectionHint}>
+              <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>
                 {t('settings.liquidGlass.tintIntensityHint')}
               </Text>
-              <View style={styles.sliderContainer}>
+              <View style={[styles.sliderContainer, { backgroundColor: themeColors.surface }]}>
                 <Slider
                   style={styles.slider}
                   minimumValue={0}
@@ -136,7 +138,7 @@ export function LiquidGlassSettingsScreen() {
                   value={settings.tintIntensity}
                   onValueChange={setTintIntensity}
                   minimumTrackTintColor={accentColor.primary}
-                  maximumTrackTintColor={colors.border}
+                  maximumTrackTintColor={themeColors.border}
                   thumbTintColor={accentColor.primary}
                   accessibilityLabel={t('settings.liquidGlass.tintIntensity')}
                   accessibilityValue={{ text: `${settings.tintIntensity}%` }}
@@ -152,36 +154,36 @@ export function LiquidGlassSettingsScreen() {
 
       {/* Preview Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.liquidGlass.preview')}</Text>
-        <Text style={styles.sectionHint}>{t('settings.liquidGlass.previewHint')}</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('settings.liquidGlass.preview')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('settings.liquidGlass.previewHint')}</Text>
 
         {/* Preview Cards for different modules */}
         <View style={styles.previewContainer}>
           <LiquidGlassView moduleId="radio" style={styles.previewCard}>
             <View style={styles.previewCardContent}>
-              <Icon name="radio" size={32} color={colors.textOnPrimary} />
-              <Text style={styles.previewCardLabel}>Radio</Text>
+              <Icon name="radio" size={32} color={themeColors.textOnPrimary} />
+              <Text style={[styles.previewCardLabel, { color: themeColors.textOnPrimary }]}>Radio</Text>
             </View>
           </LiquidGlassView>
 
           <LiquidGlassView moduleId="podcast" style={styles.previewCard}>
             <View style={styles.previewCardContent}>
-              <Icon name="podcast" size={32} color={colors.textOnPrimary} />
-              <Text style={styles.previewCardLabel}>Podcast</Text>
+              <Icon name="podcast" size={32} color={themeColors.textOnPrimary} />
+              <Text style={[styles.previewCardLabel, { color: themeColors.textOnPrimary }]}>Podcast</Text>
             </View>
           </LiquidGlassView>
 
           <LiquidGlassView moduleId="weather" style={styles.previewCard}>
             <View style={styles.previewCardContent}>
-              <Icon name="weather" size={32} color={colors.textOnPrimary} />
-              <Text style={styles.previewCardLabel}>Weer</Text>
+              <Icon name="weather" size={32} color={themeColors.textOnPrimary} />
+              <Text style={[styles.previewCardLabel, { color: themeColors.textOnPrimary }]}>Weer</Text>
             </View>
           </LiquidGlassView>
 
           <LiquidGlassView moduleId="chats" style={styles.previewCard}>
             <View style={styles.previewCardContent}>
-              <Icon name="chat" size={32} color={colors.textOnPrimary} />
-              <Text style={styles.previewCardLabel}>Berichten</Text>
+              <Icon name="chat" size={32} color={themeColors.textOnPrimary} />
+              <Text style={[styles.previewCardLabel, { color: themeColors.textOnPrimary }]}>Berichten</Text>
             </View>
           </LiquidGlassView>
         </View>
@@ -191,9 +193,9 @@ export function LiquidGlassSettingsScreen() {
           <Icon
             name={isEnabled ? 'checkmark-circle' : 'close-circle'}
             size={20}
-            color={isEnabled ? colors.success : colors.textTertiary}
+            color={isEnabled ? themeColors.success : themeColors.textTertiary}
           />
-          <Text style={[styles.statusIndicatorText, { color: isEnabled ? colors.success : colors.textTertiary }]}>
+          <Text style={[styles.statusIndicatorText, { color: isEnabled ? themeColors.success : themeColors.textTertiary }]}>
             {isEnabled ? t('settings.liquidGlass.enabled') : t('settings.liquidGlass.disabled')}
           </Text>
         </View>

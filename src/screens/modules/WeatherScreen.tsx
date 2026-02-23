@@ -39,6 +39,7 @@ import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -878,6 +879,7 @@ export function WeatherScreen() {
   const isFocused = useIsFocused();
   const reducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
 
   // GPS location from FavoriteLocationsContext
   const {
@@ -1079,7 +1081,7 @@ export function WeatherScreen() {
   }, [error, t]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header */}
       <ModuleHeader
         moduleId={MODULE_ID}

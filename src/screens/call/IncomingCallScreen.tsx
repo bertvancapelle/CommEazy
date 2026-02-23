@@ -34,6 +34,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { ContactAvatar, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
+import { useColors } from '@/contexts/ThemeContext';
 import type { CallStackParams } from './types';
 
 // ============================================================
@@ -49,6 +50,7 @@ type Props = NativeStackScreenProps<CallStackParams, 'IncomingCall'>;
 export function IncomingCallScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
   const { activeCall, answerCall, declineCall, getContactName } = useCall();
 
   // Pulsing animation for "Belt u..." text
@@ -113,7 +115,7 @@ export function IncomingCallScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.textPrimary} />
+      <StatusBar barStyle="light-content" backgroundColor={themeColors.textPrimary} />
 
       {/* Content */}
       <View style={styles.content}>
@@ -126,7 +128,7 @@ export function IncomingCallScreen({ navigation, route }: Props) {
         </View>
 
         {/* Caller name */}
-        <Text style={styles.callerName} numberOfLines={2}>
+        <Text style={[styles.callerName, { color: themeColors.textOnPrimary }]} numberOfLines={2}>
           {callerName}
         </Text>
 
@@ -135,9 +137,9 @@ export function IncomingCallScreen({ navigation, route }: Props) {
           <Icon
             name={isVideoCall ? 'videocam' : 'call'}
             size={24}
-            color={colors.textOnPrimary}
+            color={themeColors.textOnPrimary}
           />
-          <Text style={styles.callingText}>
+          <Text style={[styles.callingText, { color: themeColors.textOnPrimary }]}>
             {isVideoCall ? t('call.videoCallIncoming') : t('call.voiceCallIncoming')}
           </Text>
         </Animated.View>
@@ -156,8 +158,8 @@ export function IncomingCallScreen({ navigation, route }: Props) {
           accessibilityLabel={t('call.decline')}
           accessibilityHint={t('call.declineHint')}
         >
-          <Icon name="call" size={36} color={colors.textOnPrimary} />
-          <Text style={styles.buttonLabel}>{t('call.decline')}</Text>
+          <Icon name="call" size={36} color={themeColors.textOnPrimary} />
+          <Text style={[styles.buttonLabel, { color: themeColors.textOnPrimary }]}>{t('call.decline')}</Text>
         </TouchableOpacity>
 
         {/* Answer button (right, green) */}
@@ -174,9 +176,9 @@ export function IncomingCallScreen({ navigation, route }: Props) {
           <Icon
             name={isVideoCall ? 'videocam' : 'call'}
             size={36}
-            color={colors.textOnPrimary}
+            color={themeColors.textOnPrimary}
           />
-          <Text style={styles.buttonLabel}>{t('call.answer')}</Text>
+          <Text style={[styles.buttonLabel, { color: themeColors.textOnPrimary }]}>{t('call.answer')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -209,7 +211,7 @@ const styles = StyleSheet.create({
   },
   callerName: {
     ...typography.h1,
-    color: colors.textOnPrimary,
+    // color applied dynamically via themeColors
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
@@ -220,7 +222,7 @@ const styles = StyleSheet.create({
   },
   callingText: {
     ...typography.h3,
-    color: colors.textOnPrimary,
+    // color applied dynamically via themeColors
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -244,7 +246,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     ...typography.label,
-    color: colors.textOnPrimary,
+    // color applied dynamically via themeColors
     marginTop: spacing.xs,
   },
 });

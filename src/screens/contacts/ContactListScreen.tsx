@@ -33,6 +33,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
@@ -46,6 +47,7 @@ export function ContactListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
   const isFocused = useIsFocused(); // Track if this screen is focused
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
@@ -165,7 +167,7 @@ export function ContactListScreen() {
           onSelect={() => handleContactPress(item)}
         >
           <TouchableOpacity
-            style={styles.contactItem}
+            style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}
             onPress={() => handleContactPress(item)}
             activeOpacity={0.7}
             accessibilityRole="button"
@@ -181,7 +183,7 @@ export function ContactListScreen() {
 
             {/* Name - large and clear */}
             <Text
-              style={styles.contactName}
+              style={[styles.contactName, { color: themeColors.textPrimary }]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -189,30 +191,30 @@ export function ContactListScreen() {
             </Text>
 
             {/* Chevron indicator */}
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
           </TouchableOpacity>
         </VoiceFocusable>
       );
     },
-    [handleContactPress, t]
+    [handleContactPress, t, themeColors]
   );
 
   const renderEmptyList = useCallback(
     () => (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>{t('contacts.noContacts')}</Text>
-        <Text style={styles.emptySubtitle}>{t('contacts.noContactsHint')}</Text>
+        <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('contacts.noContacts')}</Text>
+        <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>{t('contacts.noContactsHint')}</Text>
         <TouchableOpacity
-          style={styles.addButton}
+          style={[styles.addButton, { backgroundColor: themeColors.primary }]}
           onPress={handleAddContact}
           accessibilityRole="button"
           accessibilityLabel={t('contacts.add')}
         >
-          <Text style={styles.addButtonText}>{t('contacts.add')}</Text>
+          <Text style={[styles.addButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.add')}</Text>
         </TouchableOpacity>
       </View>
     ),
-    [t, handleAddContact]
+    [t, handleAddContact, themeColors]
   );
 
   if (loading) {
@@ -220,7 +222,7 @@ export function ContactListScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header — standardized component */}
       <ModuleHeader
         moduleId="contacts"
@@ -230,7 +232,7 @@ export function ContactListScreen() {
       />
 
       {/* Search bar — standardized SearchBar component */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: themeColors.background, borderBottomColor: themeColors.divider }]}>
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -250,7 +252,7 @@ export function ContactListScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
+            tintColor={themeColors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -266,13 +268,13 @@ export function ContactListScreen() {
       {/* FAB for adding contacts */}
       {contacts.length > 0 && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: themeColors.primary }]}
           onPress={handleAddContact}
           activeOpacity={0.8}
           accessibilityRole="button"
           accessibilityLabel={t('contacts.add')}
         >
-          <Text style={styles.fabIcon}>+</Text>
+          <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -282,36 +284,28 @@ export function ContactListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   searchContainer: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
   },
-  // searchInput removed — using standardized SearchBar component
   contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     minHeight: touchTargets.comfortable,
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
   },
   contactName: {
     ...typography.h3,
-    color: colors.textPrimary,
     flex: 1,
     marginLeft: spacing.md,
     marginRight: spacing.sm,
   },
   chevron: {
     fontSize: 28,
-    color: colors.textTertiary,
     fontWeight: '300',
   },
   emptyContainer: {
@@ -325,18 +319,15 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   emptySubtitle: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
   addButton: {
-    backgroundColor: colors.primary,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
@@ -346,7 +337,6 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     ...typography.button,
-    color: colors.textOnPrimary,
   },
   fab: {
     position: 'absolute',
@@ -355,7 +345,6 @@ const styles = StyleSheet.create({
     width: touchTargets.large,
     height: touchTargets.large,
     borderRadius: touchTargets.large / 2,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -366,7 +355,6 @@ const styles = StyleSheet.create({
   },
   fabIcon: {
     fontSize: 32,
-    color: colors.textOnPrimary,
     fontWeight: '300',
   },
 });

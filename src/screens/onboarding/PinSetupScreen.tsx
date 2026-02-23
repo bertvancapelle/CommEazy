@@ -23,7 +23,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, typography, spacing } from '@/theme';
+import { typography, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button, ProgressIndicator, PinInput } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
@@ -34,6 +35,7 @@ type PinStep = 'create' | 'confirm';
 
 export function PinSetupScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
   const { name } = route.params;
   const [step, setStep] = useState<PinStep>('create');
@@ -145,7 +147,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -155,10 +157,10 @@ export function PinSetupScreen({ navigation, route }: Props) {
           <ProgressIndicator currentStep={4} totalSteps={6} />
 
           <View style={styles.content}>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: themeColors.textPrimary }]}>
               {step === 'create' ? t('onboarding.createPin') : t('onboarding.confirmPin')}
             </Text>
-            <Text style={styles.hint}>{t('onboarding.pinHint')}</Text>
+            <Text style={[styles.hint, { color: themeColors.textSecondary }]}>{t('onboarding.pinHint')}</Text>
 
             <View style={styles.pinContainer}>
               <PinInput
@@ -185,15 +187,15 @@ export function PinSetupScreen({ navigation, route }: Props) {
             )}
 
             {error && (
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={[styles.errorText, { color: themeColors.error }]}>{error}</Text>
             )}
 
             {step === 'create' && (
-              <Text style={styles.warningText}>{t('onboarding.pinWarning')}</Text>
+              <Text style={[styles.warningText, { color: themeColors.textSecondary }]}>{t('onboarding.pinWarning')}</Text>
             )}
           </View>
 
-          <View style={styles.footer}>
+          <View style={[styles.footer, { backgroundColor: themeColors.background }]}>
             {step === 'confirm' && (
               <Button
                 title={t('accessibility.backButton')}
@@ -215,7 +217,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
 
             {step === 'confirm' && !error && (
               <View style={styles.autoVerifyHint}>
-                <Text style={styles.autoVerifyText}>
+                <Text style={[styles.autoVerifyText, { color: themeColors.textSecondary }]}>
                   {isLoading ? t('common.loading') : ''}
                 </Text>
               </View>
@@ -230,7 +232,6 @@ export function PinSetupScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -246,13 +247,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.textPrimary,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   hint: {
     ...typography.body,
-    color: colors.textSecondary,
     marginBottom: spacing.lg,
     textAlign: 'center',
   },
@@ -266,13 +265,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...typography.body,
-    color: colors.error,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   warningText: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.lg,
     paddingHorizontal: spacing.md,
@@ -282,7 +279,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     paddingTop: spacing.sm,
-    backgroundColor: colors.background,
   },
   backButton: {
     marginBottom: spacing.sm,
@@ -294,6 +290,5 @@ const styles = StyleSheet.create({
   },
   autoVerifyText: {
     ...typography.body,
-    color: colors.textSecondary,
   },
 });

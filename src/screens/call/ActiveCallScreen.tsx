@@ -38,6 +38,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { ContactAvatar, Icon, IconButton } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
+import { useColors } from '@/contexts/ThemeContext';
 import type { CallStackParams } from './types';
 
 // ============================================================
@@ -60,6 +61,7 @@ const PIP_MARGIN = 16;
 export function ActiveCallScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
   const {
     activeCall,
     localStream,
@@ -179,7 +181,7 @@ export function ActiveCallScreen({ navigation, route }: Props) {
     }
 
     return (
-      <View style={styles.localVideoContainer}>
+      <View style={[styles.localVideoContainer, { borderColor: themeColors.textOnPrimary }]}>
         <RTCView
           streamURL={localStream.toURL()}
           style={styles.localVideo}
@@ -195,7 +197,7 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           accessibilityRole="button"
           accessibilityLabel={t('call.switchCamera')}
         >
-          <Icon name="camera-reverse" size={20} color={colors.textOnPrimary} />
+          <Icon name="camera-reverse" size={20} color={themeColors.textOnPrimary} />
         </TouchableOpacity>
       </View>
     );
@@ -223,10 +225,10 @@ export function ActiveCallScreen({ navigation, route }: Props) {
 
     return (
       <View style={styles.statusContainer}>
-        <Text style={styles.participantNames} numberOfLines={1}>
+        <Text style={[styles.participantNames, { color: themeColors.textOnPrimary }]} numberOfLines={1}>
           {participantNames}
         </Text>
-        <Text style={styles.statusText}>{statusText}</Text>
+        <Text style={[styles.statusText, { color: themeColors.textOnPrimary }]}>{statusText}</Text>
       </View>
     );
   };
@@ -254,7 +256,7 @@ export function ActiveCallScreen({ navigation, route }: Props) {
         <TouchableOpacity
           style={[
             styles.controlButton,
-            activeCall?.isMuted && styles.controlButtonActive,
+            activeCall?.isMuted && { backgroundColor: themeColors.textOnPrimary },
           ]}
           onPress={handleToggleMute}
           onLongPress={() => {}}
@@ -267,11 +269,12 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           <Icon
             name={activeCall?.isMuted ? 'mic-off' : 'mic'}
             size={24}
-            color={activeCall?.isMuted ? colors.textPrimary : colors.textOnPrimary}
+            color={activeCall?.isMuted ? themeColors.textPrimary : themeColors.textOnPrimary}
           />
           <Text style={[
             styles.controlLabel,
-            activeCall?.isMuted && styles.controlLabelActive,
+            { color: themeColors.textOnPrimary },
+            activeCall?.isMuted && { color: themeColors.textPrimary },
           ]}>
             {t('call.mute')}
           </Text>
@@ -281,7 +284,7 @@ export function ActiveCallScreen({ navigation, route }: Props) {
         <TouchableOpacity
           style={[
             styles.controlButton,
-            activeCall?.isSpeakerOn && styles.controlButtonActive,
+            activeCall?.isSpeakerOn && { backgroundColor: themeColors.textOnPrimary },
           ]}
           onPress={handleToggleSpeaker}
           onLongPress={() => {}}
@@ -294,11 +297,12 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           <Icon
             name={activeCall?.isSpeakerOn ? 'volume-high' : 'volume-low'}
             size={24}
-            color={activeCall?.isSpeakerOn ? colors.textPrimary : colors.textOnPrimary}
+            color={activeCall?.isSpeakerOn ? themeColors.textPrimary : themeColors.textOnPrimary}
           />
           <Text style={[
             styles.controlLabel,
-            activeCall?.isSpeakerOn && styles.controlLabelActive,
+            { color: themeColors.textOnPrimary },
+            activeCall?.isSpeakerOn && { color: themeColors.textPrimary },
           ]}>
             {t('call.speaker')}
           </Text>
@@ -309,7 +313,7 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           <TouchableOpacity
             style={[
               styles.controlButton,
-              !activeCall?.isVideoEnabled && styles.controlButtonActive,
+              !activeCall?.isVideoEnabled && { backgroundColor: themeColors.textOnPrimary },
             ]}
             onPress={handleToggleVideo}
             onLongPress={() => {}}
@@ -322,11 +326,12 @@ export function ActiveCallScreen({ navigation, route }: Props) {
             <Icon
               name={activeCall?.isVideoEnabled ? 'videocam' : 'videocam-off'}
               size={24}
-              color={activeCall?.isVideoEnabled ? colors.textOnPrimary : colors.textPrimary}
+              color={activeCall?.isVideoEnabled ? themeColors.textOnPrimary : themeColors.textPrimary}
             />
             <Text style={[
               styles.controlLabel,
-              !activeCall?.isVideoEnabled && styles.controlLabelActive,
+              { color: themeColors.textOnPrimary },
+              !activeCall?.isVideoEnabled && { color: themeColors.textPrimary },
             ]}>
               {t('call.video')}
             </Text>
@@ -343,8 +348,8 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           accessibilityRole="button"
           accessibilityLabel={t('call.hangup')}
         >
-          <Icon name="call" size={28} color={colors.textOnPrimary} />
-          <Text style={[styles.controlLabel, styles.hangupLabel]}>
+          <Icon name="call" size={28} color={themeColors.textOnPrimary} />
+          <Text style={[styles.controlLabel, { color: themeColors.textOnPrimary }]}>
             {t('call.hangup')}
           </Text>
         </TouchableOpacity>
@@ -384,7 +389,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: colors.textOnPrimary,
+    // borderColor applied dynamically via themeColors
     // Shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -417,7 +422,7 @@ const styles = StyleSheet.create({
   },
   participantNames: {
     ...typography.h3,
-    color: colors.textOnPrimary,
+    // color applied dynamically via themeColors
     textAlign: 'center',
     marginBottom: spacing.xs,
     // Text shadow for readability
@@ -427,7 +432,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...typography.body,
-    color: colors.textOnPrimary,
+    // color applied dynamically via themeColors
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
@@ -450,25 +455,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: spacing.xs,
   },
-  controlButtonActive: {
-    backgroundColor: colors.textOnPrimary,
-  },
+  // controlButtonActive applied dynamically via themeColors.textOnPrimary
   controlLabel: {
     ...typography.small,
     fontSize: 12,
-    color: colors.textOnPrimary,
+    // color applied dynamically via themeColors
     marginTop: 2,
   },
-  controlLabelActive: {
-    color: colors.textPrimary,
-  },
+  // controlLabelActive applied dynamically via themeColors.textPrimary
   hangupButton: {
     width: touchTargets.large,
     height: touchTargets.large + 20,
     borderRadius: touchTargets.large / 2,
     backgroundColor: colors.error,
   },
-  hangupLabel: {
-    color: colors.textOnPrimary,
-  },
+  // hangupLabel color applied dynamically
 });

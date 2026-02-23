@@ -25,6 +25,7 @@ import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/n
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import type { GroupStackParams } from '@/navigation';
@@ -37,6 +38,7 @@ export function GroupListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const isFocused = useIsFocused();
+  const themeColors = useColors();
   const [groups, setGroups] = useState<GroupListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -209,6 +211,7 @@ export function GroupListScreen() {
           <TouchableOpacity
             style={[
               styles.groupItem,
+              { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider },
               focused && {
                 borderColor: focusStyle?.borderColor,
                 borderWidth: focusStyle?.borderWidth,
@@ -225,8 +228,8 @@ export function GroupListScreen() {
             accessibilityHint={t('chat.openConversation')}
           >
             {/* Group icon */}
-            <View style={styles.groupIcon}>
-              <Text style={styles.groupIconText}>
+            <View style={[styles.groupIcon, { backgroundColor: themeColors.primaryLight }]}>
+              <Text style={[styles.groupIconText, { color: themeColors.primary }]}>
                 {item.group.name.charAt(0).toUpperCase()}
               </Text>
             </View>
@@ -235,28 +238,28 @@ export function GroupListScreen() {
             <View style={styles.groupContent}>
               <View style={styles.groupHeader}>
                 <Text
-                  style={styles.groupName}
+                  style={[styles.groupName, { color: themeColors.textPrimary }]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
                   {item.group.name}
                 </Text>
                 {item.lastMessage && (
-                  <Text style={styles.timestamp}>
+                  <Text style={[styles.timestamp, { color: themeColors.textTertiary }]}>
                     {formatTime(item.lastMessage.timestamp)}
                   </Text>
                 )}
               </View>
 
               {/* Member count */}
-              <Text style={styles.memberCount}>
+              <Text style={[styles.memberCount, { color: themeColors.textSecondary }]}>
                 {t('group.memberCount', { count: item.group.members.length })}
               </Text>
 
               {/* Last message */}
               {item.lastMessage && (
                 <Text
-                  style={styles.lastMessage}
+                  style={[styles.lastMessage, { color: themeColors.textSecondary }]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -268,8 +271,8 @@ export function GroupListScreen() {
 
             {/* Unread badge */}
             {item.unreadCount > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadCount}>
+              <View style={[styles.unreadBadge, { backgroundColor: themeColors.primary }]}>
+                <Text style={[styles.unreadCount, { color: themeColors.textOnPrimary }]}>
                   {item.unreadCount > 99 ? '99+' : item.unreadCount}
                 </Text>
               </View>
@@ -278,14 +281,14 @@ export function GroupListScreen() {
         </VoiceFocusable>
       );
     },
-    [handleGroupPress, formatTime, t, isItemFocused, getFocusStyle],
+    [handleGroupPress, formatTime, t, isItemFocused, getFocusStyle, themeColors],
   );
 
   const renderEmptyList = useCallback(
     () => (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>{t('group.noGroups')}</Text>
-        <Text style={styles.emptySubtitle}>{t('group.noGroupsHint')}</Text>
+        <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('group.noGroups')}</Text>
+        <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>{t('group.noGroupsHint')}</Text>
         <Button
           title={t('group.create')}
           onPress={handleCreateGroup}
@@ -293,7 +296,7 @@ export function GroupListScreen() {
         />
       </View>
     ),
-    [t, handleCreateGroup],
+    [t, handleCreateGroup, themeColors],
   );
 
   if (loading) {
@@ -301,7 +304,7 @@ export function GroupListScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header — standardized component */}
       <ModuleHeader
         moduleId="groups"
@@ -317,7 +320,7 @@ export function GroupListScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => void onRefresh()}
-            tintColor={colors.primary}
+            tintColor={themeColors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -333,13 +336,13 @@ export function GroupListScreen() {
       {/* Floating action button for new group */}
       {groups.length > 0 && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: themeColors.primary }]}
           onPress={handleCreateGroup}
           activeOpacity={0.8}
           accessibilityRole="button"
           accessibilityLabel={t('group.create')}
         >
-          <Text style={styles.fabIcon}>+</Text>
+          <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -349,7 +352,6 @@ export function GroupListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   groupItem: {
     flexDirection: 'row',
@@ -357,22 +359,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     minHeight: touchTargets.comfortable,
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
   },
   groupIcon: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
   },
   groupIconText: {
     ...typography.h2,
-    color: colors.primary,
   },
   groupContent: {
     flex: 1,
@@ -386,22 +384,18 @@ const styles = StyleSheet.create({
   },
   groupName: {
     ...typography.h3,
-    color: colors.textPrimary,
     flex: 1,
     marginRight: spacing.sm,
   },
   timestamp: {
     ...typography.small,
-    color: colors.textTertiary,
   },
   memberCount: {
     ...typography.label,
-    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
   lastMessage: {
     ...typography.body,
-    color: colors.textSecondary,
   },
   senderName: {
     fontWeight: '600',
@@ -410,14 +404,12 @@ const styles = StyleSheet.create({
     minWidth: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
   },
   unreadCount: {
     ...typography.label,
-    color: colors.textOnPrimary,
     fontSize: 16,
   },
   emptyContainer: {
@@ -431,13 +423,11 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   emptySubtitle: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
@@ -451,7 +441,6 @@ const styles = StyleSheet.create({
     width: touchTargets.large,
     height: touchTargets.large,
     borderRadius: touchTargets.large / 2,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -462,7 +451,6 @@ const styles = StyleSheet.create({
   },
   fabIcon: {
     fontSize: 32,
-    color: colors.textOnPrimary,
     fontWeight: '300',
   },
 });

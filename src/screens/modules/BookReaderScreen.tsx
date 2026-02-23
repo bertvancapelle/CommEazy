@@ -40,6 +40,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, IconButton } from '@/components';
 import { useBooksContext } from '@/contexts/BooksContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -98,6 +99,7 @@ export function BookReaderScreen() {
   const { accentColor } = useAccentColor();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const themeColors = useColors();
 
   // Books Context
   const {

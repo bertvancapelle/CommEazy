@@ -29,6 +29,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button, TextInput, LoadingView } from '@/components';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
@@ -43,6 +44,7 @@ type Step = 1 | 2 | 3;
 export function CreateGroupScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const themeColors = useColors();
 
   // Step state
   const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -150,11 +152,11 @@ export function CreateGroupScreen() {
   // Step 1: Group name
   const renderStep1 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>{t('group.nameTitle')}</Text>
-      <Text style={styles.stepDescription}>{t('group.nameHint')}</Text>
+      <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>{t('group.nameTitle')}</Text>
+      <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>{t('group.nameHint')}</Text>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>{t('group.name')}</Text>
+        <Text style={[styles.inputLabel, { color: themeColors.textPrimary }]}>{t('group.name')}</Text>
         <TextInput
           value={groupName}
           onChangeText={setGroupName}
@@ -177,8 +179,8 @@ export function CreateGroupScreen() {
   // Step 2: Select members
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>{t('group.selectMembers')}</Text>
-      <Text style={styles.stepDescription}>
+      <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>{t('group.selectMembers')}</Text>
+      <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
         {t('group.selectedCount', { count: selectedMembers.length })}
       </Text>
 
@@ -186,7 +188,7 @@ export function CreateGroupScreen() {
         <LoadingView message={t('common.loading')} />
       ) : contacts.length === 0 ? (
         <View style={styles.emptyContacts}>
-          <Text style={styles.emptyText}>{t('contacts.noContacts')}</Text>
+          <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>{t('contacts.noContacts')}</Text>
         </View>
       ) : (
         <ScrollView style={styles.contactList} showsVerticalScrollIndicator={false}>
@@ -195,21 +197,25 @@ export function CreateGroupScreen() {
             return (
               <TouchableOpacity
                 key={contact.jid}
-                style={[styles.contactItem, isSelected && styles.contactItemSelected]}
+                style={[
+                  styles.contactItem,
+                  { backgroundColor: themeColors.surface },
+                  isSelected && { backgroundColor: themeColors.primaryLight, borderWidth: 2, borderColor: themeColors.primary },
+                ]}
                 onPress={() => handleToggleMember(contact)}
                 activeOpacity={0.7}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: isSelected }}
                 accessibilityLabel={contact.name}
               >
-                <View style={styles.contactAvatar}>
-                  <Text style={styles.contactAvatarText}>
+                <View style={[styles.contactAvatar, { backgroundColor: themeColors.border }]}>
+                  <Text style={[styles.contactAvatarText, { color: themeColors.textSecondary }]}>
                     {contact.name.charAt(0).toUpperCase()}
                   </Text>
                 </View>
-                <Text style={styles.contactName}>{contact.name}</Text>
-                <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-                  {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{contact.name}</Text>
+                <View style={[styles.checkbox, { borderColor: themeColors.border }, isSelected && { backgroundColor: themeColors.primary, borderColor: themeColors.primary }]}>
+                  {isSelected && <Text style={[styles.checkmark, { color: themeColors.textOnPrimary }]}>✓</Text>}
                 </View>
               </TouchableOpacity>
             );
@@ -237,32 +243,32 @@ export function CreateGroupScreen() {
   // Step 3: Review & create
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>{t('group.reviewTitle')}</Text>
+      <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>{t('group.reviewTitle')}</Text>
 
       {/* Group name summary */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>{t('group.name')}</Text>
-        <Text style={styles.summaryValue}>{groupName}</Text>
+      <View style={[styles.summaryCard, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>{t('group.name')}</Text>
+        <Text style={[styles.summaryValue, { color: themeColors.textPrimary }]}>{groupName}</Text>
       </View>
 
       {/* Members summary */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>
+      <View style={[styles.summaryCard, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>
           {t('group.memberCount', { count: selectedMembers.length })}
         </Text>
         <View style={styles.membersList}>
           {selectedMembers.map(member => (
-            <View key={member.jid} style={styles.memberChip}>
-              <Text style={styles.memberChipText}>{member.name}</Text>
+            <View key={member.jid} style={[styles.memberChip, { backgroundColor: themeColors.primaryLight }]}>
+              <Text style={[styles.memberChipText, { color: themeColors.primary }]}>{member.name}</Text>
             </View>
           ))}
         </View>
       </View>
 
       {/* Encryption info */}
-      <View style={styles.encryptionInfo}>
+      <View style={[styles.encryptionInfo, { backgroundColor: themeColors.success + '20' }]}>
         <Text style={styles.encryptionIcon}>🔒</Text>
-        <Text style={styles.encryptionText}>
+        <Text style={[styles.encryptionText, { color: themeColors.success }]}>
           {t('group.encryptionInfo', {
             mode: selectedMembers.length <= 8 ? t('group.encryptToAll') : t('group.sharedKey'),
           })}
@@ -295,7 +301,8 @@ export function CreateGroupScreen() {
           key={step}
           style={[
             styles.progressDot,
-            currentStep >= step && styles.progressDotActive,
+            { backgroundColor: themeColors.border },
+            currentStep >= step && { backgroundColor: themeColors.primary, width: 16, height: 16, borderRadius: 8 },
           ]}
           accessibilityLabel={t('group.stepOf', { current: currentStep, total: 3 })}
         />
@@ -305,7 +312,7 @@ export function CreateGroupScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={100}
     >
@@ -321,7 +328,6 @@ export function CreateGroupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -334,13 +340,9 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.border,
   },
   progressDotActive: {
-    backgroundColor: colors.primary,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    // Dynamic styling applied in JSX
   },
   stepContainer: {
     flex: 1,
@@ -348,13 +350,11 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   stepDescription: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
@@ -364,7 +364,6 @@ const styles = StyleSheet.create({
   inputLabel: {
     ...typography.body,
     fontWeight: '700',
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   contactList: {
@@ -376,32 +375,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     marginBottom: spacing.sm,
     minHeight: touchTargets.minimum,
   },
   contactItemSelected: {
-    backgroundColor: colors.primaryLight,
-    borderWidth: 2,
-    borderColor: colors.primary,
+    // Dynamic styling applied in JSX
   },
   contactAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
   },
   contactAvatarText: {
     ...typography.h3,
-    color: colors.textSecondary,
   },
   contactName: {
     ...typography.body,
-    color: colors.textPrimary,
     flex: 1,
   },
   checkbox: {
@@ -409,16 +402,13 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    // Dynamic styling applied in JSX
   },
   checkmark: {
-    color: colors.textOnPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -429,7 +419,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   buttonRow: {
@@ -444,19 +433,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.lg,
     marginBottom: spacing.md,
   },
   summaryLabel: {
     ...typography.label,
-    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
   summaryValue: {
     ...typography.h3,
-    color: colors.textPrimary,
   },
   membersList: {
     flexDirection: 'row',
@@ -465,19 +451,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   memberChip: {
-    backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
   },
   memberChipText: {
     ...typography.body,
-    color: colors.primary,
   },
   encryptionInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.success + '20',
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginBottom: spacing.xl,
@@ -488,7 +471,6 @@ const styles = StyleSheet.create({
   },
   encryptionText: {
     ...typography.body,
-    color: colors.success,
     flex: 1,
   },
 });

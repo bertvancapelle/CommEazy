@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, typography, spacing } from '@/theme';
+import { typography, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { Button, ProgressIndicator } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
 
@@ -22,25 +23,26 @@ type Props = NativeStackScreenProps<OnboardingStackParams, 'Welcome'>;
 
 export function WelcomeScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const themeColors = useColors();
 
   const handleContinue = () => {
     navigation.navigate('DeviceChoice');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ProgressIndicator currentStep={1} totalSteps={5} />
 
       <View style={styles.content}>
         <View style={styles.hero}>
           <Text style={styles.logo}>💬</Text>
-          <Text style={styles.title}>{t('onboarding.welcome')}</Text>
-          <Text style={styles.subtitle}>{t('onboarding.subtitle')}</Text>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('onboarding.welcome')}</Text>
+          <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('onboarding.subtitle')}</Text>
         </View>
 
-        <View style={styles.privacyBox}>
+        <View style={[styles.privacyBox, { backgroundColor: themeColors.backgroundSecondary }]}>
           <Text style={styles.privacyIcon}>🔒</Text>
-          <Text style={styles.privacyText}>{t('onboarding.privacyIntro')}</Text>
+          <Text style={[styles.privacyText, { color: themeColors.textPrimary }]}>{t('onboarding.privacyIntro')}</Text>
         </View>
       </View>
 
@@ -58,7 +60,6 @@ export function WelcomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -75,17 +76,14 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h1,
-    color: colors.textPrimary,
     textAlign: 'center',
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
   privacyBox: {
-    backgroundColor: colors.backgroundSecondary,
     borderRadius: 16,
     padding: spacing.lg,
     alignItems: 'center',
@@ -96,7 +94,6 @@ const styles = StyleSheet.create({
   },
   privacyText: {
     ...typography.body,
-    color: colors.textPrimary,
     textAlign: 'center',
     lineHeight: 28,
   },

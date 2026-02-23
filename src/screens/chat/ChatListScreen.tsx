@@ -29,6 +29,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Button, PresenceIndicator, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
+import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import type { ChatStackParams } from '@/navigation';
@@ -56,6 +57,7 @@ export function ChatListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { triggerFeedback } = useFeedback();
   const { accentColor } = useAccentColor();
+  const themeColors = useColors();
   const isFocused = useIsFocused();
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -336,17 +338,17 @@ export function ChatListScreen() {
   const getStatusIcon = useCallback((status?: DeliveryStatus): { name: 'time' | 'check' | 'check-all' | 'alert'; color: string } | null => {
     switch (status) {
       case 'pending':
-        return { name: 'time', color: colors.textTertiary };  // Clock icon
+        return { name: 'time', color: themeColors.textTertiary };  // Clock icon
       case 'sent':
         return { name: 'check', color: accentColor.primary };  // Single check in accent
       case 'delivered':
         return { name: 'check-all', color: accentColor.primary };  // Double check in accent
       case 'failed':
-        return { name: 'alert', color: colors.error };  // Alert triangle
+        return { name: 'alert', color: themeColors.error };  // Alert triangle
       default:
         return null;
     }
-  }, [accentColor.primary]);
+  }, [accentColor.primary, themeColors]);
 
   const renderChatItem = useCallback(
     ({ item, index }: { item: ChatListItem; index: number }): React.ReactElement => {
@@ -368,6 +370,7 @@ export function ChatListScreen() {
           <TouchableOpacity
             style={[
               styles.chatItem,
+              { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider },
               // No accent background on row - only message text gets accent color
               focused && {
                 borderColor: focusStyle?.borderColor,
@@ -398,6 +401,7 @@ export function ChatListScreen() {
                 <Text
                   style={[
                     styles.contactName,
+                    { color: themeColors.textPrimary },
                     // Bold for unread incoming messages
                     hasUnread && !isFromMe && { fontWeight: '800' },
                   ]}
@@ -406,7 +410,7 @@ export function ChatListScreen() {
                 >
                   {item.contactName}
                 </Text>
-                <Text style={styles.timestamp}>{formatTime(item.lastMessageTime)}</Text>
+                <Text style={[styles.timestamp, { color: themeColors.textTertiary }]}>{formatTime(item.lastMessageTime)}</Text>
               </View>
 
               {/* Show up to 2 lines of the last message with status indicator */}
@@ -431,8 +435,9 @@ export function ChatListScreen() {
                   <Text
                     style={[
                       styles.lastMessage,
+                      { color: themeColors.textSecondary },
                       // Bold for unread incoming messages
-                      hasUnread && !isFromMe && { fontWeight: '700', color: colors.textPrimary },
+                      hasUnread && !isFromMe && { fontWeight: '700', color: themeColors.textPrimary },
                     ]}
                     numberOfLines={2}
                     ellipsizeMode="tail"
@@ -446,7 +451,7 @@ export function ChatListScreen() {
             {/* Unread badge - only show for incoming messages */}
             {hasUnread && !isFromMe && (
               <View style={[styles.unreadBadge, { backgroundColor: accentColor.primary }]}>
-                <Text style={styles.unreadCount}>
+                <Text style={[styles.unreadCount, { color: themeColors.textOnPrimary }]}>
                   {item.unreadCount > 99 ? '99+' : item.unreadCount}
                 </Text>
               </View>
@@ -455,7 +460,7 @@ export function ChatListScreen() {
         </VoiceFocusable>
       );
     },
-    [handleChatPress, formatTime, t, isItemFocused, getFocusStyle, accentColor, getStatusIcon],
+    [handleChatPress, formatTime, t, isItemFocused, getFocusStyle, accentColor, getStatusIcon, themeColors],
   );
 
   const keyExtractor = useCallback((item: ChatListItem) => item.chatId, []);
@@ -469,8 +474,8 @@ export function ChatListScreen() {
 
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>{t('chat.noChats')}</Text>
-          <Text style={styles.emptySubtitle}>{t('chat.noChatsHint')}</Text>
+          <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('chat.noChats')}</Text>
+          <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>{t('chat.noChatsHint')}</Text>
           <Button
             title={t('chat.startChat')}
             onPress={handleNewChat}
@@ -478,7 +483,7 @@ export function ChatListScreen() {
           />
           {/* DEV DEBUG INFO */}
           {__DEV__ && (
-            <View style={styles.debugContainer}>
+            <View style={[styles.debugContainer, { backgroundColor: themeColors.backgroundSecondary }]}>
               <Text style={styles.debugText}>User: {myJid}</Text>
               <Text style={styles.debugText}>Window: {windowDims.width}x{windowDims.height}</Text>
               <Text style={styles.debugText}>Screen: {screenDims.width}x{screenDims.height}</Text>
@@ -488,7 +493,7 @@ export function ChatListScreen() {
         </View>
       );
     },
-    [t, handleNewChat],
+    [t, handleNewChat, themeColors],
   );
 
   if (loading) {
@@ -496,7 +501,7 @@ export function ChatListScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header — standardized component */}
       <ModuleHeader
         moduleId="messages"
@@ -512,7 +517,7 @@ export function ChatListScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => void onRefresh()}
-            tintColor={colors.primary}
+            tintColor={themeColors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -532,13 +537,13 @@ export function ChatListScreen() {
       {/* Floating action button for new chat */}
       {chats.length > 0 && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: themeColors.primary }]}
           onPress={handleNewChat}
           activeOpacity={0.8}
           accessibilityRole="button"
           accessibilityLabel={t('chat.newChat')}
         >
-          <Text style={styles.fabIcon}>+</Text>
+          <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
         </TouchableOpacity>
       )}
 
