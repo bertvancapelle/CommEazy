@@ -289,6 +289,8 @@ export function AppearanceSettingsScreen() {
   // Get individual module colors for preview cards
   const radioColor = useModuleColor('radio');
   const podcastColor = useModuleColor('podcast');
+  const booksColor = useModuleColor('books');
+  const appleMusicColor = useModuleColor('appleMusic');
   const weatherColor = useModuleColor('weather');
   const chatsColor = useModuleColor('chats');
 
@@ -526,6 +528,16 @@ export function AppearanceSettingsScreen() {
           <View style={[styles.modulePreviewCard, { backgroundColor: podcastColor }]}>
             <Icon name="podcast" size={32} color={themeColors.textOnPrimary} />
             <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.podcast')}</Text>
+          </View>
+
+          <View style={[styles.modulePreviewCard, { backgroundColor: booksColor }]}>
+            <Icon name="book" size={32} color={themeColors.textOnPrimary} />
+            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.books')}</Text>
+          </View>
+
+          <View style={[styles.modulePreviewCard, { backgroundColor: appleMusicColor }]}>
+            <Icon name="musical-note" size={32} color={themeColors.textOnPrimary} />
+            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.appleMusic')}</Text>
           </View>
 
           <View style={[styles.modulePreviewCard, { backgroundColor: weatherColor }]}>

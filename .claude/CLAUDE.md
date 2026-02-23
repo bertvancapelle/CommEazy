@@ -449,6 +449,48 @@ echo "Navigation:" && grep -c "${MODULE^}Tab" src/navigation/index.tsx
 | 19 | **Navigation route** | `src/navigation/index.tsx` | Screen geregistreerd in navigator |
 | 20 | **Screen component** | `src/screens/modules/[Module]Screen.tsx` | Screen bestand bestaat |
 
+#### Module Kleuren Registratie (VERPLICHT voor alle modules)
+
+Elke module MOET geregistreerd worden in het kleuren-systeem zodat gebruikers de kleur kunnen aanpassen in Instellingen → Weergave & Kleuren.
+
+| # | Check | Bestand | Wat aanpassen |
+|---|-------|---------|---------------|
+| 21 | **ModuleColorId type** | `src/types/liquidGlass.ts` | `'moduleId'` toevoegen aan `ModuleColorId` union type |
+| 22 | **CUSTOMIZABLE_MODULES** | `src/contexts/ModuleColorsContext.tsx` | `'moduleId'` toevoegen aan `CUSTOMIZABLE_MODULES` array |
+| 23 | **MODULE_LABELS** | `src/contexts/ModuleColorsContext.tsx` | `moduleId: 'modules.moduleId.title'` toevoegen aan `MODULE_LABELS` object |
+| 24 | **Preview card** | `src/screens/settings/AppearanceSettingsScreen.tsx` | Preview card toevoegen met `useModuleColor('moduleId')` |
+
+#### Audio Module Extra Checks (VERPLICHT voor modules met audio playback)
+
+Modules met audio playback (radio, podcast, books, appleMusic, etc.) hebben extra vereisten voor Liquid Glass integratie.
+
+| # | Check | Bestand | Wat valideren |
+|---|-------|---------|---------------|
+| 25 | **useModuleColor hook** | Screen component | `const moduleColor = useModuleColor('moduleId')` — GEEN hardcoded kleur constanten |
+| 26 | **Glass Player tintColorHex** | Screen component | `tintColorHex: moduleColor` in `showGlassMiniPlayer()` call |
+| 27 | **UI elementen dynamisch** | Screen component | Alle UI elementen met module kleur gebruiken `moduleColor` variabele, niet hardcoded hex |
+
+**⚠️ FOUT patroon (NIET DOEN):**
+```typescript
+// ❌ FOUT: Hardcoded kleur
+const RADIO_MODULE_COLOR = '#00897B';
+
+showGlassMiniPlayer({
+  tintColorHex: RADIO_MODULE_COLOR,  // ← Negeert user preferences!
+});
+```
+
+**✅ CORRECT patroon:**
+```typescript
+// ✅ GOED: User-customizable kleur
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
+
+const radioModuleColor = useModuleColor('radio');
+
+showGlassMiniPlayer({
+  tintColorHex: radioModuleColor,  // ← Respecteert user preferences
+});
+
 **Claude's Verantwoordelijkheid:**
 
 Na het implementeren van een nieuwe module MOET Claude:

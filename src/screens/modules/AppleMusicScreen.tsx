@@ -61,6 +61,7 @@ import {
   type SearchResults,
 } from '@/contexts/AppleMusicContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
@@ -69,7 +70,6 @@ import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 // Constants
 // ============================================================
 
-const APPLE_MUSIC_COLOR = '#FC3C44';
 const SEARCH_MAX_LENGTH = 100;
 
 // Layout constants for overlay positioning
@@ -91,6 +91,7 @@ export function AppleMusicScreen() {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
+  const appleMusicColor = useModuleColor('appleMusic');  // User-customizable module color
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
@@ -280,7 +281,7 @@ export function AppleMusicScreen() {
 
     showGlassMiniPlayer({
       moduleId: 'appleMusic',
-      tintColorHex: APPLE_MUSIC_COLOR,
+      tintColorHex: appleMusicColor,
       artwork: artworkUrl,
       title: currentSong.title,
       subtitle: currentSong.artistName,
@@ -373,7 +374,7 @@ export function AppleMusicScreen() {
 
       showGlassMiniPlayer({
         moduleId: 'appleMusic',
-        tintColorHex: APPLE_MUSIC_COLOR,
+        tintColorHex: appleMusicColor,
         artwork: artworkUrl,
         title: currentSong.title,
         subtitle: currentSong.artistName,
@@ -482,13 +483,13 @@ export function AppleMusicScreen() {
 
   const renderAuthRequired = () => (
     <View style={styles.centeredContainer}>
-      <Icon name="appleMusic" size={80} color={APPLE_MUSIC_COLOR} />
+      <Icon name="appleMusic" size={80} color={appleMusicColor} />
       <Text style={[styles.authTitle, { color: themeColors.textPrimary }]}>{t('modules.appleMusic.authRequired.title')}</Text>
       <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.authRequired.description')}
       </Text>
       <TouchableOpacity
-        style={[styles.authButton, { backgroundColor: APPLE_MUSIC_COLOR }]}
+        style={[styles.authButton, { backgroundColor: appleMusicColor }]}
         onPress={handleAuthorize}
         accessibilityRole="button"
         accessibilityLabel={t('modules.appleMusic.authRequired.button')}
@@ -506,13 +507,13 @@ export function AppleMusicScreen() {
 
   const renderAndroidNotInstalled = () => (
     <View style={styles.centeredContainer}>
-      <Icon name="appleMusic" size={80} color={APPLE_MUSIC_COLOR} />
+      <Icon name="appleMusic" size={80} color={appleMusicColor} />
       <Text style={[styles.authTitle, { color: themeColors.textPrimary }]}>{t('modules.appleMusic.android.notInstalled.title')}</Text>
       <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.android.notInstalled.description')}
       </Text>
       <TouchableOpacity
-        style={[styles.authButton, { backgroundColor: APPLE_MUSIC_COLOR }]}
+        style={[styles.authButton, { backgroundColor: appleMusicColor }]}
         onPress={handleOpenPlayStore}
         accessibilityRole="button"
         accessibilityLabel={t('modules.appleMusic.android.notInstalled.downloadButton')}
@@ -531,13 +532,13 @@ export function AppleMusicScreen() {
 
   const renderAndroidInstalled = () => (
     <View style={styles.centeredContainer}>
-      <Icon name="appleMusic" size={80} color={APPLE_MUSIC_COLOR} />
+      <Icon name="appleMusic" size={80} color={appleMusicColor} />
       <Text style={[styles.authTitle, { color: themeColors.textPrimary }]}>{t('modules.appleMusic.android.installed.title')}</Text>
       <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.android.installed.description')}
       </Text>
       <TouchableOpacity
-        style={[styles.authButton, { backgroundColor: APPLE_MUSIC_COLOR }]}
+        style={[styles.authButton, { backgroundColor: appleMusicColor }]}
         onPress={handleOpenAppleMusicApp}
         accessibilityRole="button"
         accessibilityLabel={t('modules.appleMusic.android.installed.openButton')}
@@ -567,7 +568,7 @@ export function AppleMusicScreen() {
 
       {isSearching && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={APPLE_MUSIC_COLOR} />
+          <ActivityIndicator size="large" color={appleMusicColor} />
           <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
         </View>
       )}
@@ -701,7 +702,7 @@ export function AppleMusicScreen() {
         {/* Tab Bar */}
         <View style={[styles.tabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'search' && styles.tabActive]}
+            style={[styles.tab, activeTab === 'search' && styles.tabActive, activeTab === 'search' && { borderBottomColor: appleMusicColor }]}
             onPress={() => setActiveTab('search')}
             accessibilityRole="tab"
             accessibilityState={{ selected: activeTab === 'search' }}
@@ -709,13 +710,13 @@ export function AppleMusicScreen() {
             <Icon
               name="search"
               size={20}
-              color={activeTab === 'search' ? APPLE_MUSIC_COLOR : themeColors.textSecondary}
+              color={activeTab === 'search' ? appleMusicColor : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.tabText,
                 { color: themeColors.textSecondary },
-                activeTab === 'search' && { color: APPLE_MUSIC_COLOR },
+                activeTab === 'search' && { color: appleMusicColor },
               ]}
             >
               {t('modules.appleMusic.tabs.search')}
@@ -723,7 +724,7 @@ export function AppleMusicScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'library' && styles.tabActive]}
+            style={[styles.tab, activeTab === 'library' && styles.tabActive, activeTab === 'library' && { borderBottomColor: appleMusicColor }]}
             onPress={() => setActiveTab('library')}
             accessibilityRole="tab"
             accessibilityState={{ selected: activeTab === 'library' }}
@@ -731,13 +732,13 @@ export function AppleMusicScreen() {
             <Icon
               name="appleMusic"
               size={20}
-              color={activeTab === 'library' ? APPLE_MUSIC_COLOR : themeColors.textSecondary}
+              color={activeTab === 'library' ? appleMusicColor : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.tabText,
                 { color: themeColors.textSecondary },
-                activeTab === 'library' && { color: APPLE_MUSIC_COLOR },
+                activeTab === 'library' && { color: appleMusicColor },
               ]}
             >
               {t('modules.appleMusic.tabs.library')}
@@ -745,7 +746,7 @@ export function AppleMusicScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'playlists' && styles.tabActive]}
+            style={[styles.tab, activeTab === 'playlists' && styles.tabActive, activeTab === 'playlists' && { borderBottomColor: appleMusicColor }]}
             onPress={() => setActiveTab('playlists')}
             accessibilityRole="tab"
             accessibilityState={{ selected: activeTab === 'playlists' }}
@@ -753,13 +754,13 @@ export function AppleMusicScreen() {
             <Icon
               name="list"
               size={20}
-              color={activeTab === 'playlists' ? APPLE_MUSIC_COLOR : themeColors.textSecondary}
+              color={activeTab === 'playlists' ? appleMusicColor : themeColors.textSecondary}
             />
             <Text
               style={[
                 styles.tabText,
                 { color: themeColors.textSecondary },
-                activeTab === 'playlists' && { color: APPLE_MUSIC_COLOR },
+                activeTab === 'playlists' && { color: appleMusicColor },
               ]}
             >
               {t('modules.appleMusic.tabs.playlists')}
@@ -830,7 +831,7 @@ export function AppleMusicScreen() {
           artwork={currentSong.artworkUrl || null}
           title={currentSong.title}
           subtitle={currentSong.artistName}
-          accentColor={APPLE_MUSIC_COLOR}
+          accentColor={appleMusicColor}
           isPlaying={isPlaying}
           isLoading={isPlaybackLoading}
           progressType="bar"
@@ -852,7 +853,7 @@ export function AppleMusicScreen() {
           artwork={currentSong?.artworkUrl || null}
           title={currentSong?.title || ''}
           subtitle={currentSong?.artistName}
-          accentColor={APPLE_MUSIC_COLOR}
+          accentColor={appleMusicColor}
           isPlaying={isPlaying}
           isLoading={isPlaybackLoading}
           isBuffering={false}
@@ -963,7 +964,7 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     borderBottomWidth: 2,
-    borderBottomColor: APPLE_MUSIC_COLOR,
+    // borderBottomColor is set inline with dynamic appleMusicColor
   },
   tabText: {
     ...typography.label,

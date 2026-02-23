@@ -48,6 +48,7 @@ import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
@@ -223,14 +224,12 @@ const MAX_FAVORITES = 10;
 // Search input max length
 const SEARCH_MAX_LENGTH = 100;
 
-// Module color (consistent with WheelNavigationMenu)
-const RADIO_MODULE_COLOR = '#00897B';
-
 export function RadioScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
+  const radioModuleColor = useModuleColor('radio');  // User-customizable module color
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
@@ -415,10 +414,10 @@ export function RadioScreen() {
       return;
     }
 
-    // Show native glass mini player
+    // Show native glass mini player with user-customized module color
     showGlassMiniPlayer({
       moduleId: 'radio',
-      tintColorHex: RADIO_MODULE_COLOR,
+      tintColorHex: radioModuleColor,
       artwork: metadata.artwork || contextStation.favicon || null,
       title: contextStation.name,
       subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
@@ -434,6 +433,7 @@ export function RadioScreen() {
     showGlassMiniPlayer,
     isBuffering,
     isFocused,
+    radioModuleColor,
     t,
   ]);
 
@@ -1160,7 +1160,7 @@ export function RadioScreen() {
                   accessibilityLabel={t('modules.radio.stationArtwork', { station: contextStation?.name })}
                 />
               ) : (
-                <View style={[styles.expandedPlayerArtworkImage, styles.expandedPlayerArtworkPlaceholder]}>
+                <View style={[styles.expandedPlayerArtworkImage, styles.expandedPlayerArtworkPlaceholder, { backgroundColor: radioModuleColor }]}>
                   <Icon name="radio" size={100} color={colors.textOnPrimary} strokeWidth={1.5} />
                 </View>
               )}
@@ -1440,7 +1440,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   expandedPlayerArtworkPlaceholder: {
-    backgroundColor: RADIO_MODULE_COLOR,
+    // backgroundColor is set inline with dynamic radioModuleColor
     justifyContent: 'center',
     alignItems: 'center',
   },
