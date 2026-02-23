@@ -372,14 +372,16 @@
       "title": "Accentfärg",
       "hint": "Denna färg används för knappar och accenter",
       "selectLabel": "Accentfärg",
-      "selectTitle": "Välj accentfärg"
+      "selectTitle": "Välj accentfärg",
+      "reset": "Återställ till standardaccentfärg"
     },
     "moduleColors": {
       "title": "Modulfärger",
       "hint": "Anpassa färgen för varje modul",
       "selectColor": "Välj {{color}} för {{module}}",
       "selectTitle": "Välj färg för {{module}}",
-      "reset": "Återställ standardfärger"
+      "reset": "Återställ alla färger",
+      "resetSingle": "Återställ {{module}}"
     },
     "preview": {
       "title": "Förhandsvisning",
@@ -401,7 +403,11 @@
       "brown": "Brun",
       "cyan": "Cyan",
       "olive": "Oliv",
-      "amber": "Bärnsten"
+      "amber": "Bärnsten",
+      "gray": "Grå",
+      "navy": "Marinblå",
+      "magenta": "Magenta",
+      "lime": "Lime"
     },
     "accentBlue": "Blå",
     "accentGreen": "Grön",

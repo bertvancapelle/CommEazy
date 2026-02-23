@@ -45,6 +45,7 @@ import { AdMobBanner } from './AdMobBanner';
 import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { ModuleColorId } from '@/types/liquidGlass';
 import type { IconName } from './Icon';
 
@@ -82,30 +83,6 @@ export interface ModuleHeaderProps {
 }
 
 // ============================================================
-// Module Colors
-// ============================================================
-
-/**
- * Module colors — consistent with WheelNavigationMenu
- */
-const MODULE_COLORS: Record<string, string> = {
-  radio: '#00897B',      // Teal
-  podcast: '#E91E63',    // Pink
-  audiobook: '#7B1FA2',  // Purple
-  books: '#7B1FA2',      // Purple (alias for audiobook)
-  ebook: '#F57C00',      // Orange
-  videocall: '#C62828',  // Red
-  calls: '#1565C0',      // Blue
-  contacts: '#2E7D32',   // Green
-  groups: '#00796B',     // Teal (darker)
-  messages: '#1976D2',   // Blue (primary)
-  settings: '#5E35B1',   // Deep Purple
-  nunl: '#E65100',       // nu.nl Orange
-  weather: '#03A9F4',    // Sky Blue
-  appleMusic: '#FC3C44', // Apple Music red
-};
-
-// ============================================================
 // Component
 // ============================================================
 
@@ -123,7 +100,8 @@ export function ModuleHeader({
   style,
 }: ModuleHeaderProps) {
   const insets = useSafeAreaInsets();
-  const moduleColor = MODULE_COLORS[moduleId] || colors.primary;
+  // Use module color from context (respects user customization)
+  const moduleColor = useModuleColor(moduleId as ModuleColorId);
 
   // Check if Liquid Glass is available (safe to call outside provider)
   const liquidGlassContext = useLiquidGlassContextSafe();

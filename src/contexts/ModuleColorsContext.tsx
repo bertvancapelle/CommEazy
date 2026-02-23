@@ -25,9 +25,15 @@ import {
   type ModuleTintColor,
   MODULE_TINT_COLORS,
 } from '@/types/liquidGlass';
+import {
+  ACCENT_COLORS,
+  ACCENT_COLOR_KEYS,
+  type AccentColorKey,
+} from '@/theme/accentColors';
 
 // Re-export type for use in other modules
 export type { ModuleColorId } from '@/types/liquidGlass';
+export type { AccentColorKey } from '@/theme/accentColors';
 
 // ============================================================
 // Constants
@@ -36,25 +42,15 @@ export type { ModuleColorId } from '@/types/liquidGlass';
 const MODULE_COLORS_STORAGE_KEY = 'module_colors_custom';
 
 /**
- * Available color options for module customization
- * These are the same colors used in the accent color picker
+ * Color options for module customization
+ * Uses the unified ACCENT_COLORS palette (16 colors, 4x4 grid)
+ * Labels come from i18n via theme.accentColors.[key]
  */
-export const MODULE_COLOR_OPTIONS = [
-  { hex: '#4CAF50', label: 'Groen' },
-  { hex: '#2196F3', label: 'Blauw' },
-  { hex: '#9C27B0', label: 'Paars' },
-  { hex: '#FF9800', label: 'Oranje' },
-  { hex: '#00897B', label: 'Teal' },
-  { hex: '#7B1FA2', label: 'Diep Paars' },
-  { hex: '#FF8F00', label: 'Amber' },
-  { hex: '#0288D1', label: 'Lichtblauw' },
-  { hex: '#607D8B', label: 'Blauwgrijs' },
-  { hex: '#C62828', label: 'Rood' },
-  { hex: '#303F9F', label: 'Indigo' },
-  { hex: '#E65100', label: 'Donker Oranje' },
-  { hex: '#FC3C44', label: 'Roze' },
-  { hex: '#455A64', label: 'Donker Blauwgrijs' },
-] as const;
+export const MODULE_COLOR_OPTIONS = ACCENT_COLOR_KEYS.map((key) => ({
+  key,
+  hex: ACCENT_COLORS[key].primary,
+  labelKey: ACCENT_COLORS[key].label,
+}));
 
 /**
  * Modules that can be customized by the user

@@ -306,14 +306,16 @@
       "title": "Accentkleur",
       "hint": "Deze kleur wordt gebruikt voor knoppen en accenten",
       "selectLabel": "Accentkleur",
-      "selectTitle": "Kies accentkleur"
+      "selectTitle": "Kies accentkleur",
+      "reset": "Standaard accentkleur herstellen"
     },
     "moduleColors": {
       "title": "Module kleuren",
       "hint": "Pas de kleur van elke module aan",
       "selectColor": "Selecteer {{color}} voor {{module}}",
       "selectTitle": "Kies kleur voor {{module}}",
-      "reset": "Standaard kleuren herstellen"
+      "reset": "Alle kleuren herstellen",
+      "resetSingle": "{{module}} herstellen"
     },
     "preview": {
       "title": "Voorbeeld",
@@ -359,7 +361,11 @@
       "brown": "Bruin",
       "cyan": "Cyaan",
       "olive": "Olijfgroen",
-      "amber": "Amber"
+      "amber": "Amber",
+      "gray": "Grijs",
+      "navy": "Marineblauw",
+      "magenta": "Magenta",
+      "lime": "Limoengroen"
     },
     "accentBlue": "Blauw",
     "accentGreen": "Groen",

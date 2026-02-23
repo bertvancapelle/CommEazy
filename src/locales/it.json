@@ -322,14 +322,16 @@
       "title": "Colore accento",
       "hint": "Questo colore viene usato per pulsanti e accenti",
       "selectLabel": "Colore accento",
-      "selectTitle": "Scegli colore accento"
+      "selectTitle": "Scegli colore accento",
+      "reset": "Ripristina colore accento predefinito"
     },
     "moduleColors": {
       "title": "Colori moduli",
       "hint": "Personalizza il colore di ogni modulo",
       "selectColor": "Seleziona {{color}} per {{module}}",
       "selectTitle": "Scegli colore per {{module}}",
-      "reset": "Ripristina colori predefiniti"
+      "reset": "Ripristina tutti i colori",
+      "resetSingle": "Ripristina {{module}}"
     },
     "preview": {
       "title": "Anteprima",
@@ -351,7 +353,11 @@
       "brown": "Marrone",
       "cyan": "Ciano",
       "olive": "Oliva",
-      "amber": "Ambra"
+      "amber": "Ambra",
+      "gray": "Grigio",
+      "navy": "Blu marino",
+      "magenta": "Magenta",
+      "lime": "Lime"
     },
     "accentBlue": "Blu",
     "accentGreen": "Verde",

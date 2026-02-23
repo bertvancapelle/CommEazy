@@ -40,6 +40,8 @@ import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
 import { useModuleUsage, ALL_MODULES } from '@/hooks/useModuleUsage';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleConfig } from '@/contexts/ModuleConfigContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 // Configuration
 const MODULE_ITEM_HEIGHT = 80;
@@ -105,18 +107,20 @@ interface ModuleItem {
 }
 
 // Static module definitions - built-in modules
+// NOTE: 'color' property is LEGACY and NOT USED - colors come from ModuleColorsContext
+// Keeping it here for type compatibility only; will be removed when ModuleItem type is updated
 const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<ModuleItem, 'id'>> = {
-  chats: { labelKey: 'navigation.chats', icon: 'chat', color: colors.primary },
-  contacts: { labelKey: 'navigation.contacts', icon: 'contacts', color: '#2E7D32' },
-  groups: { labelKey: 'navigation.groups', icon: 'groups', color: '#00796B' },
-  calls: { labelKey: 'navigation.calls', icon: 'phone', color: '#1565C0' },  // Combined voice + video
-  podcast: { labelKey: 'navigation.podcast', icon: 'podcast', color: '#E91E63' },
-  radio: { labelKey: 'navigation.radio', icon: 'radio', color: '#00897B' },
-  books: { labelKey: 'navigation.books', icon: 'book', color: '#FF8F00' },  // Amber color
-  weather: { labelKey: 'navigation.weather', icon: 'weather', color: '#03A9F4' },  // Sky Blue
-  appleMusic: { labelKey: 'navigation.appleMusic', icon: 'appleMusic', color: '#FC3C44' },  // Apple Music red
-  settings: { labelKey: 'navigation.settings', icon: 'settings', color: '#5E35B1' },
-  help: { labelKey: 'navigation.help', icon: 'help', color: '#00838F' },
+  chats: { labelKey: 'navigation.chats', icon: 'chat', color: '#0D47A1' },
+  contacts: { labelKey: 'navigation.contacts', icon: 'contacts', color: '#0D47A1' },
+  groups: { labelKey: 'navigation.groups', icon: 'groups', color: '#0D47A1' },
+  calls: { labelKey: 'navigation.calls', icon: 'phone', color: '#0D47A1' },
+  podcast: { labelKey: 'navigation.podcast', icon: 'podcast', color: '#0D47A1' },
+  radio: { labelKey: 'navigation.radio', icon: 'radio', color: '#0D47A1' },
+  books: { labelKey: 'navigation.books', icon: 'book', color: '#0D47A1' },
+  weather: { labelKey: 'navigation.weather', icon: 'weather', color: '#0D47A1' },
+  appleMusic: { labelKey: 'navigation.appleMusic', icon: 'appleMusic', color: '#0D47A1' },
+  settings: { labelKey: 'navigation.settings', icon: 'settings', color: '#0D47A1' },
+  help: { labelKey: 'navigation.help', icon: 'help', color: '#0D47A1' },
 };
 
 // Dynamic module definitions - country-specific modules
@@ -521,12 +525,42 @@ interface ModuleButtonProps {
   t: (key: string) => string;
 }
 
+/**
+ * Extract moduleId from NavigationDestination for color lookup
+ * Handles both static ('radio') and dynamic ('module:nunl') destinations
+ */
+function getModuleIdForColor(id: NavigationDestination): ModuleColorId {
+  if (isDynamicDestination(id)) {
+    return getModuleIdFromDest(id) as ModuleColorId;
+  }
+  // Map static destinations to ModuleColorId
+  // Most match directly, some need mapping
+  const staticToModuleId: Record<StaticNavigationDestination, ModuleColorId> = {
+    chats: 'chats',
+    contacts: 'contacts',
+    groups: 'groups',
+    calls: 'calls',
+    podcast: 'podcast',
+    radio: 'radio',
+    books: 'books',
+    weather: 'weather',
+    appleMusic: 'appleMusic',
+    settings: 'settings',
+    help: 'help',
+  };
+  return staticToModuleId[id as StaticNavigationDestination] || 'chats';
+}
+
 function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
+  // Get color from context (respects user customization)
+  const moduleColorId = getModuleIdForColor(module.id);
+  const customColor = useModuleColor(moduleColorId);
+
   return (
     <TouchableOpacity
       style={[
         styles.moduleButton,
-        { backgroundColor: module.color },
+        { backgroundColor: customColor },
         isActive && styles.moduleButtonActive,
       ]}
       onPress={onPress}

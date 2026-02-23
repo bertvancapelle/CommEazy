@@ -311,14 +311,16 @@
       "title": "Akzentfarbe",
       "hint": "Diese Farbe wird für Schaltflächen und Akzente verwendet",
       "selectLabel": "Akzentfarbe",
-      "selectTitle": "Akzentfarbe wählen"
+      "selectTitle": "Akzentfarbe wählen",
+      "reset": "Standard-Akzentfarbe wiederherstellen"
     },
     "moduleColors": {
       "title": "Modulfarben",
       "hint": "Passen Sie die Farbe jedes Moduls an",
       "selectColor": "{{color}} für {{module}} auswählen",
       "selectTitle": "Farbe für {{module}} wählen",
-      "reset": "Standardfarben wiederherstellen"
+      "reset": "Alle Farben zurücksetzen",
+      "resetSingle": "{{module}} zurücksetzen"
     },
     "preview": {
       "title": "Vorschau",
@@ -364,7 +366,11 @@
       "brown": "Braun",
       "cyan": "Cyan",
       "olive": "Olive",
-      "amber": "Bernstein"
+      "amber": "Bernstein",
+      "gray": "Grau",
+      "navy": "Marineblau",
+      "magenta": "Magenta",
+      "lime": "Limette"
     },
     "accentBlue": "Blau",
     "accentGreen": "Grün",

@@ -311,14 +311,16 @@
       "title": "Accent Colour",
       "hint": "This colour is used for buttons and accents",
       "selectLabel": "Accent Colour",
-      "selectTitle": "Choose Accent Colour"
+      "selectTitle": "Choose Accent Colour",
+      "reset": "Reset to default accent colour"
     },
     "moduleColors": {
       "title": "Module Colours",
       "hint": "Customise the colour of each module",
       "selectColor": "Select {{color}} for {{module}}",
       "selectTitle": "Choose colour for {{module}}",
-      "reset": "Reset to Default Colours"
+      "reset": "Reset all colours",
+      "resetSingle": "Reset {{module}}"
     },
     "preview": {
       "title": "Preview",
@@ -364,7 +366,11 @@
       "brown": "Brown",
       "cyan": "Cyan",
       "olive": "Olive",
-      "amber": "Amber"
+      "amber": "Amber",
+      "gray": "Grey",
+      "navy": "Navy",
+      "magenta": "Magenta",
+      "lime": "Lime"
     },
     "accentBlue": "Blue",
     "accentGreen": "Green",

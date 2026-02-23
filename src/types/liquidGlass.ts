@@ -117,113 +117,120 @@ export interface ModuleTintColor {
 }
 
 /**
+ * Default blue color for all modules (WCAG AAA compliant)
+ * Matches ACCENT_COLORS.blue.primary from accentColors.ts
+ */
+const DEFAULT_MODULE_BLUE = '#0D47A1';
+
+/**
  * Module tint color registry
  * Maps module IDs to their Liquid Glass tint colors
  *
- * Colors match WheelNavigationMenu module colors for consistency
+ * DEFAULT: All modules use blue (#0D47A1) — matches ACCENT_COLORS.blue
+ * Users can customize via ModuleColorsContext in Settings > Appearance
  */
 export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   chats: {
     moduleId: 'chats',
-    tintColor: '#4CAF50',      // Green
-    fallbackColor: '#4CAF50',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   contacts: {
     moduleId: 'contacts',
-    tintColor: '#2196F3',      // Blue
-    fallbackColor: '#2196F3',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   groups: {
     moduleId: 'groups',
-    tintColor: '#9C27B0',      // Purple
-    fallbackColor: '#9C27B0',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   calls: {
     moduleId: 'calls',
-    tintColor: '#FF9800',      // Orange
-    fallbackColor: '#FF9800',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   settings: {
     moduleId: 'settings',
-    tintColor: '#607D8B',      // Blue Grey
-    fallbackColor: '#607D8B',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   radio: {
     moduleId: 'radio',
-    tintColor: '#00897B',      // Teal
-    fallbackColor: '#00897B',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   podcast: {
     moduleId: 'podcast',
-    tintColor: '#7B1FA2',      // Deep Purple
-    fallbackColor: '#7B1FA2',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   books: {
     moduleId: 'books',
-    tintColor: '#FF8F00',      // Amber
-    fallbackColor: '#FF8F00',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   weather: {
     moduleId: 'weather',
-    tintColor: '#0288D1',      // Light Blue
-    fallbackColor: '#0288D1',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   help: {
     moduleId: 'help',
-    tintColor: '#455A64',      // Dark Blue Grey
-    fallbackColor: '#455A64',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   menu: {
     moduleId: 'menu',
-    tintColor: '#37474F',      // Blue Grey 800
-    fallbackColor: '#37474F',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   // Aliases and additional modules
   messages: {
     moduleId: 'messages',
-    tintColor: '#4CAF50',      // Green (same as chats)
-    fallbackColor: '#4CAF50',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   videocall: {
     moduleId: 'videocall',
-    tintColor: '#C62828',      // Red
-    fallbackColor: '#C62828',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   audiobook: {
     moduleId: 'audiobook',
-    tintColor: '#FF8F00',      // Amber (same as books)
-    fallbackColor: '#FF8F00',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   ebook: {
     moduleId: 'ebook',
-    tintColor: '#303F9F',      // Indigo
-    fallbackColor: '#303F9F',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   nunl: {
     moduleId: 'nunl',
-    tintColor: '#E65100',      // nu.nl Orange
-    fallbackColor: '#E65100',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
   appleMusic: {
     moduleId: 'appleMusic',
-    tintColor: '#FC3C44',      // Apple Music Red/Pink
-    fallbackColor: '#FC3C44',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
 };

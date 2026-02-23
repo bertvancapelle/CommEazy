@@ -315,14 +315,16 @@
       "title": "Cor de destaque",
       "hint": "Esta cor é usada para botões e destaques",
       "selectLabel": "Cor de destaque",
-      "selectTitle": "Escolher cor de destaque"
+      "selectTitle": "Escolher cor de destaque",
+      "reset": "Repor cor de destaque predefinida"
     },
     "moduleColors": {
       "title": "Cores dos módulos",
       "hint": "Personalize a cor de cada módulo",
       "selectColor": "Selecionar {{color}} para {{module}}",
       "selectTitle": "Escolher cor para {{module}}",
-      "reset": "Restaurar cores predefinidas"
+      "reset": "Repor todas as cores",
+      "resetSingle": "Repor {{module}}"
     },
     "preview": {
       "title": "Pré-visualização",
@@ -368,7 +370,11 @@
       "brown": "Castanho",
       "cyan": "Ciano",
       "olive": "Azeitona",
-      "amber": "Âmbar"
+      "amber": "Âmbar",
+      "gray": "Cinzento",
+      "navy": "Azul-marinho",
+      "magenta": "Magenta",
+      "lime": "Lima"
     },
     "accentBlue": "Azul",
     "accentGreen": "Verde",

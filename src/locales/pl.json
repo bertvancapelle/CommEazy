@@ -322,14 +322,16 @@
       "title": "Kolor akcentu",
       "hint": "Ten kolor jest używany dla przycisków i akcentów",
       "selectLabel": "Kolor akcentu",
-      "selectTitle": "Wybierz kolor akcentu"
+      "selectTitle": "Wybierz kolor akcentu",
+      "reset": "Przywróć domyślny kolor akcentu"
     },
     "moduleColors": {
       "title": "Kolory modułów",
       "hint": "Dostosuj kolor każdego modułu",
       "selectColor": "Wybierz {{color}} dla {{module}}",
       "selectTitle": "Wybierz kolor dla {{module}}",
-      "reset": "Przywróć domyślne kolory"
+      "reset": "Przywróć wszystkie kolory",
+      "resetSingle": "Przywróć {{module}}"
     },
     "preview": {
       "title": "Podgląd",
@@ -351,7 +353,11 @@
       "brown": "Brązowy",
       "cyan": "Cyjan",
       "olive": "Oliwkowy",
-      "amber": "Bursztynowy"
+      "amber": "Bursztynowy",
+      "gray": "Szary",
+      "navy": "Granatowy",
+      "magenta": "Magenta",
+      "lime": "Limonkowy"
     },
     "accentBlue": "Niebieski",
     "accentGreen": "Zielony",

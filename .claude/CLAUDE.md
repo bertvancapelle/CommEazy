@@ -284,6 +284,55 @@ if (missingInLight.length) console.log('Missing in colors:', missingInLight);
 "
 ```
 
+#### Module Color Single Source of Truth
+
+**Trigger:** Module kleur wijziging of nieuwe module.
+
+**Regel (BLOKKEERDER):** Module kleuren MOETEN ALLEEN uit `ModuleColorsContext` komen via `useModuleColor()` hook.
+
+**Waarom dit belangrijk is:**
+- CommEazy heeft een unified 16-color palette voor alle modules
+- Gebruikers kunnen module kleuren customizen in Instellingen > Weergave
+- Hardcoded kleuren elders veroorzaken inconsistenties
+
+**Verboden patterns:**
+```typescript
+// ❌ FOUT — hardcoded kleur
+<View style={{ backgroundColor: '#2E7D32' }}>
+
+// ❌ FOUT — kleur uit oude definitie
+<View style={{ backgroundColor: module.color }}>
+
+// ❌ FOUT — kleur uit STATIC_MODULE_DEFINITIONS
+<View style={{ backgroundColor: STATIC_MODULE_DEFINITIONS[id].color }}>
+```
+
+**Correcte patterns:**
+```typescript
+// ✅ GOED — via hook
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
+
+function MyComponent({ moduleId }: Props) {
+  const moduleColor = useModuleColor(moduleId);
+  return <View style={{ backgroundColor: moduleColor }}>...
+}
+```
+
+**Single Source of Truth:**
+
+| Wat | Waar | Gebruikt door |
+|-----|------|---------------|
+| Default kleuren | `MODULE_TINT_COLORS` in `liquidGlass.ts` | `useModuleColor()` fallback |
+| User overrides | AsyncStorage via `ModuleColorsContext` | `useModuleColor()` return value |
+| Legacy `color` prop | `STATIC_MODULE_DEFINITIONS` | **NIET GEBRUIKEN** — alleen type compat |
+
+**Validatie Commando:**
+```bash
+# Vind hardcoded module kleuren (false positives mogelijk)
+grep -rn "backgroundColor.*#[0-9A-Fa-f]\{6\}" src/components/ src/screens/ | \
+  grep -v "textOnPrimary\|border\|surface\|background"
+```
+
 #### Type Export Consistency
 
 **Trigger:** Nieuwe type/interface aangemaakt.

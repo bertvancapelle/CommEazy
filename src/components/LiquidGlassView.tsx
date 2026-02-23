@@ -32,6 +32,7 @@ import {
 } from 'react-native';
 
 import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import {
   type ModuleColorId,
   type GlassStyle,
@@ -129,22 +130,24 @@ export function LiquidGlassView({
   ...viewProps
 }: LiquidGlassViewProps): React.ReactElement {
   const context = useLiquidGlassContext();
+  // Get custom module color from context (respects user preferences)
+  const customModuleColor = useModuleColor(moduleId);
 
-  // Get colors from module registry or props
+  // Get colors from custom context, props, or fallback to registry
   const colors = useMemo(() => {
     const moduleColors = MODULE_TINT_COLORS[moduleId];
-    if (!moduleColors) {
+    // Priority: props > custom context color > registry default
+    const resolvedTintColor = tintColor || customModuleColor || moduleColors?.tintColor || '#607D8B';
+    const resolvedFallbackColor = fallbackColor || customModuleColor || moduleColors?.fallbackColor || '#607D8B';
+
+    if (!moduleColors && !customModuleColor) {
       console.warn(`[LiquidGlassView] Unknown moduleId: ${moduleId}`);
-      return {
-        tintColor: tintColor || '#607D8B',
-        fallbackColor: fallbackColor || '#607D8B',
-      };
     }
     return {
-      tintColor: tintColor || moduleColors.tintColor,
-      fallbackColor: fallbackColor || moduleColors.fallbackColor,
+      tintColor: resolvedTintColor,
+      fallbackColor: resolvedFallbackColor,
     };
-  }, [moduleId, tintColor, fallbackColor]);
+  }, [moduleId, tintColor, fallbackColor, customModuleColor]);
 
   // Resolve corner radius
   const resolvedCornerRadius = cornerRadiusProp ?? borderRadius.lg;

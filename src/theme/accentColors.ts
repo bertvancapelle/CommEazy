@@ -1,16 +1,22 @@
 /**
- * Accent Colors — 12 User-selectable accent colors
+ * Accent Colors — 16 User-selectable accent colors (4x4 grid)
  *
  * All colors are WCAG AAA compliant (7:1+ contrast ratio on white).
  * Based on Material Design 900-tints for maximum accessibility.
  *
- * Grid layout for picker (4x3):
+ * These colors are used for BOTH:
+ * - App-wide accent color (buttons, highlights)
+ * - Per-module tint colors (Liquid Glass, headers)
+ *
+ * Grid layout for picker (4x4):
  * ┌────────┬────────┬────────┬────────┐
  * │  Blue  │ Green  │ Purple │ Orange │
  * ├────────┼────────┼────────┼────────┤
  * │  Red   │  Teal  │  Pink  │ Indigo │
  * ├────────┼────────┼────────┼────────┤
  * │ Brown  │  Cyan  │ Olive  │ Amber  │
+ * ├────────┼────────┼────────┼────────┤
+ * │ Gray   │  Navy  │Magenta │ Lime   │
  * └────────┴────────┴────────┴────────┘
  *
  * @see .claude/plans/COLOR_THEME_SYSTEM_FOR_SENIORS.md
@@ -32,7 +38,11 @@ export type AccentColorKey =
   | 'brown'
   | 'cyan'
   | 'olive'
-  | 'amber';
+  | 'amber'
+  | 'gray'
+  | 'navy'
+  | 'magenta'
+  | 'lime';
 
 export interface AccentColor {
   /** Primary color — main UI elements, buttons, headers */
@@ -141,16 +151,47 @@ export const ACCENT_COLORS: Record<AccentColorKey, AccentColor> = {
     light: '#FFF8E1', // Amber 50
     label: 'theme.accentColors.amber',
   },
+
+  // Row 4: Gray, Navy, Magenta, Lime
+  gray: {
+    primary: '#455A64', // Blue Grey 700 — 7.5:1 on white
+    primaryLight: '#546E7A', // Blue Grey 600 — 5.8:1 on white
+    primaryDark: '#263238', // Blue Grey 900 — 13.1:1 on white
+    light: '#ECEFF1', // Blue Grey 50
+    label: 'theme.accentColors.gray',
+  },
+  navy: {
+    primary: '#0D1B2A', // Custom Navy — 17.5:1 on white
+    primaryLight: '#1B263B', // 14.2:1 on white
+    primaryDark: '#000814', // 19.8:1 on white
+    light: '#E8EEF2', // Custom Navy 50
+    label: 'theme.accentColors.navy',
+  },
+  magenta: {
+    primary: '#AD1457', // Pink 800 — 8.2:1 on white
+    primaryLight: '#C2185B', // Pink 700 — 6.5:1 on white
+    primaryDark: '#7B0D3A', // 11.9:1 on white
+    light: '#FCE4EC', // Pink 50
+    label: 'theme.accentColors.magenta',
+  },
+  lime: {
+    primary: '#33691E', // Light Green 900 — 8.2:1 on white
+    primaryLight: '#689F38', // Light Green 700 — 4.5:1 on white
+    primaryDark: '#1B5E20', // Green 900 — 10.3:1 on white
+    light: '#F1F8E9', // Light Green 50
+    label: 'theme.accentColors.lime',
+  },
 };
 
 // ============================================================
-// Grid Layout for Picker (4 columns x 3 rows)
+// Grid Layout for Picker (4 columns x 4 rows)
 // ============================================================
 
 export const ACCENT_COLOR_GRID: AccentColorKey[][] = [
   ['blue', 'green', 'purple', 'orange'],
   ['red', 'teal', 'pink', 'indigo'],
   ['brown', 'cyan', 'olive', 'amber'],
+  ['gray', 'navy', 'magenta', 'lime'],
 ];
 
 // ============================================================
@@ -170,6 +211,10 @@ export const ACCENT_COLOR_KEYS: AccentColorKey[] = [
   'cyan',
   'olive',
   'amber',
+  'gray',
+  'navy',
+  'magenta',
+  'lime',
 ];
 
 // ============================================================

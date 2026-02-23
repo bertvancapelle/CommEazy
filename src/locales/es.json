@@ -311,14 +311,16 @@
       "title": "Color de acento",
       "hint": "Este color se usa para botones y acentos",
       "selectLabel": "Color de acento",
-      "selectTitle": "Elegir color de acento"
+      "selectTitle": "Elegir color de acento",
+      "reset": "Restablecer color de acento"
     },
     "moduleColors": {
       "title": "Colores de módulos",
       "hint": "Personaliza el color de cada módulo",
       "selectColor": "Seleccionar {{color}} para {{module}}",
       "selectTitle": "Elegir color para {{module}}",
-      "reset": "Restaurar colores predeterminados"
+      "reset": "Restablecer todos los colores",
+      "resetSingle": "Restablecer {{module}}"
     },
     "preview": {
       "title": "Vista previa",
@@ -364,7 +366,11 @@
       "brown": "Marrón",
       "cyan": "Cian",
       "olive": "Oliva",
-      "amber": "Ámbar"
+      "amber": "Ámbar",
+      "gray": "Gris",
+      "navy": "Azul marino",
+      "magenta": "Magenta",
+      "lime": "Lima"
     },
     "accentBlue": "Azul",
     "accentGreen": "Verde",

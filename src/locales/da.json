@@ -372,14 +372,16 @@
       "title": "Accentfarve",
       "hint": "Denne farve bruges til knapper og accenter",
       "selectLabel": "Accentfarve",
-      "selectTitle": "Vælg accentfarve"
+      "selectTitle": "Vælg accentfarve",
+      "reset": "Nulstil til standard accentfarve"
     },
     "moduleColors": {
       "title": "Modulfarver",
       "hint": "Tilpas farven på hvert modul",
       "selectColor": "Vælg {{color}} til {{module}}",
       "selectTitle": "Vælg farve for {{module}}",
-      "reset": "Gendan standardfarver"
+      "reset": "Nulstil alle farver",
+      "resetSingle": "Nulstil {{module}}"
     },
     "preview": {
       "title": "Forhåndsvisning",
@@ -401,7 +403,11 @@
       "brown": "Brun",
       "cyan": "Cyan",
       "olive": "Oliven",
-      "amber": "Rav"
+      "amber": "Rav",
+      "gray": "Grå",
+      "navy": "Marineblå",
+      "magenta": "Magenta",
+      "lime": "Lime"
     },
     "accentBlue": "Blå",
     "accentGreen": "Grøn",
