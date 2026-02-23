@@ -49,6 +49,7 @@ import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
 import { searchBooks, getPopularBooks } from '@/services/gutenbergService';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -61,9 +62,6 @@ import { useFeedback } from '@/hooks/useFeedback';
 
 // Search input max length
 const SEARCH_MAX_LENGTH = 100;
-
-// Module color (consistent with WheelNavigationMenu) - Amber
-const BOOKS_MODULE_COLOR = '#FF8F00';
 
 // API timeout
 const API_TIMEOUT_MS = 15000;
@@ -93,6 +91,9 @@ export function BooksScreen() {
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
+
+  // User-customizable module color for Liquid Glass
+  const booksModuleColor = useModuleColor('books');
 
   // Books Context
   const {
@@ -711,7 +712,7 @@ export function BooksScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Icon name="book" size={48} color={BOOKS_MODULE_COLOR} />
+                <Icon name="book" size={48} color={booksModuleColor} />
                 <Text style={styles.modalTitle}>{t('modules.books.welcomeTitle')}</Text>
               </View>
 
@@ -930,7 +931,7 @@ export function BooksScreen() {
                 accessibilityLabel={t('modules.books.read')}
                 accessibilityHint={t('modules.books.readHint')}
               >
-                <View style={[styles.modeOptionIcon, { backgroundColor: BOOKS_MODULE_COLOR }]}>
+                <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
                   <Icon name="document-text" size={32} color={colors.textOnPrimary} />
                 </View>
                 <View style={styles.modeOptionText}>
@@ -947,7 +948,7 @@ export function BooksScreen() {
                 accessibilityLabel={t('modules.books.listen')}
                 accessibilityHint={t('modules.books.listenHint')}
               >
-                <View style={[styles.modeOptionIcon, { backgroundColor: BOOKS_MODULE_COLOR }]}>
+                <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
                   <Icon name="headset" size={32} color={colors.textOnPrimary} />
                 </View>
                 <View style={styles.modeOptionText}>
@@ -1182,7 +1183,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   bookCoverPlaceholder: {
-    backgroundColor: BOOKS_MODULE_COLOR,
+    backgroundColor: booksModuleColor,
     justifyContent: 'center',
     alignItems: 'center',
   },

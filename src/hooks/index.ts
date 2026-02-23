@@ -34,6 +34,9 @@ export { useReducedMotion } from './useReducedMotion';
 export { useLiquidGlass } from './useLiquidGlass';
 export { useGlassPlayer } from './useGlassPlayer';
 
+// Audio playback utilities
+export { useSleepTimer } from './useSleepTimer';
+
 // Module management
 export { useModuleUsage } from './useModuleUsage';
 

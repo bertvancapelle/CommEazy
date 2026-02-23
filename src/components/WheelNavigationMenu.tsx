@@ -101,26 +101,26 @@ interface ModuleItem {
   id: NavigationDestination;
   labelKey: string;
   icon: ModuleIconType;
-  color: string;
+  /** @deprecated Colors now come from useModuleColor() hook - this property is unused */
+  color?: string;
   /** Custom logo component to render instead of icon (for branded modules like nu.nl) */
   customLogo?: React.ReactNode;
 }
 
 // Static module definitions - built-in modules
-// NOTE: 'color' property is LEGACY and NOT USED - colors come from ModuleColorsContext
-// Keeping it here for type compatibility only; will be removed when ModuleItem type is updated
+// Colors come from ModuleColorsContext via useModuleColor() hook
 const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<ModuleItem, 'id'>> = {
-  chats: { labelKey: 'navigation.chats', icon: 'chat', color: '#0D47A1' },
-  contacts: { labelKey: 'navigation.contacts', icon: 'contacts', color: '#0D47A1' },
-  groups: { labelKey: 'navigation.groups', icon: 'groups', color: '#0D47A1' },
-  calls: { labelKey: 'navigation.calls', icon: 'phone', color: '#0D47A1' },
-  podcast: { labelKey: 'navigation.podcast', icon: 'podcast', color: '#0D47A1' },
-  radio: { labelKey: 'navigation.radio', icon: 'radio', color: '#0D47A1' },
-  books: { labelKey: 'navigation.books', icon: 'book', color: '#0D47A1' },
-  weather: { labelKey: 'navigation.weather', icon: 'weather', color: '#0D47A1' },
-  appleMusic: { labelKey: 'navigation.appleMusic', icon: 'appleMusic', color: '#0D47A1' },
-  settings: { labelKey: 'navigation.settings', icon: 'settings', color: '#0D47A1' },
-  help: { labelKey: 'navigation.help', icon: 'help', color: '#0D47A1' },
+  chats: { labelKey: 'navigation.chats', icon: 'chat' },
+  contacts: { labelKey: 'navigation.contacts', icon: 'contacts' },
+  groups: { labelKey: 'navigation.groups', icon: 'groups' },
+  calls: { labelKey: 'navigation.calls', icon: 'phone' },
+  podcast: { labelKey: 'navigation.podcast', icon: 'podcast' },
+  radio: { labelKey: 'navigation.radio', icon: 'radio' },
+  books: { labelKey: 'navigation.books', icon: 'book' },
+  weather: { labelKey: 'navigation.weather', icon: 'weather' },
+  appleMusic: { labelKey: 'navigation.appleMusic', icon: 'appleMusic' },
+  settings: { labelKey: 'navigation.settings', icon: 'settings' },
+  help: { labelKey: 'navigation.help', icon: 'help' },
 };
 
 // Dynamic module definitions - country-specific modules
@@ -162,7 +162,6 @@ function getModuleItem(id: NavigationDestination): ModuleItem {
         id,
         labelKey: moduleDef.labelKey,
         icon: mapModuleIcon(moduleDef.icon),
-        color: moduleDef.color,
         customLogo: getCustomLogoForModule(moduleId, 40),
       };
     }
@@ -172,7 +171,6 @@ function getModuleItem(id: NavigationDestination): ModuleItem {
       id,
       labelKey: `modules.${moduleId}.title`,
       icon: 'news',
-      color: '#757575',
     };
   }
 

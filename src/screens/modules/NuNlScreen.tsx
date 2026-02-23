@@ -39,6 +39,7 @@ import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, Ar
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -51,7 +52,6 @@ import type { NewsArticle, ModuleCategory } from '@/types/modules';
 // ============================================================
 
 const MODULE_ID = 'nunl';
-const MODULE_COLOR = '#E65100'; // nu.nl orange
 const WELCOME_SHOWN_KEY = 'nunl_welcome_shown';
 
 // ============================================================
@@ -217,7 +217,7 @@ function WelcomeModal({ visible, onDismiss, themeColors }: WelcomeModalProps) {
       <View style={styles.modalOverlay}>
         <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
           {/* Header */}
-          <View style={[styles.welcomeHeader, { backgroundColor: MODULE_COLOR }]}>
+          <View style={[styles.welcomeHeader, { backgroundColor: nunlModuleColor }]}>
             <Icon name="news" size={48} color={themeColors.textOnPrimary} />
             <Text style={[styles.welcomeTitle, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.title')}</Text>
           </View>
@@ -279,6 +279,9 @@ export function NuNlScreen() {
   const reducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+
+  // User-customizable module color for Liquid Glass
+  const nunlModuleColor = useModuleColor('nunl');
 
   // State
   const [showWelcome, setShowWelcome] = useState(false);
@@ -435,7 +438,7 @@ export function NuNlScreen() {
       {/* Loading State */}
       {isLoading && articles.length === 0 && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={MODULE_COLOR} />
+          <ActivityIndicator size="large" color={nunlModuleColor} />
           <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('modules.nunl.loading')}</Text>
         </View>
       )}
@@ -462,8 +465,8 @@ export function NuNlScreen() {
             <RefreshControl
               refreshing={isLoading}
               onRefresh={handleRefresh}
-              tintColor={MODULE_COLOR}
-              colors={[MODULE_COLOR]}
+              tintColor={nunlModuleColor}
+              colors={[nunlModuleColor]}
             />
           }
         >
@@ -493,7 +496,7 @@ export function NuNlScreen() {
         onClose={handlePreviewClose}
         onReadAbstract={handleReadAbstract}
         onOpenFullArticle={handleOpenFullArticle}
-        accentColor={MODULE_COLOR}
+        accentColor={nunlModuleColor}
         isTTSPlaying={isTTSPlaying}
         isTTSLoading={isTTSLoading}
         onStopTTS={stopTTS}
@@ -504,7 +507,7 @@ export function NuNlScreen() {
         visible={fullArticle !== null}
         article={fullArticle}
         onClose={handleFullArticleClose}
-        accentColor={MODULE_COLOR}
+        accentColor={nunlModuleColor}
         onStartTTS={startTTS}
         onStopTTS={stopTTS}
         isTTSPlaying={isTTSPlaying}
@@ -549,8 +552,8 @@ const styles = StyleSheet.create({
     minHeight: touchTargets.minimum,
   },
   categoryChipSelected: {
-    backgroundColor: MODULE_COLOR,
-    borderColor: MODULE_COLOR,
+    backgroundColor: nunlModuleColor,
+    borderColor: nunlModuleColor,
   },
   categoryIcon: {
     fontSize: 16,

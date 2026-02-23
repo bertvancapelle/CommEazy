@@ -44,6 +44,7 @@ import { Icon, IconButton, VoiceFocusable, SeekSlider, MiniPlayer, ModuleHeader 
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import {
   useBooksContext,
   useBooksAudioPlayer,
@@ -68,7 +69,6 @@ type BookPlayerScreenNavigationProp = NativeStackNavigationProp<RootStackParamLi
 // Constants
 // ============================================================
 
-const MODULE_COLOR = '#FF8F00'; // Amber — Books module color
 const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 const SLEEP_TIMER_OPTIONS = [15, 30, 45, 60, 90]; // minutes
 const TTS_CHARS_PER_SECOND = 15; // For time estimation
@@ -94,10 +94,13 @@ export function BookPlayerScreen() {
   const holdGesture = useHoldGestureContextSafe();
   const themeColors = useColors();
 
-  // Accent color for this module
+  // User-customizable module color for Liquid Glass
+  const booksModuleColor = useModuleColor('books');
+
+  // Accent color derived from module color
   const accentColor = {
-    primary: MODULE_COLOR,
-    primaryLight: `${MODULE_COLOR}20`,
+    primary: booksModuleColor,
+    primaryLight: `${booksModuleColor}20`,
   };
 
   // Books context
@@ -432,7 +435,7 @@ export function BookPlayerScreen() {
             artwork={currentBook?.coverImage || null}
             title={currentChapter.title}
             subtitle={currentBook?.title}
-            accentColor={MODULE_COLOR}
+            accentColor={booksModuleColor}
             isPlaying={isAudioPlaying}
             isLoading={isAudioLoading}
             onPress={() => setIsPlayerExpanded(true)}

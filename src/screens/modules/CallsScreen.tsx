@@ -37,11 +37,9 @@ import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocu
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { Contact, PresenceShow, CallType } from '@/services/interfaces';
 import type { RootStackParams } from '@/navigation';
-
-// Module color — Blue (consistent with WheelNavigationMenu)
-const CALLS_COLOR = '#1565C0';
 
 type CallsNavigationProp = NativeStackNavigationProp<RootStackParams>;
 
@@ -52,6 +50,10 @@ export function CallsScreen() {
   const { triggerFeedback } = useFeedback();
   const { initiateCall, activeCall } = useCall();
   const isFocused = useIsFocused();
+
+  // User-customizable module color for Liquid Glass
+  const callsModuleColor = useModuleColor('calls');
+
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -340,7 +342,7 @@ export function CallsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={CALLS_COLOR}
+            tintColor={callsModuleColor}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -425,7 +427,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success, // Green for voice call
   },
   videoCallButton: {
-    backgroundColor: CALLS_COLOR, // Blue for video call
+    backgroundColor: callsModuleColor, // Blue for video call
   },
   emptyContainer: {
     flex: 1,

@@ -70,7 +70,6 @@ import { useFeedback } from '@/hooks/useFeedback';
 // Constants
 // ============================================================
 
-const PODCAST_MODULE_COLOR = '#E91E63';
 const SEARCH_MAX_LENGTH = 100;
 const PLAYBACK_RATES = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 const SLEEP_TIMER_OPTIONS = [15, 30, 45, 60, 90]; // minutes
@@ -1879,7 +1878,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   showArtworkPlaceholder: {
-    backgroundColor: PODCAST_MODULE_COLOR,
+    backgroundColor: podcastModuleColor,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2073,7 +2072,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   expandedArtworkPlaceholder: {
-    backgroundColor: PODCAST_MODULE_COLOR,
+    backgroundColor: podcastModuleColor,
     justifyContent: 'center',
     alignItems: 'center',
   },

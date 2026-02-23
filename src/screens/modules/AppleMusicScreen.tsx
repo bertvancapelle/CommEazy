@@ -65,6 +65,7 @@ import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
+import { useSleepTimer } from '@/hooks/useSleepTimer';
 
 // ============================================================
 // Constants
@@ -130,8 +131,13 @@ export function AppleMusicScreen() {
     searchCatalog,
   } = useAppleMusicContext();
 
-  // Sleep timer ref
-  const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Sleep timer hook - shared logic for all audio modules
+  const { setSleepTimer } = useSleepTimer({
+    onTimerExpired: stop,
+    setSleepTimerActive,
+    moduleName: 'AppleMusicScreen',
+    enableTestMode: true, // Allow 0 minutes = 30 seconds for testing
+  });
 
   // Local search state (context returns Promise, we manage state here)
   const [isSearching, setIsSearching] = useState(false);
@@ -213,33 +219,7 @@ export function AppleMusicScreen() {
     onFavoriteToggle: () => {
       // Apple Music favorites not implemented yet
     },
-    onSleepTimerSet: (minutes: number | null) => {
-      // Clear existing timer if any
-      if (sleepTimerRef.current) {
-        clearTimeout(sleepTimerRef.current);
-        sleepTimerRef.current = null;
-      }
-
-      if (minutes === null) {
-        console.log('[AppleMusicScreen] Sleep timer disabled');
-        setSleepTimerActive(false);
-        return;
-      }
-
-      // minutes === 0 means 30 seconds (for testing - TODO: remove before production)
-      const durationMs = minutes === 0 ? 30 * 1000 : minutes * 60 * 1000;
-      console.log('[AppleMusicScreen] Sleep timer set:', minutes === 0 ? '30 seconds (TEST)' : `${minutes} minutes`);
-
-      // Update context so MediaIndicator shows the moon icon
-      setSleepTimerActive(true);
-
-      sleepTimerRef.current = setTimeout(async () => {
-        console.log('[AppleMusicScreen] Sleep timer triggered - stopping playback');
-        await stop();
-        sleepTimerRef.current = null;
-        setSleepTimerActive(false);
-      }, durationMs);
-    },
+    onSleepTimerSet: setSleepTimer,
     onShuffleToggle: () => {
       // Toggle shuffle mode
       setShuffleMode(shuffleMode === 'off' ? 'songs' : 'off');
@@ -329,17 +309,7 @@ export function AppleMusicScreen() {
     });
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, appleMusicColor, updateGlassContent]);
 
-  // Effect 4: Cleanup sleep timer on unmount
-  useEffect(() => {
-    return () => {
-      if (sleepTimerRef.current) {
-        clearTimeout(sleepTimerRef.current);
-        sleepTimerRef.current = null;
-      }
-    };
-  }, []);
-
-  // Effect 5: Hide native player when navigating away
+  // Effect 4: Hide native player when navigating away
   useEffect(() => {
     if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
       hideGlassPlayer();

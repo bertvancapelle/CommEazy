@@ -52,6 +52,7 @@ import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
+import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { ServiceContainer } from '@/services/container';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
 
@@ -236,7 +237,6 @@ export function RadioScreen() {
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
-  const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Radio Context for playback
   const {
@@ -252,6 +252,14 @@ export function RadioScreen() {
     position,
     setSleepTimerActive,
   } = useRadioContext();
+
+  // Sleep timer hook - shared logic for all audio modules
+  const { setSleepTimer } = useSleepTimer({
+    onTimerExpired: stop,
+    setSleepTimerActive,
+    moduleName: 'RadioScreen',
+    enableTestMode: true, // Allow 0 minutes = 30 seconds for testing
+  });
 
   // Glass Player for iOS 26+ Liquid Glass effect
   const {
@@ -299,49 +307,13 @@ export function RadioScreen() {
         }
       }
     },
-    onSleepTimerSet: (minutes: number | null) => {
-      // Clear existing timer if any
-      if (sleepTimerRef.current) {
-        clearTimeout(sleepTimerRef.current);
-        sleepTimerRef.current = null;
-      }
-
-      if (minutes === null) {
-        console.log('[RadioScreen] Sleep timer disabled');
-        setSleepTimerActive(false);
-        return;
-      }
-
-      // minutes === 0 means 30 seconds (for testing - TODO: remove before production)
-      const durationMs = minutes === 0 ? 30 * 1000 : minutes * 60 * 1000;
-      console.log('[RadioScreen] Sleep timer set:', minutes === 0 ? '30 seconds (TEST)' : `${minutes} minutes`);
-
-      // Update context so MediaIndicator shows the moon icon
-      setSleepTimerActive(true);
-
-      sleepTimerRef.current = setTimeout(async () => {
-        console.log('[RadioScreen] Sleep timer triggered - stopping playback');
-        await stop();
-        sleepTimerRef.current = null;
-        setSleepTimerActive(false);
-      }, durationMs);
-    },
+    onSleepTimerSet: setSleepTimer,
   });
 
   // Debug: Log Glass Player availability
   useEffect(() => {
     console.log('[RadioScreen] isCheckingGlassPlayerAvailability:', isCheckingGlassPlayerAvailability, 'isGlassPlayerAvailable:', isGlassPlayerAvailable);
   }, [isCheckingGlassPlayerAvailability, isGlassPlayerAvailable]);
-
-  // Cleanup sleep timer on unmount
-  useEffect(() => {
-    return () => {
-      if (sleepTimerRef.current) {
-        clearTimeout(sleepTimerRef.current);
-        sleepTimerRef.current = null;
-      }
-    };
-  }, []);
 
   // State
   const [stations, setStations] = useState<RadioStation[]>([]);

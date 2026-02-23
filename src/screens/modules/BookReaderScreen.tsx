@@ -41,6 +41,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, IconButton } from '@/components';
 import { useBooksContext } from '@/contexts/BooksContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -48,8 +49,6 @@ import { useFeedback } from '@/hooks/useFeedback';
 // ============================================================
 // Constants
 // ============================================================
-
-const BOOKS_MODULE_COLOR = '#FF8F00';  // Amber color
 
 // Theme configurations
 const THEMES = {
@@ -100,6 +99,9 @@ export function BookReaderScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+
+  // User-customizable module color for Liquid Glass
+  const booksModuleColor = useModuleColor('books');
 
   // Books Context
   const {
@@ -565,7 +567,7 @@ export function BookReaderScreen() {
                   styles.ttsProgressFill,
                   {
                     width: `${ttsProgress.percentage}%`,
-                    backgroundColor: BOOKS_MODULE_COLOR,
+                    backgroundColor: booksModuleColor,
                   },
                 ]}
               />
@@ -745,7 +747,7 @@ export function BookReaderScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.sleepTimerModalContent, { backgroundColor: colors.surface }]}>
             <View style={styles.sleepTimerHeader}>
-              <Icon name="clock" size={32} color={BOOKS_MODULE_COLOR} />
+              <Icon name="clock" size={32} color={booksModuleColor} />
               <Text style={styles.sleepTimerTitle}>
                 {t('modules.books.tts.sleepTimer')}
               </Text>
@@ -887,7 +889,7 @@ export function BookReaderScreen() {
           <View style={[styles.voiceSelectionModalContent, { backgroundColor: colors.surface }]}>
             {/* Header */}
             <View style={styles.voiceSelectionHeader}>
-              <Icon name="mic" size={32} color={BOOKS_MODULE_COLOR} />
+              <Icon name="mic" size={32} color={booksModuleColor} />
               <Text style={styles.voiceSelectionTitle}>
                 {t('modules.books.tts.selectVoiceTitle')}
               </Text>
@@ -1522,7 +1524,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   recommendedBadge: {
-    backgroundColor: `${BOOKS_MODULE_COLOR}20`,
+    backgroundColor: `${booksModuleColor}20`,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
@@ -1530,7 +1532,7 @@ const styles = StyleSheet.create({
   recommendedBadgeText: {
     ...typography.small,
     fontSize: 11,
-    color: BOOKS_MODULE_COLOR,
+    color: booksModuleColor,
     fontWeight: '600',
   },
   voiceSelectionCancelButton: {
