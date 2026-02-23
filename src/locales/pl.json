@@ -274,7 +274,12 @@
     "accentColorHint": "Wybierz swój ulubiony kolor dla przycisków i akcentów",
     "accentColorSelectHint": "Dotknij dwukrotnie, aby wybrać ten kolor",
     "holdToNavigateTitle": "Nawigacja",
-    "testFeedback": "Testuj informacje zwrotne"
+    "testFeedback": "Testuj informacje zwrotne",
+    "complianceReport": "Raport dostępności",
+    "complianceReportHint": "Zobacz status zgodności z WCAG AAA i EN 301 549",
+    "ttsSpeed": "Prędkość czytania",
+    "ttsSpeedHint": "Wolniejsze czytanie jest łatwiejsze do śledzenia",
+    "ttsSpeedOption": "Prędkość {{percent}}"
   },
   "appearance": {
     "title": "Wygląd i Kolory",

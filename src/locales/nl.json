@@ -294,7 +294,9 @@
     "testFeedback": "Test feedback",
     "ttsSpeed": "Voorleessnelheid",
     "ttsSpeedHint": "Langzamer voorlezen is makkelijker te volgen",
-    "ttsSpeedOption": "{{percent}} snelheid"
+    "ttsSpeedOption": "{{percent}} snelheid",
+    "complianceReport": "Toegankelijkheidsrapport",
+    "complianceReportHint": "Bekijk WCAG AAA en EN 301 549 nalevingsstatus"
   },
   "appearance": {
     "title": "Weergave en Kleuren",

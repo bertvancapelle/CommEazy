@@ -779,7 +779,7 @@ export function AccessibilitySettingsScreen() {
         accessibilityHint={t('accessibilitySettings.complianceReportHint')}
       >
         <View style={styles.complianceLinkContent}>
-          <Icon name="shield-checkmark" size={24} color={accentColor.primary} />
+          <Icon name="shield-checkmark" size={32} color={accentColor.primary} />
           <View style={styles.complianceLinkText}>
             <Text style={styles.complianceLinkLabel}>
               {t('accessibilitySettings.complianceReport')}
@@ -789,7 +789,7 @@ export function AccessibilitySettingsScreen() {
             </Text>
           </View>
         </View>
-        <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+        <Icon name="chevron-right" size={24} color={colors.textTertiary} />
       </TouchableOpacity>
     </ScrollView>
   );

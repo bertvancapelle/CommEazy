@@ -270,6 +270,8 @@
     "accentColorSelectHint": "Doppeltippen, um diese Farbe auszuwählen",
     "holdToNavigateTitle": "Navigation",
     "testFeedback": "Feedback testen",
+    "complianceReport": "Barrierefreiheitsbericht",
+    "complianceReportHint": "WCAG AAA und EN 301 549 Konformitätsstatus anzeigen",
     "ttsSpeed": "Vorlesegeschwindigkeit",
     "ttsSpeedHint": "Langsameres Vorlesen ist leichter zu folgen",
     "ttsSpeedOption": "{{percent}} Geschwindigkeit"
