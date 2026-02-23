@@ -724,6 +724,97 @@ Dit is **niet optioneel**. Na elke logische milestone MOET Claude voorstellen om
 - Met bekende bugs die nog gefixed moeten worden
 - Met debug code (`console.log` overal)
 
+### ⚠️ Code Hygiene Check (VERPLICHT vóór commit)
+
+**Dit is onderdeel van de commit flow.** Claude MOET deze checks uitvoeren voordat een commit wordt voorgesteld.
+
+#### Checklist (VERPLICHT):
+
+| Check | Wat opruimen | Hoe detecteren |
+|-------|--------------|----------------|
+| **Ongebruikte variabelen** | `const x = ...` die nergens gebruikt wordt | TypeScript compiler warnings |
+| **Ongebruikte properties** | `private var lastTapTime` die nergens gelezen wordt | Zoek naar assignments zonder reads |
+| **Ongebruikte helper functions** | `function helper()` die nergens aangeroepen wordt | Zoek naar function definitie zonder calls |
+| **Ongebruikte imports** | `import { X }` waar X niet gebruikt wordt | ESLint / TypeScript warnings |
+| **Commented-out code** | `// const oldCode = ...` blokken | Git bewaart historie, verwijder |
+
+#### Claude's Gedrag:
+
+Na refactoring of feature-wijziging MOET Claude:
+
+1. **Controleer gewijzigde bestanden** op dead code
+2. **Verwijder** gevonden dead code
+3. **Rapporteer** in commit voorstel:
+
+```
+✅ [Feature] is voltooid.
+
+🧹 **Code Hygiene:**
+- Verwijderd: `lastPlayPauseTapTime` property (niet meer gebruikt)
+- Verwijderd: `updateProgressAndDuration` helper (niet meer aangeroepen)
+
+📦 **Dit is een goed moment om te committen en pushen.**
+```
+
+#### Uitzonderingen:
+
+- **Feature flags** — Mogen blijven staan (bedoeld voor toekomstig gebruik)
+- **Interface methods** — Niet-geïmplementeerde interface methods zijn OK
+- **Intentional stubs** — Functies met `// TODO:` comment mogen blijven
+
+### ⚠️ TestFlight Hygiene (VERPLICHT vóór TestFlight/Production)
+
+**Dit is een strengere check die ALLEEN vóór TestFlight/App Store release gedaan wordt.**
+
+#### Logging Cleanup:
+
+| Code Type | Development | TestFlight/Production |
+|-----------|-------------|----------------------|
+| **NSLog debug** | ✅ Toegestaan | ❌ Verwijderen of `#if DEBUG` |
+| **console.log** | ✅ Toegestaan | ❌ Verwijderen |
+| **console.debug** | ✅ Toegestaan | ❌ Verwijderen |
+| **console.info** | ✅ Toegestaan | ⚠️ Beoordeel per geval |
+| **console.warn** | ✅ Toegestaan | ✅ Behouden |
+| **console.error** | ✅ Toegestaan | ✅ Behouden |
+
+#### Swift/Objective-C Logging Pattern:
+
+```swift
+// ❌ VERWIJDEREN vóór TestFlight:
+NSLog("[GlassPlayer] Debug state: \(isPlaying)")
+
+// ✅ BEHOUDEN (alleen in debug builds):
+#if DEBUG
+NSLog("[GlassPlayer] Debug state: \(isPlaying)")
+#endif
+
+// ✅ BEHOUDEN (error logging):
+NSLog("[GlassPlayer] ERROR: Failed to load artwork")
+```
+
+#### React Native Logging Pattern:
+
+```typescript
+// ❌ VERWIJDEREN vóór TestFlight:
+console.log('[RadioScreen] Station selected:', station.name);
+console.debug('[Context] State update:', newState);
+
+// ✅ BEHOUDEN:
+console.warn('[RadioScreen] Using cached data - network unavailable');
+console.error('[RadioScreen] Failed to load stations:', error.message);
+```
+
+#### TestFlight Checklist:
+
+Wanneer gebruiker vraagt om "TestFlight klaar te maken" of "productie build":
+
+- [ ] **Alle `NSLog` statements** → Verwijder of wrap in `#if DEBUG`
+- [ ] **Alle `console.log/debug`** → Verwijder
+- [ ] **PII logging check** → Geen namen, nummers, of content gelogd
+- [ ] **Mock mode uit** → Zie `MOCK_MODE_CHANGES.md`
+- [ ] **Privacy Manifest** → Gevalideerd
+- [ ] **Bundle identifier** → Productie waarde
+
 ### ⚠️ Git LFS voor Grote Bestanden (VERPLICHT)
 
 **GitHub blokkeert bestanden >100MB.** CommEazy gebruikt Git LFS voor grote binaire bestanden.

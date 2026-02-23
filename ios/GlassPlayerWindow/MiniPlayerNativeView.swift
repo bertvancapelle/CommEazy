@@ -52,7 +52,6 @@ class MiniPlayerNativeView: UIView {
     private var showProgressBar: Bool = false
     private var showListenDuration: Bool = false
     private var listenDuration: TimeInterval = 0
-    private var lastPlayPauseTapTime: Date? = nil  // Prevents state bounce-back after tap
     
     // MARK: - Constants
     
@@ -222,9 +221,6 @@ class MiniPlayerNativeView: UIView {
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.impactOccurred()
 
-        // Record tap time to prevent state bounce-back from React Native
-        lastPlayPauseTapTime = Date()
-
         // OPTIMISTIC UI UPDATE: Immediately toggle the icon before delegate callback
         // This prevents the "double-tap" feel where native waits for RN round-trip
         let newIsPlaying = !isPlaying
@@ -266,24 +262,13 @@ class MiniPlayerNativeView: UIView {
     }
     
     func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, progress: Float?, listenDuration: TimeInterval?, showStopButton: Bool) {
-        // GRACE PERIOD: Ignore playback state updates within 500ms of a play/pause tap
-        // This prevents the "bounce-back" where React Native sends stale state
-        if let tapTime = lastPlayPauseTapTime {
-            let elapsed = Date().timeIntervalSince(tapTime)
-            if elapsed < 0.5 {
-                NSLog("[GlassPlayer Mini] updatePlaybackState - IGNORING playback state (within 500ms grace period)")
-                // Still update non-playback state (progress, duration, stop button)
-                self.showStopButton = showStopButton
-                stopButton.isHidden = !showStopButton
-                updateProgressAndDuration(progress: progress, listenDuration: listenDuration)
-                updateBufferingState()
-                return
-            }
-        }
-
         // Track if playback state actually changed to avoid UI flicker
+        // The optimistic UI update in handlePlayPause already sets the correct state,
+        // so this will only trigger if state differs (e.g., external state change)
         let playStateChanged = self.isPlaying != isPlaying
         let loadingStateChanged = self.isLoading != isLoading
+
+        NSLog("[GlassPlayer Mini] updatePlaybackState - isPlaying: \(isPlaying), current: \(self.isPlaying), changed: \(playStateChanged)")
 
         self.isPlaying = isPlaying
         self.isLoading = isLoading
@@ -333,28 +318,6 @@ class MiniPlayerNativeView: UIView {
         
         // Update buffering state
         updateBufferingState()
-    }
-    
-    /// Helper to update progress and duration during grace period (without changing play state)
-    private func updateProgressAndDuration(progress: Float?, listenDuration: TimeInterval?) {
-        // Update progress bar (for podcast/books)
-        if let progress = progress {
-            progressView.isHidden = false
-            progressView.progress = progress
-            listenDurationLabel.isHidden = true
-        } else {
-            progressView.isHidden = true
-        }
-        
-        // Update listen duration (for radio)
-        if let duration = listenDuration {
-            self.listenDuration = duration
-            listenDurationLabel.isHidden = false
-            listenDurationLabel.text = "🎧 \(formatDuration(duration))"
-            progressView.isHidden = true
-        } else if progress == nil {
-            listenDurationLabel.isHidden = true
-        }
     }
     
     private func updateBufferingState() {

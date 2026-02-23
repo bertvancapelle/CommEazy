@@ -128,12 +128,13 @@ class GlassPlayerView: UIView {
 
         tintOverlay = tint
 
-        // === Layer 3: Highlight glow AROUND entire view (floating effect) ===
-        // Using shadow to create the "glow" effect around the glass
-        layer.shadowColor = UIColor.white.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 0)
-        layer.shadowOpacity = 0.5
-        layer.shadowRadius = 12
+        // === Layer 3: Subtle shadow for depth (dark mode compatible) ===
+        // Use dark shadow instead of white glow - works better on dark backgrounds
+        // The white glow created an "eye-shaped" artifact on dark backgrounds
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 4)
+        layer.shadowOpacity = 0.3
+        layer.shadowRadius = 8
 
         // === Layer 4: Inner highlight gradient (top specular + subtle bottom) ===
         let gradient = CAGradientLayer()
@@ -152,9 +153,10 @@ class GlassPlayerView: UIView {
 
         highlightGradient = gradient
 
-        // === Layer 5: Border (all around for floating effect) ===
-        layer.borderColor = UIColor.white.withAlphaComponent(0.40).cgColor
-        layer.borderWidth = 1.0
+        // === Layer 5: Subtle border (dark mode compatible) ===
+        // Reduced opacity to avoid visible line artifact on dark backgrounds
+        layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
+        layer.borderWidth = 0.5
 
         // Log initial tint color for debugging
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0

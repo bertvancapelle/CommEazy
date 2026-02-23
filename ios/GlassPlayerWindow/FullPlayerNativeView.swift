@@ -99,7 +99,6 @@ class FullPlayerNativeView: UIView {
     private var repeatMode: String = "off"   // "off" | "one" | "all"
     private var currentDuration: Double = 0  // Duration in seconds for seek calculations
     private var isSeeking: Bool = false      // Prevents slider updates while user is dragging
-    private var lastPlayPauseTapTime: Date? = nil  // Prevents state bounce-back after tap
     
     // Configuration
     private var showSeekSlider: Bool = false
@@ -466,9 +465,6 @@ class FullPlayerNativeView: UIView {
     @objc private func handlePlayPause() {
         triggerHaptic()
 
-        // Record tap time to prevent state bounce-back from React Native
-        lastPlayPauseTapTime = Date()
-
         // OPTIMISTIC UI UPDATE: Immediately toggle the icon before delegate callback
         // This prevents the "double-tap" feel where native waits for RN round-trip
         let newIsPlaying = !isPlaying
@@ -679,29 +675,18 @@ class FullPlayerNativeView: UIView {
     }
     
     func updatePlaybackState(isPlaying: Bool, isLoading: Bool, isBuffering: Bool, position: Float?, duration: Float?, isFavorite: Bool) {
-        // GRACE PERIOD: Ignore state updates within 500ms of a play/pause tap
-        // This prevents the "bounce-back" where React Native sends stale state
-        if let tapTime = lastPlayPauseTapTime {
-            let elapsed = Date().timeIntervalSince(tapTime)
-            if elapsed < 0.5 {
-                NSLog("[GlassPlayer Full] updatePlaybackState - IGNORING (within 500ms grace period, elapsed: \(Int(elapsed * 1000))ms)")
-                // Still update non-playback state (position, duration, favorite)
-                self.isFavorite = isFavorite
-                updateSeekAndFavorite(position: position, duration: duration, isFavorite: isFavorite)
-                return
-            }
-        }
-
         // Track if playback state actually changed to avoid UI flicker
+        // The optimistic UI update in handlePlayPause already sets the correct state,
+        // so this will only trigger if state differs (e.g., external state change)
         let playStateChanged = self.isPlaying != isPlaying
         let loadingStateChanged = self.isLoading != isLoading
+
+        NSLog("[GlassPlayer Full] updatePlaybackState - isPlaying: \(isPlaying), current: \(self.isPlaying), changed: \(playStateChanged)")
 
         self.isPlaying = isPlaying
         self.isLoading = isLoading
         self.isBuffering = isBuffering
         self.isFavorite = isFavorite
-
-        NSLog("[GlassPlayer Full] updatePlaybackState - isPlaying: \(isPlaying), position: \(position ?? -1), duration: \(duration ?? -1), playStateChanged: \(playStateChanged)")
 
         // Update loading indicator (only if changed)
         if loadingStateChanged {
@@ -840,25 +825,6 @@ class FullPlayerNativeView: UIView {
         return String(format: "%d:%02d", minutes, secs)
     }
 
-    /// Update seek slider and favorite state only (used during grace period)
-    private func updateSeekAndFavorite(position: Float?, duration: Float?, isFavorite: Bool) {
-        // Update seek slider (but NOT while user is dragging)
-        if let position = position, let duration = duration, duration > 0 {
-            currentDuration = Double(duration)
-            if !isSeeking {
-                let progress = position / duration
-                seekSlider.value = Float(progress)
-                currentTimeLabel.text = formatTime(position)
-            }
-            durationLabel.text = formatTime(duration)
-        }
-
-        // Update favorite
-        let favConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-        let favIcon = isFavorite ? "heart.fill" : "heart"
-        favoriteButton.setImage(UIImage(systemName: favIcon, withConfiguration: favConfig), for: .normal)
-        favoriteButton.tintColor = isFavorite ? .systemPink : .white
-    }
     
     private func updateBufferingState() {
         if isBuffering {

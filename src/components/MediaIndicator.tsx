@@ -30,6 +30,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { useRadioContext } from '@/contexts/RadioContext';
 import { usePodcastContextSafe } from '@/contexts/PodcastContext';
 import { useBooksContextSafe } from '@/contexts/BooksContext';
@@ -107,6 +108,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const navigation = useNavigation();
   const { triggerFeedback } = useFeedback();
   const reducedMotion = useReducedMotion();
+  const themeColors = useColors();
 
   // Animation values for waveform bars
   const bar1Anim = useRef(new Animated.Value(0.3)).current;
@@ -266,7 +268,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
         {isVideo ? (
           // Video: wider bars with play triangle
           <>
-            <View style={[styles.playTriangle, { borderLeftColor: colors.textOnPrimary }]} />
+            <View style={[styles.playTriangle, { borderLeftColor: themeColors.textOnPrimary }]} />
           </>
         ) : (
           // Audio: animated waveform bars
@@ -275,7 +277,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
               style={[
                 styles.waveBar,
                 {
-                  backgroundColor: colors.textOnPrimary,
+                  backgroundColor: themeColors.textOnPrimary,
                   height: staticHeight !== undefined
                     ? 16 * staticHeight
                     : bar1Anim.interpolate({
@@ -289,7 +291,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
               style={[
                 styles.waveBar,
                 {
-                  backgroundColor: colors.textOnPrimary,
+                  backgroundColor: themeColors.textOnPrimary,
                   height: staticHeight !== undefined
                     ? 16 * staticHeight
                     : bar2Anim.interpolate({
@@ -303,7 +305,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
               style={[
                 styles.waveBar,
                 {
-                  backgroundColor: colors.textOnPrimary,
+                  backgroundColor: themeColors.textOnPrimary,
                   height: staticHeight !== undefined
                     ? 16 * staticHeight
                     : bar3Anim.interpolate({
