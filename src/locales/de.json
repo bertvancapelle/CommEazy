@@ -1358,7 +1358,22 @@
         "playAll": "Alle abspielen",
         "error": "Details konnten nicht geladen werden",
         "by": "Von"
-      }
+      },
+      "queue": {
+        "title": "Warteschlange",
+        "empty": "Die Warteschlange ist leer",
+        "emptyDescription": "Füge Songs hinzu, um sie hier zu sehen",
+        "upNext": "Als Nächstes",
+        "nowPlaying": "Wird gerade gespielt",
+        "playNext": "Als Nächstes spielen",
+        "addToQueue": "Zur Warteschlange hinzufügen",
+        "removeFromQueue": "Aus Warteschlange entfernen",
+        "clearQueue": "Warteschlange leeren",
+        "songCount": "{{count}} Song",
+        "songCount_plural": "{{count}} Songs"
+      },
+      "addToLibrary": "Zur Mediathek hinzufügen",
+      "inLibrary": "In der Mediathek"
     }
   },
   "articleViewer": {

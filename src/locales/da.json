@@ -1194,7 +1194,22 @@
         "playAll": "Afspil alle",
         "error": "Kunne ikke indlæse detaljer",
         "by": "Af"
-      }
+      },
+      "queue": {
+        "title": "Kø",
+        "empty": "Køen er tom",
+        "emptyDescription": "Tilføj sange for at se dem her",
+        "upNext": "Næste",
+        "nowPlaying": "Afspilles nu",
+        "playNext": "Afspil næste",
+        "addToQueue": "Føj til køen",
+        "removeFromQueue": "Fjern fra køen",
+        "clearQueue": "Ryd køen",
+        "songCount": "{{count}} sang",
+        "songCount_plural": "{{count}} sange"
+      },
+      "addToLibrary": "Føj til biblioteket",
+      "inLibrary": "I biblioteket"
     }
   },
   "articleViewer": {

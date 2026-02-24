@@ -1382,7 +1382,22 @@
         "playAll": "Reproduzir tudo",
         "error": "Não foi possível carregar os detalhes",
         "by": "Por"
-      }
+      },
+      "queue": {
+        "title": "Fila",
+        "empty": "A fila está vazia",
+        "emptyDescription": "Adicione músicas para as ver aqui",
+        "upNext": "A seguir",
+        "nowPlaying": "A reproduzir agora",
+        "playNext": "Reproduzir a seguir",
+        "addToQueue": "Adicionar à fila",
+        "removeFromQueue": "Remover da fila",
+        "clearQueue": "Limpar fila",
+        "songCount": "{{count}} música",
+        "songCount_plural": "{{count}} músicas"
+      },
+      "addToLibrary": "Adicionar à biblioteca",
+      "inLibrary": "Na biblioteca"
     }
   },
   "articleViewer": {

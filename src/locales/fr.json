@@ -1358,7 +1358,22 @@
         "playAll": "Tout lire",
         "error": "Impossible de charger les détails",
         "by": "Par"
-      }
+      },
+      "queue": {
+        "title": "File d'attente",
+        "empty": "La file d'attente est vide",
+        "emptyDescription": "Ajoutez des morceaux pour les voir ici",
+        "upNext": "À suivre",
+        "nowPlaying": "En cours de lecture",
+        "playNext": "Lire ensuite",
+        "addToQueue": "Ajouter à la file d'attente",
+        "removeFromQueue": "Retirer de la file d'attente",
+        "clearQueue": "Vider la file d'attente",
+        "songCount": "{{count}} morceau",
+        "songCount_plural": "{{count}} morceaux"
+      },
+      "addToLibrary": "Ajouter à la bibliothèque",
+      "inLibrary": "Dans la bibliothèque"
     }
   },
   "articleViewer": {

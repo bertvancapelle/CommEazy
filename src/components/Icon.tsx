@@ -104,7 +104,8 @@ export type IconName =
   | 'eye'
   | 'weather'
   | 'help'
-  | 'phone';
+  | 'phone'
+  | 'queue';
 
 interface IconProps {
   name: IconName;
@@ -1682,6 +1683,28 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'queue':
+      // Queue / playlist (3 horizontal lines with play indicator)
+      return (
+        <Svg {...iconProps}>
+          {/* Three horizontal lines */}
+          <Path
+            d="M3 6H15M3 12H12M3 18H9"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Play indicator on the right */}
+          <Path
+            d="M16 15L21 18L16 21V15Z"
+            fill={color}
+            stroke={color}
+            strokeWidth={sw}
             strokeLinejoin="round"
           />
         </Svg>

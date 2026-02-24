@@ -1244,7 +1244,22 @@
         "playAll": "Spill alle",
         "error": "Kunne ikke laste detaljer",
         "by": "Av"
-      }
+      },
+      "queue": {
+        "title": "Kø",
+        "empty": "Køen er tom",
+        "emptyDescription": "Legg til sanger for å se dem her",
+        "upNext": "Neste",
+        "nowPlaying": "Spilles nå",
+        "playNext": "Spill neste",
+        "addToQueue": "Legg til i køen",
+        "removeFromQueue": "Fjern fra køen",
+        "clearQueue": "Tøm køen",
+        "songCount": "{{count}} sang",
+        "songCount_plural": "{{count}} sanger"
+      },
+      "addToLibrary": "Legg til i biblioteket",
+      "inLibrary": "I biblioteket"
     }
   },
   "articleViewer": {

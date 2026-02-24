@@ -49,6 +49,7 @@ import {
   SearchTabButton,
   SearchBar,
   AppleMusicDetailModal,
+  QueueView,
   type SearchBarRef,
 } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
@@ -171,6 +172,7 @@ export function AppleMusicScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+  const [isQueueVisible, setIsQueueVisible] = useState(false);
   const [searchFilter, setSearchFilter] = useState<SearchFilterType>('all');
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -1609,6 +1611,7 @@ export function AppleMusicScreen() {
             shuffle: true,
             repeat: true,
             addToLibrary: true,
+            queue: true,
           }}
           onSkipBackward={skipToPrevious}
           onSkipForward={skipToNext}
@@ -1623,6 +1626,8 @@ export function AppleMusicScreen() {
           isInLibrary={currentSongInLibrary}
           isAddingToLibrary={isAddingToLibrary}
           onAddToLibraryPress={handleAddToLibrary}
+          queueCount={queue.length}
+          onQueuePress={() => setIsQueueVisible(true)}
         />
       )}
 
@@ -1633,6 +1638,19 @@ export function AppleMusicScreen() {
         id={detailModal.id}
         onClose={handleCloseDetailModal}
         initialData={detailModal.initialData}
+      />
+
+      {/* Queue View Modal */}
+      <QueueView
+        visible={isQueueVisible}
+        queue={queue}
+        nowPlaying={nowPlaying}
+        accentColor={appleMusicColor}
+        onClose={() => setIsQueueVisible(false)}
+        onPlaySong={(song) => {
+          playSong(song.id, song.artworkUrl);
+          setIsQueueVisible(false);
+        }}
       />
     </View>
   );

@@ -80,6 +80,8 @@ export interface AudioPlayerControls {
   repeat?: boolean;
   /** Show add to library button (for Apple Music) */
   addToLibrary?: boolean;
+  /** Show queue button (for Apple Music) */
+  queue?: boolean;
 }
 
 export interface ExpandedAudioPlayerProps {
@@ -177,6 +179,12 @@ export interface ExpandedAudioPlayerProps {
   isAddingToLibrary?: boolean;
   /** Callback when add to library button is pressed */
   onAddToLibraryPress?: () => void;
+
+  // Queue (when controls.queue is true)
+  /** Number of items in the queue */
+  queueCount?: number;
+  /** Callback when queue button is pressed */
+  onQueuePress?: () => void;
 }
 
 // ============================================================
@@ -238,6 +246,8 @@ export function ExpandedAudioPlayer({
   isInLibrary = false,
   isAddingToLibrary = false,
   onAddToLibraryPress,
+  queueCount = 0,
+  onQueuePress,
 }: ExpandedAudioPlayerProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -333,6 +343,11 @@ export function ExpandedAudioPlayer({
     await triggerFeedback('tap');
     onAddToLibraryPress?.();
   }, [onAddToLibraryPress, triggerFeedback]);
+
+  const handleQueuePress = useCallback(async () => {
+    await triggerFeedback('tap');
+    onQueuePress?.();
+  }, [onQueuePress, triggerFeedback]);
 
   const handleSeekStart = useCallback(() => {
     setIsSeeking(true);
@@ -552,8 +567,8 @@ export function ExpandedAudioPlayer({
             )}
           </View>
 
-          {/* Secondary controls row (shuffle, favorite, addToLibrary, repeat) */}
-          {(controls.shuffle || controls.favorite || controls.addToLibrary || controls.repeat) && (
+          {/* Secondary controls row (shuffle, favorite, addToLibrary, queue, repeat) */}
+          {(controls.shuffle || controls.favorite || controls.addToLibrary || controls.queue || controls.repeat) && (
             <View style={styles.secondaryControlsRow}>
               {/* Shuffle button (for music) */}
               {controls.shuffle && onShufflePress && (
@@ -620,6 +635,27 @@ export function ExpandedAudioPlayer({
                       color={isInLibrary ? accentColor : colors.textSecondary}
                     />
                   )}
+                </TouchableOpacity>
+              )}
+
+              {/* Queue button (for Apple Music) */}
+              {controls.queue && onQueuePress && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleQueuePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.appleMusic.queue.title')}
+                  accessibilityHint={
+                    queueCount > 0
+                      ? t('modules.appleMusic.queue.songCount', { count: queueCount })
+                      : t('modules.appleMusic.queue.empty')
+                  }
+                >
+                  <Icon
+                    name="queue"
+                    size={28}
+                    color={queueCount > 0 ? accentColor : colors.textSecondary}
+                  />
                 </TouchableOpacity>
               )}
 

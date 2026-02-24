@@ -1358,7 +1358,22 @@
         "playAll": "Reproducir todo",
         "error": "No se pudieron cargar los detalles",
         "by": "Por"
-      }
+      },
+      "queue": {
+        "title": "Cola",
+        "empty": "La cola está vacía",
+        "emptyDescription": "Añade canciones para verlas aquí",
+        "upNext": "A continuación",
+        "nowPlaying": "Reproduciendo ahora",
+        "playNext": "Reproducir a continuación",
+        "addToQueue": "Añadir a la cola",
+        "removeFromQueue": "Eliminar de la cola",
+        "clearQueue": "Vaciar cola",
+        "songCount": "{{count}} canción",
+        "songCount_plural": "{{count}} canciones"
+      },
+      "addToLibrary": "Añadir a la biblioteca",
+      "inLibrary": "En la biblioteca"
     }
   },
   "articleViewer": {

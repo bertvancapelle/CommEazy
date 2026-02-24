@@ -1194,7 +1194,22 @@
         "playAll": "Spela alla",
         "error": "Kunde inte ladda detaljer",
         "by": "Av"
-      }
+      },
+      "queue": {
+        "title": "Kö",
+        "empty": "Kön är tom",
+        "emptyDescription": "Lägg till låtar för att se dem här",
+        "upNext": "Nästa",
+        "nowPlaying": "Spelas nu",
+        "playNext": "Spela nästa",
+        "addToQueue": "Lägg till i kön",
+        "removeFromQueue": "Ta bort från kön",
+        "clearQueue": "Rensa kön",
+        "songCount": "{{count}} låt",
+        "songCount_plural": "{{count}} låtar"
+      },
+      "addToLibrary": "Lägg till i biblioteket",
+      "inLibrary": "I biblioteket"
     }
   },
   "articleViewer": {

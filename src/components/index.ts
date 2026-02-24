@@ -138,6 +138,8 @@ export type { LiquidGlassViewProps } from './LiquidGlassView';
 
 // Apple Music Components
 export { AppleMusicDetailModal } from './appleMusic';
+export { QueueView } from './QueueView';
+export type { QueueViewProps } from './QueueView';
 
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:

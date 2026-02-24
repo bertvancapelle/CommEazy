@@ -1360,7 +1360,22 @@
         "playAll": "Play all",
         "error": "Could not load details",
         "by": "By"
-      }
+      },
+      "queue": {
+        "title": "Queue",
+        "empty": "The queue is empty",
+        "emptyDescription": "Add songs to see them here",
+        "upNext": "Up next",
+        "nowPlaying": "Now playing",
+        "playNext": "Play next",
+        "addToQueue": "Add to queue",
+        "removeFromQueue": "Remove from queue",
+        "clearQueue": "Clear queue",
+        "songCount": "{{count}} song",
+        "songCount_plural": "{{count}} songs"
+      },
+      "addToLibrary": "Add to library",
+      "inLibrary": "In library"
     }
   },
   "articleViewer": {

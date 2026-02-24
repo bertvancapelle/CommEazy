@@ -1352,7 +1352,22 @@
         "playAll": "Alles afspelen",
         "error": "Kon details niet laden",
         "by": "Door"
-      }
+      },
+      "queue": {
+        "title": "Wachtrij",
+        "empty": "De wachtrij is leeg",
+        "emptyDescription": "Voeg nummers toe om ze hier te zien",
+        "upNext": "Hierna",
+        "nowPlaying": "Nu aan het spelen",
+        "playNext": "Speel hierna",
+        "addToQueue": "Voeg toe aan wachtrij",
+        "removeFromQueue": "Verwijder uit wachtrij",
+        "clearQueue": "Wis wachtrij",
+        "songCount": "{{count}} nummer",
+        "songCount_plural": "{{count}} nummers"
+      },
+      "addToLibrary": "Voeg toe aan bibliotheek",
+      "inLibrary": "In bibliotheek"
     }
   },
   "articleViewer": {

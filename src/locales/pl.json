@@ -1176,7 +1176,22 @@
         "playAll": "Odtwórz wszystko",
         "error": "Nie można załadować szczegółów",
         "by": "Autor"
-      }
+      },
+      "queue": {
+        "title": "Kolejka",
+        "empty": "Kolejka jest pusta",
+        "emptyDescription": "Dodaj utwory, aby je tu zobaczyć",
+        "upNext": "Następne",
+        "nowPlaying": "Teraz gra",
+        "playNext": "Odtwórz jako następne",
+        "addToQueue": "Dodaj do kolejki",
+        "removeFromQueue": "Usuń z kolejki",
+        "clearQueue": "Wyczyść kolejkę",
+        "songCount": "{{count}} utwór",
+        "songCount_plural": "{{count}} utworów"
+      },
+      "addToLibrary": "Dodaj do biblioteki",
+      "inLibrary": "W bibliotece"
     },
     "weather": {
       "title": "Pogoda",

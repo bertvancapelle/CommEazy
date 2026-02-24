@@ -1318,7 +1318,22 @@
         "playAll": "Riproduci tutto",
         "error": "Impossibile caricare i dettagli",
         "by": "Di"
-      }
+      },
+      "queue": {
+        "title": "Coda",
+        "empty": "La coda è vuota",
+        "emptyDescription": "Aggiungi brani per vederli qui",
+        "upNext": "In coda",
+        "nowPlaying": "In riproduzione",
+        "playNext": "Riproduci dopo",
+        "addToQueue": "Aggiungi alla coda",
+        "removeFromQueue": "Rimuovi dalla coda",
+        "clearQueue": "Svuota coda",
+        "songCount": "{{count}} brano",
+        "songCount_plural": "{{count}} brani"
+      },
+      "addToLibrary": "Aggiungi alla libreria",
+      "inLibrary": "Nella libreria"
     }
   },
   "articleViewer": {
