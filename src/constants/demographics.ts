@@ -42,10 +42,12 @@ export interface LanguageOption {
 
 /**
  * Supported languages for CommEazy content search
- * Used for Podcast and Books modules where content is language-based, not country-based
+ * Used for Radio, Podcast and Books modules where content is language-based
  *
  * Note: No flags here — languages are not tied to specific countries
  * (e.g., Spanish is spoken in Spain, Mexico, Argentina, etc.)
+ *
+ * Matches all 13 app languages — users should be able to search in their own language
  */
 export const LANGUAGES: LanguageOption[] = [
   { code: 'nl', nameKey: 'demographics.language.nl', nativeName: 'Nederlands', icon: '🗣️' },
@@ -53,6 +55,12 @@ export const LANGUAGES: LanguageOption[] = [
   { code: 'de', nameKey: 'demographics.language.de', nativeName: 'Deutsch', icon: '🗣️' },
   { code: 'fr', nameKey: 'demographics.language.fr', nativeName: 'Français', icon: '🗣️' },
   { code: 'es', nameKey: 'demographics.language.es', nativeName: 'Español', icon: '🗣️' },
+  { code: 'it', nameKey: 'demographics.language.it', nativeName: 'Italiano', icon: '🗣️' },
+  { code: 'no', nameKey: 'demographics.language.no', nativeName: 'Norsk', icon: '🗣️' },
+  { code: 'sv', nameKey: 'demographics.language.sv', nativeName: 'Svenska', icon: '🗣️' },
+  { code: 'da', nameKey: 'demographics.language.da', nativeName: 'Dansk', icon: '🗣️' },
+  { code: 'pt', nameKey: 'demographics.language.pt', nativeName: 'Português', icon: '🗣️' },
+  { code: 'pl', nameKey: 'demographics.language.pl', nativeName: 'Polski', icon: '🗣️' },
 ];
 
 // ============================================================

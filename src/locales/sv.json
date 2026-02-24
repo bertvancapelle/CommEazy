@@ -17,7 +17,13 @@
       "en": "Engelska",
       "de": "Tyska",
       "fr": "Franska",
-      "es": "Spanska"
+      "es": "Spanska",
+      "it": "Italienska",
+      "no": "Norska",
+      "sv": "Svenska",
+      "da": "Danska",
+      "pt": "Portugisiska",
+      "pl": "Polska"
     },
     "title": "Berätta om dig själv",
     "subtitle": "Detta hjälper oss att visa relevanta annonser",
@@ -956,6 +962,8 @@
       "title": "Radio",
       "search": "Sök stationer",
       "searchPlaceholder": "Sök på stationsnamn...",
+      "searchPlaceholderByCountry": "Sök på stationsnamn...",
+      "searchPlaceholderByLanguage": "Sök på stationsspråk...",
       "searchHint": "Skriv namnet på en station och tryck på sök",
       "searchButton": "Sök",
       "searchTab": "Sök",

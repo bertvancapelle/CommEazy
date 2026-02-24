@@ -152,6 +152,12 @@ const LANGUAGE_CODE_TO_NAME: Record<string, string> = {
   de: 'german',
   fr: 'french',
   es: 'spanish',
+  it: 'italian',
+  no: 'norwegian',
+  sv: 'swedish',
+  da: 'danish',
+  pt: 'portuguese',
+  pl: 'polish',
 };
 
 async function searchStationsByLanguage(
@@ -519,24 +525,34 @@ export function RadioScreen() {
     }
   }, [isPlaying]);
 
-  // Load user's default country from profile
+  // Load user's default country and language from profile
   useEffect(() => {
-    const loadUserCountry = async () => {
+    const loadUserDefaults = async () => {
       try {
         if (ServiceContainer.isInitialized) {
           const profile = await ServiceContainer.database.getUserProfile();
-          if (profile?.country) {
-            const countryExists = COUNTRIES.some(c => c.code === profile.country);
-            if (countryExists) {
-              setSelectedCountry(profile.country);
+          if (profile) {
+            // Set default country from profile (e.g., Belgian user sees Belgium as default)
+            if (profile.countryCode) {
+              const countryExists = COUNTRIES.some(c => c.code === profile.countryCode);
+              if (countryExists) {
+                setSelectedCountry(profile.countryCode);
+              }
+            }
+            // Set default language from profile (e.g., French-speaking Belgian sees French as default)
+            if (profile.language) {
+              const languageExists = LANGUAGES.some(l => l.code === profile.language);
+              if (languageExists) {
+                setSelectedLanguage(profile.language);
+              }
             }
           }
         }
       } catch (error) {
-        console.error('[RadioScreen] Failed to load user country:', error);
+        console.error('[RadioScreen] Failed to load user defaults:', error);
       }
     };
-    loadUserCountry();
+    loadUserDefaults();
   }, []);
 
   // Load favorites from storage
@@ -882,9 +898,9 @@ export function RadioScreen() {
           Content scrolls UNDER the ModuleHeader and MiniPlayer
           ============================================================ */}
       <View style={styles.contentLayer}>
-        {/* 3-way toggle: [❤️ Favorieten] | [Land] [Taal] */}
+        {/* 3-way toggle: [❤️ Favorieten]  <space>  [Land] [Taal] */}
         <View style={[styles.toggleRow, { marginTop: contentPaddingTop + spacing.md }]}>
-          {/* Favorites button — visueel gescheiden van Land/Taal */}
+          {/* Favorites button — links */}
           <TouchableOpacity
             style={[
               styles.filterToggleButton,
@@ -904,6 +920,12 @@ export function RadioScreen() {
               size={24}
               color={showFavorites ? colors.textOnPrimary : accentColor.primary}
             />
+            <Text style={[
+              styles.filterToggleButtonText,
+              showFavorites && styles.filterToggleButtonTextActive,
+            ]}>
+              {t('modules.radio.favorites')}
+            </Text>
             {favorites.length > 0 && (
               <View style={[
                 styles.favoritesCountBadge,
@@ -916,10 +938,10 @@ export function RadioScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Visuele scheiding */}
-          <View style={styles.toggleSeparator} />
+          {/* Spacer — duwt Land/Taal naar rechts */}
+          <View style={styles.toggleSpacer} />
 
-          {/* Land/Taal toggle buttons */}
+          {/* Land/Taal toggle buttons — rechts */}
           <TouchableOpacity
             style={[
               styles.filterToggleButton,
@@ -976,17 +998,19 @@ export function RadioScreen() {
               allowModeToggle={false}
             />
 
-            {/* Search bar — screen-wide, onderaan */}
+            {/* Search bar — screen-wide, onderaan, placeholder dynamisch op basis van filterMode */}
             <View style={styles.searchBarContainer}>
               <SearchBar
                 ref={searchInputRef}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 onSubmit={handleSearch}
-                placeholder={t('modules.radio.searchPlaceholder')}
+                placeholder={filterMode === 'country'
+                  ? t('modules.radio.searchPlaceholderByCountry')
+                  : t('modules.radio.searchPlaceholderByLanguage')
+                }
                 searchButtonLabel={t('modules.radio.searchButton')}
                 maxLength={SEARCH_MAX_LENGTH}
-                showButton={false}
               />
             </View>
           </View>
@@ -1611,11 +1635,8 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     gap: spacing.xs,
   },
-  toggleSeparator: {
-    width: 1,
-    height: touchTargets.minimum - spacing.md,  // Iets korter dan buttons
-    backgroundColor: colors.border,
-    marginHorizontal: spacing.xs,
+  toggleSpacer: {
+    flex: 1,  // Neemt alle beschikbare ruimte — duwt Land/Taal naar rechts
   },
   filterToggleButton: {
     height: touchTargets.minimum,  // 60pt — senior-inclusive

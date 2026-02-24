@@ -17,7 +17,13 @@
       "en": "Engelsk",
       "de": "Tysk",
       "fr": "Fransk",
-      "es": "Spansk"
+      "es": "Spansk",
+      "it": "Italiensk",
+      "no": "Norsk",
+      "sv": "Svensk",
+      "da": "Dansk",
+      "pt": "Portugisisk",
+      "pl": "Polsk"
     },
     "title": "Fortæl os om dig selv",
     "subtitle": "Dette hjælper os med at vise relevante annoncer",
@@ -956,6 +962,8 @@
       "title": "Radio",
       "search": "Søg stationer",
       "searchPlaceholder": "Søg på stationsnavn...",
+      "searchPlaceholderByCountry": "Søg på stationsnavn...",
+      "searchPlaceholderByLanguage": "Søg på stationssprog...",
       "searchHint": "Skriv navnet på en station og tryk på søg",
       "searchButton": "Søg",
       "searchTab": "Søg",

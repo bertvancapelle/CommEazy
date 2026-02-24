@@ -15,7 +15,13 @@
       "en": "Englisch",
       "de": "Deutsch",
       "fr": "Französisch",
-      "es": "Spanisch"
+      "es": "Spanisch",
+      "it": "Italienisch",
+      "no": "Norwegisch",
+      "sv": "Schwedisch",
+      "da": "Dänisch",
+      "pt": "Portugiesisch",
+      "pl": "Polnisch"
     }
   },
   "onboarding": {
@@ -1071,6 +1077,8 @@
       "title": "Radio",
       "search": "Sender suchen",
       "searchPlaceholder": "Nach Sendername suchen...",
+      "searchPlaceholderByCountry": "Nach Sendername suchen...",
+      "searchPlaceholderByLanguage": "Nach Sendersprache suchen...",
       "searchHint": "Gib einen Sendernamen ein und drücke auf Suchen",
       "searchButton": "Suchen",
       "searchTab": "Suchen",

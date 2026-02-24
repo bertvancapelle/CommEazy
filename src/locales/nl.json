@@ -511,7 +511,13 @@
       "en": "Engels",
       "de": "Duits",
       "fr": "Frans",
-      "es": "Spaans"
+      "es": "Spaans",
+      "it": "Italiaans",
+      "no": "Noors",
+      "sv": "Zweeds",
+      "da": "Deens",
+      "pt": "Portugees",
+      "pl": "Pools"
     },
     "title": "Vertel ons over jezelf",
     "subtitle": "Dit helpt ons relevante advertenties te tonen",
@@ -1073,6 +1079,8 @@
       "title": "Radio",
       "search": "Zoek zenders",
       "searchPlaceholder": "Zoek op zendernaam...",
+      "searchPlaceholderByCountry": "Zoek op zendernaam...",
+      "searchPlaceholderByLanguage": "Zoek op zendertaal...",
       "searchHint": "Typ de naam van een zender en druk op zoeken",
       "searchButton": "Zoeken",
       "searchTab": "Zoeken",

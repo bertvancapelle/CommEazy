@@ -19,10 +19,11 @@
       "fr": "Fransk",
       "es": "Spansk",
       "it": "Italiensk",
-      "pl": "Polsk",
       "no": "Norsk",
       "sv": "Svensk",
-      "da": "Dansk"
+      "da": "Dansk",
+      "pt": "Portugisisk",
+      "pl": "Polsk"
     }
   },
   "onboarding": {
@@ -1006,6 +1007,8 @@
       "title": "Radio",
       "search": "Søk stasjoner",
       "searchPlaceholder": "Søk på stasjonsnavn...",
+      "searchPlaceholderByCountry": "Søk på stasjonsnavn...",
+      "searchPlaceholderByLanguage": "Søk på stasjonsspråk...",
       "searchHint": "Skriv navnet på en stasjon og trykk på søk",
       "searchButton": "Søk",
       "searchTab": "Søk",
