@@ -17,6 +17,7 @@
 import UIKit
 import React
 import MusicKit
+import MediaPlayer  // For MPMediaLibrary change notifications
 
 // ============================================================
 // MARK: - AppleMusicModule (RCT Bridge Module)
@@ -50,6 +51,28 @@ class AppleMusicModule: RCTEventEmitter {
     private var lastStateEventTime: CFAbsoluteTime = 0
     // Minimum interval between state events (100ms)
     private let minStateEventInterval: CFAbsoluteTime = 0.1
+    
+    // ============================================================
+    // MARK: - Library Cache (for large libraries like 23K+ songs)
+    // ============================================================
+    
+    /// Cache structure for library counts
+    /// Avoids loading 23K+ songs into memory on every tab open
+    private struct LibraryCache {
+        var counts: [String: Int]?      // { songs: 23000, albums: 4800, ... }
+        var lastModified: Date?         // MPMediaLibrary.lastModifiedDate
+        var isValid: Bool = false       // Cache validity flag
+        var isRefreshing: Bool = false  // Prevent concurrent refreshes
+    }
+    
+    /// In-memory library cache
+    private var libraryCache = LibraryCache()
+    
+    /// Thread-safe access to cache
+    private let cacheQueue = DispatchQueue(label: "com.commeazy.appleMusicCache", qos: .userInitiated)
+    
+    /// UserDefaults key for cached library modification date
+    private let cacheModifiedDateKey = "AppleMusicLibraryCacheDate"
 
     // ============================================================
     // MARK: - RCTEventEmitter Setup
@@ -59,12 +82,172 @@ class AppleMusicModule: RCTEventEmitter {
         super.init()
         setupPlaybackStateObserver()
         setupQueueObserver()
+        setupLibraryObservers()
+        
+        // Check for library changes on init (app start)
+        checkLibraryVersionOnStartup()
     }
 
     deinit {
         playbackStateTask?.cancel()
         queueObservationTask?.cancel()
         stopTimeUpdateTimer()
+        
+        // Stop library notifications
+        MPMediaLibrary.default().endGeneratingLibraryChangeNotifications()
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    // ============================================================
+    // MARK: - Library Cache Observers
+    // ============================================================
+    
+    /// Setup observers for library changes and app lifecycle
+    private func setupLibraryObservers() {
+        // Start receiving library change notifications from MediaPlayer framework
+        MPMediaLibrary.default().beginGeneratingLibraryChangeNotifications()
+        
+        // Listen for library changes (user adds/removes songs in Apple Music app)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(libraryDidChange),
+            name: .MPMediaLibraryDidChange,
+            object: nil
+        )
+        
+        // Listen for app coming to foreground
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+        
+        // Listen for app going to background (save cache state)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+    }
+    
+    /// Called when library changes are detected (realtime from Apple Music app)
+    @objc private func libraryDidChange(_ notification: Notification) {
+        NSLog("[AppleMusicModule] Library change detected via MPMediaLibraryDidChange")
+        invalidateCache()
+        
+        // Emit event to React Native so UI can reload if needed
+        if hasListeners {
+            sendEvent(withName: "AppleMusicLibraryDidChange", body: nil)
+        }
+    }
+    
+    /// Called when app comes to foreground
+    @objc private func appWillEnterForeground(_ notification: Notification) {
+        NSLog("[AppleMusicModule] App entering foreground, checking library version")
+        checkAndRefreshIfNeeded()
+    }
+    
+    /// Called when app goes to background
+    @objc private func appDidEnterBackground(_ notification: Notification) {
+        // Save current cache state to UserDefaults
+        if let lastModified = libraryCache.lastModified {
+            UserDefaults.standard.set(lastModified, forKey: cacheModifiedDateKey)
+            NSLog("[AppleMusicModule] Saved cache date to UserDefaults: \(lastModified)")
+        }
+    }
+    
+    /// Check library version on app startup (cold start)
+    private func checkLibraryVersionOnStartup() {
+        // Delay slightly to not block init
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.checkAndRefreshIfNeeded()
+        }
+    }
+    
+    /// Compare MPMediaLibrary.lastModifiedDate with cached date
+    /// Triggers background refresh if library has changed
+    private func checkAndRefreshIfNeeded() {
+        let currentModified = MPMediaLibrary.default().lastModifiedDate
+        let cachedModified = UserDefaults.standard.object(forKey: cacheModifiedDateKey) as? Date
+        
+        NSLog("[AppleMusicModule] Library check: current=\(currentModified), cached=\(cachedModified?.description ?? "nil")")
+        
+        if cachedModified == nil || currentModified > cachedModified! {
+            NSLog("[AppleMusicModule] Library has changed, refreshing cache in background")
+            refreshCacheInBackground()
+        } else {
+            NSLog("[AppleMusicModule] Library unchanged, cache is valid")
+        }
+    }
+    
+    /// Invalidate the in-memory cache
+    private func invalidateCache() {
+        cacheQueue.async { [weak self] in
+            self?.libraryCache.isValid = false
+            self?.libraryCache.counts = nil
+            NSLog("[AppleMusicModule] Cache invalidated")
+        }
+    }
+    
+    /// Refresh cache counts in the background
+    /// This runs silently without blocking UI
+    private func refreshCacheInBackground() {
+        cacheQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Prevent concurrent refreshes
+            guard !self.libraryCache.isRefreshing else {
+                NSLog("[AppleMusicModule] Cache refresh already in progress, skipping")
+                return
+            }
+            self.libraryCache.isRefreshing = true
+        }
+        
+        Task { [weak self] in
+            guard let self = self else { return }
+            
+            do {
+                NSLog("[AppleMusicModule] Starting background cache refresh")
+                let startTime = CFAbsoluteTimeGetCurrent()
+                
+                // Fetch counts only (not full item lists)
+                async let songsRequest = MusicLibraryRequest<Song>().response()
+                async let albumsRequest = MusicLibraryRequest<Album>().response()
+                async let artistsRequest = MusicLibraryRequest<Artist>().response()
+                async let playlistsRequest = MusicLibraryRequest<Playlist>().response()
+                
+                let (songs, albums, artists, playlists) = try await (songsRequest, albumsRequest, artistsRequest, playlistsRequest)
+                
+                let counts: [String: Int] = [
+                    "songs": songs.items.count,
+                    "albums": albums.items.count,
+                    "artists": artists.items.count,
+                    "playlists": playlists.items.count
+                ]
+                
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] Cache refresh complete in \(String(format: "%.2f", duration))s: \(counts)")
+                
+                // Update cache
+                self.cacheQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    self.libraryCache.counts = counts
+                    self.libraryCache.lastModified = MPMediaLibrary.default().lastModifiedDate
+                    self.libraryCache.isValid = true
+                    self.libraryCache.isRefreshing = false
+                    
+                    // Save to UserDefaults
+                    UserDefaults.standard.set(self.libraryCache.lastModified, forKey: self.cacheModifiedDateKey)
+                }
+            } catch {
+                NSLog("[AppleMusicModule] Cache refresh failed: \(error.localizedDescription)")
+                self.cacheQueue.async { [weak self] in
+                    self?.libraryCache.isRefreshing = false
+                }
+            }
+        }
     }
 
     @objc
@@ -77,7 +260,8 @@ class AppleMusicModule: RCTEventEmitter {
             "onPlaybackStateChange",
             "onNowPlayingItemChange",
             "onQueueChange",
-            "onAuthorizationStatusChange"
+            "onAuthorizationStatusChange",
+            "AppleMusicLibraryDidChange"  // Library sync event
         ]
     }
 
@@ -888,7 +1072,7 @@ class AppleMusicModule: RCTEventEmitter {
         }
     }
 
-    private func repeatModeToString(_ mode: MusicPlayer.RepeatMode?) -> String {
+    private func repeatModeToString(_ mode: MusicKit.MusicPlayer.RepeatMode?) -> String {
         switch mode {
         case .one:
             return "one"
@@ -1147,6 +1331,7 @@ class AppleMusicModule: RCTEventEmitter {
 
     /// Add a song to the user's library
     /// Requires Apple Music subscription
+    /// Automatically invalidates library cache after adding
     @objc
     func addToLibrary(_ songId: String,
                       resolve: @escaping RCTPromiseResolveBlock,
@@ -1164,6 +1349,10 @@ class AppleMusicModule: RCTEventEmitter {
 
                 // Add to library
                 try await MusicLibrary.shared.add(song)
+                
+                // Invalidate cache since library has changed
+                self.invalidateCache()
+                NSLog("[AppleMusicModule] addToLibrary: cache invalidated after adding '\(song.title)'")
 
                 resolve(true)
             } catch {
@@ -1338,11 +1527,32 @@ class AppleMusicModule: RCTEventEmitter {
 
     /// Get library counts for all categories
     /// Returns counts for songs, albums, artists, playlists
+    /// Uses in-memory cache for performance (23K+ items would take 5-10s otherwise)
     @objc
     func getLibraryCounts(_ resolve: @escaping RCTPromiseResolveBlock,
                           reject: @escaping RCTPromiseRejectBlock) {
+        
+        // Check cache first (synchronous read)
+        var cachedCounts: [String: Int]?
+        cacheQueue.sync {
+            if libraryCache.isValid, let counts = libraryCache.counts {
+                cachedCounts = counts
+            }
+        }
+        
+        // Return cached counts immediately if available
+        if let counts = cachedCounts {
+            NSLog("[AppleMusicModule] getLibraryCounts: returning cached counts")
+            resolve(counts)
+            return
+        }
+        
+        // Cache miss - fetch fresh data
+        NSLog("[AppleMusicModule] getLibraryCounts: cache miss, fetching fresh data")
         Task {
             do {
+                let startTime = CFAbsoluteTimeGetCurrent()
+                
                 // Fetch counts for each category in parallel
                 async let songsRequest = MusicLibraryRequest<Song>().response()
                 async let albumsRequest = MusicLibraryRequest<Album>().response()
@@ -1351,14 +1561,75 @@ class AppleMusicModule: RCTEventEmitter {
 
                 let (songs, albums, artists, playlists) = try await (songsRequest, albumsRequest, artistsRequest, playlistsRequest)
 
-                resolve([
+                let counts: [String: Int] = [
                     "songs": songs.items.count,
                     "albums": albums.items.count,
                     "artists": artists.items.count,
                     "playlists": playlists.items.count
-                ])
+                ]
+                
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] getLibraryCounts: fetched in \(String(format: "%.2f", duration))s: \(counts)")
+                
+                // Update cache
+                self.cacheQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    self.libraryCache.counts = counts
+                    self.libraryCache.lastModified = MPMediaLibrary.default().lastModifiedDate
+                    self.libraryCache.isValid = true
+                    
+                    // Persist cache date
+                    UserDefaults.standard.set(self.libraryCache.lastModified, forKey: self.cacheModifiedDateKey)
+                }
+                
+                resolve(counts)
             } catch {
                 reject("LIBRARY_ERROR", "Failed to get library counts: \(error.localizedDescription)", error)
+            }
+        }
+    }
+    
+    /// Force refresh the library cache (called after addToLibrary)
+    /// Exposed to React Native for pull-to-refresh functionality
+    @objc
+    func refreshLibraryCache(_ resolve: @escaping RCTPromiseResolveBlock,
+                             reject: @escaping RCTPromiseRejectBlock) {
+        invalidateCache()
+        
+        Task {
+            do {
+                let startTime = CFAbsoluteTimeGetCurrent()
+                
+                // Fetch fresh counts
+                async let songsRequest = MusicLibraryRequest<Song>().response()
+                async let albumsRequest = MusicLibraryRequest<Album>().response()
+                async let artistsRequest = MusicLibraryRequest<Artist>().response()
+                async let playlistsRequest = MusicLibraryRequest<Playlist>().response()
+
+                let (songs, albums, artists, playlists) = try await (songsRequest, albumsRequest, artistsRequest, playlistsRequest)
+
+                let counts: [String: Int] = [
+                    "songs": songs.items.count,
+                    "albums": albums.items.count,
+                    "artists": artists.items.count,
+                    "playlists": playlists.items.count
+                ]
+                
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] refreshLibraryCache: complete in \(String(format: "%.2f", duration))s")
+                
+                // Update cache
+                self.cacheQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    self.libraryCache.counts = counts
+                    self.libraryCache.lastModified = MPMediaLibrary.default().lastModifiedDate
+                    self.libraryCache.isValid = true
+                    UserDefaults.standard.set(self.libraryCache.lastModified, forKey: self.cacheModifiedDateKey)
+                }
+                
+                resolve(counts)
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to refresh library cache: \(error.localizedDescription)", error)
             }
         }
     }
