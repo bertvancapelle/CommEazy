@@ -59,14 +59,17 @@ export function AdaptiveNavigationWrapper({
   }, [navContext, navigation]);
 
   // ============================================================
-  // iPhone: Use existing HoldToNavigateWrapper
+  // iPhone: Use existing HoldToNavigateWrapper with WheelMenuProvider
+  // WheelMenuProvider is needed for module icon tap → wheel menu
   // ============================================================
 
   if (device.isPhone || !enabled) {
     return (
-      <HoldToNavigateWrapper enabled={enabled}>
-        {children}
-      </HoldToNavigateWrapper>
+      <WheelMenuProvider>
+        <PhoneNavigationWithWheelMenu enabled={enabled}>
+          {children}
+        </PhoneNavigationWithWheelMenu>
+      </WheelMenuProvider>
     );
   }
 
@@ -120,6 +123,73 @@ function SplitViewWithWheelMenu() {
   return (
     <>
       <SplitViewLayout />
+
+      {/* WheelNavigationMenu rendered at root level for full-screen overlay */}
+      <WheelNavigationMenu
+        visible={isOpen}
+        onNavigate={handleNavigate}
+        onClose={closeMenu}
+        activeScreen={request?.activeScreen}
+      />
+    </>
+  );
+}
+
+// ============================================================
+// iPhone Navigation with WheelMenu overlay
+// ============================================================
+
+interface PhoneNavigationProps {
+  children: ReactNode;
+  enabled: boolean;
+}
+
+/**
+ * Phone navigation wrapper that includes WheelNavigationMenu overlay
+ * Must be inside WheelMenuProvider
+ */
+function PhoneNavigationWithWheelMenu({ children, enabled }: PhoneNavigationProps) {
+  const navigation = useNavigation<NavigationProp<Record<string, undefined>>>();
+  const {
+    isOpen,
+    request,
+    closeMenu,
+    handleNavigate,
+    setNavigationHandler,
+  } = useWheelMenuContext();
+
+  // Register navigation handler for wheel menu
+  useEffect(() => {
+    setNavigationHandler((_panelId: PanelId | null, destination: NavigationDestination) => {
+      // On iPhone, navigate using React Navigation
+      // Map destination to screen name
+      const screenMap: Record<NavigationDestination, string> = {
+        chats: 'ChatsTab',
+        contacts: 'ContactsTab',
+        radio: 'RadioTab',
+        podcast: 'PodcastTab',
+        books: 'BooksTab',
+        calls: 'CallsTab',
+        settings: 'SettingsTab',
+        appleMusic: 'AppleMusicTab',
+        nunl: 'NuNlTab',
+      };
+      const screenName = screenMap[destination];
+      if (screenName) {
+        navigation.navigate(screenName as never);
+      }
+    });
+
+    return () => {
+      setNavigationHandler(null);
+    };
+  }, [setNavigationHandler, navigation]);
+
+  return (
+    <>
+      <HoldToNavigateWrapper enabled={enabled}>
+        {children}
+      </HoldToNavigateWrapper>
 
       {/* WheelNavigationMenu rendered at root level for full-screen overlay */}
       <WheelNavigationMenu

@@ -42,9 +42,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef, type FilterMode } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, SearchBar, ChipSelector, type SearchBarRef, type FilterMode } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
+import { useWheelMenuContextSafe } from '@/contexts/WheelMenuContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -233,6 +234,7 @@ export function RadioScreen() {
   const radioModuleColor = useModuleColor('radio');  // User-customizable module color
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const holdGesture = useHoldGestureContextSafe();
+  const wheelMenu = useWheelMenuContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
@@ -576,6 +578,14 @@ export function RadioScreen() {
     }
   }, [selectedCountry, selectedLanguage, filterMode]);
 
+  // Handle module icon tap — open wheel navigation menu
+  const handleModuleIconPress = useCallback(() => {
+    if (wheelMenu) {
+      void triggerFeedback('tap');
+      wheelMenu.openMenu(null, 'radio');
+    }
+  }, [wheelMenu, triggerFeedback]);
+
   // Handle filter mode change — reset to appropriate default
   const handleFilterModeChange = useCallback((newMode: FilterMode) => {
     setFilterMode(newMode);
@@ -622,6 +632,7 @@ export function RadioScreen() {
   }, [selectedCountry, selectedLanguage, filterMode, triggerFeedback, t]);
 
   const handleSearch = useCallback(async () => {
+    console.info('[RadioScreen] handleSearch called, searchQuery:', searchQuery);
     if (!searchQuery.trim()) {
       loadStations();
       return;
@@ -649,6 +660,26 @@ export function RadioScreen() {
     }
     setIsLoading(false);
   }, [searchQuery, selectedCountry, selectedLanguage, filterMode, loadStations, triggerFeedback, t]);
+
+  // Debounced search — automatically search 500ms after user stops typing
+  useEffect(() => {
+    // Don't auto-search when showing favorites
+    if (showFavorites) return;
+
+    // If search query is empty, load default stations immediately
+    if (!searchQuery.trim()) {
+      loadStations();
+      return;
+    }
+
+    // Debounce: wait 500ms after user stops typing
+    const timeoutId = setTimeout(() => {
+      console.info('[RadioScreen] Debounced search triggered for:', searchQuery);
+      handleSearch();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, showFavorites, loadStations, handleSearch]);
 
   // Convert RadioScreen station to RadioContext station format
   const toContextStation = useCallback((station: RadioStation | FavoriteStation): RadioContextStation => {
@@ -851,46 +882,113 @@ export function RadioScreen() {
           Content scrolls UNDER the ModuleHeader and MiniPlayer
           ============================================================ */}
       <View style={styles.contentLayer}>
-        {/* Tab selector: Favorites / Search — using standardized components */}
-        <View style={[styles.tabBar, { marginTop: contentPaddingTop + spacing.md }]}>
-          <FavoriteTabButton
-            isActive={showFavorites}
-            onPress={() => setShowFavorites(true)}
-            count={favorites.length}
-            label={t('modules.radio.favorites')}
-          />
-          <SearchTabButton
-            isActive={!showFavorites}
-            onPress={() => setShowFavorites(false)}
-            label={t('modules.radio.searchTab')}
-          />
+        {/* 3-way toggle: [❤️ Favorieten] | [Land] [Taal] */}
+        <View style={[styles.toggleRow, { marginTop: contentPaddingTop + spacing.md }]}>
+          {/* Favorites button — visueel gescheiden van Land/Taal */}
+          <TouchableOpacity
+            style={[
+              styles.filterToggleButton,
+              styles.favoritesToggleButton,
+              showFavorites && { backgroundColor: accentColor.primary },
+            ]}
+            onPress={() => {
+              triggerFeedback('tap');
+              setShowFavorites(true);
+            }}
+            accessibilityRole="tab"
+            accessibilityLabel={t('modules.radio.favorites')}
+            accessibilityState={{ selected: showFavorites }}
+          >
+            <Icon
+              name={showFavorites ? 'heart-filled' : 'heart'}
+              size={24}
+              color={showFavorites ? colors.textOnPrimary : accentColor.primary}
+            />
+            {favorites.length > 0 && (
+              <View style={[
+                styles.favoritesCountBadge,
+                { backgroundColor: showFavorites ? 'rgba(255, 255, 255, 0.3)' : accentColor.primary },
+              ]}>
+                <Text style={styles.favoritesCountText}>
+                  {favorites.length > 99 ? '99+' : favorites.length}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Visuele scheiding */}
+          <View style={styles.toggleSeparator} />
+
+          {/* Land/Taal toggle buttons */}
+          <TouchableOpacity
+            style={[
+              styles.filterToggleButton,
+              !showFavorites && filterMode === 'country' && { backgroundColor: accentColor.primary },
+            ]}
+            onPress={() => {
+              triggerFeedback('tap');
+              setShowFavorites(false);
+              handleFilterModeChange('country');
+            }}
+            accessibilityRole="tab"
+            accessibilityLabel={t('components.chipSelector.country')}
+            accessibilityState={{ selected: !showFavorites && filterMode === 'country' }}
+          >
+            <Text style={[
+              styles.filterToggleButtonText,
+              !showFavorites && filterMode === 'country' && styles.filterToggleButtonTextActive,
+            ]}>
+              {t('components.chipSelector.country')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterToggleButton,
+              !showFavorites && filterMode === 'language' && { backgroundColor: accentColor.primary },
+            ]}
+            onPress={() => {
+              triggerFeedback('tap');
+              setShowFavorites(false);
+              handleFilterModeChange('language');
+            }}
+            accessibilityRole="tab"
+            accessibilityLabel={t('components.chipSelector.language')}
+            accessibilityState={{ selected: !showFavorites && filterMode === 'language' }}
+          >
+            <Text style={[
+              styles.filterToggleButtonText,
+              !showFavorites && filterMode === 'language' && styles.filterToggleButtonTextActive,
+            ]}>
+              {t('components.chipSelector.language')}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Search/Filter section */}
+        {/* Search/Filter section — alleen zichtbaar wanneer NIET favorieten */}
         {!showFavorites && (
           <View style={styles.filterSection}>
-            {/* Country/Language selector — with toggle between modes */}
-            <View style={styles.countrySelector}>
-              <ChipSelector
-                mode={filterMode}
-                options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
-                selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
-                onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
-                allowModeToggle={true}
-                onModeChange={handleFilterModeChange}
+            {/* Country/Language chips selector */}
+            <ChipSelector
+              mode={filterMode}
+              options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+              selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
+              onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
+              allowModeToggle={false}
+            />
+
+            {/* Search bar — screen-wide, onderaan */}
+            <View style={styles.searchBarContainer}>
+              <SearchBar
+                ref={searchInputRef}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmit={handleSearch}
+                placeholder={t('modules.radio.searchPlaceholder')}
+                searchButtonLabel={t('modules.radio.searchButton')}
+                maxLength={SEARCH_MAX_LENGTH}
+                showButton={false}
               />
             </View>
-
-            {/* Search input — standardized SearchBar component */}
-            <SearchBar
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmit={handleSearch}
-              placeholder={t('modules.radio.searchPlaceholder')}
-              searchButtonLabel={t('modules.radio.searchButton')}
-              maxLength={SEARCH_MAX_LENGTH}
-            />
           </View>
         )}
 
@@ -1082,6 +1180,8 @@ export function RadioScreen() {
           currentSource="radio"
           showAdMob={true}
           style={styles.absoluteHeader}
+          onModuleIconPress={handleModuleIconPress}
+          moduleIconLabel={t('navigation.switchModule')}
         />
 
         {/* Spacer pushes MiniPlayer to bottom */}
@@ -1504,19 +1604,66 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     textAlign: 'center',
   },
-  tabBar: {
+  // 3-way toggle row: [❤️ Favorieten] | [Land] [Taal]
+  toggleRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginHorizontal: spacing.md,
-    marginTop: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
-  // Tab styles now in FavoriteTabButton and SearchTabButton components
+  toggleSeparator: {
+    width: 1,
+    height: touchTargets.minimum - spacing.md,  // Iets korter dan buttons
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.xs,
+  },
+  filterToggleButton: {
+    height: touchTargets.minimum,  // 60pt — senior-inclusive
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  favoritesToggleButton: {
+    // Extra width voor hart icoon + badge
+    minWidth: touchTargets.minimum,
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  favoritesCountBadge: {
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  favoritesCountText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+    textAlign: 'center',
+    lineHeight: 14,
+    includeFontPadding: false,
+  },
+  filterToggleButtonText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  filterToggleButtonTextActive: {
+    color: colors.textOnPrimary,
+  },
   filterSection: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
+    gap: spacing.md,
   },
-  countrySelector: {
-    marginBottom: spacing.md,
+  searchBarContainer: {
+    // SearchBar is nu screen-wide (geen extra styling nodig)
   },
   // countryList, countryChip, countryChipText, filterLabel removed — using standardized ChipSelector component
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
@@ -1652,7 +1799,9 @@ const styles = StyleSheet.create({
     // Padding around content
     paddingVertical: spacing.xs,
     paddingLeft: spacing.md,
-    paddingRight: spacing.xs,
+    // paddingRight: 0 — IconButton edge aligns with SearchBar edge
+    // (stationListContent has padding.md, filterSection has paddingHorizontal.md)
+    paddingRight: 0,
     // Row height accommodates IconButton (60pt) + vertical padding
     minHeight: touchTargets.minimum + spacing.xs * 2,
   },

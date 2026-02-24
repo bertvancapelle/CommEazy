@@ -615,6 +615,7 @@
     "more_hint": "Vis flere moduler",
     "back_hint": "Vis de mest brugte moduler",
     "current_module": "Dette er dit nuværende modul",
+    "switchModule": "Skift modul",
     "sidebar": "Navigationsmenu",
     "sections": {
       "communication": "Kommunikation",
@@ -1252,7 +1253,8 @@
     "readAbstractHint": "Lyt til resuméet",
     "openFullArticle": "Læs hele artiklen",
     "openFullArticleHint": "Se hele artiklen med oplæsningsmulighed",
-    "nowPlaying": "Læses nu"
+    "nowPlaying": "Læses nu",
+    "imageAlt": "Billede til artiklen: {{title}}"
   },
   "navigation_tutorial": {
     "intro_title": "Naviger med Hold-to-Navigate",

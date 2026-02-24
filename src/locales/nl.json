@@ -732,6 +732,7 @@
     "more_hint": "Toon meer modules",
     "back_hint": "Toon de meest gebruikte modules",
     "current_module": "Dit is je huidige module",
+    "switchModule": "Wissel van module",
     "sidebar": "Navigatiemenu",
     "sections": {
       "communication": "Communicatie",
@@ -1410,7 +1411,8 @@
     "readAbstractHint": "Luister naar de samenvatting",
     "openFullArticle": "Lees volledig artikel",
     "openFullArticleHint": "Bekijk het hele artikel met voorleesoptie",
-    "nowPlaying": "Wordt voorgelezen"
+    "nowPlaying": "Wordt voorgelezen",
+    "imageAlt": "Afbeelding bij artikel: {{title}}"
   },
   "navigation_tutorial": {
     "intro_title": "Navigeren met Hold-to-Navigate",

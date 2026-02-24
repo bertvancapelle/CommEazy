@@ -57,6 +57,8 @@ export interface SearchBarProps {
   searchButtonLabel?: string;
   /** Maximum input length (default: 100) */
   maxLength?: number;
+  /** Show the search button (default: true) */
+  showButton?: boolean;
   /** Additional TextInput props */
   textInputProps?: Omit<TextInputProps, 'value' | 'onChangeText' | 'placeholder' | 'onSubmitEditing' | 'maxLength'>;
 }
@@ -86,6 +88,7 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
       placeholder,
       searchButtonLabel = 'Search',
       maxLength = 100,
+      showButton = true,
       textInputProps,
     },
     ref
@@ -107,6 +110,7 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
     };
 
     const handleButtonPress = async () => {
+      console.info('[SearchBar] Button pressed, calling onSubmit');
       await triggerFeedback('tap');
       handleSubmit();
     };
@@ -128,14 +132,16 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
           accessibilityLabel={placeholder}
           {...textInputProps}
         />
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: accentColor.primary }]}
-          onPress={handleButtonPress}
-          accessibilityRole="button"
-          accessibilityLabel={searchButtonLabel}
-        >
-          <Icon name="search" size={24} color={colors.textOnPrimary} />
-        </TouchableOpacity>
+        {showButton && (
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: accentColor.primary }]}
+            onPress={handleButtonPress}
+            accessibilityRole="button"
+            accessibilityLabel={searchButtonLabel}
+          >
+            <Icon name="search" size={24} color={colors.textOnPrimary} />
+          </TouchableOpacity>
+        )}
       </View>
     );
   }

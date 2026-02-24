@@ -321,24 +321,25 @@ true;
 `;
 
 // ============================================================
-// CSS Injection for improved readability
+// CSS Injection for cookie consent & ads
 // ============================================================
 
 /**
  * CSS injection script for nu.nl articles (runs AFTER page load)
  *
- * Senior-inclusive improvements:
- * - Larger font sizes (body 20px, headings proportionally larger)
- * - Better line height for readability (1.7)
- * - Hide ads, navigation, and clutter
- * - Improved contrast
- * - Wider content area on mobile
- * - LINKS DISABLED: Prevents accidental navigation when scrolling
- *   Links are greyed out and non-clickable (pointer-events: none)
- *   This keeps seniors focused on the current article
+ * MINIMAL VERSION: Only hides cookie consent and ads.
+ * The original article layout and styling is preserved.
+ * This ensures users see the REAL nu.nl article, not a stripped version.
  *
- * IMPORTANT: This only affects visual presentation.
- * Content remains on nu.nl servers and is not copied.
+ * What we hide:
+ * - Cookie consent popups (OneTrust, DPG Media)
+ * - Advertisements and ad containers
+ * - Social sharing buttons
+ *
+ * What we DON'T hide:
+ * - Navigation, header, footer (these are part of the site experience)
+ * - Article content, images, videos
+ * - Comments sections (users can scroll past if they want)
  */
 const NUNL_CSS_INJECTION = `
 (function() {
@@ -346,35 +347,28 @@ const NUNL_CSS_INJECTION = `
   var style = document.createElement('style');
   style.type = 'text/css';
   style.innerHTML = \`
-    /* === HIDE COOKIE CONSENT (backup for COOKIE_CONSENT_SCRIPT) === */
-    /* OneTrust GDPR consent popup - hide everything */
+    /* === HIDE COOKIE CONSENT ONLY === */
+    /* OneTrust GDPR consent popup */
     #onetrust-consent-sdk,
     #onetrust-banner-sdk,
     .onetrust-pc-dark-filter,
     .ot-fade-in,
-    [class*="onetrust"],
-    [id*="onetrust"],
     .ot-sdk-container,
     #ot-sdk-btn-container,
     /* DPG Media consent banners */
-    [class*="cmp-"],
-    [class*="consent-"],
-    [class*="privacy-wall"],
-    [class*="cookie-wall"],
     #privacy-gate,
     .privacy-gate,
-    /* Generic cookie banners */
-    [class*="cookie-banner"],
-    [class*="cookie-consent"],
-    [class*="cookie-notice"],
-    [class*="gdpr"],
-    [class*="privacy-banner"] {
+    [class*="privacy-wall"],
+    [class*="cookie-wall"],
+    [class*="consent-banner"],
+    [class*="consent-modal"] {
       display: none !important;
       visibility: hidden !important;
       opacity: 0 !important;
       pointer-events: none !important;
     }
-    /* Restore body scroll if OneTrust/DPG Media locked it */
+
+    /* Restore body scroll if consent locked it */
     body.ot-overflow-hidden,
     html.ot-overflow-hidden,
     body.privacy-wall-active,
@@ -383,123 +377,19 @@ const NUNL_CSS_INJECTION = `
       position: static !important;
     }
 
-    /* === HIDE CLUTTER === */
-    /* Navigation, headers, footers */
-    header, footer, nav,
-    [class*="navigation"],
-    [class*="header-"],
-    [class*="footer-"],
-    [class*="menu"],
-    [class*="sidebar"],
-    [class*="related"],
-    [class*="trending"],
-    [class*="popular"],
-    [class*="recommended"],
-    [class*="social"],
-    [class*="share"],
-    [class*="comment"],
-    [class*="newsletter"],
-    [class*="subscribe"],
-    [class*="cookie"],
-    [class*="banner"],
-    [class*="promo"],
-    [class*="advertisement"],
-    [class*="ad-"],
-    [class*="-ad"],
-    [id*="ad-"],
-    [id*="-ad"],
-    iframe,
-    .ad, .ads, .advertisement,
-    [data-ad], [data-advertisement] {
+    /* === HIDE ADS ONLY === */
+    /* Be specific to avoid hiding article content */
+    [data-ad],
+    [data-advertisement],
+    .ad-container,
+    .advertisement,
+    .google-ad,
+    [id*="google_ads"],
+    [class*="googlesyndication"] {
       display: none !important;
-    }
-
-    /* === TYPOGRAPHY === */
-    /* Body text - senior-friendly size */
-    body, p, li, td, th, span, div {
-      font-size: 20px !important;
-      line-height: 1.7 !important;
-    }
-
-    /* Article content specifically */
-    article, [class*="article"], [class*="content"], main {
-      font-size: 20px !important;
-      line-height: 1.7 !important;
-    }
-
-    /* Headings - proportionally larger */
-    h1 {
-      font-size: 32px !important;
-      line-height: 1.3 !important;
-      margin-bottom: 16px !important;
-    }
-    h2 {
-      font-size: 28px !important;
-      line-height: 1.3 !important;
-      margin-bottom: 14px !important;
-    }
-    h3 {
-      font-size: 24px !important;
-      line-height: 1.4 !important;
-      margin-bottom: 12px !important;
-    }
-
-    /* === LAYOUT === */
-    /* Full width content on mobile */
-    body, main, article, [class*="article"], [class*="content"] {
-      max-width: 100% !important;
-      width: 100% !important;
-      padding-left: 16px !important;
-      padding-right: 16px !important;
-      margin: 0 auto !important;
-      box-sizing: border-box !important;
-    }
-
-    /* Remove side margins that waste space */
-    [class*="container"], [class*="wrapper"] {
-      max-width: 100% !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-    }
-
-    /* === IMAGES === */
-    /* Ensure images scale properly */
-    img {
-      max-width: 100% !important;
-      height: auto !important;
-    }
-
-    /* === LINKS === */
-    /* Links are visually distinguished and clickable */
-    /* External link confirmation is handled by the app */
-    a {
-      color: #0066cc !important;
-      text-decoration: underline !important;
-    }
-
-    /* === CONTRAST === */
-    /* Ensure good text contrast */
-    p, li, span, div, article {
-      color: #1a1a1a !important;
-    }
-
-    /* === SPACING === */
-    /* Better paragraph spacing */
-    p {
-      margin-bottom: 1.2em !important;
     }
   \`;
   document.head.appendChild(style);
-
-  // Also try to scroll to article content
-  setTimeout(function() {
-    var article = document.querySelector('article') ||
-                  document.querySelector('[class*="article-content"]') ||
-                  document.querySelector('main');
-    if (article) {
-      article.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, 500);
 })();
 true; // Required for injectedJavaScript to work
 `;
@@ -644,52 +534,135 @@ export function ArticleWebViewer({
         (function() {
           try {
             // Extract article text from nu.nl page
-            // Priority order: article content > main content > body text
-            var text = '';
+            // Structure: Title (already added by React Native) -> Lead/Intro -> Body paragraphs
+            var parts = [];
 
-            // Try nu.nl specific selectors first
-            var articleBlocks = document.querySelectorAll('.block--paragraph, .article-body p, article p');
-            if (articleBlocks.length > 0) {
-              var paragraphs = [];
-              articleBlocks.forEach(function(block) {
-                var blockText = block.innerText || block.textContent || '';
-                blockText = blockText.trim();
-                if (blockText.length > 30) {
-                  paragraphs.push(blockText);
+            // 1. Extract LEAD/INTRO text (the bold summary between title and body)
+            // nu.nl uses various class patterns - we try multiple selectors
+            var leadSelectors = [
+              // nu.nl specific patterns
+              '.block--article-lead',
+              '.block.block--article-lead',
+              '[class*="article-lead"]',
+              '[class*="articleLead"]',
+              '[class*="ArticleLead"]',
+              // Common patterns
+              '.article-lead',
+              '.article__lead',
+              '.article-intro',
+              '.article__intro',
+              '.lead',
+              '.intro',
+              '.summary',
+              '.excerpt',
+              '.standfirst',
+              // Header-based patterns
+              'article header p:first-of-type',
+              '.article-header p',
+              'header.article-header p',
+              // Data attribute patterns
+              '[data-type="intro"]',
+              '[data-component="intro"]',
+              // Bold intro paragraph (often styled differently)
+              'article p strong:first-child',
+              'article > p:first-of-type'
+            ];
+
+            for (var i = 0; i < leadSelectors.length; i++) {
+              var leadEl = document.querySelector(leadSelectors[i]);
+              if (leadEl) {
+                var leadText = (leadEl.innerText || leadEl.textContent || '').trim();
+                if (leadText.length > 20) {
+                  parts.push(leadText);
+                  console.log('[CommEazy] Found lead via:', leadSelectors[i], leadText.length, 'chars');
+                  break;
                 }
-              });
-              text = paragraphs.join(' ');
+              }
             }
 
-            // Fallback: try article element
-            if (!text || text.length < 100) {
+            // If no lead found, try to find the first bold/strong paragraph
+            if (parts.length === 0) {
+              var firstStrong = document.querySelector('article p > strong');
+              if (firstStrong && firstStrong.parentElement) {
+                var strongText = (firstStrong.parentElement.innerText || firstStrong.parentElement.textContent || '').trim();
+                if (strongText.length > 20 && strongText.length < 500) {
+                  parts.push(strongText);
+                  console.log('[CommEazy] Found lead via strong parent:', strongText.length, 'chars');
+                }
+              }
+            }
+
+            // 2. Extract BODY paragraphs
+            var bodySelectors = [
+              '.block--paragraph',
+              '.block.block--paragraph',
+              '[class*="paragraph"]',
+              '.article-body p',
+              '.article__body p',
+              'article p',
+              '[class*="article-content"] p',
+              '[class*="articleContent"] p'
+            ];
+
+            var bodyParagraphs = [];
+            for (var j = 0; j < bodySelectors.length; j++) {
+              var blocks = document.querySelectorAll(bodySelectors[j]);
+              if (blocks.length > 0) {
+                blocks.forEach(function(block) {
+                  var blockText = (block.innerText || block.textContent || '').trim();
+                  // Skip if too short or if it's the same as the lead
+                  if (blockText.length > 30 && parts.indexOf(blockText) === -1) {
+                    bodyParagraphs.push(blockText);
+                  }
+                });
+                if (bodyParagraphs.length > 0) {
+                  console.log('[CommEazy] Found', bodyParagraphs.length, 'body paragraphs via:', bodySelectors[j]);
+                  break;
+                }
+              }
+            }
+
+            parts = parts.concat(bodyParagraphs);
+
+            // Fallback: try article element if we found nothing
+            if (parts.length === 0) {
               var article = document.querySelector('article');
               if (article) {
-                text = article.innerText || article.textContent || '';
+                var articleText = (article.innerText || article.textContent || '').trim();
+                if (articleText.length > 100) {
+                  parts.push(articleText);
+                }
               }
             }
 
             // Fallback: try main element
-            if (!text || text.length < 100) {
+            if (parts.length === 0) {
               var main = document.querySelector('main');
               if (main) {
-                text = main.innerText || main.textContent || '';
+                var mainText = (main.innerText || main.textContent || '').trim();
+                if (mainText.length > 100) {
+                  parts.push(mainText);
+                }
               }
             }
 
-            // Clean up the text
-            text = text
+            // Join all parts and clean up
+            var text = parts.join(' ')
               .replace(/\\s+/g, ' ')
               .replace(/\\n+/g, ' ')
               .trim();
+
+            console.log('[CommEazy] Total extracted:', text.length, 'chars from', parts.length, 'parts');
 
             // Send back to React Native
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'extractedText',
               text: text,
-              length: text.length
+              length: text.length,
+              partsCount: parts.length
             }));
           } catch (e) {
+            console.error('[CommEazy] Extraction error:', e);
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'extractedText',
               error: e.message,
@@ -725,9 +698,27 @@ export function ArticleWebViewer({
           }
 
           if (data.text && data.text.length > 50 && article) {
-            // Prepend title to extracted text
-            const fullText = `${article.title}. ${data.text}`;
-            console.info('[ArticleWebViewer] Extracted text:', data.length, 'chars, using:', fullText.length, 'chars');
+            // Build full text: Title + RSS description (abstract) + extracted body
+            // This ensures the "Samenvatting" from the RSS is ALWAYS included
+            // The extracted text may or may not include the lead, but we have the RSS description as backup
+
+            // Check if extracted text already starts with the description (avoid duplication)
+            const descStart = article.description.substring(0, 50).toLowerCase();
+            const extractedStart = data.text.substring(0, 50).toLowerCase();
+            const descriptionAlreadyIncluded = extractedStart.includes(descStart) || descStart.includes(extractedStart);
+
+            let fullText: string;
+            if (descriptionAlreadyIncluded) {
+              // Description is already in the extracted text, just add title
+              fullText = `${article.title}. ${data.text}`;
+              console.info('[ArticleWebViewer] Extracted text already includes description');
+            } else {
+              // Add RSS description (abstract) between title and body
+              fullText = `${article.title}. ${article.description}. ${data.text}`;
+              console.info('[ArticleWebViewer] Added RSS description to extracted text');
+            }
+
+            console.info('[ArticleWebViewer] Final text:', fullText.length, 'chars');
             onStartTTSWithText?.(article, fullText);
           } else if (article) {
             // Text too short, use fallback

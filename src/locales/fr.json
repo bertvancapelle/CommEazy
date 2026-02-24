@@ -730,6 +730,7 @@
     "more_hint": "Afficher plus de modules",
     "back_hint": "Afficher les modules les plus utilisés",
     "current_module": "Ceci est votre module actuel",
+    "switchModule": "Changer de module",
     "sidebar": "Menu de navigation",
     "sections": {
       "communication": "Communication",
@@ -1416,7 +1417,8 @@
     "readAbstractHint": "Écoutez le résumé",
     "openFullArticle": "Lire l'article complet",
     "openFullArticleHint": "Voir l'article complet avec option de lecture vocale",
-    "nowPlaying": "Lecture en cours"
+    "nowPlaying": "Lecture en cours",
+    "imageAlt": "Image de l'article : {{title}}"
   },
   "navigation_tutorial": {
     "intro_title": "Naviguer avec Hold-to-Navigate",

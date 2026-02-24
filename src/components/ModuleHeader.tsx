@@ -43,7 +43,7 @@ import { Icon } from './Icon';
 import { MediaIndicator } from './MediaIndicator';
 import { AdMobBanner } from './AdMobBanner';
 import { LiquidGlassView } from './LiquidGlassView';
-import { colors, typography, spacing, touchTargets } from '@/theme';
+import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { ModuleColorId } from '@/types/liquidGlass';
@@ -80,6 +80,13 @@ export interface ModuleHeaderProps {
    * @example style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
    */
   style?: StyleProp<ViewStyle>;
+  /**
+   * Callback when module icon is pressed (for quick module switching)
+   * When provided, the icon becomes tappable with a white border indicator
+   */
+  onModuleIconPress?: () => void;
+  /** Accessibility label for module icon button (default: "Wissel van module") */
+  moduleIconLabel?: string;
 }
 
 // ============================================================
@@ -98,6 +105,8 @@ export function ModuleHeader({
   backButtonLabel = 'Terug',
   customLogo,
   style,
+  onModuleIconPress,
+  moduleIconLabel = 'Wissel van module',
 }: ModuleHeaderProps) {
   const insets = useSafeAreaInsets();
   // Use module color from context (respects user customization)
@@ -134,7 +143,21 @@ export function ModuleHeader({
               <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
             </TouchableOpacity>
           )}
-          {customLogo ? customLogo : <Icon name={icon} size={28} color={colors.textOnPrimary} />}
+          {customLogo ? customLogo : (
+            onModuleIconPress ? (
+              <TouchableOpacity
+                style={styles.moduleIconButton}
+                onPress={onModuleIconPress}
+                accessibilityRole="button"
+                accessibilityLabel={moduleIconLabel}
+                accessibilityHint="Opent module keuzemenu"
+              >
+                <Icon name={icon} size={32} color={colors.textOnPrimary} />
+              </TouchableOpacity>
+            ) : (
+              <Icon name={icon} size={32} color={colors.textOnPrimary} />
+            )
+          )}
           <Text style={styles.title}>{title}</Text>
         </View>
 
@@ -189,6 +212,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.xs,
+  },
+  moduleIconButton: {
+    // Match SearchBar button size for visual uniformity
+    width: touchTargets.minimum,        // 60pt (same as SearchBar button)
+    height: touchTargets.minimum,       // 60pt (same as SearchBar button)
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',  // Subtle white fill (like SearchBar button style)
+    borderRadius: borderRadius.md,      // Match SearchBar button (12pt)
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     ...typography.h3,

@@ -665,6 +665,7 @@
     "more_hint": "Vis flere moduler",
     "back_hint": "Vis de mest brukte modulene",
     "current_module": "Dette er din nåværende modul",
+    "switchModule": "Bytt modul",
     "sidebar": "Navigasjonsmeny",
     "sections": {
       "communication": "Kommunikasjon",
@@ -1302,7 +1303,8 @@
     "readAbstractHint": "Lytt til sammendraget",
     "openFullArticle": "Les hele artikkelen",
     "openFullArticleHint": "Se hele artikkelen med opplesningsalternativ",
-    "nowPlaying": "Leses nå"
+    "nowPlaying": "Leses nå",
+    "imageAlt": "Bilde til artikkelen: {{title}}"
   },
   "navigation_tutorial": {
     "intro_title": "Navigere med Hold-to-Navigate",

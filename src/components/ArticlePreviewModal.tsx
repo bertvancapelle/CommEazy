@@ -23,6 +23,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -234,6 +235,16 @@ export function ArticlePreviewModal({
             })}
           </Text>
 
+          {/* Article Image */}
+          {article.imageUrl && (
+            <Image
+              source={{ uri: article.imageUrl }}
+              style={styles.articleImage}
+              resizeMode="cover"
+              accessibilityLabel={t('articlePreview.imageAlt', { title: article.title })}
+            />
+          )}
+
           {/* Article Description (Abstract) */}
           <View style={[styles.abstractBox, { borderLeftColor: accentColor }]}>
             <Text style={styles.abstractLabel}>
@@ -241,11 +252,6 @@ export function ArticlePreviewModal({
             </Text>
             <Text style={styles.abstractText}>{article.description}</Text>
           </View>
-
-          {/* Choice Section */}
-          <Text style={styles.choiceLabel}>
-            {t('articlePreview.whatWouldYouLike')}
-          </Text>
 
           {/* TTS Playing State - Show stop button */}
           {(isTTSPlaying || isTTSLoading) ? (
@@ -282,7 +288,7 @@ export function ArticlePreviewModal({
               subtitle={t('articlePreview.readAbstractHint')}
               onPress={handleReadAbstract}
               accentColor={accentColor}
-              isPrimary={false}
+              isPrimary={true}
             />
           )}
 
@@ -293,7 +299,7 @@ export function ArticlePreviewModal({
             subtitle={t('articlePreview.openFullArticleHint')}
             onPress={handleOpenFullArticle}
             accentColor={accentColor}
-            isPrimary={!isTTSPlaying && !isTTSLoading}
+            isPrimary={false}
             customLogo={<NunlLogo size={32} />}
           />
         </ScrollView>
@@ -352,6 +358,15 @@ const styles = StyleSheet.create({
     marginTop: -spacing.xs,
   },
 
+  // Article image
+  articleImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: borderRadius.md,
+    marginTop: spacing.sm,
+    backgroundColor: colors.surface, // Placeholder while loading
+  },
+
   // Abstract box
   abstractBox: {
     backgroundColor: colors.surface,
@@ -370,14 +385,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     lineHeight: 28,
-  },
-
-  // Choice section
-  choiceLabel: {
-    ...typography.h3,
-    color: colors.textPrimary,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
   },
 
   // Choice button

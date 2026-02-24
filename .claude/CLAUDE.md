@@ -10,34 +10,60 @@
 - Build errors zijn direct beschikbaar via `GetBuildLog` en `XcodeListNavigatorIssues`
 - Previews kunnen worden gerenderd met `RenderPreview`
 
-## ⚠️ PNA Commando — Pas Niets Aan (VERPLICHT)
+## ⚠️ PNA Commando — Pas Niets Aan (KRITIEK PROTOCOL)
 
-**Wanneer de gebruiker "PNA" intikt, betekent dit:**
+### ‼️ KERNREGEL: PNA BLIJFT ALTIJD ACTIEF TOTDAT EXPLICIET BEËINDIGD
 
-1. **Pas NIETS aan** — Geen code wijzigingen, geen bestanden aanraken
-2. **Overleg modus** — Gebruiker wil discussiëren, niet implementeren
-3. **Pas ALLE skills toe** — Analyseer vanuit alle relevante perspectieven (security, accessibility, architecture, etc.)
-4. **Wees kritisch** — Benoem risico's, edge cases, en mogelijke problemen
-5. **Stel vragen ÉÉN VOOR ÉÉN** — Als je vragen hebt, stel ze één per keer, wacht op antwoord, stel dan pas de volgende vraag
-6. **Vat samen** — Geef een duidelijke conclusie met opties
-7. **Vraag EXPLICIET om PNA te beëindigen** — Blijf in PNA modus totdat gebruiker bevestigt dat PNA beëindigd mag worden
+**Wanneer de gebruiker "PNA" intikt, activeert dit een STRIKTE modus die ACTIEF BLIJFT bij ELKE volgende interactie totdat de gebruiker EXPLICIET bevestigt dat PNA beëindigd mag worden.**
 
-**PNA modus beëindigen:**
-- Claude MOET expliciet vragen: "**Wil je PNA modus beëindigen zodat ik aanpassingen kan maken?**"
-- Pas NA bevestiging ("ja", "ok", "doe maar", etc.) mag Claude code wijzigen
-- Bij onduidelijk antwoord: vraag opnieuw om bevestiging
-- PNA blijft actief totdat expliciet beëindigd
+### PNA Regels (VERPLICHT — GEEN UITZONDERINGEN)
 
-**Vragen stellen in PNA modus:**
+1. **Pas NIETS aan** — Geen code wijzigingen, geen bestanden aanraken, NOOIT
+2. **Overleg modus** — Gebruiker wil discussiëren, nadenken, afwegen — NIET implementeren
+3. **PNA BLIJFT ACTIEF** — Bij ELKE vraag/antwoord cyclus blijft PNA actief
+4. **ELKE response begint met PNA-status** — Begin ALTIJD met "**🔒 PNA ACTIEF**" zolang PNA niet beëindigd is
+5. **Pas ALLE skills toe** — Analyseer vanuit alle relevante perspectieven
+6. **Wees kritisch** — Benoem risico's, edge cases, en mogelijke problemen
+7. **Stel vragen ÉÉN VOOR ÉÉN** — Eén vraag, wacht op antwoord, dan volgende vraag
+8. **NA antwoord op vraag:** Evalueer antwoord, stel eventueel volgende vraag, MAAR IMPLEMENTEER NIET
+9. **NOOIT naar implementatie zonder EXIT-bevestiging** — Gebruiker MOET expliciet zeggen "exit PNA", "PNA uit", "ga door met implementatie", of vergelijkbaar
+
+### PNA Modus Beëindigen — STRIKTE REGELS
+
+**Claude MAG PNA ALLEEN beëindigen wanneer:**
+1. Alle vragen beantwoord zijn EN conclusie gegeven is
+2. Claude EXPLICIET vraagt: "**Wil je PNA modus beëindigen zodat ik aanpassingen kan maken?**"
+3. Gebruiker EXPLICIET bevestigt met woorden zoals:
+   - "ja", "ok", "doe maar", "ga door", "implementeer", "exit PNA", "PNA uit"
+
+**Claude MAG PNA NIET beëindigen wanneer:**
+- Gebruiker alleen een vraag beantwoordt → PNA BLIJFT ACTIEF, stel volgende vraag of geef conclusie
+- Gebruiker zegt "begrepen" of "goed" → Dit is GEEN exit-bevestiging
+- Gebruiker geen expliciete exit geeft → PNA BLIJFT ACTIEF
+
+### Vragen Stellen in PNA Modus
+
 - ❌ FOUT: "Vraag 1: ... Vraag 2: ... Vraag 3: ..."
 - ✅ GOED: "Eerste vraag: ..." → wacht op antwoord → "Volgende vraag: ..."
 
-**Voorbeeld:**
+### Na Ontvangen van Antwoord op Vraag (KRITIEK)
+
+Wanneer gebruiker antwoord geeft op een PNA-vraag:
+
+1. **Begin met:** "**🔒 PNA ACTIEF**"
+2. **Evalueer het antwoord** — Verwerk de informatie
+3. **Kies één van:**
+   - **Meer vragen nodig?** → Stel de volgende vraag ÉÉN VOOR ÉÉN
+   - **Alle info verzameld?** → Geef conclusie/samenvatting + vraag om PNA exit
+4. **NOOIT:** Direct naar implementatie gaan
+
+### Voorbeeld Workflow (VERPLICHT FORMAT)
+
 ```
 Gebruiker: "PNA ik denk eraan om de login flow te wijzigen"
 
 Claude:
-"Begrepen, PNA modus. Ik pas niets aan en we overleggen.
+"**🔒 PNA ACTIEF** — Ik pas niets aan, we overleggen.
 
 **Analyse vanuit skills:**
 - 🔒 Security: [overwegingen]
@@ -47,22 +73,64 @@ Claude:
 
 **Eerste vraag:**
 Wat is het doel van de wijziging?"
+```
 
-[Wacht op antwoord]
+```
+Gebruiker: "om de flow korter te maken"
 
-"Dank je. **Volgende vraag:**
+Claude:
+"**🔒 PNA ACTIEF**
+
+Begrepen — het doel is om de login flow korter te maken.
+
+**Volgende vraag:**
 Moet de bestaande login methode behouden blijven als alternatief?"
+```
 
-[Wacht op antwoord]
+```
+Gebruiker: "nee, de oude mag weg"
 
-"**Conclusie:**
-[Samenvatting van opties met voor/nadelen]
+Claude:
+"**🔒 PNA ACTIEF**
+
+Duidelijk — de oude methode mag verwijderd worden.
+
+**Conclusie:**
+- Doel: Login flow verkorten
+- Oude methode: Mag verwijderd worden
+- Voorstel: [concrete aanpak met opties]
 
 **Wil je PNA modus beëindigen zodat ik aanpassingen kan maken?**"
+```
 
-[Wacht op expliciete bevestiging]
+```
+Gebruiker: "ja, ga door"
 
-"PNA beëindigd. Ik ga nu de wijzigingen doorvoeren..."
+Claude:
+"**✅ PNA BEËINDIGD**
+
+Ik ga nu de wijzigingen doorvoeren:
+[implementatie start]"
+```
+
+### Anti-Pattern: WAT CLAUDE NOOIT MAG DOEN
+
+```
+❌ FOUT — Implementeren na antwoord zonder exit-bevestiging:
+
+Gebruiker: "PNA maak het icoon klikbaar"
+Claude: "**🔒 PNA ACTIEF** — Eerste vraag: Alleen icoon of ook tekst?"
+Gebruiker: "alleen icoon"
+Claude: "Begrepen, ik ga nu het icoon klikbaar maken..." ← FOUT!
+
+✅ GOED — PNA blijft actief:
+
+Gebruiker: "PNA maak het icoon klikbaar"
+Claude: "**🔒 PNA ACTIEF** — Eerste vraag: Alleen icoon of ook tekst?"
+Gebruiker: "alleen icoon"
+Claude: "**🔒 PNA ACTIEF** — Duidelijk. Volgende vraag: Hoe moet de visuele indicator eruitzien?"
+[of als alle info compleet:]
+Claude: "**🔒 PNA ACTIEF** — **Conclusie:** [...] **Wil je PNA beëindigen?**"
 ```
 
 ---

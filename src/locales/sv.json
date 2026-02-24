@@ -615,6 +615,7 @@
     "more_hint": "Visa fler moduler",
     "back_hint": "Visa de mest använda modulerna",
     "current_module": "Detta är din nuvarande modul",
+    "switchModule": "Byt modul",
     "sidebar": "Navigationsmeny",
     "sections": {
       "communication": "Kommunikation",
@@ -1252,7 +1253,8 @@
     "readAbstractHint": "Lyssna på sammanfattningen",
     "openFullArticle": "Läs hela artikeln",
     "openFullArticleHint": "Se hela artikeln med uppläsningsalternativ",
-    "nowPlaying": "Läses nu"
+    "nowPlaying": "Läses nu",
+    "imageAlt": "Bild till artikeln: {{title}}"
   },
   "navigation_tutorial": {
     "intro_title": "Navigera med Hold-to-Navigate",
