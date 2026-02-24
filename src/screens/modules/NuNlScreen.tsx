@@ -200,9 +200,10 @@ interface WelcomeModalProps {
   visible: boolean;
   onDismiss: () => void;
   themeColors: ReturnType<typeof useColors>;
+  moduleColor: string;
 }
 
-function WelcomeModal({ visible, onDismiss, themeColors }: WelcomeModalProps) {
+function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
@@ -217,7 +218,7 @@ function WelcomeModal({ visible, onDismiss, themeColors }: WelcomeModalProps) {
       <View style={styles.modalOverlay}>
         <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
           {/* Header */}
-          <View style={[styles.welcomeHeader, { backgroundColor: nunlModuleColor }]}>
+          <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
             <Icon name="news" size={48} color={themeColors.textOnPrimary} />
             <Text style={[styles.welcomeTitle, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.title')}</Text>
           </View>
@@ -487,6 +488,7 @@ export function NuNlScreen() {
         visible={showWelcome}
         onDismiss={handleWelcomeDismiss}
         themeColors={themeColors}
+        moduleColor={nunlModuleColor}
       />
 
       {/* Article Preview Modal (first step) */}
