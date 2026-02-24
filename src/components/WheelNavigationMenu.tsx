@@ -36,6 +36,7 @@ import {
   borderRadius,
   shadows,
 } from '@/theme';
+import { Icon, type IconName } from './Icon';
 import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
 import { useModuleUsage, ALL_MODULES } from '@/hooks/useModuleUsage';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -96,6 +97,45 @@ export type ModuleIconType =
   | 'news'        // For country-specific news modules
   | 'weather'     // Weather module
   | 'appleMusic'; // Apple Music module
+
+/**
+ * Map ModuleIconType to IconName for unified SVG icons
+ * This allows WheelNavigationMenu to use the same Icon component as modules
+ */
+function mapModuleIconToIconName(type: ModuleIconType): IconName {
+  switch (type) {
+    case 'chat':
+      return 'chat';
+    case 'contacts':
+      return 'contacts';
+    case 'groups':
+      return 'groups';
+    case 'settings':
+      return 'settings';
+    case 'help':
+      return 'help';
+    case 'phone':
+      return 'phone';
+    case 'video':
+      return 'videocam';
+    case 'book':
+      return 'book';
+    case 'headphones':
+      return 'headphones';
+    case 'podcast':
+      return 'podcast';
+    case 'radio':
+      return 'radio';
+    case 'news':
+      return 'news';
+    case 'weather':
+      return 'weather';
+    case 'appleMusic':
+      return 'appleMusic';
+    default:
+      return 'info'; // fallback
+  }
+}
 
 interface ModuleItem {
   id: NavigationDestination;
@@ -586,337 +626,22 @@ function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
   );
 }
 
-// Icon component for modules
+// Icon component for modules - uses unified Icon component from Icon.tsx
 interface ModuleIconProps {
   type: ModuleIconType;
   size: number;
 }
 
 function ModuleIcon({ type, size }: ModuleIconProps) {
-  switch (type) {
-    case 'chat':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.chatBubble, { width: size * 0.8, height: size * 0.6, borderRadius: size * 0.15 }]} />
-          <View style={[styles.chatBubbleTail, { bottom: size * 0.05, left: size * 0.1 }]} />
-        </View>
-      );
-
-    case 'contacts':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.personHead, { width: size * 0.4, height: size * 0.4 }]} />
-          <View style={[styles.personBody, { width: size * 0.6, height: size * 0.3 }]} />
-        </View>
-      );
-
-    case 'groups':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={styles.groupsContainer}>
-            <View style={[styles.groupPersonSmall, { left: size * 0.05 }]}>
-              <View style={[styles.personHead, { width: size * 0.25, height: size * 0.25 }]} />
-              <View style={[styles.personBody, { width: size * 0.35, height: size * 0.18 }]} />
-            </View>
-            <View style={[styles.groupPersonSmall, { right: size * 0.05 }]}>
-              <View style={[styles.personHead, { width: size * 0.25, height: size * 0.25 }]} />
-              <View style={[styles.personBody, { width: size * 0.35, height: size * 0.18 }]} />
-            </View>
-            <View style={styles.groupPersonCenter}>
-              <View style={[styles.personHead, { width: size * 0.35, height: size * 0.35 }]} />
-              <View style={[styles.personBody, { width: size * 0.5, height: size * 0.25 }]} />
-            </View>
-          </View>
-        </View>
-      );
-
-    case 'settings':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.gear, { width: size * 0.7, height: size * 0.7, borderWidth: size * 0.08 }]} />
-          <View style={[styles.gearCenter, { width: size * 0.25, height: size * 0.25 }]} />
-        </View>
-      );
-
-    case 'help':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <Text style={[styles.helpIcon, { fontSize: size * 0.7 }]}>?</Text>
-        </View>
-      );
-
-    case 'phone':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.phoneBody, { width: size * 0.35, height: size * 0.7, borderRadius: size * 0.1 }]} />
-          <View style={[styles.phoneEarpiece, { width: size * 0.25, height: size * 0.12, top: size * 0.08 }]} />
-          <View style={[styles.phoneMouthpiece, { width: size * 0.25, height: size * 0.12, bottom: size * 0.08 }]} />
-        </View>
-      );
-
-    case 'video':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.videoBody, { width: size * 0.6, height: size * 0.45, borderRadius: size * 0.08 }]} />
-          <View style={[styles.videoLens, {
-            width: 0,
-            height: 0,
-            borderLeftWidth: size * 0.25,
-            borderTopWidth: size * 0.15,
-            borderBottomWidth: size * 0.15,
-            left: size * 0.55,
-          }]} />
-        </View>
-      );
-
-    case 'book':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.bookLeft, { width: size * 0.4, height: size * 0.6, borderRadius: size * 0.05 }]} />
-          <View style={[styles.bookRight, { width: size * 0.4, height: size * 0.6, borderRadius: size * 0.05 }]} />
-          <View style={[styles.bookSpine, { width: size * 0.06, height: size * 0.55 }]} />
-        </View>
-      );
-
-    case 'headphones':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.headphonesBand, {
-            width: size * 0.6,
-            height: size * 0.35,
-            borderTopLeftRadius: size * 0.3,
-            borderTopRightRadius: size * 0.3,
-            borderWidth: size * 0.06,
-          }]} />
-          <View style={[styles.headphonesLeft, { width: size * 0.2, height: size * 0.3, borderRadius: size * 0.06, left: size * 0.15, top: size * 0.35 }]} />
-          <View style={[styles.headphonesRight, { width: size * 0.2, height: size * 0.3, borderRadius: size * 0.06, right: size * 0.15, top: size * 0.35 }]} />
-        </View>
-      );
-
-    case 'podcast':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={[styles.podcastMic, {
-            width: size * 0.35,
-            height: size * 0.5,
-            borderRadius: size * 0.175,
-          }]} />
-          <View style={[styles.podcastStand, {
-            width: size * 0.5,
-            height: size * 0.25,
-            borderBottomLeftRadius: size * 0.25,
-            borderBottomRightRadius: size * 0.25,
-            borderWidth: size * 0.05,
-            top: size * 0.35,
-          }]} />
-          <View style={[styles.podcastBase, {
-            width: size * 0.08,
-            height: size * 0.15,
-            top: size * 0.55,
-          }]} />
-          <View style={[styles.podcastFoot, {
-            width: size * 0.3,
-            height: size * 0.06,
-            borderRadius: size * 0.03,
-            top: size * 0.68,
-          }]} />
-        </View>
-      );
-
-    case 'radio':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          {/* Radio body */}
-          <View style={[styles.radioBody, {
-            width: size * 0.75,
-            height: size * 0.5,
-            borderRadius: size * 0.08,
-          }]} />
-          {/* Antenna */}
-          <View style={[styles.radioAntenna, {
-            width: size * 0.06,
-            height: size * 0.35,
-            top: size * 0.05,
-            left: size * 0.25,
-            transform: [{ rotate: '-20deg' }],
-          }]} />
-          {/* Speaker circle */}
-          <View style={[styles.radioSpeaker, {
-            width: size * 0.25,
-            height: size * 0.25,
-            borderRadius: size * 0.125,
-            borderWidth: size * 0.04,
-            top: size * 0.35,
-            left: size * 0.18,
-          }]} />
-          {/* Dial lines */}
-          <View style={[styles.radioDialLine, {
-            width: size * 0.2,
-            height: size * 0.04,
-            top: size * 0.38,
-            right: size * 0.18,
-          }]} />
-          <View style={[styles.radioDialLine, {
-            width: size * 0.2,
-            height: size * 0.04,
-            top: size * 0.46,
-            right: size * 0.18,
-          }]} />
-          <View style={[styles.radioDialLine, {
-            width: size * 0.2,
-            height: size * 0.04,
-            top: size * 0.54,
-            right: size * 0.18,
-          }]} />
-        </View>
-      );
-
-    case 'news':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          {/* Newspaper body - folded paper */}
-          <View style={[styles.newsBody, {
-            width: size * 0.75,
-            height: size * 0.65,
-            borderRadius: size * 0.06,
-          }]} />
-          {/* Headline line */}
-          <View style={[styles.newsHeadline, {
-            width: size * 0.5,
-            height: size * 0.08,
-            top: size * 0.22,
-            left: size * 0.15,
-            borderRadius: size * 0.02,
-          }]} />
-          {/* Text lines */}
-          <View style={[styles.newsLine, {
-            width: size * 0.55,
-            height: size * 0.04,
-            top: size * 0.38,
-            left: size * 0.15,
-          }]} />
-          <View style={[styles.newsLine, {
-            width: size * 0.45,
-            height: size * 0.04,
-            top: size * 0.46,
-            left: size * 0.15,
-          }]} />
-          <View style={[styles.newsLine, {
-            width: size * 0.5,
-            height: size * 0.04,
-            top: size * 0.54,
-            left: size * 0.15,
-          }]} />
-          {/* Fold corner */}
-          <View style={[styles.newsFold, {
-            width: size * 0.15,
-            height: size * 0.15,
-            top: size * 0.15,
-            right: size * 0.13,
-          }]} />
-        </View>
-      );
-
-    case 'weather':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          {/* Sun */}
-          <View style={[styles.weatherSun, {
-            width: size * 0.35,
-            height: size * 0.35,
-            borderRadius: size * 0.175,
-            top: size * 0.1,
-            right: size * 0.15,
-          }]} />
-          {/* Sun rays */}
-          <View style={[styles.weatherRay, {
-            width: size * 0.08,
-            height: size * 0.12,
-            top: size * 0.02,
-            right: size * 0.28,
-          }]} />
-          <View style={[styles.weatherRay, {
-            width: size * 0.12,
-            height: size * 0.08,
-            top: size * 0.24,
-            right: size * 0.02,
-          }]} />
-          {/* Cloud */}
-          <View style={[styles.weatherCloud, {
-            width: size * 0.55,
-            height: size * 0.3,
-            borderRadius: size * 0.15,
-            bottom: size * 0.15,
-            left: size * 0.1,
-          }]} />
-          <View style={[styles.weatherCloudBump, {
-            width: size * 0.25,
-            height: size * 0.25,
-            borderRadius: size * 0.125,
-            bottom: size * 0.3,
-            left: size * 0.15,
-          }]} />
-          <View style={[styles.weatherCloudBump, {
-            width: size * 0.2,
-            height: size * 0.2,
-            borderRadius: size * 0.1,
-            bottom: size * 0.35,
-            left: size * 0.35,
-          }]} />
-        </View>
-      );
-
-    case 'appleMusic':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          {/* Apple Music logo - musical note with gradient-like effect */}
-          {/* Note head */}
-          <View style={[styles.appleMusicNoteHead, {
-            width: size * 0.28,
-            height: size * 0.22,
-            borderRadius: size * 0.11,
-            bottom: size * 0.15,
-            left: size * 0.12,
-            transform: [{ rotate: '-20deg' }],
-          }]} />
-          {/* Note stem */}
-          <View style={[styles.appleMusicNoteStem, {
-            width: size * 0.08,
-            height: size * 0.55,
-            bottom: size * 0.28,
-            left: size * 0.32,
-          }]} />
-          {/* Note flag/beam */}
-          <View style={[styles.appleMusicNoteFlag, {
-            width: size * 0.25,
-            height: size * 0.15,
-            borderTopRightRadius: size * 0.15,
-            borderBottomRightRadius: size * 0.08,
-            top: size * 0.12,
-            left: size * 0.40,
-          }]} />
-          {/* Second note head (for beamed notes) */}
-          <View style={[styles.appleMusicNoteHead, {
-            width: size * 0.22,
-            height: size * 0.18,
-            borderRadius: size * 0.09,
-            bottom: size * 0.22,
-            right: size * 0.15,
-            transform: [{ rotate: '-20deg' }],
-          }]} />
-          {/* Second note stem */}
-          <View style={[styles.appleMusicNoteStem, {
-            width: size * 0.08,
-            height: size * 0.42,
-            bottom: size * 0.32,
-            right: size * 0.18,
-          }]} />
-        </View>
-      );
-
-    default:
-      return null;
-  }
+  const iconName = mapModuleIconToIconName(type);
+  return (
+    <Icon
+      name={iconName}
+      size={size}
+      color={colors.textOnPrimary}
+      strokeWidth={2}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -1037,206 +762,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textOnPrimary,
     borderRadius: 2,
     transform: [{ rotate: '-45deg' }],
-  },
-
-  // Icon styles
-  iconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chatBubble: {
-    backgroundColor: colors.textOnPrimary,
-  },
-  chatBubbleTail: {
-    position: 'absolute',
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: colors.textOnPrimary,
-  },
-  personHead: {
-    backgroundColor: colors.textOnPrimary,
-    borderRadius: 100,
-    marginBottom: 4,
-  },
-  personBody: {
-    backgroundColor: colors.textOnPrimary,
-    borderTopLeftRadius: 100,
-    borderTopRightRadius: 100,
-  },
-  groupsContainer: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  groupPersonSmall: {
-    position: 'absolute',
-    alignItems: 'center',
-    opacity: 0.7,
-    top: '15%',
-  },
-  groupPersonCenter: {
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  gear: {
-    borderColor: colors.textOnPrimary,
-    borderRadius: 100,
-  },
-  gearCenter: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-    borderRadius: 100,
-  },
-  helpIcon: {
-    color: colors.textOnPrimary,
-    fontWeight: '700',
-  },
-  phoneBody: {
-    backgroundColor: colors.textOnPrimary,
-  },
-  phoneEarpiece: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  phoneMouthpiece: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  videoBody: {
-    backgroundColor: colors.textOnPrimary,
-  },
-  videoLens: {
-    position: 'absolute',
-    borderLeftColor: colors.textOnPrimary,
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-  },
-  bookLeft: {
-    position: 'absolute',
-    left: '5%',
-    backgroundColor: colors.textOnPrimary,
-    transform: [{ rotate: '-5deg' }],
-  },
-  bookRight: {
-    position: 'absolute',
-    right: '5%',
-    backgroundColor: colors.textOnPrimary,
-    transform: [{ rotate: '5deg' }],
-  },
-  bookSpine: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  headphonesBand: {
-    position: 'absolute',
-    top: '10%',
-    borderColor: colors.textOnPrimary,
-    backgroundColor: 'transparent',
-    borderBottomWidth: 0,
-  },
-  headphonesLeft: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  headphonesRight: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  podcastMic: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-    top: '5%',
-  },
-  podcastStand: {
-    position: 'absolute',
-    borderColor: colors.textOnPrimary,
-    backgroundColor: 'transparent',
-    borderTopWidth: 0,
-  },
-  podcastBase: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  podcastFoot: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  radioBody: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-    top: '30%',
-  },
-  radioAntenna: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  radioSpeaker: {
-    position: 'absolute',
-    borderColor: colors.textOnPrimary,
-    backgroundColor: 'transparent',
-  },
-  radioDialLine: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-    borderRadius: 2,
-  },
-  // News icon styles
-  newsBody: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-    top: '15%',
-  },
-  newsHeadline: {
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  newsLine: {
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 1,
-  },
-  newsFold: {
-    position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    borderBottomLeftRadius: 4,
-  },
-  // Weather icon styles
-  weatherSun: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  weatherRay: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-    borderRadius: 2,
-  },
-  weatherCloud: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  weatherCloudBump: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  // Apple Music icon styles
-  appleMusicNoteHead: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-  },
-  appleMusicNoteStem: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
-    borderRadius: 2,
-  },
-  appleMusicNoteFlag: {
-    position: 'absolute',
-    backgroundColor: colors.textOnPrimary,
   },
 });

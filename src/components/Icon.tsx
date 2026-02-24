@@ -102,7 +102,9 @@ export type IconName =
   | 'sun'
   | 'moon'
   | 'eye'
-  | 'weather';
+  | 'weather'
+  | 'help'
+  | 'phone';
 
 interface IconProps {
   name: IconName;
@@ -1652,6 +1654,35 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw * 0.8}
             strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'help':
+      // Help / question mark in circle
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={sw} />
+          <Path
+            d="M9 9C9 7.34315 10.3431 6 12 6C13.6569 6 15 7.34315 15 9C15 10.3062 14.1652 11.4175 13 11.8293V13"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Circle cx="12" cy="17" r="0.5" fill={color} />
+        </Svg>
+      );
+
+    case 'phone':
+      // Phone / telephone (alias for call)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M5.5 4C4.11929 4 3 5.11929 3 6.5C3 14.5081 9.49187 21 17.5 21C18.8807 21 20 19.8807 20 18.5V16.5C20 15.6716 19.3284 15 18.5 15H15.5C14.6716 15 14 15.6716 14 16.5C14 16.5 12.5 16.5 10.5 14.5C8.5 12.5 8.5 11 8.5 11C9.32843 11 10 10.3284 10 9.5V6.5C10 5.67157 9.32843 5 8.5 5H5.5Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </Svg>
       );

@@ -41,6 +41,8 @@ export interface IconButtonProps {
   disabled?: boolean;
   /** Custom container style */
   style?: object;
+  /** Custom color (hex) - overrides accentColor. Use for module-specific colors. */
+  color?: string;
 }
 
 /**
