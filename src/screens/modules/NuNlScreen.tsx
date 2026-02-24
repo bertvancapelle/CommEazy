@@ -304,6 +304,7 @@ export function NuNlScreen() {
   // TTS for article reading
   const {
     startTTS,
+    startTTSWithText,
     stopTTS,
     isPlaying: isTTSPlaying,
     isLoading: isTTSLoading,
@@ -512,7 +513,7 @@ export function NuNlScreen() {
         article={fullArticle}
         onClose={handleFullArticleClose}
         accentColor={nunlModuleColor}
-        onStartTTS={startTTS}
+        onStartTTSWithText={startTTSWithText}
         onStopTTS={stopTTS}
         isTTSPlaying={isTTSPlaying}
         isTTSLoading={isTTSLoading}

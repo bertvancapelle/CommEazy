@@ -519,8 +519,8 @@ export interface ArticleWebViewerProps {
   accentColor: string;
 
   // TTS controls
-  /** Callback to start TTS playback (full article text) */
-  onStartTTS?: (article: NewsArticle, useFullText: boolean) => void;
+  /** Callback to start TTS playback with extracted text from WebView */
+  onStartTTSWithText?: (article: NewsArticle, extractedText: string) => void;
   /** Callback to stop TTS playback */
   onStopTTS?: () => void;
   /** Whether TTS is currently playing */
@@ -542,7 +542,7 @@ export function ArticleWebViewer({
   article,
   onClose,
   accentColor,
-  onStartTTS,
+  onStartTTSWithText,
   onStopTTS,
   isTTSPlaying = false,
   isTTSLoading = false,
@@ -558,6 +558,7 @@ export function ArticleWebViewer({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
+  const [isExtractingText, setIsExtractingText] = useState(false);
 
   // External link confirmation state
   const [pendingExternalUrl, setPendingExternalUrl] = useState<string | null>(null);
@@ -625,7 +626,7 @@ export function ArticleWebViewer({
     });
   }, []);
 
-  // Handle TTS toggle
+  // Handle TTS toggle - extract text from WebView and pass to TTS
   const handleTTSToggle = useCallback(() => {
     if (!article) return;
 
@@ -634,10 +635,114 @@ export function ArticleWebViewer({
     if (isTTSPlaying) {
       onStopTTS?.();
     } else {
-      // Start TTS with full text extraction
-      onStartTTS?.(article, true);
+      // Extract text from WebView via JavaScript injection
+      // This uses the same cookies/session as the WebView, so cookie consent is already handled
+      setIsExtractingText(true);
+      console.info('[ArticleWebViewer] Starting text extraction from WebView');
+
+      const extractTextScript = `
+        (function() {
+          try {
+            // Extract article text from nu.nl page
+            // Priority order: article content > main content > body text
+            var text = '';
+
+            // Try nu.nl specific selectors first
+            var articleBlocks = document.querySelectorAll('.block--paragraph, .article-body p, article p');
+            if (articleBlocks.length > 0) {
+              var paragraphs = [];
+              articleBlocks.forEach(function(block) {
+                var blockText = block.innerText || block.textContent || '';
+                blockText = blockText.trim();
+                if (blockText.length > 30) {
+                  paragraphs.push(blockText);
+                }
+              });
+              text = paragraphs.join(' ');
+            }
+
+            // Fallback: try article element
+            if (!text || text.length < 100) {
+              var article = document.querySelector('article');
+              if (article) {
+                text = article.innerText || article.textContent || '';
+              }
+            }
+
+            // Fallback: try main element
+            if (!text || text.length < 100) {
+              var main = document.querySelector('main');
+              if (main) {
+                text = main.innerText || main.textContent || '';
+              }
+            }
+
+            // Clean up the text
+            text = text
+              .replace(/\\s+/g, ' ')
+              .replace(/\\n+/g, ' ')
+              .trim();
+
+            // Send back to React Native
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'extractedText',
+              text: text,
+              length: text.length
+            }));
+          } catch (e) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'extractedText',
+              error: e.message,
+              text: ''
+            }));
+          }
+        })();
+        true;
+      `;
+
+      webViewRef.current?.injectJavaScript(extractTextScript);
     }
-  }, [article, isTTSPlaying, onStartTTS, onStopTTS, triggerFeedback]);
+  }, [article, isTTSPlaying, onStopTTS, triggerFeedback]);
+
+  // Handle messages from WebView (text extraction results)
+  const handleWebViewMessage = useCallback(
+    (event: { nativeEvent: { data: string } }) => {
+      try {
+        const data = JSON.parse(event.nativeEvent.data);
+
+        if (data.type === 'extractedText') {
+          setIsExtractingText(false);
+
+          if (data.error) {
+            console.error('[ArticleWebViewer] Text extraction error:', data.error);
+            // Fallback to article description
+            if (article) {
+              const fallbackText = `${article.title}. ${article.description}`;
+              console.info('[ArticleWebViewer] Using fallback text:', fallbackText.length, 'chars');
+              onStartTTSWithText?.(article, fallbackText);
+            }
+            return;
+          }
+
+          if (data.text && data.text.length > 50 && article) {
+            // Prepend title to extracted text
+            const fullText = `${article.title}. ${data.text}`;
+            console.info('[ArticleWebViewer] Extracted text:', data.length, 'chars, using:', fullText.length, 'chars');
+            onStartTTSWithText?.(article, fullText);
+          } else if (article) {
+            // Text too short, use fallback
+            const fallbackText = `${article.title}. ${article.description}`;
+            console.info('[ArticleWebViewer] Extracted text too short, using fallback:', fallbackText.length, 'chars');
+            onStartTTSWithText?.(article, fallbackText);
+          }
+        }
+      } catch (e) {
+        console.error('[ArticleWebViewer] Failed to parse WebView message:', e);
+        setIsExtractingText(false);
+      }
+    },
+    [article, onStartTTSWithText]
+  );
 
   // Handle WebView load start
   const handleLoadStart = useCallback((event: { nativeEvent: { url: string } }) => {
@@ -944,6 +1049,10 @@ export function ArticleWebViewer({
               onHttpError={handleHttpError}
               startInLoadingState={false}
               // ============================================================
+              // Message Handler (for text extraction)
+              // ============================================================
+              onMessage={handleWebViewMessage}
+              // ============================================================
               // URL Filtering (Problem 2: Prevent external navigation)
               // ============================================================
               // This callback is called before any URL is loaded.
@@ -1017,7 +1126,7 @@ export function ArticleWebViewer({
               // iOS: Overscroll behavior
               overScrollMode="always"
               // ============================================================
-              // Security
+              // Security & Universal Links Prevention
               // ============================================================
               // Allow only HTTPS (iOS 9+/Android uses this by default)
               // Note: nu.nl uses HTTPS, so this is fine
@@ -1025,13 +1134,23 @@ export function ArticleWebViewer({
               // Only allow http/https URLs - blocks intent://, tel:, mailto: etc.
               // This prevents consent buttons from opening external apps
               originWhitelist={['https://*', 'http://*']}
+              // CRITICAL: Disable automatic scheme handling
+              // This prevents iOS from automatically opening Universal Links
+              // when navigating to URLs that other apps have registered
+              automaticallyAdjustContentInsets={false}
+              // Disable "Open in App" banners that iOS shows for Universal Links
+              allowsBackForwardNavigationGestures={false}
               // ============================================================
               // User Agent (Prevent app detection)
               // ============================================================
-              // Custom user agent suffix to appear as Safari, not a WebView
-              // This prevents nu.nl from detecting the WebView and trying
-              // to open the nu.nl app via Universal Links
-              applicationNameForUserAgent="Safari/605.1.15"
+              // Use a FULL desktop Safari user agent to prevent:
+              // 1. nu.nl from detecting mobile WebView
+              // 2. iOS from triggering Universal Links (they check user agent)
+              // This makes the WebView appear as desktop Safari on macOS
+              userAgent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+              // Disable link preview (3D Touch / long press preview)
+              // This can trigger Universal Links on iOS
+              allowsLinkPreview={false}
               // ============================================================
               // Accessibility
               // ============================================================
@@ -1076,10 +1195,10 @@ export function ArticleWebViewer({
               style={[
                 styles.bottomButton,
                 { backgroundColor: accentColor },
-                isTTSLoading && styles.bottomButtonDisabled,
+                (isTTSLoading || isExtractingText) && styles.bottomButtonDisabled,
               ]}
               onPress={handleTTSToggle}
-              disabled={isTTSLoading}
+              disabled={isTTSLoading || isExtractingText}
               activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel={
@@ -1087,9 +1206,9 @@ export function ArticleWebViewer({
                   ? t('articleViewer.stop')
                   : t('articleViewer.readAloud')
               }
-              accessibilityState={{ disabled: isTTSLoading }}
+              accessibilityState={{ disabled: isTTSLoading || isExtractingText }}
             >
-              {isTTSLoading ? (
+              {(isTTSLoading || isExtractingText) ? (
                 <ActivityIndicator size="small" color={colors.textOnPrimary} />
               ) : (
                 <Icon
@@ -1099,7 +1218,7 @@ export function ArticleWebViewer({
                 />
               )}
               <Text style={styles.bottomButtonText}>
-                {isTTSLoading
+                {(isTTSLoading || isExtractingText)
                   ? t('articleViewer.loading')
                   : isTTSPlaying
                     ? t('articleViewer.stop')

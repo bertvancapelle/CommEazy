@@ -38,6 +38,9 @@ export interface UseArticleTTSReturn {
   /** Start TTS playback for an article */
   startTTS: (article: NewsArticle, useFullText: boolean) => Promise<void>;
 
+  /** Start TTS playback with pre-extracted text (skips fetch) */
+  startTTSWithText: (article: NewsArticle, text: string) => Promise<void>;
+
   /** Stop TTS playback */
   stopTTS: () => Promise<void>;
 
@@ -338,6 +341,84 @@ export function useArticleTTS(): UseArticleTTSReturn {
   );
 
   /**
+   * Start TTS playback with pre-extracted text
+   *
+   * This is used when text is extracted directly from a WebView,
+   * bypassing the need to fetch the article HTML separately.
+   * This ensures cookie consent is respected (WebView shares cookies).
+   */
+  const startTTSWithText = useCallback(
+    async (article: NewsArticle, text: string) => {
+      try {
+        setError(null);
+        setIsLoading(true);
+        setCurrentArticle(article);
+        setProgress(0);
+
+        console.info('[useArticleTTS] Starting TTS with pre-extracted text:', text.length, 'chars');
+
+        setIsLoading(false);
+
+        // Get language for this module
+        const language = getLanguageForModule(article.moduleId);
+
+        // Determine which TTS engine to use
+        const usePiper = shouldUsePiperTTS(language) && isPiperTtsInitializedRef.current;
+
+        let success = false;
+
+        if (usePiper) {
+          // Use HIGH-QUALITY Piper TTS for Dutch
+          console.info('[useArticleTTS] Using Piper TTS (nl_NL-rdh-high) for Dutch article');
+          currentEngineRef.current = 'piper';
+
+          // Stop any existing playback
+          await piperTtsService.stop();
+          await ttsService.stop();
+
+          // Use chunked playback for better responsiveness
+          success = await piperTtsService.speakChunked(text, DEFAULT_SPEECH_RATE);
+
+          if (!success) {
+            // Fallback to system TTS if Piper fails
+            console.warn('[useArticleTTS] Piper TTS failed, falling back to system TTS');
+            currentEngineRef.current = 'system';
+            const bestVoice = await ttsService.getBestVoiceForLanguage(language);
+            success = await ttsService.speak(text, bestVoice?.id, DEFAULT_SPEECH_RATE);
+          }
+        } else {
+          // Use system TTS for non-Dutch languages
+          console.info('[useArticleTTS] Using system TTS for', language);
+          currentEngineRef.current = 'system';
+
+          // Stop any existing playback
+          await piperTtsService.stop();
+          await ttsService.stop();
+
+          const bestVoice = await ttsService.getBestVoiceForLanguage(language);
+          success = await ttsService.speak(text, bestVoice?.id, DEFAULT_SPEECH_RATE);
+        }
+
+        if (success) {
+          setIsPlaying(true);
+          setCurrentSentence(text.substring(0, 100) + '...');
+        } else {
+          setError('TTS playback failed');
+          setCurrentArticle(null);
+          currentEngineRef.current = null;
+        }
+      } catch (err) {
+        console.error('[useArticleTTS] Error starting TTS with text:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setIsLoading(false);
+        setCurrentArticle(null);
+        currentEngineRef.current = null;
+      }
+    },
+    []
+  );
+
+  /**
    * Stop TTS playback (both Piper and system TTS)
    */
   const stopTTS = useCallback(async () => {
@@ -381,6 +462,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
 
   return {
     startTTS,
+    startTTSWithText,
     stopTTS,
     pauseTTS,
     resumeTTS,

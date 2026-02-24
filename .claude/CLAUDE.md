@@ -18,9 +18,19 @@
 2. **Overleg modus** — Gebruiker wil discussiëren, niet implementeren
 3. **Pas ALLE skills toe** — Analyseer vanuit alle relevante perspectieven (security, accessibility, architecture, etc.)
 4. **Wees kritisch** — Benoem risico's, edge cases, en mogelijke problemen
-5. **Stel vragen** — Vraag om verduidelijking waar nodig
+5. **Stel vragen ÉÉN VOOR ÉÉN** — Als je vragen hebt, stel ze één per keer, wacht op antwoord, stel dan pas de volgende vraag
 6. **Vat samen** — Geef een duidelijke conclusie met opties
-7. **Vraag toestemming** — Wacht op expliciete goedkeuring voordat je IETS uitvoert
+7. **Vraag EXPLICIET om PNA te beëindigen** — Blijf in PNA modus totdat gebruiker bevestigt dat PNA beëindigd mag worden
+
+**PNA modus beëindigen:**
+- Claude MOET expliciet vragen: "**Wil je PNA modus beëindigen zodat ik aanpassingen kan maken?**"
+- Pas NA bevestiging ("ja", "ok", "doe maar", etc.) mag Claude code wijzigen
+- Bij onduidelijk antwoord: vraag opnieuw om bevestiging
+- PNA blijft actief totdat expliciet beëindigd
+
+**Vragen stellen in PNA modus:**
+- ❌ FOUT: "Vraag 1: ... Vraag 2: ... Vraag 3: ..."
+- ✅ GOED: "Eerste vraag: ..." → wacht op antwoord → "Volgende vraag: ..."
 
 **Voorbeeld:**
 ```
@@ -35,13 +45,24 @@ Claude:
 - 👴 Senior UX: [overwegingen]
 - 🏗️ Architecture: [overwegingen]
 
-**Vragen:**
-1. Wat is het doel van de wijziging?
+**Eerste vraag:**
+Wat is het doel van de wijziging?"
 
-**Conclusie:**
+[Wacht op antwoord]
+
+"Dank je. **Volgende vraag:**
+Moet de bestaande login methode behouden blijven als alternatief?"
+
+[Wacht op antwoord]
+
+"**Conclusie:**
 [Samenvatting van opties met voor/nadelen]
 
-Wil je dat ik dit implementeer, of heb je nog vragen?"
+**Wil je PNA modus beëindigen zodat ik aanpassingen kan maken?**"
+
+[Wacht op expliciete bevestiging]
+
+"PNA beëindigd. Ik ga nu de wijzigingen doorvoeren..."
 ```
 
 ---

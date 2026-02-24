@@ -141,10 +141,37 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   [[NSNotificationCenter defaultCenter] postNotificationName:@"FCMToken" object:nil userInfo:dataDict];
 }
 
-// MARK: - CallKeep Continue User Activity (Siri, Recents)
+// MARK: - CallKeep Continue User Activity (Siri, Recents) + Universal Links Blocking
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
 {
+  // Block Universal Links for news sites to keep users in our WebView
+  // When we return NO, iOS will NOT open the external app
+  if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+    NSURL *url = userActivity.webpageURL;
+    if (url) {
+      NSString *host = url.host.lowercaseString;
+
+      // Block nu.nl and DPG Media Universal Links
+      // These should stay in our WebView, not open external apps
+      NSArray *blockedHosts = @[
+        @"nu.nl",
+        @"www.nu.nl",
+        @"m.nu.nl",
+        @"dpgmedia.nl",
+        @"myprivacy.dpgmedia.nl"
+      ];
+
+      for (NSString *blocked in blockedHosts) {
+        if ([host isEqualToString:blocked] || [host hasSuffix:[@"." stringByAppendingString:blocked]]) {
+          NSLog(@"[UniversalLinks] Blocked external app for: %@", host);
+          return NO; // Don't handle = don't open external app
+        }
+      }
+    }
+  }
+
+  // Let CallKeep handle call-related activities (Siri, Recents)
   return [RNCallKeep application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
 }
 
