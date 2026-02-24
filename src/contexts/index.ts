@@ -116,3 +116,10 @@ export {
   type ModuleColorsContextValue,
   type ModuleColorOverrides,
 } from './ModuleColorsContext';
+
+export {
+  ReducedMotionProvider,
+  useReducedMotionContext,
+  useReducedMotionSafe,
+  type ReducedMotionContextValue,
+} from './ReducedMotionContext';

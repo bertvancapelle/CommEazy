@@ -1213,36 +1213,62 @@ class AppleMusicModule: RCTEventEmitter {
 
     /// Get album details including all tracks
     /// Returns album info + array of songs
+    /// Tries catalog first, then falls back to library for local albums
     @objc
     func getAlbumDetails(_ albumId: String,
                          resolve: @escaping RCTPromiseResolveBlock,
                          reject: @escaping RCTPromiseRejectBlock) {
         Task {
+            // Try catalog first (for Apple Music catalog albums)
             do {
-                // Fetch the album with tracks
                 var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: MusicItemID(albumId))
                 request.properties = [.tracks, .artists]
                 let response = try await request.response()
 
-                guard let album = response.items.first else {
-                    reject("ALBUM_NOT_FOUND", "Album with ID \(albumId) not found", nil)
+                if let album = response.items.first {
+                    var result = albumToDictionary(album)
+
+                    // Add tracks (Track is an enum that can be Song or MusicVideo)
+                    if let tracks = album.tracks {
+                        result["tracks"] = tracks.map { trackToDictionary($0) }
+                    } else {
+                        result["tracks"] = []
+                    }
+
+                    // Add artist info if available
+                    if let artists = album.artists {
+                        result["artists"] = artists.map { artistToDictionary($0) }
+                    }
+
+                    resolve(result)
                     return
                 }
-
+            } catch {
+                NSLog("[AppleMusicModule] Catalog album request failed, trying library: \(error.localizedDescription)")
+            }
+            
+            // Fallback to library (for local library albums)
+            do {
+                var libraryRequest = MusicLibraryRequest<Album>()
+                libraryRequest.filter(matching: \.id, equalTo: MusicItemID(albumId))
+                let libraryResponse = try await libraryRequest.response()
+                
+                guard let album = libraryResponse.items.first else {
+                    reject("ALBUM_NOT_FOUND", "Album with ID \(albumId) not found in catalog or library", nil)
+                    return
+                }
+                
                 var result = albumToDictionary(album)
-
-                // Add tracks (Track is an enum that can be Song or MusicVideo)
-                if let tracks = album.tracks {
-                    result["tracks"] = tracks.map { trackToDictionary($0) }
-                } else {
-                    result["tracks"] = []
-                }
-
-                // Add artist info if available
-                if let artists = album.artists {
-                    result["artists"] = artists.map { artistToDictionary($0) }
-                }
-
+                
+                // For library albums, fetch tracks via songs filtered by album title
+                var songsRequest = MusicLibraryRequest<Song>()
+                songsRequest.filter(matching: \.albumTitle, equalTo: album.title)
+                songsRequest.sort(by: \.trackNumber, ascending: true)
+                let songsResponse = try await songsRequest.response()
+                
+                result["tracks"] = songsResponse.items.map { songToDictionary($0) }
+                result["artists"] = []  // Library albums don't have direct artist references
+                
                 resolve(result)
             } catch {
                 reject("ALBUM_ERROR", "Failed to get album details: \(error.localizedDescription)", error)
@@ -1252,38 +1278,71 @@ class AppleMusicModule: RCTEventEmitter {
 
     /// Get artist details including top songs and albums
     /// Returns artist info + topSongs array + albums array
+    /// Tries catalog first, then falls back to library for local artists
     @objc
     func getArtistDetails(_ artistId: String,
                           resolve: @escaping RCTPromiseResolveBlock,
                           reject: @escaping RCTPromiseRejectBlock) {
         Task {
+            // Try catalog first (for Apple Music catalog artists)
             do {
-                // Fetch the artist with related content
                 var request = MusicCatalogResourceRequest<Artist>(matching: \.id, equalTo: MusicItemID(artistId))
                 request.properties = [.topSongs, .albums]
                 let response = try await request.response()
 
-                guard let artist = response.items.first else {
-                    reject("ARTIST_NOT_FOUND", "Artist with ID \(artistId) not found", nil)
+                if let artist = response.items.first {
+                    var result = artistToDictionary(artist)
+
+                    // Add top songs
+                    if let topSongs = artist.topSongs {
+                        result["topSongs"] = Array(topSongs.prefix(10)).map { songToDictionary($0) }
+                    } else {
+                        result["topSongs"] = []
+                    }
+
+                    // Add albums
+                    if let albums = artist.albums {
+                        result["albums"] = Array(albums.prefix(20)).map { albumToDictionary($0) }
+                    } else {
+                        result["albums"] = []
+                    }
+
+                    resolve(result)
                     return
                 }
-
+            } catch {
+                NSLog("[AppleMusicModule] Catalog artist request failed, trying library: \(error.localizedDescription)")
+            }
+            
+            // Fallback to library (for local library artists)
+            do {
+                var libraryRequest = MusicLibraryRequest<Artist>()
+                libraryRequest.filter(matching: \.id, equalTo: MusicItemID(artistId))
+                let libraryResponse = try await libraryRequest.response()
+                
+                guard let artist = libraryResponse.items.first else {
+                    reject("ARTIST_NOT_FOUND", "Artist with ID \(artistId) not found in catalog or library", nil)
+                    return
+                }
+                
                 var result = artistToDictionary(artist)
-
-                // Add top songs
-                if let topSongs = artist.topSongs {
-                    result["topSongs"] = Array(topSongs.prefix(10)).map { songToDictionary($0) }
-                } else {
-                    result["topSongs"] = []
-                }
-
-                // Add albums
-                if let albums = artist.albums {
-                    result["albums"] = Array(albums.prefix(20)).map { albumToDictionary($0) }
-                } else {
-                    result["albums"] = []
-                }
-
+                
+                // For library artists, we need to fetch their songs separately
+                var songsRequest = MusicLibraryRequest<Song>()
+                songsRequest.filter(matching: \.artistName, equalTo: artist.name)
+                songsRequest.sort(by: \.playCount, ascending: false)
+                let songsResponse = try await songsRequest.response()
+                
+                result["topSongs"] = Array(songsResponse.items.prefix(10)).map { songToDictionary($0) }
+                
+                // For library artists, fetch their albums
+                var albumsRequest = MusicLibraryRequest<Album>()
+                albumsRequest.filter(matching: \.artistName, equalTo: artist.name)
+                albumsRequest.sort(by: \.title, ascending: true)
+                let albumsResponse = try await albumsRequest.response()
+                
+                result["albums"] = Array(albumsResponse.items.prefix(20)).map { albumToDictionary($0) }
+                
                 resolve(result)
             } catch {
                 reject("ARTIST_ERROR", "Failed to get artist details: \(error.localizedDescription)", error)
@@ -1293,31 +1352,62 @@ class AppleMusicModule: RCTEventEmitter {
 
     /// Get playlist details including all tracks
     /// Returns playlist info + array of songs
+    /// Tries catalog first, then falls back to library for user playlists
     @objc
     func getPlaylistDetails(_ playlistId: String,
                             resolve: @escaping RCTPromiseResolveBlock,
                             reject: @escaping RCTPromiseRejectBlock) {
         Task {
+            // Try catalog first (for Apple Music curated playlists)
             do {
-                // Fetch the playlist with tracks
                 var request = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: MusicItemID(playlistId))
                 request.properties = [.tracks]
                 let response = try await request.response()
 
-                guard let playlist = response.items.first else {
-                    reject("PLAYLIST_NOT_FOUND", "Playlist with ID \(playlistId) not found", nil)
+                if let playlist = response.items.first {
+                    var result = playlistToDictionary(playlist)
+
+                    // Add tracks (Track is an enum that can be Song or MusicVideo)
+                    if let tracks = playlist.tracks {
+                        result["tracks"] = tracks.map { trackToDictionary($0) }
+                    } else {
+                        result["tracks"] = []
+                    }
+
+                    resolve(result)
                     return
                 }
-
+            } catch {
+                NSLog("[AppleMusicModule] Catalog playlist request failed, trying library: \(error.localizedDescription)")
+            }
+            
+            // Fallback to library (for user-created playlists)
+            do {
+                var libraryRequest = MusicLibraryRequest<Playlist>()
+                libraryRequest.filter(matching: \.id, equalTo: MusicItemID(playlistId))
+                let libraryResponse = try await libraryRequest.response()
+                
+                guard let playlist = libraryResponse.items.first else {
+                    reject("PLAYLIST_NOT_FOUND", "Playlist with ID \(playlistId) not found in catalog or library", nil)
+                    return
+                }
+                
                 var result = playlistToDictionary(playlist)
-
-                // Add tracks (Track is an enum that can be Song or MusicVideo)
-                if let tracks = playlist.tracks {
-                    result["tracks"] = tracks.map { trackToDictionary($0) }
+                
+                // For library playlists, fetch entries (tracks)
+                // Note: MusicLibraryRequest for Playlist doesn't include .tracks property by default
+                // We need to use Playlist.Entry to get the tracks
+                if let entries = playlist.entries {
+                    result["tracks"] = entries.compactMap { entry -> [String: Any]? in
+                        if let song = entry.item as? Song {
+                            return songToDictionary(song)
+                        }
+                        return nil
+                    }
                 } else {
                     result["tracks"] = []
                 }
-
+                
                 resolve(result)
             } catch {
                 reject("PLAYLIST_ERROR", "Failed to get playlist details: \(error.localizedDescription)", error)

@@ -35,6 +35,7 @@ import { NavigationProvider } from '@/contexts/NavigationContext';
 import { CallProvider } from '@/contexts/CallContext';
 import { AudioOrchestratorProvider } from '@/contexts/AudioOrchestratorContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
+import { ReducedMotionProvider } from '@/contexts/ReducedMotionContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
@@ -118,6 +119,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <ReducedMotionProvider>
       <ServiceProvider reducedMotion={reducedMotion}>
         <ThemeProvider>
           <ThemedStatusBar />
@@ -158,6 +160,7 @@ export default function App() {
           </AccentColorProvider>
         </ThemeProvider>
       </ServiceProvider>
+      </ReducedMotionProvider>
     </SafeAreaProvider>
   );
 }
