@@ -153,6 +153,8 @@ export function AppleMusicScreen() {
     getLibraryArtists,
     getLibraryPlaylists,
     getLibraryCounts,
+    // Queue
+    queue,
   } = useAppleMusicContext();
 
   // Sleep timer hook - shared logic for all audio modules
@@ -1644,7 +1646,7 @@ export function AppleMusicScreen() {
       <QueueView
         visible={isQueueVisible}
         queue={queue}
-        nowPlaying={nowPlaying}
+        nowPlaying={currentSong}
         accentColor={appleMusicColor}
         onClose={() => setIsQueueVisible(false)}
         onPlaySong={(song) => {
