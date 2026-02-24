@@ -148,6 +148,16 @@ export interface PlatformCapabilities {
   appInstalled: boolean;      // Apple Music app installed (Android)
 }
 
+// Library cache structure
+export interface LibraryCache {
+  songs: AppleMusicSong[];
+  albums: AppleMusicAlbum[];
+  artists: AppleMusicArtist[];
+  playlists: AppleMusicPlaylist[];
+  counts: LibraryCounts | null;
+  lastUpdated: number | null;  // timestamp
+}
+
 export interface AppleMusicContextValue {
   // Platform info
   isIOS: boolean;
@@ -183,6 +193,12 @@ export interface AppleMusicContextValue {
   getLibraryArtists: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicArtist>>;
   getLibraryPlaylists: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicPlaylist>>;
   getLibraryCounts: () => Promise<LibraryCounts>;
+
+  // Library Cache (preloaded at startup for instant access)
+  libraryCache: LibraryCache;
+  isLibraryCacheLoading: boolean;
+  preloadLibrary: () => Promise<void>;
+  refreshLibraryCache: () => Promise<void>;
 
   // Playback (iOS only)
   playbackState: PlaybackState | null;
@@ -267,6 +283,20 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Artwork URL from search results (more reliable than MusicKit queue URLs)
   // Maps song ID to artwork URL
   const [artworkCache, setArtworkCache] = useState<Map<string, string>>(new Map());
+
+  // Library cache for instant access (preloaded at startup)
+  const [libraryCache, setLibraryCache] = useState<LibraryCache>({
+    songs: [],
+    albums: [],
+    artists: [],
+    playlists: [],
+    counts: null,
+    lastUpdated: null,
+  });
+  const [isLibraryCacheLoading, setIsLibraryCacheLoading] = useState(false);
+
+  // Track when app went to background for refresh logic
+  const lastBackgroundTimeRef = useRef<number | null>(null);
 
   // Derived state
   const isAuthorized = authStatus === 'authorized' || authStatus === 'app_installed';
@@ -647,6 +677,103 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [isIOS]);
 
   // ============================================================
+  // Library Cache (Preload at Startup)
+  // ============================================================
+
+  /**
+   * Preload library content for instant access.
+   * Called at app startup to ensure "Mijn Muziek" is immediately available.
+   *
+   * Loads first 500 songs and albums (most commonly accessed).
+   * Artists and playlists are loaded on-demand.
+   */
+  const preloadLibrary = useCallback(async (): Promise<void> => {
+    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
+      console.log('[AppleMusicContext] Skipping library preload (not iOS or not authorized)');
+      return;
+    }
+
+    // Skip if already loading or recently loaded (within 5 minutes)
+    if (isLibraryCacheLoading) {
+      console.log('[AppleMusicContext] Library preload already in progress');
+      return;
+    }
+
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+    if (libraryCache.lastUpdated && libraryCache.lastUpdated > fiveMinutesAgo) {
+      console.log('[AppleMusicContext] Library cache is fresh, skipping preload');
+      return;
+    }
+
+    setIsLibraryCacheLoading(true);
+    console.log('[AppleMusicContext] Starting library preload...');
+
+    try {
+      // Load counts and first batch of songs/albums in parallel
+      const [counts, songsResult, albumsResult] = await Promise.all([
+        AppleMusicModule.getLibraryCounts(),
+        AppleMusicModule.getLibrarySongs(500, 0),
+        AppleMusicModule.getLibraryAlbums(500, 0),
+      ]);
+
+      setLibraryCache({
+        songs: songsResult.items,
+        albums: albumsResult.items,
+        artists: [],  // Load on-demand
+        playlists: [],  // Load on-demand
+        counts,
+        lastUpdated: Date.now(),
+      });
+
+      console.log('[AppleMusicContext] Library preload complete:', {
+        songs: songsResult.items.length,
+        albums: albumsResult.items.length,
+        totalSongs: counts.songs,
+        totalAlbums: counts.albums,
+      });
+    } catch (error) {
+      console.error('[AppleMusicContext] Library preload error:', error);
+    } finally {
+      setIsLibraryCacheLoading(false);
+    }
+  }, [isIOS, authStatus, isLibraryCacheLoading, libraryCache.lastUpdated]);
+
+  /**
+   * Force refresh library cache.
+   * Called when user pulls to refresh or after returning from background >30 min.
+   */
+  const refreshLibraryCache = useCallback(async (): Promise<void> => {
+    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
+      return;
+    }
+
+    setIsLibraryCacheLoading(true);
+    console.log('[AppleMusicContext] Refreshing library cache...');
+
+    try {
+      const [counts, songsResult, albumsResult] = await Promise.all([
+        AppleMusicModule.getLibraryCounts(),
+        AppleMusicModule.getLibrarySongs(500, 0),
+        AppleMusicModule.getLibraryAlbums(500, 0),
+      ]);
+
+      setLibraryCache((prev) => ({
+        ...prev,
+        songs: songsResult.items,
+        albums: albumsResult.items,
+        counts,
+        lastUpdated: Date.now(),
+      }));
+
+      console.log('[AppleMusicContext] Library cache refreshed');
+    } catch (error) {
+      console.error('[AppleMusicContext] Library refresh error:', error);
+    } finally {
+      setIsLibraryCacheLoading(false);
+    }
+  }, [isIOS, authStatus]);
+
+  // ============================================================
   // Playback Control (iOS only)
   // ============================================================
 
@@ -896,6 +1023,58 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [audioOrchestrator, isPlaying]);
 
   // ============================================================
+  // Library Preload at Startup
+  // ============================================================
+
+  // Preload library when authorized (runs once after authorization)
+  useEffect(() => {
+    if (authStatus === 'authorized' && isIOS) {
+      console.log('[AppleMusicContext] Authorization confirmed, triggering library preload...');
+      void preloadLibrary();
+    }
+  }, [authStatus, isIOS, preloadLibrary]);
+
+  // ============================================================
+  // Foreground Refresh (after 30+ min in background)
+  // ============================================================
+
+  useEffect(() => {
+    if (!isIOS) return;
+
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Record when app went to background
+        lastBackgroundTimeRef.current = Date.now();
+        console.log('[AppleMusicContext] App going to background');
+      } else if (nextAppState === 'active') {
+        // App returned to foreground
+        const backgroundTime = lastBackgroundTimeRef.current;
+        if (backgroundTime) {
+          const timeInBackground = Date.now() - backgroundTime;
+          const thirtyMinutes = 30 * 60 * 1000;
+
+          if (timeInBackground > thirtyMinutes && authStatus === 'authorized') {
+            console.log('[AppleMusicContext] App returned after 30+ min, refreshing library cache...');
+            void refreshLibraryCache();
+          } else {
+            console.log('[AppleMusicContext] App returned to foreground (background time:',
+              Math.round(timeInBackground / 1000), 'seconds)');
+          }
+        }
+        lastBackgroundTimeRef.current = null;
+      }
+    };
+
+    // Import AppState dynamically to avoid issues
+    const { AppState } = require('react-native');
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isIOS, authStatus, refreshLibraryCache]);
+
+  // ============================================================
   // Context Value
   // ============================================================
 
@@ -935,6 +1114,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       getLibraryArtists,
       getLibraryPlaylists,
       getLibraryCounts,
+
+      // Library Cache
+      libraryCache,
+      isLibraryCacheLoading,
+      preloadLibrary,
+      refreshLibraryCache,
 
       // Playback
       playbackState,
@@ -997,6 +1182,10 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       getLibraryArtists,
       getLibraryPlaylists,
       getLibraryCounts,
+      libraryCache,
+      isLibraryCacheLoading,
+      preloadLibrary,
+      refreshLibraryCache,
       playbackState,
       nowPlaying,
       effectiveArtworkUrl,

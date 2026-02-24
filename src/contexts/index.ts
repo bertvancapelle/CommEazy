@@ -83,6 +83,9 @@ export {
   type ShuffleMode,
   type RepeatMode,
   type PlatformCapabilities,
+  type LibraryCache,
+  type LibraryCounts,
+  type LibraryPaginatedResponse,
 } from './AppleMusicContext';
 
 export {
