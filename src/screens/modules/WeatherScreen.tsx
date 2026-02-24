@@ -53,14 +53,12 @@ import {
   type RadarData,
 } from '@/services/radarService';
 import type { WeatherLocation, DailyForecast, RadarFrame } from '@/types/weather';
-import { WEATHER_MODULE_CONFIG } from '@/types/weather';
 
 // ============================================================
 // Constants
 // ============================================================
 
 const MODULE_ID = 'weather';
-const MODULE_COLOR = WEATHER_MODULE_CONFIG.accentColor;
 const WELCOME_SHOWN_KEY = 'weather_welcome_shown';
 
 // Tab types for Weather/Radar
@@ -75,12 +73,17 @@ interface TabButtonProps {
   isActive: boolean;
   onPress: () => void;
   icon: 'weather-partly-cloudy' | 'radar';
+  accentColor: string;
 }
 
-function TabButton({ label, isActive, onPress, icon }: TabButtonProps) {
+function TabButton({ label, isActive, onPress, icon, accentColor }: TabButtonProps) {
   return (
     <TouchableOpacity
-      style={[styles.tabButton, isActive && styles.tabButtonActive]}
+      style={[
+        styles.tabButton,
+        { borderColor: accentColor },
+        isActive && [styles.tabButtonActive, { backgroundColor: accentColor }],
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityRole="tab"
@@ -90,9 +93,9 @@ function TabButton({ label, isActive, onPress, icon }: TabButtonProps) {
       <Icon
         name={icon}
         size={20}
-        color={isActive ? colors.textOnPrimary : MODULE_COLOR}
+        color={isActive ? colors.textOnPrimary : accentColor}
       />
-      <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
+      <Text style={[styles.tabButtonText, { color: accentColor }, isActive && styles.tabButtonTextActive]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -107,9 +110,10 @@ interface RadarTabProps {
   latitude: number | null;
   longitude: number | null;
   locationName: string | null;
+  accentColor: string;
 }
 
-function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
+function RadarTab({ latitude, longitude, locationName, accentColor }: RadarTabProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -219,14 +223,14 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
           {t('modules.weather.radar.title')}
         </Text>
         {locationName && (
-          <Text style={styles.radarPlaceholderLocation}>
+          <Text style={[styles.radarPlaceholderLocation, { color: accentColor }]}>
             📍 {locationName}
           </Text>
         )}
         <Text style={styles.radarPlaceholderHint}>
           {t('modules.weather.radar.loading')}
         </Text>
-        <ActivityIndicator size="large" color={MODULE_COLOR} style={{ marginTop: spacing.lg }} />
+        <ActivityIndicator size="large" color={accentColor} style={{ marginTop: spacing.lg }} />
       </View>
     );
   }
@@ -249,7 +253,7 @@ function RadarTab({ latitude, longitude, locationName }: RadarTabProps) {
       {/* Location name */}
       {locationName && (
         <View style={styles.radarLocationBar}>
-          <Icon name="map-marker" size={20} color={MODULE_COLOR} />
+          <Icon name="map-marker" size={20} color={accentColor} />
           <Text style={styles.radarLocationName}>{locationName}</Text>
         </View>
       )}
@@ -339,9 +343,10 @@ interface TTSButtonProps {
   onPress: () => void;
   label: string;
   compact?: boolean;
+  accentColor: string;
 }
 
-function TTSButton({ isPlaying, isActive, onPress, label, compact }: TTSButtonProps) {
+function TTSButton({ isPlaying, isActive, onPress, label, compact, accentColor }: TTSButtonProps) {
   const { t } = useTranslation();
   const holdGesture = useHoldGestureContextSafe();
 
@@ -356,7 +361,8 @@ function TTSButton({ isPlaying, isActive, onPress, label, compact }: TTSButtonPr
     <TouchableOpacity
       style={[
         compact ? styles.ttsButtonCompact : styles.ttsButton,
-        isActive && styles.ttsButtonActive,
+        { borderColor: accentColor },
+        isActive && [styles.ttsButtonActive, { backgroundColor: accentColor }],
       ]}
       onPress={handlePress}
       onLongPress={() => {}}
@@ -368,10 +374,10 @@ function TTSButton({ isPlaying, isActive, onPress, label, compact }: TTSButtonPr
       <Icon
         name={isActive ? 'stop' : 'volume-up'}
         size={compact ? 20 : 24}
-        color={isActive ? colors.textOnPrimary : MODULE_COLOR}
+        color={isActive ? colors.textOnPrimary : accentColor}
       />
       {!compact && (
-        <Text style={[styles.ttsButtonText, isActive && styles.ttsButtonTextActive]}>
+        <Text style={[styles.ttsButtonText, { color: accentColor }, isActive && styles.ttsButtonTextActive]}>
           {isActive ? t('tts.stop') : label}
         </Text>
       )}
@@ -387,9 +393,10 @@ interface ForecastDayProps {
   day: DailyForecast;
   index: number;
   onPress: () => void;
+  accentColor: string;
 }
 
-function ForecastDay({ day, index, onPress }: ForecastDayProps) {
+function ForecastDay({ day, index, onPress, accentColor }: ForecastDayProps) {
   const { t, i18n } = useTranslation();
   const holdGesture = useHoldGestureContextSafe();
 
@@ -424,7 +431,7 @@ function ForecastDay({ day, index, onPress }: ForecastDayProps) {
     >
       {/* Left: Day name and icon */}
       <View style={styles.forecastDayInfo}>
-        <Icon name={iconName} size={36} color={MODULE_COLOR} />
+        <Icon name={iconName} size={36} color={accentColor} />
         <View style={styles.forecastDayText}>
           <Text
             style={styles.forecastDayName}
@@ -458,9 +465,10 @@ interface DayDetailModalProps {
   day: DailyForecast | null;
   dayIndex: number;
   onClose: () => void;
+  accentColor: string;
 }
 
-function DayDetailModal({ visible, day, dayIndex, onClose }: DayDetailModalProps) {
+function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDetailModalProps) {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { triggerFeedback } = useFeedback();
@@ -515,7 +523,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose }: DayDetailModalProps
         >
           {/* Main weather card */}
           <View style={styles.dayDetailMainCard}>
-            <Icon name={iconName} size={80} color={MODULE_COLOR} />
+            <Icon name={iconName} size={80} color={accentColor} />
             <Text style={styles.dayDetailCondition}>{weatherDesc}</Text>
             <View style={styles.dayDetailTempRow}>
               <View style={styles.dayDetailTempItem}>
@@ -534,7 +542,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose }: DayDetailModalProps
           <View style={styles.dayDetailGrid}>
             {/* Precipitation */}
             <View style={styles.dayDetailGridItem}>
-              <Icon name="weather-rainy" size={32} color={MODULE_COLOR} />
+              <Icon name="weather-rainy" size={32} color={accentColor} />
               <Text style={styles.dayDetailGridLabel}>{t('modules.weather.precipitation')}</Text>
               <Text style={styles.dayDetailGridValue}>
                 {day.precipitationSum > 0 ? `${day.precipitationSum.toFixed(1)} mm` : t('modules.weather.noPrecipitation')}
@@ -543,21 +551,21 @@ function DayDetailModal({ visible, day, dayIndex, onClose }: DayDetailModalProps
 
             {/* Precipitation probability */}
             <View style={styles.dayDetailGridItem}>
-              <Icon name="water-percent" size={32} color={MODULE_COLOR} />
+              <Icon name="water-percent" size={32} color={accentColor} />
               <Text style={styles.dayDetailGridLabel}>{t('modules.weather.rainChance')}</Text>
               <Text style={styles.dayDetailGridValue}>{day.precipitationProbability}%</Text>
             </View>
 
             {/* Sunrise */}
             <View style={styles.dayDetailGridItem}>
-              <Icon name="weather-sunny" size={32} color={MODULE_COLOR} />
+              <Icon name="weather-sunny" size={32} color={accentColor} />
               <Text style={styles.dayDetailGridLabel}>{t('modules.weather.sunrise')}</Text>
               <Text style={styles.dayDetailGridValue}>{formatTime(day.sunrise)}</Text>
             </View>
 
             {/* Sunset */}
             <View style={styles.dayDetailGridItem}>
-              <Icon name="weather-night" size={32} color={MODULE_COLOR} />
+              <Icon name="weather-night" size={32} color={accentColor} />
               <Text style={styles.dayDetailGridLabel}>{t('modules.weather.sunset')}</Text>
               <Text style={styles.dayDetailGridValue}>{formatTime(day.sunset)}</Text>
             </View>
@@ -577,9 +585,10 @@ interface SearchResultItemProps {
   onPress: () => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  accentColor: string;
 }
 
-function SearchResultItem({ location, onPress, isFavorite, onToggleFavorite }: SearchResultItemProps) {
+function SearchResultItem({ location, onPress, isFavorite, onToggleFavorite, accentColor }: SearchResultItemProps) {
   const { t } = useTranslation();
 
   return (
@@ -591,7 +600,7 @@ function SearchResultItem({ location, onPress, isFavorite, onToggleFavorite }: S
         accessibilityRole="button"
         accessibilityLabel={`${location.name}, ${location.country}`}
       >
-        <Icon name="map-marker" size={20} color={MODULE_COLOR} />
+        <Icon name="map-marker" size={20} color={accentColor} />
         <View style={styles.searchResultText}>
           <Text style={styles.searchResultName}>{location.name}</Text>
           <Text style={styles.searchResultCountry}>
@@ -628,6 +637,7 @@ interface LocationPickerModalProps {
   isLoadingGps: boolean;
   gpsError: string | null;
   gpsLocationId: string | null;
+  accentColor: string;
 }
 
 function LocationPickerModal({
@@ -641,6 +651,7 @@ function LocationPickerModal({
   isLoadingGps,
   gpsError,
   gpsLocationId,
+  accentColor,
 }: LocationPickerModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -695,7 +706,7 @@ function LocationPickerModal({
             style={[
               styles.locationPickerItemContent,
               styles.gpsLocationItem,
-              isGpsSelected && styles.locationPickerItemSelected,
+              isGpsSelected && [styles.locationPickerItemSelected, { borderColor: accentColor, backgroundColor: `${accentColor}10` }],
             ]}
             onPress={handleGpsPress}
             activeOpacity={0.7}
@@ -706,19 +717,19 @@ function LocationPickerModal({
             disabled={isLoadingGps}
           >
             {isLoadingGps ? (
-              <ActivityIndicator size="small" color={MODULE_COLOR} />
+              <ActivityIndicator size="small" color={accentColor} />
             ) : (
               <Icon
                 name="crosshairs-gps"
                 size={24}
-                color={isGpsSelected ? MODULE_COLOR : colors.textSecondary}
+                color={isGpsSelected ? accentColor : colors.textSecondary}
               />
             )}
             <View style={styles.locationPickerItemText}>
               <Text
                 style={[
                   styles.locationPickerItemName,
-                  isGpsSelected && styles.locationPickerItemNameSelected,
+                  isGpsSelected && [styles.locationPickerItemNameSelected, { color: accentColor }],
                 ]}
                 numberOfLines={1}
               >
@@ -729,7 +740,7 @@ function LocationPickerModal({
               </Text>
             </View>
             {isGpsSelected && !isLoadingGps && (
-              <Icon name="check" size={24} color={MODULE_COLOR} />
+              <Icon name="check" size={24} color={accentColor} />
             )}
           </TouchableOpacity>
 
@@ -752,7 +763,7 @@ function LocationPickerModal({
                   <TouchableOpacity
                     style={[
                       styles.locationPickerItemContent,
-                      isSelected && styles.locationPickerItemSelected,
+                      isSelected && [styles.locationPickerItemSelected, { borderColor: accentColor, backgroundColor: `${accentColor}10` }],
                     ]}
                     onPress={() => handleSelect(location)}
                     activeOpacity={0.7}
@@ -763,13 +774,13 @@ function LocationPickerModal({
                     <Icon
                       name={isSelected ? 'map-marker-check' : 'map-marker'}
                       size={24}
-                      color={isSelected ? MODULE_COLOR : colors.textSecondary}
+                      color={isSelected ? accentColor : colors.textSecondary}
                     />
                     <View style={styles.locationPickerItemText}>
                       <Text
                         style={[
                           styles.locationPickerItemName,
-                          isSelected && styles.locationPickerItemNameSelected,
+                          isSelected && [styles.locationPickerItemNameSelected, { color: accentColor }],
                         ]}
                         numberOfLines={1}
                       >
@@ -780,7 +791,7 @@ function LocationPickerModal({
                       </Text>
                     </View>
                     {isSelected && (
-                      <Icon name="check" size={24} color={MODULE_COLOR} />
+                      <Icon name="check" size={24} color={accentColor} />
                     )}
                   </TouchableOpacity>
                   {/* Heart icon to unfavorite - consistent with search results */}
@@ -807,12 +818,12 @@ function LocationPickerModal({
 interface WelcomeModalProps {
   visible: boolean;
   onDismiss: () => void;
+  accentColor: string;
 }
 
-function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
+function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { accentColor } = useAccentColor();
 
   return (
     <Modal
@@ -824,7 +835,7 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
       <View style={styles.modalOverlay}>
         <View style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]}>
           {/* Header */}
-          <View style={[styles.welcomeHeader, { backgroundColor: MODULE_COLOR }]}>
+          <View style={[styles.welcomeHeader, { backgroundColor: accentColor }]}>
             <Icon name="weather-partly-cloudy" size={48} color={colors.textOnPrimary} />
             <Text style={styles.welcomeTitle}>{t('modules.weather.welcome.title')}</Text>
           </View>
@@ -832,21 +843,21 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
           {/* Steps */}
           <View style={styles.welcomeContent}>
             <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: MODULE_COLOR }]}>
+              <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
                 <Text style={styles.stepNumberText}>1</Text>
               </View>
               <Text style={styles.stepText}>{t('modules.weather.welcome.step1')}</Text>
             </View>
 
             <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: MODULE_COLOR }]}>
+              <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
                 <Text style={styles.stepNumberText}>2</Text>
               </View>
               <Text style={styles.stepText}>{t('modules.weather.welcome.step2')}</Text>
             </View>
 
             <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: MODULE_COLOR }]}>
+              <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
                 <Text style={styles.stepNumberText}>3</Text>
               </View>
               <Text style={styles.stepText}>{t('modules.weather.welcome.step3')}</Text>
@@ -855,7 +866,7 @@ function WelcomeModal({ visible, onDismiss }: WelcomeModalProps) {
 
           {/* Button */}
           <TouchableOpacity
-            style={[styles.welcomeButton, { backgroundColor: MODULE_COLOR }]}
+            style={[styles.welcomeButton, { backgroundColor: accentColor }]}
             onPress={onDismiss}
             activeOpacity={0.8}
             accessibilityRole="button"
@@ -880,6 +891,7 @@ export function WeatherScreen() {
   const reducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+  const { accentColor } = useAccentColor();
 
   // GPS location from FavoriteLocationsContext
   const {
@@ -1097,12 +1109,14 @@ export function WeatherScreen() {
           isActive={activeTab === 'weather'}
           onPress={() => handleTabChange('weather')}
           icon="weather-partly-cloudy"
+          accentColor={accentColor.primary}
         />
         <TabButton
           label={t('modules.weather.tabs.radar')}
           isActive={activeTab === 'radar'}
           onPress={() => handleTabChange('radar')}
           icon="radar"
+          accentColor={accentColor.primary}
         />
       </View>
 
@@ -1118,14 +1132,18 @@ export function WeatherScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('modules.weather.tapToChangeLocation')}
             >
-              <Icon name="map-marker" size={24} color={MODULE_COLOR} />
+              <Icon name="map-marker" size={24} color={accentColor.primary} />
               <Text style={styles.currentLocationName} numberOfLines={1}>
                 {weather?.location.name ?? t('modules.weather.noLocation')}
               </Text>
               <Icon name="chevron-down" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.searchToggleButton, showSearchMode && styles.searchToggleButtonActive]}
+              style={[
+                styles.searchToggleButton,
+                { borderColor: accentColor.primary },
+                showSearchMode && [styles.searchToggleButtonActive, { backgroundColor: accentColor.primary }],
+              ]}
               onPress={toggleSearchMode}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -1134,7 +1152,7 @@ export function WeatherScreen() {
               <Icon
                 name={showSearchMode ? 'close' : 'magnify'}
                 size={24}
-                color={showSearchMode ? colors.textOnPrimary : MODULE_COLOR}
+                color={showSearchMode ? colors.textOnPrimary : accentColor.primary}
               />
             </TouchableOpacity>
           </View>
@@ -1151,7 +1169,7 @@ export function WeatherScreen() {
                 maxLength={50}
               />
               {isSearching && (
-                <ActivityIndicator size="small" color={MODULE_COLOR} style={styles.searchSpinner} />
+                <ActivityIndicator size="small" color={accentColor.primary} style={styles.searchSpinner} />
               )}
             </View>
           )}
@@ -1174,6 +1192,7 @@ export function WeatherScreen() {
                         void saveLocation(result);
                       }
                     }}
+                    accentColor={accentColor.primary}
                   />
                 );
               })}
@@ -1202,7 +1221,7 @@ export function WeatherScreen() {
           {/* Loading State */}
           {isLoading && !weather && !showSearchMode && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={MODULE_COLOR} />
+              <ActivityIndicator size="large" color={accentColor.primary} />
               <Text style={styles.loadingText}>{t('modules.weather.loading')}</Text>
             </View>
           )}
@@ -1214,7 +1233,7 @@ export function WeatherScreen() {
               <Text style={styles.emptyTitle}>{t('modules.weather.noLocation')}</Text>
               <Text style={styles.emptyHint}>{t('modules.weather.noLocationHint')}</Text>
               <TouchableOpacity
-                style={[styles.emptyButton, { backgroundColor: MODULE_COLOR }]}
+                style={[styles.emptyButton, { backgroundColor: accentColor.primary }]}
                 onPress={toggleSearchMode}
               >
                 <Icon name="magnify" size={24} color={colors.textOnPrimary} />
@@ -1236,8 +1255,8 @@ export function WeatherScreen() {
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={handleRefresh}
-                  tintColor={MODULE_COLOR}
-                  colors={[MODULE_COLOR]}
+                  tintColor={accentColor.primary}
+                  colors={[accentColor.primary]}
                 />
               }
             >
@@ -1254,7 +1273,7 @@ export function WeatherScreen() {
                     <Icon
                       name={weatherService.getWeatherIcon(weather.current.weatherCode, weather.current.isDay)}
                       size={80}
-                      color={MODULE_COLOR}
+                      color={accentColor.primary}
                     />
                     <View style={styles.currentWeatherTemp}>
                       <Text style={styles.temperature}>
@@ -1270,6 +1289,7 @@ export function WeatherScreen() {
                       onPress={() => handleTtsPress('current')}
                       label={t('modules.weather.readCurrentWeather')}
                       compact
+                      accentColor={accentColor.primary}
                     />
                   </View>
 
@@ -1326,6 +1346,7 @@ export function WeatherScreen() {
                       onPress={() => handleTtsPress('forecast')}
                       label={t('modules.weather.readForecast')}
                       compact
+                      accentColor={accentColor.primary}
                     />
                   </View>
 
@@ -1339,6 +1360,7 @@ export function WeatherScreen() {
                           void triggerFeedback('tap');
                           setSelectedDayIndex(index);
                         }}
+                        accentColor={accentColor.primary}
                       />
                     ))}
                   </View>
@@ -1355,6 +1377,7 @@ export function WeatherScreen() {
           latitude={weather?.location.latitude ?? null}
           longitude={weather?.location.longitude ?? null}
           locationName={weather?.location.name ?? null}
+          accentColor={accentColor.primary}
         />
       )}
 
@@ -1364,6 +1387,7 @@ export function WeatherScreen() {
         day={selectedDayIndex !== null && weather ? weather.daily[selectedDayIndex] : null}
         dayIndex={selectedDayIndex ?? 0}
         onClose={() => setSelectedDayIndex(null)}
+        accentColor={accentColor.primary}
       />
 
       {/* Location Picker Modal */}
@@ -1378,12 +1402,14 @@ export function WeatherScreen() {
         isLoadingGps={isLoadingGps}
         gpsError={gpsError}
         gpsLocationId={gpsLocation?.id ?? null}
+        accentColor={accentColor.primary}
       />
 
       {/* Welcome Modal */}
       <WelcomeModal
         visible={showWelcome}
         onDismiss={handleWelcomeDismiss}
+        accentColor={accentColor.primary}
       />
     </View>
   );
@@ -1419,16 +1445,15 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: MODULE_COLOR,
+    // borderColor set via inline style with accentColor
     minHeight: touchTargets.minimum,
   },
   tabButtonActive: {
-    backgroundColor: MODULE_COLOR,
-    borderColor: MODULE_COLOR,
+    // backgroundColor set via inline style with accentColor
   },
   tabButtonText: {
     ...typography.button,
-    color: MODULE_COLOR,
+    // color set via inline style with accentColor
   },
   tabButtonTextActive: {
     color: colors.textOnPrimary,
@@ -1460,11 +1485,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: MODULE_COLOR,
+    borderColor: colors.primary, // Fallback, overridden by inline style
   },
   searchToggleButtonActive: {
-    backgroundColor: MODULE_COLOR,
-    borderColor: MODULE_COLOR,
+    backgroundColor: colors.primary, // Fallback, overridden by inline style
   },
   currentLocationName: {
     ...typography.h3,
@@ -1496,7 +1520,7 @@ const styles = StyleSheet.create({
   },
   radarPlaceholderLocation: {
     ...typography.body,
-    color: MODULE_COLOR,
+    color: colors.primary, // Fallback, overridden by inline style
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -1727,7 +1751,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: MODULE_COLOR,
+    // borderColor set via inline style with accentColor
     gap: spacing.sm,
     minHeight: touchTargets.minimum,
   },
@@ -1739,15 +1763,14 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: MODULE_COLOR,
+    // borderColor set via inline style with accentColor
   },
   ttsButtonActive: {
-    backgroundColor: MODULE_COLOR,
-    borderColor: MODULE_COLOR,
+    // backgroundColor set via inline style with accentColor
   },
   ttsButtonText: {
     ...typography.button,
-    color: MODULE_COLOR,
+    // color set via inline style with accentColor
   },
   ttsButtonTextActive: {
     color: colors.textOnPrimary,
@@ -1986,9 +2009,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   locationPickerItemSelected: {
-    borderColor: MODULE_COLOR,
+    // borderColor and backgroundColor set via inline style with accentColor
     borderWidth: 2,
-    backgroundColor: `${MODULE_COLOR}10`,
   },
   locationPickerItemText: {
     flex: 1,
@@ -2000,7 +2022,7 @@ const styles = StyleSheet.create({
   },
   locationPickerItemNameSelected: {
     fontWeight: '700',
-    color: MODULE_COLOR,
+    // color set via inline style with accentColor
   },
   locationPickerItemCountry: {
     ...typography.caption,
