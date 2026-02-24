@@ -4,6 +4,7 @@
 
 export { SettingsMainScreen } from './SettingsMainScreen';
 export { ProfileSettingsScreen } from './ProfileSettingsScreen';
+export { PrivacySettingsScreen } from './PrivacySettingsScreen';
 export { AccessibilitySettingsScreen } from './AccessibilitySettingsScreen';
 export { VoiceSettingsScreen } from './VoiceSettingsScreen';
 export { ModulesSettingsScreen } from './ModulesSettingsScreen';

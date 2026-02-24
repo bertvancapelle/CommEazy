@@ -277,6 +277,15 @@
       }
     }
   },
+  "privacySettings": {
+    "title": "Privacy",
+    "screenHint": "Gestisci le tue impostazioni sulla privacy",
+    "externalLinksTitle": "Link esterni",
+    "externalLinksHint": "Gestisci come vengono aperti i link esterni",
+    "externalLinksLabel": "Apri sempre nel browser",
+    "externalLinksToggleHint": "Apri i link esterni direttamente nel browser senza conferma",
+    "info": "Puoi sempre modificare questa impostazione."
+  },
   "accessibilitySettings": {
     "screenHint": "Personalizza vibrazione, suono e navigazione",
     "feedbackTitle": "Feedback",
@@ -1347,7 +1356,15 @@
     "ttsUnavailable": "Lettura non disponibile",
     "openInBrowser": "Apri nel browser",
     "fullArticleHint": "Tocca il link qui sotto per leggere l'articolo completo",
-    "webViewLabel": "Articolo: {{title}}"
+    "webViewLabel": "Articolo: {{title}}",
+    "externalLink": {
+      "title": "Link esterno",
+      "description": "Questo link si aprirà nel tuo browser fuori dall'app. Vuoi continuare?",
+      "cancel": "Annulla",
+      "open": "Apri",
+      "always": "Apri sempre",
+      "settingsHint": "Puoi modificare questo in Impostazioni → Privacy"
+    }
   },
   "articlePreview": {
     "title": "Articolo",

@@ -270,6 +270,15 @@
       }
     }
   },
+  "privacySettings": {
+    "title": "Privacidade",
+    "screenHint": "Gerencie suas configurações de privacidade",
+    "externalLinksTitle": "Links externos",
+    "externalLinksHint": "Gerencie como os links externos são abertos",
+    "externalLinksLabel": "Abrir sempre no navegador",
+    "externalLinksToggleHint": "Abrir links externos diretamente no navegador sem confirmação",
+    "info": "Você pode sempre alterar esta configuração."
+  },
   "accessibilitySettings": {
     "screenHint": "Ajuste vibrações, som e navegação",
     "feedbackTitle": "Feedback",
@@ -1413,7 +1422,15 @@
     "ttsUnavailable": "Leitura em voz alta não disponível",
     "openInBrowser": "Abrir no navegador",
     "fullArticleHint": "Toque no link abaixo para ler o artigo completo",
-    "webViewLabel": "Artigo: {{title}}"
+    "webViewLabel": "Artigo: {{title}}",
+    "externalLink": {
+      "title": "Link externo",
+      "description": "Este link vai abrir no seu navegador fora do aplicativo. Quer continuar?",
+      "cancel": "Cancelar",
+      "open": "Abrir",
+      "always": "Sempre abrir",
+      "settingsHint": "Você pode alterar isso em Configurações → Privacidade"
+    }
   },
   "articlePreview": {
     "title": "Artigo",

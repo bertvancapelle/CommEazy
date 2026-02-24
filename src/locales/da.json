@@ -327,6 +327,15 @@
       }
     }
   },
+  "privacySettings": {
+    "title": "Privatliv",
+    "screenHint": "Administrer dine privatlivsindstillinger",
+    "externalLinksTitle": "Eksterne links",
+    "externalLinksHint": "Administrer hvordan eksterne links åbnes",
+    "externalLinksLabel": "Åbn altid i browser",
+    "externalLinksToggleHint": "Åbn eksterne links direkte i browseren uden bekræftelse",
+    "info": "Du kan altid ændre denne indstilling."
+  },
   "accessibilitySettings": {
     "screenHint": "Juster vibrationer, lyd og navigation",
     "feedbackTitle": "Feedback",
@@ -1223,7 +1232,15 @@
     "ttsUnavailable": "Oplæsning ikke tilgængelig",
     "openInBrowser": "Åbn i browser",
     "fullArticleHint": "Tryk på linket nedenfor for at læse hele artiklen",
-    "webViewLabel": "Artikel: {{title}}"
+    "webViewLabel": "Artikel: {{title}}",
+    "externalLink": {
+      "title": "Eksternt link",
+      "description": "Dette link åbnes i din browser uden for appen. Vil du fortsætte?",
+      "cancel": "Annuller",
+      "open": "Åbn",
+      "always": "Åbn altid",
+      "settingsHint": "Du kan ændre dette i Indstillinger → Privatliv"
+    }
   },
   "articlePreview": {
     "title": "Artikel",

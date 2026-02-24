@@ -261,6 +261,15 @@
       }
     }
   },
+  "privacySettings": {
+    "title": "Privacy",
+    "screenHint": "Beheer je privacy-instellingen",
+    "externalLinksTitle": "Externe links",
+    "externalLinksHint": "Beheer hoe externe links worden geopend",
+    "externalLinksLabel": "Altijd openen in browser",
+    "externalLinksToggleHint": "Open externe links direct in je browser zonder bevestiging",
+    "info": "Je kunt deze instelling altijd wijzigen."
+  },
   "accessibilitySettings": {
     "screenHint": "Pas trillingen, geluid en navigatie aan",
     "feedbackTitle": "Feedback",
@@ -1381,7 +1390,15 @@
     "ttsUnavailable": "Voorlezen niet beschikbaar",
     "openInBrowser": "Open in browser",
     "fullArticleHint": "Tik op de link hieronder om het volledige artikel te lezen",
-    "webViewLabel": "Artikel: {{title}}"
+    "webViewLabel": "Artikel: {{title}}",
+    "externalLink": {
+      "title": "Externe link",
+      "description": "Deze link opent in je browser buiten de app. Wil je doorgaan?",
+      "cancel": "Annuleren",
+      "open": "Openen",
+      "always": "Altijd openen",
+      "settingsHint": "Je kunt dit wijzigen in Instellingen → Privacy"
+    }
   },
   "articlePreview": {
     "title": "Artikel",

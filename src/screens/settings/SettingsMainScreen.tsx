@@ -114,6 +114,7 @@ export function SettingsMainScreen() {
   // Settings menu items for voice navigation
   const settingsItems = useMemo(() => [
     { id: 'profile', label: t('settings.profile'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('ProfileSettings'); } },
+    { id: 'privacy', label: t('privacySettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('PrivacySettings'); } },
     { id: 'accessibility', label: t('settings.accessibility'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AccessibilitySettings'); } },
     { id: 'appearance', label: t('appearance.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AppearanceSettings'); } },
     { id: 'voice', label: t('voiceSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('VoiceSettings'); } },
@@ -299,11 +300,30 @@ export function SettingsMainScreen() {
           />
         </VoiceFocusable>
 
+        {/* Privacy - direct onder Profiel */}
+        <VoiceFocusable
+          id="privacy"
+          label={t('privacySettings.title')}
+          index={1}
+          onSelect={() => navigation.navigate('PrivacySettings')}
+        >
+          <SubsectionButton
+            icon="lock-closed"
+            label={t('privacySettings.title')}
+            onPress={() => navigation.navigate('PrivacySettings')}
+            accessibilityHint={t('privacySettings.screenHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('privacy')}
+            focusStyle={getFocusStyle()}
+            themeColors={themeColors}
+          />
+        </VoiceFocusable>
+
         {/* Toegankelijkheid */}
         <VoiceFocusable
           id="accessibility"
           label={t('settings.accessibility')}
-          index={1}
+          index={2}
           onSelect={() => navigation.navigate('AccessibilitySettings')}
         >
           <SubsectionButton
@@ -322,7 +342,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="appearance"
           label={t('appearance.title')}
-          index={2}
+          index={3}
           onSelect={() => navigation.navigate('AppearanceSettings')}
         >
           <SubsectionButton
@@ -341,7 +361,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="voice"
           label={t('voiceSettings.title')}
-          index={3}
+          index={4}
           onSelect={() => navigation.navigate('VoiceSettings')}
         >
           <SubsectionButton
@@ -360,7 +380,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="modules"
           label={t('settings.modules.title')}
-          index={4}
+          index={5}
           onSelect={() => navigation.navigate('ModulesSettings')}
         >
           <SubsectionButton
@@ -379,7 +399,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="call-settings"
           label={t('callSettings.title')}
-          index={5}
+          index={6}
           onSelect={() => navigation.navigate('CallSettings')}
         >
           <SubsectionButton
@@ -398,7 +418,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="notifications"
           label={t('settings.notifications')}
-          index={6}
+          index={7}
           onSelect={() => {
             Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
           }}
@@ -425,7 +445,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="backup"
           label={t('settings.backup')}
-          index={7}
+          index={8}
           onSelect={() => navigation.navigate('BackupSettings')}
         >
           <SubsectionButton
@@ -444,7 +464,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="device-link"
           label={t('settings.deviceLink')}
-          index={8}
+          index={9}
           onSelect={() => navigation.navigate('DeviceLinkShowQR')}
         >
           <SubsectionButton

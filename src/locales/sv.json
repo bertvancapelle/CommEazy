@@ -327,6 +327,15 @@
       }
     }
   },
+  "privacySettings": {
+    "title": "Integritet",
+    "screenHint": "Hantera dina integritetsinställningar",
+    "externalLinksTitle": "Externa länkar",
+    "externalLinksHint": "Hantera hur externa länkar öppnas",
+    "externalLinksLabel": "Öppna alltid i webbläsare",
+    "externalLinksToggleHint": "Öppna externa länkar direkt i webbläsaren utan bekräftelse",
+    "info": "Du kan alltid ändra denna inställning."
+  },
   "accessibilitySettings": {
     "screenHint": "Justera vibrationer, ljud och navigering",
     "feedbackTitle": "Återkoppling",
@@ -1223,7 +1232,15 @@
     "ttsUnavailable": "Uppläsning inte tillgänglig",
     "openInBrowser": "Öppna i webbläsare",
     "fullArticleHint": "Tryck på länken nedan för att läsa hela artikeln",
-    "webViewLabel": "Artikel: {{title}}"
+    "webViewLabel": "Artikel: {{title}}",
+    "externalLink": {
+      "title": "Extern länk",
+      "description": "Denna länk öppnas i din webbläsare utanför appen. Vill du fortsätta?",
+      "cancel": "Avbryt",
+      "open": "Öppna",
+      "always": "Öppna alltid",
+      "settingsHint": "Du kan ändra detta i Inställningar → Integritet"
+    }
   },
   "articlePreview": {
     "title": "Artikel",

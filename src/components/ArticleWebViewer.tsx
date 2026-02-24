@@ -26,7 +26,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -35,16 +35,24 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
+  Linking,
 } from 'react-native';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, IconButton, AdMobBanner } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { NewsArticle } from '@/types/modules';
+
+// ============================================================
+// AsyncStorage Keys
+// ============================================================
+
+const ALWAYS_OPEN_EXTERNAL_LINKS_KEY = 'article_always_open_external_links';
 
 // ============================================================
 // Allowed Domains for URL Filtering
@@ -356,11 +364,11 @@ const NUNL_CSS_INJECTION = `
     }
 
     /* === LINKS === */
-    /* Links are visually distinguished but disabled for tap */
+    /* Links are visually distinguished and clickable */
+    /* External link confirmation is handled by the app */
     a {
-      color: #666666 !important;
-      text-decoration: none !important;
-      pointer-events: none !important;
+      color: #0066cc !important;
+      text-decoration: underline !important;
     }
 
     /* === CONTRAST === */
@@ -444,6 +452,17 @@ export function ArticleWebViewer({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
+  // External link confirmation state
+  const [pendingExternalUrl, setPendingExternalUrl] = useState<string | null>(null);
+  const [alwaysOpenExternal, setAlwaysOpenExternal] = useState<boolean | null>(null);
+
+  // Load "always open external links" preference on mount
+  useEffect(() => {
+    AsyncStorage.getItem(ALWAYS_OPEN_EXTERNAL_LINKS_KEY).then((value) => {
+      setAlwaysOpenExternal(value === 'true');
+    });
+  }, []);
+
   // Handle close
   const handleClose = useCallback(() => {
     void triggerFeedback('tap');
@@ -491,17 +510,56 @@ export function ArticleWebViewer({
     webViewRef.current?.reload();
   }, []);
 
+  // ============================================================
+  // External Link Confirmation Handlers
+  // ============================================================
+
+  // Cancel external link navigation
+  const handleExternalLinkCancel = useCallback(() => {
+    void triggerFeedback('tap');
+    setPendingExternalUrl(null);
+  }, [triggerFeedback]);
+
+  // Open external link once
+  const handleExternalLinkOpen = useCallback(async () => {
+    void triggerFeedback('tap');
+    if (pendingExternalUrl) {
+      try {
+        await Linking.openURL(pendingExternalUrl);
+      } catch (error) {
+        console.warn('[ArticleWebViewer] Failed to open external URL:', error);
+      }
+    }
+    setPendingExternalUrl(null);
+  }, [pendingExternalUrl, triggerFeedback]);
+
+  // Open external link and remember preference
+  const handleExternalLinkAlways = useCallback(async () => {
+    void triggerFeedback('tap');
+    // Save preference
+    setAlwaysOpenExternal(true);
+    await AsyncStorage.setItem(ALWAYS_OPEN_EXTERNAL_LINKS_KEY, 'true');
+    // Open the link
+    if (pendingExternalUrl) {
+      try {
+        await Linking.openURL(pendingExternalUrl);
+      } catch (error) {
+        console.warn('[ArticleWebViewer] Failed to open external URL:', error);
+      }
+    }
+    setPendingExternalUrl(null);
+  }, [pendingExternalUrl, triggerFeedback]);
+
   /**
    * URL Filter Handler
    *
    * Controls which URLs can be loaded in the WebView.
-   * This prevents users from accidentally navigating away from the article
-   * by tapping on ads, related articles, or external links.
+   * External links show a confirmation modal before opening in the system browser.
    *
    * Behavior:
    * - Allow: nu.nl domains (main site, mobile, media CDN)
-   * - Block: Everything else (ads, tracking, external links)
-   * - Block: Known ad/tracking domains even if they somehow match
+   * - Block: Known ad/tracking domains
+   * - External links: Show confirmation modal (or open directly if "always" is set)
    *
    * Platform differences:
    * - iOS: onShouldStartLoadWithRequest is called for ALL requests
@@ -513,7 +571,7 @@ export function ArticleWebViewer({
    */
   const handleShouldStartLoadWithRequest = useCallback(
     (request: WebViewNavigation): boolean => {
-      const { url } = request;
+      const { url, navigationType } = request;
 
       // Always allow about:blank and data: URLs (internal WebView pages)
       if (url.startsWith('about:') || url.startsWith('data:')) {
@@ -546,13 +604,32 @@ export function ArticleWebViewer({
       });
 
       if (!isAllowed) {
-        console.debug('[ArticleWebViewer] Blocked external URL:', domain);
+        // External link detected!
+        // Only intercept user-initiated clicks (not automatic redirects)
+        // navigationType 'click' on iOS, undefined on Android for user taps
+        const isUserClick = navigationType === 'click' || Platform.OS === 'android';
+
+        if (isUserClick) {
+          // If "always open" preference is set, open directly
+          if (alwaysOpenExternal) {
+            console.debug('[ArticleWebViewer] Opening external URL (always):', domain);
+            Linking.openURL(url).catch((error) => {
+              console.warn('[ArticleWebViewer] Failed to open URL:', error);
+            });
+          } else {
+            // Show confirmation modal
+            console.debug('[ArticleWebViewer] External link, showing confirmation:', domain);
+            setPendingExternalUrl(url);
+          }
+        }
+
+        // Block navigation in WebView (we handle it via Linking)
         return false;
       }
 
       return true;
     },
-    [],
+    [alwaysOpenExternal],
   );
 
   if (!article) return null;
@@ -736,6 +813,84 @@ export function ArticleWebViewer({
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* External Link Confirmation Modal */}
+        <Modal
+          visible={pendingExternalUrl !== null}
+          animationType={reducedMotion ? 'fade' : 'slide'}
+          transparent
+          onRequestClose={handleExternalLinkCancel}
+        >
+          <View style={styles.externalLinkOverlay}>
+            <View style={styles.externalLinkModal}>
+              {/* Icon */}
+              <View style={[styles.externalLinkIconContainer, { backgroundColor: accentColor }]}>
+                <Icon name="external-link" size={32} color={colors.textOnPrimary} />
+              </View>
+
+              {/* Title */}
+              <Text style={styles.externalLinkTitle}>
+                {t('articleViewer.externalLink.title')}
+              </Text>
+
+              {/* Description */}
+              <Text style={styles.externalLinkDescription}>
+                {t('articleViewer.externalLink.description')}
+              </Text>
+
+              {/* URL Preview */}
+              {pendingExternalUrl && (
+                <Text style={styles.externalLinkUrl} numberOfLines={2}>
+                  {pendingExternalUrl}
+                </Text>
+              )}
+
+              {/* Settings Hint */}
+              <Text style={styles.externalLinkSettingsHint}>
+                {t('articleViewer.externalLink.settingsHint')}
+              </Text>
+
+              {/* Buttons */}
+              <View style={styles.externalLinkButtons}>
+                {/* Cancel */}
+                <TouchableOpacity
+                  style={styles.externalLinkButtonSecondary}
+                  onPress={handleExternalLinkCancel}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <Text style={styles.externalLinkButtonSecondaryText}>
+                    {t('common.cancel')}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Open Once */}
+                <TouchableOpacity
+                  style={[styles.externalLinkButton, { backgroundColor: accentColor }]}
+                  onPress={handleExternalLinkOpen}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('articleViewer.externalLink.open')}
+                >
+                  <Text style={styles.externalLinkButtonText}>
+                    {t('articleViewer.externalLink.open')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Always Open Button */}
+              <TouchableOpacity
+                style={styles.externalLinkAlwaysButton}
+                onPress={handleExternalLinkAlways}
+                accessibilityRole="button"
+                accessibilityLabel={t('articleViewer.externalLink.always')}
+              >
+                <Text style={[styles.externalLinkAlwaysText, { color: accentColor }]}>
+                  {t('articleViewer.externalLink.always')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </Modal>
   );
@@ -850,6 +1005,101 @@ const styles = StyleSheet.create({
   ttsButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
+  },
+
+  // External Link Confirmation Modal
+  externalLinkOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  externalLinkModal: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    width: '100%',
+    maxWidth: 400,
+    overflow: 'hidden',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  externalLinkIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  externalLinkTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  externalLinkDescription: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  externalLinkUrl: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    fontStyle: 'italic',
+  },
+  externalLinkSettingsHint: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.md,
+  },
+  externalLinkButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    width: '100%',
+    marginBottom: spacing.md,
+  },
+  externalLinkButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.minimum,
+  },
+  externalLinkButtonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
+  },
+  externalLinkButtonSecondary: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.minimum,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  externalLinkButtonSecondaryText: {
+    ...typography.button,
+    color: colors.textPrimary,
+  },
+  externalLinkAlwaysButton: {
+    paddingVertical: spacing.sm,
+  },
+  externalLinkAlwaysText: {
+    ...typography.body,
+    textDecorationLine: 'underline',
   },
 });
 

@@ -64,6 +64,7 @@ import {
 import {
   SettingsMainScreen,
   ProfileSettingsScreen,
+  PrivacySettingsScreen,
   AccessibilitySettingsScreen,
   ComplianceReportScreen,
   VoiceSettingsScreen,
@@ -146,6 +147,7 @@ export type SettingsStackParams = {
   SettingsMain: undefined;
   LanguageSettings: undefined;
   ProfileSettings: undefined;
+  PrivacySettings: undefined;  // External links, etc.
   AccessibilitySettings: undefined;
   ComplianceReport: undefined;  // WCAG AAA + EN 301 549 compliance report
   VoiceSettings: undefined;
@@ -409,6 +411,11 @@ function SettingsNavigator() {
         name="ProfileSettings"
         component={ProfileSettingsScreen}
         options={{ title: t('profile.changePhoto') }}
+      />
+      <SettingsStack.Screen
+        name="PrivacySettings"
+        component={PrivacySettingsScreen}
+        options={{ title: t('privacySettings.title') }}
       />
       <SettingsStack.Screen
         name="AccessibilitySettings"
