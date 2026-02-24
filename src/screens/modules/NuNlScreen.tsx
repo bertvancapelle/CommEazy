@@ -63,9 +63,10 @@ interface CategoryChipProps {
   isSelected: boolean;
   onPress: () => void;
   themeColors: ReturnType<typeof useColors>;
+  moduleColor: string;
 }
 
-function CategoryChip({ category, isSelected, onPress, themeColors }: CategoryChipProps) {
+function CategoryChip({ category, isSelected, onPress, themeColors, moduleColor }: CategoryChipProps) {
   const { t } = useTranslation();
   const holdGesture = useHoldGestureContextSafe();
 
@@ -82,7 +83,7 @@ function CategoryChip({ category, isSelected, onPress, themeColors }: CategoryCh
       style={[
         styles.categoryChip,
         { backgroundColor: themeColors.background, borderColor: themeColors.border },
-        isSelected && [styles.categoryChipSelected, { backgroundColor: nunlModuleColor, borderColor: nunlModuleColor }],
+        isSelected && [styles.categoryChipSelected, { backgroundColor: moduleColor, borderColor: moduleColor }],
       ]}
       onPress={handlePress}
       onLongPress={() => {}} // Prevent onPress after long press
@@ -420,6 +421,7 @@ export function NuNlScreen() {
               isSelected={selectedCategory === category.id}
               onPress={() => handleCategoryChange(category.id)}
               themeColors={themeColors}
+              moduleColor={nunlModuleColor}
             />
           ))}
         </ScrollView>
