@@ -1273,6 +1273,8 @@
   },
   "articleViewer": {
     "close": "Lukk",
+    "goBack": "Tilbake",
+    "goBackHint": "Du klikket på en lenke. Trykk for å gå tilbake til artikkelen.",
     "readAloud": "Les høyt",
     "pause": "Pause",
     "stop": "Stopp",

@@ -5,6 +5,7 @@
 #import <FirebaseMessaging/FirebaseMessaging.h>
 #import <UserNotifications/UserNotifications.h>
 #import "RNCallKeep.h"
+#import "OrientationModule.h"
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate, FIRMessagingDelegate>
 @end
@@ -145,6 +146,13 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
 {
   return [RNCallKeep application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+}
+
+// MARK: - Orientation Control
+
+- (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window
+{
+  return [OrientationModule supportedOrientations];
 }
 
 @end

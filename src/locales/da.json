@@ -1223,6 +1223,8 @@
   },
   "articleViewer": {
     "close": "Luk",
+    "goBack": "Tilbage",
+    "goBackHint": "Du klikkede på et link. Tryk for at vende tilbage til artiklen.",
     "readAloud": "Læs højt",
     "pause": "Pause",
     "stop": "Stop",

@@ -1391,6 +1391,8 @@
   },
   "articleViewer": {
     "close": "Close",
+    "goBack": "Back",
+    "goBackHint": "You clicked a link. Tap to return to the article.",
     "readAloud": "Read aloud",
     "pause": "Pause",
     "stop": "Stop",

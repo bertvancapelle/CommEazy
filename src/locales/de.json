@@ -1387,6 +1387,8 @@
   },
   "articleViewer": {
     "close": "Schließen",
+    "goBack": "Zurück",
+    "goBackHint": "Du hast auf einen Link geklickt. Tippe, um zum Artikel zurückzukehren.",
     "readAloud": "Vorlesen",
     "pause": "Pause",
     "stop": "Stopp",

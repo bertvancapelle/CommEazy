@@ -1223,6 +1223,8 @@
   },
   "articleViewer": {
     "close": "Stäng",
+    "goBack": "Tillbaka",
+    "goBackHint": "Du klickade på en länk. Tryck för att gå tillbaka till artikeln.",
     "readAloud": "Läs högt",
     "pause": "Paus",
     "stop": "Stopp",

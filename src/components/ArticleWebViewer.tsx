@@ -46,6 +46,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, IconButton, AdMobBanner } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { orientationService } from '@/services/orientationService';
 import type { NewsArticle } from '@/types/modules';
 
 // ============================================================
@@ -70,6 +71,21 @@ const ALLOWED_DOMAINS = [
   // CDN domains used by nu.nl for images/assets
   'media.nu.nl',
   'images.nu.nl',
+  // Additional nu.nl subdomains
+  'cdn.nu.nl',
+  'static.nu.nl',
+  'api.nu.nl',
+  // DPG Media (nu.nl parent company) - required for cookie consent flow
+  'dpgmedia.nl',
+  'myprivacy.dpgmedia.nl',
+  'www.myprivacy.dpgmedia.nl',
+  'privacy.dpgmedia.nl',
+  'consent.dpgmedia.nl',
+  'cmp.dpgmedia.nl',
+  // Additional DPG Media subdomains that may be used in consent flow
+  'api.dpgmedia.nl',
+  'auth.dpgmedia.nl',
+  'login.dpgmedia.nl',
 ];
 
 /**
@@ -94,13 +110,15 @@ const BLOCKED_DOMAINS = [
 
 /**
  * JavaScript injected BEFORE page content loads.
- * This script auto-accepts the OneTrust GDPR cookie consent popup.
+ * This script auto-accepts GDPR cookie consent popups from:
+ * - OneTrust (common consent provider)
+ * - DPG Media (nu.nl parent company's custom consent)
  *
  * How it works:
- * 1. Waits for OneTrust to initialize
- * 2. Clicks the accept button (#onetrust-accept-btn-handler)
- * 3. Hides the overlay immediately via CSS
- * 4. Sets up a MutationObserver to catch late-loading popups
+ * 1. Immediately hides cookie banners via CSS
+ * 2. Clicks accept buttons when they appear
+ * 3. Uses MutationObserver to catch late-loading popups
+ * 4. Intercepts window.open to prevent external browser redirects
  *
  * Platform notes:
  * - Works on both iOS and Android
@@ -109,6 +127,20 @@ const BLOCKED_DOMAINS = [
 const COOKIE_CONSENT_SCRIPT = `
 (function() {
   'use strict';
+
+  // === INTERCEPT WINDOW.OPEN ===
+  // DPG Media consent may try to open external browser - block this
+  var originalOpen = window.open;
+  window.open = function(url, target, features) {
+    console.log('[CommEazy] Blocked window.open:', url);
+    // If it's a consent/privacy URL, handle it in current window
+    if (url && (url.includes('consent') || url.includes('privacy') || url.includes('dpgmedia'))) {
+      window.location.href = url;
+      return window;
+    }
+    // Block other popups entirely
+    return null;
+  };
 
   // === IMMEDIATE CSS HIDE ===
   // Hide cookie banner immediately before it even renders
@@ -122,6 +154,13 @@ const COOKIE_CONSENT_SCRIPT = `
     .ot-fade-in,
     [class*="onetrust"],
     [id*="onetrust"],
+    /* DPG Media consent banner */
+    [class*="cmp-"],
+    [class*="consent-"],
+    [class*="privacy-wall"],
+    [class*="cookie-wall"],
+    #privacy-gate,
+    .privacy-gate,
     /* Generic cookie banner selectors */
     [class*="cookie-banner"],
     [class*="cookie-consent"],
@@ -138,7 +177,9 @@ const COOKIE_CONSENT_SCRIPT = `
     }
     /* Restore body scroll if locked */
     body.ot-overflow-hidden,
-    html.ot-overflow-hidden {
+    html.ot-overflow-hidden,
+    body.privacy-wall-active,
+    body.consent-wall-active {
       overflow: auto !important;
       position: static !important;
     }
@@ -148,33 +189,56 @@ const COOKIE_CONSENT_SCRIPT = `
   // === AUTO-ACCEPT FUNCTION ===
   function acceptCookies() {
     // Try multiple selectors for the accept button
+    // Includes both OneTrust and DPG Media consent buttons
     var selectors = [
+      // OneTrust
       '#onetrust-accept-btn-handler',
       '.onetrust-accept-btn-handler',
+      // DPG Media / Generic
+      '[data-testid="accept-button"]',
+      '[data-testid="consent-accept"]',
+      'button[class*="accept"]',
+      'button[class*="consent"]',
+      'button[class*="agree"]',
       '[id*="accept"]',
       'button[title*="Accept"]',
       'button[title*="Accepteren"]', // Dutch
       'button[title*="Akkoord"]',    // Dutch alternative
+      'button[title*="Alle cookies"]', // Dutch: Accept all cookies
+      // Text-based matching (last resort)
+      'button:contains("Akkoord")',
+      'button:contains("Accepteren")',
     ];
 
     for (var i = 0; i < selectors.length; i++) {
-      var btn = document.querySelector(selectors[i]);
-      if (btn && typeof btn.click === 'function') {
-        try {
+      try {
+        var btn = document.querySelector(selectors[i]);
+        if (btn && typeof btn.click === 'function') {
           btn.click();
-          console.log('[CommEazy] Cookie consent auto-accepted');
+          console.log('[CommEazy] Cookie consent auto-accepted via:', selectors[i]);
           return true;
-        } catch (e) {
-          // Silently continue
         }
+      } catch (e) {
+        // Silently continue - selector may be invalid
       }
     }
 
-    // Also try OneTrust API directly if available
+    // Try OneTrust API directly if available
     if (typeof OneTrust !== 'undefined' && OneTrust.AllowAll) {
       try {
         OneTrust.AllowAll();
         console.log('[CommEazy] Cookie consent accepted via OneTrust API');
+        return true;
+      } catch (e) {
+        // Silently continue
+      }
+    }
+
+    // Try DPG Media CMP API if available
+    if (typeof __cmp !== 'undefined') {
+      try {
+        __cmp('setConsent', { 'all': true });
+        console.log('[CommEazy] Cookie consent accepted via __cmp API');
         return true;
       } catch (e) {
         // Silently continue
@@ -204,20 +268,22 @@ const COOKIE_CONSENT_SCRIPT = `
   // === RETRY ATTEMPTS ===
   // Try to accept cookies at various stages of page load
   var attempts = 0;
-  var maxAttempts = 10;
+  var maxAttempts = 15;
   var retryInterval = setInterval(function() {
     attempts++;
     if (acceptCookies() || attempts >= maxAttempts) {
       clearInterval(retryInterval);
     }
-  }, 500);
+  }, 400);
 
   // === CLEANUP ===
-  // Disconnect observer after 10 seconds to save resources
+  // Disconnect observer after 15 seconds to save resources
   setTimeout(function() {
     observer.disconnect();
     clearInterval(retryInterval);
-  }, 10000);
+    // Restore window.open after consent phase
+    window.open = originalOpen;
+  }, 15000);
 
 })();
 true;
@@ -259,6 +325,13 @@ const NUNL_CSS_INJECTION = `
     [id*="onetrust"],
     .ot-sdk-container,
     #ot-sdk-btn-container,
+    /* DPG Media consent banners */
+    [class*="cmp-"],
+    [class*="consent-"],
+    [class*="privacy-wall"],
+    [class*="cookie-wall"],
+    #privacy-gate,
+    .privacy-gate,
     /* Generic cookie banners */
     [class*="cookie-banner"],
     [class*="cookie-consent"],
@@ -270,9 +343,11 @@ const NUNL_CSS_INJECTION = `
       opacity: 0 !important;
       pointer-events: none !important;
     }
-    /* Restore body scroll if OneTrust locked it */
+    /* Restore body scroll if OneTrust/DPG Media locked it */
     body.ot-overflow-hidden,
-    html.ot-overflow-hidden {
+    html.ot-overflow-hidden,
+    body.privacy-wall-active,
+    body.consent-wall-active {
       overflow: auto !important;
       position: static !important;
     }
@@ -451,6 +526,7 @@ export function ArticleWebViewer({
   // State
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [canGoBack, setCanGoBack] = useState(false);
 
   // External link confirmation state
   const [pendingExternalUrl, setPendingExternalUrl] = useState<string | null>(null);
@@ -463,6 +539,32 @@ export function ArticleWebViewer({
     });
   }, []);
 
+  // Reset loading state when modal opens with a new article
+  // Also add a timeout fallback to prevent infinite loading
+  useEffect(() => {
+    if (visible && article) {
+      setIsLoading(true);
+      setLoadError(false);
+      setCanGoBack(false); // Reset navigation history
+
+      // Fallback timeout: if loading takes longer than 20 seconds, stop spinner
+      const timeoutId = setTimeout(() => {
+        setIsLoading(false);
+        console.warn('[ArticleWebViewer] Loading timeout reached');
+      }, 20000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [visible, article?.id]);
+
+  // Cleanup orientation lock when component unmounts or modal closes
+  useEffect(() => {
+    return () => {
+      // Ensure orientation is locked when leaving the viewer
+      orientationService.lockToPortrait();
+    };
+  }, []);
+
   // Handle close
   const handleClose = useCallback(() => {
     void triggerFeedback('tap');
@@ -470,8 +572,27 @@ export function ArticleWebViewer({
     if (isTTSPlaying) {
       onStopTTS?.();
     }
+    // Lock orientation back to portrait when closing
+    orientationService.lockToPortrait();
     onClose();
   }, [isTTSPlaying, onStopTTS, onClose, triggerFeedback]);
+
+  // Handle back navigation within WebView
+  const handleGoBack = useCallback(() => {
+    void triggerFeedback('tap');
+    if (canGoBack && webViewRef.current) {
+      webViewRef.current.goBack();
+    }
+  }, [canGoBack, triggerFeedback]);
+
+  // Handle navigation state change (track if we can go back)
+  const handleNavigationStateChange = useCallback((navState: WebViewNavigation) => {
+    setCanGoBack(navState.canGoBack);
+    console.debug('[ArticleWebViewer] Navigation state:', {
+      url: navState.url?.substring(0, 80),
+      canGoBack: navState.canGoBack,
+    });
+  }, []);
 
   // Handle TTS toggle
   const handleTTSToggle = useCallback(() => {
@@ -488,18 +609,28 @@ export function ArticleWebViewer({
   }, [article, isTTSPlaying, onStartTTS, onStopTTS, triggerFeedback]);
 
   // Handle WebView load start
-  const handleLoadStart = useCallback(() => {
+  const handleLoadStart = useCallback((event: { nativeEvent: { url: string } }) => {
+    console.debug('[ArticleWebViewer] Load start:', event.nativeEvent.url);
     setIsLoading(true);
     setLoadError(false);
   }, []);
 
   // Handle WebView load end
-  const handleLoadEnd = useCallback(() => {
+  const handleLoadEnd = useCallback((event: { nativeEvent: { url: string } }) => {
+    console.debug('[ArticleWebViewer] Load end:', event.nativeEvent.url);
     setIsLoading(false);
   }, []);
 
   // Handle WebView error
-  const handleError = useCallback(() => {
+  const handleError = useCallback((event: { nativeEvent: { code: number; description: string } }) => {
+    console.error('[ArticleWebViewer] WebView error:', event.nativeEvent);
+    setIsLoading(false);
+    setLoadError(true);
+  }, []);
+
+  // Handle HTTP error (e.g., 404, 500)
+  const handleHttpError = useCallback((event: { nativeEvent: { statusCode: number } }) => {
+    console.error('[ArticleWebViewer] HTTP error:', event.nativeEvent.statusCode);
     setIsLoading(false);
     setLoadError(true);
   }, []);
@@ -603,6 +734,28 @@ export function ArticleWebViewer({
         return domain === allowed || domain.endsWith('.' + allowed);
       });
 
+      // Special handling for consent/privacy URLs - allow any dpgmedia subdomain
+      const isConsentUrl = domain.includes('dpgmedia') ||
+                           domain.includes('consent') ||
+                           domain.includes('privacy') ||
+                           url.includes('consent') ||
+                           url.includes('privacy') ||
+                           url.includes('cookie');
+
+      console.debug('[ArticleWebViewer] URL check:', {
+        url: url.substring(0, 120),
+        domain,
+        isAllowed,
+        isConsentUrl,
+        navigationType,
+      });
+
+      // Allow consent-related URLs even if not in explicit list
+      if (isConsentUrl && !isAllowed) {
+        console.info('[ArticleWebViewer] Allowing consent URL:', domain);
+        return true;
+      }
+
       if (!isAllowed) {
         // External link detected!
         // Only intercept user-initiated clicks (not automatic redirects)
@@ -644,19 +797,21 @@ export function ArticleWebViewer({
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header */}
         <View style={[styles.header, { backgroundColor: accentColor }]}>
-          <IconButton
-            icon="chevron-down"
-            onPress={handleClose}
-            size={48}
-            color={colors.textOnPrimary}
-            accessibilityLabel={t('articleViewer.close')}
-          />
+          {/* Spacer for symmetry */}
+          <View style={{ width: 48 }} />
 
           <Text style={styles.headerTitle} numberOfLines={1}>
             {article.title}
           </Text>
 
-          <View style={{ width: 48 }} />
+          {/* Close button - always visible */}
+          <IconButton
+            icon="close"
+            onPress={handleClose}
+            size={48}
+            color={colors.textOnPrimary}
+            accessibilityLabel={t('articleViewer.close')}
+          />
         </View>
 
         {/* AdMob Banner */}
@@ -704,6 +859,7 @@ export function ArticleWebViewer({
               onLoadStart={handleLoadStart}
               onLoadEnd={handleLoadEnd}
               onError={handleError}
+              onHttpError={handleHttpError}
               startInLoadingState={false}
               // ============================================================
               // URL Filtering (Problem 2: Prevent external navigation)
@@ -712,6 +868,8 @@ export function ArticleWebViewer({
               // We use it to block navigation to external sites.
               // Only nu.nl domains are allowed - everything else is blocked.
               onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+              // Track navigation state for back button
+              onNavigationStateChange={handleNavigationStateChange}
               // Android: Block new windows/tabs from opening
               // This prevents ads from opening in new browser tabs
               setSupportMultipleWindows={false}
@@ -747,9 +905,18 @@ export function ArticleWebViewer({
               domStorageEnabled={true}
               // Scale page to fit viewport
               scalesPageToFit={true}
-              // Allow video playback inline (not fullscreen)
-              allowsInlineMediaPlayback={true}
+              // Video playback settings
+              // allowsInlineMediaPlayback=false lets iOS show native fullscreen video
+              // which triggers our orientation unlock automatically
+              allowsInlineMediaPlayback={false}
               mediaPlaybackRequiresUserAction={false}
+              // Allow fullscreen video (triggers device rotation when user goes fullscreen)
+              allowsFullscreenVideo={true}
+              // Fullscreen video callbacks for orientation control
+              onContentProcessDidTerminate={() => {
+                // Reset orientation if WebView crashes during video
+                orientationService.lockToPortrait();
+              }}
               // ============================================================
               // Scrolling Performance
               // ============================================================
@@ -766,6 +933,9 @@ export function ArticleWebViewer({
               // Allow only HTTPS (iOS 9+/Android uses this by default)
               // Note: nu.nl uses HTTPS, so this is fine
               mixedContentMode="never"
+              // Only allow http/https URLs - blocks intent://, tel:, mailto: etc.
+              // This prevents consent buttons from opening external apps
+              originWhitelist={['https://*', 'http://*']}
               // ============================================================
               // Accessibility
               // ============================================================
@@ -774,44 +944,74 @@ export function ArticleWebViewer({
           )}
         </View>
 
-        {/* Bottom Controls */}
+        {/* Bottom Controls - Two buttons: Back + TTS */}
         <View style={[styles.bottomControls, { paddingBottom: insets.bottom + spacing.md }]}>
-          {/* TTS Button */}
-          <TouchableOpacity
-            style={[
-              styles.ttsButton,
-              { backgroundColor: accentColor },
-              isTTSLoading && styles.ttsButtonDisabled,
-            ]}
-            onPress={handleTTSToggle}
-            disabled={isTTSLoading}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel={
-              isTTSPlaying
-                ? t('articleViewer.stop')
-                : t('articleViewer.readAloud')
-            }
-            accessibilityState={{ disabled: isTTSLoading }}
-          >
-            {isTTSLoading ? (
-              <ActivityIndicator size="small" color={colors.textOnPrimary} />
-            ) : (
+          <View style={styles.bottomButtonsRow}>
+            {/* Back Button - always visible, RED when user has navigated within WebView */}
+            <TouchableOpacity
+              style={[
+                styles.bottomButton,
+                {
+                  backgroundColor: canGoBack ? colors.error : accentColor,
+                },
+              ]}
+              onPress={handleClose}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('articleViewer.goBack')}
+              accessibilityHint={
+                canGoBack
+                  ? t('articleViewer.goBackHint')
+                  : undefined
+              }
+            >
               <Icon
-                name={isTTSPlaying ? 'pause' : 'volume-up'}
+                name="chevron-left"
                 size={24}
                 color={colors.textOnPrimary}
               />
-            )}
-            <Text style={styles.ttsButtonText}>
-              {isTTSLoading
-                ? t('articleViewer.loading')
-                : isTTSPlaying
+              <Text style={styles.bottomButtonText}>
+                {t('articleViewer.goBack')}
+              </Text>
+            </TouchableOpacity>
+
+            {/* TTS Button */}
+            <TouchableOpacity
+              style={[
+                styles.bottomButton,
+                { backgroundColor: accentColor },
+                isTTSLoading && styles.bottomButtonDisabled,
+              ]}
+              onPress={handleTTSToggle}
+              disabled={isTTSLoading}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isTTSPlaying
                   ? t('articleViewer.stop')
                   : t('articleViewer.readAloud')
               }
-            </Text>
-          </TouchableOpacity>
+              accessibilityState={{ disabled: isTTSLoading }}
+            >
+              {isTTSLoading ? (
+                <ActivityIndicator size="small" color={colors.textOnPrimary} />
+              ) : (
+                <Icon
+                  name={isTTSPlaying ? 'pause' : 'volume-up'}
+                  size={24}
+                  color={colors.textOnPrimary}
+                />
+              )}
+              <Text style={styles.bottomButtonText}>
+                {isTTSLoading
+                  ? t('articleViewer.loading')
+                  : isTTSPlaying
+                    ? t('articleViewer.stop')
+                    : t('articleViewer.readAloud')
+                }
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* External Link Confirmation Modal */}
@@ -989,20 +1189,25 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-  ttsButton: {
+  bottomButtonsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  bottomButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
     minHeight: touchTargets.comfortable,
     gap: spacing.sm,
   },
-  ttsButtonDisabled: {
+  bottomButtonDisabled: {
     opacity: 0.6,
   },
-  ttsButtonText: {
+  bottomButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
   },

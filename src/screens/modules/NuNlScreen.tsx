@@ -41,7 +41,6 @@ import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useNewsArticles } from '@/hooks/useNewsArticles';
 import { useArticleTTS } from '@/hooks/useArticleTTS';
@@ -278,7 +277,6 @@ export function NuNlScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
-  const reducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
 
@@ -364,11 +362,13 @@ export function NuNlScreen() {
     startTTS(article, false);
   }, [startTTS]);
 
-  // Handle "Open Full Article" - close preview and open full article viewer
+  // Handle "Open Full Article" - opens in embedded WebView
+  // If nu.nl shows cookie consent, user can accept it directly in the WebView
   const handleOpenFullArticle = useCallback((article: NewsArticle) => {
     setPreviewArticle(null);
+    void triggerFeedback('tap');
     setFullArticle(article);
-  }, []);
+  }, [triggerFeedback]);
 
   // Handle full article viewer close
   const handleFullArticleClose = useCallback(() => {
@@ -506,7 +506,7 @@ export function NuNlScreen() {
         onStopTTS={stopTTS}
       />
 
-      {/* Full Article WebViewer (second step - embedded browser with TTS option) */}
+      {/* Full Article WebViewer (embedded browser - cookies accepted within WebView) */}
       <ArticleWebViewer
         visible={fullArticle !== null}
         article={fullArticle}

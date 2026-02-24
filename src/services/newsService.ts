@@ -346,24 +346,185 @@ class NewsServiceImpl {
   }
 
   /**
-   * Fetch full article text for TTS (placeholder - would need HTML scraping)
+   * Fetch full article text for TTS
+   *
+   * Extracts the main article content from the webpage HTML.
+   * Uses site-specific selectors for known news sources (nu.nl).
+   *
+   * @param article - The article to extract text from
+   * @returns Full article text formatted for TTS, or null if extraction fails
    */
   async fetchFullArticleText(article: NewsArticle): Promise<string | null> {
-    // For now, return the RSS description
-    // In a full implementation, this would:
-    // 1. Fetch the article HTML
-    // 2. Extract main content using site-specific selectors
-    // 3. Clean and format for TTS
-
     const moduleDef = getModuleById(article.moduleId);
     if (!moduleDef?.supportsFullTextExtraction) {
       console.debug('[newsService] Full text extraction not supported for', article.moduleId);
       return null;
     }
 
-    // TODO: Implement full article text extraction
-    // For now, return description with title prefix for TTS
-    return `${article.title}. ${article.description}`;
+    try {
+      console.info('[newsService] Fetching full article text:', article.link);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      const response = await fetch(article.link, {
+        signal: controller.signal,
+        headers: {
+          Accept: 'text/html',
+          'User-Agent': 'CommEazy/1.0 (Article Reader)',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.warn('[newsService] Failed to fetch article:', response.status);
+        return null;
+      }
+
+      const html = await response.text();
+      const extractedText = this.extractArticleContent(html, article.moduleId);
+
+      if (extractedText && extractedText.length > article.description.length) {
+        console.info('[newsService] Extracted', extractedText.length, 'chars of full text');
+        return `${article.title}. ${extractedText}`;
+      }
+
+      // Fallback to description if extraction failed or returned less content
+      console.debug('[newsService] Using RSS description as fallback');
+      return `${article.title}. ${article.description}`;
+
+    } catch (error) {
+      console.warn('[newsService] Full text extraction failed:', error);
+      // Fallback to description
+      return `${article.title}. ${article.description}`;
+    }
+  }
+
+  /**
+   * Extract article content from HTML using site-specific selectors
+   *
+   * nu.nl article structure:
+   * - Main content: <div class="block block--paragraph"> or <p> within article
+   * - Also: <div class="article-body">
+   */
+  private extractArticleContent(html: string, moduleId: string): string | null {
+    // Site-specific extraction rules
+    const extractionRules: Record<string, RegExp[]> = {
+      nunl: [
+        // nu.nl uses various paragraph blocks
+        /<div[^>]*class="[^"]*block--paragraph[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
+        /<div[^>]*class="[^"]*article-body[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
+        // Fallback: all <p> tags within article content
+        /<article[^>]*>([\s\S]*?)<\/article>/i,
+      ],
+    };
+
+    const rules = extractionRules[moduleId];
+    if (!rules) {
+      // Generic extraction: try to find <article> content or main paragraphs
+      return this.extractGenericContent(html);
+    }
+
+    const paragraphs: string[] = [];
+
+    // Try each extraction rule
+    for (const rule of rules) {
+      rule.lastIndex = 0; // Reset regex state
+      let match;
+
+      while ((match = rule.exec(html)) !== null) {
+        const content = match[1] || match[0];
+        const cleanContent = this.cleanHtmlForTts(content);
+        if (cleanContent && cleanContent.length > 20) {
+          paragraphs.push(cleanContent);
+        }
+      }
+
+      // If we found content with this rule, use it
+      if (paragraphs.length > 0) {
+        break;
+      }
+    }
+
+    // If site-specific rules didn't work, try generic extraction
+    if (paragraphs.length === 0) {
+      return this.extractGenericContent(html);
+    }
+
+    // Join paragraphs with proper sentence separation
+    return paragraphs.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /**
+   * Generic content extraction for unknown sites
+   * Extracts all meaningful <p> tags from the page
+   */
+  private extractGenericContent(html: string): string | null {
+    const paragraphs: string[] = [];
+
+    // Extract all <p> tags
+    const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+    let match;
+
+    while ((match = pRegex.exec(html)) !== null) {
+      const cleanContent = this.cleanHtmlForTts(match[1]);
+      // Only include paragraphs that look like article content
+      // (longer than 50 chars, not just links or metadata)
+      if (cleanContent && cleanContent.length > 50 && !this.isMetadataText(cleanContent)) {
+        paragraphs.push(cleanContent);
+      }
+    }
+
+    if (paragraphs.length === 0) {
+      return null;
+    }
+
+    return paragraphs.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /**
+   * Check if text looks like metadata rather than article content
+   */
+  private isMetadataText(text: string): boolean {
+    const metadataPatterns = [
+      /^(door|by|geschreven|written|auteur|author)/i,
+      /^\d{1,2}[:\-\/]\d{1,2}/,  // Looks like a date/time
+      /^(lees ook|read also|bekijk ook|see also)/i,
+      /cookie|privacy|advertentie|advertisement/i,
+      /^copyright|alle rechten|all rights/i,
+    ];
+
+    return metadataPatterns.some(pattern => pattern.test(text));
+  }
+
+  /**
+   * Clean HTML content specifically for TTS output
+   * More aggressive cleaning than general cleanHtml
+   */
+  private cleanHtmlForTts(html: string): string {
+    let text = html;
+
+    // Remove script and style tags completely
+    text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+    text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+
+    // Remove common non-content elements
+    text = text.replace(/<(nav|header|footer|aside|figure|figcaption)[^>]*>[\s\S]*?<\/\1>/gi, '');
+
+    // Remove links but keep the text
+    text = text.replace(/<a[^>]*>([\s\S]*?)<\/a>/gi, '$1');
+
+    // Remove all remaining HTML tags
+    text = text.replace(/<[^>]+>/g, ' ');
+
+    // Decode HTML entities
+    text = this.cleanHtml(text);
+
+    // Clean up excessive whitespace
+    text = text.replace(/\s+/g, ' ').trim();
+
+    return text;
   }
 
   /**

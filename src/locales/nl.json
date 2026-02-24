@@ -1381,6 +1381,8 @@
   },
   "articleViewer": {
     "close": "Sluiten",
+    "goBack": "Terug",
+    "goBackHint": "Je hebt op een link geklikt. Tik om terug te gaan naar het artikel.",
     "readAloud": "Voorlezen",
     "pause": "Pauze",
     "stop": "Stop",

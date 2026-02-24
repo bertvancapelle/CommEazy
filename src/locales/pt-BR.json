@@ -1413,6 +1413,8 @@
   },
   "articleViewer": {
     "close": "Fechar",
+    "goBack": "Voltar",
+    "goBackHint": "Você clicou em um link. Toque para voltar ao artigo.",
     "readAloud": "Ler em voz alta",
     "pause": "Pausa",
     "stop": "Parar",
