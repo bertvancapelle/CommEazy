@@ -14,6 +14,7 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7699B88040F8A987B510C191 /* libPods-CommEazyTemp-CommEazyTempTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-CommEazyTemp-CommEazyTempTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		8229565A2F4DBF7C00794A9C /* OrientationModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 822956592F4DBF7C00794A9C /* OrientationModule.m */; };
 		823E16082F48A94000A80AD8 /* AudioServices.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E16072F48A94000A80AD8 /* AudioServices.m */; };
 		824370CF2F45E14200860BF5 /* sherpa_onnx 2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 824370CE2F45E14200860BF5 /* sherpa_onnx 2.xcframework */; };
 		82520A952F4A517A00351FD1 /* LiquidGlassModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82520A942F4A517900351FD1 /* LiquidGlassModule.swift */; };
@@ -65,6 +66,8 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = CommEazyTemp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8212B7762F3E47AF00278E4E /* CommEazyTemp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CommEazyTemp.entitlements; sourceTree = "<group>"; };
 		8212B7772F3F0E8F00278E4E /* CommEazyTemp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = CommEazyTemp.entitlements; path = CommEazyTemp/CommEazyTemp.entitlements; sourceTree = "<group>"; };
+		822956582F4DBF6500794A9C /* OrientationModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OrientationModule.h; sourceTree = "<group>"; };
+		822956592F4DBF7C00794A9C /* OrientationModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OrientationModule.m; sourceTree = "<group>"; };
 		823E16062F48A91200A80AD8 /* AudioServices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioServices.h; sourceTree = "<group>"; };
 		823E16072F48A94000A80AD8 /* AudioServices.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioServices.m; sourceTree = "<group>"; };
 		824370CE2F45E14200860BF5 /* sherpa_onnx 2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = "sherpa_onnx 2.xcframework"; sourceTree = "<group>"; };
@@ -167,6 +170,8 @@
 				8297F3042F4AB90B00F4069D /* GlassPlayerWindow */,
 				8297F3132F4B265200F4069D /* AppleMusicModule.swift */,
 				8297F3152F4B266500F4069D /* AppleMusicModule.m */,
+				822956582F4DBF6500794A9C /* OrientationModule.h */,
+				822956592F4DBF7C00794A9C /* OrientationModule.m */,
 			);
 			name = CommEazyTemp;
 			sourceTree = "<group>";
@@ -590,6 +595,7 @@
 				8297F30E2F4AB9D600F4069D /* MiniPlayerNativeView.swift in Sources */,
 				8291E00F2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm in Sources */,
 				8297F3142F4B265200F4069D /* AppleMusicModule.swift in Sources */,
+				8229565A2F4DBF7C00794A9C /* OrientationModule.m in Sources */,
 				8297F3082F4AB92600F4069D /* GlassPlayerWindowModule.m in Sources */,
 				82520A9B2F4A535500351FD1 /* LiquidGlassViewManager.m in Sources */,
 				82520A952F4A517A00351FD1 /* LiquidGlassModule.swift in Sources */,

@@ -37,7 +37,7 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import { WebView, WebViewNavigation } from 'react-native-webview';
+import { WebView, WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -128,11 +128,42 @@ const COOKIE_CONSENT_SCRIPT = `
 (function() {
   'use strict';
 
+  // === PRE-SET CONSENT COOKIES ===
+  // Set DPG Media / nu.nl consent cookies BEFORE the page checks them
+  // This prevents the cookie banner from appearing at all
+  try {
+    // DPG Media consent cookie (TCF v2 format)
+    // This is a base64-encoded consent string that indicates "all accepted"
+    var consentExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+
+    // OneTrust consent cookie
+    document.cookie = 'OptanonAlertBoxClosed=' + new Date().toISOString() + '; path=/; max-age=31536000; SameSite=Lax';
+    document.cookie = 'OptanonConsent=isGpcEnabled=0&datestamp=' + encodeURIComponent(new Date().toISOString()) + '&version=6.39.0&isIABGlobal=false&hosts=&consentId=commeazy-app&interactionCount=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1; path=/; max-age=31536000; SameSite=Lax';
+
+    // DPG Media specific consent cookies
+    document.cookie = 'dpg_consent=1; path=/; max-age=31536000; SameSite=Lax';
+    document.cookie = 'npo_cc=30; path=/; max-age=31536000; SameSite=Lax';
+    document.cookie = 'npo_cc_session=1; path=/; SameSite=Lax';
+
+    // Privacy wall bypass
+    document.cookie = 'privacy_wall_accepted=1; path=/; max-age=31536000; SameSite=Lax';
+    document.cookie = 'consent_wall_accepted=1; path=/; max-age=31536000; SameSite=Lax';
+
+    console.log('[CommEazy] Pre-set consent cookies');
+  } catch (e) {
+    console.log('[CommEazy] Failed to pre-set cookies:', e);
+  }
+
   // === INTERCEPT WINDOW.OPEN ===
   // DPG Media consent may try to open external browser - block this
   var originalOpen = window.open;
   window.open = function(url, target, features) {
     console.log('[CommEazy] Blocked window.open:', url);
+    // If it's a nu.nl URL, navigate in current window instead
+    if (url && url.includes('nu.nl')) {
+      window.location.href = url;
+      return window;
+    }
     // If it's a consent/privacy URL, handle it in current window
     if (url && (url.includes('consent') || url.includes('privacy') || url.includes('dpgmedia'))) {
       window.location.href = url;
@@ -682,6 +713,57 @@ export function ArticleWebViewer({
   }, [pendingExternalUrl, triggerFeedback]);
 
   /**
+   * Handle window.open() and target="_blank" links
+   *
+   * This handler is called when JavaScript tries to open a new window/tab.
+   * Instead of opening a new browser window (which would exit the app),
+   * we navigate to the URL within the current WebView.
+   *
+   * This is CRITICAL for preventing the nu.nl app from opening:
+   * - Cookie accept buttons often use window.open() or target="_blank"
+   * - iOS detects nu.nl URLs and tries to open the nu.nl app (Universal Links)
+   * - By handling this ourselves, we keep the user in CommEazy
+   *
+   * @param syntheticEvent - Contains targetUrl that was requested
+   */
+  const handleOpenWindow = useCallback(
+    (syntheticEvent: WebViewOpenWindowEvent) => {
+      const { targetUrl } = syntheticEvent.nativeEvent;
+
+      console.info('[ArticleWebViewer] onOpenWindow intercepted:', targetUrl);
+
+      if (!targetUrl) {
+        return;
+      }
+
+      // Check if it's a nu.nl URL - navigate in current WebView
+      if (targetUrl.includes('nu.nl')) {
+        console.info('[ArticleWebViewer] Navigating to nu.nl URL in WebView:', targetUrl);
+        webViewRef.current?.injectJavaScript(`
+          window.location.href = "${targetUrl}";
+          true;
+        `);
+        return;
+      }
+
+      // For consent/privacy URLs, also handle in WebView
+      if (targetUrl.includes('consent') || targetUrl.includes('privacy') || targetUrl.includes('dpgmedia')) {
+        console.info('[ArticleWebViewer] Navigating to consent URL in WebView:', targetUrl);
+        webViewRef.current?.injectJavaScript(`
+          window.location.href = "${targetUrl}";
+          true;
+        `);
+        return;
+      }
+
+      // For other external URLs, show the confirmation modal
+      console.debug('[ArticleWebViewer] External URL in onOpenWindow, showing confirmation');
+      setPendingExternalUrl(targetUrl);
+    },
+    [],
+  );
+
+  /**
    * URL Filter Handler
    *
    * Controls which URLs can be loaded in the WebView.
@@ -870,6 +952,13 @@ export function ArticleWebViewer({
               onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
               // Track navigation state for back button
               onNavigationStateChange={handleNavigationStateChange}
+              // ============================================================
+              // Window.open / target="_blank" Interception
+              // ============================================================
+              // CRITICAL: Handle window.open() and target="_blank" clicks
+              // Without this, cookie accept buttons may open the nu.nl app
+              // via Universal Links, or open Safari
+              onOpenWindow={handleOpenWindow}
               // Android: Block new windows/tabs from opening
               // This prevents ads from opening in new browser tabs
               setSupportMultipleWindows={false}
@@ -936,6 +1025,13 @@ export function ArticleWebViewer({
               // Only allow http/https URLs - blocks intent://, tel:, mailto: etc.
               // This prevents consent buttons from opening external apps
               originWhitelist={['https://*', 'http://*']}
+              // ============================================================
+              // User Agent (Prevent app detection)
+              // ============================================================
+              // Custom user agent suffix to appear as Safari, not a WebView
+              // This prevents nu.nl from detecting the WebView and trying
+              // to open the nu.nl app via Universal Links
+              applicationNameForUserAgent="Safari/605.1.15"
               // ============================================================
               // Accessibility
               // ============================================================

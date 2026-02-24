@@ -10,6 +10,42 @@
 - Build errors zijn direct beschikbaar via `GetBuildLog` en `XcodeListNavigatorIssues`
 - Previews kunnen worden gerenderd met `RenderPreview`
 
+## ⚠️ PNA Commando — Pas Niets Aan (VERPLICHT)
+
+**Wanneer de gebruiker "PNA" intikt, betekent dit:**
+
+1. **Pas NIETS aan** — Geen code wijzigingen, geen bestanden aanraken
+2. **Overleg modus** — Gebruiker wil discussiëren, niet implementeren
+3. **Pas ALLE skills toe** — Analyseer vanuit alle relevante perspectieven (security, accessibility, architecture, etc.)
+4. **Wees kritisch** — Benoem risico's, edge cases, en mogelijke problemen
+5. **Stel vragen** — Vraag om verduidelijking waar nodig
+6. **Vat samen** — Geef een duidelijke conclusie met opties
+7. **Vraag toestemming** — Wacht op expliciete goedkeuring voordat je IETS uitvoert
+
+**Voorbeeld:**
+```
+Gebruiker: "PNA ik denk eraan om de login flow te wijzigen"
+
+Claude:
+"Begrepen, PNA modus. Ik pas niets aan en we overleggen.
+
+**Analyse vanuit skills:**
+- 🔒 Security: [overwegingen]
+- ♿ Accessibility: [overwegingen]
+- 👴 Senior UX: [overwegingen]
+- 🏗️ Architecture: [overwegingen]
+
+**Vragen:**
+1. Wat is het doel van de wijziging?
+
+**Conclusie:**
+[Samenvatting van opties met voor/nadelen]
+
+Wil je dat ik dit implementeer, of heb je nog vragen?"
+```
+
+---
+
 ## ⚠️ Werkprincipe voor Gebruikersgerichte Features (VERPLICHT)
 
 **Dit principe geldt voor ALLE gebruikersgerichte features** (niet voor technische fixes zoals bug fixes, refactoring, of infrastructuur).
