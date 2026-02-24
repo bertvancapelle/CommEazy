@@ -526,7 +526,10 @@ export function RadioScreen() {
   }, [isPlaying]);
 
   // Load user's default country and language from profile
+  // Re-runs when screen gains focus (e.g., after changing profile settings)
   useEffect(() => {
+    if (!isFocused) return; // Only load when screen is focused
+
     const loadUserDefaults = async () => {
       try {
         if (ServiceContainer.isInitialized) {
@@ -553,7 +556,7 @@ export function RadioScreen() {
       }
     };
     loadUserDefaults();
-  }, []);
+  }, [isFocused]);
 
   // Load favorites from storage
   useEffect(() => {
