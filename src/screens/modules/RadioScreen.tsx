@@ -45,7 +45,6 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, SearchBar, ChipSelector, type SearchBarRef, type FilterMode } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
-import { useWheelMenuContextSafe } from '@/contexts/WheelMenuContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -240,7 +239,6 @@ export function RadioScreen() {
   const radioModuleColor = useModuleColor('radio');  // User-customizable module color
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const holdGesture = useHoldGestureContextSafe();
-  const wheelMenu = useWheelMenuContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
@@ -596,14 +594,6 @@ export function RadioScreen() {
       loadStations();
     }
   }, [selectedCountry, selectedLanguage, filterMode]);
-
-  // Handle module icon tap — open wheel navigation menu
-  const handleModuleIconPress = useCallback(() => {
-    if (wheelMenu) {
-      void triggerFeedback('tap');
-      wheelMenu.openMenu(null, 'radio');
-    }
-  }, [wheelMenu, triggerFeedback]);
 
   // Handle filter mode change — reset to appropriate default
   const handleFilterModeChange = useCallback((newMode: FilterMode) => {
@@ -1207,8 +1197,6 @@ export function RadioScreen() {
           currentSource="radio"
           showAdMob={true}
           style={styles.absoluteHeader}
-          onModuleIconPress={handleModuleIconPress}
-          moduleIconLabel={t('navigation.switchModule')}
         />
 
         {/* Spacer pushes MiniPlayer to bottom */}

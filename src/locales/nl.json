@@ -739,6 +739,7 @@
     "back_hint": "Toon de meest gebruikte modules",
     "current_module": "Dit is je huidige module",
     "switchModule": "Wissel van module",
+    "switchModuleHint": "Opent het module keuzemenu",
     "sidebar": "Navigatiemenu",
     "sections": {
       "communication": "Communicatie",

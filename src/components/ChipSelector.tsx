@@ -22,7 +22,7 @@
  * @see .claude/CLAUDE.md Section 14 (Component Registry)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  type LayoutChangeEvent,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -124,6 +125,56 @@ export function ChipSelector({
   const { triggerFeedback } = useFeedback();
   const [showModeModal, setShowModeModal] = useState(false);
 
+  // Auto-scroll to selected chip
+  const scrollViewRef = useRef<ScrollView>(null);
+  const chipWidthsRef = useRef<Map<string, { x: number; width: number }>>(new Map());
+  const scrollViewWidthRef = useRef<number>(0);
+  const hasScrolledRef = useRef(false);
+
+  // Track chip layouts for scroll calculation
+  const handleChipLayout = useCallback((code: string, event: LayoutChangeEvent) => {
+    const { x, width } = event.nativeEvent.layout;
+    chipWidthsRef.current.set(code, { x, width });
+  }, []);
+
+  // Track scroll view width
+  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
+    scrollViewWidthRef.current = event.nativeEvent.layout.width;
+  }, []);
+
+  // Scroll to selected chip (centered if possible)
+  const scrollToSelected = useCallback(() => {
+    const chipInfo = chipWidthsRef.current.get(selectedCode);
+    if (!chipInfo || !scrollViewRef.current) return;
+
+    const scrollViewWidth = scrollViewWidthRef.current;
+    if (scrollViewWidth === 0) return;
+
+    // Calculate scroll position to center the chip
+    const chipCenter = chipInfo.x + chipInfo.width / 2;
+    const scrollX = Math.max(0, chipCenter - scrollViewWidth / 2);
+
+    scrollViewRef.current.scrollTo({ x: scrollX, animated: true });
+  }, [selectedCode]);
+
+  // Auto-scroll when selectedCode changes or on initial mount
+  useEffect(() => {
+    // Small delay to ensure layout is complete
+    const timer = setTimeout(() => {
+      scrollToSelected();
+      hasScrolledRef.current = true;
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [selectedCode, scrollToSelected]);
+
+  // Also scroll when options change (e.g., switching between countries/languages)
+  useEffect(() => {
+    // Reset scroll tracking when options change
+    hasScrolledRef.current = false;
+    chipWidthsRef.current.clear();
+  }, [options]);
+
   // Determine label based on mode or custom label
   const displayLabel = label ?? t(`components.chipSelector.${mode}`);
 
@@ -185,9 +236,11 @@ export function ChipSelector({
 
       {/* Horizontal scrolling chips */}
       <ScrollView
+        ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipList}
+        onLayout={handleScrollViewLayout}
       >
         {options.map((option) => {
           const isSelected = selectedCode === option.code;
@@ -209,6 +262,7 @@ export function ChipSelector({
                 // Required for HoldToNavigateWrapper compatibility
               }}
               delayLongPress={300}
+              onLayout={(event) => handleChipLayout(option.code, event)}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
               accessibilityLabel={`${chipIcon} ${option.nativeName}`}

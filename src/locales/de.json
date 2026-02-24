@@ -737,6 +737,7 @@
     "back_hint": "Meistgenutzte Module anzeigen",
     "current_module": "Dies ist dein aktuelles Modul",
     "switchModule": "Modul wechseln",
+    "switchModuleHint": "Öffnet das Modul-Auswahlmenü",
     "sidebar": "Navigationsmenü",
     "sections": {
       "communication": "Kommunikation",

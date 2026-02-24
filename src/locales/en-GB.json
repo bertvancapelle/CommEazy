@@ -740,6 +740,7 @@
     "back_hint": "Show most used modules",
     "current_module": "This is your current module",
     "switchModule": "Switch module",
+    "switchModuleHint": "Opens the module selection menu",
     "sidebar": "Navigation menu",
     "sections": {
       "communication": "Communication",

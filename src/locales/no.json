@@ -667,6 +667,7 @@
     "back_hint": "Vis de mest brukte modulene",
     "current_module": "Dette er din nåværende modul",
     "switchModule": "Bytt modul",
+    "switchModuleHint": "Åpner modulvalgmenyen",
     "sidebar": "Navigasjonsmeny",
     "sections": {
       "communication": "Kommunikasjon",

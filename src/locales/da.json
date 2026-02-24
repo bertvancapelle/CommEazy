@@ -622,6 +622,7 @@
     "back_hint": "Vis de mest brugte moduler",
     "current_module": "Dette er dit nuværende modul",
     "switchModule": "Skift modul",
+    "switchModuleHint": "Åbner modulvalgmenuen",
     "sidebar": "Navigationsmenu",
     "sections": {
       "communication": "Kommunikation",

@@ -28,7 +28,7 @@
  * @see .claude/skills/ui-designer/SKILL.md Section 7c
  */
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
 import { MediaIndicator } from './MediaIndicator';
@@ -46,7 +47,10 @@ import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { useWheelMenuContextSafe } from '@/contexts/WheelMenuContext';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { ModuleColorId } from '@/types/liquidGlass';
+import type { NavigationDestination } from '@/types/navigation';
 import type { IconName } from './Icon';
 
 // ============================================================
@@ -81,12 +85,20 @@ export interface ModuleHeaderProps {
    */
   style?: StyleProp<ViewStyle>;
   /**
-   * Callback when module icon is pressed (for quick module switching)
-   * When provided, the icon becomes tappable with a white border indicator
+   * @deprecated No longer needed — ModuleHeader auto-enables icon navigation when WheelMenuContext is available.
+   * Only use this if you need to override the default behavior.
    */
   onModuleIconPress?: () => void;
-  /** Accessibility label for module icon button (default: "Wissel van module") */
+  /**
+   * @deprecated No longer needed — uses t('navigation.switchModule') automatically.
+   * Only use this if you need a custom label.
+   */
   moduleIconLabel?: string;
+  /**
+   * Disable automatic icon button navigation (default: false)
+   * Set to true for detail screens or screens that shouldn't have quick navigation
+   */
+  disableIconNavigation?: boolean;
 }
 
 // ============================================================
@@ -106,8 +118,10 @@ export function ModuleHeader({
   customLogo,
   style,
   onModuleIconPress,
-  moduleIconLabel = 'Wissel van module',
+  moduleIconLabel,
+  disableIconNavigation = false,
 }: ModuleHeaderProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   // Use module color from context (respects user customization)
   const moduleColor = useModuleColor(moduleId as ModuleColorId);
@@ -115,6 +129,31 @@ export function ModuleHeader({
   // Check if Liquid Glass is available (safe to call outside provider)
   const liquidGlassContext = useLiquidGlassContextSafe();
   const useLiquidGlass = liquidGlassContext?.isEnabled ?? false;
+
+  // Auto-enable icon navigation when WheelMenuContext is available
+  const wheelMenu = useWheelMenuContextSafe();
+  const { triggerFeedback } = useFeedback();
+
+  // Auto-generated icon press handler — opens wheel navigation menu
+  const handleAutoIconPress = useCallback(() => {
+    if (wheelMenu) {
+      void triggerFeedback('tap');
+      wheelMenu.openMenu(null, moduleId as NavigationDestination);
+    }
+  }, [wheelMenu, moduleId, triggerFeedback]);
+
+  // Determine if icon/logo should be tappable:
+  // 1. Explicit onModuleIconPress overrides auto behavior
+  // 2. Auto-enable when: WheelMenuContext available + not disabled + not back button
+  // Note: customLogo is now also tappable (e.g., nu.nl logo opens wheel menu)
+  const effectiveOnIconPress = onModuleIconPress ?? (
+    !disableIconNavigation && !showBackButton && wheelMenu
+      ? handleAutoIconPress
+      : undefined
+  );
+
+  // Use provided label or default translation
+  const effectiveIconLabel = moduleIconLabel ?? t('navigation.switchModule');
 
   // Common header content
   const headerContent = (
@@ -143,14 +182,30 @@ export function ModuleHeader({
               <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
             </TouchableOpacity>
           )}
-          {customLogo ? customLogo : (
-            onModuleIconPress ? (
+          {customLogo ? (
+            // Custom logo — wrap in TouchableOpacity if navigation is enabled
+            effectiveOnIconPress ? (
               <TouchableOpacity
                 style={styles.moduleIconButton}
-                onPress={onModuleIconPress}
+                onPress={effectiveOnIconPress}
                 accessibilityRole="button"
-                accessibilityLabel={moduleIconLabel}
-                accessibilityHint="Opent module keuzemenu"
+                accessibilityLabel={effectiveIconLabel}
+                accessibilityHint={t('navigation.switchModuleHint')}
+              >
+                {customLogo}
+              </TouchableOpacity>
+            ) : (
+              customLogo
+            )
+          ) : (
+            // Default icon — wrap in TouchableOpacity if navigation is enabled
+            effectiveOnIconPress ? (
+              <TouchableOpacity
+                style={styles.moduleIconButton}
+                onPress={effectiveOnIconPress}
+                accessibilityRole="button"
+                accessibilityLabel={effectiveIconLabel}
+                accessibilityHint={t('navigation.switchModuleHint')}
               >
                 <Icon name={icon} size={32} color={colors.textOnPrimary} />
               </TouchableOpacity>

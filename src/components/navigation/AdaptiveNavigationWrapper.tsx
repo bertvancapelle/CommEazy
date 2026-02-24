@@ -162,19 +162,36 @@ function PhoneNavigationWithWheelMenu({ children, enabled }: PhoneNavigationProp
   useEffect(() => {
     setNavigationHandler((_panelId: PanelId | null, destination: NavigationDestination) => {
       // On iPhone, navigate using React Navigation
-      // Map destination to screen name
-      const screenMap: Record<NavigationDestination, string> = {
+      // Map static destination to screen name
+      const staticScreenMap: Record<string, string> = {
         chats: 'ChatsTab',
         contacts: 'ContactsTab',
+        groups: 'GroupsTab',
         radio: 'RadioTab',
         podcast: 'PodcastTab',
         books: 'BooksTab',
         calls: 'CallsTab',
         settings: 'SettingsTab',
+        weather: 'WeatherTab',
         appleMusic: 'AppleMusicTab',
-        nunl: 'NuNlTab',
+        help: 'HelpTab',  // TODO: HelpTab not yet implemented
       };
-      const screenName = screenMap[destination];
+
+      // Handle dynamic modules (format: 'module:{moduleId}')
+      if (destination.startsWith('module:')) {
+        const moduleId = destination.replace('module:', '');
+        // Convert moduleId to tab name (e.g., 'nunl' -> 'NuNlTab')
+        const dynamicTabMap: Record<string, string> = {
+          nunl: 'NuNlTab',
+          // Add more dynamic modules here as they are implemented
+        };
+        const tabName = dynamicTabMap[moduleId] ?? `${moduleId.charAt(0).toUpperCase()}${moduleId.slice(1)}Tab`;
+        navigation.navigate(tabName as never);
+        return;
+      }
+
+      // Handle static modules
+      const screenName = staticScreenMap[destination];
       if (screenName) {
         navigation.navigate(screenName as never);
       }
