@@ -1191,6 +1191,177 @@ class AppleMusicModule: RCTEventEmitter {
             }
         }
     }
+
+    /// Remove a song from the user's library
+    /// Note: MusicKit doesn't provide a direct remove API, so we return an error
+    /// The user must remove songs via the Music app
+    @objc
+    func removeFromLibrary(_ songId: String,
+                           resolve: @escaping RCTPromiseResolveBlock,
+                           reject: @escaping RCTPromiseRejectBlock) {
+        // MusicKit doesn't support removing items from library programmatically
+        // This is a limitation of Apple's API - users must use the Music app
+        reject("NOT_SUPPORTED", "Removing songs from library is not supported by Apple Music API. Please use the Music app.", nil)
+    }
+
+    // ============================================================
+    // MARK: - Library Content Retrieval
+    // ============================================================
+
+    /// Get all songs from the user's library
+    /// Returns array of songs sorted by title
+    @objc
+    func getLibrarySongs(_ limit: Int,
+                         offset: Int,
+                         resolve: @escaping RCTPromiseResolveBlock,
+                         reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                var request = MusicLibraryRequest<Song>()
+                request.sort(by: \.title, ascending: true)
+                let response = try await request.response()
+
+                // Apply pagination
+                let startIndex = min(offset, response.items.count)
+                let endIndex = min(offset + limit, response.items.count)
+                let paginatedItems = Array(response.items[startIndex..<endIndex])
+
+                let songs = paginatedItems.map { songToDictionary($0) }
+
+                resolve([
+                    "items": songs,
+                    "total": response.items.count,
+                    "offset": offset,
+                    "limit": limit
+                ])
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to get library songs: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get all albums from the user's library
+    /// Returns array of albums sorted by title
+    @objc
+    func getLibraryAlbums(_ limit: Int,
+                          offset: Int,
+                          resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                var request = MusicLibraryRequest<Album>()
+                request.sort(by: \.title, ascending: true)
+                let response = try await request.response()
+
+                // Apply pagination
+                let startIndex = min(offset, response.items.count)
+                let endIndex = min(offset + limit, response.items.count)
+                let paginatedItems = Array(response.items[startIndex..<endIndex])
+
+                let albums = paginatedItems.map { albumToDictionary($0) }
+
+                resolve([
+                    "items": albums,
+                    "total": response.items.count,
+                    "offset": offset,
+                    "limit": limit
+                ])
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to get library albums: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get all artists from the user's library
+    /// Returns array of artists sorted by name
+    @objc
+    func getLibraryArtists(_ limit: Int,
+                           offset: Int,
+                           resolve: @escaping RCTPromiseResolveBlock,
+                           reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                var request = MusicLibraryRequest<Artist>()
+                request.sort(by: \.name, ascending: true)
+                let response = try await request.response()
+
+                // Apply pagination
+                let startIndex = min(offset, response.items.count)
+                let endIndex = min(offset + limit, response.items.count)
+                let paginatedItems = Array(response.items[startIndex..<endIndex])
+
+                let artists = paginatedItems.map { artistToDictionary($0) }
+
+                resolve([
+                    "items": artists,
+                    "total": response.items.count,
+                    "offset": offset,
+                    "limit": limit
+                ])
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to get library artists: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get all playlists from the user's library
+    /// Returns array of playlists sorted by name
+    @objc
+    func getLibraryPlaylists(_ limit: Int,
+                             offset: Int,
+                             resolve: @escaping RCTPromiseResolveBlock,
+                             reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                var request = MusicLibraryRequest<Playlist>()
+                request.sort(by: \.name, ascending: true)
+                let response = try await request.response()
+
+                // Apply pagination
+                let startIndex = min(offset, response.items.count)
+                let endIndex = min(offset + limit, response.items.count)
+                let paginatedItems = Array(response.items[startIndex..<endIndex])
+
+                let playlists = paginatedItems.map { playlistToDictionary($0) }
+
+                resolve([
+                    "items": playlists,
+                    "total": response.items.count,
+                    "offset": offset,
+                    "limit": limit
+                ])
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to get library playlists: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get library counts for all categories
+    /// Returns counts for songs, albums, artists, playlists
+    @objc
+    func getLibraryCounts(_ resolve: @escaping RCTPromiseResolveBlock,
+                          reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                // Fetch counts for each category in parallel
+                async let songsRequest = MusicLibraryRequest<Song>().response()
+                async let albumsRequest = MusicLibraryRequest<Album>().response()
+                async let artistsRequest = MusicLibraryRequest<Artist>().response()
+                async let playlistsRequest = MusicLibraryRequest<Playlist>().response()
+
+                let (songs, albums, artists, playlists) = try await (songsRequest, albumsRequest, artistsRequest, playlistsRequest)
+
+                resolve([
+                    "songs": songs.items.count,
+                    "albums": albums.items.count,
+                    "artists": artists.items.count,
+                    "playlists": playlists.items.count
+                ])
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to get library counts: \(error.localizedDescription)", error)
+            }
+        }
+    }
 }
 
 // ============================================================

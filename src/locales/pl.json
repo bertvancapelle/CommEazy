@@ -1121,7 +1121,19 @@
         "error": "Wyszukiwanie nieudane. Spróbuj ponownie."
       },
       "library": {
-        "comingSoon": "Biblioteka wkrótce"
+        "songs": "Utwory",
+        "artists": "Wykonawcy",
+        "albums": "Albumy",
+        "playlists": "Playlisty",
+        "emptyTitle": "Twoja biblioteka jest pusta",
+        "emptyDescription": "Muzyka dodana z Apple Music pojawi się tutaj",
+        "searchMusic": "Szukaj muzyki",
+        "searchPlaceholder": "Szukaj w bibliotece...",
+        "searchButton": "Szukaj",
+        "resultCount": "{{count}} z {{total}} utworów",
+        "noSearchResults": "Nie znaleziono utworów",
+        "alreadyInLibraryMessage": "\"{{title}}\" jest już w Twojej bibliotece",
+        "addError": "Nie udało się dodać utworu do biblioteki"
       },
       "playlists": {
         "comingSoon": "Playlisty wkrótce"

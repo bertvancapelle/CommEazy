@@ -1329,7 +1329,19 @@
         "error": "Busca falhou. Tente novamente."
       },
       "library": {
-        "comingSoon": "Biblioteca em breve"
+        "songs": "Músicas",
+        "artists": "Artistas",
+        "albums": "Álbuns",
+        "playlists": "Playlists",
+        "emptyTitle": "Sua biblioteca está vazia",
+        "emptyDescription": "As músicas que você adicionar do Apple Music aparecerão aqui",
+        "searchMusic": "Buscar música",
+        "searchPlaceholder": "Buscar na sua biblioteca...",
+        "searchButton": "Buscar",
+        "resultCount": "{{count}} de {{total}} músicas",
+        "noSearchResults": "Nenhuma música encontrada",
+        "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",
+        "addError": "Não foi possível adicionar a música à biblioteca"
       },
       "playlists": {
         "comingSoon": "Playlists em breve"

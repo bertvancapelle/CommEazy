@@ -1297,7 +1297,19 @@
         "error": "Zoeken mislukt. Probeer het opnieuw."
       },
       "library": {
-        "comingSoon": "Bibliotheek komt binnenkort"
+        "songs": "Nummers",
+        "artists": "Artiesten",
+        "albums": "Albums",
+        "playlists": "Afspeellijsten",
+        "emptyTitle": "Je bibliotheek is leeg",
+        "emptyDescription": "Zoek muziek en voeg nummers toe aan je bibliotheek",
+        "searchMusic": "Zoek muziek",
+        "searchPlaceholder": "Zoek in bibliotheek...",
+        "searchButton": "Zoeken",
+        "resultCount": "{{count}} van {{total}} resultaten",
+        "noSearchResults": "Geen resultaten gevonden",
+        "alreadyInLibraryMessage": "\"{{title}}\" staat al in je bibliotheek",
+        "addError": "Kon nummer niet toevoegen aan bibliotheek"
       },
       "playlists": {
         "comingSoon": "Afspeellijsten komen binnenkort"

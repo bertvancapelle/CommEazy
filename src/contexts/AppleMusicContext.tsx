@@ -109,6 +109,22 @@ export interface PlaylistDetails extends AppleMusicPlaylist {
   tracks: AppleMusicSong[];
 }
 
+// Library pagination response
+export interface LibraryPaginatedResponse<T> {
+  items: T[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+// Library counts response
+export interface LibraryCounts {
+  songs: number;
+  albums: number;
+  artists: number;
+  playlists: number;
+}
+
 export interface PlaybackState {
   status: 'playing' | 'paused' | 'stopped' | 'interrupted' | 'seekingForward' | 'seekingBackward' | 'unknown';
   playbackTime: number;
@@ -159,6 +175,14 @@ export interface AppleMusicContextValue {
   // Library Management (iOS only)
   addToLibrary: (songId: string) => Promise<boolean>;
   isInLibrary: (songId: string) => Promise<boolean>;
+  removeFromLibrary: (songId: string) => Promise<void>;
+
+  // Library Content Retrieval (iOS only)
+  getLibrarySongs: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicSong>>;
+  getLibraryAlbums: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicAlbum>>;
+  getLibraryArtists: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicArtist>>;
+  getLibraryPlaylists: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicPlaylist>>;
+  getLibraryCounts: () => Promise<LibraryCounts>;
 
   // Playback (iOS only)
   playbackState: PlaybackState | null;
@@ -525,6 +549,103 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     }
   }, [isIOS]);
 
+  const removeFromLibrary = useCallback(async (songId: string): Promise<void> => {
+    if (!isIOS || !AppleMusicModule) {
+      console.warn('[AppleMusicContext] Library management not available on Android');
+      return;
+    }
+
+    try {
+      await AppleMusicModule.removeFromLibrary(songId);
+    } catch (error) {
+      // Apple Music API doesn't support programmatic removal
+      // This will throw NOT_SUPPORTED error from native side
+      console.error('[AppleMusicContext] Remove from library error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  // ============================================================
+  // Library Content Retrieval (iOS only)
+  // ============================================================
+
+  const getLibrarySongs = useCallback(async (
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<LibraryPaginatedResponse<AppleMusicSong>> => {
+    if (!isIOS || !AppleMusicModule) {
+      return { items: [], total: 0, offset: 0, limit: 0 };
+    }
+
+    try {
+      return await AppleMusicModule.getLibrarySongs(limit, offset);
+    } catch (error) {
+      console.error('[AppleMusicContext] Get library songs error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  const getLibraryAlbums = useCallback(async (
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<LibraryPaginatedResponse<AppleMusicAlbum>> => {
+    if (!isIOS || !AppleMusicModule) {
+      return { items: [], total: 0, offset: 0, limit: 0 };
+    }
+
+    try {
+      return await AppleMusicModule.getLibraryAlbums(limit, offset);
+    } catch (error) {
+      console.error('[AppleMusicContext] Get library albums error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  const getLibraryArtists = useCallback(async (
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<LibraryPaginatedResponse<AppleMusicArtist>> => {
+    if (!isIOS || !AppleMusicModule) {
+      return { items: [], total: 0, offset: 0, limit: 0 };
+    }
+
+    try {
+      return await AppleMusicModule.getLibraryArtists(limit, offset);
+    } catch (error) {
+      console.error('[AppleMusicContext] Get library artists error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  const getLibraryPlaylists = useCallback(async (
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<LibraryPaginatedResponse<AppleMusicPlaylist>> => {
+    if (!isIOS || !AppleMusicModule) {
+      return { items: [], total: 0, offset: 0, limit: 0 };
+    }
+
+    try {
+      return await AppleMusicModule.getLibraryPlaylists(limit, offset);
+    } catch (error) {
+      console.error('[AppleMusicContext] Get library playlists error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
+  const getLibraryCounts = useCallback(async (): Promise<LibraryCounts> => {
+    if (!isIOS || !AppleMusicModule) {
+      return { songs: 0, albums: 0, artists: 0, playlists: 0 };
+    }
+
+    try {
+      return await AppleMusicModule.getLibraryCounts();
+    } catch (error) {
+      console.error('[AppleMusicContext] Get library counts error:', error);
+      throw error;
+    }
+  }, [isIOS]);
+
   // ============================================================
   // Playback Control (iOS only)
   // ============================================================
@@ -806,6 +927,14 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       // Library Management
       addToLibrary,
       isInLibrary,
+      removeFromLibrary,
+
+      // Library Content Retrieval
+      getLibrarySongs,
+      getLibraryAlbums,
+      getLibraryArtists,
+      getLibraryPlaylists,
+      getLibraryCounts,
 
       // Playback
       playbackState,
@@ -862,6 +991,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       getPlaylistDetails,
       addToLibrary,
       isInLibrary,
+      removeFromLibrary,
+      getLibrarySongs,
+      getLibraryAlbums,
+      getLibraryArtists,
+      getLibraryPlaylists,
+      getLibraryCounts,
       playbackState,
       nowPlaying,
       effectiveArtworkUrl,

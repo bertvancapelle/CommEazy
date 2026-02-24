@@ -1307,7 +1307,19 @@
         "error": "Search failed. Please try again."
       },
       "library": {
-        "comingSoon": "Library coming soon"
+        "songs": "Songs",
+        "artists": "Artists",
+        "albums": "Albums",
+        "playlists": "Playlists",
+        "emptyTitle": "Your library is empty",
+        "emptyDescription": "Music you add from Apple Music will appear here",
+        "searchMusic": "Search music",
+        "searchPlaceholder": "Search your library...",
+        "searchButton": "Search",
+        "resultCount": "{{count}} of {{total}} songs",
+        "noSearchResults": "No songs found",
+        "alreadyInLibraryMessage": "\"{{title}}\" is already in your library",
+        "addError": "Could not add song to library"
       },
       "playlists": {
         "comingSoon": "Playlists coming soon"

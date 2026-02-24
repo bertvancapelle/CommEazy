@@ -1189,7 +1189,19 @@
         "error": "Søk mislyktes. Prøv igjen."
       },
       "library": {
-        "comingSoon": "Bibliotek kommer snart"
+        "songs": "Sanger",
+        "artists": "Artister",
+        "albums": "Album",
+        "playlists": "Spillelister",
+        "emptyTitle": "Biblioteket ditt er tomt",
+        "emptyDescription": "Musikk du legger til fra Apple Music vil vises her",
+        "searchMusic": "Søk etter musikk",
+        "searchPlaceholder": "Søk i biblioteket ditt...",
+        "searchButton": "Søk",
+        "resultCount": "{{count}} av {{total}} sanger",
+        "noSearchResults": "Ingen sanger funnet",
+        "alreadyInLibraryMessage": "\"{{title}}\" er allerede i biblioteket ditt",
+        "addError": "Kunne ikke legge til sangen i biblioteket"
       },
       "playlists": {
         "comingSoon": "Spillelister kommer snart"

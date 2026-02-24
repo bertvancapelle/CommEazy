@@ -1139,7 +1139,19 @@
         "error": "Sökning misslyckades. Försök igen."
       },
       "library": {
-        "comingSoon": "Bibliotek kommer snart"
+        "songs": "Låtar",
+        "artists": "Artister",
+        "albums": "Album",
+        "playlists": "Spellistor",
+        "emptyTitle": "Ditt bibliotek är tomt",
+        "emptyDescription": "Musik du lägger till från Apple Music visas här",
+        "searchMusic": "Sök musik",
+        "searchPlaceholder": "Sök i ditt bibliotek...",
+        "searchButton": "Sök",
+        "resultCount": "{{count}} av {{total}} låtar",
+        "noSearchResults": "Inga låtar hittades",
+        "alreadyInLibraryMessage": "\"{{title}}\" finns redan i ditt bibliotek",
+        "addError": "Kunde inte lägga till låten i biblioteket"
       },
       "playlists": {
         "comingSoon": "Spellistor kommer snart"

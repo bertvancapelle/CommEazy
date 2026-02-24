@@ -61,6 +61,7 @@ import {
   type AppleMusicArtist,
   type AppleMusicPlaylist,
   type SearchResults,
+  type LibraryCounts,
 } from '@/contexts/AppleMusicContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -87,6 +88,12 @@ type TabType = 'search' | 'library' | 'playlists';
 
 // Search result filter types
 type SearchFilterType = 'all' | 'songs' | 'albums' | 'artists' | 'playlists';
+
+// Library category types for "Mijn Muziek" tab
+type LibraryCategoryType = 'songs' | 'albums' | 'artists' | 'playlists';
+
+// Threshold for showing search bar in library categories
+const LIBRARY_SEARCH_THRESHOLD = 10;
 
 // Number of items to show per section in "Alle" tab
 const ITEMS_PER_SECTION = 5;
@@ -140,6 +147,11 @@ export function AppleMusicScreen() {
     // Library
     addToLibrary,
     isInLibrary,
+    getLibrarySongs,
+    getLibraryAlbums,
+    getLibraryArtists,
+    getLibraryPlaylists,
+    getLibraryCounts,
   } = useAppleMusicContext();
 
   // Sleep timer hook - shared logic for all audio modules
@@ -174,9 +186,24 @@ export function AppleMusicScreen() {
     id: '',
   });
 
-  // Library state
+  // Library state (for current song in player)
   const [currentSongInLibrary, setCurrentSongInLibrary] = useState(false);
   const [isAddingToLibrary, setIsAddingToLibrary] = useState(false);
+
+  // "Mijn Muziek" tab state
+  const [libraryCounts, setLibraryCounts] = useState<LibraryCounts | null>(null);
+  const [isLoadingLibraryCounts, setIsLoadingLibraryCounts] = useState(false);
+  const [libraryCategory, setLibraryCategory] = useState<LibraryCategoryType | null>(null);
+  const [librarySongs, setLibrarySongs] = useState<AppleMusicSong[]>([]);
+  const [libraryAlbums, setLibraryAlbums] = useState<AppleMusicAlbum[]>([]);
+  const [libraryArtists, setLibraryArtists] = useState<AppleMusicArtist[]>([]);
+  const [libraryPlaylists, setLibraryPlaylists] = useState<AppleMusicPlaylist[]>([]);
+  const [isLoadingLibraryContent, setIsLoadingLibraryContent] = useState(false);
+  const [librarySearchQuery, setLibrarySearchQuery] = useState('');
+
+  // Track which search result songs are in library (for heart icon display)
+  const [searchResultsInLibrary, setSearchResultsInLibrary] = useState<Set<string>>(new Set());
+  const [isCheckingLibraryStatus, setIsCheckingLibraryStatus] = useState(false);
 
   // Check if platform supports full functionality
   const hasFullSupport = capabilities?.hasMusicKit && capabilities?.canPlayback;
@@ -397,6 +424,141 @@ export function AppleMusicScreen() {
       .catch(() => setCurrentSongInLibrary(false));
   }, [currentSong?.id, isInLibrary]);
 
+  // Effect 9: Load library counts when library tab is selected
+  useEffect(() => {
+    if (activeTab !== 'library' || !isAuthorized || !isIOS) return;
+
+    const loadCounts = async () => {
+      setIsLoadingLibraryCounts(true);
+      try {
+        const counts = await getLibraryCounts();
+        setLibraryCounts(counts);
+        console.log('[AppleMusicScreen] Library counts:', counts);
+      } catch (error) {
+        console.error('[AppleMusicScreen] Failed to load library counts:', error);
+      } finally {
+        setIsLoadingLibraryCounts(false);
+      }
+    };
+
+    loadCounts();
+  }, [activeTab, isAuthorized, isIOS, getLibraryCounts]);
+
+  // Effect 10: Load library content when a category is selected
+  useEffect(() => {
+    if (!libraryCategory || !isAuthorized || !isIOS) return;
+
+    const loadContent = async () => {
+      setIsLoadingLibraryContent(true);
+      setLibrarySearchQuery(''); // Reset search when changing category
+      try {
+        switch (libraryCategory) {
+          case 'songs': {
+            const response = await getLibrarySongs(500, 0);
+            setLibrarySongs(response.items);
+            console.log('[AppleMusicScreen] Loaded', response.items.length, 'library songs');
+            break;
+          }
+          case 'albums': {
+            const response = await getLibraryAlbums(500, 0);
+            setLibraryAlbums(response.items);
+            console.log('[AppleMusicScreen] Loaded', response.items.length, 'library albums');
+            break;
+          }
+          case 'artists': {
+            const response = await getLibraryArtists(500, 0);
+            setLibraryArtists(response.items);
+            console.log('[AppleMusicScreen] Loaded', response.items.length, 'library artists');
+            break;
+          }
+          case 'playlists': {
+            const response = await getLibraryPlaylists(500, 0);
+            setLibraryPlaylists(response.items);
+            console.log('[AppleMusicScreen] Loaded', response.items.length, 'library playlists');
+            break;
+          }
+        }
+      } catch (error) {
+        console.error('[AppleMusicScreen] Failed to load library content:', error);
+      } finally {
+        setIsLoadingLibraryContent(false);
+      }
+    };
+
+    loadContent();
+  }, [libraryCategory, isAuthorized, isIOS, getLibrarySongs, getLibraryAlbums, getLibraryArtists, getLibraryPlaylists]);
+
+  // Effect 11: Check library status for search result songs (for heart icon)
+  useEffect(() => {
+    if (!searchResults?.songs?.length || !isAuthorized || !isIOS) {
+      setSearchResultsInLibrary(new Set());
+      return;
+    }
+
+    const checkLibraryStatus = async () => {
+      setIsCheckingLibraryStatus(true);
+      const inLibrarySet = new Set<string>();
+
+      // Check each song in parallel (batch of promises)
+      const checks = searchResults.songs!.map(async (song) => {
+        try {
+          const inLib = await isInLibrary(song.id);
+          if (inLib) {
+            inLibrarySet.add(song.id);
+          }
+        } catch {
+          // Ignore errors for individual checks
+        }
+      });
+
+      await Promise.all(checks);
+      setSearchResultsInLibrary(inLibrarySet);
+      setIsCheckingLibraryStatus(false);
+    };
+
+    checkLibraryStatus();
+  }, [searchResults?.songs, isAuthorized, isIOS, isInLibrary]);
+
+  // ============================================================
+  // Library Filtering (live filtering for category content)
+  // ============================================================
+
+  const filteredLibrarySongs = useMemo(() => {
+    if (!librarySearchQuery.trim()) return librarySongs;
+    const query = librarySearchQuery.toLowerCase();
+    return librarySongs.filter(
+      song => song.title.toLowerCase().includes(query) ||
+              song.artistName.toLowerCase().includes(query) ||
+              song.albumTitle.toLowerCase().includes(query)
+    );
+  }, [librarySongs, librarySearchQuery]);
+
+  const filteredLibraryAlbums = useMemo(() => {
+    if (!librarySearchQuery.trim()) return libraryAlbums;
+    const query = librarySearchQuery.toLowerCase();
+    return libraryAlbums.filter(
+      album => album.title.toLowerCase().includes(query) ||
+               album.artistName.toLowerCase().includes(query)
+    );
+  }, [libraryAlbums, librarySearchQuery]);
+
+  const filteredLibraryArtists = useMemo(() => {
+    if (!librarySearchQuery.trim()) return libraryArtists;
+    const query = librarySearchQuery.toLowerCase();
+    return libraryArtists.filter(
+      artist => artist.name.toLowerCase().includes(query)
+    );
+  }, [libraryArtists, librarySearchQuery]);
+
+  const filteredLibraryPlaylists = useMemo(() => {
+    if (!librarySearchQuery.trim()) return libraryPlaylists;
+    const query = librarySearchQuery.toLowerCase();
+    return libraryPlaylists.filter(
+      playlist => playlist.name.toLowerCase().includes(query) ||
+                  playlist.curatorName.toLowerCase().includes(query)
+    );
+  }, [libraryPlaylists, librarySearchQuery]);
+
   // ============================================================
   // Handlers
   // ============================================================
@@ -414,6 +576,39 @@ export function AppleMusicScreen() {
       setIsAddingToLibrary(false);
     }
   }, [currentSong?.id, currentSongInLibrary, isAddingToLibrary, addToLibrary]);
+
+  // Handler for toggling library status from search results
+  const handleToggleSearchResultLibrary = useCallback(async (song: AppleMusicSong) => {
+    const isCurrentlyInLibrary = searchResultsInLibrary.has(song.id);
+
+    if (isCurrentlyInLibrary) {
+      // Song is already in library - Apple Music API doesn't support removal
+      // Show info alert
+      Alert.alert(
+        t('modules.appleMusic.inLibrary'),
+        t('modules.appleMusic.library.alreadyInLibraryMessage', { title: song.title })
+      );
+    } else {
+      // Add to library
+      try {
+        await addToLibrary(song.id);
+        // Update local state optimistically
+        setSearchResultsInLibrary(prev => {
+          const next = new Set(prev);
+          next.add(song.id);
+          return next;
+        });
+        // Provide haptic feedback
+        triggerFeedback('success');
+      } catch (error) {
+        console.error('[AppleMusicScreen] Failed to add to library:', error);
+        Alert.alert(
+          t('modules.appleMusic.playError.title'),
+          t('modules.appleMusic.library.addError')
+        );
+      }
+    }
+  }, [searchResultsInLibrary, addToLibrary, triggerFeedback, t]);
 
   const handleSearch = useCallback(async () => {
     const trimmedQuery = searchQuery.trim();
@@ -593,51 +788,69 @@ export function AppleMusicScreen() {
   const hasAnyResults = totalResults > 0;
 
   // Render a single song item
-  const renderSongItem = (song: AppleMusicSong, index: number) => (
-    <VoiceFocusable
-      key={song.id}
-      id={song.id}
-      label={`${song.title} ${song.artistName}`}
-      index={index}
-      onSelect={() => handlePlaySong(song)}
-    >
-      <View style={[styles.songItem, { backgroundColor: themeColors.surface }]}>
-        <TouchableOpacity
-          style={styles.songTappableArea}
-          onPress={() => handlePlaySong(song)}
-          onLongPress={() => {}}
-          delayLongPress={300}
-          accessibilityRole="button"
-          accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
-        >
-          {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
-            <Image
-              source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
-              style={styles.songArtwork}
-            />
-          ) : (
-            <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
-              <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
+  const renderSongItem = (song: AppleMusicSong, index: number) => {
+    const isInLib = searchResultsInLibrary.has(song.id);
+
+    return (
+      <VoiceFocusable
+        key={song.id}
+        id={song.id}
+        label={`${song.title} ${song.artistName}`}
+        index={index}
+        onSelect={() => handlePlaySong(song)}
+      >
+        <View style={[styles.songItem, { backgroundColor: themeColors.surface }]}>
+          <TouchableOpacity
+            style={styles.songTappableArea}
+            onPress={() => handlePlaySong(song)}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            accessibilityRole="button"
+            accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
+          >
+            {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
+              <Image
+                source={{ uri: song.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
+                style={styles.songArtwork}
+              />
+            ) : (
+              <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
+              </View>
+            )}
+            <View style={styles.songInfo}>
+              <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                {song.title}
+              </Text>
+              <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                {song.artistName}
+              </Text>
             </View>
-          )}
-          <View style={styles.songInfo}>
-            <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
-              {song.title}
-            </Text>
-            <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
-              {song.artistName}
-            </Text>
+          </TouchableOpacity>
+          <View style={styles.songItemActions}>
+            <IconButton
+              icon={isInLib ? 'heart-filled' : 'heart'}
+              iconActive="heart-filled"
+              isActive={isInLib}
+              size={24}
+              onPress={() => handleToggleSearchResultLibrary(song)}
+              accessibilityLabel={isInLib
+                ? t('modules.appleMusic.inLibrary')
+                : t('modules.appleMusic.addToLibrary')
+              }
+              style={styles.songItemHeartButton}
+            />
+            <IconButton
+              icon="play"
+              size={28}
+              onPress={() => handlePlaySong(song)}
+              accessibilityLabel={t('modules.appleMusic.play', { title: song.title })}
+            />
           </View>
-        </TouchableOpacity>
-        <IconButton
-          icon="play"
-          size={40}
-          onPress={() => handlePlaySong(song)}
-          accessibilityLabel={t('modules.appleMusic.play', { title: song.title })}
-        />
-      </View>
-    </VoiceFocusable>
-  );
+        </View>
+      </VoiceFocusable>
+    );
+  };
 
   // Render a single album item
   const renderAlbumItem = (album: AppleMusicAlbum, index: number) => (
@@ -848,12 +1061,12 @@ export function AppleMusicScreen() {
               <Icon
                 name={icon}
                 size={20}
-                color={isActive ? themeColors.white : themeColors.textPrimary}
+                color={isActive ? themeColors.textOnPrimary : themeColors.textPrimary}
               />
               <Text
                 style={[
                   styles.filterTabCount,
-                  { color: isActive ? themeColors.white : themeColors.textSecondary },
+                  { color: isActive ? themeColors.textOnPrimary : themeColors.textSecondary },
                 ]}
               >
                 {count}
@@ -988,17 +1201,211 @@ export function AppleMusicScreen() {
   );
 
   // ============================================================
-  // Library Tab Content
+  // Library Tab Content - "Mijn Muziek"
   // ============================================================
+
+  // Helper function to render a library category button
+  const renderCategoryButton = (
+    category: LibraryCategoryType,
+    icon: 'musical-notes' | 'disc' | 'person' | 'list',
+    labelKey: string,
+    count: number
+  ) => (
+    <TouchableOpacity
+      key={category}
+      style={[styles.libraryButton, { borderColor: appleMusicColor }]}
+      onPress={() => {
+        triggerFeedback('tap');
+        setLibraryCategory(category);
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={`${t(labelKey)} (${count})`}
+    >
+      <Icon name={icon} size={40} color={appleMusicColor} />
+      <Text style={[styles.libraryButtonLabel, { color: themeColors.textPrimary }]}>
+        {t(labelKey)}
+      </Text>
+      <Text style={[styles.libraryButtonCount, { color: themeColors.textSecondary }]}>
+        {count}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // Render library grid (main view of "Mijn Muziek" tab)
+  const renderLibraryGrid = () => {
+    // Loading state
+    if (isLoadingLibraryCounts) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={appleMusicColor} />
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
+            {t('common.loading')}
+          </Text>
+        </View>
+      );
+    }
+
+    // Empty state - no library content
+    const totalCount = libraryCounts
+      ? libraryCounts.songs + libraryCounts.albums + libraryCounts.artists + libraryCounts.playlists
+      : 0;
+
+    if (totalCount === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <Icon name="appleMusic" size={64} color={themeColors.textSecondary} />
+          <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.library.emptyTitle')}
+          </Text>
+          <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+            {t('modules.appleMusic.library.emptyDescription')}
+          </Text>
+          <TouchableOpacity
+            style={[styles.emptyStateButton, { backgroundColor: appleMusicColor }]}
+            onPress={() => setActiveTab('search')}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.appleMusic.library.searchMusic')}
+          >
+            <Icon name="search" size={24} color={themeColors.textOnPrimary} />
+            <Text style={[styles.emptyStateButtonText, { color: themeColors.textOnPrimary }]}>
+              {t('modules.appleMusic.library.searchMusic')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // Grid of category buttons
+    return (
+      <View style={styles.libraryGrid}>
+        {renderCategoryButton('songs', 'musical-notes', 'modules.appleMusic.library.songs', libraryCounts?.songs ?? 0)}
+        {renderCategoryButton('artists', 'person', 'modules.appleMusic.library.artists', libraryCounts?.artists ?? 0)}
+        {renderCategoryButton('albums', 'disc', 'modules.appleMusic.library.albums', libraryCounts?.albums ?? 0)}
+        {renderCategoryButton('playlists', 'list', 'modules.appleMusic.library.playlists', libraryCounts?.playlists ?? 0)}
+      </View>
+    );
+  };
+
+  // Render library category content (songs list, albums list, etc.)
+  const renderLibraryCategoryContent = () => {
+    const categoryTitles: Record<LibraryCategoryType, string> = {
+      songs: t('modules.appleMusic.library.songs'),
+      albums: t('modules.appleMusic.library.albums'),
+      artists: t('modules.appleMusic.library.artists'),
+      playlists: t('modules.appleMusic.library.playlists'),
+    };
+
+    // Get the current content and count
+    let content: React.ReactNode = null;
+    let totalCount = 0;
+    let filteredCount = 0;
+
+    switch (libraryCategory) {
+      case 'songs':
+        totalCount = librarySongs.length;
+        filteredCount = filteredLibrarySongs.length;
+        content = filteredLibrarySongs.map((song, index) => renderSongItem(song, index));
+        break;
+      case 'albums':
+        totalCount = libraryAlbums.length;
+        filteredCount = filteredLibraryAlbums.length;
+        content = filteredLibraryAlbums.map((album, index) => renderAlbumItem(album, index));
+        break;
+      case 'artists':
+        totalCount = libraryArtists.length;
+        filteredCount = filteredLibraryArtists.length;
+        content = filteredLibraryArtists.map((artist, index) => renderArtistItem(artist, index));
+        break;
+      case 'playlists':
+        totalCount = libraryPlaylists.length;
+        filteredCount = filteredLibraryPlaylists.length;
+        content = filteredLibraryPlaylists.map((playlist, index) => renderPlaylistItem(playlist, index));
+        break;
+    }
+
+    const showSearchBar = totalCount > LIBRARY_SEARCH_THRESHOLD;
+
+    return (
+      <View style={styles.libraryCategoryContent}>
+        {/* Header with back button and title */}
+        <View style={styles.libraryCategoryHeader}>
+          <TouchableOpacity
+            style={styles.libraryCategoryBackButton}
+            onPress={() => {
+              triggerFeedback('tap');
+              setLibraryCategory(null);
+              setLibrarySearchQuery('');
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
+            <Icon name="chevron-left" size={28} color={appleMusicColor} />
+          </TouchableOpacity>
+          <Text style={[styles.libraryCategoryTitle, { color: themeColors.textPrimary }]}>
+            {categoryTitles[libraryCategory!]}
+          </Text>
+          <View style={styles.libraryCategoryBackButton} />
+        </View>
+
+        {/* Search bar (only shown when >10 items) */}
+        {showSearchBar && (
+          <View style={styles.librarySearchContainer}>
+            <SearchBar
+              value={librarySearchQuery}
+              onChangeText={setLibrarySearchQuery}
+              onSubmit={() => {}} // Live filtering, no explicit submit needed
+              placeholder={t('modules.appleMusic.library.searchPlaceholder')}
+              searchButtonLabel={t('modules.appleMusic.library.searchButton')}
+              maxLength={SEARCH_MAX_LENGTH}
+            />
+          </View>
+        )}
+
+        {/* Loading state */}
+        {isLoadingLibraryContent ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={appleMusicColor} />
+            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
+              {t('common.loading')}
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* Results count */}
+            {showSearchBar && librarySearchQuery.trim() && (
+              <Text style={[styles.libraryResultCount, { color: themeColors.textSecondary }]}>
+                {t('modules.appleMusic.library.resultCount', { count: filteredCount, total: totalCount })}
+              </Text>
+            )}
+
+            {/* Content list */}
+            <ScrollView
+              style={styles.resultsList}
+              contentContainerStyle={[
+                styles.resultsContent,
+                { paddingBottom: bottomPadding + insets.bottom },
+              ]}
+            >
+              {filteredCount === 0 && librarySearchQuery.trim() ? (
+                <View style={styles.emptyState}>
+                  <Icon name="search" size={48} color={themeColors.textSecondary} />
+                  <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+                    {t('modules.appleMusic.library.noSearchResults')}
+                  </Text>
+                </View>
+              ) : (
+                content
+              )}
+            </ScrollView>
+          </>
+        )}
+      </View>
+    );
+  };
 
   const renderLibraryTab = () => (
     <View style={styles.tabContent}>
-      <View style={styles.emptyState}>
-        <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
-        <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-          {t('modules.appleMusic.library.comingSoon')}
-        </Text>
-      </View>
+      {libraryCategory ? renderLibraryCategoryContent() : renderLibraryGrid()}
     </View>
   );
 
@@ -1406,6 +1813,16 @@ const styles = StyleSheet.create({
     ...typography.label,
     color: colors.textSecondary,
   },
+  songItemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  songItemHeartButton: {
+    width: touchTargets.minimum - 8,  // Slightly smaller than default (52pt vs 60pt)
+    height: touchTargets.minimum - 8,
+    borderWidth: 0,  // No border for more subtle appearance
+  },
 
   // Empty state
   emptyState: {
@@ -1414,11 +1831,97 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.xl,
   },
+  emptyStateTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
   emptyStateText: {
     ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.md,
+  },
+  emptyStateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.lg,
+    marginTop: spacing.xl,
+    minHeight: touchTargets.comfortable,
+  },
+  emptyStateButtonText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+
+  // Library tab - "Mijn Muziek" grid
+  libraryGrid: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    padding: spacing.sm,
+  },
+  libraryButton: {
+    width: '48%',
+    aspectRatio: 1,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: touchTargets.large,
+  },
+  libraryButtonLabel: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  libraryButtonCount: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+
+  // Library category content
+  libraryCategoryContent: {
+    flex: 1,
+  },
+  libraryCategoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  libraryCategoryBackButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  libraryCategoryTitle: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    flex: 1,
+    textAlign: 'center',
+  },
+  librarySearchContainer: {
+    marginBottom: spacing.md,
+  },
+  libraryResultCount: {
+    ...typography.label,
+    color: colors.textSecondary,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.sm,
   },
 
   // Filter tabs for search results

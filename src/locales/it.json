@@ -1263,7 +1263,19 @@
         "error": "Ricerca fallita. Riprova."
       },
       "library": {
-        "comingSoon": "Libreria in arrivo"
+        "songs": "Brani",
+        "artists": "Artisti",
+        "albums": "Album",
+        "playlists": "Playlist",
+        "emptyTitle": "La tua libreria è vuota",
+        "emptyDescription": "La musica che aggiungi da Apple Music apparirà qui",
+        "searchMusic": "Cerca musica",
+        "searchPlaceholder": "Cerca nella tua libreria...",
+        "searchButton": "Cerca",
+        "resultCount": "{{count}} di {{total}} brani",
+        "noSearchResults": "Nessun brano trovato",
+        "alreadyInLibraryMessage": "\"{{title}}\" è già nella tua libreria",
+        "addError": "Impossibile aggiungere il brano alla libreria"
       },
       "playlists": {
         "comingSoon": "Playlist in arrivo"

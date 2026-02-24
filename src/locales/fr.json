@@ -1303,7 +1303,19 @@
         "error": "Échec de la recherche. Veuillez réessayer."
       },
       "library": {
-        "comingSoon": "Bibliothèque bientôt disponible"
+        "songs": "Morceaux",
+        "artists": "Artistes",
+        "albums": "Albums",
+        "playlists": "Playlists",
+        "emptyTitle": "Votre bibliothèque est vide",
+        "emptyDescription": "La musique que vous ajoutez depuis Apple Music apparaîtra ici",
+        "searchMusic": "Rechercher de la musique",
+        "searchPlaceholder": "Rechercher dans votre bibliothèque...",
+        "searchButton": "Rechercher",
+        "resultCount": "{{count}} sur {{total}} morceaux",
+        "noSearchResults": "Aucun morceau trouvé",
+        "alreadyInLibraryMessage": "\"{{title}}\" est déjà dans votre bibliothèque",
+        "addError": "Impossible d'ajouter la chanson à la bibliothèque"
       },
       "playlists": {
         "comingSoon": "Playlists bientôt disponibles"

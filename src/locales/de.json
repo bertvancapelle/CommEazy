@@ -1303,7 +1303,19 @@
         "error": "Suche fehlgeschlagen. Bitte erneut versuchen."
       },
       "library": {
-        "comingSoon": "Mediathek kommt bald"
+        "songs": "Titel",
+        "artists": "Interpreten",
+        "albums": "Alben",
+        "playlists": "Playlists",
+        "emptyTitle": "Deine Mediathek ist leer",
+        "emptyDescription": "Musik, die du von Apple Music hinzufügst, wird hier angezeigt",
+        "searchMusic": "Musik suchen",
+        "searchPlaceholder": "In deiner Mediathek suchen...",
+        "searchButton": "Suchen",
+        "resultCount": "{{count}} von {{total}} Titeln",
+        "noSearchResults": "Keine Titel gefunden",
+        "alreadyInLibraryMessage": "\"{{title}}\" ist bereits in deiner Bibliothek",
+        "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden"
       },
       "playlists": {
         "comingSoon": "Playlists kommen bald"
