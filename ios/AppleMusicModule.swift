@@ -68,6 +68,12 @@ class AppleMusicModule: RCTEventEmitter {
     /// In-memory library cache
     private var libraryCache = LibraryCache()
     
+    /// In-memory cache for library songs (avoids reloading 23K songs on every access)
+    /// Key: "songs", "albums", etc. Value: Array of dictionaries ready for React Native
+    private var librarySongsCache: [[String: Any]]?
+    private var libraryAlbumsCache: [[String: Any]]?
+    private var libraryCacheTimestamp: Date?
+    
     /// Thread-safe access to cache
     private let cacheQueue = DispatchQueue(label: "com.commeazy.appleMusicCache", qos: .userInitiated)
     
@@ -187,7 +193,11 @@ class AppleMusicModule: RCTEventEmitter {
         cacheQueue.async { [weak self] in
             self?.libraryCache.isValid = false
             self?.libraryCache.counts = nil
-            NSLog("[AppleMusicModule] Cache invalidated")
+            // Also clear the songs/albums cache
+            self?.librarySongsCache = nil
+            self?.libraryAlbumsCache = nil
+            self?.libraryCacheTimestamp = nil
+            NSLog("[AppleMusicModule] Cache invalidated (counts + songs/albums)")
         }
     }
     
@@ -1134,15 +1144,11 @@ class AppleMusicModule: RCTEventEmitter {
     }
 
     private func songToDictionary(_ song: Song) -> [String: Any] {
-        NSLog("[AppleMusicModule] songToDictionary called for: '\(song.title)' by \(song.artistName)")
-        
         // Get artwork URL - try multiple approaches
         var artworkURL = ""
         var artworkBgColor = ""
         
         if let artwork = song.artwork {
-            NSLog("[AppleMusicModule] Song '\(song.title)' HAS artwork object")
-            
             // Get background color for fallback (if no URL available)
             if let bgColor = artwork.backgroundColor,
                let components = bgColor.components,
@@ -1151,24 +1157,15 @@ class AppleMusicModule: RCTEventEmitter {
                     Int(components[0] * 255),
                     Int(components[1] * 255),
                     Int(components[2] * 255))
-                NSLog("[AppleMusicModule] Song '\(song.title)' has bgColor: \(artworkBgColor)")
             }
             
             // Try to get URL
             if let url = artwork.url(width: 300, height: 300) {
-                NSLog("[AppleMusicModule] Song '\(song.title)' artwork.url() returned: \(url.absoluteString.prefix(150))")
                 let httpUrl = url.httpURLString
                 if !httpUrl.isEmpty {
                     artworkURL = httpUrl
-                    NSLog("[AppleMusicModule] Song '\(song.title)' final artworkURL: \(artworkURL.prefix(100))")
-                } else {
-                    NSLog("[AppleMusicModule] Song '\(song.title)': httpURLString returned empty")
                 }
-            } else {
-                NSLog("[AppleMusicModule] Song '\(song.title)' artwork.url(width:height:) returned nil!")
             }
-        } else {
-            NSLog("[AppleMusicModule] Song '\(song.title)' has NO artwork object (nil)")
         }
         
         return [
@@ -1539,6 +1536,7 @@ class AppleMusicModule: RCTEventEmitter {
 
     /// Get all songs from the user's library
     /// Returns array of songs sorted by title
+    /// Uses in-memory cache to avoid reloading 23K+ songs on every access
     @objc
     func getLibrarySongs(_ limit: Int,
                          offset: Int,
@@ -1546,20 +1544,54 @@ class AppleMusicModule: RCTEventEmitter {
                          reject: @escaping RCTPromiseRejectBlock) {
         Task {
             do {
-                var request = MusicLibraryRequest<Song>()
-                request.sort(by: \.title, ascending: true)
-                let response = try await request.response()
+                // Check if we have cached songs
+                var cachedSongs: [[String: Any]]?
+                cacheQueue.sync {
+                    cachedSongs = librarySongsCache
+                }
+                
+                let allSongs: [[String: Any]]
+                
+                if let cached = cachedSongs {
+                    // CACHE HIT - use cached songs
+                    NSLog("[AppleMusicModule] getLibrarySongs: CACHE HIT - using \(cached.count) cached songs")
+                    allSongs = cached
+                } else {
+                    // CACHE MISS - load from MusicKit and cache
+                    NSLog("[AppleMusicModule] getLibrarySongs: CACHE MISS - loading from MusicKit...")
+                    let startTime = CFAbsoluteTimeGetCurrent()
+                    
+                    var request = MusicLibraryRequest<Song>()
+                    request.sort(by: \.title, ascending: true)
+                    let response = try await request.response()
+                    
+                    let loadTime = CFAbsoluteTimeGetCurrent() - startTime
+                    NSLog("[AppleMusicModule] getLibrarySongs: MusicKit loaded \(response.items.count) songs in \(String(format: "%.2f", loadTime))s")
+                    
+                    // Convert to dictionaries
+                    let convertStartTime = CFAbsoluteTimeGetCurrent()
+                    let songs = response.items.map { songToDictionary($0) }
+                    let convertTime = CFAbsoluteTimeGetCurrent() - convertStartTime
+                    NSLog("[AppleMusicModule] getLibrarySongs: Converted to dictionaries in \(String(format: "%.2f", convertTime))s")
+                    
+                    // Store in cache (thread-safe)
+                    cacheQueue.async { [weak self] in
+                        self?.librarySongsCache = songs
+                        self?.libraryCacheTimestamp = Date()
+                        NSLog("[AppleMusicModule] getLibrarySongs: Cached \(songs.count) songs")
+                    }
+                    
+                    allSongs = songs
+                }
 
                 // Apply pagination
-                let startIndex = min(offset, response.items.count)
-                let endIndex = min(offset + limit, response.items.count)
-                let paginatedItems = Array(response.items[startIndex..<endIndex])
-
-                let songs = paginatedItems.map { songToDictionary($0) }
+                let startIndex = min(offset, allSongs.count)
+                let endIndex = min(offset + limit, allSongs.count)
+                let paginatedItems = Array(allSongs[startIndex..<endIndex])
 
                 resolve([
-                    "items": songs,
-                    "total": response.items.count,
+                    "items": paginatedItems,
+                    "total": allSongs.count,
                     "offset": offset,
                     "limit": limit
                 ])
@@ -1571,6 +1603,7 @@ class AppleMusicModule: RCTEventEmitter {
 
     /// Get all albums from the user's library
     /// Returns array of albums sorted by title
+    /// Uses in-memory cache to avoid reloading on every access
     @objc
     func getLibraryAlbums(_ limit: Int,
                           offset: Int,
@@ -1578,20 +1611,47 @@ class AppleMusicModule: RCTEventEmitter {
                           reject: @escaping RCTPromiseRejectBlock) {
         Task {
             do {
-                var request = MusicLibraryRequest<Album>()
-                request.sort(by: \.title, ascending: true)
-                let response = try await request.response()
+                // Check if we have cached albums
+                var cachedAlbums: [[String: Any]]?
+                cacheQueue.sync {
+                    cachedAlbums = libraryAlbumsCache
+                }
+                
+                let allAlbums: [[String: Any]]
+                
+                if let cached = cachedAlbums {
+                    // CACHE HIT
+                    NSLog("[AppleMusicModule] getLibraryAlbums: CACHE HIT - using \(cached.count) cached albums")
+                    allAlbums = cached
+                } else {
+                    // CACHE MISS - load from MusicKit and cache
+                    NSLog("[AppleMusicModule] getLibraryAlbums: CACHE MISS - loading from MusicKit...")
+                    
+                    var request = MusicLibraryRequest<Album>()
+                    request.sort(by: \.title, ascending: true)
+                    let response = try await request.response()
+                    
+                    NSLog("[AppleMusicModule] getLibraryAlbums: MusicKit loaded \(response.items.count) albums")
+                    
+                    let albums = response.items.map { albumToDictionary($0) }
+                    
+                    // Store in cache (thread-safe)
+                    cacheQueue.async { [weak self] in
+                        self?.libraryAlbumsCache = albums
+                        NSLog("[AppleMusicModule] getLibraryAlbums: Cached \(albums.count) albums")
+                    }
+                    
+                    allAlbums = albums
+                }
 
                 // Apply pagination
-                let startIndex = min(offset, response.items.count)
-                let endIndex = min(offset + limit, response.items.count)
-                let paginatedItems = Array(response.items[startIndex..<endIndex])
-
-                let albums = paginatedItems.map { albumToDictionary($0) }
+                let startIndex = min(offset, allAlbums.count)
+                let endIndex = min(offset + limit, allAlbums.count)
+                let paginatedItems = Array(allAlbums[startIndex..<endIndex])
 
                 resolve([
-                    "items": albums,
-                    "total": response.items.count,
+                    "items": paginatedItems,
+                    "total": allAlbums.count,
                     "offset": offset,
                     "limit": limit
                 ])
@@ -1820,22 +1880,13 @@ extension URL {
                     // Construct full Apple Music artwork URL from the path
                     // Apple Music uses is1-ssl.mzstatic.com for artwork
                     let fullUrl = "https://is1-ssl.mzstatic.com/image/thumb/\(decodedPath)/300x300bb.jpg"
-                    NSLog("[AppleMusicModule] httpURLString: constructed URL from 'aat': \(fullUrl)")
                     return fullUrl
                 }
             }
         }
 
-        // For musicKit:// URLs without extractable HTTP URL, return the original
-        // React Native's Image component might be able to handle it on newer iOS versions
-        // If not, we'll need to implement a native image loading bridge
-        if self.scheme == "musicKit" {
-            NSLog("[AppleMusicModule] httpURLString: returning musicKit URL as-is (may not work): \(self.absoluteString.prefix(100))")
-            // Return empty - musicKit:// URLs don't work in React Native Image component
-            return ""
-        }
-
-        NSLog("[AppleMusicModule] httpURLString: unsupported scheme: \(self.scheme ?? "nil")")
+        // musicKit:// URLs or unsupported schemes - return empty
+        // musicKit:// URLs don't work in React Native Image component
         return ""
     }
 }

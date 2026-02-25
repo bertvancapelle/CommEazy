@@ -439,44 +439,51 @@ export function AppleMusicScreen() {
   const loadLibraryContent = useCallback(async (category: LibraryCategoryType, forceRefresh = false) => {
     if (!isAuthorized || !isIOS) return;
 
+    console.log('[AppleMusicScreen] loadLibraryContent called:', category, 'forceRefresh:', forceRefresh);
+    console.log('[AppleMusicScreen] Current ref lengths - songs:', librarySongsRef.current.length, 'albums:', libraryAlbumsRef.current.length);
+
     // Skip loading if we already have data for this category (local state cache hit) - unless force refresh
     if (!forceRefresh) {
       switch (category) {
         case 'songs':
           if (librarySongsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using local cached library songs:', librarySongsRef.current.length);
+            console.log('[AppleMusicScreen] ✅ CACHE HIT: Using local cached library songs:', librarySongsRef.current.length);
             return;
           }
           // Check context libraryCache (preloaded at startup)
           if (libraryCache.songs.length > 0) {
-            console.log('[AppleMusicScreen] Using context preloaded library songs:', libraryCache.songs.length);
+            console.log('[AppleMusicScreen] ✅ CACHE HIT: Using context preloaded library songs:', libraryCache.songs.length);
             setLibrarySongs(libraryCache.songs);
             return;
           }
+          console.log('[AppleMusicScreen] ❌ CACHE MISS: No cached songs, will fetch from API');
           break;
         case 'albums':
           if (libraryAlbumsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using local cached library albums:', libraryAlbumsRef.current.length);
+            console.log('[AppleMusicScreen] ✅ CACHE HIT: Using local cached library albums:', libraryAlbumsRef.current.length);
             return;
           }
           // Check context libraryCache (preloaded at startup)
           if (libraryCache.albums.length > 0) {
-            console.log('[AppleMusicScreen] Using context preloaded library albums:', libraryCache.albums.length);
+            console.log('[AppleMusicScreen] ✅ CACHE HIT: Using context preloaded library albums:', libraryCache.albums.length);
             setLibraryAlbums(libraryCache.albums);
             return;
           }
+          console.log('[AppleMusicScreen] ❌ CACHE MISS: No cached albums, will fetch from API');
           break;
         case 'artists':
           if (libraryArtistsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using local cached library artists:', libraryArtistsRef.current.length);
+            console.log('[AppleMusicScreen] ✅ CACHE HIT: Using local cached library artists:', libraryArtistsRef.current.length);
             return;
           }
+          console.log('[AppleMusicScreen] ❌ CACHE MISS: No cached artists, will fetch from API');
           break;
         case 'playlists':
           if (libraryPlaylistsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using local cached library playlists:', libraryPlaylistsRef.current.length);
+            console.log('[AppleMusicScreen] ✅ CACHE HIT: Using local cached library playlists:', libraryPlaylistsRef.current.length);
             return;
           }
+          console.log('[AppleMusicScreen] ❌ CACHE MISS: No cached playlists, will fetch from API');
           break;
       }
     }
