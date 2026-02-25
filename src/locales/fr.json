@@ -1334,7 +1334,8 @@
         "resultCount": "{{count}} sur {{total}} morceaux",
         "noSearchResults": "Aucun morceau trouvé",
         "alreadyInLibraryMessage": "\"{{title}}\" est déjà dans votre bibliothèque",
-        "addError": "Impossible d'ajouter la chanson à la bibliothèque"
+        "addError": "Impossible d'ajouter la chanson à la bibliothèque",
+        "loadingLarge": "Chargement de la grande bibliothèque..."
       },
       "playlists": {
         "comingSoon": "Playlists bientôt disponibles"

@@ -63,6 +63,7 @@ import {
   type AppleMusicPlaylist,
   type SearchResults,
   type LibraryCounts,
+  type LibraryCache,
 } from '@/contexts/AppleMusicContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -153,6 +154,9 @@ export function AppleMusicScreen() {
     getLibraryArtists,
     getLibraryPlaylists,
     getLibraryCounts,
+    // Library Cache (preloaded at startup)
+    libraryCache,
+    isLibraryCacheLoading,
     // Queue
     queue,
   } = useAppleMusicContext();
@@ -203,6 +207,8 @@ export function AppleMusicScreen() {
   const [libraryArtists, setLibraryArtists] = useState<AppleMusicArtist[]>([]);
   const [libraryPlaylists, setLibraryPlaylists] = useState<AppleMusicPlaylist[]>([]);
   const [isLoadingLibraryContent, setIsLoadingLibraryContent] = useState(false);
+  const [showLargeLibraryText, setShowLargeLibraryText] = useState(false);
+  const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [librarySearchQuery, setLibrarySearchQuery] = useState('');
 
   // Track which search result songs are in library (for heart icon display)
@@ -461,34 +467,46 @@ export function AppleMusicScreen() {
   useEffect(() => { libraryPlaylistsRef.current = libraryPlaylists; }, [libraryPlaylists]);
 
   // Library content loading function - extracted for reuse by refresh button
-  // Uses refs for cache check to avoid callback recreation on every state change
+  // Priority: 1) local state cache, 2) context libraryCache (preloaded), 3) API call
   const loadLibraryContent = useCallback(async (category: LibraryCategoryType, forceRefresh = false) => {
     if (!isAuthorized || !isIOS) return;
 
-    // Skip loading if we already have data for this category (cache hit) - unless force refresh
+    // Skip loading if we already have data for this category (local state cache hit) - unless force refresh
     if (!forceRefresh) {
       switch (category) {
         case 'songs':
           if (librarySongsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using cached library songs:', librarySongsRef.current.length);
+            console.log('[AppleMusicScreen] Using local cached library songs:', librarySongsRef.current.length);
+            return;
+          }
+          // Check context libraryCache (preloaded at startup)
+          if (libraryCache.songs.length > 0) {
+            console.log('[AppleMusicScreen] Using context preloaded library songs:', libraryCache.songs.length);
+            setLibrarySongs(libraryCache.songs);
             return;
           }
           break;
         case 'albums':
           if (libraryAlbumsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using cached library albums:', libraryAlbumsRef.current.length);
+            console.log('[AppleMusicScreen] Using local cached library albums:', libraryAlbumsRef.current.length);
+            return;
+          }
+          // Check context libraryCache (preloaded at startup)
+          if (libraryCache.albums.length > 0) {
+            console.log('[AppleMusicScreen] Using context preloaded library albums:', libraryCache.albums.length);
+            setLibraryAlbums(libraryCache.albums);
             return;
           }
           break;
         case 'artists':
           if (libraryArtistsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using cached library artists:', libraryArtistsRef.current.length);
+            console.log('[AppleMusicScreen] Using local cached library artists:', libraryArtistsRef.current.length);
             return;
           }
           break;
         case 'playlists':
           if (libraryPlaylistsRef.current.length > 0) {
-            console.log('[AppleMusicScreen] Using cached library playlists:', libraryPlaylistsRef.current.length);
+            console.log('[AppleMusicScreen] Using local cached library playlists:', libraryPlaylistsRef.current.length);
             return;
           }
           break;
@@ -496,40 +514,53 @@ export function AppleMusicScreen() {
     }
 
     setIsLoadingLibraryContent(true);
+    setShowLargeLibraryText(false);
     setLibrarySearchQuery(''); // Reset search when changing category
+
+    // Start timer to show "Large library loading" text after 1 second
+    loadingTimerRef.current = setTimeout(() => {
+      setShowLargeLibraryText(true);
+    }, 1000);
+
     try {
       switch (category) {
         case 'songs': {
           const response = await getLibrarySongs(500, 0);
           setLibrarySongs(response.items);
-          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library songs');
+          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library songs from API');
           break;
         }
         case 'albums': {
           const response = await getLibraryAlbums(500, 0);
           setLibraryAlbums(response.items);
-          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library albums');
+          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library albums from API');
           break;
         }
         case 'artists': {
           const response = await getLibraryArtists(500, 0);
           setLibraryArtists(response.items);
-          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library artists');
+          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library artists from API');
           break;
         }
         case 'playlists': {
           const response = await getLibraryPlaylists(500, 0);
           setLibraryPlaylists(response.items);
-          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library playlists');
+          console.log('[AppleMusicScreen] Loaded', response.items.length, 'library playlists from API');
           break;
         }
       }
     } catch (error) {
       console.error('[AppleMusicScreen] Failed to load library content:', error);
     } finally {
+      // Clear the timer and reset states
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+        loadingTimerRef.current = null;
+      }
+      setShowLargeLibraryText(false);
       setIsLoadingLibraryContent(false);
     }
-  }, [isAuthorized, isIOS, getLibrarySongs, getLibraryAlbums, getLibraryArtists, getLibraryPlaylists]);
+  }, [isAuthorized, isIOS, libraryCache, getLibrarySongs, getLibraryAlbums, getLibraryArtists, getLibraryPlaylists]);
 
   // Effect 10: Load library content when a category is selected
   useEffect(() => {
@@ -537,6 +568,15 @@ export function AppleMusicScreen() {
     loadLibraryContent(libraryCategory);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [libraryCategory]);
+
+  // Effect 10b: Cleanup loading timer on unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+      }
+    };
+  }, []);
 
   // Effect 11: Check library status for search result songs (for heart icon)
   useEffect(() => {
@@ -1431,7 +1471,9 @@ export function AppleMusicScreen() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={appleMusicColor} />
             <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-              {t('common.loading')}
+              {showLargeLibraryText
+                ? t('modules.appleMusic.library.loadingLarge')
+                : t('common.loading')}
             </Text>
           </View>
         ) : (

@@ -20,7 +20,6 @@ import {
   StyleSheet,
   Platform,
   Vibration,
-  AccessibilityInfo,
   type GestureResponderEvent,
   type LayoutChangeEvent,
 } from 'react-native';
@@ -28,6 +27,7 @@ import {
 import { useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
 import { useHoldGestureContext } from '@/contexts/HoldGestureContext';
 import { useWheelMenuContext } from '@/contexts/WheelMenuContext';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { PanelNavigator } from './PanelNavigator';
 import { HoldIndicator } from '@/components/HoldIndicator';
 import type { NavigationDestination } from '@/types/navigation';
@@ -62,6 +62,7 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
   const { setActiveVoicePanel } = useSplitViewContext();
   const holdGesture = useHoldGestureContext();
   const wheelMenu = useWheelMenuContext();
+  const reducedMotion = useReducedMotion();
 
   // Touch tracking refs
   const touchCountRef = useRef(0);
@@ -71,17 +72,11 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
   // HoldIndicator state
   const [isHolding, setIsHolding] = useState(false);
   const [holdPosition, setHoldPosition] = useState({ x: 0, y: 0 });
-  const [reducedMotion, setReducedMotion] = useState(false);
 
   // Track container's screen position for coordinate conversion
   // pageX/pageY are absolute screen coordinates, but HoldIndicator is rendered
   // inside the ModulePanel, so we need to convert to local coordinates
   const containerOffset = useRef({ x: 0, y: 0 });
-
-  // Check reduced motion preference
-  React.useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
-  }, []);
 
   // Track container position on layout
   const handleLayout = useCallback((event: LayoutChangeEvent) => {

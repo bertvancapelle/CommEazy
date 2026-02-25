@@ -1215,7 +1215,8 @@
         "resultCount": "{{count}} av {{total}} sanger",
         "noSearchResults": "Ingen sanger funnet",
         "alreadyInLibraryMessage": "\"{{title}}\" er allerede i biblioteket ditt",
-        "addError": "Kunne ikke legge til sangen i biblioteket"
+        "addError": "Kunne ikke legge til sangen i biblioteket",
+        "loadingLarge": "Laster stort bibliotek..."
       },
       "playlists": {
         "comingSoon": "Spillelister kommer snart"

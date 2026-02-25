@@ -1338,7 +1338,8 @@
         "resultCount": "{{count}} of {{total}} songs",
         "noSearchResults": "No songs found",
         "alreadyInLibraryMessage": "\"{{title}}\" is already in your library",
-        "addError": "Could not add song to library"
+        "addError": "Could not add song to library",
+        "loadingLarge": "Loading large library..."
       },
       "playlists": {
         "comingSoon": "Playlists coming soon"

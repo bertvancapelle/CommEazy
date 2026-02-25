@@ -1358,7 +1358,8 @@
         "resultCount": "{{count}} de {{total}} músicas",
         "noSearchResults": "Nenhuma música encontrada",
         "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",
-        "addError": "Não foi possível adicionar a música à biblioteca"
+        "addError": "Não foi possível adicionar a música à biblioteca",
+        "loadingLarge": "A carregar biblioteca grande..."
       },
       "playlists": {
         "comingSoon": "Listas em breve"

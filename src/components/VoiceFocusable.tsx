@@ -26,7 +26,6 @@ import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Animated,
-  AccessibilityInfo,
   StyleSheet,
   Easing,
   type ViewStyle,
@@ -34,6 +33,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useVoiceFocusContext, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { borderRadius, animation, colors } from '@/theme';
 
 interface VoiceFocusableProps {
@@ -56,24 +56,6 @@ interface VoiceFocusableProps {
 }
 
 /**
- * Hook for reduced motion preference
- */
-function useReducedMotion(): boolean {
-  const [reducedMotion, setReducedMotion] = React.useState(false);
-
-  useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setReducedMotion
-    );
-    return () => subscription.remove();
-  }, []);
-
-  return reducedMotion;
-}
-
-/**
  * VoiceFocusable component
  */
 export function VoiceFocusable({
@@ -90,12 +72,12 @@ export function VoiceFocusable({
   const { isFocused, getFocusStyle, isVoiceSessionActive } = useVoiceFocusContext();
   const reducedMotion = useReducedMotion();
 
-  // Animation values
+  // Animation values - only created when needed (lazy initialization)
   // IMPORTANT: Keep native-driven and JS-driven animations on SEPARATE Animated.Values
   // Using the same value for both causes "node moved to native" error
-  const scaleAnim = useRef(new Animated.Value(1)).current; // Native driver (transform)
-  const pulseAnim = useRef(new Animated.Value(0)).current; // JS driver only (border color) - 0 = accent, 1 = white
-  const pulseAnimRef = useRef<Animated.CompositeAnimation | null>(null);
+  const scaleAnimRef = useRef<Animated.Value | null>(null);
+  const pulseAnimRef = useRef<Animated.Value | null>(null);
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   // Check if this item is focused
   const focused = isFocused(id);
@@ -103,30 +85,58 @@ export function VoiceFocusable({
   // Get focus styles from context (uses accent color)
   const focusStyle = getFocusStyle();
 
-  // Animate scale when focus changes
+  // Animate scale when focus changes - ONLY when focused changes to true/false
+  // This prevents 500+ animation callbacks on initial mount
   useEffect(() => {
     if (reducedMotion) return;
 
-    Animated.timing(scaleAnim, {
-      toValue: focused ? 1.02 : 1,
+    // Only animate when actually focused - skip animation for unfocused items
+    if (!focused) {
+      // Reset scale without animation if we have an anim ref
+      if (scaleAnimRef.current) {
+        scaleAnimRef.current.setValue(1);
+      }
+      return;
+    }
+
+    // Lazy create animation value only when needed
+    if (!scaleAnimRef.current) {
+      scaleAnimRef.current = new Animated.Value(1);
+    }
+
+    Animated.timing(scaleAnimRef.current, {
+      toValue: 1.02,
       duration: animation.fast,
       useNativeDriver: true,
     }).start();
-  }, [focused, scaleAnim, reducedMotion]);
+
+    // Cleanup: reset to 1 when unfocused
+    return () => {
+      if (scaleAnimRef.current) {
+        scaleAnimRef.current.setValue(1);
+      }
+    };
+  }, [focused, reducedMotion]);
 
   // Pulsing border animation when focused (accent ↔ white)
+  // Only creates animation values when actually needed (lazy initialization)
   useEffect(() => {
     if (focused && isVoiceSessionActive && !reducedMotion) {
+      // Lazy create pulse animation value only when needed
+      if (!pulseAnimRef.current) {
+        pulseAnimRef.current = new Animated.Value(0);
+      }
+
       // Start pulsing animation: accent color → white → accent color
-      pulseAnimRef.current = Animated.loop(
+      pulseLoopRef.current = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, {
+          Animated.timing(pulseAnimRef.current, {
             toValue: 1, // white
             duration: 600,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: false, // border color can't use native driver
           }),
-          Animated.timing(pulseAnim, {
+          Animated.timing(pulseAnimRef.current, {
             toValue: 0, // accent color
             duration: 600,
             easing: Easing.inOut(Easing.ease),
@@ -134,31 +144,36 @@ export function VoiceFocusable({
           }),
         ])
       );
-      pulseAnimRef.current.start();
+      pulseLoopRef.current.start();
     } else {
       // Stop pulsing and reset
-      if (pulseAnimRef.current) {
-        pulseAnimRef.current.stop();
-        pulseAnimRef.current = null;
+      if (pulseLoopRef.current) {
+        pulseLoopRef.current.stop();
+        pulseLoopRef.current = null;
       }
-      pulseAnim.setValue(0);
+      if (pulseAnimRef.current) {
+        pulseAnimRef.current.setValue(0);
+      }
     }
 
     return () => {
-      if (pulseAnimRef.current) {
-        pulseAnimRef.current.stop();
+      if (pulseLoopRef.current) {
+        pulseLoopRef.current.stop();
       }
     };
-  }, [focused, isVoiceSessionActive, reducedMotion, pulseAnim]);
+  }, [focused, isVoiceSessionActive, reducedMotion]);
 
-  // Interpolate border color from accent to white
+  // Interpolate border color from accent to white (only when pulse animation exists)
   // Use a safe fallback color if borderColor is undefined
   // Note: Use '#FFFFFF' directly as colors.white doesn't exist in the theme
   const safeAccentColor = focusStyle.borderColor || '#007AFF';
-  const animatedBorderColor = pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [safeAccentColor, '#FFFFFF'],
-  });
+  const animatedBorderColor = useMemo(() => {
+    if (!pulseAnimRef.current) return safeAccentColor;
+    return pulseAnimRef.current.interpolate({
+      inputRange: [0, 1],
+      outputRange: [safeAccentColor, '#FFFFFF'],
+    });
+  }, [safeAccentColor, focused, isVoiceSessionActive]); // Re-compute when focus changes
 
   // Handle layout for scroll positioning
   const handleLayout = useCallback(
@@ -194,6 +209,12 @@ export function VoiceFocusable({
     ? t('a11y.voiceFocusHint', 'Zeg "open" om te selecteren')
     : undefined;
 
+  // Compute scale style only when we have an animation value
+  const scaleStyle = useMemo(() => {
+    if (reducedMotion || !scaleAnimRef.current) return undefined;
+    return { transform: [{ scale: scaleAnimRef.current }] };
+  }, [reducedMotion, focused]); // Re-compute when focus changes
+
   // We need two nested Animated.Views because:
   // - Border color animation requires useNativeDriver: false (JS driver)
   // - Scale animation uses useNativeDriver: true (native driver)
@@ -215,10 +236,8 @@ export function VoiceFocusable({
       }}
       accessibilityRole="button"
     >
-      {/* Inner view for native-driven scale transform */}
-      <Animated.View
-        style={!reducedMotion ? { transform: [{ scale: scaleAnim }] } : undefined}
-      >
+      {/* Inner view for native-driven scale transform - only when focused */}
+      <Animated.View style={scaleStyle}>
         {children}
       </Animated.View>
     </Animated.View>

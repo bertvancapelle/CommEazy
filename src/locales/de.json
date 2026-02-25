@@ -1334,7 +1334,8 @@
         "resultCount": "{{count}} von {{total}} Titeln",
         "noSearchResults": "Keine Titel gefunden",
         "alreadyInLibraryMessage": "\"{{title}}\" ist bereits in deiner Bibliothek",
-        "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden"
+        "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden",
+        "loadingLarge": "Große Bibliothek wird geladen..."
       },
       "playlists": {
         "comingSoon": "Playlists kommen bald"
