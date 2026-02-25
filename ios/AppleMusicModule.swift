@@ -677,6 +677,56 @@ class AppleMusicModule: RCTEventEmitter {
         }
     }
 
+    /// Toggle playback (play/pause based on current state)
+    /// This is more reliable than checking isPlaying in JS due to race conditions
+    @objc
+    func togglePlayback(_ resolve: @escaping RCTPromiseResolveBlock,
+                        reject: @escaping RCTPromiseRejectBlock) {
+        let currentStatus = player.state.playbackStatus
+        NSLog("[AppleMusicModule] togglePlayback() called, current status: \(currentStatus)")
+        
+        if currentStatus == .playing {
+            // Currently playing -> pause
+            player.pause()
+            
+            DispatchQueue.main.async { [weak self] in
+                self?.stopTimeUpdateTimer()
+            }
+            
+            if hasListeners {
+                let stateDict = buildPlaybackState()
+                lastEmittedStatus = "paused"
+                lastStateEventTime = CFAbsoluteTimeGetCurrent()
+                sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+            }
+            
+            resolve(["success": true, "newState": "paused"])
+        } else {
+            // Not playing -> resume
+            Task {
+                do {
+                    try await player.play()
+                    
+                    DispatchQueue.main.async { [weak self] in
+                        self?.startTimeUpdateTimer()
+                    }
+                    
+                    if self.hasListeners {
+                        let stateDict = self.buildPlaybackState()
+                        self.lastEmittedStatus = "playing"
+                        self.lastStateEventTime = CFAbsoluteTimeGetCurrent()
+                        self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+                    }
+                    
+                    resolve(["success": true, "newState": "playing"])
+                } catch {
+                    NSLog("[AppleMusicModule] togglePlayback() play failed: \(error.localizedDescription)")
+                    reject("TOGGLE_ERROR", "Failed to toggle playback: \(error.localizedDescription)", error)
+                }
+            }
+        }
+    }
+
     /// Stop playback
     @objc
     func stop(_ resolve: @escaping RCTPromiseResolveBlock,
@@ -1744,49 +1794,48 @@ extension URL {
     /// Filters out musicKit:// URLs that React Native cannot load
     /// Only returns https:// URLs that can be displayed in Image components
     var httpURLString: String {
-        NSLog("[AppleMusicModule] httpURLString called with URL: \(self.absoluteString.prefix(200))")
-        NSLog("[AppleMusicModule] httpURLString scheme: \(self.scheme ?? "nil")")
-        
         // Quick path for http/https URLs
         if self.scheme == "https" || self.scheme == "http" {
-            NSLog("[AppleMusicModule] httpURLString: returning https/http URL directly")
             return self.absoluteString
         }
 
-        // musicKit:// URLs contain a fallback URL in the 'fat' query parameter
+        // musicKit:// URLs: try to extract fallback HTTP URL from query parameters
         if self.scheme == "musicKit" {
-            NSLog("[AppleMusicModule] httpURLString: musicKit scheme detected")
             if let components = URLComponents(url: self, resolvingAgainstBaseURL: false) {
-                let paramNames = components.queryItems?.map { $0.name } ?? []
-                NSLog("[AppleMusicModule] httpURLString: query params available: \(paramNames)")
-                
-                // Try 'fat' parameter first (fallback URL)
-                if let fatParam = components.queryItems?.first(where: { $0.name == "fat" })?.value,
-                   let decodedURL = fatParam.removingPercentEncoding {
-                    NSLog("[AppleMusicModule] httpURLString: found 'fat' param: \(decodedURL.prefix(100))")
-                    return decodedURL
+                // Try various known parameter names that contain fallback URLs
+                let urlParamNames = ["fat", "u", "url"]
+                for paramName in urlParamNames {
+                    if let paramValue = components.queryItems?.first(where: { $0.name == paramName })?.value,
+                       let decodedURL = paramValue.removingPercentEncoding,
+                       !decodedURL.isEmpty {
+                        return decodedURL
+                    }
                 }
                 
-                // Try 'u' parameter (some MusicKit URLs use this)
-                if let uParam = components.queryItems?.first(where: { $0.name == "u" })?.value,
-                   let decodedURL = uParam.removingPercentEncoding {
-                    NSLog("[AppleMusicModule] httpURLString: found 'u' param: \(decodedURL.prefix(100))")
-                    return decodedURL
+                // Try 'aat' (Apple Art Template) parameter - contains path to artwork
+                // Format: Music122/v4/37/25/f5/3725f515-249f-7b91-77bb-f479cd48201c/22UMGIM32254.rgb.jpg
+                if let aatParam = components.queryItems?.first(where: { $0.name == "aat" })?.value,
+                   let decodedPath = aatParam.removingPercentEncoding,
+                   !decodedPath.isEmpty {
+                    // Construct full Apple Music artwork URL from the path
+                    // Apple Music uses is1-ssl.mzstatic.com for artwork
+                    let fullUrl = "https://is1-ssl.mzstatic.com/image/thumb/\(decodedPath)/300x300bb.jpg"
+                    NSLog("[AppleMusicModule] httpURLString: constructed URL from 'aat': \(fullUrl)")
+                    return fullUrl
                 }
-                
-                // Try 'url' parameter
-                if let urlParam = components.queryItems?.first(where: { $0.name == "url" })?.value,
-                   let decodedURL = urlParam.removingPercentEncoding {
-                    NSLog("[AppleMusicModule] httpURLString: found 'url' param: \(decodedURL.prefix(100))")
-                    return decodedURL
-                }
-                
-                NSLog("[AppleMusicModule] httpURLString: no known URL param found in musicKit URL")
             }
         }
 
-        // Last resort: return empty - can't use musicKit:// URLs in React Native
-        NSLog("[AppleMusicModule] httpURLString: returning empty for scheme: \(self.scheme ?? "nil")")
+        // For musicKit:// URLs without extractable HTTP URL, return the original
+        // React Native's Image component might be able to handle it on newer iOS versions
+        // If not, we'll need to implement a native image loading bridge
+        if self.scheme == "musicKit" {
+            NSLog("[AppleMusicModule] httpURLString: returning musicKit URL as-is (may not work): \(self.absoluteString.prefix(100))")
+            // Return empty - musicKit:// URLs don't work in React Native Image component
+            return ""
+        }
+
+        NSLog("[AppleMusicModule] httpURLString: unsupported scheme: \(self.scheme ?? "nil")")
         return ""
     }
 }

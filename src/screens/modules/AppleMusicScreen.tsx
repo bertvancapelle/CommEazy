@@ -137,6 +137,7 @@ export function AppleMusicScreen() {
     pause,
     resume,
     stop,
+    togglePlayback,
     skipToNext,
     skipToPrevious,
     seekTo,
@@ -238,16 +239,10 @@ export function AppleMusicScreen() {
     configureControls: configureGlassControls,
   } = useGlassPlayer({
     onPlayPause: async () => {
-      // Native Glass Player handles its own UI state.
-      // We just need to toggle the underlying playback.
-      // NOTE: Don't check isPlaying here - the native side already knows the state
-      // and may have already updated its UI. Just tell MusicKit to toggle.
-      console.log('[AppleMusicScreen] onPlayPause from native, current isPlaying:', isPlaying);
-      if (isPlaying) {
-        await pause();
-      } else {
-        await resume();
-      }
+      // Use togglePlayback which checks native state directly
+      // This avoids race conditions with stale isPlaying values in closures
+      console.log('[AppleMusicScreen] onPlayPause from native - using togglePlayback');
+      await togglePlayback();
     },
     onStop: async () => {
       await stop();
@@ -301,25 +296,31 @@ export function AppleMusicScreen() {
   // ============================================================
 
   // Effect 1: Show native mini player when song plays (iOS 26+ only)
+  // Glass Player is system-wide - shows regardless of which screen is focused
   useEffect(() => {
-    if (!isGlassPlayerAvailable || !currentSong || !isFocused) {
+    if (!isGlassPlayerAvailable || !currentSong) {
+      return;
+    }
+
+    // Only show if not already visible (avoid duplicate calls)
+    if (isGlassPlayerVisible) {
       return;
     }
 
     // Use effectiveArtworkUrl which prefers cached search result URLs over MusicKit queue URLs
-    // MusicKit queue entries often have musicKit:// URLs that don't work in React Native
     const artworkUrl = effectiveArtworkUrl;
 
     console.log('[AppleMusicScreen] Showing Glass Player with artwork:', artworkUrl);
 
     // Configure controls for Apple Music (skip buttons, shuffle, repeat, etc.)
+    // Apple Music: NO stop button (pause is sufficient for on-demand content)
     configureGlassControls({
       seekSlider: true,
       skipButtons: true,
       speedControl: false,
       sleepTimer: true,
       favorite: true,
-      stopButton: true,
+      stopButton: false,  // Apple Music doesn't need stop (pause is sufficient)
       shuffle: true,
       repeat: true,
     });
@@ -332,9 +333,9 @@ export function AppleMusicScreen() {
       subtitle: currentSong.artistName,
       progressType: 'bar',
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-      showStopButton: true,
+      showStopButton: false,  // Apple Music doesn't need stop button
     });
-  }, [isGlassPlayerAvailable, currentSong, effectiveArtworkUrl, isFocused, showGlassMiniPlayer, configureGlassControls]);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, showGlassMiniPlayer, configureGlassControls, appleMusicColor, playbackState?.currentTime, playbackState?.duration]);
 
   // Effect 2: Update playback state when playing/paused changes
   useEffect(() => {
@@ -370,56 +371,23 @@ export function AppleMusicScreen() {
       title: currentSong.title,
       subtitle: currentSong.artistName,
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-      showStopButton: true,  // Single source of truth for stop button visibility
+      showStopButton: false,  // Apple Music doesn't need stop button
     });
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, appleMusicColor, updateGlassContent]);
 
-  // Effect 4: Hide native player when navigating away
-  useEffect(() => {
-    if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
-      hideGlassPlayer();
-    }
-  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+  // Effect 4: REMOVED - Glass Player is system-wide and should NOT hide on navigation
+  // The Glass Player window stays visible while music plays, regardless of which screen is focused.
+  // Only hide when playback actually stops (Effect 6).
 
-  // Effect 6: Hide native player when song stops
+  // Effect 6: Hide native player when playback stops (no current song)
   useEffect(() => {
     if (!currentSong && isGlassPlayerAvailable && isGlassPlayerVisible) {
+      console.debug('[AppleMusicScreen] Hiding Glass Player - no current song');
       hideGlassPlayer();
     }
   }, [currentSong, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
-  // Effect 7: Re-show native player when navigating back to screen with active playback
-  useEffect(() => {
-    if (isFocused && isGlassPlayerAvailable && currentSong && !isGlassPlayerVisible) {
-      console.debug('[AppleMusicScreen] Re-showing Glass Player after navigation');
-
-      // Use effectiveArtworkUrl which prefers cached search result URLs
-      const artworkUrl = effectiveArtworkUrl;
-
-      // Configure controls for Apple Music
-      configureGlassControls({
-        seekSlider: true,
-        skipButtons: true,
-        speedControl: false,
-        sleepTimer: true,
-        favorite: true,
-        stopButton: false,
-        shuffle: true,
-        repeat: true,
-      });
-
-      showGlassMiniPlayer({
-        moduleId: 'appleMusic',
-        tintColorHex: appleMusicColor,
-        artwork: artworkUrl,
-        title: currentSong.title,
-        subtitle: currentSong.artistName,
-        progressType: 'bar',
-        progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-        showStopButton: false,
-      });
-    }
-  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState, showGlassMiniPlayer, configureGlassControls]);
+  // Effect 7: REMOVED - No need to re-show since we don't hide on navigation anymore
 
   // Effect 8: Check if current song is in library when song changes
   useEffect(() => {

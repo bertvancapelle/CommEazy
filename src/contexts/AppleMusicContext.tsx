@@ -214,6 +214,8 @@ export interface AppleMusicContextValue {
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   stop: () => Promise<void>;
+  /** Toggle playback - uses native state to avoid race conditions */
+  togglePlayback: () => Promise<void>;
   skipToNext: () => Promise<void>;
   skipToPrevious: () => Promise<void>;
   seekTo: (position: number) => Promise<void>;
@@ -335,10 +337,17 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
 
     const eventEmitter = new NativeEventEmitter(AppleMusicModule);
 
+    // Track last logged status to avoid excessive console spam
+    let lastLoggedStatus: string | null = null;
+
     const playbackStateSubscription = eventEmitter.addListener(
       'onPlaybackStateChange',
       (state: PlaybackState) => {
-        console.log('[AppleMusicContext] Playback state changed:', state.status);
+        // Only log when status actually changes (not on every time update)
+        if (state.status !== lastLoggedStatus) {
+          console.log('[AppleMusicContext] Playback state changed:', state.status);
+          lastLoggedStatus = state.status;
+        }
         setPlaybackState(state);
         setIsLoading(false);
       }
@@ -894,6 +903,32 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     }
   }, [isIOS, audioOrchestrator, t]);
 
+  /**
+   * Toggle playback (play/pause) - uses native state to avoid race conditions
+   * This is more reliable than checking isPlaying in JS callbacks
+   */
+  const togglePlayback = useCallback(async () => {
+    if (!isIOS || !AppleMusicModule) return;
+
+    try {
+      // Request playback slot from orchestrator (will stop other sources if needed)
+      // Only needed when resuming, but orchestrator handles the logic
+      await audioOrchestrator.requestPlayback('appleMusic');
+
+      const result = await AppleMusicModule.togglePlayback();
+      console.log('[AppleMusicContext] togglePlayback result:', result?.newState);
+
+      // Accessibility announcement based on new state
+      if (result?.newState === 'playing') {
+        AccessibilityInfo.announceForAccessibility(t('modules.appleMusic.resumed'));
+      } else if (result?.newState === 'paused') {
+        AccessibilityInfo.announceForAccessibility(t('modules.appleMusic.paused'));
+      }
+    } catch (error) {
+      console.error('[AppleMusicContext] Toggle playback error:', error);
+    }
+  }, [isIOS, audioOrchestrator, t]);
+
   const skipToNext = useCallback(async () => {
     if (!isIOS || !AppleMusicModule) return;
 
@@ -1133,6 +1168,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       pause,
       resume,
       stop,
+      togglePlayback,
       skipToNext,
       skipToPrevious,
       seekTo,
@@ -1197,6 +1233,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       pause,
       resume,
       stop,
+      togglePlayback,
       skipToNext,
       skipToPrevious,
       seekTo,
@@ -1265,12 +1302,13 @@ export function useAppleMusicControls(): {
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   stop: () => Promise<void>;
+  togglePlayback: () => Promise<void>;
   skipToNext: () => Promise<void>;
   skipToPrevious: () => Promise<void>;
   seekTo: (position: number) => Promise<void>;
 } {
-  const { playSong, pause, resume, stop, skipToNext, skipToPrevious, seekTo } = useAppleMusicContext();
-  return { playSong, pause, resume, stop, skipToNext, skipToPrevious, seekTo };
+  const { playSong, pause, resume, stop, togglePlayback, skipToNext, skipToPrevious, seekTo } = useAppleMusicContext();
+  return { playSong, pause, resume, stop, togglePlayback, skipToNext, skipToPrevious, seekTo };
 }
 
 /**
