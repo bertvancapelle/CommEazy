@@ -541,8 +541,9 @@ export class XmppJsService implements XMPPService {
     const type = stanza.attrs.type as string | undefined;
 
     // Guard against missing 'from' attribute
+    // This happens with server-generated presence stanzas (e.g., own presence echo)
+    // Silently ignore — this is expected XMPP behavior, not an error
     if (!from) {
-      console.warn('[XMPP] Received presence without from attribute, ignoring');
       return;
     }
 
