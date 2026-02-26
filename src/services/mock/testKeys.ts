@@ -32,6 +32,7 @@ const OMA_SEED = 'commeazy_dev_test_keypair_oma_v1';
 const TEST_SEED = 'commeazy_dev_test_keypair_test_v1';
 const JEANINE_SEED = 'commeazy_dev_test_keypair_jeanine_v1';
 const IPAD_SEED = 'commeazy_dev_test_keypair_ipad_v1';
+const IPADPHYS_SEED = 'commeazy_dev_test_keypair_ipadphys_v1';
 
 // Cached keypairs (generated once on first access)
 let ikKeypairCache: { publicKey: string; privateKey: string } | null = null;
@@ -39,6 +40,7 @@ let omaKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let testKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let jeanineKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let ipadKeypairCache: { publicKey: string; privateKey: string } | null = null;
+let ipadphysKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let sodiumReadyPromise: Promise<void> | null = null;
 
 /**
@@ -141,6 +143,20 @@ export const getIpadKeypair = async (): Promise<{ publicKey: string; privateKey:
 };
 
 /**
+ * Get or generate the test keypair for 'ipadphys@commeazy.local'.
+ * Used for physical iPad testing.
+ */
+export const getIpadPhysKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+  if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
+
+  if (!ipadphysKeypairCache) {
+    ipadphysKeypairCache = await generateKeypairFromSeed(IPADPHYS_SEED);
+    console.log('[TestKeys] Generated IPADPHYS keypair:', ipadphysKeypairCache.publicKey.substring(0, 20) + '...');
+  }
+  return ipadphysKeypairCache;
+};
+
+/**
  * Get the test keypair for a given JID.
  * Returns null if the JID is not a test account.
  */
@@ -158,6 +174,8 @@ export const getTestKeypairForJid = async (jid: string): Promise<{ publicKey: st
       return getJeanineKeypair();
     case 'ipad@commeazy.local':
       return getIpadKeypair();
+    case 'ipadphys@commeazy.local':
+      return getIpadPhysKeypair();
     default:
       return null;
   }
@@ -179,7 +197,7 @@ export const getTestPublicKeyForJid = async (jid: string): Promise<string | null
 export const getOtherDevicesPublicKeys = async (myJid: string): Promise<Record<string, string>> => {
   if (!__DEV__) return {};
 
-  const allTestJids = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local'];
+  const allTestJids = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local', 'ipadphys@commeazy.local'];
   const otherJids = allTestJids.filter(jid => jid !== myJid);
 
   const result: Record<string, string> = {};

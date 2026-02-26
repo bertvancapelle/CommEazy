@@ -98,6 +98,7 @@ const isPhysicalDevice = async (): Promise<boolean> => {
 // - iPad (simulator) → ipad@commeazy.local
 // - iPhone 14 (physical, Bert) → test@commeazy.local
 // - Other physical iPhone (Jeanine) → jeanine@commeazy.local
+// - Physical iPad → ipadphys@commeazy.local
 const getDevUserCredentials = async () => {
   // First check if this is a physical device
   const physical = await isPhysicalDevice();
@@ -110,6 +111,7 @@ const getDevUserCredentials = async () => {
       console.log(`[DEV] Physical device model: ${model}`);
 
       // iPhone 14 (Bert's device) uses test account
+      // Physical iPad uses ipadphys account
       // Other physical devices (Jeanine's iPhone) use jeanine account
       if (model.includes('iPhone 14')) {
         console.log(`[DEV] iPhone 14 detected (Bert), using test account`);
@@ -117,6 +119,13 @@ const getDevUserCredentials = async () => {
           jid: 'test@commeazy.local',
           password: 'test123',
           name: 'Test',
+        };
+      } else if (model.includes('iPad')) {
+        console.log(`[DEV] Physical iPad detected, using ipadphys account`);
+        return {
+          jid: 'ipadphys@commeazy.local',
+          password: 'test123',
+          name: 'iPad',
         };
       } else {
         console.log(`[DEV] Other physical device detected (Jeanine), using jeanine account`);

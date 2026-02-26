@@ -15,6 +15,7 @@
  *    - ik@commeazy.local (iPhone 17 Pro simulator)
  *    - oma@commeazy.local (iPhone 16e simulator)
  *    - test@commeazy.local (iPhone 14 physical)
+ *    - ipadphys@commeazy.local (physical iPad)
  */
 
 // ============================================================
@@ -91,6 +92,12 @@ export const TEST_ACCOUNTS = {
     jid: 'jeanine@commeazy.local',
     password: 'test123',
     name: 'Jeanine',
+  },
+  // Physical iPad
+  ipadphys: {
+    jid: 'ipadphys@commeazy.local',
+    password: 'test123',
+    name: 'iPad',
   },
 } as const;
 

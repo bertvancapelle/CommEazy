@@ -48,6 +48,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useWheelMenuContextSafe } from '@/contexts/WheelMenuContext';
+import { usePanelId } from '@/contexts/PanelIdContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { ModuleColorId } from '@/types/liquidGlass';
 import type { NavigationDestination } from '@/types/navigation';
@@ -132,15 +133,17 @@ export function ModuleHeader({
 
   // Auto-enable icon navigation when WheelMenuContext is available
   const wheelMenu = useWheelMenuContextSafe();
+  const panelId = usePanelId();
   const { triggerFeedback } = useFeedback();
 
   // Auto-generated icon press handler — opens wheel navigation menu
+  // Uses panelId from PanelIdContext so iPad Split View navigates the correct panel
   const handleAutoIconPress = useCallback(() => {
     if (wheelMenu) {
       void triggerFeedback('tap');
-      wheelMenu.openMenu(null, moduleId as NavigationDestination);
+      wheelMenu.openMenu(panelId, moduleId as NavigationDestination);
     }
-  }, [wheelMenu, moduleId, triggerFeedback]);
+  }, [wheelMenu, panelId, moduleId, triggerFeedback]);
 
   // Determine if icon/logo should be tappable:
   // 1. Explicit onModuleIconPress overrides auto behavior

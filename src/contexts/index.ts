@@ -126,3 +126,8 @@ export {
   useReducedMotionSafe,
   type ReducedMotionContextValue,
 } from './ReducedMotionContext';
+
+export {
+  PanelIdProvider,
+  usePanelId,
+} from './PanelIdContext';

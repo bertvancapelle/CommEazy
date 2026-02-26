@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 
 import { useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
+import { PanelIdProvider } from '@/contexts/PanelIdContext';
 import { useHoldGestureContext } from '@/contexts/HoldGestureContext';
 import { useWheelMenuContext } from '@/contexts/WheelMenuContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -214,16 +215,18 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
-      <PanelNavigator panelId={panelId} moduleId={moduleId} />
+      <PanelIdProvider value={panelId}>
+        <PanelNavigator panelId={panelId} moduleId={moduleId} />
 
-      {/* HoldIndicator shows animated ring during long press */}
-      <HoldIndicator
-        isActive={isHolding}
-        duration={LONG_PRESS_DURATION}
-        x={holdPosition.x}
-        y={holdPosition.y}
-        reducedMotion={reducedMotion}
-      />
+        {/* HoldIndicator shows animated ring during long press */}
+        <HoldIndicator
+          isActive={isHolding}
+          duration={LONG_PRESS_DURATION}
+          x={holdPosition.x}
+          y={holdPosition.y}
+          reducedMotion={reducedMotion}
+        />
+      </PanelIdProvider>
 
       {/* WheelNavigationMenu is rendered at root level via WheelMenuContext
           for full-screen overlay on iPad Split View */}
