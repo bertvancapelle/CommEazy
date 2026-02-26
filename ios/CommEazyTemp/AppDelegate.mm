@@ -74,7 +74,7 @@
     return [settings jsBundleURLForBundleRoot:@"index"];
   #else
     // Physical device needs LAN IP - set the JS location explicitly
-    [settings setJsLocation:@"192.168.218.80"];
+    [settings setJsLocation:@"10.10.15.75"];
     return [settings jsBundleURLForBundleRoot:@"index"];
   #endif
 #else

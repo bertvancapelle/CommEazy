@@ -412,6 +412,15 @@ export function HoldToNavigateWrapper({
   // Delay before committing to single-finger gesture (allows second finger to arrive)
   // On physical devices, fingers don't arrive at exactly the same time
   const twoFingerDetectionDelay = 80; // ms to wait for second finger
+  const indicatorDelay = 200; // ms extra delay before showing HoldIndicator (prevents flash on short taps)
+  const indicatorDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearIndicatorDelayTimer = useCallback(() => {
+    if (indicatorDelayTimer.current) {
+      clearTimeout(indicatorDelayTimer.current);
+      indicatorDelayTimer.current = null;
+    }
+  }, []);
   const singleFingerDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Voice command callback refs - declared early so they can be used in startTwoFingerGesture
@@ -496,6 +505,7 @@ export function HoldToNavigateWrapper({
   // Clear all gesture state (used when gesture is cancelled or completed)
   const clearAllGestureState = useCallback(() => {
     clearSingleFingerDelayTimer();
+    clearIndicatorDelayTimer();
     clearPressTimer();
     clearTwoFingerTimer();
     setIsPressing(false);
@@ -503,7 +513,7 @@ export function HoldToNavigateWrapper({
     isPressingRef.current = false;
     isTwoFingerPressingRef.current = false;
     currentTouchCount.current = 0;
-  }, [clearSingleFingerDelayTimer, clearPressTimer, clearTwoFingerTimer]);
+  }, [clearSingleFingerDelayTimer, clearIndicatorDelayTimer, clearPressTimer, clearTwoFingerTimer]);
 
   // Touch handlers that OBSERVE touches without consuming them
   // This allows normal app interaction while detecting long presses
@@ -515,6 +525,7 @@ export function HoldToNavigateWrapper({
   const startTwoFingerGesture = useCallback((touches: any[], pageX: number, pageY: number) => {
     // Cancel any single-finger gesture (including the delay timer)
     clearSingleFingerDelayTimer();
+    clearIndicatorDelayTimer();
     clearPressTimer();
     setIsPressing(false);
     isPressingRef.current = false;
@@ -579,6 +590,7 @@ export function HoldToNavigateWrapper({
     }, settings.longPressDelay);
   }, [
     clearSingleFingerDelayTimer,
+    clearIndicatorDelayTimer,
     clearPressTimer,
     clearTwoFingerTimer,
     voiceCommands.settings.enabled, // Only depend on the enabled setting, not the whole object
@@ -644,10 +656,7 @@ export function HoldToNavigateWrapper({
       singleFingerDelayTimer.current = setTimeout(() => {
         // Only start single-finger gesture if still only 1 finger
         if (currentTouchCount.current === 1 && !hasMoved.current) {
-          setIsPressing(true);
-          isPressingRef.current = true;
-
-          // Start long press timer - opens wheel directly when complete
+          // Start long press timer immediately (wheel menu timing stays at longPressDelay total)
           clearPressTimer();
           pressTimer.current = setTimeout(() => {
             console.log('[HoldToNavigate] Long press timer fired:', {
@@ -667,6 +676,16 @@ export function HoldToNavigateWrapper({
               openNavigationMenu();
             }
           }, settings.longPressDelay - twoFingerDetectionDelay); // Subtract delay already waited
+
+          // Delay showing the visual indicator to prevent flash on short taps
+          // Total time before indicator appears: twoFingerDetectionDelay + indicatorDelay = ~280ms
+          clearIndicatorDelayTimer();
+          indicatorDelayTimer.current = setTimeout(() => {
+            if (currentTouchCount.current === 1 && !hasMoved.current && !longPressCompleted.current) {
+              setIsPressing(true);
+              isPressingRef.current = true;
+            }
+          }, indicatorDelay);
         }
       }, twoFingerDetectionDelay);
 
@@ -686,6 +705,7 @@ export function HoldToNavigateWrapper({
     openNavigationMenu,
     triggerHaptic,
     clearSingleFingerDelayTimer,
+    clearIndicatorDelayTimer,
     clearPressTimer,
     clearAllGestureState,
     startTwoFingerGesture,

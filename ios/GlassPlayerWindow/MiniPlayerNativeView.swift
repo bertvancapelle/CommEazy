@@ -26,6 +26,7 @@ protocol MiniPlayerNativeViewDelegate: AnyObject {
     func miniPlayerDidTapStop()
     func miniPlayerDidTapExpand()
     func miniPlayerDidTapMinimize()
+    func miniPlayerDidSwipeDown()
 }
 
 // MARK: - MiniPlayerNativeView
@@ -268,10 +269,16 @@ class MiniPlayerNativeView: UIView {
         artworkLeadingWithMinimize?.isActive = false
     }
     
+    /// Tracks whether a swipe-down was just recognized (prevents expand on swipe)
+    private var swipeDownRecognized = false
+
     private func setupGestures() {
-        // SIMPLIFIED: No gesture recognizer needed!
-        // hitTest() handles routing: buttons get touches, everything else triggers expand via touchesEnded
         isUserInteractionEnabled = true
+
+        // Swipe-down gesture to dismiss/minimize the mini player (iPhone + iPad)
+        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeDown))
+        swipeDown.direction = .down
+        addGestureRecognizer(swipeDown)
     }
     
     // MARK: - Actions
@@ -297,8 +304,22 @@ class MiniPlayerNativeView: UIView {
         // Haptic feedback
         let impact = UIImpactFeedbackGenerator(style: .light)
         impact.impactOccurred()
-        
+
         delegate?.miniPlayerDidTapMinimize()
+    }
+
+    @objc private func handleSwipeDown() {
+        swipeDownRecognized = true
+        // Haptic feedback
+        let impact = UIImpactFeedbackGenerator(style: .light)
+        impact.impactOccurred()
+
+        delegate?.miniPlayerDidSwipeDown()
+
+        // Reset flag after brief delay (touchesEnded may still fire)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.swipeDownRecognized = false
+        }
     }
     
     // MARK: - Public Methods
@@ -532,6 +553,8 @@ extension MiniPlayerNativeView {
     /// Handle touches that don't hit buttons - expand to full player
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
+        // Don't expand if a swipe-down gesture was just recognized
+        guard !swipeDownRecognized else { return }
         delegate?.miniPlayerDidTapExpand()
     }
 }

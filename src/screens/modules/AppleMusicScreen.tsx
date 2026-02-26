@@ -42,6 +42,7 @@ import {
   Icon,
   IconButton,
   VoiceFocusable,
+  PlayingWaveIcon,
   MiniPlayer,
   ExpandedAudioPlayer,
   ModuleHeader,
@@ -237,6 +238,7 @@ export function AppleMusicScreen() {
     updateContent: updateGlassContent,
     updatePlaybackState: updateGlassPlaybackState,
     configureControls: configureGlassControls,
+    showFromMinimized: showGlassFromMinimized,
   } = useGlassPlayer({
     onPlayPause: async () => {
       // Use togglePlayback which checks native state directly
@@ -589,14 +591,22 @@ export function AppleMusicScreen() {
   // ============================================================
 
   const filteredLibrarySongs = useMemo(() => {
-    if (!librarySearchQuery.trim()) return librarySongs;
-    const query = librarySearchQuery.toLowerCase();
-    return librarySongs.filter(
-      song => song.title.toLowerCase().includes(query) ||
-              song.artistName.toLowerCase().includes(query) ||
-              song.albumTitle.toLowerCase().includes(query)
-    );
-  }, [librarySongs, librarySearchQuery]);
+    let songs = librarySongs;
+    if (librarySearchQuery.trim()) {
+      const query = librarySearchQuery.toLowerCase();
+      songs = librarySongs.filter(
+        song => song.title.toLowerCase().includes(query) ||
+                song.artistName.toLowerCase().includes(query) ||
+                song.albumTitle.toLowerCase().includes(query)
+      );
+    }
+    // Pin currently playing song to top
+    if (!currentSong) return songs;
+    const playingSong = songs.find((s) => s.id === currentSong.id);
+    if (!playingSong) return songs;
+    const otherSongs = songs.filter((s) => s.id !== currentSong.id);
+    return [playingSong, ...otherSongs];
+  }, [librarySongs, librarySearchQuery, currentSong]);
 
   const filteredLibraryAlbums = useMemo(() => {
     if (!librarySearchQuery.trim()) return libraryAlbums;
@@ -715,6 +725,14 @@ export function AppleMusicScreen() {
 
   const handlePlaySong = useCallback(async (song: AppleMusicSong) => {
     triggerFeedback('tap');
+
+    // If tapping the currently playing song, restore the mini player instead of restarting
+    if (currentSong && currentSong.id === song.id && isPlaying) {
+      console.log('[AppleMusicScreen] Song already playing, restoring mini player');
+      await showGlassFromMinimized();
+      return;
+    }
+
     try {
       console.log('[AppleMusicScreen] Playing song:', song.id, song.title, 'artworkUrl:', song.artworkUrl?.substring(0, 60));
       // Pass the artwork URL from the search result - this is more reliable than MusicKit queue URLs
@@ -726,7 +744,7 @@ export function AppleMusicScreen() {
         t('modules.appleMusic.playError.message')
       );
     }
-  }, [playSong, triggerFeedback, t]);
+  }, [playSong, triggerFeedback, t, currentSong, isPlaying, showGlassFromMinimized]);
 
   const handlePlayPause = useCallback(() => {
     triggerFeedback('tap');
@@ -855,6 +873,7 @@ export function AppleMusicScreen() {
   // Render a single song item
   const renderSongItem = (song: AppleMusicSong, index: number) => {
     const isInLib = searchResultsInLibrary.has(song.id);
+    const isCurrentSong = currentSong && currentSong.id === song.id;
 
     return (
       <VoiceFocusable
@@ -864,7 +883,24 @@ export function AppleMusicScreen() {
         index={index}
         onSelect={() => handlePlaySong(song)}
       >
-        <View style={[styles.songItem, { backgroundColor: themeColors.surface }]}>
+        <View style={[
+          styles.songItem,
+          { backgroundColor: themeColors.surface },
+          isCurrentSong && {
+            borderWidth: 2,
+            borderColor: accentColor.primary,
+          },
+        ]}>
+          {/* Playing wave icon — shown for currently playing song */}
+          {isCurrentSong && (
+            <View style={styles.songPlayingWaveContainer}>
+              <PlayingWaveIcon
+                color={accentColor.primary}
+                size={20}
+                isPlaying={isPlaying}
+              />
+            </View>
+          )}
           <TouchableOpacity
             style={styles.songTappableArea}
             onPress={() => handlePlaySong(song)}
@@ -872,6 +908,7 @@ export function AppleMusicScreen() {
             delayLongPress={300}
             accessibilityRole="button"
             accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
+            accessibilityState={{ selected: isCurrentSong ?? false }}
           >
             {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
               <Image
@@ -906,7 +943,7 @@ export function AppleMusicScreen() {
               style={styles.songItemHeartButton}
             />
             <IconButton
-              icon="play"
+              icon={isCurrentSong && isPlaying ? 'pause' : 'play'}
               size={28}
               onPress={() => handlePlaySong(song)}
               accessibilityLabel={t('modules.appleMusic.play', { title: song.title })}
@@ -1882,6 +1919,12 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     marginBottom: spacing.sm,
     minHeight: touchTargets.comfortable,
+  },
+  songPlayingWaveContainer: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   songTappableArea: {
     flex: 1,

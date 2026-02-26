@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -52,6 +52,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useBooksContext, useBooksAudioPlayer, type Book, type DownloadedBook } from '@/contexts/BooksContext';
 import { searchBooks, getPopularBooks } from '@/services/gutenbergService';
+import { glassPlayer } from '@/services/glassPlayer';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -103,6 +104,8 @@ export function BooksScreen() {
     isDownloading,
     downloadProgress,
     currentDownload,
+    currentBook,
+    isSpeaking,
     downloadBook,
     deleteBook,
     deleteBooks,
@@ -251,6 +254,15 @@ export function BooksScreen() {
 
     triggerFeedback('tap');
 
+    // If this book is already being read aloud (TTS), restore the mini player
+    if (currentBook && currentBook.id === book.id && isSpeaking) {
+      console.log('[BooksScreen] Book already playing, restoring mini player');
+      if (Platform.OS === 'ios') {
+        await glassPlayer.showFromMinimized();
+      }
+      return;
+    }
+
     // If downloaded, show mode selection modal (Read vs Listen)
     if ('localPath' in book) {
       setSelectedBookForMode(book as DownloadedBook);
@@ -282,7 +294,7 @@ export function BooksScreen() {
         ]
       );
     }
-  }, [holdGesture, triggerFeedback, isBookDownloaded, library, downloadBook, t]);
+  }, [holdGesture, triggerFeedback, isBookDownloaded, library, downloadBook, t, currentBook, isSpeaking]);
 
   // Handle mode selection (Read vs Listen)
   const handleModeSelect = useCallback(async (mode: 'read' | 'listen') => {
@@ -360,13 +372,15 @@ export function BooksScreen() {
     });
   }, []);
 
-  // Voice focus for book list
+  // Voice focus for book list — pin currently playing book to top
   const displayedBooks = useMemo(() => {
-    if (showLibrary) {
-      return library ?? [];
-    }
-    return searchResults ?? [];
-  }, [showLibrary, library, searchResults]);
+    const books = showLibrary ? (library ?? []) : (searchResults ?? []);
+    if (!currentBook) return books;
+    const playingBook = books.find((b) => b.id === currentBook.id);
+    if (!playingBook) return books;
+    const otherBooks = books.filter((b) => b.id !== currentBook.id);
+    return [playingBook, ...otherBooks];
+  }, [showLibrary, library, searchResults, currentBook]);
 
   const voiceFocusItems = useMemo(() => {
     if (!isFocused || !displayedBooks || displayedBooks.length === 0) return [];
@@ -582,6 +596,7 @@ export function BooksScreen() {
             {displayedBooks.map((book, index) => {
               const isDownloaded = 'localPath' in book || isBookDownloaded(book.id);
               const isCurrentlyDownloading = currentDownload?.id === book.id;
+              const isCurrentlyPlaying = currentBook && currentBook.id === book.id && isSpeaking;
 
               return (
                 <VoiceFocusable
@@ -594,9 +609,24 @@ export function BooksScreen() {
                   <View
                     style={[
                       styles.bookItem,
+                      isCurrentlyPlaying && {
+                        borderWidth: 2,
+                        borderColor: accentColor.primary,
+                      },
                       isItemFocused(book.id) && getFocusStyle(),
                     ]}
                   >
+                    {/* Playing wave icon — shown for currently playing book */}
+                    {isCurrentlyPlaying && (
+                      <View style={styles.bookPlayingWaveContainer}>
+                        <PlayingWaveIcon
+                          color={accentColor.primary}
+                          size={20}
+                          isPlaying={isSpeaking}
+                        />
+                      </View>
+                    )}
+
                     {/* Book cover */}
                     <View style={styles.bookCover}>
                       {book.coverUrl ? (
@@ -1170,6 +1200,13 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.sm,
     paddingRight: spacing.xs,
     minHeight: touchTargets.comfortable + spacing.sm * 2,
+  },
+  bookPlayingWaveContainer: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
   },
   bookCover: {
     width: 56,

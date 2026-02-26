@@ -12,7 +12,7 @@
  * @see .claude/skills/react-native-expert/SKILL.md
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -145,6 +145,7 @@ export function ChatScreen() {
 
   const handleSend = useCallback(async () => {
     const text = inputText.trim();
+    console.info('[ChatScreen] handleSend called, text length:', text.length, 'sending:', sending);
     if (!text || sending) return;
 
     // Haptic feedback on send
@@ -158,15 +159,20 @@ export function ChatScreen() {
 
     try {
       // Try to use real service if fully initialized
-      if (ServiceContainer.isInitialized && chatService.isInitialized) {
+      const serviceReady = ServiceContainer.isInitialized && chatService.isInitialized;
+      console.info('[ChatScreen] ServiceContainer.isInitialized:', ServiceContainer.isInitialized, 'chatService.isInitialized:', chatService.isInitialized);
+      if (serviceReady) {
         // Extract contactJid from chatId (format: "chat:jid1:jid2")
         // JIDs are sorted, so we need to find the one that's NOT the current user
         const parts = chatId.split(':');
         const myJid = chatService.getMyJid()!;
         const contactJid = parts[1] === myJid ? parts[2] : parts[1];
-        await chatService.sendMessage(contactJid, text);
+        console.info('[ChatScreen] Sending to:', contactJid, 'from chatId:', chatId);
+        const result = await chatService.sendMessage(contactJid, text);
+        console.info('[ChatScreen] sendMessage result:', result);
         AccessibilityInfo.announceForAccessibility(t('chat.sending'));
       } else if (__DEV__) {
+        console.info('[ChatScreen] Using dev fallback (service not ready)');
         // Fallback: add message locally in dev mode
         // Use mock current user from dev constants
         const { MOCK_CURRENT_USER } = await import('@/services/mock');
@@ -184,7 +190,7 @@ export function ChatScreen() {
         AccessibilityInfo.announceForAccessibility(t('chat.sending'));
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('[ChatScreen] Failed to send message:', error);
       setInputText(text); // Restore text on failure
       AccessibilityInfo.announceForAccessibility(t('chat.failed'));
     } finally {
@@ -192,14 +198,20 @@ export function ChatScreen() {
     }
   }, [inputText, sending, chatId, t]);
 
+  // Refs for voice command listener to avoid re-subscribing on every keystroke
+  const handleSendRef = useRef(handleSend);
+  handleSendRef.current = handleSend;
+  const inputTextRef = useRef(inputText);
+  inputTextRef.current = inputText;
+
   // Listen for voice command to send message
   // When user says "stuur" or "verzend", this triggers handleSend
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener('voiceCommand:send', () => {
       console.log('[ChatScreen] Voice command: send');
       // Only send if there's text to send
-      if (inputText.trim()) {
-        handleSend();
+      if (inputTextRef.current.trim()) {
+        handleSendRef.current();
       } else {
         // Announce that there's nothing to send
         AccessibilityInfo.announceForAccessibility(t('chat.nothingToSend'));
@@ -207,7 +219,7 @@ export function ChatScreen() {
     });
 
     return () => subscription.remove();
-  }, [handleSend, inputText, t]);
+  }, [t]);
 
   const formatTime = useCallback((timestamp: number): string => {
     return new Date(timestamp).toLocaleTimeString([], {
@@ -288,6 +300,28 @@ export function ChatScreen() {
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
+  // Memoize sorted messages to avoid re-sorting on every render
+  const sortedMessages = useMemo(
+    () => [...messages].sort((a, b) => a.timestamp - b.timestamp),
+    [messages],
+  );
+
+  // Debounced scroll to bottom — prevents jank during keyboard animation
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleContentSizeChange = useCallback(() => {
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: false });
+    }, 100);
+  }, []);
+
+  // Cleanup scroll timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: themeColors.backgroundSecondary }]}
@@ -300,13 +334,9 @@ export function ChatScreen() {
         contentContainerStyle={styles.messageList}
         showsVerticalScrollIndicator={false}
         accessibilityLabel={t('chat.messageList', { count: messages.length })}
-        onContentSizeChange={() => {
-          // Auto-scroll to bottom when new messages arrive
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }}
+        onContentSizeChange={handleContentSizeChange}
       >
-        {/* Sort messages by timestamp ascending (oldest first, newest at bottom) */}
-        {[...messages].sort((a, b) => a.timestamp - b.timestamp).map((item) => (
+        {sortedMessages.map((item) => (
           <View key={keyExtractor(item)}>
             {renderMessage({ item, index: 0, separators: {} as any })}
           </View>

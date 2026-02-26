@@ -142,6 +142,7 @@ export function PodcastScreen() {
     updateContent: updateGlassContent,
     updatePlaybackState: updateGlassPlaybackState,
     configureControls: configureGlassControls,
+    showFromMinimized: showGlassFromMinimized,
   } = useGlassPlayer({
     onPlayPause: async () => {
       if (isPlaying) {
@@ -566,13 +567,21 @@ export function PodcastScreen() {
       return;
     }
 
-    if (!selectedShow) return;
     triggerFeedback('tap');
+
+    // If this episode is already playing, just restore the mini player (don't restart)
+    if (currentEpisode && currentEpisode.id === episode.id && isPlaying) {
+      console.log('[PodcastScreen] Episode already playing, restoring mini player');
+      await showGlassFromMinimized();
+      return;
+    }
+
+    if (!selectedShow) return;
     // Store the episode list in context for next/previous navigation
     setCurrentShowEpisodes(showEpisodes);
     await playEpisode(episode, selectedShow);
     setSelectedShow(null);
-  }, [holdGesture, selectedShow, showEpisodes, playEpisode, setCurrentShowEpisodes, triggerFeedback]);
+  }, [holdGesture, selectedShow, showEpisodes, playEpisode, setCurrentShowEpisodes, triggerFeedback, currentEpisode, isPlaying, showGlassFromMinimized]);
 
   // Subscribe/unsubscribe
   const handleToggleSubscribe = useCallback(async (show: PodcastShow) => {

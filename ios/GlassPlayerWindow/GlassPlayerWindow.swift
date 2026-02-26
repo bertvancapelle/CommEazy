@@ -639,6 +639,12 @@ extension GlassPlayerWindow: MiniPlayerNativeViewDelegate {
         minimize()
         eventDelegate?.playerDidTapMinimize()
     }
+
+    func miniPlayerDidSwipeDown() {
+        // Swipe-down on mini player behaves the same as minimize
+        minimize()
+        eventDelegate?.playerDidTapMinimize()
+    }
 }
 
 // ============================================================

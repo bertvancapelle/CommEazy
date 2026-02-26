@@ -282,6 +282,7 @@ export function RadioScreen() {
     updateContent: updateGlassContent,
     updatePlaybackState: updateGlassPlaybackState,
     configureControls: configureGlassControls,
+    showFromMinimized: showGlassFromMinimized,
   } = useGlassPlayer({
     onPlayPause: async () => {
       if (isPlaying) {
@@ -718,15 +719,24 @@ export function RadioScreen() {
     // Combined haptic + audio feedback (accessibility requirement)
     triggerFeedback('tap');
 
+    const stationId = 'stationuuid' in station ? station.stationuuid : station.id;
     console.log('[RadioScreen] handleSelectStation called for:', station.name);
 
+    // If this station is already playing, just restore the mini player (don't restart)
+    if (contextStation && contextStation.id === stationId && isPlaying) {
+      console.log('[RadioScreen] Station already playing, restoring mini player');
+      await showGlassFromMinimized();
+      triggerFeedback('success');
+      return;
+    }
+
     // Convert to context format and play
-    const contextStation = toContextStation(station);
-    await playStation(contextStation);
+    const converted = toContextStation(station);
+    await playStation(converted);
 
     // Success feedback
     triggerFeedback('success');
-  }, [holdGesture, playStation, toContextStation, triggerFeedback]);
+  }, [holdGesture, playStation, toContextStation, triggerFeedback, contextStation, isPlaying, showGlassFromMinimized]);
 
   // Favorites management
   const isFavorite = useCallback((station: RadioStation | FavoriteStation) => {

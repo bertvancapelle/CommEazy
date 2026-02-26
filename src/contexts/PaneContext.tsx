@@ -18,11 +18,14 @@ import React, {
   useCallback,
   useMemo,
   useEffect,
+  useRef,
   type ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { NavigationDestination } from '@/types/navigation';
+import { glassPlayer } from '@/services/glassPlayer';
 
 // ============================================================
 // Constants
@@ -140,6 +143,8 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
   const [mainPane, setMainPane] = useState<PaneState>({
     moduleId: DEFAULT_MAIN_MODULE,
   });
+  // Ref to track current main module for Glass Player auto-hide (avoids stale closure)
+  const mainModuleRef = useRef<NavigationDestination>(DEFAULT_MAIN_MODULE);
   const [leftPane, setLeftPane] = useState<PaneState>({
     moduleId: DEFAULT_LEFT_MODULE,
   });
@@ -168,6 +173,7 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
           const savedMain = await AsyncStorage.getItem(STORAGE_KEY_MAIN_MODULE);
           if (savedMain) {
             setMainPane({ moduleId: savedMain as NavigationDestination });
+            mainModuleRef.current = savedMain as NavigationDestination;
           }
         } else {
           // iPad: load left, right, and ratio
@@ -214,6 +220,13 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
       };
 
       if (paneId === 'main') {
+        // iPhone: auto-hide Glass Player mini player when switching to a different module.
+        // Audio keeps playing; user taps the active item in the list to restore.
+        if (Platform.OS === 'ios' && moduleId !== mainModuleRef.current) {
+          glassPlayer.setTemporarilyHidden(true);
+        }
+        mainModuleRef.current = moduleId;
+
         setMainPane(newState);
         AsyncStorage.setItem(STORAGE_KEY_MAIN_MODULE, moduleId).catch((error) => {
           console.warn('[PaneContext] Failed to save main module:', error);
