@@ -58,6 +58,7 @@ import {
   RadioScreen,
   BooksScreen,
   WeatherScreen,
+  AppleMusicScreen,
 } from '@/screens/modules';
 
 // Components
@@ -317,6 +318,8 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <BooksScreen />;
     case 'weather':
       return <WeatherScreen />;
+    case 'appleMusic':
+      return <AppleMusicScreen />;
     case 'help':
       return <PlaceholderScreen />;
 
