@@ -35,6 +35,8 @@ export interface GlassPlayerContent {
   listenDuration?: number;
   /** Show stop button */
   showStopButton?: boolean;
+  /** Panel bounds for iPad Split View (x, y, width, height in points) */
+  panelBounds?: { x: number; y: number; width: number; height: number };
 }
 
 export type ShuffleMode = 'off' | 'songs';
@@ -123,6 +125,7 @@ interface GlassPlayerWindowModuleInterface {
   updatePlaybackState(state: GlassPlayerPlaybackState): void;
   configureControls(controls: GlassPlayerFullConfig): void;
   setTemporarilyHidden(hidden: boolean): void;
+  updatePanelBounds(bounds: { x: number; y: number; width: number; height: number } | null): void;
 }
 
 // ============================================================
@@ -283,6 +286,18 @@ class GlassPlayerService {
     }
 
     this.nativeModule.setTemporarilyHidden(hidden);
+  }
+
+  /**
+   * Update panel bounds for iPad Split View positioning
+   * Pass null to reset to full screen mode (iPhone)
+   */
+  updatePanelBounds(bounds: { x: number; y: number; width: number; height: number } | null): void {
+    if (!this.nativeModule) {
+      return;
+    }
+
+    this.nativeModule.updatePanelBounds(bounds);
   }
 
   /**

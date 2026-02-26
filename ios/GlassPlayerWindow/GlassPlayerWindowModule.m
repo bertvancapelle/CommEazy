@@ -33,4 +33,6 @@ RCT_EXTERN_METHOD(configureControls:(NSDictionary *)controls)
 
 RCT_EXTERN_METHOD(setTemporarilyHidden:(BOOL)hidden)
 
+RCT_EXTERN_METHOD(updatePanelBounds:(NSDictionary *)bounds)
+
 @end

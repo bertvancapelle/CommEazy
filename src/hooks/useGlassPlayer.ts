@@ -95,6 +95,8 @@ export interface UseGlassPlayerReturn {
   updatePlaybackState: (state: GlassPlayerPlaybackState) => void;
   /** Configure full player controls (which buttons to show/hide) */
   configureControls: (controls: GlassPlayerFullConfig) => void;
+  /** Update panel bounds for iPad Split View (null for full screen) */
+  updatePanelBounds: (bounds: { x: number; y: number; width: number; height: number } | null) => void;
 }
 
 // ============================================================
@@ -263,6 +265,10 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     glassPlayer.configureControls(controls);
   }, []);
 
+  const updatePanelBounds = useCallback((bounds: { x: number; y: number; width: number; height: number } | null): void => {
+    glassPlayer.updatePanelBounds(bounds);
+  }, []);
+
   return {
     isAvailable,
     isCheckingAvailability,
@@ -275,6 +281,7 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     updateContent,
     updatePlaybackState,
     configureControls,
+    updatePanelBounds,
   };
 }
 

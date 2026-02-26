@@ -64,6 +64,10 @@ class GlassPlayerWindow: UIWindow {
     private let fullPlayerView: FullPlayerNativeView
     private var currentTintColor: UIColor?  // Store for shuffle/repeat coloring
     private var lastShownTitle: String = ""  // Track to detect content changes
+    
+    /// Panel bounds from React Native (iPad Split View)
+    /// When set, the player constrains itself to this region instead of full screen
+    private var panelBounds: CGRect?
 
     // ============================================================
     // MARK: Layout Constants
@@ -204,6 +208,20 @@ class GlassPlayerWindow: UIWindow {
         // Adding a gesture here would interfere with button touch handling.
     }
 
+    /// Returns the effective bounds for positioning — panelBounds on iPad, screen bounds on iPhone
+    private var effectiveBounds: CGRect {
+        return panelBounds ?? UIScreen.main.bounds
+    }
+    
+    /// Update panel bounds (called from React Native when iPad Split View changes)
+    func updatePanelBounds(_ bounds: CGRect?) {
+        panelBounds = bounds
+        // Re-layout if currently visible
+        if currentState != .hidden {
+            restoreCorrectFrameForState()
+        }
+    }
+
     // ============================================================
     // MARK: State Transitions
     // ============================================================
@@ -213,6 +231,15 @@ class GlassPlayerWindow: UIWindow {
         let newContent = PlayerContent(from: config)
         let contentChanged = newContent.title != lastShownTitle
         lastShownTitle = newContent.title
+        
+        // Update panel bounds from config (iPad Split View)
+        if let boundsDict = config["panelBounds"] as? NSDictionary,
+           let x = boundsDict["x"] as? CGFloat,
+           let y = boundsDict["y"] as? CGFloat,
+           let width = boundsDict["width"] as? CGFloat,
+           let height = boundsDict["height"] as? CGFloat {
+            panelBounds = CGRect(x: x, y: y, width: width, height: height)
+        }
         
         // Reset sleep timer when showing NEW content (different song)
         if contentChanged {
@@ -226,17 +253,17 @@ class GlassPlayerWindow: UIWindow {
             return
         }
 
-        let screenBounds = UIScreen.main.bounds
+        let bounds = effectiveBounds
         let bottomSafe = safeAreaBottom
         
         // Floating mini player: smaller with margins all around
-        let playerWidth = screenBounds.width - (horizontalMargin * 2)
+        let playerWidth = bounds.width - (horizontalMargin * 2)
         let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
 
-        // Position at bottom with margins
+        // Position at bottom of the effective bounds (panel or screen)
         let windowFrame = CGRect(
-            x: horizontalMargin,
-            y: screenBounds.height - windowHeight,
+            x: bounds.origin.x + horizontalMargin,
+            y: bounds.origin.y + bounds.height - windowHeight,
             width: playerWidth,
             height: miniPlayerHeight  // Just the player height, not including safe area
         )
@@ -258,7 +285,7 @@ class GlassPlayerWindow: UIWindow {
     func expandToFull() {
         guard currentState == .mini else { return }
 
-        let screenBounds = UIScreen.main.bounds
+        let bounds = effectiveBounds
         let topSafe = safeAreaTop
         let bottomSafe = safeAreaBottom
         
@@ -269,10 +296,10 @@ class GlassPlayerWindow: UIWindow {
         
         // Full player with margins all around for floating glass effect
         let fullFrame = CGRect(
-            x: fullPlayerMargin,
+            x: bounds.origin.x + fullPlayerMargin,
             y: topOffset,
-            width: screenBounds.width - (fullPlayerMargin * 2),
-            height: screenBounds.height - topOffset - bottomSafe - fullPlayerMargin
+            width: bounds.width - (fullPlayerMargin * 2),
+            height: bounds.origin.y + bounds.height - topOffset - bottomSafe - fullPlayerMargin
         )
 
         // Step 1: Fade out mini player first
@@ -308,14 +335,14 @@ class GlassPlayerWindow: UIWindow {
     func collapseToMini() {
         guard currentState == .full else { return }
 
-        let screenBounds = UIScreen.main.bounds
+        let bounds = effectiveBounds
         let bottomSafe = safeAreaBottom
-        let playerWidth = screenBounds.width - (horizontalMargin * 2)
+        let playerWidth = bounds.width - (horizontalMargin * 2)
         let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
         
         let miniFrame = CGRect(
-            x: horizontalMargin,
-            y: screenBounds.height - windowHeight,
+            x: bounds.origin.x + horizontalMargin,
+            y: bounds.origin.y + bounds.height - windowHeight,
             width: playerWidth,
             height: miniPlayerHeight
         )
@@ -388,18 +415,18 @@ class GlassPlayerWindow: UIWindow {
     /// Restore the correct window frame and view layout for the current state
     /// Called when restoring from temporary hide to ensure visual consistency
     private func restoreCorrectFrameForState() {
-        let screenBounds = UIScreen.main.bounds
+        let bounds = effectiveBounds
         
         switch currentState {
         case .mini:
             // Restore mini player frame
             let bottomSafe = safeAreaBottom
-            let playerWidth = screenBounds.width - (horizontalMargin * 2)
+            let playerWidth = bounds.width - (horizontalMargin * 2)
             let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
             
             let miniFrame = CGRect(
-                x: horizontalMargin,
-                y: screenBounds.height - windowHeight,
+                x: bounds.origin.x + horizontalMargin,
+                y: bounds.origin.y + bounds.height - windowHeight,
                 width: playerWidth,
                 height: miniPlayerHeight
             )
@@ -419,10 +446,10 @@ class GlassPlayerWindow: UIWindow {
             let topOffset = topSafe + moduleHeaderHeight + fullPlayerMargin
             
             let fullFrame = CGRect(
-                x: fullPlayerMargin,
+                x: bounds.origin.x + fullPlayerMargin,
                 y: topOffset,
-                width: screenBounds.width - (fullPlayerMargin * 2),
-                height: screenBounds.height - topOffset - bottomSafe - fullPlayerMargin
+                width: bounds.width - (fullPlayerMargin * 2),
+                height: bounds.origin.y + bounds.height - topOffset - bottomSafe - fullPlayerMargin
             )
             
             frame = fullFrame
@@ -606,6 +633,7 @@ struct PlayerContent {
     let progress: Double
     let listenDuration: Double
     let showStopButton: Bool
+    let panelBounds: CGRect?
 
     init(from config: NSDictionary) {
         moduleId = config["moduleId"] as? String ?? "radio"
@@ -625,6 +653,17 @@ struct PlayerContent {
         progress = config["progress"] as? Double ?? 0
         listenDuration = config["listenDuration"] as? Double ?? 0
         showStopButton = config["showStopButton"] as? Bool ?? false
+        
+        // Parse panel bounds for iPad Split View
+        if let boundsDict = config["panelBounds"] as? NSDictionary,
+           let x = boundsDict["x"] as? CGFloat,
+           let y = boundsDict["y"] as? CGFloat,
+           let width = boundsDict["width"] as? CGFloat,
+           let height = boundsDict["height"] as? CGFloat {
+            panelBounds = CGRect(x: x, y: y, width: width, height: height)
+        } else {
+            panelBounds = nil
+        }
     }
 }
 

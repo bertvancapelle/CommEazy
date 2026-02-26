@@ -186,8 +186,10 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
   );
 
   const handleTouchMove = useCallback(() => {
-    // Any movement cancels the long-press
-    console.log('[ModulePanel] handleTouchMove - cancelling hold');
+    // Any movement cancels the long-press (only log first cancellation)
+    if (longPressTimerRef.current || twoFingerTimerRef.current) {
+      console.log('[ModulePanel] handleTouchMove - cancelling hold');
+    }
     setIsHolding(false);
     clearTimers();
   }, [clearTimers]);

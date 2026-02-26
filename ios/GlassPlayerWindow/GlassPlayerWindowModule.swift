@@ -144,6 +144,25 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         }
     }
 
+    /// Update panel bounds for iPad Split View positioning
+    /// Pass null/empty to reset to full screen mode
+    @objc
+    func updatePanelBounds(_ bounds: NSDictionary?) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                if let bounds = bounds,
+                   let x = bounds["x"] as? CGFloat,
+                   let y = bounds["y"] as? CGFloat,
+                   let width = bounds["width"] as? CGFloat,
+                   let height = bounds["height"] as? CGFloat {
+                    self.glassWindow?.updatePanelBounds(CGRect(x: x, y: y, width: width, height: height))
+                } else {
+                    self.glassWindow?.updatePanelBounds(nil)
+                }
+            }
+        }
+    }
+
     /// Update player content (artwork, title, progress, etc.)
     @objc
     func updateContent(_ config: NSDictionary) {
