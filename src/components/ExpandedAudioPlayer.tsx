@@ -48,6 +48,7 @@ import { LiquidGlassView } from './LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
+import { usePanelId } from '@/contexts/PanelIdContext';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
@@ -365,14 +366,15 @@ export function ExpandedAudioPlayer({
   const displayPosition = isSeeking ? seekPosition : position;
   const remainingTime = Math.max(0, duration - displayPosition);
 
-  return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType={isReducedMotion ? 'none' : 'slide'}
-      onRequestClose={onClose}
-      accessibilityViewIsModal={true}
-    >
+  // On iPad Split View, render as an absolutely-positioned View within the panel
+  // instead of a Modal (which always renders full-screen, escaping panel boundaries)
+  const panelId = usePanelId();
+  const isInPanel = panelId !== null;
+
+  if (!visible) return null;
+
+  // Inner content shared between Modal and panel-scoped View
+  const playerContent = (
       <View style={styles.overlay}>
         {/* Safe Area + AdMob Row at Top */}
         <View style={[styles.topSection, { paddingTop: insets.top }]}>
@@ -703,6 +705,27 @@ export function ExpandedAudioPlayer({
           </View>
         </View>
       </View>
+  );
+
+  // iPad Split View: render as panel-scoped absolute overlay (no Modal)
+  if (isInPanel) {
+    return (
+      <View style={styles.panelOverlay}>
+        {playerContent}
+      </View>
+    );
+  }
+
+  // iPhone/default: render inside a Modal (full-screen)
+  return (
+    <Modal
+      visible={true}
+      transparent={true}
+      animationType={isReducedMotion ? 'none' : 'slide'}
+      onRequestClose={onClose}
+      accessibilityViewIsModal={true}
+    >
+      {playerContent}
     </Modal>
   );
 }
@@ -712,6 +735,11 @@ export function ExpandedAudioPlayer({
 // ============================================================
 
 const styles = StyleSheet.create({
+  panelOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    // Stays within panel boundaries because parent View has overflow: 'hidden'
+  },
   overlay: {
     flex: 1,
     backgroundColor: colors.background,

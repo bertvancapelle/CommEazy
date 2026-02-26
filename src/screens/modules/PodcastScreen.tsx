@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, PanelAwareModal, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -378,7 +378,7 @@ export function PodcastScreen() {
       subtitle: currentShow.title,
       progressType: 'bar',
       progress: progress.duration > 0 ? progress.position / progress.duration : 0,
-      showStopButton: false,
+      showStopButton: true,
     });
   }, [
     isGlassPlayerAvailable,
@@ -428,7 +428,7 @@ export function PodcastScreen() {
       title: currentEpisode.title,
       subtitle: currentShow.title,
       progress: progress.duration > 0 ? progress.position / progress.duration : 0,
-      showStopButton: false,
+      showStopButton: true,
     });
   }, [
     isGlassPlayerAvailable,
@@ -920,6 +920,10 @@ export function PodcastScreen() {
             }}
             progressType="bar"
             progress={progress.duration > 0 ? progress.position / progress.duration : 0}
+            showStopButton={true}
+            onStop={async () => {
+              await stop();
+            }}
             expandAccessibilityLabel={t('modules.podcast.expandPlayer')}
             expandAccessibilityHint={t('modules.podcast.expandPlayerHint')}
             style={styles.absolutePlayer}
@@ -1097,13 +1101,13 @@ export function PodcastScreen() {
           </View>
         </Modal>
 
-        {/* Expanded Player Modal — React Native fallback when Glass Player not available */}
-        <Modal
+        {/* Expanded Player — React Native fallback when Glass Player not available
+            iPad Split View: renders as panel-scoped overlay (stays in panel)
+            iPhone: renders inside a Modal (full-screen) */}
+        <PanelAwareModal
           visible={isPlayerExpanded && !!currentEpisode && !isGlassPlayerAvailable}
-          transparent={true}
           animationType={isReducedMotion ? 'none' : 'slide'}
           onRequestClose={() => setIsPlayerExpanded(false)}
-          accessibilityViewIsModal={true}
         >
           <View style={styles.expandedPlayerOverlay}>
             <View style={[styles.expandedPlayerContent, { paddingTop: insets.top + spacing.md }]}>
@@ -1290,7 +1294,7 @@ export function PodcastScreen() {
               )}
             </View>
           </View>
-        </Modal>
+        </PanelAwareModal>
 
         {/* Speed Picker Modal */}
         <Modal

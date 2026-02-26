@@ -42,13 +42,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, SearchBar, ChipSelector, type SearchBarRef, type FilterMode } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, SearchBar, ChipSelector, PanelAwareModal, type SearchBarRef, type FilterMode } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useRadioContext, type RadioStation as RadioContextStation } from '@/contexts/RadioContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { usePanelId } from '@/contexts/PanelIdContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
@@ -237,6 +238,7 @@ export function RadioScreen() {
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
   const radioModuleColor = useModuleColor('radio');  // User-customizable module color
+  const panelId = usePanelId(); // null on iPhone, 'left'|'right' on iPad Split View
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
@@ -1234,17 +1236,15 @@ export function RadioScreen() {
         )}
       </View>
 
-      {/* Expanded Full Player Modal
+      {/* Expanded Full Player
           ONLY shown when Glass Player is NOT available (iOS <26 or Android)
           On iOS 26+, the native GlassPlayerWindow handles this
           IMPORTANT: Wait for availability check to complete before rendering */}
       {!isCheckingGlassPlayerAvailability && !isGlassPlayerAvailable && (
-      <Modal
+      <PanelAwareModal
         visible={isPlayerExpanded && !!contextStation}
-        transparent={true}
         animationType={isReducedMotion ? 'none' : 'slide'}
         onRequestClose={() => setIsPlayerExpanded(false)}
-        accessibilityViewIsModal={true}
       >
         <View style={[styles.expandedPlayerOverlay, { backgroundColor: themeColors.background }]}>
           <View style={[styles.expandedPlayerContent, { paddingTop: insets.top + spacing.md }]}>
@@ -1389,7 +1389,7 @@ export function RadioScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
       )}
 
       {/* Voice hint */}

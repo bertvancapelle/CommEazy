@@ -81,6 +81,10 @@ export type { MiniPlayerProps } from './MiniPlayer';
 export { ExpandedAudioPlayer } from './ExpandedAudioPlayer';
 export type { ExpandedAudioPlayerProps, AudioPlayerControls } from './ExpandedAudioPlayer';
 
+// Panel-aware Modal (stays within panel on iPad Split View)
+export { PanelAwareModal } from './PanelAwareModal';
+export type { PanelAwareModalProps } from './PanelAwareModal';
+
 // Module Header Component (standardized header for all module screens)
 export { ModuleHeader } from './ModuleHeader';
 export type { ModuleHeaderProps } from './ModuleHeader';
