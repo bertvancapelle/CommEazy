@@ -24,6 +24,7 @@ import UIKit
     func playerDidTapStop()
     func playerDidTapExpand()
     func playerDidTapCollapse()
+    func playerDidTapMinimize()
     func playerDidSeek(to position: Double)
     func playerDidSkipForward()
     func playerDidSkipBackward()
@@ -59,6 +60,8 @@ class GlassPlayerWindow: UIWindow {
     weak var eventDelegate: GlassPlayerWindowEventDelegate?
 
     private var currentState: PlayerState = .hidden
+    private(set) var isMinimized: Bool = false   // True when hidden but audio still playing
+    private var stateBeforeMinimize: PlayerState = .mini
     private let glassView: GlassPlayerView
     private let miniPlayerView: MiniPlayerNativeView
     private let fullPlayerView: FullPlayerNativeView
@@ -199,7 +202,12 @@ class GlassPlayerWindow: UIWindow {
             fullPlayerView.bottomAnchor.constraint(equalTo: glassView.bottomAnchor),
         ])
         
-
+        // Auto-enable minimize button on iPad
+        // iPad users can minimize the Glass Player to return to pane navigation
+        // iPhone users don't need this (single pane, Glass Player is always contextual)
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            miniPlayerView.setMinimizeButtonVisible(true)
+        }
     }
 
     private func setupGestures() {
@@ -390,6 +398,63 @@ class GlassPlayerWindow: UIWindow {
         } completion: { _ in
             self.isHidden = true
             self.currentState = .hidden
+            self.isMinimized = false
+        }
+    }
+    
+    /// Minimize the player — hide the UIWindow without stopping audio.
+    /// The player can be brought back via showFromMinimized().
+    /// Used on iPad when user taps the minimize button.
+    func minimize() {
+        guard currentState != .hidden else { return }
+        
+        // If full player is showing, collapse to mini first visually, then hide
+        stateBeforeMinimize = currentState
+        isMinimized = true
+        
+        UIView.animate(withDuration: 0.2) {
+            self.alpha = 0
+        } completion: { _ in
+            self.isHidden = true
+            // Keep currentState as-is so we can restore it
+        }
+    }
+    
+    /// Show the player from minimized state.
+    /// Restores to mini player state (even if it was full before minimizing).
+    func showFromMinimized() {
+        guard isMinimized else { return }
+        
+        isMinimized = false
+        
+        // Always restore to mini state for simplicity
+        let bounds = effectiveBounds
+        let bottomSafe = safeAreaBottom
+        let playerWidth = bounds.width - (horizontalMargin * 2)
+        let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
+        
+        let miniFrame = CGRect(
+            x: bounds.origin.x + horizontalMargin,
+            y: bounds.origin.y + bounds.height - windowHeight,
+            width: playerWidth,
+            height: miniPlayerHeight
+        )
+        
+        frame = miniFrame
+        miniPlayerView.isHidden = false
+        miniPlayerView.alpha = 1
+        fullPlayerView.isHidden = true
+        fullPlayerView.alpha = 0
+        layoutViewsForMini()
+        currentState = .mini
+        
+        // Show with animation
+        alpha = 0
+        isHidden = false
+        makeKeyAndVisible()
+        
+        UIView.animate(withDuration: 0.25) {
+            self.alpha = 1
         }
     }
 
@@ -543,6 +608,11 @@ class GlassPlayerWindow: UIWindow {
     func configureControls(_ controls: NSDictionary) {
         fullPlayerView.configure(controls: controls)
     }
+    
+    /// Enable or disable the minimize button on the mini player (iPad only)
+    func setMinimizeButtonVisible(_ visible: Bool) {
+        miniPlayerView.setMinimizeButtonVisible(visible)
+    }
 }
 
 // ============================================================
@@ -563,6 +633,11 @@ extension GlassPlayerWindow: MiniPlayerNativeViewDelegate {
     func miniPlayerDidTapExpand() {
         expandToFull()
         eventDelegate?.playerDidTapExpand()
+    }
+    
+    func miniPlayerDidTapMinimize() {
+        minimize()
+        eventDelegate?.playerDidTapMinimize()
     }
 }
 

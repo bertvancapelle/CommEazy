@@ -25,8 +25,8 @@ import {
   AccessibilityInfo,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, spacing } from '@/theme';
@@ -35,8 +35,12 @@ import { useRadioContext } from '@/contexts/RadioContext';
 import { usePodcastContextSafe } from '@/contexts/PodcastContext';
 import { useBooksContextSafe } from '@/contexts/BooksContext';
 import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
+import { usePaneContextSafe } from '@/contexts/PaneContext';
+import { usePanelId } from '@/contexts/PanelIdContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { glassPlayer } from '@/services/glassPlayer';
+import type { NavigationDestination } from '@/types/navigation';
 
 // ============================================================
 // Types
@@ -87,16 +91,16 @@ function getContrastColors(moduleColor: string): { fill: string; border: string 
 }
 
 // ============================================================
-// Module Navigation Mapping
+// Audio source → NavigationDestination mapping
 // ============================================================
 
-const MEDIA_TABS: Record<string, string> = {
-  radio: 'RadioTab',
-  podcast: 'PodcastTab',
-  books: 'BooksTab',
-  appleMusic: 'AppleMusicTab',
-  audioCall: 'CallsTab',
-  videoCall: 'VideoCallTab',
+const AUDIO_SOURCE_TO_MODULE: Record<string, NavigationDestination> = {
+  radio: 'radio',
+  podcast: 'podcast',
+  books: 'books',
+  appleMusic: 'appleMusic',
+  audioCall: 'calls',
+  videoCall: 'calls',
 };
 
 // ============================================================
@@ -105,10 +109,11 @@ const MEDIA_TABS: Record<string, string> = {
 
 export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorProps) {
   const { t } = useTranslation();
-  const navigation = useNavigation();
   const { triggerFeedback } = useFeedback();
   const reducedMotion = useReducedMotion();
   const themeColors = useColors();
+  const paneCtx = usePaneContextSafe();
+  const panelId = usePanelId();
 
   // Animation values for waveform bars
   const bar1Anim = useRef(new Animated.Value(0.3)).current;
@@ -193,25 +198,39 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
     };
   }, [activeMedia, reducedMotion, bar1Anim, bar2Anim, bar3Anim]);
 
-  // Handle tap — navigate to source module
-  const handlePress = useCallback(() => {
+  // Handle tap — navigate to source module via pane context + show Glass Player
+  const handlePress = useCallback(async () => {
     if (!activeMedia) return;
 
-    console.log('[MediaIndicator] Pressed, navigating to:', activeMedia.source);
+    console.info('[MediaIndicator] Pressed, navigating to:', activeMedia.source);
     triggerFeedback('tap');
 
-    const tabName = MEDIA_TABS[activeMedia.source];
-    if (tabName) {
-      console.log('[MediaIndicator] Dispatching navigate to:', tabName);
-      // Navigate to the tab - this works across the tab navigator
-      // @ts-ignore - navigation type doesn't know about all tabs
-      navigation.navigate(tabName);
+    const moduleId = AUDIO_SOURCE_TO_MODULE[activeMedia.source];
+    if (!moduleId) return;
 
-      AccessibilityInfo.announceForAccessibility(
-        t('media.navigatingTo', { module: t(`modules.${activeMedia.source}.title`) })
-      );
+    // On iOS: show Glass Player from minimized state (if it was minimized)
+    if (Platform.OS === 'ios') {
+      try {
+        const minimized = await glassPlayer.isMinimized();
+        if (minimized) {
+          console.info('[MediaIndicator] Restoring Glass Player from minimized state');
+          await glassPlayer.showFromMinimized();
+        }
+      } catch {
+        // Glass Player not available (iOS <26 or Android) — continue with pane navigation
+      }
     }
-  }, [activeMedia, navigation, triggerFeedback, t]);
+
+    // Navigate this pane to the audio source module
+    if (paneCtx && panelId) {
+      console.info('[MediaIndicator] Navigating pane', panelId, 'to module:', moduleId);
+      paneCtx.setPaneModule(panelId, moduleId);
+    }
+
+    AccessibilityInfo.announceForAccessibility(
+      t('media.navigatingTo', { module: t(`modules.${activeMedia.source}.title`) })
+    );
+  }, [activeMedia, triggerFeedback, t, paneCtx, panelId]);
 
   // Don't render if no active media OR we're on the source module
   if (!activeMedia || shouldHide) {

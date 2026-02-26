@@ -70,6 +70,8 @@ export interface UseGlassPlayerOptions {
   onShuffleToggle?: () => void;
   /** Called when repeat is toggled */
   onRepeatToggle?: () => void;
+  /** Called when minimize button is tapped (iPad only) */
+  onMinimize?: () => void;
 }
 
 export interface UseGlassPlayerReturn {
@@ -97,6 +99,12 @@ export interface UseGlassPlayerReturn {
   configureControls: (controls: GlassPlayerFullConfig) => void;
   /** Update panel bounds for iPad Split View (null for full screen) */
   updatePanelBounds: (bounds: { x: number; y: number; width: number; height: number } | null) => void;
+  /** Minimize player — hide without stopping audio (iPad only) */
+  minimize: () => Promise<boolean>;
+  /** Show player from minimized state */
+  showFromMinimized: () => Promise<boolean>;
+  /** Enable or disable the minimize button on the mini player (iPad only) */
+  setMinimizeButtonVisible: (visible: boolean) => void;
 }
 
 // ============================================================
@@ -213,6 +221,14 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
       })
     );
 
+    unsubscribers.push(
+      glassPlayer.addEventListener('onMinimize', () => {
+        setIsVisible(false);
+        setIsExpanded(false);
+        optionsRef.current.onMinimize?.();
+      })
+    );
+
     return () => {
       unsubscribers.forEach((unsub) => unsub());
     };
@@ -269,6 +285,28 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     glassPlayer.updatePanelBounds(bounds);
   }, []);
 
+  const minimize = useCallback(async (): Promise<boolean> => {
+    const result = await glassPlayer.minimize();
+    if (result) {
+      setIsVisible(false);
+      setIsExpanded(false);
+    }
+    return result;
+  }, []);
+
+  const showFromMinimized = useCallback(async (): Promise<boolean> => {
+    const result = await glassPlayer.showFromMinimized();
+    if (result) {
+      setIsVisible(true);
+      setIsExpanded(false);
+    }
+    return result;
+  }, []);
+
+  const setMinimizeButtonVisible = useCallback((visible: boolean): void => {
+    glassPlayer.setMinimizeButtonVisible(visible);
+  }, []);
+
   return {
     isAvailable,
     isCheckingAvailability,
@@ -282,6 +320,9 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     updatePlaybackState,
     configureControls,
     updatePanelBounds,
+    minimize,
+    showFromMinimized,
+    setMinimizeButtonVisible,
   };
 }
 

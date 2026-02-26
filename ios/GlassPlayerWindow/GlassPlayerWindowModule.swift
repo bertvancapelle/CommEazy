@@ -46,6 +46,7 @@ class GlassPlayerWindowModule: RCTEventEmitter {
             "onStop",
             "onExpand",
             "onCollapse",
+            "onMinimize",
             "onSeek",
             "onSkipForward",
             "onSkipBackward",
@@ -133,6 +134,59 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         }
     }
 
+    /// Minimize player — hide without stopping audio (iPad only)
+    /// The player can be restored via showFromMinimized()
+    @objc
+    func minimizePlayer(_ resolve: @escaping RCTPromiseResolveBlock,
+                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                self.glassWindow?.minimize()
+                self.sendEvent(withName: "onMinimize", body: nil)
+                resolve(true)
+            }
+        } else {
+            reject("UNSUPPORTED", "Glass Player requires iOS 26+", nil)
+        }
+    }
+    
+    /// Show player from minimized state
+    @objc
+    func showFromMinimized(_ resolve: @escaping RCTPromiseResolveBlock,
+                           rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                self.glassWindow?.showFromMinimized()
+                resolve(true)
+            }
+        } else {
+            reject("UNSUPPORTED", "Glass Player requires iOS 26+", nil)
+        }
+    }
+    
+    /// Enable or disable the minimize button on the mini player (iPad only)
+    @objc
+    func setMinimizeButtonVisible(_ visible: Bool) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                self.glassWindow?.setMinimizeButtonVisible(visible)
+            }
+        }
+    }
+    
+    /// Check if the player is currently minimized (hidden but audio still playing)
+    @objc
+    func isMinimized(_ resolve: @escaping RCTPromiseResolveBlock,
+                     reject: @escaping RCTPromiseRejectBlock) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                resolve(self.glassWindow?.isMinimized ?? false)
+            }
+        } else {
+            resolve(false)
+        }
+    }
+    
     /// Temporarily hide player (e.g., when navigation menu is open)
     /// This preserves state and allows resuming visibility
     @objc
@@ -231,6 +285,10 @@ extension GlassPlayerWindowModule: GlassPlayerWindowEventDelegate {
 
     func playerDidTapExpand() {
         sendEvent(withName: "onExpand", body: nil)
+    }
+    
+    func playerDidTapMinimize() {
+        sendEvent(withName: "onMinimize", body: nil)
     }
 
     func playerDidTapCollapse() {

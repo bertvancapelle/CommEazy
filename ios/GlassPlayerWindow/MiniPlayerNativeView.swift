@@ -25,6 +25,7 @@ protocol MiniPlayerNativeViewDelegate: AnyObject {
     func miniPlayerDidTapPlayPause()
     func miniPlayerDidTapStop()
     func miniPlayerDidTapExpand()
+    func miniPlayerDidTapMinimize()
 }
 
 // MARK: - MiniPlayerNativeView
@@ -44,11 +45,13 @@ class MiniPlayerNativeView: UIView {
     private let loadingIndicator = UIActivityIndicatorView(style: .medium)
     private let playPauseButton = UIButton(type: .system)
     private let stopButton = UIButton(type: .system)
+    private let minimizeButton = UIButton(type: .system)
     
     private var isPlaying: Bool = false
     private var isLoading: Bool = false
     private var isBuffering: Bool = false
     private var showStopButton: Bool = true
+    private var showMinimizeButton: Bool = false
     private var showProgressBar: Bool = false
     private var showListenDuration: Bool = false
     private var listenDuration: TimeInterval = 0
@@ -58,6 +61,11 @@ class MiniPlayerNativeView: UIView {
     private var titleTrailingToPlayPauseConstraint: NSLayoutConstraint?
     private var progressTrailingToStopConstraint: NSLayoutConstraint?
     private var progressTrailingToPlayPauseConstraint: NSLayoutConstraint?
+    
+    // Dynamic constraints for artwork leading edge (depends on minimize button visibility)
+    private var artworkLeadingDefault: NSLayoutConstraint?
+    private var artworkLeadingWithMinimize: NSLayoutConstraint?
+    private var minimizeButtonSize: CGFloat = 36  // Smaller than play/stop buttons
     
     // MARK: - Constants
     
@@ -174,13 +182,31 @@ class MiniPlayerNativeView: UIView {
         stopButton.layer.zPosition = 100
         addSubview(stopButton)
         
+        // Minimize button (iPad only — chevron.down.circle to hide player without stopping)
+        let minimizeConfig = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        minimizeButton.setImage(UIImage(systemName: "chevron.down.circle.fill", withConfiguration: minimizeConfig), for: .normal)
+        minimizeButton.tintColor = UIColor.white.withAlphaComponent(0.7)
+        minimizeButton.addTarget(self, action: #selector(handleMinimize), for: .touchUpInside)
+        minimizeButton.translatesAutoresizingMaskIntoConstraints = false
+        minimizeButton.accessibilityLabel = "Minimaliseren"
+        minimizeButton.isExclusiveTouch = true
+        minimizeButton.isUserInteractionEnabled = true
+        minimizeButton.isHidden = true  // Hidden by default, shown on iPad
+        minimizeButton.layer.zPosition = 100
+        addSubview(minimizeButton)
+        
         setupConstraints()
     }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
+            // Minimize button - far left, before artwork (hidden by default, iPad only)
+            minimizeButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 6),
+            minimizeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            minimizeButton.widthAnchor.constraint(equalToConstant: minimizeButtonSize),
+            minimizeButton.heightAnchor.constraint(equalToConstant: minimizeButtonSize),
+            
             // Artwork - left side
-            artworkImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Layout.padding),
             artworkImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             artworkImageView.widthAnchor.constraint(equalToConstant: Layout.artworkSize),
             artworkImageView.heightAnchor.constraint(equalToConstant: Layout.artworkSize),
@@ -229,11 +255,17 @@ class MiniPlayerNativeView: UIView {
         progressTrailingToStopConstraint = progressView.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -12)
         progressTrailingToPlayPauseConstraint = progressView.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -12)
         
-        // Start with stop button visible (default)
+        // Dynamic artwork leading constraints — only one active at a time
+        artworkLeadingDefault = artworkImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Layout.padding)
+        artworkLeadingWithMinimize = artworkImageView.leadingAnchor.constraint(equalTo: minimizeButton.trailingAnchor, constant: 4)
+        
+        // Start with stop button visible and minimize button hidden (default)
         titleTrailingToStopConstraint?.isActive = true
         titleTrailingToPlayPauseConstraint?.isActive = false
         progressTrailingToStopConstraint?.isActive = true
         progressTrailingToPlayPauseConstraint?.isActive = false
+        artworkLeadingDefault?.isActive = true
+        artworkLeadingWithMinimize?.isActive = false
     }
     
     private func setupGestures() {
@@ -261,7 +293,35 @@ class MiniPlayerNativeView: UIView {
         delegate?.miniPlayerDidTapStop()
     }
     
+    @objc private func handleMinimize() {
+        // Haptic feedback
+        let impact = UIImpactFeedbackGenerator(style: .light)
+        impact.impactOccurred()
+        
+        delegate?.miniPlayerDidTapMinimize()
+    }
+    
     // MARK: - Public Methods
+    
+    /// Show or hide the minimize button (iPad only)
+    func setMinimizeButtonVisible(_ visible: Bool) {
+        guard showMinimizeButton != visible else { return }
+        showMinimizeButton = visible
+        minimizeButton.isHidden = !visible
+        
+        // Update artwork leading constraint
+        if visible {
+            artworkLeadingDefault?.isActive = false
+            artworkLeadingWithMinimize?.isActive = true
+        } else {
+            artworkLeadingWithMinimize?.isActive = false
+            artworkLeadingDefault?.isActive = true
+        }
+        
+        UIView.animate(withDuration: 0.2) {
+            self.layoutIfNeeded()
+        }
+    }
     
     func updateContent(title: String, subtitle: String?, artworkURL: String?, showStopButton: Bool) {
         titleLabel.text = title
@@ -457,6 +517,12 @@ extension MiniPlayerNativeView {
         let stopRect = stopButton.frame.insetBy(dx: -5, dy: -5)
         if stopRect.contains(point) && !stopButton.isHidden {
             return stopButton
+        }
+        
+        // Check if point is within minimize button
+        let minimizeRect = minimizeButton.frame.insetBy(dx: -5, dy: -5)
+        if minimizeRect.contains(point) && !minimizeButton.isHidden {
+            return minimizeButton
         }
         
         // For all other touches, return SELF so we get touchesEnded

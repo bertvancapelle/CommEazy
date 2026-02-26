@@ -31,6 +31,17 @@ RCT_EXTERN_METHOD(updatePlaybackState:(NSDictionary *)state)
 
 RCT_EXTERN_METHOD(configureControls:(NSDictionary *)controls)
 
+RCT_EXTERN_METHOD(minimizePlayer:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(showFromMinimized:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(setMinimizeButtonVisible:(BOOL)visible)
+
+RCT_EXTERN_METHOD(isMinimized:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(setTemporarilyHidden:(BOOL)hidden)
 
 RCT_EXTERN_METHOD(updatePanelBounds:(NSDictionary *)bounds)

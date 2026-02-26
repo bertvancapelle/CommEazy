@@ -89,6 +89,7 @@ export type GlassPlayerEventType =
   | 'onStop'
   | 'onExpand'
   | 'onCollapse'
+  | 'onMinimize'
   | 'onSeek'
   | 'onSkipForward'
   | 'onSkipBackward'
@@ -121,6 +122,10 @@ interface GlassPlayerWindowModuleInterface {
   expandToFullPlayer(): Promise<boolean>;
   collapseToMini(): Promise<boolean>;
   hidePlayer(): Promise<boolean>;
+  minimizePlayer(): Promise<boolean>;
+  showFromMinimized(): Promise<boolean>;
+  isMinimized(): Promise<boolean>;
+  setMinimizeButtonVisible(visible: boolean): void;
   updateContent(config: Partial<GlassPlayerContent>): void;
   updatePlaybackState(state: GlassPlayerPlaybackState): void;
   configureControls(controls: GlassPlayerFullConfig): void;
@@ -243,6 +248,65 @@ class GlassPlayerService {
   }
 
   /**
+   * Minimize player — hide without stopping audio (iPad only).
+   * The player can be restored via showFromMinimized().
+   */
+  async minimize(): Promise<boolean> {
+    if (!this.nativeModule) {
+      return false;
+    }
+
+    try {
+      return await this.nativeModule.minimizePlayer();
+    } catch (error) {
+      console.error('[GlassPlayer] Error minimizing player:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Show player from minimized state
+   */
+  async showFromMinimized(): Promise<boolean> {
+    if (!this.nativeModule) {
+      return false;
+    }
+
+    try {
+      return await this.nativeModule.showFromMinimized();
+    } catch (error) {
+      console.error('[GlassPlayer] Error showing from minimized:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if the player is currently minimized
+   */
+  async isMinimized(): Promise<boolean> {
+    if (!this.nativeModule) {
+      return false;
+    }
+
+    try {
+      return await this.nativeModule.isMinimized();
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Enable or disable the minimize button on the mini player (iPad only)
+   */
+  setMinimizeButtonVisible(visible: boolean): void {
+    if (!this.nativeModule) {
+      return;
+    }
+
+    this.nativeModule.setMinimizeButtonVisible(visible);
+  }
+
+  /**
    * Update player content (artwork, title, progress, etc.)
    */
   updateContent(content: Partial<GlassPlayerContent>): void {
@@ -339,6 +403,7 @@ class GlassPlayerService {
     this.eventEmitter.removeAllListeners('onStop');
     this.eventEmitter.removeAllListeners('onExpand');
     this.eventEmitter.removeAllListeners('onCollapse');
+    this.eventEmitter.removeAllListeners('onMinimize');
     this.eventEmitter.removeAllListeners('onSeek');
     this.eventEmitter.removeAllListeners('onSkipForward');
     this.eventEmitter.removeAllListeners('onSkipBackward');
