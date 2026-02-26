@@ -70,6 +70,7 @@ export class WebRTCCallService implements CallService {
 
   private localJid: string = '';
   private currentCall: InternalCallState | null = null;
+  private isAnswering: boolean = false;
 
   // Observers
   private stateObservers: Set<(call: ActiveCall | null) => void> = new Set();
@@ -253,7 +254,20 @@ export class WebRTCCallService implements CallService {
       throw new Error('[CallService] No pending offer SDP');
     }
 
+    // Guard against double-answer: reportCallAnswered triggers a CallKit
+    // 'answerCall' event which would re-enter this method.
+    if (this.isAnswering) {
+      console.info('[CallService] Already answering call, ignoring duplicate');
+      return;
+    }
+    this.isAnswering = true;
+
     console.info('[CallService] Answering call:', callId);
+
+    // Tell CallKit the call was answered so iOS activates AVAudioSession.
+    // Without this, in-app answer has no audio because the audio session
+    // is never configured for voice chat.
+    callKitService.reportCallAnswered(callId);
 
     // Stop ringtone when answering
     callSoundService.onIncomingCallEnded();
@@ -289,6 +303,7 @@ export class WebRTCCallService implements CallService {
 
     // Update state
     this.currentCall.state = 'connecting';
+    this.isAnswering = false;
     this.notifyStateChange();
   }
 
@@ -790,6 +805,7 @@ export class WebRTCCallService implements CallService {
 
     // Clear call state
     this.currentCall = null;
+    this.isAnswering = false;
     this.notifyStateChange();
   }
 

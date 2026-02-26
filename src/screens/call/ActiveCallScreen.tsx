@@ -20,7 +20,7 @@
  * @see CLAUDE.md UI Specifications
  */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -75,6 +75,15 @@ export function ActiveCallScreen({ navigation, route }: Props) {
     getContactName,
   } = useCall();
 
+  // Guard against multiple goBack() calls (race between handler + useEffect)
+  const isLeavingRef = useRef(false);
+  const safeGoBack = useCallback(() => {
+    if (!isLeavingRef.current && navigation.canGoBack()) {
+      isLeavingRef.current = true;
+      navigation.goBack();
+    }
+  }, [navigation]);
+
   // Format call duration
   const formatDuration = useCallback((seconds: number): string => {
     const hrs = Math.floor(seconds / 3600);
@@ -104,10 +113,10 @@ export function ActiveCallScreen({ navigation, route }: Props) {
     void triggerFeedback('tap');
     try {
       await endCall();
-      navigation.goBack();
+      safeGoBack();
     } catch (error) {
       console.error('[ActiveCall] Failed to end call:', error);
-      navigation.goBack();
+      safeGoBack();
     }
   };
 
@@ -138,9 +147,9 @@ export function ActiveCallScreen({ navigation, route }: Props) {
   // If call ended, go back
   useEffect(() => {
     if (!activeCall || activeCall.state === 'ended') {
-      navigation.goBack();
+      safeGoBack();
     }
-  }, [activeCall, navigation]);
+  }, [activeCall, safeGoBack]);
 
   // Render video or avatar
   const renderRemoteView = () => {

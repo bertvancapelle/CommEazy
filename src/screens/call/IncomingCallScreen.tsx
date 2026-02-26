@@ -17,7 +17,7 @@
  * @see CLAUDE.md UI Specifications
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -52,6 +52,15 @@ export function IncomingCallScreen({ navigation, route }: Props) {
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
   const { activeCall, answerCall, declineCall, getContactName } = useCall();
+
+  // Guard against multiple goBack() calls (race between handler + useEffect)
+  const isLeavingRef = useRef(false);
+  const safeGoBack = useCallback(() => {
+    if (!isLeavingRef.current && navigation.canGoBack()) {
+      isLeavingRef.current = true;
+      navigation.goBack();
+    }
+  }, [navigation]);
 
   // Pulsing animation for "Belt u..." text
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -100,7 +109,7 @@ export function IncomingCallScreen({ navigation, route }: Props) {
     void triggerFeedback('tap');
     try {
       await declineCall();
-      navigation.goBack();
+      safeGoBack();
     } catch (error) {
       console.error('[IncomingCall] Failed to decline:', error);
     }
@@ -109,9 +118,9 @@ export function IncomingCallScreen({ navigation, route }: Props) {
   // If no active call, go back
   useEffect(() => {
     if (!activeCall || activeCall.state === 'ended') {
-      navigation.goBack();
+      safeGoBack();
     }
-  }, [activeCall, navigation]);
+  }, [activeCall, safeGoBack]);
 
   return (
     <SafeAreaView style={styles.container}>
