@@ -230,6 +230,8 @@ const styles = StyleSheet.create({
     // Center the visual divider within touch target
     marginLeft: -(TOUCH_TARGET_WIDTH - DIVIDER_WIDTH) / 2,
     marginRight: -(TOUCH_TARGET_WIDTH - DIVIDER_WIDTH) / 2,
+    // Ensure divider + handle render above both panels (right panel was covering the handle)
+    zIndex: 1,
   },
   divider: {
     height: '100%',

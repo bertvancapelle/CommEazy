@@ -33,6 +33,8 @@ import { useColors } from '@/contexts/ThemeContext';
 import { ContactAvatar, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
+import { usePanelId } from '@/contexts/PanelIdContext';
+import { useSplitViewContextSafe } from '@/contexts/SplitViewContext';
 import type { Contact } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
@@ -47,6 +49,8 @@ export function ContactDetailScreen() {
   const route = useRoute<ContactDetailRouteProp>();
   const { jid } = route.params;
   const themeColors = useColors();
+  const panelId = usePanelId();
+  const splitView = useSplitViewContextSafe();
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,29 +82,38 @@ export function ContactDetailScreen() {
 
   const handleStartChat = useCallback(async () => {
     void triggerFeedback('tap');
-    if (contact) {
-      // Generate proper chat ID (format: chat:jid1:jid2, sorted)
-      let myJid = 'ik@commeazy.local'; // Default fallback
-      try {
-        const { chatService } = await import('@/services/chat');
-        if (chatService.isInitialized) {
-          myJid = chatService.getMyJid() || myJid;
-        }
-      } catch {
-        // Use default
-      }
-      const jids = [myJid, contact.jid].sort();
-      const chatId = `chat:${jids.join(':')}`;
+    if (!contact) return;
 
-      // Navigate to chat with this contact
+    // Generate proper chat ID (format: chat:jid1:jid2, sorted)
+    let myJid = 'ik@commeazy.local'; // Default fallback
+    try {
+      const { chatService } = await import('@/services/chat');
+      if (chatService.isInitialized) {
+        myJid = chatService.getMyJid() || myJid;
+      }
+    } catch {
+      // Use default
+    }
+    const jids = [myJid, contact.jid].sort();
+    const chatId = `chat:${jids.join(':')}`;
+
+    if (panelId && splitView) {
+      // iPad Split View: switch the OTHER panel to chats module
+      // Contact is in one panel → chat opens in the other panel
+      const otherPanel = panelId === 'left' ? 'right' : 'left';
+      splitView.setPanelModule(otherPanel, 'chats');
+      console.info('[ContactDetail] iPad: switched other panel to chats for', contact.name);
+    } else {
+      // iPhone: navigate via parent TabNavigator
       navigation.getParent()?.navigate('ChatsTab', {
         screen: 'ChatDetail',
         params: { chatId, name: contact.name },
       });
     }
-  }, [contact, navigation, triggerFeedback]);
+  }, [contact, navigation, triggerFeedback, panelId, splitView]);
 
   const handleVoiceCall = useCallback(async () => {
+    console.info('[ContactDetail] handleVoiceCall tapped, contact:', contact?.jid, 'isInCall:', isInCall);
     void triggerFeedback('tap');
     if (!contact) return;
 
@@ -127,6 +140,7 @@ export function ContactDetailScreen() {
   }, [contact, isInCall, initiateCall, t, triggerFeedback]);
 
   const handleVideoCall = useCallback(async () => {
+    console.info('[ContactDetail] handleVideoCall tapped, contact:', contact?.jid, 'isInCall:', isInCall);
     void triggerFeedback('tap');
     if (!contact) return;
 
