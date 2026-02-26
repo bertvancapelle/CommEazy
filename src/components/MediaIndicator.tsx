@@ -16,7 +16,7 @@
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -139,6 +139,35 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const appleMusicNowPlaying = appleMusicContext?.nowPlaying ?? null;
   const appleMusicSleepTimerActive = appleMusicContext?.sleepTimerActive ?? false;
 
+  // Track Glass Player minimized state (for showing indicator on source module)
+  const [isGlassMinimized, setIsGlassMinimized] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    const unsubMinimize = glassPlayer.addEventListener('onMinimize', () => {
+      setIsGlassMinimized(true);
+    });
+    // When Glass Player becomes visible again (expand, collapse, showFromMinimized),
+    // it's no longer minimized. onExpand/onCollapse fire when player is shown.
+    const unsubExpand = glassPlayer.addEventListener('onExpand', () => {
+      setIsGlassMinimized(false);
+    });
+    const unsubCollapse = glassPlayer.addEventListener('onCollapse', () => {
+      setIsGlassMinimized(false);
+    });
+    const unsubClose = glassPlayer.addEventListener('onClose', () => {
+      setIsGlassMinimized(false);
+    });
+
+    return () => {
+      unsubMinimize();
+      unsubExpand();
+      unsubCollapse();
+      unsubClose();
+    };
+  }, []);
+
   // TODO: Add other media contexts when implemented
   // const { isInCall: isInAudioCall } = useAudioCallContext();
   // const { isInCall: isInVideoCall } = useVideoCallContext();
@@ -158,7 +187,8 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const activeMedia = getActiveMedia();
 
   // Check if we should hide (on source module) — used after all hooks
-  const shouldHide = activeMedia && currentSource && activeMedia.source === currentSource;
+  // Exception: when Glass Player is minimized, ALWAYS show so user can restore it
+  const shouldHide = activeMedia && currentSource && activeMedia.source === currentSource && !isGlassMinimized;
 
   // Start wave animation when active
   useEffect(() => {
@@ -215,14 +245,16 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
         if (minimized) {
           console.info('[MediaIndicator] Restoring Glass Player from minimized state');
           await glassPlayer.showFromMinimized();
+          setIsGlassMinimized(false);
         }
       } catch {
         // Glass Player not available (iOS <26 or Android) — continue with pane navigation
       }
     }
 
-    // Navigate this pane to the audio source module
-    if (paneCtx && panelId) {
+    // Only navigate if we're not already on the source module
+    const alreadyOnSource = currentSource && activeMedia.source === currentSource;
+    if (!alreadyOnSource && paneCtx && panelId) {
       console.info('[MediaIndicator] Navigating pane', panelId, 'to module:', moduleId);
       paneCtx.setPaneModule(panelId, moduleId);
     }
@@ -230,7 +262,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
     AccessibilityInfo.announceForAccessibility(
       t('media.navigatingTo', { module: t(`modules.${activeMedia.source}.title`) })
     );
-  }, [activeMedia, triggerFeedback, t, paneCtx, panelId]);
+  }, [activeMedia, triggerFeedback, t, paneCtx, panelId, currentSource]);
 
   // Don't render if no active media OR we're on the source module
   if (!activeMedia || shouldHide) {
