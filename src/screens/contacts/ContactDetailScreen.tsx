@@ -33,8 +33,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { ContactAvatar, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
-import { usePanelId } from '@/contexts/PanelIdContext';
-import { useSplitViewContextSafe } from '@/contexts/SplitViewContext';
+import { useNavigateToModule } from '@/hooks/useNavigateToModule';
 import type { Contact } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
@@ -49,8 +48,7 @@ export function ContactDetailScreen() {
   const route = useRoute<ContactDetailRouteProp>();
   const { jid } = route.params;
   const themeColors = useColors();
-  const panelId = usePanelId();
-  const splitView = useSplitViewContextSafe();
+  const { navigateToModuleInOtherPane } = useNavigateToModule();
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,23 +95,14 @@ export function ContactDetailScreen() {
     const jids = [myJid, contact.jid].sort();
     const chatId = `chat:${jids.join(':')}`;
 
-    if (panelId && splitView) {
-      // iPad Split View: switch the OTHER panel to chats module
-      // AND navigate directly to the specific chat conversation
-      const otherPanel = panelId === 'left' ? 'right' : 'left';
-      splitView.setPanelModule(otherPanel, 'chats', {
-        screen: 'ChatDetail',
-        params: { chatId, name: contact.name },
-      });
-      console.info('[ContactDetail] iPad: switched other panel to chat with', contact.name);
-    } else {
-      // iPhone: navigate via parent TabNavigator
-      navigation.getParent()?.navigate('ChatsTab', {
-        screen: 'ChatDetail',
-        params: { chatId, name: contact.name },
-      });
-    }
-  }, [contact, navigation, triggerFeedback, panelId, splitView]);
+    // Unified: navigate other pane to chats → ChatDetail
+    // iPad: opens in the other panel, iPhone: navigates in 'main' pane
+    navigateToModuleInOtherPane('chats', {
+      screen: 'ChatDetail',
+      params: { chatId, name: contact.name },
+    });
+    console.info('[ContactDetail] Navigated to chat with', contact.name);
+  }, [contact, triggerFeedback, navigateToModuleInOtherPane]);
 
   const handleVoiceCall = useCallback(async () => {
     console.info('[ContactDetail] handleVoiceCall tapped, contact:', contact?.jid, 'isInCall:', isInCall);

@@ -1,17 +1,19 @@
 /**
- * PanelNavigator — Stack navigator wrapper for Split View panels
+ * PanelNavigator — Stack navigator wrapper for pane-based layout
  *
- * Provides navigation context for each panel, enabling sub-navigation
- * (e.g., ContactList → ContactDetail) within the panel.
+ * Provides navigation context for each pane, enabling sub-navigation
+ * (e.g., ContactList → ContactDetail) within the pane.
  *
  * Each module that needs sub-navigation gets its own Stack Navigator
  * wrapped in an independent NavigationContainer.
  *
  * IMPORTANT: We use NavigationContainer with independent={true} to create
- * isolated navigation contexts for each panel. This allows multiple
+ * isolated navigation contexts for each pane. This allows multiple
  * navigators to coexist without conflicting with the root navigator.
  *
- * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
+ * Used by both iPhone (1 pane) and iPad (2 panes).
+ *
+ * @see .claude/plans/sunny-yawning-sunset.md
  */
 
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -22,8 +24,8 @@ import { useTranslation } from 'react-i18next';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { colors, typography } from '@/theme';
 import type { NavigationDestination } from '@/types/navigation';
-import { usePanelId } from '@/contexts/PanelIdContext';
-import { useSplitViewContextSafe } from '@/contexts/SplitViewContext';
+import { usePanelId, type PaneId } from '@/contexts/PanelIdContext';
+import { usePaneContextSafe } from '@/contexts/PaneContext';
 
 // Chat screens
 import { ChatListScreen, ChatScreen } from '@/screens/chat';
@@ -47,10 +49,13 @@ import {
 import {
   SettingsMainScreen,
   ProfileSettingsScreen,
+  PrivacySettingsScreen,
   AccessibilitySettingsScreen,
   VoiceSettingsScreen,
   ModulesSettingsScreen,
   CallSettingsScreen,
+  ComplianceReportScreen,
+  AppearanceSettingsScreen,
 } from '@/screens/settings';
 
 // Module screens (no sub-navigation needed)
@@ -59,6 +64,11 @@ import {
   PodcastScreen,
   RadioScreen,
   BooksScreen,
+  BookReaderScreen,
+  BookPlayerScreen,
+  EBookScreen,
+  AudioBookScreen,
+  NuNlScreen,
   WeatherScreen,
   AppleMusicScreen,
 } from '@/screens/modules';
@@ -67,7 +77,11 @@ import {
 import { MenuModule } from '@/components/modules/MenuModule';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
 
-import type { PanelId } from '@/contexts/SplitViewContext';
+// Onboarding screens reused in settings
+import { DeviceLinkShowQRScreen } from '@/screens/onboarding';
+
+// Dev screens
+import { PiperTtsTestScreen } from '@/screens/dev/PiperTtsTestScreen';
 
 // ============================================================
 // Type Definitions
@@ -94,10 +108,18 @@ type GroupPanelParams = {
 type SettingsPanelParams = {
   SettingsMain: undefined;
   ProfileSettings: undefined;
+  PrivacySettings: undefined;
   AccessibilitySettings: undefined;
   VoiceSettings: undefined;
   ModulesSettings: undefined;
   CallSettings: undefined;
+  ComplianceReport: undefined;
+  AppearanceSettings: undefined;
+  LanguageSettings: undefined;
+  BackupSettings: undefined;
+  DeviceTransfer: undefined;
+  DeviceLinkShowQR: undefined;
+  PiperTtsTest: undefined;
 };
 
 // ============================================================
@@ -116,36 +138,34 @@ const SettingsPanelStack = createNativeStackNavigator<SettingsPanelParams>();
 function ChatPanelNavigator() {
   const { accentColor } = useAccentColor();
   const panelId = usePanelId();
-  const splitView = useSplitViewContextSafe();
+  const paneCtx = usePaneContextSafe();
   const navRef = useRef<NavigationContainerRef<ChatPanelParams>>(null);
   const isReadyRef = useRef(false);
 
   // Consume pending navigation — called on mount (onReady) and on state changes
   const consumePending = useCallback(() => {
-    if (!panelId || !splitView || !navRef.current) return;
-    const pending = splitView.consumePendingNavigation(panelId);
+    if (!panelId || !paneCtx || !navRef.current) return;
+    const pending = paneCtx.consumePendingNavigation(panelId);
     if (pending && pending.screen === 'ChatDetail') {
       console.info('[ChatPanelNav] Navigating to ChatDetail via pending navigation');
       navRef.current.navigate('ChatDetail', pending.params as ChatPanelParams['ChatDetail']);
     }
-  }, [panelId, splitView]);
+  }, [panelId, paneCtx]);
 
   const handleReady = useCallback(() => {
     isReadyRef.current = true;
     consumePending();
   }, [consumePending]);
 
-  // When the panel already shows 'chats' and a new pendingNavigation arrives,
+  // When the pane already shows 'chats' and a new pendingNavigation arrives,
   // the component is NOT remounted — we need an effect to catch it
-  const panelState = splitView && panelId
-    ? (panelId === 'left' ? splitView.leftPanel : splitView.rightPanel)
-    : null;
+  const paneState = paneCtx && panelId ? paneCtx.panes[panelId] : null;
 
   useEffect(() => {
-    if (isReadyRef.current && panelState?.pendingNavigation) {
+    if (isReadyRef.current && paneState?.pendingNavigation) {
       consumePending();
     }
-  }, [panelState?.pendingNavigation, consumePending]);
+  }, [paneState?.pendingNavigation, consumePending]);
 
   return (
     <NavigationContainer independent={true} ref={navRef} onReady={handleReady}>
@@ -278,9 +298,19 @@ function SettingsPanelNavigator() {
           options={{ title: t('profile.changePhoto') }}
         />
         <SettingsPanelStack.Screen
+          name="PrivacySettings"
+          component={PrivacySettingsScreen}
+          options={{ title: t('privacySettings.title') }}
+        />
+        <SettingsPanelStack.Screen
           name="AccessibilitySettings"
           component={AccessibilitySettingsScreen}
           options={{ title: t('settings.accessibility') }}
+        />
+        <SettingsPanelStack.Screen
+          name="ComplianceReport"
+          component={ComplianceReportScreen}
+          options={{ headerShown: false }}
         />
         <SettingsPanelStack.Screen
           name="VoiceSettings"
@@ -297,6 +327,38 @@ function SettingsPanelNavigator() {
           component={CallSettingsScreen}
           options={{ title: t('callSettings.title') }}
         />
+        <SettingsPanelStack.Screen
+          name="AppearanceSettings"
+          component={AppearanceSettingsScreen}
+          options={{ title: t('appearance.title') }}
+        />
+        <SettingsPanelStack.Screen
+          name="LanguageSettings"
+          component={PlaceholderScreen}
+          options={{ title: t('settings.language') }}
+        />
+        <SettingsPanelStack.Screen
+          name="BackupSettings"
+          component={PlaceholderScreen}
+          options={{ title: t('settings.backup') }}
+        />
+        <SettingsPanelStack.Screen
+          name="DeviceTransfer"
+          component={PlaceholderScreen}
+        />
+        <SettingsPanelStack.Screen
+          name="DeviceLinkShowQR"
+          component={DeviceLinkShowQRScreen}
+          options={{ title: t('settings.deviceLink') }}
+        />
+        {/* DEV: Piper TTS Test Screen */}
+        {__DEV__ && (
+          <SettingsPanelStack.Screen
+            name="PiperTtsTest"
+            component={PiperTtsTestScreen}
+            options={{ title: '🔊 Piper TTS Test' }}
+          />
+        )}
       </SettingsPanelStack.Navigator>
     </NavigationContainer>
   );
@@ -307,8 +369,8 @@ function SettingsPanelNavigator() {
 // ============================================================
 
 export interface PanelNavigatorProps {
-  /** Panel identifier */
-  panelId: PanelId;
+  /** Pane identifier */
+  panelId: PaneId;
   /** Module to display */
   moduleId: NavigationDestination;
 }
@@ -323,8 +385,6 @@ export interface PanelNavigatorProps {
  * Modules without sub-navigation are rendered directly.
  */
 export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
-  const { t } = useTranslation();
-
   switch (moduleId) {
     // Modules WITH sub-navigation — wrapped in Stack Navigators
     case 'chats':
@@ -358,6 +418,9 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
 
     default:
       // Handle dynamic modules (module:xyz)
+      if (moduleId === 'module:nunl') {
+        return <NuNlScreen />;
+      }
       if (moduleId.startsWith('module:')) {
         return <PlaceholderScreen />;
       }

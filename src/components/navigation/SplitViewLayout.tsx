@@ -20,11 +20,10 @@
 import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 
-import { useSplitViewContext } from '@/contexts/SplitViewContext';
+import { usePaneContext } from '@/contexts/PaneContext';
 import { ModulePanel } from './ModulePanel';
 import { DraggableDivider } from './DraggableDivider';
 import { colors } from '@/theme';
-// Note: ModulePickerModal removed — WheelNavigationMenu is now used for consistent UX
 
 // ============================================================
 // Component
@@ -33,15 +32,19 @@ import { colors } from '@/theme';
 export function SplitViewLayout() {
   const { width: screenWidth } = useWindowDimensions();
   const {
-    leftPanel,
-    rightPanel,
+    panes,
     panelRatio,
     setPanelRatio,
-  } = useSplitViewContext();
+  } = usePaneContext();
+
+  const leftPane = panes.left;
+  const rightPane = panes.right;
 
   // Calculate panel widths (DraggableDivider handles its own touch area)
   const leftWidth = screenWidth * panelRatio;
   const rightWidth = screenWidth * (1 - panelRatio);
+
+  if (!leftPane || !rightPane) return null;
 
   return (
     <View style={styles.container}>
@@ -49,7 +52,7 @@ export function SplitViewLayout() {
       <View style={[styles.panel, { width: leftWidth }]}>
         <ModulePanel
           panelId="left"
-          moduleId={leftPanel.moduleId}
+          moduleId={leftPane.moduleId}
         />
       </View>
 
@@ -63,7 +66,7 @@ export function SplitViewLayout() {
       <View style={[styles.panel, { width: rightWidth }]}>
         <ModulePanel
           panelId="right"
-          moduleId={rightPanel.moduleId}
+          moduleId={rightPane.moduleId}
         />
       </View>
 

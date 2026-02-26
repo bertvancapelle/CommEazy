@@ -32,8 +32,7 @@ import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { usePanelId } from '@/contexts/PanelIdContext';
-import { useSplitViewContextSafe } from '@/contexts/SplitViewContext';
+import { useNavigateToModule } from '@/hooks/useNavigateToModule';
 import type { ChatStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
@@ -61,8 +60,7 @@ export function ChatListScreen() {
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
   const isFocused = useIsFocused();
-  const panelId = usePanelId();
-  const splitView = useSplitViewContextSafe();
+  const { navigateToModuleInOtherPane } = useNavigateToModule();
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -312,20 +310,11 @@ export function ChatListScreen() {
   const handleNewChat = useCallback(() => {
     void triggerFeedback('tap');
 
-    if (panelId && splitView) {
-      // iPad Split View: switch the OTHER panel to contacts module
-      const otherPanel = panelId === 'left' ? 'right' : 'left';
-      splitView.setPanelModule(otherPanel, 'contacts');
-      console.info('[ChatList] iPad: switched other panel to contacts for new chat');
-    } else {
-      // iPhone: navigate via parent TabNavigator to contacts tab
-      const parentNav = navigation.getParent();
-      if (parentNav) {
-        parentNav.navigate('ContactsTab');
-      }
-    }
+    // Unified: navigate other pane to contacts
+    // iPad: opens contacts in the other panel, iPhone: switches 'main' pane
+    navigateToModuleInOtherPane('contacts');
     AccessibilityInfo.announceForAccessibility(t('chat.newChat'));
-  }, [navigation, t, triggerFeedback, panelId, splitView]);
+  }, [t, triggerFeedback, navigateToModuleInOtherPane]);
 
   const formatTime = useCallback((timestamp: number): string => {
     const date = new Date(timestamp);

@@ -28,7 +28,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-import { useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
+import { usePaneContext } from '@/contexts/PaneContext';
+import type { PaneId as PanelId } from '@/contexts/PanelIdContext';
 import { useNavigationContext } from '@/contexts/NavigationContext';
 import { ModuleIcon } from '@/components/navigation/ModuleIcon';
 import type { ModuleDefinition, NavigationDestination } from '@/types/navigation';
@@ -57,7 +58,7 @@ export function MenuModule({ panelId }: MenuModuleProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { getModulesByGroup } = useNavigationContext();
-  const { setLeftModule, setRightModule } = useSplitViewContext();
+  const { setPaneModule } = usePaneContext();
 
   // Get grouped modules
   const groupedModules = getModulesByGroup();
@@ -76,14 +77,10 @@ export function MenuModule({ panelId }: MenuModuleProps) {
         });
       }
 
-      // Replace this panel's module
-      if (panelId === 'left') {
-        setLeftModule(moduleId);
-      } else {
-        setRightModule(moduleId);
-      }
+      // Replace this pane's module
+      setPaneModule(panelId, moduleId);
     },
-    [panelId, setLeftModule, setRightModule]
+    [panelId, setPaneModule]
   );
 
   // ============================================================

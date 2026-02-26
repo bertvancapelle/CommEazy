@@ -1,17 +1,19 @@
 /**
- * ModulePanel — Panel wrapper for iPad Split View
+ * ModulePanel — Panel wrapper for pane-based layout
  *
  * Wraps a module component with:
- * - Long-press gesture for opening WheelNavigationMenu (consistent with iPhone UX)
+ * - Long-press gesture for opening WheelNavigationMenu (consistent UX)
  * - Two-finger long-press for panel-scoped voice commands
- * - Panel identification for context
+ * - Pane identification for context
  * - Stack Navigator for modules that need sub-navigation
  *
- * UX CONSISTENCY PRINCIPLE:
- * Long-press MUST behave the same on iPad Split View as on iPhone.
- * Both show the circular WheelNavigationMenu, not a list-based modal.
+ * Used by both iPhone (SinglePaneLayout) and iPad (SplitViewLayout).
  *
- * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
+ * UX CONSISTENCY PRINCIPLE:
+ * Long-press MUST behave the same on iPhone and iPad.
+ * Both show the circular WheelNavigationMenu.
+ *
+ * @see .claude/plans/sunny-yawning-sunset.md
  */
 
 import React, { useCallback, useRef, useState } from 'react';
@@ -24,8 +26,8 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 
-import { useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
-import { PanelIdProvider } from '@/contexts/PanelIdContext';
+import { usePaneContext } from '@/contexts/PaneContext';
+import { PanelIdProvider, type PaneId } from '@/contexts/PanelIdContext';
 import { useHoldGestureContext } from '@/contexts/HoldGestureContext';
 import { useWheelMenuContext } from '@/contexts/WheelMenuContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -49,8 +51,8 @@ const TWO_FINGER_LONG_PRESS_DURATION = 1000;
 // ============================================================
 
 export interface ModulePanelProps {
-  /** Panel identifier */
-  panelId: PanelId;
+  /** Pane identifier */
+  panelId: PaneId;
   /** Module to display */
   moduleId: NavigationDestination;
 }
@@ -60,7 +62,7 @@ export interface ModulePanelProps {
 // ============================================================
 
 export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
-  const { setActiveVoicePanel } = useSplitViewContext();
+  const { setActiveVoicePane } = usePaneContext();
   const holdGesture = useHoldGestureContext();
   const wheelMenu = useWheelMenuContext();
   const reducedMotion = useReducedMotion();
@@ -177,13 +179,13 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
         // Two fingers: start timer for voice commands
         twoFingerTimerRef.current = setTimeout(() => {
           holdGesture?.consumeGesture();
-          setActiveVoicePanel(panelId);
+          setActiveVoicePane(panelId);
           // TODO: Trigger voice commands for this panel
           console.log(`[ModulePanel] Voice activated for ${panelId} panel`);
         }, TWO_FINGER_LONG_PRESS_DURATION);
       }
     },
-    [panelId, openWheelMenu, setActiveVoicePanel, holdGesture, clearTimers]
+    [panelId, openWheelMenu, setActiveVoicePane, holdGesture, clearTimers]
   );
 
   const handleTouchMove = useCallback(() => {

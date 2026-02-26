@@ -1,31 +1,41 @@
 /**
- * PanelIdContext — Provides panel identity to nested components
+ * PanelIdContext — Provides pane identity to nested components
  *
- * On iPad Split View, ModulePanel wraps its children in PanelIdProvider
- * so any nested component (e.g., ModuleHeader) can know which panel
- * it belongs to without prop drilling.
+ * Every component rendered within a pane can call usePaneId() to get its
+ * pane identifier:
+ * - iPhone: 'main'
+ * - iPad left panel: 'left'
+ * - iPad right panel: 'right'
  *
- * On iPhone (single-pane), no provider exists — usePanelId() returns null.
+ * IMPORTANT: usePaneId() returns PaneId (never null).
+ * The legacy usePanelId() returns PaneId | null for backward compatibility
+ * during the migration period.
  *
  * @see src/components/navigation/ModulePanel.tsx
+ * @see src/contexts/PaneContext.tsx
  */
 
 import React, { createContext, useContext, type ReactNode } from 'react';
-import type { PanelId } from './SplitViewContext';
+import type { PaneId } from './PaneContext';
+
+// Re-export PaneId as PanelId for backward compatibility
+export type { PaneId };
+/** @deprecated Use PaneId instead */
+export type PanelId = PaneId;
 
 // ============================================================
 // Context
 // ============================================================
 
-const PanelIdContext = createContext<PanelId | null>(null);
+const PanelIdContext = createContext<PaneId | null>(null);
 
 // ============================================================
 // Provider
 // ============================================================
 
 export interface PanelIdProviderProps {
-  /** Panel identifier ('left' | 'right') */
-  value: PanelId;
+  /** Pane identifier ('main' | 'left' | 'right') */
+  value: PaneId;
   children: ReactNode;
 }
 
@@ -38,14 +48,27 @@ export function PanelIdProvider({ value, children }: PanelIdProviderProps) {
 }
 
 // ============================================================
-// Hook
+// Hooks
 // ============================================================
 
 /**
- * Get the current panel ID.
- * Returns 'left' | 'right' on iPad Split View, null on iPhone.
- * Safe to call outside PanelIdProvider.
+ * Get the current pane ID.
+ * Returns 'main' | 'left' | 'right'.
+ * @throws Error if used outside PanelIdProvider
  */
-export function usePanelId(): PanelId | null {
+export function usePaneId(): PaneId {
+  const paneId = useContext(PanelIdContext);
+  if (!paneId) {
+    throw new Error('usePaneId must be used within PanelIdProvider');
+  }
+  return paneId;
+}
+
+/**
+ * Get the current panel ID (legacy, safe version).
+ * Returns PaneId | null. Safe to call outside PanelIdProvider.
+ * @deprecated Use usePaneId() instead (requires being inside PanelIdProvider)
+ */
+export function usePanelId(): PaneId | null {
   return useContext(PanelIdContext);
 }

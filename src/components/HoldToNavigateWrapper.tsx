@@ -22,7 +22,7 @@
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import React, { useCallback, useRef, useState, useMemo, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -33,9 +33,8 @@ import {
   DeviceEventEmitter,
   LayoutChangeEvent,
 } from 'react-native';
-import { useNavigation, NavigationProp, CommonActions, StackActions } from '@react-navigation/native';
-
 import { WheelNavigationMenu, NavigationDestination } from './WheelNavigationMenu';
+import { usePaneContext } from '@/contexts/PaneContext';
 import { HoldIndicator } from './HoldIndicator';
 import { VoiceCommandOverlay } from './VoiceCommandOverlay';
 import { FloatingMicIndicator } from './FloatingMicIndicator';
@@ -250,66 +249,15 @@ interface HoldToNavigateWrapperProps {
   enabled?: boolean;
 }
 
-/**
- * Convert a NavigationDestination to the corresponding tab name
- * Supports both static modules and dynamic country-specific modules
- */
-function getTabNameForDestination(destination: NavigationDestination): string {
-  // Check if this is a dynamic module (format: 'module:{moduleId}')
-  if (destination.startsWith('module:')) {
-    const moduleId = destination.replace('module:', '');
-    // Convert moduleId to tab name using a lookup map
-    // This ensures correct capitalization (e.g., 'nunl' -> 'NuNlTab')
-    const moduleTabNameMap: Record<string, string> = {
-      'nunl': 'NuNlTab',
-      // Add more country-specific modules here as they are implemented
-    };
-    return moduleTabNameMap[moduleId] ?? `${moduleId.charAt(0).toUpperCase()}${moduleId.slice(1)}Tab`;
-  }
-
-  // Static modules
-  switch (destination) {
-    case 'chats': return 'ChatsTab';
-    case 'contacts': return 'ContactsTab';
-    case 'groups': return 'GroupsTab';
-    case 'settings': return 'SettingsTab';
-    case 'calls': return 'CallsTab';
-    case 'podcast': return 'PodcastTab';
-    case 'radio': return 'RadioTab';
-    case 'books': return 'BooksTab';
-    case 'weather': return 'WeatherTab';
-    case 'appleMusic': return 'AppleMusicTab';
-    case 'help': return 'HelpTab';
-    default: return '';
-  }
-}
-
-/**
- * Get the initial route name for a tab's stack navigator
- * Used when resetting a tab's stack to its root
- */
-function getInitialRouteForTab(tabName: string): string {
-  switch (tabName) {
-    case 'ChatsTab': return 'ChatList';
-    case 'ContactsTab': return 'ContactList';
-    case 'GroupsTab': return 'GroupList';
-    case 'SettingsTab': return 'SettingsMain';
-    // Module tabs don't have stacks, they're single screens
-    case 'CallsTab': return 'Calls';
-    case 'EBookTab': return 'EBook';
-    case 'AudioBookTab': return 'AudioBook';
-    case 'PodcastTab': return 'Podcast';
-    case 'RadioTab': return 'Radio';
-    case 'AppleMusicTab': return 'AppleMusic';
-    default: return '';
-  }
-}
+// Tab-level navigation helpers (getTabNameForDestination, getInitialRouteForTab)
+// removed — now handled by PaneContext.setPaneModule()
 
 export function HoldToNavigateWrapper({
   children,
   enabled = true,
 }: HoldToNavigateWrapperProps) {
-  const navigation = useNavigation<NavigationProp<any>>();
+  // Pane context for module-level navigation (replaces old tab navigation)
+  const paneCtx = usePaneContext();
 
   // Track app state to avoid restarting voice recognition when app goes to background
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -321,66 +269,8 @@ export function HoldToNavigateWrapper({
     return () => subscription.remove();
   }, []);
 
-  // Track the current tab name using navigation state
-  // Default to 'ChatsTab' since that's the initial tab when the app starts
-  const [currentTabName, setCurrentTabName] = useState<string>('ChatsTab');
-  // Track if we're at the root of the current tab stack (not in a detail screen)
-  const [isAtTabRoot, setIsAtTabRoot] = useState<boolean>(true);
-
-  // Listen to navigation state changes to track the current tab
-  useEffect(() => {
-    // Function to extract the current tab and check if we're at root level
-    const getTabInfo = (): { tabName: string | undefined; isRoot: boolean } => {
-      const state = navigation.getState();
-
-      if (!state) return { tabName: undefined, isRoot: true };
-
-      // Recursively search for a tab in the navigation tree
-      // Returns the tab name and whether we're at the root (index 0 of the tab's stack)
-      const findTabInRoutes = (routes: any[], index: number): { tabName: string | undefined; isRoot: boolean } => {
-        if (!routes || routes.length === 0) return { tabName: undefined, isRoot: true };
-
-        const currentRoute = routes[index];
-        if (!currentRoute) return { tabName: undefined, isRoot: true };
-
-        // If the route name ends with 'Tab', we found our tab
-        if (currentRoute.name?.endsWith('Tab')) {
-          // Check if we're at the root of this tab's stack
-          // A tab's nested stack has routes - if index > 0, we're not at root
-          const nestedState = currentRoute.state;
-          const stackIndex = nestedState?.index ?? 0;
-          const isRoot = stackIndex === 0;
-          return { tabName: currentRoute.name, isRoot };
-        }
-
-        // Look in nested state
-        if (currentRoute.state?.routes) {
-          return findTabInRoutes(
-            currentRoute.state.routes,
-            currentRoute.state.index ?? 0
-          );
-        }
-
-        return { tabName: undefined, isRoot: true };
-      };
-
-      return findTabInRoutes(state.routes, state.index ?? 0);
-    };
-
-    // Subscribe to state changes - update current tab when navigation changes
-    const unsubscribe = navigation.addListener('state', () => {
-      const { tabName, isRoot } = getTabInfo();
-      if (tabName) {
-        setCurrentTabName(tabName);
-      }
-      setIsAtTabRoot(isRoot);
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  // Use the tracked tab name
-  const currentRouteName = currentTabName;
+  // Current module from pane context (replaces old currentTabName tracking)
+  const currentModuleId = paneCtx.panes.main?.moduleId ?? 'chats';
 
   const {
     settings,
@@ -888,79 +778,16 @@ export function HoldToNavigateWrapper({
   }, [clearAllGestureState]);
 
   // Handle navigation from menu (also used by voice commands)
-  // When resetStack is true, resets the tab's internal stack to the root screen
+  // Uses PaneContext to switch the 'main' pane's module
   const handleNavigate = useCallback(
-    (destination: NavigationDestination, resetStack: boolean = false) => {
+    (destination: NavigationDestination, _resetStack: boolean = false) => {
       closeNavigationMenu();
 
-      const tabName = getTabNameForDestination(destination);
-
-      if (resetStack && tabName) {
-        // Reset the tab's stack to its root screen
-        // This is used when user says "Contacten" while in contact detail
-        // First pop to top of the current stack, then navigate to ensure we're at root
-        console.log('[HoldToNavigate] Resetting stack for tab:', tabName);
-        try {
-          // Pop to top of the current tab's stack
-          navigation.dispatch(StackActions.popToTop());
-        } catch (e) {
-          // May fail if we're already at root, that's fine
-          console.log('[HoldToNavigate] popToTop failed (may be at root already):', e);
-        }
-        return;
-      }
-
-      // Check if this is a dynamic module (format: 'module:{moduleId}')
-      if (destination.startsWith('module:')) {
-        const tabName = getTabNameForDestination(destination);
-        if (tabName) {
-          console.log('[HoldToNavigate] Navigating to dynamic module tab:', tabName);
-          navigation.navigate(tabName as never);
-        } else {
-          console.warn('[HoldToNavigate] Unknown dynamic module:', destination);
-        }
-        return;
-      }
-
-      // Navigate to the appropriate static tab/screen
-      switch (destination) {
-        case 'chats':
-          navigation.navigate('ChatsTab' as never);
-          break;
-        case 'contacts':
-          navigation.navigate('ContactsTab' as never);
-          break;
-        case 'groups':
-          navigation.navigate('GroupsTab' as never);
-          break;
-        case 'settings':
-          navigation.navigate('SettingsTab' as never);
-          break;
-        case 'calls':
-          navigation.navigate('CallsTab' as never);
-          break;
-        case 'podcast':
-          navigation.navigate('PodcastTab' as never);
-          break;
-        case 'radio':
-          navigation.navigate('RadioTab' as never);
-          break;
-        case 'books':
-          navigation.navigate('BooksTab' as never);
-          break;
-        case 'weather':
-          navigation.navigate('WeatherTab' as never);
-          break;
-        case 'appleMusic':
-          navigation.navigate('AppleMusicTab' as never);
-          break;
-        case 'help':
-          // TODO: Navigate to help screen when implemented
-          console.log('[HoldToNavigate] Help not yet implemented');
-          break;
-      }
+      // Switch the main pane to the requested module
+      console.log('[HoldToNavigate] Navigating to module:', destination);
+      paneCtx.setPaneModule('main', destination);
     },
-    [navigation, closeNavigationMenu],
+    [paneCtx, closeNavigationMenu],
   );
 
   // Handle menu close
@@ -1055,33 +882,23 @@ export function HoldToNavigateWrapper({
       const chatId = `chat:${[myJid, contact.jid].sort().join(':')}`;
 
       if (action === 'message') {
-        // Navigate to chat with this contact
+        // Navigate to chats module with pending deep navigation to ChatDetail
         console.log('[HoldToNavigate] Navigating to chat with:', contact.name, 'chatId:', chatId);
-
-        // First navigate to ChatsTab, then to ChatDetail
-        navigation.navigate('ChatsTab' as never);
-        // Use setTimeout to allow tab navigation to complete
-        setTimeout(() => {
-          navigation.navigate('ChatsTab', {
-            screen: 'ChatDetail',
-            params: { chatId, name: contact.name },
-          } as never);
-        }, 100);
+        paneCtx.setPaneModule('main', 'chats', {
+          screen: 'ChatDetail',
+          params: { chatId, name: contact.name },
+        });
       } else if (action === 'call') {
-        // Navigate to contact detail for calling
+        // Navigate to contacts module with pending deep navigation to ContactDetail
         // TODO: Implement direct call when AudioCall screen is ready
         console.log('[HoldToNavigate] Navigating to contact for call:', contact.name);
-
-        navigation.navigate('ContactsTab' as never);
-        setTimeout(() => {
-          navigation.navigate('ContactsTab', {
-            screen: 'ContactDetail',
-            params: { jid: contact.jid },
-          } as never);
-        }, 100);
+        paneCtx.setPaneModule('main', 'contacts', {
+          screen: 'ContactDetail',
+          params: { jid: contact.jid },
+        });
       }
     },
-    [navigation]
+    [paneCtx]
   );
 
   // Track if we've already started voice listening for this modal session
@@ -1121,12 +938,12 @@ export function HoldToNavigateWrapper({
     modalVoiceStartedRef.current = false; // Reset for next modal session
     setPendingVoiceAction(null);
 
-    // Navigate to contacts list
-    navigation.navigate('ContactsTab' as never);
+    // Navigate to contacts module
+    paneCtx.setPaneModule('main', 'contacts');
 
     // Continue voice session
     restartVoiceSessionListening();
-  }, [navigation, restartVoiceSessionListening]);
+  }, [paneCtx, restartVoiceSessionListening]);
 
   // Handle modal close
   const handleContactSelectionClose = useCallback(() => {
@@ -1258,8 +1075,9 @@ export function HoldToNavigateWrapper({
             break;
 
           case 'back':
-            // Go back in navigation
-            navigation.goBack();
+            // Go back within the pane's inner navigation stack
+            // TODO: Implement via PaneContext goBack mechanism
+            DeviceEventEmitter.emit('pane:goBack', { paneId: 'main' });
             // Continue listening in session mode
             if (isVoiceSessionActive) {
               restartVoiceSessionListening();
@@ -1389,21 +1207,14 @@ export function HoldToNavigateWrapper({
           });
         }
 
-        // Check if we're already in the target tab AND at the root level (same-tab reset feature)
-        // If we're in a detail screen (not at root), navigate back to the tab root first
-        // If we're already at the tab root, just reset focus to first item
-        const targetTabName = getTabNameForDestination(result.destination);
-        if (targetTabName === currentTabName && isAtTabRoot) {
-          // Already at tab root - just reset focus to first item
-          console.log('[HoldToNavigate] Same tab at root, resetting focus to first item');
+        // Check if we're already in the target module (same-module = reset focus)
+        if (result.destination === currentModuleId) {
+          // Same module - reset focus to first item
+          console.log('[HoldToNavigate] Same module, resetting focus to first item');
           voiceFocus.resetFocusToFirst();
-        } else if (targetTabName === currentTabName && !isAtTabRoot) {
-          // Same tab but in a detail screen - reset the tab's stack to root
-          console.log('[HoldToNavigate] Same tab but in detail screen, resetting stack to root');
-          handleNavigate(result.destination, true); // resetStack = true
         } else {
-          // Different tab - normal navigation
-          console.log('[HoldToNavigate] Navigating to different tab:', result.destination, 'from:', currentTabName);
+          // Different module - navigate via pane context
+          console.log('[HoldToNavigate] Navigating to module:', result.destination, 'from:', currentModuleId);
           handleNavigate(result.destination);
         }
 
@@ -1530,10 +1341,8 @@ export function HoldToNavigateWrapper({
     },
     [
       handleNavigate,
-      navigation,
       isVoiceSessionActive,
-      currentTabName,
-      isAtTabRoot,
+      currentModuleId,
       saveMicPosition,
       stopVoiceSession,
       restartVoiceSessionListening,
@@ -1596,23 +1405,8 @@ export function HoldToNavigateWrapper({
     };
   }, [isVoiceOverlayVisible, isVoiceSessionActive]);
 
-  // Convert route name to NavigationDestination
-  const activeScreen = useMemo((): NavigationDestination | undefined => {
-    switch (currentRouteName) {
-      case 'ChatsTab': return 'chats';
-      case 'ContactsTab': return 'contacts';
-      case 'GroupsTab': return 'groups';
-      case 'SettingsTab': return 'settings';
-      case 'CallsTab': return 'calls';
-      case 'PodcastTab': return 'podcast';
-      case 'RadioTab': return 'radio';
-      case 'BooksTab': return 'books';
-      case 'AppleMusicTab': return 'appleMusic';
-      // Country-specific modules
-      case 'NuNlTab': return 'module:nunl';
-      default: return undefined;
-    }
-  }, [currentRouteName]);
+  // Active screen is directly the module ID from pane context
+  const activeScreen = currentModuleId as NavigationDestination | undefined;
 
   // Handle layout changes to track wrapper's screen position
   // This is needed for iPad Split View where the wrapper doesn't start at (0,0)

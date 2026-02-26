@@ -131,3 +131,13 @@ export {
   PanelIdProvider,
   usePanelId,
 } from './PanelIdContext';
+
+export {
+  PaneProvider,
+  usePaneContext,
+  usePaneContextSafe,
+  type PaneId,
+  type PaneState,
+  type PaneContextValue,
+  type PendingNavigation,
+} from './PaneContext';

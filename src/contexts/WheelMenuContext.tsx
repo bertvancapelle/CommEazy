@@ -20,7 +20,7 @@ import React, {
 } from 'react';
 
 import type { NavigationDestination } from '@/types/navigation';
-import type { PanelId } from './SplitViewContext';
+import type { PaneId as PanelId } from './PaneContext';
 
 // ============================================================
 // Types

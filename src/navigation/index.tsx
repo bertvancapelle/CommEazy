@@ -4,46 +4,24 @@
  * Structure:
  * - Onboarding Stack (first launch)
  *   └── Language → Welcome → Phone → Profile → Backup
- * - Main Tab Navigator
- *   ├── Chats Stack
- *   │   ├── ChatList
- *   │   └── ChatDetail
- *   ├── Contacts Stack
- *   │   ├── ContactList
- *   │   └── ContactDetail / QR Scanner
- *   ├── Groups Stack
- *   │   ├── GroupList
- *   │   └── GroupDetail / CreateGroup
- *   └── Settings Stack
+ * - Main (pane-based)
+ *   ├── iPhone: PaneProvider(1) → SinglePaneLayout → PanelNavigator
+ *   └── iPad:  PaneProvider(2) → SplitViewLayout  → PanelNavigator ×2
+ * - Call screens (full-screen modals over everything)
  *
+ * All module stacks defined in PanelNavigator.tsx.
  * Max 2 navigation levels (senior-inclusive).
  */
 
 import React, { useEffect, useRef } from 'react';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useTranslation } from 'react-i18next';
 
 import { useCall } from '@/contexts/CallContext';
 
 import { colors, typography } from '@/theme';
 import { AdaptiveNavigationWrapper } from '@/components/navigation';
 import { useAccentColor } from '@/hooks/useAccentColor';
-
-// Placeholder screens — replace with actual implementations
-import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
-
-// Chat screens
-import { ChatListScreen, ChatScreen } from '@/screens/chat';
-
-// Contact screens
-import {
-  ContactListScreen,
-  ContactDetailScreen,
-  AddContactScreen,
-  VerifyContactScreen,
-} from '@/screens/contacts';
 
 // Onboarding screens
 import {
@@ -52,7 +30,6 @@ import {
   DeviceChoiceScreen,
   PhoneVerificationScreen,
   DeviceLinkScanScreen,
-  DeviceLinkShowQRScreen,
   NameInputScreen,
   PinSetupScreen,
   DemographicsScreen,
@@ -60,45 +37,7 @@ import {
   CompletionScreen,
 } from '@/screens/onboarding';
 
-// Settings screens
-import {
-  SettingsMainScreen,
-  ProfileSettingsScreen,
-  PrivacySettingsScreen,
-  AccessibilitySettingsScreen,
-  ComplianceReportScreen,
-  VoiceSettingsScreen,
-  ModulesSettingsScreen,
-  CallSettingsScreen,
-  AppearanceSettingsScreen,
-} from '@/screens/settings';
-
-// Dev screens
-import { PiperTtsTestScreen } from '@/screens/dev/PiperTtsTestScreen';
-
-// Module screens (placeholder for testing wheel navigation)
-import {
-  CallsScreen,
-  PodcastScreen,
-  RadioScreen,
-  BooksScreen,
-  BookReaderScreen,
-  BookPlayerScreen,
-  NuNlScreen,
-  WeatherScreen,
-  AppleMusicScreen,
-  EBookScreen,
-  AudioBookScreen,
-} from '@/screens/modules';
-
-// Group screens
-import {
-  GroupListScreen,
-  GroupDetailScreen,
-  CreateGroupScreen,
-} from '@/screens/group';
-
-// Call screens
+// Call screens (presented as modals over root navigator)
 import {
   IncomingCallScreen,
   ActiveCallScreen,
@@ -160,22 +99,7 @@ export type SettingsStackParams = {
   PiperTtsTest: undefined;  // DEV: Test screen for Piper TTS
 };
 
-export type MainTabParams = {
-  ChatsTab: undefined;
-  ContactsTab: undefined;
-  GroupsTab: undefined;
-  SettingsTab: undefined;
-  CallsTab: undefined;  // Combined voice + video calling
-  PodcastTab: undefined;
-  RadioTab: undefined;
-  BooksTab: undefined;
-  BookReader: undefined;
-  BookPlayer: undefined;
-  WeatherTab: undefined;
-  AppleMusicTab: undefined;  // Apple Music integration
-  // Country-specific modules
-  NuNlTab: undefined;
-};
+// MainTabParams removed — tab navigation replaced by PaneContext
 
 export type CallStackParams = {
   IncomingCall: { callId: string };
@@ -196,11 +120,8 @@ export type RootStackParams = {
 
 const RootStack = createNativeStackNavigator<RootStackParams>();
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParams>();
-const ChatStack = createNativeStackNavigator<ChatStackParams>();
-const ContactStack = createNativeStackNavigator<ContactStackParams>();
-const GroupStack = createNativeStackNavigator<GroupStackParams>();
-const SettingsStack = createNativeStackNavigator<SettingsStackParams>();
-const MainTab = createBottomTabNavigator<MainTabParams>();
+// Old stack/tab navigators (ChatStack, ContactStack, GroupStack, SettingsStack, MainTab)
+// removed — screen stacks are now in PanelNavigator.tsx
 
 // ============================================================
 // Stack Navigators
@@ -281,238 +202,15 @@ function OnboardingNavigator() {
   );
 }
 
-function ChatsNavigator() {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-
-  return (
-    <ChatStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <ChatStack.Screen
-        name="ChatList"
-        component={ChatListScreen}
-        options={{ headerShown: false }}
-      />
-      <ChatStack.Screen
-        name="ChatDetail"
-        component={ChatScreen}
-        options={({ route }) => ({ title: route.params.name })}
-      />
-      <ChatStack.Screen name="AudioCall" component={PlaceholderScreen} />
-      <ChatStack.Screen name="VideoCall" component={PlaceholderScreen} />
-    </ChatStack.Navigator>
-  );
-}
-
-function ContactsNavigator() {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-
-  return (
-    <ContactStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <ContactStack.Screen
-        name="ContactList"
-        component={ContactListScreen}
-        options={{ headerShown: false }}
-      />
-      <ContactStack.Screen
-        name="ContactDetail"
-        component={ContactDetailScreen}
-        options={{ title: t('contacts.details') }}
-      />
-      <ContactStack.Screen
-        name="AddContact"
-        component={AddContactScreen}
-        options={{ title: t('contacts.add') }}
-      />
-      <ContactStack.Screen
-        name="VerifyContact"
-        component={VerifyContactScreen}
-        options={({ route }) => ({ title: t('contacts.verify') })}
-      />
-      <ContactStack.Screen name="QRScanner" component={PlaceholderScreen} />
-      <ContactStack.Screen name="QRDisplay" component={PlaceholderScreen} />
-    </ContactStack.Navigator>
-  );
-}
-
-function GroupsNavigator() {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-
-  return (
-    <GroupStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <GroupStack.Screen
-        name="GroupList"
-        component={GroupListScreen}
-        options={{ headerShown: false }}
-      />
-      <GroupStack.Screen
-        name="GroupDetail"
-        component={GroupDetailScreen}
-        options={({ route }) => ({ title: route.params.name })}
-      />
-      <GroupStack.Screen
-        name="CreateGroup"
-        component={CreateGroupScreen}
-        options={{ title: t('group.create') }}
-      />
-    </GroupStack.Navigator>
-  );
-}
-
-function SettingsNavigator() {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-
-  return (
-    <SettingsStack.Navigator
-      screenOptions={{
-        headerTitleStyle: typography.h3,
-        headerBackTitleVisible: false,
-        headerTintColor: accentColor.primary,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <SettingsStack.Screen
-        name="SettingsMain"
-        component={SettingsMainScreen}
-        options={{ headerShown: false }}
-      />
-      <SettingsStack.Screen
-        name="ProfileSettings"
-        component={ProfileSettingsScreen}
-        options={{ title: t('profile.changePhoto') }}
-      />
-      <SettingsStack.Screen
-        name="PrivacySettings"
-        component={PrivacySettingsScreen}
-        options={{ title: t('privacySettings.title') }}
-      />
-      <SettingsStack.Screen
-        name="AccessibilitySettings"
-        component={AccessibilitySettingsScreen}
-        options={{ title: t('settings.accessibility') }}
-      />
-      <SettingsStack.Screen
-        name="ComplianceReport"
-        component={ComplianceReportScreen}
-        options={{ headerShown: false }}
-      />
-      <SettingsStack.Screen
-        name="VoiceSettings"
-        component={VoiceSettingsScreen}
-        options={{ title: t('voiceSettings.title') }}
-      />
-      <SettingsStack.Screen
-        name="ModulesSettings"
-        component={ModulesSettingsScreen}
-        options={{ title: t('modulesSettings.title'), headerShown: false }}
-      />
-      <SettingsStack.Screen
-        name="CallSettings"
-        component={CallSettingsScreen}
-        options={{ title: t('callSettings.title') }}
-      />
-      <SettingsStack.Screen
-        name="AppearanceSettings"
-        component={AppearanceSettingsScreen}
-        options={{ title: t('appearance.title') }}
-      />
-      <SettingsStack.Screen
-        name="LanguageSettings"
-        component={PlaceholderScreen}
-        options={{ title: t('settings.language') }}
-      />
-      <SettingsStack.Screen
-        name="BackupSettings"
-        component={PlaceholderScreen}
-        options={{ title: t('settings.backup') }}
-      />
-      <SettingsStack.Screen
-        name="DeviceTransfer"
-        component={PlaceholderScreen}
-      />
-      <SettingsStack.Screen
-        name="DeviceLinkShowQR"
-        component={DeviceLinkShowQRScreen}
-        options={{ title: t('deviceLink.showQRTitle') }}
-      />
-      {/* DEV: Piper TTS Test Screen */}
-      {__DEV__ && (
-        <SettingsStack.Screen
-          name="PiperTtsTest"
-          component={PiperTtsTestScreen}
-          options={{ title: '🔊 Piper TTS Test' }}
-        />
-      )}
-    </SettingsStack.Navigator>
-  );
-}
+// Old stack navigators (ChatsNavigator, ContactsNavigator, GroupsNavigator, SettingsNavigator)
+// removed — screen stacks are now defined in PanelNavigator.tsx
 
 // ============================================================
-// Main Tab Navigator
+// Main Navigator (pane-based)
 // ============================================================
 
 function MainNavigator() {
-  return (
-    <AdaptiveNavigationWrapper enabled={true}>
-      <MainTab.Navigator
-        screenOptions={{
-          headerShown: false,
-          // Hide the bottom tab bar completely — navigation is via Hold-to-Navigate (iPhone) or Sidebar (iPad)
-          tabBarStyle: {
-            display: 'none',
-          },
-        }}
-      >
-        <MainTab.Screen name="ChatsTab" component={ChatsNavigator} />
-        <MainTab.Screen name="ContactsTab" component={ContactsNavigator} />
-        <MainTab.Screen name="GroupsTab" component={GroupsNavigator} />
-        <MainTab.Screen name="SettingsTab" component={SettingsNavigator} />
-        <MainTab.Screen name="CallsTab" component={CallsScreen} />
-        <MainTab.Screen name="PodcastTab" component={PodcastScreen} />
-        <MainTab.Screen name="RadioTab" component={RadioScreen} />
-        <MainTab.Screen name="BooksTab" component={BooksScreen} />
-        <MainTab.Screen name="BookReader" component={BookReaderScreen} />
-        <MainTab.Screen name="BookPlayer" component={BookPlayerScreen} />
-        <MainTab.Screen name="WeatherTab" component={WeatherScreen} />
-        <MainTab.Screen name="AppleMusicTab" component={AppleMusicScreen} />
-        <MainTab.Screen name="EBookTab" component={EBookScreen} />
-        <MainTab.Screen name="AudioBookTab" component={AudioBookScreen} />
-        {/* Country-specific modules */}
-        <MainTab.Screen name="NuNlTab" component={NuNlScreen} />
-      </MainTab.Navigator>
-    </AdaptiveNavigationWrapper>
-  );
+  return <AdaptiveNavigationWrapper enabled={true} />;
 }
 
 // ============================================================

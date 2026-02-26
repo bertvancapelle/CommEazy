@@ -27,7 +27,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-import { useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
+import { usePaneContext } from '@/contexts/PaneContext';
+import type { PaneId as PanelId } from '@/contexts/PanelIdContext';
 import { useNavigationContext } from '@/contexts/NavigationContext';
 import { ModuleIcon } from './ModuleIcon';
 import type { ModuleDefinition, NavigationDestination } from '@/types/navigation';
@@ -58,10 +59,10 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { modules, getModulesByGroup } = useNavigationContext();
-  const { setLeftModule, setRightModule, leftPanel, rightPanel } = useSplitViewContext();
+  const { panes, setPaneModule } = usePaneContext();
 
   // Get current module for this panel
-  const currentModuleId = targetPanel === 'left' ? leftPanel.moduleId : rightPanel.moduleId;
+  const currentModuleId = panes[targetPanel]?.moduleId ?? 'menu';
 
   // Get grouped modules
   const groupedModules = getModulesByGroup();
@@ -81,15 +82,11 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
       }
 
       // Set module for target panel
-      if (targetPanel === 'left') {
-        setLeftModule(moduleId);
-      } else {
-        setRightModule(moduleId);
-      }
+      setPaneModule(targetPanel, moduleId);
 
       onClose();
     },
-    [targetPanel, setLeftModule, setRightModule, onClose]
+    [targetPanel, setPaneModule, onClose]
   );
 
   const handleBackdropPress = useCallback(() => {

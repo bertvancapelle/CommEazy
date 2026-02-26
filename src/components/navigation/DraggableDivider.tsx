@@ -25,7 +25,7 @@ import {
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-import { useSplitViewContext } from '@/contexts/SplitViewContext';
+import { usePaneContext } from '@/contexts/PaneContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { colors } from '@/theme';
 
@@ -65,8 +65,9 @@ export interface DraggableDividerProps {
 
 export function DraggableDivider({ ratio, onRatioChange }: DraggableDividerProps) {
   const { width: screenWidth } = useWindowDimensions();
-  const { leftPanel } = useSplitViewContext();
-  const leftModuleColor = useModuleColor(leftPanel.moduleId as any);
+  const { panes } = usePaneContext();
+  const leftPanel = panes.left!;
+  const leftModuleColor = useModuleColor(leftPanel?.moduleId as any);
   const [isDragging, setIsDragging] = useState(false);
   const startRatioRef = useRef(ratio);
   const startXRef = useRef(0);

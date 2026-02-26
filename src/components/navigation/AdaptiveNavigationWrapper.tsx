@@ -2,21 +2,21 @@
  * AdaptiveNavigationWrapper — Device-adaptive navigation wrapper
  *
  * Provides the appropriate navigation UI based on device type:
- * - iPhone: HoldToNavigateWrapper with WheelNavigationMenu
- * - iPad: Split View with two independent module panels
+ * - iPhone: PaneProvider(1 pane) → SinglePaneLayout with WheelNavigationMenu
+ * - iPad: PaneProvider(2 panes) → SplitViewLayout with WheelNavigationMenu
  *
- * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
+ * Both paths use the same pane infrastructure (PaneContext → ModulePanel → PanelNavigator).
+ *
+ * @see .claude/plans/sunny-yawning-sunset.md
  */
 
-import React, { useEffect, useCallback, type ReactNode } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { NavigationProp } from '@react-navigation/native';
+import React, { useEffect, useCallback } from 'react';
 
 import { useDeviceType } from '@/hooks/useDeviceType';
-import { useNavigationContextSafe } from '@/contexts/NavigationContext';
-import { SplitViewProvider, useSplitViewContext, type PanelId } from '@/contexts/SplitViewContext';
+import { PaneProvider, usePaneContext, type PaneId } from '@/contexts/PaneContext';
 import { WheelMenuProvider, useWheelMenuContext } from '@/contexts/WheelMenuContext';
 import { SplitViewLayout } from './SplitViewLayout';
+import { SinglePaneLayout } from './SinglePaneLayout';
 import { HoldToNavigateWrapper } from '@/components/HoldToNavigateWrapper';
 import { WheelNavigationMenu } from '@/components/WheelNavigationMenu';
 import type { NavigationDestination } from '@/types/navigation';
@@ -26,9 +26,6 @@ import type { NavigationDestination } from '@/types/navigation';
 // ============================================================
 
 export interface AdaptiveNavigationWrapperProps {
-  /** Main content to render (used on iPhone, ignored on iPad Split View) */
-  children: ReactNode;
-
   /** Enable navigation (default: true) */
   enabled?: boolean;
 }
@@ -38,51 +35,34 @@ export interface AdaptiveNavigationWrapperProps {
 // ============================================================
 
 export function AdaptiveNavigationWrapper({
-  children,
   enabled = true,
 }: AdaptiveNavigationWrapperProps) {
   const device = useDeviceType();
-  const navigation = useNavigation<NavigationProp<Record<string, undefined>>>();
-  const navContext = useNavigationContextSafe();
-
-  // Register navigation callback with context
-  useEffect(() => {
-    if (navContext && navigation) {
-      navContext.setNavigateCallback((screenName: string) => {
-        navigation.navigate(screenName as never);
-      });
-
-      return () => {
-        navContext.setNavigateCallback(null);
-      };
-    }
-  }, [navContext, navigation]);
 
   // ============================================================
-  // iPhone: Use existing HoldToNavigateWrapper with WheelMenuProvider
-  // WheelMenuProvider is needed for module icon tap → wheel menu
+  // iPhone: Single pane with HoldToNavigateWrapper
   // ============================================================
 
   if (device.isPhone || !enabled) {
     return (
-      <WheelMenuProvider>
-        <PhoneNavigationWithWheelMenu enabled={enabled}>
-          {children}
-        </PhoneNavigationWithWheelMenu>
-      </WheelMenuProvider>
+      <PaneProvider paneCount={1}>
+        <WheelMenuProvider>
+          <PhoneNavigationWithWheelMenu enabled={enabled} />
+        </WheelMenuProvider>
+      </PaneProvider>
     );
   }
 
   // ============================================================
-  // iPad: Split View with two module panels
+  // iPad: Two panes with SplitViewLayout
   // ============================================================
 
   return (
-    <SplitViewProvider>
+    <PaneProvider paneCount={2}>
       <WheelMenuProvider>
         <SplitViewWithWheelMenu />
       </WheelMenuProvider>
-    </SplitViewProvider>
+    </PaneProvider>
   );
 }
 
@@ -92,11 +72,10 @@ export function AdaptiveNavigationWrapper({
 
 /**
  * Inner component that renders Split View + WheelNavigationMenu
- * Must be inside both SplitViewProvider and WheelMenuProvider
+ * Must be inside both PaneProvider and WheelMenuProvider
  */
 function SplitViewWithWheelMenu() {
-  const { setPanelModule } = useSplitViewContext();
-  // Destructure individual functions to avoid dependency on whole context object
+  const { setPaneModule } = usePaneContext();
   const {
     isOpen,
     request,
@@ -106,19 +85,17 @@ function SplitViewWithWheelMenu() {
   } = useWheelMenuContext();
 
   // Register navigation handler for wheel menu
-  // Note: setNavigationHandler is stable (wrapped in useCallback in context)
   useEffect(() => {
-    setNavigationHandler((panelId: PanelId | null, destination: NavigationDestination) => {
+    setNavigationHandler((panelId: PaneId | null, destination: NavigationDestination) => {
       if (panelId) {
-        // Navigate within the specific panel
-        setPanelModule(panelId, destination);
+        setPaneModule(panelId, destination);
       }
     });
 
     return () => {
       setNavigationHandler(null);
     };
-  }, [setNavigationHandler, setPanelModule]);
+  }, [setNavigationHandler, setPaneModule]);
 
   return (
     <>
@@ -140,16 +117,16 @@ function SplitViewWithWheelMenu() {
 // ============================================================
 
 interface PhoneNavigationProps {
-  children: ReactNode;
   enabled: boolean;
 }
 
 /**
- * Phone navigation wrapper that includes WheelNavigationMenu overlay
- * Must be inside WheelMenuProvider
+ * Phone navigation wrapper that includes WheelNavigationMenu overlay.
+ * Uses SinglePaneLayout (pane-based) instead of MainTab.Navigator.
+ * Must be inside PaneProvider and WheelMenuProvider.
  */
-function PhoneNavigationWithWheelMenu({ children, enabled }: PhoneNavigationProps) {
-  const navigation = useNavigation<NavigationProp<Record<string, undefined>>>();
+function PhoneNavigationWithWheelMenu({ enabled }: PhoneNavigationProps) {
+  const { setPaneModule } = usePaneContext();
   const {
     isOpen,
     request,
@@ -160,52 +137,20 @@ function PhoneNavigationWithWheelMenu({ children, enabled }: PhoneNavigationProp
 
   // Register navigation handler for wheel menu
   useEffect(() => {
-    setNavigationHandler((_panelId: PanelId | null, destination: NavigationDestination) => {
-      // On iPhone, navigate using React Navigation
-      // Map static destination to screen name
-      const staticScreenMap: Record<string, string> = {
-        chats: 'ChatsTab',
-        contacts: 'ContactsTab',
-        groups: 'GroupsTab',
-        radio: 'RadioTab',
-        podcast: 'PodcastTab',
-        books: 'BooksTab',
-        calls: 'CallsTab',
-        settings: 'SettingsTab',
-        weather: 'WeatherTab',
-        appleMusic: 'AppleMusicTab',
-        help: 'HelpTab',  // TODO: HelpTab not yet implemented
-      };
-
-      // Handle dynamic modules (format: 'module:{moduleId}')
-      if (destination.startsWith('module:')) {
-        const moduleId = destination.replace('module:', '');
-        // Convert moduleId to tab name (e.g., 'nunl' -> 'NuNlTab')
-        const dynamicTabMap: Record<string, string> = {
-          nunl: 'NuNlTab',
-          // Add more dynamic modules here as they are implemented
-        };
-        const tabName = dynamicTabMap[moduleId] ?? `${moduleId.charAt(0).toUpperCase()}${moduleId.slice(1)}Tab`;
-        navigation.navigate(tabName as never);
-        return;
-      }
-
-      // Handle static modules
-      const screenName = staticScreenMap[destination];
-      if (screenName) {
-        navigation.navigate(screenName as never);
-      }
+    setNavigationHandler((_panelId: PaneId | null, destination: NavigationDestination) => {
+      // On iPhone, navigate using pane context (single 'main' pane)
+      setPaneModule('main', destination);
     });
 
     return () => {
       setNavigationHandler(null);
     };
-  }, [setNavigationHandler, navigation]);
+  }, [setNavigationHandler, setPaneModule]);
 
   return (
     <>
       <HoldToNavigateWrapper enabled={enabled}>
-        {children}
+        <SinglePaneLayout />
       </HoldToNavigateWrapper>
 
       {/* WheelNavigationMenu rendered at root level for full-screen overlay */}
