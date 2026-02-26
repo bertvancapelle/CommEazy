@@ -19,7 +19,6 @@ export { Button } from './Button';
 export { TextInput } from './TextInput';
 export { ProgressIndicator } from './ProgressIndicator';
 export { PinInput } from './PinInput';
-export { PresenceIndicator } from './PresenceIndicator';
 export { ContactAvatar } from './ContactAvatar';
 export { Icon } from './Icon';
 export type { IconName } from './Icon';

@@ -30,18 +30,103 @@ import { useTranslation } from 'react-i18next';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { colors, typography, spacing, touchTargets } from '@/theme';
 import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
-import type { Contact, PresenceShow, CallType } from '@/services/interfaces';
+import type { Contact, CallType } from '@/services/interfaces';
 import type { RootStackParams } from '@/navigation';
 
 type CallsNavigationProp = NativeStackNavigationProp<RootStackParams>;
+
+/** Contact row with real presence via PresenceContext */
+function CallContactItem({
+  contact,
+  index,
+  onVoiceCall,
+  onVideoCall,
+  callsModuleColor,
+}: {
+  contact: Contact;
+  index: number;
+  onVoiceCall: (contact: Contact) => void;
+  onVideoCall: (contact: Contact) => void;
+  callsModuleColor: string;
+}) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+  const presence = useVisualPresence(contact.jid);
+
+  return (
+    <VoiceFocusable
+      key={contact.jid}
+      id={contact.jid}
+      label={contact.name}
+      index={index}
+      onSelect={() => onVoiceCall(contact)}
+    >
+      <View style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
+        {/* Avatar with presence dot (via ContactAvatar) */}
+        <ContactAvatar
+          name={contact.name}
+          photoUrl={contact.photoUrl}
+          size={56}
+          presence={presence}
+        />
+
+        {/* Name and status */}
+        <View style={styles.contactInfo}>
+          <Text
+            style={[styles.contactName, { color: themeColors.textPrimary }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {contact.name}
+          </Text>
+          <Text style={[styles.statusText, { color: presence.color }]}>
+            {presence.label}
+          </Text>
+        </View>
+
+        {/* Call buttons */}
+        <View style={styles.callButtons}>
+          {/* Voice call button */}
+          <TouchableOpacity
+            style={[styles.callButton, { backgroundColor: themeColors.success }]}
+            onPress={() => onVoiceCall(contact)}
+            onLongPress={() => {}} // Prevent double-action
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.calls.voiceCallLabel', { name: contact.name })}
+            accessibilityHint={t('modules.calls.voiceCallHint')}
+          >
+            <Icon name="call" size={24} color={themeColors.textOnPrimary} />
+          </TouchableOpacity>
+
+          {/* Video call button */}
+          <TouchableOpacity
+            style={[styles.callButton, { backgroundColor: callsModuleColor }]}
+            onPress={() => onVideoCall(contact)}
+            onLongPress={() => {}} // Prevent double-action
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.calls.videoCallLabel', { name: contact.name })}
+            accessibilityHint={t('modules.calls.videoCallHint')}
+          >
+            <Icon name="videocam" size={24} color={themeColors.textOnPrimary} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </VoiceFocusable>
+  );
+}
 
 export function CallsScreen() {
   const { t } = useTranslation();
@@ -187,111 +272,20 @@ export function CallsScreen() {
     setTimeout(() => setRefreshing(false), 500);
   }, []);
 
-  // Get presence color and icon
-  const getPresenceInfo = (presence?: PresenceShow): { color: string; icon: string; label: string } => {
-    switch (presence) {
-      case 'chat':
-      case undefined: // Default to available if not specified
-        return { color: themeColors.presenceAvailable, icon: 'checkmark-circle', label: t('presence.available') };
-      case 'away':
-        return { color: themeColors.presenceAway, icon: 'time', label: t('presence.away') };
-      case 'xa':
-        return { color: themeColors.presenceXa, icon: 'close-circle', label: t('presence.xa') };
-      case 'dnd':
-        return { color: themeColors.presenceDnd, icon: 'remove-circle', label: t('presence.dnd') };
-      default:
-        return { color: themeColors.presenceOffline, icon: 'ellipse-outline', label: t('presence.offline') };
-    }
-  };
-
   const renderContactItem = useCallback(
     (contact: Contact, index: number) => {
-      // Mock presence for development (TODO: use real XMPP presence)
-      const mockPresence: PresenceShow = index % 3 === 0 ? 'chat' : index % 3 === 1 ? 'away' : 'xa';
-      const presenceInfo = getPresenceInfo(mockPresence);
-
       return (
-        <VoiceFocusable
+        <CallContactItem
           key={contact.jid}
-          id={contact.jid}
-          label={contact.name}
+          contact={contact}
           index={index}
-          onSelect={() => handleVoiceCall(contact)}
-        >
-          <View style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
-            {/* Avatar with presence indicator */}
-            <View style={styles.avatarContainer}>
-              <ContactAvatar
-                name={contact.name}
-                photoUrl={contact.photoUrl}
-                size={56}
-              />
-              {/* Presence dot */}
-              <View
-                style={[
-                  styles.presenceDot,
-                  { backgroundColor: presenceInfo.color, borderColor: themeColors.surface },
-                ]}
-                accessibilityLabel={presenceInfo.label}
-              />
-            </View>
-
-            {/* Name and status */}
-            <View style={styles.contactInfo}>
-              <Text
-                style={[styles.contactName, { color: themeColors.textPrimary }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {contact.name}
-              </Text>
-              <View style={styles.statusRow}>
-                <Icon
-                  name={presenceInfo.icon as 'checkmark-circle' | 'time' | 'close-circle' | 'remove-circle' | 'ellipse-outline'}
-                  size={16}
-                  color={presenceInfo.color}
-                />
-                <Text style={[styles.statusText, { color: presenceInfo.color }]}>
-                  {presenceInfo.label}
-                </Text>
-              </View>
-            </View>
-
-            {/* Call buttons */}
-            <View style={styles.callButtons}>
-              {/* Voice call button */}
-              <TouchableOpacity
-                style={[styles.callButton, { backgroundColor: themeColors.success }]}
-                onPress={() => handleVoiceCall(contact)}
-                onLongPress={() => {}} // Prevent double-action
-                delayLongPress={300}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.calls.voiceCallLabel', { name: contact.name })}
-                accessibilityHint={t('modules.calls.voiceCallHint')}
-              >
-                <Icon name="call" size={24} color={themeColors.textOnPrimary} />
-              </TouchableOpacity>
-
-              {/* Video call button */}
-              <TouchableOpacity
-                style={[styles.callButton, { backgroundColor: callsModuleColor }]}
-                onPress={() => handleVideoCall(contact)}
-                onLongPress={() => {}} // Prevent double-action
-                delayLongPress={300}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.calls.videoCallLabel', { name: contact.name })}
-                accessibilityHint={t('modules.calls.videoCallHint')}
-              >
-                <Icon name="videocam" size={24} color={themeColors.textOnPrimary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </VoiceFocusable>
+          onVoiceCall={handleVoiceCall}
+          onVideoCall={handleVideoCall}
+          callsModuleColor={callsModuleColor}
+        />
       );
     },
-    [handleVoiceCall, handleVideoCall, t, themeColors]
+    [handleVoiceCall, handleVideoCall, callsModuleColor]
   );
 
   const renderEmptyList = useCallback(
@@ -380,19 +374,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
   },
-  avatarContainer: {
-    position: 'relative',
-  },
-  presenceDot: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: colors.surface,
-  },
   contactInfo: {
     flex: 1,
     marginLeft: spacing.md,
@@ -402,11 +383,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '600',
     color: colors.textPrimary,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.xs,
   },
   statusText: {
     ...typography.small,
@@ -423,10 +399,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  voiceCallButton: {
-    backgroundColor: colors.success, // Green for voice call
-  },
-  // videoCallButton uses dynamic callsModuleColor inline
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',

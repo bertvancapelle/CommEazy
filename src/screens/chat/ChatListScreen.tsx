@@ -27,16 +27,17 @@ import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/n
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Button, PresenceIndicator, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
+import { Button, ContactAvatar, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
 import type { ChatStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
-import type { PresenceShow, DeliveryStatus } from '@/services/interfaces';
+import type { DeliveryStatus } from '@/services/interfaces';
 
 // ChatListItem type for this screen
 interface ChatListItem {
@@ -46,12 +47,17 @@ interface ChatListItem {
   lastMessage: string;
   lastMessageTime: number;
   unreadCount: number;
-  presenceShow: PresenceShow;
   lastMessageIsFromMe: boolean;  // true = I sent last message, false = they sent it
   lastMessageStatus?: DeliveryStatus;  // Only relevant when lastMessageIsFromMe = true
 }
 
 type NavigationProp = NativeStackNavigationProp<ChatStackParams, 'ChatList'>;
+
+/** Small wrapper to use useVisualPresence hook in list items */
+function ChatContactAvatar({ name, jid }: { name: string; jid: string }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} size={56} presence={presence} />;
+}
 
 export function ChatListScreen() {
   const { t } = useTranslation();
@@ -109,7 +115,7 @@ export function ChatListScreen() {
                   lastMessage: lastMsg?.content ?? '',
                   lastMessageTime: lastMsg?.timestamp ?? 0,
                   unreadCount: chat.unreadCount,
-                  presenceShow: chatService.getContactPresence(chat.contact.jid),
+
                   lastMessageIsFromMe: isFromMe,
                   lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
                 };
@@ -120,7 +126,7 @@ export function ChatListScreen() {
           });
         } else if (__DEV__) {
           // Fallback to mock data in dev mode if service not ready
-          const { getMockChatList, getMockContactPresence, MOCK_CURRENT_USER } = await import('@/services/mock');
+          const { getMockChatList, MOCK_CURRENT_USER } = await import('@/services/mock');
           const mockChats = await getMockChatList();
           const chatList: ChatListItem[] = mockChats
             .filter(chat => chat.lastMessage) // Only show chats with messages
@@ -134,7 +140,7 @@ export function ChatListScreen() {
                 lastMessage: lastMsg?.content ?? '',
                 lastMessageTime: lastMsg?.timestamp ?? 0,
                 unreadCount: chat.unreadCount,
-                presenceShow: getMockContactPresence(chat.contact),
+
                 lastMessageIsFromMe: isFromMe,
                 lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
               };
@@ -150,7 +156,7 @@ export function ChatListScreen() {
         // Fallback to mock data on error in dev mode
         if (__DEV__ && !cancelled) {
           try {
-            const { getMockChatList, getMockContactPresence, MOCK_CURRENT_USER } = await import('@/services/mock');
+            const { getMockChatList, MOCK_CURRENT_USER } = await import('@/services/mock');
             const mockChats = await getMockChatList();
             const chatList: ChatListItem[] = mockChats
               .filter(chat => chat.lastMessage)
@@ -164,7 +170,7 @@ export function ChatListScreen() {
                   lastMessage: lastMsg?.content ?? '',
                   lastMessageTime: lastMsg?.timestamp ?? 0,
                   unreadCount: chat.unreadCount,
-                  presenceShow: getMockContactPresence(chat.contact),
+  
                   lastMessageIsFromMe: isFromMe,
                   lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
                 };
@@ -185,21 +191,6 @@ export function ChatListScreen() {
       cancelled = true;
       if (unsubscribe) unsubscribe();
     };
-  }, []);
-
-  // Subscribe to presence changes for real-time status updates
-  useEffect(() => {
-    if (!ServiceContainer.isInitialized || !chatService.isInitialized) return;
-
-    const unsubscribe = chatService.onPresenceChange((jid, presenceShow) => {
-      setChats(prevChats =>
-        prevChats.map(chat =>
-          chat.contactJid === jid ? { ...chat, presenceShow } : chat,
-        ),
-      );
-    });
-
-    return unsubscribe;
   }, []);
 
   // Refresh chat list when screen gains focus (e.g., after returning from chat)
@@ -262,7 +253,7 @@ export function ChatListScreen() {
         });
         setChats(items);
       } else if (__DEV__) {
-        const { getMockChatList, getMockContactPresence, MOCK_CURRENT_USER } = await import('@/services/mock');
+        const { getMockChatList, MOCK_CURRENT_USER } = await import('@/services/mock');
         const mockChats = await getMockChatList();
         const chatList: ChatListItem[] = mockChats
           .filter(chat => chat.lastMessage)
@@ -276,7 +267,6 @@ export function ChatListScreen() {
               lastMessage: lastMsg?.content ?? '',
               lastMessageTime: lastMsg?.timestamp ?? 0,
               unreadCount: chat.unreadCount,
-              presenceShow: getMockContactPresence(chat.contact),
               lastMessageIsFromMe: isFromMe,
               lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
             };
@@ -302,6 +292,7 @@ export function ChatListScreen() {
       navigation.navigate('ChatDetail', {
         chatId: item.chatId,
         name: item.contactName,
+        contactJid: item.contactJid,
       });
     },
     [navigation, triggerFeedback],
@@ -387,12 +378,9 @@ export function ChatListScreen() {
             })}
             accessibilityHint={t('chat.openConversation')}
           >
-            {/* Large status indicator - senior-friendly, configurable colors */}
+            {/* Avatar with presence dot */}
             <View style={styles.presenceWrapper}>
-              <PresenceIndicator
-                show={item.presenceShow}
-                size={56}
-              />
+              <ChatContactAvatar name={item.contactName} jid={item.contactJid} />
             </View>
 
             {/* Content */}

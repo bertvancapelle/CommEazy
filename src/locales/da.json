@@ -542,6 +542,16 @@
     "voiceFocusHint": "Sig \"åbn\" for at vælge",
     "textInputHint": "Indtast tekst for {{label}}"
   },
+  "presence": {
+    "online": "Online",
+    "away": "Væk",
+    "offline": "Offline",
+    "a11y": {
+      "online": "{{name}}, online",
+      "away": "{{name}}, væk",
+      "offline": "{{name}}, offline"
+    }
+  },
   "common": {
     "loading": "Indlæser...",
     "cancel": "Annuller",

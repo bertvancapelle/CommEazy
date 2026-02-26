@@ -89,7 +89,7 @@ import { PiperTtsTestScreen } from '@/screens/dev/PiperTtsTestScreen';
 
 type ChatPanelParams = {
   ChatList: undefined;
-  ChatDetail: { chatId: string; name: string };
+  ChatDetail: { chatId: string; name: string; contactJid: string };
 };
 
 type ContactPanelParams = {

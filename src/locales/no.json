@@ -486,6 +486,16 @@
     "voiceFocusHint": "Si \"åpne\" for å velge",
     "textInputHint": "Skriv inn tekst for {{label}}"
   },
+  "presence": {
+    "online": "Pålogget",
+    "away": "Borte",
+    "offline": "Frakoblet",
+    "a11y": {
+      "online": "{{name}}, pålogget",
+      "away": "{{name}}, borte",
+      "offline": "{{name}}, frakoblet"
+    }
+  },
   "common": {
     "loading": "Laster...",
     "cancel": "Avbryt",

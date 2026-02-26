@@ -483,6 +483,16 @@
     "voiceCallHint": "Sprachanruf mit {{name}} starten",
     "videoCallHint": "Videoanruf mit {{name}} starten"
   },
+  "presence": {
+    "online": "Online",
+    "away": "Abwesend",
+    "offline": "Nicht online",
+    "a11y": {
+      "online": "{{name}}, online",
+      "away": "{{name}}, abwesend",
+      "offline": "{{name}}, nicht online"
+    }
+  },
   "common": {
     "loading": "Laden...",
     "cancel": "Abbrechen",

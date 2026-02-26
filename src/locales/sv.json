@@ -542,6 +542,16 @@
     "voiceFocusHint": "Säg \"öppna\" för att välja",
     "textInputHint": "Ange text för {{label}}"
   },
+  "presence": {
+    "online": "Online",
+    "away": "Borta",
+    "offline": "Offline",
+    "a11y": {
+      "online": "{{name}}, online",
+      "away": "{{name}}, borta",
+      "offline": "{{name}}, offline"
+    }
+  },
   "common": {
     "loading": "Laddar...",
     "cancel": "Avbryt",

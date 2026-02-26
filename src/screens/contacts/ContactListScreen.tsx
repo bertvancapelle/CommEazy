@@ -37,11 +37,66 @@ import { useColors } from '@/contexts/ThemeContext';
 import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { Contact } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactList'>;
+
+/** Contact row with real presence via PresenceContext */
+function ContactListItem({
+  contact,
+  index,
+  onPress,
+}: {
+  contact: Contact;
+  index: number;
+  onPress: (contact: Contact) => void;
+}) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+  const presence = useVisualPresence(contact.jid);
+
+  return (
+    <VoiceFocusable
+      key={contact.jid}
+      id={contact.jid}
+      label={contact.name}
+      index={index}
+      onSelect={() => onPress(contact)}
+    >
+      <TouchableOpacity
+        style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}
+        onPress={() => onPress(contact)}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={contact.name}
+        accessibilityHint={t('accessibility.openContact', { name: contact.name })}
+      >
+        {/* Profile photo with presence dot */}
+        <ContactAvatar
+          name={contact.name}
+          photoUrl={contact.photoUrl}
+          size={60}
+          presence={presence}
+        />
+
+        {/* Name - large and clear */}
+        <Text
+          style={[styles.contactName, { color: themeColors.textPrimary }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {contact.name}
+        </Text>
+
+        {/* Chevron indicator */}
+        <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
+      </TouchableOpacity>
+    </VoiceFocusable>
+  );
+}
 
 export function ContactListScreen() {
   const { t } = useTranslation();
@@ -154,49 +209,15 @@ export function ContactListScreen() {
   }, [navigation, triggerFeedback]);
 
   const renderContactItem = useCallback(
-    (item: Contact, index: number) => {
-      // Note: VoiceFocusable now handles focus styling with animated border
-      // We don't need to apply focus styles here anymore
-
-      return (
-        <VoiceFocusable
-          key={item.jid}
-          id={item.jid}
-          label={item.name}
-          index={index}
-          onSelect={() => handleContactPress(item)}
-        >
-          <TouchableOpacity
-            style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}
-            onPress={() => handleContactPress(item)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={item.name}
-            accessibilityHint={t('accessibility.openContact', { name: item.name })}
-          >
-            {/* Profile photo */}
-            <ContactAvatar
-              name={item.name}
-              photoUrl={item.photoUrl}
-              size={60}
-            />
-
-            {/* Name - large and clear */}
-            <Text
-              style={[styles.contactName, { color: themeColors.textPrimary }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {item.name}
-            </Text>
-
-            {/* Chevron indicator */}
-            <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
-          </TouchableOpacity>
-        </VoiceFocusable>
-      );
-    },
-    [handleContactPress, t, themeColors]
+    (item: Contact, index: number) => (
+      <ContactListItem
+        key={item.jid}
+        contact={item}
+        index={index}
+        onPress={handleContactPress}
+      />
+    ),
+    [handleContactPress]
   );
 
   const renderEmptyList = useCallback(

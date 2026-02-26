@@ -487,6 +487,16 @@
     "voiceFocusHint": "Powiedz \"otwórz\", aby wybrać",
     "textInputHint": "Wprowadź tekst dla {{label}}"
   },
+  "presence": {
+    "online": "Online",
+    "away": "Nieobecny",
+    "offline": "Offline",
+    "a11y": {
+      "online": "{{name}}, online",
+      "away": "{{name}}, nieobecny",
+      "offline": "{{name}}, offline"
+    }
+  },
   "common": {
     "loading": "Ładowanie...",
     "cancel": "Anuluj",

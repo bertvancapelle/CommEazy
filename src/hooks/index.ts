@@ -13,12 +13,6 @@ export {
   type FeedbackSettings,
   DEFAULT_FEEDBACK_SETTINGS,
 } from './useFeedback';
-export {
-  usePresenceColors,
-  type PresenceColorConfig,
-  DEFAULT_PRESENCE_COLORS,
-} from './usePresenceColors';
-
 // TTS & Voice
 export {
   useTtsSettings,

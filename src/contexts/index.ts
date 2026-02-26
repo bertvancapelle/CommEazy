@@ -141,3 +141,13 @@ export {
   type PaneContextValue,
   type PendingNavigation,
 } from './PaneContext';
+
+export {
+  PresenceProvider,
+  usePresence,
+  usePresenceSafe,
+  useVisualPresence,
+  mapToVisualState,
+  type VisualPresenceState,
+  type VisualPresence,
+} from './PresenceContext';

@@ -62,7 +62,7 @@ export type OnboardingStackParams = {
 
 export type ChatStackParams = {
   ChatList: undefined;
-  ChatDetail: { chatId: string; name: string };
+  ChatDetail: { chatId: string; name: string; contactJid: string };
   AudioCall: { contactJid: string; name: string };
   VideoCall: { contactJid: string; name: string };
 };

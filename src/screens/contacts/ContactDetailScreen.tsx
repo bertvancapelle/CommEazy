@@ -99,7 +99,7 @@ export function ContactDetailScreen() {
     // iPad: opens in the other panel, iPhone: navigates in 'main' pane
     navigateToModuleInOtherPane('chats', {
       screen: 'ChatDetail',
-      params: { chatId, name: contact.name },
+      params: { chatId, name: contact.name, contactJid: contact.jid },
     });
     console.info('[ContactDetail] Navigated to chat with', contact.name);
   }, [contact, triggerFeedback, navigateToModuleInOtherPane]);

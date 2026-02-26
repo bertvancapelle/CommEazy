@@ -38,6 +38,7 @@ import {
   borderRadius,
 } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { MessageStatus } from '@/components';
 import type { Message, DeliveryStatus } from '@/services/interfaces';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -55,17 +56,29 @@ export function ChatScreen() {
   const route = useRoute<ChatScreenRouteProp>();
   const navigation = useNavigation<ChatScreenNavigationProp>();
   const themeColors = useColors();
-  const { chatId, name } = route.params;
+  const { chatId, name, contactJid } = route.params;
+  const presence = useVisualPresence(contactJid);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Set header title
+  // Set header with name + presence status
   useEffect(() => {
-    navigation.setOptions({ title: name });
-  }, [navigation, name]);
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ alignItems: 'center' }}>
+          <Text style={{ ...typography.body, fontWeight: '600', color: themeColors.textPrimary }} numberOfLines={1}>
+            {name}
+          </Text>
+          <Text style={{ ...typography.small, color: presence.color }}>
+            {presence.label}
+          </Text>
+        </View>
+      ),
+    });
+  }, [navigation, name, presence, themeColors]);
 
   // Mark all messages as read when entering the chat
   useEffect(() => {

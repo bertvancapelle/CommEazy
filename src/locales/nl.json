@@ -472,6 +472,16 @@
     "voiceFocusHint": "Zeg \"open\" om te selecteren",
     "textInputHint": "Voer tekst in voor {{label}}"
   },
+  "presence": {
+    "online": "Online",
+    "away": "Even weg",
+    "offline": "Niet online",
+    "a11y": {
+      "online": "{{name}}, online",
+      "away": "{{name}}, even weg",
+      "offline": "{{name}}, niet online"
+    }
+  },
   "common": {
     "loading": "Laden...",
     "cancel": "Annuleren",

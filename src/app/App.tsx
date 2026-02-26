@@ -36,6 +36,7 @@ import { CallProvider } from '@/contexts/CallContext';
 import { AudioOrchestratorProvider } from '@/contexts/AudioOrchestratorContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ReducedMotionProvider } from '@/contexts/ReducedMotionContext';
+import { PresenceProvider } from '@/contexts/PresenceContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
@@ -126,6 +127,7 @@ export default function App() {
           <AccentColorProvider>
             <LiquidGlassProvider>
               <ModuleColorsProvider>
+            <PresenceProvider>
             <VoiceSettingsProvider>
             <VoiceFocusProvider>
               <VoiceFormProvider>
@@ -155,6 +157,7 @@ export default function App() {
               </VoiceFormProvider>
             </VoiceFocusProvider>
           </VoiceSettingsProvider>
+            </PresenceProvider>
             </ModuleColorsProvider>
             </LiquidGlassProvider>
           </AccentColorProvider>
