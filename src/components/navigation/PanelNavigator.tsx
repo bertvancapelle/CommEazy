@@ -14,14 +14,16 @@
  * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
  */
 
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { colors, typography } from '@/theme';
 import type { NavigationDestination } from '@/types/navigation';
+import { usePanelId } from '@/contexts/PanelIdContext';
+import { useSplitViewContextSafe } from '@/contexts/SplitViewContext';
 
 // Chat screens
 import { ChatListScreen, ChatScreen } from '@/screens/chat';
@@ -113,9 +115,40 @@ const SettingsPanelStack = createNativeStackNavigator<SettingsPanelParams>();
 
 function ChatPanelNavigator() {
   const { accentColor } = useAccentColor();
+  const panelId = usePanelId();
+  const splitView = useSplitViewContextSafe();
+  const navRef = useRef<NavigationContainerRef<ChatPanelParams>>(null);
+  const isReadyRef = useRef(false);
+
+  // Consume pending navigation — called on mount (onReady) and on state changes
+  const consumePending = useCallback(() => {
+    if (!panelId || !splitView || !navRef.current) return;
+    const pending = splitView.consumePendingNavigation(panelId);
+    if (pending && pending.screen === 'ChatDetail') {
+      console.info('[ChatPanelNav] Navigating to ChatDetail via pending navigation');
+      navRef.current.navigate('ChatDetail', pending.params as ChatPanelParams['ChatDetail']);
+    }
+  }, [panelId, splitView]);
+
+  const handleReady = useCallback(() => {
+    isReadyRef.current = true;
+    consumePending();
+  }, [consumePending]);
+
+  // When the panel already shows 'chats' and a new pendingNavigation arrives,
+  // the component is NOT remounted — we need an effect to catch it
+  const panelState = splitView && panelId
+    ? (panelId === 'left' ? splitView.leftPanel : splitView.rightPanel)
+    : null;
+
+  useEffect(() => {
+    if (isReadyRef.current && panelState?.pendingNavigation) {
+      consumePending();
+    }
+  }, [panelState?.pendingNavigation, consumePending]);
 
   return (
-    <NavigationContainer independent={true}>
+    <NavigationContainer independent={true} ref={navRef} onReady={handleReady}>
       <ChatPanelStack.Navigator
         screenOptions={{
           headerTitleStyle: typography.h3,

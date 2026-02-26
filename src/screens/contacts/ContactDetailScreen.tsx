@@ -99,10 +99,13 @@ export function ContactDetailScreen() {
 
     if (panelId && splitView) {
       // iPad Split View: switch the OTHER panel to chats module
-      // Contact is in one panel → chat opens in the other panel
+      // AND navigate directly to the specific chat conversation
       const otherPanel = panelId === 'left' ? 'right' : 'left';
-      splitView.setPanelModule(otherPanel, 'chats');
-      console.info('[ContactDetail] iPad: switched other panel to chats for', contact.name);
+      splitView.setPanelModule(otherPanel, 'chats', {
+        screen: 'ChatDetail',
+        params: { chatId, name: contact.name },
+      });
+      console.info('[ContactDetail] iPad: switched other panel to chat with', contact.name);
     } else {
       // iPhone: navigate via parent TabNavigator
       navigation.getParent()?.navigate('ChatsTab', {

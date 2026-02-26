@@ -50,11 +50,24 @@ const DEFAULT_RIGHT_MODULE: NavigationDestination = 'contacts';
 // ============================================================
 
 /**
+ * Pending deep navigation to execute after a panel module switch.
+ * E.g., switching to 'chats' AND navigating to a specific ChatDetail.
+ */
+export interface PendingNavigation {
+  /** Screen name within the module's stack navigator */
+  screen: string;
+  /** Route params for that screen */
+  params: Record<string, unknown>;
+}
+
+/**
  * State for a single panel
  */
 export interface PanelState {
   /** Module currently displayed in this panel */
   moduleId: NavigationDestination;
+  /** Optional pending navigation to execute after mount */
+  pendingNavigation?: PendingNavigation | null;
 }
 
 /**
@@ -77,8 +90,10 @@ export interface SplitViewContextValue {
   setLeftModule: (moduleId: NavigationDestination) => void;
   /** Set module for right panel */
   setRightModule: (moduleId: NavigationDestination) => void;
-  /** Set module for a specific panel */
-  setPanelModule: (panelId: PanelId, moduleId: NavigationDestination) => void;
+  /** Set module for a specific panel, with optional deep navigation */
+  setPanelModule: (panelId: PanelId, moduleId: NavigationDestination, pendingNavigation?: PendingNavigation) => void;
+  /** Consume and clear pending navigation for a panel (call after navigating) */
+  consumePendingNavigation: (panelId: PanelId) => PendingNavigation | null;
 
   // Panel ratio
   /** Panel ratio (0.25 to 0.50) — left panel width as fraction */
@@ -199,14 +214,41 @@ export function SplitViewProvider({ children }: SplitViewProviderProps) {
   }, []);
 
   const setPanelModule = useCallback(
-    (panelId: PanelId, moduleId: NavigationDestination) => {
+    (panelId: PanelId, moduleId: NavigationDestination, pendingNav?: PendingNavigation) => {
+      const newState: PanelState = {
+        moduleId,
+        pendingNavigation: pendingNav ?? null,
+      };
       if (panelId === 'left') {
-        setLeftModule(moduleId);
+        setLeftPanel(newState);
+        AsyncStorage.setItem(STORAGE_KEY_LEFT_MODULE, moduleId).catch((error) => {
+          console.warn('[SplitViewContext] Failed to save left module:', error);
+        });
       } else {
-        setRightModule(moduleId);
+        setRightPanel(newState);
+        AsyncStorage.setItem(STORAGE_KEY_RIGHT_MODULE, moduleId).catch((error) => {
+          console.warn('[SplitViewContext] Failed to save right module:', error);
+        });
       }
     },
-    [setLeftModule, setRightModule]
+    []
+  );
+
+  const consumePendingNavigation = useCallback(
+    (panelId: PanelId): PendingNavigation | null => {
+      const panel = panelId === 'left' ? leftPanel : rightPanel;
+      const pending = panel.pendingNavigation ?? null;
+      if (pending) {
+        // Clear the pending navigation
+        if (panelId === 'left') {
+          setLeftPanel(prev => ({ ...prev, pendingNavigation: null }));
+        } else {
+          setRightPanel(prev => ({ ...prev, pendingNavigation: null }));
+        }
+      }
+      return pending;
+    },
+    [leftPanel, rightPanel]
   );
 
   // ============================================================
@@ -245,6 +287,7 @@ export function SplitViewProvider({ children }: SplitViewProviderProps) {
       setLeftModule,
       setRightModule,
       setPanelModule,
+      consumePendingNavigation,
       panelRatio,
       setPanelRatio,
       activePickerPanel,
@@ -260,6 +303,7 @@ export function SplitViewProvider({ children }: SplitViewProviderProps) {
       setLeftModule,
       setRightModule,
       setPanelModule,
+      consumePendingNavigation,
       panelRatio,
       setPanelRatio,
       activePickerPanel,
