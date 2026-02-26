@@ -3042,6 +3042,123 @@ useEffect(() => {
 
 **Regel:** ALLE media players MOETEN een buffering state tonen.
 
+### 12. Visual State Reduction Regels (VERPLICHT)
+
+**Kernregel:** Senioren kunnen maximaal 3 visuele states onderscheiden. Alle status-indicatoren MOETEN worden gereduceerd naar maximaal 3 visuele varianten.
+
+#### Voorbeeld: Presence
+
+XMPP definieert 6 presence states, maar CommEazy toont er 3:
+
+| XMPP States | Visuele State | Kleur | Dot | Label |
+|------------|---------------|-------|-----|-------|
+| `available`, `chat` | **Online** | Groen `#4CAF50` | Gevuld ● | "Online" |
+| `away`, `xa`, `dnd` | **Afwezig** | Oranje `#FF9800` | Half ◐ | "Afwezig" |
+| `null`, `undefined` | **Offline** | Grijs `#9E9E9E` | Ring ○ | "Offline" |
+
+#### Drievoudige Indicatoren (NOOIT kleur alleen)
+
+Elke status MOET drie gelijktijdige signalen geven:
+1. **Kleur** — voor snelle herkenning
+2. **Icoon/vorm** — voor kleurenblinde gebruikers
+3. **Tekst label** — voor screen readers en extra duidelijkheid
+
+```
+✅ GOED: ● Online  (groen gevulde cirkel + tekst)
+✅ GOED: ◐ Afwezig (oranje half-gevulde cirkel + tekst)
+❌ FOUT: ●         (alleen gekleurde cirkel, geen tekst)
+```
+
+#### Wanneer State Reduction Toepassen
+
+- Presence indicators (6 → 3)
+- Message delivery status (sent → delivered → read: max 3 iconen)
+- Connection quality (goed → matig → slecht)
+- Battery indicators
+- Elke status met meer dan 3 oorspronkelijke waarden
+
+### 13. MiniPlayer Interaction Flows (VERPLICHT)
+
+#### Auto-Hide bij Module Switch (iPhone)
+
+Wanneer de gebruiker op iPhone naar een andere module navigeert, MOET de mini-player automatisch verborgen worden:
+- **Waarom:** Mini-player van Radio in Podcast scherm is verwarrend
+- **Hoe:** `setPaneModule()` triggert hide via context
+- **Restore:** Tap op MediaIndicator in header → mini-player weer zichtbaar
+
+#### iPad: Mini-Player Blijft Zichtbaar
+
+Op iPad Split View blijft de mini-player zichtbaar in de oorspronkelijke pane:
+- Linker pane toont Radio → mini-player onderaan linker pane
+- Rechter pane toont Podcast → geen Radio mini-player hier
+- Elke pane beheert eigen player state
+
+#### Tap-to-Restore via MediaIndicator
+
+```
+Gebruiker speelt Radio → navigeert naar Contacten → ziet 🔊 in header
+→ tikt op 🔊 → navigeert terug naar Radio → mini-player weer zichtbaar
+```
+
+**Implementatie:** MediaIndicator `onPress` → `navigateToModule(mediaSource)`
+
+#### Glass Player Drie-Lagen Architectuur
+
+```
+┌─ React Native ──────────────────────────────────────┐
+│  MiniPlayer / ExpandedAudioPlayer components         │
+│  (visuele rendering, props-driven)                   │
+├─ TypeScript Bridge ─────────────────────────────────┤
+│  glassPlayer.ts                                      │
+│  (showGlassMiniPlayer, updateGlassContent, etc.)     │
+├─ Native iOS (Swift) ────────────────────────────────┤
+│  MiniPlayerNativeView.swift                          │
+│  FullPlayerNativeView.swift                          │
+│  (UIGlassEffect op iOS 26+, fallback op <26)        │
+└──────────────────────────────────────────────────────┘
+```
+
+- **Content updates** (artwork, title) → alleen bij track wissel
+- **Playback state updates** (isPlaying, progress) → elke 250ms
+- Gescheiden in aparte useEffect hooks om bridge overhead te minimaliseren
+
+### 14. Pane-Aware UI Regels (VERPLICHT)
+
+#### Modal vs Overlay
+
+| Device | ExpandedAudioPlayer | Reden |
+|--------|-------------------|-------|
+| **iPhone** | `<Modal>` | Dekt hele scherm, standard pattern |
+| **iPad** | Absolute overlay in pane | Moet binnen panel grenzen blijven |
+
+```typescript
+// iPad: Overlay binnen pane
+{isExpanded && (
+  <View style={[StyleSheet.absoluteFill, styles.expandedOverlay]}>
+    <ExpandedAudioPlayer ... />
+  </View>
+)}
+
+// iPhone: Modal
+<Modal visible={isExpanded}>
+  <ExpandedAudioPlayer ... />
+</Modal>
+```
+
+#### Panel-Bound Rendering
+
+Op iPad mag UI NOOIT buiten de pane grenzen renderen:
+- Geen `position: 'absolute'` met negatieve offsets
+- Geen overlapping met de divider
+- Toast/error banners binnen pane container
+
+#### Consistente Gestures
+
+Long-press → WheelNavigationMenu, op BEIDE devices:
+- iPhone: `HoldToNavigateWrapper` → `WheelNavigationMenu`
+- iPad: `ModulePanel` → `WheelNavigationMenu`
+- GEEN device-specifieke navigatie patronen
+
 ---
 
 ## 12. Gestandaardiseerde AudioPlayer Componenten (februari 2026)

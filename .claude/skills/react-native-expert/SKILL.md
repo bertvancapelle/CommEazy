@@ -256,6 +256,177 @@ import { useHoldGestureGuard } from '@/contexts/HoldGestureContext';
 const guardedPress = useHoldGestureGuard(() => handleItemPress(item));
 ```
 
+## Wrapper Component Pattern (VERPLICHT)
+
+React hooks mogen NIET in `.map()` callbacks worden aangeroepen (Rules of Hooks). Wanneer een lijst-item een hook nodig heeft, MOET een wrapper component worden gebruikt.
+
+### Patroon
+
+```typescript
+// ❌ FOUT: Hook in .map() callback
+{contacts.map(contact => {
+  const presence = useVisualPresence(contact.jid); // ILLEGAAL!
+  return <ContactRow presence={presence} />;
+})}
+
+// ✅ GOED: Wrapper component met hook
+function ContactListItem({ contact, onPress }: Props) {
+  const presence = useVisualPresence(contact.jid);
+  return (
+    <VoiceFocusable id={contact.jid} label={contact.name}>
+      <TouchableOpacity onPress={() => onPress(contact)}>
+        <ContactAvatar presence={presence} />
+        <Text>{contact.name}</Text>
+      </TouchableOpacity>
+    </VoiceFocusable>
+  );
+}
+
+// In parent:
+{contacts.map((contact, index) => (
+  <ContactListItem key={contact.jid} contact={contact} onPress={handlePress} />
+))}
+```
+
+### Bestaande Wrapper Components
+
+| Wrapper | Bestand | Hook(s) |
+|---------|---------|---------|
+| `ChatContactAvatar` | `ChatListScreen.tsx` | `useVisualPresence()` |
+| `ContactListItem` | `ContactListScreen.tsx` | `useVisualPresence()` |
+| `CallContactItem` | `CallsScreen.tsx` | `useVisualPresence()` |
+
+### Wanneer een Wrapper Maken
+
+- Lijst item heeft een hook nodig (presence, module color, etc.)
+- Lijst item heeft VoiceFocusable wrapper nodig met `onSelect` callback
+- Lijst item heeft eigen state nodig (bijv. expanded/collapsed)
+
+---
+
+## Content vs Playback State useEffect Scheiding (VERPLICHT)
+
+Bij Glass Player (native bridge) updates MOETEN content en playback state in **aparte useEffect hooks** staan met verschillende dependency arrays.
+
+### Waarom?
+
+- Content (artwork, title) wijzigt zelden (bij track switch)
+- Playback state (isPlaying, position) wijzigt continu (elke 250ms)
+- Samenvoegen → elke 250ms een content update → onnodige bridge calls + UI flicker
+
+### Patroon
+
+```typescript
+// useEffect 1: Content updates — alleen bij track/item wissel
+useEffect(() => {
+  if (!currentItem) return;
+  updateGlassContent({
+    artwork: currentItem.artwork,
+    title: currentItem.title,
+    subtitle: currentItem.subtitle,
+    tintColorHex: moduleColor,
+  });
+}, [currentItem, moduleColor]);
+
+// useEffect 2: Playback state — bij elke state change
+useEffect(() => {
+  updateGlassPlaybackState({
+    isPlaying,
+    position,
+    duration,
+    isLoading,
+  });
+}, [isPlaying, position, duration, isLoading]);
+```
+
+### Wanneer Toepassen
+
+- Glass Player native bridge updates
+- Elke situatie waar langzaam-wijzigende en snel-wijzigende data naar dezelfde consumer gaan
+- Native module communicatie via bridge
+
+---
+
+## useRef voor Event Subscriptions (VERPLICHT)
+
+Bij native event listeners die callbacks aanroepen, MOET `useRef` worden gebruikt voor de callback om onnodige re-subscriptions te voorkomen.
+
+### Probleem
+
+```typescript
+// ❌ FOUT: Callback in dependency array → re-subscribe bij elke render
+useEffect(() => {
+  const sub = NativeModule.addEventListener('event', handleEvent);
+  return () => sub.remove();
+}, [handleEvent]); // handleEvent wijzigt bij elke render!
+```
+
+### Oplossing
+
+```typescript
+// ✅ GOED: Ref voor callback, stabiele subscription
+const handleEventRef = useRef(handleEvent);
+handleEventRef.current = handleEvent; // Update ref elke render
+
+useEffect(() => {
+  const sub = NativeModule.addEventListener('event', (data) => {
+    handleEventRef.current(data); // Altijd laatste versie
+  });
+  return () => sub.remove();
+}, []); // Lege deps → eenmalige subscription
+```
+
+### Wanneer Toepassen
+
+- Native module event listeners (TrackPlayer, CallKeep, etc.)
+- DeviceEventEmitter subscriptions
+- WebSocket message handlers
+- Timer callbacks die state gebruiken
+
+---
+
+## Shared Hooks/Components Checklist (VERPLICHT per module type)
+
+Bij het bouwen van een nieuwe module, raadpleeg deze checklist voor verplichte shared objecten.
+
+### Alle Modules
+
+| Shared Object | Import | Gebruik |
+|---------------|--------|---------|
+| `useColors()` | `@/contexts/ThemeContext` | Thema kleuren |
+| `useModuleColor(moduleId)` | `@/contexts/ModuleColorsContext` | Module-specifieke kleur |
+| `useFeedback()` | `@/hooks/useFeedback` | Haptic/audio feedback |
+| `ModuleHeader` | `@/components` | Screen header |
+| `VoiceFocusable` | `@/components` | Lijst items (>3) |
+| `useVoiceFocusList()` | `@/contexts/VoiceFocusContext` | Lijst registratie |
+
+### Modules met Contacten/Presence
+
+| Shared Object | Import | Gebruik |
+|---------------|--------|---------|
+| `useVisualPresence(jid)` | `@/contexts/PresenceContext` | Presence visuele state |
+| `ContactAvatar` | `@/components` | Avatar met presence dot |
+| Wrapper component | Lokaal | Hook in .map() via wrapper |
+
+### Audio Modules (Radio/Podcast/Books/Apple Music)
+
+| Shared Object | Import | Gebruik |
+|---------------|--------|---------|
+| `MiniPlayer` | `@/components` | Compacte player bar |
+| `ExpandedAudioPlayer` | `@/components` | Full-screen modal player |
+| `SeekSlider` | `@/components` | Seek control (seekable content) |
+| `AudioPlayerControls` | `@/components` | Control configuratie interface |
+| Glass Player bridge | `@/services/glassPlayer` | iOS 26+ native player |
+
+### Modules met Zoekfunctionaliteit
+
+| Shared Object | Import | Gebruik |
+|---------------|--------|---------|
+| `SearchBar` | `@/components` | Zoek input |
+| `ChipSelector` | `@/components` | Land/taal filter |
+| `FavoriteTabButton` | `@/components` | Favorieten tab |
+| `SearchTabButton` | `@/components` | Zoeken tab |
+
 ## Type Consistency (VERPLICHT)
 
 ### Centrale Type Definities
@@ -799,6 +970,10 @@ useEffect(() => {
 - [ ] **TTS modules:** Nederlands → Piper TTS `nl_NL-rdh-high`
 - [ ] **TTS modules:** Engine tracking via `currentEngineRef`
 - [ ] **TTS modules:** Stop functie stopt BEIDE engines
+- [ ] **Wrapper components:** Hooks NOOIT in .map() — altijd wrapper component
+- [ ] **useEffect scheiding:** Content en playback state in aparte useEffects voor bridge
+- [ ] **useRef voor events:** Native event listeners gebruiken ref voor callbacks
+- [ ] **Shared checklist:** Nieuwe module raadpleegt Shared Hooks/Components Checklist
 
 ## Lessons Learned — Radio Module (februari 2026)
 

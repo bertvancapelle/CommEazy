@@ -1550,6 +1550,169 @@ Bij ELKE media module:
 
 ---
 
+## Drievoudige Indicatoren Patroon (VERPLICHT)
+
+### Kernregel: Kleur + Icoon + Tekst — ALTIJD
+
+Alle status-indicatoren in CommEazy MOETEN drie gelijktijdige signalen geven. Dit is essentieel voor:
+- Kleurenblinde gebruikers (8% van mannen)
+- Gebruikers met verminderd zicht
+- Senioren die subtiele kleurverschillen niet opmerken
+- Screen reader gebruikers
+
+### Patroon
+
+```typescript
+// ❌ FOUT: Alleen kleur
+<View style={{ backgroundColor: '#4CAF50' }} />  // Onzichtbaar voor kleurenblinden
+
+// ❌ FOUT: Kleur + icoon (geen tekst)
+<View style={{ backgroundColor: '#4CAF50' }}>
+  <Icon name="circle" />  // Geen context voor screen readers
+</View>
+
+// ✅ GOED: Kleur + icoon + tekst
+<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+  <View style={[styles.dot, { backgroundColor: presence.color }]}>
+    {presence.icon}  {/* Gevuld/half/ring icoon */}
+  </View>
+  <Text style={{ color: presence.color }}>{presence.label}</Text>
+</View>
+```
+
+### Presence Dot Specificaties
+
+| Visuele State | Kleur | Dot Stijl | Label (NL) | a11yLabel |
+|--------------|-------|-----------|------------|-----------|
+| **Online** | `#4CAF50` (groen) | Gevuld cirkel | "Online" | "Online, beschikbaar" |
+| **Afwezig** | `#FF9800` (oranje) | Half-gevuld cirkel | "Afwezig" | "Afwezig, niet beschikbaar" |
+| **Offline** | `#9E9E9E` (grijs) | Ring (alleen rand) | "Offline" | "Offline, niet verbonden" |
+
+### Visual State Reduction voor Senioren
+
+XMPP definieert 6 presence states, maar senioren kunnen er maximaal 3 onderscheiden:
+
+```
+XMPP State    → Visuele State
+─────────────────────────────
+available     → ONLINE  (groen, gevuld)
+chat          → ONLINE  (groen, gevuld)
+away          → AWAY    (oranje, half)
+xa            → AWAY    (oranje, half)
+dnd           → AWAY    (oranje, half)
+null/offline  → OFFLINE (grijs, ring)
+```
+
+**Waarom max 3?**
+- Meer dan 3 kleuren/iconen → senioren raken verward
+- "away" vs "xa" vs "dnd" onderscheid heeft geen meerwaarde voor familiecommunicatie
+- Eenvoud > volledigheid voor onze doelgroep
+
+### a11yLabel Functie Patroon
+
+```typescript
+function getPresenceA11yLabel(
+  show: PresenceShow | null | undefined,
+  t: TFunction
+): string {
+  switch (show) {
+    case 'available':
+    case 'chat':
+      return t('presence.a11y.online');      // "Online, beschikbaar"
+    case 'away':
+    case 'xa':
+    case 'dnd':
+      return t('presence.a11y.away');        // "Afwezig, niet beschikbaar"
+    default:
+      return t('presence.a11y.offline');     // "Offline, niet verbonden"
+  }
+}
+```
+
+**i18n keys (VERPLICHT in alle 13 talen):**
+```json
+{
+  "presence": {
+    "online": "Online",
+    "away": "Afwezig",
+    "offline": "Offline",
+    "a11y": {
+      "online": "Online, beschikbaar",
+      "away": "Afwezig, niet beschikbaar",
+      "offline": "Offline, niet verbonden"
+    }
+  }
+}
+```
+
+### Wanneer Toepassen
+
+- ContactAvatar presence dots
+- Calls screen status labels
+- Chat lijst laatst-gezien indicators
+- Groep deelnemers lijst
+- Elke UI die online/offline status toont
+
+---
+
+## iPad Pane Accessibility (VERPLICHT)
+
+### Onafhankelijke Focus Zones
+
+Op iPad Split View heeft elke pane een eigen focus zone voor VoiceOver/TalkBack:
+
+```typescript
+// Elke pane MOET een accessibilityLabel hebben
+<View
+  style={styles.pane}
+  accessibilityLabel={t('a11y.pane', { side: panelId })}
+  accessibilityRole="region"
+>
+  <ModulePanel panelId={panelId} moduleId={moduleId} />
+</View>
+```
+
+### Panel-Aware Rendering
+
+ExpandedAudioPlayer gebruikt op iPad een absoluut gepositioneerde overlay (geen Modal) om binnen de pane te blijven:
+
+```typescript
+// iPad: Overlay binnen pane
+<View style={[StyleSheet.absoluteFill, styles.expandedOverlay]}>
+  <ExpandedAudioPlayer ... />
+</View>
+
+// iPhone: Modal (dekt hele scherm)
+<Modal visible={isExpanded}>
+  <ExpandedAudioPlayer ... />
+</Modal>
+```
+
+**Accessibility implicatie:** Op iPad moet de overlay `accessibilityViewIsModal={true}` hebben zodat VoiceOver focus binnen de pane blijft.
+
+### Pane Navigatie Announcements
+
+Bij module wissel in een pane:
+```typescript
+AccessibilityInfo.announceForAccessibility(
+  t('a11y.moduleChanged', { module: moduleName, pane: panelId })
+);
+```
+
+---
+
+## Accessibility Audit Checklist — Aanvullingen
+
+### Per Screen (aanvulling op bestaande checklist)
+- [ ] **Drievoudige indicatoren:** Alle status-indicatoren hebben kleur + icoon + tekst
+- [ ] **Presence dots:** Gevuld (online), half (away), ring (offline) — max 3 states
+- [ ] **a11yLabel functie:** Presence labels zijn beschrijvend, niet technisch
+- [ ] **iPad panes:** Elke pane heeft `accessibilityRole="region"` en label
+- [ ] **Panel-aware modals:** Overlay i.p.v. Modal op iPad (focus blijft in pane)
+- [ ] **Pane navigatie:** Module wissel wordt aangekondigd met pane context
+
+---
+
 ## Collaboration
 
 - **Validates ALL UI skills**: No screen ships without a11y audit

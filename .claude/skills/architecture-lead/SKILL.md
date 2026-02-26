@@ -230,6 +230,247 @@ interface DatabaseService {
 }
 ```
 
+## Context/Provider Standaard Pipeline (VERPLICHT)
+
+Alle real-time state in CommEazy MOET deze uniforme pipeline volgen:
+
+```
+Service (XMPP/API) → Context (Provider) → Hook (consumer) → Visual Mapping → Component
+```
+
+### Waarom?
+- Schermen kennen GEEN services — alleen hooks
+- Visual mapping (bijv. 6 XMPP states → 3 visuele states) gebeurt in de hook, NIET in de component
+- Components zijn puur visueel: ze ontvangen `{ color, icon, label }` en renderen
+
+### Voorbeeld: Presence Pipeline
+
+```typescript
+// 1. Service: XMPP presence stanzas → PresenceContext
+// xmpp.onPresence → setPresenceMap({ jid: 'available' | 'away' | ... })
+
+// 2. Context: Rauwe presence state opslaan
+// PresenceContext bevat: presenceMap: Record<string, PresenceShow>
+
+// 3. Hook: Visual mapping (6 → 3 states)
+// useVisualPresence(jid) → { color, icon, label, dotStyle, a11yLabel }
+// XMPP 'available'/'chat' → online (groen, gevuld)
+// XMPP 'away'/'xa'/'dnd' → away (oranje, half)
+// XMPP null/undefined → offline (grijs, ring)
+
+// 4. Component: Puur visueel
+// <ContactAvatar presence={presence} /> → toont dot met kleur+icoon
+```
+
+### Pipeline Regels
+
+| Laag | Verantwoordelijkheid | Voorbeeld |
+|------|---------------------|-----------|
+| **Service** | Data ophalen/ontvangen | XMPP stanzas, API calls |
+| **Context** | Rauwe state bewaren + distribueren | `presenceMap`, `playbackState` |
+| **Hook** | Visuele mapping + business logic | `useVisualPresence()`, `usePlaybackState()` |
+| **Component** | Renderen van visuele props | `<ContactAvatar presence={...} />` |
+
+### ❌ NOOIT
+- Service direct in component importeren
+- Visuele mapping in component doen (bijv. `if show === 'away'` in JSX)
+- Context overslaan en direct van service naar component gaan
+
+---
+
+## Wrapper Component Pattern (VERPLICHT)
+
+React hooks mogen NIET in `.map()` callbacks worden aangeroepen. Wanneer een lijst-item een hook nodig heeft (bijv. `useVisualPresence()`), MOET een wrapper component worden gebruikt.
+
+```typescript
+// ❌ FOUT: Hook in .map()
+{contacts.map(contact => {
+  const presence = useVisualPresence(contact.jid); // ILLEGAAL!
+  return <ContactRow presence={presence} />;
+})}
+
+// ✅ GOED: Wrapper component
+function ContactListItem({ contact }: { contact: Contact }) {
+  const presence = useVisualPresence(contact.jid); // Hook in component ✓
+  return <ContactRow presence={presence} />;
+}
+
+{contacts.map(contact => (
+  <ContactListItem key={contact.jid} contact={contact} />
+))}
+```
+
+**Bestaande wrapper components in codebase:**
+- `ChatContactAvatar` — `ChatListScreen.tsx` (presence voor chat lijst)
+- `ContactListItem` — `ContactListScreen.tsx` (presence voor contacten)
+- `CallContactItem` — `CallsScreen.tsx` (presence voor bellijst)
+
+---
+
+## Unified Pane Model Architectuur
+
+### Principe
+iPhone en iPad gebruiken dezelfde pane-infrastructuur. Er zijn GEEN `if (iPad) {} else {}` branches in screen code.
+
+```
+PaneProvider(paneCount: 1 | 2)
+  → ModulePanel(s) → PanelNavigator → identieke stack navigators
+  → useNavigateToModule() hook voor cross-module navigatie
+```
+
+### Kerncomponenten
+
+| Component | Rol |
+|-----------|-----|
+| `PaneContext` | Beheert pane state (1 pane iPhone, 2 panes iPad) |
+| `SinglePaneLayout` | iPhone: 1 ModulePanel met panelId='main' |
+| `SplitViewLayout` | iPad: 2 ModulePanels met panelId='left'/'right' |
+| `ModulePanel` | Rendert PanelNavigator voor een gegeven moduleId |
+| `PanelNavigator` | Switch-case over alle module stacks |
+| `useNavigateToModule()` | Hook voor cross-module navigatie |
+
+### PendingNavigation (Two-Step Deep Navigation)
+
+Cross-module deep navigation (bijv. "Open chat met Oma vanuit Contacten") vereist twee stappen:
+
+```typescript
+// Stap 1: Module laden in pane
+setPaneModule('right', 'chats', {
+  pending: { screen: 'ChatDetail', params: { chatId, name } }
+});
+
+// Stap 2: PanelNavigator consumeert pending na mount
+useEffect(() => {
+  const pending = consumePendingNavigation(panelId);
+  if (pending) {
+    navigation.navigate(pending.screen, pending.params);
+  }
+}, []);
+```
+
+**Waarom two-step?** De NavigationContainer voor de doelpane moet eerst gemount zijn voordat `navigate()` kan worden aangeroepen.
+
+### Zero Screen-Level Branching
+
+```typescript
+// ❌ FOUT: Device-specifieke branches in screens
+if (panelId && splitView) {
+  splitView.setPanelModule('right', 'chats');
+} else {
+  navigation.navigate('ChatsTab');
+}
+
+// ✅ GOED: Uniforme navigatie
+const { navigateToModuleInOtherPane } = useNavigateToModule();
+navigateToModuleInOtherPane('chats', {
+  screen: 'ChatDetail',
+  params: { chatId, name },
+});
+```
+
+---
+
+## MiniPlayer / Glass Player Three-Layer Architecture
+
+Audio players in CommEazy gebruiken een drie-laagse architectuur:
+
+```
+React Native Components (MiniPlayer, ExpandedAudioPlayer)
+         ↕ TypeScript Bridge (glassPlayer.ts)
+Native iOS (MiniPlayerNativeView.swift, FullPlayerNativeView.swift)
+```
+
+### Content vs Playback State Scheiding
+
+Glass Player updates MOETEN gescheiden worden in twee aparte useEffect hooks:
+
+```typescript
+// useEffect 1: Content updates (artwork, title, subtitle)
+// Dependency: currentItem
+useEffect(() => {
+  if (!currentItem) return;
+  updateGlassContent({
+    artwork: currentItem.artwork,
+    title: currentItem.title,
+    subtitle: currentItem.subtitle,
+    tintColorHex: moduleColor,
+  });
+}, [currentItem, moduleColor]);
+
+// useEffect 2: Playback state updates (isPlaying, progress, duration)
+// Dependency: isPlaying, position, duration
+useEffect(() => {
+  updateGlassPlaybackState({
+    isPlaying,
+    position,
+    duration,
+    isLoading,
+  });
+}, [isPlaying, position, duration, isLoading]);
+```
+
+**Waarom gescheiden?** Content wijzigt zelden (track switch), playback state wijzigt continu (elke 250ms). Samenvoegen veroorzaakt onnodige bridge calls.
+
+### 100% Feature Parity Regel
+
+React Native player en native Glass Player MOETEN functioneel identiek zijn. Bij ELKE wijziging aan player functionaliteit:
+1. Implementeer in React Native components
+2. Update TypeScript bridge types
+3. Implementeer in native Swift views
+4. Test op iOS <26 (RN player) en iOS 26+ (Glass Player)
+
+---
+
+## Shared Objects Registry (VERPLICHT)
+
+Deze registry documenteert alle gedeelde objecten (hooks, componenten, types, constants) die door >1 module worden gebruikt. Bij NIEUWE modules: raadpleeg deze lijst eerst.
+
+### Verplichte Hooks
+
+| Hook | Locatie | Gebruikt door |
+|------|---------|---------------|
+| `useVisualPresence(jid)` | `PresenceContext` | Contacts, Chat, Calls |
+| `useNavigateToModule()` | `PaneContext` | Contacts, Chat, alle modules |
+| `useModuleColor(moduleId)` | `ModuleColorsContext` | Alle module screens |
+| `useVoiceFocusList()` | `VoiceFocusContext` | Alle lijstschermen |
+| `useHoldGestureGuard()` | `HoldGestureContext` | Alle tappable items |
+| `useFeedback()` | `hooks/useFeedback` | Alle interactieve elementen |
+| `useColors()` | `ThemeContext` | Alle UI componenten |
+
+### Verplichte Componenten
+
+| Component | Locatie | Verplicht voor |
+|-----------|---------|----------------|
+| `ModuleHeader` | `components/ModuleHeader` | Alle module screens |
+| `MiniPlayer` | `components/MiniPlayer` | Audio modules |
+| `ExpandedAudioPlayer` | `components/ExpandedAudioPlayer` | Audio modules |
+| `SearchBar` | `components/SearchBar` | Alle zoekschermen |
+| `ChipSelector` | `components/ChipSelector` | Land/taal filters |
+| `ContactAvatar` | `components/ContactAvatar` | Contacten met presence |
+| `VoiceFocusable` | `components/VoiceFocusable` | Lijst items (>3) |
+| `MediaIndicator` | `components/MediaIndicator` | Via ModuleHeader |
+
+### Verplichte Types
+
+| Type | Locatie | Beschrijving |
+|------|---------|-------------|
+| `PaneId` | `PaneContext` | `'main' \| 'left' \| 'right'` |
+| `NavigationDestination` | `WheelNavigationMenu` | Alle module IDs |
+| `ModuleColorId` | `types/liquidGlass` | Module kleur registratie |
+| `AudioPlayerControls` | `ExpandedAudioPlayer` | Player control configuratie |
+| `VisualPresence` | `PresenceContext` | `{ color, icon, label, dotStyle, a11yLabel }` |
+
+### Verplichte Constants
+
+| Constant | Locatie | Beschrijving |
+|----------|---------|-------------|
+| `STATIC_MODULE_DEFINITIONS` | `WheelNavigationMenu` | Icon + fallback kleur per module |
+| `MODULE_TINT_COLORS` | `WheelNavigationMenu` | Liquid Glass tint per module |
+| `ALL_MODULES` | `useModuleUsage` | Volledige module lijst |
+| `DEFAULT_MODULE_ORDER` | `useModuleUsage` | Standaard volgorde |
+
+---
+
 ## ⚠️ API Validatie voor Land/Taal Filters (VERPLICHT)
 
 **KRITIEK:** Bij ELKE externe API integratie die filtering ondersteunt, MOET gedocumenteerd worden:
@@ -445,6 +686,11 @@ const articles = await newsService.fetchArticles(config.id, category);
 - [ ] **News modules:** RSS caching met 5 min TTL
 - [ ] **News modules:** Full text extraction voor TTS
 - [ ] **News modules:** Module registry pattern gebruikt
+- [ ] **Context/Provider pipeline:** Service → Context → Hook → Visual Mapping → Component
+- [ ] **Wrapper components:** Hooks NOOIT in .map() — altijd wrapper component
+- [ ] **Pane model:** Zero device-specifieke branches in screen code
+- [ ] **Glass Player:** Content en playback state gescheiden in aparte useEffects
+- [ ] **Shared Objects:** Nieuwe module raadpleegt Shared Objects Registry
 
 ## Collaboration
 
