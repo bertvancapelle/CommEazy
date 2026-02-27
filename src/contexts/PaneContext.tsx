@@ -6,9 +6,15 @@
  * - iPhone: 1 pane ('main')
  * - iPad: 2 panes ('left' + 'right')
  *
+ * iPad collapsible panes:
+ * - Ratio 0.0 = left pane collapsed
+ * - Ratio 1.0 = right pane collapsed
+ * - Collapsed state is NOT persisted (resets on app restart)
+ *
  * All screen components use the same pane APIs regardless of device.
  *
  * @see .claude/plans/sunny-yawning-sunset.md
+ * @see .claude/plans/COLLAPSIBLE_PANES_IPAD.md
  */
 
 import React, {
@@ -42,6 +48,9 @@ const DEFAULT_PANEL_RATIO = 0.33;
 const DEFAULT_LEFT_MODULE: NavigationDestination = 'menu';
 const DEFAULT_RIGHT_MODULE: NavigationDestination = 'contacts';
 const DEFAULT_MAIN_MODULE: NavigationDestination = 'chats';
+
+/** Minimum expanded ratio (for restoration from collapsed) */
+const MIN_EXPANDED_RATIO = 0.25;
 
 // ============================================================
 // Types
@@ -92,10 +101,18 @@ export interface PaneContextValue {
   consumePendingNavigation: (paneId: PaneId) => PendingNavigation | null;
 
   // iPad-only: Panel ratio
-  /** Panel ratio (0.25 to 0.75) — left panel width as fraction */
+  /** Panel ratio (0.0 to 1.0) — left panel width as fraction. 0=left collapsed, 1=right collapsed */
   panelRatio: number;
   /** Set panel ratio */
   setPanelRatio: (ratio: number) => void;
+  /** Is left pane collapsed (ratio = 0) */
+  isLeftCollapsed: boolean;
+  /** Is right pane collapsed (ratio = 1) */
+  isRightCollapsed: boolean;
+  /** Open a collapsed pane (restores to last expanded ratio) */
+  openCollapsedPane: (paneId: 'left' | 'right') => void;
+  /** Last expanded ratio before collapse (for restoration) */
+  lastExpandedRatio: number;
 
   // Module picker
   /** Which pane's picker is currently open, or null */
@@ -155,6 +172,9 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
   // Panel ratio (iPad only)
   const [panelRatio, setPanelRatioState] = useState(DEFAULT_PANEL_RATIO);
 
+  // Last expanded ratio for restoration from collapsed state
+  const [lastExpandedRatio, setLastExpandedRatio] = useState(DEFAULT_PANEL_RATIO);
+
   // Module picker
   const [activePickerPane, setActivePickerPane] = useState<PaneId | null>(null);
 
@@ -185,8 +205,11 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
 
           if (savedRatio) {
             const ratio = parseFloat(savedRatio);
-            if (ratio >= 0.25 && ratio <= 0.75) {
+            // Only restore expanded ratios (0.25-0.75), not collapsed states (0 or 1)
+            // Collapsed states are not persisted per design decision
+            if (ratio >= MIN_EXPANDED_RATIO && ratio <= 1 - MIN_EXPANDED_RATIO) {
               setPanelRatioState(ratio);
+              setLastExpandedRatio(ratio);
             }
           }
 
@@ -273,16 +296,46 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
   );
 
   // ============================================================
-  // Panel Ratio
+  // Panel Ratio & Collapsed State
   // ============================================================
 
+  // Computed collapsed states
+  const isLeftCollapsed = panelRatio === 0;
+  const isRightCollapsed = panelRatio === 1;
+
   const setPanelRatio = useCallback((ratio: number) => {
-    const clampedRatio = Math.max(0.25, Math.min(0.75, ratio));
+    // Allow full range: 0.0 (left collapsed) to 1.0 (right collapsed)
+    const clampedRatio = Math.max(0, Math.min(1, ratio));
     setPanelRatioState(clampedRatio);
-    AsyncStorage.setItem(STORAGE_KEY_PANEL_RATIO, clampedRatio.toString()).catch((error) => {
-      console.warn('[PaneContext] Failed to save panel ratio:', error);
-    });
+
+    // Track last expanded ratio for restoration
+    if (clampedRatio > 0 && clampedRatio < 1) {
+      setLastExpandedRatio(clampedRatio);
+      // Only persist expanded ratios, not collapsed states
+      AsyncStorage.setItem(STORAGE_KEY_PANEL_RATIO, clampedRatio.toString()).catch((error) => {
+        console.warn('[PaneContext] Failed to save panel ratio:', error);
+      });
+    }
+    // Collapsed states (0 or 1) are intentionally NOT persisted
   }, []);
+
+  const openCollapsedPane = useCallback((paneId: 'left' | 'right') => {
+    if (paneId === 'left' && isLeftCollapsed) {
+      // Restore left pane: use lastExpandedRatio or default minimum
+      const restoredRatio = Math.max(MIN_EXPANDED_RATIO, lastExpandedRatio);
+      setPanelRatioState(restoredRatio);
+      AsyncStorage.setItem(STORAGE_KEY_PANEL_RATIO, restoredRatio.toString()).catch((error) => {
+        console.warn('[PaneContext] Failed to save panel ratio:', error);
+      });
+    } else if (paneId === 'right' && isRightCollapsed) {
+      // Restore right pane: use lastExpandedRatio or default maximum
+      const restoredRatio = Math.min(1 - MIN_EXPANDED_RATIO, lastExpandedRatio);
+      setPanelRatioState(restoredRatio);
+      AsyncStorage.setItem(STORAGE_KEY_PANEL_RATIO, restoredRatio.toString()).catch((error) => {
+        console.warn('[PaneContext] Failed to save panel ratio:', error);
+      });
+    }
+  }, [isLeftCollapsed, isRightCollapsed, lastExpandedRatio]);
 
   // ============================================================
   // Module Picker
@@ -319,6 +372,10 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
       consumePendingNavigation,
       panelRatio,
       setPanelRatio,
+      isLeftCollapsed,
+      isRightCollapsed,
+      openCollapsedPane,
+      lastExpandedRatio,
       activePickerPane,
       openModulePicker,
       closeModulePicker,
@@ -333,6 +390,10 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
       consumePendingNavigation,
       panelRatio,
       setPanelRatio,
+      isLeftCollapsed,
+      isRightCollapsed,
+      openCollapsedPane,
+      lastExpandedRatio,
       activePickerPane,
       openModulePicker,
       closeModulePicker,

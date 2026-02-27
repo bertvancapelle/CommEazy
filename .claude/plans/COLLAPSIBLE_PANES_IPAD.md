@@ -1,6 +1,6 @@
 # Collapsible Panes — iPad Split View
 
-## Status: ONTWERP KLAAR — Implementatie later (na communicatie features)
+## Status: ✅ GEÏMPLEMENTEERD (2026-02-27)
 
 ## Samenvatting
 
@@ -100,4 +100,28 @@ Handle: ◀⋮ (~20-24pt breed)
 
 ---
 
-*Ontwerp voltooid via PNA sessie op 2026-02-26. Implementatie gepland na communicatie features (berichten, bellen, videobellen).*
+## Implementatie Details (2026-02-27)
+
+### Gewijzigde bestanden:
+
+| Bestand | Wijzigingen |
+|---------|------------|
+| `DraggableDivider.tsx` | Snap logica (ratio 0.0/1.0), bredere handle met pijl (`◀⋮` / `⋮▶`), refs voor stale closure fix |
+| `PaneContext.tsx` | `isLeftCollapsed`, `isRightCollapsed`, `openCollapsedPane()`, `lastExpandedRatio`, ratio 0-1 bereik |
+| `SplitViewLayout.tsx` | Conditioneel renderen van panes gebaseerd op collapsed state |
+| `MediaIndicator.tsx` | Bij tap: open collapsed pane als audio source in die pane zit |
+
+### Snap Logica:
+
+- Snap naar collapsed wanneer ratio < `MIN_RATIO - (60px / screenWidth)`
+- Snap naar collapsed wanneer ratio > `MAX_RATIO + (60px / screenWidth)`
+- Normal range: 0.25 - 0.75
+
+### Persistentie:
+
+- Collapsed state (ratio 0 of 1) wordt NIET opgeslagen
+- Bij app herstart: altijd terug naar `lastExpandedRatio`
+
+---
+
+*Ontwerp voltooid via PNA sessie op 2026-02-26. Geïmplementeerd op 2026-02-27.*

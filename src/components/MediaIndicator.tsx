@@ -12,8 +12,13 @@
  * - Tappable to return to the active stream
  * - Only ONE stream active at a time
  *
+ * iPad collapsible panes:
+ * - When tapped, opens collapsed pane if audio source is in that pane
+ * - Uses openCollapsedPane from PaneContext
+ *
  * @see .claude/skills/ui-designer/SKILL.md
  * @see .claude/skills/accessibility-specialist/SKILL.md
+ * @see .claude/plans/COLLAPSIBLE_PANES_IPAD.md
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -229,6 +234,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   }, [activeMedia, reducedMotion, bar1Anim, bar2Anim, bar3Anim]);
 
   // Handle tap — navigate to source module via pane context + show Glass Player
+  // Also opens collapsed panes if audio source is in that pane
   const handlePress = useCallback(async () => {
     if (!activeMedia) return;
 
@@ -249,6 +255,23 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
         }
       } catch {
         // Glass Player not available (iOS <26 or Android) — continue with pane navigation
+      }
+    }
+
+    // iPad: Check if audio source is in a collapsed pane and open it
+    if (paneCtx && paneCtx.paneCount === 2) {
+      const { panes, isLeftCollapsed, isRightCollapsed, openCollapsedPane } = paneCtx;
+
+      // Find which pane the audio source module is in
+      const leftModuleId = panes.left?.moduleId;
+      const rightModuleId = panes.right?.moduleId;
+
+      if (isLeftCollapsed && leftModuleId === moduleId) {
+        console.info('[MediaIndicator] Opening collapsed left pane for module:', moduleId);
+        openCollapsedPane('left');
+      } else if (isRightCollapsed && rightModuleId === moduleId) {
+        console.info('[MediaIndicator] Opening collapsed right pane for module:', moduleId);
+        openCollapsedPane('right');
       }
     }
 

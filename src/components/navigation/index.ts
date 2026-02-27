@@ -30,3 +30,6 @@ export type { PanelNavigatorProps } from './PanelNavigator';
 
 export { DraggableDivider } from './DraggableDivider';
 export type { DraggableDividerProps } from './DraggableDivider';
+
+export { CollapsedPaneIndicator } from './CollapsedPaneIndicator';
+export type { CollapsedPaneIndicatorProps } from './CollapsedPaneIndicator';
