@@ -492,7 +492,7 @@ export function ChatListScreen() {
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Module Header — standardized component */}
       <ModuleHeader
-        moduleId="messages"
+        moduleId="chats"
         icon="chat"
         title={t('tabs.chats')}
         showAdMob={true}
