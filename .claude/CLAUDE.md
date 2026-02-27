@@ -3163,98 +3163,139 @@ Zie `.claude/plans/LIQUID_GLASS_IMPLEMENTATION.md` voor het volledige implementa
 
 ---
 
-## Feature Backlog (Gecombineerde Lijst)
+## Feature Backlog (Per Platform)
 
-Alle features en taken voor CommEazy, gesorteerd op prioriteit. Items worden toegewezen aan een release wanneer we daarover beslissen.
+Alle features en taken voor CommEazy, georganiseerd per platform. Dit geeft overzicht welke keuzes er zijn voor iOS/iPadOS, Android, en Pre-Production/Cross-Platform ontwikkeling.
 
 ### Legenda
 - ✅ DONE — Voltooid
 - 🔶 PARTIAL — Gedeeltelijk klaar
 - ⏳ TODO — Nog te doen
 - 🎯 MVP — Vereist voor eerste release
-- 🚀 POST-MVP — Na eerste release
+- ⏳ TBD — Prioriteit nog te bepalen
+
+---
+
+### 🍎 iOS/iPadOS Specifiek
+
+Features en taken die alleen voor Apple platforms gelden.
 
 | # | Item | Status | Prioriteit | Beschrijving |
 |---|------|--------|------------|--------------|
 | 1 | **CallKit Basis** | ✅ DONE | 🎯 MVP | Native iOS call UI (lockscreen, mute sync, call history) |
-| 2 | **VoIP Push Notifications** | 🔶 PARTIAL | 🎯 MVP | Code klaar, credentials ontbreken (APNs .p8, FCM JSON) |
-| 3 | **Mock Mode Uitschakelen** | ⏳ TODO | 🎯 MVP | Zie `MOCK_MODE_CHANGES.md` voor alle wijzigingen |
-| 4 | **Privacy Manifest (iOS)** | ⏳ TODO | 🎯 MVP | Apple vereist dit voor App Store |
-| 5 | **Data Safety Section (Android)** | ⏳ TODO | 🎯 MVP | Google Play vereist dit |
-| 6 | **App Icons & Splash Screen** | ⏳ TODO | 🎯 MVP | Finale assets voor alle resoluties |
-| 7 | **TURN Server Credentials** | ⏳ TODO | 🎯 MVP | Productie TURN server voor WebRTC |
-| 8 | **Firebase Productie Config** | ⏳ TODO | 🎯 MVP | Aparte Firebase project voor productie |
-| 9 | **Prosody Productie Server** | ⏳ TODO | 🎯 MVP | Hosted XMPP server (niet lokaal) |
-| 10 | **TTS Stem Download Service** | ⏳ TODO | ⏳ TBD | Dynamisch downloaden van Piper stemmen per taal |
-| 11 | **Call Error Handling** | ⏳ TODO | ⏳ TBD | Reconnectie bij netwerk verlies, ICE failure → TURN fallback |
-| 12 | **Voice Command Audio Ducking** | ⏳ TODO | ⏳ TBD | Duck audio naar 15% bij voice session, native AudioDuckingModule |
-| 13 | **Android Auto/CarPlay** | ⏳ TODO | ⏳ TBD | Handsfree bellen |
-| 14 | **iPad Multitasking** | ⏳ TODO | ⏳ TBD | Split View, Slide Over |
-| 15 | **Widget** | ⏳ TODO | ⏳ TBD | Recent contacts widget |
-| 16 | **Groepsvideobellen (4+ deelnemers)** | ⏳ TODO | ⏳ TBD | SFU server nodig |
-| 17 | **Spraakberichten** | ⏳ TODO | ⏳ TBD | Opnemen en verzenden |
-| 18 | **Locatie delen** | ⏳ TODO | ⏳ TBD | Real-time locatie |
-| 19 | **Herinneringen** | ⏳ TODO | ⏳ TBD | Medicatie, afspraken |
+| 2 | **VoIP Push (APNs)** | ✅ DONE | 🎯 MVP | PushKit module ✅, APNs credentials ✅ geconfigureerd |
+| 3 | **Privacy Manifest** | ⏳ TODO | 🎯 MVP | Apple vereist NSPrivacyAccessedAPITypes voor App Store |
+| 4 | **CarPlay** | ⏳ TODO | ⏳ TBD | Handsfree bellen via CarPlay |
+| 5 | **iPad Multitasking** | ⏳ TODO | ⏳ TBD | Split View, Slide Over support |
+| 6 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
+| 7 | **Liquid Glass Implementation** | ✅ DONE | 🎯 MVP | iOS 26 UIGlassEffect integratie |
+| 8 | **Liquid Glass Player Window** | ✅ DONE | 🎯 MVP | Native Glass Player met MiniPlayer + FullPlayer |
+| 9 | **Liquid Glass True Transparency** | ✅ DONE | 🎯 MVP | Echte transparantie voor achtergrond doorschijnen |
+| 10 | **iPad/iPhone Hybrid Menu** | ✅ DONE | 🎯 MVP | WheelNavigationMenu + iPad Split View panelen |
+| 11 | **Apple Music** | 🔶 PARTIAL | ⏳ TBD | Auth/Search/Playback ✅, Queue UI ❌, Lyrics ❌ |
+| 12 | **Glass Player Auto-Hide** | 🔶 PARTIAL | ⏳ TBD | Implementatie gestart, nog niet volledig |
+| 13 | **Collapsible Panes iPad** | ⏳ TODO | ⏳ TBD | Ontwerp klaar, implementatie later |
+
+**📊 iOS/iPadOS Samenvatting:** 13 items | ✅ 6 DONE | 🔶 2 PARTIAL | ⏳ 5 TODO
+
+---
+
+### 🤖 Android Specifiek
+
+Features en taken die alleen voor Android gelden.
+
+| # | Item | Status | Prioriteit | Beschrijving |
+|---|------|--------|------------|--------------|
+| 14 | **VoIP Push (FCM)** | ⏳ TODO | 🎯 MVP | FCM service account credentials configureren |
+| 15 | **Data Safety Section** | ⏳ TODO | 🎯 MVP | Google Play Store vereist dit |
+| 16 | **Android Auto** | ⏳ TODO | ⏳ TBD | Handsfree bellen via Android Auto |
+| 17 | **Widget (Android)** | ⏳ TODO | ⏳ TBD | Android App Widget recent contacts |
+
+**📊 Android Samenvatting:** 4 items | ✅ 0 DONE | 🔶 0 PARTIAL | ⏳ 4 TODO
+
+---
+
+### 🔧 Pre-Production / Cross-Platform
+
+Features en taken die voor beide platforms gelden of backend/infrastructuur betreffen.
+
+| # | Item | Status | Prioriteit | Beschrijving |
+|---|------|--------|------------|--------------|
+| 18 | **Mock Mode Uitschakelen** | ⏳ TODO | 🎯 MVP | Zie `MOCK_MODE_CHANGES.md` voor alle wijzigingen |
+| 19 | **App Icons & Splash Screen** | ⏳ TODO | 🎯 MVP | Finale assets voor iOS + Android resoluties |
+| 20 | **TURN Server Credentials** | ⏳ TODO | 🎯 MVP | Productie TURN server voor WebRTC |
+| 21 | **Firebase Productie Config** | ⏳ TODO | 🎯 MVP | Aparte Firebase project voor productie |
+| 22 | **Prosody Productie Server** | ⏳ TODO | 🎯 MVP | Hosted XMPP server (niet lokaal) |
+| 23 | **TTS Stem Download Service** | ⏳ TODO | ⏳ TBD | CDN + dynamisch downloaden Piper stemmen per taal |
+| 24 | **Call Error Handling** | ⏳ TODO | ⏳ TBD | Reconnectie bij netwerk verlies, ICE failure → TURN fallback |
+| 25 | **Voice Command Audio Ducking** | ⏳ TODO | ⏳ TBD | Duck audio naar 15% bij voice session (native modules) |
+| 26 | **Color Theme System** | 🔶 PARTIAL | ⏳ TBD | Module kleuren ✅, Dark mode ❌, High contrast ❌ |
+| 27 | **Universal Presence** | 🔶 PARTIAL | ⏳ TBD | Online/offline indicator (XMPP + React Native) |
+| 28 | **Unified Notifications** | ⏳ TODO | ⏳ TBD | Background message handling, group notifications |
+| 29 | **Accessibility Compliance** | ⏳ TODO | ⏳ TBD | WCAG AAA + EN 301 549 volledige audit |
+| 30 | **Weather Module** | ⏳ TODO | ⏳ TBD | Open-Meteo API + RainViewer radar |
+| 31 | **Buienradar Module** | 🔶 PARTIAL | ⏳ TBD | FavoriteLocationsContext ✅, UI nog te doen |
+| 32 | **Country-Specific Modules** | ⏳ TODO | ⏳ TBD | Framework voor land-specifieke modules (nu.nl, etc.) |
+| 33 | **Groepsvideobellen (4+)** | ⏳ TODO | ⏳ TBD | SFU server nodig |
+| 34 | **Spraakberichten** | ⏳ TODO | ⏳ TBD | Opnemen en verzenden |
+| 35 | **Locatie delen** | ⏳ TODO | ⏳ TBD | Real-time locatie |
+| 36 | **Herinneringen** | ⏳ TODO | ⏳ TBD | Medicatie, afspraken |
+| 37 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
+
+**📊 Cross-Platform Samenvatting:** 20 items | ✅ 0 DONE | 🔶 3 PARTIAL | ⏳ 17 TODO
+
+---
+
+### 📊 Totaal Overzicht
+
+| Platform | Totaal | ✅ DONE | 🔶 PARTIAL | ⏳ TODO |
+|----------|--------|---------|------------|---------|
+| **iOS/iPadOS** | 13 | 6 | 2 | 5 |
+| **Android** | 4 | 0 | 0 | 4 |
+| **Cross-Platform** | 20 | 0 | 3 | 17 |
+| **TOTAAL** | 37 | 6 | 5 | 26 |
+
+---
 
 ### VoIP Push Notifications — Details
 
-| Subitem | Status |
-|---------|--------|
-| PushKit native module (VoIPPushModule.swift) | ✅ |
-| Push Gateway server (server/push-gateway/) | ✅ |
-| Prosody mod_push_http module | ✅ |
-| XEP-0357 VoIP token registratie | ✅ |
-| React Native bridge + XMPP reconnect | ✅ |
-| APNs VoIP Certificate (.p8 key) | ❌ |
-| APNs config in .env | ❌ |
-| FCM credentials (service account JSON) | ❌ |
+| Subitem | Platform | Status |
+|---------|----------|--------|
+| PushKit native module (VoIPPushModule.swift) | iOS | ✅ |
+| Push Gateway server (server/push-gateway/) | Backend | ✅ |
+| Prosody mod_push_http module | Backend | ✅ |
+| XEP-0357 VoIP token registratie | Cross | ✅ |
+| React Native bridge + XMPP reconnect | Cross | ✅ |
+| APNs VoIP Certificate (.p8 key) | iOS | ✅ |
+| APNs config in .env | iOS | ✅ |
+| FCM credentials (service account JSON) | Android | ❌ |
 
-### Uitgewerkte Plannen
-
-Gedetailleerde implementatieplannen in `.claude/plans/`. Status per plan:
-
-| # | Plan | Status | Beschrijving |
-|---|------|--------|--------------|
-| 20 | **Liquid Glass Implementation** | ✅ DONE | iOS 26 UIGlassEffect integratie — volledig geïmplementeerd |
-| 21 | **Liquid Glass Player Window** | ✅ DONE | Native Glass Player met MiniPlayer + FullPlayer |
-| 22 | **Liquid Glass True Transparency** | ✅ DONE | Echte transparantie voor achtergrond doorschijnen |
-| 23 | **iPad/iPhone Hybrid Menu** | ✅ DONE | WheelNavigationMenu + iPad Split View panelen |
-| 24 | **Color Theme System for Seniors** | 🔶 PARTIAL | Module kleuren aanpasbaar ✅, Dark mode ❌, High contrast ❌ |
-| 25 | **Apple Music Implementation** | 🔶 PARTIAL | Auth/Search/Playback ✅, Queue UI ❌, Lyrics ❌ |
-| 26 | **Glass Player Auto-Hide** | 🔶 PARTIAL | Implementatie gestart, nog niet volledig |
-| 27 | **Universal Presence** | 🔶 PARTIAL | Implementatie gestart, online/offline indicator |
-| 28 | **Unified Notification Architecture** | ⏳ TODO | Background message handling, group notifications |
-| 29 | **Accessibility Compliance** | ⏳ TODO | WCAG AAA + EN 301 549 volledige audit |
-| 30 | **Weather Module** | ⏳ TODO | Open-Meteo API + RainViewer radar |
-| 31 | **Buienradar Module** | 🔶 PARTIAL | FavoriteLocationsContext ✅, UI nog te doen |
-| 32 | **Country-Specific Modules** | ⏳ TODO | Framework voor land-specifieke modules (nu.nl, etc.) |
-| 33 | **Collapsible Panes iPad** | ⏳ TODO | Ontwerp klaar, implementatie later |
-| 34 | **Prosody HA Production** | ⏳ TODO | High-availability Prosody deployment handleiding |
+---
 
 ### Plan Bestanden Referentie
 
-| Plan | Bestand |
-|------|---------|
-| Liquid Glass Implementation | `.claude/plans/LIQUID_GLASS_IMPLEMENTATION.md` |
-| Liquid Glass Player Window | `.claude/plans/LIQUID_GLASS_PLAYER_WINDOW.md` |
-| Liquid Glass True Transparency | `.claude/plans/LIQUID_GLASS_TRUE_TRANSPARENCY.md` |
-| iPad/iPhone Hybrid Menu | `.claude/plans/IPAD_IPHONE_HYBRID_MENU.md` |
-| Color Theme System | `.claude/plans/COLOR_THEME_SYSTEM_FOR_SENIORS.md` |
-| Apple Music | `.claude/plans/APPLE_MUSIC_IMPLEMENTATION.md` |
-| Glass Player Auto-Hide | `.claude/plans/GLASS_PLAYER_AUTO_HIDE.md` |
-| Universal Presence | `.claude/plans/UNIVERSAL_PRESENCE.md` |
-| Unified Notifications | `.claude/plans/UNIFIED_NOTIFICATION_ARCHITECTURE.md` |
-| Accessibility Compliance | `.claude/plans/ACCESSIBILITY_COMPLIANCE.md` |
-| Weather Module | `.claude/plans/WEATHER_MODULE.md` |
-| Buienradar Module | `.claude/plans/buienradar-module-plan.md` |
-| Country-Specific Modules | `.claude/plans/COUNTRY_SPECIFIC_MODULES.md` |
-| Collapsible Panes iPad | `.claude/plans/COLLAPSIBLE_PANES_IPAD.md` |
-| Prosody HA Production | `.claude/plans/PROSODY_HA_PRODUCTION.md` |
+| Plan | Platform | Bestand |
+|------|----------|---------|
+| Liquid Glass Implementation | iOS | `.claude/plans/LIQUID_GLASS_IMPLEMENTATION.md` |
+| Liquid Glass Player Window | iOS | `.claude/plans/LIQUID_GLASS_PLAYER_WINDOW.md` |
+| Liquid Glass True Transparency | iOS | `.claude/plans/LIQUID_GLASS_TRUE_TRANSPARENCY.md` |
+| iPad/iPhone Hybrid Menu | iOS | `.claude/plans/IPAD_IPHONE_HYBRID_MENU.md` |
+| Collapsible Panes iPad | iOS | `.claude/plans/COLLAPSIBLE_PANES_IPAD.md` |
+| Apple Music | iOS | `.claude/plans/APPLE_MUSIC_IMPLEMENTATION.md` |
+| Glass Player Auto-Hide | iOS | `.claude/plans/GLASS_PLAYER_AUTO_HIDE.md` |
+| Color Theme System | Cross | `.claude/plans/COLOR_THEME_SYSTEM_FOR_SENIORS.md` |
+| Universal Presence | Cross | `.claude/plans/UNIVERSAL_PRESENCE.md` |
+| Unified Notifications | Cross | `.claude/plans/UNIFIED_NOTIFICATION_ARCHITECTURE.md` |
+| Accessibility Compliance | Cross | `.claude/plans/ACCESSIBILITY_COMPLIANCE.md` |
+| Weather Module | Cross | `.claude/plans/WEATHER_MODULE.md` |
+| Buienradar Module | Cross | `.claude/plans/buienradar-module-plan.md` |
+| Country-Specific Modules | Cross | `.claude/plans/COUNTRY_SPECIFIC_MODULES.md` |
+| Prosody HA Production | Backend | `.claude/plans/PROSODY_HA_PRODUCTION.md` |
 
 ---
 
 **Claude's Validatie:** Wanneer de gebruiker vraagt om productie/release, MOET Claude:
-1. Deze backlog tonen
-2. Alle 🎯 MVP items met ⏳ TODO status benoemen
+1. Deze backlog per platform tonen
+2. Alle 🎯 MVP items met ⏳ TODO status benoemen per platform
 3. Waarschuwen dat release NIET mogelijk is tot alle MVP items ✅ zijn
 
