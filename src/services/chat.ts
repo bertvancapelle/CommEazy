@@ -130,8 +130,6 @@ export class ChatService {
    * Subscribe to presence updates from all contacts.
    * This is required by XMPP to receive presence (online/offline) notifications.
    *
-   * In dev mode, only subscribes to real test device JIDs (ik@, oma@) to avoid
-   * warnings about mock contacts that don't exist on the XMPP server.
    */
   private async subscribeToAllContactsPresence(): Promise<void> {
     try {
@@ -143,17 +141,7 @@ export class ChatService {
 
       const xmpp = ServiceContainer.xmpp;
 
-      // In dev mode, filter to only real XMPP users to avoid warnings
-      const realXmppJids = __DEV__
-        ? ['ik@commeazy.local', 'oma@commeazy.local']
-        : null;
-
       for (const contact of contacts) {
-        // Skip mock contacts in dev mode (they don't exist on XMPP server)
-        if (realXmppJids && !realXmppJids.includes(contact.jid)) {
-          continue;
-        }
-
         try {
           await xmpp.subscribeToPresence(contact.jid);
           console.log(`[ChatService] Subscribed to presence of ${contact.jid}`);

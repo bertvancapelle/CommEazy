@@ -170,10 +170,10 @@ export default function App() {
 
 /**
  * Handle app going to background.
- * Sends unavailable presence and stops retry timer.
+ * Sends 'away' presence so contacts see orange dot (not offline grey).
  *
  * IMPORTANT: This must complete quickly before iOS suspends the app.
- * We await sendUnavailable() with a small timeout to ensure the packet is flushed.
+ * We await sendPresence() with a small timeout to ensure the packet is flushed.
  */
 async function handleAppBackground(): Promise<void> {
   console.log('[App] handleAppBackground called');
@@ -187,18 +187,18 @@ async function handleAppBackground(): Promise<void> {
     // Stop the outbox retry timer
     chatService.stopRetryTimer();
 
-    // Send unavailable presence
+    // Send away presence so contacts see orange dot
     // We await this to ensure the packet is sent before iOS suspends the app
     const xmpp = ServiceContainer.xmpp;
     const status = xmpp.getConnectionStatus();
     console.log(`[App] XMPP connection status: ${status}`);
 
     if (status === 'connected') {
-      console.log('[App] Sending unavailable presence...');
-      await xmpp.sendUnavailable();
-      console.log('[App] sendUnavailable completed');
+      console.log('[App] Sending away presence...');
+      await xmpp.sendPresence('away');
+      console.log('[App] sendPresence(away) completed');
     } else {
-      console.log('[App] XMPP not connected, skipping unavailable presence');
+      console.log('[App] XMPP not connected, skipping away presence');
     }
   } catch (error) {
     console.warn('[App] Error in background handler:', error);
