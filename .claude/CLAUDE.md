@@ -1124,9 +1124,9 @@ zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
 
 **Reden:** De `.claude/` folder bevat ~200KB aan waardevolle project instructies, skill definities en workflows die buiten git ook bewaard moeten blijven.
 
-### ⚠️ Na ELKE Push: Valideer Metro en Prosody Status
+### ⚠️ Na ELKE Push: Valideer Metro, Prosody en Push Gateway Status
 
-**Dit is een gebruikersvoorkeur.** Na elke succesvolle push MOET Claude de status van Metro en Prosody valideren.
+**Dit is een gebruikersvoorkeur.** Na elke succesvolle push MOET Claude de status van Metro, Prosody en Push Gateway valideren.
 
 **Stappen (VERPLICHT na push):**
 
@@ -1148,6 +1148,21 @@ zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
    ```
    - Als poort 5280 niet luistert: Prosody draait maar WebSocket module is niet actief
 
+4. **Valideer Push Gateway status:**
+   ```bash
+   lsof -i :5282 | head -3
+   ```
+   - Als Push Gateway NIET draait: **Claude start deze automatisch:**
+     ```bash
+     export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" && \
+     cd /Users/bertvancapelle/Projects/CommEazy/server/push-gateway && \
+     nohup node server.js > /tmp/push-gateway.log 2>&1 &
+     ```
+   - Valideer na start met: `sleep 1 && lsof -i :5282 | head -3`
+   - Check logs: `cat /tmp/push-gateway.log`
+
+**Push Gateway Log Locatie:** `/tmp/push-gateway.log`
+
 **Claude's post-push output met validatie:**
 ```
 ✅ Push voltooid naar origin/main
@@ -1157,6 +1172,7 @@ zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
 ✅ Prosody: draait (pid XXXX)
 ✅ Metro: draait op :8081
 ✅ WebSocket: luistert op :5280
+✅ Push Gateway: draait op :5282 (APNs: ready)
 
 📱 **Volgende stap:** Druk op ⌘R in Xcode om te builden.
 ```
@@ -1170,6 +1186,8 @@ zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
 ❌ Prosody: NIET actief — run `prosodyctl start`
 ❌ Metro: NIET actief — run:
    cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0
+⚠️ Push Gateway: NIET actief — wordt automatisch gestart...
+✅ Push Gateway: herstart succesvol op :5282
 ```
 
 ### Claude's Verantwoordelijkheid
@@ -3109,10 +3127,15 @@ Deze items MOETEN voltooid zijn voordat de app naar TestFlight/App Store gaat. C
 | **TURN Server Credentials** | ⏳ TODO | Productie TURN server voor WebRTC |
 | **Firebase Productie Config** | ⏳ TODO | Aparte Firebase project voor productie |
 | **Prosody Productie Server** | ⏳ TODO | Hosted XMPP server (niet lokaal) |
-| **VoIP Push Notifications** | ⏳ TODO | Inkomende calls wanneer app gesloten is |
-| | | - PushKit framework linken in Xcode |
-| | | - VoIP Push Certificate (Apple Developer Portal) |
-| | | - Server-side push gateway voor call signaling |
+| **VoIP Push Notifications** | 🔶 PARTIAL | Code geïmplementeerd, credentials ontbreken |
+| | | - ✅ PushKit native module (VoIPPushModule.swift) |
+| | | - ✅ Push Gateway server (server/push-gateway/) |
+| | | - ✅ Prosody mod_push_http module |
+| | | - ✅ XEP-0357 VoIP token registratie |
+| | | - ✅ React Native bridge + XMPP reconnect |
+| | | - ❌ **APNs VoIP Certificate** (.p8 key van Apple Developer Portal) |
+| | | - ❌ **APNs config** in server/push-gateway/.env (APNS_KEY_PATH, APNS_KEY_ID, APNS_TEAM_ID) |
+| | | - ❌ **FCM credentials** (GOOGLE_APPLICATION_CREDENTIALS service account JSON) |
 | **CallKit Basis** | ✅ DONE | Native iOS call UI (in-app) |
 | | | - react-native-callkeep geïnstalleerd |
 | | | - Lockscreen UI, mute sync, call history |

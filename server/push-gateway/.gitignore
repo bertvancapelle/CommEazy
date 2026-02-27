@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Environment (contains secrets)
+.env
+
+# APNs keys and credentials (NEVER commit)
+keys/
+*.p8
+*.p12
+
+# Firebase service account
+firebase-service-account.json
