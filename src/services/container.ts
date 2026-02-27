@@ -27,6 +27,7 @@ import { chatService } from './chat';
 import { groupChatService } from './groupChat';
 import { callService } from './call';
 import { FCMNotificationService, onTokenRefresh } from './notifications';
+import { registerForVoIPPush, getVoIPToken, onVoIPPush } from './voipPushService';
 
 // Note: Mock data imports moved to dynamic import in initialize() to avoid
 // triggering module evaluation at startup
@@ -200,6 +201,7 @@ class ServiceContainerClass {
   private _database: DatabaseService | null = null;
   private _notifications: NotificationService | null = null;
   private _initialized = false;
+  private _voipPushUnsubscribe: (() => void) | null = null;
 
   /** Stored credentials for reconnection after background/foreground transitions */
   private _credentials: { jid: string; password: string } | null = null;
@@ -253,16 +255,17 @@ class ServiceContainerClass {
 
       // Setup token refresh handler - re-register with Prosody when token changes
       onTokenRefresh(async (newToken) => {
-        console.log('[ServiceContainer] FCM token refreshed:', newToken.substring(0, 20) + '...');
+        console.info('[ServiceContainer] FCM token refreshed:', newToken.substring(0, 20) + '...');
         // Re-register push notifications with new token
         if (this._xmpp && this._xmpp.getConnectionStatus() === 'connected') {
           try {
-            // For iOS, also get the APNs token
+            // For iOS, also get the APNs and VoIP tokens
             const apnsToken = this._notifications?.getApnsToken
               ? await this._notifications.getApnsToken()
               : null;
-            await this._xmpp.enablePushNotifications(newToken, apnsToken ?? undefined);
-            console.log('[ServiceContainer] Push notifications re-registered with new token');
+            const voipToken = await getVoIPToken();
+            await this._xmpp.enablePushNotifications(newToken, apnsToken ?? undefined, voipToken ?? undefined);
+            console.info('[ServiceContainer] Push notifications re-registered with new token');
           } catch (error) {
             console.warn('[ServiceContainer] Failed to re-register push with new token:', error);
           }
@@ -307,8 +310,29 @@ class ServiceContainerClass {
             const apnsToken = this._notifications.getApnsToken
               ? await this._notifications.getApnsToken()
               : null;
-            await this._xmpp.enablePushNotifications(fcmToken, apnsToken ?? undefined);
-            console.log('[ServiceContainer] Push notifications registered with Prosody');
+
+            // Register for VoIP push (iOS only) — triggers PushKit
+            const voipToken = await registerForVoIPPush();
+
+            await this._xmpp.enablePushNotifications(fcmToken, apnsToken ?? undefined, voipToken ?? undefined);
+            console.info('[ServiceContainer] Push notifications registered with Prosody');
+            if (voipToken) {
+              console.info('[ServiceContainer] VoIP push registered (incoming calls)');
+            }
+
+            // 6b-2. Listen for incoming VoIP pushes (iOS only)
+            // Native layer already shows CallKit UI immediately (Apple requirement).
+            // This JS handler ensures XMPP is connected to receive the call signaling.
+            this._voipPushUnsubscribe = onVoIPPush((payload) => {
+              console.info('[ServiceContainer] VoIP push received in JS layer');
+              // Ensure XMPP is connected — the app may have been woken from killed state
+              if (this._xmpp && this._xmpp.getConnectionStatus() !== 'connected' && this._credentials) {
+                console.info('[ServiceContainer] Reconnecting XMPP after VoIP push wake...');
+                this._xmpp.connect(this._credentials.jid, this._credentials.password).catch((err) => {
+                  console.error('[ServiceContainer] XMPP reconnect after VoIP push failed:', err);
+                });
+              }
+            });
           } catch (pushError) {
             // Push registration is optional - app works without it
             // In dev mode, this is expected to fail without proper provisioning
@@ -319,7 +343,7 @@ class ServiceContainerClass {
             }
           }
         } else {
-          console.log('[ServiceContainer] Skipping push registration (not available)');
+          console.info('[ServiceContainer] Skipping push registration (not available)');
         }
 
         // 6c. Subscribe to mock contacts' presence (dev only)

@@ -1,6 +1,6 @@
-# CommEazy — Prosody XMPP Server: High Availability Productie-Architectuur
+# CommEazy — Server Side Configuration: Prosody XMPP + Push Gateway
 
-**Document versie:** 1.0
+**Document versie:** 2.0
 **Datum:** 27 februari 2026
 **Status:** CONCEPT — Vereist validatie vóór productie-deployment
 **Auteur:** Claude Opus 4 (AI Architect) + Bert van Capelle
@@ -20,7 +20,7 @@
 9. [WebSocket Configuratie](#9-websocket-configuratie)
 10. [Authenticatie & Autorisatie](#10-authenticatie--autorisatie)
 11. [Connection Management & Presence](#11-connection-management--presence)
-12. [Push Notifications (cloud_notify)](#12-push-notifications-cloud_notify)
+12. [Push Gateway Service](#12-push-gateway-service)
 13. [STUN/TURN (Coturn) voor WebRTC](#13-stunturn-coturn-voor-webrtc)
 14. [Monitoring & Observability](#14-monitoring--observability)
 15. [Security Hardening](#15-security-hardening)
@@ -30,24 +30,32 @@
 19. [Migratie: Development → Productie](#19-migratie-development--productie)
 20. [Productie Validatie Checklist](#20-productie-validatie-checklist)
 21. [Appendix A: Volledige Productie prosody.cfg.lua](#appendix-a-volledige-productie-prosodycfglua)
-22. [Appendix B: Development vs Productie Vergelijking](#appendix-b-development-vs-productie-vergelijking)
-23. [Appendix C: Troubleshooting Guide](#appendix-c-troubleshooting-guide)
+22. [Appendix B: Volledige Push Gateway Broncode](#appendix-b-volledige-push-gateway-broncode)
+23. [Appendix C: Development vs Productie Vergelijking](#appendix-c-development-vs-productie-vergelijking)
+24. [Appendix D: Troubleshooting Guide](#appendix-d-troubleshooting-guide)
 
 ---
 
 ## 1. Management Samenvatting
 
-CommEazy gebruikt Prosody als XMPP-server voor real-time messaging, presence management en call signaling. De server fungeert als **pure router** — berichten worden doorgestuurd maar nooit opgeslagen (zero server storage architectuur).
+CommEazy's server-side infrastructuur bestaat uit twee services:
+
+1. **Prosody XMPP Server** — Real-time messaging, presence management en call signaling. Fungeert als **pure router** — berichten worden doorgestuurd maar nooit opgeslagen (zero server storage architectuur).
+
+2. **Node.js Push Gateway** — Ontvangt push-notificaties van Prosody via XEP-0357 (mod_cloud_notify) en stuurt deze door naar Apple (APNs) en Google (FCM). Cruciaal voor **inkomende calls wanneer de app in background of gesloten is** (VoIP Push via PushKit).
 
 **Doelstellingen:**
 - Schaalbaar tot **100.000+ gelijktijdige verbindingen**
 - **99.9% uptime** (max 8.7 uur downtime per jaar)
 - **< 100ms** bericht-latentie (P99)
 - **< 90 seconden** presence detectie bij dode verbindingen
+- **< 2 seconden** push delivery voor inkomende calls
 - **Zero message storage** op de server (privacy-first)
 
 **Kernbeslissingen:**
 - Prosody 13.0.4 (build from source op macOS; minimaal 13.0.x voor mod_smacks hibernation watchdog fix)
+- **Node.js Push Gateway** (KISS-benadering — ~100 regels, bewezen libraries)
+- Push Gateway **co-located op dezelfde VMs** als Prosody (zero sizing impact)
 - PostgreSQL als shared storage backend (roster, auth)
 - HAProxy als WebSocket-aware load balancer
 - Coturn cluster voor STUN/TURN (WebRTC calls)
@@ -71,6 +79,7 @@ CommEazy gebruikt Prosody als XMPP-server voor real-time messaging, presence man
 | **Transport** | WebSocket op poort 5280 (HTTP) |
 | **TLS** | Geen (development) |
 | **Accounts** | Handmatig via `prosodyctl adduser` |
+| **Push Gateway** | Nog niet geïmplementeerd (development) |
 
 ### Actieve Modules (Development)
 
@@ -154,6 +163,7 @@ lsof -i :5280         # WebSocket luistert
 | iOS foreground: stale WebSocket na suspend | Feb 2026 | XMPP ping (XEP-0199) verificatie + force reconnect in App.tsx |
 | Reconnect met verkeerde credentials | Feb 2026 | Credentials opslaan in ServiceContainer bij init, gebruiken bij reconnect |
 | Metro bundler verliest verbinding na iOS suspend | Feb 2026 | Development-only issue; productie builds hebben geen Metro |
+| Inkomende calls niet ontvangen in background | Feb 2026 | iOS suspend → WebSocket dood → XMPP call-invite onbereikbaar → VoIP Push nodig (sectie 12) |
 
 ---
 
@@ -183,15 +193,31 @@ lsof -i :5280         # WebSocket luistert
               │ (Active)   │ │ (Active)   │ │ (Active)   │
               │ :5280 WS   │ │ :5280 WS   │ │ :5280 WS   │
               │ :5222 c2s  │ │ :5222 c2s  │ │ :5222 c2s  │
-              └──────┬─────┘ └──────┬─────┘ └──────┬─────┘
-                     │              │              │
-                     └──────────────▼──────────────┘
-                                    │
-                     ┌──────────────▼──────────────┐
-                     │     PostgreSQL Cluster       │
-                     │  (Primary + Read Replica)    │
-                     │  Roster, Auth, Presence      │
-                     └──────────────────────────────┘
+              └──┬───┬─────┘ └──┬───┬─────┘ └──┬───┬─────┘
+                 │   │          │   │          │   │
+                 │   │          │   │          │   │
+                 │   │    ┌─────▼───▼──────────▼───▼─────┐
+                 │   │    │  Push Gateway (Node.js + PM2) │
+                 │   │    │  Co-located per Prosody VM    │
+                 │   │    │  :5281 HTTP ← mod_cloud_notify│
+                 │   │    │                               │
+                 │   │    │  ┌─────────┐  ┌────────────┐  │
+                 │   │    │  │ Handler  │  │  Handler   │  │
+                 │   │    │  │  VoIP    │  │   FCM      │  │
+                 │   │    │  │ (APNs)   │  │ (Firebase) │  │
+                 │   │    │  └────┬─────┘  └─────┬──────┘  │
+                 │   │    └───────┼──────────────┼─────────┘
+                 │   │            │              │
+                 │   │      ┌────▼────┐   ┌────▼─────┐
+                 │   │      │  APNs   │   │   FCM    │
+                 │   │      │ (Apple) │   │ (Google) │
+                 │   │      └─────────┘   └──────────┘
+                 │   │
+                 └───▼──────────────────────────────────┐
+                     │     PostgreSQL Cluster             │
+                     │  (Primary + Read Replica)          │
+                     │  Roster, Auth, Presence            │
+                     └───────────────────────────────────┘
 
               ┌────────────┐  ┌────────────┐  ┌────────────┐
               │  Coturn 1   │  │  Coturn 2   │  │  Coturn 3   │
@@ -205,14 +231,25 @@ lsof -i :5280         # WebSocket luistert
               └────────────┘  └────────────┘
 ```
 
+### Service Overzicht
+
+| Service | Doel | Poort | Co-located? |
+|---------|------|-------|-------------|
+| **Prosody** | XMPP routing, presence, call signaling | 5280 (WS), 5222 (c2s) | — |
+| **Push Gateway** | VoIP Push (APNs) + Message Push (FCM) | 5281 (HTTP) | Ja, op Prosody VMs |
+| **PostgreSQL** | Account storage, roster | 5432 | Aparte VMs |
+| **HAProxy** | Load balancing, TLS terminatie | 443 | Aparte VMs |
+| **Coturn** | STUN/TURN relay voor WebRTC calls | 3478, 5349 | Aparte VMs |
+| **Prometheus + Grafana** | Monitoring, alerting | 9090, 3000 | Aparte VM |
+
 ### Schaalmodel
 
-| Gebruikers | Prosody Nodes | PostgreSQL | Coturn Nodes | HAProxy |
-|-----------|---------------|------------|--------------|---------|
-| 0 - 25K | 2 (active-active) | 1 primary + 1 replica | 2 | 1 + 1 standby |
-| 25K - 50K | 3 (active-active-active) | 1 primary + 2 replicas | 3 | 2 (keepalived) |
-| 50K - 100K | 4-5 nodes | 1 primary + 2 replicas | 4 | 2 (keepalived) |
-| 100K+ | 6+ nodes + sharding | Dedicated cluster | 6+ | 2+ (keepalived) |
+| Gebruikers | Prosody Nodes | Push Gateway | PostgreSQL | Coturn Nodes | HAProxy |
+|-----------|---------------|--------------|------------|--------------|---------|
+| 0 - 25K | 2 (active-active) | 2 (co-located) | 1 primary + 1 replica | 2 | 1 + 1 standby |
+| 25K - 50K | 3 (active-active-active) | 3 (co-located) | 1 primary + 2 replicas | 3 | 2 (keepalived) |
+| 50K - 100K | 4-5 nodes | 4-5 (co-located) | 1 primary + 2 replicas | 4 | 2 (keepalived) |
+| 100K+ | 6+ nodes + sharding | Aparte VMs (fault isolation) | Dedicated cluster | 6+ | 2+ (keepalived) |
 
 ---
 
@@ -231,12 +268,14 @@ Keuze gebaseerd op:
 
 | Rol | vCPU | RAM | Disk | Netwerk | Aantal |
 |-----|------|-----|------|---------|--------|
-| **Prosody** | 4 vCPU | 8 GB | 50 GB SSD | 1 Gbps | 3-5 |
+| **Prosody + Push Gateway** | 4 vCPU | 8 GB | 50 GB SSD | 1 Gbps | 3-5 |
 | **PostgreSQL Primary** | 4 vCPU | 16 GB | 200 GB NVMe | 1 Gbps | 1 |
 | **PostgreSQL Replica** | 4 vCPU | 16 GB | 200 GB NVMe | 1 Gbps | 1-2 |
 | **HAProxy** | 2 vCPU | 4 GB | 20 GB SSD | 1 Gbps | 2 |
 | **Coturn** | 4 vCPU | 4 GB | 20 GB SSD | 1 Gbps | 3 |
 | **Monitoring** | 2 vCPU | 8 GB | 100 GB SSD | 1 Gbps | 1 |
+
+**Push Gateway co-location impact:** +30-50 MB RAM, <1% CPU per Prosody VM. Geen sizing wijziging nodig.
 
 ### Prosody Sizing: Waarom 8 GB RAM per Node?
 
@@ -247,6 +286,7 @@ Prosody is single-threaded Lua. Elke c2s sessie verbruikt ~50-100 KB RAM:
 33.333 sessies × 100 KB = ~3.2 GB sessie-geheugen
 + Lua VM overhead: ~1 GB
 + OS + buffers: ~2 GB
++ Push Gateway: ~50 MB
 + Headroom (30%): ~2 GB
 = ~8 GB totaal
 ```
@@ -259,6 +299,7 @@ Prosody is single-threaded Lua. Elke c2s sessie verbruikt ~50-100 KB RAM:
 | 5222 | XMPP c2s (TLS) | Directe XMPP clients (optioneel) | Internet |
 | 5269 | XMPP s2s (TLS) | Server-naar-server federatie | XMPP servers |
 | 5280 | HTTP (intern) | WebSocket (achter HAProxy) | HAProxy |
+| **5281** | **HTTP (intern)** | **Push Gateway ← Prosody mod_cloud_notify** | **Localhost** |
 | 5347 | XMPP component | Externe components | Intern |
 | 3478 | STUN/TURN UDP | Media relay | Internet |
 | 5349 | STUN/TURN TLS | Media relay (TLS) | Internet |
@@ -769,43 +810,377 @@ App Force-Quit (geen clean disconnect):
 
 ---
 
-## 12. Push Notifications (cloud_notify)
+## 12. Push Gateway Service
+
+### Waarom een Push Gateway?
+
+**Het kernprobleem:** Wanneer een iOS app in background gaat of gesloten wordt, iOS verbreekt de WebSocket verbinding na ~30 seconden. XMPP call-invite stanzas kunnen dan niet worden afgeleverd. De gebruiker mist inkomende calls.
+
+**De oplossing:** Een Push Gateway die:
+1. **VoIP Push** (APNs PushKit) stuurt voor inkomende calls → wekt de app en toont native CallKit belscherm, zelfs als de app dood is
+2. **Regular Push** (FCM) stuurt voor berichten → toont notificatie banner
 
 ### Architectuur
 
-CommEazy gebruikt `mod_cloud_notify` (XEP-0357) voor push naar iOS (APNs) en Android (FCM).
-
 ```
-Prosody (mod_cloud_notify)
-    │
-    │  XEP-0357 push notification
-    │
-    ▼
-Push Gateway Service (zelf-hosted)
-    │
-    ├── APNs (Apple Push Notification service)
-    │   → iOS devices
-    │
-    └── FCM (Firebase Cloud Messaging)
-        → Android devices
+┌─────────────────────────────────────────────────────────────────────┐
+│                           Prosody                                    │
+│                                                                      │
+│  Bericht/Call ontvangen voor offline user                            │
+│           │                                                          │
+│           ▼                                                          │
+│  mod_cloud_notify (XEP-0357)                                        │
+│           │                                                          │
+│           │  HTTP POST http://127.0.0.1:5281/push                    │
+│           │  Body: { node, secret, jid, type }                       │
+│           │                                                          │
+└───────────┼──────────────────────────────────────────────────────────┘
+            │
+            ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                    Push Gateway (Node.js)                              │
+│                    Poort 5281 — co-located met Prosody                 │
+│                                                                       │
+│  ┌─────────────────────┐      ┌──────────────────────────┐           │
+│  │    VoIP Handler     │      │     FCM Handler          │           │
+│  │                     │      │                          │           │
+│  │  IF type == "call"  │      │  IF type == "message"    │           │
+│  │    → APNs VoIP Push │      │    → FCM data message    │           │
+│  │    via apn2 lib     │      │    via firebase-admin    │           │
+│  │                     │      │                          │           │
+│  │  try/catch eigen    │      │  try/catch eigen         │           │
+│  │  (onafhankelijk)    │      │  (onafhankelijk)         │           │
+│  └────────┬────────────┘      └──────────┬───────────────┘           │
+│           │                              │                            │
+│  ┌────────▼──────────┐         ┌────────▼──────────┐                 │
+│  │ /health endpoint  │         │ Prometheus metrics │                 │
+│  │ GET :5281/health  │         │ GET :5281/metrics  │                 │
+│  └───────────────────┘         └───────────────────┘                 │
+└───────────────────────────────────────────────────────────────────────┘
+            │                              │
+            ▼                              ▼
+     ┌─────────────┐              ┌──────────────┐
+     │    APNs     │              │     FCM      │
+     │   (Apple)   │              │   (Google)   │
+     │             │              │              │
+     │ VoIP Push   │              │ Data Message │
+     │ → PushKit   │              │ → FCM SDK    │
+     │ → CallKit   │              │ → Notificatie│
+     │ → Bel UI    │              │              │
+     └─────────────┘              └──────────────┘
 ```
 
-### Prosody Push Configuratie
+### Design Beslissingen
+
+| Beslissing | Keuze | Reden |
+|------------|-------|-------|
+| **Taal** | Node.js | KISS — zelfde taal als React Native app, bewezen libraries |
+| **Locatie** | Co-located op Prosody VMs | Zero sizing impact (30-50 MB RAM, <1% CPU) |
+| **Architectuur** | Eén proces, twee handlers | 95% fault isolation met 50% operational overhead |
+| **Process manager** | PM2 | Auto-restart (<2s recovery), log management, monitoring |
+| **APNs library** | `apn2` | Bewezen, onderhouden, HTTP/2 gebaseerd |
+| **FCM library** | `firebase-admin` | Officieel Google SDK |
+| **APNs auth** | JWT (ES256) | Geen certificaat-rotatie nodig (key-based) |
+
+### Push Types
+
+| Push Type | Wanneer | Handler | Apple Service | Android Service |
+|-----------|---------|---------|---------------|-----------------|
+| **VoIP Push** | Inkomende call | VoIP Handler | APNs VoIP (PushKit) | FCM high-priority |
+| **Message Push** | Nieuw bericht (user offline) | FCM Handler | APNs regular | FCM data message |
+
+### Prosody Configuratie voor Push Gateway
 
 ```lua
--- mod_cloud_notify is al in modules_enabled
+-- mod_cloud_notify is al in modules_enabled (zie sectie 2)
 
--- Push notification settings
-push_notification_with_body = false    -- GEEN bericht-inhoud in push (privacy!)
-push_notification_with_sender = false  -- GEEN afzender in push (privacy!)
+-- Push notification settings (privacy-first)
+push_notification_with_body = false    -- GEEN bericht-inhoud in push
+push_notification_with_sender = false  -- GEEN afzender in push
 
--- Alleen een signaal dat er een nieuw bericht is
--- De app haalt het bericht zelf op via XMPP na het openen
+-- Push gateway endpoint (localhost want co-located)
+-- De client registreert zich bij Prosody met:
+--   <iq type="set">
+--     <enable xmlns="urn:xmpp:push:0" jid="push.commeazy.com" node="<device-token>">
+--       <x xmlns="jabber:x:data" type="submit">
+--         <field var="secret"><value>SHARED_SECRET</value></field>
+--       </x>
+--     </enable>
+--   </iq>
 ```
 
-### Push Gateway
+### Push Gateway Configuratie
 
-De push gateway is een apart microservice die XEP-0357 notificaties ontvangt en doorstuurt naar APNs/FCM. Dit moet **zelf-hosted** zijn vanwege privacy (geen derde partij ziet push tokens).
+#### Environment Variables
+
+```bash
+# /etc/commeazy/push-gateway.env (productie)
+
+# Server
+PORT=5281
+HOST=127.0.0.1
+
+# Shared secret (zelfde als client registratie bij Prosody)
+PUSH_SECRET=<STERK_GEDEELD_SECRET>
+
+# APNs (Apple Push Notification service)
+APNS_KEY_ID=ABC123DEF4          # Key ID van Apple Developer Portal
+APNS_TEAM_ID=9ABCDE1234         # Team ID
+APNS_KEY_PATH=/etc/commeazy/apns/AuthKey_ABC123DEF4.p8   # ES256 private key
+APNS_BUNDLE_ID=com.commeazy.app
+APNS_ENVIRONMENT=production      # "production" of "sandbox"
+
+# FCM (Firebase Cloud Messaging)
+GOOGLE_APPLICATION_CREDENTIALS=/etc/commeazy/fcm/service-account.json
+
+# Logging
+LOG_LEVEL=info                   # "debug", "info", "warn", "error"
+```
+
+#### Development Environment Variables
+
+```bash
+# .env.development (lokaal)
+
+PORT=5281
+HOST=127.0.0.1
+
+PUSH_SECRET=dev-secret-123
+
+# APNs sandbox
+APNS_KEY_ID=<DEV_KEY_ID>
+APNS_TEAM_ID=<TEAM_ID>
+APNS_KEY_PATH=./certs/AuthKey_dev.p8
+APNS_BUNDLE_ID=com.commeazy.app
+APNS_ENVIRONMENT=sandbox
+
+# FCM
+GOOGLE_APPLICATION_CREDENTIALS=./certs/firebase-service-account.json
+
+LOG_LEVEL=debug
+```
+
+### Gateway Broncode
+
+Zie **Appendix B** voor de volledige broncode (~120 regels).
+
+Kern-functionaliteit:
+
+```javascript
+// Vereenvoudigd overzicht — zie Appendix B voor volledige code
+
+app.post('/push', async (req, res) => {
+  const { node, secret, type } = req.body;
+
+  // Valideer shared secret
+  if (secret !== PUSH_SECRET) return res.status(403).send('Forbidden');
+
+  // VoIP Handler (onafhankelijke try/catch)
+  if (type === 'call') {
+    try {
+      await apnProvider.send(voipNotification, node);  // node = device token
+      log.info('VoIP push sent', { token: node.slice(-6) });
+    } catch (err) {
+      log.error('VoIP push failed', { error: err.message });
+      // Fout hier blokkeert FCM handler NIET
+    }
+  }
+
+  // FCM Handler (onafhankelijke try/catch)
+  if (type === 'message') {
+    try {
+      await admin.messaging().send({ token: node, data: { type: 'message' } });
+      log.info('FCM push sent', { token: node.slice(-6) });
+    } catch (err) {
+      log.error('FCM push failed', { error: err.message });
+      // Fout hier blokkeert VoIP handler NIET
+    }
+  }
+
+  res.status(200).send('OK');
+});
+```
+
+### Health Check
+
+```
+GET http://127.0.0.1:5281/health
+
+Response 200:
+{
+  "status": "ok",
+  "uptime": 86400,
+  "apns": "connected",
+  "fcm": "initialized",
+  "version": "1.0.0"
+}
+```
+
+### PM2 Configuratie
+
+```javascript
+// ecosystem.config.js
+
+module.exports = {
+  apps: [{
+    name: 'commeazy-push-gateway',
+    script: './server.js',
+    cwd: '/opt/commeazy/push-gateway',
+
+    // Environment
+    env_file: '/etc/commeazy/push-gateway.env',
+
+    // Process management
+    instances: 1,              // Single instance (stateless)
+    autorestart: true,         // Auto-restart bij crash
+    watch: false,              // Geen file watching in productie
+    max_memory_restart: '200M', // Restart bij >200MB (safety net)
+
+    // Logging
+    log_file: '/var/log/commeazy/push-gateway.log',
+    error_file: '/var/log/commeazy/push-gateway-error.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss',
+    merge_logs: true,
+
+    // Startup
+    min_uptime: '10s',         // Minimale uptime voor "stable"
+    max_restarts: 10,          // Max restarts in min_uptime window
+    restart_delay: 1000,       // 1s delay tussen restarts
+  }]
+};
+```
+
+### PM2 Operations
+
+```bash
+# Installeren (eenmalig per server)
+npm install -g pm2
+pm2 startup systemd   # Auto-start bij boot
+
+# Deployen
+cd /opt/commeazy/push-gateway
+npm install --production
+pm2 start ecosystem.config.js
+
+# Beheer
+pm2 status                     # Status overzicht
+pm2 logs commeazy-push-gateway # Realtime logs
+pm2 restart commeazy-push-gateway  # Herstart
+pm2 monit                     # Realtime monitoring
+
+# Na config wijziging
+pm2 restart commeazy-push-gateway --update-env
+
+# Opslaan voor auto-start
+pm2 save
+```
+
+### APNs VoIP Push Setup
+
+#### Apple Developer Portal Configuratie
+
+1. **Maak een VoIP Push Certificate of Key:**
+   - Ga naar [Apple Developer Portal](https://developer.apple.com/account) → Certificates, Identifiers & Profiles
+   - **Aanbevolen: APNs Auth Key** (geldt voor alle apps in team, verloopt niet)
+   - Keys → Create Key → Apple Push Notifications service (APNs) → Download `.p8` bestand
+   - Noteer: Key ID, Team ID
+
+2. **App Identifier:**
+   - Bundle ID: `com.commeazy.app`
+   - Capabilities: Push Notifications ✅, VoIP Push ✅
+
+#### iOS Client-Side (PushKit registratie)
+
+```
+App start → PushKit registratie → Device Token ontvangen
+    │
+    ▼
+XMPP enable push:
+  <iq type="set">
+    <enable xmlns="urn:xmpp:push:0"
+            jid="push.commeazy.com"
+            node="<VOIP_DEVICE_TOKEN>">
+      <x xmlns="jabber:x:data" type="submit">
+        <field var="secret"><value>SHARED_SECRET</value></field>
+        <field var="type"><value>voip</value></field>
+      </x>
+    </enable>
+  </iq>
+```
+
+### FCM Setup
+
+#### Firebase Console Configuratie
+
+1. **Project:** CommEazy Firebase project
+2. **Service Account:**
+   - Project Settings → Service accounts → Generate new private key
+   - Download JSON bestand → `/etc/commeazy/fcm/service-account.json`
+
+3. **Client-Side FCM Token:**
+   - React Native app krijgt FCM token via `@react-native-firebase/messaging`
+   - Token wordt naar Prosody gestuurd via XEP-0357 `<enable>` stanza
+
+### Monitoring
+
+| Metric | Beschrijving | Alert drempel |
+|--------|-------------|---------------|
+| `push_gateway_uptime` | Uptime in seconden | < 10s (crash loop) |
+| `push_voip_sent_total` | Totaal VoIP pushes verzonden | — |
+| `push_voip_failed_total` | Totaal VoIP pushes gefaald | > 5% van totaal |
+| `push_fcm_sent_total` | Totaal FCM pushes verzonden | — |
+| `push_fcm_failed_total` | Totaal FCM pushes gefaald | > 5% van totaal |
+| `push_latency_ms` | Push delivery latentie (P99) | > 2000ms |
+| `push_gateway_memory_bytes` | Geheugengebruik | > 150 MB |
+
+### Fault Isolation
+
+De twee handlers (VoIP en FCM) zijn **onafhankelijk** door design:
+
+```
+Scenario: APNs is offline
+─────────────────────────
+VoIP Handler: ❌ Faalt (try/catch vangt op)
+FCM Handler:  ✅ Werkt normaal (onafhankelijk)
+Gateway:      ✅ Blijft draaiend
+
+Scenario: FCM service account verlopen
+───────────────────────────────────────
+VoIP Handler: ✅ Werkt normaal (onafhankelijk)
+FCM Handler:  ❌ Faalt (try/catch vangt op)
+Gateway:      ✅ Blijft draaiend
+
+Scenario: Gateway crash
+───────────────────────
+PM2:          Detecteert crash → herstart (<2 seconden)
+Verlies:      Maximaal 1-2 pushes tijdens herstart
+```
+
+### Wanneer Aparte Processen?
+
+Bij **>50K gebruikers** overweeg twee aparte PM2 processen:
+
+```javascript
+// ecosystem.config.js (>50K variant)
+module.exports = {
+  apps: [
+    {
+      name: 'commeazy-push-voip',
+      script: './server-voip.js',    // Alleen VoIP handler
+      // ...
+    },
+    {
+      name: 'commeazy-push-fcm',
+      script: './server-fcm.js',     // Alleen FCM handler
+      // ...
+    }
+  ]
+};
+```
+
+**Voordelen:** Echte proces-isolatie, onafhankelijke restarts
+**Nadelen:** Meer operational overhead (2 processen monitoren)
+**Aanbeveling:** Niet nodig tot >50K users
 
 ---
 
@@ -901,6 +1276,15 @@ scrape_configs:
         - 'prosody3:5280'
     metrics_path: /metrics
 
+  - job_name: 'push-gateway'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+        - 'prosody1:5281'
+        - 'prosody2:5281'
+        - 'prosody3:5281'
+    metrics_path: /metrics
+
   - job_name: 'haproxy'
     scrape_interval: 15s
     static_configs:
@@ -924,20 +1308,25 @@ scrape_configs:
 | `pg_replication_lag_bytes` | > 10 MB | Warning | Replicatie loopt achter |
 | `coturn_active_allocations` | > 5.000 per node | Warning | Scale Coturn |
 | `ssl_certificate_expiry_days` | < 14 dagen | Warning | Certificaat vernieuwen |
+| **`push_gateway_up`** | **0** | **Critical** | **Push gateway down — calls onbereikbaar!** |
+| **`push_voip_failed_total`** | **> 5% van totaal** | **Warning** | **APNs probleem — check certificaat** |
+| **`push_fcm_failed_total`** | **> 5% van totaal** | **Warning** | **FCM probleem — check service account** |
+| **`push_latency_ms` (P99)** | **> 2000ms** | **Warning** | **Push latentie te hoog** |
 
 ### Grafana Dashboards
 
 1. **Prosody Overview** — Sessies, stanzas/s, geheugen, CPU
 2. **Presence Health** — Presence updates/s, hibernated sessions, dead connections detected
 3. **WebSocket Health** — Active connections, ping/pong latency, connection errors
-4. **PostgreSQL** — Queries/s, replication lag, connection pool
-5. **Coturn** — Active allocations, bandwidth, STUN vs TURN ratio
-6. **HAProxy** — Request rate, backend health, latency percentiles
+4. **Push Gateway Health** — VoIP/FCM success rate, latency, error rate, memory
+5. **PostgreSQL** — Queries/s, replication lag, connection pool
+6. **Coturn** — Active allocations, bandwidth, STUN vs TURN ratio
+7. **HAProxy** — Request rate, backend health, latency percentiles
 
 ### Logging (Productie)
 
 ```lua
--- Productie logging configuratie
+-- Prosody logging configuratie
 log = {
     info = "/var/log/prosody/prosody.log";
     warn = "/var/log/prosody/prosody.warn";
@@ -959,6 +1348,22 @@ log = {
 --         prosodyctl reload
 --     endscript
 -- }
+```
+
+```bash
+# Push Gateway log rotation
+# /etc/logrotate.d/commeazy-push-gateway
+/var/log/commeazy/push-gateway*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    postrotate
+        pm2 reloadLogs
+    endscript
+}
 ```
 
 ---
@@ -994,6 +1399,17 @@ modules_enabled = {
 }
 ```
 
+### Push Gateway Security
+
+| Maatregel | Implementatie |
+|-----------|---------------|
+| **Alleen localhost** | `HOST=127.0.0.1` — niet bereikbaar van buitenaf |
+| **Shared secret** | Elke push request MOET het gedeelde secret bevatten |
+| **Geen PII in logs** | Alleen laatste 6 chars van device tokens gelogd |
+| **APNs Key beveiliging** | `.p8` key met restrictieve permissions (`chmod 600`) |
+| **FCM SA beveiliging** | Service account JSON met restrictieve permissions |
+| **Rate limiting** | Express rate-limit middleware (100 req/s max) |
+
 ### Firewall Regels (iptables/nftables)
 
 ```bash
@@ -1008,6 +1424,10 @@ modules_enabled = {
 -A INPUT -s 10.0.0.0/8 -p tcp --dport 5280 -j ACCEPT  # WebSocket (intern)
 -A INPUT -s 10.0.0.0/8 -p tcp --dport 5269 -j ACCEPT  # s2s (intern)
 -A INPUT -s 10.0.0.0/8 -p tcp --dport 5347 -j ACCEPT  # Component (intern)
+
+# Push Gateway (ALLEEN localhost — Prosody co-located)
+-A INPUT -s 127.0.0.1 -p tcp --dport 5281 -j ACCEPT   # Push gateway
+-A INPUT -p tcp --dport 5281 -j DROP                    # Blokkeer externe toegang
 
 # Coturn (publiek)
 -A INPUT -p udp --dport 3478 -j ACCEPT               # STUN/TURN
@@ -1034,6 +1454,8 @@ modules_enabled = {
 | **Geen server-side logging van berichten** | GDPR | Geen archivering geconfigureerd |
 | **E2E encryptie** | Privacy | Client-side (libsodium), niet server-side |
 | **TLS 1.2+ only** | Security | `protocol = "tlsv1_2+"` |
+| **Push gateway alleen localhost** | Security | `HOST=127.0.0.1` + firewall |
+| **Geen PII in push payload** | Privacy | Alleen "new message" / "incoming call" type |
 
 ---
 
@@ -1043,7 +1465,8 @@ modules_enabled = {
 
 | Resource | Per Sessie | 100K Sessies |
 |----------|-----------|--------------|
-| **RAM** | 50-100 KB | 5-10 GB |
+| **RAM (Prosody)** | 50-100 KB | 5-10 GB |
+| **RAM (Push GW)** | — | ~30-50 MB (vast) |
 | **CPU** | 0.001% van 1 core | 100% van 1 core (idle) |
 | **Bandbreedte (idle)** | ~100 bytes/min (pings) | ~160 KB/s |
 | **Bandbreedte (actief)** | ~2 KB/bericht | Variabel |
@@ -1053,14 +1476,14 @@ modules_enabled = {
 
 ```
 Jaar 1: 10.000 gebruikers
-├── 2 Prosody nodes (4 vCPU, 8 GB)
+├── 2 Prosody nodes + Push Gateway (4 vCPU, 8 GB)
 ├── 1 PostgreSQL primary + 1 replica
 ├── 1 HAProxy + 1 standby
 ├── 2 Coturn nodes
 └── Kosten: ~€200-400/maand (Hetzner)
 
 Jaar 2: 50.000 gebruikers
-├── 3 Prosody nodes (4 vCPU, 8 GB)
+├── 3 Prosody nodes + Push Gateway (4 vCPU, 8 GB)
 ├── 1 PostgreSQL primary + 2 replicas
 ├── 2 HAProxy (keepalived)
 ├── 3 Coturn nodes
@@ -1068,6 +1491,7 @@ Jaar 2: 50.000 gebruikers
 
 Jaar 3: 100.000+ gebruikers
 ├── 5 Prosody nodes (8 vCPU, 16 GB)
+├── 2 Push Gateway nodes (aparte VMs, fault isolation)
 ├── PostgreSQL cluster (Patroni)
 ├── 2 HAProxy (keepalived)
 ├── 5 Coturn nodes
@@ -1079,6 +1503,7 @@ Jaar 3: 100.000+ gebruikers
 | Component | Limiet | Oplossing |
 |-----------|--------|-----------|
 | **Prosody per node** | ~50K sessies (geheugen) | Meer nodes toevoegen |
+| **Push Gateway** | ~10K pushes/s (HTTP/2 APNs) | Tweede instance (PM2 cluster) |
 | **PostgreSQL** | ~10K queries/s | Read replicas, connection pooling (PgBouncer) |
 | **HAProxy** | ~100K concurrent connections | Keepalived cluster |
 | **Coturn** | Bandbreedte-beperkt | Meer nodes, geografisch verspreid |
@@ -1094,6 +1519,9 @@ Jaar 3: 100.000+ gebruikers
 |------|---------|-----------|----------|
 | **PostgreSQL** | `pg_dump` + WAL archiving | Dagelijks + continu WAL | 30 dagen |
 | **Prosody config** | Git repository | Bij elke wijziging | Onbeperkt |
+| **Push Gateway config** | Git repository | Bij elke wijziging | Onbeperkt |
+| **APNs .p8 key** | Encrypted backup (1Password/Vault) | Bij aanmaak | Onbeperkt |
+| **FCM service account** | Encrypted backup | Bij aanmaak | Onbeperkt |
 | **TLS certificaten** | Encrypted backup | Wekelijks | 1 jaar |
 | **HAProxy config** | Git repository | Bij elke wijziging | Onbeperkt |
 | **Coturn config** | Git repository | Bij elke wijziging | Onbeperkt |
@@ -1109,13 +1537,26 @@ Jaar 3: 100.000+ gebruikers
 2. HAProxy stopt met routeren naar deze node
 3. Clients op deze node verliezen verbinding
 4. Clients reconnecten automatisch → HAProxy routeert naar gezonde node
-5. Herstel: herstart node of deploy nieuwe node
-6. Na herstel: HAProxy detecteert gezonde node (2 successen)
+5. Push Gateway op dezelfde node ook down → pushes van deze node stoppen
+   → Prosody op andere nodes stuurt pushes via hun eigen gateway
+6. Herstel: herstart node of deploy nieuwe node
+7. Na herstel: HAProxy detecteert gezonde node (2 successen)
 ```
 
 **Impact:** ~33% van gebruikers (bij 3 nodes) verliest verbinding voor ~5-10 seconden.
 
-#### Scenario 2: PostgreSQL Primary Down
+#### Scenario 2: Push Gateway Crash (Prosody Node OK)
+
+```
+1. PM2 detecteert crash
+2. PM2 herstart gateway (<2 seconden)
+3. Verlies: maximaal 1-2 pushes tijdens herstart
+4. Prosody blijft normaal functioneren (alleen push delivery tijdelijk onderbroken)
+```
+
+**Impact:** 1-2 pushes gemist. Geen impact op actieve XMPP sessies.
+
+#### Scenario 3: PostgreSQL Primary Down
 
 ```
 1. Patroni detecteert primary failure
@@ -1127,11 +1568,11 @@ Jaar 3: 100.000+ gebruikers
 
 **Impact:** ~5-30 seconden downtime voor nieuwe roster lookups. Actieve sessies niet beïnvloed (in-memory).
 
-#### Scenario 3: Complete Datacenter Failure
+#### Scenario 4: Complete Datacenter Failure
 
 ```
 1. DNS failover naar backup datacenter (TTL: 60s)
-2. Backup Prosody cluster + PostgreSQL replica activeren
+2. Backup Prosody cluster + Push Gateway + PostgreSQL replica activeren
 3. Alle clients reconnecten naar nieuw cluster
 4. Presence wordt opnieuw opgebouwd (probe)
 ```
@@ -1145,6 +1586,7 @@ Jaar 3: 100.000+ gebruikers
 | **RPO** (data verlies) | 0 (voor berichten: N/A, zero storage) | WAL streaming |
 | **RTO** (recovery time) | < 5 minuten (single node) | Auto-failover |
 | **RTO** (full cluster) | < 30 minuten | DNS failover + standby |
+| **RTO** (push gateway) | < 2 seconden | PM2 auto-restart |
 
 ---
 
@@ -1155,10 +1597,10 @@ Jaar 3: 100.000+ gebruikers
 | Methode | Voordelen | Nadelen | Aanbevolen? |
 |---------|-----------|---------|-------------|
 | **Docker + K8s** | Auto-scaling, self-healing | Complexiteit, WebSocket sticky sessions lastig | Nee (initieel) |
-| **Systemd op VMs** | Eenvoudig, voorspelbaar | Manueel schalen | Ja (start) |
+| **Systemd + PM2 op VMs** | Eenvoudig, voorspelbaar | Manueel schalen | Ja (start) |
 | **Docker Compose** | Eenvoudiger dan K8s | Geen auto-scaling | Optioneel |
 
-**Aanbeveling:** Start met **systemd op VMs**. Migreer naar Kubernetes wanneer:
+**Aanbeveling:** Start met **systemd (Prosody) + PM2 (Push Gateway) op VMs**. Migreer naar Kubernetes wanneer:
 - Team heeft K8s ervaring
 - > 100K gebruikers vereist auto-scaling
 - Multi-datacenter deployment nodig
@@ -1166,6 +1608,8 @@ Jaar 3: 100.000+ gebruikers
 ### Deployment Procedure
 
 ```bash
+# === Prosody Rolling Update ===
+
 # 1. Build nieuwe Prosody config
 prosodyctl check config
 
@@ -1181,13 +1625,36 @@ systemctl stop prosody
 # ... update config/packages ...
 systemctl start prosody
 
-# 5. Health check
-curl -f http://localhost:5280/health
+# 5. Update Push Gateway (indien nodig)
+cd /opt/commeazy/push-gateway
+git pull
+npm install --production
+pm2 restart commeazy-push-gateway
 
-# 6. Re-enable op HAProxy
+# 6. Health check (beide services)
+curl -f http://localhost:5280/health          # Prosody
+curl -f http://localhost:5281/health          # Push Gateway
+
+# 7. Re-enable op HAProxy
 echo "set server prosody_ws/prosody1 state ready" | socat /run/haproxy/admin.sock stdio
 
-# 7. Herhaal voor volgende node
+# 8. Herhaal voor volgende node
+```
+
+### Push Gateway Standalone Update
+
+```bash
+# Push Gateway kan onafhankelijk van Prosody worden ge-update
+# (geen HAProxy drain nodig — gateway is stateless)
+
+cd /opt/commeazy/push-gateway
+git pull
+npm install --production
+pm2 restart commeazy-push-gateway
+
+# Verificatie
+curl -f http://localhost:5281/health
+pm2 logs commeazy-push-gateway --lines 20
 ```
 
 ---
@@ -1198,16 +1665,56 @@ echo "set server prosody_ws/prosody1 state ready" | socat /run/haproxy/admin.soc
 
 | Stap | Actie | Risico | Rollback |
 |------|-------|--------|----------|
-| 1 | Prosody 13.0.4+ installeren op productie VMs (package manager of build from source) | Laag | VM snapshot |
+| 1 | Prosody 13.0.4+ installeren op productie VMs | Laag | VM snapshot |
 | 2 | PostgreSQL cluster opzetten + schema creëren | Laag | Drop database |
 | 3 | HAProxy configureren + TLS certificaten | Medium | Config restore |
 | 4 | Prosody productie-config deployen | Medium | Config restore + restart |
 | 5 | Test met 2-3 test accounts | Laag | N/A |
-| 6 | Coturn cluster opzetten | Laag | Config restore |
-| 7 | Push gateway deployen | Medium | Disable push |
-| 8 | DNS wijzigen naar productie | Hoog | DNS revert (TTL!) |
-| 9 | Monitoring opzetten | Laag | N/A |
-| 10 | Load test (10K → 50K → 100K) | Medium | Scale resources |
+| 6 | **Push Gateway deployen + PM2 configureren** | **Medium** | **PM2 stop** |
+| 7 | **APNs VoIP Push testen (sandbox)** | **Laag** | **Disable push** |
+| 8 | **FCM Push testen** | **Laag** | **Disable push** |
+| 9 | Coturn cluster opzetten | Laag | Config restore |
+| 10 | DNS wijzigen naar productie | Hoog | DNS revert (TTL!) |
+| 11 | Monitoring opzetten (incl. Push Gateway metrics) | Laag | N/A |
+| 12 | Load test (10K → 50K → 100K) | Medium | Scale resources |
+
+### Push Gateway Deployment Stappen (Detail)
+
+```bash
+# Stap 6: Push Gateway deployen
+
+# 6a. Node.js installeren
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+sudo apt-get install -y nodejs
+
+# 6b. PM2 installeren
+sudo npm install -g pm2
+
+# 6c. Gateway code deployen
+sudo mkdir -p /opt/commeazy/push-gateway
+cd /opt/commeazy/push-gateway
+# ... git clone of scp code ...
+npm install --production
+
+# 6d. Credentials plaatsen
+sudo mkdir -p /etc/commeazy/apns /etc/commeazy/fcm
+# ... kopieer .p8 key en service-account.json ...
+sudo chmod 600 /etc/commeazy/apns/AuthKey_*.p8
+sudo chmod 600 /etc/commeazy/fcm/service-account.json
+
+# 6e. Environment file
+sudo cp push-gateway.env.example /etc/commeazy/push-gateway.env
+# ... vul waarden in ...
+sudo chmod 600 /etc/commeazy/push-gateway.env
+
+# 6f. Start met PM2
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup systemd
+
+# 6g. Verificatie
+curl http://127.0.0.1:5281/health
+```
 
 ### Configuratie Wijzigingen (Dev → Prod)
 
@@ -1219,13 +1726,15 @@ echo "set server prosody_ws/prosody1 state ready" | socat /run/haproxy/admin.soc
 | `allow_registration` | `true` | `false` | Account beheer via backend |
 | `log` | `*console` | Bestanden + logrotate | Operations |
 | `statistics` | Uit | `internal` + OpenMetrics | Monitoring |
-| `http_openmetrics` | Uit | Aan | Prometheus |
+| `http_openmetrics` | Uit | Ingeschakeld | Monitoring |
 | `VirtualHost` | `commeazy.local` | `commeazy.com` | Productie domein |
 | `admins` | Leeg | Specifieke admin accounts | Beheer |
 | `s2s_secure_auth` | `true` | `true` | Behouden |
 | `limits.c2s.rate` | `10kb/s` | `10kb/s` (evalueren) | DDoS bescherming |
 | `network_settings.read_timeout` | `60` | `60` (evalueren naar 120) | Presence detectie |
 | `smacks_hibernation_time` | `30` | `30` | Presence snelheid |
+| **Push Gateway** | **Niet geïnstalleerd** | **PM2 op :5281** | **VoIP Push + FCM** |
+| **APNS_ENVIRONMENT** | **sandbox** | **production** | **Push naar productie devices** |
 
 ---
 
@@ -1270,12 +1779,23 @@ echo "set server prosody_ws/prosody1 state ready" | socat /run/haproxy/admin.soc
 - [ ] **Background presence test** — App A naar background → App B ziet "away"
 - [ ] **Multi-device presence** — Meerdere devices per account correct
 
-### E. Push Notifications
+### E. Push Gateway
 
-- [ ] **APNs certificaat geldig** — Push naar iOS werkt
-- [ ] **FCM configuratie correct** — Push naar Android werkt
-- [ ] **push_notification_with_body = false** — Geen bericht-inhoud in push
-- [ ] **Push gateway operationeel** — XEP-0357 flow getest
+- [ ] **Push Gateway draait** — `curl http://127.0.0.1:5281/health` → 200 OK
+- [ ] **PM2 auto-restart werkt** — `pm2 stop` → automatisch herstart
+- [ ] **PM2 systemd integratie** — Gateway start na server reboot
+- [ ] **APNs .p8 key geldig** — Key ID en Team ID correct
+- [ ] **APNs VoIP Push getest (sandbox)** — Push komt aan op test device
+- [ ] **APNs VoIP Push getest (production)** — Push komt aan op productie device
+- [ ] **FCM service account geldig** — `firebase-admin` initialiseert correct
+- [ ] **FCM Push getest** — Push komt aan op Android test device
+- [ ] **Shared secret synchroon** — Prosody, client, en gateway gebruiken zelfde secret
+- [ ] **End-to-end call test** — iPad belt iPhone (app in background) → iPhone rinkelt
+- [ ] **End-to-end call test (app dood)** — iPad belt iPhone (app gesloten) → iPhone rinkelt
+- [ ] **End-to-end message push test** — Bericht sturen naar offline user → push ontvangen
+- [ ] **Privacy check** — Push payload bevat geen berichtinhoud of afzendernaam
+- [ ] **Credentials permissions** — `.p8` en service account zijn `chmod 600`
+- [ ] **Logs bevatten geen PII** — Alleen laatste 6 chars van tokens
 
 ### F. WebRTC / STUN/TURN
 
@@ -1286,11 +1806,11 @@ echo "set server prosody_ws/prosody1 state ready" | socat /run/haproxy/admin.soc
 
 ### G. Monitoring
 
-- [ ] **Prometheus scrapet alle targets** — Prosody, HAProxy, PostgreSQL, Coturn
-- [ ] **Grafana dashboards operationeel** — Alle 6 dashboards zichtbaar
-- [ ] **Alerts geconfigureerd** — Alle kritieke alerts actief
+- [ ] **Prometheus scrapet alle targets** — Prosody, Push Gateway, HAProxy, PostgreSQL, Coturn
+- [ ] **Grafana dashboards operationeel** — Alle 7 dashboards zichtbaar
+- [ ] **Alerts geconfigureerd** — Alle kritieke alerts actief (incl. Push Gateway)
 - [ ] **Log aggregatie actief** — Logs beschikbaar voor debugging
-- [ ] **Logrotate geconfigureerd** — Disk loopt niet vol
+- [ ] **Logrotate geconfigureerd** — Disk loopt niet vol (Prosody + Push Gateway)
 
 ### H. Performance & Load Testing
 
@@ -1298,13 +1818,17 @@ echo "set server prosody_ws/prosody1 state ready" | socat /run/haproxy/admin.soc
 - [ ] **50K gelijktijdige verbindingen** — Systeem stabiel, latency < 100ms P99
 - [ ] **100K gelijktijdige verbindingen** — Systeem stabiel, resources < 80%
 - [ ] **Node-failure test** — 1 Prosody node verwijderd, clients reconnecten
+- [ ] **Push Gateway failure test** — Gateway gestopt, PM2 herstart <2s
 - [ ] **Database failover test** — PostgreSQL primary down, replica overneemt
 - [ ] **Bericht-latency gemeten** — P50, P95, P99 gelogd
-- [ ] **Memory leak test** — 24h soak test, geheugen stabiel
+- [ ] **Push delivery latency gemeten** — P50, P95, P99 < 2s
+- [ ] **Memory leak test** — 24h soak test, geheugen stabiel (Prosody + Gateway)
 
 ### I. Disaster Recovery
 
 - [ ] **Backup procedure getest** — PostgreSQL backup + restore succesvol
+- [ ] **APNs key backup** — .p8 key veilig opgeslagen (encrypted)
+- [ ] **FCM SA backup** — Service account JSON veilig opgeslagen (encrypted)
 - [ ] **Failover procedure getest** — Documentatie klopt met praktijk
 - [ ] **Rollback procedure getest** — Vorige config snel te herstellen
 
@@ -1323,7 +1847,7 @@ echo "set server prosody_ws/prosody1 state ready" | socat /run/haproxy/admin.soc
 ```lua
 -- ============================================================
 -- CommEazy Prosody Production Configuration
--- Version: 1.0
+-- Version: 2.0
 -- Last updated: 2026-02-27
 -- ============================================================
 
@@ -1496,7 +2020,266 @@ VirtualHost "commeazy.com"
 
 ---
 
-## Appendix B: Development vs Productie Vergelijking
+## Appendix B: Volledige Push Gateway Broncode
+
+### package.json
+
+```json
+{
+  "name": "commeazy-push-gateway",
+  "version": "1.0.0",
+  "description": "CommEazy Push Gateway — VoIP (APNs) + Message (FCM)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "apn2": "^2.0.0",
+    "firebase-admin": "^12.0.0",
+    "express-rate-limit": "^7.0.0"
+  }
+}
+```
+
+### server.js
+
+```javascript
+// ============================================================
+// CommEazy Push Gateway
+// Version: 1.0.0
+//
+// Single process with two independent handlers:
+// - VoIP Handler: APNs VoIP Push (PushKit → CallKit)
+// - FCM Handler: Firebase Cloud Messaging (message notifications)
+//
+// Co-located with Prosody on same VM. Listens on localhost:5281.
+// Receives HTTP POST from Prosody mod_cloud_notify (XEP-0357).
+// ============================================================
+
+const express = require('express');
+const apn = require('apn2');
+const admin = require('firebase-admin');
+const rateLimit = require('express-rate-limit');
+const fs = require('fs');
+const path = require('path');
+
+// --- Configuration ---
+const PORT = process.env.PORT || 5281;
+const HOST = process.env.HOST || '127.0.0.1';
+const PUSH_SECRET = process.env.PUSH_SECRET;
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+
+// Simple logger
+const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3 };
+const log = {
+  debug: (...args) => LOG_LEVELS[LOG_LEVEL] <= 0 && console.log('[DEBUG]', new Date().toISOString(), ...args),
+  info:  (...args) => LOG_LEVELS[LOG_LEVEL] <= 1 && console.log('[INFO]', new Date().toISOString(), ...args),
+  warn:  (...args) => LOG_LEVELS[LOG_LEVEL] <= 2 && console.warn('[WARN]', new Date().toISOString(), ...args),
+  error: (...args) => LOG_LEVELS[LOG_LEVEL] <= 3 && console.error('[ERROR]', new Date().toISOString(), ...args),
+};
+
+// --- Validate required environment variables ---
+if (!PUSH_SECRET) {
+  log.error('PUSH_SECRET is required');
+  process.exit(1);
+}
+
+// --- APNs Provider (VoIP Push) ---
+let apnProvider = null;
+try {
+  apnProvider = new apn.Provider({
+    token: {
+      key: fs.readFileSync(process.env.APNS_KEY_PATH),
+      keyId: process.env.APNS_KEY_ID,
+      teamId: process.env.APNS_TEAM_ID,
+    },
+    production: process.env.APNS_ENVIRONMENT === 'production',
+  });
+  log.info('APNs provider initialized');
+} catch (err) {
+  log.error('APNs provider initialization failed:', err.message);
+  // Gateway continues — FCM still works
+}
+
+// --- FCM Provider (Message Push) ---
+let fcmInitialized = false;
+try {
+  admin.initializeApp({
+    credential: admin.credential.cert(
+      JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'))
+    ),
+  });
+  fcmInitialized = true;
+  log.info('FCM provider initialized');
+} catch (err) {
+  log.error('FCM provider initialization failed:', err.message);
+  // Gateway continues — APNs still works
+}
+
+// --- Metrics ---
+const metrics = {
+  voipSent: 0,
+  voipFailed: 0,
+  fcmSent: 0,
+  fcmFailed: 0,
+  startTime: Date.now(),
+};
+
+// --- Express App ---
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting (100 req/s — Prosody typically sends ~10-50 req/s)
+app.use(rateLimit({
+  windowMs: 1000,
+  max: 100,
+  message: 'Rate limit exceeded',
+}));
+
+// --- Health Check ---
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: Math.floor((Date.now() - metrics.startTime) / 1000),
+    apns: apnProvider ? 'connected' : 'unavailable',
+    fcm: fcmInitialized ? 'initialized' : 'unavailable',
+    version: '1.0.0',
+  });
+});
+
+// --- Prometheus Metrics ---
+app.get('/metrics', (req, res) => {
+  res.type('text/plain').send([
+    `# HELP push_voip_sent_total Total VoIP pushes sent`,
+    `# TYPE push_voip_sent_total counter`,
+    `push_voip_sent_total ${metrics.voipSent}`,
+    `# HELP push_voip_failed_total Total VoIP pushes failed`,
+    `# TYPE push_voip_failed_total counter`,
+    `push_voip_failed_total ${metrics.voipFailed}`,
+    `# HELP push_fcm_sent_total Total FCM pushes sent`,
+    `# TYPE push_fcm_sent_total counter`,
+    `push_fcm_sent_total ${metrics.fcmSent}`,
+    `# HELP push_fcm_failed_total Total FCM pushes failed`,
+    `# TYPE push_fcm_failed_total counter`,
+    `push_fcm_failed_total ${metrics.fcmFailed}`,
+    `# HELP push_gateway_uptime_seconds Gateway uptime in seconds`,
+    `# TYPE push_gateway_uptime_seconds gauge`,
+    `push_gateway_uptime_seconds ${Math.floor((Date.now() - metrics.startTime) / 1000)}`,
+  ].join('\n') + '\n');
+});
+
+// --- Push Endpoint ---
+app.post('/push', async (req, res) => {
+  const { node, secret, type, jid } = req.body;
+
+  // Validate shared secret
+  if (secret !== PUSH_SECRET) {
+    log.warn('Invalid push secret from', req.ip);
+    return res.status(403).send('Forbidden');
+  }
+
+  if (!node) {
+    return res.status(400).send('Missing device token (node)');
+  }
+
+  // Token suffix for logging (no PII)
+  const tokenSuffix = node.slice(-6);
+
+  // --- VoIP Handler (independent try/catch) ---
+  if (type === 'call' && apnProvider) {
+    try {
+      const notification = new apn.Notification();
+      notification.topic = `${process.env.APNS_BUNDLE_ID}.voip`;
+      notification.pushType = 'voip';
+      notification.priority = 10;  // Immediate
+      notification.expiry = Math.floor(Date.now() / 1000) + 30;  // 30s expiry
+      notification.payload = { type: 'incoming-call' };  // No PII
+
+      const result = await apnProvider.send(notification, node);
+      if (result.failed && result.failed.length > 0) {
+        log.error('VoIP push failed', { token: tokenSuffix, reason: result.failed[0].response });
+        metrics.voipFailed++;
+      } else {
+        log.info('VoIP push sent', { token: tokenSuffix });
+        metrics.voipSent++;
+      }
+    } catch (err) {
+      log.error('VoIP push error', { token: tokenSuffix, error: err.message });
+      metrics.voipFailed++;
+      // Does NOT block FCM handler
+    }
+  }
+
+  // --- FCM Handler (independent try/catch) ---
+  if (type === 'message' && fcmInitialized) {
+    try {
+      await admin.messaging().send({
+        token: node,
+        data: { type: 'new-message' },  // No PII — app fetches content via XMPP
+        android: {
+          priority: 'high',
+          ttl: 60000,  // 60s
+        },
+      });
+      log.info('FCM push sent', { token: tokenSuffix });
+      metrics.fcmSent++;
+    } catch (err) {
+      log.error('FCM push error', { token: tokenSuffix, error: err.message });
+      metrics.fcmFailed++;
+      // Does NOT block VoIP handler
+    }
+  }
+
+  res.status(200).send('OK');
+});
+
+// --- Start Server ---
+app.listen(PORT, HOST, () => {
+  log.info(`Push Gateway listening on ${HOST}:${PORT}`);
+  log.info(`APNs: ${apnProvider ? 'ready' : 'UNAVAILABLE'}`);
+  log.info(`FCM: ${fcmInitialized ? 'ready' : 'UNAVAILABLE'}`);
+});
+```
+
+### ecosystem.config.js
+
+```javascript
+// PM2 configuration for CommEazy Push Gateway
+module.exports = {
+  apps: [{
+    name: 'commeazy-push-gateway',
+    script: './server.js',
+    cwd: '/opt/commeazy/push-gateway',
+
+    // Environment from file
+    env_file: '/etc/commeazy/push-gateway.env',
+
+    // Process management
+    instances: 1,
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '200M',
+
+    // Logging
+    log_file: '/var/log/commeazy/push-gateway.log',
+    error_file: '/var/log/commeazy/push-gateway-error.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss',
+    merge_logs: true,
+
+    // Startup behavior
+    min_uptime: '10s',
+    max_restarts: 10,
+    restart_delay: 1000,
+  }]
+};
+```
+
+---
+
+## Appendix C: Development vs Productie Vergelijking
 
 | Setting | Development | Productie | Reden Verschil |
 |---------|-------------|-----------|----------------|
@@ -1525,10 +2308,12 @@ VirtualHost "commeazy.com"
 | `dialback` | Ingeschakeld | Uitgeschakeld | Geen federatie |
 | `http_openmetrics` | Uit | Ingeschakeld | Monitoring |
 | `mimicking` | Uit | Ingeschakeld | Security |
+| **Push Gateway** | **Niet geïnstalleerd** | **PM2 op :5281** | **VoIP + FCM push** |
+| **APNs environment** | **sandbox** | **production** | **Push naar productie** |
 
 ---
 
-## Appendix C: Troubleshooting Guide
+## Appendix D: Troubleshooting Guide
 
 ### Probleem 1: Presence blijft hangen op "away" of "online"
 
@@ -1622,7 +2407,7 @@ psql -c "SELECT * FROM pg_stat_replication"
 
 ### Probleem 5: Push notifications komen niet aan
 
-**Symptomen:** Gebruikers ontvangen geen push bij nieuwe berichten.
+**Symptomen:** Gebruikers ontvangen geen push bij nieuwe berichten of inkomende calls.
 
 **Diagnose:**
 ```bash
@@ -1630,17 +2415,78 @@ psql -c "SELECT * FROM pg_stat_replication"
 prosodyctl shell
 > module:list("commeazy.com")  -- Bevat "cloud_notify"?
 
-# Check push gateway logs
-journalctl -u push-gateway -f
+# Check Push Gateway status
+curl http://127.0.0.1:5281/health
 
-# Check APNs/FCM response codes
+# Check Push Gateway logs
+pm2 logs commeazy-push-gateway --lines 50
+
+# Check metrics
+curl http://127.0.0.1:5281/metrics
+
+# Check PM2 status
+pm2 status
 ```
 
 **Oplossing:**
 1. Controleer `cloud_notify` in `modules_enabled`
-2. Controleer push gateway bereikbaar
-3. Controleer APNs certificaat geldigheid
-4. Controleer FCM server key
+2. Controleer Push Gateway bereikbaar (`curl :5281/health`)
+3. Als `apns: "unavailable"` in health check: controleer `.p8` key pad en permissions
+4. Als `fcm: "unavailable"`: controleer service account JSON
+5. Controleer shared secret consistent is tussen Prosody, client, en gateway
+6. Check `push_voip_failed_total` en `push_fcm_failed_total` metrics
+7. Bij hoge failure rate: controleer APNs/FCM status pagina's
+
+### Probleem 6: VoIP Push komt niet aan (call missed)
+
+**Symptomen:** iPad belt iPhone, maar iPhone rinkelt niet wanneer app in background/gesloten is.
+
+**Diagnose:**
+```bash
+# 1. Check of Push Gateway het verzoek ontvangt
+pm2 logs commeazy-push-gateway --lines 50 | grep "call"
+
+# 2. Check APNs response
+pm2 logs commeazy-push-gateway --lines 50 | grep "VoIP"
+
+# 3. Check of device token correct is
+# (Vergelijk laatste 6 chars in logs met token op device)
+
+# 4. Test met directe APNs push (bypass Prosody)
+curl -X POST http://127.0.0.1:5281/push \
+  -H 'Content-Type: application/json' \
+  -d '{"node":"<VOIP_DEVICE_TOKEN>","secret":"<PUSH_SECRET>","type":"call"}'
+```
+
+**Veelvoorkomende oorzaken:**
+1. **Verkeerde APNs environment** — `sandbox` voor development, `production` voor TestFlight/App Store
+2. **VoIP device token verouderd** — iOS genereert soms een nieuw token na app update
+3. **Bundle ID mismatch** — `.voip` suffix vereist (`com.commeazy.app.voip`)
+4. **PushKit niet correct geregistreerd op iOS client** — Check `didUpdate pushCredentials`
+5. **APNs .p8 key verlopen** — Keys verlopen niet, maar Key ID kan gerevoceerd zijn
+
+### Probleem 7: Push Gateway crash loop
+
+**Symptomen:** PM2 toont "errored" of "stopped" status, gateway herstart continu.
+
+**Diagnose:**
+```bash
+# Check PM2 status
+pm2 status
+
+# Check error logs
+pm2 logs commeazy-push-gateway --err --lines 100
+
+# Check restarts
+pm2 describe commeazy-push-gateway | grep restarts
+```
+
+**Oplossing:**
+1. Controleer environment variabelen (`/etc/commeazy/push-gateway.env`)
+2. Controleer of `.p8` key en service account bestanden bestaan en leesbaar zijn
+3. Controleer Node.js versie (`node --version` — minimaal 18.x vereist)
+4. Controleer `npm install --production` succesvol was
+5. Bij `max_restarts` bereikt: `pm2 delete commeazy-push-gateway && pm2 start ecosystem.config.js`
 
 ---
 
@@ -1648,8 +2494,9 @@ journalctl -u push-gateway -f
 
 | Versie | Datum | Auteur | Wijziging |
 |--------|-------|--------|-----------|
-| 1.0 | 2026-02-27 | Claude Opus 4 + Bert | Initieel document |
+| 1.0 | 2026-02-27 | Claude Opus 4 + Bert | Initieel document (Prosody configuratie) |
 | 1.1 | 2026-02-27 | Claude Opus 4 + Bert | Upgrade naar Prosody 13.0.4, build-from-source instructies, iOS presence fix lessons learned |
+| 2.0 | 2026-02-27 | Claude Opus 4 + Bert | Hernoemen naar "Server Side Configuration". Toevoegen Node.js Push Gateway (VoIP Push + FCM), PM2 configuratie, APNs/FCM setup, monitoring, troubleshooting |
 | | | | |
 
 **Volgende review:** Vóór eerste productie-deployment

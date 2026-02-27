@@ -25,9 +25,11 @@ type XMPPClient = ReturnType<typeof client>;
 // XEP-0357 Push Notifications namespace
 const NS_PUSH = 'urn:xmpp:push:0';
 
-// Firebase Cloud Messaging push service node
-// This is configured in Prosody's mod_cloud_notify
-const FCM_PUSH_SERVICE = 'push.commeazy.local'; // Prosody push component
+// Push service JIDs — registered with Prosody's mod_cloud_notify
+// These don't need to be real XMPP endpoints because mod_push_http intercepts
+// the push event before Prosody attempts S2S delivery.
+const FCM_PUSH_SERVICE = 'push.commeazy.local';        // FCM message notifications
+const VOIP_PUSH_SERVICE = 'voip.push.commeazy.local';  // APNs VoIP (PushKit) for calls
 
 // Call signaling namespace (custom for CommEazy)
 const NS_CALL = 'urn:commeazy:call:1';
@@ -405,32 +407,20 @@ export class XmppJsService implements XMPPService {
    *
    * @param fcmToken - The Firebase Cloud Messaging device token
    * @param apnsToken - The APNs device token (hex string, iOS only)
+   * @param voipToken - The VoIP/PushKit device token (hex string, iOS only)
    */
-  async enablePushNotifications(fcmToken: string, apnsToken?: string): Promise<void> {
+  async enablePushNotifications(fcmToken: string, apnsToken?: string, voipToken?: string): Promise<void> {
     this.ensureConnected();
 
-    // Build the node value - for iOS include both tokens
-    let nodeValue: string;
-    if (apnsToken) {
-      // iOS: include both APNs (for direct push) and FCM (for fallback)
-      nodeValue = `apns:${apnsToken}|fcm:${fcmToken}`;
-      console.log('[XMPP] Enabling push notifications with APNs + FCM tokens...');
-    } else {
-      // Android or iOS without APNs token
-      nodeValue = fcmToken;
-      console.log('[XMPP] Enabling push notifications with FCM token...');
-    }
-
     try {
-      // Build the XEP-0357 enable stanza
-      const enableStanza = xml('iq', { type: 'set', id: `push-enable-${Date.now()}` },
-        xml('enable', { xmlns: NS_PUSH, jid: FCM_PUSH_SERVICE, node: nodeValue },
-          // Optional: publish options for the push service
+      // 1. Register FCM token for message notifications
+      const fcmNodeValue = apnsToken ? `apns:${apnsToken}|fcm:${fcmToken}` : fcmToken;
+      const fcmStanza = xml('iq', { type: 'set', id: `push-enable-fcm-${Date.now()}` },
+        xml('enable', { xmlns: NS_PUSH, jid: FCM_PUSH_SERVICE, node: fcmNodeValue },
           xml('x', { xmlns: 'jabber:x:data', type: 'submit' },
             xml('field', { var: 'FORM_TYPE' },
               xml('value', {}, 'http://jabber.org/protocol/pubsub#publish-options'),
             ),
-            // Include device info for debugging
             xml('field', { var: 'device' },
               xml('value', {}, apnsToken ? 'ios' : 'android'),
             ),
@@ -438,9 +428,30 @@ export class XmppJsService implements XMPPService {
         ),
       );
 
-      await this.xmpp!.send(enableStanza);
+      await this.xmpp!.send(fcmStanza);
+      console.info('[XMPP] FCM push registration sent (message notifications)');
+
+      // 2. Register VoIP token for incoming call pushes (iOS only)
+      if (voipToken) {
+        const voipStanza = xml('iq', { type: 'set', id: `push-enable-voip-${Date.now()}` },
+          xml('enable', { xmlns: NS_PUSH, jid: VOIP_PUSH_SERVICE, node: voipToken },
+            xml('x', { xmlns: 'jabber:x:data', type: 'submit' },
+              xml('field', { var: 'FORM_TYPE' },
+                xml('value', {}, 'http://jabber.org/protocol/pubsub#publish-options'),
+              ),
+              xml('field', { var: 'device' },
+                xml('value', {}, 'ios'),
+              ),
+            ),
+          ),
+        );
+
+        await this.xmpp!.send(voipStanza);
+        console.info('[XMPP] VoIP push registration sent (incoming call notifications)');
+      }
+
       this.pushEnabled = true;
-      console.log('[XMPP] Push notifications enabled successfully');
+      console.info('[XMPP] Push notifications enabled successfully');
     } catch (error) {
       console.error('[XMPP] Failed to enable push notifications:', error);
       throw error;

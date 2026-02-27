@@ -4,8 +4,14 @@
 #import <Firebase.h>
 #import <FirebaseMessaging/FirebaseMessaging.h>
 #import <UserNotifications/UserNotifications.h>
+#import <PushKit/PushKit.h>
 #import "RNCallKeep.h"
 #import "OrientationModule.h"
+
+// Forward declaration — VoIPPushModule is a Swift class
+// We access it via NSClassFromString at runtime to avoid circular build dependency
+// (Swift header can't be generated until Swift files compile,
+//  but ObjC needs it to compile → we break the cycle with runtime lookup)
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate, FIRMessagingDelegate>
 @end
@@ -180,6 +186,71 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 - (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window
 {
   return [OrientationModule supportedOrientations];
+}
+
+// MARK: - PushKit (VoIP Push) Delegate
+
+- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)pushCredentials forType:(PKPushType)type
+{
+  if (![type isEqualToString:PKPushTypeVoIP]) return;
+
+  // Convert token data to hex string
+  const unsigned char *bytes = (const unsigned char *)[pushCredentials.token bytes];
+  NSMutableString *tokenString = [NSMutableString stringWithCapacity:[pushCredentials.token length] * 2];
+  for (NSUInteger i = 0; i < [pushCredentials.token length]; i++) {
+    [tokenString appendFormat:@"%02x", bytes[i]];
+  }
+
+  NSLog(@"[VoIPPush] Token received: ...%@", [tokenString substringFromIndex:MAX(0, (NSInteger)tokenString.length - 6)]);
+
+  // Forward token to VoIPPushModule for React Native (runtime lookup to avoid circular dependency)
+  id module = [NSClassFromString(@"CommEazyTemp.VoIPPushModule") valueForKey:@"shared"];
+  if (module && [module respondsToSelector:@selector(didReceiveVoIPToken:)]) {
+    [module performSelector:@selector(didReceiveVoIPToken:) withObject:tokenString];
+  }
+}
+
+- (void)pushRegistry:(PKPushRegistry *)registry didInvalidatePushTokenForType:(PKPushType)type
+{
+  if (![type isEqualToString:PKPushTypeVoIP]) return;
+  NSLog(@"[VoIPPush] Token invalidated");
+}
+
+- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion
+{
+  if (![type isEqualToString:PKPushTypeVoIP]) {
+    completion();
+    return;
+  }
+
+  NSLog(@"[VoIPPush] Incoming VoIP push received");
+
+  // CRITICAL: Must report to CallKit IMMEDIATELY
+  // Apple requires that every VoIP push results in a CallKit reportNewIncomingCall.
+  // Failing to do so will cause iOS to terminate the app and may revoke push privileges.
+  NSString *callUUID = [[NSUUID UUID] UUIDString];
+  NSString *callerName = @"CommEazy";  // Placeholder — updated via XMPP when connected
+
+  [RNCallKeep reportNewIncomingCall:callUUID
+                             handle:@"commeazy"
+                         handleType:@"generic"
+                           hasVideo:NO
+                localizedCallerName:callerName
+                    supportsHolding:NO
+                       supportsDTMF:NO
+                   supportsGrouping:NO
+                 supportsUngrouping:NO
+                        fromPushKit:YES
+                            payload:payload.dictionaryPayload
+              withCompletionHandler:nil];
+
+  // Forward to VoIPPushModule for React Native event (runtime lookup)
+  id module = [NSClassFromString(@"CommEazyTemp.VoIPPushModule") valueForKey:@"shared"];
+  if (module && [module respondsToSelector:@selector(didReceiveVoIPPush:)]) {
+    [module performSelector:@selector(didReceiveVoIPPush:) withObject:payload.dictionaryPayload];
+  }
+
+  completion();
 }
 
 @end

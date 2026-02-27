@@ -338,7 +338,7 @@ export interface XMPPService {
   sendMUCMessage(roomJid: string, payload: EncryptedPayload, messageId: string): Promise<void>;
 
   // Push Notifications (XEP-0357)
-  enablePushNotifications(fcmToken: string, apnsToken?: string): Promise<void>;
+  enablePushNotifications(fcmToken: string, apnsToken?: string, voipToken?: string): Promise<void>;
   disablePushNotifications(): Promise<void>;
 
   // Event handlers

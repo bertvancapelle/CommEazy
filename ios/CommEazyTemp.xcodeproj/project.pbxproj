@@ -34,6 +34,8 @@
 		8297F3122F4ABAF500F4069D /* UIColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3112F4ABAF500F4069D /* UIColorExtensions.swift */; };
 		8297F3142F4B265200F4069D /* AppleMusicModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3132F4B265200F4069D /* AppleMusicModule.swift */; };
 		8297F3162F4B266500F4069D /* AppleMusicModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 8297F3152F4B266500F4069D /* AppleMusicModule.m */; };
+		82AC31B82F51C7D3007B8E07 /* VoIPPushModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82AC31B72F51C7D3007B8E07 /* VoIPPushModule.swift */; };
+		82AC31BA2F51C7DA007B8E07 /* VoIPPushModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 82AC31B92F51C7DA007B8E07 /* VoIPPushModule.m */; };
 		82BE2E142F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 		82BE2E152F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
@@ -93,6 +95,8 @@
 		8297F3112F4ABAF500F4069D /* UIColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
 		8297F3132F4B265200F4069D /* AppleMusicModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicModule.swift; sourceTree = "<group>"; };
 		8297F3152F4B266500F4069D /* AppleMusicModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppleMusicModule.m; sourceTree = "<group>"; };
+		82AC31B72F51C7D3007B8E07 /* VoIPPushModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoIPPushModule.swift; sourceTree = "<group>"; };
+		82AC31B92F51C7DA007B8E07 /* VoIPPushModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VoIPPushModule.m; sourceTree = "<group>"; };
 		82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		82EFD6552F45F86B0009F977 /* PiperTtsTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiperTtsTestView.swift; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; path = "Target Support Files/Pods-CommEazyTemp-CommEazyTempTests/Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -172,6 +176,8 @@
 				8297F3152F4B266500F4069D /* AppleMusicModule.m */,
 				822956582F4DBF6500794A9C /* OrientationModule.h */,
 				822956592F4DBF7C00794A9C /* OrientationModule.m */,
+				82AC31B72F51C7D3007B8E07 /* VoIPPushModule.swift */,
+				82AC31B92F51C7DA007B8E07 /* VoIPPushModule.m */,
 			);
 			name = CommEazyTemp;
 			sourceTree = "<group>";
@@ -594,6 +600,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				8297F30E2F4AB9D600F4069D /* MiniPlayerNativeView.swift in Sources */,
 				8291E00F2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm in Sources */,
+				82AC31B82F51C7D3007B8E07 /* VoIPPushModule.swift in Sources */,
 				8297F3142F4B265200F4069D /* AppleMusicModule.swift in Sources */,
 				8229565A2F4DBF7C00794A9C /* OrientationModule.m in Sources */,
 				8297F3082F4AB92600F4069D /* GlassPlayerWindowModule.m in Sources */,
@@ -606,6 +613,7 @@
 				82520A992F4A518800351FD1 /* LiquidGlassModule.m in Sources */,
 				823E16082F48A94000A80AD8 /* AudioServices.m in Sources */,
 				8297F30A2F4AB95400F4069D /* GlassPlayerWindow.swift in Sources */,
+				82AC31BA2F51C7DA007B8E07 /* VoIPPushModule.m in Sources */,
 				8297F30C2F4AB97100F4069D /* GlassPlayerView.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				8291E00C2F46094400C281DA /* sherpa-onnx-model-detect.mm in Sources */,
