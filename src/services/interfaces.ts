@@ -327,6 +327,8 @@ export interface XMPPService {
   sendDeliveryReceipt(to: string, messageId: string): Promise<void>;
   sendPresence(show?: 'chat' | 'away' | 'xa' | 'dnd'): Promise<void>;
   sendUnavailable(): Promise<void>;
+  /** Ping the server to verify connection is alive. Returns true if pong received within timeout. */
+  ping(timeoutMs?: number): Promise<boolean>;
   subscribeToPresence(contactJid: string): Promise<void>;
   probePresence(contactJid: string): Promise<void>;
 

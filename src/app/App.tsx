@@ -10,7 +10,7 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
-import { StatusBar, AccessibilityInfo, AppState, AppStateStatus, Dimensions, View } from 'react-native';
+import { StatusBar, AccessibilityInfo, AppState, AppStateStatus, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/i18n'; // Initialize i18n
@@ -207,7 +207,11 @@ async function handleAppBackground(): Promise<void> {
 
 /**
  * Handle app returning to foreground.
- * Reconnects XMPP, sends presence, and starts retry timer for pending messages.
+ *
+ * CRITICAL: After iOS suspends the app, the WebSocket to Prosody is dead
+ * but the in-memory XMPP status may still show 'connected'. We MUST verify
+ * the connection is actually alive with a ping before trusting the status.
+ * If the ping fails, we disconnect and reconnect to get a fresh session.
  */
 async function handleAppForeground(): Promise<void> {
   if (!ServiceContainer.isInitialized) {
@@ -218,42 +222,27 @@ async function handleAppForeground(): Promise<void> {
   try {
     const xmpp = ServiceContainer.xmpp;
     const status = xmpp.getConnectionStatus();
+    console.log(`[App] Foreground handler: XMPP status = ${status}`);
 
     if (status === 'connected') {
-      // Already connected, just send presence to refresh status
-      console.log('[App] XMPP already connected, sending presence');
-      await xmpp.sendPresence();
-    } else {
-      // Reconnect XMPP
-      console.log(`[App] XMPP status is ${status}, attempting reconnect...`);
+      // Status says connected, but the WebSocket may be dead after iOS suspension.
+      // Send a ping to verify the connection is actually alive.
+      console.log('[App] Verifying XMPP connection with ping...');
+      const isAlive = await xmpp.ping(3000);
 
-      // In dev mode, use stored credentials (same logic as container.ts)
-      if (__DEV__) {
-        const windowDims = Dimensions.get('window');
-        const screenDims = Dimensions.get('screen');
-        const width = windowDims.width > 0 ? windowDims.width : screenDims.width;
-        const height = windowDims.height > 0 ? windowDims.height : screenDims.height;
-        const screenSize = width * height;
-        const isSmallDevice = screenSize < 335000;
-
-        const credentials = isSmallDevice
-          ? { jid: 'oma@commeazy.local', password: 'test123' }
-          : { jid: 'ik@commeazy.local', password: 'test123' };
-
-        try {
-          await xmpp.connect(credentials.jid, credentials.password);
-          console.log('[App] XMPP reconnected successfully');
-
-          // Re-subscribe to contacts' presence after reconnect
-          // This is needed because presence subscriptions may be lost on disconnect
-          if (chatService.isInitialized) {
-            console.log('[App] Re-subscribing to contacts presence...');
-            await chatService.refreshPresenceSubscriptions();
-          }
-        } catch (connectError) {
-          console.warn('[App] XMPP reconnect failed:', connectError);
-        }
+      if (isAlive) {
+        // Connection is genuinely alive — just refresh presence
+        console.log('[App] XMPP connection verified alive, sending presence');
+        await xmpp.sendPresence();
+      } else {
+        // Connection is dead — force reconnect
+        console.log('[App] XMPP connection is dead (ping failed), forcing reconnect...');
+        await forceReconnect(xmpp);
       }
+    } else {
+      // Status is already disconnected/error — reconnect
+      console.log(`[App] XMPP status is ${status}, reconnecting...`);
+      await forceReconnect(xmpp);
     }
 
     // Start the outbox retry timer for pending messages
@@ -267,6 +256,40 @@ async function handleAppForeground(): Promise<void> {
     }
   } catch (error) {
     console.error('[App] Error in foreground handler:', error);
+  }
+}
+
+/**
+ * Force disconnect and reconnect XMPP using stored credentials.
+ * Used when the WebSocket is dead after iOS app suspension.
+ */
+async function forceReconnect(xmpp: typeof ServiceContainer.xmpp): Promise<void> {
+  const credentials = ServiceContainer.credentials;
+
+  if (!credentials) {
+    console.warn('[App] No stored credentials for reconnect');
+    return;
+  }
+
+  try {
+    // Disconnect the stale session first
+    try {
+      await xmpp.disconnect();
+    } catch {
+      // Disconnect may fail on dead socket — that's OK
+    }
+
+    // Reconnect with stored credentials
+    await xmpp.connect(credentials.jid, credentials.password);
+    console.log('[App] XMPP reconnected successfully as', credentials.jid);
+
+    // Re-subscribe to contacts' presence after reconnect
+    if (chatService.isInitialized) {
+      console.log('[App] Re-subscribing to contacts presence...');
+      await chatService.refreshPresenceSubscriptions();
+    }
+  } catch (connectError) {
+    console.warn('[App] XMPP reconnect failed:', connectError);
   }
 }
 

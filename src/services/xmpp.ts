@@ -182,6 +182,68 @@ export class XmppJsService implements XMPPService {
   }
 
   /**
+   * Send an XMPP ping to the server and wait for a pong response.
+   * Used to verify the connection is actually alive (not just in-memory state).
+   * Returns true if pong received within timeout, false otherwise.
+   */
+  async ping(timeoutMs = 5000): Promise<boolean> {
+    if (!this.xmpp || this.status !== 'connected') {
+      return false;
+    }
+
+    const pingId = `ping-${Date.now()}`;
+    const domain = this.xmpp.options?.domain ?? 'commeazy.local';
+
+    return new Promise<boolean>((resolve) => {
+      let resolved = false;
+      const timer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          console.log('[XMPP] Ping timeout — connection is dead');
+          resolve(false);
+        }
+      }, timeoutMs);
+
+      // Listen for IQ result (pong)
+      const handler = (stanza: Element) => {
+        if (
+          stanza.is('iq') &&
+          stanza.attrs.id === pingId &&
+          (stanza.attrs.type === 'result' || stanza.attrs.type === 'error')
+        ) {
+          // Both result and error mean the server responded — connection is alive
+          // (some servers return error for unsupported ping, but connection works)
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            this.xmpp?.removeListener('stanza', handler);
+            resolve(true);
+          }
+        }
+      };
+
+      this.xmpp!.on('stanza', handler);
+
+      // Send XMPP ping (XEP-0199)
+      const pingStanza = xml(
+        'iq',
+        { type: 'get', to: domain, id: pingId },
+        xml('ping', { xmlns: 'urn:xmpp:ping' }),
+      );
+
+      this.xmpp!.send(pingStanza).catch(() => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timer);
+          this.xmpp?.removeListener('stanza', handler);
+          console.log('[XMPP] Ping send failed — connection is dead');
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  /**
    * Send unavailable presence (going offline/background).
    * This notifies contacts immediately that user is offline.
    *

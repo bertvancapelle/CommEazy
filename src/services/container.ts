@@ -201,6 +201,14 @@ class ServiceContainerClass {
   private _notifications: NotificationService | null = null;
   private _initialized = false;
 
+  /** Stored credentials for reconnection after background/foreground transitions */
+  private _credentials: { jid: string; password: string } | null = null;
+
+  /** Get stored credentials for reconnection */
+  get credentials(): { jid: string; password: string } | null {
+    return this._credentials;
+  }
+
   /**
    * Initialize all services in correct order.
    * Call once at app startup (App.tsx).
@@ -278,6 +286,9 @@ class ServiceContainerClass {
       // Initialize GroupChatService
       await groupChatService.initialize(devUser.jid, devUser.name);
       console.log('[ServiceContainer] GroupChatService initialized for dev user:', devUser.jid);
+
+      // Store credentials for reconnection after background/foreground transitions
+      this._credentials = { jid: devUser.jid, password: devUser.password };
 
       // 6. Connect to XMPP server in dev mode
       try {
