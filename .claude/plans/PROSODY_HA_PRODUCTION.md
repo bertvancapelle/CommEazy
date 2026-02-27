@@ -79,7 +79,7 @@ CommEazy's server-side infrastructuur bestaat uit twee services:
 | **Transport** | WebSocket op poort 5280 (HTTP) |
 | **TLS** | Geen (development) |
 | **Accounts** | Handmatig via `prosodyctl adduser` |
-| **Push Gateway** | Nog niet geïmplementeerd (development) |
+| **Push Gateway** | Operationeel op :5282 (VoIP Push + FCM) |
 
 ### Actieve Modules (Development)
 
@@ -87,15 +87,24 @@ CommEazy's server-side infrastructuur bestaat uit twee services:
 disco, roster, saslauth, tls, blocklist, bookmarks, carbons, dialback,
 limits, pep, private, smacks, vcard4, vcard_legacy, csi_simple, invites,
 invites_adhoc, invites_register, ping, register, time, uptime, version,
-cloud_notify, admin_adhoc, admin_shell, bosh, websocket
+cloud_notify, push_http, push_call_always,
+admin_adhoc, admin_shell, bosh, websocket
 ```
+
+### Custom Modules (Development)
+
+Locatie: `/opt/homebrew/etc/prosody/modules/`
+
+| Module | Doel |
+|--------|------|
+| `mod_push_http.lua` | Vangt `cloud_notify/push` events op en stuurt HTTP POST naar Push Gateway. Routeert op basis van push registration JID (`voip.push.*` → service=voip, `push.*` → service=fcm). |
+| `mod_push_call_always.lua` | Bypassed mod_cloud_notify volledig voor inkomende call stanzas. Leest VoIP tokens uit cloud_notify store en stuurt HTTP POST direct naar Push Gateway. Nodig omdat mod_cloud_notify push overslaat wanneer de XMPP sessie "actief" is, en niet werkt zonder mod_offline/mod_mam (beide uitgeschakeld voor zero-storage). |
 
 ### 2a. Prosody 13.0.4 Build from Source (macOS)
 
-Prosody 0.12.1 (Homebrew) had een kritieke bug: mod_smacks hibernation watchdog werkte niet correct,
-waardoor dode sessies nooit werden opgeruimd. Prosody 13.0.4 lost dit op.
+Prosody 13.0.4 is vereist voor de mod_smacks hibernation watchdog fix die correct dead session cleanup mogelijk maakt.
 
-**Waarom build from source?** Homebrew had alleen 0.12.1 beschikbaar. De 13.x branch is een major
+**Waarom build from source?** Homebrew had oorspronkelijk alleen een oudere versie beschikbaar. De 13.x branch is een major
 upgrade met breaking changes (o.a. `cross_domain_websocket` verwijderd).
 
 **Build stappen (uitgevoerd 27 feb 2026):**
@@ -159,7 +168,7 @@ lsof -i :5280         # WebSocket luistert
 | `smacks_hibernation_time` default te lang | Feb 2026 | Verlaagd naar 30s (was 300s default) |
 | Presence stanzas zonder `from` attribuut | Feb 2026 | Silently ignore in client-side handler |
 | `cross_domain_websocket` deprecated in 13.x | Feb 2026 | Verwijderd uit config (was warning in logs) |
-| mod_smacks hibernation watchdog bug (0.12.1) | Feb 2026 | Upgrade naar Prosody 13.0.4 (fix in 13.x branch) |
+| mod_smacks hibernation watchdog bug | Feb 2026 | Prosody 13.0.4 bevat de fix (13.x branch) |
 | iOS foreground: stale WebSocket na suspend | Feb 2026 | XMPP ping (XEP-0199) verificatie + force reconnect in App.tsx |
 | Reconnect met verkeerde credentials | Feb 2026 | Credentials opslaan in ServiceContainer bij init, gebruiken bij reconnect |
 | Metro bundler verliest verbinding na iOS suspend | Feb 2026 | Development-only issue; productie builds hebben geen Metro |
@@ -299,7 +308,7 @@ Prosody is single-threaded Lua. Elke c2s sessie verbruikt ~50-100 KB RAM:
 | 5222 | XMPP c2s (TLS) | Directe XMPP clients (optioneel) | Internet |
 | 5269 | XMPP s2s (TLS) | Server-naar-server federatie | XMPP servers |
 | 5280 | HTTP (intern) | WebSocket (achter HAProxy) | HAProxy |
-| **5281** | **HTTP (intern)** | **Push Gateway ← Prosody mod_cloud_notify** | **Localhost** |
+| **5282** | **HTTP (intern)** | **Push Gateway ← Prosody mod_push_http + mod_push_call_always** | **Localhost** |
 | 5347 | XMPP component | Externe components | Intern |
 | 3478 | STUN/TURN UDP | Media relay | Internet |
 | 5349 | STUN/TURN TLS | Media relay (TLS) | Internet |
@@ -820,42 +829,66 @@ App Force-Quit (geen clean disconnect):
 1. **VoIP Push** (APNs PushKit) stuurt voor inkomende calls → wekt de app en toont native CallKit belscherm, zelfs als de app dood is
 2. **Regular Push** (FCM) stuurt voor berichten → toont notificatie banner
 
-### Architectuur
+### Architectuur (Dual-Path Push)
+
+CommEazy gebruikt twee onafhankelijke push paden:
+
+1. **Message Push** (mod_cloud_notify → mod_push_http → Gateway): Voor berichten wanneer gebruiker offline is
+2. **Call Push** (mod_push_call_always → Gateway): Voor inkomende calls — bypass mod_cloud_notify, pusht ALTIJD (ook wanneer XMPP sessie actief is)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           Prosody                                    │
 │                                                                      │
-│  Bericht/Call ontvangen voor offline user                            │
-│           │                                                          │
-│           ▼                                                          │
-│  mod_cloud_notify (XEP-0357)                                        │
-│           │                                                          │
-│           │  HTTP POST http://127.0.0.1:5281/push                    │
-│           │  Body: { node, secret, jid, type }                       │
-│           │                                                          │
-└───────────┼──────────────────────────────────────────────────────────┘
-            │
-            ▼
+│  ┌─────────────────────────────────────┐                            │
+│  │ PAD 1: Berichten (offline user)     │                            │
+│  │                                     │                            │
+│  │ mod_cloud_notify (XEP-0357)         │                            │
+│  │        │                            │                            │
+│  │        ▼                            │                            │
+│  │ mod_push_http                       │                            │
+│  │   HTTP POST http://127.0.0.1:5282  │                            │
+│  │   Body: { node, secret, type,      │                            │
+│  │           service: "fcm" }          │                            │
+│  └─────────────────┬───────────────────┘                            │
+│                    │                                                 │
+│  ┌─────────────────────────────────────┐                            │
+│  │ PAD 2: Inkomende calls (ALTIJD)     │                            │
+│  │                                     │                            │
+│  │ mod_push_call_always                │                            │
+│  │   Intercepteert call stanzas        │                            │
+│  │   (urn:commeazy:call:1, type=offer) │                            │
+│  │   Leest VoIP tokens uit store       │                            │
+│  │   HTTP POST http://127.0.0.1:5282  │                            │
+│  │   Body: { node, secret, type,      │                            │
+│  │           service: "voip", jid }    │                            │
+│  └─────────────────┬───────────────────┘                            │
+│                    │                                                 │
+└────────────────────┼────────────────────────────────────────────────┘
+                     │
+                     ▼
 ┌───────────────────────────────────────────────────────────────────────┐
 │                    Push Gateway (Node.js)                              │
-│                    Poort 5281 — co-located met Prosody                 │
+│                    Poort 5282 — co-located met Prosody                 │
 │                                                                       │
-│  ┌─────────────────────┐      ┌──────────────────────────┐           │
-│  │    VoIP Handler     │      │     FCM Handler          │           │
-│  │                     │      │                          │           │
-│  │  IF type == "call"  │      │  IF type == "message"    │           │
-│  │    → APNs VoIP Push │      │    → FCM data message    │           │
-│  │    via apn2 lib     │      │    via firebase-admin    │           │
-│  │                     │      │                          │           │
-│  │  try/catch eigen    │      │  try/catch eigen         │           │
-│  │  (onafhankelijk)    │      │  (onafhankelijk)         │           │
-│  └────────┬────────────┘      └──────────┬───────────────┘           │
-│           │                              │                            │
-│  ┌────────▼──────────┐         ┌────────▼──────────┐                 │
-│  │ /health endpoint  │         │ Prometheus metrics │                 │
-│  │ GET :5281/health  │         │ GET :5281/metrics  │                 │
-│  └───────────────────┘         └───────────────────┘                 │
+│  Routing: service + type bepalen de handler                           │
+│                                                                       │
+│  ┌─────────────────────────┐    ┌──────────────────────────┐         │
+│  │    VoIP Handler         │    │     FCM Handler          │         │
+│  │                         │    │                          │         │
+│  │  IF service == "voip"   │    │  IF service == "fcm"     │         │
+│  │  AND type == "call"     │    │  AND type == "message"   │         │
+│  │    → APNs VoIP Push     │    │    → FCM data message    │         │
+│  │    via apns2 (ESM)      │    │    via firebase-admin    │         │
+│  │                         │    │                          │         │
+│  │  try/catch eigen        │    │  try/catch eigen         │         │
+│  │  (onafhankelijk)        │    │  (onafhankelijk)         │         │
+│  └────────┬────────────────┘    └──────────┬───────────────┘         │
+│           │                                │                          │
+│  ┌────────▼──────────┐         ┌──────────▼──────────┐               │
+│  │ /health endpoint  │         │ Prometheus metrics   │               │
+│  │ GET :5282/health  │         │ GET :5282/metrics    │               │
+│  └───────────────────┘         └─────────────────────┘               │
 └───────────────────────────────────────────────────────────────────────┘
             │                              │
             ▼                              ▼
@@ -870,6 +903,11 @@ App Force-Quit (geen clean disconnect):
      └─────────────┘              └──────────────┘
 ```
 
+**Waarom dual-path?**
+- `mod_cloud_notify` vereist `mod_offline` of `mod_mam` — beide uitgeschakeld in zero-storage architectuur
+- `mod_cloud_notify` slaat push over wanneer XMPP sessie actief is — voor calls willen we ALTIJD pushen
+- `mod_push_call_always` leest VoIP tokens direct uit de `cloud_notify` store en pusht ongeacht sessiestatus
+
 ### Design Beslissingen
 
 | Beslissing | Keuze | Reden |
@@ -878,7 +916,7 @@ App Force-Quit (geen clean disconnect):
 | **Locatie** | Co-located op Prosody VMs | Zero sizing impact (30-50 MB RAM, <1% CPU) |
 | **Architectuur** | Eén proces, twee handlers | 95% fault isolation met 50% operational overhead |
 | **Process manager** | PM2 | Auto-restart (<2s recovery), log management, monitoring |
-| **APNs library** | `apn2` | Bewezen, onderhouden, HTTP/2 gebaseerd |
+| **APNs library** | `apns2` (^12.2.0, ESM) | HTTP/2, async/await, lazy-loaded via `import('apns2')` |
 | **FCM library** | `firebase-admin` | Officieel Google SDK |
 | **APNs auth** | JWT (ES256) | Geen certificaat-rotatie nodig (key-based) |
 
@@ -892,13 +930,24 @@ App Force-Quit (geen clean disconnect):
 ### Prosody Configuratie voor Push Gateway
 
 ```lua
--- mod_cloud_notify is al in modules_enabled (zie sectie 2)
+-- mod_cloud_notify, mod_push_http, en mod_push_call_always
+-- zijn in modules_enabled (zie sectie 2)
 
 -- Push notification settings (privacy-first)
 push_notification_with_body = false    -- GEEN bericht-inhoud in push
 push_notification_with_sender = false  -- GEEN afzender in push
 
 -- Push gateway endpoint (localhost want co-located)
+-- Gebruikt door BEIDE mod_push_http en mod_push_call_always
+push_http_url = "http://127.0.0.1:5282/push"
+push_http_secret = "<STERK_GEDEELD_SECRET>"
+
+-- Custom modules path (voor mod_push_http en mod_push_call_always)
+plugin_paths = {
+    "/opt/prosody-modules";           -- Community modules
+    "/opt/commeazy/prosody-modules";  -- CommEazy custom modules
+}
+
 -- De client registreert zich bij Prosody met:
 --   <iq type="set">
 --     <enable xmlns="urn:xmpp:push:0" jid="push.commeazy.com" node="<device-token>">
@@ -916,11 +965,11 @@ push_notification_with_sender = false  -- GEEN afzender in push
 ```bash
 # /etc/commeazy/push-gateway.env (productie)
 
-# Server
-PORT=5281
+# Server (poort 5282 — vermijdt conflict met Prosody HTTPS op 5281)
+PORT=5282
 HOST=127.0.0.1
 
-# Shared secret (zelfde als client registratie bij Prosody)
+# Shared secret (zelfde als push_http_secret in prosody.cfg.lua)
 PUSH_SECRET=<STERK_GEDEELD_SECRET>
 
 # APNs (Apple Push Notification service)
@@ -940,12 +989,12 @@ LOG_LEVEL=info                   # "debug", "info", "warn", "error"
 #### Development Environment Variables
 
 ```bash
-# .env.development (lokaal)
+# .env (lokaal, in server/push-gateway/)
 
-PORT=5281
+PORT=5282
 HOST=127.0.0.1
 
-PUSH_SECRET=dev-secret-123
+PUSH_SECRET=commeazy-dev-push-secret-2024
 
 # APNs sandbox
 APNS_KEY_ID=<DEV_KEY_ID>
@@ -962,7 +1011,7 @@ LOG_LEVEL=debug
 
 ### Gateway Broncode
 
-Zie **Appendix B** voor de volledige broncode (~120 regels).
+Zie **Appendix B** voor de volledige broncode (~234 regels).
 
 Kern-functionaliteit:
 
@@ -970,29 +1019,45 @@ Kern-functionaliteit:
 // Vereenvoudigd overzicht — zie Appendix B voor volledige code
 
 app.post('/push', async (req, res) => {
-  const { node, secret, type } = req.body;
+  const { node, secret, type, service } = req.body;
 
   // Valideer shared secret
   if (secret !== PUSH_SECRET) return res.status(403).send('Forbidden');
 
-  // VoIP Handler (onafhankelijke try/catch)
-  if (type === 'call') {
+  // Routing: service + type bepalen de handler
+  // service = "voip" (VoIP PushKit token) of "fcm" (FCM token)
+  //           afgeleid van push registration JID (voip.push.* vs push.*)
+  // type    = "call", "message", of "wake"
+
+  // VoIP Handler — service=voip AND type=call (onafhankelijke try/catch)
+  if (service === 'voip' && type === 'call' && apnsClient) {
     try {
-      await apnProvider.send(voipNotification, node);  // node = device token
+      const notification = new ApnsNotification(node, {
+        aps: {},                          // VoIP pushes gebruiken lege aps
+        type: 'incoming-call',            // Custom payload — geen PII
+      });
+      notification.pushType = 'voip';
+      notification.priority = 10;          // Immediate
+      notification.expiration = Math.floor(Date.now() / 1000) + 30;
+      await apnsClient.send(notification);
       log.info('VoIP push sent', { token: node.slice(-6) });
     } catch (err) {
-      log.error('VoIP push failed', { error: err.message });
+      log.error('VoIP push error', { error: err.message });
       // Fout hier blokkeert FCM handler NIET
     }
   }
 
-  // FCM Handler (onafhankelijke try/catch)
-  if (type === 'message') {
+  // FCM Handler — service=fcm AND type=message (onafhankelijke try/catch)
+  if (service === 'fcm' && type === 'message' && fcmInitialized) {
     try {
-      await admin.messaging().send({ token: node, data: { type: 'message' } });
+      await admin.messaging().send({
+        token: node,
+        data: { type: 'new-message' },    // Geen PII — app fetcht via XMPP
+        android: { priority: 'high', ttl: 60000 },
+      });
       log.info('FCM push sent', { token: node.slice(-6) });
     } catch (err) {
-      log.error('FCM push failed', { error: err.message });
+      log.error('FCM push error', { error: err.message });
       // Fout hier blokkeert VoIP handler NIET
     }
   }
@@ -1004,7 +1069,7 @@ app.post('/push', async (req, res) => {
 ### Health Check
 
 ```
-GET http://127.0.0.1:5281/health
+GET http://127.0.0.1:5282/health
 
 Response 200:
 {
@@ -1713,7 +1778,7 @@ pm2 save
 pm2 startup systemd
 
 # 6g. Verificatie
-curl http://127.0.0.1:5281/health
+curl http://127.0.0.1:5282/health
 ```
 
 ### Configuratie Wijzigingen (Dev → Prod)
@@ -1733,7 +1798,9 @@ curl http://127.0.0.1:5281/health
 | `limits.c2s.rate` | `10kb/s` | `10kb/s` (evalueren) | DDoS bescherming |
 | `network_settings.read_timeout` | `60` | `60` (evalueren naar 120) | Presence detectie |
 | `smacks_hibernation_time` | `30` | `30` | Presence snelheid |
-| **Push Gateway** | **Niet geïnstalleerd** | **PM2 op :5281** | **VoIP Push + FCM** |
+| **Push Gateway** | **Operationeel op :5282** | **PM2 op :5282** | **VoIP Push + FCM** |
+| **push_http_url** | `http://127.0.0.1:5282/push` | `http://127.0.0.1:5282/push` | Gedeeld door mod_push_http + mod_push_call_always |
+| **push_http_secret** | Dev secret | Sterk productie secret | Authenticatie Prosody → Gateway |
 | **APNS_ENVIRONMENT** | **sandbox** | **production** | **Push naar productie devices** |
 
 ---
@@ -1781,21 +1848,25 @@ curl http://127.0.0.1:5281/health
 
 ### E. Push Gateway
 
-- [ ] **Push Gateway draait** — `curl http://127.0.0.1:5281/health` → 200 OK
+- [ ] **Push Gateway draait** — `curl http://127.0.0.1:5282/health` → 200 OK
 - [ ] **PM2 auto-restart werkt** — `pm2 stop` → automatisch herstart
 - [ ] **PM2 systemd integratie** — Gateway start na server reboot
+- [ ] **Custom Prosody modules gedeployed** — `mod_push_http.lua` en `mod_push_call_always.lua` in plugin_paths
+- [ ] **push_http_url geconfigureerd** — `push_http_url = "http://127.0.0.1:5282/push"` in prosody.cfg.lua
+- [ ] **push_http_secret geconfigureerd** — Zelfde waarde in prosody.cfg.lua en push-gateway .env
 - [ ] **APNs .p8 key geldig** — Key ID en Team ID correct
 - [ ] **APNs VoIP Push getest (sandbox)** — Push komt aan op test device
 - [ ] **APNs VoIP Push getest (production)** — Push komt aan op productie device
 - [ ] **FCM service account geldig** — `firebase-admin` initialiseert correct
 - [ ] **FCM Push getest** — Push komt aan op Android test device
-- [ ] **Shared secret synchroon** — Prosody, client, en gateway gebruiken zelfde secret
-- [ ] **End-to-end call test** — iPad belt iPhone (app in background) → iPhone rinkelt
-- [ ] **End-to-end call test (app dood)** — iPad belt iPhone (app gesloten) → iPhone rinkelt
-- [ ] **End-to-end message push test** — Bericht sturen naar offline user → push ontvangen
+- [ ] **Shared secret synchroon** — Prosody `push_http_secret`, client registratie, en gateway `PUSH_SECRET` zijn identiek
+- [ ] **End-to-end call test (dual-path)** — iPad belt iPhone (app in background) → mod_push_call_always → VoIP push → iPhone rinkelt
+- [ ] **End-to-end call test (app dood)** — iPad belt iPhone (app gesloten) → iPhone rinkelt via PushKit/CallKit
+- [ ] **End-to-end message push test** — Bericht sturen naar offline user → mod_cloud_notify → mod_push_http → push ontvangen
 - [ ] **Privacy check** — Push payload bevat geen berichtinhoud of afzendernaam
 - [ ] **Credentials permissions** — `.p8` en service account zijn `chmod 600`
 - [ ] **Logs bevatten geen PII** — Alleen laatste 6 chars van tokens
+- [ ] **Prometheus metrics** — `curl http://127.0.0.1:5282/metrics` toont push counters
 
 ### F. WebRTC / STUN/TURN
 
@@ -1860,7 +1931,10 @@ admins = {
     "bert@commeazy.com";
 }
 
-plugin_paths = { "/opt/prosody-modules" }  -- Community modules
+plugin_paths = {
+    "/opt/prosody-modules";           -- Community modules
+    "/opt/commeazy/prosody-modules";  -- CommEazy custom modules
+}
 
 ---------- Modules ----------
 
@@ -1886,6 +1960,10 @@ modules_enabled = {
     "csi_simple";
     "cloud_notify";
     "ping";
+
+    -- Push notifications (CommEazy custom)
+    "push_http";              -- Vertaalt cloud_notify events naar HTTP POST
+    "push_call_always";       -- Bypass cloud_notify: pusht ALTIJD voor calls
 
     -- Admin
     "admin_adhoc";
@@ -1982,6 +2060,11 @@ s2s_tcp_keepalives = true
 push_notification_with_body = false
 push_notification_with_sender = false
 
+-- Push Gateway endpoint (co-located op dezelfde VM)
+-- Gebruikt door mod_push_http (berichten) en mod_push_call_always (calls)
+push_http_url = "http://127.0.0.1:5282/push"
+push_http_secret = os.getenv("PROSODY_PUSH_SECRET")
+
 ---------- STUN/TURN ----------
 
 turn_external_host = "turn.commeazy.com"
@@ -2022,6 +2105,9 @@ VirtualHost "commeazy.com"
 
 ## Appendix B: Volledige Push Gateway Broncode
 
+> **Bron:** `server/push-gateway/` in de CommEazy repository.
+> Deze appendix is een referentiekopie. Bij discrepantie geldt de code in de repository.
+
 ### package.json
 
 ```json
@@ -2036,9 +2122,10 @@ VirtualHost "commeazy.com"
   },
   "dependencies": {
     "express": "^4.18.0",
-    "apn2": "^2.0.0",
+    "apns2": "^12.2.0",
     "firebase-admin": "^12.0.0",
-    "express-rate-limit": "^7.0.0"
+    "express-rate-limit": "^7.0.0",
+    "dotenv": "^16.4.0"
   }
 }
 ```
@@ -2054,19 +2141,22 @@ VirtualHost "commeazy.com"
 // - VoIP Handler: APNs VoIP Push (PushKit → CallKit)
 // - FCM Handler: Firebase Cloud Messaging (message notifications)
 //
-// Co-located with Prosody on same VM. Listens on localhost:5281.
-// Receives HTTP POST from Prosody mod_cloud_notify (XEP-0357).
+// Co-located with Prosody on same VM. Listens on localhost:5282.
+// Receives HTTP POST from Prosody mod_push_http (berichten)
+// and mod_push_call_always (inkomende calls).
+//
+// Port 5282 chosen to avoid conflict with Prosody HTTPS (5281).
 // ============================================================
 
+require('dotenv').config();
+
 const express = require('express');
-const apn = require('apn2');
 const admin = require('firebase-admin');
 const rateLimit = require('express-rate-limit');
 const fs = require('fs');
-const path = require('path');
 
 // --- Configuration ---
-const PORT = process.env.PORT || 5281;
+const PORT = process.env.PORT || 5282;
 const HOST = process.env.HOST || '127.0.0.1';
 const PUSH_SECRET = process.env.PUSH_SECRET;
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -2086,33 +2176,51 @@ if (!PUSH_SECRET) {
   process.exit(1);
 }
 
-// --- APNs Provider (VoIP Push) ---
-let apnProvider = null;
-try {
-  apnProvider = new apn.Provider({
-    token: {
-      key: fs.readFileSync(process.env.APNS_KEY_PATH),
-      keyId: process.env.APNS_KEY_ID,
-      teamId: process.env.APNS_TEAM_ID,
-    },
-    production: process.env.APNS_ENVIRONMENT === 'production',
-  });
-  log.info('APNs provider initialized');
-} catch (err) {
-  log.error('APNs provider initialization failed:', err.message);
-  // Gateway continues — FCM still works
+// --- APNs Client (VoIP Push via apns2) ---
+// apns2 is ESM-only, so we lazy-load it
+let apnsClient = null;
+let ApnsNotification = null;
+
+async function initApns() {
+  try {
+    const apnsKeyPath = process.env.APNS_KEY_PATH;
+    if (apnsKeyPath && fs.existsSync(apnsKeyPath)) {
+      const { ApnsClient, Notification } = await import('apns2');
+      ApnsNotification = Notification;
+      apnsClient = new ApnsClient({
+        team: process.env.APNS_TEAM_ID,
+        keyId: process.env.APNS_KEY_ID,
+        signingKey: fs.readFileSync(apnsKeyPath),
+        defaultTopic: `${process.env.APNS_BUNDLE_ID}.voip`,
+        host: process.env.APNS_ENVIRONMENT === 'production'
+          ? 'api.push.apple.com'
+          : 'api.sandbox.push.apple.com',
+      });
+      log.info('APNs client initialized (apns2)');
+    } else {
+      log.warn('APNs key not found, VoIP push disabled');
+    }
+  } catch (err) {
+    log.error('APNs client initialization failed:', err.message);
+    // Gateway continues — FCM still works
+  }
 }
 
 // --- FCM Provider (Message Push) ---
 let fcmInitialized = false;
 try {
-  admin.initializeApp({
-    credential: admin.credential.cert(
-      JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'))
-    ),
-  });
-  fcmInitialized = true;
-  log.info('FCM provider initialized');
+  const gcredPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (gcredPath && fs.existsSync(gcredPath)) {
+    admin.initializeApp({
+      credential: admin.credential.cert(
+        JSON.parse(fs.readFileSync(gcredPath, 'utf8'))
+      ),
+    });
+    fcmInitialized = true;
+    log.info('FCM provider initialized');
+  } else {
+    log.warn('Google credentials not found, FCM push disabled');
+  }
 } catch (err) {
   log.error('FCM provider initialization failed:', err.message);
   // Gateway continues — APNs still works
@@ -2144,7 +2252,7 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     uptime: Math.floor((Date.now() - metrics.startTime) / 1000),
-    apns: apnProvider ? 'connected' : 'unavailable',
+    apns: apnsClient ? 'connected' : 'unavailable',
     fcm: fcmInitialized ? 'initialized' : 'unavailable',
     version: '1.0.0',
   });
@@ -2172,8 +2280,13 @@ app.get('/metrics', (req, res) => {
 });
 
 // --- Push Endpoint ---
+// Receives POST from Prosody mod_push_http with:
+//   node:    device token (VoIP hex token or FCM token)
+//   secret:  shared secret for authentication
+//   type:    "call", "message", or "wake" (content type)
+//   service: "voip" or "fcm" (transport type, derived from push registration JID)
 app.post('/push', async (req, res) => {
-  const { node, secret, type, jid } = req.body;
+  const { node, secret, type, service } = req.body;
 
   // Validate shared secret
   if (secret !== PUSH_SECRET) {
@@ -2188,33 +2301,30 @@ app.post('/push', async (req, res) => {
   // Token suffix for logging (no PII)
   const tokenSuffix = node.slice(-6);
 
-  // --- VoIP Handler (independent try/catch) ---
-  if (type === 'call' && apnProvider) {
+  // --- VoIP Handler: APNs VoIP push for incoming calls ---
+  // Only fires when: service=voip (PushKit token) AND type=call
+  if (service === 'voip' && type === 'call' && apnsClient && ApnsNotification) {
     try {
-      const notification = new apn.Notification();
-      notification.topic = `${process.env.APNS_BUNDLE_ID}.voip`;
+      const notification = new ApnsNotification(node, {
+        aps: {},  // VoIP pushes use empty aps
+        type: 'incoming-call',  // Custom payload — no PII
+      });
       notification.pushType = 'voip';
       notification.priority = 10;  // Immediate
-      notification.expiry = Math.floor(Date.now() / 1000) + 30;  // 30s expiry
-      notification.payload = { type: 'incoming-call' };  // No PII
+      notification.expiration = Math.floor(Date.now() / 1000) + 30;  // 30s
 
-      const result = await apnProvider.send(notification, node);
-      if (result.failed && result.failed.length > 0) {
-        log.error('VoIP push failed', { token: tokenSuffix, reason: result.failed[0].response });
-        metrics.voipFailed++;
-      } else {
-        log.info('VoIP push sent', { token: tokenSuffix });
-        metrics.voipSent++;
-      }
+      await apnsClient.send(notification);
+      log.info('VoIP push sent', { token: tokenSuffix });
+      metrics.voipSent++;
     } catch (err) {
       log.error('VoIP push error', { token: tokenSuffix, error: err.message });
       metrics.voipFailed++;
-      // Does NOT block FCM handler
     }
   }
 
-  // --- FCM Handler (independent try/catch) ---
-  if (type === 'message' && fcmInitialized) {
+  // --- FCM Handler: Firebase push for message notifications ---
+  // Only fires when: service=fcm (FCM token) AND type=message
+  if (service === 'fcm' && type === 'message' && fcmInitialized) {
     try {
       await admin.messaging().send({
         token: node,
@@ -2229,18 +2339,33 @@ app.post('/push', async (req, res) => {
     } catch (err) {
       log.error('FCM push error', { token: tokenSuffix, error: err.message });
       metrics.fcmFailed++;
-      // Does NOT block VoIP handler
     }
+  }
+
+  // Log skipped pushes at debug level for troubleshooting
+  if (service === 'voip' && type !== 'call') {
+    log.debug('Skipped VoIP push (type=%s, not call)', type);
+  }
+  if (service === 'fcm' && type !== 'message') {
+    log.debug('Skipped FCM push (type=%s, not message)', type);
   }
 
   res.status(200).send('OK');
 });
 
 // --- Start Server ---
-app.listen(PORT, HOST, () => {
-  log.info(`Push Gateway listening on ${HOST}:${PORT}`);
-  log.info(`APNs: ${apnProvider ? 'ready' : 'UNAVAILABLE'}`);
-  log.info(`FCM: ${fcmInitialized ? 'ready' : 'UNAVAILABLE'}`);
+async function start() {
+  await initApns();
+  app.listen(PORT, HOST, () => {
+    log.info(`Push Gateway listening on ${HOST}:${PORT}`);
+    log.info(`APNs: ${apnsClient ? 'ready' : 'UNAVAILABLE'}`);
+    log.info(`FCM: ${fcmInitialized ? 'ready' : 'UNAVAILABLE'}`);
+  });
+}
+
+start().catch((err) => {
+  log.error('Failed to start gateway:', err.message);
+  process.exit(1);
 });
 ```
 
@@ -2308,7 +2433,10 @@ module.exports = {
 | `dialback` | Ingeschakeld | Uitgeschakeld | Geen federatie |
 | `http_openmetrics` | Uit | Ingeschakeld | Monitoring |
 | `mimicking` | Uit | Ingeschakeld | Security |
-| **Push Gateway** | **Niet geïnstalleerd** | **PM2 op :5281** | **VoIP + FCM push** |
+| **Push Gateway** | **Operationeel op :5282** | **PM2 op :5282** | **VoIP + FCM push** |
+| **push_http_url** | `http://127.0.0.1:5282/push` | `http://127.0.0.1:5282/push` | Prosody → Gateway endpoint |
+| **push_http_secret** | Dev secret | Sterk productie secret | Authenticatie |
+| **Custom modules** | `/opt/homebrew/etc/prosody/modules/` | `/opt/commeazy/prosody-modules/` | mod_push_http, mod_push_call_always |
 | **APNs environment** | **sandbox** | **production** | **Push naar productie** |
 
 ---
@@ -2411,31 +2539,38 @@ psql -c "SELECT * FROM pg_stat_replication"
 
 **Diagnose:**
 ```bash
-# Check of cloud_notify actief is
+# Check of cloud_notify + custom modules actief zijn
 prosodyctl shell
-> module:list("commeazy.com")  -- Bevat "cloud_notify"?
+> module:list("commeazy.com")  -- Moet bevatten: cloud_notify, push_http, push_call_always
 
 # Check Push Gateway status
-curl http://127.0.0.1:5281/health
+curl http://127.0.0.1:5282/health
 
 # Check Push Gateway logs
 pm2 logs commeazy-push-gateway --lines 50
 
 # Check metrics
-curl http://127.0.0.1:5281/metrics
+curl http://127.0.0.1:5282/metrics
 
 # Check PM2 status
 pm2 status
+
+# Check push_http_url en push_http_secret in Prosody config
+prosodyctl shell
+> config:get("*", "push_http_url")
+> config:get("*", "push_http_secret")
 ```
 
 **Oplossing:**
-1. Controleer `cloud_notify` in `modules_enabled`
-2. Controleer Push Gateway bereikbaar (`curl :5281/health`)
-3. Als `apns: "unavailable"` in health check: controleer `.p8` key pad en permissions
-4. Als `fcm: "unavailable"`: controleer service account JSON
-5. Controleer shared secret consistent is tussen Prosody, client, en gateway
-6. Check `push_voip_failed_total` en `push_fcm_failed_total` metrics
-7. Bij hoge failure rate: controleer APNs/FCM status pagina's
+1. Controleer `cloud_notify`, `push_http`, en `push_call_always` in `modules_enabled`
+2. Controleer Push Gateway bereikbaar (`curl :5282/health`)
+3. Controleer `push_http_url` in prosody.cfg.lua wijst naar `http://127.0.0.1:5282/push`
+4. Controleer `push_http_secret` in prosody.cfg.lua matcht `PUSH_SECRET` in push-gateway .env
+5. Als `apns: "unavailable"` in health check: controleer `.p8` key pad en permissions
+6. Als `fcm: "unavailable"`: controleer service account JSON
+7. Controleer shared secret consistent is tussen Prosody, client, en gateway
+8. Check `push_voip_failed_total` en `push_fcm_failed_total` metrics
+9. Bij hoge failure rate: controleer APNs/FCM status pagina's
 
 ### Probleem 6: VoIP Push komt niet aan (call missed)
 
@@ -2443,27 +2578,37 @@ pm2 status
 
 **Diagnose:**
 ```bash
-# 1. Check of Push Gateway het verzoek ontvangt
+# 1. Check of mod_push_call_always geladen is
+prosodyctl shell
+> module:list("commeazy.com")  -- Moet "push_call_always" bevatten
+
+# 2. Check of Push Gateway het verzoek ontvangt
 pm2 logs commeazy-push-gateway --lines 50 | grep "call"
 
-# 2. Check APNs response
+# 3. Check APNs response
 pm2 logs commeazy-push-gateway --lines 50 | grep "VoIP"
 
-# 3. Check of device token correct is
+# 4. Check of device token correct is
 # (Vergelijk laatste 6 chars in logs met token op device)
 
-# 4. Test met directe APNs push (bypass Prosody)
-curl -X POST http://127.0.0.1:5281/push \
+# 5. Test met directe push (bypass Prosody)
+curl -X POST http://127.0.0.1:5282/push \
   -H 'Content-Type: application/json' \
-  -d '{"node":"<VOIP_DEVICE_TOKEN>","secret":"<PUSH_SECRET>","type":"call"}'
+  -d '{"node":"<VOIP_DEVICE_TOKEN>","secret":"<PUSH_SECRET>","type":"call","service":"voip"}'
+
+# 6. Check Prosody logs voor mod_push_call_always output
+tail -50 /var/log/prosody/prosody.log | grep "push_call_always"
 ```
 
 **Veelvoorkomende oorzaken:**
-1. **Verkeerde APNs environment** — `sandbox` voor development, `production` voor TestFlight/App Store
-2. **VoIP device token verouderd** — iOS genereert soms een nieuw token na app update
-3. **Bundle ID mismatch** — `.voip` suffix vereist (`com.commeazy.app.voip`)
-4. **PushKit niet correct geregistreerd op iOS client** — Check `didUpdate pushCredentials`
-5. **APNs .p8 key verlopen** — Keys verlopen niet, maar Key ID kan gerevoceerd zijn
+1. **mod_push_call_always niet geladen** — Check `modules_enabled` in prosody.cfg.lua
+2. **Geen VoIP push registratie in cloud_notify store** — Client moet VoIP token registreren via XEP-0357
+3. **Verkeerde APNs environment** — `sandbox` voor development, `production` voor TestFlight/App Store
+4. **VoIP device token verouderd** — iOS genereert soms een nieuw token na app update
+5. **Bundle ID mismatch** — `.voip` suffix vereist (`com.commeazy.app.voip`)
+6. **PushKit niet correct geregistreerd op iOS client** — Check `didUpdate pushCredentials`
+7. **APNs .p8 key verlopen** — Keys verlopen niet, maar Key ID kan gerevoceerd zijn
+8. **push_http_secret mismatch** — Prosody stuurt ander secret dan gateway verwacht
 
 ### Probleem 7: Push Gateway crash loop
 

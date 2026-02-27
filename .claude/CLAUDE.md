@@ -886,6 +886,62 @@ Project gebruikt Prettier voor automatische formatting. Configuratie in `.pretti
 - **Bij merge conflicts in JSON** — Format na conflict resolution
 - **Bij nieuwe locale bestanden** — Zorg dat ze multiline format gebruiken
 
+## ⚠️ Documentatie Onderhoud bij Service Configuratie Wijzigingen (VERPLICHT)
+
+### Kernregel
+
+**Bij ELKE wijziging aan de configuratie van services (Prosody, Push Gateway, Coturn, Metro, etc.) MOETEN de bijbehorende documentatie bestanden worden bijgewerkt in DEZELFDE commit.**
+
+Dit garandeert dat we ALTIJD een correcte referentie hebben om een productie omgeving in te richten.
+
+### Welke Documentatie bij Welke Service
+
+| Service wijziging | MOET bijgewerkt worden |
+|-------------------|------------------------|
+| **Prosody configuratie** (prosody.cfg.lua) | `LOCAL_SERVICES.md` (sectie Prosody) + `.claude/plans/PROSODY_HA_PRODUCTION.md` (Appendix A + relevante secties) |
+| **Prosody modules** (mod_push_http, mod_push_call_always, etc.) | `LOCAL_SERVICES.md` (Custom Modules) + `PROSODY_HA_PRODUCTION.md` (sectie 2 + Appendix A) |
+| **Push Gateway** (server.js, .env, package.json) | `LOCAL_SERVICES.md` (sectie Push Gateway) + `PROSODY_HA_PRODUCTION.md` (sectie 12 + Appendix B) |
+| **Push Gateway poort/routing** | `PROSODY_HA_PRODUCTION.md` (netwerktabel, architectuurdiagram, env vars, health URLs, troubleshooting) |
+| **Coturn configuratie** | `LOCAL_SERVICES.md` + `PROSODY_HA_PRODUCTION.md` (STUN/TURN secties) |
+| **Metro Bundler setup** | `LOCAL_SERVICES.md` (sectie Metro Bundler) |
+
+### Claude's Verantwoordelijkheid
+
+Na het voltooien van een service configuratie wijziging MOET Claude:
+
+1. **Identificeer** welke documentatie bestanden beïnvloed worden (zie tabel)
+2. **Werk bij** alle relevante secties zodat documentatie exact overeenkomt met de werkelijke implementatie
+3. **Rapporteer** aan gebruiker:
+
+```
+🔄 **Documentatie Onderhoud:**
+Bijgewerkt n.a.v. [wijziging]:
+- LOCAL_SERVICES.md: [wat gewijzigd]
+- PROSODY_HA_PRODUCTION.md: [welke secties]
+```
+
+4. **Bij twijfel:** Controleer of de documentatie overeenkomt met de werkelijke bestanden/configuratie
+
+### Wat te Controleren
+
+Bij elke documentatie-update, valideer dat deze elementen kloppen:
+- **Poortnummers** — Komen overeen met werkelijke configuratie
+- **Module namen** — Alle actieve modules correct vermeld
+- **Environment variabelen** — Namen en default waarden kloppen
+- **Code voorbeelden** — Reflecteren de werkelijke implementatie
+- **Architectuur diagrammen** — Routing paden en componenten correct
+- **Health check URLs** — Juiste poort en pad
+- **Troubleshooting commando's** — Gebruiken correcte poortnummers en module namen
+
+### Referentie Documenten
+
+| Document | Pad | Doel |
+|----------|-----|------|
+| **LOCAL_SERVICES.md** | `/Users/bertvancapelle/Projects/CommEazy/LOCAL_SERVICES.md` | Development omgeving referentie |
+| **PROSODY_HA_PRODUCTION.md** | `.claude/plans/PROSODY_HA_PRODUCTION.md` | Productie deployment handleiding |
+
+---
+
 ## Git Workflow (VERPLICHT)
 
 ### ⚠️ CRUCIAAL: Claude MOET proactief commits voorstellen
