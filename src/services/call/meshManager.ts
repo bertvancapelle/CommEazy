@@ -51,6 +51,7 @@ export interface MeshCallbacks {
 export class MeshManager {
   private webrtc: WebRTCService;
   private participants: Map<string, MeshParticipant> = new Map();
+  private pendingIceCandidates: Map<string, RTCIceCandidate[]> = new Map();
   private localJid: string = '';
   private callType: CallType = 'voice';
   private callbacks: Partial<MeshCallbacks> = {};
@@ -77,6 +78,7 @@ export class MeshManager {
     this.callType = callType;
     this.callbacks = callbacks;
     this.participants.clear();
+    this.pendingIceCandidates.clear();
 
     console.info('[MeshManager] Initialized for:', localJid, 'type:', callType);
   }
@@ -90,6 +92,7 @@ export class MeshManager {
       this.webrtc.closePeerConnection(participant.peerState);
     });
     this.participants.clear();
+    this.pendingIceCandidates.clear();
 
     console.info('[MeshManager] Cleaned up');
   }
@@ -144,6 +147,16 @@ export class MeshManager {
 
     console.info('[MeshManager] Added participant:', jid, 'total:', this.getParticipantCount());
 
+    // Drain any ICE candidates that arrived before this participant was added
+    const queued = this.pendingIceCandidates.get(jid);
+    if (queued && queued.length > 0) {
+      console.info('[MeshManager] Draining', queued.length, 'queued ICE candidates for:', jid);
+      for (const candidate of queued) {
+        void this.webrtc.addIceCandidate(peerState, candidate);
+      }
+      this.pendingIceCandidates.delete(jid);
+    }
+
     if (this.callbacks.onParticipantAdded) {
       this.callbacks.onParticipantAdded(jid);
     }
@@ -165,6 +178,7 @@ export class MeshManager {
     this.webrtc.closePeerConnection(participant.peerState);
 
     this.participants.delete(jid);
+    this.pendingIceCandidates.delete(jid);
 
     console.info('[MeshManager] Removed participant:', jid, 'remaining:', this.getParticipantCount());
 
@@ -248,12 +262,18 @@ export class MeshManager {
   }
 
   /**
-   * Add ICE candidate for a specific participant
+   * Add ICE candidate for a specific participant.
+   * If the participant hasn't been added yet, queue the candidate
+   * and drain when addParticipant() is called.
    */
   async addIceCandidate(jid: string, candidate: RTCIceCandidate): Promise<void> {
     const participant = this.participants.get(jid);
     if (!participant) {
-      console.warn('[MeshManager] Participant not found for ICE:', jid);
+      // Queue candidate — participant may not have been added yet (timing race)
+      const queue = this.pendingIceCandidates.get(jid) || [];
+      queue.push(candidate);
+      this.pendingIceCandidates.set(jid, queue);
+      console.info('[MeshManager] Queued ICE candidate for pending participant:', jid, 'queue size:', queue.length);
       return;
     }
 
