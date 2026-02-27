@@ -568,17 +568,19 @@ export function RadioScreen() {
           if (profile?.radioFavorites && profile.radioFavorites.length > 0) {
             setFavorites(profile.radioFavorites);
           } else {
-            // No favorites yet — show explanation popup (only once per session)
+            // No favorites yet — switch to Search tab and auto-search with default country (NL)
+            // This is more user-friendly than showing a modal asking to search
             if (!hasShownModalRef.current) {
               hasShownModalRef.current = true;
-              setShowNoFavoritesModal(true);
+              setShowFavorites(false); // Switch to Search tab
+              // selectedCountry defaults to 'NL', loadStations will trigger via useEffect
             }
           }
         } else {
-          // Database not initialized — show modal for first-time users
+          // Database not initialized — switch to Search tab with default country (NL)
           if (!hasShownModalRef.current) {
             hasShownModalRef.current = true;
-            setShowNoFavoritesModal(true);
+            setShowFavorites(false); // Switch to Search tab
           }
         }
       } catch (error) {

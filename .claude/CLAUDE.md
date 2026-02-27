@@ -3184,19 +3184,22 @@ Features en taken die alleen voor Apple platforms gelden.
 |---|------|--------|------------|--------------|
 | 1 | **CallKit Basis** | ✅ DONE | 🎯 MVP | Native iOS call UI (lockscreen, mute sync, call history) |
 | 2 | **VoIP Push (APNs)** | ✅ DONE | 🎯 MVP | PushKit module ✅, APNs credentials ✅ geconfigureerd |
-| 3 | **Privacy Manifest** | ⏳ TODO | 🎯 MVP | Apple vereist NSPrivacyAccessedAPITypes voor App Store |
-| 4 | **CarPlay** | ⏳ TODO | ⏳ TBD | Handsfree bellen via CarPlay |
-| 5 | **iPad Multitasking** | ⏳ TODO | ⏳ TBD | Split View, Slide Over support |
-| 6 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
-| 7 | **Liquid Glass Implementation** | ✅ DONE | 🎯 MVP | iOS 26 UIGlassEffect integratie |
-| 8 | **Liquid Glass Player Window** | ✅ DONE | 🎯 MVP | Native Glass Player met MiniPlayer + FullPlayer |
-| 9 | **Liquid Glass True Transparency** | ✅ DONE | 🎯 MVP | Echte transparantie voor achtergrond doorschijnen |
-| 10 | **iPad/iPhone Hybrid Menu** | ✅ DONE | 🎯 MVP | WheelNavigationMenu + iPad Split View panelen |
-| 11 | **Apple Music** | 🔶 PARTIAL | ⏳ TBD | Auth/Search/Playback ✅, Queue UI ❌, Lyrics ❌ |
-| 12 | **Glass Player Auto-Hide** | 🔶 PARTIAL | ⏳ TBD | Implementatie gestart, nog niet volledig |
-| 13 | **Collapsible Panes iPad** | ⏳ TODO | ⏳ TBD | Ontwerp klaar, implementatie later |
+| 3 | **Privacy Manifest** | ⏳ TODO | 🎯 MVP | App-level PrivacyInfo.xcprivacy ontbreekt (Pods hebben eigen manifests) |
+| 4 | **CallKit Audio Routing** | ⏳ TODO | 🎯 MVP | react-native-incall-manager niet geïnstalleerd, setSpeakerMode is stub |
+| 5 | **Siri Call Initiation** | ⏳ TODO | ⏳ TBD | SiriKit niet geconfigureerd, Intents Extension ontbreekt |
+| 6 | **CarPlay** | ⏳ TODO | ⏳ TBD | Handsfree bellen via CarPlay |
+| 7 | **iPad Split View** | ✅ DONE | 🎯 MVP | SplitViewLayout + DraggableDivider + PaneContext compleet |
+| 8 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
+| 9 | **Liquid Glass Implementation** | ✅ DONE | 🎯 MVP | iOS 26 UIGlassEffect integratie |
+| 10 | **Liquid Glass Player Window** | ✅ DONE | 🎯 MVP | Native Glass Player met MiniPlayer + FullPlayer |
+| 11 | **Liquid Glass True Transparency** | ✅ DONE | 🎯 MVP | Echte transparantie voor achtergrond doorschijnen |
+| 12 | **iPad/iPhone Hybrid Menu** | ✅ DONE | 🎯 MVP | WheelNavigationMenu + iPad Split View panelen |
+| 13 | **Apple Music** | 🔶 PARTIAL | ⏳ TBD | Auth/Search/Playback/Queue ✅, Lyrics ❌ |
+| 14 | **Glass Player Auto-Hide** | ✅ DONE | ⏳ TBD | setTemporarilyHidden() + WheelMenu + module switch integratie |
+| 15 | **Collapsible Panes iPad** | ✅ DONE | 🎯 MVP | Snap logica, pijl handle, MediaIndicator integratie |
+| 16 | **Piper TTS Nederlands** | ✅ DONE | 🎯 MVP | sherpa-onnx met 4 Nederlandse stemmen, chunked playback |
 
-**📊 iOS/iPadOS Samenvatting:** 13 items | ✅ 6 DONE | 🔶 2 PARTIAL | ⏳ 5 TODO
+**📊 iOS/iPadOS Samenvatting:** 16 items | ✅ 10 DONE | 🔶 1 PARTIAL | ⏳ 5 TODO
 
 ---
 
@@ -3206,10 +3209,10 @@ Features en taken die alleen voor Android gelden.
 
 | # | Item | Status | Prioriteit | Beschrijving |
 |---|------|--------|------------|--------------|
-| 14 | **VoIP Push (FCM)** | ⏳ TODO | 🎯 MVP | FCM service account credentials configureren |
-| 15 | **Data Safety Section** | ⏳ TODO | 🎯 MVP | Google Play Store vereist dit |
-| 16 | **Android Auto** | ⏳ TODO | ⏳ TBD | Handsfree bellen via Android Auto |
-| 17 | **Widget (Android)** | ⏳ TODO | ⏳ TBD | Android App Widget recent contacts |
+| 17 | **VoIP Push (FCM)** | ⏳ TODO | 🎯 MVP | FCM service account credentials configureren |
+| 18 | **Data Safety Section** | ⏳ TODO | 🎯 MVP | Google Play Store vereist dit |
+| 19 | **Android Auto** | ⏳ TODO | ⏳ TBD | Handsfree bellen via Android Auto |
+| 20 | **Widget (Android)** | ⏳ TODO | ⏳ TBD | Android App Widget recent contacts |
 
 **📊 Android Samenvatting:** 4 items | ✅ 0 DONE | 🔶 0 PARTIAL | ⏳ 4 TODO
 
@@ -3221,26 +3224,26 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 
 | # | Item | Status | Prioriteit | Beschrijving |
 |---|------|--------|------------|--------------|
-| 18 | **Mock Mode Uitschakelen** | ⏳ TODO | 🎯 MVP | Zie `MOCK_MODE_CHANGES.md` voor alle wijzigingen |
-| 19 | **App Icons & Splash Screen** | ⏳ TODO | 🎯 MVP | Finale assets voor iOS + Android resoluties |
-| 20 | **TURN Server Credentials** | ⏳ TODO | 🎯 MVP | Productie TURN server voor WebRTC |
-| 21 | **Firebase Productie Config** | ⏳ TODO | 🎯 MVP | Aparte Firebase project voor productie |
-| 22 | **Prosody Productie Server** | ⏳ TODO | 🎯 MVP | Hosted XMPP server (niet lokaal) |
-| 23 | **TTS Stem Download Service** | ⏳ TODO | ⏳ TBD | CDN + dynamisch downloaden Piper stemmen per taal |
-| 24 | **Call Error Handling** | ⏳ TODO | ⏳ TBD | Reconnectie bij netwerk verlies, ICE failure → TURN fallback |
-| 25 | **Voice Command Audio Ducking** | ⏳ TODO | ⏳ TBD | Duck audio naar 15% bij voice session (native modules) |
-| 26 | **Color Theme System** | 🔶 PARTIAL | ⏳ TBD | Module kleuren ✅, Dark mode ❌, High contrast ❌ |
-| 27 | **Universal Presence** | 🔶 PARTIAL | ⏳ TBD | Online/offline indicator (XMPP + React Native) |
-| 28 | **Unified Notifications** | ⏳ TODO | ⏳ TBD | Background message handling, group notifications |
-| 29 | **Accessibility Compliance** | ⏳ TODO | ⏳ TBD | WCAG AAA + EN 301 549 volledige audit |
-| 30 | **Weather Module** | ⏳ TODO | ⏳ TBD | Open-Meteo API + RainViewer radar |
-| 31 | **Buienradar Module** | 🔶 PARTIAL | ⏳ TBD | FavoriteLocationsContext ✅, UI nog te doen |
-| 32 | **Country-Specific Modules** | ⏳ TODO | ⏳ TBD | Framework voor land-specifieke modules (nu.nl, etc.) |
-| 33 | **Groepsvideobellen (4+)** | ⏳ TODO | ⏳ TBD | SFU server nodig |
-| 34 | **Spraakberichten** | ⏳ TODO | ⏳ TBD | Opnemen en verzenden |
-| 35 | **Locatie delen** | ⏳ TODO | ⏳ TBD | Real-time locatie |
-| 36 | **Herinneringen** | ⏳ TODO | ⏳ TBD | Medicatie, afspraken |
-| 37 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
+| 21 | **Mock Mode Uitschakelen** | ⏳ TODO | 🎯 MVP | Zie `MOCK_MODE_CHANGES.md` voor alle wijzigingen |
+| 22 | **App Icons & Splash Screen** | ⏳ TODO | 🎯 MVP | Finale assets voor iOS + Android resoluties |
+| 23 | **TURN Server Credentials** | ⏳ TODO | 🎯 MVP | Productie TURN server voor WebRTC |
+| 24 | **Firebase Productie Config** | ⏳ TODO | 🎯 MVP | Aparte Firebase project voor productie |
+| 25 | **Prosody Productie Server** | ⏳ TODO | 🎯 MVP | Hosted XMPP server (niet lokaal) |
+| 26 | **TTS Stem Download Service** | ⏳ TODO | ⏳ TBD | CDN + dynamisch downloaden Piper stemmen per taal |
+| 27 | **Call Error Handling** | ⏳ TODO | 🎯 MVP | Reconnectie bij netwerk verlies, ICE restart ontbreekt, geen retry counter |
+| 28 | **Voice Command Audio Ducking** | ⏳ TODO | ⏳ TBD | Duck audio naar 15% bij voice session (native AudioDuckingModule ontbreekt) |
+| 29 | **Color Theme System** | 🔶 PARTIAL | ⏳ TBD | Module kleuren ✅, Dark mode ❌, High contrast ❌ |
+| 30 | **Universal Presence** | 🔶 PARTIAL | ⏳ TBD | Online/offline indicator (XMPP + React Native) |
+| 31 | **Unified Notifications** | ⏳ TODO | ⏳ TBD | Background message handling, group notifications |
+| 32 | **Accessibility Compliance** | ⏳ TODO | ⏳ TBD | WCAG AAA + EN 301 549 volledige audit |
+| 33 | **Weather Module** | ⏳ TODO | ⏳ TBD | Open-Meteo API + RainViewer radar |
+| 34 | **Buienradar Module** | 🔶 PARTIAL | ⏳ TBD | FavoriteLocationsContext ✅, UI nog te doen |
+| 35 | **Country-Specific Modules** | ⏳ TODO | ⏳ TBD | Framework voor land-specifieke modules (nu.nl, etc.) |
+| 36 | **Groepsvideobellen (4+)** | ⏳ TODO | ⏳ TBD | SFU server nodig |
+| 37 | **Spraakberichten** | ⏳ TODO | ⏳ TBD | Opnemen en verzenden |
+| 38 | **Locatie delen** | ⏳ TODO | ⏳ TBD | Real-time locatie |
+| 39 | **Herinneringen** | ⏳ TODO | ⏳ TBD | Medicatie, afspraken |
+| 40 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
 
 **📊 Cross-Platform Samenvatting:** 20 items | ✅ 0 DONE | 🔶 3 PARTIAL | ⏳ 17 TODO
 
@@ -3250,10 +3253,10 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 
 | Platform | Totaal | ✅ DONE | 🔶 PARTIAL | ⏳ TODO |
 |----------|--------|---------|------------|---------|
-| **iOS/iPadOS** | 13 | 6 | 2 | 5 |
+| **iOS/iPadOS** | 16 | 9 | 1 | 6 |
 | **Android** | 4 | 0 | 0 | 4 |
 | **Cross-Platform** | 20 | 0 | 3 | 17 |
-| **TOTAAL** | 37 | 6 | 5 | 26 |
+| **TOTAAL** | 40 | 9 | 4 | 27 |
 
 ---
 
