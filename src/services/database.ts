@@ -78,8 +78,22 @@ export class WatermelonDBService implements DatabaseService {
 
   async saveMessage(msg: Message): Promise<void> {
     const db = this.ensureDatabase();
+    const collection = db.get<MessageModel>('messages');
+
+    // Check if message already exists (deduplication for XMPP reconnect/resync)
+    try {
+      const existing = await collection.find(msg.id);
+      if (existing) {
+        // Message already exists, skip insert to avoid UNIQUE constraint error
+        console.debug(`[Database] Message ${msg.id} already exists, skipping`);
+        return;
+      }
+    } catch {
+      // find() throws if not found, which is expected — continue to create
+    }
+
     await db.write(async () => {
-      await db.get<MessageModel>('messages').create(record => {
+      await collection.create(record => {
         record._raw.id = msg.id;
         record.chatId = msg.chatId;
         record.senderId = msg.senderId;
