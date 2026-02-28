@@ -67,11 +67,20 @@ export interface Message {
   chatId: string;
   senderId: string;
   senderName: string;
-  content: string;           // Decrypted content
+  content: string;           // Decrypted content (text or caption for media)
   contentType: ContentType;
   timestamp: number;
   status: DeliveryStatus;
   isRead?: boolean;          // For unread tracking (optional, defaults based on sender)
+
+  // Photo/Video specific fields (required when contentType is 'image' or 'video')
+  mediaUri?: string;         // Full resolution local file URI
+  thumbnailUri?: string;     // Thumbnail URI for preview
+  mediaWidth?: number;       // Original width in pixels
+  mediaHeight?: number;      // Original height in pixels
+  mediaSize?: number;        // File size in bytes
+  isMediaDownloading?: boolean;  // Download in progress
+  mediaDownloadProgress?: number; // 0-1 download progress
 }
 
 export interface OutboxMessage {

@@ -39,7 +39,7 @@ import {
 } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
-import { MessageStatus } from '@/components';
+import { MessageStatus, PhotoMessageBubble } from '@/components';
 import type { Message, DeliveryStatus } from '@/services/interfaces';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import type { ChatStackParams } from '@/navigation';
@@ -249,6 +249,31 @@ export function ChatScreen() {
       const isOwn = myJid
         ? item.senderId === myJid
         : item.senderName === 'Ik'; // Fallback for dev mode without service
+
+      // Render photo message with PhotoMessageBubble
+      if (item.contentType === 'image' && item.mediaUri) {
+        return (
+          <PhotoMessageBubble
+            uri={item.mediaUri}
+            thumbnailUri={item.thumbnailUri}
+            width={item.mediaWidth}
+            height={item.mediaHeight}
+            caption={item.content || undefined}
+            isOwn={isOwn}
+            timestamp={item.timestamp}
+            downloadProgress={item.mediaDownloadProgress}
+            isDownloading={item.isMediaDownloading}
+            hasError={item.status === 'failed'}
+            onRetry={() => {
+              // TODO: Implement retry logic for failed photo downloads
+              console.info('[ChatScreen] Retry photo download:', item.id);
+            }}
+            onView={() => {
+              console.info('[ChatScreen] Photo viewed:', item.id);
+            }}
+          />
+        );
+      }
 
       // Determine bubble style based on delivery status
       const isPending = item.status === 'pending';
