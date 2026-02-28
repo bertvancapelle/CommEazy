@@ -99,6 +99,8 @@ export type ModuleColorId =
   | 'weather'
   | 'nunl'         // nu.nl news module
   | 'appleMusic'   // Apple Music module
+  | 'camera'       // Camera module (photo/video capture)
+  | 'photoAlbum'   // Photo Album (view, send, delete photos)
   | 'help'
   | 'menu';
 
@@ -229,6 +231,18 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   },
   appleMusic: {
     moduleId: 'appleMusic',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  camera: {
+    moduleId: 'camera',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  photoAlbum: {
+    moduleId: 'photoAlbum',
     tintColor: DEFAULT_MODULE_BLUE,
     fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',

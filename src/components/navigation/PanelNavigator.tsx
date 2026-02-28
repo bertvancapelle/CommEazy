@@ -71,6 +71,8 @@ import {
   NuNlScreen,
   WeatherScreen,
   AppleMusicScreen,
+  CameraScreen,
+  PhotoAlbumScreen,
 } from '@/screens/modules';
 
 // Components
@@ -413,6 +415,10 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <WeatherScreen />;
     case 'appleMusic':
       return <AppleMusicScreen />;
+    case 'camera':
+      return <CameraScreen />;
+    case 'photoAlbum':
+      return <PhotoAlbumScreen />;
     case 'help':
       return <PlaceholderScreen />;
 

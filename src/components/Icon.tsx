@@ -105,7 +105,8 @@ export type IconName =
   | 'weather'
   | 'help'
   | 'phone'
-  | 'queue';
+  | 'queue'
+  | 'image';
 
 interface IconProps {
   name: IconName;
@@ -1705,6 +1706,30 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             fill={color}
             stroke={color}
             strokeWidth={sw}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'image':
+      // Photo/image icon (landscape with mountains and sun)
+      return (
+        <Svg {...iconProps}>
+          <Rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="2"
+            stroke={color}
+            strokeWidth={sw}
+          />
+          <Circle cx="8.5" cy="8.5" r="1.5" fill={color} />
+          <Path
+            d="M21 15L16 10L5 21"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
             strokeLinejoin="round"
           />
         </Svg>

@@ -51,12 +51,14 @@ export const ALL_MODULES: NavigationDestination[] = [
   'chats',
   'contacts',
   'groups',
-  'calls',      // Combined voice + video calling
+  'calls',       // Combined voice + video calling
   'podcast',
   'radio',
   'books',
   'weather',
-  'appleMusic', // Apple Music integration
+  'appleMusic',  // Apple Music integration
+  'camera',      // Camera module (photo/video capture)
+  'photoAlbum',  // Photo Album (view, send, delete photos)
   'settings',
   'help',
 ];
@@ -65,17 +67,19 @@ export const ALL_MODULES: NavigationDestination[] = [
 // Note: Menu shows 1 active module (top) + 4 other modules on first page
 // Radio is prioritized as a key media feature for seniors
 const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
-  'chats',      // Most common use case
-  'contacts',   // Second most common
-  'radio',      // Radio - key media feature, visible on first page
-  'calls',      // Phone + video calls (combined)
-  'groups',     // Groups
-  'weather',    // Weather - useful utility for seniors
-  'appleMusic', // Apple Music integration
-  'books',      // Books - e-books from Gutenberg with optional TTS
-  'podcast',    // Podcasts
-  'settings',   // Settings
-  'help',       // Help
+  'chats',       // Most common use case
+  'contacts',    // Second most common
+  'radio',       // Radio - key media feature, visible on first page
+  'calls',       // Phone + video calls (combined)
+  'groups',      // Groups
+  'camera',      // Camera - taking photos/videos
+  'photoAlbum',  // Photo Album - viewing and sending photos
+  'weather',     // Weather - useful utility for seniors
+  'appleMusic',  // Apple Music integration
+  'books',       // Books - e-books from Gutenberg with optional TTS
+  'podcast',     // Podcasts
+  'settings',    // Settings
+  'help',        // Help
 ];
 
 export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageReturn {

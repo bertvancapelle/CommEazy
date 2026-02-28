@@ -60,7 +60,9 @@ export type StaticNavigationDestination =
   | 'radio'
   | 'books'
   | 'weather'
-  | 'appleMusic';  // Apple Music integration
+  | 'appleMusic'   // Apple Music integration
+  | 'camera'       // Camera module (photo/video capture)
+  | 'photoAlbum';  // Photo Album (view, send, delete photos)
 
 // Dynamic navigation destinations for country-specific modules
 // Format: 'module:{moduleId}' (e.g., 'module:nunl')
@@ -96,7 +98,9 @@ export type ModuleIconType =
   | 'radio'
   | 'news'        // For country-specific news modules
   | 'weather'     // Weather module
-  | 'appleMusic'; // Apple Music module
+  | 'appleMusic'  // Apple Music module
+  | 'camera'      // Camera module
+  | 'image';      // Photo Album module
 
 /**
  * Map ModuleIconType to IconName for unified SVG icons
@@ -132,6 +136,10 @@ function mapModuleIconToIconName(type: ModuleIconType): IconName {
       return 'weather';
     case 'appleMusic':
       return 'appleMusic';
+    case 'camera':
+      return 'camera';
+    case 'image':
+      return 'image';
     default:
       return 'info'; // fallback
   }
@@ -159,6 +167,8 @@ const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<Module
   books: { labelKey: 'navigation.books', icon: 'book' },
   weather: { labelKey: 'navigation.weather', icon: 'weather' },
   appleMusic: { labelKey: 'navigation.appleMusic', icon: 'appleMusic' },
+  camera: { labelKey: 'navigation.camera', icon: 'camera' },
+  photoAlbum: { labelKey: 'navigation.photoAlbum', icon: 'image' },
   settings: { labelKey: 'navigation.settings', icon: 'settings' },
   help: { labelKey: 'navigation.help', icon: 'help' },
 };
@@ -583,6 +593,8 @@ function getModuleIdForColor(id: NavigationDestination): ModuleColorId {
     books: 'books',
     weather: 'weather',
     appleMusic: 'appleMusic',
+    camera: 'camera',
+    photoAlbum: 'photoAlbum',
     settings: 'settings',
     help: 'help',
   };

@@ -21,3 +21,7 @@ export { NuNlScreen } from './NuNlScreen';
 
 // Static modules (not country-specific)
 export { WeatherScreen } from './WeatherScreen';
+
+// Media modules (photo/video)
+export { CameraScreen } from './CameraScreen';
+export { PhotoAlbumScreen } from './PhotoAlbumScreen';

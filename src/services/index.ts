@@ -82,6 +82,53 @@ export { piperTtsService } from './piperTtsService';
 // Artwork
 export { artworkService, getArtworkUrl, validateArtwork } from './artworkService';
 
+// Photo/Video Messaging
+export {
+  // Media processing
+  compressPhoto,
+  generatePhotoThumbnail,
+  stripExifData,
+  compressVideo,
+  generateVideoThumbnail,
+  getVideoDuration,
+  validateVideoDuration,
+  getFileSize,
+  readAsBase64,
+  writeBase64ToFile,
+  deleteFile,
+  copyToMediaDirectory,
+  getMediaTypeFromUri,
+  MEDIA_DEFAULTS,
+
+  // Media storage
+  savePhoto,
+  saveVideo,
+  saveMedia,
+  mediaExists,
+  getMediaUri,
+  getThumbnailUri,
+  deleteMedia,
+  deleteMediaBatch,
+  cleanupTempFiles,
+  getStorageUsage,
+  getAvailableStorage,
+  isStorageLow,
+  getMediaCount,
+
+  // Media queue
+  initializeMediaQueue,
+  shutdownMediaQueue,
+  queueMedia,
+  getPendingItems,
+  getQueueStatus,
+  retryMedia,
+  cancelMedia,
+  cleanupExpiredMedia,
+  getRetryDelay,
+  isQueueInitialized,
+  triggerQueueProcessing,
+} from './media';
+
 // ============================================================
 // Device Services
 // ============================================================

@@ -14,9 +14,10 @@
  * - v10: Added accentColor for UI personalization
  * - v11: Added voiceCommandsEnabled for two-finger voice commands
  * - v12: Added call sound settings (ringtone, dial tone, vibration)
+ * - v13: Added media_messages table and media fields to messages
  */
 
-import { schemaMigrations, addColumns } from '@nozbe/watermelondb/Schema/migrations';
+import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
 
 export const migrations = schemaMigrations({
   migrations: [
@@ -181,6 +182,49 @@ export const migrations = schemaMigrations({
             { name: 'dial_tone_enabled', type: 'boolean', isOptional: true },
             { name: 'incoming_call_vibration', type: 'boolean', isOptional: true },
             { name: 'outgoing_call_vibration', type: 'boolean', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v12 to v13: Add media messaging support
+    {
+      toVersion: 13,
+      steps: [
+        // Add media fields to messages table
+        addColumns({
+          table: 'messages',
+          columns: [
+            { name: 'media_id', type: 'string', isOptional: true },
+            { name: 'thumbnail_data', type: 'string', isOptional: true },
+            { name: 'media_width', type: 'number', isOptional: true },
+            { name: 'media_height', type: 'number', isOptional: true },
+            { name: 'media_duration', type: 'number', isOptional: true },
+          ],
+        }),
+        // Create media_messages table
+        createTable({
+          name: 'media_messages',
+          columns: [
+            { name: 'media_id', type: 'string', isIndexed: true },
+            { name: 'message_id', type: 'string', isIndexed: true },
+            { name: 'type', type: 'string' },
+            { name: 'local_uri', type: 'string' },
+            { name: 'thumbnail_uri', type: 'string' },
+            { name: 'size', type: 'number' },
+            { name: 'width', type: 'number' },
+            { name: 'height', type: 'number' },
+            { name: 'duration', type: 'number', isOptional: true },
+            { name: 'source', type: 'string' },
+            { name: 'sender_jid', type: 'string', isOptional: true },
+            { name: 'sender_name', type: 'string', isOptional: true },
+            { name: 'chat_id', type: 'string', isIndexed: true },
+            { name: 'encryption_key', type: 'string' },
+            { name: 'encryption_nonce', type: 'string' },
+            { name: 'transfer_status', type: 'string' },
+            { name: 'retry_count', type: 'number' },
+            { name: 'expires_at', type: 'number', isIndexed: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
           ],
         }),
       ],

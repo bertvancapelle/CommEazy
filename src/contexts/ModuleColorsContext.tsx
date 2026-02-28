@@ -66,6 +66,8 @@ export const CUSTOMIZABLE_MODULES: ModuleColorId[] = [
   'books',
   'weather',
   'appleMusic',
+  'camera',
+  'photoAlbum',
   'settings',
 ];
 
@@ -87,6 +89,8 @@ export const MODULE_LABELS: Record<ModuleColorId, string> = {
   weather: 'navigation.weather',
   nunl: 'navigation.news',
   appleMusic: 'navigation.appleMusic',
+  camera: 'navigation.camera',
+  photoAlbum: 'navigation.photoAlbum',
   settings: 'navigation.settings',
   help: 'navigation.help',
   menu: 'navigation.menu',

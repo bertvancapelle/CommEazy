@@ -20,8 +20,10 @@
  * - v10: Added accentColor for UI personalization
  * - v11: Added voiceCommandsEnabled for two-finger voice commands
  * - v12: Added call sound settings (ringtone, dial tone, vibration)
+ * - v13: Added media_messages table for photo/video messaging
  *
  * @see services/interfaces.ts for domain models
+ * @see types/media.ts for media types
  */
 
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
@@ -43,10 +45,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 
 export const schema = appSchema({
-  version: 12,
+  version: 13,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -60,6 +62,39 @@ export const schema = appSchema({
         { name: 'timestamp', type: 'number', isIndexed: true },
         { name: 'status', type: 'string' }, // 'pending' | 'sent' | 'delivered' | 'failed' | 'expired'
         { name: 'is_read', type: 'boolean' }, // Unread message tracking
+        // Media fields (v13) — only populated for image/video content types
+        { name: 'media_id', type: 'string', isOptional: true },           // Reference to media_messages
+        { name: 'thumbnail_data', type: 'string', isOptional: true },     // Base64 thumbnail (~10KB)
+        { name: 'media_width', type: 'number', isOptional: true },        // Width in pixels
+        { name: 'media_height', type: 'number', isOptional: true },       // Height in pixels
+        { name: 'media_duration', type: 'number', isOptional: true },     // Video duration in seconds
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+
+    // Media messages table (v13) — stores media files metadata
+    tableSchema({
+      name: 'media_messages',
+      columns: [
+        { name: 'media_id', type: 'string', isIndexed: true },          // Unique media ID (UUID v4)
+        { name: 'message_id', type: 'string', isIndexed: true },        // Reference to messages table
+        { name: 'type', type: 'string' },                               // 'photo' | 'video'
+        { name: 'local_uri', type: 'string' },                          // Local file path (decrypted)
+        { name: 'thumbnail_uri', type: 'string' },                      // Local thumbnail path
+        { name: 'size', type: 'number' },                               // File size in bytes
+        { name: 'width', type: 'number' },                              // Width in pixels
+        { name: 'height', type: 'number' },                             // Height in pixels
+        { name: 'duration', type: 'number', isOptional: true },         // Video duration in seconds
+        { name: 'source', type: 'string' },                             // 'camera' | 'gallery' | 'received'
+        { name: 'sender_jid', type: 'string', isOptional: true },       // Sender JID (for received)
+        { name: 'sender_name', type: 'string', isOptional: true },      // Sender name (for received)
+        { name: 'chat_id', type: 'string', isIndexed: true },           // Associated chat
+        { name: 'encryption_key', type: 'string' },                     // Base64 encryption key
+        { name: 'encryption_nonce', type: 'string' },                   // Base64 encryption nonce
+        { name: 'transfer_status', type: 'string' },                    // Transfer status
+        { name: 'retry_count', type: 'number' },                        // Retry attempts
+        { name: 'expires_at', type: 'number', isIndexed: true },        // 7-day expiration
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
