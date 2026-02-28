@@ -35,7 +35,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import RNFS from 'react-native-fs';
 
-import { ModuleHeader } from '@/components';
+import { ModuleHeader, PhotoRecipientModal } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
   colors,
@@ -52,6 +52,9 @@ import {
   getStorageUsage,
   getThumbnailUri,
 } from '@/services/media';
+import { chatService } from '@/services/chat';
+import { ServiceContainer } from '@/services/container';
+import type { Contact } from '@/services/interfaces';
 
 // ============================================================
 // Constants
@@ -111,6 +114,12 @@ export function PhotoAlbumScreen() {
   const [viewerPhoto, setViewerPhoto] = useState<PhotoItem | null>(null);
   const [isViewerLoading, setIsViewerLoading] = useState(true);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+  // Recipient modal state
+  const [isRecipientModalVisible, setIsRecipientModalVisible] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   // Check for pending navigation (e.g., photo ID from Camera)
   useEffect(() => {
@@ -280,7 +289,28 @@ export function PhotoAlbumScreen() {
     }
   }, [isSelectionMode]);
 
-  // Handle send photos action
+  // Load contacts for recipient modal
+  const loadContacts = useCallback(async () => {
+    setIsLoadingContacts(true);
+    try {
+      if (ServiceContainer.isInitialized && chatService.isInitialized) {
+        const contactList = await chatService.getContacts();
+        setContacts(contactList);
+        console.info(LOG_PREFIX, 'Loaded contacts:', contactList.length);
+      } else if (__DEV__) {
+        // Use mock contacts in dev mode
+        const { MOCK_CONTACTS } = await import('@/services/mock');
+        setContacts(MOCK_CONTACTS);
+        console.info(LOG_PREFIX, 'Using mock contacts:', MOCK_CONTACTS.length);
+      }
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Failed to load contacts:', error);
+    } finally {
+      setIsLoadingContacts(false);
+    }
+  }, []);
+
+  // Handle send photos action — opens recipient modal
   const handleSendPhotos = useCallback(() => {
     if (selectedPhotos.size === 0) {
       Alert.alert(
@@ -293,12 +323,99 @@ export function PhotoAlbumScreen() {
 
     console.info(LOG_PREFIX, 'Send photos pressed:', selectedPhotos.size);
 
-    Alert.alert(
-      t('modules.photoAlbum.sendTitle', 'Send Photos'),
-      t('modules.photoAlbum.sendComingSoon', 'Photo sharing coming soon!\n\nYou will be able to send photos to up to {{max}} contacts.', { max: MAX_RECIPIENTS }),
-      [{ text: t('common.ok', 'OK') }]
-    );
-  }, [selectedPhotos, t]);
+    // Load contacts and show recipient modal
+    loadContacts();
+    setIsRecipientModalVisible(true);
+  }, [selectedPhotos, t, loadContacts]);
+
+  // Handle recipient selection confirmation — send photos to selected contacts
+  const handleRecipientConfirm = useCallback(async (recipients: Contact[]) => {
+    console.info(LOG_PREFIX, 'Sending photos to:', recipients.length, 'recipients');
+    setIsRecipientModalVisible(false);
+    setIsSending(true);
+
+    const photoIds = Array.from(selectedPhotos);
+    const photoItems = photos.filter(p => photoIds.includes(p.id));
+
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      // Send each photo to each recipient
+      for (const photo of photoItems) {
+        for (const recipient of recipients) {
+          try {
+            console.info(LOG_PREFIX, `Sending photo ${photo.id} to ${recipient.jid}`);
+
+            // Check if chat service is available
+            if (ServiceContainer.isInitialized && chatService.isInitialized) {
+              const result = await chatService.sendPhotoMessage(recipient.jid, photo.uri, {
+                width: 0, // Will be read from file
+                height: 0, // Will be read from file
+              });
+
+              if (result.success) {
+                successCount++;
+                console.info(LOG_PREFIX, 'Photo sent successfully:', result.messageId);
+              } else {
+                failCount++;
+                console.error(LOG_PREFIX, 'Failed to send photo:', result.error);
+              }
+            } else if (__DEV__) {
+              // In dev mode without service, simulate success
+              console.info(LOG_PREFIX, '[DEV] Simulating photo send success');
+              successCount++;
+            }
+          } catch (error) {
+            failCount++;
+            console.error(LOG_PREFIX, 'Error sending photo:', error);
+          }
+        }
+      }
+
+      // Show result
+      Vibration.vibrate(HAPTIC_DURATION);
+
+      if (failCount === 0) {
+        Alert.alert(
+          t('modules.photoAlbum.sendSuccess', 'Photos Sent'),
+          t('modules.photoAlbum.sendSuccessMessage', 'Successfully sent {{count}} photo(s) to {{recipients}} contact(s).', {
+            count: photoItems.length,
+            recipients: recipients.length,
+          }),
+          [{ text: t('common.ok', 'OK') }]
+        );
+
+        // Exit selection mode
+        setSelectedPhotos(new Set());
+        setIsSelectionMode(false);
+      } else if (successCount > 0) {
+        Alert.alert(
+          t('modules.photoAlbum.sendPartial', 'Partially Sent'),
+          t('modules.photoAlbum.sendPartialMessage', 'Sent {{success}} photo(s), but {{fail}} failed.', {
+            success: successCount,
+            fail: failCount,
+          }),
+          [{ text: t('common.ok', 'OK') }]
+        );
+      } else {
+        Alert.alert(
+          t('common.error', 'Error'),
+          t('modules.photoAlbum.sendFailed', 'Failed to send photos. Please try again.'),
+          [{ text: t('common.ok', 'OK') }]
+        );
+      }
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Send photos error:', error);
+      Alert.alert(
+        t('common.error', 'Error'),
+        t('modules.photoAlbum.sendFailed', 'Failed to send photos. Please try again.'),
+        [{ text: t('common.ok', 'OK') }]
+      );
+    } finally {
+      setIsSending(false);
+    }
+  }, [selectedPhotos, photos, t]);
 
   // Handle delete photos action
   const handleDeletePhotos = useCallback(() => {
@@ -652,6 +769,27 @@ export function PhotoAlbumScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Recipient Selection Modal */}
+      <PhotoRecipientModal
+        visible={isRecipientModalVisible}
+        contacts={contacts}
+        photoCount={selectedPhotos.size}
+        isLoading={isLoadingContacts}
+        onConfirm={handleRecipientConfirm}
+        onClose={() => setIsRecipientModalVisible(false)}
+        accentColor={moduleColor}
+      />
+
+      {/* Sending overlay */}
+      {isSending && (
+        <View style={styles.sendingOverlay}>
+          <ActivityIndicator size="large" color={moduleColor} />
+          <Text style={styles.sendingText}>
+            {t('modules.photoAlbum.sending', 'Sending photos...')}
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -865,6 +1003,18 @@ const styles = StyleSheet.create({
   },
   viewerActionText: {
     ...typography.button,
+    color: colors.textOnPrimary,
+  },
+  // Sending overlay styles
+  sendingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  sendingText: {
+    ...typography.h3,
     color: colors.textOnPrimary,
   },
 });

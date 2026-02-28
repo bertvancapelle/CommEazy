@@ -12,8 +12,10 @@
  */
 
 import uuid from 'react-native-uuid';
+import RNFS from 'react-native-fs';
 
 import { ServiceContainer } from './container';
+import { compressPhoto, generatePhotoThumbnail } from './media';
 import { isPlaintextMode } from './mock';
 import type {
   Message,
@@ -63,6 +65,19 @@ export interface ChatListItemWithContact {
 export interface SendMessageResult {
   messageId: string;
   status: DeliveryStatus;
+}
+
+export interface SendPhotoMessageResult extends SendMessageResult {
+  thumbnailUri?: string;
+}
+
+export interface PhotoMessageOptions {
+  /** Optional caption text for the photo */
+  caption?: string;
+  /** Photo width in pixels (required for proper display) */
+  width: number;
+  /** Photo height in pixels (required for proper display) */
+  height: number;
 }
 
 export class ChatService {
@@ -299,6 +314,169 @@ export class ChatService {
 
       throw new AppError('E300', 'delivery', () => this.retrySendMessage(messageId), {
         reason: 'send_failed',
+      });
+    }
+  }
+
+  /**
+   * Send a photo message to a contact.
+   * Handles compression, thumbnail generation, encryption, and XMPP delivery.
+   *
+   * @param contactJid - The JID of the recipient
+   * @param photoUri - The local file URI of the photo to send
+   * @param options - Photo dimensions and optional caption
+   */
+  async sendPhotoMessage(
+    contactJid: string,
+    photoUri: string,
+    options: PhotoMessageOptions,
+  ): Promise<SendPhotoMessageResult> {
+    this.ensureInitialized();
+
+    const contact = await ServiceContainer.database.getContact(contactJid);
+    if (!contact) {
+      throw new AppError('E202', 'encryption', () => {}, {
+        reason: 'contact_not_found',
+      });
+    }
+
+    const messageId = uuid.v4() as string;
+    const timestamp = Date.now();
+    const chatId = this.getChatId(contactJid);
+
+    try {
+      // Step 1: Compress photo and generate thumbnail
+      console.info('[ChatService] Compressing photo for sending...');
+      const compressed = await compressPhoto(photoUri);
+      if (!compressed.success || !compressed.uri) {
+        throw new AppError('E500', 'network', () => {}, {
+          reason: 'photo_compression_failed',
+          error: compressed.error,
+        });
+      }
+
+      console.info('[ChatService] Generating thumbnail...');
+      const thumbnail = await generatePhotoThumbnail(compressed.uri);
+      const thumbnailUri = thumbnail.success ? thumbnail.uri : undefined;
+
+      // Step 2: Read compressed photo as base64 for encryption
+      const normalizedUri = compressed.uri.startsWith('file://')
+        ? compressed.uri.slice(7)
+        : compressed.uri;
+      const photoBase64 = await RNFS.readFile(normalizedUri, 'base64');
+
+      // Step 3: Create photo payload (photo data + metadata)
+      const photoPayload = {
+        type: 'image',
+        data: photoBase64,
+        caption: options.caption || '',
+        width: compressed.width || options.width,
+        height: compressed.height || options.height,
+        size: compressed.size || 0,
+        mimeType: 'image/jpeg',
+      };
+      const payloadJson = JSON.stringify(photoPayload);
+
+      // Step 4: Encrypt the payload
+      let encryptedPayload: EncryptedPayload;
+
+      if (__DEV__ && isPlaintextMode()) {
+        console.log('[ChatService] PLAINTEXT MODE: Sending unencrypted photo');
+        encryptedPayload = {
+          mode: 'plaintext' as any,
+          data: payloadJson,
+          metadata: {
+            nonce: 'dev-plaintext-mode',
+            to: contactJid,
+            contentType: 'image',
+          },
+        };
+      } else {
+        const { from_base64, base64_variants } = await import('react-native-libsodium');
+
+        let recipientPublicKey = contact.publicKey;
+
+        if (__DEV__ && (!recipientPublicKey || recipientPublicKey.length === 0)) {
+          console.warn(`[ChatService] Contact ${contactJid} has no public key, trying test keys...`);
+          try {
+            const { getTestPublicKeyForJid } = await import('./mock/testKeys');
+            const testKey = await getTestPublicKeyForJid(contactJid);
+            if (testKey) {
+              recipientPublicKey = testKey;
+              await ServiceContainer.database.saveContact({
+                ...contact,
+                publicKey: testKey,
+              });
+              console.log(`[ChatService] Loaded test key for ${contactJid}`);
+            }
+          } catch (testKeyError) {
+            console.warn(`[ChatService] Failed to load test key:`, testKeyError);
+          }
+        }
+
+        if (!recipientPublicKey || recipientPublicKey.length === 0) {
+          throw new AppError('E202', 'encryption', () => {}, {
+            reason: 'missing_public_key',
+            contactJid,
+          });
+        }
+
+        const recipient: Recipient = {
+          jid: contactJid,
+          publicKey: from_base64(recipientPublicKey, base64_variants.ORIGINAL),
+        };
+
+        encryptedPayload = await ServiceContainer.encryption.encrypt(
+          payloadJson,
+          [recipient],
+        );
+      }
+
+      // Step 5: Save to local messages (unencrypted for display)
+      const message: Message = {
+        id: messageId,
+        chatId,
+        senderId: this.myJid!,
+        senderName: this.myName!,
+        content: options.caption || '',
+        contentType: 'image',
+        timestamp,
+        status: 'pending',
+        isRead: true,
+        // Photo-specific fields
+        mediaUri: compressed.uri,
+        thumbnailUri,
+        mediaWidth: compressed.width || options.width,
+        mediaHeight: compressed.height || options.height,
+        mediaSize: compressed.size,
+      };
+      await ServiceContainer.database.saveMessage(message);
+
+      // Notify listeners
+      this.messageListeners.forEach(listener => listener(message));
+
+      // Step 6: Send via XMPP
+      const xmpp = ServiceContainer.xmpp;
+      if (xmpp.getConnectionStatus() === 'connected') {
+        try {
+          await xmpp.sendMessage(contactJid, encryptedPayload, messageId);
+          await this.updateMessageStatus(messageId, 'sent');
+          console.info('[ChatService] Photo message sent successfully');
+          return { messageId, status: 'sent', thumbnailUri };
+        } catch (xmppError) {
+          await this.saveToOutbox(chatId, encryptedPayload, [contactJid], messageId, 'image');
+          return { messageId, status: 'pending', thumbnailUri };
+        }
+      } else {
+        await this.saveToOutbox(chatId, encryptedPayload, [contactJid], messageId, 'image');
+        return { messageId, status: 'pending', thumbnailUri };
+      }
+    } catch (error) {
+      console.error('[ChatService] sendPhotoMessage error:', error);
+      if (error instanceof AppError) throw error;
+
+      throw new AppError('E300', 'delivery', () => this.retrySendMessage(messageId), {
+        reason: 'photo_send_failed',
       });
     }
   }
@@ -630,20 +808,67 @@ export class ChatService {
       }
       console.log(`[ChatService] Message content: ${content.substring(0, 50)}...`);
 
-      // Save to database
+      // Check if this is a photo/media message (JSON payload)
+      let message: Message;
       const chatId = this.getChatId(bareFrom);
-      const message: Message = {
-        id,
-        chatId,
-        senderId: bareFrom,
-        senderName: contact.name,
-        content,
-        contentType: 'text',
-        timestamp: Date.now(),
-        status: 'delivered',
-        isRead: false, // Incoming messages start as unread
-      };
-      await ServiceContainer.database.saveMessage(message);
+
+      // Try to parse as media message
+      let isMediaMessage = false;
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.type === 'image' && parsed.data) {
+          isMediaMessage = true;
+          console.log(`[ChatService] Received photo message`);
+
+          // Save photo to local file system
+          const photoDir = `${RNFS.DocumentDirectoryPath}/received_photos`;
+          await RNFS.mkdir(photoDir);
+          const photoPath = `${photoDir}/${id}.jpg`;
+          await RNFS.writeFile(photoPath, parsed.data, 'base64');
+          const photoUri = `file://${photoPath}`;
+
+          // Generate thumbnail from received photo
+          const thumbnail = await generatePhotoThumbnail(photoUri);
+          const thumbnailUri = thumbnail.success ? thumbnail.uri : undefined;
+
+          message = {
+            id,
+            chatId,
+            senderId: bareFrom,
+            senderName: contact.name,
+            content: parsed.caption || '',
+            contentType: 'image',
+            timestamp: Date.now(),
+            status: 'delivered',
+            isRead: false,
+            mediaUri: photoUri,
+            thumbnailUri,
+            mediaWidth: parsed.width,
+            mediaHeight: parsed.height,
+            mediaSize: parsed.size,
+          };
+          console.log(`[ChatService] Photo saved to: ${photoPath}`);
+        }
+      } catch {
+        // Not JSON, treat as regular text message
+      }
+
+      // Regular text message
+      if (!isMediaMessage) {
+        message = {
+          id,
+          chatId,
+          senderId: bareFrom,
+          senderName: contact.name,
+          content,
+          contentType: 'text',
+          timestamp: Date.now(),
+          status: 'delivered',
+          isRead: false,
+        };
+      }
+
+      await ServiceContainer.database.saveMessage(message!);
       console.log(`[ChatService] Message saved to database`);
 
       // Notify listeners
@@ -868,11 +1093,12 @@ export class ChatService {
     encryptedPayload: EncryptedPayload,
     pendingTo: string[],
     messageId: string,
+    contentType: 'text' | 'image' | 'video' = 'text',
   ): Promise<void> {
     const outboxMsg: Omit<OutboxMessage, 'id'> = {
       chatId,
       encryptedContent: JSON.stringify(encryptedPayload),
-      contentType: 'text',
+      contentType,
       timestamp: Date.now(),
       expiresAt: Date.now() + SEVEN_DAYS_MS,
       pendingTo,

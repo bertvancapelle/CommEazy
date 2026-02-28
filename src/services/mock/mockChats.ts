@@ -39,6 +39,11 @@ interface CreateMessageParams {
   status?: DeliveryStatus;
   contentType?: ContentType;
   senderName?: string;
+  // Photo/video fields
+  mediaUri?: string;
+  thumbnailUri?: string;
+  mediaWidth?: number;
+  mediaHeight?: number;
 }
 
 const createMessage = ({
@@ -49,6 +54,10 @@ const createMessage = ({
   status = 'delivered',
   contentType = 'text',
   senderName,
+  mediaUri,
+  thumbnailUri,
+  mediaWidth,
+  mediaHeight,
 }: CreateMessageParams): Message => ({
   id: generateMessageId(),
   chatId,
@@ -58,6 +67,11 @@ const createMessage = ({
   contentType,
   timestamp,
   status: isFromMe ? status : 'delivered', // Incoming messages are always "delivered"
+  // Photo/video fields
+  mediaUri,
+  thumbnailUri,
+  mediaWidth,
+  mediaHeight,
 });
 
 // ============================================================
@@ -112,6 +126,32 @@ export const MOCK_MESSAGES_OMA: Message[] = [
     isFromMe: false,
     timestamp: minutesAgo(5),
     senderName: 'Oma Jansen',
+  }),
+  // Photo message - appeltaart foto van Oma
+  createMessage({
+    chatId: MOCK_CHAT_IDS.OMA,
+    content: 'Kijk, de appeltaart is klaar!',
+    isFromMe: false,
+    timestamp: minutesAgo(3),
+    senderName: 'Oma Jansen',
+    contentType: 'image',
+    mediaUri: 'https://picsum.photos/seed/appeltaart/800/600',
+    thumbnailUri: 'https://picsum.photos/seed/appeltaart/200/150',
+    mediaWidth: 800,
+    mediaHeight: 600,
+  }),
+  // Photo message - reply from me
+  createMessage({
+    chatId: MOCK_CHAT_IDS.OMA,
+    content: 'Ziet er heerlijk uit!',
+    isFromMe: true,
+    timestamp: minutesAgo(1),
+    status: 'delivered',
+    contentType: 'image',
+    mediaUri: 'https://picsum.photos/seed/thumbsup/600/800',
+    thumbnailUri: 'https://picsum.photos/seed/thumbsup/150/200',
+    mediaWidth: 600,
+    mediaHeight: 800,
   }),
 ];
 

@@ -39,8 +39,8 @@ import {
 } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
-import { MessageStatus, PhotoMessageBubble } from '@/components';
-import type { Message, DeliveryStatus } from '@/services/interfaces';
+import { MessageStatus, PhotoMessageBubble, Icon } from '@/components';
+import type { Message } from '@/services/interfaces';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import type { ChatStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
@@ -234,6 +234,21 @@ export function ChatScreen() {
     return () => subscription.remove();
   }, [t]);
 
+  // Handle photo button press — navigate to PhotoAlbum with context
+  const handlePhotoPress = useCallback(() => {
+    ReactNativeHapticFeedback.trigger('impactMedium', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+
+    // Navigate to PhotoAlbum module for photo selection
+    // The user will select photos there and send to this contact
+    navigation.navigate('PhotoAlbum' as any, {
+      sendToJid: contactJid,
+      sendToName: name,
+    });
+  }, [navigation, contactJid, name]);
+
   const formatTime = useCallback((timestamp: number): string => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
@@ -383,6 +398,17 @@ export function ChatScreen() {
 
       {/* Input area */}
       <View style={[styles.inputContainer, { backgroundColor: themeColors.surface, borderTopColor: themeColors.divider }]}>
+        {/* Photo button */}
+        <TouchableOpacity
+          style={[styles.photoButton, { backgroundColor: themeColors.backgroundSecondary }]}
+          onPress={handlePhotoPress}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('chat.attachPhoto')}
+        >
+          <Icon name="image" size={24} color={themeColors.primary} />
+        </TouchableOpacity>
+
         <TextInput
           style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary }]}
           value={inputText}
@@ -460,6 +486,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderTopWidth: 1,
+    gap: spacing.sm,
+  },
+  photoButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    borderRadius: borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   textInput: {
     flex: 1,
@@ -469,7 +503,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     ...typography.input,
-    marginRight: spacing.sm,
   },
   sendButton: {
     width: touchTargets.minimum,
