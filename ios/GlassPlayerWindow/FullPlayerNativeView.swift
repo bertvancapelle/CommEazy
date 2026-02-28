@@ -110,6 +110,10 @@ class FullPlayerNativeView: UIView {
     private var showShuffle: Bool = false
     private var showRepeat: Bool = false
     
+    // Button border styling (user configurable)
+    private var buttonBorderEnabled: Bool = false
+    private var buttonBorderColor: UIColor = .white
+    
     // MARK: - Constants
     
     private enum Layout {
@@ -118,6 +122,8 @@ class FullPlayerNativeView: UIView {
         static let primaryButtonSize: CGFloat = 84
         static let secondaryButtonSize: CGFloat = 60
         static let closeButtonSize: CGFloat = 60
+        static let buttonCornerRadius: CGFloat = 12  // Rounded square (NOT circular!)
+        static let primaryButtonCornerRadius: CGFloat = 16  // Slightly larger for 84pt buttons
         static let titleFontSize: CGFloat = 24
         static let subtitleFontSize: CGFloat = 18
         static let timeFontSize: CGFloat = 14
@@ -156,9 +162,12 @@ class FullPlayerNativeView: UIView {
     }
     
     private func setupCloseButton() {
-        let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        // Standard button styling: 60pt, rgba background, 12pt cornerRadius
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
         closeButton.setImage(UIImage(systemName: "chevron.down", withConfiguration: config), for: .normal)
         closeButton.tintColor = .white
+        closeButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        closeButton.layer.cornerRadius = Layout.buttonCornerRadius
         closeButton.addTarget(self, action: #selector(handleClose), for: .touchUpInside)
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityLabel = "Sluiten"
@@ -252,6 +261,8 @@ class FullPlayerNativeView: UIView {
         // Skip backward
         skipBackwardButton.setImage(UIImage(systemName: "gobackward.10", withConfiguration: secondaryConfig), for: .normal)
         skipBackwardButton.tintColor = .white
+        skipBackwardButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        skipBackwardButton.layer.cornerRadius = Layout.buttonCornerRadius
         skipBackwardButton.addTarget(self, action: #selector(handleSkipBackward), for: .touchUpInside)
         skipBackwardButton.translatesAutoresizingMaskIntoConstraints = false
         skipBackwardButton.accessibilityLabel = "10 seconden terug"
@@ -262,7 +273,7 @@ class FullPlayerNativeView: UIView {
         playPauseButton.setImage(UIImage(systemName: "play.fill", withConfiguration: primaryConfig), for: .normal)
         playPauseButton.tintColor = .white
         playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)  // Subtle, consistent with other buttons
-        playPauseButton.layer.cornerRadius = Layout.primaryButtonSize / 2
+        playPauseButton.layer.cornerRadius = Layout.primaryButtonCornerRadius
         playPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
         playPauseButton.accessibilityLabel = "Afspelen"
@@ -271,6 +282,8 @@ class FullPlayerNativeView: UIView {
         // Skip forward
         skipForwardButton.setImage(UIImage(systemName: "goforward.30", withConfiguration: secondaryConfig), for: .normal)
         skipForwardButton.tintColor = .white
+        skipForwardButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        skipForwardButton.layer.cornerRadius = Layout.buttonCornerRadius
         skipForwardButton.addTarget(self, action: #selector(handleSkipForward), for: .touchUpInside)
         skipForwardButton.translatesAutoresizingMaskIntoConstraints = false
         skipForwardButton.accessibilityLabel = "30 seconden vooruit"
@@ -280,6 +293,8 @@ class FullPlayerNativeView: UIView {
         // Stop button
         stopButton.setImage(UIImage(systemName: "stop.fill", withConfiguration: secondaryConfig), for: .normal)
         stopButton.tintColor = .white
+        stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        stopButton.layer.cornerRadius = Layout.buttonCornerRadius
         stopButton.addTarget(self, action: #selector(handleStop), for: .touchUpInside)
         stopButton.translatesAutoresizingMaskIntoConstraints = false
         stopButton.accessibilityLabel = "Stoppen"
@@ -292,6 +307,8 @@ class FullPlayerNativeView: UIView {
         // Shuffle button
         shuffleButton.setImage(UIImage(systemName: "shuffle", withConfiguration: iconConfig), for: .normal)
         shuffleButton.tintColor = .white
+        shuffleButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        shuffleButton.layer.cornerRadius = Layout.buttonCornerRadius
         shuffleButton.addTarget(self, action: #selector(handleShuffleTap), for: .touchUpInside)
         shuffleButton.translatesAutoresizingMaskIntoConstraints = false
         shuffleButton.accessibilityLabel = "Willekeurig uit"
@@ -302,6 +319,8 @@ class FullPlayerNativeView: UIView {
         speedButton.setTitle("1×", for: .normal)
         speedButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
         speedButton.setTitleColor(.white, for: .normal)
+        speedButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        speedButton.layer.cornerRadius = Layout.buttonCornerRadius
         speedButton.addTarget(self, action: #selector(handleSpeedTap), for: .touchUpInside)
         speedButton.translatesAutoresizingMaskIntoConstraints = false
         speedButton.accessibilityLabel = "Afspeelsnelheid"
@@ -311,6 +330,8 @@ class FullPlayerNativeView: UIView {
         // Sleep timer - starts with outline moon (white), filled moon (yellow) when active
         sleepButton.setImage(UIImage(systemName: "moon", withConfiguration: iconConfig), for: .normal)
         sleepButton.tintColor = .white
+        sleepButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        sleepButton.layer.cornerRadius = Layout.buttonCornerRadius
         sleepButton.addTarget(self, action: #selector(handleSleepTap), for: .touchUpInside)
         sleepButton.translatesAutoresizingMaskIntoConstraints = false
         sleepButton.accessibilityLabel = "Slaaptimer uit"
@@ -319,6 +340,8 @@ class FullPlayerNativeView: UIView {
         // Favorite
         favoriteButton.setImage(UIImage(systemName: "heart", withConfiguration: iconConfig), for: .normal)
         favoriteButton.tintColor = .white
+        favoriteButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        favoriteButton.layer.cornerRadius = Layout.buttonCornerRadius
         favoriteButton.addTarget(self, action: #selector(handleFavoriteTap), for: .touchUpInside)
         favoriteButton.translatesAutoresizingMaskIntoConstraints = false
         favoriteButton.accessibilityLabel = "Favoriet"
@@ -327,6 +350,8 @@ class FullPlayerNativeView: UIView {
         // Repeat button
         repeatButton.setImage(UIImage(systemName: "repeat", withConfiguration: iconConfig), for: .normal)
         repeatButton.tintColor = .white
+        repeatButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        repeatButton.layer.cornerRadius = Layout.buttonCornerRadius
         repeatButton.addTarget(self, action: #selector(handleRepeatTap), for: .touchUpInside)
         repeatButton.translatesAutoresizingMaskIntoConstraints = false
         repeatButton.accessibilityLabel = "Herhalen uit"
@@ -641,13 +666,17 @@ class FullPlayerNativeView: UIView {
         subtitleLabel.isHidden = false
         subtitleLabel.alpha = subtitle != nil ? 1.0 : 0.0
         
+        NSLog("[GlassPlayer] FullPlayer updateContent - artworkURL: \(artworkURL ?? "nil")")
+        
         // Force layout update to ensure labels are properly positioned
         setNeedsLayout()
         layoutIfNeeded()
         
         if let urlString = artworkURL, !urlString.isEmpty, let url = URL(string: urlString) {
+            NSLog("[GlassPlayer] FullPlayer updateContent - Loading artwork from: \(urlString)")
             loadImage(from: url)
         } else {
+            NSLog("[GlassPlayer] FullPlayer updateContent - No artwork URL, clearing image")
             artworkImageView.image = nil
         }
     }
@@ -709,6 +738,44 @@ class FullPlayerNativeView: UIView {
             // NOTE: Play button keeps subtle white background for consistency
             // Accent color is only used for progress/seek sliders and active states (favorite, shuffle, repeat)
         }
+    }
+    
+    /// Configure button border styling (user setting)
+    func configureButtonStyle(borderEnabled: Bool, borderColorHex: String) {
+        buttonBorderEnabled = borderEnabled
+        buttonBorderColor = UIColor.fromHex(borderColorHex) ?? .white
+        
+        let borderWidth: CGFloat = borderEnabled ? 2 : 0
+        
+        // Close button (collapse/minimize on iPad)
+        closeButton.layer.borderWidth = borderWidth
+        closeButton.layer.borderColor = buttonBorderColor.cgColor
+        
+        // Primary button
+        playPauseButton.layer.borderWidth = borderWidth
+        playPauseButton.layer.borderColor = buttonBorderColor.cgColor
+        
+        // Skip buttons
+        skipBackwardButton.layer.borderWidth = borderWidth
+        skipBackwardButton.layer.borderColor = buttonBorderColor.cgColor
+        skipForwardButton.layer.borderWidth = borderWidth
+        skipForwardButton.layer.borderColor = buttonBorderColor.cgColor
+        
+        // Stop button
+        stopButton.layer.borderWidth = borderWidth
+        stopButton.layer.borderColor = buttonBorderColor.cgColor
+        
+        // Secondary controls
+        shuffleButton.layer.borderWidth = borderWidth
+        shuffleButton.layer.borderColor = buttonBorderColor.cgColor
+        speedButton.layer.borderWidth = borderWidth
+        speedButton.layer.borderColor = buttonBorderColor.cgColor
+        sleepButton.layer.borderWidth = borderWidth
+        sleepButton.layer.borderColor = buttonBorderColor.cgColor
+        favoriteButton.layer.borderWidth = borderWidth
+        favoriteButton.layer.borderColor = buttonBorderColor.cgColor
+        repeatButton.layer.borderWidth = borderWidth
+        repeatButton.layer.borderColor = buttonBorderColor.cgColor
     }
     
     /// Reset sleep timer state (called when player is hidden or new content starts)
@@ -823,20 +890,36 @@ class FullPlayerNativeView: UIView {
     }
     
     private func loadImage(from url: URL) {
+        NSLog("[GlassPlayer] FullPlayer loadImage - URL: \(url.absoluteString)")
+        
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            if error != nil { return }
+            if let error = error {
+                NSLog("[GlassPlayer] FullPlayer loadImage - ERROR: \(error.localizedDescription)")
+                return
+            }
             
             // Check HTTP response
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            if let httpResponse = response as? HTTPURLResponse {
+                NSLog("[GlassPlayer] FullPlayer loadImage - HTTP status: \(httpResponse.statusCode)")
+                if httpResponse.statusCode != 200 {
+                    return
+                }
+            }
+            
+            guard let data = data, !data.isEmpty else {
+                NSLog("[GlassPlayer] FullPlayer loadImage - No data received")
                 return
             }
             
-            guard let data = data, !data.isEmpty, let image = UIImage(data: data) else {
+            guard let image = UIImage(data: data) else {
+                NSLog("[GlassPlayer] FullPlayer loadImage - Failed to create image from data (size: \(data.count) bytes)")
                 return
             }
+            
+            NSLog("[GlassPlayer] FullPlayer loadImage - SUCCESS, image size: \(image.size)")
             
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image

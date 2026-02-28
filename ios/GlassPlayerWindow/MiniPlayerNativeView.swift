@@ -57,6 +57,10 @@ class MiniPlayerNativeView: UIView {
     private var showListenDuration: Bool = false
     private var listenDuration: TimeInterval = 0
     
+    // Button border styling (user configurable)
+    private var buttonBorderEnabled: Bool = false
+    private var buttonBorderColor: UIColor = .white
+    
     // Dynamic constraints for title and progress bar trailing edge
     private var titleTrailingToStopConstraint: NSLayoutConstraint?
     private var titleTrailingToPlayPauseConstraint: NSLayoutConstraint?
@@ -66,7 +70,7 @@ class MiniPlayerNativeView: UIView {
     // Dynamic constraints for artwork leading edge (depends on minimize button visibility)
     private var artworkLeadingDefault: NSLayoutConstraint?
     private var artworkLeadingWithMinimize: NSLayoutConstraint?
-    private var minimizeButtonSize: CGFloat = 36  // Smaller than play/stop buttons
+    private var minimizeButtonSize: CGFloat = 60  // Standard button size (60pt touch target)
     
     // MARK: - Constants
     
@@ -75,6 +79,7 @@ class MiniPlayerNativeView: UIView {
         static let padding: CGFloat = 14
         static let artworkSize: CGFloat = 64  // Larger artwork for visibility
         static let buttonSize: CGFloat = 60   // Senior-inclusive touch targets
+        static let buttonCornerRadius: CGFloat = 12  // Rounded square (NOT circular!)
         static let titleFontSize: CGFloat = 18  // Senior-inclusive typography
         static let subtitleFontSize: CGFloat = 14
         static let progressHeight: CGFloat = 6  // Thicker for better visibility
@@ -161,7 +166,7 @@ class MiniPlayerNativeView: UIView {
         playPauseButton.adjustsImageWhenHighlighted = true
         // Visual feedback: background + highlight state
         playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        playPauseButton.layer.cornerRadius = Layout.buttonSize / 2
+        playPauseButton.layer.cornerRadius = Layout.buttonCornerRadius
         // Ensure button is in front and receives touches
         playPauseButton.layer.zPosition = 100
         addSubview(playPauseButton)
@@ -178,15 +183,18 @@ class MiniPlayerNativeView: UIView {
         stopButton.adjustsImageWhenHighlighted = true
         // Visual feedback: background + highlight state
         stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        stopButton.layer.cornerRadius = Layout.buttonSize / 2
+        stopButton.layer.cornerRadius = Layout.buttonCornerRadius
         // Ensure button is in front and receives touches
         stopButton.layer.zPosition = 100
         addSubview(stopButton)
         
-        // Minimize button (iPad only — chevron.down.circle to hide player without stopping)
-        let minimizeConfig = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-        minimizeButton.setImage(UIImage(systemName: "chevron.down.circle.fill", withConfiguration: minimizeConfig), for: .normal)
-        minimizeButton.tintColor = UIColor.white.withAlphaComponent(0.7)
+        // Minimize button (iPad only — chevron.down to hide player without stopping)
+        // Standard button styling: 60pt, rgba background, 12pt cornerRadius
+        let minimizeConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+        minimizeButton.setImage(UIImage(systemName: "chevron.down", withConfiguration: minimizeConfig), for: .normal)
+        minimizeButton.tintColor = .white
+        minimizeButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        minimizeButton.layer.cornerRadius = Layout.buttonCornerRadius
         minimizeButton.addTarget(self, action: #selector(handleMinimize), for: .touchUpInside)
         minimizeButton.translatesAutoresizingMaskIntoConstraints = false
         minimizeButton.accessibilityLabel = "Minimaliseren"
@@ -202,7 +210,8 @@ class MiniPlayerNativeView: UIView {
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Minimize button - far left, before artwork (hidden by default, iPad only)
-            minimizeButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 6),
+            // Standard button: 60pt, with Layout.padding from edge
+            minimizeButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Layout.padding),
             minimizeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             minimizeButton.widthAnchor.constraint(equalToConstant: minimizeButtonSize),
             minimizeButton.heightAnchor.constraint(equalToConstant: minimizeButtonSize),
@@ -349,10 +358,14 @@ class MiniPlayerNativeView: UIView {
         subtitleLabel.text = subtitle
         subtitleLabel.isHidden = subtitle == nil
         
+        NSLog("[GlassPlayer] MiniPlayer updateContent - artworkURL: \(artworkURL ?? "nil")")
+        
         // Load artwork
         if let urlString = artworkURL, !urlString.isEmpty, let url = URL(string: urlString) {
+            NSLog("[GlassPlayer] MiniPlayer updateContent - Loading artwork from: \(urlString)")
             loadImage(from: url)
         } else {
+            NSLog("[GlassPlayer] MiniPlayer updateContent - No artwork URL, clearing image")
             artworkImageView.image = nil
         }
         
@@ -489,23 +502,57 @@ class MiniPlayerNativeView: UIView {
         }
     }
     
+    /// Configure button border styling (user setting)
+    func configureButtonStyle(borderEnabled: Bool, borderColorHex: String) {
+        buttonBorderEnabled = borderEnabled
+        buttonBorderColor = UIColor.fromHex(borderColorHex) ?? .white
+        
+        // Apply to all buttons
+        let borderWidth: CGFloat = borderEnabled ? 2 : 0
+        
+        playPauseButton.layer.borderWidth = borderWidth
+        playPauseButton.layer.borderColor = buttonBorderColor.cgColor
+        
+        stopButton.layer.borderWidth = borderWidth
+        stopButton.layer.borderColor = buttonBorderColor.cgColor
+        
+        minimizeButton.layer.borderWidth = borderWidth
+        minimizeButton.layer.borderColor = buttonBorderColor.cgColor
+    }
+    
     // MARK: - Image Loading
     
     private func loadImage(from url: URL) {
+        NSLog("[GlassPlayer] MiniPlayer loadImage - URL: \(url.absoluteString)")
+        
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            if error != nil { return }
+            if let error = error {
+                NSLog("[GlassPlayer] MiniPlayer loadImage - ERROR: \(error.localizedDescription)")
+                return
+            }
             
             // Check HTTP response
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            if let httpResponse = response as? HTTPURLResponse {
+                NSLog("[GlassPlayer] MiniPlayer loadImage - HTTP status: \(httpResponse.statusCode)")
+                if httpResponse.statusCode != 200 {
+                    return
+                }
+            }
+            
+            guard let data = data, !data.isEmpty else {
+                NSLog("[GlassPlayer] MiniPlayer loadImage - No data received")
                 return
             }
             
-            guard let data = data, !data.isEmpty, let image = UIImage(data: data) else {
+            guard let image = UIImage(data: data) else {
+                NSLog("[GlassPlayer] MiniPlayer loadImage - Failed to create image from data (size: \(data.count) bytes)")
                 return
             }
+            
+            NSLog("[GlassPlayer] MiniPlayer loadImage - SUCCESS, image size: \(image.size)")
             
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image

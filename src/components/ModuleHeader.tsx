@@ -48,6 +48,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useWheelMenuContextSafe } from '@/contexts/WheelMenuContext';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { ModuleColorId } from '@/types/liquidGlass';
@@ -136,6 +137,9 @@ export function ModuleHeader({
   const panelId = usePanelId();
   const { triggerFeedback } = useFeedback();
 
+  // Button style context for optional border styling
+  const buttonStyle = useButtonStyleSafe();
+
   // Auto-generated icon press handler — opens wheel navigation menu
   // Uses panelId from PanelIdContext so iPad Split View navigates the correct panel
   const handleAutoIconPress = useCallback(() => {
@@ -177,7 +181,13 @@ export function ModuleHeader({
         <View style={styles.titleContent}>
           {showBackButton && onBackPress && (
             <TouchableOpacity
-              style={styles.backButton}
+              style={[
+                styles.backButton,
+                buttonStyle?.settings.borderEnabled && {
+                  borderWidth: 2,
+                  borderColor: buttonStyle.getBorderColorHex(),
+                },
+              ]}
               onPress={onBackPress}
               accessibilityRole="button"
               accessibilityLabel={backButtonLabel}
@@ -189,7 +199,13 @@ export function ModuleHeader({
             // Custom logo — wrap in TouchableOpacity if navigation is enabled
             effectiveOnIconPress ? (
               <TouchableOpacity
-                style={styles.moduleIconButton}
+                style={[
+                  styles.moduleIconButton,
+                  buttonStyle?.settings.borderEnabled && {
+                    borderWidth: 2,
+                    borderColor: buttonStyle.getBorderColorHex(),
+                  },
+                ]}
                 onPress={effectiveOnIconPress}
                 accessibilityRole="button"
                 accessibilityLabel={effectiveIconLabel}
@@ -204,7 +220,13 @@ export function ModuleHeader({
             // Default icon — wrap in TouchableOpacity if navigation is enabled
             effectiveOnIconPress ? (
               <TouchableOpacity
-                style={styles.moduleIconButton}
+                style={[
+                  styles.moduleIconButton,
+                  buttonStyle?.settings.borderEnabled && {
+                    borderWidth: 2,
+                    borderColor: buttonStyle.getBorderColorHex(),
+                  },
+                ]}
                 onPress={effectiveOnIconPress}
                 accessibilityRole="button"
                 accessibilityLabel={effectiveIconLabel}
@@ -265,8 +287,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     // Senior-inclusive touch target ≥60pt
-    minWidth: touchTargets.minimum,
-    minHeight: touchTargets.minimum,
+    width: touchTargets.minimum,           // 60pt (consistent with moduleIconButton)
+    height: touchTargets.minimum,          // 60pt (consistent with moduleIconButton)
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',  // Subtle white fill (like moduleIconButton)
+    borderRadius: borderRadius.md,         // 12pt (consistent with moduleIconButton)
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.xs,

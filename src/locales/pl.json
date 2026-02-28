@@ -11,6 +11,10 @@
       "tapToChangeHint": "Otwórz menu, aby przełączyć między krajem a językiem"
     }
   },
+  "colors": {
+    "white": "Biały",
+    "black": "Czarny"
+  },
   "demographics": {
     "language": {
       "nl": "Niderlandzki",
@@ -342,6 +346,13 @@
       "selectTitle": "Wybierz kolor dla {{module}}",
       "reset": "Przywróć wszystkie kolory",
       "resetSingle": "Przywróć {{module}}"
+    },
+    "buttonBorder": {
+      "title": "Ramka przycisków",
+      "hint": "Dodaj kolorową ramkę do przycisków dla lepszej widoczności",
+      "toggle": "Pokaż ramkę przycisków",
+      "color": "Kolor ramki",
+      "selectTitle": "Wybierz kolor ramki"
     },
     "preview": {
       "title": "Podgląd",

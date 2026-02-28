@@ -11,6 +11,10 @@
       "tapToChangeHint": "Åpne meny for å bytte mellom land og språk"
     }
   },
+  "colors": {
+    "white": "Hvit",
+    "black": "Svart"
+  },
   "demographics": {
     "language": {
       "nl": "Nederlandsk",
@@ -341,6 +345,13 @@
       "selectTitle": "Velg farge for {{module}}",
       "reset": "Tilbakestill alle farger",
       "resetSingle": "Tilbakestill {{module}}"
+    },
+    "buttonBorder": {
+      "title": "Knappkant",
+      "hint": "Legg til en farget kant på knapper for bedre synlighet",
+      "toggle": "Vis knappkant",
+      "color": "Kantfarge",
+      "selectTitle": "Velg kantfarge"
     },
     "preview": {
       "title": "Forhåndsvisning",

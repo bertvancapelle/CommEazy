@@ -247,6 +247,18 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         }
     }
 
+    /// Configure button border styling (user setting)
+    /// @param borderEnabled Whether to show button borders
+    /// @param borderColorHex Hex color for button borders (e.g., "#FFFFFF")
+    @objc
+    func configureButtonStyle(_ borderEnabled: Bool, borderColorHex: String) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                self.glassWindow?.configureButtonStyle(borderEnabled: borderEnabled, borderColorHex: borderColorHex)
+            }
+        }
+    }
+
     // ============================================================
     // MARK: Window Management
     // ============================================================

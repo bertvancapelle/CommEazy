@@ -3906,10 +3906,179 @@ Bij problemen, check:
 
 ---
 
+## 15. Button Standaardisatie (VERPLICHT)
+
+### 15.1 Principe
+
+**ALLE knoppen in CommEazy** — zowel in React Native als Native iOS (Liquid Glass) — MOETEN voldoen aan dezelfde visuele standaard. Dit garandeert consistentie voor senioren en maakt knop-randjes (button borders) een effectieve accessibility feature.
+
+### 15.2 Standaard Button Specificaties
+
+| Property | Waarde | Toelichting |
+|----------|--------|-------------|
+| **Touch target** | 60pt × 60pt minimum | Senior-inclusive, WCAG AAA |
+| **Corner radius** | 12pt | Rounded square (NIET circulair!) |
+| **Background** | `rgba(255, 255, 255, 0.15)` | Subtiele witte fill |
+| **Icon size** | 24pt (standard), 32pt (primary) | Binnen 60pt button |
+| **Icon color** | White (`#FFFFFF`) | Hoog contrast op gekleurde achtergrond |
+
+**Primaire buttons (play/pause in FullPlayer):**
+- 84pt × 84pt
+- 16pt corner radius
+- Icon size 32pt
+
+### 15.3 Button Border Feature (User Setting)
+
+Gebruikers kunnen optioneel een gekleurde rand om knoppen tonen via **Instellingen → Weergave & Kleuren → Knoprand tonen**.
+
+| Property | Waarde |
+|----------|--------|
+| **Border width** | 2pt (wanneer enabled) |
+| **Border color** | User-selected (18 opties: 16 accent colors + wit + zwart) |
+| **Persistence** | AsyncStorage via ButtonStyleContext |
+| **Sync** | React Native → Native iOS via `glassPlayer.configureButtonStyle()` |
+
+### 15.4 Implementatie per Platform
+
+#### React Native Buttons
+
+```typescript
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
+import { touchTargets, borderRadius } from '@/theme';
+
+// In component:
+const buttonStyle = useButtonStyleSafe();
+
+<TouchableOpacity
+  style={[
+    styles.button,
+    buttonStyle?.settings.borderEnabled && {
+      borderWidth: 2,
+      borderColor: buttonStyle.getBorderColorHex(),
+    },
+  ]}
+  onPress={handlePress}
+>
+  <Icon name="play" size={24} color={colors.textOnPrimary} />
+</TouchableOpacity>
+
+// Styles:
+const styles = StyleSheet.create({
+  button: {
+    width: touchTargets.minimum,           // 60pt
+    height: touchTargets.minimum,          // 60pt
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,         // 12pt
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+```
+
+#### Native iOS Buttons (Swift)
+
+```swift
+private enum Layout {
+    static let buttonSize: CGFloat = 60
+    static let buttonCornerRadius: CGFloat = 12
+    static let primaryButtonSize: CGFloat = 84
+    static let primaryButtonCornerRadius: CGFloat = 16
+}
+
+// Setup button:
+button.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+button.layer.cornerRadius = Layout.buttonCornerRadius
+
+// Configure border (called from React Native via bridge):
+func configureButtonStyle(borderEnabled: Bool, borderColorHex: String) {
+    let borderWidth: CGFloat = borderEnabled ? 2 : 0
+    let borderColor = UIColor.fromHex(borderColorHex) ?? .white
+
+    button.layer.borderWidth = borderWidth
+    button.layer.borderColor = borderColor.cgColor
+}
+```
+
+### 15.5 Buttons die MOETEN voldoen
+
+#### React Native (ModuleHeader, SearchBar, etc.)
+
+| Component | Button | Size | cornerRadius |
+|-----------|--------|------|--------------|
+| ModuleHeader | Module icon button | 60pt | 12pt |
+| ModuleHeader | Back button | 60pt | 12pt |
+| SearchBar | Search button | 60pt | 12pt |
+| MiniPlayer (RN) | Play/Pause | 60pt | 12pt |
+| MiniPlayer (RN) | Stop | 60pt | 12pt |
+| ExpandedAudioPlayer | All controls | 60pt | 12pt |
+
+#### Native iOS (Liquid Glass Player)
+
+| Component | Button | Size | cornerRadius |
+|-----------|--------|------|--------------|
+| MiniPlayerNativeView | Play/Pause | 60pt | 12pt |
+| MiniPlayerNativeView | Stop | 60pt | 12pt |
+| MiniPlayerNativeView | Minimize (iPad) | 60pt | 12pt |
+| FullPlayerNativeView | Close/Collapse | 60pt | 12pt |
+| FullPlayerNativeView | Play/Pause | 84pt | 16pt |
+| FullPlayerNativeView | Skip forward/back | 60pt | 12pt |
+| FullPlayerNativeView | Stop | 60pt | 12pt |
+| FullPlayerNativeView | Sleep/Favorite/Speed/Shuffle/Repeat | 60pt | 12pt |
+
+### 15.6 Validatie Checklist
+
+Bij ELKE nieuwe button of button-wijziging:
+
+- [ ] **Touch target ≥60pt** — Width EN height
+- [ ] **cornerRadius = 12pt** — Rounded square, NIET circulair
+- [ ] **Background = rgba(255,255,255,0.15)** — Subtiele witte fill
+- [ ] **Border support** — ButtonStyleContext (RN) of configureButtonStyle (Swift)
+- [ ] **Icon centered** — `justifyContent: 'center', alignItems: 'center'`
+- [ ] **100% Feature Parity** — React Native EN Native iOS identiek
+
+### 15.7 Anti-Patterns (VERBODEN)
+
+```typescript
+// ❌ FOUT: Te kleine touch target
+width: 44,
+height: 44,
+
+// ❌ FOUT: Circulaire button
+borderRadius: 30,  // Half van width/height = cirkel
+
+// ❌ FOUT: Geen achtergrond
+backgroundColor: 'transparent',
+
+// ❌ FOUT: Hardcoded border (negeert user setting)
+borderWidth: 2,
+borderColor: '#FFFFFF',
+
+// ❌ FOUT: Vierkante button (geen cornerRadius)
+// (geen borderRadius property)
+```
+
+### 15.8 Bridge Synchronisatie
+
+Button style settings worden gesynchroniseerd van React Native naar Native iOS:
+
+```typescript
+// ButtonStyleContext.tsx
+useEffect(() => {
+  glassPlayer.configureButtonStyle(
+    settings.borderEnabled,
+    getBorderColorHex()
+  );
+}, [settings.borderEnabled, settings.borderColor]);
+```
+
+Dit zorgt ervoor dat wanneer de gebruiker de instelling wijzigt, ALLE buttons (RN + Native) direct updaten.
+
+---
+
 ## Collaboration
 
 - **With accessibility-specialist**: Validate all components for a11y compliance
 - **With react-native-expert**: Component implementation, performance
 - **With documentation-writer**: User guides with UI screenshots in 13 languages (see CONSTANTS.md)
 - **With onboarding-recovery**: First-use flow design
-- **With ios-specialist**: Liquid Glass native implementation on iOS 26+
+- **With ios-specialist**: Liquid Glass native implementation on iOS 26+, button styling in Swift

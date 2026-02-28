@@ -50,6 +50,7 @@ import {
 } from '@/contexts/ModuleColorsContext';
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
 import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
+import { useButtonStyle, type ButtonBorderColor } from '@/contexts/ButtonStyleContext';
 import { useFeedback } from '@/hooks/useFeedback';
 
 // ============================================================
@@ -286,6 +287,14 @@ export function AppearanceSettingsScreen() {
     setForceDisabled,
   } = useLiquidGlassContext();
 
+  // Button style context for border settings
+  const {
+    settings: buttonStyleSettings,
+    setBorderEnabled,
+    setBorderColor,
+    getBorderColorHex,
+  } = useButtonStyle();
+
   // Get individual module colors for preview cards
   const radioColor = useModuleColor('radio');
   const podcastColor = useModuleColor('podcast');
@@ -299,6 +308,9 @@ export function AppearanceSettingsScreen() {
 
   // Overlay state for module color picker (which module is being edited)
   const [editingModuleId, setEditingModuleId] = useState<ModuleColorId | null>(null);
+
+  // Overlay state for button border color picker
+  const [showButtonBorderColorPicker, setShowButtonBorderColorPicker] = useState(false);
 
   // Prepare color options for overlay (unified palette for both accent and module colors)
   // Uses ACCENT_COLORS which has 16 colors in 4x4 grid
@@ -365,6 +377,39 @@ export function AppearanceSettingsScreen() {
 
   // Check if any custom colors are set
   const hasCustomColors = Object.keys(customColors).length > 0;
+
+  // Handle button border toggle
+  const handleButtonBorderToggle = useCallback(
+    async (enabled: boolean) => {
+      await triggerFeedback('tap');
+      await setBorderEnabled(enabled);
+    },
+    [setBorderEnabled, triggerFeedback]
+  );
+
+  // Handle button border color selection
+  const handleButtonBorderColorSelect = useCallback(
+    async (color: ButtonBorderColor) => {
+      await triggerFeedback('tap');
+      await setBorderColor(color);
+    },
+    [setBorderColor, triggerFeedback]
+  );
+
+  // Button border color options (16 accent colors + white + black)
+  const buttonBorderColorOptions: Array<{ value: ButtonBorderColor; hex: string; label: string }> = [
+    ...colorOptions.map(opt => ({ ...opt, value: opt.value as ButtonBorderColor })),
+    { value: 'white', hex: '#FFFFFF', label: t('colors.white') },
+    { value: 'black', hex: '#000000', label: t('colors.black') },
+  ];
+
+  // Get current button border color label
+  const getButtonBorderColorLabel = (): string => {
+    const color = buttonStyleSettings.borderColor;
+    if (color === 'white') return t('colors.white');
+    if (color === 'black') return t('colors.black');
+    return t(ACCENT_COLORS[color]?.label || 'colors.white');
+  };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
@@ -511,6 +556,50 @@ export function AppearanceSettingsScreen() {
             </Text>
           </TouchableOpacity>
         )}
+      </View>
+
+      {/* Button Border Section */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.buttonBorder.title')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.buttonBorder.hint')}</Text>
+
+        {/* Toggle for button border */}
+        <View style={[styles.settingRow, { backgroundColor: themeColors.surface }]}>
+          <View style={styles.settingLabelContainer}>
+            <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              {t('appearance.buttonBorder.toggle')}
+            </Text>
+          </View>
+          <Switch
+            value={buttonStyleSettings.borderEnabled}
+            onValueChange={handleButtonBorderToggle}
+            trackColor={{ false: themeColors.border, true: accentColor.primary }}
+            thumbColor={Platform.OS === 'android' ? themeColors.surface : undefined}
+            accessibilityLabel={t('appearance.buttonBorder.toggle')}
+          />
+        </View>
+
+        {/* Color selector (always visible, grayed out when disabled) */}
+        <View style={!buttonStyleSettings.borderEnabled && styles.disabledSection}>
+          <ColorSelectorRow
+            label={t('appearance.buttonBorder.color')}
+            currentColorHex={getBorderColorHex()}
+            currentColorLabel={getButtonBorderColorLabel()}
+            onPress={() => buttonStyleSettings.borderEnabled && setShowButtonBorderColorPicker(true)}
+            themeColors={themeColors}
+          />
+        </View>
+
+        {/* Button Border Color Picker Overlay */}
+        <ColorPickerOverlay
+          visible={showButtonBorderColorPicker}
+          onClose={() => setShowButtonBorderColorPicker(false)}
+          onSelect={(color) => void handleButtonBorderColorSelect(color)}
+          colors={buttonBorderColorOptions}
+          selectedValue={buttonStyleSettings.borderColor}
+          title={t('appearance.buttonBorder.selectTitle')}
+          themeColors={themeColors}
+        />
       </View>
 
       {/* Preview Section - Shows actual module colors */}
@@ -1136,5 +1225,9 @@ const styles = StyleSheet.create({
   statusIndicatorText: {
     ...typography.body,
     marginLeft: spacing.sm,
+  },
+  // Disabled state for button border color selector
+  disabledSection: {
+    opacity: 0.5,
   },
 });

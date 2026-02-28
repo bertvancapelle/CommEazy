@@ -11,6 +11,10 @@
       "tapToChangeHint": "Open menu om te wisselen tussen land en taal"
     }
   },
+  "colors": {
+    "white": "Wit",
+    "black": "Zwart"
+  },
   "onboarding": {
     "welcome": "Welkom bij CommEazy",
     "subtitle": "Privé berichten voor het hele gezin",
@@ -325,6 +329,13 @@
       "selectTitle": "Kies kleur voor {{module}}",
       "reset": "Alle kleuren herstellen",
       "resetSingle": "{{module}} herstellen"
+    },
+    "buttonBorder": {
+      "title": "Knoprand",
+      "hint": "Voeg een gekleurde rand toe aan knoppen voor betere zichtbaarheid",
+      "toggle": "Knoprand tonen",
+      "color": "Randkleur",
+      "selectTitle": "Kies randkleur"
     },
     "preview": {
       "title": "Voorbeeld",

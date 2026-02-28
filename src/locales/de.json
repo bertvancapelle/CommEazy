@@ -9,6 +9,10 @@
       "tapToChangeHint": "Menü öffnen, um zwischen Land und Sprache zu wechseln"
     }
   },
+  "colors": {
+    "white": "Weiß",
+    "black": "Schwarz"
+  },
   "demographics": {
     "language": {
       "nl": "Niederländisch",
@@ -336,6 +340,13 @@
       "selectTitle": "Farbe für {{module}} wählen",
       "reset": "Alle Farben zurücksetzen",
       "resetSingle": "{{module}} zurücksetzen"
+    },
+    "buttonBorder": {
+      "title": "Knopfrand",
+      "hint": "Fügen Sie einen farbigen Rand hinzu für bessere Sichtbarkeit",
+      "toggle": "Knopfrand anzeigen",
+      "color": "Randfarbe",
+      "selectTitle": "Randfarbe wählen"
     },
     "preview": {
       "title": "Vorschau",

@@ -9,6 +9,10 @@
       "tapToChangeHint": "Ouvrir le menu pour basculer entre pays et langue"
     }
   },
+  "colors": {
+    "white": "Blanc",
+    "black": "Noir"
+  },
   "demographics": {
     "language": {
       "nl": "Néerlandais",
@@ -336,6 +340,13 @@
       "selectTitle": "Choisir la couleur pour {{module}}",
       "reset": "Réinitialiser toutes les couleurs",
       "resetSingle": "Réinitialiser {{module}}"
+    },
+    "buttonBorder": {
+      "title": "Bordure des boutons",
+      "hint": "Ajouter une bordure colorée aux boutons pour une meilleure visibilité",
+      "toggle": "Afficher la bordure",
+      "color": "Couleur de la bordure",
+      "selectTitle": "Choisir la couleur de la bordure"
     },
     "preview": {
       "title": "Aperçu",

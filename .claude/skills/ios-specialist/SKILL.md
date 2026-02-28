@@ -458,6 +458,81 @@ Bij player wijzigingen:
 
 ---
 
+## Native Button Standaardisatie (VERPLICHT)
+
+**ALLE UIButtons in native iOS code** MOETEN voldoen aan dezelfde visuele standaard als React Native buttons. Dit garandeert 100% feature parity en consistente UX.
+
+### Standaard Button Specificaties
+
+```swift
+private enum Layout {
+    static let buttonSize: CGFloat = 60           // 60pt touch target
+    static let buttonCornerRadius: CGFloat = 12   // Rounded square (NIET circulair!)
+    static let primaryButtonSize: CGFloat = 84    // Play/pause in FullPlayer
+    static let primaryButtonCornerRadius: CGFloat = 16
+}
+```
+
+### Verplichte Styling
+
+```swift
+// ELKE button MOET dit hebben:
+button.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+button.layer.cornerRadius = Layout.buttonCornerRadius
+button.widthAnchor.constraint(equalToConstant: Layout.buttonSize)
+button.heightAnchor.constraint(equalToConstant: Layout.buttonSize)
+```
+
+### Button Border Feature
+
+Border styling wordt gesynchroniseerd vanuit React Native via `configureButtonStyle`:
+
+```swift
+func configureButtonStyle(borderEnabled: Bool, borderColorHex: String) {
+    let borderWidth: CGFloat = borderEnabled ? 2 : 0
+    let borderColor = UIColor.fromHex(borderColorHex) ?? .white
+
+    // Apply to ALL buttons
+    playPauseButton.layer.borderWidth = borderWidth
+    playPauseButton.layer.borderColor = borderColor.cgColor
+    stopButton.layer.borderWidth = borderWidth
+    stopButton.layer.borderColor = borderColor.cgColor
+    minimizeButton.layer.borderWidth = borderWidth
+    minimizeButton.layer.borderColor = borderColor.cgColor
+    closeButton.layer.borderWidth = borderWidth
+    closeButton.layer.borderColor = borderColor.cgColor
+    // ... all other buttons
+}
+```
+
+### Anti-Patterns (VERBODEN)
+
+```swift
+// ❌ FOUT: Te kleine touch target
+button.widthAnchor.constraint(equalToConstant: 36)
+
+// ❌ FOUT: Circulaire button
+button.layer.cornerRadius = 30  // Half van width = cirkel
+
+// ❌ FOUT: Geen achtergrond
+button.backgroundColor = .clear
+
+// ❌ FOUT: Geen cornerRadius
+// (cornerRadius niet ingesteld)
+```
+
+### Validatie bij Nieuwe Native Buttons
+
+Bij ELKE nieuwe UIButton in native code:
+
+- [ ] Size = 60pt × 60pt (of 84pt voor primary)
+- [ ] cornerRadius = 12pt (of 16pt voor primary)
+- [ ] backgroundColor = rgba(255,255,255,0.15)
+- [ ] Border support via configureButtonStyle()
+- [ ] Icon centered in button
+
+---
+
 ## Quality Checklist
 
 - [ ] Privacy Manifest complete and accurate
@@ -480,6 +555,8 @@ Bij player wijzigingen:
 - [ ] **Liquid Glass:** Buffering animation geïmplementeerd
 - [ ] **Liquid Glass:** Listen duration display geïmplementeerd
 - [ ] **Liquid Glass:** @available(iOS 26, *) guards correct
+- [ ] **Buttons:** 60pt touch target, 12pt cornerRadius, rgba background
+- [ ] **Buttons:** Border support via configureButtonStyle()
 
 ## Collaboration
 

@@ -11,6 +11,10 @@
       "tapToChangeHint": "Apri menu per passare tra paese e lingua"
     }
   },
+  "colors": {
+    "white": "Bianco",
+    "black": "Nero"
+  },
   "demographics": {
     "language": {
       "nl": "Olandese",
@@ -342,6 +346,13 @@
       "selectTitle": "Scegli colore per {{module}}",
       "reset": "Ripristina tutti i colori",
       "resetSingle": "Ripristina {{module}}"
+    },
+    "buttonBorder": {
+      "title": "Bordo pulsanti",
+      "hint": "Aggiungi un bordo colorato ai pulsanti per una migliore visibilità",
+      "toggle": "Mostra bordo pulsanti",
+      "color": "Colore del bordo",
+      "selectTitle": "Scegli il colore del bordo"
     },
     "preview": {
       "title": "Anteprima",

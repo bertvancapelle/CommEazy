@@ -36,6 +36,7 @@ import { CallProvider } from '@/contexts/CallContext';
 import { AudioOrchestratorProvider } from '@/contexts/AudioOrchestratorContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ReducedMotionProvider } from '@/contexts/ReducedMotionContext';
+import { ButtonStyleProvider } from '@/contexts/ButtonStyleContext';
 import { PresenceProvider } from '@/contexts/PresenceContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
@@ -133,6 +134,7 @@ export default function App() {
           <ThemedStatusBar />
           <AccentColorProvider>
             <LiquidGlassProvider>
+              <ButtonStyleProvider>
               <ModuleColorsProvider>
             <PresenceProvider>
             <VoiceSettingsProvider>
@@ -166,6 +168,7 @@ export default function App() {
           </VoiceSettingsProvider>
             </PresenceProvider>
             </ModuleColorsProvider>
+              </ButtonStyleProvider>
             </LiquidGlassProvider>
           </AccentColorProvider>
         </ThemeProvider>

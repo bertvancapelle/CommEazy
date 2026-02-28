@@ -9,6 +9,10 @@
       "tapToChangeHint": "Abrir menú para cambiar entre país e idioma"
     }
   },
+  "colors": {
+    "white": "Blanco",
+    "black": "Negro"
+  },
   "demographics": {
     "language": {
       "nl": "Neerlandés",
@@ -336,6 +340,13 @@
       "selectTitle": "Elegir color para {{module}}",
       "reset": "Restablecer todos los colores",
       "resetSingle": "Restablecer {{module}}"
+    },
+    "buttonBorder": {
+      "title": "Borde de botones",
+      "hint": "Añadir un borde de color a los botones para mejor visibilidad",
+      "toggle": "Mostrar borde de botones",
+      "color": "Color del borde",
+      "selectTitle": "Elegir color del borde"
     },
     "preview": {
       "title": "Vista previa",

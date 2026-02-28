@@ -333,6 +333,8 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Nieuw screen toevoegen** | **BLOKKEERDER** — Screen MOET route hebben in `navigation/index.tsx`, zie "Navigation Route Completeness" |
 | **Nieuwe theme kleur toevoegen** | **BLOKKEERDER** — Kleur MOET bestaan in BEIDE `colors.ts` EN `darkColors.ts`, zie "Theme Color Consistency" |
 | **Type export toevoegen** | **VERPLICHT** — Type MOET geëxporteerd worden in relevante `index.ts` bestanden, zie "Type Export Consistency" |
+| **Nieuwe button/knop toevoegen** | **ui-designer, ios-specialist** — Button Standaardisatie (ui-designer SKILL.md sectie 15) MOET worden gevolgd: 60pt, 12pt cornerRadius, rgba background, border support |
+| **Native iOS button wijzigen** | **ios-specialist** — Zie "Native Button Standaardisatie" in ios-specialist SKILL.md |
 
 ### Consistency Safeguards (VERPLICHT)
 
@@ -1548,6 +1550,100 @@ Dit voorkomt verwarring bij senioren die wisselen tussen iPhone en iPad, of bij 
 **Implementatie locaties:**
 - `src/components/navigation/ModulePanel.tsx` — iPad Split View panels
 - `src/components/HoldToNavigateWrapper.tsx` — iPhone/universal
+
+### 10d. Unified Button Styling (VERPLICHT)
+
+**UI PRINCIPE: Alle knoppen in ModuleHeader, MiniPlayer en FullPlayer MOETEN dezelfde visuele stijl hebben.**
+
+Dit geldt voor zowel React Native componenten als Native Swift (Liquid Glass) players.
+
+#### Standaard Knop Stijl
+
+| Eigenschap | Waarde | Opmerking |
+|------------|--------|-----------|
+| **Vorm** | Afgerond vierkant | NOOIT circulair |
+| **Grootte** | 60×60pt minimum | `touchTargets.minimum` |
+| **cornerRadius** | 12pt | `borderRadius.md` |
+| **backgroundColor** | `rgba(255, 255, 255, 0.15)` | Subtiele witte vulling |
+| **Border** | Optioneel (user setting) | Default: uit |
+
+#### React Native Implementatie
+
+```typescript
+// Standaard knop stijl (ModuleHeader, ExpandedAudioPlayer, etc.)
+buttonStyle: {
+  width: touchTargets.minimum,          // 60pt
+  height: touchTargets.minimum,         // 60pt
+  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  borderRadius: borderRadius.md,        // 12pt
+  justifyContent: 'center',
+  alignItems: 'center',
+  // Optionele border via ButtonStyleContext
+  borderWidth: buttonBorderEnabled ? 2 : 0,
+  borderColor: buttonBorderColor,
+}
+```
+
+#### Native Swift Implementatie (iOS 26+ Glass Player)
+
+```swift
+// MiniPlayerNativeView.swift & FullPlayerNativeView.swift
+private enum Layout {
+    static let buttonSize: CGFloat = 60       // 60pt (niet 44pt!)
+    static let buttonCornerRadius: CGFloat = 12  // Afgerond vierkant (niet size/2!)
+}
+
+// Toepassen op alle knoppen:
+button.layer.cornerRadius = Layout.buttonCornerRadius  // 12pt
+button.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+```
+
+#### Gebruikers Instelling: Knoprand
+
+**Locatie:** Instellingen → Weergave & Kleuren
+
+**Settings:**
+- `buttonBorderEnabled`: boolean (default: `false`)
+- `buttonBorderColor`: hex string uit palette (16 accent kleuren + wit + zwart)
+
+**AsyncStorage keys:**
+- `@commeazy/buttonBorderEnabled`
+- `@commeazy/buttonBorderColor`
+
+**Bridge naar Native (realtime):**
+```typescript
+// glassPlayer.ts
+configureButtonStyle(config: {
+  borderEnabled: boolean;
+  borderColor: string;  // hex
+}): void;
+```
+
+#### Verboden Patterns
+
+```typescript
+// ❌ FOUT — Circulaire knoppen
+button.layer.cornerRadius = buttonSize / 2
+
+// ❌ FOUT — Geen achtergrond op interactieve elementen
+button.backgroundColor = .clear
+
+// ❌ FOUT — Knoppen kleiner dan 60pt
+button.widthAnchor.constraint(equalToConstant: 44)
+
+// ❌ FOUT — Inconsistente cornerRadius
+playButton.layer.cornerRadius = 12
+stopButton.layer.cornerRadius = 22  // Inconsistent!
+```
+
+#### Checklist bij Nieuwe Knoppen
+
+- [ ] Grootte ≥60×60pt
+- [ ] cornerRadius = 12pt (afgerond vierkant)
+- [ ] Achtergrond `rgba(255, 255, 255, 0.15)`
+- [ ] Border respecteert `ButtonStyleContext` setting
+- [ ] Accessibility label aanwezig
+- [ ] Haptic feedback bij tap
 
 ### 11. Voice Interaction Architecture (VERPLICHT)
 

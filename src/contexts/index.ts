@@ -151,3 +151,12 @@ export {
   type VisualPresenceState,
   type VisualPresence,
 } from './PresenceContext';
+
+export {
+  ButtonStyleProvider,
+  useButtonStyle,
+  useButtonStyleSafe,
+  type ButtonStyleContextValue,
+  type ButtonStyleSettings,
+  type ButtonBorderColor,
+} from './ButtonStyleContext';

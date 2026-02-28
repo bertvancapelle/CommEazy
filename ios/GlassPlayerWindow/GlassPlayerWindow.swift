@@ -560,6 +560,10 @@ class GlassPlayerWindow: UIWindow {
 
     func updateContent(_ config: NSDictionary) {
         let content = PlayerContent(from: config)
+        
+        // Debug logging for artwork issue
+        NSLog("[GlassPlayer] updateContent - artwork: \(content.artwork ?? "nil")")
+        
         miniPlayerView.updateContent(
             title: content.title,
             subtitle: content.subtitle,
@@ -612,6 +616,14 @@ class GlassPlayerWindow: UIWindow {
     /// Enable or disable the minimize button on the mini player (iPad only)
     func setMinimizeButtonVisible(_ visible: Bool) {
         miniPlayerView.setMinimizeButtonVisible(visible)
+    }
+    
+    /// Configure button border styling (user setting)
+    /// @param borderEnabled Whether to show button borders
+    /// @param borderColorHex Hex color for button borders (e.g., "#FFFFFF")
+    func configureButtonStyle(borderEnabled: Bool, borderColorHex: String) {
+        miniPlayerView.configureButtonStyle(borderEnabled: borderEnabled, borderColorHex: borderColorHex)
+        fullPlayerView.configureButtonStyle(borderEnabled: borderEnabled, borderColorHex: borderColorHex)
     }
 }
 

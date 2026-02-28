@@ -131,6 +131,7 @@ interface GlassPlayerWindowModuleInterface {
   configureControls(controls: GlassPlayerFullConfig): void;
   setTemporarilyHidden(hidden: boolean): void;
   updatePanelBounds(bounds: { x: number; y: number; width: number; height: number } | null): void;
+  configureButtonStyle(borderEnabled: boolean, borderColorHex: string): void;
 }
 
 // ============================================================
@@ -362,6 +363,19 @@ class GlassPlayerService {
     }
 
     this.nativeModule.updatePanelBounds(bounds);
+  }
+
+  /**
+   * Configure button border styling (user setting)
+   * @param borderEnabled Whether to show button borders
+   * @param borderColorHex Hex color for button borders (e.g., "#FFFFFF")
+   */
+  configureButtonStyle(borderEnabled: boolean, borderColorHex: string): void {
+    if (!this.nativeModule) {
+      return;
+    }
+
+    this.nativeModule.configureButtonStyle(borderEnabled, borderColorHex);
   }
 
   /**

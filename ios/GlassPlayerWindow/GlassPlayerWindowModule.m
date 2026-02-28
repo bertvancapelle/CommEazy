@@ -46,4 +46,7 @@ RCT_EXTERN_METHOD(setTemporarilyHidden:(BOOL)hidden)
 
 RCT_EXTERN_METHOD(updatePanelBounds:(NSDictionary *)bounds)
 
+RCT_EXTERN_METHOD(configureButtonStyle:(BOOL)borderEnabled
+                  borderColorHex:(NSString *)borderColorHex)
+
 @end
