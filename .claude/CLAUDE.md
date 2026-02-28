@@ -335,6 +335,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Type export toevoegen** | **VERPLICHT** — Type MOET geëxporteerd worden in relevante `index.ts` bestanden, zie "Type Export Consistency" |
 | **Nieuwe button/knop toevoegen** | **ui-designer, ios-specialist** — Button Standaardisatie (ui-designer SKILL.md sectie 15) MOET worden gevolgd: 60pt, 12pt cornerRadius, rgba background, border support |
 | **Native iOS button wijzigen** | **ios-specialist** — Zie "Native Button Standaardisatie" in ios-specialist SKILL.md |
+| **Required Reason API gebruiken** | **ios-specialist** — Privacy Manifest (PrivacyInfo.xcprivacy) MOET worden bijgewerkt met juiste reason code |
 
 ### Consistency Safeguards (VERPLICHT)
 
@@ -3281,7 +3282,7 @@ Features en taken die alleen voor Apple platforms gelden.
 | 1 | **CallKit Basis** | ✅ DONE | 🎯 MVP | Native iOS call UI (lockscreen, mute sync, call history) |
 | 2 | **VoIP Push (APNs)** | ✅ DONE | 🎯 MVP | PushKit module ✅, APNs credentials ✅ geconfigureerd |
 | 3 | **Privacy Manifest** | ✅ DONE | 🎯 MVP | PrivacyInfo.xcprivacy met UserDefaults (CA92.1) + FileTimestamp (C617.1) |
-| 4 | **CallKit Audio Routing** | ⏳ TODO | 🎯 MVP | react-native-incall-manager niet geïnstalleerd, setSpeakerMode is stub |
+| 4 | **CallKit Audio Routing** | ✅ DONE | 🎯 MVP | react-native-incall-manager geïnstalleerd, speaker/earpiece routing werkt |
 | 5 | **Siri Call Initiation** | ⏳ TODO | ⏳ TBD | SiriKit niet geconfigureerd, Intents Extension ontbreekt |
 | 6 | **CarPlay** | ⏳ TODO | ⏳ TBD | Handsfree bellen via CarPlay |
 | 7 | **iPad Split View** | ✅ DONE | 🎯 MVP | SplitViewLayout + DraggableDivider + PaneContext compleet |
@@ -3295,7 +3296,7 @@ Features en taken die alleen voor Apple platforms gelden.
 | 15 | **Collapsible Panes iPad** | ✅ DONE | 🎯 MVP | Snap logica, pijl handle, MediaIndicator integratie |
 | 16 | **Piper TTS Nederlands** | ✅ DONE | 🎯 MVP | sherpa-onnx met 4 Nederlandse stemmen, chunked playback |
 
-**📊 iOS/iPadOS Samenvatting:** 16 items | ✅ 11 DONE | 🔶 1 PARTIAL | ⏳ 4 TODO
+**📊 iOS/iPadOS Samenvatting:** 16 items | ✅ 12 DONE | 🔶 1 PARTIAL | ⏳ 3 TODO
 
 ---
 

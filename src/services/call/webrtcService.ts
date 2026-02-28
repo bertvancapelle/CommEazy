@@ -18,6 +18,7 @@ import {
   MediaStream,
 } from 'react-native-webrtc';
 import { Platform } from 'react-native';
+import InCallManager from 'react-native-incall-manager';
 
 import type { IceServer, CallType } from '../interfaces';
 import {
@@ -541,16 +542,27 @@ export class WebRTCService {
 
   /**
    * Toggle speaker mode (earpiece vs speaker)
-   * iOS-specific implementation using InCallManager would go here
+   *
+   * Uses react-native-incall-manager to route audio:
+   * - iOS: setForceSpeakerphoneOn (setSpeakerphoneOn not supported)
+   * - Android: setSpeakerphoneOn
    */
   async setSpeakerMode(enabled: boolean): Promise<void> {
-    // TODO: Implement with react-native-incall-manager
-    // For now, just log
-    console.info('[WebRTC] Speaker mode:', enabled ? 'ON' : 'OFF');
+    console.info('[WebRTC] Setting speaker mode:', enabled ? 'ON' : 'OFF');
 
-    // On iOS, this requires InCallManager:
-    // InCallManager.setSpeakerphoneOn(enabled);
-    // InCallManager.setForceSpeakerphoneOn(enabled);
+    try {
+      if (Platform.OS === 'ios') {
+        // iOS only supports setForceSpeakerphoneOn
+        // true = force speaker, false = force earpiece, null = default behavior
+        InCallManager.setForceSpeakerphoneOn(enabled);
+      } else {
+        // Android supports setSpeakerphoneOn
+        InCallManager.setSpeakerphoneOn(enabled);
+      }
+      console.info('[WebRTC] Speaker mode set successfully');
+    } catch (error) {
+      console.error('[WebRTC] Failed to set speaker mode:', error);
+    }
   }
 }
 

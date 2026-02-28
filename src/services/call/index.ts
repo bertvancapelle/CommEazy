@@ -15,6 +15,7 @@
 
 import uuid from 'react-native-uuid';
 import type { MediaStream, RTCSessionDescription, RTCIceCandidate } from 'react-native-webrtc';
+import InCallManager from 'react-native-incall-manager';
 
 import type {
   CallService,
@@ -174,6 +175,11 @@ export class WebRTCCallService implements CallService {
     const callId = uuid.v4() as string;
     console.info('[CallService] Initiating', type, 'call to:', contactJid, 'id:', callId);
 
+    // Start InCallManager for proper audio routing
+    // media: 'audio' routes to earpiece, 'video' routes to speaker
+    // auto: true enables proximity sensor for audio calls
+    InCallManager.start({ media: type === 'video' ? 'video' : 'audio' });
+
     // Start local media
     await this.webrtc.startLocalMedia(type);
 
@@ -263,6 +269,11 @@ export class WebRTCCallService implements CallService {
     this.isAnswering = true;
 
     console.info('[CallService] Answering call:', callId);
+
+    // Start InCallManager for proper audio routing
+    // media: 'audio' routes to earpiece, 'video' routes to speaker
+    const mediaType = this.currentCall.type === 'video' ? 'video' : 'audio';
+    InCallManager.start({ media: mediaType });
 
     // Tell CallKit the call was answered so iOS activates AVAudioSession.
     // Without this, in-app answer has no audio because the audio session
@@ -795,6 +806,9 @@ export class WebRTCCallService implements CallService {
 
     // Report to CallKit
     callKitService.endCall(callId);
+
+    // Stop InCallManager to restore normal audio routing
+    InCallManager.stop();
 
     // Clean up mesh and media
     this.mesh.cleanup();
