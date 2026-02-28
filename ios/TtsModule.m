@@ -3,6 +3,9 @@
  *
  * Uses AVSpeechSynthesizer for text-to-speech functionality.
  * Emits events to JavaScript for progress tracking and state changes.
+ *
+ * Note: Audio session is activated lazily (on first speak) to avoid
+ * conflicts with other audio sources during app startup.
  */
 
 #import "TtsModule.h"
@@ -14,6 +17,7 @@
     NSInteger _currentPosition;
     BOOL _isPaused;
     BOOL _hasListeners;
+    BOOL _audioSessionConfigured;
 }
 
 RCT_EXPORT_MODULE();
@@ -27,6 +31,7 @@ RCT_EXPORT_MODULE();
         _currentPosition = 0;
         _isPaused = NO;
         _hasListeners = NO;
+        _audioSessionConfigured = NO;
     }
     return self;
 }
@@ -59,11 +64,27 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(initialize:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-    RCTLogInfo(@"[TtsModule] Initializing...");
+    RCTLogInfo(@"[TtsModule] Initializing (lazy audio session)...");
+    
+    // Audio session is now configured lazily on first speak() call
+    // This avoids conflicts with other audio sources during app startup
+    RCTLogInfo(@"[TtsModule] Initialized successfully (audio session will be configured on first use)");
+    resolve(@YES);
+}
+
+/**
+ * Configure audio session lazily - called before first speech
+ * Returns YES if successful, NO otherwise
+ */
+- (BOOL)ensureAudioSessionConfigured {
+    if (_audioSessionConfigured) {
+        return YES;
+    }
     
     NSError *error = nil;
     AVAudioSession *session = [AVAudioSession sharedInstance];
     
+    // Configure category with duck others option
     [session setCategory:AVAudioSessionCategoryPlayback
                     mode:AVAudioSessionModeDefault
                  options:AVAudioSessionCategoryOptionDuckOthers
@@ -71,20 +92,22 @@ RCT_EXPORT_METHOD(initialize:(RCTPromiseResolveBlock)resolve
     
     if (error) {
         RCTLogError(@"[TtsModule] Audio session category error: %@", error.localizedDescription);
-        resolve(@NO);
-        return;
+        return NO;
     }
     
-    [session setActive:YES error:&error];
+    // Activate session with notify others option for graceful handling
+    [session setActive:YES 
+           withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                 error:&error];
     
     if (error) {
-        RCTLogError(@"[TtsModule] Audio session activation error: %@", error.localizedDescription);
-        resolve(@NO);
-        return;
+        RCTLogWarn(@"[TtsModule] Audio session activation warning: %@", error.localizedDescription);
+        // Continue anyway - some errors are recoverable
     }
     
-    RCTLogInfo(@"[TtsModule] Initialized successfully");
-    resolve(@YES);
+    _audioSessionConfigured = YES;
+    RCTLogInfo(@"[TtsModule] Audio session configured successfully");
+    return YES;
 }
 
 #pragma mark - Voice Query
@@ -173,6 +196,11 @@ RCT_EXPORT_METHOD(speak:(NSString *)text
     if (!text || text.length == 0) {
         resolve(@NO);
         return;
+    }
+    
+    // Ensure audio session is configured before speaking
+    if (![self ensureAudioSessionConfigured]) {
+        RCTLogWarn(@"[TtsModule] Audio session not configured, attempting to speak anyway");
     }
     
     if (_synthesizer.isSpeaking) {
@@ -327,6 +355,18 @@ RCT_EXPORT_METHOD(getCurrentPosition:(RCTPromiseResolveBlock)resolve
     _currentText = @"";
     _currentPosition = 0;
     _isPaused = NO;
+    
+    // Deactivate audio session if we configured it
+    if (_audioSessionConfigured) {
+        NSError *error = nil;
+        [[AVAudioSession sharedInstance] setActive:NO 
+                                       withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                                             error:&error];
+        if (error) {
+            RCTLogWarn(@"[TtsModule] Audio session deactivation warning: %@", error.localizedDescription);
+        }
+        _audioSessionConfigured = NO;
+    }
 }
 
 @end
