@@ -77,7 +77,11 @@
     "startChat": "Stuur bericht",
     "openConversation": "Open dit gesprek",
     "messageList": "{{count}} berichten",
-    "expired": "Verlopen"
+    "expired": "Verlopen",
+    "serviceNotReady": "De berichtendienst is nog niet gereed. Probeer het later opnieuw.",
+    "sendingPhoto": "Foto wordt verstuurd...",
+    "photoSent": "Foto verstuurd",
+    "sendPhotoFailed": "Kon foto niet versturen. Probeer het opnieuw."
   },
   "media": {
     "photo": "Foto",

@@ -92,7 +92,11 @@
     "startChat": "Wyślij wiadomość",
     "openConversation": "Otwórz tę rozmowę",
     "messageList": "{{count}} wiadomości",
-    "expired": "Wygasło"
+    "expired": "Wygasło",
+    "serviceNotReady": "Usługa wiadomości nie jest jeszcze gotowa. Spróbuj ponownie później.",
+    "sendingPhoto": "Wysyłanie zdjęcia...",
+    "photoSent": "Zdjęcie wysłane",
+    "sendPhotoFailed": "Nie udało się wysłać zdjęcia. Spróbuj ponownie."
   },
   "media": {
     "photo": "Zdjęcie",

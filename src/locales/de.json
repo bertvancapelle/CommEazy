@@ -85,7 +85,11 @@
     "startChat": "Nachricht senden",
     "openConversation": "Dieses Gespräch öffnen",
     "messageList": "{{count}} Nachrichten",
-    "expired": "Abgelaufen"
+    "expired": "Abgelaufen",
+    "serviceNotReady": "Der Nachrichtendienst ist noch nicht bereit. Bitte versuche es später erneut.",
+    "sendingPhoto": "Foto wird gesendet...",
+    "photoSent": "Foto gesendet",
+    "sendPhotoFailed": "Foto konnte nicht gesendet werden. Bitte versuche es erneut."
   },
   "media": {
     "photo": "Foto",

@@ -148,7 +148,11 @@
     "startChat": "Send besked",
     "openConversation": "Åbn denne samtale",
     "messageList": "{{count}} beskeder",
-    "expired": "Udløbet"
+    "expired": "Udløbet",
+    "serviceNotReady": "Beskedtjenesten er ikke klar endnu. Prøv igen senere.",
+    "sendingPhoto": "Sender billede...",
+    "photoSent": "Billede sendt",
+    "sendPhotoFailed": "Kunne ikke sende billede. Prøv igen."
   },
   "media": {
     "photo": "Foto",

@@ -983,6 +983,10 @@ PODS:
     - React-Core
   - react-native-get-random-values (1.11.0):
     - React-Core
+  - react-native-image-picker (8.2.1):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - react-native-image-resizer (3.0.11):
     - React-Core
   - react-native-libsodium (1.7.0):
@@ -1284,6 +1288,7 @@ DEPENDENCIES:
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
+  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-image-resizer (from `../node_modules/@bam.tech/react-native-image-resizer`)"
   - react-native-libsodium (from `../node_modules/react-native-libsodium`)
   - react-native-maps (from `../node_modules/react-native-maps`)
@@ -1421,6 +1426,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
+  react-native-image-picker:
+    :path: "../node_modules/react-native-image-picker"
   react-native-image-resizer:
     :path: "../node_modules/@bam.tech/react-native-image-resizer"
   react-native-libsodium:
@@ -1566,6 +1573,7 @@ SPEC CHECKSUMS:
   react-native-blur: 9a53b0cc99ebd9d2dcd48f30cb61d0e32392a17d
   react-native-geolocation: 49ea939d13f095705a71891555cc76215e63ec6a
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
+  react-native-image-picker: bb3a66064010886b9472200945841e2cf79e1b52
   react-native-image-resizer: 24c5d06fae2176dc0caed4b6396e02befb44064a
   react-native-libsodium: 959307f22d05a94cbf68a5f5cdb662548f500a25
   react-native-maps: 6f92b1fd37f9421b171c977a42785270703875dc

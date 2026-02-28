@@ -24,11 +24,14 @@ import {
   Platform,
   AccessibilityInfo,
   DeviceEventEmitter,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { launchImageLibrary, type Asset } from 'react-native-image-picker';
 
 import {
   colors,
@@ -62,6 +65,7 @@ export function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
+  const [sendingPhoto, setSendingPhoto] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Set header with name + presence status
@@ -234,20 +238,93 @@ export function ChatScreen() {
     return () => subscription.remove();
   }, [t]);
 
-  // Handle photo button press — navigate to PhotoAlbum with context
-  const handlePhotoPress = useCallback(() => {
+  // Handle photo button press — open image picker and send photo
+  const handlePhotoPress = useCallback(async () => {
+    if (sendingPhoto) return;
+
     ReactNativeHapticFeedback.trigger('impactMedium', {
       enableVibrateFallback: true,
       ignoreAndroidSystemSettings: false,
     });
 
-    // Navigate to PhotoAlbum module for photo selection
-    // The user will select photos there and send to this contact
-    navigation.navigate('PhotoAlbum' as any, {
-      sendToJid: contactJid,
-      sendToName: name,
-    });
-  }, [navigation, contactJid, name]);
+    try {
+      // Launch image picker to select a photo
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: 1,
+        quality: 0.8,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        includeBase64: false,
+      });
+
+      if (result.didCancel || !result.assets || result.assets.length === 0) {
+        console.info('[ChatScreen] Photo selection cancelled');
+        return;
+      }
+
+      const asset: Asset = result.assets[0];
+      if (!asset.uri) {
+        console.warn('[ChatScreen] Selected photo has no URI');
+        return;
+      }
+
+      console.info('[ChatScreen] Photo selected:', {
+        uri: asset.uri,
+        width: asset.width,
+        height: asset.height,
+        fileSize: asset.fileSize,
+      });
+
+      // Check if service is ready
+      if (!ServiceContainer.isInitialized || !chatService.isInitialized) {
+        Alert.alert(
+          t('common.error'),
+          t('chat.serviceNotReady'),
+          [{ text: t('common.ok') }],
+        );
+        return;
+      }
+
+      // Start sending
+      setSendingPhoto(true);
+      AccessibilityInfo.announceForAccessibility(t('chat.sendingPhoto'));
+
+      // Send the photo message
+      const success = await chatService.sendPhotoMessage(
+        contactJid,
+        asset.uri,
+        undefined, // No caption for now
+      );
+
+      if (success) {
+        console.info('[ChatScreen] Photo sent successfully');
+        AccessibilityInfo.announceForAccessibility(t('chat.photoSent'));
+
+        // Haptic feedback for success
+        ReactNativeHapticFeedback.trigger('notificationSuccess', {
+          enableVibrateFallback: true,
+          ignoreAndroidSystemSettings: false,
+        });
+      } else {
+        console.error('[ChatScreen] Failed to send photo');
+        Alert.alert(
+          t('common.error'),
+          t('chat.sendPhotoFailed'),
+          [{ text: t('common.ok') }],
+        );
+      }
+    } catch (error) {
+      console.error('[ChatScreen] Photo send error:', error);
+      Alert.alert(
+        t('common.error'),
+        t('chat.sendPhotoFailed'),
+        [{ text: t('common.ok') }],
+      );
+    } finally {
+      setSendingPhoto(false);
+    }
+  }, [sendingPhoto, contactJid, t]);
 
   const formatTime = useCallback((timestamp: number): string => {
     return new Date(timestamp).toLocaleTimeString([], {
@@ -402,11 +479,17 @@ export function ChatScreen() {
         <TouchableOpacity
           style={[styles.photoButton, { backgroundColor: themeColors.backgroundSecondary }]}
           onPress={handlePhotoPress}
+          disabled={sendingPhoto}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('chat.attachPhoto')}
+          accessibilityState={{ disabled: sendingPhoto }}
         >
-          <Icon name="image" size={24} color={themeColors.primary} />
+          {sendingPhoto ? (
+            <ActivityIndicator size="small" color={themeColors.primary} />
+          ) : (
+            <Icon name="image" size={24} color={themeColors.primary} />
+          )}
         </TouchableOpacity>
 
         <TextInput

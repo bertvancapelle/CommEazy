@@ -92,7 +92,11 @@
     "startChat": "Send melding",
     "openConversation": "Åpne denne samtalen",
     "messageList": "{{count}} meldinger",
-    "expired": "Utløpt"
+    "expired": "Utløpt",
+    "serviceNotReady": "Meldingstjenesten er ikke klar ennå. Prøv igjen senere.",
+    "sendingPhoto": "Sender bilde...",
+    "photoSent": "Bilde sendt",
+    "sendPhotoFailed": "Kunne ikke sende bilde. Prøv igjen."
   },
   "media": {
     "photo": "Bilde",

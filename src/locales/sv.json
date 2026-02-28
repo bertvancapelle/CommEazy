@@ -148,7 +148,11 @@
     "startChat": "Skicka meddelande",
     "openConversation": "Öppna detta samtal",
     "messageList": "{{count}} meddelanden",
-    "expired": "Utgånget"
+    "expired": "Utgånget",
+    "serviceNotReady": "Meddelandetjänsten är inte redo ännu. Försök igen senare.",
+    "sendingPhoto": "Skickar foto...",
+    "photoSent": "Foto skickat",
+    "sendPhotoFailed": "Kunde inte skicka foto. Försök igen."
   },
   "media": {
     "photo": "Foto",
