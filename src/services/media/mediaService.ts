@@ -12,8 +12,8 @@
  * @see .claude/plans/PHOTO_VIDEO_MESSAGING.md for architecture
  */
 
-import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
+import ImageResizer from 'react-native-image-resizer';
 import type {
   MediaType,
   PhotoCompressionOptions,
@@ -21,7 +21,6 @@ import type {
   CompressionResult,
   ExifStripResult,
   ProgressCallback,
-  MEDIA_DEFAULTS,
 } from '@/types/media';
 
 // Re-export defaults for convenience
@@ -61,6 +60,11 @@ const THUMBNAIL_OPTIONS = {
 /**
  * Compress a photo to target size and dimensions
  *
+ * Uses react-native-image-resizer which automatically:
+ * - Resizes to target dimensions (maintaining aspect ratio)
+ * - Compresses to JPEG at specified quality
+ * - Strips EXIF metadata (GPS, device info, etc.)
+ *
  * @param uri - Source photo URI
  * @param options - Compression options
  * @returns Compression result with new URI and dimensions
@@ -69,28 +73,54 @@ export async function compressPhoto(
   uri: string,
   options: PhotoCompressionOptions = {}
 ): Promise<CompressionResult> {
-  // TODO: Implement real photo compression with react-native-image-resizer
-  // For now, pass through the original photo without compression
-  try {
-    console.debug(LOG_PREFIX, 'Compressing photo (stub):', uri);
+  const opts = { ...DEFAULT_PHOTO_OPTIONS, ...options };
 
-    const exists = await RNFS.exists(uri);
+  try {
+    console.debug(LOG_PREFIX, 'Compressing photo:', { uri: uri.slice(-30), ...opts });
+
+    // Normalize URI for iOS (remove file:// prefix if present for exists check)
+    const normalizedUri = uri.startsWith('file://') ? uri.slice(7) : uri;
+    const exists = await RNFS.exists(normalizedUri);
     if (!exists) {
+      console.warn(LOG_PREFIX, 'Source file not found:', normalizedUri);
       return { success: false, error: 'File not found' };
     }
 
-    const stat = await RNFS.stat(uri);
+    // Get original file size for comparison
+    const originalStat = await RNFS.stat(normalizedUri);
+    const originalSize = Number(originalStat.size) || 0;
 
-    console.info(LOG_PREFIX, 'Photo passed through (compression not implemented):', {
-      size: stat.size,
+    // Compress using ImageResizer
+    // Note: ImageResizer automatically strips EXIF data
+    const result = await ImageResizer.createResizedImage(
+      uri,
+      opts.maxWidth,
+      opts.maxHeight,
+      'JPEG',
+      opts.quality,
+      0, // rotation
+      undefined, // outputPath (auto-generated)
+      false, // keepMeta (false = strip EXIF)
+      { mode: 'contain', onlyScaleDown: true }
+    );
+
+    const compressionRatio = originalSize > 0
+      ? Math.round((1 - result.size / originalSize) * 100)
+      : 0;
+
+    console.info(LOG_PREFIX, 'Photo compressed:', {
+      original: `${Math.round(originalSize / 1024)}KB`,
+      compressed: `${Math.round(result.size / 1024)}KB`,
+      reduction: `${compressionRatio}%`,
+      dimensions: `${result.width}x${result.height}`,
     });
 
     return {
       success: true,
-      uri,
-      width: 0,  // Unknown without image processing library
-      height: 0,
-      size: Number(stat.size) || 0,
+      uri: result.uri,
+      width: result.width,
+      height: result.height,
+      size: result.size,
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'Photo compression failed:', error);
@@ -104,32 +134,48 @@ export async function compressPhoto(
 /**
  * Generate a thumbnail for a photo
  *
+ * Creates a small (200x200) JPEG thumbnail for grid display.
+ * Uses react-native-image-resizer for efficient downscaling.
+ *
  * @param uri - Source photo URI
  * @returns Thumbnail URI and dimensions
  */
 export async function generatePhotoThumbnail(uri: string): Promise<CompressionResult> {
-  // TODO: Implement real thumbnail generation with react-native-image-resizer
-  // For now, use the original photo as thumbnail
   try {
-    console.debug(LOG_PREFIX, 'Generating photo thumbnail (stub):', uri);
+    console.debug(LOG_PREFIX, 'Generating photo thumbnail:', uri.slice(-30));
 
-    const exists = await RNFS.exists(uri);
+    // Normalize URI for iOS
+    const normalizedUri = uri.startsWith('file://') ? uri.slice(7) : uri;
+    const exists = await RNFS.exists(normalizedUri);
     if (!exists) {
+      console.warn(LOG_PREFIX, 'Source file not found for thumbnail:', normalizedUri);
       return { success: false, error: 'File not found' };
     }
 
-    const stat = await RNFS.stat(uri);
+    // Generate thumbnail using ImageResizer
+    const result = await ImageResizer.createResizedImage(
+      uri,
+      THUMBNAIL_OPTIONS.maxWidth,
+      THUMBNAIL_OPTIONS.maxHeight,
+      'JPEG',
+      THUMBNAIL_OPTIONS.quality,
+      0, // rotation
+      undefined, // outputPath (auto-generated)
+      false, // keepMeta (strip EXIF)
+      { mode: 'cover', onlyScaleDown: true }
+    );
 
-    console.debug(LOG_PREFIX, 'Thumbnail stub generated (using original):', {
-      size: stat.size,
+    console.debug(LOG_PREFIX, 'Thumbnail generated:', {
+      size: `${Math.round(result.size / 1024)}KB`,
+      dimensions: `${result.width}x${result.height}`,
     });
 
     return {
       success: true,
-      uri,  // Use original as thumbnail for now
-      width: 0,
-      height: 0,
-      size: Number(stat.size) || 0,
+      uri: result.uri,
+      width: result.width,
+      height: result.height,
+      size: result.size,
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'Thumbnail generation failed:', error);
@@ -147,30 +193,52 @@ export async function generatePhotoThumbnail(uri: string): Promise<CompressionRe
 /**
  * Strip EXIF metadata from a photo (GPS, device info, etc.)
  *
- * Note: ImageManipulator automatically strips EXIF data when processing.
- * This function is a wrapper that ensures EXIF is removed.
+ * Uses react-native-image-resizer with keepMeta=false to strip all EXIF data.
+ * This is critical for privacy compliance — removes:
+ * - GPS coordinates
+ * - Device model/make
+ * - Camera settings
+ * - Date/time taken
+ * - Software version
  *
  * @param uri - Source photo URI
  * @returns Clean photo URI without EXIF
  */
 export async function stripExifData(uri: string): Promise<ExifStripResult> {
-  // TODO: Implement real EXIF stripping with react-native-image-crop-picker or similar
-  // For now, pass through the original photo (privacy concern - should be fixed before production)
   try {
-    console.debug(LOG_PREFIX, 'Stripping EXIF data (stub):', uri);
+    console.debug(LOG_PREFIX, 'Stripping EXIF data:', uri.slice(-30));
 
-    const exists = await RNFS.exists(uri);
+    // Normalize URI for iOS
+    const normalizedUri = uri.startsWith('file://') ? uri.slice(7) : uri;
+    const exists = await RNFS.exists(normalizedUri);
     if (!exists) {
+      console.warn(LOG_PREFIX, 'Source file not found for EXIF strip:', normalizedUri);
       return { success: false, error: 'File not found' };
     }
 
-    // WARNING: EXIF data is NOT stripped in this stub implementation
-    // This must be implemented before production release for privacy compliance
-    console.warn(LOG_PREFIX, 'EXIF stripping not implemented - using original photo');
+    // Use ImageResizer with high quality (100%) to preserve image quality
+    // while stripping EXIF data (keepMeta = false)
+    // Using large max dimensions to avoid downscaling
+    const result = await ImageResizer.createResizedImage(
+      uri,
+      4096, // Large max width to avoid downscaling
+      4096, // Large max height to avoid downscaling
+      'JPEG',
+      100, // Max quality to preserve original quality
+      0, // rotation
+      undefined, // outputPath (auto-generated)
+      false, // keepMeta = false → strips EXIF
+      { mode: 'contain', onlyScaleDown: true }
+    );
+
+    console.info(LOG_PREFIX, 'EXIF data stripped:', {
+      dimensions: `${result.width}x${result.height}`,
+      size: `${Math.round(result.size / 1024)}KB`,
+    });
 
     return {
       success: true,
-      uri,
+      uri: result.uri,
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'EXIF stripping failed:', error);
@@ -200,9 +268,10 @@ export async function stripExifData(uri: string): Promise<ExifStripResult> {
 export async function compressVideo(
   uri: string,
   options: VideoCompressionOptions = {},
-  onProgress?: ProgressCallback
+  _onProgress?: ProgressCallback
 ): Promise<CompressionResult> {
   const opts = { ...DEFAULT_VIDEO_OPTIONS, ...options };
+  // Note: _onProgress will be used once video compression is implemented
 
   try {
     console.debug(LOG_PREFIX, 'Compressing video:', uri, opts);
@@ -284,15 +353,10 @@ export async function generateVideoThumbnail(
  * @param uri - Video URI
  * @returns Duration in seconds, or null if unavailable
  */
-export async function getVideoDuration(uri: string): Promise<number | null> {
+export async function getVideoDuration(_uri: string): Promise<number | null> {
   try {
     // TODO: Implement with expo-av or react-native-video
-    //
-    // Example with expo-av:
-    // import { Audio, Video } from 'expo-av';
-    // const video = await Video.createAsync({ uri });
-    // const status = await video.getStatusAsync();
-    // return status.isLoaded ? status.durationMillis / 1000 : null;
+    // _uri will be used when video processing library is added
 
     console.warn(LOG_PREFIX, 'Video duration extraction not implemented');
     return null;
