@@ -11,7 +11,7 @@
  * @see .claude/plans/PHOTO_VIDEO_MESSAGING.md for architecture
  */
 
-import * as FileSystem from 'expo-file-system';
+import RNFS from 'react-native-fs';
 import uuid from 'react-native-uuid';
 import type { MediaType, MediaItem, MediaSource, MEDIA_DEFAULTS } from '@/types/media';
 import {
@@ -45,7 +45,7 @@ const RETENTION_PERIOD_MS = 7 * 24 * 60 * 60 * 1000;
  * Ensure all media directories exist
  */
 async function ensureDirectories(): Promise<void> {
-  const baseDir = FileSystem.documentDirectory;
+  const baseDir = RNFS.DocumentDirectoryPath;
   if (!baseDir) {
     throw new Error('Document directory not available');
   }
@@ -53,10 +53,10 @@ async function ensureDirectories(): Promise<void> {
   const dirs = [MEDIA_DIR, THUMBNAILS_DIR, TEMP_DIR];
 
   for (const dir of dirs) {
-    const path = `${baseDir}${dir}`;
-    const info = await FileSystem.getInfoAsync(path);
-    if (!info.exists) {
-      await FileSystem.makeDirectoryAsync(path, { intermediates: true });
+    const path = `${baseDir}/${dir}`;
+    const exists = await RNFS.exists(path);
+    if (!exists) {
+      await RNFS.mkdir(path);
       console.debug(LOG_PREFIX, 'Created directory:', dir);
     }
   }
@@ -66,21 +66,21 @@ async function ensureDirectories(): Promise<void> {
  * Get the media directory path
  */
 function getMediaPath(filename: string): string {
-  return `${FileSystem.documentDirectory}${MEDIA_DIR}/${filename}`;
+  return `${RNFS.DocumentDirectoryPath}/${MEDIA_DIR}/${filename}`;
 }
 
 /**
  * Get the thumbnail directory path
  */
 function getThumbnailPath(filename: string): string {
-  return `${FileSystem.documentDirectory}${THUMBNAILS_DIR}/${filename}`;
+  return `${RNFS.DocumentDirectoryPath}/${THUMBNAILS_DIR}/${filename}`;
 }
 
 /**
  * Get the temp directory path
  */
 function getTempPath(filename: string): string {
-  return `${FileSystem.documentDirectory}${TEMP_DIR}/${filename}`;
+  return `${RNFS.DocumentDirectoryPath}/${TEMP_DIR}/${filename}`;
 }
 
 // ============================================================
@@ -145,15 +145,12 @@ export async function savePhoto(
 
     // Copy thumbnail to thumbnails directory
     const thumbnailUri = getThumbnailPath(thumbFilename);
-    await FileSystem.copyAsync({
-      from: thumbnail.uri,
-      to: thumbnailUri,
-    });
+    await RNFS.copyFile(thumbnail.uri, thumbnailUri);
 
     // 5. Clean up temp files
-    await FileSystem.deleteAsync(stripped.uri, { idempotent: true });
-    await FileSystem.deleteAsync(compressed.uri, { idempotent: true });
-    await FileSystem.deleteAsync(thumbnail.uri, { idempotent: true });
+    try { await RNFS.unlink(stripped.uri); } catch { /* ignore */ }
+    try { await RNFS.unlink(compressed.uri); } catch { /* ignore */ }
+    try { await RNFS.unlink(thumbnail.uri); } catch { /* ignore */ }
 
     // 6. Create MediaItem
     const mediaItem: MediaItem = {
@@ -310,8 +307,8 @@ export async function mediaExists(mediaId: string): Promise<boolean> {
 
     for (const ext of extensions) {
       const path = getMediaPath(`${mediaId}.${ext}`);
-      const info = await FileSystem.getInfoAsync(path);
-      if (info.exists) {
+      const exists = await RNFS.exists(path);
+      if (exists) {
         return true;
       }
     }
@@ -335,8 +332,8 @@ export async function getMediaUri(mediaId: string): Promise<string | null> {
 
     for (const ext of extensions) {
       const path = getMediaPath(`${mediaId}.${ext}`);
-      const info = await FileSystem.getInfoAsync(path);
-      if (info.exists) {
+      const exists = await RNFS.exists(path);
+      if (exists) {
         return path;
       }
     }
@@ -357,9 +354,9 @@ export async function getMediaUri(mediaId: string): Promise<string | null> {
 export async function getThumbnailUri(mediaId: string): Promise<string | null> {
   try {
     const path = getThumbnailPath(`${mediaId}_thumb.jpg`);
-    const info = await FileSystem.getInfoAsync(path);
+    const exists = await RNFS.exists(path);
 
-    if (info.exists) {
+    if (exists) {
       return path;
     }
 
@@ -387,13 +384,13 @@ export async function deleteMedia(mediaId: string): Promise<boolean> {
     // Delete media file
     const mediaUri = await getMediaUri(mediaId);
     if (mediaUri) {
-      await FileSystem.deleteAsync(mediaUri, { idempotent: true });
+      try { await RNFS.unlink(mediaUri); } catch { /* ignore */ }
     }
 
     // Delete thumbnail
     const thumbUri = await getThumbnailUri(mediaId);
     if (thumbUri) {
-      await FileSystem.deleteAsync(thumbUri, { idempotent: true });
+      try { await RNFS.unlink(thumbUri); } catch { /* ignore */ }
     }
 
     console.debug(LOG_PREFIX, 'Media deleted:', mediaId);
@@ -431,19 +428,18 @@ export async function deleteMediaBatch(mediaIds: string[]): Promise<number> {
  */
 export async function cleanupTempFiles(): Promise<number> {
   try {
-    const tempDir = `${FileSystem.documentDirectory}${TEMP_DIR}`;
-    const info = await FileSystem.getInfoAsync(tempDir);
+    const tempDir = `${RNFS.DocumentDirectoryPath}/${TEMP_DIR}`;
+    const exists = await RNFS.exists(tempDir);
 
-    if (!info.exists) {
+    if (!exists) {
       return 0;
     }
 
-    const files = await FileSystem.readDirectoryAsync(tempDir);
+    const files = await RNFS.readDir(tempDir);
     let deleted = 0;
 
     for (const file of files) {
-      await FileSystem.deleteAsync(`${tempDir}/${file}`, { idempotent: true });
-      deleted++;
+      try { await RNFS.unlink(file.path); deleted++; } catch { /* ignore */ }
     }
 
     console.info(LOG_PREFIX, 'Cleaned up temp files:', deleted);
@@ -467,21 +463,18 @@ export async function getStorageUsage(): Promise<number> {
   try {
     await ensureDirectories();
 
-    const mediaDir = `${FileSystem.documentDirectory}${MEDIA_DIR}`;
-    const files = await FileSystem.readDirectoryAsync(mediaDir);
+    const mediaDir = `${RNFS.DocumentDirectoryPath}/${MEDIA_DIR}`;
+    const files = await RNFS.readDir(mediaDir);
 
     let totalSize = 0;
 
     for (const file of files) {
       // Skip directories
-      if (file === 'thumbnails' || file === 'temp') {
+      if (!file.isFile() || file.name === 'thumbnails' || file.name === 'temp') {
         continue;
       }
 
-      const info = await FileSystem.getInfoAsync(`${mediaDir}/${file}`);
-      if (info.exists) {
-        totalSize += (info as any).size || 0;
-      }
+      totalSize += Number(file.size) || 0;
     }
 
     return totalSize;
@@ -501,8 +494,8 @@ export async function getStorageUsage(): Promise<number> {
  */
 export async function getAvailableStorage(): Promise<number> {
   try {
-    const info = await FileSystem.getFreeDiskStorageAsync();
-    return info;
+    const info = await RNFS.getFSInfo();
+    return info.freeSpace;
   } catch (error) {
     console.error(LOG_PREFIX, 'Failed to get available storage:', error);
     return -1;
@@ -534,19 +527,19 @@ export async function getMediaCount(): Promise<{ photos: number; videos: number 
   try {
     await ensureDirectories();
 
-    const mediaDir = `${FileSystem.documentDirectory}${MEDIA_DIR}`;
-    const files = await FileSystem.readDirectoryAsync(mediaDir);
+    const mediaDir = `${RNFS.DocumentDirectoryPath}/${MEDIA_DIR}`;
+    const files = await RNFS.readDir(mediaDir);
 
     let photos = 0;
     let videos = 0;
 
     for (const file of files) {
       // Skip directories
-      if (file === 'thumbnails' || file === 'temp') {
+      if (!file.isFile() || file.name === 'thumbnails' || file.name === 'temp') {
         continue;
       }
 
-      const type = getMediaTypeFromUri(file);
+      const type = getMediaTypeFromUri(file.name);
       if (type === 'photo') {
         photos++;
       } else if (type === 'video') {

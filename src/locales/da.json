@@ -1115,6 +1115,33 @@
         "serverTitle": "Serverfejl"
       }
     },
+    "camera": {
+      "title": "Kamera",
+      "takePhoto": "Tag billede",
+      "switchCamera": "Skift kamera",
+      "flashAuto": "Blitz: Auto",
+      "flashOn": "Blitz: Til",
+      "flashOff": "Blitz: Fra",
+      "viewAlbum": "Se fotoalbum",
+      "captureHint": "Tryk for at tage et billede",
+      "captureError": "Kunne ikke tage billede. Prøv igen.",
+      "error": "Fejl",
+      "albumHint": "Brug menuen til at åbne fotoalbummet og se dine billeder.",
+      "enterFullScreen": "Fuld skærm",
+      "exitFullScreen": "Afslut fuld skærm"
+    },
+    "photoAlbum": {
+      "title": "Fotoalbum",
+      "noPhotos": "Ingen billeder endnu",
+      "noPhotosHint": "Billeder du tager vil blive vist her",
+      "deletePhoto": "Slet billede",
+      "deleteConfirm": "Er du sikker på, at du vil slette dette billede?",
+      "deleteSuccess": "Billede slettet",
+      "sharePhoto": "Del billede",
+      "photoDetails": "Billeddetaljer",
+      "takenOn": "Taget",
+      "loading": "Indlæser billeder..."
+    },
     "nunl": {
       "title": "© nu.nl",
       "category": "Kategori",

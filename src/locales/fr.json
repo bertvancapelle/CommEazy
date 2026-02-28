@@ -1230,6 +1230,33 @@
         "serverTitle": "Erreur serveur"
       }
     },
+    "camera": {
+      "title": "Appareil photo",
+      "takePhoto": "Prendre une photo",
+      "switchCamera": "Changer de caméra",
+      "flashAuto": "Flash : Auto",
+      "flashOn": "Flash : Activé",
+      "flashOff": "Flash : Désactivé",
+      "viewAlbum": "Voir l'album photo",
+      "captureHint": "Appuyez pour prendre une photo",
+      "captureError": "Échec de la prise de photo. Veuillez réessayer.",
+      "error": "Erreur",
+      "albumHint": "Utilisez le menu pour ouvrir l'Album Photo et voir vos photos.",
+      "enterFullScreen": "Plein écran",
+      "exitFullScreen": "Quitter le plein écran"
+    },
+    "photoAlbum": {
+      "title": "Album Photo",
+      "noPhotos": "Pas encore de photos",
+      "noPhotosHint": "Les photos que vous prenez apparaîtront ici",
+      "deletePhoto": "Supprimer la photo",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette photo ?",
+      "deleteSuccess": "Photo supprimée",
+      "sharePhoto": "Partager la photo",
+      "photoDetails": "Détails de la photo",
+      "takenOn": "Prise le",
+      "loading": "Chargement des photos..."
+    },
     "nunl": {
       "title": "© nu.nl",
       "category": "Catégorie",

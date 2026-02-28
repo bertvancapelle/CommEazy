@@ -25,6 +25,9 @@ import {
   Platform,
   ActivityIndicator,
   Vibration,
+  StatusBar,
+  useWindowDimensions,
+  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Camera, CameraType } from 'react-native-camera-kit';
@@ -40,8 +43,9 @@ import {
 } from '@/theme';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { savePhoto } from '@/services/media';
-import { usePaneContextSafe } from '@/contexts/PaneContext';
+import { usePaneContextSafe, type PaneId } from '@/contexts/PaneContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
+import { orientationService } from '@/services/orientationService';
 
 // ============================================================
 // Constants
@@ -64,6 +68,7 @@ export function CameraScreen() {
   const moduleColor = useModuleColor('camera');
   const paneContext = usePaneContextSafe();
   const panelId = usePanelId();
+  const { width, height } = useWindowDimensions();
 
   // Camera state
   const cameraRef = useRef<Camera>(null);
@@ -72,6 +77,9 @@ export function CameraScreen() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
 
+  // Full-screen mode
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
   // Last captured photo for thumbnail
   const [lastPhotoUri, setLastPhotoUri] = useState<string | null>(null);
   const [lastPhotoThumbnail, setLastPhotoThumbnail] = useState<string | null>(null);
@@ -79,11 +87,29 @@ export function CameraScreen() {
   // Error state
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  // Handle camera ready
-  const handleCameraReady = useCallback(() => {
-    console.info(LOG_PREFIX, 'Camera ready');
-    setCameraReady(true);
-    setCameraError(null);
+  // Orientation detection
+  const isLandscape = width > height;
+
+  // Unlock orientation on mount, lock to portrait on unmount
+  useEffect(() => {
+    console.info(LOG_PREFIX, 'Unlocking orientation for camera');
+    orientationService.unlockAllOrientations();
+
+    return () => {
+      console.info(LOG_PREFIX, 'Locking orientation to portrait');
+      orientationService.lockToPortrait();
+    };
+  }, []);
+
+  // Camera-kit initializes automatically, mark as ready after component mounts
+  useEffect(() => {
+    // Small delay to ensure camera view is mounted
+    const timer = setTimeout(() => {
+      console.info(LOG_PREFIX, 'Camera ready');
+      setCameraReady(true);
+      setCameraError(null);
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Switch between front and back camera
@@ -170,13 +196,18 @@ export function CameraScreen() {
     }
   }, [isCapturing, t]);
 
-  // Navigate to photo album
-  const handleOpenAlbum = useCallback(() => {
-    console.info(LOG_PREFIX, 'Opening photo album');
+  // Navigate to photo album (optionally with a specific photo selected)
+  const handleOpenAlbum = useCallback((selectPhotoId?: string) => {
+    console.info(LOG_PREFIX, 'Opening photo album', selectPhotoId ? `with photo: ${selectPhotoId}` : '');
 
     if (paneContext && panelId) {
       // Navigate to photo album in same pane
-      paneContext.setPanelModule(panelId, 'photoAlbum');
+      // panelId from PanelIdContext maps to PaneId ('main', 'left', 'right')
+      // Pass photo ID via pendingNavigation if we have one
+      const pendingNav = selectPhotoId
+        ? { screen: 'PhotoAlbum', params: { selectPhotoId } }
+        : undefined;
+      paneContext.setPaneModule(panelId as PaneId, 'photoAlbum', pendingNav);
     } else {
       // Fallback: show hint
       Alert.alert(
@@ -187,12 +218,165 @@ export function CameraScreen() {
     }
   }, [paneContext, panelId, t]);
 
+  // Navigate to album with the last captured photo selected
+  const handleOpenLastPhoto = useCallback(() => {
+    if (lastPhotoUri) {
+      // Extract photo ID from URI (filename without extension)
+      const filename = lastPhotoUri.split('/').pop() || '';
+      const photoId = filename.replace(/\.(jpg|jpeg|png)$/i, '');
+      handleOpenAlbum(photoId);
+    } else {
+      handleOpenAlbum();
+    }
+  }, [lastPhotoUri, handleOpenAlbum]);
+
   // Flash label for accessibility
   const flashLabel = flashMode === 'auto'
     ? t('modules.camera.flashAuto', 'Flash: Auto')
     : flashMode === 'on'
       ? t('modules.camera.flashOn', 'Flash: On')
       : t('modules.camera.flashOff', 'Flash: Off');
+
+  // Toggle full-screen mode
+  const handleToggleFullScreen = useCallback(() => {
+    console.info(LOG_PREFIX, 'Toggling full-screen:', !isFullScreen);
+    Vibration.vibrate(HAPTIC_DURATION);
+    setIsFullScreen(prev => !prev);
+  }, [isFullScreen]);
+
+  // Render camera view (shared between normal and full-screen)
+  const renderCameraView = () => (
+    <>
+      {cameraError ? (
+        <View style={styles.errorContainer}>
+          <Icon name="warning" size={60} color={colors.error} />
+          <Text style={styles.errorText}>{cameraError}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: moduleColor }]}
+            onPress={() => setCameraError(null)}
+          >
+            <Text style={styles.retryButtonText}>
+              {t('common.tryAgain', 'Try Again')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <Camera
+          ref={cameraRef}
+          style={styles.camera}
+          cameraType={cameraType}
+          flashMode={flashMode}
+          onReadCode={() => {}} // Required but unused
+          showFrame={false}
+          scanBarcode={false}
+        />
+      )}
+
+      {/* Top overlay: Flash + Full-screen toggle */}
+      <View style={[styles.topOverlay, isLandscape && styles.topOverlayLandscape]}>
+        <TouchableOpacity
+          style={styles.overlayButton}
+          onPress={handleToggleFlash}
+          accessibilityRole="button"
+          accessibilityLabel={flashLabel}
+        >
+          <Icon name={getFlashIcon()} size={24} color={colors.textOnPrimary} />
+          {flashMode === 'auto' && (
+            <Text style={styles.flashAutoLabel}>A</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.overlayButton}
+          onPress={handleToggleFullScreen}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isFullScreen
+              ? t('modules.camera.exitFullScreen', 'Exit full screen')
+              : t('modules.camera.enterFullScreen', 'Enter full screen')
+          }
+        >
+          <Icon
+            name={isFullScreen ? 'contract' : 'expand'}
+            size={24}
+            color={colors.textOnPrimary}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Bottom overlay: Controls (only in full-screen) */}
+      {isFullScreen && (
+        <View style={[
+          styles.bottomOverlay,
+          isLandscape && styles.bottomOverlayLandscape,
+        ]}>
+          <View style={[
+            styles.controlRow,
+            isLandscape && styles.controlRowLandscape,
+          ]}>
+            {/* Album thumbnail / last photo */}
+            <TouchableOpacity
+              style={styles.albumButton}
+              onPress={handleOpenLastPhoto}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.camera.viewAlbum', 'View photo album')}
+            >
+              {lastPhotoThumbnail || lastPhotoUri ? (
+                <Image
+                  source={{ uri: lastPhotoThumbnail || lastPhotoUri || undefined }}
+                  style={styles.albumThumbnail}
+                />
+              ) : (
+                <Icon name="image" size={28} color={colors.textSecondary} />
+              )}
+            </TouchableOpacity>
+
+            {/* Photo capture button */}
+            <TouchableOpacity
+              style={[styles.captureButton, { borderColor: moduleColor }]}
+              onPress={handleCapturePhoto}
+              disabled={isCapturing || !cameraReady}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.camera.takePhoto', 'Take photo')}
+            >
+              {isCapturing ? (
+                <ActivityIndicator size="large" color={moduleColor} />
+              ) : (
+                <View style={[styles.captureInner, { backgroundColor: moduleColor }]} />
+              )}
+            </TouchableOpacity>
+
+            {/* Switch camera */}
+            <TouchableOpacity
+              style={styles.switchButton}
+              onPress={handleSwitchCamera}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.camera.switchCamera', 'Switch camera')}
+            >
+              <Icon name="camera-reverse" size={28} color={colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </>
+  );
+
+  // Full-screen modal
+  if (isFullScreen) {
+    return (
+      <Modal
+        visible={true}
+        animationType="fade"
+        supportedOrientations={['portrait', 'landscape']}
+        statusBarTranslucent
+      >
+        <StatusBar hidden />
+        <View style={styles.fullScreenContainer}>
+          {renderCameraView()}
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -205,55 +389,17 @@ export function CameraScreen() {
 
       {/* Camera Preview */}
       <View style={styles.cameraContainer}>
-        {cameraError ? (
-          <View style={styles.errorContainer}>
-            <Icon name="warning" size={60} color={colors.error} />
-            <Text style={styles.errorText}>{cameraError}</Text>
-            <TouchableOpacity
-              style={[styles.retryButton, { backgroundColor: moduleColor }]}
-              onPress={() => setCameraError(null)}
-            >
-              <Text style={styles.retryButtonText}>
-                {t('common.tryAgain', 'Try Again')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <Camera
-            ref={cameraRef}
-            style={styles.camera}
-            cameraType={cameraType}
-            flashMode={flashMode}
-            onReadCode={() => {}} // Required but unused
-            showFrame={false}
-            scanBarcode={false}
-          />
-        )}
-
-        {/* Top overlay: Flash toggle */}
-        <View style={styles.topOverlay}>
-          <TouchableOpacity
-            style={styles.overlayButton}
-            onPress={handleToggleFlash}
-            accessibilityRole="button"
-            accessibilityLabel={flashLabel}
-          >
-            <Icon name={getFlashIcon()} size={24} color={colors.textOnPrimary} />
-            {flashMode === 'auto' && (
-              <Text style={styles.flashAutoLabel}>A</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        {renderCameraView()}
       </View>
 
-      {/* Camera Controls */}
+      {/* Camera Controls (normal mode only — full-screen has overlay controls) */}
       <View style={styles.controlsContainer}>
         {/* Control row */}
         <View style={styles.controlRow}>
           {/* Album thumbnail / last photo */}
           <TouchableOpacity
             style={styles.albumButton}
-            onPress={handleOpenAlbum}
+            onPress={handleOpenLastPhoto}
             accessibilityRole="button"
             accessibilityLabel={t('modules.camera.viewAlbum', 'View photo album')}
           >
@@ -424,6 +570,42 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.md,
     textAlign: 'center',
+  },
+
+  // Full-screen styles
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+
+  // Top overlay landscape variant
+  topOverlayLandscape: {
+    top: spacing.lg,
+    right: spacing.lg,
+  },
+
+  // Bottom overlay for full-screen controls
+  bottomOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    paddingBottom: spacing.xl + 20, // Extra padding for safe area
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    alignItems: 'center',
+  },
+
+  // Bottom overlay landscape variant
+  bottomOverlayLandscape: {
+    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.xl,
+  },
+
+  // Control row landscape variant
+  controlRowLandscape: {
+    maxWidth: 400,
   },
 });
 

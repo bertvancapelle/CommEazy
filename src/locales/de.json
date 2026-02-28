@@ -1230,6 +1230,33 @@
         "serverTitle": "Serverfehler"
       }
     },
+    "camera": {
+      "title": "Kamera",
+      "takePhoto": "Foto aufnehmen",
+      "switchCamera": "Kamera wechseln",
+      "flashAuto": "Blitz: Automatisch",
+      "flashOn": "Blitz: An",
+      "flashOff": "Blitz: Aus",
+      "viewAlbum": "Fotoalbum ansehen",
+      "captureHint": "Tippen um ein Foto aufzunehmen",
+      "captureError": "Foto aufnehmen fehlgeschlagen. Bitte versuche es erneut.",
+      "error": "Fehler",
+      "albumHint": "Benutze das Menü um das Fotoalbum zu öffnen und deine Fotos anzusehen.",
+      "enterFullScreen": "Vollbild",
+      "exitFullScreen": "Vollbild verlassen"
+    },
+    "photoAlbum": {
+      "title": "Fotoalbum",
+      "noPhotos": "Noch keine Fotos",
+      "noPhotosHint": "Fotos die du aufnimmst erscheinen hier",
+      "deletePhoto": "Foto löschen",
+      "deleteConfirm": "Bist du sicher, dass du dieses Foto löschen möchtest?",
+      "deleteSuccess": "Foto gelöscht",
+      "sharePhoto": "Foto teilen",
+      "photoDetails": "Fotodetails",
+      "takenOn": "Aufgenommen am",
+      "loading": "Fotos werden geladen..."
+    },
     "nunl": {
       "title": "© nu.nl",
       "category": "Kategorie",

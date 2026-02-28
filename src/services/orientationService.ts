@@ -42,8 +42,34 @@ class OrientationServiceImpl {
   private isUnlocked = false;
 
   /**
+   * Unlock orientation to allow all orientations.
+   * Call this when entering Camera or fullscreen video mode.
+   */
+  unlockAllOrientations(): void {
+    if (Platform.OS !== 'ios') {
+      console.debug('[orientationService] Android orientation not implemented');
+      return;
+    }
+
+    if (!OrientationModule) {
+      console.warn('[orientationService] OrientationModule not available');
+      return;
+    }
+
+    if (this.isUnlocked) {
+      console.debug('[orientationService] Already unlocked');
+      return;
+    }
+
+    console.info('[orientationService] Unlocking all orientations');
+    OrientationModule.setLandscapeAllowed(true);
+    this.isUnlocked = true;
+  }
+
+  /**
    * Unlock orientation to allow landscape (for fullscreen video).
    * Call this when entering fullscreen video mode.
+   * @deprecated Use unlockAllOrientations() instead
    */
   unlockForVideo(): void {
     if (Platform.OS !== 'ios') {

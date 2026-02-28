@@ -1234,6 +1234,33 @@
         "serverTitle": "Errore server"
       }
     },
+    "camera": {
+      "title": "Fotocamera",
+      "takePhoto": "Scatta foto",
+      "switchCamera": "Cambia fotocamera",
+      "flashAuto": "Flash: Auto",
+      "flashOn": "Flash: Acceso",
+      "flashOff": "Flash: Spento",
+      "viewAlbum": "Vedi album fotografico",
+      "captureHint": "Tocca per scattare una foto",
+      "captureError": "Impossibile scattare la foto. Riprova.",
+      "error": "Errore",
+      "albumHint": "Usa il menu per aprire l'Album Fotografico e vedere le tue foto.",
+      "enterFullScreen": "Schermo intero",
+      "exitFullScreen": "Esci da schermo intero"
+    },
+    "photoAlbum": {
+      "title": "Album Fotografico",
+      "noPhotos": "Ancora nessuna foto",
+      "noPhotosHint": "Le foto che scatti appariranno qui",
+      "deletePhoto": "Elimina foto",
+      "deleteConfirm": "Sei sicuro di voler eliminare questa foto?",
+      "deleteSuccess": "Foto eliminata",
+      "sharePhoto": "Condividi foto",
+      "photoDetails": "Dettagli foto",
+      "takenOn": "Scattata il",
+      "loading": "Caricamento foto..."
+    },
     "nunl": {
       "title": "© nu.nl",
       "category": "Categoria",

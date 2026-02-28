@@ -29,7 +29,7 @@ import {
   Vibration,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import * as FileSystem from 'expo-file-system';
+import RNFS from 'react-native-fs';
 
 import { ModuleHeader } from '@/components';
 import { Icon } from '@/components/Icon';
@@ -41,6 +41,8 @@ import {
   borderRadius,
 } from '@/theme';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { usePaneContextSafe, type PaneId } from '@/contexts/PaneContext';
+import { usePanelId } from '@/contexts/PanelIdContext';
 import {
   deleteMediaBatch,
   getStorageUsage,
@@ -85,6 +87,8 @@ interface PhotoItem {
 export function PhotoAlbumScreen() {
   const { t } = useTranslation();
   const moduleColor = useModuleColor('photoAlbum');
+  const paneContext = usePaneContextSafe();
+  const panelId = usePanelId();
 
   // Photo state
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -99,39 +103,50 @@ export function PhotoAlbumScreen() {
   const [storageUsed, setStorageUsed] = useState(0);
   const [photoCount, setPhotoCount] = useState(0);
 
+  // Check for pending navigation (e.g., photo ID from Camera)
+  useEffect(() => {
+    if (paneContext && panelId) {
+      const pending = paneContext.consumePendingNavigation(panelId as PaneId);
+      if (pending?.params?.selectPhotoId) {
+        const photoId = pending.params.selectPhotoId as string;
+        console.info(LOG_PREFIX, 'Received photo selection from Camera:', photoId);
+        // Enter selection mode with this photo selected
+        setIsSelectionMode(true);
+        setSelectedPhotos(new Set([photoId]));
+      }
+    }
+  }, [paneContext, panelId]);
+
   // Load photos from storage
   const loadPhotos = useCallback(async () => {
     try {
       console.info(LOG_PREFIX, 'Loading photos...');
 
-      const mediaDir = `${FileSystem.documentDirectory}media`;
-      const dirInfo = await FileSystem.getInfoAsync(mediaDir);
+      const mediaDir = `${RNFS.DocumentDirectoryPath}/media`;
+      const dirExists = await RNFS.exists(mediaDir);
 
-      if (!dirInfo.exists) {
+      if (!dirExists) {
         setPhotos([]);
         setPhotoCount(0);
         return;
       }
 
       // Read all files in media directory
-      const files = await FileSystem.readDirectoryAsync(mediaDir);
+      const files = await RNFS.readDir(mediaDir);
 
       // Filter for photos (not thumbnails or temp)
       const photoFiles = files.filter(
-        f => !f.includes('_thumb') && !f.startsWith('.') &&
-             (f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.png'))
+        f => f.isFile() &&
+             !f.name.includes('_thumb') && !f.name.startsWith('.') &&
+             (f.name.endsWith('.jpg') || f.name.endsWith('.jpeg') || f.name.endsWith('.png'))
       );
 
       // Build photo items
       const items: PhotoItem[] = [];
 
-      for (const filename of photoFiles) {
-        const mediaId = filename.replace(/\.(jpg|jpeg|png)$/i, '');
-        const uri = `${mediaDir}/${filename}`;
-
-        // Get file info for timestamp and size
-        const info = await FileSystem.getInfoAsync(uri);
-        if (!info.exists) continue;
+      for (const file of photoFiles) {
+        const mediaId = file.name.replace(/\.(jpg|jpeg|png)$/i, '');
+        const uri = file.path;
 
         // Get thumbnail
         const thumbnailUri = await getThumbnailUri(mediaId);
@@ -140,8 +155,8 @@ export function PhotoAlbumScreen() {
           id: mediaId,
           uri,
           thumbnailUri: thumbnailUri || uri,
-          timestamp: (info as any).modificationTime || Date.now(),
-          size: (info as any).size || 0,
+          timestamp: file.mtime ? new Date(file.mtime).getTime() : Date.now(),
+          size: Number(file.size) || 0,
         });
       }
 

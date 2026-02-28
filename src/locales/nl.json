@@ -1246,6 +1246,36 @@
         "serverTitle": "Serverfout"
       }
     },
+    "camera": {
+      "title": "Camera",
+      "takePhoto": "Maak foto",
+      "switchCamera": "Wissel camera",
+      "flashAuto": "Flits: Automatisch",
+      "flashOn": "Flits: Aan",
+      "flashOff": "Flits: Uit",
+      "viewAlbum": "Bekijk fotoalbum",
+      "captureHint": "Tik om een foto te maken",
+      "captureError": "Foto maken mislukt. Probeer het opnieuw.",
+      "error": "Fout",
+      "albumHint": "Gebruik het menu om het Fotoalbum te openen en je foto's te bekijken.",
+      "enterFullScreen": "Volledig scherm",
+      "exitFullScreen": "Verlaat volledig scherm"
+    },
+    "photoAlbum": {
+      "title": "Fotoalbum",
+      "noPhotos": "Nog geen foto's",
+      "noPhotosHint": "Maak foto's met de Camera om ze hier te zien.",
+      "photoCount": "{{count}} foto's",
+      "select": "Selecteren",
+      "selectAll": "Alles selecteren",
+      "deselectAll": "Niets selecteren",
+      "delete": "Verwijderen",
+      "deleteConfirmTitle": "Foto's verwijderen?",
+      "deleteConfirmMessage": "Weet je zeker dat je {{count}} foto's wilt verwijderen?",
+      "send": "Versturen",
+      "storageUsed": "{{size}} MB gebruikt",
+      "refreshing": "Vernieuwen..."
+    },
     "nunl": {
       "title": "© nu.nl",
       "category": "Categorie",

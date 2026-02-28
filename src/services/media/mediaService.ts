@@ -13,8 +13,7 @@
  */
 
 import { Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system';
-import * as ImageManipulator from 'expo-image-manipulator';
+import RNFS from 'react-native-fs';
 import type {
   MediaType,
   PhotoCompressionOptions,
@@ -70,50 +69,28 @@ export async function compressPhoto(
   uri: string,
   options: PhotoCompressionOptions = {}
 ): Promise<CompressionResult> {
-  const opts = { ...DEFAULT_PHOTO_OPTIONS, ...options };
-
+  // TODO: Implement real photo compression with react-native-image-resizer
+  // For now, pass through the original photo without compression
   try {
-    console.debug(LOG_PREFIX, 'Compressing photo:', uri);
+    console.debug(LOG_PREFIX, 'Compressing photo (stub):', uri);
 
-    // Get original dimensions to calculate aspect ratio
-    const originalInfo = await FileSystem.getInfoAsync(uri);
-    if (!originalInfo.exists) {
+    const exists = await RNFS.exists(uri);
+    if (!exists) {
       return { success: false, error: 'File not found' };
     }
 
-    // Use ImageManipulator for compression
-    const result = await ImageManipulator.manipulateAsync(
-      uri,
-      [
-        {
-          resize: {
-            width: opts.maxWidth,
-            height: opts.maxHeight,
-          },
-        },
-      ],
-      {
-        compress: opts.quality / 100,
-        format: ImageManipulator.SaveFormat.JPEG,
-      }
-    );
+    const stat = await RNFS.stat(uri);
 
-    // Get compressed file size
-    const compressedInfo = await FileSystem.getInfoAsync(result.uri);
-    const size = compressedInfo.exists ? (compressedInfo as any).size : 0;
-
-    console.info(LOG_PREFIX, 'Photo compressed:', {
-      width: result.width,
-      height: result.height,
-      size,
+    console.info(LOG_PREFIX, 'Photo passed through (compression not implemented):', {
+      size: stat.size,
     });
 
     return {
       success: true,
-      uri: result.uri,
-      width: result.width,
-      height: result.height,
-      size,
+      uri,
+      width: 0,  // Unknown without image processing library
+      height: 0,
+      size: Number(stat.size) || 0,
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'Photo compression failed:', error);
@@ -131,40 +108,28 @@ export async function compressPhoto(
  * @returns Thumbnail URI and dimensions
  */
 export async function generatePhotoThumbnail(uri: string): Promise<CompressionResult> {
+  // TODO: Implement real thumbnail generation with react-native-image-resizer
+  // For now, use the original photo as thumbnail
   try {
-    console.debug(LOG_PREFIX, 'Generating photo thumbnail:', uri);
+    console.debug(LOG_PREFIX, 'Generating photo thumbnail (stub):', uri);
 
-    const result = await ImageManipulator.manipulateAsync(
-      uri,
-      [
-        {
-          resize: {
-            width: THUMBNAIL_OPTIONS.maxWidth,
-            height: THUMBNAIL_OPTIONS.maxHeight,
-          },
-        },
-      ],
-      {
-        compress: THUMBNAIL_OPTIONS.quality / 100,
-        format: ImageManipulator.SaveFormat.JPEG,
-      }
-    );
+    const exists = await RNFS.exists(uri);
+    if (!exists) {
+      return { success: false, error: 'File not found' };
+    }
 
-    const info = await FileSystem.getInfoAsync(result.uri);
-    const size = info.exists ? (info as any).size : 0;
+    const stat = await RNFS.stat(uri);
 
-    console.debug(LOG_PREFIX, 'Thumbnail generated:', {
-      width: result.width,
-      height: result.height,
-      size,
+    console.debug(LOG_PREFIX, 'Thumbnail stub generated (using original):', {
+      size: stat.size,
     });
 
     return {
       success: true,
-      uri: result.uri,
-      width: result.width,
-      height: result.height,
-      size,
+      uri,  // Use original as thumbnail for now
+      width: 0,
+      height: 0,
+      size: Number(stat.size) || 0,
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'Thumbnail generation failed:', error);
@@ -189,25 +154,23 @@ export async function generatePhotoThumbnail(uri: string): Promise<CompressionRe
  * @returns Clean photo URI without EXIF
  */
 export async function stripExifData(uri: string): Promise<ExifStripResult> {
+  // TODO: Implement real EXIF stripping with react-native-image-crop-picker or similar
+  // For now, pass through the original photo (privacy concern - should be fixed before production)
   try {
-    console.debug(LOG_PREFIX, 'Stripping EXIF data:', uri);
+    console.debug(LOG_PREFIX, 'Stripping EXIF data (stub):', uri);
 
-    // ImageManipulator strips EXIF when saving as JPEG
-    // We do a minimal manipulation to ensure EXIF is removed
-    const result = await ImageManipulator.manipulateAsync(
-      uri,
-      [], // No transformations, just re-encode
-      {
-        compress: 1, // Maximum quality (no additional compression)
-        format: ImageManipulator.SaveFormat.JPEG,
-      }
-    );
+    const exists = await RNFS.exists(uri);
+    if (!exists) {
+      return { success: false, error: 'File not found' };
+    }
 
-    console.info(LOG_PREFIX, 'EXIF data stripped');
+    // WARNING: EXIF data is NOT stripped in this stub implementation
+    // This must be implemented before production release for privacy compliance
+    console.warn(LOG_PREFIX, 'EXIF stripping not implemented - using original photo');
 
     return {
       success: true,
-      uri: result.uri,
+      uri,
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'EXIF stripping failed:', error);
@@ -255,10 +218,12 @@ export async function compressVideo(
     // 4. Compress to target bitrate
     // 5. Strip metadata
 
-    const info = await FileSystem.getInfoAsync(uri);
-    if (!info.exists) {
+    const exists = await RNFS.exists(uri);
+    if (!exists) {
       return { success: false, error: 'File not found' };
     }
+
+    const stat = await RNFS.stat(uri);
 
     console.warn(LOG_PREFIX, 'Video compression not implemented, using original');
 
@@ -266,7 +231,7 @@ export async function compressVideo(
     return {
       success: true,
       uri,
-      size: (info as any).size || 0,
+      size: Number(stat.size) || 0,
       // Note: width/height/duration would come from video metadata
     };
   } catch (error) {
@@ -373,8 +338,10 @@ export async function validateVideoDuration(
  */
 export async function getFileSize(uri: string): Promise<number> {
   try {
-    const info = await FileSystem.getInfoAsync(uri);
-    return info.exists ? (info as any).size || 0 : 0;
+    const exists = await RNFS.exists(uri);
+    if (!exists) return 0;
+    const stat = await RNFS.stat(uri);
+    return Number(stat.size) || 0;
   } catch (error) {
     console.error(LOG_PREFIX, 'Failed to get file size:', error);
     return 0;
@@ -389,9 +356,7 @@ export async function getFileSize(uri: string): Promise<number> {
  */
 export async function readAsBase64(uri: string): Promise<string | null> {
   try {
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    const base64 = await RNFS.readFile(uri, 'base64');
     return base64;
   } catch (error) {
     console.error(LOG_PREFIX, 'Failed to read file as base64:', error);
@@ -411,15 +376,17 @@ export async function writeBase64ToFile(
   filename: string
 ): Promise<string | null> {
   try {
-    const dir = FileSystem.cacheDirectory || FileSystem.documentDirectory;
-    const uri = `${dir}media/${filename}`;
+    const dir = RNFS.CachesDirectoryPath || RNFS.DocumentDirectoryPath;
+    const mediaDir = `${dir}/media`;
+    const uri = `${mediaDir}/${filename}`;
 
     // Ensure directory exists
-    await FileSystem.makeDirectoryAsync(`${dir}media`, { intermediates: true });
+    const exists = await RNFS.exists(mediaDir);
+    if (!exists) {
+      await RNFS.mkdir(mediaDir);
+    }
 
-    await FileSystem.writeAsStringAsync(uri, base64, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    await RNFS.writeFile(uri, base64, 'base64');
 
     return uri;
   } catch (error) {
@@ -436,7 +403,10 @@ export async function writeBase64ToFile(
  */
 export async function deleteFile(uri: string): Promise<boolean> {
   try {
-    await FileSystem.deleteAsync(uri, { idempotent: true });
+    const exists = await RNFS.exists(uri);
+    if (exists) {
+      await RNFS.unlink(uri);
+    }
     return true;
   } catch (error) {
     console.error(LOG_PREFIX, 'Failed to delete file:', error);
@@ -456,16 +426,17 @@ export async function copyToMediaDirectory(
   filename: string
 ): Promise<string | null> {
   try {
-    const dir = FileSystem.documentDirectory;
-    const targetUri = `${dir}media/${filename}`;
+    const dir = RNFS.DocumentDirectoryPath;
+    const mediaDir = `${dir}/media`;
+    const targetUri = `${mediaDir}/${filename}`;
 
     // Ensure directory exists
-    await FileSystem.makeDirectoryAsync(`${dir}media`, { intermediates: true });
+    const exists = await RNFS.exists(mediaDir);
+    if (!exists) {
+      await RNFS.mkdir(mediaDir);
+    }
 
-    await FileSystem.copyAsync({
-      from: sourceUri,
-      to: targetUri,
-    });
+    await RNFS.copyFile(sourceUri, targetUri);
 
     return targetUri;
   } catch (error) {
