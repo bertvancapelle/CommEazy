@@ -69,11 +69,18 @@ export default function App() {
       setReducedMotion,
     );
 
+    // Handle memory warnings - log for debugging memory issues
+    const memoryWarningSubscription = AppState.addEventListener('memoryWarning', () => {
+      console.warn('[App] Memory warning received from OS - consider clearing caches');
+      // In the future, we could clear image caches here with FastImage.clearMemoryCache()
+    });
+
     // Initialize services
     void initializeApp().then(() => setIsReady(true));
 
     return () => {
       subscription.remove();
+      memoryWarningSubscription.remove();
     };
   }, []);
 

@@ -280,6 +280,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
   const downloadedBookIds = useRef<Set<string>>(new Set());
   const chapterProgressSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const playbackRateRef = useRef(1.0); // Ref for immediate access to current rate
+  const pageTransitionTimeoutRef = useRef<NodeJS.Timeout | null>(null); // For TTS page transition
 
   // ============================================================
   // Initialization
@@ -358,6 +359,9 @@ export function BooksProvider({ children }: BooksProviderProps) {
       if (chapterProgressSaveIntervalRef.current) {
         clearInterval(chapterProgressSaveIntervalRef.current);
       }
+      if (pageTransitionTimeoutRef.current) {
+        clearTimeout(pageTransitionTimeoutRef.current);
+      }
 
       ttsService.cleanup();
       piperTtsService.cleanup();
@@ -413,8 +417,12 @@ export function BooksProvider({ children }: BooksProviderProps) {
     // Move to next page if available
     if (currentPageNumber < totalPages) {
       await goToPage(currentPageNumber + 1);
-      // Continue reading on next page
-      setTimeout(async () => {
+      // Continue reading on next page (with cleanup to prevent memory leak)
+      if (pageTransitionTimeoutRef.current) {
+        clearTimeout(pageTransitionTimeoutRef.current);
+      }
+      pageTransitionTimeoutRef.current = setTimeout(async () => {
+        pageTransitionTimeoutRef.current = null;
         await startReadingInternal();
       }, 500);
     } else {

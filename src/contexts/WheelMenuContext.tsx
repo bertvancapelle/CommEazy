@@ -16,6 +16,8 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
+  useEffect,
   type ReactNode,
 } from 'react';
 
@@ -69,6 +71,18 @@ export function WheelMenuProvider({ children }: WheelMenuProviderProps) {
     ((panelId: PanelId | null, destination: NavigationDestination) => void) | null
   >(null);
 
+  // Ref for cleanup of close animation timeout (prevents memory leak)
+  const closeAnimationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (closeAnimationTimeoutRef.current) {
+        clearTimeout(closeAnimationTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const openMenu = useCallback((panelId: PanelId | null, activeScreen: NavigationDestination) => {
     setRequest({ panelId, activeScreen });
     setIsOpen(true);
@@ -76,8 +90,14 @@ export function WheelMenuProvider({ children }: WheelMenuProviderProps) {
 
   const closeMenu = useCallback(() => {
     setIsOpen(false);
-    // Keep request for animation, clear after close animation
-    setTimeout(() => setRequest(null), 200);
+    // Keep request for animation, clear after close animation (with cleanup)
+    if (closeAnimationTimeoutRef.current) {
+      clearTimeout(closeAnimationTimeoutRef.current);
+    }
+    closeAnimationTimeoutRef.current = setTimeout(() => {
+      closeAnimationTimeoutRef.current = null;
+      setRequest(null);
+    }, 200);
   }, []);
 
   const handleNavigate = useCallback((destination: NavigationDestination) => {
