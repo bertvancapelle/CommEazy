@@ -106,7 +106,9 @@ export type IconName =
   | 'help'
   | 'phone'
   | 'queue'
-  | 'image';
+  | 'image'
+  | 'expand'
+  | 'contract';
 
 interface IconProps {
   name: IconName;
@@ -1731,6 +1733,132 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             strokeWidth={sw}
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'expand':
+      // Expand / fullscreen - arrows pointing outward to corners
+      return (
+        <Svg {...iconProps}>
+          {/* Top-left arrow */}
+          <Path
+            d="M4 10V4H10"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M4 4L9 9"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Top-right arrow */}
+          <Path
+            d="M20 10V4H14"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M20 4L15 9"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Bottom-left arrow */}
+          <Path
+            d="M4 14V20H10"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M4 20L9 15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Bottom-right arrow */}
+          <Path
+            d="M20 14V20H14"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M20 20L15 15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'contract':
+      // Contract / exit fullscreen - arrows pointing inward from corners
+      return (
+        <Svg {...iconProps}>
+          {/* Top-left corner */}
+          <Path
+            d="M9 4V9H4"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M4 4L9 9"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Top-right corner */}
+          <Path
+            d="M15 4V9H20"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M20 4L15 9"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Bottom-left corner */}
+          <Path
+            d="M9 20V15H4"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M4 20L9 15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          {/* Bottom-right corner */}
+          <Path
+            d="M15 20V15H20"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M20 20L15 15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
           />
         </Svg>
       );
