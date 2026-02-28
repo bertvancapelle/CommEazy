@@ -38,6 +38,7 @@
 		82AC31BA2F51C7DA007B8E07 /* VoIPPushModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 82AC31B92F51C7DA007B8E07 /* VoIPPushModule.m */; };
 		82BE2E142F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 		82BE2E152F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
+		82C418FA2F5358AF00D1FAA8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 82C418F92F5358AE00D1FAA8 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 		82AC31B72F51C7D3007B8E07 /* VoIPPushModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoIPPushModule.swift; sourceTree = "<group>"; };
 		82AC31B92F51C7DA007B8E07 /* VoIPPushModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VoIPPushModule.m; sourceTree = "<group>"; };
 		82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		82C418F92F5358AE00D1FAA8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		82EFD6552F45F86B0009F977 /* PiperTtsTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiperTtsTestView.swift; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; path = "Target Support Files/Pods-CommEazyTemp-CommEazyTempTests/Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -178,6 +180,7 @@
 				822956592F4DBF7C00794A9C /* OrientationModule.m */,
 				82AC31B72F51C7D3007B8E07 /* VoIPPushModule.swift */,
 				82AC31B92F51C7DA007B8E07 /* VoIPPushModule.m */,
+				82C418F92F5358AE00D1FAA8 /* PrivacyInfo.xcprivacy */,
 			);
 			name = CommEazyTemp;
 			sourceTree = "<group>";
@@ -379,6 +382,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				82C418FA2F5358AF00D1FAA8 /* PrivacyInfo.xcprivacy in Resources */,
 				82BE2E142F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

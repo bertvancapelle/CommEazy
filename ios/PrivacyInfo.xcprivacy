@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  PrivacyInfo.xcprivacy — Apple Privacy Manifest for CommEazy
+  
+  This file declares which "required reason APIs" CommEazy uses,
+  as mandated by Apple starting May 1, 2024 for App Store submission.
+  
+  APIs declared:
+  1. NSPrivacyAccessedAPICategoryUserDefaults (CA92.1)
+     - AsyncStorage for app settings (module colors, liquid glass, TTS, favorites)
+     - AppleMusicModule.swift for caching lastModifiedDate
+  
+  2. NSPrivacyAccessedAPICategoryFileTimestamp (C617.1)
+     - AppleMusicModule.swift uses MPMediaLibrary.lastModifiedDate
+       to detect when Apple Music library has changed for cache invalidation
+  
+  CommEazy does NOT track users. All data storage is local and encrypted.
+  
+  @see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+-->
+<plist version="1.0">
+<dict>
+    <!-- App does NOT track users -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+    
+    <!-- No tracking domains -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+    
+    <!-- Required Reason APIs used by CommEazy -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- 
+          UserDefaults API
+          Used by: AsyncStorage (React Native), AppleMusicModule.swift
+          Reason: CA92.1 - Access info from inside the app's container
+        -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+        
+        <!-- 
+          File Timestamp API
+          Used by: AppleMusicModule.swift (MPMediaLibrary.lastModifiedDate)
+          Reason: C617.1 - Access file timestamps for app functionality
+        -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>C617.1</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- No collected data types (all data stays on device, E2E encrypted) -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+</dict>
+</plist>
