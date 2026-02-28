@@ -133,7 +133,21 @@
     "videoCallIncoming": "Video-oproep...",
     "ringing": "Gaat over...",
     "connecting": "Verbinden...",
-    "reconnecting": "Opnieuw verbinden..."
+    "reconnecting": "Opnieuw verbinden...",
+    "error": {
+      "title": "Bellen niet mogelijk",
+      "message": "Er is een probleem opgetreden bij het starten van het gesprek."
+    }
+  },
+  "siri": {
+    "contactNotFound": {
+      "title": "Contact niet gevonden",
+      "message": "{{name}} is niet gevonden in je contacten."
+    },
+    "authorizationRequired": {
+      "title": "Siri toegang",
+      "message": "Schakel Siri in om contacten te bellen met je stem."
+    }
   },
   "calls": {
     "alreadyInCall": "Al in gesprek",

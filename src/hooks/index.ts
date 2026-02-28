@@ -37,3 +37,12 @@ export { useModuleUsage } from './useModuleUsage';
 // Content
 export { useNewsArticles } from './useNewsArticles';
 export { useWeather } from './useWeather';
+
+// Siri integration
+export {
+  useSiriCall,
+  type SiriCallIntent,
+  type SiriAuthorizationStatus,
+  type UseSiriCallOptions,
+  type UseSiriCallReturn,
+} from './useSiriCall';

@@ -93,5 +93,13 @@
 	<string>CommEazy gebruikt spraakherkenning om je stemcommando's te begrijpen voor handsfree navigatie.</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>CommEazy gebruikt Apple Music om je favoriete muziek af te spelen en te doorzoeken.</string>
+	<key>NSSiriUsageDescription</key>
+	<string>CommEazy gebruikt Siri om contacten te bellen met je stem. Zeg "Hey Siri, bel Oma met CommEazy".</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>INStartCallIntent</string>
+		<string>INStartAudioCallIntent</string>
+		<string>INStartVideoCallIntent</string>
+	</array>
 </dict>
 </plist>

@@ -177,7 +177,24 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
     }
   }
 
-  // Let CallKeep handle call-related activities (Siri, Recents)
+  // Check if this is a Siri call intent
+  NSString *activityType = userActivity.activityType;
+  if ([activityType isEqualToString:@"INStartCallIntent"] ||
+      [activityType isEqualToString:@"INStartAudioCallIntent"] ||
+      [activityType isEqualToString:@"INStartVideoCallIntent"]) {
+    NSLog(@"[Siri] Received call intent: %@", activityType);
+
+    // Forward to SiriCallModule (runtime lookup to avoid circular dependency)
+    id module = [NSClassFromString(@"CommEazyTemp.SiriCallModule") valueForKey:@"shared"];
+    if (module && [module respondsToSelector:@selector(handleUserActivity:)]) {
+      BOOL handled = [[module performSelector:@selector(handleUserActivity:) withObject:userActivity] boolValue];
+      if (handled) {
+        return YES;
+      }
+    }
+  }
+
+  // Let CallKeep handle other call-related activities (Recents)
   return [RNCallKeep application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
 }
 

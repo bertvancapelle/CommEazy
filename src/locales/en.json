@@ -141,7 +141,21 @@
     "videoCallIncoming": "Video calling...",
     "ringing": "Ringing...",
     "connecting": "Connecting...",
-    "reconnecting": "Reconnecting..."
+    "reconnecting": "Reconnecting...",
+    "error": {
+      "title": "Cannot make call",
+      "message": "There was a problem starting the call."
+    }
+  },
+  "siri": {
+    "contactNotFound": {
+      "title": "Contact not found",
+      "message": "{{name}} was not found in your contacts."
+    },
+    "authorizationRequired": {
+      "title": "Siri access",
+      "message": "Enable Siri to call contacts using your voice."
+    }
   },
   "calls": {
     "alreadyInCall": "Already in a call",

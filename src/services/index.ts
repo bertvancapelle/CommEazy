@@ -48,6 +48,9 @@ export { notificationService } from './notifications';
 export { callService } from './call';
 export type { ActiveCall, CallType, CallState, CallParticipant } from './call';
 
+// Siri Call Integration (iOS)
+export { siriService, type SiriCallIntent, type SiriAuthorizationStatus } from './siriService';
+
 // ============================================================
 // Media Services
 // ============================================================

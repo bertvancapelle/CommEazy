@@ -3283,7 +3283,7 @@ Features en taken die alleen voor Apple platforms gelden.
 | 2 | **VoIP Push (APNs)** | ✅ DONE | 🎯 MVP | PushKit module ✅, APNs credentials ✅ geconfigureerd |
 | 3 | **Privacy Manifest** | ✅ DONE | 🎯 MVP | PrivacyInfo.xcprivacy met UserDefaults (CA92.1) + FileTimestamp (C617.1) |
 | 4 | **CallKit Audio Routing** | ✅ DONE | 🎯 MVP | react-native-incall-manager geïnstalleerd, speaker/earpiece routing werkt |
-| 5 | **Siri Call Initiation** | ⏳ TODO | ⏳ TBD | SiriKit niet geconfigureerd, Intents Extension ontbreekt |
+| 5 | **Siri Call Initiation** | ✅ DONE | ⏳ TBD | SiriKit + Intents Extension + useSiriCall hook |
 | 6 | **CarPlay** | ⏳ TODO | ⏳ TBD | Handsfree bellen via CarPlay |
 | 7 | **iPad Split View** | ✅ DONE | 🎯 MVP | SplitViewLayout + DraggableDivider + PaneContext compleet |
 | 8 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
@@ -3296,7 +3296,7 @@ Features en taken die alleen voor Apple platforms gelden.
 | 15 | **Collapsible Panes iPad** | ✅ DONE | 🎯 MVP | Snap logica, pijl handle, MediaIndicator integratie |
 | 16 | **Piper TTS Nederlands** | ✅ DONE | 🎯 MVP | sherpa-onnx met 4 Nederlandse stemmen, chunked playback |
 
-**📊 iOS/iPadOS Samenvatting:** 16 items | ✅ 12 DONE | 🔶 1 PARTIAL | ⏳ 3 TODO
+**📊 iOS/iPadOS Samenvatting:** 16 items | ✅ 13 DONE | 🔶 1 PARTIAL | ⏳ 2 TODO
 
 ---
 
@@ -3350,10 +3350,10 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 
 | Platform | Totaal | ✅ DONE | 🔶 PARTIAL | ⏳ TODO |
 |----------|--------|---------|------------|---------|
-| **iOS/iPadOS** | 16 | 9 | 1 | 6 |
+| **iOS/iPadOS** | 16 | 13 | 1 | 2 |
 | **Android** | 4 | 0 | 0 | 4 |
 | **Cross-Platform** | 20 | 0 | 3 | 17 |
-| **TOTAAL** | 40 | 9 | 4 | 27 |
+| **TOTAAL** | 40 | 13 | 4 | 23 |
 
 ---
 
