@@ -27,6 +27,10 @@ import {
   Dimensions,
   RefreshControl,
   Vibration,
+  Modal,
+  StatusBar,
+  useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import RNFS from 'react-native-fs';
@@ -102,6 +106,11 @@ export function PhotoAlbumScreen() {
   // Storage info
   const [storageUsed, setStorageUsed] = useState(0);
   const [photoCount, setPhotoCount] = useState(0);
+
+  // Fullscreen viewer state
+  const [viewerPhoto, setViewerPhoto] = useState<PhotoItem | null>(null);
+  const [isViewerLoading, setIsViewerLoading] = useState(true);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // Check for pending navigation (e.g., photo ID from Camera)
   useEffect(() => {
@@ -219,15 +228,48 @@ export function PhotoAlbumScreen() {
     if (isSelectionMode) {
       handleTogglePhoto(photoId);
     } else {
-      // TODO: Open full-screen viewer
-      console.info(LOG_PREFIX, 'View photo:', photoId);
-      Alert.alert(
-        t('modules.photoAlbum.viewTitle', 'View Photo'),
-        t('modules.photoAlbum.viewerComingSoon', 'Full-screen photo viewer coming soon!'),
-        [{ text: t('common.ok', 'OK') }]
-      );
+      // Open full-screen viewer
+      const photo = photos.find(p => p.id === photoId);
+      if (photo) {
+        console.info(LOG_PREFIX, 'Opening viewer for:', photoId);
+        setIsViewerLoading(true);
+        setViewerPhoto(photo);
+      }
     }
-  }, [isSelectionMode, handleTogglePhoto, t]);
+  }, [isSelectionMode, handleTogglePhoto, photos]);
+
+  // Close fullscreen viewer
+  const handleCloseViewer = useCallback(() => {
+    setViewerPhoto(null);
+    setIsViewerLoading(true);
+  }, []);
+
+  // Navigate to previous photo in viewer
+  const handleViewerPrevious = useCallback(() => {
+    if (!viewerPhoto) return;
+    const currentIndex = photos.findIndex(p => p.id === viewerPhoto.id);
+    if (currentIndex > 0) {
+      setIsViewerLoading(true);
+      setViewerPhoto(photos[currentIndex - 1]);
+      Vibration.vibrate(HAPTIC_DURATION);
+    }
+  }, [viewerPhoto, photos]);
+
+  // Navigate to next photo in viewer
+  const handleViewerNext = useCallback(() => {
+    if (!viewerPhoto) return;
+    const currentIndex = photos.findIndex(p => p.id === viewerPhoto.id);
+    if (currentIndex < photos.length - 1) {
+      setIsViewerLoading(true);
+      setViewerPhoto(photos[currentIndex + 1]);
+      Vibration.vibrate(HAPTIC_DURATION);
+    }
+  }, [viewerPhoto, photos]);
+
+  // Get current photo index for display
+  const viewerPhotoIndex = viewerPhoto
+    ? photos.findIndex(p => p.id === viewerPhoto.id) + 1
+    : 0;
 
   // Long-press to start selection mode
   const handlePhotoLongPress = useCallback((photoId: string) => {
@@ -479,6 +521,137 @@ export function PhotoAlbumScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Fullscreen Photo Viewer Modal */}
+      <Modal
+        visible={viewerPhoto !== null}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        onRequestClose={handleCloseViewer}
+      >
+        <StatusBar hidden />
+        <View style={styles.viewerContainer}>
+          {/* Close button */}
+          <TouchableOpacity
+            style={styles.viewerCloseButton}
+            onPress={handleCloseViewer}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close', 'Close')}
+          >
+            <Icon name="x" size={28} color={colors.textOnPrimary} />
+          </TouchableOpacity>
+
+          {/* Photo counter */}
+          <View style={styles.viewerCounter}>
+            <Text style={styles.viewerCounterText}>
+              {viewerPhotoIndex} / {photos.length}
+            </Text>
+          </View>
+
+          {/* Loading indicator */}
+          {isViewerLoading && (
+            <View style={styles.viewerLoadingOverlay}>
+              <ActivityIndicator size="large" color={moduleColor} />
+            </View>
+          )}
+
+          {/* Photo display */}
+          {viewerPhoto && (
+            <Image
+              source={{ uri: viewerPhoto.uri }}
+              style={{
+                width: windowWidth,
+                height: windowHeight,
+              }}
+              resizeMode="contain"
+              onLoadStart={() => setIsViewerLoading(true)}
+              onLoadEnd={() => setIsViewerLoading(false)}
+              accessibilityLabel={t('modules.photoAlbum.fullPhoto', 'Full size photo')}
+            />
+          )}
+
+          {/* Navigation buttons */}
+          <View style={styles.viewerNavigation}>
+            {/* Previous button */}
+            <TouchableOpacity
+              style={[
+                styles.viewerNavButton,
+                viewerPhotoIndex <= 1 && styles.viewerNavButtonDisabled,
+              ]}
+              onPress={handleViewerPrevious}
+              disabled={viewerPhotoIndex <= 1}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.photoAlbum.previousPhoto', 'Previous photo')}
+            >
+              <Icon
+                name="chevron-left"
+                size={32}
+                color={viewerPhotoIndex <= 1 ? 'rgba(255,255,255,0.3)' : colors.textOnPrimary}
+              />
+            </TouchableOpacity>
+
+            {/* Next button */}
+            <TouchableOpacity
+              style={[
+                styles.viewerNavButton,
+                viewerPhotoIndex >= photos.length && styles.viewerNavButtonDisabled,
+              ]}
+              onPress={handleViewerNext}
+              disabled={viewerPhotoIndex >= photos.length}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.photoAlbum.nextPhoto', 'Next photo')}
+            >
+              <Icon
+                name="chevron-right"
+                size={32}
+                color={viewerPhotoIndex >= photos.length ? 'rgba(255,255,255,0.3)' : colors.textOnPrimary}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Bottom action bar */}
+          <View style={styles.viewerActionBar}>
+            <TouchableOpacity
+              style={[styles.viewerActionButton, { backgroundColor: moduleColor }]}
+              onPress={() => {
+                if (viewerPhoto) {
+                  setSelectedPhotos(new Set([viewerPhoto.id]));
+                  setIsSelectionMode(true);
+                  handleCloseViewer();
+                  // Small delay to let modal close, then trigger send
+                  setTimeout(handleSendPhotos, 100);
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.photoAlbum.send', 'Send')}
+            >
+              <Icon name="chat" size={24} color={colors.textOnPrimary} />
+              <Text style={styles.viewerActionText}>
+                {t('modules.photoAlbum.send', 'Send')}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.viewerActionButton, styles.deleteButton]}
+              onPress={() => {
+                if (viewerPhoto) {
+                  setSelectedPhotos(new Set([viewerPhoto.id]));
+                  handleCloseViewer();
+                  // Small delay to let modal close, then trigger delete
+                  setTimeout(handleDeletePhotos, 100);
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.delete', 'Delete')}
+            >
+              <Icon name="trash" size={24} color={colors.textOnPrimary} />
+              <Text style={styles.viewerActionText}>
+                {t('common.delete', 'Delete')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -600,6 +773,97 @@ const styles = StyleSheet.create({
     backgroundColor: colors.error,
   },
   actionText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
+  },
+  // Fullscreen viewer styles
+  viewerContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerCloseButton: {
+    position: 'absolute',
+    top: spacing.xl + 20, // Account for status bar area
+    left: spacing.lg,
+    zIndex: 10,
+    width: touchTargets.comfortable,
+    height: touchTargets.comfortable,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: borderRadius.full,
+  },
+  viewerCounter: {
+    position: 'absolute',
+    top: spacing.xl + 20, // Account for status bar area
+    right: spacing.lg,
+    zIndex: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: borderRadius.md,
+  },
+  viewerCounterText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+  },
+  viewerLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5,
+  },
+  viewerNavigation: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    pointerEvents: 'box-none',
+  },
+  viewerNavButton: {
+    width: touchTargets.comfortable,
+    height: touchTargets.comfortable * 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: borderRadius.md,
+  },
+  viewerNavButtonDisabled: {
+    opacity: 0.5,
+  },
+  viewerActionBar: {
+    position: 'absolute',
+    bottom: spacing.xl + 20, // Account for home indicator
+    left: spacing.lg,
+    right: spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  viewerActionButton: {
+    flex: 1,
+    maxWidth: 160,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.full,
+    minHeight: touchTargets.comfortable,
+  },
+  viewerActionText: {
     ...typography.button,
     color: colors.textOnPrimary,
   },

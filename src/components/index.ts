@@ -135,6 +135,10 @@ export type { RadarMapProps } from './RadarMap';
 export { TimeSlider } from './TimeSlider';
 export type { TimeSliderProps } from './TimeSlider';
 
+// Photo Message Bubble (for photo messages in chat)
+export { PhotoMessageBubble } from './PhotoMessageBubble';
+export type { PhotoMessageBubbleProps } from './PhotoMessageBubble';
+
 // Liquid Glass View (Apple iOS 26+ glass effects with fallback)
 export { LiquidGlassView } from './LiquidGlassView';
 export type { LiquidGlassViewProps } from './LiquidGlassView';
