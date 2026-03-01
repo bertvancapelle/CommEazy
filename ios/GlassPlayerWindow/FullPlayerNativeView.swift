@@ -269,20 +269,36 @@ class FullPlayerNativeView: UIView {
     }
     
     private func startAirPlayPulseAnimation() {
-        // Subtle opacity pulse: 1.0 → 0.5 → 1.0, repeating
-        let pulse = CABasicAnimation(keyPath: "opacity")
-        pulse.fromValue = 1.0
-        pulse.toValue = 0.5
-        pulse.duration = 1.5
-        pulse.autoreverses = true
-        pulse.repeatCount = .infinity
-        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        airPlayContainer.layer.add(pulse, forKey: "airPlayPulse")
+        // Combo C+D: deep opacity fade + scale pulse for clear AirPlay active indicator
+        let opacityPulse = CABasicAnimation(keyPath: "opacity")
+        opacityPulse.fromValue = 1.0
+        opacityPulse.toValue = 0.2
+        opacityPulse.duration = 0.8
+        opacityPulse.autoreverses = true
+        opacityPulse.repeatCount = .infinity
+        opacityPulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        let scalePulse = CABasicAnimation(keyPath: "transform.scale")
+        scalePulse.fromValue = 1.0
+        scalePulse.toValue = 1.08
+        scalePulse.duration = 0.8
+        scalePulse.autoreverses = true
+        scalePulse.repeatCount = .infinity
+        scalePulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        let group = CAAnimationGroup()
+        group.animations = [opacityPulse, scalePulse]
+        group.duration = 0.8
+        group.autoreverses = true
+        group.repeatCount = .infinity
+        
+        airPlayContainer.layer.add(group, forKey: "airPlayPulse")
     }
     
     private func stopAirPlayPulseAnimation() {
         airPlayContainer.layer.removeAnimation(forKey: "airPlayPulse")
         airPlayContainer.layer.opacity = 1.0
+        airPlayContainer.layer.transform = CATransform3DIdentity
     }
     
     private func setupArtwork() {
@@ -504,8 +520,8 @@ class FullPlayerNativeView: UIView {
             airPlayRoutePicker.widthAnchor.constraint(equalToConstant: 44),
             airPlayRoutePicker.heightAnchor.constraint(equalToConstant: 44),
             
-            // Artwork - 24pt below close/AirPlay buttons to avoid overlap with button borders
-            artworkImageView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 24),
+            // Artwork - 32pt below close/AirPlay buttons (extra margin for AirPlay pulse scale animation)
+            artworkImageView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 32),
             artworkImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             artworkImageView.widthAnchor.constraint(equalToConstant: Layout.artworkSize),
             artworkImageView.heightAnchor.constraint(equalToConstant: Layout.artworkSize),

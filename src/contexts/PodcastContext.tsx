@@ -351,6 +351,8 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
 
         if (data.state === State.Playing) {
           setIsLoading(false);
+        } else if (data.state === State.Paused || data.state === State.Stopped) {
+          setIsLoading(false);
         } else if (data.state === State.Error) {
           setIsLoading(false);
         }
@@ -584,6 +586,7 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
 
     try {
       await TrackPlayer.pause();
+      setIsLoading(false); // Defense-in-depth: ensure loading clears on pause
       AccessibilityInfo.announceForAccessibility(t('modules.podcast.paused'));
 
       // Save progress immediately on pause
@@ -624,6 +627,7 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
 
       await TrackPlayer.stop();
       await TrackPlayer.reset();
+      setIsLoading(false); // Defense-in-depth: ensure loading clears on stop
       setCurrentEpisode(null);
       setCurrentShow(null);
       setSleepTimer(null);

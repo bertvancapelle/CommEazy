@@ -278,6 +278,8 @@ export function RadioProvider({ children }: RadioProviderProps) {
 
         if (data.state === State.Playing) {
           setIsLoading(false);
+        } else if (data.state === State.Paused || data.state === State.Stopped) {
+          setIsLoading(false);
         } else if (data.state === State.Error) {
           setIsLoading(false);
         }
@@ -391,6 +393,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
 
     try {
       await TrackPlayer.pause();
+      setIsLoading(false); // Defense-in-depth: ensure loading clears on pause
       AccessibilityInfo.announceForAccessibility(t('modules.radio.paused'));
     } catch (error) {
       console.error('[RadioContext] Failed to pause:', error);
@@ -403,6 +406,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
     try {
       await TrackPlayer.stop();
       await TrackPlayer.reset();
+      setIsLoading(false); // Defense-in-depth: ensure loading clears on stop
       setCurrentStation(null);
       setMetadata({});
       setShowPlayer(false);
