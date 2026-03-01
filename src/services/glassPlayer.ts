@@ -241,6 +241,9 @@ class GlassPlayerService {
     }
 
     try {
+      // Reset dedup caches so next show/update calls are not skipped
+      this.lastContentJSON = '';
+      this.lastPlaybackStateJSON = '';
       return await this.nativeModule.hidePlayer();
     } catch (error) {
       console.error('[GlassPlayer] Error hiding player:', error);

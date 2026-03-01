@@ -4,7 +4,7 @@
  * Layout (full screen):
  * ┌────────────────────────────────────────────────────────────────┐
  * │  Safe Area                                                     │
- * │  [˅] Close button (chevron-down)                    84pt      │
+ * │  [˅] Close                                    [AirPlay]  60pt  │
  * ├────────────────────────────────────────────────────────────────┤
  * │                                                                │
  * │              ┌────────────────────┐                            │
@@ -17,21 +17,22 @@
  * │         ════════ SeekSlider ════════  (optional)               │
  * │         00:00                  45:32                           │
  * │                                                                │
- * │              ⏪    ▶/⏸    ⏩         84pt buttons               │
+ * │              ⏪    ▶/⏸    ⏩         60pt buttons               │
  * │                                                                │
  * │         [1x] [Sleep] [❤️]            Secondary controls        │
  * │                                                                │
  * └────────────────────────────────────────────────────────────────┘
  *
  * Senior-inclusive design:
- * - Primary buttons 84pt
- * - Secondary buttons 60pt
+ * - ALL buttons uniform 60pt (touchTargets.minimum)
+ * - cornerRadius 12pt (rounded square, NOT circular)
  * - Typography ≥18pt body, ≥24pt headings
  *
  * @see .claude/plans/LIQUID_GLASS_PLAYER_WINDOW.md
  */
 
 import UIKit
+import AVKit
 
 // MARK: - Delegate Protocol
 
@@ -85,6 +86,10 @@ class FullPlayerNativeView: UIView {
     private let favoriteButton = UIButton(type: .system)
     private let repeatButton = UIButton(type: .system)
     
+    // AirPlay route picker (top-right, aligned with close button)
+    private let airPlayContainer = UIView()
+    private let airPlayRoutePicker = AVRoutePickerView()
+    
     // Loading indicator (overlay on play button)
     private let loadingIndicator = UIActivityIndicatorView(style: .medium)
     
@@ -119,11 +124,8 @@ class FullPlayerNativeView: UIView {
     private enum Layout {
         static let padding: CGFloat = 20
         static let artworkSize: CGFloat = 200  // Smaller artwork for more compact player
-        static let primaryButtonSize: CGFloat = 84
-        static let secondaryButtonSize: CGFloat = 60
-        static let closeButtonSize: CGFloat = 60
+        static let buttonSize: CGFloat = 60    // ALL buttons uniform 60pt (senior-inclusive minimum)
         static let buttonCornerRadius: CGFloat = 12  // Rounded square (NOT circular!)
-        static let primaryButtonCornerRadius: CGFloat = 16  // Slightly larger for 84pt buttons
         static let titleFontSize: CGFloat = 24
         static let subtitleFontSize: CGFloat = 18
         static let timeFontSize: CGFloat = 14
@@ -152,6 +154,7 @@ class FullPlayerNativeView: UIView {
         addSubview(contentView)
         
         setupCloseButton()
+        setupAirPlayButton()
         setupArtwork()
         setupLabels()
         setupSeekControls()
@@ -172,6 +175,24 @@ class FullPlayerNativeView: UIView {
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityLabel = "Sluiten"
         contentView.addSubview(closeButton)
+    }
+    
+    private func setupAirPlayButton() {
+        // Container with standard button styling: 60pt, rgba background, 12pt cornerRadius
+        airPlayContainer.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        airPlayContainer.layer.cornerRadius = Layout.buttonCornerRadius
+        airPlayContainer.clipsToBounds = true
+        airPlayContainer.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(airPlayContainer)
+        
+        // AVRoutePickerView inside the container
+        airPlayRoutePicker.tintColor = .white
+        airPlayRoutePicker.activeTintColor = .systemBlue
+        airPlayRoutePicker.prioritizesVideoDevices = false
+        airPlayRoutePicker.translatesAutoresizingMaskIntoConstraints = false
+        airPlayContainer.addSubview(airPlayRoutePicker)
+        
+        airPlayContainer.accessibilityLabel = "AirPlay"
     }
     
     private func setupArtwork() {
@@ -273,7 +294,7 @@ class FullPlayerNativeView: UIView {
         playPauseButton.setImage(UIImage(systemName: "play.fill", withConfiguration: primaryConfig), for: .normal)
         playPauseButton.tintColor = .white
         playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)  // Subtle, consistent with other buttons
-        playPauseButton.layer.cornerRadius = Layout.primaryButtonCornerRadius
+        playPauseButton.layer.cornerRadius = Layout.buttonCornerRadius
         playPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
         playPauseButton.accessibilityLabel = "Afspelen"
@@ -377,8 +398,20 @@ class FullPlayerNativeView: UIView {
             // Close button - directly at top of content (window already handles safe area positioning)
             closeButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             closeButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
-            closeButton.widthAnchor.constraint(equalToConstant: Layout.closeButtonSize),
-            closeButton.heightAnchor.constraint(equalToConstant: Layout.closeButtonSize),
+            closeButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            closeButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
+            
+            // AirPlay button - top-right, aligned with close button
+            airPlayContainer.topAnchor.constraint(equalTo: closeButton.topAnchor),
+            airPlayContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
+            airPlayContainer.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            airPlayContainer.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
+            
+            // AVRoutePickerView fills its container
+            airPlayRoutePicker.centerXAnchor.constraint(equalTo: airPlayContainer.centerXAnchor),
+            airPlayRoutePicker.centerYAnchor.constraint(equalTo: airPlayContainer.centerYAnchor),
+            airPlayRoutePicker.widthAnchor.constraint(equalToConstant: 44),
+            airPlayRoutePicker.heightAnchor.constraint(equalToConstant: 44),
             
             // Artwork - closer to close button for compact layout
             artworkImageView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: Layout.verticalSpacing),
@@ -419,56 +452,56 @@ class FullPlayerNativeView: UIView {
             // Playback controls - reduced spacing
             playPauseButton.topAnchor.constraint(equalTo: seekContainer.bottomAnchor, constant: Layout.verticalSpacing),
             playPauseButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            playPauseButton.widthAnchor.constraint(equalToConstant: Layout.primaryButtonSize),
-            playPauseButton.heightAnchor.constraint(equalToConstant: Layout.primaryButtonSize),
+            playPauseButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            playPauseButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
             
             skipBackwardButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
             skipBackwardButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -32),
-            skipBackwardButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            skipBackwardButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            skipBackwardButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            skipBackwardButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
             
             skipForwardButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
             skipForwardButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 32),
-            skipForwardButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            skipForwardButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            skipForwardButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            skipForwardButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
             
             // Secondary controls row - spread horizontally
             // Layout: [Shuffle] [Moon] [Stop/center] [Heart] [Repeat]
             // Stop button in CENTER of secondary row
             stopButton.topAnchor.constraint(equalTo: playPauseButton.bottomAnchor, constant: Layout.verticalSpacing + 8),
             stopButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            stopButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            stopButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            stopButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            stopButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
 
             // Shuffle button (far left)
             shuffleButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
             shuffleButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
-            shuffleButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            shuffleButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            shuffleButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            shuffleButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
 
             // Sleep button (moon) - left of center
             sleepButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
             sleepButton.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -16),
-            sleepButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            sleepButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            sleepButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            sleepButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
 
             // Speed button (positioned but often hidden)
             speedButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
             speedButton.trailingAnchor.constraint(equalTo: sleepButton.leadingAnchor, constant: -8),
-            speedButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            speedButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            speedButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            speedButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
 
             // Favorite button (heart) - right of center
             favoriteButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
             favoriteButton.leadingAnchor.constraint(equalTo: stopButton.trailingAnchor, constant: 16),
-            favoriteButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            favoriteButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            favoriteButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            favoriteButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
 
             // Repeat button (far right)
             repeatButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
             repeatButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
-            repeatButton.widthAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
-            repeatButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
+            repeatButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            repeatButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
             
             // Loading indicator - centered on play button
             loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
@@ -747,11 +780,15 @@ class FullPlayerNativeView: UIView {
         
         let borderWidth: CGFloat = borderEnabled ? 2 : 0
         
-        // Close button (collapse/minimize on iPad)
+        // Close button
         closeButton.layer.borderWidth = borderWidth
         closeButton.layer.borderColor = buttonBorderColor.cgColor
         
-        // Primary button
+        // AirPlay button
+        airPlayContainer.layer.borderWidth = borderWidth
+        airPlayContainer.layer.borderColor = buttonBorderColor.cgColor
+        
+        // Play/Pause button
         playPauseButton.layer.borderWidth = borderWidth
         playPauseButton.layer.borderColor = buttonBorderColor.cgColor
         

@@ -26,6 +26,10 @@ class GlassPlayerWindowModule: RCTEventEmitter {
     // Singleton window instance (iOS 26+ only)
     private var playerWindow: Any?
     
+    // Stored button style settings — applied after window creation
+    private var storedBorderEnabled: Bool = false
+    private var storedBorderColorHex: String = "#FFFFFF"
+    
     @available(iOS 26.0, *)
     private var glassWindow: GlassPlayerWindow? {
         get { playerWindow as? GlassPlayerWindow }
@@ -252,6 +256,10 @@ class GlassPlayerWindowModule: RCTEventEmitter {
     /// @param borderColorHex Hex color for button borders (e.g., "#FFFFFF")
     @objc
     func configureButtonStyle(_ borderEnabled: Bool, borderColorHex: String) {
+        // Always store settings so they survive window creation/recreation
+        storedBorderEnabled = borderEnabled
+        storedBorderColorHex = borderColorHex
+        
         if #available(iOS 26.0, *) {
             DispatchQueue.main.async {
                 self.glassWindow?.configureButtonStyle(borderEnabled: borderEnabled, borderColorHex: borderColorHex)
@@ -276,6 +284,9 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         let window = GlassPlayerWindow(windowScene: scene)
         window.eventDelegate = self
         glassWindow = window
+        
+        // Re-apply stored button style settings (may have been set before window existed)
+        window.configureButtonStyle(borderEnabled: storedBorderEnabled, borderColorHex: storedBorderColorHex)
 
         NSLog("[GlassPlayer] ✅ Created GlassPlayerWindow")
     }
