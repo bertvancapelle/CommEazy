@@ -93,6 +93,7 @@ class FullPlayerNativeView: UIView {
     // AirPlay route detection (disabled state when no external devices)
     private let airPlayRouteDetector = AVRouteDetector()
     private var airPlayRouteObservation: NSKeyValueObservation?
+    private var isAirPlayActive: Bool = false
     
     // Loading indicator (overlay on play button)
     private let loadingIndicator = UIActivityIndicatorView(style: .medium)
@@ -151,6 +152,7 @@ class FullPlayerNativeView: UIView {
     deinit {
         airPlayRouteObservation?.invalidate()
         airPlayRouteDetector.isRouteDetectionEnabled = false
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - UI Setup
@@ -213,6 +215,16 @@ class FullPlayerNativeView: UIView {
                 self?.updateAirPlayAvailability(detector.multipleRoutesDetected)
             }
         }
+        
+        // Listen for audio route changes to detect AirPlay active state
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioRouteChange),
+            name: AVAudioSession.routeChangeNotification,
+            object: nil
+        )
+        // Check initial AirPlay state
+        updateAirPlayActiveState()
     }
     
     /// Update AirPlay button appearance based on route availability
@@ -230,6 +242,47 @@ class FullPlayerNativeView: UIView {
             airPlayContainer.accessibilityLabel = "AirPlay niet beschikbaar"
             airPlayContainer.accessibilityTraits.insert(.notEnabled)
         }
+    }
+    
+    // MARK: - AirPlay Active State Detection
+    
+    @objc private func handleAudioRouteChange(_ notification: Notification) {
+        updateAirPlayActiveState()
+    }
+    
+    private func updateAirPlayActiveState() {
+        let session = AVAudioSession.sharedInstance()
+        let airPlayActive = session.currentRoute.outputs.contains { output in
+            output.portType == .airPlay
+        }
+        
+        guard airPlayActive != isAirPlayActive else { return }
+        isAirPlayActive = airPlayActive
+        
+        if airPlayActive {
+            startAirPlayPulseAnimation()
+            airPlayContainer.accessibilityLabel = "AirPlay actief"
+        } else {
+            stopAirPlayPulseAnimation()
+            airPlayContainer.accessibilityLabel = "AirPlay"
+        }
+    }
+    
+    private func startAirPlayPulseAnimation() {
+        // Subtle opacity pulse: 1.0 → 0.5 → 1.0, repeating
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.fromValue = 1.0
+        pulse.toValue = 0.5
+        pulse.duration = 1.5
+        pulse.autoreverses = true
+        pulse.repeatCount = .infinity
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        airPlayContainer.layer.add(pulse, forKey: "airPlayPulse")
+    }
+    
+    private func stopAirPlayPulseAnimation() {
+        airPlayContainer.layer.removeAnimation(forKey: "airPlayPulse")
+        airPlayContainer.layer.opacity = 1.0
     }
     
     private func setupArtwork() {
@@ -451,8 +504,8 @@ class FullPlayerNativeView: UIView {
             airPlayRoutePicker.widthAnchor.constraint(equalToConstant: 44),
             airPlayRoutePicker.heightAnchor.constraint(equalToConstant: 44),
             
-            // Artwork - closer to close button for compact layout
-            artworkImageView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: Layout.verticalSpacing),
+            // Artwork - 24pt below close/AirPlay buttons to avoid overlap with button borders
+            artworkImageView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 24),
             artworkImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             artworkImageView.widthAnchor.constraint(equalToConstant: Layout.artworkSize),
             artworkImageView.heightAnchor.constraint(equalToConstant: Layout.artworkSize),
