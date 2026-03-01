@@ -392,13 +392,17 @@ class GlassPlayerWindow: UIWindow {
 
         // Reset sleep timer state when hiding player
         fullPlayerView.resetSleepTimer()
+        
+        // Set state to hidden IMMEDIATELY (before animation) to prevent race conditions.
+        // If showMini() is called during the fade-out animation, the guard
+        // `currentState == .hidden` must pass so the window can be re-shown.
+        currentState = .hidden
+        isMinimized = false
 
         UIView.animate(withDuration: 0.25) {
             self.alpha = 0
         } completion: { _ in
             self.isHidden = true
-            self.currentState = .hidden
-            self.isMinimized = false
         }
     }
     

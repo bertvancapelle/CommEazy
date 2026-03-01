@@ -311,8 +311,8 @@ class FullPlayerNativeView: UIView {
         skipForwardButton.isHidden = true
         contentView.addSubview(skipForwardButton)
         
-        // Stop button
-        stopButton.setImage(UIImage(systemName: "stop.fill", withConfiguration: secondaryConfig), for: .normal)
+        // Stop button — uses primaryConfig (32pt) because stop is a primary action
+        stopButton.setImage(UIImage(systemName: "stop.fill", withConfiguration: primaryConfig), for: .normal)
         stopButton.tintColor = .white
         stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         stopButton.layer.cornerRadius = Layout.buttonCornerRadius

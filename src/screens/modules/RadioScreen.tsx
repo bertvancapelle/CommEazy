@@ -286,7 +286,6 @@ export function RadioScreen() {
     updateContent: updateGlassContent,
     updatePlaybackState: updateGlassPlaybackState,
     configureControls: configureGlassControls,
-    showFromMinimized: showGlassFromMinimized,
   } = useGlassPlayer({
     onPlayPause: async () => {
       if (isPlaying) {
@@ -752,7 +751,19 @@ export function RadioScreen() {
     // If this station is already playing, just restore the mini player (don't restart)
     if (contextStation && contextStation.id === stationId && isPlaying) {
       console.log('[RadioScreen] Station already playing, restoring mini player');
-      await showGlassFromMinimized();
+      // Use showGlassMiniPlayer (not showFromMinimized) because the player was hide()-ed
+      // during module switch, not minimized. showFromMinimized guards on isMinimized which
+      // is false after hide().
+      await showGlassMiniPlayer({
+        moduleId: 'radio',
+        tintColorHex: radioModuleColor,
+        artwork: metadata.artwork || contextStation.favicon || null,
+        title: contextStation.name,
+        subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
+        progressType: 'duration',
+        listenDuration: positionRef.current,
+        showStopButton: true,
+      });
       triggerFeedback('success');
       return;
     }
@@ -763,7 +774,7 @@ export function RadioScreen() {
 
     // Success feedback
     triggerFeedback('success');
-  }, [holdGesture, playStation, toContextStation, triggerFeedback, contextStation, isPlaying, showGlassFromMinimized]);
+  }, [holdGesture, playStation, toContextStation, triggerFeedback, contextStation, isPlaying, showGlassMiniPlayer, radioModuleColor, metadata.artwork, metadata.title, isBuffering, t]);
 
   // Favorites management
   const isFavorite = useCallback((station: RadioStation | FavoriteStation) => {
