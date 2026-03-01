@@ -48,6 +48,7 @@ import { LiquidGlassView } from './LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
@@ -259,6 +260,15 @@ export function ExpandedAudioPlayer({
   const liquidGlassContext = useLiquidGlassContextSafe();
   const useLiquidGlass = liquidGlassContext?.isEnabled && moduleId;
 
+  // Button border styling from user preferences
+  const buttonStyleContext = useButtonStyleSafe();
+  const buttonBorderStyle = buttonStyleContext?.settings.borderEnabled
+    ? {
+        borderWidth: 2,
+        borderColor: buttonStyleContext.getBorderColorHex(),
+      }
+    : undefined;
+
   // Pulse animation for artwork when playing
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -467,7 +477,7 @@ export function ExpandedAudioPlayer({
             {/* Speed control */}
             {controls.speedControl && onSpeedPress && (
               <TouchableOpacity
-                style={styles.secondaryButton}
+                style={[styles.secondaryButton, buttonBorderStyle]}
                 onPress={handleSpeedPress}
                 accessibilityRole="button"
                 accessibilityLabel={t('audio.playbackSpeed', { rate: `${playbackRate}x` })}
@@ -517,7 +527,7 @@ export function ExpandedAudioPlayer({
               </LiquidGlassView>
             ) : (
               <TouchableOpacity
-                style={[styles.mainPlayButton, { backgroundColor: accentColor }]}
+                style={[styles.mainPlayButton, { backgroundColor: accentColor }, buttonBorderStyle]}
                 onPress={handlePlayPause}
                 disabled={isLoading}
                 accessibilityRole="button"
@@ -551,7 +561,7 @@ export function ExpandedAudioPlayer({
             {/* Sleep timer */}
             {controls.sleepTimer && onSleepTimerPress && (
               <TouchableOpacity
-                style={styles.secondaryButton}
+                style={[styles.secondaryButton, buttonBorderStyle]}
                 onPress={handleSleepTimerPress}
                 accessibilityRole="button"
                 accessibilityLabel={
@@ -575,7 +585,7 @@ export function ExpandedAudioPlayer({
               {/* Shuffle button (for music) */}
               {controls.shuffle && onShufflePress && (
                 <TouchableOpacity
-                  style={styles.iconButton}
+                  style={[styles.iconButton, buttonBorderStyle]}
                   onPress={handleShufflePress}
                   accessibilityRole="button"
                   accessibilityLabel={
@@ -596,7 +606,7 @@ export function ExpandedAudioPlayer({
               {/* Favorite button */}
               {controls.favorite && onFavoritePress && (
                 <TouchableOpacity
-                  style={styles.iconButton}
+                  style={[styles.iconButton, buttonBorderStyle]}
                   onPress={handleFavoritePress}
                   accessibilityRole="button"
                   accessibilityLabel={
@@ -617,7 +627,7 @@ export function ExpandedAudioPlayer({
               {/* Add to Library button (for Apple Music) */}
               {controls.addToLibrary && onAddToLibraryPress && (
                 <TouchableOpacity
-                  style={styles.iconButton}
+                  style={[styles.iconButton, buttonBorderStyle]}
                   onPress={handleAddToLibraryPress}
                   disabled={isInLibrary || isAddingToLibrary}
                   accessibilityRole="button"
@@ -643,7 +653,7 @@ export function ExpandedAudioPlayer({
               {/* Queue button (for Apple Music) */}
               {controls.queue && onQueuePress && (
                 <TouchableOpacity
-                  style={styles.iconButton}
+                  style={[styles.iconButton, buttonBorderStyle]}
                   onPress={handleQueuePress}
                   accessibilityRole="button"
                   accessibilityLabel={t('modules.appleMusic.queue.title')}
@@ -664,7 +674,7 @@ export function ExpandedAudioPlayer({
               {/* Repeat button (for music) */}
               {controls.repeat && onRepeatPress && (
                 <TouchableOpacity
-                  style={styles.iconButton}
+                  style={[styles.iconButton, buttonBorderStyle]}
                   onPress={handleRepeatPress}
                   accessibilityRole="button"
                   accessibilityLabel={
@@ -694,7 +704,7 @@ export function ExpandedAudioPlayer({
           {/* Close/minimize button */}
           <View style={styles.closeContainer}>
             <TouchableOpacity
-              style={styles.minimizeButton}
+              style={[styles.minimizeButton, buttonBorderStyle]}
               onPress={handleClose}
               accessibilityRole="button"
               accessibilityLabel={t('audio.collapsePlayer')}
@@ -853,12 +863,12 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   secondaryButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   secondaryButtonText: {
     ...typography.small,
@@ -880,7 +890,7 @@ const styles = StyleSheet.create({
   mainPlayButton: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
     ...Platform.select({
@@ -898,7 +908,7 @@ const styles = StyleSheet.create({
   mainPlayButtonGlass: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: borderRadius.md,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
@@ -929,6 +939,8 @@ const styles = StyleSheet.create({
     height: touchTargets.minimum,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: borderRadius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   bufferingText: {
     ...typography.small,

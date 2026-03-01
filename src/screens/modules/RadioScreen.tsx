@@ -382,12 +382,17 @@ export function RadioScreen() {
   }, [contextStation, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
   // Hide Glass Player when navigating away from this screen
+  // Reset expanded player state when returning — ensures MiniPlayer reappears
   useEffect(() => {
     if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
       // User navigated to another module — hide the mini player
       hideGlassPlayer();
     }
-  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+    if (isFocused && isPlayerExpanded) {
+      // User returned to RadioScreen — collapse expanded player so MiniPlayer shows
+      setIsPlayerExpanded(false);
+    }
+  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer, isPlayerExpanded]);
 
   // Show/update Glass Player when station is playing (iOS 26+)
   // Only show when this screen is focused

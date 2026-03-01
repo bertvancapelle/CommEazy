@@ -40,6 +40,7 @@ import { Icon } from './Icon';
 import { LiquidGlassView } from './LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
@@ -135,6 +136,15 @@ export function MiniPlayer({
   const liquidGlassContext = useLiquidGlassContextSafe();
   const useLiquidGlass = liquidGlassContext?.isEnabled && moduleId;
 
+  // Button border styling from user preferences
+  const buttonStyleContext = useButtonStyleSafe();
+  const buttonBorderStyle = buttonStyleContext?.settings.borderEnabled
+    ? {
+        borderWidth: 2,
+        borderColor: buttonStyleContext.getBorderColorHex(),
+      }
+    : undefined;
+
   // Debug logging
   console.debug(`[MiniPlayer] moduleId=${moduleId}, contextExists=${!!liquidGlassContext}, isEnabled=${liquidGlassContext?.isEnabled}, useLiquidGlass=${useLiquidGlass}`);
 
@@ -205,7 +215,7 @@ export function MiniPlayer({
       <View style={styles.controls}>
         {/* Play/Pause button */}
         <TouchableOpacity
-          style={styles.playButton}
+          style={[styles.playButton, buttonBorderStyle]}
           onPress={handlePlayPause}
           disabled={isLoading}
           accessibilityRole="button"
@@ -225,7 +235,7 @@ export function MiniPlayer({
         {/* Optional Stop button (for live streams) */}
         {showStopButton && onStop && (
           <TouchableOpacity
-            style={[styles.playButton, styles.stopButton]}
+            style={[styles.playButton, styles.stopButton, buttonBorderStyle]}
             onPress={handleStop}
             accessibilityRole="button"
             accessibilityLabel={t('audio.stop')}
@@ -355,8 +365,8 @@ const styles = StyleSheet.create({
     height: touchTargets.minimum,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: touchTargets.minimum / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: borderRadius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   stopButton: {
     // Stop button uses same style as play button
