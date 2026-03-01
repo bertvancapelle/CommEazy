@@ -384,23 +384,29 @@ export function RadioScreen() {
     }
   }, [contextStation, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
-  // Hide Glass Player when navigating away from this screen
-  // Reset expanded player state when returning — ensures MiniPlayer reappears
+  // Hide Glass Player when this screen unmounts (module switch).
+  // RadioScreen is rendered directly by PanelNavigator — it gets fully unmounted
+  // when the user switches to another module. useIsFocused() does NOT work here
+  // because RadioScreen is not inside a React Navigation navigator.
+  const hideGlassPlayerRef = useRef(hideGlassPlayer);
+  hideGlassPlayerRef.current = hideGlassPlayer;
+  const isGlassPlayerAvailableRef = useRef(isGlassPlayerAvailable);
+  isGlassPlayerAvailableRef.current = isGlassPlayerAvailable;
+
   useEffect(() => {
-    if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
-      // User navigated to another module — hide the mini player
-      hideGlassPlayer();
-    }
-    if (isFocused && isPlayerExpanded) {
-      // User returned to RadioScreen — collapse expanded player so MiniPlayer shows
-      setIsPlayerExpanded(false);
-    }
-  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer, isPlayerExpanded]);
+    return () => {
+      // Component unmounting — hide the glass player
+      if (isGlassPlayerAvailableRef.current) {
+        hideGlassPlayerRef.current();
+      }
+    };
+  }, []);
 
   // Show/update Glass Player when station is playing (iOS 26+)
-  // Only show when this screen is focused
+  // This component is only mounted when RadioScreen is the active module,
+  // so no isFocused guard is needed (PanelNavigator handles mount/unmount).
   useEffect(() => {
-    if (!isGlassPlayerAvailable || !contextStation || !isFocused) {
+    if (!isGlassPlayerAvailable || !contextStation) {
       return;
     }
 
@@ -435,7 +441,6 @@ export function RadioScreen() {
     showGlassMiniPlayer,
     configureGlassControls,
     isBuffering,
-    isFocused,
     radioModuleColor,
     t,
   ]);

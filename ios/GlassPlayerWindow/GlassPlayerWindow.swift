@@ -235,8 +235,9 @@ class GlassPlayerWindow: UIWindow {
     // ============================================================
 
     func showMini(with config: NSDictionary) {
-        // Check if content changed (new song)
         let newContent = PlayerContent(from: config)
+        
+        // Check if content changed (new song)
         let contentChanged = newContent.title != lastShownTitle
         lastShownTitle = newContent.title
         
