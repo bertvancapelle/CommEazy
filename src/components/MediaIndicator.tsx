@@ -283,7 +283,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
     }
 
     AccessibilityInfo.announceForAccessibility(
-      t('media.navigatingTo', { module: t(`modules.${activeMedia.source}.title`) })
+      t('mediaIndicator.navigatingTo', { module: t(`modules.${activeMedia.source}.title`) })
     );
   }, [activeMedia, triggerFeedback, t, paneCtx, panelId, currentSource]);
 
@@ -315,7 +315,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
               borderColor: contrastColors.border,
             },
           ]}
-          accessibilityLabel={t('media.sleepTimerActive')}
+          accessibilityLabel={t('mediaIndicator.sleepTimerActive')}
         >
           <Text style={styles.moonIcon}>🌙</Text>
         </View>
@@ -332,10 +332,10 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
         onPress={handlePress}
         activeOpacity={0.8}
         accessibilityRole="button"
-        accessibilityLabel={t('media.activeIndicatorLabel', {
-          type: isVideo ? t('media.video') : t('media.audio'),
+        accessibilityLabel={t('mediaIndicator.activeIndicatorLabel', {
+          type: isVideo ? t('mediaIndicator.video') : t('mediaIndicator.audio'),
         })}
-        accessibilityHint={t('media.activeIndicatorHint')}
+        accessibilityHint={t('mediaIndicator.activeIndicatorHint')}
       >
         {/* Animated waveform bars */}
         <View style={styles.waveContainer}>

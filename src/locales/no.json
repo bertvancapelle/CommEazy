@@ -98,7 +98,7 @@
     "photoSent": "Bilde sendt",
     "sendPhotoFailed": "Kunne ikke sende bilde. Prøv igjen."
   },
-  "media": {
+  "chatMedia": {
     "photo": "Bilde",
     "video": "Video",
     "sendPhoto": "Send bilde",
@@ -1678,7 +1678,7 @@
     "qrPlaceholder": "QR-kode vises her",
     "qrGenerationFailed": "QR-kodegenerering mislyktes. Prøv igjen."
   },
-  "media": {
+  "mediaIndicator": {
     "activeMediaLabel": "{{type}} spiller: {{title}}",
     "activeMediaHint": "Trykk for å gå til mediespilleren",
     "navigatingTo": "Navigerer til {{module}}",

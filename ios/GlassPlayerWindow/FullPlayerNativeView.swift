@@ -182,6 +182,7 @@ class FullPlayerNativeView: UIView {
         closeButton.tintColor = .white
         closeButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         closeButton.layer.cornerRadius = Layout.buttonCornerRadius
+        closeButton.clipsToBounds = true
         closeButton.addTarget(self, action: #selector(handleClose), for: .touchUpInside)
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityLabel = "Sluiten"
@@ -390,6 +391,7 @@ class FullPlayerNativeView: UIView {
         skipBackwardButton.tintColor = .white
         skipBackwardButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         skipBackwardButton.layer.cornerRadius = Layout.buttonCornerRadius
+        skipBackwardButton.clipsToBounds = true
         skipBackwardButton.addTarget(self, action: #selector(handleSkipBackward), for: .touchUpInside)
         skipBackwardButton.translatesAutoresizingMaskIntoConstraints = false
         skipBackwardButton.accessibilityLabel = "10 seconden terug"
@@ -401,6 +403,7 @@ class FullPlayerNativeView: UIView {
         playPauseButton.tintColor = .white
         playPauseButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)  // Subtle, consistent with other buttons
         playPauseButton.layer.cornerRadius = Layout.buttonCornerRadius
+        playPauseButton.clipsToBounds = true
         playPauseButton.addTarget(self, action: #selector(handlePlayPause), for: .touchUpInside)
         playPauseButton.translatesAutoresizingMaskIntoConstraints = false
         playPauseButton.accessibilityLabel = "Afspelen"
@@ -411,6 +414,7 @@ class FullPlayerNativeView: UIView {
         skipForwardButton.tintColor = .white
         skipForwardButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         skipForwardButton.layer.cornerRadius = Layout.buttonCornerRadius
+        skipForwardButton.clipsToBounds = true
         skipForwardButton.addTarget(self, action: #selector(handleSkipForward), for: .touchUpInside)
         skipForwardButton.translatesAutoresizingMaskIntoConstraints = false
         skipForwardButton.accessibilityLabel = "30 seconden vooruit"
@@ -423,6 +427,7 @@ class FullPlayerNativeView: UIView {
         stopButton.tintColor = .white
         stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         stopButton.layer.cornerRadius = Layout.buttonCornerRadius
+        stopButton.clipsToBounds = true
         stopButton.addTarget(self, action: #selector(handleStop), for: .touchUpInside)
         stopButton.translatesAutoresizingMaskIntoConstraints = false
         stopButton.accessibilityLabel = "Stoppen"
@@ -437,6 +442,7 @@ class FullPlayerNativeView: UIView {
         shuffleButton.tintColor = .white
         shuffleButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         shuffleButton.layer.cornerRadius = Layout.buttonCornerRadius
+        shuffleButton.clipsToBounds = true
         shuffleButton.addTarget(self, action: #selector(handleShuffleTap), for: .touchUpInside)
         shuffleButton.translatesAutoresizingMaskIntoConstraints = false
         shuffleButton.accessibilityLabel = "Willekeurig uit"
@@ -449,6 +455,7 @@ class FullPlayerNativeView: UIView {
         speedButton.setTitleColor(.white, for: .normal)
         speedButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         speedButton.layer.cornerRadius = Layout.buttonCornerRadius
+        speedButton.clipsToBounds = true
         speedButton.addTarget(self, action: #selector(handleSpeedTap), for: .touchUpInside)
         speedButton.translatesAutoresizingMaskIntoConstraints = false
         speedButton.accessibilityLabel = "Afspeelsnelheid"
@@ -460,6 +467,7 @@ class FullPlayerNativeView: UIView {
         sleepButton.tintColor = .white
         sleepButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         sleepButton.layer.cornerRadius = Layout.buttonCornerRadius
+        sleepButton.clipsToBounds = true
         sleepButton.addTarget(self, action: #selector(handleSleepTap), for: .touchUpInside)
         sleepButton.translatesAutoresizingMaskIntoConstraints = false
         sleepButton.accessibilityLabel = "Slaaptimer uit"
@@ -470,6 +478,7 @@ class FullPlayerNativeView: UIView {
         favoriteButton.tintColor = .white
         favoriteButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         favoriteButton.layer.cornerRadius = Layout.buttonCornerRadius
+        favoriteButton.clipsToBounds = true
         favoriteButton.addTarget(self, action: #selector(handleFavoriteTap), for: .touchUpInside)
         favoriteButton.translatesAutoresizingMaskIntoConstraints = false
         favoriteButton.accessibilityLabel = "Favoriet"
@@ -480,6 +489,7 @@ class FullPlayerNativeView: UIView {
         repeatButton.tintColor = .white
         repeatButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         repeatButton.layer.cornerRadius = Layout.buttonCornerRadius
+        repeatButton.clipsToBounds = true
         repeatButton.addTarget(self, action: #selector(handleRepeatTap), for: .touchUpInside)
         repeatButton.translatesAutoresizingMaskIntoConstraints = false
         repeatButton.accessibilityLabel = "Herhalen uit"

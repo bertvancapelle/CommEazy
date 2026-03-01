@@ -83,7 +83,7 @@
     "photoSent": "Foto verstuurd",
     "sendPhotoFailed": "Kon foto niet versturen. Probeer het opnieuw."
   },
-  "media": {
+  "chatMedia": {
     "photo": "Foto",
     "video": "Video",
     "sendPhoto": "Foto versturen",
@@ -1799,7 +1799,7 @@
     "qrPlaceholder": "QR-code verschijnt hier",
     "qrGenerationFailed": "QR-code genereren mislukt. Probeer opnieuw."
   },
-  "media": {
+  "mediaIndicator": {
     "activeMediaLabel": "{{type}} speelt: {{title}}",
     "activeMediaHint": "Tik om naar de mediaspeler te gaan",
     "navigatingTo": "Navigeren naar {{module}}",

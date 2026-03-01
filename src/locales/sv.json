@@ -154,7 +154,7 @@
     "photoSent": "Foto skickat",
     "sendPhotoFailed": "Kunde inte skicka foto. Försök igen."
   },
-  "media": {
+  "chatMedia": {
     "photo": "Foto",
     "video": "Video",
     "sendPhoto": "Skicka foto",
@@ -1633,7 +1633,7 @@
     "qrPlaceholder": "QR-kod visas här",
     "qrGenerationFailed": "QR-kodgenerering misslyckades. Försök igen."
   },
-  "media": {
+  "mediaIndicator": {
     "activeMediaLabel": "{{type}} spelar: {{title}}",
     "activeMediaHint": "Tryck för att gå till mediaspelaren",
     "navigatingTo": "Navigerar till {{module}}",

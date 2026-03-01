@@ -98,7 +98,7 @@
     "photoSent": "Zdjęcie wysłane",
     "sendPhotoFailed": "Nie udało się wysłać zdjęcia. Spróbuj ponownie."
   },
-  "media": {
+  "chatMedia": {
     "photo": "Zdjęcie",
     "video": "Wideo",
     "sendPhoto": "Wyślij zdjęcie",
@@ -1669,7 +1669,7 @@
     "qrPlaceholder": "Kod QR pojawi się tutaj",
     "qrGenerationFailed": "Generowanie kodu QR nieudane. Spróbuj ponownie."
   },
-  "media": {
+  "mediaIndicator": {
     "activeMediaLabel": "{{type}} gra: {{title}}",
     "activeMediaHint": "Dotknij, aby przejść do odtwarzacza",
     "navigatingTo": "Nawigacja do {{module}}",

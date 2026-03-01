@@ -91,7 +91,7 @@
     "photoSent": "Photo sent",
     "sendPhotoFailed": "Could not send photo. Please try again."
   },
-  "media": {
+  "chatMedia": {
     "photo": "Photo",
     "video": "Video",
     "sendPhoto": "Send photo",
@@ -1810,7 +1810,7 @@
     "qrPlaceholder": "QR code will appear here",
     "qrGenerationFailed": "Failed to generate QR code. Please try again."
   },
-  "media": {
+  "mediaIndicator": {
     "activeMediaLabel": "{{type}} playing: {{title}}",
     "activeMediaHint": "Tap to go to the media player",
     "navigatingTo": "Navigating to {{module}}",

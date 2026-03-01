@@ -98,7 +98,7 @@
     "photoSent": "Foto enviada",
     "sendPhotoFailed": "Não foi possível enviar a foto. Por favor, tente novamente."
   },
-  "media": {
+  "chatMedia": {
     "photo": "Foto",
     "video": "Vídeo",
     "sendPhoto": "Enviar foto",
@@ -1821,7 +1821,7 @@
     "qrPlaceholder": "Codigo QR aparece aqui",
     "qrGenerationFailed": "Falha ao gerar codigo QR. Tente novamente."
   },
-  "media": {
+  "mediaIndicator": {
     "activeMediaLabel": "{{type}} a tocar: {{title}}",
     "activeMediaHint": "Toque para ir ao leitor multimédia",
     "navigatingTo": "A navegar para {{module}}",

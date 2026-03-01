@@ -98,7 +98,7 @@
     "photoSent": "Foto inviata",
     "sendPhotoFailed": "Impossibile inviare la foto. Riprova."
   },
-  "media": {
+  "chatMedia": {
     "photo": "Foto",
     "video": "Video",
     "sendPhoto": "Invia foto",
@@ -1752,7 +1752,7 @@
     "qrPlaceholder": "Il codice QR apparirà qui",
     "qrGenerationFailed": "Generazione codice QR fallita. Riprova."
   },
-  "media": {
+  "mediaIndicator": {
     "activeMediaLabel": "{{type}} in riproduzione: {{title}}",
     "activeMediaHint": "Tocca per andare al player",
     "navigatingTo": "Navigando verso {{module}}",
