@@ -90,6 +90,10 @@ class FullPlayerNativeView: UIView {
     private let airPlayContainer = UIView()
     private let airPlayRoutePicker = AVRoutePickerView()
     
+    // AirPlay route detection (disabled state when no external devices)
+    private let airPlayRouteDetector = AVRouteDetector()
+    private var airPlayRouteObservation: NSKeyValueObservation?
+    
     // Loading indicator (overlay on play button)
     private let loadingIndicator = UIActivityIndicatorView(style: .medium)
     
@@ -144,6 +148,11 @@ class FullPlayerNativeView: UIView {
         setupUI()
     }
     
+    deinit {
+        airPlayRouteObservation?.invalidate()
+        airPlayRouteDetector.isRouteDetectionEnabled = false
+    }
+    
     // MARK: - UI Setup
     
     private func setupUI() {
@@ -193,6 +202,34 @@ class FullPlayerNativeView: UIView {
         airPlayContainer.addSubview(airPlayRoutePicker)
         
         airPlayContainer.accessibilityLabel = "AirPlay"
+        
+        // Route detection: disable button when no external AirPlay devices available
+        airPlayRouteDetector.isRouteDetectionEnabled = true
+        airPlayRouteObservation = airPlayRouteDetector.observe(
+            \.multipleRoutesDetected,
+            options: [.new, .initial]
+        ) { [weak self] detector, _ in
+            DispatchQueue.main.async {
+                self?.updateAirPlayAvailability(detector.multipleRoutesDetected)
+            }
+        }
+    }
+    
+    /// Update AirPlay button appearance based on route availability
+    private func updateAirPlayAvailability(_ routesAvailable: Bool) {
+        if routesAvailable {
+            // External AirPlay devices available — enable button
+            airPlayContainer.alpha = 1.0
+            airPlayContainer.isUserInteractionEnabled = true
+            airPlayContainer.accessibilityLabel = "AirPlay"
+            airPlayContainer.accessibilityTraits.remove(.notEnabled)
+        } else {
+            // No external devices — disable (greyed out, not tappable)
+            airPlayContainer.alpha = 0.35
+            airPlayContainer.isUserInteractionEnabled = false
+            airPlayContainer.accessibilityLabel = "AirPlay niet beschikbaar"
+            airPlayContainer.accessibilityTraits.insert(.notEnabled)
+        }
     }
     
     private func setupArtwork() {
@@ -311,8 +348,9 @@ class FullPlayerNativeView: UIView {
         skipForwardButton.isHidden = true
         contentView.addSubview(skipForwardButton)
         
-        // Stop button — uses primaryConfig (32pt) because stop is a primary action
-        stopButton.setImage(UIImage(systemName: "stop.fill", withConfiguration: primaryConfig), for: .normal)
+        // Stop button — uses 22pt icon to match other bottom-row buttons (sleep, favorite)
+        let stopIconConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        stopButton.setImage(UIImage(systemName: "stop.fill", withConfiguration: stopIconConfig), for: .normal)
         stopButton.tintColor = .white
         stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         stopButton.layer.cornerRadius = Layout.buttonCornerRadius

@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { touchTargets, borderRadius } from '@/theme';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
+import { useAirPlayContextSafe } from '@/contexts/AirPlayContext';
 
 // ============================================================
 // Types
@@ -63,6 +64,11 @@ export function AirPlayButton({
     return null;
   }
 
+  // AirPlay route availability
+  const airPlayContext = useAirPlayContextSafe();
+  const routesAvailable = airPlayContext?.routesAvailable ?? false;
+  const isDisabled = !routesAvailable;
+
   // Button border styling from user preferences
   const buttonStyleContext = useButtonStyleSafe();
   const buttonBorderStyle = buttonStyleContext?.settings.borderEnabled
@@ -74,12 +80,18 @@ export function AirPlayButton({
 
   return (
     <View
-      style={[styles.container, buttonBorderStyle]}
+      style={[
+        styles.container,
+        buttonBorderStyle,
+        isDisabled && styles.disabled,
+      ]}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={isDisabled ? 'AirPlay niet beschikbaar' : accessibilityLabel}
+      accessibilityState={{ disabled: isDisabled }}
+      pointerEvents={isDisabled ? 'none' : 'auto'}
     >
       <AirPlayRoutePickerNative
-        tintColorHex={tintColor}
+        tintColorHex={isDisabled ? '#666666' : tintColor}
         activeTintColorHex={activeTintColor}
         buttonSize={touchTargets.minimum}
         style={styles.nativePicker}
@@ -101,6 +113,9 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     overflow: 'hidden',
+  },
+  disabled: {
+    opacity: 0.35,
   },
   nativePicker: {
     width: touchTargets.minimum,
