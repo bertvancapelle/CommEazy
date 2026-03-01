@@ -279,19 +279,33 @@ class GlassPlayerWindow: UIWindow {
 
 
 
+        // Ensure full player is hidden and mini player is visible
+        fullPlayerView.isHidden = true
+        fullPlayerView.alpha = 0
+        miniPlayerView.isHidden = false
+        miniPlayerView.alpha = 1
+        
         // Layout views
         layoutViewsForMini()
 
-        // Make window visible FIRST, then animate alpha
+        // Cancel any in-progress hide animation before making visible.
+        // Without this, a concurrent hide() fade-out animation can override our alpha = 1.
+        self.layer.removeAllAnimations()
+        
+        // Make window visible
         isHidden = false
         makeKeyAndVisible()
-        alpha = 1  // Set to 1 directly (animation was skipped for debugging)
+        alpha = 1
 
         currentState = .mini
     }
 
     func expandToFull() {
         guard currentState == .mini else { return }
+        
+        // Set state IMMEDIATELY to prevent race conditions.
+        // If collapseToMini() is called during animation, it needs to see .full.
+        currentState = .full
 
         let bounds = effectiveBounds
         let topSafe = safeAreaTop
@@ -334,14 +348,16 @@ class GlassPlayerWindow: UIWindow {
                 self.frame = fullFrame
                 self.layoutViewsForFull()
                 self.fullPlayerView.alpha = 1
-            } completion: { _ in
-                self.currentState = .full
             }
         }
     }
 
     func collapseToMini() {
         guard currentState == .full else { return }
+        
+        // Set state IMMEDIATELY to prevent race conditions.
+        // If hide() or expandToFull() is called during animation, it needs to see .mini.
+        currentState = .mini
 
         let bounds = effectiveBounds
         let bottomSafe = safeAreaBottom
@@ -355,35 +371,28 @@ class GlassPlayerWindow: UIWindow {
             height: miniPlayerHeight
         )
 
-        // IMPORTANT: First fade out full player, then resize window
-        // This prevents the "shrinking full player" visual bug
+        // Cancel any in-progress expand animations to prevent visual glitches
+        self.layer.removeAllAnimations()
+        glassView.layer.removeAllAnimations()
+        miniPlayerView.layer.removeAllAnimations()
+        fullPlayerView.layer.removeAllAnimations()
         
-        // Step 1: Fade out full player quickly
+        // Immediately switch views — no animated fade for snappy response
+        fullPlayerView.isHidden = true
+        fullPlayerView.alpha = 0
+        miniPlayerView.isHidden = false
+        miniPlayerView.alpha = 1
+        
+        // Animate window collapse with mini player visible
         UIView.animate(
-            withDuration: 0.15,
+            withDuration: 0.3,
             delay: 0,
-            options: .curveEaseOut
+            usingSpringWithDamping: 0.85,
+            initialSpringVelocity: 0.5,
+            options: .curveEaseInOut
         ) {
-            self.fullPlayerView.alpha = 0
-        } completion: { _ in
-            // Step 2: Hide full player and show mini player
-            self.fullPlayerView.isHidden = true
-            self.miniPlayerView.isHidden = false
-            self.miniPlayerView.alpha = 1
-            
-            // Step 3: Animate window collapse with mini player visible
-            UIView.animate(
-                withDuration: 0.3,
-                delay: 0,
-                usingSpringWithDamping: 0.85,
-                initialSpringVelocity: 0.5,
-                options: .curveEaseInOut
-            ) {
-                self.frame = miniFrame
-                self.layoutViewsForMini()
-            } completion: { _ in
-                self.currentState = .mini
-            }
+            self.frame = miniFrame
+            self.layoutViewsForMini()
         }
     }
 
@@ -402,7 +411,13 @@ class GlassPlayerWindow: UIWindow {
         UIView.animate(withDuration: 0.25) {
             self.alpha = 0
         } completion: { _ in
-            self.isHidden = true
+            // Only hide the window if state is still .hidden.
+            // If showMini() was called during the fade-out animation,
+            // currentState will be .mini and we must NOT set isHidden = true
+            // (that would undo the showMini call).
+            if self.currentState == .hidden {
+                self.isHidden = true
+            }
         }
     }
     
