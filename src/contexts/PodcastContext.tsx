@@ -343,11 +343,11 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
       }
     );
 
-    // Listen for playback state changes
+    // Listen for playback state changes (only when podcast is the active source)
     const stateListener = TrackPlayer.addEventListener(
       Event.PlaybackState,
       (data) => {
-        console.debug('[PodcastContext] Playback state changed:', data.state);
+        if (audioOrchestrator.activeSource !== 'podcast') return;
 
         if (data.state === State.Playing) {
           setIsLoading(false);
@@ -763,9 +763,11 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   // Audio Orchestrator Registration
   // ============================================================
 
-  // Use ref to provide stable stop function for orchestrator
+  // Use refs to provide stable callbacks for orchestrator (prevents re-registration cycles)
   const stopRef = useRef(stop);
   stopRef.current = stop;
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
 
   useEffect(() => {
     // Register podcast as an audio source with the orchestrator
@@ -774,13 +776,13 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
         // Use ref to always call the latest stop function
         await stopRef.current();
       },
-      isPlaying: () => isPlaying,
+      isPlaying: () => isPlayingRef.current,
     });
 
     return () => {
       audioOrchestrator.unregisterSource('podcast');
     };
-  }, [audioOrchestrator, isPlaying]);
+  }, [audioOrchestrator]);
 
   // ============================================================
   // Context Value

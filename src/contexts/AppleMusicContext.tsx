@@ -1038,9 +1038,11 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Audio Orchestrator Registration
   // ============================================================
 
-  // Use ref to provide stable stop function for orchestrator
+  // Use refs to provide stable callbacks for orchestrator (prevents re-registration cycles)
   const stopRef = useRef(stop);
   stopRef.current = stop;
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
 
   useEffect(() => {
     // Register Apple Music as an audio source with the orchestrator
@@ -1049,25 +1051,28 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
         // Use ref to always call the latest stop function
         await stopRef.current();
       },
-      isPlaying: () => isPlaying,
+      isPlaying: () => isPlayingRef.current,
     });
 
     return () => {
       audioOrchestrator.unregisterSource('appleMusic');
     };
-  }, [audioOrchestrator, isPlaying]);
+  }, [audioOrchestrator]);
 
   // ============================================================
   // Library Preload at Startup
   // ============================================================
 
+  // Use ref to avoid preloadLibrary in effect deps (its deps change during preload → cascading re-triggers)
+  const preloadLibraryRef = useRef(preloadLibrary);
+  preloadLibraryRef.current = preloadLibrary;
+
   // Preload library when authorized (runs once after authorization)
   useEffect(() => {
     if (authStatus === 'authorized' && isIOS) {
-      console.log('[AppleMusicContext] Authorization confirmed, triggering library preload...');
-      void preloadLibrary();
+      void preloadLibraryRef.current();
     }
-  }, [authStatus, isIOS, preloadLibrary]);
+  }, [authStatus, isIOS]);
 
   // ============================================================
   // Foreground Refresh (after 30+ min in background)

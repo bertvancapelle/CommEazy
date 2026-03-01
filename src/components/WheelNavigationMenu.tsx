@@ -235,7 +235,7 @@ interface WheelNavigationMenuProps {
   activeScreen?: NavigationDestination;
 }
 
-export function WheelNavigationMenu({
+export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
   onNavigate,
   onClose,
   visible,
@@ -278,15 +278,11 @@ export function WheelNavigationMenu({
 
   // Get sorted modules based on usage — always use MODULES_PER_PAGE
   const topModules = useMemo(() => {
-    const result = getTopModules(activeScreen, MODULES_PER_PAGE);
-    console.log('[WheelNavigationMenu] topModules computed:', result, 'activeScreen:', activeScreen);
-    return result;
+    return getTopModules(activeScreen, MODULES_PER_PAGE);
   }, [activeScreen, getTopModules]);
 
   const remainingModules = useMemo(() => {
-    const result = getRemainingModules(activeScreen, MODULES_PER_PAGE);
-    console.log('[WheelNavigationMenu] remainingModules computed:', result);
-    return result;
+    return getRemainingModules(activeScreen, MODULES_PER_PAGE);
   }, [activeScreen, getRemainingModules]);
 
   // Calculate total pages (page 0 = top, page 1+ = remaining in chunks of MODULES_PER_PAGE)
@@ -302,9 +298,7 @@ export function WheelNavigationMenu({
       // Page 1+: show slice of remaining modules (4 per page)
       const startIndex = (currentPage - 1) * MODULES_PER_PAGE;
       const endIndex = startIndex + MODULES_PER_PAGE;
-      const result = remainingModules.slice(startIndex, endIndex);
-      console.log('[WheelNavigationMenu] page', currentPage, 'showing remaining[', startIndex, '-', endIndex, ']:', result);
-      return result;
+      return remainingModules.slice(startIndex, endIndex);
     }
   }, [currentPage, topModules, remainingModules]);
 
@@ -401,7 +395,6 @@ export function WheelNavigationMenu({
     });
   }, []);
 
-  console.log('[WheelNavigationMenu] render called, visible:', visible);
   if (!visible) {
     return null;
   }
@@ -563,7 +556,7 @@ export function WheelNavigationMenu({
       </Animated.View>
     </View>
   );
-}
+});
 
 // Module button component
 interface ModuleButtonProps {

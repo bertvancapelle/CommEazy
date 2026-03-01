@@ -261,6 +261,10 @@ export function RadioScreen() {
     setSleepTimerActive,
   } = useRadioContext();
 
+  // Ref for position to avoid re-triggering Glass Player effects every second
+  const positionRef = useRef(position);
+  positionRef.current = position;
+
   // Sleep timer hook - shared logic for all audio modules
   const { setSleepTimer } = useSleepTimer({
     onTimerExpired: stop,
@@ -421,7 +425,7 @@ export function RadioScreen() {
       title: contextStation.name,
       subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
       progressType: 'duration',
-      listenDuration: position,
+      listenDuration: positionRef.current,
       showStopButton: true,
     });
   }, [
@@ -454,7 +458,7 @@ export function RadioScreen() {
       isBuffering,
       isFavorite: currentIsFavorite,
       // For radio, we track listen duration, not progress
-      listenDuration: position,
+      listenDuration: positionRef.current,
     });
   }, [
     isGlassPlayerAvailable,
@@ -465,7 +469,6 @@ export function RadioScreen() {
     updateGlassPlaybackState,
     contextStation,
     favorites,
-    position,
   ]);
 
   // Update Glass Player content when metadata changes
@@ -479,7 +482,7 @@ export function RadioScreen() {
       artwork: metadata.artwork || contextStation.favicon || null,
       title: contextStation.name,
       subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
-      listenDuration: position,
+      listenDuration: positionRef.current,
       showStopButton: true,  // Single source of truth for stop button visibility
     });
   }, [
@@ -488,12 +491,29 @@ export function RadioScreen() {
     contextStation,
     metadata.artwork,
     metadata.title,
-    position,
     isBuffering,
     radioModuleColor,
     t,
     updateGlassContent,
   ]);
+
+  // Periodic Glass Player position update (every 5s instead of every 1s via deps)
+  useEffect(() => {
+    if (!isGlassPlayerAvailable || !isGlassPlayerVisible || !isPlaying) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      updateGlassPlaybackState({
+        isPlaying: true,
+        isLoading: false,
+        isBuffering: false,
+        listenDuration: positionRef.current,
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, updateGlassPlaybackState]);
 
   // Listen for playback errors from RadioContext
   useEffect(() => {

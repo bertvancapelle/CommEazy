@@ -186,8 +186,12 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 
     // Forward to SiriCallModule (runtime lookup to avoid circular dependency)
     id module = [NSClassFromString(@"CommEazyTemp.SiriCallModule") valueForKey:@"shared"];
-    if (module && [module respondsToSelector:@selector(handleUserActivity:)]) {
-      BOOL handled = [[module performSelector:@selector(handleUserActivity:) withObject:userActivity] boolValue];
+    SEL activitySelector = NSSelectorFromString(@"handleUserActivity:");
+    if (module && [module respondsToSelector:activitySelector]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+      BOOL handled = [[module performSelector:activitySelector withObject:userActivity] boolValue];
+#pragma clang diagnostic pop
       if (handled) {
         return YES;
       }
@@ -222,8 +226,12 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 
   // Forward token to VoIPPushModule for React Native (runtime lookup to avoid circular dependency)
   id module = [NSClassFromString(@"CommEazyTemp.VoIPPushModule") valueForKey:@"shared"];
-  if (module && [module respondsToSelector:@selector(didReceiveVoIPToken:)]) {
-    [module performSelector:@selector(didReceiveVoIPToken:) withObject:tokenString];
+  SEL tokenSelector = NSSelectorFromString(@"didReceiveVoIPToken:");
+  if (module && [module respondsToSelector:tokenSelector]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    [module performSelector:tokenSelector withObject:tokenString];
+#pragma clang diagnostic pop
   }
 }
 
@@ -263,8 +271,12 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 
   // Forward to VoIPPushModule for React Native event (runtime lookup)
   id module = [NSClassFromString(@"CommEazyTemp.VoIPPushModule") valueForKey:@"shared"];
-  if (module && [module respondsToSelector:@selector(didReceiveVoIPPush:)]) {
-    [module performSelector:@selector(didReceiveVoIPPush:) withObject:payload.dictionaryPayload];
+  SEL pushSelector = NSSelectorFromString(@"didReceiveVoIPPush:");
+  if (module && [module respondsToSelector:pushSelector]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    [module performSelector:pushSelector withObject:payload.dictionaryPayload];
+#pragma clang diagnostic pop
   }
 
   completion();

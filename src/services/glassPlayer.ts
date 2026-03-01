@@ -143,6 +143,8 @@ class GlassPlayerService {
   private eventEmitter: NativeEventEmitter | null = null;
   private isAvailableCache: boolean | null = null;
   private listeners: Map<string, Set<(...args: any[]) => void>> = new Map();
+  private lastContentJSON: string = '';
+  private lastPlaybackStateJSON: string = '';
 
   constructor() {
     if (Platform.OS === 'ios') {
@@ -191,9 +193,7 @@ class GlassPlayerService {
     }
 
     try {
-      const result = await this.nativeModule.showMiniPlayer(content);
-      console.debug('[GlassPlayer] showMiniPlayer result:', result);
-      return result;
+      return await this.nativeModule.showMiniPlayer(content);
     } catch (error) {
       console.error('[GlassPlayer] Error showing mini player:', error);
       return false;
@@ -309,23 +309,35 @@ class GlassPlayerService {
 
   /**
    * Update player content (artwork, title, progress, etc.)
+   * Deduplicates calls by comparing with previous state.
    */
   updateContent(content: Partial<GlassPlayerContent>): void {
     if (!this.nativeModule) {
       return;
     }
 
+    const json = JSON.stringify(content);
+    if (json === this.lastContentJSON) {
+      return;
+    }
+    this.lastContentJSON = json;
     this.nativeModule.updateContent(content);
   }
 
   /**
    * Update playback state (isPlaying, progress, etc.)
+   * Deduplicates calls by comparing with previous state.
    */
   updatePlaybackState(state: GlassPlayerPlaybackState): void {
     if (!this.nativeModule) {
       return;
     }
 
+    const json = JSON.stringify(state);
+    if (json === this.lastPlaybackStateJSON) {
+      return;
+    }
+    this.lastPlaybackStateJSON = json;
     this.nativeModule.updatePlaybackState(state);
   }
 
@@ -337,7 +349,6 @@ class GlassPlayerService {
       return;
     }
 
-    console.debug('[GlassPlayer] configureControls:', controls);
     this.nativeModule.configureControls(controls);
   }
 

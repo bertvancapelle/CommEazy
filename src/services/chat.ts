@@ -923,9 +923,12 @@ export class ChatService {
     const wasOnline = previousShow !== undefined && previousShow !== 'offline';
     const isNowOnline = show !== 'offline';
 
-    this.presenceMap.set(bareJid, show);
+    // Skip no-change transitions (reduces log noise from periodic XMPP pings)
+    if (previousShow === show) {
+      return;
+    }
 
-    console.log(`[ChatService] Presence: ${bareJid} | prev=${previousShow ?? 'undefined'} wasOnline=${wasOnline} | now=${show} isNowOnline=${isNowOnline}`);
+    this.presenceMap.set(bareJid, show);
 
     // Notify presence listeners for UI updates
     this.presenceListeners.forEach(listener => listener(bareJid, show));
@@ -938,11 +941,7 @@ export class ChatService {
       if (hasPending) {
         console.log(`[ChatService] Contact ${bareJid} is ONLINE and has pending messages - sending now`);
         await this.sendPendingOutboxMessages(bareJid);
-      } else if (!wasOnline) {
-        console.log(`[ChatService] Contact ${bareJid} came ONLINE (no pending messages)`);
       }
-    } else if (wasOnline) {
-      console.log(`[ChatService] Contact ${bareJid} went OFFLINE`);
     }
   }
 

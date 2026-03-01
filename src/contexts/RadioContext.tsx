@@ -270,11 +270,11 @@ export function RadioProvider({ children }: RadioProviderProps) {
       }
     );
 
-    // Listen for playback state changes
+    // Listen for playback state changes (only when radio is the active source)
     const stateListener = TrackPlayer.addEventListener(
       Event.PlaybackState,
       (data) => {
-        console.log('[RadioContext] Playback state changed:', data.state);
+        if (audioOrchestrator.activeSource !== 'radio') return;
 
         if (data.state === State.Playing) {
           setIsLoading(false);
@@ -417,24 +417,25 @@ export function RadioProvider({ children }: RadioProviderProps) {
   // Audio Orchestrator Registration
   // ============================================================
 
-  // Use ref to provide stable stop function for orchestrator
+  // Use refs to provide stable callbacks for orchestrator (prevents re-registration cycles)
   const stopRef = useRef(stop);
   stopRef.current = stop;
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
 
   useEffect(() => {
     // Register radio as an audio source with the orchestrator
     audioOrchestrator.registerSource('radio', {
       stop: async () => {
-        // Use ref to always call the latest stop function
         await stopRef.current();
       },
-      isPlaying: () => isPlaying,
+      isPlaying: () => isPlayingRef.current,
     });
 
     return () => {
       audioOrchestrator.unregisterSource('radio');
     };
-  }, [audioOrchestrator, isPlaying]);
+  }, [audioOrchestrator]);
 
   // ============================================================
   // Context Value
