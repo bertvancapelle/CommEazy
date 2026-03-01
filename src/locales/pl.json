@@ -1702,6 +1702,20 @@
     "repeatOne": "Powtórz ten utwór",
     "repeatAll": "Powtórz wszystko"
   },
+  "airplay": {
+    "selectSpeaker": "Wybierz głośnik",
+    "viaDevice": "Przez: {{device}}",
+    "speakersAvailable": "Głośniki AirPlay dostępne",
+    "presets": "Ustawienia głośników",
+    "presetsDescription": "Zapisz kombinacje głośników jako pomoc pamięciową",
+    "addPreset": "Nowe ustawienie",
+    "presetName": "Nazwa ustawienia",
+    "presetSpeakers": "Nazwy głośników",
+    "editPreset": "Edytuj ustawienie",
+    "deletePreset": "Usuń ustawienie",
+    "deletePresetConfirm": "Czy na pewno chcesz usunąć to ustawienie?",
+    "noPresets": "Brak zapisanych ustawień"
+  },
   "tts": {
     "stop": "Zatrzymaj"
   },

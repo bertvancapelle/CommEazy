@@ -1666,6 +1666,20 @@
     "repeatOne": "Upprepa denna låt",
     "repeatAll": "Upprepa alla"
   },
+  "airplay": {
+    "selectSpeaker": "Välj högtalare",
+    "viaDevice": "Via: {{device}}",
+    "speakersAvailable": "AirPlay högtalare tillgängliga",
+    "presets": "Högtalarförinställningar",
+    "presetsDescription": "Spara högtalarkombinationer som minneshjälp",
+    "addPreset": "Ny förinställning",
+    "presetName": "Namn på förinställning",
+    "presetSpeakers": "Högtalarnamn",
+    "editPreset": "Redigera förinställning",
+    "deletePreset": "Ta bort förinställning",
+    "deletePresetConfirm": "Är du säker på att du vill ta bort denna förinställning?",
+    "noPresets": "Inga förinställningar sparade ännu"
+  },
   "a11y": {
     "voiceFocusHint": "Säg \"öppna\" för att välja",
     "voiceExpandHint": "Säg \"öppna\" för att se synonymer",

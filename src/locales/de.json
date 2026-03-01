@@ -1839,6 +1839,20 @@
     "repeatOne": "Diesen Titel wiederholen",
     "repeatAll": "Alles wiederholen"
   },
+  "airplay": {
+    "selectSpeaker": "Lautsprecher wählen",
+    "viaDevice": "Über: {{device}}",
+    "speakersAvailable": "AirPlay Lautsprecher verfügbar",
+    "presets": "Lautsprecher-Voreinstellungen",
+    "presetsDescription": "Lautsprecherkombinationen als Gedächtnisstütze speichern",
+    "addPreset": "Neue Voreinstellung",
+    "presetName": "Name der Voreinstellung",
+    "presetSpeakers": "Lautsprechernamen",
+    "editPreset": "Voreinstellung bearbeiten",
+    "deletePreset": "Voreinstellung löschen",
+    "deletePresetConfirm": "Möchten Sie diese Voreinstellung wirklich löschen?",
+    "noPresets": "Noch keine Voreinstellungen gespeichert"
+  },
   "a11y": {
     "voiceFocusHint": "Sage \"öffnen\" zum Auswählen",
     "voiceExpandHint": "Sage \"öffnen\" um Synonyme zu sehen",

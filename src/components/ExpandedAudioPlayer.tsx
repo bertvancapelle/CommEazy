@@ -45,11 +45,14 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, type IconName } from './Icon';
 import { SeekSlider } from './SeekSlider';
 import { LiquidGlassView } from './LiquidGlassView';
+import { AirPlayButton } from './AirPlayButton';
+import { AirPlayPresetHint } from './AirPlayPresetHint';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
+import { useAirPlayContextSafe } from '@/contexts/AirPlayContext';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
@@ -84,6 +87,8 @@ export interface AudioPlayerControls {
   addToLibrary?: boolean;
   /** Show queue button (for Apple Music) */
   queue?: boolean;
+  /** Show AirPlay speaker button (iOS only) */
+  airplay?: boolean;
 }
 
 export interface ExpandedAudioPlayerProps {
@@ -259,6 +264,9 @@ export function ExpandedAudioPlayer({
   // Check if Liquid Glass is available
   const liquidGlassContext = useLiquidGlassContextSafe();
   const useLiquidGlass = liquidGlassContext?.isEnabled && moduleId;
+
+  // AirPlay context (iOS only, may be null)
+  const airPlayContext = useAirPlayContextSafe();
 
   // Button border styling from user preferences
   const buttonStyleContext = useButtonStyleSafe();
@@ -579,8 +587,8 @@ export function ExpandedAudioPlayer({
             )}
           </View>
 
-          {/* Secondary controls row (shuffle, favorite, addToLibrary, queue, repeat) */}
-          {(controls.shuffle || controls.favorite || controls.addToLibrary || controls.queue || controls.repeat) && (
+          {/* Secondary controls row (shuffle, favorite, addToLibrary, queue, repeat, airplay) */}
+          {(controls.shuffle || controls.favorite || controls.addToLibrary || controls.queue || controls.repeat || (controls.airplay && airPlayContext?.routesAvailable)) && (
             <View style={styles.secondaryControlsRow}>
               {/* Shuffle button (for music) */}
               {controls.shuffle && onShufflePress && (
@@ -693,7 +701,26 @@ export function ExpandedAudioPlayer({
                   />
                 </TouchableOpacity>
               )}
+
+              {/* AirPlay button (iOS only, shown when routes available) */}
+              {controls.airplay && airPlayContext?.routesAvailable && (
+                <AirPlayButton
+                  tintColor={colors.textSecondary}
+                  activeTintColor={accentColor}
+                  accessibilityLabel={t('airplay.selectSpeaker')}
+                />
+              )}
             </View>
+          )}
+
+          {/* AirPlay preset hint (below secondary controls) */}
+          {controls.airplay && airPlayContext && (airPlayContext.isAirPlayActive || (airPlayContext.routesAvailable && airPlayContext.activePreset)) && (
+            <AirPlayPresetHint
+              isAirPlayActive={airPlayContext.isAirPlayActive}
+              activeOutputName={airPlayContext.activeOutputName}
+              presetName={airPlayContext.activePreset?.name}
+              presetSpeakers={airPlayContext.activePreset?.speakerNames}
+            />
           )}
 
           {/* Buffering text */}

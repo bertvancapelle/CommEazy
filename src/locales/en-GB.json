@@ -1843,6 +1843,20 @@
     "repeatOne": "Repeat this song",
     "repeatAll": "Repeat all"
   },
+  "airplay": {
+    "selectSpeaker": "Select speaker",
+    "viaDevice": "Via: {{device}}",
+    "speakersAvailable": "AirPlay speakers available",
+    "presets": "Speaker Presets",
+    "presetsDescription": "Save speaker combinations as memory aids",
+    "addPreset": "New Preset",
+    "presetName": "Preset name",
+    "presetSpeakers": "Speaker names",
+    "editPreset": "Edit Preset",
+    "deletePreset": "Delete Preset",
+    "deletePresetConfirm": "Are you sure you want to delete this preset?",
+    "noPresets": "No presets saved yet"
+  },
   "a11y": {
     "voiceFocusHint": "Say \"open\" to select",
     "voiceExpandHint": "Say \"open\" to see synonyms",

@@ -1835,6 +1835,20 @@
     "addToLibrary": "Voeg toe aan bibliotheek",
     "inLibrary": "In bibliotheek"
   },
+  "airplay": {
+    "selectSpeaker": "Kies luidspreker",
+    "viaDevice": "Via: {{device}}",
+    "speakersAvailable": "AirPlay luidsprekers beschikbaar",
+    "presets": "Luidspreker Presets",
+    "presetsDescription": "Bewaar luidsprekerscombinaties als geheugensteun",
+    "addPreset": "Nieuwe Preset",
+    "presetName": "Naam van preset",
+    "presetSpeakers": "Luidsprekernamen",
+    "editPreset": "Preset bewerken",
+    "deletePreset": "Preset verwijderen",
+    "deletePresetConfirm": "Weet je zeker dat je deze preset wilt verwijderen?",
+    "noPresets": "Nog geen presets opgeslagen"
+  },
   "a11y": {
     "voiceFocusHint": "Zeg \"open\" om te selecteren",
     "voiceExpandHint": "Zeg \"open\" om synoniemen te zien",

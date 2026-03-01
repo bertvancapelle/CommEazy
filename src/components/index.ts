@@ -147,6 +147,10 @@ export type { PhotoRecipientModalProps } from './PhotoRecipientModal';
 export { LiquidGlassView } from './LiquidGlassView';
 export type { LiquidGlassViewProps } from './LiquidGlassView';
 
+// AirPlay Components (iOS only — speaker routing via AVRoutePickerView)
+export { AirPlayButton } from './AirPlayButton';
+export { AirPlayPresetHint } from './AirPlayPresetHint';
+
 // Apple Music Components
 export { AppleMusicDetailModal } from './appleMusic';
 export { QueueView } from './QueueView';

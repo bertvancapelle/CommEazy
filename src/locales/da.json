@@ -1666,6 +1666,20 @@
     "repeatOne": "Gentag denne sang",
     "repeatAll": "Gentag alle"
   },
+  "airplay": {
+    "selectSpeaker": "Vælg højttaler",
+    "viaDevice": "Via: {{device}}",
+    "speakersAvailable": "AirPlay højttalere tilgængelige",
+    "presets": "Højttalerforudindstillinger",
+    "presetsDescription": "Gem højttalerkombinationer som huskeliste",
+    "addPreset": "Ny forudindstilling",
+    "presetName": "Navn på forudindstilling",
+    "presetSpeakers": "Højttalernavne",
+    "editPreset": "Rediger forudindstilling",
+    "deletePreset": "Slet forudindstilling",
+    "deletePresetConfirm": "Er du sikker på, at du vil slette denne forudindstilling?",
+    "noPresets": "Ingen forudindstillinger gemt endnu"
+  },
   "a11y": {
     "voiceFocusHint": "Sig \"åbn\" for at vælge",
     "voiceExpandHint": "Sig \"åbn\" for at se synonymer",

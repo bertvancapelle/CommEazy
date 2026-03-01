@@ -1711,6 +1711,20 @@
     "repeatOne": "Gjenta denne sangen",
     "repeatAll": "Gjenta alle"
   },
+  "airplay": {
+    "selectSpeaker": "Velg høyttaler",
+    "viaDevice": "Via: {{device}}",
+    "speakersAvailable": "AirPlay høyttalere tilgjengelig",
+    "presets": "Høyttalerforhåndsinnstillinger",
+    "presetsDescription": "Lagre høyttalerkombinasjoner som huskelapp",
+    "addPreset": "Ny forhåndsinnstilling",
+    "presetName": "Navn på forhåndsinnstilling",
+    "presetSpeakers": "Høyttalernavn",
+    "editPreset": "Rediger forhåndsinnstilling",
+    "deletePreset": "Slett forhåndsinnstilling",
+    "deletePresetConfirm": "Er du sikker på at du vil slette denne forhåndsinnstillingen?",
+    "noPresets": "Ingen forhåndsinnstillinger lagret ennå"
+  },
   "a11y": {
     "voiceFocusHint": "Si \"åpne\" for å velge",
     "voiceExpandHint": "Si \"åpne\" for å se synonymer",

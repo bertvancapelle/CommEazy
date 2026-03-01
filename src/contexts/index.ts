@@ -160,3 +160,12 @@ export {
   type ButtonStyleSettings,
   type ButtonBorderColor,
 } from './ButtonStyleContext';
+
+export {
+  AirPlayProvider,
+  useAirPlayContext,
+  useAirPlayContextSafe,
+  type AirPlayContextValue,
+  type AirPlayPreset,
+  type AirPlayOutput,
+} from './AirPlayContext';

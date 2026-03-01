@@ -1785,6 +1785,20 @@
     "repeatOne": "Ripeti brano",
     "repeatAll": "Ripeti tutto"
   },
+  "airplay": {
+    "selectSpeaker": "Seleziona altoparlante",
+    "viaDevice": "Tramite: {{device}}",
+    "speakersAvailable": "Altoparlanti AirPlay disponibili",
+    "presets": "Preset altoparlanti",
+    "presetsDescription": "Salva combinazioni di altoparlanti come promemoria",
+    "addPreset": "Nuovo preset",
+    "presetName": "Nome del preset",
+    "presetSpeakers": "Nomi degli altoparlanti",
+    "editPreset": "Modifica preset",
+    "deletePreset": "Elimina preset",
+    "deletePresetConfirm": "Sei sicuro di voler eliminare questo preset?",
+    "noPresets": "Nessun preset salvato"
+  },
   "tts": {
     "stop": "Ferma"
   },

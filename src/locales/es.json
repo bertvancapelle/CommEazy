@@ -1839,6 +1839,20 @@
     "repeatOne": "Repetir esta canción",
     "repeatAll": "Repetir todo"
   },
+  "airplay": {
+    "selectSpeaker": "Seleccionar altavoz",
+    "viaDevice": "Vía: {{device}}",
+    "speakersAvailable": "Altavoces AirPlay disponibles",
+    "presets": "Preajustes de altavoces",
+    "presetsDescription": "Guarda combinaciones de altavoces como recordatorio",
+    "addPreset": "Nuevo preajuste",
+    "presetName": "Nombre del preajuste",
+    "presetSpeakers": "Nombres de altavoces",
+    "editPreset": "Editar preajuste",
+    "deletePreset": "Eliminar preajuste",
+    "deletePresetConfirm": "¿Estás seguro de que quieres eliminar este preajuste?",
+    "noPresets": "Aún no hay preajustes guardados"
+  },
   "a11y": {
     "voiceFocusHint": "Di \"abrir\" para seleccionar",
     "voiceExpandHint": "Di \"abrir\" para ver sinónimos",

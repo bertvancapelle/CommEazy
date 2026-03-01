@@ -1839,6 +1839,20 @@
     "repeatOne": "Répéter ce titre",
     "repeatAll": "Tout répéter"
   },
+  "airplay": {
+    "selectSpeaker": "Choisir un haut-parleur",
+    "viaDevice": "Via : {{device}}",
+    "speakersAvailable": "Haut-parleurs AirPlay disponibles",
+    "presets": "Préréglages haut-parleurs",
+    "presetsDescription": "Enregistrez des combinaisons de haut-parleurs comme aide-mémoire",
+    "addPreset": "Nouveau préréglage",
+    "presetName": "Nom du préréglage",
+    "presetSpeakers": "Noms des haut-parleurs",
+    "editPreset": "Modifier le préréglage",
+    "deletePreset": "Supprimer le préréglage",
+    "deletePresetConfirm": "Êtes-vous sûr de vouloir supprimer ce préréglage ?",
+    "noPresets": "Aucun préréglage enregistré"
+  },
   "a11y": {
     "voiceFocusHint": "Dites \"ouvrir\" pour sélectionner",
     "voiceExpandHint": "Dites \"ouvrir\" pour voir les synonymes",
