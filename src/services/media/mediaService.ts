@@ -13,7 +13,7 @@
  */
 
 import RNFS from 'react-native-fs';
-import ImageResizer from 'react-native-image-resizer';
+import ImageResizer from '@bam.tech/react-native-image-resizer';
 import type {
   MediaType,
   PhotoCompressionOptions,

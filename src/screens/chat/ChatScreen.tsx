@@ -294,7 +294,11 @@ export function ChatScreen() {
       const success = await chatService.sendPhotoMessage(
         contactJid,
         asset.uri,
-        undefined, // No caption for now
+        {
+          width: asset.width || 0,
+          height: asset.height || 0,
+          caption: undefined,
+        },
       );
 
       if (success) {

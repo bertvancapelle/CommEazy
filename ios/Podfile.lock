@@ -993,21 +993,19 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - react-native-maps (1.10.3):
-    - React-Core
   - react-native-safe-area-context (4.14.1):
     - React-Core
-  - react-native-slider (4.5.2):
+  - react-native-slider (4.5.7):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - react-native-track-player (4.1.1):
+  - react-native-track-player (4.1.2):
     - React-Core
     - SwiftAudioEx (= 1.1.0)
   - react-native-webrtc (118.0.7):
     - JitsiWebRTC (~> 118.0.0)
     - React-Core
-  - react-native-webview (13.16.0):
+  - react-native-webview (13.16.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1224,7 +1222,7 @@ PODS:
     - TOCropViewController (~> 2.8.0)
   - RNKeychain (8.2.0):
     - React-Core
-  - RNLocalize (3.6.1):
+  - RNLocalize (3.7.0):
     - React-Core
   - RNPermissions (4.1.5):
     - React-Core
@@ -1291,7 +1289,6 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-image-resizer (from `../node_modules/@bam.tech/react-native-image-resizer`)"
   - react-native-libsodium (from `../node_modules/react-native-libsodium`)
-  - react-native-maps (from `../node_modules/react-native-maps`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-track-player (from `../node_modules/react-native-track-player`)
@@ -1432,8 +1429,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@bam.tech/react-native-image-resizer"
   react-native-libsodium:
     :path: "../node_modules/react-native-libsodium"
-  react-native-maps:
-    :path: "../node_modules/react-native-maps"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
@@ -1576,12 +1571,11 @@ SPEC CHECKSUMS:
   react-native-image-picker: bb3a66064010886b9472200945841e2cf79e1b52
   react-native-image-resizer: 24c5d06fae2176dc0caed4b6396e02befb44064a
   react-native-libsodium: 959307f22d05a94cbf68a5f5cdb662548f500a25
-  react-native-maps: 6f92b1fd37f9421b171c977a42785270703875dc
   react-native-safe-area-context: 758e894ca5a9bd1868d2a9cfbca7326a2b6bf9dc
-  react-native-slider: adf61cd3d94d719844da9e73c97d1dee9639f658
-  react-native-track-player: 6dc2e2633265704b8ab6d8124b80239d4ed1f911
+  react-native-slider: e8ab0ed7726099a06f9866b4b84886df7aab9ca2
+  react-native-track-player: dd56f9948e03756a217c75e0a61aa04aab65b5a1
   react-native-webrtc: eb8582f60b91e8883c290425bf1676c4bcedd63d
-  react-native-webview: b30882679aaf3fdf8702f71ffc78fdc6c017dbe9
+  react-native-webview: b4342af6dfd07f2eb97bfa0df2b08f1260d795e5
   React-nativeconfig: b4d4e9901d4cabb57be63053fd2aa6086eb3c85f
   React-NativeModulesApple: 541d64309a3037060cc416db5c8a63ee5884048e
   React-perflogger: 5f49905de275bac07ac7ea7f575a70611fa988f2
@@ -1615,7 +1609,7 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNImageCropPicker: e2af973019fc2e23e54d2a91a5deb0db73b05c3b
   RNKeychain: bbe2f6d5cc008920324acb49ef86ccc03d3b38e4
-  RNLocalize: 0a9ffe84f0d25cf2fb0abacd4d7491a06e78ced2
+  RNLocalize: 5b24342fb7288242c2215756412d8dcb8dadf31e
   RNPermissions: 4f7b81b0d457c8ec4e892cc36ef2376734a4b22c
   RNReactNativeHapticFeedback: 9d07fb28f9ef1e81440181602954cb3c78d30184
   RNScreens: 3ce54903891fd6281865ad3e7cfe4c2bb438c70c
@@ -1629,6 +1623,6 @@ SPEC CHECKSUMS:
   WatermelonDB: f975618fb9858a3210f3a2645510e2d515b5ba39
   Yoga: 805bf71192903b20fc14babe48080582fee65a80
 
-PODFILE CHECKSUM: 58b9087b9fd081c4ef1ddd522f8bde85b51d22d9
+PODFILE CHECKSUM: d7ff92df9da29c6911d0120ef9a7b80ea38df648
 
 COCOAPODS: 1.16.2
