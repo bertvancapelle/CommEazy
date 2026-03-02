@@ -27,7 +27,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { colors, typography, spacing, touchTargets } from '@/theme';
+import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { ModuleHeader, Icon } from '@/components';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { AskAIProvider, useAskAI } from '@/contexts/AskAIContext';
@@ -287,7 +287,9 @@ const styles = StyleSheet.create({
   },
   greetingBubble: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    borderBottomRightRadius: borderRadius.lg,
     borderBottomLeftRadius: 4,
     padding: spacing.md,
     maxWidth: '85%',
