@@ -20,8 +20,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ttsService, TtsProgress } from '@/services/ttsService';
-import { piperTtsService, type PiperTtsEvent } from '@/services/piperTtsService';
+import { piperTtsService } from '@/services/piperTtsService';
 import { newsService } from '@/services/newsService';
+import { useAudioOrchestratorOptional } from '@/contexts/AudioOrchestratorContext';
 import type { NewsArticle } from '@/types/modules';
 
 // Default TTS settings
@@ -124,6 +125,11 @@ export function useArticleTTS(): UseArticleTTSReturn {
   // Track which TTS engine is currently being used
   const currentEngineRef = useRef<'piper' | 'system' | null>(null);
 
+  // Audio orchestrator for exclusive playback (stops radio/podcast/etc. before TTS)
+  const audioOrchestrator = useAudioOrchestratorOptional();
+  const audioOrchestratorRef = useRef(audioOrchestrator);
+  audioOrchestratorRef.current = audioOrchestrator;
+
   // Initialize both TTS services
   useEffect(() => {
     const initTTS = async () => {
@@ -169,6 +175,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setProgress(1);
         setCurrentArticle(null);
         currentEngineRef.current = null;
+        audioOrchestratorRef.current?.releasePlayback('tts');
       }
     });
 
@@ -194,6 +201,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setProgress(0);
         setCurrentArticle(null);
         currentEngineRef.current = null;
+        audioOrchestratorRef.current?.releasePlayback('tts');
       }
     });
 
@@ -204,6 +212,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsPlaying(false);
         setIsLoading(false);
         currentEngineRef.current = null;
+        audioOrchestratorRef.current?.releasePlayback('tts');
       }
     });
 
@@ -221,6 +230,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setProgress(1);
         setCurrentArticle(null);
         currentEngineRef.current = null;
+        audioOrchestratorRef.current?.releasePlayback('tts');
       }
     });
 
@@ -230,6 +240,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsPlaying(false);
         setIsLoading(false);
         currentEngineRef.current = null;
+        audioOrchestratorRef.current?.releasePlayback('tts');
       }
     });
 
@@ -247,6 +258,32 @@ export function useArticleTTS(): UseArticleTTSReturn {
       unsubPiperError();
     };
   }, []);
+
+  // Register/unregister as TTS audio source with orchestrator
+  const isPlayingRef = useRef(false);
+  isPlayingRef.current = isPlaying;
+
+  useEffect(() => {
+    if (!audioOrchestrator) return;
+
+    audioOrchestrator.registerSource('tts', {
+      stop: async () => {
+        await piperTtsService.stop();
+        await ttsService.stop();
+        setIsPlaying(false);
+        setIsPaused(false);
+        setProgress(0);
+        setCurrentSentence('');
+        setCurrentArticle(null);
+        currentEngineRef.current = null;
+      },
+      isPlaying: () => isPlayingRef.current,
+    });
+
+    return () => {
+      audioOrchestrator.unregisterSource('tts');
+    };
+  }, [audioOrchestrator]);
 
   /**
    * Start TTS playback
@@ -281,6 +318,11 @@ export function useArticleTTS(): UseArticleTTSReturn {
 
         setIsLoading(false);
 
+        // Request exclusive playback (stops radio/podcast/books/etc.)
+        if (audioOrchestrator) {
+          await audioOrchestrator.requestPlayback('tts');
+        }
+
         // Get language for this module
         const language = getLanguageForModule(article.moduleId);
 
@@ -294,7 +336,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
           console.info('[useArticleTTS] Using Piper TTS (nl_NL-rdh-high) for Dutch article');
           currentEngineRef.current = 'piper';
 
-          // Stop any existing playback
+          // Stop any existing TTS playback
           await piperTtsService.stop();
           await ttsService.stop();
 
@@ -328,6 +370,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
           setError('TTS playback failed');
           setCurrentArticle(null);
           currentEngineRef.current = null;
+          audioOrchestrator?.releasePlayback('tts');
         }
       } catch (err) {
         console.error('[useArticleTTS] Error starting TTS:', err);
@@ -335,9 +378,10 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsLoading(false);
         setCurrentArticle(null);
         currentEngineRef.current = null;
+        audioOrchestrator?.releasePlayback('tts');
       }
     },
-    []
+    [audioOrchestrator]
   );
 
   /**
@@ -358,6 +402,11 @@ export function useArticleTTS(): UseArticleTTSReturn {
         console.info('[useArticleTTS] Starting TTS with pre-extracted text:', text.length, 'chars');
 
         setIsLoading(false);
+
+        // Request exclusive playback (stops radio/podcast/books/etc.)
+        if (audioOrchestrator) {
+          await audioOrchestrator.requestPlayback('tts');
+        }
 
         // Get language for this module
         const language = getLanguageForModule(article.moduleId);
@@ -406,6 +455,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
           setError('TTS playback failed');
           setCurrentArticle(null);
           currentEngineRef.current = null;
+          audioOrchestrator?.releasePlayback('tts');
         }
       } catch (err) {
         console.error('[useArticleTTS] Error starting TTS with text:', err);
@@ -413,9 +463,10 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsLoading(false);
         setCurrentArticle(null);
         currentEngineRef.current = null;
+        audioOrchestrator?.releasePlayback('tts');
       }
     },
-    []
+    [audioOrchestrator]
   );
 
   /**
@@ -432,7 +483,8 @@ export function useArticleTTS(): UseArticleTTSReturn {
     setCurrentSentence('');
     setCurrentArticle(null);
     currentEngineRef.current = null;
-  }, []);
+    audioOrchestrator?.releasePlayback('tts');
+  }, [audioOrchestrator]);
 
   /**
    * Pause TTS playback

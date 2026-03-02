@@ -20,6 +20,7 @@ import { weatherService } from '@/services/weatherService';
 import { piperTtsService } from '@/services/piperTtsService';
 import { ttsService } from '@/services/ttsService';
 import { useTtsSettings } from '@/hooks/useTtsSettings';
+import { useAudioOrchestratorOptional } from '@/contexts/AudioOrchestratorContext';
 import type { WeatherData, WeatherLocation, WeatherTtsSection } from '@/types/weather';
 import i18n from '@/i18n';
 
@@ -92,6 +93,9 @@ export function useWeather(): UseWeatherReturn {
   // TTS settings (speech rate from user preferences)
   const { speechRate } = useTtsSettings();
 
+  // Audio orchestrator for exclusive playback (stops radio/podcast/etc. before TTS)
+  const audioOrchestrator = useAudioOrchestratorOptional();
+
   // =====================
   // Initialization
   // =====================
@@ -123,47 +127,48 @@ export function useWeather(): UseWeatherReturn {
     void initTTS();
   }, []);
 
+  // Helper ref for releasing orchestrator from event listeners
+  const audioOrchestratorRef = useRef(audioOrchestrator);
+  audioOrchestratorRef.current = audioOrchestrator;
+
+  const releaseTtsPlayback = useCallback(() => {
+    setIsTtsPlaying(false);
+    setTtsSection(null);
+    currentEngineRef.current = null;
+    audioOrchestratorRef.current?.releasePlayback('tts');
+  }, []);
+
   // Set up TTS event listeners
   useEffect(() => {
     // Piper TTS events
     const unsubPiperComplete = piperTtsService.addEventListener('piperComplete', () => {
       if (currentEngineRef.current === 'piper') {
-        setIsTtsPlaying(false);
-        setTtsSection(null);
-        currentEngineRef.current = null;
+        releaseTtsPlayback();
       }
     });
 
     const unsubPiperError = piperTtsService.addEventListener('piperError', () => {
       if (currentEngineRef.current === 'piper') {
-        setIsTtsPlaying(false);
-        setTtsSection(null);
-        currentEngineRef.current = null;
+        releaseTtsPlayback();
       }
     });
 
     // System TTS events
     const unsubComplete = ttsService.addEventListener('ttsComplete', () => {
       if (currentEngineRef.current === 'system') {
-        setIsTtsPlaying(false);
-        setTtsSection(null);
-        currentEngineRef.current = null;
+        releaseTtsPlayback();
       }
     });
 
     const unsubCancel = ttsService.addEventListener('ttsCancelled', () => {
       if (currentEngineRef.current === 'system') {
-        setIsTtsPlaying(false);
-        setTtsSection(null);
-        currentEngineRef.current = null;
+        releaseTtsPlayback();
       }
     });
 
     const unsubError = ttsService.onError(() => {
       if (currentEngineRef.current === 'system') {
-        setIsTtsPlaying(false);
-        setTtsSection(null);
-        currentEngineRef.current = null;
+        releaseTtsPlayback();
       }
     });
 
@@ -174,7 +179,30 @@ export function useWeather(): UseWeatherReturn {
       unsubCancel();
       unsubError();
     };
-  }, []);
+  }, [releaseTtsPlayback]);
+
+  // Register/unregister as TTS audio source with orchestrator
+  const isTtsPlayingRef = useRef(false);
+  isTtsPlayingRef.current = isTtsPlaying;
+
+  useEffect(() => {
+    if (!audioOrchestrator) return;
+
+    audioOrchestrator.registerSource('tts', {
+      stop: async () => {
+        await piperTtsService.stop();
+        await ttsService.stop();
+        setIsTtsPlaying(false);
+        setTtsSection(null);
+        currentEngineRef.current = null;
+      },
+      isPlaying: () => isTtsPlayingRef.current,
+    });
+
+    return () => {
+      audioOrchestrator.unregisterSource('tts');
+    };
+  }, [audioOrchestrator]);
 
   // Load saved locations on mount
   useEffect(() => {
@@ -325,7 +353,12 @@ export function useWeather(): UseWeatherReturn {
     const language = i18n.language;
     const usePiper = shouldUsePiperTTS(language) && isPiperTtsInitializedRef.current;
 
-    // Stop any existing playback
+    // Request exclusive playback (stops radio/podcast/books/etc.)
+    if (audioOrchestrator) {
+      await audioOrchestrator.requestPlayback('tts');
+    }
+
+    // Stop any existing TTS playback
     await piperTtsService.stop();
     await ttsService.stop();
 
@@ -362,8 +395,9 @@ export function useWeather(): UseWeatherReturn {
       setIsTtsPlaying(false);
       setTtsSection(null);
       currentEngineRef.current = null;
+      audioOrchestrator?.releasePlayback('tts');
     }
-  }, [shouldUsePiperTTS, speechRate]);
+  }, [shouldUsePiperTTS, speechRate, audioOrchestrator]);
 
   const readCurrentWeather = useCallback(async () => {
     if (!weather) return;
@@ -412,7 +446,8 @@ export function useWeather(): UseWeatherReturn {
     setIsTtsPlaying(false);
     setTtsSection(null);
     currentEngineRef.current = null;
-  }, []);
+    audioOrchestrator?.releasePlayback('tts');
+  }, [audioOrchestrator]);
 
   // =====================
   // Return

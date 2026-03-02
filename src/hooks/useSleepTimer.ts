@@ -58,6 +58,11 @@ export function useSleepTimer({
 }: UseSleepTimerProps): UseSleepTimerReturn {
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Use ref for onTimerExpired so the setTimeout closure always calls the latest function,
+  // even if the parent component re-renders with a new callback reference
+  const onTimerExpiredRef = useRef(onTimerExpired);
+  onTimerExpiredRef.current = onTimerExpired;
+
   // Cancel any existing timer
   const cancelTimer = useCallback(() => {
     if (sleepTimerRef.current) {
@@ -83,20 +88,24 @@ export function useSleepTimer({
       const durationMs = isTestDuration ? 30 * 1000 : minutes * 60 * 1000;
       const logMessage = isTestDuration
         ? `[${moduleName}] Sleep timer set for 30 seconds (TEST MODE)`
-        : `[${moduleName}] Sleep timer set for ${minutes} minutes`;
+        : `[${moduleName}] Sleep timer set for ${minutes} minutes (${durationMs}ms)`;
       console.log(logMessage);
 
       // Update context so MediaIndicator shows the moon icon
       setSleepTimerActive(true);
 
       sleepTimerRef.current = setTimeout(async () => {
-        console.log(`[${moduleName}] Sleep timer triggered - stopping playback`);
-        await onTimerExpired();
+        console.log(`[${moduleName}] Sleep timer expired — stopping playback now`);
+        try {
+          await onTimerExpiredRef.current();
+        } catch (error) {
+          console.error(`[${moduleName}] Sleep timer stop failed:`, error);
+        }
         sleepTimerRef.current = null;
         setSleepTimerActive(false);
       }, durationMs);
     },
-    [onTimerExpired, setSleepTimerActive, moduleName, cancelTimer, enableTestMode]
+    [setSleepTimerActive, moduleName, cancelTimer, enableTestMode]
   );
 
   // Check if timer is active

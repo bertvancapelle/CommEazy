@@ -9,6 +9,7 @@
  * - podcast: Podcast episodes (TrackPlayer)
  * - books: TTS read-aloud (Piper TTS)
  * - appleMusic: Apple Music (native MusicKit)
+ * - tts: Standalone TTS (weather readings, article read-aloud)
  *
  * Usage:
  * 1. Each audio context registers its stop handler via registerSource()
@@ -31,7 +32,7 @@ import React, {
 // Types
 // ============================================================
 
-export type AudioSource = 'radio' | 'podcast' | 'books' | 'appleMusic' | 'call';
+export type AudioSource = 'radio' | 'podcast' | 'books' | 'appleMusic' | 'call' | 'tts';
 
 interface AudioSourceHandler {
   stop: () => Promise<void>;
