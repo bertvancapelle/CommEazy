@@ -1817,90 +1817,110 @@ class AppleMusicModule: RCTEventEmitter {
                 NSLog("[AppleMusicModule] getRecentlyPlayed: container API failed (\(error.localizedDescription)), trying song fallback")
             }
 
-            // Strategy 2: Fall back to song-based API, load album relationships, group by album
+            // Strategy 2: Fall back to song-based recently played API, load album relationships, group by album
             do {
                 var songRequest = MusicRecentlyPlayedRequest<Song>()
-                songRequest.limit = min(limit * 5, 50) // Fetch more songs to get enough unique albums
+                songRequest.limit = min(limit * 5, 50)
                 let songResponse = try await songRequest.response()
                 NSLog("[AppleMusicModule] getRecentlyPlayed: song fallback fetched \(songResponse.items.count) songs, resolving albums...")
 
-                // Group songs by album to create container-like entries
-                var seenAlbums = Set<String>()
-                var items: [[String: Any]] = []
-
-                for song in songResponse.items {
-                    // Load album relationship for this song
-                    var albumId = ""
-                    var albumTitle = song.albumTitle ?? ""
-                    var albumArtworkUrl = ""
-                    var albumTrackCount = 0
-
-                    do {
-                        let detailedSong = try await song.with(.albums)
-                        if let album = detailedSong.albums?.first {
-                            albumId = album.id.rawValue
-                            albumTitle = album.title
-                            albumTrackCount = album.trackCount
-                            if let artwork = album.artwork,
-                               let url = artwork.url(width: 300, height: 300) {
-                                albumArtworkUrl = url.httpURLString
-                            }
-                        }
-                    } catch {
-                        NSLog("[AppleMusicModule] getRecentlyPlayed: failed to load album for song '\(song.title)': \(error.localizedDescription)")
-                    }
-
-                    // Fall back to song artwork if album artwork not available
-                    if albumArtworkUrl.isEmpty {
-                        if let artwork = song.artwork,
-                           let url = artwork.url(width: 300, height: 300) {
-                            albumArtworkUrl = url.httpURLString
-                        }
-                    }
-
-                    // Deduplication key: album ID if available, otherwise unique song key
-                    let albumKey = albumId.isEmpty ? "song-\(song.id.rawValue)" : albumId
-
-                    guard !seenAlbums.contains(albumKey) else { continue }
-                    seenAlbums.insert(albumKey)
-
-                    if !albumId.isEmpty {
-                        // Song belongs to an album — return as album type
-                        items.append([
-                            "type": "album",
-                            "id": albumId,
-                            "title": albumTitle,
-                            "subtitle": song.artistName,
-                            "artworkUrl": albumArtworkUrl,
-                            "trackCount": albumTrackCount,
-                        ])
-                    } else {
-                        // Single/station song — return as song type
-                        items.append([
-                            "type": "song",
-                            "id": song.id.rawValue,
-                            "title": song.title,
-                            "subtitle": song.artistName,
-                            "artworkUrl": albumArtworkUrl,
-                            "trackCount": 0,
-                        ])
-                    }
-
-                    if items.count >= limit { break }
-                }
+                let items = await self.groupSongsByAlbum(Array(songResponse.items), limit: limit)
 
                 let duration = CFAbsoluteTimeGetCurrent() - startTime
-                NSLog("[AppleMusicModule] getRecentlyPlayed: song fallback returned \(items.count) items (\(seenAlbums.count) unique) in \(String(format: "%.2f", duration))s")
+                NSLog("[AppleMusicModule] getRecentlyPlayed: song fallback returned \(items.count) items in \(String(format: "%.2f", duration))s")
 
-                resolve([
-                    "items": items,
-                    "total": items.count,
-                ])
+                resolve(["items": items, "total": items.count])
+                return
             } catch {
-                NSLog("[AppleMusicModule] getRecentlyPlayed: both strategies failed: \(error.localizedDescription)")
+                NSLog("[AppleMusicModule] getRecentlyPlayed: song recently-played API also failed (\(error.localizedDescription)), trying library fallback")
+            }
+
+            // Strategy 3: Fall back to library songs sorted by lastPlayedDate
+            // This works when the MusicKit "recently played" APIs fail (iOS 26 beta bug)
+            do {
+                var libraryRequest = MusicLibraryRequest<Song>()
+                libraryRequest.sort(by: \.lastPlayedDate, ascending: false)
+                libraryRequest.limit = min(limit * 5, 50)
+                let libraryResponse = try await libraryRequest.response()
+                NSLog("[AppleMusicModule] getRecentlyPlayed: library fallback fetched \(libraryResponse.items.count) songs, resolving albums...")
+
+                let items = await self.groupSongsByAlbum(Array(libraryResponse.items), limit: limit)
+
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] getRecentlyPlayed: library fallback returned \(items.count) items in \(String(format: "%.2f", duration))s")
+
+                resolve(["items": items, "total": items.count])
+            } catch {
+                NSLog("[AppleMusicModule] getRecentlyPlayed: all 3 strategies failed: \(error.localizedDescription)")
                 reject("RECENTLY_PLAYED_ERROR", "Failed to get recently played: \(error.localizedDescription)", error)
             }
         }
+    }
+
+    /// Group songs by album, resolving album relationships via `with(.albums)`.
+    /// Shared by Strategy 2 (recently played songs) and Strategy 3 (library songs).
+    private func groupSongsByAlbum(_ songs: [Song], limit: Int) async -> [[String: Any]] {
+        var seenAlbums = Set<String>()
+        var items: [[String: Any]] = []
+
+        for song in songs {
+            var albumId = ""
+            var albumTitle = song.albumTitle ?? ""
+            var albumArtworkUrl = ""
+            var albumTrackCount = 0
+
+            // Try to load the album relationship
+            do {
+                let detailedSong = try await song.with(.albums)
+                if let album = detailedSong.albums?.first {
+                    albumId = album.id.rawValue
+                    albumTitle = album.title
+                    albumTrackCount = album.trackCount
+                    if let artwork = album.artwork,
+                       let url = artwork.url(width: 300, height: 300) {
+                        albumArtworkUrl = url.httpURLString
+                    }
+                }
+            } catch {
+                // Album relationship loading failed — use song-level data
+            }
+
+            // Fall back to song artwork if album artwork not available
+            if albumArtworkUrl.isEmpty {
+                if let artwork = song.artwork,
+                   let url = artwork.url(width: 300, height: 300) {
+                    albumArtworkUrl = url.httpURLString
+                }
+            }
+
+            let albumKey = albumId.isEmpty ? "song-\(song.id.rawValue)" : albumId
+            guard !seenAlbums.contains(albumKey) else { continue }
+            seenAlbums.insert(albumKey)
+
+            if !albumId.isEmpty {
+                items.append([
+                    "type": "album",
+                    "id": albumId,
+                    "title": albumTitle,
+                    "subtitle": song.artistName,
+                    "artworkUrl": albumArtworkUrl,
+                    "trackCount": albumTrackCount,
+                ])
+            } else {
+                items.append([
+                    "type": "song",
+                    "id": song.id.rawValue,
+                    "title": song.title,
+                    "subtitle": song.artistName,
+                    "artworkUrl": albumArtworkUrl,
+                    "trackCount": 0,
+                ])
+            }
+
+            if items.count >= limit { break }
+        }
+
+        return items
     }
 
     /// Convert a RecentlyPlayedMusicItem enum to a dictionary for React Native
