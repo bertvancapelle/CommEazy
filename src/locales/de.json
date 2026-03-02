@@ -1499,7 +1499,8 @@
         "alreadyInLibraryMessage": "\"{{title}}\" ist bereits in deiner Bibliothek",
         "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden",
         "loadingLarge": "Große Bibliothek wird geladen...",
-        "loadingLargeCount": "{{count}} Einträge werden geladen..."
+        "loadingLargeCount": "{{count}} Einträge werden geladen...",
+        "loadError": "Bibliothek konnte nicht geladen werden"
       },
       "playlists": {
         "comingSoon": "Playlists kommen bald"

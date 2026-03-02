@@ -1755,6 +1755,43 @@ class AppleMusicModule: RCTEventEmitter {
         }
     }
 
+    // ============================================================
+    // MARK: - Recently Played (MusicKit API — Apple Music ecosystem history)
+    // ============================================================
+
+    /// Get recently played songs from the Apple Music ecosystem.
+    /// This uses MusicRecentlyPlayedRequest which returns songs the user
+    /// has played across Apple Music (including the Apple Music app itself).
+    /// This is different from getRecentLibrarySongs which sorts by dateAdded.
+    @objc
+    func getRecentlyPlayed(_ limit: Int,
+                            resolve: @escaping RCTPromiseResolveBlock,
+                            reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                NSLog("[AppleMusicModule] getRecentlyPlayed: fetching \(limit) recently played songs")
+                let startTime = CFAbsoluteTimeGetCurrent()
+
+                var request = MusicRecentlyPlayedRequest<Song>()
+                request.limit = limit
+                let response = try await request.response()
+
+                let songs = response.items.map { songToDictionary($0) }
+
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] getRecentlyPlayed: fetched \(songs.count) songs in \(String(format: "%.2f", duration))s")
+
+                resolve([
+                    "items": songs,
+                    "total": songs.count,
+                ])
+            } catch {
+                NSLog("[AppleMusicModule] getRecentlyPlayed failed: \(error.localizedDescription)")
+                reject("RECENTLY_PLAYED_ERROR", "Failed to get recently played: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
     /// Get all albums from the user's library
     /// Returns ALL albums sorted by title (uses in-memory cache)
     @objc

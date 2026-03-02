@@ -1380,7 +1380,8 @@
         "alreadyInLibraryMessage": "\"{{title}}\" er allerede i biblioteket ditt",
         "addError": "Kunne ikke legge til sangen i biblioteket",
         "loadingLarge": "Laster stort bibliotek...",
-        "loadingLargeCount": "Laster {{count}} elementer..."
+        "loadingLargeCount": "Laster {{count}} elementer...",
+        "loadError": "Kunne ikke laste biblioteket"
       },
       "playlists": {
         "comingSoon": "Spillelister kommer snart"

@@ -218,7 +218,9 @@ export function AppleMusicScreen() {
   const [libraryPlaylists, setLibraryPlaylists] = useState<AppleMusicPlaylist[]>([]);
   const [isLoadingLibraryContent, setIsLoadingLibraryContent] = useState(false);
   const [showLargeLibraryText, setShowLargeLibraryText] = useState(false);
+  const [libraryLoadError, setLibraryLoadError] = useState(false);
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const libraryLoadAbortRef = useRef(0); // Incremented on each load to abort stale requests
   const [librarySearchQuery, setLibrarySearchQuery] = useState('');
 
   // Track which search result songs are in library (for heart icon display)
@@ -447,6 +449,9 @@ export function AppleMusicScreen() {
   // Library content loading function - extracted for reuse by refresh button
   // Priority: 1) local state cache, 2) context libraryCache (full preload), 3) API call
   // Context cache contains the FULL library (loaded at app startup), so API calls are rare.
+  //
+  // Safety: 15s timeout prevents infinite spinner if native promise never settles.
+  // Abort flag prevents stale responses from overwriting state when user switches categories quickly.
   const loadLibraryContent = useCallback(async (category: LibraryCategoryType, forceRefresh = false) => {
     if (!isAuthorized || !isIOS) return;
 
@@ -493,8 +498,12 @@ export function AppleMusicScreen() {
       console.log('[AppleMusicScreen] ❌ CACHE MISS:', category, '— fetching from native...');
     }
 
+    // Abort any in-flight request by incrementing the abort counter
+    const loadId = ++libraryLoadAbortRef.current;
+
     setIsLoadingLibraryContent(true);
     setShowLargeLibraryText(false);
+    setLibraryLoadError(false);
     setLibrarySearchQuery(''); // Reset search when changing category
 
     // Start timer to show "Large library loading" text after 2 seconds
@@ -503,28 +512,42 @@ export function AppleMusicScreen() {
     }, 2000);
 
     try {
+      // Wrap native call in a 15s timeout to prevent infinite hang
+      const withTimeout = <T,>(promise: Promise<T>, ms = 15000): Promise<T> => {
+        return new Promise<T>((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('LIBRARY_LOAD_TIMEOUT')), ms);
+          promise.then(
+            (value) => { clearTimeout(timer); resolve(value); },
+            (error) => { clearTimeout(timer); reject(error); },
+          );
+        });
+      };
+
       switch (category) {
         case 'songs': {
-          // Request all songs — native module returns from cache if available
-          const response = await getLibrarySongs(999999, 0);
+          const response = await withTimeout(getLibrarySongs(999999, 0));
+          if (libraryLoadAbortRef.current !== loadId) return; // Aborted
           setLibrarySongs(response.items);
           console.log('[AppleMusicScreen] Loaded', response.items.length, 'library songs');
           break;
         }
         case 'albums': {
-          const response = await getLibraryAlbums(999999, 0);
+          const response = await withTimeout(getLibraryAlbums(999999, 0));
+          if (libraryLoadAbortRef.current !== loadId) return; // Aborted
           setLibraryAlbums(response.items);
           console.log('[AppleMusicScreen] Loaded', response.items.length, 'library albums');
           break;
         }
         case 'artists': {
-          const response = await getLibraryArtists(999999, 0);
+          const response = await withTimeout(getLibraryArtists(999999, 0));
+          if (libraryLoadAbortRef.current !== loadId) return; // Aborted
           setLibraryArtists(response.items);
           console.log('[AppleMusicScreen] Loaded', response.items.length, 'library artists');
           break;
         }
         case 'playlists': {
-          const response = await getLibraryPlaylists(999999, 0);
+          const response = await withTimeout(getLibraryPlaylists(999999, 0));
+          if (libraryLoadAbortRef.current !== loadId) return; // Aborted
           setLibraryPlaylists(response.items);
           console.log('[AppleMusicScreen] Loaded', response.items.length, 'library playlists');
           break;
@@ -532,14 +555,20 @@ export function AppleMusicScreen() {
       }
     } catch (error) {
       console.error('[AppleMusicScreen] Failed to load library content:', error);
-    } finally {
-      // Clear the timer and reset states
-      if (loadingTimerRef.current) {
-        clearTimeout(loadingTimerRef.current);
-        loadingTimerRef.current = null;
+      // Only show error if this request wasn't aborted
+      if (libraryLoadAbortRef.current === loadId) {
+        setLibraryLoadError(true);
       }
-      setShowLargeLibraryText(false);
-      setIsLoadingLibraryContent(false);
+    } finally {
+      // Only reset loading state if this request wasn't aborted
+      if (libraryLoadAbortRef.current === loadId) {
+        if (loadingTimerRef.current) {
+          clearTimeout(loadingTimerRef.current);
+          loadingTimerRef.current = null;
+        }
+        setShowLargeLibraryText(false);
+        setIsLoadingLibraryContent(false);
+      }
     }
   }, [isAuthorized, isIOS, libraryCache, getLibrarySongs, getLibraryAlbums, getLibraryArtists, getLibraryPlaylists]);
 
@@ -1268,51 +1297,55 @@ export function AppleMusicScreen() {
         { paddingBottom: bottomPadding + insets.bottom },
       ]}
     >
-      {/* Layer 1: Recently Played */}
-      {recentlyPlayed.length > 0 && (
+      {/* Layer 1: Recently Played (MusicKit API — shows Apple Music ecosystem history) */}
+      {(isRecentlyPlayedLoading || recentlyPlayed.length > 0) && (
         <View style={styles.discoverySection}>
           <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
             {t('modules.appleMusic.discovery.recentlyPlayed')}
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.discoveryRow}>
-            {recentlyPlayed.slice(0, 10).map((item) => (
-              <TouchableOpacity
-                key={`${item.type}-${item.id}`}
-                style={[styles.discoveryCard, { backgroundColor: themeColors.surface }]}
-                onPress={() => {
-                  triggerFeedback('tap');
-                  if (item.type === 'song') {
-                    void playSong(item.id, item.artworkUrl);
-                  } else if (item.type === 'album') {
-                    void playAlbum(item.id);
-                  } else if (item.type === 'playlist') {
-                    void playPlaylist(item.id);
-                  }
-                }}
-                onLongPress={() => {}}
-                delayLongPress={300}
-                accessibilityRole="button"
-                accessibilityLabel={`${item.title} ${t('common.by')} ${item.subtitle}`}
-              >
-                {item.artworkUrl ? (
-                  <Image
-                    source={{ uri: item.artworkUrl.replace('{w}', '120').replace('{h}', '120') }}
-                    style={styles.discoveryArtwork}
-                  />
-                ) : (
-                  <View style={[styles.discoveryArtwork, styles.discoveryArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
-                    <Icon name="appleMusic" size={32} color={themeColors.textSecondary} />
-                  </View>
-                )}
-                <Text style={[styles.discoveryCardTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
-                  {item.title}
-                </Text>
-                <Text style={[styles.discoveryCardSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                  {item.subtitle}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {isRecentlyPlayedLoading ? (
+            <ActivityIndicator size="small" color={appleMusicColor} style={styles.discoveryLoader} />
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.discoveryRow}>
+              {recentlyPlayed.slice(0, 10).map((item) => (
+                <TouchableOpacity
+                  key={`${item.type}-${item.id}`}
+                  style={[styles.discoveryCard, { backgroundColor: themeColors.surface }]}
+                  onPress={() => {
+                    triggerFeedback('tap');
+                    if (item.type === 'song') {
+                      void playSong(item.id, item.artworkUrl);
+                    } else if (item.type === 'album') {
+                      void playAlbum(item.id);
+                    } else if (item.type === 'playlist') {
+                      void playPlaylist(item.id);
+                    }
+                  }}
+                  onLongPress={() => {}}
+                  delayLongPress={300}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.title} ${t('common.by')} ${item.subtitle}`}
+                >
+                  {item.artworkUrl ? (
+                    <Image
+                      source={{ uri: item.artworkUrl.replace('{w}', '120').replace('{h}', '120') }}
+                      style={styles.discoveryArtwork}
+                    />
+                  ) : (
+                    <View style={[styles.discoveryArtwork, styles.discoveryArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                      <Icon name="appleMusic" size={32} color={themeColors.textSecondary} />
+                    </View>
+                  )}
+                  <Text style={[styles.discoveryCardTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
+                    {item.title}
+                  </Text>
+                  <Text style={[styles.discoveryCardSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                    {item.subtitle}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
       )}
 
@@ -1406,7 +1439,7 @@ export function AppleMusicScreen() {
       )}
 
       {/* Empty discovery state (nothing to show yet) */}
-      {recentlyPlayed.length === 0 && !isTopChartsLoading && !topChartsData?.songs?.length && recentLibraryItems.length === 0 && (
+      {!isRecentlyPlayedLoading && recentlyPlayed.length === 0 && !isTopChartsLoading && !topChartsData?.songs?.length && recentLibraryItems.length === 0 && (
         <View style={styles.emptyState}>
           <Icon name="search" size={48} color={themeColors.textSecondary} />
           <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
@@ -1666,6 +1699,21 @@ export function AppleMusicScreen() {
                     : t('modules.appleMusic.library.loadingLarge'))
                 : t('common.loading')}
             </Text>
+          </View>
+        ) : libraryLoadError ? (
+          <View style={styles.loadingContainer}>
+            <Icon name="warning" size={48} color={themeColors.textSecondary} />
+            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
+              {t('modules.appleMusic.library.loadError')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.retryButton, { backgroundColor: appleMusicColor }]}
+              onPress={() => libraryCategory && loadLibraryContent(libraryCategory, true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.tryAgain')}
+            >
+              <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <>
@@ -2052,6 +2100,20 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     marginTop: spacing.md,
+  },
+  retryButton: {
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    ...typography.body,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 
   // Error

@@ -149,7 +149,7 @@ export interface PlatformCapabilities {
   appInstalled: boolean;      // Apple Music app installed (Android)
 }
 
-// Recently played item (locally tracked, since MusicKit has no recently played API)
+// Recently played item (MusicKit API + locally tracked for CommEazy playback)
 export interface RecentlyPlayedItem {
   type: 'song' | 'album' | 'playlist';
   id: string;
@@ -157,6 +157,7 @@ export interface RecentlyPlayedItem {
   subtitle: string;    // artist name or curator name
   artworkUrl: string;
   playedAt: number;    // timestamp (ms)
+  source?: 'musickit' | 'local'; // Where this item came from
 }
 
 // Library cache structure
@@ -388,23 +389,96 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [nowPlaying, artworkCache]);
 
   // ============================================================
-  // Recently Played Tracking (AsyncStorage, max 20, FIFO + dedup)
+  // Recently Played (MusicKit API + local AsyncStorage supplement)
   // ============================================================
 
-  /** Load recently played items from AsyncStorage */
+  /** Load recently played: MusicKit API first, then merge with local tracking */
   const loadRecentlyPlayed = useCallback(async () => {
-    try {
-      const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
-      if (stored) {
-        const items: RecentlyPlayedItem[] = JSON.parse(stored);
-        setRecentlyPlayed(items);
+    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
+      // Fallback to local-only for Android or unauthorized
+      try {
+        const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
+        if (stored) {
+          const items: RecentlyPlayedItem[] = JSON.parse(stored);
+          setRecentlyPlayed(items);
+        }
+      } catch (error) {
+        console.warn('[AppleMusicContext] Failed to load local recently played:', error);
+      } finally {
+        setIsRecentlyPlayedLoading(false);
       }
+      return;
+    }
+
+    try {
+      // Fetch from MusicKit API (returns songs played across entire Apple Music ecosystem)
+      const response = await AppleMusicModule.getRecentlyPlayed(20);
+      const musicKitItems: RecentlyPlayedItem[] = (response.items || []).map(
+        (song: any, index: number) => ({
+          type: 'song' as const,
+          id: song.id,
+          title: song.title || '',
+          subtitle: song.artistName || '',
+          artworkUrl: song.artwork || '',
+          playedAt: Date.now() - index * 60000, // Approximate ordering (newest first)
+          source: 'musickit' as const,
+        })
+      );
+
+      console.info('[AppleMusicContext] MusicKit recently played loaded:', musicKitItems.length, 'items');
+
+      // Also load local tracking (songs played in CommEazy)
+      let localItems: RecentlyPlayedItem[] = [];
+      try {
+        const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
+        if (stored) {
+          localItems = JSON.parse(stored);
+        }
+      } catch {
+        // Ignore local load errors
+      }
+
+      // Merge: local items first (most recent CommEazy playback), then MusicKit items
+      // Deduplicate by id+type
+      const seenIds = new Set<string>();
+      const merged: RecentlyPlayedItem[] = [];
+
+      // Local items take priority (they have exact timestamps)
+      for (const item of localItems) {
+        const key = `${item.type}-${item.id}`;
+        if (!seenIds.has(key)) {
+          seenIds.add(key);
+          merged.push({ ...item, source: 'local' });
+        }
+      }
+
+      // Then add MusicKit items that aren't already in the list
+      for (const item of musicKitItems) {
+        const key = `${item.type}-${item.id}`;
+        if (!seenIds.has(key)) {
+          seenIds.add(key);
+          merged.push(item);
+        }
+      }
+
+      // Limit to 20 items
+      const finalList = merged.slice(0, RECENTLY_PLAYED_MAX_ITEMS);
+      setRecentlyPlayed(finalList);
     } catch (error) {
-      console.warn('[AppleMusicContext] Failed to load recently played:', error);
+      console.warn('[AppleMusicContext] Failed to load MusicKit recently played, falling back to local:', error);
+      // Fallback to local-only
+      try {
+        const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
+        if (stored) {
+          setRecentlyPlayed(JSON.parse(stored));
+        }
+      } catch {
+        // Ignore
+      }
     } finally {
       setIsRecentlyPlayedLoading(false);
     }
-  }, []);
+  }, [isIOS, authStatus]);
 
   /** Add an item to recently played (dedup + FIFO) */
   const addToRecentlyPlayed = useCallback(async (item: Omit<RecentlyPlayedItem, 'playedAt'>) => {

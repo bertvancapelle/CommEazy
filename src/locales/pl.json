@@ -1312,7 +1312,8 @@
         "alreadyInLibraryMessage": "\"{{title}}\" jest już w Twojej bibliotece",
         "addError": "Nie udało się dodać utworu do biblioteki",
         "loadingLarge": "Ładowanie dużej biblioteki...",
-        "loadingLargeCount": "Ładowanie {{count}} elementów..."
+        "loadingLargeCount": "Ładowanie {{count}} elementów...",
+        "loadError": "Nie udało się załadować biblioteki"
       },
       "playlists": {
         "comingSoon": "Playlisty wkrótce"

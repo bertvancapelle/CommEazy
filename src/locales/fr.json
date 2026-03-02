@@ -1499,7 +1499,8 @@
         "alreadyInLibraryMessage": "\"{{title}}\" est déjà dans votre bibliothèque",
         "addError": "Impossible d'ajouter la chanson à la bibliothèque",
         "loadingLarge": "Chargement de la grande bibliothèque...",
-        "loadingLargeCount": "Chargement de {{count}} éléments..."
+        "loadingLargeCount": "Chargement de {{count}} éléments...",
+        "loadError": "Échec du chargement de la bibliothèque"
       },
       "playlists": {
         "comingSoon": "Playlists bientôt disponibles"

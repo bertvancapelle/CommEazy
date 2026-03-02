@@ -1503,7 +1503,8 @@
         "alreadyInLibraryMessage": "\"{{title}}\" is already in your library",
         "addError": "Could not add song to library",
         "loadingLarge": "Loading large library...",
-        "loadingLargeCount": "Loading {{count}} items..."
+        "loadingLargeCount": "Loading {{count}} items...",
+        "loadError": "Failed to load library"
       },
       "playlists": {
         "comingSoon": "Playlists coming soon"

@@ -1501,7 +1501,8 @@
         "alreadyInLibraryMessage": "\"{{title}}\" staat al in je bibliotheek",
         "addError": "Kon nummer niet toevoegen aan bibliotheek",
         "loadingLarge": "Grote bibliotheek laden...",
-        "loadingLargeCount": "{{count}} items laden..."
+        "loadingLargeCount": "{{count}} items laden...",
+        "loadError": "Bibliotheek laden mislukt"
       },
       "playlists": {
         "comingSoon": "Afspeellijsten komen binnenkort"

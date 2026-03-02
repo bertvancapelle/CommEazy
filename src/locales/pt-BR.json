@@ -1525,7 +1525,8 @@
         "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",
         "addError": "Não foi possível adicionar a música à biblioteca",
         "loadingLarge": "Carregando biblioteca grande...",
-        "loadingLargeCount": "Carregando {{count}} itens..."
+        "loadingLargeCount": "Carregando {{count}} itens...",
+        "loadError": "Falha ao carregar a biblioteca"
       },
       "playlists": {
         "comingSoon": "Playlists em breve"
