@@ -92,8 +92,13 @@ interface FavoriteStation {
 // Radio Browser API Service
 // ============================================================
 
-const RADIO_BROWSER_API = 'https://all.api.radio-browser.info/json';
-const API_TIMEOUT_MS = 10000; // 10 seconds timeout
+// Radio Browser API servers — tried in order, auto-failover on 5xx/timeout
+const RADIO_BROWSER_SERVERS = [
+  'https://all.api.radio-browser.info/json',  // Load-balanced endpoint
+  'https://de1.api.radio-browser.info/json',
+  'https://de2.api.radio-browser.info/json',
+];
+const API_TIMEOUT_MS = 6000; // 6 seconds per server attempt (3 servers × 6s = 18s max)
 
 // Layout constants for overlay positioning
 // ModuleHeader height: icon row (44pt) + AdMob placeholder (50pt) + separator + padding
@@ -120,14 +125,40 @@ async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Respons
   }
 }
 
+// Fetch with automatic server failover — tries each server in order
+async function fetchRadioApi(path: string): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (const server of RADIO_BROWSER_SERVERS) {
+    try {
+      const response = await fetchWithTimeout(`${server}${path}`, API_TIMEOUT_MS);
+      if (response.ok) {
+        return response;
+      }
+      // 502/503 = server issue, try next server
+      if (response.status >= 500) {
+        console.debug(`[RadioScreen] Server ${server} returned ${response.status}, trying next...`);
+        continue;
+      }
+      // 4xx = client error, don't retry
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.debug(`[RadioScreen] Server ${server} failed: ${lastError.name}, trying next...`);
+    }
+  }
+
+  // All servers failed
+  throw lastError || new Error('All radio servers unavailable');
+}
+
 async function searchStationsByCountry(
   countryCode: string,
   limit = 50
 ): Promise<ApiResult<RadioStation[]>> {
   try {
-    const response = await fetchWithTimeout(
-      `${RADIO_BROWSER_API}/stations/bycountrycodeexact/${countryCode}?limit=${limit}&order=votes&reverse=true&hidebroken=true`,
-      API_TIMEOUT_MS
+    const response = await fetchRadioApi(
+      `/stations/bycountrycodeexact/${countryCode}?limit=${limit}&order=votes&reverse=true&hidebroken=true`
     );
     if (!response.ok) {
       console.error('[RadioScreen] API error:', response.status);
@@ -168,9 +199,8 @@ async function searchStationsByLanguage(
   const languageName = LANGUAGE_CODE_TO_NAME[languageCode.toLowerCase()] || languageCode;
 
   try {
-    const response = await fetchWithTimeout(
-      `${RADIO_BROWSER_API}/stations/bylanguageexact/${languageName}?limit=${limit}&order=votes&reverse=true&hidebroken=true`,
-      API_TIMEOUT_MS
+    const response = await fetchRadioApi(
+      `/stations/bylanguageexact/${languageName}?limit=${limit}&order=votes&reverse=true&hidebroken=true`
     );
     if (!response.ok) {
       console.error('[RadioScreen] API error:', response.status);
@@ -195,15 +225,15 @@ async function searchStationsByName(
 ): Promise<ApiResult<RadioStation[]>> {
   try {
     // Use /stations/search endpoint which supports name, countrycode, and language filtering
-    let url = `${RADIO_BROWSER_API}/stations/search?name=${encodeURIComponent(name)}&limit=${limit}&order=votes&reverse=true&hidebroken=true`;
+    let path = `/stations/search?name=${encodeURIComponent(name)}&limit=${limit}&order=votes&reverse=true&hidebroken=true`;
     if (countryCode) {
-      url += `&countrycode=${countryCode}`;
+      path += `&countrycode=${countryCode}`;
     }
     if (languageCode) {
-      url += `&language=${languageCode}`;
+      path += `&language=${languageCode}`;
     }
 
-    const response = await fetchWithTimeout(url, API_TIMEOUT_MS);
+    const response = await fetchRadioApi(path);
     if (!response.ok) {
       console.error('[RadioScreen] API error:', response.status);
       return { data: null, error: 'server' };
