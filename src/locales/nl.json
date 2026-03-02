@@ -1499,7 +1499,8 @@
         "noSearchResults": "Geen resultaten gevonden",
         "alreadyInLibraryMessage": "\"{{title}}\" staat al in je bibliotheek",
         "addError": "Kon nummer niet toevoegen aan bibliotheek",
-        "loadingLarge": "Grote bibliotheek laden..."
+        "loadingLarge": "Grote bibliotheek laden...",
+        "loadingLargeCount": "{{count}} items laden..."
       },
       "playlists": {
         "comingSoon": "Afspeellijsten komen binnenkort"

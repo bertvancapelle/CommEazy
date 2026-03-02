@@ -1333,7 +1333,8 @@
         "noSearchResults": "Ingen sange fundet",
         "alreadyInLibraryMessage": "\"{{title}}\" er allerede i dit bibliotek",
         "addError": "Kunne ikke tilføje sangen til biblioteket",
-        "loadingLarge": "Indlæser stort bibliotek..."
+        "loadingLarge": "Indlæser stort bibliotek...",
+        "loadingLargeCount": "Indlæser {{count}} elementer..."
       },
       "playlists": {
         "comingSoon": "Playlister kommer snart"

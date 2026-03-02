@@ -52,6 +52,12 @@ class AppleMusicModule: RCTEventEmitter {
     // Minimum interval between state events (100ms)
     private let minStateEventInterval: CFAbsoluteTime = 0.1
     
+    // MARK: - Library Change Debouncing (batches rapid changes)
+    // When a playlist with 20 songs is added, observer fires 20+ times rapidly.
+    // 2-second debounce ensures we emit only ONE event to React Native.
+    private var libraryChangeDebounceTimer: DispatchWorkItem?
+    private let libraryChangeDebounceInterval: TimeInterval = 2.0
+    
     // ============================================================
     // MARK: - Library Cache (for large libraries like 23K+ songs)
     // ============================================================
@@ -99,6 +105,9 @@ class AppleMusicModule: RCTEventEmitter {
         queueObservationTask?.cancel()
         stopTimeUpdateTimer()
         
+        // Cancel pending library change debounce
+        libraryChangeDebounceTimer?.cancel()
+        
         // Stop library notifications
         MPMediaLibrary.default().endGeneratingLibraryChangeNotifications()
         NotificationCenter.default.removeObserver(self)
@@ -139,14 +148,73 @@ class AppleMusicModule: RCTEventEmitter {
     }
     
     /// Called when library changes are detected (realtime from Apple Music app)
+    /// Uses 2-second debounce to batch rapid changes (e.g., adding a playlist with 20 songs)
     @objc private func libraryDidChange(_ notification: Notification) {
-        NSLog("[AppleMusicModule] Library change detected via MPMediaLibraryDidChange")
-        invalidateCache()
+        NSLog("[AppleMusicModule] Library change detected via MPMediaLibraryDidChange (debouncing...)")
         
-        // Emit event to React Native so UI can reload if needed
-        if hasListeners {
-            sendEvent(withName: "AppleMusicLibraryDidChange", body: nil)
+        // Cancel any pending debounce timer
+        libraryChangeDebounceTimer?.cancel()
+        
+        // Schedule new debounced handler
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            NSLog("[AppleMusicModule] Library change debounce fired — fetching fresh counts")
+            
+            // Invalidate native cache so next getLibrarySongs/Albums returns fresh data
+            self.invalidateCache()
+            
+            // Fetch fresh counts to send with the event
+            // React Native uses these to determine if items were added or removed
+            Task { [weak self] in
+                guard let self = self else { return }
+                
+                do {
+                    let startTime = CFAbsoluteTimeGetCurrent()
+                    
+                    async let songsRequest = MusicLibraryRequest<Song>().response()
+                    async let albumsRequest = MusicLibraryRequest<Album>().response()
+                    async let artistsRequest = MusicLibraryRequest<Artist>().response()
+                    async let playlistsRequest = MusicLibraryRequest<Playlist>().response()
+                    
+                    let (songs, albums, artists, playlists) = try await (songsRequest, albumsRequest, artistsRequest, playlistsRequest)
+                    
+                    let counts: [String: Int] = [
+                        "songs": songs.items.count,
+                        "albums": albums.items.count,
+                        "artists": artists.items.count,
+                        "playlists": playlists.items.count
+                    ]
+                    
+                    let duration = CFAbsoluteTimeGetCurrent() - startTime
+                    NSLog("[AppleMusicModule] Library change counts fetched in \(String(format: "%.2f", duration))s: \(counts)")
+                    
+                    // Update cache with fresh counts
+                    self.cacheQueue.async { [weak self] in
+                        guard let self = self else { return }
+                        self.libraryCache.counts = counts
+                        self.libraryCache.lastModified = MPMediaLibrary.default().lastModifiedDate
+                        self.libraryCache.isValid = true
+                        UserDefaults.standard.set(self.libraryCache.lastModified, forKey: self.cacheModifiedDateKey)
+                    }
+                    
+                    // Emit event to React Native with fresh counts
+                    if self.hasListeners {
+                        self.sendEvent(withName: "AppleMusicLibraryDidChange", body: [
+                            "counts": counts
+                        ])
+                    }
+                } catch {
+                    NSLog("[AppleMusicModule] Library change count fetch failed: \(error.localizedDescription)")
+                    // Still emit event without counts so React Native can do a full refresh
+                    if self.hasListeners {
+                        self.sendEvent(withName: "AppleMusicLibraryDidChange", body: nil)
+                    }
+                }
+            }
         }
+        
+        libraryChangeDebounceTimer = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + libraryChangeDebounceInterval, execute: workItem)
     }
     
     /// Called when app comes to foreground
@@ -1556,8 +1624,8 @@ class AppleMusicModule: RCTEventEmitter {
     // ============================================================
 
     /// Get all songs from the user's library
-    /// Returns array of songs sorted by title
-    /// Uses in-memory cache to avoid reloading 23K+ songs on every access
+    /// Returns ALL songs sorted by title (uses in-memory cache for 23K+ libraries)
+    /// The React Native layer handles display/pagination — native returns the full cached set.
     @objc
     func getLibrarySongs(_ limit: Int,
                          offset: Int,
@@ -1574,8 +1642,8 @@ class AppleMusicModule: RCTEventEmitter {
                 let allSongs: [[String: Any]]
                 
                 if let cached = cachedSongs {
-                    // CACHE HIT - use cached songs
-                    NSLog("[AppleMusicModule] getLibrarySongs: CACHE HIT - using \(cached.count) cached songs")
+                    // CACHE HIT - return all cached songs instantly
+                    NSLog("[AppleMusicModule] getLibrarySongs: CACHE HIT - \(cached.count) songs")
                     allSongs = cached
                 } else {
                     // CACHE MISS - load from MusicKit and cache
@@ -1593,7 +1661,7 @@ class AppleMusicModule: RCTEventEmitter {
                     let convertStartTime = CFAbsoluteTimeGetCurrent()
                     let songs = response.items.map { songToDictionary($0) }
                     let convertTime = CFAbsoluteTimeGetCurrent() - convertStartTime
-                    NSLog("[AppleMusicModule] getLibrarySongs: Converted to dictionaries in \(String(format: "%.2f", convertTime))s")
+                    NSLog("[AppleMusicModule] getLibrarySongs: Converted in \(String(format: "%.2f", convertTime))s")
                     
                     // Store in cache (thread-safe)
                     cacheQueue.async { [weak self] in
@@ -1605,16 +1673,12 @@ class AppleMusicModule: RCTEventEmitter {
                     allSongs = songs
                 }
 
-                // Apply pagination
-                let startIndex = min(offset, allSongs.count)
-                let endIndex = min(offset + limit, allSongs.count)
-                let paginatedItems = Array(allSongs[startIndex..<endIndex])
-
+                // Return ALL songs — React Native handles display/filtering
                 resolve([
-                    "items": paginatedItems,
+                    "items": allSongs,
                     "total": allSongs.count,
-                    "offset": offset,
-                    "limit": limit
+                    "offset": 0,
+                    "limit": allSongs.count
                 ])
             } catch {
                 reject("LIBRARY_ERROR", "Failed to get library songs: \(error.localizedDescription)", error)
@@ -1622,9 +1686,77 @@ class AppleMusicModule: RCTEventEmitter {
         }
     }
 
+    /// Get recently added songs from the user's library
+    /// Returns songs sorted by dateAdded (newest first), limited to `limit` items.
+    /// Used for delta sync: when library grows, only fetch the new additions.
+    @objc
+    func getRecentLibrarySongs(_ limit: Int,
+                                resolve: @escaping RCTPromiseResolveBlock,
+                                reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                NSLog("[AppleMusicModule] getRecentLibrarySongs: fetching \(limit) most recent songs")
+                let startTime = CFAbsoluteTimeGetCurrent()
+                
+                var request = MusicLibraryRequest<Song>()
+                request.sort(by: \.libraryAddedDate, ascending: false)
+                let response = try await request.response()
+                
+                // Take only the requested limit
+                let recentSongs = Array(response.items.prefix(limit))
+                let songs = recentSongs.map { songToDictionary($0) }
+                
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] getRecentLibrarySongs: fetched \(songs.count) songs in \(String(format: "%.2f", duration))s")
+                
+                resolve([
+                    "items": songs,
+                    "total": response.items.count,
+                    "offset": 0,
+                    "limit": limit
+                ])
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to get recent library songs: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get recently added albums from the user's library
+    /// Returns albums sorted by dateAdded (newest first), limited to `limit` items.
+    @objc
+    func getRecentLibraryAlbums(_ limit: Int,
+                                 resolve: @escaping RCTPromiseResolveBlock,
+                                 reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                NSLog("[AppleMusicModule] getRecentLibraryAlbums: fetching \(limit) most recent albums")
+                let startTime = CFAbsoluteTimeGetCurrent()
+                
+                var request = MusicLibraryRequest<Album>()
+                request.sort(by: \.libraryAddedDate, ascending: false)
+                let response = try await request.response()
+                
+                // Take only the requested limit
+                let recentAlbums = Array(response.items.prefix(limit))
+                let albums = recentAlbums.map { albumToDictionary($0) }
+                
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] getRecentLibraryAlbums: fetched \(albums.count) albums in \(String(format: "%.2f", duration))s")
+                
+                resolve([
+                    "items": albums,
+                    "total": response.items.count,
+                    "offset": 0,
+                    "limit": limit
+                ])
+            } catch {
+                reject("LIBRARY_ERROR", "Failed to get recent library albums: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
     /// Get all albums from the user's library
-    /// Returns array of albums sorted by title
-    /// Uses in-memory cache to avoid reloading on every access
+    /// Returns ALL albums sorted by title (uses in-memory cache)
     @objc
     func getLibraryAlbums(_ limit: Int,
                           offset: Int,
@@ -1641,11 +1773,9 @@ class AppleMusicModule: RCTEventEmitter {
                 let allAlbums: [[String: Any]]
                 
                 if let cached = cachedAlbums {
-                    // CACHE HIT
-                    NSLog("[AppleMusicModule] getLibraryAlbums: CACHE HIT - using \(cached.count) cached albums")
+                    NSLog("[AppleMusicModule] getLibraryAlbums: CACHE HIT - \(cached.count) albums")
                     allAlbums = cached
                 } else {
-                    // CACHE MISS - load from MusicKit and cache
                     NSLog("[AppleMusicModule] getLibraryAlbums: CACHE MISS - loading from MusicKit...")
                     
                     var request = MusicLibraryRequest<Album>()
@@ -1656,7 +1786,6 @@ class AppleMusicModule: RCTEventEmitter {
                     
                     let albums = response.items.map { albumToDictionary($0) }
                     
-                    // Store in cache (thread-safe)
                     cacheQueue.async { [weak self] in
                         self?.libraryAlbumsCache = albums
                         NSLog("[AppleMusicModule] getLibraryAlbums: Cached \(albums.count) albums")
@@ -1665,16 +1794,12 @@ class AppleMusicModule: RCTEventEmitter {
                     allAlbums = albums
                 }
 
-                // Apply pagination
-                let startIndex = min(offset, allAlbums.count)
-                let endIndex = min(offset + limit, allAlbums.count)
-                let paginatedItems = Array(allAlbums[startIndex..<endIndex])
-
+                // Return ALL albums — React Native handles display/filtering
                 resolve([
-                    "items": paginatedItems,
+                    "items": allAlbums,
                     "total": allAlbums.count,
-                    "offset": offset,
-                    "limit": limit
+                    "offset": 0,
+                    "limit": allAlbums.count
                 ])
             } catch {
                 reject("LIBRARY_ERROR", "Failed to get library albums: \(error.localizedDescription)", error)

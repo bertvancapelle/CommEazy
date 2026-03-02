@@ -1523,7 +1523,8 @@
         "noSearchResults": "Nenhuma música encontrada",
         "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",
         "addError": "Não foi possível adicionar a música à biblioteca",
-        "loadingLarge": "Carregando biblioteca grande..."
+        "loadingLarge": "Carregando biblioteca grande...",
+        "loadingLargeCount": "Carregando {{count}} itens..."
       },
       "playlists": {
         "comingSoon": "Playlists em breve"

@@ -162,8 +162,16 @@ RCT_EXTERN_METHOD(getLibrarySongs:(NSInteger)limit
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(getRecentLibrarySongs:(NSInteger)limit
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(getLibraryAlbums:(NSInteger)limit
                   offset:(NSInteger)offset
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(getRecentLibraryAlbums:(NSInteger)limit
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 

@@ -1333,7 +1333,8 @@
         "noSearchResults": "Inga låtar hittades",
         "alreadyInLibraryMessage": "\"{{title}}\" finns redan i ditt bibliotek",
         "addError": "Kunde inte lägga till låten i biblioteket",
-        "loadingLarge": "Laddar stort bibliotek..."
+        "loadingLarge": "Laddar stort bibliotek...",
+        "loadingLargeCount": "Laddar {{count}} objekt..."
       },
       "playlists": {
         "comingSoon": "Spellistor kommer snart"

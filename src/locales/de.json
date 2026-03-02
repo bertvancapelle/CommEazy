@@ -1497,7 +1497,8 @@
         "noSearchResults": "Keine Titel gefunden",
         "alreadyInLibraryMessage": "\"{{title}}\" ist bereits in deiner Bibliothek",
         "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden",
-        "loadingLarge": "Große Bibliothek wird geladen..."
+        "loadingLarge": "Große Bibliothek wird geladen...",
+        "loadingLargeCount": "{{count}} Einträge werden geladen..."
       },
       "playlists": {
         "comingSoon": "Playlists kommen bald"

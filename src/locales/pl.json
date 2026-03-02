@@ -1310,7 +1310,8 @@
         "noSearchResults": "Nie znaleziono utworów",
         "alreadyInLibraryMessage": "\"{{title}}\" jest już w Twojej bibliotece",
         "addError": "Nie udało się dodać utworu do biblioteki",
-        "loadingLarge": "Ładowanie dużej biblioteki..."
+        "loadingLarge": "Ładowanie dużej biblioteki...",
+        "loadingLargeCount": "Ładowanie {{count}} elementów..."
       },
       "playlists": {
         "comingSoon": "Playlisty wkrótce"

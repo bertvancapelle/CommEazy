@@ -268,6 +268,24 @@ export interface AppleMusicContextValue {
 }
 
 // ============================================================
+// Helpers
+// ============================================================
+
+/**
+ * Prepend new items to an existing array, deduplicating by a key field.
+ * Used for delta sync: new songs/albums are prepended, existing entries are kept.
+ */
+function deduplicateAndPrepend<T extends Record<string, any>>(
+  existing: T[],
+  newItems: T[],
+  keyField: string
+): T[] {
+  const existingIds = new Set(existing.map((item) => item[keyField]));
+  const uniqueNew = newItems.filter((item) => !existingIds.has(item[keyField]));
+  return [...uniqueNew, ...existing];
+}
+
+// ============================================================
 // Native Module
 // ============================================================
 
@@ -370,6 +388,49 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [nowPlaying, artworkCache]);
 
   // ============================================================
+  // Recently Played Tracking (AsyncStorage, max 20, FIFO + dedup)
+  // ============================================================
+
+  /** Load recently played items from AsyncStorage */
+  const loadRecentlyPlayed = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
+      if (stored) {
+        const items: RecentlyPlayedItem[] = JSON.parse(stored);
+        setRecentlyPlayed(items);
+      }
+    } catch (error) {
+      console.warn('[AppleMusicContext] Failed to load recently played:', error);
+    } finally {
+      setIsRecentlyPlayedLoading(false);
+    }
+  }, []);
+
+  /** Add an item to recently played (dedup + FIFO) */
+  const addToRecentlyPlayed = useCallback(async (item: Omit<RecentlyPlayedItem, 'playedAt'>) => {
+    try {
+      setRecentlyPlayed((prev) => {
+        // Remove existing entry with same id+type (dedup — replay moves to top)
+        const filtered = prev.filter((p) => !(p.id === item.id && p.type === item.type));
+        // Add new entry at the front
+        const updated = [{ ...item, playedAt: Date.now() }, ...filtered].slice(0, RECENTLY_PLAYED_MAX_ITEMS);
+        // Persist asynchronously
+        AsyncStorage.setItem(RECENTLY_PLAYED_STORAGE_KEY, JSON.stringify(updated)).catch((err) => {
+          console.warn('[AppleMusicContext] Failed to save recently played:', err);
+        });
+        return updated;
+      });
+    } catch (error) {
+      console.warn('[AppleMusicContext] Failed to add to recently played:', error);
+    }
+  }, []);
+
+  // Load recently played on mount
+  useEffect(() => {
+    void loadRecentlyPlayed();
+  }, [loadRecentlyPlayed]);
+
+  // ============================================================
   // Native Event Listener (iOS only)
   // ============================================================
 
@@ -378,6 +439,117 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   addToRecentlyPlayedRef.current = addToRecentlyPlayed;
   const artworkCacheRef = useRef(artworkCache);
   artworkCacheRef.current = artworkCache;
+  const libraryCacheRef = useRef(libraryCache);
+  libraryCacheRef.current = libraryCache;
+
+  /**
+   * Handle library changes detected by native MusicKit observer.
+   * Uses count-based delta detection:
+   * - Count higher → additions: load only new items (fast delta load)
+   * - Count lower → deletions: full cache refresh (rare, acceptable)
+   * - Count equal → ignore (metadata change only)
+   */
+  const handleLibraryChange = useCallback(async (freshCounts: LibraryCounts | null) => {
+    if (!isIOS || !AppleMusicModule) return;
+
+    const currentCache = libraryCacheRef.current;
+    const cachedCounts = currentCache.counts;
+
+    // If no fresh counts from native (error case), do full refresh
+    if (!freshCounts) {
+      console.log('[AppleMusicContext] No counts from native, doing full refresh');
+      await refreshLibraryCache();
+      return;
+    }
+
+    // If no cached counts yet (first load), do full refresh
+    if (!cachedCounts) {
+      console.log('[AppleMusicContext] No cached counts yet, doing full refresh');
+      await refreshLibraryCache();
+      return;
+    }
+
+    const songsDelta = freshCounts.songs - cachedCounts.songs;
+    const albumsDelta = freshCounts.albums - cachedCounts.albums;
+
+    console.log('[AppleMusicContext] Library delta detection:', {
+      songsDelta,
+      albumsDelta,
+      freshSongs: freshCounts.songs,
+      cachedSongs: cachedCounts.songs,
+      freshAlbums: freshCounts.albums,
+      cachedAlbums: cachedCounts.albums,
+    });
+
+    // Count equal — no meaningful change (metadata only)
+    if (songsDelta === 0 && albumsDelta === 0) {
+      console.log('[AppleMusicContext] Counts unchanged, skipping sync');
+      // Still update counts in cache (artists/playlists may have changed)
+      setLibraryCache((prev) => ({
+        ...prev,
+        counts: freshCounts,
+      }));
+      return;
+    }
+
+    // Count decreased — deletions detected, full refresh needed
+    if (songsDelta < 0 || albumsDelta < 0) {
+      console.log('[AppleMusicContext] Deletions detected, doing full refresh');
+      await refreshLibraryCache();
+      return;
+    }
+
+    // Count increased — additions detected, delta load only
+    console.log(`[AppleMusicContext] Additions detected: +${songsDelta} songs, +${albumsDelta} albums`);
+
+    try {
+      // Fetch only the newly added items (with small margin for safety)
+      const margin = 5;
+      const promises: Promise<any>[] = [];
+
+      if (songsDelta > 0) {
+        promises.push(AppleMusicModule.getRecentLibrarySongs(songsDelta + margin));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      if (albumsDelta > 0) {
+        promises.push(AppleMusicModule.getRecentLibraryAlbums(albumsDelta + margin));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      const [recentSongs, recentAlbums] = await Promise.all(promises);
+
+      setLibraryCache((prev) => {
+        const updatedSongs = recentSongs
+          ? deduplicateAndPrepend(prev.songs, recentSongs.items, 'id')
+          : prev.songs;
+
+        const updatedAlbums = recentAlbums
+          ? deduplicateAndPrepend(prev.albums, recentAlbums.items, 'id')
+          : prev.albums;
+
+        console.log('[AppleMusicContext] Delta sync complete:', {
+          newSongs: recentSongs?.items?.length ?? 0,
+          newAlbums: recentAlbums?.items?.length ?? 0,
+          totalSongs: updatedSongs.length,
+          totalAlbums: updatedAlbums.length,
+        });
+
+        return {
+          ...prev,
+          songs: updatedSongs,
+          albums: updatedAlbums,
+          counts: freshCounts,
+          lastUpdated: Date.now(),
+        };
+      });
+    } catch (error) {
+      console.error('[AppleMusicContext] Delta sync failed, falling back to full refresh:', error);
+      await refreshLibraryCache();
+    }
+  }, [isIOS, refreshLibraryCache]);
 
   useEffect(() => {
     if (!isIOS || !AppleMusicModule) return;
@@ -437,56 +609,24 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       }
     );
 
+    // Library change event (debounced 2s on native side)
+    // Native sends fresh counts so we can do delta detection
+    const libraryChangeSubscription = eventEmitter.addListener(
+      'AppleMusicLibraryDidChange',
+      (data: { counts?: LibraryCounts } | null) => {
+        console.log('[AppleMusicContext] Library change detected from native');
+        handleLibraryChange(data?.counts ?? null);
+      }
+    );
+
     return () => {
       playbackStateSubscription.remove();
       nowPlayingSubscription.remove();
       queueSubscription.remove();
       authSubscription.remove();
+      libraryChangeSubscription.remove();
     };
   }, [isIOS]);
-
-  // ============================================================
-  // Recently Played Tracking (AsyncStorage, max 20, FIFO + dedup)
-  // ============================================================
-
-  /** Load recently played items from AsyncStorage */
-  const loadRecentlyPlayed = useCallback(async () => {
-    try {
-      const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
-      if (stored) {
-        const items: RecentlyPlayedItem[] = JSON.parse(stored);
-        setRecentlyPlayed(items);
-      }
-    } catch (error) {
-      console.warn('[AppleMusicContext] Failed to load recently played:', error);
-    } finally {
-      setIsRecentlyPlayedLoading(false);
-    }
-  }, []);
-
-  /** Add an item to recently played (dedup + FIFO) */
-  const addToRecentlyPlayed = useCallback(async (item: Omit<RecentlyPlayedItem, 'playedAt'>) => {
-    try {
-      setRecentlyPlayed((prev) => {
-        // Remove existing entry with same id+type (dedup — replay moves to top)
-        const filtered = prev.filter((p) => !(p.id === item.id && p.type === item.type));
-        // Add new entry at the front
-        const updated = [{ ...item, playedAt: Date.now() }, ...filtered].slice(0, RECENTLY_PLAYED_MAX_ITEMS);
-        // Persist asynchronously
-        AsyncStorage.setItem(RECENTLY_PLAYED_STORAGE_KEY, JSON.stringify(updated)).catch((err) => {
-          console.warn('[AppleMusicContext] Failed to save recently played:', err);
-        });
-        return updated;
-      });
-    } catch (error) {
-      console.warn('[AppleMusicContext] Failed to add to recently played:', error);
-    }
-  }, []);
-
-  // Load recently played on mount
-  useEffect(() => {
-    void loadRecentlyPlayed();
-  }, [loadRecentlyPlayed]);
 
   // ============================================================
   // Top Charts (cached from API, loaded on demand)
@@ -817,11 +957,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // ============================================================
 
   /**
-   * Preload library content for instant access.
+   * Preload ENTIRE library content for instant access.
    * Called at app startup to ensure "Mijn Muziek" is immediately available.
    *
-   * Loads first 500 songs and albums (most commonly accessed).
-   * Artists and playlists are loaded on-demand.
+   * Native module uses in-memory cache — first call loads from MusicKit (slow),
+   * subsequent calls return cached data instantly.
+   * Artists and playlists are loaded on-demand (smaller datasets).
    */
   const preloadLibrary = useCallback(async (): Promise<void> => {
     if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
@@ -842,21 +983,22 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     }
 
     setIsLibraryCacheLoading(true);
-    console.log('[AppleMusicContext] Starting library preload...');
+    console.log('[AppleMusicContext] Starting FULL library preload...');
 
     try {
-      // Load counts and first batch of songs/albums in parallel
+      // Load counts + ALL songs + ALL albums in parallel
+      // Native module caches internally — first call is slow (MusicKit), subsequent calls instant
       const [counts, songsResult, albumsResult] = await Promise.all([
         AppleMusicModule.getLibraryCounts(),
-        AppleMusicModule.getLibrarySongs(500, 0),
-        AppleMusicModule.getLibraryAlbums(500, 0),
+        AppleMusicModule.getLibrarySongs(999999, 0),
+        AppleMusicModule.getLibraryAlbums(999999, 0),
       ]);
 
       setLibraryCache({
         songs: songsResult.items,
         albums: albumsResult.items,
-        artists: [],  // Load on-demand
-        playlists: [],  // Load on-demand
+        artists: [],  // Load on-demand (smaller dataset)
+        playlists: [],  // Load on-demand (smaller dataset)
         counts,
         lastUpdated: Date.now(),
       });
@@ -889,8 +1031,8 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     try {
       const [counts, songsResult, albumsResult] = await Promise.all([
         AppleMusicModule.getLibraryCounts(),
-        AppleMusicModule.getLibrarySongs(500, 0),
-        AppleMusicModule.getLibraryAlbums(500, 0),
+        AppleMusicModule.getLibrarySongs(999999, 0),
+        AppleMusicModule.getLibraryAlbums(999999, 0),
       ]);
 
       setLibraryCache((prev) => ({
