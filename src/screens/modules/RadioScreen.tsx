@@ -92,7 +92,7 @@ interface FavoriteStation {
 // Radio Browser API Service
 // ============================================================
 
-const RADIO_BROWSER_API = 'https://de1.api.radio-browser.info/json';
+const RADIO_BROWSER_API = 'https://all.api.radio-browser.info/json';
 const API_TIMEOUT_MS = 10000; // 10 seconds timeout
 
 // Layout constants for overlay positioning
