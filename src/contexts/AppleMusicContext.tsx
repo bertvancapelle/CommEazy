@@ -394,28 +394,29 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Recently Played (MusicKit API + local AsyncStorage supplement)
   // ============================================================
 
-  /** Load recently played: MusicKit API first, then merge with local tracking */
-  const loadRecentlyPlayed = useCallback(async () => {
-    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
-      // Fallback to local-only for Android or unauthorized
-      try {
-        const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
-        if (stored) {
-          const items: RecentlyPlayedItem[] = JSON.parse(stored);
-          setRecentlyPlayed(items);
-        }
-      } catch (error) {
-        console.warn('[AppleMusicContext] Failed to load local recently played:', error);
-      } finally {
-        setIsRecentlyPlayedLoading(false);
-      }
-      return;
-    }
+  // Valid container types for recently played (filters out legacy 'song' entries)
+  const VALID_RECENTLY_PLAYED_TYPES = new Set(['album', 'playlist', 'station']);
 
+  /** Load recently played items from AsyncStorage, filtering out legacy song-type entries */
+  const loadLocalRecentlyPlayed = useCallback(async (): Promise<RecentlyPlayedItem[]> => {
     try {
-      // Fetch from MusicKit API (returns containers: albums, playlists, stations)
-      const response = await AppleMusicModule.getRecentlyPlayed(20);
-      const musicKitItems: RecentlyPlayedItem[] = (response.items || []).map(
+      const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
+      if (stored) {
+        const items: RecentlyPlayedItem[] = JSON.parse(stored);
+        // Filter out old song-type items from previous implementation
+        return items.filter(item => VALID_RECENTLY_PLAYED_TYPES.has(item.type));
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    return [];
+  }, []);
+
+  /** Fetch recently played containers from MusicKit API with one retry on failure */
+  const fetchMusicKitRecentlyPlayed = useCallback(async (): Promise<RecentlyPlayedItem[]> => {
+    const attemptFetch = async () => {
+      const response = await AppleMusicModule!.getRecentlyPlayed(20);
+      return (response.items || []).map(
         (container: any, index: number) => ({
           type: (container.type || 'album') as RecentlyPlayedItem['type'],
           id: container.id,
@@ -423,30 +424,45 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
           subtitle: container.subtitle || '',
           artworkUrl: container.artworkUrl || '',
           trackCount: container.trackCount || 0,
-          playedAt: Date.now() - index * 60000, // Approximate ordering (newest first)
+          playedAt: Date.now() - index * 60000,
           source: 'musickit' as const,
         })
       );
+    };
 
+    try {
+      return await attemptFetch();
+    } catch (firstError) {
+      // MusicKit API can fail intermittently (error 1) — retry once after short delay
+      console.info('[AppleMusicContext] MusicKit recently played first attempt failed, retrying...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return await attemptFetch();
+    }
+  }, []);
+
+  /** Load recently played: MusicKit API first, then merge with local tracking */
+  const loadRecentlyPlayed = useCallback(async () => {
+    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
+      const localItems = await loadLocalRecentlyPlayed();
+      if (localItems.length > 0) {
+        setRecentlyPlayed(localItems);
+      }
+      setIsRecentlyPlayedLoading(false);
+      return;
+    }
+
+    try {
+      const musicKitItems = await fetchMusicKitRecentlyPlayed();
       console.info('[AppleMusicContext] MusicKit recently played loaded:', musicKitItems.length, 'items');
 
-      // Also load local tracking (songs played in CommEazy)
-      let localItems: RecentlyPlayedItem[] = [];
-      try {
-        const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
-        if (stored) {
-          localItems = JSON.parse(stored);
-        }
-      } catch {
-        // Ignore local load errors
-      }
+      // Also load local tracking
+      const localItems = await loadLocalRecentlyPlayed();
 
       // Merge: local items first (most recent CommEazy playback), then MusicKit items
       // Deduplicate by id+type
       const seenIds = new Set<string>();
       const merged: RecentlyPlayedItem[] = [];
 
-      // Local items take priority (they have exact timestamps)
       for (const item of localItems) {
         const key = `${item.type}-${item.id}`;
         if (!seenIds.has(key)) {
@@ -455,7 +471,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
         }
       }
 
-      // Then add MusicKit items that aren't already in the list
       for (const item of musicKitItems) {
         const key = `${item.type}-${item.id}`;
         if (!seenIds.has(key)) {
@@ -464,24 +479,18 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
         }
       }
 
-      // Limit to 20 items
       const finalList = merged.slice(0, RECENTLY_PLAYED_MAX_ITEMS);
       setRecentlyPlayed(finalList);
     } catch (error) {
-      console.warn('[AppleMusicContext] Failed to load MusicKit recently played, falling back to local:', error);
-      // Fallback to local-only
-      try {
-        const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
-        if (stored) {
-          setRecentlyPlayed(JSON.parse(stored));
-        }
-      } catch {
-        // Ignore
+      console.warn('[AppleMusicContext] Failed to load MusicKit recently played (after retry), falling back to local:', error);
+      const localItems = await loadLocalRecentlyPlayed();
+      if (localItems.length > 0) {
+        setRecentlyPlayed(localItems);
       }
     } finally {
       setIsRecentlyPlayedLoading(false);
     }
-  }, [isIOS, authStatus]);
+  }, [isIOS, authStatus, loadLocalRecentlyPlayed, fetchMusicKitRecentlyPlayed]);
 
   /** Add an item to recently played (dedup + FIFO) */
   const addToRecentlyPlayed = useCallback(async (item: Omit<RecentlyPlayedItem, 'playedAt'>) => {
