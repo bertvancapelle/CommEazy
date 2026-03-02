@@ -732,6 +732,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Aparat",
     "photoAlbum": "Album zdjęć",
+    "askAI": "Zapytaj AI",
     "menu_button": "Przycisk menu",
     "menu_button_hint": "Dotknij, aby otworzyć menu nawigacji. Przytrzymaj, aby przenieść.",
     "drag_mode_enabled": "Tryb przeciągania aktywny. Przeciągnij przycisk w nowe miejsce.",
@@ -1428,6 +1429,45 @@
         "step2": "Dotknij 'Przeczytaj', aby usłyszeć pogodę",
         "step3": "Zapisz do 10 ulubionych lokalizacji",
         "understood": "Rozumiem"
+      }
+    },
+    "askAI": {
+      "title": "Zapytaj AI",
+      "welcome": {
+        "title": "Witaj w Zapytaj AI!",
+        "description": "Zadaj dowolne pytanie i otrzymaj jasną odpowiedź.",
+        "loginPrompt": "Aby rozpocząć, musisz jednorazowo zalogować się kontem Google.",
+        "loginButton": "Zaloguj się przez Google",
+        "loginHelp": "Twoje konto Google jest używane tylko do asystenta AI. CommEazy nie przechowuje Twoich danych."
+      },
+      "chat": {
+        "greeting": "Cześć! Śmiało zadaj pytanie. Chętnie Ci pomogę.",
+        "inputPlaceholder": "Zadaj pytanie...",
+        "sendButton": "Wyślij",
+        "thinking": "Myślę...",
+        "newConversation": "Nowa rozmowa",
+        "newConversationConfirm": "Czy chcesz rozpocząć nową rozmowę? Twoja obecna rozmowa zostanie zapisana.",
+        "history": "Poprzednie rozmowy",
+        "noHistory": "Nie masz jeszcze żadnych poprzednich rozmów.",
+        "deleteConversation": "Usuń rozmowę",
+        "deleteConversationConfirm": "Czy na pewno chcesz usunąć tę rozmowę?",
+        "clearAll": "Usuń wszystko",
+        "clearAllConfirm": "Czy na pewno chcesz usunąć wszystkie rozmowy? Tego nie można cofnąć."
+      },
+      "errors": {
+        "linkFailed": "Logowanie nie powiodło się. Spróbuj ponownie.",
+        "accountAlreadyLinked": "To konto Google jest już w użyciu. Spróbuj innego konta.",
+        "sendFailed": "Nie udało się wysłać pytania. Spróbuj ponownie.",
+        "networkError": "Brak połączenia z Internetem. Sprawdź połączenie i spróbuj ponownie.",
+        "rateLimited": "Poczekaj chwilę — zadałeś wiele pytań. Spróbuj ponownie za minutę.",
+        "tooLong": "Twoje pytanie jest za długie. Spróbuj zadać krótsze pytanie."
+      },
+      "a11y": {
+        "sendMessage": "Wyślij wiadomość",
+        "newConversation": "Rozpocznij nową rozmowę",
+        "viewHistory": "Zobacz poprzednie rozmowy",
+        "aiResponse": "Odpowiedź asystenta AI",
+        "userMessage": "Twoja wiadomość"
       }
     }
   },

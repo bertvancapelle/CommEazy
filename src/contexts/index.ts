@@ -169,3 +169,8 @@ export {
   type AirPlayPreset,
   type AirPlayOutput,
 } from './AirPlayContext';
+
+export {
+  AskAIProvider,
+  useAskAI,
+} from './AskAIContext';

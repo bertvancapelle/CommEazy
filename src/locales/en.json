@@ -825,6 +825,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Camera",
     "photoAlbum": "Photo Album",
+    "askAI": "Ask AI",
     "menu_button": "Menu button",
     "menu_button_hint": "Tap to open the navigation menu. Long press to reposition.",
     "drag_mode_enabled": "Drag mode active. Drag the button to a new position.",
@@ -1573,6 +1574,45 @@
       },
       "addToLibrary": "Add to library",
       "inLibrary": "In library"
+    },
+    "askAI": {
+      "title": "Ask AI",
+      "welcome": {
+        "title": "Welcome to Ask AI!",
+        "description": "Ask any question and get a clear answer.",
+        "loginPrompt": "To get started, you need to sign in with a Google account once.",
+        "loginButton": "Sign in with Google",
+        "loginHelp": "Your Google account is only used for the AI assistant. CommEazy does not store your data."
+      },
+      "chat": {
+        "greeting": "Hello! Feel free to ask a question. I'm happy to help.",
+        "inputPlaceholder": "Ask a question...",
+        "sendButton": "Send",
+        "thinking": "Thinking...",
+        "newConversation": "New conversation",
+        "newConversationConfirm": "Do you want to start a new conversation? Your current conversation will be saved.",
+        "history": "Previous conversations",
+        "noHistory": "You don't have any previous conversations yet.",
+        "deleteConversation": "Delete conversation",
+        "deleteConversationConfirm": "Are you sure you want to delete this conversation?",
+        "clearAll": "Delete all",
+        "clearAllConfirm": "Are you sure you want to delete all conversations? This cannot be undone."
+      },
+      "errors": {
+        "linkFailed": "Sign in failed. Please try again.",
+        "accountAlreadyLinked": "This Google account is already in use. Try a different account.",
+        "sendFailed": "Your question could not be sent. Please try again.",
+        "networkError": "No internet connection. Check your connection and try again.",
+        "rateLimited": "Please wait — you've asked many questions. Try again in a minute.",
+        "tooLong": "Your question is too long. Try asking a shorter question."
+      },
+      "a11y": {
+        "sendMessage": "Send message",
+        "newConversation": "Start new conversation",
+        "viewHistory": "View previous conversations",
+        "aiResponse": "AI assistant response",
+        "userMessage": "Your message"
+      }
     }
   },
   "articleViewer": {

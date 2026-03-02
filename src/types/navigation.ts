@@ -24,7 +24,8 @@ export type StaticNavigationDestination =
   | 'podcast'
   | 'radio'
   | 'books'
-  | 'weather';
+  | 'weather'
+  | 'askAI';      // Ask AI assistant module
 
 /**
  * Dynamic navigation destinations for country-specific modules
@@ -81,8 +82,12 @@ export type ModuleIconType =
   | 'headphones'
   | 'podcast'
   | 'radio'
-  | 'news'      // For country-specific news modules
-  | 'weather';  // Weather module
+  | 'news'        // For country-specific news modules
+  | 'weather'     // Weather module
+  | 'appleMusic'  // Apple Music module
+  | 'camera'      // Camera module
+  | 'image'       // Photo Album module
+  | 'chatbubble'; // Ask AI module
 
 // ============================================================
 // Module Definitions

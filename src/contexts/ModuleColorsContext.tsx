@@ -68,6 +68,7 @@ export const CUSTOMIZABLE_MODULES: ModuleColorId[] = [
   'appleMusic',
   'camera',
   'photoAlbum',
+  'askAI',
   'settings',
 ];
 
@@ -91,6 +92,7 @@ export const MODULE_LABELS: Record<ModuleColorId, string> = {
   appleMusic: 'navigation.appleMusic',
   camera: 'navigation.camera',
   photoAlbum: 'navigation.photoAlbum',
+  askAI: 'navigation.askAI',
   settings: 'navigation.settings',
   help: 'navigation.help',
   menu: 'navigation.menu',

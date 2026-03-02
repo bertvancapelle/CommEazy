@@ -696,6 +696,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Kamera",
     "photoAlbum": "Fotoalbum",
+    "askAI": "Spørg AI",
     "menu_button": "Menuknap",
     "menu_button_hint": "Tryk for at åbne navigationsmenuen.",
     "drag_mode_enabled": "Træk-tilstand aktiv.",
@@ -1393,6 +1394,45 @@
       },
       "addToLibrary": "Føj til biblioteket",
       "inLibrary": "I biblioteket"
+    },
+    "askAI": {
+      "title": "Spørg AI",
+      "welcome": {
+        "title": "Velkommen til Spørg AI!",
+        "description": "Stil ethvert spørgsmål og få et klart svar.",
+        "loginPrompt": "For at komme i gang skal du logge ind med en Google-konto én gang.",
+        "loginButton": "Log ind med Google",
+        "loginHelp": "Din Google-konto bruges kun til AI-assistenten. CommEazy gemmer ikke dine data."
+      },
+      "chat": {
+        "greeting": "Hej! Stil gerne et spørgsmål. Jeg hjælper dig gerne.",
+        "inputPlaceholder": "Stil et spørgsmål...",
+        "sendButton": "Send",
+        "thinking": "Tænker...",
+        "newConversation": "Ny samtale",
+        "newConversationConfirm": "Vil du starte en ny samtale? Din nuværende samtale gemmes.",
+        "history": "Tidligere samtaler",
+        "noHistory": "Du har ingen tidligere samtaler endnu.",
+        "deleteConversation": "Slet samtale",
+        "deleteConversationConfirm": "Er du sikker på, at du vil slette denne samtale?",
+        "clearAll": "Slet alle",
+        "clearAllConfirm": "Er du sikker på, at du vil slette alle samtaler? Dette kan ikke fortrydes."
+      },
+      "errors": {
+        "linkFailed": "Log ind mislykkedes. Prøv igen.",
+        "accountAlreadyLinked": "Denne Google-konto er allerede i brug. Prøv en anden konto.",
+        "sendFailed": "Dit spørgsmål kunne ikke sendes. Prøv igen.",
+        "networkError": "Ingen internetforbindelse. Tjek din forbindelse og prøv igen.",
+        "rateLimited": "Vent venligst — du har stillet mange spørgsmål. Prøv igen om et minut.",
+        "tooLong": "Dit spørgsmål er for langt. Prøv at stille et kortere spørgsmål."
+      },
+      "a11y": {
+        "sendMessage": "Send besked",
+        "newConversation": "Start ny samtale",
+        "viewHistory": "Se tidligere samtaler",
+        "aiResponse": "Svar fra AI-assistenten",
+        "userMessage": "Din besked"
+      }
     }
   },
   "articleViewer": {

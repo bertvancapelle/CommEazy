@@ -101,6 +101,7 @@ export type ModuleColorId =
   | 'appleMusic'   // Apple Music module
   | 'camera'       // Camera module (photo/video capture)
   | 'photoAlbum'   // Photo Album (view, send, delete photos)
+  | 'askAI'        // Ask AI assistant module
   | 'help'
   | 'menu';
 
@@ -243,6 +244,12 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   },
   photoAlbum: {
     moduleId: 'photoAlbum',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  askAI: {
+    moduleId: 'askAI',
     tintColor: DEFAULT_MODULE_BLUE,
     fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',

@@ -845,6 +845,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Câmera",
     "photoAlbum": "Álbum de fotos",
+    "askAI": "Pergunte à IA",
     "menu_button": "Botão de menu",
     "menu_button_hint": "Toque para abrir o menu de navegação. Pressione e segure para mover.",
     "drag_mode_enabled": "Modo de arrastar ativo. Arraste o botão para uma nova posição.",
@@ -1583,6 +1584,45 @@
       },
       "addToLibrary": "Adicionar à biblioteca",
       "inLibrary": "Na biblioteca"
+    },
+    "askAI": {
+      "title": "Pergunte à IA",
+      "welcome": {
+        "title": "Bem-vindo ao Pergunte à IA!",
+        "description": "Faça qualquer pergunta e obtenha uma resposta clara.",
+        "loginPrompt": "Para começar, você precisa fazer login com uma conta Google uma vez.",
+        "loginButton": "Entrar com Google",
+        "loginHelp": "Sua conta Google é usada apenas para o assistente de IA. O CommEazy não armazena seus dados."
+      },
+      "chat": {
+        "greeting": "Olá! Fique à vontade para fazer uma pergunta. Estou aqui para ajudar.",
+        "inputPlaceholder": "Faça uma pergunta...",
+        "sendButton": "Enviar",
+        "thinking": "Pensando...",
+        "newConversation": "Nova conversa",
+        "newConversationConfirm": "Quer iniciar uma nova conversa? Sua conversa atual será salva.",
+        "history": "Conversas anteriores",
+        "noHistory": "Você ainda não tem conversas anteriores.",
+        "deleteConversation": "Excluir conversa",
+        "deleteConversationConfirm": "Tem certeza de que deseja excluir esta conversa?",
+        "clearAll": "Excluir tudo",
+        "clearAllConfirm": "Tem certeza de que deseja excluir todas as conversas? Isso não pode ser desfeito."
+      },
+      "errors": {
+        "linkFailed": "Falha no login. Tente novamente.",
+        "accountAlreadyLinked": "Esta conta Google já está em uso. Tente outra conta.",
+        "sendFailed": "Sua pergunta não pôde ser enviada. Tente novamente.",
+        "networkError": "Sem conexão com a Internet. Verifique sua conexão e tente novamente.",
+        "rateLimited": "Aguarde um momento — você fez muitas perguntas. Tente novamente em um minuto.",
+        "tooLong": "Sua pergunta é muito longa. Tente fazer uma pergunta mais curta."
+      },
+      "a11y": {
+        "sendMessage": "Enviar mensagem",
+        "newConversation": "Iniciar nova conversa",
+        "viewHistory": "Ver conversas anteriores",
+        "aiResponse": "Resposta do assistente de IA",
+        "userMessage": "Sua mensagem"
+      }
     }
   },
   "articleViewer": {

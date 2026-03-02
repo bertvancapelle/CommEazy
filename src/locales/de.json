@@ -811,6 +811,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Kamera",
     "photoAlbum": "Fotoalbum",
+    "askAI": "Frag die KI",
     "menu_button": "Menü-Taste",
     "menu_button_hint": "Tippen zum Öffnen des Navigationsmenüs. Lang drücken zum Verschieben.",
     "drag_mode_enabled": "Verschiebemodus aktiv. Ziehe die Taste an eine neue Position.",
@@ -1557,6 +1558,45 @@
       },
       "addToLibrary": "Zur Mediathek hinzufügen",
       "inLibrary": "In der Mediathek"
+    },
+    "askAI": {
+      "title": "Frag die KI",
+      "welcome": {
+        "title": "Willkommen bei Frag die KI!",
+        "description": "Stellen Sie jede Frage und erhalten Sie eine klare Antwort.",
+        "loginPrompt": "Um zu beginnen, müssen Sie sich einmalig mit einem Google-Konto anmelden.",
+        "loginButton": "Mit Google anmelden",
+        "loginHelp": "Ihr Google-Konto wird nur für den KI-Assistenten verwendet. CommEazy speichert Ihre Daten nicht."
+      },
+      "chat": {
+        "greeting": "Hallo! Stellen Sie gerne eine Frage. Ich helfe Ihnen gern.",
+        "inputPlaceholder": "Stellen Sie eine Frage...",
+        "sendButton": "Senden",
+        "thinking": "Einen Moment...",
+        "newConversation": "Neues Gespräch",
+        "newConversationConfirm": "Möchten Sie ein neues Gespräch starten? Ihr aktuelles Gespräch wird gespeichert.",
+        "history": "Vorherige Gespräche",
+        "noHistory": "Sie haben noch keine vorherigen Gespräche.",
+        "deleteConversation": "Gespräch löschen",
+        "deleteConversationConfirm": "Sind Sie sicher, dass Sie dieses Gespräch löschen möchten?",
+        "clearAll": "Alle löschen",
+        "clearAllConfirm": "Sind Sie sicher, dass Sie alle Gespräche löschen möchten? Dies kann nicht rückgängig gemacht werden."
+      },
+      "errors": {
+        "linkFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+        "accountAlreadyLinked": "Dieses Google-Konto wird bereits verwendet. Versuchen Sie ein anderes Konto.",
+        "sendFailed": "Ihre Frage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+        "networkError": "Keine Internetverbindung. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+        "rateLimited": "Bitte warten — Sie haben viele Fragen gestellt. Versuchen Sie es in einer Minute erneut.",
+        "tooLong": "Ihre Frage ist zu lang. Versuchen Sie eine kürzere Frage zu stellen."
+      },
+      "a11y": {
+        "sendMessage": "Nachricht senden",
+        "newConversation": "Neues Gespräch starten",
+        "viewHistory": "Vorherige Gespräche anzeigen",
+        "aiResponse": "Antwort des KI-Assistenten",
+        "userMessage": "Ihre Nachricht"
+      }
     }
   },
   "articleViewer": {

@@ -73,6 +73,7 @@ import {
   AppleMusicScreen,
   CameraScreen,
   PhotoAlbumScreen,
+  AskAIScreen,
 } from '@/screens/modules';
 
 // Components
@@ -419,6 +420,8 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <CameraScreen />;
     case 'photoAlbum':
       return <PhotoAlbumScreen />;
+    case 'askAI':
+      return <AskAIScreen />;
     case 'help':
       return <PlaceholderScreen />;
 

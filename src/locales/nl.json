@@ -827,6 +827,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Camera",
     "photoAlbum": "Fotoalbum",
+    "askAI": "Vraag het AI",
     "menu_button": "Menu knop",
     "menu_button_hint": "Tik om het navigatiemenu te openen. Houd lang ingedrukt om te verplaatsen.",
     "drag_mode_enabled": "Sleepstand actief. Sleep de knop naar een nieuwe positie.",
@@ -1559,6 +1560,45 @@
       },
       "addToLibrary": "Voeg toe aan bibliotheek",
       "inLibrary": "In bibliotheek"
+    },
+    "askAI": {
+      "title": "Vraag het AI",
+      "welcome": {
+        "title": "Welkom bij Vraag het AI!",
+        "description": "Stel elke vraag en krijg een duidelijk antwoord.",
+        "loginPrompt": "Om te beginnen moet je eenmalig inloggen met een Google account.",
+        "loginButton": "Inloggen met Google",
+        "loginHelp": "Je Google account wordt alleen gebruikt voor de AI-assistent. CommEazy bewaart je gegevens niet."
+      },
+      "chat": {
+        "greeting": "Hallo! Stel gerust een vraag. Ik help je graag.",
+        "inputPlaceholder": "Stel een vraag...",
+        "sendButton": "Verstuur",
+        "thinking": "Even denken...",
+        "newConversation": "Nieuw gesprek",
+        "newConversationConfirm": "Wil je een nieuw gesprek starten? Je huidige gesprek wordt bewaard.",
+        "history": "Vorige gesprekken",
+        "noHistory": "Je hebt nog geen eerdere gesprekken.",
+        "deleteConversation": "Gesprek verwijderen",
+        "deleteConversationConfirm": "Weet je zeker dat je dit gesprek wilt verwijderen?",
+        "clearAll": "Alles verwijderen",
+        "clearAllConfirm": "Weet je zeker dat je alle gesprekken wilt verwijderen? Dit kan niet ongedaan worden."
+      },
+      "errors": {
+        "linkFailed": "Inloggen mislukt. Probeer het opnieuw.",
+        "accountAlreadyLinked": "Dit Google account is al in gebruik. Probeer een ander account.",
+        "sendFailed": "Je vraag kon niet worden verstuurd. Probeer het opnieuw.",
+        "networkError": "Geen internetverbinding. Controleer je verbinding en probeer het opnieuw.",
+        "rateLimited": "Even geduld — je hebt veel vragen gesteld. Probeer het over een minuutje opnieuw.",
+        "tooLong": "Je vraag is te lang. Probeer een kortere vraag te stellen."
+      },
+      "a11y": {
+        "sendMessage": "Verstuur bericht",
+        "newConversation": "Start nieuw gesprek",
+        "viewHistory": "Bekijk vorige gesprekken",
+        "aiResponse": "Antwoord van AI assistent",
+        "userMessage": "Jouw bericht"
+      }
     }
   },
   "articleViewer": {

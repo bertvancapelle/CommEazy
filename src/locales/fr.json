@@ -811,6 +811,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Appareil photo",
     "photoAlbum": "Album photos",
+    "askAI": "Demandez à l'IA",
     "menu_button": "Bouton menu",
     "menu_button_hint": "Appuyez pour ouvrir le menu. Appuyez longuement pour déplacer.",
     "drag_mode_enabled": "Mode déplacement actif. Faites glisser le bouton vers une nouvelle position.",
@@ -1557,6 +1558,45 @@
       },
       "addToLibrary": "Ajouter à la bibliothèque",
       "inLibrary": "Dans la bibliothèque"
+    },
+    "askAI": {
+      "title": "Demandez à l'IA",
+      "welcome": {
+        "title": "Bienvenue dans Demandez à l'IA !",
+        "description": "Posez n'importe quelle question et obtenez une réponse claire.",
+        "loginPrompt": "Pour commencer, vous devez vous connecter une fois avec un compte Google.",
+        "loginButton": "Se connecter avec Google",
+        "loginHelp": "Votre compte Google est uniquement utilisé pour l'assistant IA. CommEazy ne stocke pas vos données."
+      },
+      "chat": {
+        "greeting": "Bonjour ! N'hésitez pas à poser une question. Je suis là pour vous aider.",
+        "inputPlaceholder": "Posez une question...",
+        "sendButton": "Envoyer",
+        "thinking": "Réflexion en cours...",
+        "newConversation": "Nouvelle conversation",
+        "newConversationConfirm": "Voulez-vous commencer une nouvelle conversation ? Votre conversation actuelle sera sauvegardée.",
+        "history": "Conversations précédentes",
+        "noHistory": "Vous n'avez pas encore de conversations précédentes.",
+        "deleteConversation": "Supprimer la conversation",
+        "deleteConversationConfirm": "Êtes-vous sûr de vouloir supprimer cette conversation ?",
+        "clearAll": "Tout supprimer",
+        "clearAllConfirm": "Êtes-vous sûr de vouloir supprimer toutes les conversations ? Cette action est irréversible."
+      },
+      "errors": {
+        "linkFailed": "La connexion a échoué. Veuillez réessayer.",
+        "accountAlreadyLinked": "Ce compte Google est déjà utilisé. Essayez un autre compte.",
+        "sendFailed": "Votre question n'a pas pu être envoyée. Veuillez réessayer.",
+        "networkError": "Pas de connexion Internet. Vérifiez votre connexion et réessayez.",
+        "rateLimited": "Veuillez patienter — vous avez posé beaucoup de questions. Réessayez dans une minute.",
+        "tooLong": "Votre question est trop longue. Essayez de poser une question plus courte."
+      },
+      "a11y": {
+        "sendMessage": "Envoyer le message",
+        "newConversation": "Démarrer une nouvelle conversation",
+        "viewHistory": "Voir les conversations précédentes",
+        "aiResponse": "Réponse de l'assistant IA",
+        "userMessage": "Votre message"
+      }
     }
   },
   "articleViewer": {

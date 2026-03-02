@@ -696,6 +696,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Kamera",
     "photoAlbum": "Fotoalbum",
+    "askAI": "Fråga AI",
     "menu_button": "Menyknapp",
     "menu_button_hint": "Tryck för att öppna navigeringsmenyn.",
     "drag_mode_enabled": "Dra-läge aktivt.",
@@ -1393,6 +1394,45 @@
       },
       "addToLibrary": "Lägg till i biblioteket",
       "inLibrary": "I biblioteket"
+    },
+    "askAI": {
+      "title": "Fråga AI",
+      "welcome": {
+        "title": "Välkommen till Fråga AI!",
+        "description": "Ställ vilken fråga som helst och få ett tydligt svar.",
+        "loginPrompt": "För att komma igång behöver du logga in med ett Google-konto en gång.",
+        "loginButton": "Logga in med Google",
+        "loginHelp": "Ditt Google-konto används bara för AI-assistenten. CommEazy lagrar inte dina uppgifter."
+      },
+      "chat": {
+        "greeting": "Hej! Ställ gärna en fråga. Jag hjälper dig gärna.",
+        "inputPlaceholder": "Ställ en fråga...",
+        "sendButton": "Skicka",
+        "thinking": "Tänker...",
+        "newConversation": "Nytt samtal",
+        "newConversationConfirm": "Vill du starta ett nytt samtal? Ditt nuvarande samtal sparas.",
+        "history": "Tidigare samtal",
+        "noHistory": "Du har inga tidigare samtal ännu.",
+        "deleteConversation": "Ta bort samtal",
+        "deleteConversationConfirm": "Är du säker på att du vill ta bort det här samtalet?",
+        "clearAll": "Ta bort alla",
+        "clearAllConfirm": "Är du säker på att du vill ta bort alla samtal? Detta kan inte ångras."
+      },
+      "errors": {
+        "linkFailed": "Inloggningen misslyckades. Försök igen.",
+        "accountAlreadyLinked": "Det här Google-kontot används redan. Prova ett annat konto.",
+        "sendFailed": "Din fråga kunde inte skickas. Försök igen.",
+        "networkError": "Ingen internetanslutning. Kontrollera din anslutning och försök igen.",
+        "rateLimited": "Vänta lite — du har ställt många frågor. Försök igen om en minut.",
+        "tooLong": "Din fråga är för lång. Försök att ställa en kortare fråga."
+      },
+      "a11y": {
+        "sendMessage": "Skicka meddelande",
+        "newConversation": "Starta nytt samtal",
+        "viewHistory": "Visa tidigare samtal",
+        "aiResponse": "Svar från AI-assistenten",
+        "userMessage": "Ditt meddelande"
+      }
     }
   },
   "articleViewer": {

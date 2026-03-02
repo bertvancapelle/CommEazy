@@ -741,6 +741,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Kamera",
     "photoAlbum": "Fotoalbum",
+    "askAI": "Spør KI",
     "menu_button": "Menyknapp",
     "menu_button_hint": "Trykk for å åpne navigasjonsmenyen. Hold lenge for å flytte.",
     "drag_mode_enabled": "Dra-modus aktiv. Dra knappen til en ny posisjon.",
@@ -1438,6 +1439,45 @@
       },
       "addToLibrary": "Legg til i biblioteket",
       "inLibrary": "I biblioteket"
+    },
+    "askAI": {
+      "title": "Spør KI",
+      "welcome": {
+        "title": "Velkommen til Spør KI!",
+        "description": "Still et spørsmål og få et tydelig svar.",
+        "loginPrompt": "For å komme i gang, må du logge inn med en Google-konto én gang.",
+        "loginButton": "Logg inn med Google",
+        "loginHelp": "Google-kontoen din brukes kun til KI-assistenten. CommEazy lagrer ikke dataene dine."
+      },
+      "chat": {
+        "greeting": "Hei! Still gjerne et spørsmål. Jeg hjelper deg gjerne.",
+        "inputPlaceholder": "Still et spørsmål...",
+        "sendButton": "Send",
+        "thinking": "Tenker...",
+        "newConversation": "Ny samtale",
+        "newConversationConfirm": "Vil du starte en ny samtale? Din nåværende samtale blir lagret.",
+        "history": "Tidligere samtaler",
+        "noHistory": "Du har ingen tidligere samtaler ennå.",
+        "deleteConversation": "Slett samtale",
+        "deleteConversationConfirm": "Er du sikker på at du vil slette denne samtalen?",
+        "clearAll": "Slett alle",
+        "clearAllConfirm": "Er du sikker på at du vil slette alle samtaler? Dette kan ikke angres."
+      },
+      "errors": {
+        "linkFailed": "Innlogging mislyktes. Prøv igjen.",
+        "accountAlreadyLinked": "Denne Google-kontoen er allerede i bruk. Prøv en annen konto.",
+        "sendFailed": "Spørsmålet ditt kunne ikke sendes. Prøv igjen.",
+        "networkError": "Ingen internettforbindelse. Sjekk tilkoblingen din og prøv igjen.",
+        "rateLimited": "Vent litt — du har stilt mange spørsmål. Prøv igjen om et minutt.",
+        "tooLong": "Spørsmålet ditt er for langt. Prøv å stille et kortere spørsmål."
+      },
+      "a11y": {
+        "sendMessage": "Send melding",
+        "newConversation": "Start ny samtale",
+        "viewHistory": "Vis tidligere samtaler",
+        "aiResponse": "Svar fra KI-assistenten",
+        "userMessage": "Din melding"
+      }
     }
   },
   "articleViewer": {

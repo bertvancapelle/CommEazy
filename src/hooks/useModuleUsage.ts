@@ -59,6 +59,7 @@ export const ALL_MODULES: NavigationDestination[] = [
   'appleMusic',  // Apple Music integration
   'camera',      // Camera module (photo/video capture)
   'photoAlbum',  // Photo Album (view, send, delete photos)
+  'askAI',       // Ask AI assistant module
   'settings',
   'help',
 ];
@@ -78,6 +79,7 @@ const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'appleMusic',  // Apple Music integration
   'books',       // Books - e-books from Gutenberg with optional TTS
   'podcast',     // Podcasts
+  'askAI',       // Ask AI assistant
   'settings',    // Settings
   'help',        // Help
 ];

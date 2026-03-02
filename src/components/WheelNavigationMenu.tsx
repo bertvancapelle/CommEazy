@@ -62,7 +62,8 @@ export type StaticNavigationDestination =
   | 'weather'
   | 'appleMusic'   // Apple Music integration
   | 'camera'       // Camera module (photo/video capture)
-  | 'photoAlbum';  // Photo Album (view, send, delete photos)
+  | 'photoAlbum'   // Photo Album (view, send, delete photos)
+  | 'askAI';       // Ask AI assistant module
 
 // Dynamic navigation destinations for country-specific modules
 // Format: 'module:{moduleId}' (e.g., 'module:nunl')
@@ -100,7 +101,8 @@ export type ModuleIconType =
   | 'weather'     // Weather module
   | 'appleMusic'  // Apple Music module
   | 'camera'      // Camera module
-  | 'image';      // Photo Album module
+  | 'image'       // Photo Album module
+  | 'chatbubble'; // Ask AI module
 
 /**
  * Map ModuleIconType to IconName for unified SVG icons
@@ -140,6 +142,8 @@ function mapModuleIconToIconName(type: ModuleIconType): IconName {
       return 'camera';
     case 'image':
       return 'image';
+    case 'chatbubble':
+      return 'chatbubble';
     default:
       return 'info'; // fallback
   }
@@ -169,6 +173,7 @@ const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<Module
   appleMusic: { labelKey: 'navigation.appleMusic', icon: 'appleMusic' },
   camera: { labelKey: 'navigation.camera', icon: 'camera' },
   photoAlbum: { labelKey: 'navigation.photoAlbum', icon: 'image' },
+  askAI: { labelKey: 'navigation.askAI', icon: 'chatbubble' },
   settings: { labelKey: 'navigation.settings', icon: 'settings' },
   help: { labelKey: 'navigation.help', icon: 'help' },
 };

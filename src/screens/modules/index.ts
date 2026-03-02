@@ -25,3 +25,6 @@ export { WeatherScreen } from './WeatherScreen';
 // Media modules (photo/video)
 export { CameraScreen } from './CameraScreen';
 export { PhotoAlbumScreen } from './PhotoAlbumScreen';
+
+// AI modules
+export { AskAIScreen } from './AskAIScreen';

@@ -815,6 +815,7 @@
     "appleMusic": "Apple Music ®",
     "camera": "Fotocamera",
     "photoAlbum": "Album fotografico",
+    "askAI": "Chiedi all'IA",
     "menu_button": "Pulsante menu",
     "menu_button_hint": "Tocca per aprire il menu di navigazione. Tieni premuto per spostare.",
     "drag_mode_enabled": "Modalità trascinamento attiva. Trascina il pulsante in una nuova posizione.",
@@ -1512,6 +1513,45 @@
       },
       "addToLibrary": "Aggiungi alla libreria",
       "inLibrary": "Nella libreria"
+    },
+    "askAI": {
+      "title": "Chiedi all'IA",
+      "welcome": {
+        "title": "Benvenuto in Chiedi all'IA!",
+        "description": "Fai qualsiasi domanda e ottieni una risposta chiara.",
+        "loginPrompt": "Per iniziare, devi accedere una volta con un account Google.",
+        "loginButton": "Accedi con Google",
+        "loginHelp": "Il tuo account Google viene utilizzato solo per l'assistente IA. CommEazy non memorizza i tuoi dati."
+      },
+      "chat": {
+        "greeting": "Ciao! Non esitare a fare una domanda. Sono qui per aiutarti.",
+        "inputPlaceholder": "Fai una domanda...",
+        "sendButton": "Invia",
+        "thinking": "Sto pensando...",
+        "newConversation": "Nuova conversazione",
+        "newConversationConfirm": "Vuoi iniziare una nuova conversazione? La conversazione attuale verrà salvata.",
+        "history": "Conversazioni precedenti",
+        "noHistory": "Non hai ancora conversazioni precedenti.",
+        "deleteConversation": "Elimina conversazione",
+        "deleteConversationConfirm": "Sei sicuro di voler eliminare questa conversazione?",
+        "clearAll": "Elimina tutto",
+        "clearAllConfirm": "Sei sicuro di voler eliminare tutte le conversazioni? Questa azione non può essere annullata."
+      },
+      "errors": {
+        "linkFailed": "Accesso non riuscito. Riprova.",
+        "accountAlreadyLinked": "Questo account Google è già in uso. Prova un altro account.",
+        "sendFailed": "La tua domanda non è stata inviata. Riprova.",
+        "networkError": "Nessuna connessione Internet. Controlla la connessione e riprova.",
+        "rateLimited": "Attendi un momento — hai fatto molte domande. Riprova tra un minuto.",
+        "tooLong": "La tua domanda è troppo lunga. Prova a fare una domanda più breve."
+      },
+      "a11y": {
+        "sendMessage": "Invia messaggio",
+        "newConversation": "Inizia nuova conversazione",
+        "viewHistory": "Visualizza conversazioni precedenti",
+        "aiResponse": "Risposta dell'assistente IA",
+        "userMessage": "Il tuo messaggio"
+      }
     }
   },
   "articleViewer": {
