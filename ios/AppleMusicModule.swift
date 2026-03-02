@@ -1784,18 +1784,19 @@ class AppleMusicModule: RCTEventEmitter {
     // MARK: - Recently Played (MusicKit API — Apple Music ecosystem history)
     // ============================================================
 
-    /// Get recently played containers (albums, playlists, stations) from Apple Music.
-    /// Uses MusicRecentlyPlayedContainerRequest which returns what the user sees
-    /// in Apple Music's own "Recently Played" section — containers, not individual songs.
+    /// Get recently played items from Apple Music.
+    /// Tries MusicRecentlyPlayedContainerRequest first (albums, playlists, stations).
+    /// Falls back to MusicRecentlyPlayedRequest<Song> if containers fail (iOS beta compatibility).
     @objc
     func getRecentlyPlayed(_ limit: Int,
                             resolve: @escaping RCTPromiseResolveBlock,
                             reject: @escaping RCTPromiseRejectBlock) {
         Task {
-            do {
-                NSLog("[AppleMusicModule] getRecentlyPlayed: fetching \(limit) recently played containers")
-                let startTime = CFAbsoluteTimeGetCurrent()
+            let startTime = CFAbsoluteTimeGetCurrent()
 
+            // Strategy 1: Try container-based API (albums, playlists, stations)
+            do {
+                NSLog("[AppleMusicModule] getRecentlyPlayed: trying container API (limit: \(limit))")
                 var request = MusicRecentlyPlayedContainerRequest()
                 request.limit = limit
                 let response = try await request.response()
@@ -1805,14 +1806,74 @@ class AppleMusicModule: RCTEventEmitter {
                 }
 
                 let duration = CFAbsoluteTimeGetCurrent() - startTime
-                NSLog("[AppleMusicModule] getRecentlyPlayed: fetched \(containers.count) containers in \(String(format: "%.2f", duration))s")
+                NSLog("[AppleMusicModule] getRecentlyPlayed: container API returned \(containers.count) items in \(String(format: "%.2f", duration))s")
 
                 resolve([
                     "items": containers,
                     "total": containers.count,
                 ])
+                return
             } catch {
-                NSLog("[AppleMusicModule] getRecentlyPlayed failed: \(error.localizedDescription)")
+                NSLog("[AppleMusicModule] getRecentlyPlayed: container API failed (\(error.localizedDescription)), trying song fallback")
+            }
+
+            // Strategy 2: Fall back to song-based API, group by album
+            do {
+                var songRequest = MusicRecentlyPlayedRequest<Song>()
+                songRequest.limit = min(limit * 3, 30) // Fetch more songs to get enough unique albums
+                let songResponse = try await songRequest.response()
+
+                // Group songs by album to create container-like entries
+                var seenAlbums = Set<String>()
+                var items: [[String: Any]] = []
+
+                for song in songResponse.items {
+                    let albumId = song.albums?.first?.id.rawValue ?? ""
+                    let albumKey = albumId.isEmpty ? "song-\(song.id.rawValue)" : albumId
+
+                    guard !seenAlbums.contains(albumKey) else { continue }
+                    seenAlbums.insert(albumKey)
+
+                    var artworkUrl = ""
+                    if let artwork = song.artwork,
+                       let url = artwork.url(width: 300, height: 300) {
+                        artworkUrl = url.httpURLString
+                    }
+
+                    if !albumId.isEmpty {
+                        // Song belongs to an album — return as album type
+                        items.append([
+                            "type": "album",
+                            "id": albumId,
+                            "title": song.albumTitle ?? song.title,
+                            "subtitle": song.artistName,
+                            "artworkUrl": artworkUrl,
+                            "trackCount": 0,
+                        ])
+                    } else {
+                        // Single/station song — return as song type
+                        items.append([
+                            "type": "song",
+                            "id": song.id.rawValue,
+                            "title": song.title,
+                            "subtitle": song.artistName,
+                            "artworkUrl": artworkUrl,
+                            "trackCount": 0,
+                        ])
+                    }
+
+                    if items.count >= limit { break }
+                }
+
+                let duration = CFAbsoluteTimeGetCurrent() - startTime
+                NSLog("[AppleMusicModule] getRecentlyPlayed: song fallback returned \(items.count) items in \(String(format: "%.2f", duration))s")
+
+                resolve([
+                    "items": items,
+                    "total": items.count,
+                ])
+            } catch {
+                NSLog("[AppleMusicModule] getRecentlyPlayed: both strategies failed: \(error.localizedDescription)")
                 reject("RECENTLY_PLAYED_ERROR", "Failed to get recently played: \(error.localizedDescription)", error)
             }
         }

@@ -149,9 +149,9 @@ export interface PlatformCapabilities {
   appInstalled: boolean;      // Apple Music app installed (Android)
 }
 
-// Recently played container (MusicKit API returns albums/playlists/stations)
+// Recently played item (container API returns albums/playlists/stations; song fallback returns songs)
 export interface RecentlyPlayedItem {
-  type: 'album' | 'playlist' | 'station';
+  type: 'album' | 'playlist' | 'station' | 'song';
   id: string;
   title: string;
   subtitle: string;    // artist name or curator name
@@ -394,8 +394,8 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Recently Played (MusicKit API + local AsyncStorage supplement)
   // ============================================================
 
-  // Valid container types for recently played (filters out legacy 'song' entries)
-  const VALID_RECENTLY_PLAYED_TYPES = new Set(['album', 'playlist', 'station']);
+  // Valid types for recently played (container API returns album/playlist/station; song fallback returns song)
+  const VALID_RECENTLY_PLAYED_TYPES = new Set(['album', 'playlist', 'station', 'song']);
 
   /** Load recently played items from AsyncStorage, filtering out legacy song-type entries */
   const loadLocalRecentlyPlayed = useCallback(async (): Promise<RecentlyPlayedItem[]> => {
@@ -412,32 +412,21 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     return [];
   }, []);
 
-  /** Fetch recently played containers from MusicKit API with one retry on failure */
+  /** Fetch recently played from MusicKit API (native code tries containers first, falls back to songs) */
   const fetchMusicKitRecentlyPlayed = useCallback(async (): Promise<RecentlyPlayedItem[]> => {
-    const attemptFetch = async () => {
-      const response = await AppleMusicModule!.getRecentlyPlayed(20);
-      return (response.items || []).map(
-        (container: any, index: number) => ({
-          type: (container.type || 'album') as RecentlyPlayedItem['type'],
-          id: container.id,
-          title: container.title || '',
-          subtitle: container.subtitle || '',
-          artworkUrl: container.artworkUrl || '',
-          trackCount: container.trackCount || 0,
-          playedAt: Date.now() - index * 60000,
-          source: 'musickit' as const,
-        })
-      );
-    };
-
-    try {
-      return await attemptFetch();
-    } catch (firstError) {
-      // MusicKit API can fail intermittently (error 1) — retry once after short delay
-      console.info('[AppleMusicContext] MusicKit recently played first attempt failed, retrying...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return await attemptFetch();
-    }
+    const response = await AppleMusicModule!.getRecentlyPlayed(20);
+    return (response.items || []).map(
+      (item: any, index: number) => ({
+        type: (item.type || 'album') as RecentlyPlayedItem['type'],
+        id: item.id,
+        title: item.title || '',
+        subtitle: item.subtitle || '',
+        artworkUrl: item.artworkUrl || '',
+        trackCount: item.trackCount || 0,
+        playedAt: Date.now() - index * 60000,
+        source: 'musickit' as const,
+      })
+    );
   }, []);
 
   /** Load recently played: MusicKit API first, then merge with local tracking */
@@ -482,7 +471,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       const finalList = merged.slice(0, RECENTLY_PLAYED_MAX_ITEMS);
       setRecentlyPlayed(finalList);
     } catch (error) {
-      console.warn('[AppleMusicContext] Failed to load MusicKit recently played (after retry), falling back to local:', error);
+      console.warn('[AppleMusicContext] Failed to load MusicKit recently played, falling back to local:', error);
       const localItems = await loadLocalRecentlyPlayed();
       if (localItems.length > 0) {
         setRecentlyPlayed(localItems);

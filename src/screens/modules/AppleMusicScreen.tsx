@@ -744,8 +744,10 @@ export function AppleMusicScreen() {
       void playPlaylist(item.id);
     } else if (item.type === 'station') {
       void playStation(item.id);
+    } else if (item.type === 'song') {
+      void playSong(item.id, item.artworkUrl);
     }
-  }, [triggerFeedback, playPlaylist, playStation]);
+  }, [triggerFeedback, playPlaylist, playStation, playSong]);
 
   const handleSearch = useCallback(async () => {
     const trimmedQuery = searchQuery.trim();
