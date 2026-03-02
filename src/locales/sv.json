@@ -1313,6 +1313,12 @@
         "noResults": "Ingen musik hittades",
         "error": "Sökning misslyckades. Försök igen."
       },
+      "discovery": {
+        "recentlyPlayed": "Nyligen spelat",
+        "popularNow": "Populärt nu",
+        "fromLibrary": "Från ditt bibliotek",
+        "emptyHint": "Sök efter musik eller spela något för att se förslag här"
+      },
       "library": {
         "songs": "Låtar",
         "artists": "Artister",

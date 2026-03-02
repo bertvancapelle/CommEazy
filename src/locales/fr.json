@@ -1477,6 +1477,12 @@
         "noResults": "Aucune musique trouvée",
         "error": "Échec de la recherche. Veuillez réessayer."
       },
+      "discovery": {
+        "recentlyPlayed": "Écoutés récemment",
+        "popularNow": "Populaire maintenant",
+        "fromLibrary": "De votre bibliothèque",
+        "emptyHint": "Recherchez de la musique ou écoutez quelque chose pour voir des suggestions ici"
+      },
       "library": {
         "songs": "Morceaux",
         "artists": "Artistes",

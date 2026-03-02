@@ -543,11 +543,32 @@ class AppleMusicModule: RCTEventEmitter {
 
                 NSLog("[AppleMusicModule] Found library song: '\(song.title)' by \(song.artistName)")
 
-                // Set queue and play
-                player.queue = [song]
-                try await player.play()
+                // Use ApplicationMusicPlayer.Queue for proper queue setup
+                player.queue = ApplicationMusicPlayer.Queue(for: [song])
 
-                NSLog("[AppleMusicModule] Library song playing successfully")
+                do {
+                    try await player.play()
+                    NSLog("[AppleMusicModule] Library song playing successfully")
+                } catch {
+                    // ApplicationMusicPlayer can fail on library-only songs (not in Apple Music catalog).
+                    // Fallback: try to find the catalog equivalent by title + artist and play that instead.
+                    NSLog("[AppleMusicModule] ApplicationMusicPlayer failed for library song, trying catalog fallback: \(error.localizedDescription)")
+
+                    let catalogRequest = MusicCatalogSearchRequest(term: "\(song.artistName) \(song.title)", types: [Song.self])
+                    let catalogResponse = try await catalogRequest.response()
+
+                    if let catalogSong = catalogResponse.songs.first(where: {
+                        $0.title.lowercased() == song.title.lowercased() &&
+                        $0.artistName.lowercased() == song.artistName.lowercased()
+                    }) ?? catalogResponse.songs.first {
+                        NSLog("[AppleMusicModule] Found catalog equivalent: '\(catalogSong.title)' by \(catalogSong.artistName)")
+                        player.queue = ApplicationMusicPlayer.Queue(for: [catalogSong])
+                        try await player.play()
+                        NSLog("[AppleMusicModule] Catalog fallback playing successfully")
+                    } else {
+                        throw error  // Re-throw original error if no catalog match found
+                    }
+                }
 
                 // Start time update timer immediately after successful play
                 DispatchQueue.main.async { [weak self] in

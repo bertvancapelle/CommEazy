@@ -1432,6 +1432,12 @@
         "noResults": "Nessuna musica trovata",
         "error": "Ricerca fallita. Riprova."
       },
+      "discovery": {
+        "recentlyPlayed": "Ascoltati di recente",
+        "popularNow": "Popolari ora",
+        "fromLibrary": "Dalla tua libreria",
+        "emptyHint": "Cerca musica o riproduci qualcosa per vedere suggerimenti qui"
+      },
       "library": {
         "songs": "Brani",
         "artists": "Artisti",

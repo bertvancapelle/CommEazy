@@ -1313,6 +1313,12 @@
         "noResults": "Ingen musik fundet",
         "error": "Søgning mislykkedes. Prøv igen."
       },
+      "discovery": {
+        "recentlyPlayed": "Afspillet for nylig",
+        "popularNow": "Populært nu",
+        "fromLibrary": "Fra dit bibliotek",
+        "emptyHint": "Søg efter musik eller afspil noget for at se forslag her"
+      },
       "library": {
         "songs": "Sange",
         "artists": "Kunstnere",

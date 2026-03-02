@@ -31,6 +31,7 @@ import {
   Platform,
   AccessibilityInfo,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
 import { useAudioOrchestrator } from './AudioOrchestratorContext';
@@ -148,6 +149,16 @@ export interface PlatformCapabilities {
   appInstalled: boolean;      // Apple Music app installed (Android)
 }
 
+// Recently played item (locally tracked, since MusicKit has no recently played API)
+export interface RecentlyPlayedItem {
+  type: 'song' | 'album' | 'playlist';
+  id: string;
+  title: string;
+  subtitle: string;    // artist name or curator name
+  artworkUrl: string;
+  playedAt: number;    // timestamp (ms)
+}
+
 // Library cache structure
 export interface LibraryCache {
   songs: AppleMusicSong[];
@@ -239,6 +250,18 @@ export interface AppleMusicContextValue {
   openAppleMusicApp: () => Promise<void>;
   openContent: (type: 'song' | 'album' | 'playlist' | 'artist', id: string) => Promise<void>;
 
+  // Discovery: Recently Played (locally tracked)
+  recentlyPlayed: RecentlyPlayedItem[];
+  isRecentlyPlayedLoading: boolean;
+
+  // Discovery: Top Charts
+  topCharts: SearchResults | null;
+  isTopChartsLoading: boolean;
+  loadTopCharts: () => Promise<void>;
+
+  // Discovery: Recent Library Items
+  recentLibraryItems: AppleMusicSong[];
+
   // Player visibility
   showPlayer: boolean;
   setShowPlayer: (show: boolean) => void;
@@ -249,6 +272,10 @@ export interface AppleMusicContextValue {
 // ============================================================
 
 const { AppleMusicModule } = NativeModules;
+
+// Storage key for recently played items
+const RECENTLY_PLAYED_STORAGE_KEY = '@commeazy/apple-music-recently-played';
+const RECENTLY_PLAYED_MAX_ITEMS = 20;
 
 // ============================================================
 // Context
@@ -297,6 +324,14 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   });
   const [isLibraryCacheLoading, setIsLibraryCacheLoading] = useState(false);
 
+  // Discovery: Recently Played (locally tracked via AsyncStorage)
+  const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>([]);
+  const [isRecentlyPlayedLoading, setIsRecentlyPlayedLoading] = useState(true);
+
+  // Discovery: Top Charts (cached from API)
+  const [topCharts, setTopCharts] = useState<SearchResults | null>(null);
+  const [isTopChartsLoading, setIsTopChartsLoading] = useState(false);
+
   // Track when app went to background for refresh logic
   const lastBackgroundTimeRef = useRef<number | null>(null);
 
@@ -305,6 +340,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   const isPlaying = playbackState?.status === 'playing';
   const shuffleMode = playbackState?.shuffleMode ?? 'off';
   const repeatMode = playbackState?.repeatMode ?? 'off';
+
+  // Discovery: Recent library items (sorted by dateAdded — most recent first)
+  // Since MusicKit doesn't expose dateAdded in JS, we use the cache order (newest first from native)
+  const recentLibraryItems = useMemo(() => {
+    return libraryCache.songs.slice(0, 10);
+  }, [libraryCache.songs]);
 
   // Effective artwork URL: prefer cached URL from search results over MusicKit queue URL
   // MusicKit queue entries often have musicKit:// URLs that don't work in React Native
@@ -332,6 +373,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Native Event Listener (iOS only)
   // ============================================================
 
+  // Refs for stable access inside event listeners
+  const addToRecentlyPlayedRef = useRef(addToRecentlyPlayed);
+  addToRecentlyPlayedRef.current = addToRecentlyPlayed;
+  const artworkCacheRef = useRef(artworkCache);
+  artworkCacheRef.current = artworkCache;
+
   useEffect(() => {
     if (!isIOS || !AppleMusicModule) return;
 
@@ -358,6 +405,19 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       (item: AppleMusicSong | null) => {
         console.log('[AppleMusicContext] Now playing changed:', item?.title, 'artworkUrl:', item?.artworkUrl);
         setNowPlaying(item);
+
+        // Track as recently played (locally, since MusicKit has no recently played API)
+        if (item) {
+          const artworkUrl = artworkCacheRef.current.get(item.id)
+            || (item.artworkUrl?.startsWith('https://') ? item.artworkUrl : '');
+          addToRecentlyPlayedRef.current({
+            type: 'song',
+            id: item.id,
+            title: item.title,
+            subtitle: item.artistName,
+            artworkUrl,
+          });
+        }
       }
     );
 
@@ -384,6 +444,73 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       authSubscription.remove();
     };
   }, [isIOS]);
+
+  // ============================================================
+  // Recently Played Tracking (AsyncStorage, max 20, FIFO + dedup)
+  // ============================================================
+
+  /** Load recently played items from AsyncStorage */
+  const loadRecentlyPlayed = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem(RECENTLY_PLAYED_STORAGE_KEY);
+      if (stored) {
+        const items: RecentlyPlayedItem[] = JSON.parse(stored);
+        setRecentlyPlayed(items);
+      }
+    } catch (error) {
+      console.warn('[AppleMusicContext] Failed to load recently played:', error);
+    } finally {
+      setIsRecentlyPlayedLoading(false);
+    }
+  }, []);
+
+  /** Add an item to recently played (dedup + FIFO) */
+  const addToRecentlyPlayed = useCallback(async (item: Omit<RecentlyPlayedItem, 'playedAt'>) => {
+    try {
+      setRecentlyPlayed((prev) => {
+        // Remove existing entry with same id+type (dedup — replay moves to top)
+        const filtered = prev.filter((p) => !(p.id === item.id && p.type === item.type));
+        // Add new entry at the front
+        const updated = [{ ...item, playedAt: Date.now() }, ...filtered].slice(0, RECENTLY_PLAYED_MAX_ITEMS);
+        // Persist asynchronously
+        AsyncStorage.setItem(RECENTLY_PLAYED_STORAGE_KEY, JSON.stringify(updated)).catch((err) => {
+          console.warn('[AppleMusicContext] Failed to save recently played:', err);
+        });
+        return updated;
+      });
+    } catch (error) {
+      console.warn('[AppleMusicContext] Failed to add to recently played:', error);
+    }
+  }, []);
+
+  // Load recently played on mount
+  useEffect(() => {
+    void loadRecentlyPlayed();
+  }, [loadRecentlyPlayed]);
+
+  // ============================================================
+  // Top Charts (cached from API, loaded on demand)
+  // ============================================================
+
+  const loadTopCharts = useCallback(async () => {
+    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
+      return;
+    }
+
+    // Skip if already loaded or loading
+    if (topCharts || isTopChartsLoading) return;
+
+    setIsTopChartsLoading(true);
+    try {
+      const charts = await AppleMusicModule.getTopCharts(['songs', 'albums', 'playlists'], 10);
+      setTopCharts(charts);
+      console.log('[AppleMusicContext] Top charts loaded');
+    } catch (error) {
+      console.warn('[AppleMusicContext] Failed to load top charts:', error);
+    } finally {
+      setIsTopChartsLoading(false);
+    }
+  }, [isIOS, authStatus, topCharts, isTopChartsLoading]);
 
   // ============================================================
   // Initialization
@@ -1197,6 +1324,18 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       openAppleMusicApp,
       openContent,
 
+      // Discovery: Recently Played
+      recentlyPlayed,
+      isRecentlyPlayedLoading,
+
+      // Discovery: Top Charts
+      topCharts,
+      isTopChartsLoading,
+      loadTopCharts,
+
+      // Discovery: Recent Library Items
+      recentLibraryItems,
+
       // Player visibility
       showPlayer,
       setShowPlayer,
@@ -1252,6 +1391,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       openPlayStore,
       openAppleMusicApp,
       openContent,
+      recentlyPlayed,
+      isRecentlyPlayedLoading,
+      topCharts,
+      isTopChartsLoading,
+      loadTopCharts,
+      recentLibraryItems,
       showPlayer,
     ]
   );

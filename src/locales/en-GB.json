@@ -1481,6 +1481,12 @@
         "noResults": "No music found",
         "error": "Search failed. Please try again."
       },
+      "discovery": {
+        "recentlyPlayed": "Recently Played",
+        "popularNow": "Popular Now",
+        "fromLibrary": "From Your Library",
+        "emptyHint": "Search for music or play something to see suggestions here"
+      },
       "library": {
         "songs": "Songs",
         "artists": "Artists",

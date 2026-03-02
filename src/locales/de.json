@@ -1477,6 +1477,12 @@
         "noResults": "Keine Musik gefunden",
         "error": "Suche fehlgeschlagen. Bitte erneut versuchen."
       },
+      "discovery": {
+        "recentlyPlayed": "Zuletzt gespielt",
+        "popularNow": "Gerade beliebt",
+        "fromLibrary": "Aus deiner Bibliothek",
+        "emptyHint": "Suche nach Musik oder spiele etwas ab, um hier Vorschläge zu sehen"
+      },
       "library": {
         "songs": "Titel",
         "artists": "Interpreten",

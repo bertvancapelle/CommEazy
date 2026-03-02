@@ -1358,6 +1358,12 @@
         "noResults": "Ingen musikk funnet",
         "error": "Søk mislyktes. Prøv igjen."
       },
+      "discovery": {
+        "recentlyPlayed": "Nylig spilt",
+        "popularNow": "Populært nå",
+        "fromLibrary": "Fra biblioteket ditt",
+        "emptyHint": "Søk etter musikk eller spill noe for å se forslag her"
+      },
       "library": {
         "songs": "Sanger",
         "artists": "Artister",

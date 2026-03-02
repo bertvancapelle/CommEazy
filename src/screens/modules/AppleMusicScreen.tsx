@@ -65,6 +65,7 @@ import {
   type SearchResults,
   type LibraryCounts,
   type LibraryCache,
+  type RecentlyPlayedItem,
 } from '@/contexts/AppleMusicContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -161,6 +162,13 @@ export function AppleMusicScreen() {
     isLibraryCacheLoading,
     // Queue
     queue,
+    // Discovery
+    recentlyPlayed,
+    isRecentlyPlayedLoading,
+    topCharts: topChartsData,
+    isTopChartsLoading,
+    loadTopCharts,
+    recentLibraryItems,
   } = useAppleMusicContext();
 
   // Sleep timer hook - shared logic for all audio modules
@@ -1245,6 +1253,174 @@ export function AppleMusicScreen() {
     }
   };
 
+  // Show discovery when search tab is open but no search results yet
+  const showDiscovery = !isSearching && !hasAnyResults && !searchQuery;
+
+  // Load top charts when discovery becomes visible
+  useEffect(() => {
+    if (showDiscovery && activeTab === 'search' && isAuthorized) {
+      void loadTopCharts();
+    }
+  }, [showDiscovery, activeTab, isAuthorized, loadTopCharts]);
+
+  // Render discovery sections (shown before user searches)
+  const renderDiscoverySections = () => (
+    <ScrollView
+      style={styles.resultsList}
+      contentContainerStyle={[
+        styles.resultsContent,
+        { paddingBottom: bottomPadding + insets.bottom },
+      ]}
+    >
+      {/* Layer 1: Recently Played */}
+      {recentlyPlayed.length > 0 && (
+        <View style={styles.discoverySection}>
+          <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.discovery.recentlyPlayed')}
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.discoveryRow}>
+            {recentlyPlayed.slice(0, 10).map((item) => (
+              <TouchableOpacity
+                key={`${item.type}-${item.id}`}
+                style={[styles.discoveryCard, { backgroundColor: themeColors.surface }]}
+                onPress={() => {
+                  triggerFeedback('tap');
+                  if (item.type === 'song') {
+                    void playSong(item.id, item.artworkUrl);
+                  } else if (item.type === 'album') {
+                    void playAlbum(item.id);
+                  } else if (item.type === 'playlist') {
+                    void playPlaylist(item.id);
+                  }
+                }}
+                onLongPress={() => {}}
+                delayLongPress={300}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title} ${t('common.by')} ${item.subtitle}`}
+              >
+                {item.artworkUrl ? (
+                  <Image
+                    source={{ uri: item.artworkUrl.replace('{w}', '120').replace('{h}', '120') }}
+                    style={styles.discoveryArtwork}
+                  />
+                ) : (
+                  <View style={[styles.discoveryArtwork, styles.discoveryArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                    <Icon name="appleMusic" size={32} color={themeColors.textSecondary} />
+                  </View>
+                )}
+                <Text style={[styles.discoveryCardTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
+                  {item.title}
+                </Text>
+                <Text style={[styles.discoveryCardSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                  {item.subtitle}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Layer 2: Popular Now (Top Charts) */}
+      {(isTopChartsLoading || (topChartsData?.songs && topChartsData.songs.length > 0)) && (
+        <View style={styles.discoverySection}>
+          <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.discovery.popularNow')}
+          </Text>
+          {isTopChartsLoading ? (
+            <ActivityIndicator size="small" color={appleMusicColor} style={styles.discoveryLoader} />
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.discoveryRow}>
+              {topChartsData?.songs?.slice(0, 10).map((song) => (
+                <TouchableOpacity
+                  key={song.id}
+                  style={[styles.discoveryCard, { backgroundColor: themeColors.surface }]}
+                  onPress={() => {
+                    triggerFeedback('tap');
+                    void playSong(song.id, song.artworkUrl);
+                  }}
+                  onLongPress={() => {}}
+                  delayLongPress={300}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
+                >
+                  {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
+                    <Image
+                      source={{ uri: song.artworkUrl.replace('{w}', '120').replace('{h}', '120') }}
+                      style={styles.discoveryArtwork}
+                    />
+                  ) : (
+                    <View style={[styles.discoveryArtwork, styles.discoveryArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                      <Icon name="appleMusic" size={32} color={themeColors.textSecondary} />
+                    </View>
+                  )}
+                  <Text style={[styles.discoveryCardTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
+                    {song.title}
+                  </Text>
+                  <Text style={[styles.discoveryCardSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                    {song.artistName}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      )}
+
+      {/* Layer 3: From Your Library */}
+      {recentLibraryItems.length > 0 && (
+        <View style={styles.discoverySection}>
+          <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
+            {t('modules.appleMusic.discovery.fromLibrary')}
+          </Text>
+          {recentLibraryItems.slice(0, 5).map((song, index) => (
+            <TouchableOpacity
+              key={song.id}
+              style={[styles.discoveryListItem, { backgroundColor: themeColors.surface }]}
+              onPress={() => {
+                triggerFeedback('tap');
+                void playSong(song.id, song.artworkUrl);
+              }}
+              onLongPress={() => {}}
+              delayLongPress={300}
+              accessibilityRole="button"
+              accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
+            >
+              {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
+                <Image
+                  source={{ uri: song.artworkUrl.replace('{w}', '50').replace('{h}', '50') }}
+                  style={styles.discoveryListArtwork}
+                />
+              ) : (
+                <View style={[styles.discoveryListArtwork, styles.discoveryArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                  <Icon name="appleMusic" size={20} color={themeColors.textSecondary} />
+                </View>
+              )}
+              <View style={styles.discoveryListInfo}>
+                <Text style={[styles.discoveryListTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                  {song.title}
+                </Text>
+                <Text style={[styles.discoveryListSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                  {song.artistName} — {song.albumTitle}
+                </Text>
+              </View>
+              <Icon name="play" size={24} color={appleMusicColor} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* Empty discovery state (nothing to show yet) */}
+      {recentlyPlayed.length === 0 && !isTopChartsLoading && !topChartsData?.songs?.length && recentLibraryItems.length === 0 && (
+        <View style={styles.emptyState}>
+          <Icon name="search" size={48} color={themeColors.textSecondary} />
+          <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+            {t('modules.appleMusic.discovery.emptyHint')}
+          </Text>
+        </View>
+      )}
+    </ScrollView>
+  );
+
   const renderSearchTab = () => (
     <View style={styles.tabContent}>
       <SearchBar
@@ -1272,6 +1448,9 @@ export function AppleMusicScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Discovery sections (shown before user searches) */}
+      {showDiscovery && renderDiscoverySections()}
 
       {/* Filter tabs - only show when we have results */}
       {hasAnyResults && renderSearchFilterTabs()}
@@ -2113,5 +2292,74 @@ const styles = StyleSheet.create({
   // Artist artwork (rounded)
   artistArtwork: {
     borderRadius: 28,  // Half of 56 width for circular
+  },
+
+  // Discovery sections (search tab before searching)
+  discoverySection: {
+    marginBottom: spacing.lg,
+  },
+  discoverySectionTitle: {
+    ...typography.h3,
+    fontWeight: '700',
+    marginBottom: spacing.md,
+  },
+  discoveryRow: {
+    marginHorizontal: -spacing.md, // Bleed to edges
+    paddingHorizontal: spacing.md,
+  },
+  discoveryCard: {
+    width: 140,
+    marginRight: spacing.md,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  discoveryArtwork: {
+    width: 140,
+    height: 140,
+    borderTopLeftRadius: borderRadius.md,
+    borderTopRightRadius: borderRadius.md,
+  },
+  discoveryArtworkPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  discoveryCardTitle: {
+    ...typography.label,
+    fontWeight: '600',
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.sm,
+  },
+  discoveryCardSubtitle: {
+    ...typography.label,
+    paddingHorizontal: spacing.sm,
+    paddingBottom: spacing.sm,
+    paddingTop: 2,
+  },
+  discoveryLoader: {
+    marginVertical: spacing.lg,
+  },
+  discoveryListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+    minHeight: touchTargets.comfortable,
+  },
+  discoveryListArtwork: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.sm,
+  },
+  discoveryListInfo: {
+    flex: 1,
+  },
+  discoveryListTitle: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  discoveryListSubtitle: {
+    ...typography.label,
   },
 });

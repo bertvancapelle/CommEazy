@@ -1477,6 +1477,12 @@
         "noResults": "No se encontró música",
         "error": "Error en la búsqueda. Inténtalo de nuevo."
       },
+      "discovery": {
+        "recentlyPlayed": "Reproducido recientemente",
+        "popularNow": "Popular ahora",
+        "fromLibrary": "De tu biblioteca",
+        "emptyHint": "Busca música o reproduce algo para ver sugerencias aquí"
+      },
       "library": {
         "songs": "Canciones",
         "artists": "Artistas",

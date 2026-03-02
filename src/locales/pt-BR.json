@@ -1503,6 +1503,12 @@
         "noResults": "Nenhuma música encontrada",
         "error": "Busca falhou. Tente novamente."
       },
+      "discovery": {
+        "recentlyPlayed": "Tocados recentemente",
+        "popularNow": "Popular agora",
+        "fromLibrary": "Da sua biblioteca",
+        "emptyHint": "Pesquise músicas ou toque algo para ver sugestões aqui"
+      },
       "library": {
         "songs": "Músicas",
         "artists": "Artistas",

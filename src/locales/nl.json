@@ -1479,6 +1479,12 @@
         "noResults": "Geen muziek gevonden",
         "error": "Zoeken mislukt. Probeer het opnieuw."
       },
+      "discovery": {
+        "recentlyPlayed": "Recent afgespeeld",
+        "popularNow": "Populair nu",
+        "fromLibrary": "Uit je bibliotheek",
+        "emptyHint": "Zoek muziek of speel iets af om hier suggesties te zien"
+      },
       "library": {
         "songs": "Nummers",
         "artists": "Artiesten",
