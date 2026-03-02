@@ -336,6 +336,8 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Nieuwe button/knop toevoegen** | **ui-designer, ios-specialist** — Button Standaardisatie (ui-designer SKILL.md sectie 15) MOET worden gevolgd: 60pt, 12pt cornerRadius, rgba background, border support |
 | **Native iOS button wijzigen** | **ios-specialist** — Zie "Native Button Standaardisatie" in ios-specialist SKILL.md |
 | **Required Reason API gebruiken** | **ios-specialist** — Privacy Manifest (PrivacyInfo.xcprivacy) MOET worden bijgewerkt met juiste reason code |
+| **Keychain accessible/sync wijziging** | **security-expert, ios-specialist** — Zero-server-storage compliance, `THIS_DEVICE_ONLY` vereist, zie `BACKUP_RESTORE_PLAN.md` |
+| **Backup/restore functionaliteit** | **security-expert, architecture-lead** — Cloud KV Store data MOET encrypted zijn, PIN-based key encryption verplicht |
 
 ### Consistency Safeguards (VERPLICHT)
 
@@ -3340,8 +3342,9 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 37 | **Herinneringen** | ⏳ TODO | ⏳ TBD | Medicatie, afspraken |
 | 38 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
 | 39 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
+| 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | Automatische backup via Cloud KV Store (iOS: NSUbiquitousKeyValueStore, Android: BackupAgentHelper) + platform backup validatie. Zie `BACKUP_RESTORE_PLAN.md` |
 
-**📊 Cross-Platform Samenvatting:** 21 items | ✅ 0 DONE | 🔶 3 PARTIAL | ⏳ 18 TODO
+**📊 Cross-Platform Samenvatting:** 22 items | ✅ 0 DONE | 🔶 3 PARTIAL | ⏳ 19 TODO
 
 ---
 
@@ -3351,8 +3354,8 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 |----------|--------|---------|------------|---------|
 | **iOS/iPadOS** | 14 | 13 | 1 | 0 |
 | **Android** | 4 | 0 | 0 | 4 |
-| **Cross-Platform** | 21 | 0 | 3 | 18 |
-| **TOTAAL** | 39 | 13 | 4 | 22 |
+| **Cross-Platform** | 22 | 0 | 3 | 19 |
+| **TOTAAL** | 40 | 13 | 4 | 23 |
 
 ---
 
@@ -3390,6 +3393,7 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | Buienradar Module | Cross | `.claude/plans/buienradar-module-plan.md` |
 | Country-Specific Modules | Cross | `.claude/plans/COUNTRY_SPECIFIC_MODULES.md` |
 | Prosody HA Production | Backend | `.claude/plans/PROSODY_HA_PRODUCTION.md` |
+| Backup & Restore | Cross | `.claude/plans/BACKUP_RESTORE_PLAN.md` |
 
 ---
 
