@@ -1482,7 +1482,10 @@
         "recentlyPlayed": "Zuletzt gespielt",
         "popularNow": "Gerade beliebt",
         "fromLibrary": "Aus deiner Bibliothek",
-        "emptyHint": "Suche nach Musik oder spiele etwas ab, um hier Vorschläge zu sehen"
+        "emptyHint": "Suche nach Musik oder spiele etwas ab, um hier Vorschläge zu sehen",
+        "showAll": "Alle anzeigen",
+        "albumHint": "Tippen um Titel anzuzeigen",
+        "playHint": "Tippen um abzuspielen"
       },
       "library": {
         "songs": "Titel",

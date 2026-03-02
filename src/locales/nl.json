@@ -1484,7 +1484,10 @@
         "recentlyPlayed": "Recent afgespeeld",
         "popularNow": "Populair nu",
         "fromLibrary": "Uit je bibliotheek",
-        "emptyHint": "Zoek muziek of speel iets af om hier suggesties te zien"
+        "emptyHint": "Zoek muziek of speel iets af om hier suggesties te zien",
+        "showAll": "Toon alles",
+        "albumHint": "Tik om nummers te zien",
+        "playHint": "Tik om af te spelen"
       },
       "library": {
         "songs": "Nummers",

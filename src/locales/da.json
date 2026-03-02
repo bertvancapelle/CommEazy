@@ -1318,7 +1318,10 @@
         "recentlyPlayed": "Afspillet for nylig",
         "popularNow": "Populært nu",
         "fromLibrary": "Fra dit bibliotek",
-        "emptyHint": "Søg efter musik eller afspil noget for at se forslag her"
+        "emptyHint": "Søg efter musik eller afspil noget for at se forslag her",
+        "showAll": "Vis alle",
+        "albumHint": "Tryk for at se numre",
+        "playHint": "Tryk for at afspille"
       },
       "library": {
         "songs": "Sange",

@@ -1363,7 +1363,10 @@
         "recentlyPlayed": "Nylig spilt",
         "popularNow": "Populært nå",
         "fromLibrary": "Fra biblioteket ditt",
-        "emptyHint": "Søk etter musikk eller spill noe for å se forslag her"
+        "emptyHint": "Søk etter musikk eller spill noe for å se forslag her",
+        "showAll": "Vis alle",
+        "albumHint": "Trykk for å se spor",
+        "playHint": "Trykk for å spille"
       },
       "library": {
         "songs": "Sanger",

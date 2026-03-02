@@ -1482,7 +1482,10 @@
         "recentlyPlayed": "Reproducido recientemente",
         "popularNow": "Popular ahora",
         "fromLibrary": "De tu biblioteca",
-        "emptyHint": "Busca música o reproduce algo para ver sugerencias aquí"
+        "emptyHint": "Busca música o reproduce algo para ver sugerencias aquí",
+        "showAll": "Mostrar todo",
+        "albumHint": "Toca para ver pistas",
+        "playHint": "Toca para reproducir"
       },
       "library": {
         "songs": "Canciones",

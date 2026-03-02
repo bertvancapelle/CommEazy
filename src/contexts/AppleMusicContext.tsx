@@ -149,13 +149,14 @@ export interface PlatformCapabilities {
   appInstalled: boolean;      // Apple Music app installed (Android)
 }
 
-// Recently played item (MusicKit API + locally tracked for CommEazy playback)
+// Recently played container (MusicKit API returns albums/playlists/stations)
 export interface RecentlyPlayedItem {
-  type: 'song' | 'album' | 'playlist';
+  type: 'album' | 'playlist' | 'station';
   id: string;
   title: string;
   subtitle: string;    // artist name or curator name
   artworkUrl: string;
+  trackCount?: number; // Number of tracks (albums)
   playedAt: number;    // timestamp (ms)
   source?: 'musickit' | 'local'; // Where this item came from
 }
@@ -223,6 +224,7 @@ export interface AppleMusicContextValue {
   playSong: (songId: string, artworkUrl?: string) => Promise<void>;
   playAlbum: (albumId: string, startIndex?: number) => Promise<void>;
   playPlaylist: (playlistId: string, startIndex?: number) => Promise<void>;
+  playStation: (stationId: string) => Promise<void>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   stop: () => Promise<void>;
@@ -411,15 +413,16 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     }
 
     try {
-      // Fetch from MusicKit API (returns songs played across entire Apple Music ecosystem)
+      // Fetch from MusicKit API (returns containers: albums, playlists, stations)
       const response = await AppleMusicModule.getRecentlyPlayed(20);
       const musicKitItems: RecentlyPlayedItem[] = (response.items || []).map(
-        (song: any, index: number) => ({
-          type: 'song' as const,
-          id: song.id,
-          title: song.title || '',
-          subtitle: song.artistName || '',
-          artworkUrl: song.artwork || '',
+        (container: any, index: number) => ({
+          type: (container.type || 'album') as RecentlyPlayedItem['type'],
+          id: container.id,
+          title: container.title || '',
+          subtitle: container.subtitle || '',
+          artworkUrl: container.artworkUrl || '',
+          trackCount: container.trackCount || 0,
           playedAt: Date.now() - index * 60000, // Approximate ordering (newest first)
           source: 'musickit' as const,
         })
@@ -652,18 +655,9 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
         console.log('[AppleMusicContext] Now playing changed:', item?.title, 'artworkUrl:', item?.artworkUrl);
         setNowPlaying(item);
 
-        // Track as recently played (locally, since MusicKit has no recently played API)
-        if (item) {
-          const artworkUrl = artworkCacheRef.current.get(item.id)
-            || (item.artworkUrl?.startsWith('https://') ? item.artworkUrl : '');
-          addToRecentlyPlayedRef.current({
-            type: 'song',
-            id: item.id,
-            title: item.title,
-            subtitle: item.artistName,
-            artworkUrl,
-          });
-        }
+        // MusicKit's container API automatically tracks recently played
+        // albums/playlists/stations when using ApplicationMusicPlayer,
+        // so no manual local tracking needed.
       }
     );
 
@@ -1207,6 +1201,21 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     }
   }, [isIOS, audioOrchestrator]);
 
+  const playStation = useCallback(async (stationId: string) => {
+    if (!isIOS || !AppleMusicModule) return;
+
+    try {
+      await audioOrchestrator.requestPlayback('appleMusic');
+      setIsLoading(true);
+      setShowPlayer(true);
+      await AppleMusicModule.playStation(stationId);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('[AppleMusicContext] Play station error:', error);
+      throw error;
+    }
+  }, [isIOS, audioOrchestrator]);
+
   const pause = useCallback(async () => {
     if (!isIOS || !AppleMusicModule) return;
 
@@ -1513,6 +1522,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       playSong,
       playAlbum,
       playPlaylist,
+      playStation,
       pause,
       resume,
       stop,
@@ -1590,6 +1600,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       playSong,
       playAlbum,
       playPlaylist,
+      playStation,
       pause,
       resume,
       stop,

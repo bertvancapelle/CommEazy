@@ -32,6 +32,7 @@ import {
   Image,
   Linking,
   Alert,
+  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -136,6 +137,9 @@ export function AppleMusicScreen() {
     repeatMode,
     // Controls
     playSong,
+    playAlbum,
+    playPlaylist,
+    playStation,
     pause,
     resume,
     stop,
@@ -191,6 +195,7 @@ export function AppleMusicScreen() {
   const [isQueueVisible, setIsQueueVisible] = useState(false);
   const [searchFilter, setSearchFilter] = useState<SearchFilterType>('all');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAllRecentlyPlayed, setShowAllRecentlyPlayed] = useState(false);
 
   // Detail modal state
   const [detailModal, setDetailModal] = useState<{
@@ -717,6 +722,30 @@ export function AppleMusicScreen() {
       }
     }
   }, [searchResultsInLibrary, addToLibrary, triggerFeedback, t]);
+
+  // Handle tap on recently played container
+  const handleRecentlyPlayedTap = useCallback((item: RecentlyPlayedItem) => {
+    triggerFeedback('tap');
+    if (item.type === 'album') {
+      // Open album detail modal with tracklist
+      setDetailModal({
+        visible: true,
+        type: 'album',
+        id: item.id,
+        initialData: {
+          id: item.id,
+          title: item.title,
+          artistName: item.subtitle,
+          artworkUrl: item.artworkUrl,
+          trackCount: item.trackCount ?? 0,
+        } as AppleMusicAlbum,
+      });
+    } else if (item.type === 'playlist') {
+      void playPlaylist(item.id);
+    } else if (item.type === 'station') {
+      void playStation(item.id);
+    }
+  }, [triggerFeedback, playPlaylist, playStation]);
 
   const handleSearch = useCallback(async () => {
     const trimmedQuery = searchQuery.trim();
@@ -1297,7 +1326,7 @@ export function AppleMusicScreen() {
         { paddingBottom: bottomPadding + insets.bottom },
       ]}
     >
-      {/* Layer 1: Recently Played (MusicKit API — shows Apple Music ecosystem history) */}
+      {/* Layer 1: Recently Played (MusicKit API — albums, playlists, stations) */}
       {(isRecentlyPlayedLoading || recentlyPlayed.length > 0) && (
         <View style={styles.discoverySection}>
           <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
@@ -1311,24 +1340,20 @@ export function AppleMusicScreen() {
                 <TouchableOpacity
                   key={`${item.type}-${item.id}`}
                   style={[styles.discoveryCard, { backgroundColor: themeColors.surface }]}
-                  onPress={() => {
-                    triggerFeedback('tap');
-                    if (item.type === 'song') {
-                      void playSong(item.id, item.artworkUrl);
-                    } else if (item.type === 'album') {
-                      void playAlbum(item.id);
-                    } else if (item.type === 'playlist') {
-                      void playPlaylist(item.id);
-                    }
-                  }}
+                  onPress={() => handleRecentlyPlayedTap(item)}
                   onLongPress={() => {}}
                   delayLongPress={300}
                   accessibilityRole="button"
-                  accessibilityLabel={`${item.title} ${t('common.by')} ${item.subtitle}`}
+                  accessibilityLabel={`${item.title}${item.subtitle ? `, ${item.subtitle}` : ''}`}
+                  accessibilityHint={
+                    item.type === 'album'
+                      ? t('modules.appleMusic.discovery.albumHint')
+                      : t('modules.appleMusic.discovery.playHint')
+                  }
                 >
                   {item.artworkUrl ? (
                     <Image
-                      source={{ uri: item.artworkUrl.replace('{w}', '120').replace('{h}', '120') }}
+                      source={{ uri: item.artworkUrl }}
                       style={styles.discoveryArtwork}
                     />
                   ) : (
@@ -1339,11 +1364,34 @@ export function AppleMusicScreen() {
                   <Text style={[styles.discoveryCardTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
                     {item.title}
                   </Text>
-                  <Text style={[styles.discoveryCardSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                    {item.subtitle}
-                  </Text>
+                  {item.subtitle ? (
+                    <Text style={[styles.discoveryCardSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                      {item.subtitle}
+                    </Text>
+                  ) : null}
                 </TouchableOpacity>
               ))}
+              {/* "Toon alles" card at the end */}
+              {recentlyPlayed.length > 10 && (
+                <TouchableOpacity
+                  style={[styles.discoveryCard, styles.showAllCard, { backgroundColor: themeColors.surface }]}
+                  onPress={() => {
+                    triggerFeedback('tap');
+                    setShowAllRecentlyPlayed(true);
+                  }}
+                  onLongPress={() => {}}
+                  delayLongPress={300}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.appleMusic.discovery.showAll')}
+                >
+                  <View style={[styles.discoveryArtwork, styles.showAllArtwork, { backgroundColor: appleMusicColor + '20' }]}>
+                    <Icon name="chevronRight" size={32} color={appleMusicColor} />
+                  </View>
+                  <Text style={[styles.discoveryCardTitle, { color: appleMusicColor }]} numberOfLines={2}>
+                    {t('modules.appleMusic.discovery.showAll')}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </ScrollView>
           )}
         </View>
@@ -1984,6 +2032,77 @@ export function AppleMusicScreen() {
         initialData={detailModal.initialData}
       />
 
+      {/* Show All Recently Played Modal */}
+      <Modal
+        visible={showAllRecentlyPlayed}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAllRecentlyPlayed(false)}
+      >
+        <View style={[styles.showAllModal, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
+          {/* Header */}
+          <View style={[styles.showAllHeader, { borderBottomColor: themeColors.border }]}>
+            <Text style={[styles.showAllTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.appleMusic.discovery.recentlyPlayed')}
+            </Text>
+            <IconButton
+              icon="close"
+              size={28}
+              color={themeColors.textPrimary}
+              onPress={() => setShowAllRecentlyPlayed(false)}
+              accessibilityLabel={t('common.close')}
+            />
+          </View>
+          {/* Full vertical list */}
+          <ScrollView
+            style={styles.showAllList}
+            contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
+          >
+            {recentlyPlayed.map((item) => (
+              <TouchableOpacity
+                key={`${item.type}-${item.id}`}
+                style={[styles.showAllItem, { backgroundColor: themeColors.surface }]}
+                onPress={() => {
+                  setShowAllRecentlyPlayed(false);
+                  // Small delay to allow modal close animation
+                  setTimeout(() => handleRecentlyPlayedTap(item), 300);
+                }}
+                onLongPress={() => {}}
+                delayLongPress={300}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title}${item.subtitle ? `, ${item.subtitle}` : ''}`}
+              >
+                {item.artworkUrl ? (
+                  <Image
+                    source={{ uri: item.artworkUrl }}
+                    style={styles.showAllArtworkImage}
+                  />
+                ) : (
+                  <View style={[styles.showAllArtworkImage, styles.discoveryArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                    <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
+                  </View>
+                )}
+                <View style={styles.showAllItemInfo}>
+                  <Text style={[styles.showAllItemTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                  {item.subtitle ? (
+                    <Text style={[styles.showAllItemSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                      {item.subtitle}
+                    </Text>
+                  ) : null}
+                </View>
+                <Icon
+                  name={item.type === 'album' ? 'chevronRight' : 'play'}
+                  size={24}
+                  color={appleMusicColor}
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
+
       {/* Queue View Modal */}
       <QueueView
         visible={isQueueVisible}
@@ -2423,5 +2542,62 @@ const styles = StyleSheet.create({
   },
   discoveryListSubtitle: {
     ...typography.label,
+  },
+
+  // "Show All" card in horizontal scroll
+  showAllCard: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  showAllArtwork: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // "Show All" full-screen modal
+  showAllModal: {
+    flex: 1,
+  },
+  showAllHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
+  showAllTitle: {
+    ...typography.h3,
+    fontWeight: '700',
+  },
+  showAllList: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  showAllItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+    minHeight: touchTargets.comfortable,
+  },
+  showAllArtworkImage: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.sm,
+  },
+  showAllItemInfo: {
+    flex: 1,
+  },
+  showAllItemTitle: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  showAllItemSubtitle: {
+    ...typography.label,
+    marginTop: 2,
   },
 });

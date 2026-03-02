@@ -720,6 +720,31 @@ class AppleMusicModule: RCTEventEmitter {
         }
     }
 
+    /// Play a station by ID (for recently played stations)
+    @objc
+    func playStation(_ stationId: String,
+                     resolve: @escaping RCTPromiseResolveBlock,
+                     reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                let request = MusicCatalogResourceRequest<Station>(matching: \.id, equalTo: MusicItemID(stationId))
+                let response = try await request.response()
+
+                guard let station = response.items.first else {
+                    reject("STATION_NOT_FOUND", "Station with ID \(stationId) not found", nil)
+                    return
+                }
+
+                player.queue = ApplicationMusicPlayer.Queue(for: [station])
+                try await player.play()
+
+                resolve(["success": true])
+            } catch {
+                reject("PLAY_ERROR", "Failed to play station: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
     /// Pause playback
     @objc
     func pause(_ resolve: @escaping RCTPromiseResolveBlock,
@@ -1565,7 +1590,7 @@ class AppleMusicModule: RCTEventEmitter {
         Task {
             do {
                 // Fetch the song first
-                var request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
+                let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
                 let response = try await request.response()
 
                 guard let song = response.items.first else {
@@ -1759,36 +1784,79 @@ class AppleMusicModule: RCTEventEmitter {
     // MARK: - Recently Played (MusicKit API — Apple Music ecosystem history)
     // ============================================================
 
-    /// Get recently played songs from the Apple Music ecosystem.
-    /// This uses MusicRecentlyPlayedRequest which returns songs the user
-    /// has played across Apple Music (including the Apple Music app itself).
-    /// This is different from getRecentLibrarySongs which sorts by dateAdded.
+    /// Get recently played containers (albums, playlists, stations) from Apple Music.
+    /// Uses MusicRecentlyPlayedContainerRequest which returns what the user sees
+    /// in Apple Music's own "Recently Played" section — containers, not individual songs.
     @objc
     func getRecentlyPlayed(_ limit: Int,
                             resolve: @escaping RCTPromiseResolveBlock,
                             reject: @escaping RCTPromiseRejectBlock) {
         Task {
             do {
-                NSLog("[AppleMusicModule] getRecentlyPlayed: fetching \(limit) recently played songs")
+                NSLog("[AppleMusicModule] getRecentlyPlayed: fetching \(limit) recently played containers")
                 let startTime = CFAbsoluteTimeGetCurrent()
 
-                var request = MusicRecentlyPlayedRequest<Song>()
+                var request = MusicRecentlyPlayedContainerRequest()
                 request.limit = limit
                 let response = try await request.response()
 
-                let songs = response.items.map { songToDictionary($0) }
+                let containers: [[String: Any]] = response.items.compactMap { item in
+                    self.recentlyPlayedItemToDictionary(item)
+                }
 
                 let duration = CFAbsoluteTimeGetCurrent() - startTime
-                NSLog("[AppleMusicModule] getRecentlyPlayed: fetched \(songs.count) songs in \(String(format: "%.2f", duration))s")
+                NSLog("[AppleMusicModule] getRecentlyPlayed: fetched \(containers.count) containers in \(String(format: "%.2f", duration))s")
 
                 resolve([
-                    "items": songs,
-                    "total": songs.count,
+                    "items": containers,
+                    "total": containers.count,
                 ])
             } catch {
                 NSLog("[AppleMusicModule] getRecentlyPlayed failed: \(error.localizedDescription)")
                 reject("RECENTLY_PLAYED_ERROR", "Failed to get recently played: \(error.localizedDescription)", error)
             }
+        }
+    }
+
+    /// Convert a RecentlyPlayedMusicItem enum to a dictionary for React Native
+    private func recentlyPlayedItemToDictionary(_ item: RecentlyPlayedMusicItem) -> [String: Any]? {
+        var artworkUrl = ""
+        if let artwork = item.artwork,
+           let url = artwork.url(width: 300, height: 300) {
+            artworkUrl = url.httpURLString
+        }
+
+        switch item {
+        case .album(let album):
+            return [
+                "type": "album",
+                "id": album.id.rawValue,
+                "title": album.title,
+                "subtitle": album.artistName,
+                "artworkUrl": artworkUrl,
+                "trackCount": album.trackCount,
+            ]
+        case .playlist(let playlist):
+            return [
+                "type": "playlist",
+                "id": playlist.id.rawValue,
+                "title": playlist.name,
+                "subtitle": playlist.curatorName ?? "",
+                "artworkUrl": artworkUrl,
+                "trackCount": 0,
+            ]
+        case .station(let station):
+            return [
+                "type": "station",
+                "id": station.id.rawValue,
+                "title": station.name,
+                "subtitle": "",
+                "artworkUrl": artworkUrl,
+                "trackCount": 0,
+            ]
+        @unknown default:
+            NSLog("[AppleMusicModule] Unknown RecentlyPlayedMusicItem case")
+            return nil
         }
     }
 

@@ -1486,7 +1486,10 @@
         "recentlyPlayed": "Recently Played",
         "popularNow": "Popular Now",
         "fromLibrary": "From Your Library",
-        "emptyHint": "Search for music or play something to see suggestions here"
+        "emptyHint": "Search for music or play something to see suggestions here",
+        "showAll": "Show all",
+        "albumHint": "Tap to see tracks",
+        "playHint": "Tap to play"
       },
       "library": {
         "songs": "Songs",

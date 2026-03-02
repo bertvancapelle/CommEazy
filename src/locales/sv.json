@@ -1318,7 +1318,10 @@
         "recentlyPlayed": "Nyligen spelat",
         "popularNow": "Populärt nu",
         "fromLibrary": "Från ditt bibliotek",
-        "emptyHint": "Sök efter musik eller spela något för att se förslag här"
+        "emptyHint": "Sök efter musik eller spela något för att se förslag här",
+        "showAll": "Visa alla",
+        "albumHint": "Tryck för att se spår",
+        "playHint": "Tryck för att spela"
       },
       "library": {
         "songs": "Låtar",

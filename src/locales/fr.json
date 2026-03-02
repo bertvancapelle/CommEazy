@@ -1482,7 +1482,10 @@
         "recentlyPlayed": "Écoutés récemment",
         "popularNow": "Populaire maintenant",
         "fromLibrary": "De votre bibliothèque",
-        "emptyHint": "Recherchez de la musique ou écoutez quelque chose pour voir des suggestions ici"
+        "emptyHint": "Recherchez de la musique ou écoutez quelque chose pour voir des suggestions ici",
+        "showAll": "Tout afficher",
+        "albumHint": "Appuyez pour voir les pistes",
+        "playHint": "Appuyez pour lire"
       },
       "library": {
         "songs": "Morceaux",
