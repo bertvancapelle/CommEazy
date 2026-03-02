@@ -46,6 +46,11 @@ const STORAGE_KEYS = {
 const MAX_CONVERSATIONS = 50;
 const MAX_MESSAGES_PER_CONVERSATION = 100;
 
+// Google OAuth Web Client ID — configure in Google Cloud Console
+// This must be an OAuth 2.0 Client ID with Gemini API scopes
+// TODO: Replace with production client ID from Google Cloud Console
+const GOOGLE_WEB_CLIENT_ID = '';
+
 // ============================================================
 // Context Type
 // ============================================================
@@ -132,7 +137,22 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
   // ============================================================
 
   useEffect(() => {
+    configureGoogleSignIn();
     loadInitialState();
+  }, []);
+
+  const configureGoogleSignIn = useCallback(async () => {
+    try {
+      const module = await import('@react-native-google-signin/google-signin');
+      module.GoogleSignin.configure({
+        webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
+        offlineAccess: true,
+        scopes: ['https://www.googleapis.com/auth/generative-language'],
+      });
+    } catch {
+      // Package not installed — will use mock fallback in linkGoogleAccount
+      console.debug('[AskAIContext] Google Sign-In not available, using mock');
+    }
   }, []);
 
   const loadInitialState = useCallback(async () => {
@@ -193,9 +213,16 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
         return;
       }
 
-      // Real Google Sign-In flow
+      // Real Google Sign-In flow (v14.x API: signIn returns { type, data })
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      const response = await GoogleSignin.signIn();
+
+      // v14.x: cancelled sign-in returns { type: 'cancelled' } instead of throwing
+      if (response.type === 'cancelled') {
+        return; // User cancelled — not an error
+      }
+
+      const userData = response.data;
 
       // Get tokens for API access
       const tokens = await GoogleSignin.getTokens();
@@ -205,7 +232,7 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
       try {
         const firebaseAuth = await import('@react-native-firebase/auth');
         const auth = firebaseAuth.default;
-        const googleCredential = auth.GoogleAuthProvider.credential(userInfo.idToken);
+        const googleCredential = auth.GoogleAuthProvider.credential(userData.idToken);
         const currentUser = auth().currentUser;
         if (currentUser) {
           await currentUser.linkWithCredential(googleCredential);
@@ -225,8 +252,6 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
     } catch (err: any) {
       if (err.code === 'auth/credential-already-in-use') {
         setError(t('modules.askAI.errors.accountAlreadyLinked'));
-      } else if (err.code === 'SIGN_IN_CANCELLED') {
-        // User cancelled — not an error
       } else {
         setError(t('modules.askAI.errors.linkFailed'));
       }
