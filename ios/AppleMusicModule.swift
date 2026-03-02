@@ -1817,38 +1817,62 @@ class AppleMusicModule: RCTEventEmitter {
                 NSLog("[AppleMusicModule] getRecentlyPlayed: container API failed (\(error.localizedDescription)), trying song fallback")
             }
 
-            // Strategy 2: Fall back to song-based API, group by album
+            // Strategy 2: Fall back to song-based API, load album relationships, group by album
             do {
                 var songRequest = MusicRecentlyPlayedRequest<Song>()
-                songRequest.limit = min(limit * 3, 30) // Fetch more songs to get enough unique albums
+                songRequest.limit = min(limit * 5, 50) // Fetch more songs to get enough unique albums
                 let songResponse = try await songRequest.response()
+                NSLog("[AppleMusicModule] getRecentlyPlayed: song fallback fetched \(songResponse.items.count) songs, resolving albums...")
 
                 // Group songs by album to create container-like entries
                 var seenAlbums = Set<String>()
                 var items: [[String: Any]] = []
 
                 for song in songResponse.items {
-                    let albumId = song.albums?.first?.id.rawValue ?? ""
+                    // Load album relationship for this song
+                    var albumId = ""
+                    var albumTitle = song.albumTitle ?? ""
+                    var albumArtworkUrl = ""
+                    var albumTrackCount = 0
+
+                    do {
+                        let detailedSong = try await song.with(.albums)
+                        if let album = detailedSong.albums?.first {
+                            albumId = album.id.rawValue
+                            albumTitle = album.title
+                            albumTrackCount = album.trackCount
+                            if let artwork = album.artwork,
+                               let url = artwork.url(width: 300, height: 300) {
+                                albumArtworkUrl = url.httpURLString
+                            }
+                        }
+                    } catch {
+                        NSLog("[AppleMusicModule] getRecentlyPlayed: failed to load album for song '\(song.title)': \(error.localizedDescription)")
+                    }
+
+                    // Fall back to song artwork if album artwork not available
+                    if albumArtworkUrl.isEmpty {
+                        if let artwork = song.artwork,
+                           let url = artwork.url(width: 300, height: 300) {
+                            albumArtworkUrl = url.httpURLString
+                        }
+                    }
+
+                    // Deduplication key: album ID if available, otherwise unique song key
                     let albumKey = albumId.isEmpty ? "song-\(song.id.rawValue)" : albumId
 
                     guard !seenAlbums.contains(albumKey) else { continue }
                     seenAlbums.insert(albumKey)
-
-                    var artworkUrl = ""
-                    if let artwork = song.artwork,
-                       let url = artwork.url(width: 300, height: 300) {
-                        artworkUrl = url.httpURLString
-                    }
 
                     if !albumId.isEmpty {
                         // Song belongs to an album — return as album type
                         items.append([
                             "type": "album",
                             "id": albumId,
-                            "title": song.albumTitle ?? song.title,
+                            "title": albumTitle,
                             "subtitle": song.artistName,
-                            "artworkUrl": artworkUrl,
-                            "trackCount": 0,
+                            "artworkUrl": albumArtworkUrl,
+                            "trackCount": albumTrackCount,
                         ])
                     } else {
                         // Single/station song — return as song type
@@ -1857,7 +1881,7 @@ class AppleMusicModule: RCTEventEmitter {
                             "id": song.id.rawValue,
                             "title": song.title,
                             "subtitle": song.artistName,
-                            "artworkUrl": artworkUrl,
+                            "artworkUrl": albumArtworkUrl,
                             "trackCount": 0,
                         ])
                     }
@@ -1866,7 +1890,7 @@ class AppleMusicModule: RCTEventEmitter {
                 }
 
                 let duration = CFAbsoluteTimeGetCurrent() - startTime
-                NSLog("[AppleMusicModule] getRecentlyPlayed: song fallback returned \(items.count) items in \(String(format: "%.2f", duration))s")
+                NSLog("[AppleMusicModule] getRecentlyPlayed: song fallback returned \(items.count) items (\(seenAlbums.count) unique) in \(String(format: "%.2f", duration))s")
 
                 resolve([
                     "items": items,
