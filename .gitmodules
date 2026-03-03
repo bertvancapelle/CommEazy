@@ -1,0 +1,4 @@
+[submodule "ios/LocalPackages/SwiftMail"]
+	path = ios/LocalPackages/SwiftMail
+	url = https://github.com/Cocoanetics/SwiftMail.git
+	branch = main

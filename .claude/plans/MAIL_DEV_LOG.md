@@ -126,13 +126,36 @@
 - (geen — SPM dependency moet handmatig in Xcode worden toegevoegd)
 
 ### Openstaande Punten na Fase 3
-- [ ] **SwiftMail SPM dependency handmatig toevoegen in Xcode:** File → Add Package Dependencies → `https://github.com/Cocoanetics/SwiftMail` → v1.0.3
-- [ ] **Build validatie:** Na toevoegen SPM dependency, `⌘B` om te builden
+- [x] **SwiftMail SPM dependency toevoegen** — Opgelost via lokaal SPM package (git submodule)
+- [x] **Build validatie** — Build succesvol (0 errors, 44s)
+
+### SwiftMail Integratie Details
+- Remote SPM mislukt (complexe dependency tree: swift-testing 0.12.0 exact pin, SwiftText main branch)
+- Opgelost via git submodule: `ios/LocalPackages/SwiftMail` (v1.0.3 tag)
+- Xcode referentie: `ios/SwiftMail/` als lokaal Swift Package
+- pbxproj bevat: `XCLocalSwiftPackageReference`, `XCSwiftPackageProductDependency`, `PBXBuildFile`
+
+### API Correcties (v1.0.3 vs originele aannames)
+| Origineel (fout) | Gecorrigeerd | Reden |
+|-------------------|-------------|-------|
+| `Mailbox.Info.path` | `.name` | Property heet `name` in SwiftMail |
+| `Mailbox.Info.delimiter` | `.hierarchyDelimiter` | Property heet `hierarchyDelimiter` |
+| `MessageIdentifierRange<T>` | `MessageIdentifierSet<T>(range)` | Type bestaat niet, gebruik ClosedRange in init |
+| `MessagePart.type` | `.contentType` | Property heet `contentType` |
+| `MessagePart.section` (optional) | `.section` (non-optional) | Section is altijd aanwezig |
+| `MessagePart.size` | `.data?.count` | Geen `size` property, gebruik data length |
+| `MessageIdentifierSet.map` | `.toArray().map` | Set heeft geen map, wel toArray() |
+| `UID.rawValue` | `.value` | SwiftMail UID heeft `value` property |
+| `SequenceNumber?.rawValue` | `.value` (non-optional) | SequenceNumber is niet optional in MessageInfo |
+| `msg.flags?` (optional) | `msg.flags` (non-optional) | flags is `[Flag]`, niet optional |
+| `msg.from` als `[EmailAddress]` | als `String?` | SwiftMail retourneert from als plain string |
+| `msg.to` als `[EmailAddress]?` | als `[String]` | SwiftMail retourneert to als string array |
 
 ### Volgende Sessie: Fase 5
 **Voorbereid:**
-- MailModule.swift is klaar met alle IMAP/SMTP methods
+- MailModule.swift is klaar met alle IMAP/SMTP methods (build-validated)
 - Bridge header (MailModule.m) exporteert alle methods
+- SwiftMail v1.0.3 lokaal gelinkt en gevalideerd
 - Privacy Manifest ongewijzigd (geen nieuwe Required Reason APIs)
 
 **Te doen in Fase 5:**

@@ -177,8 +177,8 @@ class MailModule: RCTEventEmitter {
                 let mailboxes = try await imap.listMailboxes()
                 let result: [[String: Any]] = mailboxes.map { mailbox in
                     return [
-                        "name": mailbox.path ?? "",
-                        "delimiter": mailbox.delimiter.map { String($0) } ?? "/",
+                        "name": mailbox.name,
+                        "delimiter": mailbox.hierarchyDelimiter ?? "/",
                     ]
                 }
                 resolve(result)
@@ -220,41 +220,31 @@ class MailModule: RCTEventEmitter {
 
                 // Fetch the most recent messages
                 let start = max(1, messageCount - limit + 1)
-                let range = MessageIdentifierRange<SequenceNumber>(start...messageCount)
-                let identifierSet = MessageIdentifierSet<SequenceNumber>(range)
+                let identifierSet = MessageIdentifierSet<SequenceNumber>(SequenceNumber(start)...SequenceNumber(messageCount))
 
                 let messages = try await imap.fetchMessageInfosBulk(using: identifierSet)
 
                 let result: [[String: Any]] = messages.map { msg in
                     var dict: [String: Any] = [
-                        "uid": msg.uid?.rawValue ?? 0,
-                        "sequenceNumber": msg.sequenceNumber?.rawValue ?? 0,
+                        "uid": msg.uid.map { Int($0.value) } ?? 0,
+                        "sequenceNumber": Int(msg.sequenceNumber.value),
                         "subject": msg.subject ?? "",
                         "date": msg.date?.ISO8601Format() ?? "",
-                        "isRead": msg.flags?.contains(.seen) ?? false,
-                        "isFlagged": msg.flags?.contains(.flagged) ?? false,
+                        "isRead": msg.flags.contains(.seen),
+                        "isFlagged": msg.flags.contains(.flagged),
                     ]
 
-                    // From addresses
-                    if let from = msg.from {
-                        dict["from"] = from.map { addr in
-                            ["name": addr.name ?? "", "address": addr.address]
-                        }
-                    } else {
-                        dict["from"] = []
-                    }
+                    // From address (SwiftMail returns as plain string)
+                    dict["from"] = msg.from ?? ""
 
-                    // To addresses
-                    if let to = msg.to {
-                        dict["to"] = to.map { addr in
-                            ["name": addr.name ?? "", "address": addr.address]
-                        }
-                    } else {
-                        dict["to"] = []
-                    }
+                    // To addresses (SwiftMail returns as [String])
+                    dict["to"] = msg.to
 
-                    // Check for attachments via structure (simplified)
-                    dict["hasAttachment"] = false
+                    // Check for attachments via parts
+                    dict["hasAttachment"] = msg.parts.contains { part in
+                        part.disposition?.lowercased() == "attachment" ||
+                        (part.filename != nil && !part.contentType.lowercased().hasPrefix("text/"))
+                    }
 
                     return dict
                 }
@@ -301,24 +291,20 @@ class MailModule: RCTEventEmitter {
                 var attachments: [[String: Any]] = []
 
                 for (index, part) in parts.enumerated() {
-                    let mimeType = part.type.lowercased()
+                    let mimeType = part.contentType.lowercased()
 
-                    if mimeType == "text/html" && htmlBody == nil {
-                        if let section = part.section {
-                            let data = try await imap.fetchPart(section: section, of: uidValue)
-                            htmlBody = String(data: data, encoding: .utf8)
-                        }
-                    } else if mimeType == "text/plain" && plainTextBody == nil {
-                        if let section = part.section {
-                            let data = try await imap.fetchPart(section: section, of: uidValue)
-                            plainTextBody = String(data: data, encoding: .utf8)
-                        }
+                    if mimeType.hasPrefix("text/html") && htmlBody == nil {
+                        let data = try await imap.fetchPart(section: part.section, of: uidValue)
+                        htmlBody = String(data: data, encoding: .utf8)
+                    } else if mimeType.hasPrefix("text/plain") && plainTextBody == nil {
+                        let data = try await imap.fetchPart(section: part.section, of: uidValue)
+                        plainTextBody = String(data: data, encoding: .utf8)
                     } else if part.disposition?.lowercased() == "attachment" ||
-                              (part.filename != nil && mimeType != "text/html" && mimeType != "text/plain") {
+                              (part.filename != nil && !mimeType.hasPrefix("text/html") && !mimeType.hasPrefix("text/plain")) {
                         attachments.append([
                             "index": index,
                             "name": part.filename ?? "attachment_\(index)",
-                            "size": part.size ?? 0,
+                            "size": part.data?.count ?? 0,
                             "mimeType": mimeType,
                         ])
                     }
@@ -374,11 +360,6 @@ class MailModule: RCTEventEmitter {
 
                 let part = parts[partIndex]
 
-                guard let section = part.section else {
-                    self.reject(reject, code: .messageNotFound, message: "Attachment section not found")
-                    return
-                }
-
                 // Emit initial progress
                 if self.hasListeners {
                     self.sendEvent(withName: "MailAttachmentProgress", body: [
@@ -389,7 +370,7 @@ class MailModule: RCTEventEmitter {
                     ])
                 }
 
-                let data = try await imap.fetchPart(section: section, of: uidValue)
+                let data = try await imap.fetchPart(section: part.section, of: uidValue)
 
                 // Emit completion progress
                 if self.hasListeners {
@@ -408,7 +389,7 @@ class MailModule: RCTEventEmitter {
                     resolve([
                         "base64": data.base64EncodedString(),
                         "fileName": part.filename ?? "attachment_\(partIndex)",
-                        "mimeType": part.type,
+                        "mimeType": part.contentType,
                         "fileSize": data.count,
                     ])
                 } else {
@@ -422,7 +403,7 @@ class MailModule: RCTEventEmitter {
                     resolve([
                         "filePath": fileURL.path,
                         "fileName": part.filename ?? "attachment_\(partIndex)",
-                        "mimeType": part.type,
+                        "mimeType": part.contentType,
                         "fileSize": data.count,
                     ])
                 }
@@ -464,7 +445,7 @@ class MailModule: RCTEventEmitter {
                 let results: MessageIdentifierSet<UID> = try await imap.search(criteria: criteria)
 
                 // Convert UIDs to array of integers
-                let uids: [Int] = results.map { Int($0.rawValue) }
+                let uids: [Int] = results.toArray().map { Int($0.value) }
 
                 resolve(uids)
             } catch {

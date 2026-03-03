@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -42,6 +42,7 @@
 		82AC31BA2F51C7DA007B8E07 /* VoIPPushModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 82AC31B92F51C7DA007B8E07 /* VoIPPushModule.m */; };
 		82BD72722F577FDA008E2285 /* MailModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82BD72712F577FDA008E2285 /* MailModule.swift */; };
 		82BD72742F577FF3008E2285 /* MailModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 82BD72732F577FF3008E2285 /* MailModule.m */; };
+		82BD735F2F5786EA008E2285 /* SwiftMail in Frameworks */ = {isa = PBXBuildFile; productRef = 82BD735E2F5786EA008E2285 /* SwiftMail */; };
 		82BE2E142F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 		82BE2E152F3B9A2900B8FC05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 82BE2E132F3B9A2900B8FC05 /* GoogleService-Info.plist */; };
 		82C418FA2F5358AF00D1FAA8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 82C418F92F5358AE00D1FAA8 /* PrivacyInfo.xcprivacy */; };
@@ -139,6 +140,7 @@
 			files = (
 				0C80B921A6F3F58F76C31292 /* libPods-CommEazyTemp.a in Frameworks */,
 				824370CF2F45E14200860BF5 /* sherpa_onnx 2.xcframework in Frameworks */,
+				82BD735F2F5786EA008E2285 /* SwiftMail in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,6 +397,9 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				82BD735D2F578648008E2285 /* XCLocalSwiftPackageReference "SwiftMail" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1179,6 +1184,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		82BD735D2F578648008E2285 /* XCLocalSwiftPackageReference "SwiftMail" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = SwiftMail;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		82BD735E2F5786EA008E2285 /* SwiftMail */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 82BD735D2F578648008E2285 /* XCLocalSwiftPackageReference "SwiftMail" */;
+			productName = SwiftMail;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }
