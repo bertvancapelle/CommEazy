@@ -284,15 +284,17 @@ class ServiceContainerClass {
     // In dev mode, use test credentials; in production, this comes from auth
     if (__DEV__) {
       const devUser = await getDevUserCredentials();
+
+      // Store credentials immediately so foreground handler can reconnect
+      // (AppState listener may fire before XMPP connect completes)
+      this._credentials = { jid: devUser.jid, password: devUser.password };
+
       await chatService.initialize(devUser.jid, devUser.name);
       console.log('[ServiceContainer] ChatService initialized for dev user:', devUser.jid);
 
       // Initialize GroupChatService
       await groupChatService.initialize(devUser.jid, devUser.name);
       console.log('[ServiceContainer] GroupChatService initialized for dev user:', devUser.jid);
-
-      // Store credentials for reconnection after background/foreground transitions
-      this._credentials = { jid: devUser.jid, password: devUser.password };
 
       // 6. Connect to XMPP server in dev mode
       try {
