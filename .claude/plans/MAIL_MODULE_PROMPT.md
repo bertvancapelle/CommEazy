@@ -1,8 +1,22 @@
 # CommEazy Mail Module — Implementatie Prompt
 
-> **Versie:** 2.0 (met 23 bevindingen uit review verwerkt)
+> **Versie:** 3.0 (met 23 bevindingen + PNA beslissingen verwerkt)
 > **Datum:** 2026-03-03
-> **Status:** Klaar voor implementatie na goedkeuring
+> **Status:** Klaar voor implementatie — alle architecturale beslissingen genomen
+
+---
+
+## GENOMEN BESLISSINGEN (PNA Sessie 2026-03-03)
+
+| # | Beslissing | Keuze | Reden |
+|---|-----------|-------|-------|
+| 1 | iOS IMAP/SMTP library | **SwiftMail** (Cocoanetics) i.p.v. MailCore2 | MailCore2 unmaintained (5+ jaar), crashes iOS 16+, niet getest iOS 26/Xcode 17. SwiftMail actief onderhouden, gebouwd op Apple SwiftNIO, XOAUTH2 ingebouwd. |
+| 2 | Android IMAP/SMTP library | **Jakarta Mail** (ongewijzigd) | Standaard Java mail library, bewezen op Android |
+| 3 | Database architectuur | **Optie B** — Aparte SQLite met FTS5 | Full-text search essentieel voor senioren. WatermelonDB ondersteunt geen FTS5. |
+| 4 | Onboarding stappen | **Compact 3-staps model** | CommEazy max-3-stappen regel. Test + bevestiging samengevoegd. |
+| 5 | Fase 1-2 | **Overgeslagen** | Projectcontext al volledig bekend |
+| 6 | Uitvoeringsvolgorde | **iOS-first** | Android uitgesteld tot iOS + RN stack volledig werkt |
+| 7 | iOS integratiemethode | **Swift Package Manager** | SwiftMail geen CocoaPod beschikbaar; SPM compatible naast CocoaPods |
 
 ---
 
@@ -106,10 +120,8 @@ src/
       MailDetailScreen.tsx         // Mail detail weergave
       MailComposeScreen.tsx        // Bericht opstellen
       MailOnboardingStep1.tsx      // Provider kiezen
-      MailOnboardingStep2.tsx      // Authenticatie
-      MailOnboardingStep3.tsx      // Handmatige config
-      MailOnboardingStep4.tsx      // Verbinding testen
-      MailOnboardingStep5.tsx      // Bevestiging
+      MailOnboardingStep2.tsx      // Authenticatie (OAuth2 / Password / Custom)
+      MailOnboardingStep3.tsx      // Test + Bevestiging (gecombineerd)
   components/
     mail/
       RecipientInput.tsx           // Chip-gebaseerde ontvanger invoer
@@ -142,11 +154,10 @@ src/
   types/
     mail.ts                        // TypeScript interfaces
   models/
-    MailAccount.ts                 // WatermelonDB model (optioneel)
-    MailHeader.ts                  // WatermelonDB model (optioneel)
+    mailDatabase.ts                // SQLite + FTS5 database setup (mail_cache.db)
 
 ios/                               // Native modules direct in ios/ root
-  MailModule.swift                 // IMAP + SMTP via MailCore2
+  MailModule.swift                 // IMAP + SMTP via SwiftMail (Cocoanetics)
   MailModule.m                     // Bridge header
 
 android/app/src/main/java/com/commeazy/mail/
@@ -187,95 +198,98 @@ Voordat de mail module zichtbaar is in de app, MOETEN de volgende registraties w
 
 ---
 
-## FASE 1 & 2: Context, Analyse en Architectuur
+## ~~FASE 1 & 2: Context, Analyse en Architectuur~~ (OVERGESLAGEN)
 
-### Eerste stap: volledig project inlezen voor er code wordt geschreven
-
-**Context en uitgangspunten:**
-Je werkt aan de CommEazy app — een React Native applicatie voor iOS/iPadOS en Android. Je hebt volledige toegang tot de bestaande projectstructuur.
-
-Voordat je begint, doe het volgende:
-
-1. Lees de volledige projectstructuur uit via het bestandssysteem.
-2. Identificeer alle bestaande UI-componenten (zie `src/components/index.ts` voor de volledige export lijst).
-3. Identificeer de bestaande navigatiestructuur in `src/navigation/index.tsx`.
-4. Identificeer de bestaande state management aanpak (React Context in `src/contexts/`).
-5. Identificeer de bestaande code conventies (TypeScript strict mode, naamgeving, file structuur, import stijl via `@/` alias).
-6. Identificeer het bestaande instellingenmenu — `src/screens/settings/` structuur en hoe nieuwe secties worden toegevoegd.
-7. Identificeer de CommEazy contacten-module volledig:
-   - Locatie: `src/screens/contacts/`, `src/services/`, `src/models/Contact.ts`
-   - **Contact model:** `firstName` + `lastName` (NIET een enkel `name` veld)
-   - Service/repository laag, Contact interface definitie
-   - Bestaande `ContactSelectionModal` component
-8. Identificeer de CommEazy fotoalbum-module volledig:
-   - Locatie: `src/screens/modules/PhotoAlbumScreen.tsx`, `src/screens/modules/CameraScreen.tsx`
-   - Media/Photo interface definitie
-   - Hoe media wordt opgeslagen
-   - Bestaande `PhotoRecipientModal` component
-   - Bestaand deelmenu
-9. Identificeer bestaande bestandsoperatie library en download/voortgangspatronen.
-10. Identificeer het theme systeem: `src/theme/colors.ts`, `src/theme/darkColors.ts`, `src/theme/index.ts`.
-11. Identificeer het voice command framework: `src/types/voiceCommands.ts`, `src/hooks/useVoiceCommands.ts`, `src/contexts/VoiceFocusContext.tsx`.
-12. Identificeer de mock mode setup: `src/services/mock/` — nodig voor development.
-13. Identificeer de iPad Split View architectuur: `SplitViewLayout`, `PaneContext`, `PanelAwareModal`.
-
-**REGEL:** Gebruik uitsluitend bestaande componenten, kleuren, spacing en patronen. Introduceer geen nieuwe design-systeem elementen tenzij er absoluut geen bestaande equivalent is. Vraag in dat geval eerst om bevestiging.
-
-Rapporteer alle bevindingen in een gestructureerd overzicht.
-Wacht op bevestiging voordat je verdergaat met de architectuur.
-
-### Architectuur
-
-Na bevestiging van de analyse: ontwerp de folder- en bestandsstructuur conform de bovenstaande "FOLDERSTRUCTUUR" sectie. Presenteer de architectuur en wacht op goedkeuring.
+> **BESLISSING:** Deze fasen zijn overgeslagen. Projectcontext is al volledig bekend uit de bestaande CLAUDE.md instructies, skills en eerder development werk. De architectuur is gedefinieerd in de FOLDERSTRUCTUUR sectie hierboven.
+>
+> **Referenties voor context:**
+> - Bestaande componenten: `src/components/index.ts`
+> - Navigatie: `src/navigation/index.tsx`
+> - Contact model: `firstName` + `lastName` in `src/models/Contact.ts`
+> - Theme: `src/theme/colors.ts` + `src/theme/darkColors.ts`
+> - Mock mode: `src/services/mock/`
+> - iPad Split View: `SplitViewLayout`, `PaneContext`, `PanelAwareModal`
 
 ---
 
-## FASE 3: Native iOS Implementatie (MailCore2)
+## FASE 3: Native iOS Implementatie (SwiftMail)
 
-Swift module voor IMAP en SMTP via MailCore2.
+Swift module voor IMAP en SMTP via [SwiftMail](https://github.com/Cocoanetics/SwiftMail) (Cocoanetics).
 
-### 3.1 Podfile Dependency
+### 3.0 Waarom SwiftMail (BESLISSING)
 
-Voeg toe aan `ios/Podfile`: `pod 'MailCore2-iOS'`
-Voer `pod install` uit na toevoeging.
-Minimale iOS deployment target: iOS 13.
+**MailCore2 is afgevallen** na validatie:
+- Laatste release: v0.6.4 (augustus 2020) — 5+ jaar oud
+- Laatste commit: februari 2023 — 3+ jaar geen activiteit
+- Bekende crashes op iOS 16+ (MCOIMAPFolderInfoOperation)
+- Pre-built binary van 2020, niet getest op iOS 26 / Xcode 17
+- 225 open issues, geen actieve maintainer
+
+**SwiftMail voordelen:**
+- Actief onderhouden: v1.0.3 (maart 2026)
+- Gebouwd op Apple's eigen SwiftNIO IMAP
+- Native Swift async/await met Actors (past bij CommEazy anti-Combine beleid)
+- XOAUTH2 ondersteuning ingebouwd (Gmail, Microsoft 365)
+- iOS 14.0+ support, BSD 2-Clause licentie
+- Platform: iOS, macOS, visionOS
+
+### 3.1 Swift Package Manager Dependency
+
+SwiftMail is beschikbaar via SPM (GEEN CocoaPod):
+
+1. In Xcode: File → Add Package Dependencies
+2. URL: `https://github.com/Cocoanetics/SwiftMail`
+3. Version: `1.0.3` (Up to Next Major)
+
+**LET OP:** CommEazy gebruikt CocoaPods voor React Native dependencies. SwiftMail wordt via SPM toegevoegd — dit is compatible. Xcode kan beide package managers naast elkaar gebruiken.
+
+Dependencies die SwiftMail meebrengt (automatisch):
+- `swift-nio` (Apple)
+- `swift-nio-ssl` (Apple)
+- `swift-nio-imap` (Apple)
+- `swift-log`
 
 ### 3.2 MailModule.swift
 
 **Locatie:** `ios/MailModule.swift` (direct in `ios/` root, consistent met `AppleMusicModule.swift`, `VoIPPushModule.swift`)
 
-Implementeer de volgende `@objc` exposed methods:
+Implementeer de volgende `@objc` exposed methods met SwiftMail actors:
 
 - `connect(host, port, security, username, password, resolve, reject)`
-  - MCOIMAPSession aanmaken en opslaan als class property
-  - security: `'SSL' | 'TLS' | 'STARTTLS' | 'NONE'`
+  - `IMAPServer` actor aanmaken: `let imap = IMAPServer(host:port:encryption:)`
+  - `imap.login(username:password:)` of `imap.login(username:accessToken:)` voor XOAUTH2
+  - Opslaan als class property
+  - security mapping: `'SSL'` → `.tls`, `'STARTTLS'` → `.startTLS`, `'NONE'` → `.plain`
 
 - `fetchHeaders(folderName, limit, resolve, reject)`
-  - MCOIMAPFetchMessagesOperation met UIDNEXT
+  - `imap.select(mailbox:)` → `imap.fetchMessages(in:range:)`
   - Retourneer: `[{uid, from, to, subject, date, hasAttachment, isRead, isFlagged}]`
 
 - `fetchMessageBody(uid, folderName, resolve, reject)`
-  - MCOIMAPFetchContentOperation + MCOMessageParser
+  - `imap.fetchMessage(uid:in:)` → parse MIME parts
   - Retourneer: `{html, plainText, attachments:[{name,size,mimeType}]}`
 
 - `fetchAttachmentData(uid, folderName, attachmentIndex, resolve, reject)`
-  - MCOIMAPFetchContentByUIDOperation met partID
+  - `imap.fetchMessagePart(uid:in:partID:)`
   - Voortgang via RCTEventEmitter event: `'MailAttachmentProgress'`
   - Bestanden <= 10MB: retourneer base64
   - Bestanden > 10MB: schrijf naar tijdelijk bestand, retourneer filePath
 
 - `searchMessages(folderName, query, resolve, reject)`
-  - MCOIMAPSearchOperation met MCOIMAPSearchExpression
-  - Zoek in subject, from, body (combineer met OR)
+  - `imap.search(in:criteria:)` met OR op subject, from, body
   - Retourneer array van UIDs
 
 - `sendMessage(smtpConfig, from, to, cc, bcc, subject, body, attachments, resolve, reject)`
-  - MCOSMTPSession + MCOMessageBuilder
+  - `SMTPServer` actor: `let smtp = SMTPServer(host:port:encryption:)`
+  - `smtp.login()` → `smtp.send(message:)`
   - Ondersteuning HTML body en bijlagen als base64 of filePath
 
 - `markAsRead(uid, folderName, resolve, reject)`
+  - `imap.store(flags:on:in:)` met `.seen`
 - `deleteMessage(uid, folderName, resolve, reject)`
+  - `imap.store(flags:on:in:)` met `.deleted` → `imap.expunge(in:)`
 - `disconnect(resolve, reject)`
+  - `imap.logout()`, `smtp.quit()`
 
 ### 3.3 Bridge Header (MailModule.m)
 
@@ -429,22 +443,17 @@ Wrap `NativeModules.MailModule`. Promise-gebaseerde functies met volledige TypeS
 3. Combineer, dedupliceer op UID
 4. Server-only berichten: markeer als `'server_only'`, body on-demand
 
-### 5.5 mailCache.ts — Database Beslissing
+### 5.5 mailCache.ts — Aparte SQLite Database met FTS5 (BESLISSING)
 
-**ARCHITECTURALE KEUZE (moet worden bevestigd):**
+**BESLISSING:** Optie B — Aparte SQLite database met FTS5 voor full-text search.
 
-CommEazy gebruikt WatermelonDB (met SQLCipher encryptie) voor alle lokale data. De mail cache kan op twee manieren worden geimplementeerd:
+**Waarom:** Full-text search is essentieel voor senioren die mails willen terugvinden. WatermelonDB ondersteunt geen FTS5 virtual tables. Een aparte SQLite database geeft volledige controle over FTS5 indexering en search queries.
 
-**Optie A: WatermelonDB (aanbevolen voor consistentie)**
-- Nieuwe modellen: `MailAccount`, `MailHeader`, `MailBody`
-- Schema migratie in `src/models/migrations.ts`
-- Automatische encryptie via bestaande SQLCipher
-- Model exports in `src/models/index.ts`
-
-**Optie B: Aparte SQLite database**
+**Implementatie:**
 - Via `react-native-quick-sqlite` of `op-sqlite`
 - MOET encrypted zijn (SQLCipher) — encryptie at-rest is verplicht
-- FTS5 virtual table voor full-text search
+- FTS5 virtual table voor full-text search op subject, afzender en body
+- Database bestand: `mail_cache.db` in app documents directory
 
 Tabel `mail_headers`:
 ```sql
@@ -571,13 +580,21 @@ export const KNOWN_PROVIDERS = [
 
 ---
 
-## FASE 8: Onboarding Wizard
+## FASE 8: Onboarding Wizard (Compact 3-staps model)
 
-Vijfstaps wizard voor het instellen van een e-mailaccount.
+Compact wizard voor het instellen van een e-mailaccount — max 3 stappen (BESLISSING).
 
 **VERPLICHT:** Gebruik uitsluitend bestaande CommEazy UI-componenten. Voortgangsindicator bovenaan alle stappen (`ProgressIndicator`).
 
-**Flow Diepte:** De wizard MOET zo compact mogelijk zijn — max 3-4 stappen voor de gebruiker. Bij OAuth2 providers (Gmail/Outlook) slaat stap 3 over, waardoor de flow effectief 3 stappen is (Provider → OAuth → Klaar).
+**Flow Diepte (BESLISSING):** De wizard is gecomprimeerd naar max 3 stappen om te voldoen aan de CommEazy max-3-stappen regel. Test + bevestiging zijn samengevoegd in de laatste stap.
+
+### Flows per provider type
+
+| Provider type | Stap 1 | Stap 2 | Stap 3 |
+|--------------|--------|--------|--------|
+| **OAuth2** (Gmail/Outlook) | Provider kiezen | OAuth login in browser | Test + Bevestiging (gecombineerd) |
+| **Bekende provider** (Yahoo/iCloud/KPN/etc.) | Provider kiezen | E-mail + Wachtwoord | Test + Bevestiging (gecombineerd) |
+| **Custom provider** | Provider kiezen | E-mail + Wachtwoord + Server config | Test + Bevestiging (gecombineerd) |
 
 ### Welcome Modal (VERPLICHT)
 
@@ -588,40 +605,44 @@ Bij eerste keer openen van de mail module: toon welcome modal met genummerde sta
 - Titel: `t('modules.mail.onboarding.chooseProvider')`
 - `KNOWN_PROVIDERS` als grote aanraakbare kaarten (>= 60pt touch targets)
 - Haptic feedback bij selectie
+- Bij selectie: direct door naar stap 2
 
 ### Stap 2 — MailOnboardingStep2.tsx (Authenticatie)
 
-- **OAuth2 (`authType === 'oauth2'`):** Tekst + grote knop "Inloggen met [provider]". Start OAuth2 flow. Na succes: direct naar stap 4.
-- **Password:** E-mailadres invoerveld (`keyboardType: 'email-address'`) + wachtwoord (`secureTextEntry: true`). Knop "Verder".
+- **OAuth2 (`authType === 'oauth2'`):** Tekst + grote knop "Inloggen met [provider]". Start OAuth2 browser flow. Na succes: automatisch door naar stap 3.
+- **Bekende provider (password):** E-mailadres invoerveld (`keyboardType: 'email-address'`) + wachtwoord (`secureTextEntry: true`). Server config is al ingevuld vanuit `KNOWN_PROVIDERS`. Knop "Verbinden".
+- **Custom provider:** E-mailadres + wachtwoord + uitklapbare server configuratie sectie (IMAP host/port/security + SMTP host/port/security). Toggle "Gebruik zelfde inloggegevens voor SMTP" (default: aan). Knop "Verbinden".
 - **Form field styling:** Labels BOVEN veld, bold, bordered.
 
-### Stap 3 — MailOnboardingStep3.tsx (Handmatige config)
+### Stap 3 — MailOnboardingStep3.tsx (Test + Bevestiging gecombineerd)
 
-Alleen bij `'custom'` of handmatige override.
-- IMAP sectie: host, poort, beveiliging
-- SMTP sectie: host, poort, beveiliging
-- Toggle "Gebruik zelfde inloggegevens voor SMTP" (default: aan)
-- Knop "Verbinding testen"
+**Twee fases in één scherm:**
 
-### Stap 4 — MailOnboardingStep4.tsx (Verbinding testen)
-
+**Fase A — Automatische test (LoadingView):**
 Stapsgewijze voortgang met `LoadingView` en `StatusIndicator`:
 1. Verbinding met server
 2. Authenticatie
 3. Inbox ophalen (eerste 10 berichten)
 4. Verzendfunctie controleren
 
-Bij succes: groene bevestiging + knop "Afronden"
-Bij fout: `ErrorView` met menselijke melding + "Instellingen aanpassen" knop
+**Fase B — Resultaat:**
+- Bij succes: Groene bevestiging + "[naam]@[domein] is succesvol gekoppeld." + Opties: "Nog een account toevoegen" / "Naar mijn inbox"
+- Bij fout: `ErrorView` met menselijke melding + "Instellingen aanpassen" knop (terug naar stap 2)
 
-### Stap 5 — MailOnboardingStep5.tsx (Bevestiging)
+### Folderstructuur Update
 
-Bevestiging: "[naam]@[domein] is succesvol gekoppeld."
-Opties: "Nog een account toevoegen" / "Naar mijn inbox"
+```
+src/screens/mail/
+  MailOnboardingStep1.tsx      // Provider kiezen
+  MailOnboardingStep2.tsx      // Authenticatie (OAuth2 / Password / Custom)
+  MailOnboardingStep3.tsx      // Test + Bevestiging (gecombineerd)
+```
+
+**NB:** De originele stap 4 en 5 bestanden zijn verwijderd — functionaliteit is samengevoegd in stap 3.
 
 ### OnboardingNavigator
 
-Stack navigator voor de stappen. Voeg entry point toe via `src/navigation/index.tsx`.
+Stack navigator voor de 3 stappen. Voeg entry point toe via `src/navigation/index.tsx`.
 
 ---
 
@@ -1030,25 +1051,38 @@ Alle commands in alle 13 talen met synoniemen.
 
 ---
 
-## UITVOERVOLGORDE
+## UITVOERVOLGORDE (BESLISSING: iOS-first)
 
 Wacht na elke fase op expliciete goedkeuring.
 
-1. Fase 1-2: Analyseer project -> rapporteer -> architectuur -> wacht
-2. Fase 3: iOS native module (MailCore2) + Privacy Manifest
-3. Fase 4: Android native module (Jakarta Mail) + Data Safety
-4. Fase 5: TypeScript bridge, services, cache (database keuze bevestigen)
-5. Fase 6: OAuth2 implementatie + Keychain security
-6. Fase 7: constants.ts met providers
-7. Fase 8: Onboarding wizard + welcome modal
-8. Fase 9: Instellingenmenu integratie
-9. Fase 10: Inbox, detail en compose (met voice, iPad, Liquid Glass)
-10. Fase 11-12: Tests, mock mode, i18n check, eindrapportage basis
-11. Fase 13: Contacten-integratie (firstName/lastName model)
-12. Fase 14: Foto en video bijlagen
-13. Fase 15: Delen vanuit fotoalbum
-14. Fase 16: Integratie-tests en consistentie check
-15. Fase 17: Bijlagen opslaan in fotoalbum + module registratie check
+**BESLISSINGEN:**
+- Fase 1-2 zijn **overgeslagen** — projectcontext is al volledig bekend
+- **iOS-first aanpak**: Android (Fase 4) wordt uitgesteld tot de volledige iOS + React Native stack werkt
+- Start direct bij Fase 3
+
+### Actieve Volgorde
+
+1. **Fase 3: iOS native module (SwiftMail)** + Privacy Manifest
+2. Fase 5: TypeScript bridge, services, SQLite cache met FTS5
+3. Fase 6: OAuth2 implementatie + Keychain security
+4. Fase 7: constants.ts met providers
+5. Fase 8: Onboarding wizard (compact 3-staps model) + welcome modal
+6. Fase 9: Instellingenmenu integratie
+7. Fase 10: Inbox, detail en compose (met voice, iPad, Liquid Glass)
+8. Fase 11-12: Tests, mock mode, i18n check, eindrapportage basis
+9. Fase 13: Contacten-integratie (firstName/lastName model)
+10. Fase 14: Foto en video bijlagen
+11. Fase 15: Delen vanuit fotoalbum
+12. Fase 16: Integratie-tests en consistentie check
+13. Fase 17: Bijlagen opslaan in fotoalbum + module registratie check
+
+### Uitgesteld
+
+14. **Fase 4: Android native module (Jakarta Mail)** — wordt geïmplementeerd nadat iOS + RN stack volledig werkt
+
+### Overgeslagen
+
+- ~~Fase 1-2: Context analyse en architectuur~~ — projectcontext al bekend, architectuur al gedefinieerd
 
 ### Na Fase 17: Totale Eindrapportage
 
@@ -1068,7 +1102,9 @@ Wacht na elke fase op expliciete goedkeuring.
 
 ## BEVINDINGEN TRACEABILITY
 
-Dit document is het resultaat van een review met 23 bevindingen:
+Dit document is het resultaat van een review met 23 bevindingen + 7 PNA beslissingen:
+
+### Review Bevindingen (v2.0)
 
 | # | Bevinding | Verwerkt in |
 |---|-----------|-------------|
@@ -1095,3 +1131,15 @@ Dit document is het resultaat van een review met 23 bevindingen:
 | 21 | Database model (WatermelonDB keuze) | Fase 5 |
 | 22 | Form field styling | VERPLICHTE VOORKENNIS + Fase 8 |
 | 23 | Welcome modal | Fase 8 |
+
+### PNA Beslissingen (v3.0)
+
+| # | Beslissing | Verwerkt in |
+|---|-----------|-------------|
+| 24 | MailCore2 → SwiftMail (Cocoanetics) | Fase 3 (volledig herschreven) |
+| 25 | Database Optie B (SQLite + FTS5) | Fase 5.5 (keuze vastgelegd) |
+| 26 | Onboarding compact 3-staps model | Fase 8 (herschreven, stap 4+5 verwijderd) |
+| 27 | Fase 1-2 overgeslagen | Fase 1-2 sectie (doorgestreept) |
+| 28 | iOS-first uitvoeringsvolgorde | UITVOERVOLGORDE sectie (herschreven) |
+| 29 | Android Fase 4 uitgesteld | UITVOERVOLGORDE sectie (apart blok) |
+| 30 | Swift Package Manager i.p.v. CocoaPods | Fase 3.1 (SPM instructies) |
