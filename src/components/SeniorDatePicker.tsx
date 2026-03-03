@@ -99,8 +99,9 @@ function getMonthNames(language: string): string[] {
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-// Estimated height per item in sub-popup (minHeight 60 + vertical padding)
-const ITEM_HEIGHT_ESTIMATE = 68;
+// Actual height per item in sub-popup: minHeight (60) already includes vertical padding,
+// plus hairline border (~0.5pt). Using 60 to match the real rendered height.
+const ITEM_HEIGHT_ESTIMATE = 60;
 
 export function SeniorDatePicker({
   value,
@@ -236,10 +237,16 @@ export function SeniorDatePicker({
   // Store the scroll target so onLayout can use it
   const pendingScrollRef = useRef<number | null>(null);
 
-  // Compute scroll target when sub-popup field changes
+  // Store selected index so onContentSizeChange can compute exact offset
+  const pendingSelectedIndexRef = useRef<number>(-1);
+  const pendingItemCountRef = useRef<number>(0);
+
+  // Compute selected index when sub-popup field changes
   useEffect(() => {
     if (activeSubPopup === null) {
       pendingScrollRef.current = null;
+      pendingSelectedIndexRef.current = -1;
+      pendingItemCountRef.current = 0;
       return;
     }
 
@@ -251,6 +258,8 @@ export function SeniorDatePicker({
 
     if (selectedValue === undefined) {
       pendingScrollRef.current = null;
+      pendingSelectedIndexRef.current = -1;
+      pendingItemCountRef.current = 0;
       return;
     }
 
@@ -265,13 +274,16 @@ export function SeniorDatePicker({
     }
 
     const selectedIndex = options.findIndex(o => o.value === selectedValue);
+    pendingSelectedIndexRef.current = selectedIndex;
+    pendingItemCountRef.current = options.length;
+
     if (selectedIndex <= 0) {
       pendingScrollRef.current = null;
       return;
     }
 
-    // Scroll so the selected item is roughly centered in the visible area
-    const popupVisibleHeight = SCREEN_HEIGHT * 0.6 - 60; // subtract header
+    // Use estimate for immediate scroll attempt; onContentSizeChange will correct
+    const popupVisibleHeight = SCREEN_HEIGHT * 0.6 - 60;
     const targetOffset = Math.max(
       0,
       selectedIndex * ITEM_HEIGHT_ESTIMATE - popupVisibleHeight / 2 + ITEM_HEIGHT_ESTIMATE / 2,
@@ -279,19 +291,31 @@ export function SeniorDatePicker({
 
     pendingScrollRef.current = targetOffset;
 
-    // Also attempt immediate scroll (works when ScrollView is already mounted)
+    // Attempt immediate scroll (works when ScrollView is already mounted)
     subPopupScrollRef.current?.scrollTo({ y: targetOffset, animated: false });
   }, [activeSubPopup, modalDay, modalMonth, modalYear, dayOptions, monthNames, yearOptions]);
 
-  // Called when ScrollView content size changes — all items are rendered and scrollable
+  // Called when ScrollView content size changes — use real content height for precise scroll
   const handleContentSizeChange = useCallback((_w: number, contentHeight: number) => {
-    if (pendingScrollRef.current !== null && contentHeight > 0) {
-      // Clamp to max scrollable offset to avoid overshooting
-      const popupVisibleHeight = SCREEN_HEIGHT * 0.6 - 60;
-      const maxScroll = Math.max(0, contentHeight - popupVisibleHeight);
-      const clampedOffset = Math.min(pendingScrollRef.current, maxScroll);
-      subPopupScrollRef.current?.scrollTo({ y: clampedOffset, animated: false });
-    }
+    const selectedIndex = pendingSelectedIndexRef.current;
+    const itemCount = pendingItemCountRef.current;
+
+    if (selectedIndex <= 0 || itemCount <= 0 || contentHeight <= 0) return;
+
+    // Compute actual item height from real content height
+    const actualItemHeight = contentHeight / itemCount;
+
+    const popupVisibleHeight = SCREEN_HEIGHT * 0.6 - 60;
+    const targetOffset = Math.max(
+      0,
+      selectedIndex * actualItemHeight - popupVisibleHeight / 2 + actualItemHeight / 2,
+    );
+
+    // Clamp to max scrollable offset
+    const maxScroll = Math.max(0, contentHeight - popupVisibleHeight);
+    const clampedOffset = Math.min(targetOffset, maxScroll);
+
+    subPopupScrollRef.current?.scrollTo({ y: clampedOffset, animated: false });
   }, []);
 
   // Get the display value for a field button inside the modal
