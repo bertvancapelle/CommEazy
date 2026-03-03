@@ -7,6 +7,7 @@
  * - Country code selector
  * - Validation feedback
  * - firstName + lastName fields (v14)
+ * - Email, address, and date fields
  *
  * @see .claude/skills/ui-designer/SKILL.md
  */
@@ -32,6 +33,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
+import { SeniorDatePicker } from '@/components/SeniorDatePicker';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'AddContact'>;
 
@@ -57,6 +59,14 @@ export function AddContactScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+31');
   const [showCountryCodes, setShowCountryCodes] = useState(false);
+  const [email, setEmail] = useState('');
+  const [street, setStreet] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [birthDate, setBirthDate] = useState<string | undefined>(undefined);
+  const [weddingDate, setWeddingDate] = useState<string | undefined>(undefined);
+  const [deathDate, setDeathDate] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
 
   const isValidPhone = useCallback((phone: string): boolean => {
@@ -83,26 +93,39 @@ export function AddContactScreen() {
       // Generate a JID from phone number (simplified - in production use server)
       const jid = `${fullPhoneNumber.replace(/\+/g, '')}@commeazy.app`;
 
+      // Build address if any field is filled
+      const hasAddress = street.trim() || postalCode.trim() || city.trim() || country.trim();
+      const address = hasAddress
+        ? {
+            street: street.trim() || undefined,
+            postalCode: postalCode.trim() || undefined,
+            city: city.trim() || undefined,
+            country: country.trim() || undefined,
+          }
+        : undefined;
+
+      const contactData = {
+        jid,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phoneNumber: fullPhoneNumber,
+        email: email.trim() || undefined,
+        address,
+        birthDate,
+        weddingDate,
+        deathDate,
+        publicKey: '', // Will be set when contact shares their key
+        verified: false,
+        lastSeen: Date.now(),
+      };
+
       if (__DEV__) {
         // In dev mode, just log and navigate back (mock data is in memory)
-        console.log('[DEV] Would save contact:', {
-          jid,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          phoneNumber: fullPhoneNumber,
-        });
+        console.log('[DEV] Would save contact:', contactData);
       } else {
         // Production: use real database service
         const db = ServiceContainer.database;
-        await db.saveContact({
-          jid,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          phoneNumber: fullPhoneNumber,
-          publicKey: '', // Will be set when contact shares their key
-          verified: false,
-          lastSeen: Date.now(),
-        });
+        await db.saveContact(contactData);
       }
 
       navigation.goBack();
@@ -112,7 +135,7 @@ export function AddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [canSave, saving, countryCode, phoneNumber, firstName, lastName, navigation, t, triggerFeedback]);
+  }, [canSave, saving, countryCode, phoneNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, navigation, t, triggerFeedback]);
 
   const toggleCountryCodes = useCallback(() => {
     void triggerFeedback('tap');
@@ -217,6 +240,114 @@ export function AddContactScreen() {
               ))}
             </View>
           )}
+        </View>
+
+        {/* Email input */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.emailLabel')}</Text>
+          <TextInput
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            placeholder={t('contacts.emailPlaceholder')}
+            placeholderTextColor={themeColors.textTertiary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            accessibilityLabel={t('contacts.emailLabel')}
+          />
+        </View>
+
+        {/* Address section */}
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.address.title')}</Text>
+
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.street')}</Text>
+          <TextInput
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            placeholder={t('contacts.address.street')}
+            placeholderTextColor={themeColors.textTertiary}
+            value={street}
+            onChangeText={setStreet}
+            autoCapitalize="words"
+            returnKeyType="next"
+            accessibilityLabel={t('contacts.address.street')}
+          />
+        </View>
+
+        <View style={styles.addressRow}>
+          <View style={[styles.inputGroup, styles.postalCodeField]}>
+            <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.postalCode')}</Text>
+            <TextInput
+              style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+              placeholder={t('contacts.address.postalCode')}
+              placeholderTextColor={themeColors.textTertiary}
+              value={postalCode}
+              onChangeText={setPostalCode}
+              autoCapitalize="characters"
+              returnKeyType="next"
+              accessibilityLabel={t('contacts.address.postalCode')}
+            />
+          </View>
+
+          <View style={[styles.inputGroup, styles.cityField]}>
+            <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.city')}</Text>
+            <TextInput
+              style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+              placeholder={t('contacts.address.city')}
+              placeholderTextColor={themeColors.textTertiary}
+              value={city}
+              onChangeText={setCity}
+              autoCapitalize="words"
+              returnKeyType="next"
+              accessibilityLabel={t('contacts.address.city')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.country')}</Text>
+          <TextInput
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            placeholder={t('contacts.address.country')}
+            placeholderTextColor={themeColors.textTertiary}
+            value={country}
+            onChangeText={setCountry}
+            autoCapitalize="words"
+            returnKeyType="done"
+            accessibilityLabel={t('contacts.address.country')}
+          />
+        </View>
+
+        {/* Dates section */}
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.dates.title')}</Text>
+
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.birthDate')}</Text>
+          <SeniorDatePicker
+            value={birthDate}
+            onChange={setBirthDate}
+            accessibilityLabel={t('contacts.dates.birthDate')}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.weddingDate')}</Text>
+          <SeniorDatePicker
+            value={weddingDate}
+            onChange={setWeddingDate}
+            accessibilityLabel={t('contacts.dates.weddingDate')}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.deathDate')}</Text>
+          <SeniorDatePicker
+            value={deathDate}
+            onChange={setDeathDate}
+            accessibilityLabel={t('contacts.dates.deathDate')}
+          />
         </View>
 
         {/* Hint text */}
@@ -349,6 +480,23 @@ const styles = StyleSheet.create({
   countryCodeOptionText: {
     ...typography.body,
     color: colors.textPrimary,
+  },
+  sectionTitle: {
+    ...typography.label,
+    color: colors.textSecondary,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  postalCodeField: {
+    flex: 1,
+  },
+  cityField: {
+    flex: 2,
   },
   hintText: {
     ...typography.body,
