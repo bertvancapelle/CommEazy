@@ -1,0 +1,566 @@
+/**
+ * Mail Cache — SQLite query layer for cached mail headers and bodies
+ *
+ * Provides CRUD operations on the local mail SQLite database,
+ * including FTS5 full-text search indexing.
+ *
+ * @see src/models/mailDatabase.ts — Database setup
+ * @see src/types/mail.ts — Type definitions
+ * @see .claude/plans/MAIL_MODULE_PROMPT.md — Fase 5.5
+ */
+
+import type {
+  MailDatabaseConnection,
+} from '@/models/mailDatabase';
+import {
+  openMailDatabase,
+  initializeMailSchema,
+} from '@/models/mailDatabase';
+import type {
+  MailHeader,
+  CachedMailHeader,
+  CachedMailBody,
+} from '@/types/mail';
+import { parseEmailAddress } from '@/types/mail';
+
+// ============================================================
+// Singleton Instance
+// ============================================================
+
+let dbInstance: MailDatabaseConnection | null = null;
+
+/**
+ * Get or create the mail cache database connection.
+ * Initializes schema on first call.
+ *
+ * @param encryptionKey - Optional SQLCipher encryption key (hex string)
+ * @returns Database connection
+ */
+export function getMailCacheDb(encryptionKey?: string): MailDatabaseConnection {
+  if (!dbInstance) {
+    dbInstance = openMailDatabase(encryptionKey);
+    initializeMailSchema(dbInstance);
+  }
+  return dbInstance;
+}
+
+/**
+ * Close the mail cache database connection.
+ * Call this on app shutdown or when clearing cache.
+ */
+export function closeMailCacheDb(): void {
+  if (dbInstance) {
+    dbInstance.close();
+    dbInstance = null;
+  }
+}
+
+// ============================================================
+// Header Operations
+// ============================================================
+
+/**
+ * Insert or update mail headers in the cache.
+ * Also updates the FTS5 index for full-text search.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @param headers - Array of mail headers from the server
+ */
+export function upsertHeaders(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+  headers: MailHeader[],
+): void {
+  db.transaction(() => {
+    for (const header of headers) {
+      // Parse the from string into name + address
+      const parsed = parseEmailAddress(header.from);
+
+      db.execute(
+        `INSERT OR REPLACE INTO mail_headers
+         (uid, account_id, folder, from_raw, from_name, from_address,
+          to_addresses, subject, date_iso, has_attachment, is_read,
+          is_flagged, sequence_number, is_local)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        [
+          header.uid,
+          accountId,
+          folder,
+          header.from,
+          parsed.name ?? null,
+          parsed.address,
+          JSON.stringify(header.to),
+          header.subject,
+          header.date,
+          header.hasAttachment ? 1 : 0,
+          header.isRead ? 1 : 0,
+          header.isFlagged ? 1 : 0,
+          header.sequenceNumber,
+        ],
+      );
+
+      // Update FTS index — delete old entry first, then insert
+      db.execute(
+        'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
+        [header.uid, accountId],
+      );
+      db.execute(
+        `INSERT INTO mail_fts (uid, account_id, subject, from_address, plain_text)
+         VALUES (?, ?, ?, ?, '')`,
+        [header.uid, accountId, header.subject, parsed.address],
+      );
+    }
+  });
+}
+
+/**
+ * Get cached headers for a folder, ordered by date descending.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @param limit - Maximum number of headers to return
+ * @param offset - Number of headers to skip (for pagination)
+ * @returns Array of cached mail headers
+ */
+export function getHeaders(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+  limit: number,
+  offset: number = 0,
+): CachedMailHeader[] {
+  const rows = db.executeQuery<RawHeaderRow>(
+    `SELECT * FROM mail_headers
+     WHERE account_id = ? AND folder = ?
+     ORDER BY date_iso DESC
+     LIMIT ? OFFSET ?`,
+    [accountId, folder, limit, offset],
+  );
+
+  return rows.map(rowToCachedHeader);
+}
+
+/**
+ * Get a single cached header by UID.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @param uid - Message UID
+ * @returns Cached header or null if not found
+ */
+export function getHeaderByUid(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+  uid: number,
+): CachedMailHeader | null {
+  const rows = db.executeQuery<RawHeaderRow>(
+    `SELECT * FROM mail_headers
+     WHERE uid = ? AND account_id = ? AND folder = ?
+     LIMIT 1`,
+    [uid, accountId, folder],
+  );
+
+  return rows.length > 0 ? rowToCachedHeader(rows[0]) : null;
+}
+
+/**
+ * Get the highest UID in the cache for a folder.
+ * Used for incremental sync.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @returns Highest UID or 0 if no headers cached
+ */
+export function getHighestUid(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+): number {
+  const rows = db.executeQuery<{ max_uid: number | null }>(
+    `SELECT MAX(uid) as max_uid FROM mail_headers
+     WHERE account_id = ? AND folder = ?`,
+    [accountId, folder],
+  );
+
+  return rows[0]?.max_uid ?? 0;
+}
+
+/**
+ * Get the lowest UID in the cache for a folder.
+ * Used as sync boundary.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @returns Lowest UID or 0 if no headers cached
+ */
+export function getLowestUid(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+): number {
+  const rows = db.executeQuery<{ min_uid: number | null }>(
+    `SELECT MIN(uid) as min_uid FROM mail_headers
+     WHERE account_id = ? AND folder = ?`,
+    [accountId, folder],
+  );
+
+  return rows[0]?.min_uid ?? 0;
+}
+
+/**
+ * Get total number of cached headers for a folder.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @returns Number of cached headers
+ */
+export function getHeaderCount(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+): number {
+  const rows = db.executeQuery<{ cnt: number }>(
+    `SELECT COUNT(*) as cnt FROM mail_headers
+     WHERE account_id = ? AND folder = ?`,
+    [accountId, folder],
+  );
+
+  return rows[0]?.cnt ?? 0;
+}
+
+/**
+ * Update read status for a cached header.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @param uid - Message UID
+ * @param isRead - New read status
+ */
+export function updateReadStatus(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+  uid: number,
+  isRead: boolean,
+): void {
+  db.execute(
+    `UPDATE mail_headers SET is_read = ?
+     WHERE uid = ? AND account_id = ? AND folder = ?`,
+    [isRead ? 1 : 0, uid, accountId, folder],
+  );
+}
+
+/**
+ * Update flagged status for a cached header.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @param uid - Message UID
+ * @param isFlagged - New flagged status
+ */
+export function updateFlaggedStatus(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+  uid: number,
+  isFlagged: boolean,
+): void {
+  db.execute(
+    `UPDATE mail_headers SET is_flagged = ?
+     WHERE uid = ? AND account_id = ? AND folder = ?`,
+    [isFlagged ? 1 : 0, uid, accountId, folder],
+  );
+}
+
+/**
+ * Delete a cached header and its body.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ * @param uid - Message UID
+ */
+export function deleteHeader(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+  uid: number,
+): void {
+  db.transaction(() => {
+    db.execute(
+      'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
+      [uid, accountId],
+    );
+    db.execute(
+      'DELETE FROM mail_bodies WHERE uid = ? AND account_id = ?',
+      [uid, accountId],
+    );
+    db.execute(
+      'DELETE FROM mail_headers WHERE uid = ? AND account_id = ? AND folder = ?',
+      [uid, accountId, folder],
+    );
+  });
+}
+
+// ============================================================
+// Body Operations
+// ============================================================
+
+/**
+ * Insert or update a mail body in the cache.
+ * Also updates the FTS5 index with the plain text body.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param uid - Message UID
+ * @param html - HTML body content
+ * @param plainText - Plain text body content
+ */
+export function upsertBody(
+  db: MailDatabaseConnection,
+  accountId: string,
+  uid: number,
+  html?: string,
+  plainText?: string,
+): void {
+  db.transaction(() => {
+    db.execute(
+      `INSERT OR REPLACE INTO mail_bodies (uid, account_id, html, plain_text)
+       VALUES (?, ?, ?, ?)`,
+      [uid, accountId, html ?? null, plainText ?? null],
+    );
+
+    // Update FTS index with body text (if available)
+    if (plainText) {
+      // Truncate plain text for FTS to avoid huge index entries
+      const truncatedText = plainText.substring(0, 10000);
+
+      // Get existing FTS row to preserve subject/from_address
+      const existing = db.executeQuery<{ subject: string; from_address: string }>(
+        'SELECT subject, from_address FROM mail_fts WHERE uid = ? AND account_id = ?',
+        [uid, accountId],
+      );
+
+      if (existing.length > 0) {
+        // Update existing FTS entry with body text
+        db.execute(
+          'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
+          [uid, accountId],
+        );
+        db.execute(
+          `INSERT INTO mail_fts (uid, account_id, subject, from_address, plain_text)
+           VALUES (?, ?, ?, ?, ?)`,
+          [uid, accountId, existing[0].subject, existing[0].from_address, truncatedText],
+        );
+      }
+    }
+  });
+}
+
+/**
+ * Get a cached mail body by UID.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param uid - Message UID
+ * @returns Cached body or null if not cached
+ */
+export function getBody(
+  db: MailDatabaseConnection,
+  accountId: string,
+  uid: number,
+): CachedMailBody | null {
+  const rows = db.executeQuery<{
+    uid: number;
+    account_id: string;
+    html: string | null;
+    plain_text: string | null;
+  }>(
+    'SELECT * FROM mail_bodies WHERE uid = ? AND account_id = ? LIMIT 1',
+    [uid, accountId],
+  );
+
+  if (rows.length === 0) return null;
+
+  const row = rows[0];
+  return {
+    uid: row.uid,
+    accountId: row.account_id,
+    html: row.html ?? undefined,
+    plainText: row.plain_text ?? undefined,
+  };
+}
+
+/**
+ * Check if a body is cached for a given UID.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param uid - Message UID
+ * @returns Whether the body is cached
+ */
+export function hasBody(
+  db: MailDatabaseConnection,
+  accountId: string,
+  uid: number,
+): boolean {
+  const rows = db.executeQuery<{ cnt: number }>(
+    'SELECT COUNT(*) as cnt FROM mail_bodies WHERE uid = ? AND account_id = ?',
+    [uid, accountId],
+  );
+
+  return (rows[0]?.cnt ?? 0) > 0;
+}
+
+// ============================================================
+// FTS5 Search
+// ============================================================
+
+/**
+ * Search the local mail cache using FTS5 full-text search.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param query - Search query string
+ * @param limit - Maximum number of results
+ * @returns Array of matching UIDs with relevance ranking
+ */
+export function searchLocal(
+  db: MailDatabaseConnection,
+  accountId: string,
+  query: string,
+  limit: number = 100,
+): number[] {
+  if (!query.trim()) return [];
+
+  // Escape the query for FTS5 (wrap each word in quotes for safety)
+  const sanitized = query
+    .trim()
+    .split(/\s+/)
+    .map(word => `"${word.replace(/"/g, '')}"`)
+    .join(' ');
+
+  const rows = db.executeQuery<{ uid: number }>(
+    `SELECT uid FROM mail_fts
+     WHERE account_id = ? AND mail_fts MATCH ?
+     ORDER BY rank
+     LIMIT ?`,
+    [accountId, sanitized, limit],
+  );
+
+  return rows.map(r => r.uid);
+}
+
+// ============================================================
+// Cleanup
+// ============================================================
+
+/**
+ * Delete all cached data for an account.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ */
+export function deleteAccountData(
+  db: MailDatabaseConnection,
+  accountId: string,
+): void {
+  db.transaction(() => {
+    db.execute('DELETE FROM mail_fts WHERE account_id = ?', [accountId]);
+    db.execute('DELETE FROM mail_bodies WHERE account_id = ?', [accountId]);
+    db.execute('DELETE FROM mail_headers WHERE account_id = ?', [accountId]);
+  });
+
+  console.debug('[mailCache] Cleared all data for account:', accountId);
+}
+
+/**
+ * Delete all cached data for a specific folder.
+ *
+ * @param db - Database connection
+ * @param accountId - Account identifier
+ * @param folder - Mailbox folder name
+ */
+export function deleteFolderData(
+  db: MailDatabaseConnection,
+  accountId: string,
+  folder: string,
+): void {
+  db.transaction(() => {
+    // Get UIDs in this folder for FTS cleanup
+    const uids = db.executeQuery<{ uid: number }>(
+      'SELECT uid FROM mail_headers WHERE account_id = ? AND folder = ?',
+      [accountId, folder],
+    );
+
+    for (const { uid } of uids) {
+      db.execute('DELETE FROM mail_fts WHERE uid = ? AND account_id = ?', [uid, accountId]);
+      db.execute('DELETE FROM mail_bodies WHERE uid = ? AND account_id = ?', [uid, accountId]);
+    }
+
+    db.execute(
+      'DELETE FROM mail_headers WHERE account_id = ? AND folder = ?',
+      [accountId, folder],
+    );
+  });
+}
+
+// ============================================================
+// Internal Helpers
+// ============================================================
+
+/** Raw row shape from SQLite query */
+interface RawHeaderRow {
+  uid: number;
+  account_id: string;
+  folder: string;
+  from_raw: string | null;
+  from_name: string | null;
+  from_address: string | null;
+  to_addresses: string | null;
+  subject: string | null;
+  date_iso: string | null;
+  has_attachment: number;
+  is_read: number;
+  is_flagged: number;
+  sequence_number: number;
+  is_local: number;
+}
+
+/** Convert a raw SQLite row to a CachedMailHeader */
+function rowToCachedHeader(row: RawHeaderRow): CachedMailHeader {
+  let toArray: string[] = [];
+  try {
+    toArray = row.to_addresses ? JSON.parse(row.to_addresses) : [];
+  } catch {
+    toArray = [];
+  }
+
+  return {
+    uid: row.uid,
+    accountId: row.account_id,
+    folder: row.folder,
+    from: row.from_raw ?? '',
+    fromName: row.from_name ?? undefined,
+    fromAddress: row.from_address ?? undefined,
+    to: toArray,
+    subject: row.subject ?? '',
+    date: row.date_iso ?? '',
+    hasAttachment: row.has_attachment === 1,
+    isRead: row.is_read === 1,
+    isFlagged: row.is_flagged === 1,
+    sequenceNumber: row.sequence_number,
+    isLocal: row.is_local === 1,
+  };
+}

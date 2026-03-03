@@ -10,7 +10,7 @@
 | Sessie | Datum | Fasen | Status |
 |--------|-------|-------|--------|
 | 1 | 2026-03-03 | Fase 3 (iOS native module) | ✅ Voltooid |
-| 2 | TBD | Fase 5 (TS bridge + SQLite) | ⏳ Gepland |
+| 2 | 2026-03-03 | Fase 5 (TS bridge + SQLite) | ✅ Voltooid |
 | 3 | TBD | Fase 6-7 (OAuth2 + Providers) | ⏳ Gepland |
 | 4 | TBD | Fase 8 (Onboarding wizard) | ⏳ Gepland |
 | 5 | TBD | Fase 9-10 (Settings + Mail UI) | ⏳ Gepland |
@@ -171,7 +171,108 @@
 
 ## Fase 5: TypeScript Bridge + SQLite — Sessie 2
 
-### Status: ⏳ Gepland
+### Status: ✅ Voltooid
+
+### Beslissingen
+- **SQLite library:** `op-sqlite` gekozen (modern, maintained, FTS5 support, SQLCipher)
+  - WatermelonDB ondersteunt geen FTS5 virtual tables → aparte database nodig
+  - `op-sqlite` nog niet geïnstalleerd — dependency toevoegen in latere fase (voor Test 1)
+- **Database apart van WatermelonDB:** Eigen `mail_cache.db` met SQLCipher encryptie
+- **TypeScript types matchen native return types:** `from` is `String` (niet `[EmailAddress]`), `to` is `string[]`
+- **Email address parsing op TS-side:** `parseEmailAddress()` en `formatEmailAddress()` utilities in types
+- **FTS5 tokenizer:** `unicode61` (goede multi-taal ondersteuning)
+- **Sync state:** Via AsyncStorage (lichtgewicht, per account+folder)
+
+### Architectuur
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  React Native Layer                                              │
+│                                                                  │
+│  src/types/mail.ts          ← TypeScript interfaces              │
+│  src/services/mail/                                              │
+│    imapBridge.ts            ← NativeModules wrapper (IMAP)       │
+│    smtpBridge.ts            ← NativeModules wrapper (SMTP)       │
+│    imapService.ts           ← Sync strategie (initial/incremental)│
+│    imapSearch.ts            ← Gecombineerd FTS5 + IMAP zoeken    │
+│    mailCache.ts             ← SQLite CRUD + FTS5 indexering       │
+│    index.ts                 ← Public API exports                  │
+│  src/models/                                                     │
+│    mailDatabase.ts          ← Database setup, schema, migrations  │
+├─────────────────────────────────────────────────────────────────┤
+│  Native iOS Layer                                                │
+│  ios/MailModule.swift       ← SwiftMail IMAP/SMTP (Fase 3)      │
+│  ios/MailModule.m           ← ObjC bridge                        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Database Schema (mail_cache.db)
+
+**mail_headers:**
+```sql
+uid INTEGER, account_id TEXT, folder TEXT  -- PK: (uid, account_id, folder)
+from_raw TEXT, from_name TEXT, from_address TEXT
+to_addresses TEXT (JSON), subject TEXT, date_iso TEXT
+has_attachment INTEGER, is_read INTEGER, is_flagged INTEGER
+sequence_number INTEGER, is_local INTEGER DEFAULT 0
+```
+
+**mail_bodies:**
+```sql
+uid INTEGER, account_id TEXT  -- PK: (uid, account_id)
+html TEXT, plain_text TEXT
+```
+
+**mail_fts (FTS5):**
+```sql
+uid UNINDEXED, account_id UNINDEXED
+subject, from_address, plain_text
+tokenize='unicode61'
+```
+
+**Indexes:**
+- `idx_headers_account_folder_date` — Voor gesorteerde inbox weergave
+- `idx_headers_account_folder_uid` — Voor UID-based sync queries
+
+### Bestanden Aangemaakt
+| Bestand | Regels | Doel |
+|---------|--------|------|
+| `src/types/mail.ts` | ~340 | TypeScript interfaces + email address parser |
+| `src/services/mail/imapBridge.ts` | ~240 | NativeModules IMAP wrapper |
+| `src/services/mail/smtpBridge.ts` | ~140 | NativeModules SMTP wrapper |
+| `src/services/mail/imapService.ts` | ~310 | Sync strategie (initial + incremental) |
+| `src/services/mail/imapSearch.ts` | ~160 | Gecombineerd FTS5 + IMAP zoeken |
+| `src/services/mail/mailCache.ts` | ~410 | SQLite CRUD + FTS5 indexering |
+| `src/services/mail/index.ts` | ~17 | Public API re-exports |
+| `src/models/mailDatabase.ts` | ~190 | Database setup + schema |
+
+### Sync Strategie
+1. **initialSync(limit=200):** Verbind → fetchHeaders → cache → bewaar UID grenzen
+2. **incrementalSync:** Haal alleen berichten met UID > hoogste cached UID
+3. **getMessages(limit, offset):** Lees uit lokale cache (offline-first)
+4. **Flag sync:** Optimistisch updaten cache → dan server sync
+
+### Zoek Strategie
+1. **Lokaal (FTS5):** Instant, offline — zoekt in subject, from, body
+2. **Remote (IMAP SEARCH):** Parallel met lokaal — covers niet-gecachete berichten
+3. **Combineer:** Dedupliceer op UID, server-only results markeren voor on-demand body fetch
+
+### Dependency Check (voor volgende sessie)
+- [ ] `npm install @op-engineering/op-sqlite` — Moet worden geïnstalleerd voor Test 1
+- [ ] `cd ios && pod install` — Na op-sqlite installatie
+- [ ] TypeScript typecheck — Moet worden gevalideerd na op-sqlite installatie
+
+### Volgende Sessie: Fase 6-7 (OAuth2 + Providers)
+**Voorbereid:**
+- Alle TS bridge bestanden zijn klaar
+- SQLite schema is gedefinieerd
+- Sync + zoek strategie zijn geïmplementeerd
+- Types matchen exact met native module return waarden
+
+**Te doen in Fase 6-7:**
+- OAuth2 authenticatie service (Gmail, Outlook, Yahoo)
+- Provider configuratie database (bekende IMAP/SMTP instellingen)
+- Auto-detectie op basis van e-mailadres domein
 
 ---
 
