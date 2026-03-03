@@ -233,19 +233,28 @@ export function SeniorDatePicker({
   // Ref for sub-popup ScrollView to auto-scroll to selected item
   const subPopupScrollRef = useRef<ScrollView>(null);
 
-  // Auto-scroll to the selected item when sub-popup opens
-  useEffect(() => {
-    if (activeSubPopup === null) return;
+  // Store the scroll target so onLayout can use it
+  const pendingScrollRef = useRef<number | null>(null);
 
-    // Read selected value directly from state (not via closure functions)
+  // Compute scroll target when sub-popup field changes
+  useEffect(() => {
+    if (activeSubPopup === null) {
+      pendingScrollRef.current = null;
+      return;
+    }
+
+    // Read selected value directly from state
     let selectedValue: number | undefined;
     if (activeSubPopup === 'day') selectedValue = modalDay;
     else if (activeSubPopup === 'month') selectedValue = modalMonth;
     else selectedValue = modalYear;
 
-    if (selectedValue === undefined) return;
+    if (selectedValue === undefined) {
+      pendingScrollRef.current = null;
+      return;
+    }
 
-    // Build options inline to avoid stale closure
+    // Build options inline to find the selected index
     let options: { value: number }[];
     if (activeSubPopup === 'day') {
       options = dayOptions.map(d => ({ value: d }));
@@ -256,7 +265,10 @@ export function SeniorDatePicker({
     }
 
     const selectedIndex = options.findIndex(o => o.value === selectedValue);
-    if (selectedIndex <= 0) return;
+    if (selectedIndex <= 0) {
+      pendingScrollRef.current = null;
+      return;
+    }
 
     // Scroll so the selected item is roughly centered in the visible area
     const popupVisibleHeight = SCREEN_HEIGHT * 0.6 - 60; // subtract header
@@ -265,13 +277,18 @@ export function SeniorDatePicker({
       selectedIndex * ITEM_HEIGHT_ESTIMATE - popupVisibleHeight / 2 + ITEM_HEIGHT_ESTIMATE / 2,
     );
 
-    // Small delay to ensure ScrollView is mounted
-    const timer = setTimeout(() => {
-      subPopupScrollRef.current?.scrollTo({ y: targetOffset, animated: false });
-    }, 50);
+    pendingScrollRef.current = targetOffset;
 
-    return () => clearTimeout(timer);
+    // Also attempt immediate scroll (works when ScrollView is already mounted)
+    subPopupScrollRef.current?.scrollTo({ y: targetOffset, animated: false });
   }, [activeSubPopup, modalDay, modalMonth, modalYear, dayOptions, monthNames, yearOptions]);
+
+  // Called when ScrollView layout completes — guarantees it's ready to scroll
+  const handleSubPopupLayout = useCallback(() => {
+    if (pendingScrollRef.current !== null) {
+      subPopupScrollRef.current?.scrollTo({ y: pendingScrollRef.current, animated: false });
+    }
+  }, []);
 
   // Get the display value for a field button inside the modal
   const getFieldButtonDisplay = (field: PickerField): string => {
@@ -488,6 +505,7 @@ export function SeniorDatePicker({
                   style={styles.subPopupList}
                   showsVerticalScrollIndicator={true}
                   contentContainerStyle={styles.subPopupListContent}
+                  onLayout={handleSubPopupLayout}
                 >
                   {getSubPopupOptions(activeSubPopup).map((option) => {
                     const isSelected = option.value === getFieldSelected(activeSubPopup);
