@@ -15,6 +15,7 @@
  * - v11: Added voiceCommandsEnabled for two-finger voice commands
  * - v12: Added call sound settings (ringtone, dial tone, vibration)
  * - v13: Added media_messages table and media fields to messages
+ * - v14: Added contact details (firstName, lastName, address, dates, isDeceased)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -225,6 +226,29 @@ export const migrations = schemaMigrations({
             { name: 'expires_at', type: 'number', isIndexed: true },
             { name: 'created_at', type: 'number' },
             { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
+    // Migration from v13 to v14: Add contact details (firstName, lastName, address, dates)
+    {
+      toVersion: 14,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'first_name', type: 'string' },
+            { name: 'last_name', type: 'string' },
+            // Address fields
+            { name: 'address_street', type: 'string', isOptional: true },
+            { name: 'address_postal_code', type: 'string', isOptional: true },
+            { name: 'address_city', type: 'string', isOptional: true },
+            { name: 'address_country', type: 'string', isOptional: true },
+            // Date fields
+            { name: 'birth_date', type: 'string', isOptional: true },
+            { name: 'wedding_date', type: 'string', isOptional: true },
+            { name: 'death_date', type: 'string', isOptional: true },
+            { name: 'is_deceased', type: 'boolean', isOptional: true },
           ],
         }),
       ],

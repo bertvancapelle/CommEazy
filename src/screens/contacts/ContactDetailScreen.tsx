@@ -7,6 +7,8 @@
  * - Large action buttons (60pt+)
  * - Minimal visual clutter
  * - VoiceOver support
+ * - Address with navigation to Maps
+ * - Important dates with personalized calculations
  *
  * Note: Contact photos come FROM the contact themselves (via XMPP).
  * Users can only edit their OWN profile photo in Settings > Profile.
@@ -14,7 +16,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -22,6 +24,8 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Linking,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -34,11 +38,73 @@ import { ContactAvatar, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
-import type { Contact } from '@/services/interfaces';
+import {
+  getContactDisplayName,
+  hasNavigableAddress,
+} from '@/services/interfaces';
+import type { Contact, ContactAddress } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactDetail'>;
 type ContactDetailRouteProp = RouteProp<ContactStackParams, 'ContactDetail'>;
+
+/** Format an address into display lines (street, postcode+city, country) */
+function formatAddressLines(address: ContactAddress): string[] {
+  const lines: string[] = [];
+  if (address.street) lines.push(address.street);
+  const cityLine = [address.postalCode, address.city].filter(Boolean).join(' ');
+  if (cityLine) lines.push(cityLine);
+  if (address.country) lines.push(address.country);
+  return lines;
+}
+
+/** Build a maps URL for navigation */
+function buildMapsUrl(address: ContactAddress): string {
+  const parts = [address.street, address.postalCode, address.city, address.country]
+    .filter(Boolean)
+    .join(', ');
+  const encoded = encodeURIComponent(parts);
+
+  if (Platform.OS === 'ios') {
+    return `maps:?address=${encoded}`;
+  }
+  // Android: geo intent with query
+  return `geo:0,0?q=${encoded}`;
+}
+
+/** Calculate age or years from an ISO date string */
+function calculateYears(isoDate: string): number {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const now = new Date();
+  let years = now.getFullYear() - year;
+  const monthDiff = now.getMonth() + 1 - month;
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < day)) {
+    years--;
+  }
+  return years;
+}
+
+/** Calculate age at a specific date (e.g., age at death) */
+function calculateYearsBetween(birthIso: string, endIso: string): number {
+  const [bYear, bMonth, bDay] = birthIso.split('-').map(Number);
+  const [eYear, eMonth, eDay] = endIso.split('-').map(Number);
+  let years = eYear - bYear;
+  if (eMonth < bMonth || (eMonth === bMonth && eDay < bDay)) {
+    years--;
+  }
+  return years;
+}
+
+/** Format a date for display: "15 maart 1948" */
+function formatDateDisplay(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
 
 export function ContactDetailScreen() {
   const { t } = useTranslation();
@@ -78,6 +144,11 @@ export function ContactDetailScreen() {
     void loadContact();
   }, [jid]);
 
+  const displayName = useMemo(
+    () => (contact ? getContactDisplayName(contact) : ''),
+    [contact],
+  );
+
   const handleStartChat = useCallback(async () => {
     void triggerFeedback('tap');
     if (!contact) return;
@@ -96,13 +167,12 @@ export function ContactDetailScreen() {
     const chatId = `chat:${jids.join(':')}`;
 
     // Unified: navigate other pane to chats → ChatDetail
-    // iPad: opens in the other panel, iPhone: navigates in 'main' pane
     navigateToModuleInOtherPane('chats', {
       screen: 'ChatDetail',
-      params: { chatId, name: contact.name, contactJid: contact.jid },
+      params: { chatId, name: displayName, contactJid: contact.jid },
     });
-    console.info('[ContactDetail] Navigated to chat with', contact.name);
-  }, [contact, triggerFeedback, navigateToModuleInOtherPane]);
+    console.info('[ContactDetail] Navigated to chat with', displayName);
+  }, [contact, displayName, triggerFeedback, navigateToModuleInOtherPane]);
 
   const handleVoiceCall = useCallback(async () => {
     console.info('[ContactDetail] handleVoiceCall tapped, contact:', contact?.jid, 'isInCall:', isInCall);
@@ -120,7 +190,6 @@ export function ContactDetailScreen() {
 
     try {
       await initiateCall(contact.jid, 'voice');
-      // Navigation to call screen is handled by CallContext/CallOverlay
     } catch (error) {
       console.error('[ContactDetail] Failed to start voice call:', error);
       Alert.alert(
@@ -147,7 +216,6 @@ export function ContactDetailScreen() {
 
     try {
       await initiateCall(contact.jid, 'video');
-      // Navigation to call screen is handled by CallContext/CallOverlay
     } catch (error) {
       console.error('[ContactDetail] Failed to start video call:', error);
       Alert.alert(
@@ -161,9 +229,9 @@ export function ContactDetailScreen() {
   const handleVerify = useCallback(() => {
     void triggerFeedback('tap');
     if (contact) {
-      navigation.navigate('VerifyContact' as never, { jid: contact.jid, name: contact.name } as never);
+      navigation.navigate('VerifyContact' as never, { jid: contact.jid, name: displayName } as never);
     }
-  }, [contact, navigation, triggerFeedback]);
+  }, [contact, displayName, navigation, triggerFeedback]);
 
   const handleDelete = useCallback(() => {
     void triggerFeedback('tap');
@@ -171,7 +239,7 @@ export function ContactDetailScreen() {
 
     Alert.alert(
       t('contacts.deleteTitle'),
-      t('contacts.deleteConfirm', { name: contact.name }),
+      t('contacts.deleteConfirm', { name: displayName }),
       [
         {
           text: t('common.cancel'),
@@ -184,7 +252,6 @@ export function ContactDetailScreen() {
             void (async () => {
               try {
                 if (__DEV__) {
-                  // In dev mode, just navigate back (mock data is in memory)
                   console.log('[DEV] Would delete contact:', jid);
                 } else {
                   // Production: use real database service
@@ -201,7 +268,14 @@ export function ContactDetailScreen() {
         },
       ]
     );
-  }, [contact, jid, navigation, t, triggerFeedback]);
+  }, [contact, displayName, jid, navigation, t, triggerFeedback]);
+
+  const handleNavigateToMaps = useCallback(() => {
+    if (!contact?.address) return;
+    void triggerFeedback('tap');
+    const url = buildMapsUrl(contact.address);
+    void Linking.openURL(url);
+  }, [contact, triggerFeedback]);
 
   if (loading) {
     return (
@@ -227,16 +301,19 @@ export function ContactDetailScreen() {
     );
   }
 
+  const addressLines = contact.address ? formatAddressLines(contact.address) : [];
+  const showNavigationButton = hasNavigableAddress(contact.address);
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Profile header with large photo */}
       <View style={styles.profileHeader}>
         <ContactAvatar
-          name={contact.name}
+          name={displayName}
           photoUrl={contact.photoUrl}
           size={120}
         />
-        <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{contact.name}</Text>
+        <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{displayName}</Text>
 
         {/* Verification badge - compact */}
         <View
@@ -261,10 +338,108 @@ export function ContactDetailScreen() {
       <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.details')}</Text>
 
-        <View style={styles.detailRow}>
-          <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
-          <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.phoneNumber}</Text>
+        {contact.phoneNumber && (
+          <View style={styles.detailRow}>
+            <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
+            <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.phoneNumber}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Address section */}
+      {addressLines.length > 0 && (
+        <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.address.title')}</Text>
+
+          {addressLines.map((line, index) => (
+            <Text
+              key={index}
+              style={[styles.addressLine, { color: themeColors.textPrimary }]}
+            >
+              {line}
+            </Text>
+          ))}
+
+          {/* Navigation button */}
+          {showNavigationButton && (
+            <TouchableOpacity
+              style={[styles.navigationButton, { backgroundColor: themeColors.primary }]}
+              onPress={handleNavigateToMaps}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('contacts.address.navigate')}
+              accessibilityHint={t('contacts.address.navigateHint', { name: contact.firstName })}
+            >
+              <Icon name="navigate" size={22} color={themeColors.textOnPrimary} />
+              <Text style={[styles.navigationButtonText, { color: themeColors.textOnPrimary }]}>
+                {t('contacts.address.navigate')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
+      )}
+
+      {/* Dates section */}
+      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.dates.title')}</Text>
+
+        {/* Birth date */}
+        {contact.birthDate ? (
+          <View style={styles.dateRow}>
+            <View style={styles.dateInfo}>
+              <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
+              <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                {formatDateDisplay(contact.birthDate)}
+              </Text>
+            </View>
+            <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
+              {contact.isDeceased && contact.deathDate
+                ? t('contacts.dates.ageAtDeath', {
+                    name: contact.firstName,
+                    years: calculateYearsBetween(contact.birthDate, contact.deathDate),
+                  })
+                : t('contacts.dates.ageCurrent', {
+                    name: contact.firstName,
+                    years: calculateYears(contact.birthDate),
+                  })
+              }
+            </Text>
+          </View>
+        ) : (
+          <Text style={[styles.dateEmpty, { color: themeColors.textTertiary }]}>
+            {t('contacts.dates.noBirthDate')}
+          </Text>
+        )}
+
+        {/* Wedding date */}
+        {contact.weddingDate && (
+          <View style={styles.dateRow}>
+            <View style={styles.dateInfo}>
+              <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
+              <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                {formatDateDisplay(contact.weddingDate)}
+              </Text>
+            </View>
+            <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
+              {t('contacts.dates.weddingYears', { years: calculateYears(contact.weddingDate) })}
+            </Text>
+          </View>
+        )}
+
+        {/* Death date (only if deceased) */}
+        {contact.isDeceased && contact.deathDate && (
+          <View style={styles.dateRow}>
+            <View style={styles.dateInfo}>
+              <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
+              <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                {formatDateDisplay(contact.deathDate)}
+              </Text>
+            </View>
+            <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
+              {t('contacts.dates.deathYearsAgo', { years: calculateYears(contact.deathDate) })}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Action buttons */}
@@ -276,7 +451,7 @@ export function ContactDetailScreen() {
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('contacts.startChat')}
-          accessibilityHint={t('accessibility.startChatHint', { name: contact.name })}
+          accessibilityHint={t('accessibility.startChatHint', { name: displayName })}
         >
           <Icon name="chatbubble" size={24} color={themeColors.textOnPrimary} />
           <Text style={[styles.primaryButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.startChat')}</Text>
@@ -292,7 +467,7 @@ export function ContactDetailScreen() {
             disabled={isInCall}
             accessibilityRole="button"
             accessibilityLabel={t('contacts.voiceCall')}
-            accessibilityHint={t('accessibility.voiceCallHint', { name: contact.name })}
+            accessibilityHint={t('accessibility.voiceCallHint', { name: displayName })}
             accessibilityState={{ disabled: isInCall }}
           >
             <Icon name="call" size={28} color={themeColors.textOnPrimary} />
@@ -307,7 +482,7 @@ export function ContactDetailScreen() {
             disabled={isInCall}
             accessibilityRole="button"
             accessibilityLabel={t('contacts.videoCall')}
-            accessibilityHint={t('accessibility.videoCallHint', { name: contact.name })}
+            accessibilityHint={t('accessibility.videoCallHint', { name: displayName })}
             accessibilityState={{ disabled: isInCall }}
           >
             <Icon name="videocam" size={28} color={themeColors.textOnPrimary} />
@@ -335,7 +510,7 @@ export function ContactDetailScreen() {
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('contacts.delete')}
-          accessibilityHint={t('accessibility.deleteContactHint', { name: contact.name })}
+          accessibilityHint={t('accessibility.deleteContactHint', { name: displayName })}
         >
           <Text style={[styles.dangerButtonText, { color: themeColors.error }]}>{t('contacts.delete')}</Text>
         </TouchableOpacity>
@@ -424,7 +599,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   detailsSection: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.md,
@@ -450,6 +625,60 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '500',
   },
+  // Address styles
+  addressLine: {
+    ...typography.body,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  navigationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.minimum,
+    backgroundColor: colors.primary,
+  },
+  navigationButtonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
+  },
+  // Date styles
+  dateRow: {
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
+  },
+  dateInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  dateLabel: {
+    ...typography.label,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  dateValue: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '500',
+  },
+  dateCalculation: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  dateEmpty: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontStyle: 'italic',
+  },
+  // Action buttons
   actionsContainer: {
     gap: spacing.md,
   },

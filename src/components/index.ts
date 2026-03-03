@@ -156,6 +156,10 @@ export { AppleMusicDetailModal } from './appleMusic';
 export { QueueView } from './QueueView';
 export type { QueueViewProps } from './QueueView';
 
+// SeniorDatePicker Component (3-dropdown date picker for seniors — reusable)
+export { SeniorDatePicker } from './SeniorDatePicker';
+export type { SeniorDatePickerProps } from './SeniorDatePicker';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

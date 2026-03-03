@@ -316,7 +316,7 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
               </Text>
               {DevMockData?.contacts.map(contact => (
                 <Text key={contact.jid} style={styles.contactInfo}>
-                  {contact.verified ? 'V' : '-'} {contact.name} ({contact.phoneNumber})
+                  {contact.verified ? 'V' : '-'} {contact.firstName} {contact.lastName} ({contact.phoneNumber})
                 </Text>
               ))}
             </View>

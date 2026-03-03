@@ -243,6 +243,10 @@
     "searchButton": "Zoeken",
     "nameLabel": "Naam",
     "namePlaceholder": "Voer naam in",
+    "firstNameLabel": "Voornaam",
+    "firstNamePlaceholder": "Voer voornaam in",
+    "lastNameLabel": "Achternaam",
+    "lastNamePlaceholder": "Voer achternaam in (optioneel)",
     "phoneLabel": "Telefoonnummer",
     "phonePlaceholder": "612345678",
     "addHint": "Je kunt ook een QR-code scannen om een contact toe te voegen",
@@ -257,7 +261,36 @@
     "verificationSuccess": "Verificatie gelukt!",
     "verificationSuccessMessage": "{{name}} is nu geverifieerd",
     "verificationFailed": "Verificatie mislukt",
-    "verificationFailedMessage": "De QR-code komt niet overeen. Probeer het opnieuw."
+    "verificationFailedMessage": "De QR-code komt niet overeen. Probeer het opnieuw.",
+    "address": {
+      "title": "Adres",
+      "street": "Straat en huisnummer",
+      "postalCode": "Postcode",
+      "city": "Stad",
+      "country": "Land",
+      "navigate": "Navigeren",
+      "navigateHint": "Open de route naar {{name}} in de kaarten-app"
+    },
+    "dates": {
+      "title": "Belangrijke data",
+      "birthDate": "Geboortedatum",
+      "weddingDate": "Trouwdatum",
+      "deathDate": "Sterfdatum",
+      "noBirthDate": "Geen geboortedatum bekend",
+      "ageCurrent": "{{name}} wordt {{years}} jaar",
+      "ageAtDeath": "{{name}} werd {{years}} jaar",
+      "weddingYears": "{{years}} jaar getrouwd",
+      "deathYearsAgo": "{{years}} jaar geleden"
+    },
+    "datePicker": {
+      "day": "Dag",
+      "month": "Maand",
+      "year": "Jaar",
+      "selectDay": "Kies een dag",
+      "selectMonth": "Kies een maand",
+      "selectYear": "Kies een jaar",
+      "clear": "Wissen"
+    }
   },
   "settings": {
     "title": "Instellingen",
@@ -543,6 +576,8 @@
     "countryCode": "Landcode",
     "selectCountryCode": "Selecteer landcode",
     "enterContactName": "Voer de naam van het contact in",
+    "enterContactFirstName": "Voer de voornaam van het contact in",
+    "enterContactLastName": "Voer de achternaam van het contact in",
     "enterPhoneNumber": "Voer telefoonnummer in",
     "addContact": "Contact toevoegen",
     "startChatHint": "Stuur een bericht naar {{name}}",

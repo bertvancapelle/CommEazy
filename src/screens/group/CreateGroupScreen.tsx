@@ -35,6 +35,7 @@ import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { groupChatService } from '@/services/groupChat';
 import type { Contact } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
 import { triggerHaptic } from '@/hooks/useHoldToNavigate';
 
 type NavigationProp = NativeStackNavigationProp<GroupStackParams, 'CreateGroup'>;
@@ -206,14 +207,14 @@ export function CreateGroupScreen() {
                 activeOpacity={0.7}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: isSelected }}
-                accessibilityLabel={contact.name}
+                accessibilityLabel={getContactDisplayName(contact)}
               >
                 <View style={[styles.contactAvatar, { backgroundColor: themeColors.border }]}>
                   <Text style={[styles.contactAvatarText, { color: themeColors.textSecondary }]}>
-                    {contact.name.charAt(0).toUpperCase()}
+                    {getContactDisplayName(contact).charAt(0).toUpperCase()}
                   </Text>
                 </View>
-                <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{contact.name}</Text>
+                <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{getContactDisplayName(contact)}</Text>
                 <View style={[styles.checkbox, { borderColor: themeColors.border }, isSelected && { backgroundColor: themeColors.primary, borderColor: themeColors.primary }]}>
                   {isSelected && <Text style={[styles.checkmark, { color: themeColors.textOnPrimary }]}>✓</Text>}
                 </View>

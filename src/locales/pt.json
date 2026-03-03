@@ -244,6 +244,10 @@
     "searchButton": "Pesquisar",
     "nameLabel": "Nome",
     "namePlaceholder": "Introduzir nome",
+    "firstNameLabel": "Nome próprio",
+    "firstNamePlaceholder": "Introduzir nome próprio",
+    "lastNameLabel": "Apelido",
+    "lastNamePlaceholder": "Introduzir apelido (opcional)",
     "phoneLabel": "Numero de telefone",
     "phonePlaceholder": "912345678",
     "addHint": "Também pode digitalizar um codigo QR para adicionar um contacto",
@@ -258,7 +262,36 @@
     "verificationSuccess": "Verificação bem sucedida!",
     "verificationSuccessMessage": "{{name}} está agora verificado",
     "verificationFailed": "Verificação falhou",
-    "verificationFailedMessage": "O codigo QR não corresponde. Tente novamente."
+    "verificationFailedMessage": "O codigo QR não corresponde. Tente novamente.",
+    "address": {
+      "title": "Morada",
+      "street": "Rua e número",
+      "postalCode": "Código postal",
+      "city": "Cidade",
+      "country": "País",
+      "navigate": "Navegar para a morada",
+      "navigateHint": "Abre a aplicação de mapas com a morada de {{name}}"
+    },
+    "dates": {
+      "title": "Datas importantes",
+      "birthDate": "Data de nascimento",
+      "weddingDate": "Data de casamento",
+      "deathDate": "Data de falecimento",
+      "noBirthDate": "Adicione a data de nascimento para ver a idade",
+      "ageCurrent": "{{name}} fará {{years}} anos",
+      "ageAtDeath": "{{name}} tinha {{years}} anos",
+      "weddingYears": "{{years}} anos de casamento",
+      "deathYearsAgo": "Há {{years}} anos"
+    },
+    "datePicker": {
+      "day": "Dia",
+      "month": "Mês",
+      "year": "Ano",
+      "selectDay": "Selecionar dia",
+      "selectMonth": "Selecionar mês",
+      "selectYear": "Selecionar ano",
+      "clear": "Limpar"
+    }
   },
   "settings": {
     "title": "Definições",
@@ -545,6 +578,8 @@
     "countryCode": "Codigo do pais",
     "selectCountryCode": "Selecionar codigo do pais",
     "enterContactName": "Introduzir o nome do contacto",
+    "enterContactFirstName": "Introduzir o nome próprio do contacto",
+    "enterContactLastName": "Introduzir o apelido do contacto",
     "enterPhoneNumber": "Introduzir numero de telefone",
     "addContact": "Adicionar contacto",
     "startChatHint": "Enviar uma mensagem para {{name}}",

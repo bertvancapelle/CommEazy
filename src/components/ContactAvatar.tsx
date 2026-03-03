@@ -52,11 +52,15 @@ export function ContactAvatar({
   const [imageError, setImageError] = useState(false);
   const showImage = photoUrl && !imageError;
 
-  const initial = name.charAt(0).toUpperCase();
+  // Show up to 2 initials (e.g., "Janny Jansen" → "JJ", "Maria" → "M")
+  const nameParts = name.trim().split(/\s+/);
+  const initial = nameParts.length > 1
+    ? `${nameParts[0].charAt(0)}${nameParts[nameParts.length - 1].charAt(0)}`.toUpperCase()
+    : name.charAt(0).toUpperCase();
   const borderRadius = size / 2;
 
-  // Scale font size based on avatar size
-  const fontSize = size * 0.4;
+  // Scale font size based on avatar size — slightly smaller for 2 initials
+  const fontSize = initial.length > 1 ? size * 0.32 : size * 0.4;
 
   // Presence dot sizing: 30% of avatar diameter
   const dotSize = Math.round(size * 0.3);

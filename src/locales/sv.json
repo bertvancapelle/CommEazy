@@ -301,6 +301,10 @@
     "searchButton": "Sök",
     "nameLabel": "Namn",
     "namePlaceholder": "Ange namn",
+    "firstNameLabel": "Förnamn",
+    "firstNamePlaceholder": "Ange förnamn",
+    "lastNameLabel": "Efternamn",
+    "lastNamePlaceholder": "Ange efternamn (valfritt)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
     "addHint": "Du kan också skanna en QR-kod för att lägga till en kontakt",
@@ -315,7 +319,36 @@
     "verificationSuccess": "Verifiering lyckades!",
     "verificationSuccessMessage": "{{name}} är nu verifierad",
     "verificationFailed": "Verifiering misslyckades",
-    "verificationFailedMessage": "QR-koden stämmer inte. Försök igen."
+    "verificationFailedMessage": "QR-koden stämmer inte. Försök igen.",
+    "address": {
+      "title": "Adress",
+      "street": "Gata och nummer",
+      "postalCode": "Postnummer",
+      "city": "Stad",
+      "country": "Land",
+      "navigate": "Navigera till adressen",
+      "navigateHint": "Öppnar kartappen med adressen till {{name}}"
+    },
+    "dates": {
+      "title": "Viktiga datum",
+      "birthDate": "Födelsedatum",
+      "weddingDate": "Bröllopsdatum",
+      "deathDate": "Dödsdatum",
+      "noBirthDate": "Lägg till födelsedatum för att se ålder",
+      "ageCurrent": "{{name}} fyller {{years}} år",
+      "ageAtDeath": "{{name}} blev {{years}} år",
+      "weddingYears": "{{years}} år gifta",
+      "deathYearsAgo": "{{years}} år sedan"
+    },
+    "datePicker": {
+      "day": "Dag",
+      "month": "Månad",
+      "year": "År",
+      "selectDay": "Välj dag",
+      "selectMonth": "Välj månad",
+      "selectYear": "Välj år",
+      "clear": "Rensa"
+    }
   },
   "settings": {
     "title": "Inställningar",
@@ -601,6 +634,8 @@
     "countryCode": "Landskod",
     "selectCountryCode": "Välj landskod",
     "enterContactName": "Ange kontaktens namn",
+    "enterContactFirstName": "Ange kontaktens förnamn",
+    "enterContactLastName": "Ange kontaktens efternamn",
     "enterPhoneNumber": "Ange telefonnummer",
     "addContact": "Lägg till kontakt",
     "startChatHint": "Skicka ett meddelande till {{name}}",

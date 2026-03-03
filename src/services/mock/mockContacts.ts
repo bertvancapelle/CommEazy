@@ -11,7 +11,7 @@
  * - Buurman Henk: edge case - long name, offline for days
  */
 
-import type { Contact, Message, PresenceShow } from '../interfaces';
+import type { Contact, PresenceShow } from '../interfaces';
 
 // Valid test Curve25519 public keys (32 bytes = 44 base64 chars with padding)
 // These are pre-generated deterministic keys for testing only.
@@ -57,38 +57,69 @@ const BASE_MOCK_CONTACTS: Contact[] = [
   {
     userUuid: MOCK_UUIDS.oma_jansen,
     jid: 'oma.jansen@commeazy.local',
-    name: 'Oma Jansen',
+    firstName: 'Janny',
+    lastName: 'Jansen',
     phoneNumber: '+31612345678',
     publicKey: MOCK_PUBLIC_KEYS.oma_jansen,
     verified: true,
     lastSeen: Date.now() - 5 * 60 * 1000, // 5 minutes ago (online)
+    address: {
+      street: 'Kerkstraat 42',
+      postalCode: '1012 AB',
+      city: 'Amsterdam',
+      country: 'Nederland',
+    },
+    birthDate: '1948-03-15',
+    weddingDate: '1970-06-20',
+    deathDate: undefined,
+    isDeceased: false,
   },
   {
     userUuid: MOCK_UUIDS.papa,
     jid: 'papa@commeazy.local',
-    name: 'Papa',
+    firstName: 'Jan',
+    lastName: 'de Vries',
     phoneNumber: '+31687654321',
     publicKey: MOCK_PUBLIC_KEYS.papa,
     verified: true,
     lastSeen: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
+    address: {
+      street: 'Dorpsweg 7',
+      postalCode: '3421 BA',
+      city: 'Oudewater',
+      country: 'Nederland',
+    },
+    birthDate: '1965-11-28',
+    weddingDate: '1990-09-14',
   },
   {
     userUuid: MOCK_UUIDS.tante_maria,
     jid: 'tante.maria@commeazy.local',
-    name: 'Tante Maria',
+    firstName: 'Maria',
+    lastName: 'Bakker',
     phoneNumber: '+31698765432',
     publicKey: MOCK_PUBLIC_KEYS.tante_maria,
     verified: false, // Not verified - for testing verification flow
     lastSeen: Date.now() - 24 * 60 * 60 * 1000, // 1 day ago
+    birthDate: '1958-07-04',
   },
   {
     userUuid: MOCK_UUIDS.buurman_henk,
     jid: 'buurman.henk@commeazy.local',
-    name: 'Buurman Henk van der Berg',
+    firstName: 'Henk',
+    lastName: 'van der Berg',
     phoneNumber: '+31654321987',
     publicKey: MOCK_PUBLIC_KEYS.buurman_henk,
     verified: true,
     lastSeen: Date.now() - 5 * 24 * 60 * 60 * 1000, // 5 days ago (almost expired)
+    address: {
+      street: 'Hoofdstraat 156',
+      city: 'Utrecht',
+      country: 'Nederland',
+    },
+    birthDate: '1952-01-10',
+    deathDate: '2024-08-22',
+    isDeceased: true,
   },
 ];
 
@@ -102,7 +133,8 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
   'ik@commeazy.local': {
     userUuid: MOCK_UUIDS.ik,
     jid: 'ik@commeazy.local',
-    name: 'Ik (simulator)',
+    firstName: 'Ik',
+    lastName: '(simulator)',
     phoneNumber: '+31600000001',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
@@ -111,7 +143,8 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
   'oma@commeazy.local': {
     userUuid: MOCK_UUIDS.oma,
     jid: 'oma@commeazy.local',
-    name: 'Oma (simulator)',
+    firstName: 'Oma',
+    lastName: '(simulator)',
     phoneNumber: '+31600000002',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
@@ -120,7 +153,8 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
   'test@commeazy.local': {
     userUuid: MOCK_UUIDS.test,
     jid: 'test@commeazy.local',
-    name: 'Test (iPhone 14)',
+    firstName: 'Test',
+    lastName: '(iPhone 14)',
     phoneNumber: '+31600000003',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
@@ -129,7 +163,8 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
   'jeanine@commeazy.local': {
     userUuid: MOCK_UUIDS.jeanine,
     jid: 'jeanine@commeazy.local',
-    name: 'Jeanine',
+    firstName: 'Jeanine',
+    lastName: '',
     phoneNumber: '+31600000004',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
@@ -138,7 +173,8 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
   'ipad@commeazy.local': {
     userUuid: MOCK_UUIDS.ipad,
     jid: 'ipad@commeazy.local',
-    name: 'iPad (simulator)',
+    firstName: 'iPad',
+    lastName: '(simulator)',
     phoneNumber: '+31600000005',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
@@ -147,17 +183,14 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
   'ipadphys@commeazy.local': {
     userUuid: MOCK_UUIDS.ipadphys,
     jid: 'ipadphys@commeazy.local',
-    name: 'iPad (fysiek)',
+    firstName: 'iPad',
+    lastName: '(fysiek)',
     phoneNumber: '+31600000006',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
   },
 };
-
-// Backward compatibility aliases
-const IK_AS_CONTACT = TEST_DEVICE_CONTACTS['ik@commeazy.local'];
-const OMA_AS_CONTACT = TEST_DEVICE_CONTACTS['oma@commeazy.local'];
 
 // All test device JIDs
 const TEST_DEVICE_JIDS = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local', 'ipadphys@commeazy.local'];

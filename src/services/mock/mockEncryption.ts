@@ -9,6 +9,7 @@
 
 import { MOCK_CONTACTS, getMockContactByJid } from './mockContacts';
 import { MOCK_CURRENT_USER } from './mockChats';
+import { getContactDisplayName } from '../interfaces';
 
 // ============================================================
 // QR Code Data Format
@@ -61,7 +62,7 @@ export const generateMockContactQRData = (jid: string): string | null => {
     version: 1,
     jid: contact.jid,
     publicKey: contact.publicKey,
-    name: contact.name,
+    name: getContactDisplayName(contact),
     timestamp: Date.now(),
     signature: 'MOCK_SIG_' + contact.jid.split('@')[0],
   };

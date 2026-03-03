@@ -38,6 +38,7 @@ import type { ChatStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import type { DeliveryStatus } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
 
 // ChatListItem type for this screen
 interface ChatListItem {
@@ -111,7 +112,7 @@ export function ChatListScreen() {
                 return {
                   chatId: chat.chatId,
                   contactJid: chat.contact.jid,
-                  contactName: chat.contact.name,
+                  contactName: getContactDisplayName(chat.contact),
                   lastMessage: lastMsg?.content ?? '',
                   lastMessageTime: lastMsg?.timestamp ?? 0,
                   unreadCount: chat.unreadCount,
@@ -136,7 +137,7 @@ export function ChatListScreen() {
               return {
                 chatId: chat.chatId,
                 contactJid: chat.contact.jid,
-                contactName: chat.contact.name,
+                contactName: getContactDisplayName(chat.contact),
                 lastMessage: lastMsg?.content ?? '',
                 lastMessageTime: lastMsg?.timestamp ?? 0,
                 unreadCount: chat.unreadCount,
@@ -166,7 +167,7 @@ export function ChatListScreen() {
                 return {
                   chatId: chat.chatId,
                   contactJid: chat.contact.jid,
-                  contactName: chat.contact.name,
+                  contactName: getContactDisplayName(chat.contact),
                   lastMessage: lastMsg?.content ?? '',
                   lastMessageTime: lastMsg?.timestamp ?? 0,
                   unreadCount: chat.unreadCount,
@@ -214,7 +215,7 @@ export function ChatListScreen() {
           return {
             chatId: chat.chatId,
             contactJid: chat.contact.jid,
-            contactName: chat.contact.name,
+            contactName: getContactDisplayName(chat.contact),
             lastMessage: lastMsg?.content ?? '',
             lastMessageTime: lastMsg?.timestamp ?? 0,
             unreadCount: chat.unreadCount,
@@ -242,7 +243,7 @@ export function ChatListScreen() {
           return {
             chatId: chat.chatId,
             contactJid: chat.contact.jid,
-            contactName: chat.contact.name,
+            contactName: getContactDisplayName(chat.contact),
             lastMessage: lastMsg?.content ?? '',
             lastMessageTime: lastMsg?.timestamp ?? 0,
             unreadCount: chat.unreadCount,
@@ -263,7 +264,7 @@ export function ChatListScreen() {
             return {
               chatId: chat.chatId,
               contactJid: chat.contact.jid,
-              contactName: chat.contact.name,
+              contactName: getContactDisplayName(chat.contact),
               lastMessage: lastMsg?.content ?? '',
               lastMessageTime: lastMsg?.timestamp ?? 0,
               unreadCount: chat.unreadCount,

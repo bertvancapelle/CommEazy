@@ -39,7 +39,7 @@ import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import type { Contact } from '@/services/interfaces';
+import { type Contact, getContactDisplayName } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactList'>;
@@ -58,11 +58,13 @@ function ContactListItem({
   const themeColors = useColors();
   const presence = useVisualPresence(contact.jid);
 
+  const displayName = getContactDisplayName(contact);
+
   return (
     <VoiceFocusable
       key={contact.jid}
       id={contact.jid}
-      label={contact.name}
+      label={displayName}
       index={index}
       onSelect={() => onPress(contact)}
     >
@@ -71,12 +73,12 @@ function ContactListItem({
         onPress={() => onPress(contact)}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel={contact.name}
-        accessibilityHint={t('accessibility.openContact', { name: contact.name })}
+        accessibilityLabel={displayName}
+        accessibilityHint={t('accessibility.openContact', { name: displayName })}
       >
         {/* Profile photo with presence dot */}
         <ContactAvatar
-          name={contact.name}
+          name={displayName}
           photoUrl={contact.photoUrl}
           size={60}
           presence={presence}
@@ -88,7 +90,7 @@ function ContactListItem({
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {contact.name}
+          {displayName}
         </Text>
 
         {/* Chevron indicator */}
@@ -131,7 +133,7 @@ export function ContactListScreen() {
     }
     return filteredContacts.map((contact, index) => ({
       id: contact.jid,
-      label: contact.name, // Human-readable name for voice matching
+      label: getContactDisplayName(contact), // Human-readable name for voice matching
       index,
       onSelect: () => handleContactPress(contact),
     }));
@@ -163,7 +165,7 @@ export function ContactListScreen() {
           const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
 
           const sorted = [...deviceContacts].sort((a, b) =>
-            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, { sensitivity: 'base' })
           );
           setContacts(sorted);
           setLoading(false);
@@ -190,8 +192,10 @@ export function ContactListScreen() {
       const query = searchQuery.toLowerCase();
       const filtered = contacts.filter(
         (c) =>
-          c.name.toLowerCase().includes(query) ||
-          c.phoneNumber.includes(query)
+          getContactDisplayName(c).toLowerCase().includes(query) ||
+          c.firstName.toLowerCase().includes(query) ||
+          c.lastName.toLowerCase().includes(query) ||
+          (c.phoneNumber?.includes(query) ?? false)
       );
       setFilteredContacts(filtered);
     }

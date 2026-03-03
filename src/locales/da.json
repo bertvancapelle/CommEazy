@@ -301,6 +301,10 @@
     "searchButton": "Søg",
     "nameLabel": "Navn",
     "namePlaceholder": "Indtast navn",
+    "firstNameLabel": "Fornavn",
+    "firstNamePlaceholder": "Indtast fornavn",
+    "lastNameLabel": "Efternavn",
+    "lastNamePlaceholder": "Indtast efternavn (valgfrit)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
     "addHint": "Du kan også scanne en QR-kode for at tilføje en kontakt",
@@ -315,7 +319,36 @@
     "verificationSuccess": "Bekræftelse lykkedes!",
     "verificationSuccessMessage": "{{name}} er nu bekræftet",
     "verificationFailed": "Bekræftelse mislykkedes",
-    "verificationFailedMessage": "QR-koden stemmer ikke. Prøv igen."
+    "verificationFailedMessage": "QR-koden stemmer ikke. Prøv igen.",
+    "address": {
+      "title": "Adresse",
+      "street": "Gade og nummer",
+      "postalCode": "Postnummer",
+      "city": "By",
+      "country": "Land",
+      "navigate": "Naviger til adressen",
+      "navigateHint": "Åbner kortappen med adressen på {{name}}"
+    },
+    "dates": {
+      "title": "Vigtige datoer",
+      "birthDate": "Fødselsdato",
+      "weddingDate": "Bryllupsdag",
+      "deathDate": "Dødsdato",
+      "noBirthDate": "Tilføj fødselsdato for at se alder",
+      "ageCurrent": "{{name}} fylder {{years}} år",
+      "ageAtDeath": "{{name}} blev {{years}} år",
+      "weddingYears": "{{years}} år gift",
+      "deathYearsAgo": "{{years}} år siden"
+    },
+    "datePicker": {
+      "day": "Dag",
+      "month": "Måned",
+      "year": "År",
+      "selectDay": "Vælg dag",
+      "selectMonth": "Vælg måned",
+      "selectYear": "Vælg år",
+      "clear": "Ryd"
+    }
   },
   "settings": {
     "title": "Indstillinger",
@@ -601,6 +634,8 @@
     "countryCode": "Landekode",
     "selectCountryCode": "Vælg landekode",
     "enterContactName": "Indtast kontaktens navn",
+    "enterContactFirstName": "Indtast kontaktens fornavn",
+    "enterContactLastName": "Indtast kontaktens efternavn",
     "enterPhoneNumber": "Indtast telefonnummer",
     "addContact": "Tilføj kontakt",
     "startChatHint": "Send en besked til {{name}}",

@@ -245,6 +245,10 @@
     "searchButton": "Cerca",
     "nameLabel": "Nome",
     "namePlaceholder": "Inserisci il nome",
+    "firstNameLabel": "Nome",
+    "firstNamePlaceholder": "Inserisci il nome",
+    "lastNameLabel": "Cognome",
+    "lastNamePlaceholder": "Inserisci il cognome (facoltativo)",
     "phoneLabel": "Numero di telefono",
     "phonePlaceholder": "612345678",
     "addHint": "Puoi anche scansionare un codice QR per aggiungere un contatto",
@@ -259,7 +263,36 @@
     "verificationSuccess": "Verifica completata!",
     "verificationSuccessMessage": "{{name}} è ora verificato",
     "verificationFailed": "Verifica fallita",
-    "verificationFailedMessage": "Il codice QR non corrisponde. Riprova."
+    "verificationFailedMessage": "Il codice QR non corrisponde. Riprova.",
+    "address": {
+      "title": "Indirizzo",
+      "street": "Via e numero",
+      "postalCode": "CAP",
+      "city": "Città",
+      "country": "Paese",
+      "navigate": "Naviga verso l'indirizzo",
+      "navigateHint": "Apre l'app mappe con l'indirizzo di {{name}}"
+    },
+    "dates": {
+      "title": "Date importanti",
+      "birthDate": "Data di nascita",
+      "weddingDate": "Data di matrimonio",
+      "deathDate": "Data di decesso",
+      "noBirthDate": "Aggiungi la data di nascita per vedere l'età",
+      "ageCurrent": "{{name}} compirà {{years}} anni",
+      "ageAtDeath": "{{name}} aveva {{years}} anni",
+      "weddingYears": "{{years}} anni di matrimonio",
+      "deathYearsAgo": "{{years}} anni fa"
+    },
+    "datePicker": {
+      "day": "Giorno",
+      "month": "Mese",
+      "year": "Anno",
+      "selectDay": "Seleziona giorno",
+      "selectMonth": "Seleziona mese",
+      "selectYear": "Seleziona anno",
+      "clear": "Cancella"
+    }
   },
   "settings": {
     "title": "Impostazioni",
@@ -546,6 +579,8 @@
     "countryCode": "Prefisso paese",
     "selectCountryCode": "Seleziona prefisso paese",
     "enterContactName": "Inserisci il nome del contatto",
+    "enterContactFirstName": "Inserisci il nome del contatto",
+    "enterContactLastName": "Inserisci il cognome del contatto",
     "enterPhoneNumber": "Inserisci il numero di telefono",
     "addContact": "Aggiungi contatto",
     "startChatHint": "Invia un messaggio a {{name}}",

@@ -40,6 +40,7 @@ import { useCall } from '@/contexts/CallContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { Contact, CallType } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
 import type { RootStackParams } from '@/navigation';
 
 type CallsNavigationProp = NativeStackNavigationProp<RootStackParams>;
@@ -66,14 +67,14 @@ function CallContactItem({
     <VoiceFocusable
       key={contact.jid}
       id={contact.jid}
-      label={contact.name}
+      label={getContactDisplayName(contact)}
       index={index}
       onSelect={() => onVoiceCall(contact)}
     >
       <View style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
         {/* Avatar with presence dot (via ContactAvatar) */}
         <ContactAvatar
-          name={contact.name}
+          name={getContactDisplayName(contact)}
           photoUrl={contact.photoUrl}
           size={56}
           presence={presence}
@@ -86,7 +87,7 @@ function CallContactItem({
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {contact.name}
+            {getContactDisplayName(contact)}
           </Text>
           <Text style={[styles.statusText, { color: presence.color }]}>
             {presence.label}
@@ -103,7 +104,7 @@ function CallContactItem({
             delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={t('modules.calls.voiceCallLabel', { name: contact.name })}
+            accessibilityLabel={t('modules.calls.voiceCallLabel', { name: getContactDisplayName(contact) })}
             accessibilityHint={t('modules.calls.voiceCallHint')}
           >
             <Icon name="call" size={24} color={themeColors.textOnPrimary} />
@@ -117,7 +118,7 @@ function CallContactItem({
             delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={t('modules.calls.videoCallLabel', { name: contact.name })}
+            accessibilityLabel={t('modules.calls.videoCallLabel', { name: getContactDisplayName(contact) })}
             accessibilityHint={t('modules.calls.videoCallHint')}
           >
             <Icon name="videocam" size={24} color={themeColors.textOnPrimary} />
@@ -259,7 +260,7 @@ export function CallsScreen() {
     if (!isFocused) return [];
     return filteredContacts.map((contact, index) => ({
       id: contact.jid,
-      label: contact.name,
+      label: getContactDisplayName(contact),
       index,
       onSelect: () => handleVoiceCall(contact), // Default action: voice call
     }));

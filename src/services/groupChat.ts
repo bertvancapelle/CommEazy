@@ -33,7 +33,7 @@ import type {
   Recipient,
   EncryptionMode,
 } from './interfaces';
-import { AppError, COMMEAZY_DOMAIN } from './interfaces';
+import { AppError, COMMEAZY_DOMAIN, getContactDisplayName } from './interfaces';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const MUC_DOMAIN = `muc.${COMMEAZY_DOMAIN}`;
@@ -621,7 +621,7 @@ export class GroupChatService {
     // Try to find member by display name
     for (const memberJid of group.members) {
       const contact = await ServiceContainer.database.getContact(memberJid);
-      if (contact && contact.name === nickname) {
+      if (contact && getContactDisplayName(contact) === nickname) {
         return contact;
       }
     }

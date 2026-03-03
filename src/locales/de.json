@@ -238,6 +238,10 @@
     "searchButton": "Suchen",
     "nameLabel": "Name",
     "namePlaceholder": "Name eingeben",
+    "firstNameLabel": "Vorname",
+    "firstNamePlaceholder": "Vorname eingeben",
+    "lastNameLabel": "Nachname",
+    "lastNamePlaceholder": "Nachname eingeben (optional)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
     "addHint": "Du kannst auch einen QR-Code scannen, um einen Kontakt hinzuzufügen",
@@ -254,7 +258,36 @@
     "verificationFailed": "Verifizierung fehlgeschlagen",
     "verificationFailedMessage": "Der QR-Code stimmt nicht überein. Bitte versuche es erneut.",
     "voiceCall": "Anrufen",
-    "videoCall": "Videoanruf"
+    "videoCall": "Videoanruf",
+    "address": {
+      "title": "Adresse",
+      "street": "Straße und Hausnummer",
+      "postalCode": "Postleitzahl",
+      "city": "Stadt",
+      "country": "Land",
+      "navigate": "Navigieren",
+      "navigateHint": "Route zu {{name}} in der Karten-App öffnen"
+    },
+    "dates": {
+      "title": "Wichtige Daten",
+      "birthDate": "Geburtsdatum",
+      "weddingDate": "Hochzeitstag",
+      "deathDate": "Sterbedatum",
+      "noBirthDate": "Kein Geburtsdatum bekannt",
+      "ageCurrent": "{{name}} wird {{years}} Jahre alt",
+      "ageAtDeath": "{{name}} wurde {{years}} Jahre alt",
+      "weddingYears": "{{years}} Jahre verheiratet",
+      "deathYearsAgo": "vor {{years}} Jahren"
+    },
+    "datePicker": {
+      "day": "Tag",
+      "month": "Monat",
+      "year": "Jahr",
+      "selectDay": "Tag wählen",
+      "selectMonth": "Monat wählen",
+      "selectYear": "Jahr wählen",
+      "clear": "Löschen"
+    }
   },
   "settings": {
     "title": "Einstellungen",
@@ -540,6 +573,8 @@
     "countryCode": "Ländervorwahl",
     "selectCountryCode": "Ländervorwahl auswählen",
     "enterContactName": "Kontaktname eingeben",
+    "enterContactFirstName": "Vorname des Kontakts eingeben",
+    "enterContactLastName": "Nachname des Kontakts eingeben",
     "enterPhoneNumber": "Telefonnummer eingeben",
     "addContact": "Kontakt hinzufügen",
     "startChatHint": "Nachricht an {{name}} senden",

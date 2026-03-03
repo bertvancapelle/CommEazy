@@ -46,6 +46,7 @@ import { useVoiceFormContext } from '@/contexts/VoiceFormContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { ServiceContainer } from '@/services/container';
 import type { Contact } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
 
 // ============================================================
 // Pending Voice Action (for multi-match contact selection)
@@ -210,7 +211,7 @@ async function findAllContactsByName(
     const matches: ContactMatch[] = [];
 
     for (const contact of contacts) {
-      const score = similarityScore(contactName, contact.name);
+      const score = similarityScore(contactName, getContactDisplayName(contact));
       if (score >= threshold) {
         matches.push({ contact, score });
       }
@@ -219,7 +220,7 @@ async function findAllContactsByName(
     // Sort by score descending
     matches.sort((a, b) => b.score - a.score);
 
-    console.log('[findAllContactsByName] Matches for:', contactName, '->', matches.map(m => `${m.contact.name}(${m.score.toFixed(2)})`).join(', '));
+    console.log('[findAllContactsByName] Matches for:', contactName, '->', matches.map(m => `${getContactDisplayName(m.contact)}(${m.score.toFixed(2)})`).join(', '));
     return matches;
   } catch (error) {
     console.error('[findAllContactsByName] Failed to find contacts:', error);
@@ -903,15 +904,15 @@ export function HoldToNavigateWrapper({
 
       if (action === 'message') {
         // Navigate to chats module with pending deep navigation to ChatDetail
-        console.log('[HoldToNavigate] Navigating to chat with:', contact.name, 'chatId:', chatId);
+        console.log('[HoldToNavigate] Navigating to chat with:', getContactDisplayName(contact), 'chatId:', chatId);
         paneCtx.setPaneModule('main', 'chats', {
           screen: 'ChatDetail',
-          params: { chatId, name: contact.name },
+          params: { chatId, name: getContactDisplayName(contact) },
         });
       } else if (action === 'call') {
         // Navigate to contacts module with pending deep navigation to ContactDetail
         // TODO: Implement direct call when AudioCall screen is ready
-        console.log('[HoldToNavigate] Navigating to contact for call:', contact.name);
+        console.log('[HoldToNavigate] Navigating to contact for call:', getContactDisplayName(contact));
         paneCtx.setPaneModule('main', 'contacts', {
           screen: 'ContactDetail',
           params: { jid: contact.jid },
@@ -928,7 +929,7 @@ export function HoldToNavigateWrapper({
   // Handle contact selection from modal
   const handleContactSelect = useCallback(
     (contact: Contact) => {
-      console.log('[HoldToNavigate] Contact selected from modal:', contact.name);
+      console.log('[HoldToNavigate] Contact selected from modal:', getContactDisplayName(contact));
       setContactSelectionVisible(false);
       contactSelectionVisibleRef.current = false; // Update ref immediately
       modalVoiceStartedRef.current = false; // Reset for next modal session

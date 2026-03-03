@@ -238,6 +238,10 @@
     "searchButton": "Search",
     "nameLabel": "Name",
     "namePlaceholder": "Enter name",
+    "firstNameLabel": "First name",
+    "firstNamePlaceholder": "Enter first name",
+    "lastNameLabel": "Surname",
+    "lastNamePlaceholder": "Enter surname (optional)",
     "phoneLabel": "Phone number",
     "phonePlaceholder": "612345678",
     "addHint": "You can also scan a QR code to add a contact",
@@ -254,7 +258,36 @@
     "verificationFailed": "Verification failed",
     "verificationFailedMessage": "The QR code doesn't match. Please try again.",
     "voiceCall": "Voice call",
-    "videoCall": "Video call"
+    "videoCall": "Video call",
+    "address": {
+      "title": "Address",
+      "street": "Street and house number",
+      "postalCode": "Postcode",
+      "city": "City",
+      "country": "Country",
+      "navigate": "Navigate",
+      "navigateHint": "Open directions to {{name}} in the maps app"
+    },
+    "dates": {
+      "title": "Important dates",
+      "birthDate": "Date of birth",
+      "weddingDate": "Wedding date",
+      "deathDate": "Date of death",
+      "noBirthDate": "No date of birth known",
+      "ageCurrent": "{{name}} is turning {{years}}",
+      "ageAtDeath": "{{name}} was {{years}} years old",
+      "weddingYears": "{{years}} years married",
+      "deathYearsAgo": "{{years}} years ago"
+    },
+    "datePicker": {
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "selectDay": "Select a day",
+      "selectMonth": "Select a month",
+      "selectYear": "Select a year",
+      "clear": "Clear"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -543,6 +576,8 @@
     "countryCode": "Country code",
     "selectCountryCode": "Select country code",
     "enterContactName": "Enter contact name",
+    "enterContactFirstName": "Enter the contact's first name",
+    "enterContactLastName": "Enter the contact's surname",
     "enterPhoneNumber": "Enter phone number",
     "addContact": "Add contact",
     "startChatHint": "Send a message to {{name}}",

@@ -11,7 +11,7 @@
  * @example
  * <VoiceFocusable
  *   id={contact.jid}
- *   label={contact.name}
+ *   label={getContactDisplayName(contact)}
  *   index={index}
  *   onSelect={() => handleContactPress(contact)}
  * >

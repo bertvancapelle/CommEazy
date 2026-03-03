@@ -21,6 +21,7 @@
  * - v11: Added voiceCommandsEnabled for two-finger voice commands
  * - v12: Added call sound settings (ringtone, dial tone, vibration)
  * - v13: Added media_messages table for photo/video messaging
+ * - v14: Added contact details (firstName, lastName, address, dates, isDeceased)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -45,10 +46,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 13;
+export const SCHEMA_VERSION = 14;
 
 export const schema = appSchema({
-  version: 13,
+  version: 14,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -122,12 +123,23 @@ export const schema = appSchema({
       columns: [
         { name: 'user_uuid', type: 'string', isIndexed: true }, // Stable identifier (v4)
         { name: 'jid', type: 'string', isIndexed: true },        // = {user_uuid}@commeazy.local
-        { name: 'name', type: 'string' },
+        { name: 'first_name', type: 'string' },                   // Voornaam (v14, replaces name)
+        { name: 'last_name', type: 'string' },                    // Achternaam (v14)
         { name: 'phone_number', type: 'string', isOptional: true }, // Now optional (v4)
         { name: 'public_key', type: 'string' }, // Base64
         { name: 'verified', type: 'boolean' }, // QR verified
         { name: 'last_seen', type: 'number' },
         { name: 'photo_path', type: 'string', isOptional: true }, // Local file path to avatar
+        // Address fields (v14) — all optional
+        { name: 'address_street', type: 'string', isOptional: true },       // Straat + huisnummer
+        { name: 'address_postal_code', type: 'string', isOptional: true },  // Postcode
+        { name: 'address_city', type: 'string', isOptional: true },         // Stad
+        { name: 'address_country', type: 'string', isOptional: true },      // Land
+        // Important dates (v14) — ISO date strings "YYYY-MM-DD"
+        { name: 'birth_date', type: 'string', isOptional: true },           // Geboortedatum
+        { name: 'wedding_date', type: 'string', isOptional: true },         // Trouwdatum
+        { name: 'death_date', type: 'string', isOptional: true },           // Sterfdatum
+        { name: 'is_deceased', type: 'boolean', isOptional: true },         // Overleden toggle
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

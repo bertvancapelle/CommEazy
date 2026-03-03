@@ -20,6 +20,7 @@ import {
   getTestQRCodeForScanning,
 } from './mockEncryption';
 import type { Contact, Message, DatabaseService, UserProfile } from '../interfaces';
+import { getContactDisplayName } from '../interfaces';
 import uuid from 'react-native-uuid';
 import { USE_PLAINTEXT_MODE, logDevConfig } from '@/config/devConfig';
 
@@ -158,14 +159,14 @@ export const seedMockData = async (
         const existing = await db.getContact(contact.jid);
         if (!existing) {
           await db.saveContact(contact);
-          console.log(`  + Contact: ${contact.name}`);
+          console.log(`  + Contact: ${getContactDisplayName(contact)}`);
         } else {
-          console.log(`  = Contact: ${contact.name} (exists)`);
+          console.log(`  = Contact: ${getContactDisplayName(contact)} (exists)`);
         }
       } catch {
         // Contact doesn't exist, save it
         await db.saveContact(contact);
-        console.log(`  + Contact: ${contact.name}`);
+        console.log(`  + Contact: ${getContactDisplayName(contact)}`);
       }
     }
 

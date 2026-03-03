@@ -238,6 +238,10 @@
     "searchButton": "Rechercher",
     "nameLabel": "Nom",
     "namePlaceholder": "Entrez le nom",
+    "firstNameLabel": "Prénom",
+    "firstNamePlaceholder": "Entrez le prénom",
+    "lastNameLabel": "Nom de famille",
+    "lastNamePlaceholder": "Entrez le nom de famille (facultatif)",
     "phoneLabel": "Numéro de téléphone",
     "phonePlaceholder": "612345678",
     "addHint": "Vous pouvez aussi scanner un code QR pour ajouter un contact",
@@ -254,7 +258,36 @@
     "verificationFailed": "Échec de la vérification",
     "verificationFailedMessage": "Le code QR ne correspond pas. Veuillez réessayer.",
     "voiceCall": "Appeler",
-    "videoCall": "Appel vidéo"
+    "videoCall": "Appel vidéo",
+    "address": {
+      "title": "Adresse",
+      "street": "Rue et numéro",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "country": "Pays",
+      "navigate": "Naviguer vers l'adresse",
+      "navigateHint": "Ouvre l'application de cartes avec l'adresse de {{name}}"
+    },
+    "dates": {
+      "title": "Dates importantes",
+      "birthDate": "Date de naissance",
+      "weddingDate": "Date de mariage",
+      "deathDate": "Date de décès",
+      "noBirthDate": "Ajoutez la date de naissance pour voir l'âge",
+      "ageCurrent": "{{name}} aura {{years}} ans",
+      "ageAtDeath": "{{name}} avait {{years}} ans",
+      "weddingYears": "{{years}} ans de mariage",
+      "deathYearsAgo": "Il y a {{years}} ans"
+    },
+    "datePicker": {
+      "day": "Jour",
+      "month": "Mois",
+      "year": "Année",
+      "selectDay": "Choisir le jour",
+      "selectMonth": "Choisir le mois",
+      "selectYear": "Choisir l'année",
+      "clear": "Effacer"
+    }
   },
   "settings": {
     "title": "Réglages",
@@ -540,6 +573,8 @@
     "countryCode": "Indicatif pays",
     "selectCountryCode": "Sélectionner l'indicatif pays",
     "enterContactName": "Entrer le nom du contact",
+    "enterContactFirstName": "Entrer le prénom du contact",
+    "enterContactLastName": "Entrer le nom de famille du contact",
     "enterPhoneNumber": "Entrer le numéro de téléphone",
     "addContact": "Ajouter un contact",
     "startChatHint": "Envoyer un message à {{name}}",

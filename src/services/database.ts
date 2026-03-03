@@ -38,6 +38,7 @@ import type {
   AgeBracket,
   Gender,
 } from './interfaces';
+import { getContactDisplayName } from './interfaces';
 
 export class WatermelonDBService implements DatabaseService {
   private database: Database | null = null;
@@ -312,7 +313,7 @@ export class WatermelonDBService implements DatabaseService {
         await existing.update(record => {
           record.userUuid = contact.userUuid;
           record.jid = contact.jid;
-          record.name = contact.name;
+          record.name = getContactDisplayName(contact);
           record.phoneNumber = contact.phoneNumber;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
@@ -324,7 +325,7 @@ export class WatermelonDBService implements DatabaseService {
           record._raw.id = uuid.v4() as string;
           record.userUuid = contact.userUuid;
           record.jid = contact.jid;
-          record.name = contact.name;
+          record.name = getContactDisplayName(contact);
           record.phoneNumber = contact.phoneNumber;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;

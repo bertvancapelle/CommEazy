@@ -20,6 +20,7 @@ import type {
   XMPPService,
   NotificationService,
 } from './interfaces';
+import { getContactDisplayName } from './interfaces';
 import { SodiumEncryptionService } from './encryption';
 import { XmppJsService } from './xmpp';
 import { WatermelonDBService } from './database';
@@ -359,7 +360,7 @@ class ServiceContainerClass {
         for (const contact of contactsToSubscribe) {
           try {
             await this._xmpp.subscribeToPresence(contact.jid);
-            console.log(`[ServiceContainer] Subscribed to presence of ${contact.name} (${contact.jid})`);
+            console.log(`[ServiceContainer] Subscribed to presence of ${getContactDisplayName(contact)} (${contact.jid})`);
           } catch (subError) {
             console.warn(`[ServiceContainer] Failed to subscribe to ${contact.jid}:`, subError);
           }

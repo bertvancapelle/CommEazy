@@ -31,6 +31,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { MediaStream } from 'react-native-webrtc';
 
 import type { ActiveCall, CallType, CallEndReason, IceServer, Contact } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
 import { callService, WebRTCCallService } from '@/services/call';
 import { DEFAULT_ICE_SERVERS } from '@/services/call/types';
 import { useAudioOrchestrator } from './AudioOrchestratorContext';
@@ -107,7 +108,7 @@ export function CallProvider({
     (jid: string): string => {
       if (getContactByJid) {
         const contact = getContactByJid(jid);
-        if (contact) return contact.name;
+        if (contact) return getContactDisplayName(contact);
       }
       // Fallback: extract username from JID
       return jid.split('@')[0];

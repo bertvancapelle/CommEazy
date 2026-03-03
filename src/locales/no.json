@@ -245,6 +245,10 @@
     "searchButton": "Søk",
     "nameLabel": "Navn",
     "namePlaceholder": "Skriv inn navn",
+    "firstNameLabel": "Fornavn",
+    "firstNamePlaceholder": "Skriv inn fornavn",
+    "lastNameLabel": "Etternavn",
+    "lastNamePlaceholder": "Skriv inn etternavn (valgfritt)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
     "addHint": "Du kan også skanne en QR-kode for å legge til en kontakt",
@@ -259,7 +263,36 @@
     "verificationSuccess": "Bekreftelse vellykket!",
     "verificationSuccessMessage": "{{name}} er nå bekreftet",
     "verificationFailed": "Bekreftelse mislyktes",
-    "verificationFailedMessage": "QR-koden stemmer ikke. Prøv igjen."
+    "verificationFailedMessage": "QR-koden stemmer ikke. Prøv igjen.",
+    "address": {
+      "title": "Adresse",
+      "street": "Gate og nummer",
+      "postalCode": "Postnummer",
+      "city": "By",
+      "country": "Land",
+      "navigate": "Naviger til adressen",
+      "navigateHint": "Åpner kartappen med adressen til {{name}}"
+    },
+    "dates": {
+      "title": "Viktige datoer",
+      "birthDate": "Fødselsdato",
+      "weddingDate": "Bryllupsdato",
+      "deathDate": "Dødsdato",
+      "noBirthDate": "Legg til fødselsdato for å se alder",
+      "ageCurrent": "{{name}} fyller {{years}} år",
+      "ageAtDeath": "{{name}} ble {{years}} år",
+      "weddingYears": "{{years}} år gift",
+      "deathYearsAgo": "{{years}} år siden"
+    },
+    "datePicker": {
+      "day": "Dag",
+      "month": "Måned",
+      "year": "År",
+      "selectDay": "Velg dag",
+      "selectMonth": "Velg måned",
+      "selectYear": "Velg år",
+      "clear": "Tøm"
+    }
   },
   "settings": {
     "title": "Innstillinger",
@@ -545,6 +578,8 @@
     "countryCode": "Landskode",
     "selectCountryCode": "Velg landskode",
     "enterContactName": "Skriv inn kontaktens navn",
+    "enterContactFirstName": "Skriv inn kontaktens fornavn",
+    "enterContactLastName": "Skriv inn kontaktens etternavn",
     "enterPhoneNumber": "Skriv inn telefonnummer",
     "addContact": "Legg til kontakt",
     "startChatHint": "Send en melding til {{name}}",

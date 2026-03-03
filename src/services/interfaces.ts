@@ -94,15 +94,41 @@ export interface OutboxMessage {
   deliveredTo: string[];     // JIDs that ACKed
 }
 
+export interface ContactAddress {
+  street?: string;           // Straat + huisnummer (e.g., "Kerkstraat 42")
+  postalCode?: string;       // Postcode (e.g., "1012 AB")
+  city?: string;             // Stad (e.g., "Amsterdam")
+  country?: string;          // Land (e.g., "Nederland")
+}
+
 export interface Contact {
   userUuid: string;          // Stable identifier (never changes)
   jid: string;               // = {userUuid}@commeazy.local
-  name: string;
+  firstName: string;         // Voornaam
+  lastName: string;          // Achternaam
   phoneNumber?: string;      // Optional (privacy: can be hidden after QR verify)
   publicKey: string;         // Base64
   verified: boolean;         // QR verified
   lastSeen: number;
   photoUrl?: string;         // Profile photo URL (local file or remote)
+  // Address (all optional)
+  address?: ContactAddress;
+  // Important dates (ISO date strings: "YYYY-MM-DD")
+  birthDate?: string;        // Geboortedatum
+  weddingDate?: string;      // Trouwdatum
+  deathDate?: string;        // Sterfdatum
+  isDeceased?: boolean;      // Overleden toggle
+}
+
+/** Get full display name for a contact (e.g., "Oma Jansen") */
+export function getContactDisplayName(contact: Pick<Contact, 'firstName' | 'lastName'>): string {
+  return `${contact.firstName} ${contact.lastName}`.trim();
+}
+
+/** Check if contact has a navigable address (at least street+city or postalCode) */
+export function hasNavigableAddress(address?: ContactAddress): boolean {
+  if (!address) return false;
+  return Boolean((address.street && address.city) || address.postalCode);
 }
 
 export interface Group {

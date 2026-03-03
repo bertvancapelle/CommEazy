@@ -3,9 +3,10 @@
  *
  * Senior-inclusive design:
  * - Large input fields (60pt+)
- * - Clear labels
+ * - Clear labels above fields
  * - Country code selector
  * - Validation feedback
+ * - firstName + lastName fields (v14)
  *
  * @see .claude/skills/ui-designer/SKILL.md
  */
@@ -51,7 +52,8 @@ export function AddContactScreen() {
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+31');
   const [showCountryCodes, setShowCountryCodes] = useState(false);
@@ -63,11 +65,11 @@ export function AddContactScreen() {
     return digitsOnly.length >= 6 && digitsOnly.length <= 15;
   }, []);
 
-  const isValidName = useCallback((n: string): boolean => {
+  const isValidFirstName = useCallback((n: string): boolean => {
     return n.trim().length >= 1;
   }, []);
 
-  const canSave = isValidName(name) && isValidPhone(phoneNumber);
+  const canSave = isValidFirstName(firstName) && isValidPhone(phoneNumber);
 
   const handleSave = useCallback(async () => {
     if (!canSave || saving) return;
@@ -85,7 +87,8 @@ export function AddContactScreen() {
         // In dev mode, just log and navigate back (mock data is in memory)
         console.log('[DEV] Would save contact:', {
           jid,
-          name: name.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
           phoneNumber: fullPhoneNumber,
         });
       } else {
@@ -93,7 +96,8 @@ export function AddContactScreen() {
         const db = ServiceContainer.database;
         await db.saveContact({
           jid,
-          name: name.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
           phoneNumber: fullPhoneNumber,
           publicKey: '', // Will be set when contact shares their key
           verified: false,
@@ -108,7 +112,7 @@ export function AddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [canSave, saving, countryCode, phoneNumber, name, navigation, t, triggerFeedback]);
+  }, [canSave, saving, countryCode, phoneNumber, firstName, lastName, navigation, t, triggerFeedback]);
 
   const toggleCountryCodes = useCallback(() => {
     void triggerFeedback('tap');
@@ -131,20 +135,37 @@ export function AddContactScreen() {
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Name input */}
+        {/* First name input */}
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.nameLabel')}</Text>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.firstNameLabel')}</Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
-            placeholder={t('contacts.namePlaceholder')}
+            placeholder={t('contacts.firstNamePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
-            value={name}
-            onChangeText={setName}
+            value={firstName}
+            onChangeText={setFirstName}
             autoCapitalize="words"
             autoCorrect={false}
             returnKeyType="next"
-            accessibilityLabel={t('contacts.nameLabel')}
-            accessibilityHint={t('accessibility.enterContactName')}
+            accessibilityLabel={t('contacts.firstNameLabel')}
+            accessibilityHint={t('accessibility.enterContactFirstName')}
+          />
+        </View>
+
+        {/* Last name input */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.lastNameLabel')}</Text>
+          <TextInput
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            placeholder={t('contacts.lastNamePlaceholder')}
+            placeholderTextColor={themeColors.textTertiary}
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+            autoCorrect={false}
+            returnKeyType="next"
+            accessibilityLabel={t('contacts.lastNameLabel')}
+            accessibilityHint={t('accessibility.enterContactLastName')}
           />
         </View>
 
@@ -343,15 +364,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveButtonDisabled: {
-    backgroundColor: colors.disabled,
-  },
   saveButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
-  },
-  saveButtonTextDisabled: {
-    color: colors.textTertiary,
   },
   alternativeContainer: {
     marginTop: spacing.xl,

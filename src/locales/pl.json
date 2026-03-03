@@ -245,6 +245,10 @@
     "searchButton": "Szukaj",
     "nameLabel": "Imię",
     "namePlaceholder": "Wprowadź imię",
+    "firstNameLabel": "Imię",
+    "firstNamePlaceholder": "Wprowadź imię",
+    "lastNameLabel": "Nazwisko",
+    "lastNamePlaceholder": "Wprowadź nazwisko (opcjonalnie)",
     "phoneLabel": "Numer telefonu",
     "phonePlaceholder": "612345678",
     "addHint": "Możesz też zeskanować kod QR, aby dodać kontakt",
@@ -259,7 +263,36 @@
     "verificationSuccess": "Weryfikacja zakończona!",
     "verificationSuccessMessage": "{{name}} jest teraz zweryfikowany",
     "verificationFailed": "Weryfikacja nieudana",
-    "verificationFailedMessage": "Kod QR nie pasuje. Spróbuj ponownie."
+    "verificationFailedMessage": "Kod QR nie pasuje. Spróbuj ponownie.",
+    "address": {
+      "title": "Adres",
+      "street": "Ulica i numer",
+      "postalCode": "Kod pocztowy",
+      "city": "Miasto",
+      "country": "Kraj",
+      "navigate": "Nawiguj do adresu",
+      "navigateHint": "Otwiera aplikację map z adresem {{name}}"
+    },
+    "dates": {
+      "title": "Ważne daty",
+      "birthDate": "Data urodzenia",
+      "weddingDate": "Data ślubu",
+      "deathDate": "Data śmierci",
+      "noBirthDate": "Dodaj datę urodzenia, aby zobaczyć wiek",
+      "ageCurrent": "{{name}} skończy {{years}} lat",
+      "ageAtDeath": "{{name}} miał(a) {{years}} lat",
+      "weddingYears": "{{years}} lat małżeństwa",
+      "deathYearsAgo": "{{years}} lat temu"
+    },
+    "datePicker": {
+      "day": "Dzień",
+      "month": "Miesiąc",
+      "year": "Rok",
+      "selectDay": "Wybierz dzień",
+      "selectMonth": "Wybierz miesiąc",
+      "selectYear": "Wybierz rok",
+      "clear": "Wyczyść"
+    }
   },
   "settings": {
     "title": "Ustawienia",
@@ -546,6 +579,8 @@
     "countryCode": "Kod kraju",
     "selectCountryCode": "Wybierz kod kraju",
     "enterContactName": "Wprowadź imię kontaktu",
+    "enterContactFirstName": "Wprowadź imię kontaktu",
+    "enterContactLastName": "Wprowadź nazwisko kontaktu",
     "enterPhoneNumber": "Wprowadź numer telefonu",
     "addContact": "Dodaj kontakt",
     "startChatHint": "Wyślij wiadomość do {{name}}",

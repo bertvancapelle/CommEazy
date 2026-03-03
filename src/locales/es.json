@@ -238,6 +238,10 @@
     "searchButton": "Buscar",
     "nameLabel": "Nombre",
     "namePlaceholder": "Introduce el nombre",
+    "firstNameLabel": "Nombre",
+    "firstNamePlaceholder": "Introduce el nombre",
+    "lastNameLabel": "Apellidos",
+    "lastNamePlaceholder": "Introduce los apellidos (opcional)",
     "phoneLabel": "Número de teléfono",
     "phonePlaceholder": "612345678",
     "addHint": "También puedes escanear un código QR para añadir un contacto",
@@ -254,7 +258,36 @@
     "verificationFailed": "Verificación fallida",
     "verificationFailedMessage": "El código QR no coincide. Inténtalo de nuevo.",
     "voiceCall": "Llamar",
-    "videoCall": "Videollamada"
+    "videoCall": "Videollamada",
+    "address": {
+      "title": "Dirección",
+      "street": "Calle y número",
+      "postalCode": "Código postal",
+      "city": "Ciudad",
+      "country": "País",
+      "navigate": "Navegar a la dirección",
+      "navigateHint": "Abre la aplicación de mapas con la dirección de {{name}}"
+    },
+    "dates": {
+      "title": "Fechas importantes",
+      "birthDate": "Fecha de nacimiento",
+      "weddingDate": "Fecha de boda",
+      "deathDate": "Fecha de fallecimiento",
+      "noBirthDate": "Añade la fecha de nacimiento para ver la edad",
+      "ageCurrent": "{{name}} cumplirá {{years}} años",
+      "ageAtDeath": "{{name}} tenía {{years}} años",
+      "weddingYears": "{{years}} años de matrimonio",
+      "deathYearsAgo": "Hace {{years}} años"
+    },
+    "datePicker": {
+      "day": "Día",
+      "month": "Mes",
+      "year": "Año",
+      "selectDay": "Seleccionar día",
+      "selectMonth": "Seleccionar mes",
+      "selectYear": "Seleccionar año",
+      "clear": "Borrar"
+    }
   },
   "settings": {
     "title": "Ajustes",
@@ -540,6 +573,8 @@
     "countryCode": "Código de país",
     "selectCountryCode": "Seleccionar código de país",
     "enterContactName": "Introducir nombre del contacto",
+    "enterContactFirstName": "Introducir nombre del contacto",
+    "enterContactLastName": "Introducir apellidos del contacto",
     "enterPhoneNumber": "Introducir número de teléfono",
     "addContact": "Añadir contacto",
     "startChatHint": "Enviar un mensaje a {{name}}",

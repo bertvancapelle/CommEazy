@@ -31,6 +31,7 @@ import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
 import { Icon } from './Icon';
 import type { Contact } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
 
 // ============================================================
 // Constants
@@ -189,11 +190,11 @@ export function PhotoRecipientModal({
                   onPress={() => !isDisabled && handleToggleContact(contact)}
                   disabled={isDisabled}
                   accessibilityRole="checkbox"
-                  accessibilityLabel={contact.name}
+                  accessibilityLabel={getContactDisplayName(contact)}
                   accessibilityState={{ checked: isSelected, disabled: isDisabled }}
                 >
                   <ContactAvatar
-                    name={contact.name}
+                    name={getContactDisplayName(contact)}
                     photoUri={contact.avatarUrl}
                     size={48}
                   />
@@ -204,7 +205,7 @@ export function PhotoRecipientModal({
                     ]}
                     numberOfLines={1}
                   >
-                    {contact.name}
+                    {getContactDisplayName(contact)}
                   </Text>
                   {isSelected && (
                     <View style={[styles.checkBadge, { backgroundColor: accentColor }]}>

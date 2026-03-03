@@ -28,6 +28,7 @@ import type {
   Recipient,
   PresenceShow,
 } from './interfaces';
+import { getContactDisplayName } from './interfaces';
 import { AppError } from './interfaces';
 import { OutboxMessageModel } from '@/models';
 
@@ -760,7 +761,7 @@ export class ChatService {
         console.warn(`[ChatService] Unknown contact: ${bareFrom} — message ignored`);
         return;
       }
-      console.log(`[ChatService] Found contact: ${contact.name}, publicKey length: ${contact.publicKey?.length ?? 0}`);
+      console.log(`[ChatService] Found contact: ${getContactDisplayName(contact)}, publicKey length: ${contact.publicKey?.length ?? 0}`);
 
       let content: string;
 
@@ -795,7 +796,7 @@ export class ChatService {
 
         // Check if we have a public key now
         if (!senderPublicKey || senderPublicKey.length === 0) {
-          console.warn(`[ChatService] Contact ${contact.name} has no public key — cannot decrypt`);
+          console.warn(`[ChatService] Contact ${getContactDisplayName(contact)} has no public key — cannot decrypt`);
           return;
         }
 
@@ -835,7 +836,7 @@ export class ChatService {
             id,
             chatId,
             senderId: bareFrom,
-            senderName: contact.name,
+            senderName: getContactDisplayName(contact),
             content: parsed.caption || '',
             contentType: 'image',
             timestamp: Date.now(),
@@ -859,7 +860,7 @@ export class ChatService {
           id,
           chatId,
           senderId: bareFrom,
-          senderName: contact.name,
+          senderName: getContactDisplayName(contact),
           content,
           contentType: 'text',
           timestamp: Date.now(),

@@ -30,6 +30,7 @@ import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
 import { FloatingMicIndicator } from './FloatingMicIndicator';
 import type { Contact } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
 import type { MicIndicatorPosition } from '@/hooks/useVoiceCommands';
 
 // ============================================================
@@ -195,7 +196,7 @@ export function ContactSelectionModal({
       if (focusedMatch) {
         AccessibilityInfo.announceForAccessibility(
           t('voiceCommands.focusedOnMatch', {
-            name: focusedMatch.contact.name,
+            name: getContactDisplayName(focusedMatch.contact),
             current: focusedIndex + 1,
             total: matches.length,
           })
@@ -302,16 +303,16 @@ export function ContactSelectionModal({
                   ]}
                   onPress={() => handleContactPress(match.contact)}
                   accessibilityRole="button"
-                  accessibilityLabel={match.contact.name}
-                  accessibilityHint={t('accessibility.startChatHint', { name: match.contact.name })}
+                  accessibilityLabel={getContactDisplayName(match.contact)}
+                  accessibilityHint={t('accessibility.startChatHint', { name: getContactDisplayName(match.contact) })}
                   accessibilityState={{ selected: index === focusedIndex }}
                 >
                   <ContactAvatar
-                    name={match.contact.name}
+                    name={getContactDisplayName(match.contact)}
                     photoUri={match.contact.avatarUrl}
                     size={48}
                   />
-                  <Text style={styles.contactName}>{match.contact.name}</Text>
+                  <Text style={styles.contactName}>{getContactDisplayName(match.contact)}</Text>
                   {/* Show score badge for debugging in dev mode */}
                   {__DEV__ && (
                     <View style={styles.scoreBadge}>
