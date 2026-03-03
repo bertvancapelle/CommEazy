@@ -7,6 +7,7 @@
  * @see ios/MailModule.swift
  * @see ios/MailModule.m
  * @see src/types/mail.ts
+ * @see src/services/mail/oauth2Service.ts — Token refresh (Fase 6.4)
  */
 
 import {
@@ -311,6 +312,53 @@ export function onAttachmentProgress(
   callback: (event: MailAttachmentProgress) => void,
 ): EmitterSubscription {
   return getEventEmitter().addListener('MailAttachmentProgress', callback);
+}
+
+// ============================================================
+// Token Refresh Interceptor (Fase 6.4)
+// ============================================================
+
+/**
+ * Connect to IMAP with automatic OAuth2 token refresh.
+ *
+ * For OAuth2 accounts, checks if the access token is expired or
+ * about to expire (within 60s). If so, refreshes the token before
+ * connecting. Falls back to standard connectIMAP for password accounts.
+ *
+ * @param accountId - Account identifier (for Keychain lookup)
+ * @param providerId - Provider identifier (for OAuth2 config)
+ * @returns true on success
+ * @throws On auth failure or token refresh failure
+ */
+export async function connectIMAPWithRefresh(
+  accountId: string,
+  providerId: string,
+): Promise<boolean> {
+  // Lazy import to avoid circular dependency
+  const credentialManager = await import('./credentialManager');
+  const oauth2Service = await import('./oauth2Service');
+
+  const credentials = await credentialManager.getCredentials(accountId);
+  if (!credentials) {
+    throw new Error('[imapBridge] No credentials found for account');
+  }
+
+  let imapConfig = credentialManager.buildIMAPConfig(credentials);
+
+  // For OAuth2 accounts, ensure token is valid
+  if (credentials.type === 'oauth2') {
+    const { accessToken, refreshed } = await oauth2Service.ensureValidToken(
+      accountId,
+      providerId,
+    );
+
+    if (refreshed) {
+      // Use the fresh token
+      imapConfig = { ...imapConfig, accessToken };
+    }
+  }
+
+  return connectIMAP(imapConfig);
 }
 
 // ============================================================

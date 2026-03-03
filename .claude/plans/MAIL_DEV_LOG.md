@@ -11,7 +11,7 @@
 |--------|-------|-------|--------|
 | 1 | 2026-03-03 | Fase 3 (iOS native module) | ✅ Voltooid |
 | 2 | 2026-03-03 | Fase 5 (TS bridge + SQLite) | ✅ Voltooid |
-| 3 | TBD | Fase 6-7 (OAuth2 + Providers) | ⏳ Gepland |
+| 3 | 2026-03-03 | Fase 6-7 (OAuth2 + Providers) | ✅ Voltooid |
 | 4 | TBD | Fase 8 (Onboarding wizard) | ⏳ Gepland |
 | 5 | TBD | Fase 9-10 (Settings + Mail UI) | ⏳ Gepland |
 | 6 | TBD | Fase 11-12 (Tests + QA) | ⏳ Gepland |
@@ -278,7 +278,105 @@ tokenize='unicode61'
 
 ## Fase 6-7: OAuth2 + Providers — Sessie 3
 
-### Status: ⏳ Gepland
+### Status: ✅ Voltooid
+
+### Beslissingen
+- **react-native-app-auth** voor OAuth2 browser flow (nog niet geïnstalleerd — dependency voor Test 1)
+- **react-native-keychain** reeds aanwezig (v8.2.0), hergebruikt voor mail credential opslag
+- **Keychain security level:** `WHEN_UNLOCKED_THIS_DEVICE_ONLY` — credentials NIET in iCloud backup (zero-server-storage)
+- **Account metadata** in AsyncStorage (niet-sensitief), credentials in Keychain (sensitief)
+- **Client IDs via config bestand** (`src/config/mailOAuth2Config.ts`) — NOOIT hardcoded
+- **Token refresh interceptor** in imapBridge.ts — automatisch bij elke IMAP-connectie
+- **12 bekende providers** + custom optie voor handmatige configuratie
+- **Domain auto-detectie** via pre-built lookup map (O(1) lookup)
+
+### Architectuur
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Account Setup Flow                                          │
+│                                                              │
+│  1. Gebruiker kiest provider (mailConstants.ts)              │
+│     └─ Of: email invoeren → detectProvider() → auto-detect   │
+│  2a. OAuth2 provider → oauth2Service.authorize()             │
+│      └─ Browser flow → tokens → Keychain                    │
+│  2b. Password provider → wachtwoord invoer                   │
+│      └─ Credentials → Keychain                              │
+│  3. testConnection() → bevestiging                           │
+│  4. Metadata → AsyncStorage, Credentials → Keychain          │
+├─────────────────────────────────────────────────────────────┤
+│  Runtime Flow                                                │
+│                                                              │
+│  imapBridge.connectIMAPWithRefresh(accountId, providerId)    │
+│    └─ Laad credentials uit Keychain                         │
+│    └─ OAuth2? → Check expiresAt → refresh indien nodig      │
+│    └─ connectIMAP(config) → native module                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Bekende Providers (mailConstants.ts)
+
+| ID | Naam | Auth Type | IMAP Host | SMTP Host |
+|----|------|-----------|-----------|-----------|
+| gmail | Gmail | oauth2 | imap.gmail.com:993 | smtp.gmail.com:587 |
+| outlook | Microsoft Outlook / Hotmail | oauth2 | outlook.office365.com:993 | smtp.office365.com:587 |
+| kpn | KPN Mail | password | imap.kpnmail.nl:993 | smtp.kpnmail.nl:587 |
+| ziggo | Ziggo Mail | password | imap.ziggo.nl:993 | smtp.ziggo.nl:587 |
+| xs4all | XS4ALL / KPN Zakelijk | password | imap.xs4all.nl:993 | smtp.xs4all.nl:465 |
+| yahoo | Yahoo Mail | password | imap.mail.yahoo.com:993 | smtp.mail.yahoo.com:587 |
+| icloud | Apple iCloud Mail | password | imap.mail.me.com:993 | smtp.mail.me.com:587 |
+| gmx | GMX Mail | password | imap.gmx.net:993 | mail.gmx.net:587 |
+| webde | WEB.DE | password | imap.web.de:993 | smtp.web.de:587 |
+| protonmail | ProtonMail (Bridge) | password | 127.0.0.1:1143 | 127.0.0.1:1025 |
+| custom | Andere provider | password | (handmatig) | (handmatig) |
+
+### Bestanden Aangemaakt
+| Bestand | Regels | Doel |
+|---------|--------|------|
+| `src/services/mail/mailConstants.ts` | ~250 | Bekende providers + domain auto-detectie |
+| `src/services/mail/credentialManager.ts` | ~280 | Keychain credential opslag + account metadata |
+| `src/services/mail/oauth2Service.ts` | ~310 | OAuth2 flows (Gmail + Outlook) + token refresh |
+
+### Bestanden Gewijzigd
+| Bestand | Wijziging |
+|---------|-----------|
+| `src/types/mail.ts` | Toegevoegd: StoredCredentials, MailAccount, OAuth2TokenResponse, OAuth2ProviderConfig, MailAuthType |
+| `src/services/mail/imapBridge.ts` | Toegevoegd: connectIMAPWithRefresh() token refresh interceptor |
+| `src/services/mail/index.ts` | Toegevoegd: exports voor credentialManager, oauth2Service, mailConstants |
+
+### Security Overzicht
+
+| Wat | Waar opgeslagen | Beveiliging |
+|-----|-----------------|-------------|
+| IMAP/SMTP wachtwoorden | Keychain | WHEN_UNLOCKED_THIS_DEVICE_ONLY |
+| OAuth2 access tokens | Keychain | WHEN_UNLOCKED_THIS_DEVICE_ONLY |
+| OAuth2 refresh tokens | Keychain | WHEN_UNLOCKED_THIS_DEVICE_ONLY |
+| OAuth2 client IDs | Config bestand | Niet in git (via .env of config) |
+| Account metadata | AsyncStorage | Alleen niet-sensitieve data |
+| Email adressen (PII) | AsyncStorage (metadata) | Nooit gelogd |
+
+### Dependency Check (voor volgende sessie)
+- [ ] `npm install react-native-app-auth` — Nodig voor OAuth2 browser flow
+- [ ] `cd ios && pod install` — Na react-native-app-auth installatie
+- [ ] `src/config/mailOAuth2Config.ts` aanmaken — Met Google + Microsoft client IDs
+- [ ] Xcode URL scheme toevoegen: `com.commeazy` — Voor OAuth2 redirect
+- [ ] (Bestaand) `npm install @op-engineering/op-sqlite` — Nodig voor SQLite cache
+
+### Volgende Sessie: Fase 8 (Onboarding Wizard)
+**Voorbereid:**
+- Alle providers gedefinieerd met IMAP/SMTP configuratie
+- Credential opslag in Keychain klaar
+- OAuth2 flows voor Gmail en Outlook klaar
+- Token refresh interceptor in imapBridge
+- Types voor accounts en credentials
+
+**Te doen in Fase 8:**
+- `MailOnboardingStep1.tsx` — Provider kiezen
+- `MailOnboardingStep2.tsx` — Authenticatie (OAuth2 / Password / Custom)
+- `MailOnboardingStep3.tsx` — Test + Bevestiging
+- Welcome modal voor eerste gebruik
+- ProgressIndicator integratie
+- i18n keys voor alle 13 talen
 
 ---
 

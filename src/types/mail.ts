@@ -5,7 +5,7 @@
  * Types align with native MailModule.swift return values.
  *
  * @see ios/MailModule.swift
- * @see .claude/plans/MAIL_MODULE_PROMPT.md — Fase 5
+ * @see .claude/plans/MAIL_MODULE_PROMPT.md — Fase 5, 6, 7
  */
 
 // ============================================================
@@ -385,6 +385,111 @@ export interface MailError {
 
   /** Human-readable error message */
   message: string;
+}
+
+// ============================================================
+// Account & Credential Types (Fase 6-7)
+// ============================================================
+
+/**
+ * Authentication type for a mail account.
+ */
+export type MailAuthType = 'oauth2' | 'password';
+
+/**
+ * Stored credentials for a mail account.
+ * Persisted securely in Keychain (iOS) / Keystore (Android).
+ *
+ * SECURITY: NEVER log these values. NEVER store in AsyncStorage or SQLite.
+ */
+export interface StoredCredentials {
+  /** Authentication method */
+  type: MailAuthType;
+
+  /** Email address (also used as username for most providers) */
+  email: string;
+
+  /** OAuth2 access token (for oauth2 type) */
+  accessToken?: string;
+
+  /** OAuth2 refresh token (for oauth2 type) */
+  refreshToken?: string;
+
+  /** Token expiration timestamp in milliseconds (for oauth2 type) */
+  expiresAt?: number;
+
+  /** Password (for password type) */
+  password?: string;
+
+  /** IMAP server configuration */
+  imapConfig: IMAPConfig;
+
+  /** SMTP server configuration */
+  smtpConfig: SMTPConfig;
+}
+
+/**
+ * Mail account stored in AsyncStorage (non-sensitive metadata only).
+ * Credentials are stored separately in Keychain.
+ */
+export interface MailAccount {
+  /** Unique account identifier (UUID) */
+  id: string;
+
+  /** Provider ID from KNOWN_PROVIDERS */
+  providerId: string;
+
+  /** Display name for the account (e.g., "Mijn Gmail") */
+  displayName: string;
+
+  /** Email address */
+  email: string;
+
+  /** Authentication type */
+  authType: MailAuthType;
+
+  /** Whether this is the default send account */
+  isDefault: boolean;
+
+  /** ISO 8601 timestamp when account was added */
+  createdAt: string;
+}
+
+/**
+ * OAuth2 token response from the authorization server.
+ */
+export interface OAuth2TokenResponse {
+  /** Access token for API calls */
+  accessToken: string;
+
+  /** Refresh token for obtaining new access tokens */
+  refreshToken?: string;
+
+  /** Token expiration timestamp in milliseconds */
+  expiresAt: number;
+
+  /** ID token (OpenID Connect, contains user info) */
+  idToken?: string;
+
+  /** Token type (usually "Bearer") */
+  tokenType: string;
+}
+
+/**
+ * OAuth2 provider configuration for authorization flow.
+ */
+export interface OAuth2ProviderConfig {
+  /** OpenID Connect issuer URL */
+  issuer: string;
+
+  /** OAuth2 client ID */
+  clientId: string;
+
+  /** OAuth2 redirect URL (app scheme) */
+  redirectUrl: string;
+
+  /** Requested OAuth2 scopes */
+  scopes: string[];
 }
 
 // ============================================================
