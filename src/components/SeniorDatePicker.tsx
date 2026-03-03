@@ -237,10 +237,24 @@ export function SeniorDatePicker({
   useEffect(() => {
     if (activeSubPopup === null) return;
 
-    const selectedValue = getFieldSelected(activeSubPopup);
+    // Read selected value directly from state (not via closure functions)
+    let selectedValue: number | undefined;
+    if (activeSubPopup === 'day') selectedValue = modalDay;
+    else if (activeSubPopup === 'month') selectedValue = modalMonth;
+    else selectedValue = modalYear;
+
     if (selectedValue === undefined) return;
 
-    const options = getSubPopupOptions(activeSubPopup);
+    // Build options inline to avoid stale closure
+    let options: { value: number }[];
+    if (activeSubPopup === 'day') {
+      options = dayOptions.map(d => ({ value: d }));
+    } else if (activeSubPopup === 'month') {
+      options = monthNames.map((_, i) => ({ value: i + 1 }));
+    } else {
+      options = yearOptions.map(y => ({ value: y }));
+    }
+
     const selectedIndex = options.findIndex(o => o.value === selectedValue);
     if (selectedIndex <= 0) return;
 
@@ -257,8 +271,7 @@ export function SeniorDatePicker({
     }, 50);
 
     return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSubPopup]);
+  }, [activeSubPopup, modalDay, modalMonth, modalYear, dayOptions, monthNames, yearOptions]);
 
   // Get the display value for a field button inside the modal
   const getFieldButtonDisplay = (field: PickerField): string => {
