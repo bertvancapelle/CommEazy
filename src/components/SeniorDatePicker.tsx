@@ -4,9 +4,10 @@
  * Single touchable field showing the full date as readable text
  * (e.g. "20 november 2026") or a placeholder ("Kies een datum").
  *
- * Tap opens a bottom-sheet popup with Day, Month, Year sections
- * stacked vertically. Each section expands into a scrollable list
- * when tapped. Auto-closes when all three fields are filled.
+ * Tap opens a full-screen modal with 3 large buttons (Dag, Maand, Jaar).
+ * Tapping a button opens a centered sub-popup with a scrollable list.
+ * Sub-popup auto-closes after selecting a value.
+ * User must explicitly press "Opslaan" to save the date.
  *
  * Designed for seniors who find standard date pickers too small/confusing.
  * Month names are hardcoded per supported language (13 locales)
@@ -17,7 +18,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -26,20 +27,13 @@ import {
   Modal,
   ScrollView,
   SafeAreaView,
-  LayoutAnimation,
-  Platform,
-  UIManager,
+  Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
-
-// Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 export interface SeniorDatePickerProps {
   /** Current date value as ISO string "YYYY-MM-DD" or undefined */
@@ -103,6 +97,8 @@ function getMonthNames(language: string): string[] {
   return MONTH_NAMES[language] ?? MONTH_NAMES[language.substring(0, 2)] ?? MONTH_NAMES.en;
 }
 
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
 export function SeniorDatePicker({
   value,
   onChange,
@@ -119,15 +115,12 @@ export function SeniorDatePicker({
 
   const parsed = useMemo(() => parseDateValue(value), [value]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [expandedField, setExpandedField] = useState<PickerField | null>(null);
+  const [activeSubPopup, setActiveSubPopup] = useState<PickerField | null>(null);
 
-  // Track selections within modal (only emit onChange when all 3 are set or on close)
+  // Track selections within modal (only emit onChange on save)
   const [modalDay, setModalDay] = useState<number | undefined>(undefined);
   const [modalMonth, setModalMonth] = useState<number | undefined>(undefined);
   const [modalYear, setModalYear] = useState<number | undefined>(undefined);
-
-  // Ref to track if we should auto-close
-  const autoCloseRef = useRef(false);
 
   // Month names in the app's current language
   const monthNames = useMemo(() => getMonthNames(i18n.language), [i18n.language]);
@@ -157,108 +150,99 @@ export function SeniorDatePicker({
     return `${parsed.day} ${monthName} ${parsed.year}`;
   }, [parsed, monthNames]);
 
-  // Open the modal
+  // Check if save is possible (all 3 fields filled)
+  const canSave = modalDay !== undefined && modalMonth !== undefined && modalYear !== undefined;
+
+  // Open the main modal
   const handleOpenModal = useCallback(() => {
     void triggerFeedback('tap');
-    // Sync modal state from current value
     setModalDay(parsed.day);
     setModalMonth(parsed.month);
     setModalYear(parsed.year);
-    setExpandedField(null);
+    setActiveSubPopup(null);
     setIsModalOpen(true);
   }, [triggerFeedback, parsed]);
 
-  // Close modal
+  // Close main modal (discard changes)
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
-    setExpandedField(null);
+    setActiveSubPopup(null);
   }, []);
 
-  // Toggle a field's expanded state
-  const handleToggleField = useCallback((field: PickerField) => {
+  // Save and close
+  const handleSave = useCallback(() => {
+    if (!canSave) return;
     void triggerFeedback('tap');
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedField(prev => prev === field ? null : field);
+
+    let day = modalDay!;
+    const month = modalMonth!;
+    const year = modalYear!;
+
+    // Clamp day if needed (e.g. selected day 31 but month only has 30)
+    const maxDays = getDaysInMonth(month, year);
+    if (day > maxDays) {
+      day = maxDays;
+    }
+
+    onChange(formatDateValue(day, month, year));
+    setIsModalOpen(false);
+    setActiveSubPopup(null);
+  }, [canSave, modalDay, modalMonth, modalYear, onChange, triggerFeedback]);
+
+  // Open a sub-popup for a specific field
+  const handleOpenSubPopup = useCallback((field: PickerField) => {
+    void triggerFeedback('tap');
+    setActiveSubPopup(field);
   }, [triggerFeedback]);
 
-  // Handle selection of a value within a field
-  const handleSelect = useCallback((field: PickerField, selectedValue: number) => {
+  // Close sub-popup without selection
+  const handleCloseSubPopup = useCallback(() => {
+    setActiveSubPopup(null);
+  }, []);
+
+  // Select a value in the sub-popup — auto-closes sub-popup
+  const handleSubPopupSelect = useCallback((field: PickerField, selectedValue: number) => {
     void triggerFeedback('tap');
 
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
-    let newDay = modalDay;
-    let newMonth = modalMonth;
-    let newYear = modalYear;
-
     if (field === 'day') {
-      newDay = selectedValue;
       setModalDay(selectedValue);
     } else if (field === 'month') {
-      newMonth = selectedValue;
       setModalMonth(selectedValue);
     } else {
-      newYear = selectedValue;
       setModalYear(selectedValue);
     }
 
-    // Collapse the current field
-    setExpandedField(null);
-
-    // Clamp day if needed (e.g. day 31 but month only has 30)
-    if (newDay && newMonth && newYear) {
-      const maxDays = getDaysInMonth(newMonth, newYear);
-      if (newDay > maxDays) {
-        newDay = maxDays;
-        setModalDay(maxDays);
-      }
-    }
-
-    // If all three are now set, emit and auto-close
-    if (newDay && newMonth && newYear) {
-      onChange(formatDateValue(newDay, newMonth, newYear));
-      autoCloseRef.current = true;
-    }
-  }, [modalDay, modalMonth, modalYear, onChange, triggerFeedback]);
-
-  // Auto-close modal after all fields are set (with small delay for visual feedback)
-  useEffect(() => {
-    if (autoCloseRef.current) {
-      autoCloseRef.current = false;
-      const timer = setTimeout(() => {
-        setIsModalOpen(false);
-        setExpandedField(null);
-      }, 400);
-      return () => clearTimeout(timer);
-    }
-  }, [modalDay, modalMonth, modalYear]);
+    // Auto-close sub-popup after selection
+    setActiveSubPopup(null);
+  }, [triggerFeedback]);
 
   // Clear handler
   const handleClear = useCallback(() => {
     void triggerFeedback('tap');
+    setModalDay(undefined);
+    setModalMonth(undefined);
+    setModalYear(undefined);
     onChange(undefined);
+    setIsModalOpen(false);
+    setActiveSubPopup(null);
   }, [onChange, triggerFeedback]);
 
-  // Get display text for a field in the modal
-  const getFieldDisplay = (field: PickerField): string | null => {
+  // Get the display value for a field button inside the modal
+  const getFieldButtonDisplay = (field: PickerField): string => {
     switch (field) {
-      case 'day': return modalDay ? String(modalDay) : null;
-      case 'month': return modalMonth ? monthNames[modalMonth - 1] : null;
-      case 'year': return modalYear ? String(modalYear) : null;
+      case 'day': return modalDay !== undefined ? String(modalDay) : '—';
+      case 'month': return modalMonth !== undefined ? monthNames[modalMonth - 1] : '—';
+      case 'year': return modalYear !== undefined ? String(modalYear) : '—';
     }
   };
 
-  // Get label for a field
+  // Get the field label (e.g. "Dag", "Maand", "Jaar")
   const getFieldLabel = (field: PickerField): string => {
-    switch (field) {
-      case 'day': return t('contacts.datePicker.selectDay');
-      case 'month': return t('contacts.datePicker.selectMonth');
-      case 'year': return t('contacts.datePicker.selectYear');
-    }
+    return t('contacts.datePicker.' + field);
   };
 
-  // Get options for a field
-  const getFieldOptions = (field: PickerField): { value: number; label: string }[] => {
+  // Get options for the sub-popup
+  const getSubPopupOptions = (field: PickerField): { value: number; label: string }[] => {
     switch (field) {
       case 'day':
         return dayOptions.map(d => ({ value: d, label: String(d) }));
@@ -275,6 +259,15 @@ export function SeniorDatePicker({
       case 'day': return modalDay;
       case 'month': return modalMonth;
       case 'year': return modalYear;
+    }
+  };
+
+  // Get sub-popup title
+  const getSubPopupTitle = (field: PickerField): string => {
+    switch (field) {
+      case 'day': return t('contacts.datePicker.selectDay');
+      case 'month': return t('contacts.datePicker.selectMonth');
+      case 'year': return t('contacts.datePicker.selectYear');
     }
   };
 
@@ -311,158 +304,187 @@ export function SeniorDatePicker({
         <Text style={[styles.dateButtonChevron, { color: themeColors.textTertiary }]}>▼</Text>
       </TouchableOpacity>
 
-      {/* Clear button */}
-      {allowClear && value && (
-        <TouchableOpacity
-          style={styles.clearButton}
-          onPress={handleClear}
-          accessibilityRole="button"
-          accessibilityLabel={t('contacts.datePicker.clear')}
-        >
-          <Text style={[styles.clearText, { color: themeColors.error }]}>
-            {t('contacts.datePicker.clear')}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Bottom sheet modal with Day/Month/Year sections */}
+      {/* ========= MODAL 1: Full-screen date picker ========= */}
       <Modal
         visible={isModalOpen}
-        transparent
         animationType="slide"
         onRequestClose={handleCloseModal}
       >
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={handleCloseModal}
-        >
-          <SafeAreaView style={styles.sheetSafeArea}>
-            <TouchableOpacity activeOpacity={1} style={[styles.sheetContainer, { backgroundColor: themeColors.background }]}>
-              {/* Header */}
-              <View style={[styles.sheetHeader, { borderBottomColor: themeColors.divider }]}>
-                <Text style={[styles.sheetTitle, { color: themeColors.textPrimary }]}>
-                  {t('contacts.datePicker.chooseDate')}
-                </Text>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: themeColors.background }]}>
+          {/* Header with title and cancel */}
+          <View style={[styles.modalHeader, { borderBottomColor: themeColors.divider }]}>
+            <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
+              {t('contacts.datePicker.chooseDate')}
+            </Text>
+            <TouchableOpacity
+              onPress={handleCloseModal}
+              style={styles.modalCancelButton}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel')}
+            >
+              <Text style={[styles.modalCancelText, { color: themeColors.primary }]}>
+                {t('common.cancel')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 3 large field buttons centered on screen */}
+          <View style={styles.fieldButtonsContainer}>
+            {fields.map((field) => {
+              const fieldDisplay = getFieldButtonDisplay(field);
+              const fieldLabel = getFieldLabel(field);
+              const hasValue = fieldDisplay !== '—';
+
+              return (
                 <TouchableOpacity
-                  onPress={handleCloseModal}
-                  style={styles.sheetCloseButton}
+                  key={field}
+                  style={[
+                    styles.fieldButton,
+                    {
+                      backgroundColor: themeColors.surface,
+                      borderColor: hasValue ? themeColors.primary : themeColors.border,
+                      borderWidth: hasValue ? 2 : 1,
+                    },
+                  ]}
+                  onPress={() => handleOpenSubPopup(field)}
                   accessibilityRole="button"
-                  accessibilityLabel={t('common.cancel')}
+                  accessibilityLabel={`${fieldLabel}: ${fieldDisplay}`}
                 >
-                  <Text style={[styles.sheetCloseText, { color: themeColors.primary }]}>
-                    {t('common.cancel')}
+                  <Text style={[styles.fieldButtonLabel, { color: themeColors.textSecondary }]}>
+                    {fieldLabel}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.fieldButtonValue,
+                      {
+                        color: hasValue ? themeColors.textPrimary : themeColors.textTertiary,
+                      },
+                    ]}
+                  >
+                    {fieldDisplay}
                   </Text>
                 </TouchableOpacity>
-              </View>
+              );
+            })}
+          </View>
 
-              {/* Scrollable content: Day, Month, Year sections stacked */}
-              <ScrollView
-                style={styles.sheetBody}
-                contentContainerStyle={styles.sheetBodyContent}
-                showsVerticalScrollIndicator={true}
+          {/* Bottom area: Save + Clear */}
+          <View style={styles.bottomArea}>
+            {/* Save button */}
+            <TouchableOpacity
+              style={[
+                styles.saveButton,
+                {
+                  backgroundColor: canSave ? themeColors.primary : themeColors.border,
+                },
+              ]}
+              onPress={handleSave}
+              disabled={!canSave}
+              accessibilityRole="button"
+              accessibilityLabel={t('contacts.save')}
+              accessibilityState={{ disabled: !canSave }}
+            >
+              <Text
+                style={[
+                  styles.saveButtonText,
+                  {
+                    color: canSave ? '#FFFFFF' : themeColors.textTertiary,
+                  },
+                ]}
               >
-                {fields.map((field) => {
-                  const isExpanded = expandedField === field;
-                  const fieldDisplay = getFieldDisplay(field);
-                  const fieldLabel = getFieldLabel(field);
+                {t('contacts.save')}
+              </Text>
+            </TouchableOpacity>
 
-                  return (
-                    <View key={field}>
-                      {/* Field button — tap to expand/collapse */}
+            {/* Clear link */}
+            {allowClear && (modalDay !== undefined || modalMonth !== undefined || modalYear !== undefined || value) && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={handleClear}
+                accessibilityRole="button"
+                accessibilityLabel={t('contacts.datePicker.clear')}
+              >
+                <Text style={[styles.clearText, { color: themeColors.error }]}>
+                  {t('contacts.datePicker.clear')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
+
+        {/* ========= MODAL 2: Centered sub-popup for selections ========= */}
+        {activeSubPopup !== null && (
+          <Modal
+            visible={true}
+            transparent
+            animationType="fade"
+            onRequestClose={handleCloseSubPopup}
+          >
+            <TouchableOpacity
+              style={styles.subPopupOverlay}
+              activeOpacity={1}
+              onPress={handleCloseSubPopup}
+            >
+              <TouchableOpacity
+                activeOpacity={1}
+                style={[styles.subPopupCard, { backgroundColor: themeColors.background }]}
+              >
+                {/* Sub-popup title */}
+                <View style={[styles.subPopupHeader, { borderBottomColor: themeColors.divider }]}>
+                  <Text style={[styles.subPopupTitle, { color: themeColors.textPrimary }]}>
+                    {getSubPopupTitle(activeSubPopup)}
+                  </Text>
+                </View>
+
+                {/* Scrollable option list */}
+                <ScrollView
+                  style={styles.subPopupList}
+                  showsVerticalScrollIndicator={true}
+                  contentContainerStyle={styles.subPopupListContent}
+                >
+                  {getSubPopupOptions(activeSubPopup).map((option) => {
+                    const isSelected = option.value === getFieldSelected(activeSubPopup);
+                    return (
                       <TouchableOpacity
+                        key={option.value}
                         style={[
-                          styles.fieldRow,
+                          styles.subPopupItem,
                           {
-                            backgroundColor: isExpanded
-                              ? themeColors.primary + '10'
-                              : themeColors.surface,
-                            borderColor: themeColors.border,
+                            borderBottomColor: themeColors.divider,
+                            backgroundColor: isSelected
+                              ? themeColors.primary + '15'
+                              : 'transparent',
                           },
                         ]}
-                        onPress={() => handleToggleField(field)}
+                        onPress={() => handleSubPopupSelect(activeSubPopup, option.value)}
                         accessibilityRole="button"
-                        accessibilityLabel={`${fieldLabel}: ${fieldDisplay ?? t('contacts.datePicker.' + field)}`}
-                        accessibilityState={{ expanded: isExpanded }}
+                        accessibilityLabel={option.label}
+                        accessibilityState={{ selected: isSelected }}
                       >
-                        <View style={styles.fieldRowContent}>
-                          <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
-                            {t('contacts.datePicker.' + field)}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.fieldValue,
-                              {
-                                color: fieldDisplay
-                                  ? themeColors.textPrimary
-                                  : themeColors.textTertiary,
-                              },
-                            ]}
-                          >
-                            {fieldDisplay ?? '—'}
-                          </Text>
-                        </View>
-                        <Text style={[styles.fieldChevron, { color: themeColors.textTertiary }]}>
-                          {isExpanded ? '▲' : '▼'}
-                        </Text>
-                      </TouchableOpacity>
-
-                      {/* Expanded option list */}
-                      {isExpanded && (
-                        <ScrollView
-                          style={[styles.optionList, { borderColor: themeColors.border }]}
-                          nestedScrollEnabled={true}
-                          showsVerticalScrollIndicator={true}
+                        <Text
+                          style={[
+                            styles.subPopupItemText,
+                            {
+                              color: isSelected ? themeColors.primary : themeColors.textPrimary,
+                              fontWeight: isSelected ? '700' : '400',
+                            },
+                          ]}
                         >
-                          {getFieldOptions(field).map((option) => {
-                            const isSelected = option.value === getFieldSelected(field);
-                            return (
-                              <TouchableOpacity
-                                key={option.value}
-                                style={[
-                                  styles.optionItem,
-                                  {
-                                    borderBottomColor: themeColors.divider,
-                                    backgroundColor: isSelected
-                                      ? themeColors.primary + '15'
-                                      : 'transparent',
-                                  },
-                                ]}
-                                onPress={() => handleSelect(field, option.value)}
-                                accessibilityRole="button"
-                                accessibilityLabel={option.label}
-                                accessibilityState={{ selected: isSelected }}
-                              >
-                                <Text
-                                  style={[
-                                    styles.optionText,
-                                    {
-                                      color: isSelected
-                                        ? themeColors.primary
-                                        : themeColors.textPrimary,
-                                      fontWeight: isSelected ? '700' : '400',
-                                    },
-                                  ]}
-                                >
-                                  {option.label}
-                                </Text>
-                                {isSelected && (
-                                  <Text style={[styles.checkmark, { color: themeColors.primary }]}>
-                                    ✓
-                                  </Text>
-                                )}
-                              </TouchableOpacity>
-                            );
-                          })}
-                        </ScrollView>
-                      )}
-                    </View>
-                  );
-                })}
-              </ScrollView>
+                          {option.label}
+                        </Text>
+                        {isSelected && (
+                          <Text style={[styles.checkmark, { color: themeColors.primary }]}>
+                            ✓
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </TouchableOpacity>
             </TouchableOpacity>
-          </SafeAreaView>
-        </TouchableOpacity>
+          </Modal>
+        )}
       </Modal>
     </View>
   );
@@ -473,7 +495,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
 
-  // Main date button
+  // Main date button (on contact screen)
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -493,30 +515,11 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
 
-  // Clear button
-  clearButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: spacing.xs,
-  },
-  clearText: {
-    ...typography.label,
-  },
-
-  // Modal overlay
-  overlay: {
+  // === MODAL 1: Full-screen date picker ===
+  modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'flex-end',
   },
-  sheetSafeArea: {
-    maxHeight: '75%',
-  },
-  sheetContainer: {
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    maxHeight: '100%',
-  },
-  sheetHeader: {
+  modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -524,67 +527,119 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
   },
-  sheetTitle: {
+  modalTitle: {
     ...typography.h3,
   },
-  sheetCloseButton: {
+  modalCancelButton: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     minHeight: touchTargets.minimum,
     justifyContent: 'center',
   },
-  sheetCloseText: {
+  modalCancelText: {
     ...typography.button,
   },
 
-  // Scrollable body
-  sheetBody: {
-    flexGrow: 0,
+  // 3 large field buttons
+  fieldButtonsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+    gap: spacing.lg,
   },
-  sheetBodyContent: {
-    paddingBottom: spacing.xl,
+  fieldButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  fieldButtonLabel: {
+    ...typography.label,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  fieldButtonValue: {
+    ...typography.h2,
+    fontWeight: '600',
   },
 
-  // Field row (Day / Month / Year buttons)
-  fieldRow: {
-    flexDirection: 'row',
+  // Bottom area: Save + Clear
+  bottomArea: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.md,
     alignItems: 'center',
+    gap: spacing.md,
+  },
+  saveButton: {
+    width: '100%',
     minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    ...typography.button,
+    fontWeight: '700',
+    fontSize: 20,
+  },
+  clearButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+  },
+  clearText: {
+    ...typography.body,
+  },
+
+  // === MODAL 2: Centered sub-popup ===
+  subPopupOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  subPopupCard: {
+    width: '100%',
+    maxHeight: SCREEN_HEIGHT * 0.6,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    // Shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  subPopupHeader: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
+    alignItems: 'center',
   },
-  fieldRowContent: {
-    flex: 1,
-    gap: 2,
+  subPopupTitle: {
+    ...typography.h3,
   },
-  fieldLabel: {
-    ...typography.label,
-    fontWeight: '700',
+  subPopupList: {
+    flexGrow: 0,
   },
-  fieldValue: {
-    ...typography.body,
+  subPopupListContent: {
+    paddingBottom: spacing.md,
   },
-  fieldChevron: {
-    fontSize: 14,
-    marginLeft: spacing.sm,
-  },
-
-  // Expanded option list
-  optionList: {
-    maxHeight: 240,
-    borderBottomWidth: 1,
-  },
-  optionItem: {
+  subPopupItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: touchTargets.minimum,
-    paddingHorizontal: spacing.lg + spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  optionText: {
+  subPopupItemText: {
     ...typography.body,
   },
   checkmark: {
