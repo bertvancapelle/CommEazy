@@ -351,7 +351,8 @@
       "selectDay": "Vælg dag",
       "selectMonth": "Vælg måned",
       "selectYear": "Vælg år",
-      "clear": "Ryd"
+      "clear": "Ryd",
+      "chooseDate": "Vælg en dato"
     }
   },
   "settings": {

@@ -156,7 +156,7 @@ export { AppleMusicDetailModal } from './appleMusic';
 export { QueueView } from './QueueView';
 export type { QueueViewProps } from './QueueView';
 
-// SeniorDatePicker Component (3-dropdown date picker for seniors — reusable)
+// SeniorDatePicker Component (single-field date picker with popup for seniors — reusable)
 export { SeniorDatePicker } from './SeniorDatePicker';
 export type { SeniorDatePickerProps } from './SeniorDatePicker';
 

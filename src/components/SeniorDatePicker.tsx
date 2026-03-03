@@ -1,18 +1,23 @@
 /**
  * SeniorDatePicker — Reusable date picker for seniors
  *
- * Three large dropdown fields (dag/maand/jaar) that each open a
- * scrollable bottom sheet with large touch targets (60pt+).
+ * Single touchable field showing the full date as readable text
+ * (e.g. "20 november 2026") or a placeholder ("Kies een datum").
+ *
+ * Tap opens a bottom-sheet popup with Day, Month, Year sections
+ * stacked vertically. Each section expands into a scrollable list
+ * when tapped. Auto-closes when all three fields are filled.
  *
  * Designed for seniors who find standard date pickers too small/confusing.
- * Month names are displayed in the user's locale language.
+ * Month names are hardcoded per supported language (13 locales)
+ * for Hermes compatibility — Intl.DateTimeFormat has limited locale support.
  *
  * Reusable for: Contact dates, Agenda/Calendar module (future).
  *
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -21,12 +26,20 @@ import {
   Modal,
   ScrollView,
   SafeAreaView,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export interface SeniorDatePickerProps {
   /** Current date value as ISO string "YYYY-MM-DD" or undefined */
@@ -67,6 +80,29 @@ function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month, 0).getDate();
 }
 
+// Month names per supported language — hardcoded for Hermes compatibility
+// (Intl.DateTimeFormat on React Native/Hermes has limited locale support)
+const MONTH_NAMES: Record<string, string[]> = {
+  nl: ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  'en-GB': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+  fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+  es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+  it: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
+  no: ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'],
+  sv: ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'],
+  da: ['Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'December'],
+  pt: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+  'pt-BR': ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+  pl: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+};
+
+/** Get month names for the given language, with English fallback */
+function getMonthNames(language: string): string[] {
+  return MONTH_NAMES[language] ?? MONTH_NAMES[language.substring(0, 2)] ?? MONTH_NAMES.en;
+}
+
 export function SeniorDatePicker({
   value,
   onChange,
@@ -75,32 +111,34 @@ export function SeniorDatePicker({
   maxYear,
   allowClear = true,
 }: SeniorDatePickerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
   const currentYear = new Date().getFullYear();
   const effectiveMaxYear = maxYear ?? currentYear;
 
   const parsed = useMemo(() => parseDateValue(value), [value]);
-  const [activeField, setActiveField] = useState<PickerField | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [expandedField, setExpandedField] = useState<PickerField | null>(null);
 
-  // Month names in user's locale
-  const monthNames = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat(undefined, { month: 'long' });
-    return Array.from({ length: 12 }, (_, i) => {
-      const date = new Date(2024, i, 1);
-      const name = formatter.format(date);
-      return name.charAt(0).toUpperCase() + name.slice(1);
-    });
-  }, []);
+  // Track selections within modal (only emit onChange when all 3 are set or on close)
+  const [modalDay, setModalDay] = useState<number | undefined>(undefined);
+  const [modalMonth, setModalMonth] = useState<number | undefined>(undefined);
+  const [modalYear, setModalYear] = useState<number | undefined>(undefined);
 
-  // Generate options for each field
+  // Ref to track if we should auto-close
+  const autoCloseRef = useRef(false);
+
+  // Month names in the app's current language
+  const monthNames = useMemo(() => getMonthNames(i18n.language), [i18n.language]);
+
+  // Generate day options based on selected month/year
   const dayOptions = useMemo(() => {
-    const maxDays = parsed.month && parsed.year
-      ? getDaysInMonth(parsed.month, parsed.year)
+    const maxDays = modalMonth && modalYear
+      ? getDaysInMonth(modalMonth, modalYear)
       : 31;
     return Array.from({ length: maxDays }, (_, i) => i + 1);
-  }, [parsed.month, parsed.year]);
+  }, [modalMonth, modalYear]);
 
   const yearOptions = useMemo(() => {
     const years: number[] = [];
@@ -110,52 +148,108 @@ export function SeniorDatePicker({
     return years;
   }, [minYear, effectiveMaxYear]);
 
-  const openField = useCallback((field: PickerField) => {
-    void triggerFeedback('tap');
-    setActiveField(field);
-  }, [triggerFeedback]);
+  // Format the display text for the main button
+  const displayText = useMemo(() => {
+    if (!parsed.day || !parsed.month || !parsed.year) {
+      return null; // Will show placeholder
+    }
+    const monthName = monthNames[parsed.month - 1];
+    return `${parsed.day} ${monthName} ${parsed.year}`;
+  }, [parsed, monthNames]);
 
-  const closeField = useCallback(() => {
-    setActiveField(null);
+  // Open the modal
+  const handleOpenModal = useCallback(() => {
+    void triggerFeedback('tap');
+    // Sync modal state from current value
+    setModalDay(parsed.day);
+    setModalMonth(parsed.month);
+    setModalYear(parsed.year);
+    setExpandedField(null);
+    setIsModalOpen(true);
+  }, [triggerFeedback, parsed]);
+
+  // Close modal
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setExpandedField(null);
   }, []);
 
+  // Toggle a field's expanded state
+  const handleToggleField = useCallback((field: PickerField) => {
+    void triggerFeedback('tap');
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedField(prev => prev === field ? null : field);
+  }, [triggerFeedback]);
+
+  // Handle selection of a value within a field
   const handleSelect = useCallback((field: PickerField, selectedValue: number) => {
     void triggerFeedback('tap');
 
-    const newDay = field === 'day' ? selectedValue : parsed.day;
-    const newMonth = field === 'month' ? selectedValue : parsed.month;
-    const newYear = field === 'year' ? selectedValue : parsed.year;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-    // If all three are set, emit a complete date
-    if (newDay && newMonth && newYear) {
-      // Clamp day to max days in new month/year
-      const maxDays = getDaysInMonth(newMonth, newYear);
-      const clampedDay = Math.min(newDay, maxDays);
-      onChange(formatDateValue(clampedDay, newMonth, newYear));
-    } else if (newDay || newMonth || newYear) {
-      // Partial — still emit if at least one component changed
-      // Build a partial date for state tracking
-      const partialDay = newDay ?? 1;
-      const partialMonth = newMonth ?? 1;
-      const partialYear = newYear ?? currentYear;
-      onChange(formatDateValue(partialDay, partialMonth, partialYear));
+    let newDay = modalDay;
+    let newMonth = modalMonth;
+    let newYear = modalYear;
+
+    if (field === 'day') {
+      newDay = selectedValue;
+      setModalDay(selectedValue);
+    } else if (field === 'month') {
+      newMonth = selectedValue;
+      setModalMonth(selectedValue);
+    } else {
+      newYear = selectedValue;
+      setModalYear(selectedValue);
     }
 
-    setActiveField(null);
-  }, [parsed, onChange, triggerFeedback, currentYear]);
+    // Collapse the current field
+    setExpandedField(null);
 
+    // Clamp day if needed (e.g. day 31 but month only has 30)
+    if (newDay && newMonth && newYear) {
+      const maxDays = getDaysInMonth(newMonth, newYear);
+      if (newDay > maxDays) {
+        newDay = maxDays;
+        setModalDay(maxDays);
+      }
+    }
+
+    // If all three are now set, emit and auto-close
+    if (newDay && newMonth && newYear) {
+      onChange(formatDateValue(newDay, newMonth, newYear));
+      autoCloseRef.current = true;
+    }
+  }, [modalDay, modalMonth, modalYear, onChange, triggerFeedback]);
+
+  // Auto-close modal after all fields are set (with small delay for visual feedback)
+  useEffect(() => {
+    if (autoCloseRef.current) {
+      autoCloseRef.current = false;
+      const timer = setTimeout(() => {
+        setIsModalOpen(false);
+        setExpandedField(null);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [modalDay, modalMonth, modalYear]);
+
+  // Clear handler
   const handleClear = useCallback(() => {
     void triggerFeedback('tap');
     onChange(undefined);
   }, [onChange, triggerFeedback]);
 
-  // Display values
-  const dayDisplay = parsed.day ? String(parsed.day) : t('contacts.datePicker.day');
-  const monthDisplay = parsed.month ? monthNames[parsed.month - 1] : t('contacts.datePicker.month');
-  const yearDisplay = parsed.year ? String(parsed.year) : t('contacts.datePicker.year');
+  // Get display text for a field in the modal
+  const getFieldDisplay = (field: PickerField): string | null => {
+    switch (field) {
+      case 'day': return modalDay ? String(modalDay) : null;
+      case 'month': return modalMonth ? monthNames[modalMonth - 1] : null;
+      case 'year': return modalYear ? String(modalYear) : null;
+    }
+  };
 
-  // Get title for bottom sheet
-  const getSheetTitle = (field: PickerField): string => {
+  // Get label for a field
+  const getFieldLabel = (field: PickerField): string => {
     switch (field) {
       case 'day': return t('contacts.datePicker.selectDay');
       case 'month': return t('contacts.datePicker.selectMonth');
@@ -163,8 +257,8 @@ export function SeniorDatePicker({
     }
   };
 
-  // Get options for bottom sheet
-  const getSheetOptions = (field: PickerField): { value: number; label: string }[] => {
+  // Get options for a field
+  const getFieldOptions = (field: PickerField): { value: number; label: string }[] => {
     switch (field) {
       case 'day':
         return dayOptions.map(d => ({ value: d, label: String(d) }));
@@ -175,14 +269,16 @@ export function SeniorDatePicker({
     }
   };
 
-  // Get currently selected value for a field
-  const getSelectedValue = (field: PickerField): number | undefined => {
+  // Get selected value for a field
+  const getFieldSelected = (field: PickerField): number | undefined => {
     switch (field) {
-      case 'day': return parsed.day;
-      case 'month': return parsed.month;
-      case 'year': return parsed.year;
+      case 'day': return modalDay;
+      case 'month': return modalMonth;
+      case 'year': return modalYear;
     }
   };
+
+  const fields: PickerField[] = ['day', 'month', 'year'];
 
   return (
     <View
@@ -190,87 +286,30 @@ export function SeniorDatePicker({
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="none"
     >
-      {/* Three field buttons in a row */}
-      <View style={styles.fieldsRow}>
-        {/* Day */}
-        <TouchableOpacity
+      {/* Main touchable field — shows full date or placeholder */}
+      <TouchableOpacity
+        style={[
+          styles.dateButton,
+          {
+            backgroundColor: themeColors.surface,
+            borderColor: themeColors.border,
+          },
+        ]}
+        onPress={handleOpenModal}
+        accessibilityRole="button"
+        accessibilityLabel={displayText ?? t('contacts.datePicker.chooseDate')}
+        accessibilityHint={t('contacts.datePicker.chooseDate')}
+      >
+        <Text
           style={[
-            styles.fieldButton,
-            {
-              backgroundColor: themeColors.surface,
-              borderColor: themeColors.border,
-            },
+            styles.dateButtonText,
+            { color: displayText ? themeColors.textPrimary : themeColors.textTertiary },
           ]}
-          onPress={() => openField('day')}
-          accessibilityRole="button"
-          accessibilityLabel={`${t('contacts.datePicker.day')}: ${dayDisplay}`}
-          accessibilityHint={t('contacts.datePicker.selectDay')}
         >
-          <Text
-            style={[
-              styles.fieldText,
-              { color: parsed.day ? themeColors.textPrimary : themeColors.textTertiary },
-            ]}
-            numberOfLines={1}
-          >
-            {dayDisplay}
-          </Text>
-          <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>▼</Text>
-        </TouchableOpacity>
-
-        {/* Month */}
-        <TouchableOpacity
-          style={[
-            styles.fieldButton,
-            styles.monthButton,
-            {
-              backgroundColor: themeColors.surface,
-              borderColor: themeColors.border,
-            },
-          ]}
-          onPress={() => openField('month')}
-          accessibilityRole="button"
-          accessibilityLabel={`${t('contacts.datePicker.month')}: ${monthDisplay}`}
-          accessibilityHint={t('contacts.datePicker.selectMonth')}
-        >
-          <Text
-            style={[
-              styles.fieldText,
-              { color: parsed.month ? themeColors.textPrimary : themeColors.textTertiary },
-            ]}
-            numberOfLines={1}
-          >
-            {monthDisplay}
-          </Text>
-          <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>▼</Text>
-        </TouchableOpacity>
-
-        {/* Year */}
-        <TouchableOpacity
-          style={[
-            styles.fieldButton,
-            {
-              backgroundColor: themeColors.surface,
-              borderColor: themeColors.border,
-            },
-          ]}
-          onPress={() => openField('year')}
-          accessibilityRole="button"
-          accessibilityLabel={`${t('contacts.datePicker.year')}: ${yearDisplay}`}
-          accessibilityHint={t('contacts.datePicker.selectYear')}
-        >
-          <Text
-            style={[
-              styles.fieldText,
-              { color: parsed.year ? themeColors.textPrimary : themeColors.textTertiary },
-            ]}
-            numberOfLines={1}
-          >
-            {yearDisplay}
-          </Text>
-          <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>▼</Text>
-        </TouchableOpacity>
-      </View>
+          {displayText ?? t('contacts.datePicker.chooseDate')}
+        </Text>
+        <Text style={[styles.dateButtonChevron, { color: themeColors.textTertiary }]}>▼</Text>
+      </TouchableOpacity>
 
       {/* Clear button */}
       {allowClear && value && (
@@ -286,84 +325,145 @@ export function SeniorDatePicker({
         </TouchableOpacity>
       )}
 
-      {/* Bottom sheet modal */}
-      {activeField && (
-        <Modal
-          visible={true}
-          transparent
-          animationType="slide"
-          onRequestClose={closeField}
+      {/* Bottom sheet modal with Day/Month/Year sections */}
+      <Modal
+        visible={isModalOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCloseModal}
+      >
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={handleCloseModal}
         >
-          <TouchableOpacity
-            style={styles.overlay}
-            activeOpacity={1}
-            onPress={closeField}
-          >
-            <SafeAreaView style={styles.sheetSafeArea}>
-              <TouchableOpacity activeOpacity={1} style={[styles.sheetContainer, { backgroundColor: themeColors.background }]}>
-                {/* Header */}
-                <View style={[styles.sheetHeader, { borderBottomColor: themeColors.divider }]}>
-                  <Text style={[styles.sheetTitle, { color: themeColors.textPrimary }]}>
-                    {getSheetTitle(activeField)}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={closeField}
-                    style={styles.sheetCloseButton}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.cancel')}
-                  >
-                    <Text style={[styles.sheetCloseText, { color: themeColors.primary }]}>
-                      {t('common.cancel')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Options list */}
-                <ScrollView
-                  style={styles.sheetList}
-                  contentContainerStyle={styles.sheetListContent}
-                  showsVerticalScrollIndicator={true}
+          <SafeAreaView style={styles.sheetSafeArea}>
+            <TouchableOpacity activeOpacity={1} style={[styles.sheetContainer, { backgroundColor: themeColors.background }]}>
+              {/* Header */}
+              <View style={[styles.sheetHeader, { borderBottomColor: themeColors.divider }]}>
+                <Text style={[styles.sheetTitle, { color: themeColors.textPrimary }]}>
+                  {t('contacts.datePicker.chooseDate')}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleCloseModal}
+                  style={styles.sheetCloseButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
                 >
-                  {getSheetOptions(activeField).map((option) => {
-                    const isSelected = option.value === getSelectedValue(activeField);
-                    return (
+                  <Text style={[styles.sheetCloseText, { color: themeColors.primary }]}>
+                    {t('common.cancel')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Scrollable content: Day, Month, Year sections stacked */}
+              <ScrollView
+                style={styles.sheetBody}
+                contentContainerStyle={styles.sheetBodyContent}
+                showsVerticalScrollIndicator={true}
+              >
+                {fields.map((field) => {
+                  const isExpanded = expandedField === field;
+                  const fieldDisplay = getFieldDisplay(field);
+                  const fieldLabel = getFieldLabel(field);
+
+                  return (
+                    <View key={field}>
+                      {/* Field button — tap to expand/collapse */}
                       <TouchableOpacity
-                        key={option.value}
                         style={[
-                          styles.sheetOption,
+                          styles.fieldRow,
                           {
-                            borderBottomColor: themeColors.divider,
-                            backgroundColor: isSelected ? themeColors.primary + '15' : 'transparent',
+                            backgroundColor: isExpanded
+                              ? themeColors.primary + '10'
+                              : themeColors.surface,
+                            borderColor: themeColors.border,
                           },
                         ]}
-                        onPress={() => handleSelect(activeField, option.value)}
+                        onPress={() => handleToggleField(field)}
                         accessibilityRole="button"
-                        accessibilityLabel={option.label}
-                        accessibilityState={{ selected: isSelected }}
+                        accessibilityLabel={`${fieldLabel}: ${fieldDisplay ?? t('contacts.datePicker.' + field)}`}
+                        accessibilityState={{ expanded: isExpanded }}
                       >
-                        <Text
-                          style={[
-                            styles.sheetOptionText,
-                            {
-                              color: isSelected ? themeColors.primary : themeColors.textPrimary,
-                              fontWeight: isSelected ? '700' : '400',
-                            },
-                          ]}
-                        >
-                          {option.label}
+                        <View style={styles.fieldRowContent}>
+                          <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
+                            {t('contacts.datePicker.' + field)}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.fieldValue,
+                              {
+                                color: fieldDisplay
+                                  ? themeColors.textPrimary
+                                  : themeColors.textTertiary,
+                              },
+                            ]}
+                          >
+                            {fieldDisplay ?? '—'}
+                          </Text>
+                        </View>
+                        <Text style={[styles.fieldChevron, { color: themeColors.textTertiary }]}>
+                          {isExpanded ? '▲' : '▼'}
                         </Text>
-                        {isSelected && (
-                          <Text style={[styles.checkmark, { color: themeColors.primary }]}>✓</Text>
-                        )}
                       </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </TouchableOpacity>
-            </SafeAreaView>
-          </TouchableOpacity>
-        </Modal>
-      )}
+
+                      {/* Expanded option list */}
+                      {isExpanded && (
+                        <ScrollView
+                          style={[styles.optionList, { borderColor: themeColors.border }]}
+                          nestedScrollEnabled={true}
+                          showsVerticalScrollIndicator={true}
+                        >
+                          {getFieldOptions(field).map((option) => {
+                            const isSelected = option.value === getFieldSelected(field);
+                            return (
+                              <TouchableOpacity
+                                key={option.value}
+                                style={[
+                                  styles.optionItem,
+                                  {
+                                    borderBottomColor: themeColors.divider,
+                                    backgroundColor: isSelected
+                                      ? themeColors.primary + '15'
+                                      : 'transparent',
+                                  },
+                                ]}
+                                onPress={() => handleSelect(field, option.value)}
+                                accessibilityRole="button"
+                                accessibilityLabel={option.label}
+                                accessibilityState={{ selected: isSelected }}
+                              >
+                                <Text
+                                  style={[
+                                    styles.optionText,
+                                    {
+                                      color: isSelected
+                                        ? themeColors.primary
+                                        : themeColors.textPrimary,
+                                      fontWeight: isSelected ? '700' : '400',
+                                    },
+                                  ]}
+                                >
+                                  {option.label}
+                                </Text>
+                                {isSelected && (
+                                  <Text style={[styles.checkmark, { color: themeColors.primary }]}>
+                                    ✓
+                                  </Text>
+                                )}
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </ScrollView>
+                      )}
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </TouchableOpacity>
+          </SafeAreaView>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -372,12 +472,9 @@ const styles = StyleSheet.create({
   container: {
     gap: spacing.sm,
   },
-  fieldsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  fieldButton: {
-    flex: 1,
+
+  // Main date button
+  dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -385,18 +482,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  monthButton: {
-    flex: 2, // Month gets more space for long names
-  },
-  fieldText: {
+  dateButtonText: {
     ...typography.body,
     flex: 1,
   },
-  chevron: {
+  dateButtonChevron: {
     fontSize: 14,
-    marginLeft: spacing.xs,
+    marginLeft: spacing.sm,
   },
+
+  // Clear button
   clearButton: {
     alignSelf: 'flex-start',
     paddingVertical: spacing.xs,
@@ -404,13 +501,15 @@ const styles = StyleSheet.create({
   clearText: {
     ...typography.label,
   },
+
+  // Modal overlay
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
   },
   sheetSafeArea: {
-    maxHeight: '60%',
+    maxHeight: '75%',
   },
   sheetContainer: {
     borderTopLeftRadius: borderRadius.xl,
@@ -437,22 +536,55 @@ const styles = StyleSheet.create({
   sheetCloseText: {
     ...typography.button,
   },
-  sheetList: {
+
+  // Scrollable body
+  sheetBody: {
     flexGrow: 0,
   },
-  sheetListContent: {
+  sheetBodyContent: {
     paddingBottom: spacing.xl,
   },
-  sheetOption: {
+
+  // Field row (Day / Month / Year buttons)
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: touchTargets.comfortable,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
+  fieldRowContent: {
+    flex: 1,
+    gap: 2,
+  },
+  fieldLabel: {
+    ...typography.label,
+    fontWeight: '700',
+  },
+  fieldValue: {
+    ...typography.body,
+  },
+  fieldChevron: {
+    fontSize: 14,
+    marginLeft: spacing.sm,
+  },
+
+  // Expanded option list
+  optionList: {
+    maxHeight: 240,
+    borderBottomWidth: 1,
+  },
+  optionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: touchTargets.minimum,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.lg + spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  sheetOptionText: {
+  optionText: {
     ...typography.body,
   },
   checkmark: {

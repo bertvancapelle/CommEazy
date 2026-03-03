@@ -329,6 +329,7 @@ export function AddContactScreen() {
             value={birthDate}
             onChange={setBirthDate}
             accessibilityLabel={t('contacts.dates.birthDate')}
+            minYear={1900}
           />
         </View>
 
@@ -338,6 +339,7 @@ export function AddContactScreen() {
             value={weddingDate}
             onChange={setWeddingDate}
             accessibilityLabel={t('contacts.dates.weddingDate')}
+            minYear={1940}
           />
         </View>
 
@@ -347,6 +349,7 @@ export function AddContactScreen() {
             value={deathDate}
             onChange={setDeathDate}
             accessibilityLabel={t('contacts.dates.deathDate')}
+            minYear={1940}
           />
         </View>
 

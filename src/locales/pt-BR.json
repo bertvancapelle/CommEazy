@@ -294,7 +294,8 @@
       "selectDay": "Selecionar dia",
       "selectMonth": "Selecionar mês",
       "selectYear": "Selecionar ano",
-      "clear": "Limpar"
+      "clear": "Limpar",
+      "chooseDate": "Escolher uma data"
     }
   },
   "settings": {

@@ -655,6 +655,7 @@ export function ContactDetailScreen() {
                 value={editBirthDate}
                 onChange={setEditBirthDate}
                 accessibilityLabel={t('contacts.dates.birthDate')}
+                minYear={1900}
               />
             </View>
 
@@ -665,6 +666,7 @@ export function ContactDetailScreen() {
                 value={editWeddingDate}
                 onChange={setEditWeddingDate}
                 accessibilityLabel={t('contacts.dates.weddingDate')}
+                minYear={1940}
               />
             </View>
 
@@ -675,6 +677,7 @@ export function ContactDetailScreen() {
                 value={editDeathDate}
                 onChange={setEditDeathDate}
                 accessibilityLabel={t('contacts.dates.deathDate')}
+                minYear={1940}
               />
             </View>
           </>

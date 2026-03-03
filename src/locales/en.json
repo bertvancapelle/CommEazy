@@ -304,7 +304,8 @@
       "selectDay": "Select a day",
       "selectMonth": "Select a month",
       "selectYear": "Select a year",
-      "clear": "Clear"
+      "clear": "Clear",
+      "chooseDate": "Choose a date"
     }
   },
   "settings": {

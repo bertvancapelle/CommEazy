@@ -295,7 +295,8 @@
       "selectDay": "Velg dag",
       "selectMonth": "Velg måned",
       "selectYear": "Velg år",
-      "clear": "Tøm"
+      "clear": "Tøm",
+      "chooseDate": "Velg en dato"
     }
   },
   "settings": {

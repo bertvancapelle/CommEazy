@@ -293,7 +293,8 @@
       "selectDay": "Kies een dag",
       "selectMonth": "Kies een maand",
       "selectYear": "Kies een jaar",
-      "clear": "Wissen"
+      "clear": "Wissen",
+      "chooseDate": "Kies een datum"
     }
   },
   "settings": {

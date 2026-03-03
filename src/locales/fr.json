@@ -290,7 +290,8 @@
       "selectDay": "Choisir le jour",
       "selectMonth": "Choisir le mois",
       "selectYear": "Choisir l'année",
-      "clear": "Effacer"
+      "clear": "Effacer",
+      "chooseDate": "Choisir une date"
     }
   },
   "settings": {
@@ -1774,6 +1775,7 @@
       "edit": "Modifier",
       "edit_desc": "Modifier un champ de formulaire",
       "clear": "Effacer",
+      "chooseDate": "Choisir une date",
       "clear_desc": "Effacer le champ actif",
       "dictate": "Dicter",
       "dictate_desc": "Parler du texte pour le champ actif",

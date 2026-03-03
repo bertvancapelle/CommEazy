@@ -290,7 +290,8 @@
       "selectDay": "Seleccionar día",
       "selectMonth": "Seleccionar mes",
       "selectYear": "Seleccionar año",
-      "clear": "Borrar"
+      "clear": "Borrar",
+      "chooseDate": "Elegir una fecha"
     }
   },
   "settings": {
