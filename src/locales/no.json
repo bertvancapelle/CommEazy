@@ -1491,6 +1491,70 @@
       "addToLibrary": "Legg til i biblioteket",
       "inLibrary": "I biblioteket"
     },
+    "mail": {
+      "title": "E-post",
+      "welcome": {
+        "title": "E-post i CommEazy",
+        "subtitle": "Les og send e-post trygt og enkelt.",
+        "step1Title": "Velg e-postleverandøren din",
+        "step1Description": "Gmail, Outlook, KPN eller en annen leverandør.",
+        "step2Title": "Logg inn",
+        "step2Description": "Logg inn trygt med e-postadressen og passordet ditt.",
+        "step3Title": "Ferdig!",
+        "step3Description": "E-postene dine blir hentet og du kan starte med en gang.",
+        "privacyNote": "Påloggingsinformasjonen din lagres trygt på denne enheten. CommEazy lagrer ingenting på en server.",
+        "understood": "Forstått"
+      },
+      "onboarding": {
+        "chooseProvider": "Velg e-postleverandøren din",
+        "chooseProviderHint": "Velg leverandøren for e-postadressen din.",
+        "selectProviderHint": "Velg {{provider}} som e-postleverandør",
+        "easyLogin": "Enkel innlogging",
+        "oauthTitle": "Logg inn på {{provider}}",
+        "oauthDescription": "Du blir videresendt til {{provider}} for sikker innlogging. Etter innlogging kommer du automatisk tilbake.",
+        "loginWith": "Logg inn med {{provider}}",
+        "oauthCancelled": "Innlogging avbrutt. Prøv igjen.",
+        "oauthFailed": "Innlogging mislyktes. Sjekk internettforbindelsen og prøv igjen.",
+        "emailLabel": "E-postadresse",
+        "emailPlaceholder": "navn@eksempel.no",
+        "passwordLabel": "Passord",
+        "passwordPlaceholder": "Ditt passord",
+        "connect": "Koble til",
+        "serverConfig": "Serverinnstillinger",
+        "imapServer": "Innkommende server (IMAP)",
+        "smtpServer": "Utgående server (SMTP)",
+        "hostLabel": "Server",
+        "portLabel": "Port",
+        "securityLabel": "Sikkerhet",
+        "smtpSameCredentials": "Bruk samme pålogging for sending",
+        "testingConnection": "Tester tilkobling...",
+        "testSuccess": "Tilkobling vellykket!",
+        "testFailed": "Tilkobling mislyktes",
+        "testFailedGeneric": "Sjekk innstillingene og prøv igjen.",
+        "accountLinked": "{{email}} er koblet til.",
+        "inboxCount": "{{count}} meldinger funnet i innboksen din.",
+        "goToInbox": "Gå til innboksen",
+        "addAnotherAccount": "Legg til en annen konto",
+        "adjustSettings": "Juster innstillinger",
+        "testSteps": {
+          "connect": "Kobler til server",
+          "auth": "Autentisering",
+          "inbox": "Henter innboks",
+          "smtp": "Sjekker sendefunksjon"
+        },
+        "testStatus": {
+          "pending": "Venter",
+          "running": "Pågår",
+          "success": "Vellykket",
+          "error": "Mislyktes"
+        }
+      },
+      "providerNotes": {
+        "yahooAppPassword": "Yahoo krever et app-passord. Gå til Yahoo-kontosikkerheten din for å opprette et.",
+        "icloudAppPassword": "Apple iCloud krever et app-spesifikt passord. Opprett et på appleid.apple.com.",
+        "protonBridge": "ProtonMail krever Proton Mail Bridge-appen på datamaskinen din."
+      }
+    },
     "askAI": {
       "title": "Spør KI",
       "welcome": {

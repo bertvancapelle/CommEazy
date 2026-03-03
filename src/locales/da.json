@@ -1446,6 +1446,70 @@
       "addToLibrary": "Føj til biblioteket",
       "inLibrary": "I biblioteket"
     },
+    "mail": {
+      "title": "E-mail",
+      "welcome": {
+        "title": "E-mail i CommEazy",
+        "subtitle": "Læs og send e-mails sikkert og nemt.",
+        "step1Title": "Vælg din e-mailudbyder",
+        "step1Description": "Gmail, Outlook, KPN eller en anden udbyder.",
+        "step2Title": "Log ind",
+        "step2Description": "Log sikkert ind med din e-mailadresse og din adgangskode.",
+        "step3Title": "Færdig!",
+        "step3Description": "Dine e-mails hentes, og du kan starte med det samme.",
+        "privacyNote": "Dine loginoplysninger gemmes sikkert på denne enhed. CommEazy gemmer intet på en server.",
+        "understood": "Forstået"
+      },
+      "onboarding": {
+        "chooseProvider": "Vælg din e-mailudbyder",
+        "chooseProviderHint": "Vælg udbyderen af din e-mailadresse.",
+        "selectProviderHint": "Vælg {{provider}} som e-mailudbyder",
+        "easyLogin": "Nem login",
+        "oauthTitle": "Log ind på {{provider}}",
+        "oauthDescription": "Du bliver sendt videre til {{provider}} for sikker login. Efter login vender du automatisk tilbage.",
+        "loginWith": "Log ind med {{provider}}",
+        "oauthCancelled": "Login annulleret. Prøv igen.",
+        "oauthFailed": "Login mislykkedes. Tjek din internetforbindelse og prøv igen.",
+        "emailLabel": "E-mailadresse",
+        "emailPlaceholder": "navn@eksempel.dk",
+        "passwordLabel": "Adgangskode",
+        "passwordPlaceholder": "Din adgangskode",
+        "connect": "Opret forbindelse",
+        "serverConfig": "Serverindstillinger",
+        "imapServer": "Indgående server (IMAP)",
+        "smtpServer": "Udgående server (SMTP)",
+        "hostLabel": "Server",
+        "portLabel": "Port",
+        "securityLabel": "Sikkerhed",
+        "smtpSameCredentials": "Brug samme login til afsendelse",
+        "testingConnection": "Tester forbindelse...",
+        "testSuccess": "Forbindelse oprettet!",
+        "testFailed": "Forbindelse mislykkedes",
+        "testFailedGeneric": "Tjek dine indstillinger og prøv igen.",
+        "accountLinked": "{{email}} er blevet tilknyttet.",
+        "inboxCount": "{{count}} beskeder fundet i din indbakke.",
+        "goToInbox": "Gå til indbakken",
+        "addAnotherAccount": "Tilføj en anden konto",
+        "adjustSettings": "Tilpas indstillinger",
+        "testSteps": {
+          "connect": "Forbinder til server",
+          "auth": "Godkendelse",
+          "inbox": "Henter indbakke",
+          "smtp": "Kontrollerer sendefunktion"
+        },
+        "testStatus": {
+          "pending": "Venter",
+          "running": "I gang",
+          "success": "Gennemført",
+          "error": "Mislykkedes"
+        }
+      },
+      "providerNotes": {
+        "yahooAppPassword": "Yahoo kræver en app-adgangskode. Gå til din Yahoo-kontosikkerhed for at oprette en.",
+        "icloudAppPassword": "Apple iCloud kræver en app-specifik adgangskode. Opret en på appleid.apple.com.",
+        "protonBridge": "ProtonMail kræver Proton Mail Bridge-appen på din computer."
+      }
+    },
     "askAI": {
       "title": "Spørg AI",
       "welcome": {

@@ -1634,6 +1634,70 @@
       "addToLibrary": "Adicionar à biblioteca",
       "inLibrary": "Na biblioteca"
     },
+    "mail": {
+      "title": "E-mail",
+      "welcome": {
+        "title": "E-mail no CommEazy",
+        "subtitle": "Leia e envie e-mails de forma segura e simples.",
+        "step1Title": "Escolha o seu fornecedor de e-mail",
+        "step1Description": "Gmail, Outlook, KPN ou outro fornecedor.",
+        "step2Title": "Inicie sessão",
+        "step2Description": "Inicie sessão de forma segura com o seu endereço de e-mail e palavra-passe.",
+        "step3Title": "Pronto!",
+        "step3Description": "Os seus e-mails serão obtidos e pode começar de imediato.",
+        "privacyNote": "As suas credenciais são armazenadas de forma segura neste dispositivo. O CommEazy não armazena nada num servidor.",
+        "understood": "Compreendido"
+      },
+      "onboarding": {
+        "chooseProvider": "Escolha o seu fornecedor de e-mail",
+        "chooseProviderHint": "Selecione o fornecedor do seu endereço de e-mail.",
+        "selectProviderHint": "Selecionar {{provider}} como fornecedor de e-mail",
+        "easyLogin": "Início de sessão fácil",
+        "oauthTitle": "Iniciar sessão no {{provider}}",
+        "oauthDescription": "Será redirecionado para o {{provider}} para iniciar sessão de forma segura. Após o início de sessão, voltará automaticamente.",
+        "loginWith": "Iniciar sessão com {{provider}}",
+        "oauthCancelled": "Início de sessão cancelado. Tente novamente.",
+        "oauthFailed": "Início de sessão falhado. Verifique a sua ligação à Internet e tente novamente.",
+        "emailLabel": "Endereço de e-mail",
+        "emailPlaceholder": "nome@exemplo.pt",
+        "passwordLabel": "Palavra-passe",
+        "passwordPlaceholder": "A sua palavra-passe",
+        "connect": "Ligar",
+        "serverConfig": "Definições do servidor",
+        "imapServer": "Servidor de entrada (IMAP)",
+        "smtpServer": "Servidor de saída (SMTP)",
+        "hostLabel": "Servidor",
+        "portLabel": "Porta",
+        "securityLabel": "Segurança",
+        "smtpSameCredentials": "Usar as mesmas credenciais para envio",
+        "testingConnection": "A testar ligação...",
+        "testSuccess": "Ligação bem-sucedida!",
+        "testFailed": "Ligação falhada",
+        "testFailedGeneric": "Verifique as suas definições e tente novamente.",
+        "accountLinked": "{{email}} foi associado com sucesso.",
+        "inboxCount": "{{count}} mensagens encontradas na sua caixa de entrada.",
+        "goToInbox": "Ir para a caixa de entrada",
+        "addAnotherAccount": "Adicionar outra conta",
+        "adjustSettings": "Ajustar definições",
+        "testSteps": {
+          "connect": "Ligação ao servidor",
+          "auth": "Autenticação",
+          "inbox": "A obter caixa de entrada",
+          "smtp": "A verificar função de envio"
+        },
+        "testStatus": {
+          "pending": "A aguardar",
+          "running": "Em curso",
+          "success": "Bem-sucedido",
+          "error": "Falhado"
+        }
+      },
+      "providerNotes": {
+        "yahooAppPassword": "O Yahoo requer uma palavra-passe de aplicação. Aceda à segurança da sua conta Yahoo para criar uma.",
+        "icloudAppPassword": "O Apple iCloud requer uma palavra-passe específica da aplicação. Crie uma em appleid.apple.com.",
+        "protonBridge": "O ProtonMail requer a aplicação Proton Mail Bridge no seu computador."
+      }
+    },
     "askAI": {
       "title": "Pergunte à IA",
       "welcome": {

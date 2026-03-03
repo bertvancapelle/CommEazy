@@ -1610,6 +1610,70 @@
       "addToLibrary": "Ajouter à la bibliothèque",
       "inLibrary": "Dans la bibliothèque"
     },
+    "mail": {
+      "title": "E-mail",
+      "welcome": {
+        "title": "E-mail dans CommEazy",
+        "subtitle": "Lisez et envoyez des e-mails en toute sécurité et simplicité.",
+        "step1Title": "Choisissez votre fournisseur d'e-mail",
+        "step1Description": "Gmail, Outlook, KPN ou un autre fournisseur.",
+        "step2Title": "Connectez-vous",
+        "step2Description": "Connectez-vous en toute sécurité avec votre adresse e-mail et votre mot de passe.",
+        "step3Title": "Terminé !",
+        "step3Description": "Vos e-mails seront récupérés et vous pourrez commencer immédiatement.",
+        "privacyNote": "Vos identifiants sont stockés en toute sécurité sur cet appareil. CommEazy ne stocke rien sur un serveur.",
+        "understood": "Compris"
+      },
+      "onboarding": {
+        "chooseProvider": "Choisissez votre fournisseur d'e-mail",
+        "chooseProviderHint": "Sélectionnez le fournisseur de votre adresse e-mail.",
+        "selectProviderHint": "Sélectionner {{provider}} comme fournisseur d'e-mail",
+        "easyLogin": "Connexion facile",
+        "oauthTitle": "Connexion à {{provider}}",
+        "oauthDescription": "Vous serez redirigé vers {{provider}} pour vous connecter en toute sécurité. Après la connexion, vous reviendrez automatiquement.",
+        "loginWith": "Se connecter avec {{provider}}",
+        "oauthCancelled": "Connexion annulée. Veuillez réessayer.",
+        "oauthFailed": "Connexion échouée. Vérifiez votre connexion Internet et réessayez.",
+        "emailLabel": "Adresse e-mail",
+        "emailPlaceholder": "nom@exemple.fr",
+        "passwordLabel": "Mot de passe",
+        "passwordPlaceholder": "Votre mot de passe",
+        "connect": "Connecter",
+        "serverConfig": "Paramètres du serveur",
+        "imapServer": "Serveur entrant (IMAP)",
+        "smtpServer": "Serveur sortant (SMTP)",
+        "hostLabel": "Serveur",
+        "portLabel": "Port",
+        "securityLabel": "Sécurité",
+        "smtpSameCredentials": "Utiliser les mêmes identifiants pour l'envoi",
+        "testingConnection": "Test de la connexion...",
+        "testSuccess": "Connexion réussie !",
+        "testFailed": "Connexion échouée",
+        "testFailedGeneric": "Vérifiez vos paramètres et réessayez.",
+        "accountLinked": "{{email}} a été lié avec succès.",
+        "inboxCount": "{{count}} messages trouvés dans votre boîte de réception.",
+        "goToInbox": "Aller à ma boîte de réception",
+        "addAnotherAccount": "Ajouter un autre compte",
+        "adjustSettings": "Modifier les paramètres",
+        "testSteps": {
+          "connect": "Connexion au serveur",
+          "auth": "Authentification",
+          "inbox": "Récupération de la boîte de réception",
+          "smtp": "Vérification de la fonction d'envoi"
+        },
+        "testStatus": {
+          "pending": "En attente",
+          "running": "En cours",
+          "success": "Réussi",
+          "error": "Échoué"
+        }
+      },
+      "providerNotes": {
+        "yahooAppPassword": "Yahoo nécessite un mot de passe d'application. Accédez à la sécurité de votre compte Yahoo pour en créer un.",
+        "icloudAppPassword": "Apple iCloud nécessite un mot de passe spécifique à l'application. Créez-en un sur appleid.apple.com.",
+        "protonBridge": "ProtonMail nécessite l'application Proton Mail Bridge sur votre ordinateur."
+      }
+    },
     "askAI": {
       "title": "Demandez à l'IA",
       "welcome": {

@@ -12,7 +12,7 @@
 | 1 | 2026-03-03 | Fase 3 (iOS native module) | ✅ Voltooid |
 | 2 | 2026-03-03 | Fase 5 (TS bridge + SQLite) | ✅ Voltooid |
 | 3 | 2026-03-03 | Fase 6-7 (OAuth2 + Providers) | ✅ Voltooid |
-| 4 | TBD | Fase 8 (Onboarding wizard) | ⏳ Gepland |
+| 4 | 2026-03-03 | Fase 8 (Onboarding wizard) | ✅ Voltooid |
 | 5 | TBD | Fase 9-10 (Settings + Mail UI) | ⏳ Gepland |
 | 6 | TBD | Fase 11-12 (Tests + QA) | ⏳ Gepland |
 | 7 | TBD | Fase 13-14 (Contacten + Bijlagen) | ⏳ Gepland |
@@ -382,8 +382,109 @@ tokenize='unicode61'
 
 ## Fase 8: Onboarding Wizard — Sessie 4
 
-### Status: ⏳ Gepland
+### Status: ✅ Voltooid
 ### Test Checkpoint: 🧪 Test 1 na deze fase
+
+### Aangemaakt (5 bestanden)
+
+| Bestand | Regels | Beschrijving |
+|---------|--------|--------------|
+| `src/screens/mail/MailOnboardingStep1.tsx` | ~185 | Provider kiezen — grote aanraakbare kaarten |
+| `src/screens/mail/MailOnboardingStep2.tsx` | ~400 | Authenticatie — OAuth2 / Password / Custom |
+| `src/screens/mail/MailOnboardingStep3.tsx` | ~310 | Test + Bevestiging — stapsgewijze voortgang |
+| `src/screens/mail/MailWelcomeModal.tsx` | ~210 | Welcome modal — genummerde stappen |
+| `src/screens/mail/MailOnboardingScreen.tsx` | ~310 | Wizard container — state management + flow |
+
+### Architectuur
+
+```
+MailOnboardingScreen (wizard container)
+├── Step 1: MailOnboardingStep1 — Provider selectie
+│   └── getSelectableProviders() → grote kaarten met emoji + chevron
+├── Step 2: MailOnboardingStep2 — Authenticatie
+│   ├── OAuth2: "Inloggen met [provider]" → browser flow
+│   ├── Password: Email + Wachtwoord velden
+│   └── Custom: + Uitklapbare IMAP/SMTP server config
+└── Step 3: MailOnboardingStep3 — Test + Bevestiging
+    ├── Phase A: Stapsgewijze test (connect → auth → inbox → smtp)
+    ├── Phase B Success: Groene bevestiging + actieknoppen
+    └── Phase B Error: Foutmelding + "Instellingen aanpassen"
+
+MailWelcomeModal (AsyncStorage: @commeazy/mail_welcome_shown)
+├── 3 genummerde stappen (1️⃣ 2️⃣ 3️⃣)
+├── Privacy notitie
+└── "Begrepen" button
+```
+
+### Wizard Flow
+
+```
+[Stap 1: Provider]  ──select──▶  [Stap 2: Auth]  ──submit──▶  [Stap 3: Test]
+                                       │                            │
+                                  ◀──back──                   ◀──retry──
+                                       │                            │
+                                  OAuth2 flow                  Success:
+                                  or Password                  ├── "Naar inbox"
+                                                               └── "Nog een account"
+```
+
+### i18n Keys Toegevoegd
+
+**32 onboarding keys** per locale:
+
+| Categorie | Aantal | Voorbeelden |
+|-----------|--------|-------------|
+| `modules.mail.title` | 1 | Module naam |
+| `modules.mail.welcome.*` | 8 | Modal stappen, privacy, "Begrepen" |
+| `modules.mail.onboarding.*` | 20 | Provider selectie, OAuth, formulier, server config |
+| `modules.mail.onboarding.testSteps.*` | 4 | connect, auth, inbox, smtp |
+| `modules.mail.onboarding.testStatus.*` | 4 | pending, running, success, error |
+| `modules.mail.providerNotes.*` | 3 | Yahoo, iCloud, ProtonMail waarschuwingen |
+
+**Alle 13 locales bijgewerkt:** nl, en, en-GB, de, fr, es, it, no, sv, da, pt, pt-BR, pl
+
+### UI Componenten Gebruikt
+
+- `ProgressIndicator` — stappen voortgang (1/3, 2/3, 3/3)
+- `Button` — primary + secondary variant
+- `TextInput` — email, wachtwoord, server velden
+- `Icon` — chevron-right, check, warning, mail, lock, settings, etc.
+- `useColors()` + `useAccentColor()` — dynamische theming
+- `ReactNativeHapticFeedback` — tactile bevestiging
+
+### Bestaande Services Gebruikt
+
+- `mailConstants.ts` → `getSelectableProviders()`, `getProvider()`, types
+- `credentialManager.ts` → `saveCredentials()`, `saveAccount()`
+- `oauth2Service.ts` → `authorize()`, `extractEmailFromIdToken()`
+- `imapBridge.ts` → `connectIMAP()`, `fetchHeaders()`, `testConnection()`
+
+### Veiligheid
+
+- Wachtwoorden nooit gelogd (alleen via `secureTextEntry` + Keychain)
+- OAuth2 tokens opgeslagen via credentialManager (Keychain)
+- AsyncStorage alleen voor niet-gevoelige metadata (accountnaam, provider)
+- Lazy imports voor oauth2Service/credentialManager (voorkomt circulaire deps)
+
+### Dependencies Status
+
+| Dependency | Status | Nodig voor |
+|------------|--------|------------|
+| react-native-app-auth | ❌ Niet geïnstalleerd | OAuth2 browser flow |
+| @op-engineering/op-sqlite | ❌ Niet geïnstalleerd | SQLite FTS5 cache |
+| react-native-keychain | ✅ Geïnstalleerd | Credential opslag |
+
+### Volgende Sessie (Fase 9-10)
+
+**Doel:** Settings menu + Mail inbox/detail/compose schermen
+
+**Voorbereidende stappen (voor Test 1):**
+1. `npm install react-native-app-auth && cd ios && pod install`
+2. `npm install @op-engineering/op-sqlite && cd ios && pod install`
+3. Maak `src/config/mailOAuth2Config.ts` met client IDs
+4. Voeg URL scheme `com.commeazy` toe in Xcode (Info.plist)
+5. Registreer MailOnboarding in `navigation/index.tsx`
+6. Voeg mail module toe aan WheelNavigationMenu
 
 ---
 

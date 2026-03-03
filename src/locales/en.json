@@ -1626,6 +1626,70 @@
       "addToLibrary": "Add to library",
       "inLibrary": "In library"
     },
+    "mail": {
+      "title": "Email",
+      "welcome": {
+        "title": "Email in CommEazy",
+        "subtitle": "Read and send emails safely and easily.",
+        "step1Title": "Choose your email provider",
+        "step1Description": "Gmail, Outlook, KPN, or another provider.",
+        "step2Title": "Log in",
+        "step2Description": "Securely log in with your email address and password.",
+        "step3Title": "Done!",
+        "step3Description": "Your emails will be fetched and you can start right away.",
+        "privacyNote": "Your login credentials are stored securely on this device. CommEazy does not store anything on a server.",
+        "understood": "Got it"
+      },
+      "onboarding": {
+        "chooseProvider": "Choose your email provider",
+        "chooseProviderHint": "Select the provider of your email address.",
+        "selectProviderHint": "Select {{provider}} as email provider",
+        "easyLogin": "Easy login",
+        "oauthTitle": "Log in to {{provider}}",
+        "oauthDescription": "You will be redirected to {{provider}} to log in securely. After logging in, you will return automatically.",
+        "loginWith": "Log in with {{provider}}",
+        "oauthCancelled": "Login cancelled. Please try again.",
+        "oauthFailed": "Login failed. Check your internet connection and try again.",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "name@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Your password",
+        "connect": "Connect",
+        "serverConfig": "Server settings",
+        "imapServer": "Incoming server (IMAP)",
+        "smtpServer": "Outgoing server (SMTP)",
+        "hostLabel": "Server",
+        "portLabel": "Port",
+        "securityLabel": "Security",
+        "smtpSameCredentials": "Use the same credentials for sending",
+        "testingConnection": "Testing connection...",
+        "testSuccess": "Connection successful!",
+        "testFailed": "Connection failed",
+        "testFailedGeneric": "Check your settings and try again.",
+        "accountLinked": "{{email}} has been successfully linked.",
+        "inboxCount": "{{count}} messages found in your inbox.",
+        "goToInbox": "Go to my inbox",
+        "addAnotherAccount": "Add another account",
+        "adjustSettings": "Adjust settings",
+        "testSteps": {
+          "connect": "Connecting to server",
+          "auth": "Authentication",
+          "inbox": "Fetching inbox",
+          "smtp": "Checking send function"
+        },
+        "testStatus": {
+          "pending": "Waiting",
+          "running": "In progress",
+          "success": "Succeeded",
+          "error": "Failed"
+        }
+      },
+      "providerNotes": {
+        "yahooAppPassword": "Yahoo requires an app password. Go to your Yahoo account security to create one.",
+        "icloudAppPassword": "Apple iCloud requires an app-specific password. Create one at appleid.apple.com.",
+        "protonBridge": "ProtonMail requires the Proton Mail Bridge app on your computer."
+      }
+    },
     "askAI": {
       "title": "Ask AI",
       "welcome": {

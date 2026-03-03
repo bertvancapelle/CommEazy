@@ -1612,6 +1612,70 @@
       "addToLibrary": "Voeg toe aan bibliotheek",
       "inLibrary": "In bibliotheek"
     },
+    "mail": {
+      "title": "E-mail",
+      "welcome": {
+        "title": "E-mail in CommEazy",
+        "subtitle": "Lees en verstuur e-mails veilig en eenvoudig.",
+        "step1Title": "Kies je e-mailprovider",
+        "step1Description": "Gmail, Outlook, KPN, of een andere provider.",
+        "step2Title": "Log in",
+        "step2Description": "Veilig inloggen met je e-mailadres en wachtwoord.",
+        "step3Title": "Klaar!",
+        "step3Description": "Je e-mails worden opgehaald en je kunt direct beginnen.",
+        "privacyNote": "Je inloggegevens worden veilig opgeslagen op dit apparaat. CommEazy slaat niets op op een server.",
+        "understood": "Begrepen"
+      },
+      "onboarding": {
+        "chooseProvider": "Kies je e-mailprovider",
+        "chooseProviderHint": "Selecteer de provider van je e-mailadres.",
+        "selectProviderHint": "Selecteer {{provider}} als e-mailprovider",
+        "easyLogin": "Makkelijk inloggen",
+        "oauthTitle": "Inloggen bij {{provider}}",
+        "oauthDescription": "Je wordt doorgestuurd naar {{provider}} om veilig in te loggen. Na het inloggen keer je automatisch terug.",
+        "loginWith": "Inloggen met {{provider}}",
+        "oauthCancelled": "Inloggen geannuleerd. Probeer het opnieuw.",
+        "oauthFailed": "Inloggen mislukt. Controleer je internetverbinding en probeer het opnieuw.",
+        "emailLabel": "E-mailadres",
+        "emailPlaceholder": "naam@voorbeeld.nl",
+        "passwordLabel": "Wachtwoord",
+        "passwordPlaceholder": "Je wachtwoord",
+        "connect": "Verbinden",
+        "serverConfig": "Serverinstellingen",
+        "imapServer": "Inkomende server (IMAP)",
+        "smtpServer": "Uitgaande server (SMTP)",
+        "hostLabel": "Server",
+        "portLabel": "Poort",
+        "securityLabel": "Beveiliging",
+        "smtpSameCredentials": "Gebruik dezelfde inloggegevens voor verzenden",
+        "testingConnection": "Verbinding testen...",
+        "testSuccess": "Verbinding geslaagd!",
+        "testFailed": "Verbinding mislukt",
+        "testFailedGeneric": "Controleer je instellingen en probeer het opnieuw.",
+        "accountLinked": "{{email}} is succesvol gekoppeld.",
+        "inboxCount": "{{count}} berichten gevonden in je inbox.",
+        "goToInbox": "Naar mijn inbox",
+        "addAnotherAccount": "Nog een account toevoegen",
+        "adjustSettings": "Instellingen aanpassen",
+        "testSteps": {
+          "connect": "Verbinding met server",
+          "auth": "Authenticatie",
+          "inbox": "Inbox ophalen",
+          "smtp": "Verzendfunctie controleren"
+        },
+        "testStatus": {
+          "pending": "Wachtend",
+          "running": "Bezig",
+          "success": "Geslaagd",
+          "error": "Mislukt"
+        }
+      },
+      "providerNotes": {
+        "yahooAppPassword": "Yahoo vereist een app-wachtwoord. Ga naar je Yahoo-accountbeveiliging om er een aan te maken.",
+        "icloudAppPassword": "Apple iCloud vereist een app-specifiek wachtwoord. Maak er een aan via appleid.apple.com.",
+        "protonBridge": "ProtonMail vereist de Proton Mail Bridge app op je computer."
+      }
+    },
     "askAI": {
       "title": "Vraag het AI",
       "welcome": {

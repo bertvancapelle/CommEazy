@@ -1423,6 +1423,70 @@
       "addToLibrary": "Dodaj do biblioteki",
       "inLibrary": "W bibliotece"
     },
+    "mail": {
+      "title": "E-mail",
+      "welcome": {
+        "title": "E-mail w CommEazy",
+        "subtitle": "Czytaj i wysyłaj e-maile bezpiecznie i łatwo.",
+        "step1Title": "Wybierz dostawcę poczty",
+        "step1Description": "Gmail, Outlook, KPN lub inny dostawca.",
+        "step2Title": "Zaloguj się",
+        "step2Description": "Zaloguj się bezpiecznie za pomocą adresu e-mail i hasła.",
+        "step3Title": "Gotowe!",
+        "step3Description": "Twoje e-maile zostaną pobrane i możesz od razu zaczynać.",
+        "privacyNote": "Twoje dane logowania są bezpiecznie przechowywane na tym urządzeniu. CommEazy nie przechowuje niczego na serwerze.",
+        "understood": "Rozumiem"
+      },
+      "onboarding": {
+        "chooseProvider": "Wybierz dostawcę poczty",
+        "chooseProviderHint": "Wybierz dostawcę swojego adresu e-mail.",
+        "selectProviderHint": "Wybierz {{provider}} jako dostawcę poczty",
+        "easyLogin": "Łatwe logowanie",
+        "oauthTitle": "Zaloguj się do {{provider}}",
+        "oauthDescription": "Zostaniesz przekierowany do {{provider}}, aby bezpiecznie się zalogować. Po zalogowaniu wrócisz automatycznie.",
+        "loginWith": "Zaloguj się przez {{provider}}",
+        "oauthCancelled": "Logowanie anulowane. Spróbuj ponownie.",
+        "oauthFailed": "Logowanie nie powiodło się. Sprawdź połączenie z Internetem i spróbuj ponownie.",
+        "emailLabel": "Adres e-mail",
+        "emailPlaceholder": "imie@przyklad.pl",
+        "passwordLabel": "Hasło",
+        "passwordPlaceholder": "Twoje hasło",
+        "connect": "Połącz",
+        "serverConfig": "Ustawienia serwera",
+        "imapServer": "Serwer poczty przychodzącej (IMAP)",
+        "smtpServer": "Serwer poczty wychodzącej (SMTP)",
+        "hostLabel": "Serwer",
+        "portLabel": "Port",
+        "securityLabel": "Bezpieczeństwo",
+        "smtpSameCredentials": "Użyj tych samych danych logowania do wysyłania",
+        "testingConnection": "Testowanie połączenia...",
+        "testSuccess": "Połączenie udane!",
+        "testFailed": "Połączenie nie powiodło się",
+        "testFailedGeneric": "Sprawdź ustawienia i spróbuj ponownie.",
+        "accountLinked": "{{email}} został pomyślnie połączony.",
+        "inboxCount": "Znaleziono {{count}} wiadomości w skrzynce odbiorczej.",
+        "goToInbox": "Przejdź do skrzynki",
+        "addAnotherAccount": "Dodaj kolejne konto",
+        "adjustSettings": "Dostosuj ustawienia",
+        "testSteps": {
+          "connect": "Łączenie z serwerem",
+          "auth": "Uwierzytelnianie",
+          "inbox": "Pobieranie skrzynki",
+          "smtp": "Sprawdzanie funkcji wysyłania"
+        },
+        "testStatus": {
+          "pending": "Oczekiwanie",
+          "running": "W toku",
+          "success": "Pomyślnie",
+          "error": "Niepowodzenie"
+        }
+      },
+      "providerNotes": {
+        "yahooAppPassword": "Yahoo wymaga hasła aplikacji. Przejdź do zabezpieczeń konta Yahoo, aby je utworzyć.",
+        "icloudAppPassword": "Apple iCloud wymaga hasła specyficznego dla aplikacji. Utwórz je na appleid.apple.com.",
+        "protonBridge": "ProtonMail wymaga aplikacji Proton Mail Bridge na komputerze."
+      }
+    },
     "weather": {
       "title": "Pogoda",
       "loading": "Ładowanie danych pogodowych...",
