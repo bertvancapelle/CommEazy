@@ -126,7 +126,7 @@ export function QueueView({
               accessibilityRole="button"
               accessibilityLabel={t('common.close')}
             >
-              <Icon name="close" size={24} color={colors.textPrimary} />
+              <Icon name="x" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
 

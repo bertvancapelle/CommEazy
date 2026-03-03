@@ -109,7 +109,9 @@ export type IconName =
   | 'image'
   | 'expand'
   | 'contract'
-  | 'airplay';
+  | 'airplay'
+  | 'pencil'
+  | 'navigate';
 
 interface IconProps {
   name: IconName;
@@ -1883,6 +1885,41 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'pencil':
+      // Pencil / edit icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M16.474 5.408L18.592 7.526M17.836 3.564L12.109 9.291C11.812 9.588 11.611 9.968 11.532 10.382L11 13L13.618 12.468C14.032 12.389 14.412 12.188 14.709 11.891L20.436 6.164C21.188 5.412 21.188 4.316 20.436 3.564C19.684 2.812 18.588 2.812 17.836 3.564Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M19 15V19C19 20.1046 18.1046 21 17 21H5C3.89543 21 3 20.1046 3 19V7C3 5.89543 3.89543 5 5 5H9"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'navigate':
+      // Navigation arrow (directions/maps)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M3 11L22 2L13 21L11 13L3 11Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </Svg>
       );

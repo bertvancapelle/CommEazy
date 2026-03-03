@@ -481,7 +481,7 @@ export function ContactDetailScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('common.cancel')}
             >
-              <Icon name="close" size={22} color={themeColors.textPrimary} />
+              <Icon name="x" size={22} color={themeColors.textPrimary} />
               <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </>
@@ -493,7 +493,7 @@ export function ContactDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('contacts.edit')}
           >
-            <Icon name="create" size={22} color={themeColors.textPrimary} />
+            <Icon name="pencil" size={22} color={themeColors.textPrimary} />
             <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('contacts.edit')}</Text>
           </TouchableOpacity>
         )}
