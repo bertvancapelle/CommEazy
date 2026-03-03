@@ -283,10 +283,14 @@ export function SeniorDatePicker({
     subPopupScrollRef.current?.scrollTo({ y: targetOffset, animated: false });
   }, [activeSubPopup, modalDay, modalMonth, modalYear, dayOptions, monthNames, yearOptions]);
 
-  // Called when ScrollView layout completes — guarantees it's ready to scroll
-  const handleSubPopupLayout = useCallback(() => {
-    if (pendingScrollRef.current !== null) {
-      subPopupScrollRef.current?.scrollTo({ y: pendingScrollRef.current, animated: false });
+  // Called when ScrollView content size changes — all items are rendered and scrollable
+  const handleContentSizeChange = useCallback((_w: number, contentHeight: number) => {
+    if (pendingScrollRef.current !== null && contentHeight > 0) {
+      // Clamp to max scrollable offset to avoid overshooting
+      const popupVisibleHeight = SCREEN_HEIGHT * 0.6 - 60;
+      const maxScroll = Math.max(0, contentHeight - popupVisibleHeight);
+      const clampedOffset = Math.min(pendingScrollRef.current, maxScroll);
+      subPopupScrollRef.current?.scrollTo({ y: clampedOffset, animated: false });
     }
   }, []);
 
@@ -505,7 +509,7 @@ export function SeniorDatePicker({
                   style={styles.subPopupList}
                   showsVerticalScrollIndicator={true}
                   contentContainerStyle={styles.subPopupListContent}
-                  onLayout={handleSubPopupLayout}
+                  onContentSizeChange={handleContentSizeChange}
                 >
                   {getSubPopupOptions(activeSubPopup).map((option) => {
                     const isSelected = option.value === getFieldSelected(activeSubPopup);
