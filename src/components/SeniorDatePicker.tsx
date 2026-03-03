@@ -18,7 +18,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -98,6 +98,9 @@ function getMonthNames(language: string): string[] {
 }
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+// Estimated height per item in sub-popup (minHeight 60 + vertical padding)
+const ITEM_HEIGHT_ESTIMATE = 68;
 
 export function SeniorDatePicker({
   value,
@@ -226,6 +229,36 @@ export function SeniorDatePicker({
     setIsModalOpen(false);
     setActiveSubPopup(null);
   }, [onChange, triggerFeedback]);
+
+  // Ref for sub-popup ScrollView to auto-scroll to selected item
+  const subPopupScrollRef = useRef<ScrollView>(null);
+
+  // Auto-scroll to the selected item when sub-popup opens
+  useEffect(() => {
+    if (activeSubPopup === null) return;
+
+    const selectedValue = getFieldSelected(activeSubPopup);
+    if (selectedValue === undefined) return;
+
+    const options = getSubPopupOptions(activeSubPopup);
+    const selectedIndex = options.findIndex(o => o.value === selectedValue);
+    if (selectedIndex <= 0) return;
+
+    // Scroll so the selected item is roughly centered in the visible area
+    const popupVisibleHeight = SCREEN_HEIGHT * 0.6 - 60; // subtract header
+    const targetOffset = Math.max(
+      0,
+      selectedIndex * ITEM_HEIGHT_ESTIMATE - popupVisibleHeight / 2 + ITEM_HEIGHT_ESTIMATE / 2,
+    );
+
+    // Small delay to ensure ScrollView is mounted
+    const timer = setTimeout(() => {
+      subPopupScrollRef.current?.scrollTo({ y: targetOffset, animated: false });
+    }, 50);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSubPopup]);
 
   // Get the display value for a field button inside the modal
   const getFieldButtonDisplay = (field: PickerField): string => {
@@ -438,6 +471,7 @@ export function SeniorDatePicker({
 
                 {/* Scrollable option list */}
                 <ScrollView
+                  ref={subPopupScrollRef}
                   style={styles.subPopupList}
                   showsVerticalScrollIndicator={true}
                   contentContainerStyle={styles.subPopupListContent}
