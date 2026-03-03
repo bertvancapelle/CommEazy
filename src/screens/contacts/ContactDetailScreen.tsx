@@ -460,44 +460,31 @@ export function ContactDetailScreen() {
         </View>
       </View>
 
-      {/* Edit / Save / Cancel bar */}
-      <View style={styles.editBar}>
-        {isEditing ? (
-          <>
-            <TouchableOpacity
-              style={[styles.editBarButton, { backgroundColor: themeColors.primary }]}
-              onPress={handleSave}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('contacts.save')}
-            >
-              <Icon name="checkmark" size={22} color={themeColors.textOnPrimary} />
-              <Text style={[styles.editBarButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.save')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
-              onPress={handleCancelEdit}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.cancel')}
-            >
-              <Icon name="x" size={22} color={themeColors.textPrimary} />
-              <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
+      {/* Save / Cancel bar (only visible when editing) */}
+      {isEditing && (
+        <View style={styles.editBar}>
           <TouchableOpacity
-            style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
-            onPress={handleStartEdit}
+            style={[styles.editBarButton, { backgroundColor: themeColors.primary }]}
+            onPress={handleSave}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={t('contacts.edit')}
+            accessibilityLabel={t('contacts.save')}
           >
-            <Icon name="pencil" size={22} color={themeColors.textPrimary} />
-            <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('contacts.edit')}</Text>
+            <Icon name="checkmark" size={22} color={themeColors.textOnPrimary} />
+            <Text style={[styles.editBarButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.save')}</Text>
           </TouchableOpacity>
-        )}
-      </View>
+          <TouchableOpacity
+            style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
+            onPress={handleCancelEdit}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cancel')}
+          >
+            <Icon name="x" size={22} color={themeColors.textPrimary} />
+            <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Contact details section — phone + email */}
       <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
@@ -744,8 +731,22 @@ export function ContactDetailScreen() {
         )}
       </View>
 
-      {/* Bottom actions: Verify + Delete */}
+      {/* Bottom actions: Edit + Verify + Delete */}
       <View style={styles.bottomActionsContainer}>
+        {/* Edit button (only when not editing) */}
+        {!isEditing && (
+          <TouchableOpacity
+            style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
+            onPress={handleStartEdit}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('contacts.edit')}
+          >
+            <Icon name="pencil" size={22} color={themeColors.textPrimary} />
+            <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('contacts.edit')}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Verify/Reverify button */}
         {!contact.verified && (
           <TouchableOpacity
