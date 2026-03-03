@@ -45,6 +45,15 @@ RCT_EXTERN_METHOD(getTopCharts:(NSArray *)types
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(getGenres:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(getTopChartsByGenre:(NSString *)genreId
+                  types:(NSArray *)types
+                  limit:(NSInteger)limit
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 // ============================================================
 // MARK: - Playback Control
 // ============================================================

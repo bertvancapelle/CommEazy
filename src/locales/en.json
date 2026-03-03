@@ -1478,8 +1478,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Search",
-        "library": "Library",
-        "playlists": "Playlists"
+        "recent": "Recent",
+        "discover": "Discover",
+        "favorites": "Favorites"
       },
       "search": {
         "placeholder": "Search music...",
@@ -1503,26 +1504,32 @@
         "albumHint": "Tap to see tracks",
         "playHint": "Tap to play"
       },
-      "library": {
-        "songs": "Songs",
-        "artists": "Artists",
-        "albums": "Albums",
-        "playlists": "Playlists",
-        "emptyTitle": "Your library is empty",
-        "emptyDescription": "Music you add from Apple Music will appear here",
-        "searchMusic": "Search music",
-        "searchPlaceholder": "Search your library...",
-        "searchButton": "Search",
-        "resultCount": "{{count}} of {{total}} songs",
-        "noSearchResults": "No songs found",
-        "alreadyInLibraryMessage": "\"{{title}}\" is already in your library",
-        "addError": "Could not add song to library",
-        "loadingLarge": "Loading large library...",
-        "loadingLargeCount": "Loading {{count}} items...",
-        "loadError": "Failed to load library"
+      "recent": {
+        "emptyTitle": "Nothing played yet",
+        "emptyDescription": "Music you play will appear here"
       },
-      "playlists": {
-        "comingSoon": "Playlists coming soon"
+      "discover": {
+        "topSongs": "Top Songs",
+        "popularNow": "Popular Now",
+        "fromLibrary": "From Your Library",
+        "noResults": "No songs found for this genre",
+        "emptyHint": "Select a genre to discover popular music"
+      },
+      "favorites": {
+        "songs": "Songs",
+        "albums": "Albums",
+        "artists": "Artists",
+        "emptyTitle": "No favorites yet",
+        "emptyDescription": "Add songs to your library to see them here",
+        "searchMusic": "Search music",
+        "showAll": "Show all {{count}}",
+        "showAllSongs": "Show all songs",
+        "showAllAlbums": "Show all albums",
+        "showAllArtists": "Show all artists"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" is already in your library",
+        "addError": "Could not add song to library"
       },
       "authRequired": {
         "title": "Apple Music Access",

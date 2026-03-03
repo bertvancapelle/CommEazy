@@ -1417,8 +1417,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Cerca",
-        "library": "Libreria",
-        "playlists": "Playlist"
+        "recent": "Recenti",
+        "discover": "Scopri",
+        "favorites": "Preferiti"
       },
       "search": {
         "placeholder": "Cerca musica...",
@@ -1442,26 +1443,32 @@
         "albumHint": "Tocca per vedere i brani",
         "playHint": "Tocca per riprodurre"
       },
-      "library": {
-        "songs": "Brani",
-        "artists": "Artisti",
-        "albums": "Album",
-        "playlists": "Playlist",
-        "emptyTitle": "La tua libreria è vuota",
-        "emptyDescription": "La musica che aggiungi da Apple Music apparirà qui",
-        "searchMusic": "Cerca musica",
-        "searchPlaceholder": "Cerca nella tua libreria...",
-        "searchButton": "Cerca",
-        "resultCount": "{{count}} di {{total}} brani",
-        "noSearchResults": "Nessun brano trovato",
-        "alreadyInLibraryMessage": "\"{{title}}\" è già nella tua libreria",
-        "addError": "Impossibile aggiungere il brano alla libreria",
-        "loadingLarge": "Caricamento della grande libreria...",
-        "loadingLargeCount": "Caricamento di {{count}} elementi...",
-        "loadError": "Impossibile caricare la libreria"
+      "recent": {
+        "emptyTitle": "Niente riprodotto ancora",
+        "emptyDescription": "La musica che riproduci apparirà qui"
       },
-      "playlists": {
-        "comingSoon": "Playlist in arrivo"
+      "discover": {
+        "topSongs": "Brani popolari",
+        "popularNow": "Popolare adesso",
+        "fromLibrary": "Dalla tua libreria",
+        "noResults": "Nessun brano trovato per questo genere",
+        "emptyHint": "Seleziona un genere per scoprire musica popolare"
+      },
+      "favorites": {
+        "songs": "Brani",
+        "albums": "Album",
+        "artists": "Artisti",
+        "emptyTitle": "Nessun preferito ancora",
+        "emptyDescription": "Aggiungi brani alla libreria per vederli qui",
+        "searchMusic": "Cerca musica",
+        "showAll": "Mostra tutti ({{count}})",
+        "showAllSongs": "Mostra tutti i brani",
+        "showAllAlbums": "Mostra tutti gli album",
+        "showAllArtists": "Mostra tutti gli artisti"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" è già nella tua libreria",
+        "addError": "Impossibile aggiungere il brano alla libreria"
       },
       "authRequired": {
         "title": "Accesso Apple Music",

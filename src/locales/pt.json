@@ -1486,8 +1486,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Pesquisar",
-        "library": "Biblioteca",
-        "playlists": "Listas"
+        "recent": "Recentes",
+        "discover": "Descobrir",
+        "favorites": "Favoritos"
       },
       "search": {
         "placeholder": "Pesquisar música...",
@@ -1511,26 +1512,32 @@
         "albumHint": "Toque para ver faixas",
         "playHint": "Toque para reproduzir"
       },
-      "library": {
-        "songs": "Músicas",
-        "artists": "Artistas",
-        "albums": "Álbuns",
-        "playlists": "Playlists",
-        "emptyTitle": "A sua biblioteca está vazia",
-        "emptyDescription": "A música que adicionar do Apple Music aparecerá aqui",
-        "searchMusic": "Pesquisar música",
-        "searchPlaceholder": "Pesquisar na sua biblioteca...",
-        "searchButton": "Pesquisar",
-        "resultCount": "{{count}} de {{total}} músicas",
-        "noSearchResults": "Nenhuma música encontrada",
-        "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",
-        "addError": "Não foi possível adicionar a música à biblioteca",
-        "loadingLarge": "A carregar biblioteca grande...",
-        "loadingLargeCount": "A carregar {{count}} itens...",
-        "loadError": "Falha ao carregar a biblioteca"
+      "recent": {
+        "emptyTitle": "Nada reproduzido ainda",
+        "emptyDescription": "A música que reproduzir aparecerá aqui"
       },
-      "playlists": {
-        "comingSoon": "Listas em breve"
+      "discover": {
+        "topSongs": "Músicas populares",
+        "popularNow": "Popular agora",
+        "fromLibrary": "Da sua biblioteca",
+        "noResults": "Nenhuma música encontrada para este género",
+        "emptyHint": "Selecione um género para descobrir música popular"
+      },
+      "favorites": {
+        "songs": "Músicas",
+        "albums": "Álbuns",
+        "artists": "Artistas",
+        "emptyTitle": "Sem favoritos ainda",
+        "emptyDescription": "Adicione músicas à sua biblioteca para as ver aqui",
+        "searchMusic": "Pesquisar música",
+        "showAll": "Mostrar todos ({{count}})",
+        "showAllSongs": "Mostrar todas as músicas",
+        "showAllAlbums": "Mostrar todos os álbuns",
+        "showAllArtists": "Mostrar todos os artistas"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",
+        "addError": "Não foi possível adicionar a música à biblioteca"
       },
       "authRequired": {
         "title": "Acesso ao Apple Music",

@@ -1462,8 +1462,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Rechercher",
-        "library": "Bibliothèque",
-        "playlists": "Playlists"
+        "recent": "Récents",
+        "discover": "Découvrir",
+        "favorites": "Favoris"
       },
       "search": {
         "placeholder": "Rechercher de la musique...",
@@ -1487,26 +1488,32 @@
         "albumHint": "Appuyez pour voir les pistes",
         "playHint": "Appuyez pour lire"
       },
-      "library": {
-        "songs": "Morceaux",
-        "artists": "Artistes",
-        "albums": "Albums",
-        "playlists": "Playlists",
-        "emptyTitle": "Votre bibliothèque est vide",
-        "emptyDescription": "La musique que vous ajoutez depuis Apple Music apparaîtra ici",
-        "searchMusic": "Rechercher de la musique",
-        "searchPlaceholder": "Rechercher dans votre bibliothèque...",
-        "searchButton": "Rechercher",
-        "resultCount": "{{count}} sur {{total}} morceaux",
-        "noSearchResults": "Aucun morceau trouvé",
-        "alreadyInLibraryMessage": "\"{{title}}\" est déjà dans votre bibliothèque",
-        "addError": "Impossible d'ajouter la chanson à la bibliothèque",
-        "loadingLarge": "Chargement de la grande bibliothèque...",
-        "loadingLargeCount": "Chargement de {{count}} éléments...",
-        "loadError": "Échec du chargement de la bibliothèque"
+      "recent": {
+        "emptyTitle": "Rien écouté encore",
+        "emptyDescription": "La musique que vous écoutez apparaîtra ici"
       },
-      "playlists": {
-        "comingSoon": "Playlists bientôt disponibles"
+      "discover": {
+        "topSongs": "Titres populaires",
+        "popularNow": "Populaire maintenant",
+        "fromLibrary": "De votre bibliothèque",
+        "noResults": "Aucun titre trouvé pour ce genre",
+        "emptyHint": "Sélectionnez un genre pour découvrir de la musique populaire"
+      },
+      "favorites": {
+        "songs": "Titres",
+        "albums": "Albums",
+        "artists": "Artistes",
+        "emptyTitle": "Pas encore de favoris",
+        "emptyDescription": "Ajoutez des titres à votre bibliothèque pour les voir ici",
+        "searchMusic": "Rechercher de la musique",
+        "showAll": "Afficher les {{count}}",
+        "showAllSongs": "Afficher tous les titres",
+        "showAllAlbums": "Afficher tous les albums",
+        "showAllArtists": "Afficher tous les artistes"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" est déjà dans votre bibliothèque",
+        "addError": "Impossible d'ajouter la chanson à la bibliothèque"
       },
       "authRequired": {
         "title": "Accès Apple Music",

@@ -1298,8 +1298,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Sök",
-        "library": "Bibliotek",
-        "playlists": "Spellistor"
+        "recent": "Senaste",
+        "discover": "Upptäck",
+        "favorites": "Favoriter"
       },
       "search": {
         "placeholder": "Sök musik...",
@@ -1323,26 +1324,32 @@
         "albumHint": "Tryck för att se spår",
         "playHint": "Tryck för att spela"
       },
-      "library": {
-        "songs": "Låtar",
-        "artists": "Artister",
-        "albums": "Album",
-        "playlists": "Spellistor",
-        "emptyTitle": "Ditt bibliotek är tomt",
-        "emptyDescription": "Musik du lägger till från Apple Music visas här",
-        "searchMusic": "Sök musik",
-        "searchPlaceholder": "Sök i ditt bibliotek...",
-        "searchButton": "Sök",
-        "resultCount": "{{count}} av {{total}} låtar",
-        "noSearchResults": "Inga låtar hittades",
-        "alreadyInLibraryMessage": "\"{{title}}\" finns redan i ditt bibliotek",
-        "addError": "Kunde inte lägga till låten i biblioteket",
-        "loadingLarge": "Laddar stort bibliotek...",
-        "loadingLargeCount": "Laddar {{count}} objekt...",
-        "loadError": "Kunde inte ladda biblioteket"
+      "recent": {
+        "emptyTitle": "Inget spelat ännu",
+        "emptyDescription": "Musik du spelar visas här"
       },
-      "playlists": {
-        "comingSoon": "Spellistor kommer snart"
+      "discover": {
+        "topSongs": "Populära låtar",
+        "popularNow": "Populärt nu",
+        "fromLibrary": "Från ditt bibliotek",
+        "noResults": "Inga låtar hittades för denna genre",
+        "emptyHint": "Välj en genre för att upptäcka populär musik"
+      },
+      "favorites": {
+        "songs": "Låtar",
+        "albums": "Album",
+        "artists": "Artister",
+        "emptyTitle": "Inga favoriter ännu",
+        "emptyDescription": "Lägg till låtar i ditt bibliotek för att se dem här",
+        "searchMusic": "Sök musik",
+        "showAll": "Visa alla {{count}}",
+        "showAllSongs": "Visa alla låtar",
+        "showAllAlbums": "Visa alla album",
+        "showAllArtists": "Visa alla artister"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" finns redan i ditt bibliotek",
+        "addError": "Kunde inte lägga till låten i biblioteket"
       },
       "authRequired": {
         "title": "Apple Music-åtkomst",

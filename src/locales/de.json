@@ -1462,8 +1462,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Suchen",
-        "library": "Mediathek",
-        "playlists": "Playlists"
+        "recent": "Zuletzt",
+        "discover": "Entdecken",
+        "favorites": "Favoriten"
       },
       "search": {
         "placeholder": "Musik suchen...",
@@ -1487,26 +1488,32 @@
         "albumHint": "Tippen um Titel anzuzeigen",
         "playHint": "Tippen um abzuspielen"
       },
-      "library": {
-        "songs": "Titel",
-        "artists": "Interpreten",
-        "albums": "Alben",
-        "playlists": "Playlists",
-        "emptyTitle": "Deine Mediathek ist leer",
-        "emptyDescription": "Musik, die du von Apple Music hinzufügst, wird hier angezeigt",
-        "searchMusic": "Musik suchen",
-        "searchPlaceholder": "In deiner Mediathek suchen...",
-        "searchButton": "Suchen",
-        "resultCount": "{{count}} von {{total}} Titeln",
-        "noSearchResults": "Keine Titel gefunden",
-        "alreadyInLibraryMessage": "\"{{title}}\" ist bereits in deiner Bibliothek",
-        "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden",
-        "loadingLarge": "Große Bibliothek wird geladen...",
-        "loadingLargeCount": "{{count}} Einträge werden geladen...",
-        "loadError": "Bibliothek konnte nicht geladen werden"
+      "recent": {
+        "emptyTitle": "Noch nichts abgespielt",
+        "emptyDescription": "Musik, die du abspielst, erscheint hier"
       },
-      "playlists": {
-        "comingSoon": "Playlists kommen bald"
+      "discover": {
+        "topSongs": "Top Songs",
+        "popularNow": "Beliebt jetzt",
+        "fromLibrary": "Aus deiner Mediathek",
+        "noResults": "Keine Songs für dieses Genre gefunden",
+        "emptyHint": "Wähle ein Genre, um beliebte Musik zu entdecken"
+      },
+      "favorites": {
+        "songs": "Songs",
+        "albums": "Alben",
+        "artists": "Künstler",
+        "emptyTitle": "Noch keine Favoriten",
+        "emptyDescription": "Füge Songs zu deiner Mediathek hinzu, um sie hier zu sehen",
+        "searchMusic": "Musik suchen",
+        "showAll": "Alle {{count}} anzeigen",
+        "showAllSongs": "Alle Songs anzeigen",
+        "showAllAlbums": "Alle Alben anzeigen",
+        "showAllArtists": "Alle Künstler anzeigen"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" ist bereits in deiner Bibliothek",
+        "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden"
       },
       "authRequired": {
         "title": "Apple Music Zugriff",

@@ -88,6 +88,11 @@ export interface AppleMusicPlaylist {
   description: string;
 }
 
+export interface AppleMusicGenre {
+  id: string;
+  name: string;
+}
+
 export interface SearchResults {
   songs?: AppleMusicSong[];
   albums?: AppleMusicAlbum[];
@@ -262,6 +267,12 @@ export interface AppleMusicContextValue {
   isTopChartsLoading: boolean;
   loadTopCharts: () => Promise<void>;
 
+  // Discovery: Genres
+  genres: AppleMusicGenre[];
+  isGenresLoading: boolean;
+  loadGenres: () => Promise<void>;
+  getTopChartsByGenre: (genreId: string, types?: string[], limit?: number) => Promise<SearchResults>;
+
   // Discovery: Recent Library Items
   recentLibraryItems: AppleMusicSong[];
 
@@ -352,6 +363,10 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Discovery: Top Charts (cached from API)
   const [topCharts, setTopCharts] = useState<SearchResults | null>(null);
   const [isTopChartsLoading, setIsTopChartsLoading] = useState(false);
+
+  // Discovery: Genres
+  const [genres, setGenres] = useState<AppleMusicGenre[]>([]);
+  const [isGenresLoading, setIsGenresLoading] = useState(false);
 
   // Track when app went to background for refresh logic
   const lastBackgroundTimeRef = useRef<number | null>(null);
@@ -717,6 +732,49 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       setIsTopChartsLoading(false);
     }
   }, [isIOS, authStatus, topCharts, isTopChartsLoading]);
+
+  // ============================================================
+  // Genres (cached from API, loaded on demand)
+  // ============================================================
+
+  const loadGenres = useCallback(async () => {
+    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
+      return;
+    }
+
+    // Skip if already loaded or loading
+    if (genres.length > 0 || isGenresLoading) return;
+
+    setIsGenresLoading(true);
+    try {
+      const genreList = await AppleMusicModule.getGenres();
+      setGenres(genreList);
+      console.log('[AppleMusicContext] Genres loaded:', genreList.length);
+    } catch (error) {
+      console.warn('[AppleMusicContext] Failed to load genres:', error);
+    } finally {
+      setIsGenresLoading(false);
+    }
+  }, [isIOS, authStatus, genres.length, isGenresLoading]);
+
+  const getTopChartsByGenreCallback = useCallback(async (
+    genreId: string,
+    types: string[] = ['songs', 'albums'],
+    limit: number = 15,
+  ): Promise<SearchResults> => {
+    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
+      return {};
+    }
+
+    try {
+      const charts = await AppleMusicModule.getTopChartsByGenre(genreId, types, limit);
+      console.log('[AppleMusicContext] Charts loaded for genre:', genreId);
+      return charts;
+    } catch (error) {
+      console.warn('[AppleMusicContext] Failed to load charts for genre:', error);
+      return {};
+    }
+  }, [isIOS, authStatus]);
 
   // ============================================================
   // Initialization
@@ -1557,6 +1615,12 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       isTopChartsLoading,
       loadTopCharts,
 
+      // Discovery: Genres
+      genres,
+      isGenresLoading,
+      loadGenres,
+      getTopChartsByGenre: getTopChartsByGenreCallback,
+
       // Discovery: Recent Library Items
       recentLibraryItems,
 
@@ -1621,6 +1685,10 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       topCharts,
       isTopChartsLoading,
       loadTopCharts,
+      genres,
+      isGenresLoading,
+      loadGenres,
+      getTopChartsByGenreCallback,
       recentLibraryItems,
       showPlayer,
     ]

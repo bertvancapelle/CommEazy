@@ -1464,8 +1464,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Zoeken",
-        "library": "Bibliotheek",
-        "playlists": "Afspeellijsten"
+        "recent": "Recent",
+        "discover": "Ontdekken",
+        "favorites": "Favorieten"
       },
       "search": {
         "placeholder": "Zoek muziek...",
@@ -1489,26 +1490,32 @@
         "albumHint": "Tik om nummers te zien",
         "playHint": "Tik om af te spelen"
       },
-      "library": {
-        "songs": "Nummers",
-        "artists": "Artiesten",
-        "albums": "Albums",
-        "playlists": "Afspeellijsten",
-        "emptyTitle": "Je bibliotheek is leeg",
-        "emptyDescription": "Zoek muziek en voeg nummers toe aan je bibliotheek",
-        "searchMusic": "Zoek muziek",
-        "searchPlaceholder": "Zoek in bibliotheek...",
-        "searchButton": "Zoeken",
-        "resultCount": "{{count}} van {{total}} resultaten",
-        "noSearchResults": "Geen resultaten gevonden",
-        "alreadyInLibraryMessage": "\"{{title}}\" staat al in je bibliotheek",
-        "addError": "Kon nummer niet toevoegen aan bibliotheek",
-        "loadingLarge": "Grote bibliotheek laden...",
-        "loadingLargeCount": "{{count}} items laden...",
-        "loadError": "Bibliotheek laden mislukt"
+      "recent": {
+        "emptyTitle": "Nog niets afgespeeld",
+        "emptyDescription": "Muziek die je afspeelt verschijnt hier"
       },
-      "playlists": {
-        "comingSoon": "Afspeellijsten komen binnenkort"
+      "discover": {
+        "topSongs": "Populaire nummers",
+        "popularNow": "Populair nu",
+        "fromLibrary": "Uit je bibliotheek",
+        "noResults": "Geen nummers gevonden voor dit genre",
+        "emptyHint": "Selecteer een genre om populaire muziek te ontdekken"
+      },
+      "favorites": {
+        "songs": "Nummers",
+        "albums": "Albums",
+        "artists": "Artiesten",
+        "emptyTitle": "Nog geen favorieten",
+        "emptyDescription": "Voeg nummers toe aan je bibliotheek om ze hier te zien",
+        "searchMusic": "Zoek muziek",
+        "showAll": "Toon alle {{count}}",
+        "showAllSongs": "Toon alle nummers",
+        "showAllAlbums": "Toon alle albums",
+        "showAllArtists": "Toon alle artiesten"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" staat al in je bibliotheek",
+        "addError": "Kon nummer niet toevoegen aan bibliotheek"
       },
       "authRequired": {
         "title": "Apple Music Toegang",

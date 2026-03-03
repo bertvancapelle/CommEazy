@@ -533,6 +533,106 @@ class AppleMusicModule: RCTEventEmitter {
         }
     }
 
+    /// Get available music genres from the Apple Music catalog
+    @objc
+    func getGenres(_ resolve: @escaping RCTPromiseResolveBlock,
+                   reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                let authStatus = MusicAuthorization.currentStatus
+                guard authStatus == .authorized else {
+                    reject("AUTH_ERROR", "MusicKit not authorized. Status: \(authStatus)", nil)
+                    return
+                }
+
+                // Fetch top-level genres from the catalog
+                var request = MusicCatalogResourceRequest<Genre>()
+                request.limit = 50
+                let response = try await request.response()
+
+                let genres: [[String: Any]] = response.items.map { genre in
+                    return [
+                        "id": genre.id.rawValue,
+                        "name": genre.name,
+                    ]
+                }
+
+                NSLog("[AppleMusicModule] Loaded \(genres.count) genres")
+                resolve(genres)
+            } catch {
+                NSLog("[AppleMusicModule] Failed to load genres: \(error.localizedDescription)")
+                reject("GENRES_ERROR", "Failed to get genres: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
+    /// Get top charts filtered by genre
+    /// @param genreId The MusicKit genre ID to filter by
+    /// @param types Array of chart types: "songs", "albums", "playlists"
+    /// @param limit Maximum results per type
+    @objc
+    func getTopChartsByGenre(_ genreId: String,
+                             types: [String],
+                             limit: Int,
+                             resolve: @escaping RCTPromiseResolveBlock,
+                             reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                let authStatus = MusicAuthorization.currentStatus
+                guard authStatus == .authorized else {
+                    reject("AUTH_ERROR", "MusicKit not authorized. Status: \(authStatus)", nil)
+                    return
+                }
+
+                // Fetch the Genre object by ID (MusicCatalogChartsRequest requires Genre, not MusicItemID)
+                let genreRequest = MusicCatalogResourceRequest<Genre>(matching: \.id, equalTo: MusicItemID(genreId))
+                let genreResponse = try await genreRequest.response()
+                guard let genre = genreResponse.items.first else {
+                    reject("GENRE_NOT_FOUND", "Genre not found for ID: \(genreId)", nil)
+                    return
+                }
+
+                var results: [String: Any] = [:]
+
+                // Get top songs for genre
+                if types.contains("songs") {
+                    var request = MusicCatalogChartsRequest(genre: genre, kinds: [.mostPlayed], types: [Song.self])
+                    request.limit = limit
+                    let response = try await request.response()
+                    if let songChart = response.songCharts.first {
+                        results["songs"] = songChart.items.map { self.songToDictionary($0) }
+                    }
+                }
+
+                // Get top albums for genre
+                if types.contains("albums") {
+                    var request = MusicCatalogChartsRequest(genre: genre, kinds: [.mostPlayed], types: [Album.self])
+                    request.limit = limit
+                    let response = try await request.response()
+                    if let albumChart = response.albumCharts.first {
+                        results["albums"] = albumChart.items.map { self.albumToDictionary($0) }
+                    }
+                }
+
+                // Get top playlists for genre
+                if types.contains("playlists") {
+                    var request = MusicCatalogChartsRequest(genre: genre, kinds: [.mostPlayed], types: [Playlist.self])
+                    request.limit = limit
+                    let response = try await request.response()
+                    if let playlistChart = response.playlistCharts.first {
+                        results["playlists"] = playlistChart.items.map { self.playlistToDictionary($0) }
+                    }
+                }
+
+                NSLog("[AppleMusicModule] Loaded charts for genre \(genreId) (\(genre.name)): songs=\(String(describing: (results["songs"] as? [Any])?.count)), albums=\(String(describing: (results["albums"] as? [Any])?.count))")
+                resolve(results)
+            } catch {
+                NSLog("[AppleMusicModule] Failed to get charts for genre \(genreId): \(error.localizedDescription)")
+                reject("CHARTS_ERROR", "Failed to get charts for genre: \(error.localizedDescription)", error)
+            }
+        }
+    }
+
     // ============================================================
     // MARK: - Playback Control
     // ============================================================

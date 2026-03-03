@@ -1298,8 +1298,9 @@
       "title": "Apple Music",
       "tabs": {
         "search": "Søg",
-        "library": "Bibliotek",
-        "playlists": "Playlister"
+        "recent": "Seneste",
+        "discover": "Opdag",
+        "favorites": "Favoritter"
       },
       "search": {
         "placeholder": "Søg musik...",
@@ -1323,26 +1324,32 @@
         "albumHint": "Tryk for at se numre",
         "playHint": "Tryk for at afspille"
       },
-      "library": {
-        "songs": "Sange",
-        "artists": "Kunstnere",
-        "albums": "Album",
-        "playlists": "Playlister",
-        "emptyTitle": "Dit bibliotek er tomt",
-        "emptyDescription": "Musik du tilføjer fra Apple Music vises her",
-        "searchMusic": "Søg musik",
-        "searchPlaceholder": "Søg i dit bibliotek...",
-        "searchButton": "Søg",
-        "resultCount": "{{count}} af {{total}} sange",
-        "noSearchResults": "Ingen sange fundet",
-        "alreadyInLibraryMessage": "\"{{title}}\" er allerede i dit bibliotek",
-        "addError": "Kunne ikke tilføje sangen til biblioteket",
-        "loadingLarge": "Indlæser stort bibliotek...",
-        "loadingLargeCount": "Indlæser {{count}} elementer...",
-        "loadError": "Kunne ikke indlæse biblioteket"
+      "recent": {
+        "emptyTitle": "Intet afspillet endnu",
+        "emptyDescription": "Musik du afspiller vises her"
       },
-      "playlists": {
-        "comingSoon": "Playlister kommer snart"
+      "discover": {
+        "topSongs": "Populære sange",
+        "popularNow": "Populært nu",
+        "fromLibrary": "Fra dit bibliotek",
+        "noResults": "Ingen sange fundet for denne genre",
+        "emptyHint": "Vælg en genre for at opdage populær musik"
+      },
+      "favorites": {
+        "songs": "Sange",
+        "albums": "Album",
+        "artists": "Kunstnere",
+        "emptyTitle": "Ingen favoritter endnu",
+        "emptyDescription": "Tilføj sange til dit bibliotek for at se dem her",
+        "searchMusic": "Søg efter musik",
+        "showAll": "Vis alle {{count}}",
+        "showAllSongs": "Vis alle sange",
+        "showAllAlbums": "Vis alle album",
+        "showAllArtists": "Vis alle kunstnere"
+      },
+      "library": {
+        "alreadyInLibraryMessage": "\"{{title}}\" er allerede i dit bibliotek",
+        "addError": "Kunne ikke tilføje sangen til biblioteket"
       },
       "authRequired": {
         "title": "Apple Music-adgang",
