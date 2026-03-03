@@ -258,8 +258,11 @@
     "lastNamePlaceholder": "Enter last name (optional)",
     "phoneLabel": "Phone number",
     "phonePlaceholder": "612345678",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "name@example.com",
     "addHint": "You can also scan a QR code to add a contact",
     "save": "Save",
+    "edit": "Edit",
     "orScanQR": "Or scan a QR code",
     "showMyQR": "Show my QR",
     "scanTheirQR": "Scan QR",
@@ -280,7 +283,8 @@
       "city": "City",
       "country": "Country",
       "navigate": "Navigate",
-      "navigateHint": "Open directions to {{name}} in the maps app"
+      "navigateHint": "Open directions to {{name}} in the maps app",
+      "noAddress": "No address known"
     },
     "dates": {
       "title": "Important dates",

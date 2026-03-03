@@ -251,8 +251,11 @@
     "lastNamePlaceholder": "Skriv inn etternavn (valgfritt)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
+    "emailLabel": "E-postadresse",
+    "emailPlaceholder": "navn@eksempel.no",
     "addHint": "Du kan også skanne en QR-kode for å legge til en kontakt",
     "save": "Lagre",
+    "edit": "Rediger",
     "orScanQR": "Eller skann en QR-kode",
     "showMyQR": "Vis min QR",
     "scanTheirQR": "Skann QR",
@@ -271,7 +274,8 @@
       "city": "By",
       "country": "Land",
       "navigate": "Naviger til adressen",
-      "navigateHint": "Åpner kartappen med adressen til {{name}}"
+      "navigateHint": "Åpner kartappen med adressen til {{name}}",
+      "noAddress": "Ingen adresse kjent"
     },
     "dates": {
       "title": "Viktige datoer",

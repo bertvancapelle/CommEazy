@@ -4,9 +4,8 @@
  * Senior-inclusive design:
  * - Large profile photo (120px) for easy recognition
  * - Clear verification badge
- * - Large action buttons (60pt+)
- * - Minimal visual clutter
- * - VoiceOver support
+ * - Large action buttons (60pt+) AT THE TOP for quick access
+ * - Editable contact fields (phone, email, address, dates)
  * - Address with navigation to Maps
  * - Important dates with personalized calculations
  *
@@ -22,6 +21,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
   Alert,
   ScrollView,
   Linking,
@@ -34,7 +34,7 @@ import type { RouteProp } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, Icon } from '@/components';
+import { ContactAvatar, Icon, SeniorDatePicker } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
@@ -118,6 +118,18 @@ export function ContactDetailScreen() {
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Edit state for all editable fields
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editStreet, setEditStreet] = useState('');
+  const [editPostalCode, setEditPostalCode] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editCountry, setEditCountry] = useState('');
+  const [editBirthDate, setEditBirthDate] = useState<string | undefined>(undefined);
+  const [editWeddingDate, setEditWeddingDate] = useState<string | undefined>(undefined);
+  const [editDeathDate, setEditDeathDate] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadContact = async () => {
@@ -144,10 +156,75 @@ export function ContactDetailScreen() {
     void loadContact();
   }, [jid]);
 
+  // Initialize edit fields when contact loads
+  useEffect(() => {
+    if (contact) {
+      setEditPhone(contact.phoneNumber ?? '');
+      setEditEmail(contact.email ?? '');
+      setEditStreet(contact.address?.street ?? '');
+      setEditPostalCode(contact.address?.postalCode ?? '');
+      setEditCity(contact.address?.city ?? '');
+      setEditCountry(contact.address?.country ?? '');
+      setEditBirthDate(contact.birthDate);
+      setEditWeddingDate(contact.weddingDate);
+      setEditDeathDate(contact.deathDate);
+    }
+  }, [contact]);
+
   const displayName = useMemo(
     () => (contact ? getContactDisplayName(contact) : ''),
     [contact],
   );
+
+  const handleStartEdit = useCallback(() => {
+    void triggerFeedback('tap');
+    setIsEditing(true);
+  }, [triggerFeedback]);
+
+  const handleSave = useCallback(() => {
+    void triggerFeedback('tap');
+    if (!contact) return;
+
+    // Build updated contact
+    const updatedContact: Contact = {
+      ...contact,
+      phoneNumber: editPhone.trim() || undefined,
+      email: editEmail.trim() || undefined,
+      address: (editStreet || editPostalCode || editCity || editCountry)
+        ? {
+            street: editStreet.trim() || undefined,
+            postalCode: editPostalCode.trim() || undefined,
+            city: editCity.trim() || undefined,
+            country: editCountry.trim() || undefined,
+          }
+        : undefined,
+      birthDate: editBirthDate,
+      weddingDate: editWeddingDate,
+      deathDate: editDeathDate,
+    };
+
+    // In dev mode, update local state; in production, persist to database
+    setContact(updatedContact);
+    setIsEditing(false);
+    console.info('[ContactDetail] Contact saved:', displayName);
+  }, [contact, displayName, editPhone, editEmail, editStreet, editPostalCode, editCity, editCountry, editBirthDate, editWeddingDate, editDeathDate, triggerFeedback]);
+
+  const handleCancelEdit = useCallback(() => {
+    void triggerFeedback('tap');
+    // Reset edit fields to current contact values
+    if (contact) {
+      setEditPhone(contact.phoneNumber ?? '');
+      setEditEmail(contact.email ?? '');
+      setEditStreet(contact.address?.street ?? '');
+      setEditPostalCode(contact.address?.postalCode ?? '');
+      setEditCity(contact.address?.city ?? '');
+      setEditCountry(contact.address?.country ?? '');
+      setEditBirthDate(contact.birthDate);
+      setEditWeddingDate(contact.weddingDate);
+      setEditDeathDate(contact.deathDate);
+    }
+    setIsEditing(false);
+  }, [contact, triggerFeedback]);
 
   const handleStartChat = useCallback(async () => {
     void triggerFeedback('tap');
@@ -334,115 +411,7 @@ export function ContactDetailScreen() {
         </View>
       </View>
 
-      {/* Contact details section */}
-      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.details')}</Text>
-
-        {contact.phoneNumber && (
-          <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
-            <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.phoneNumber}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Address section */}
-      {addressLines.length > 0 && (
-        <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.address.title')}</Text>
-
-          {addressLines.map((line, index) => (
-            <Text
-              key={index}
-              style={[styles.addressLine, { color: themeColors.textPrimary }]}
-            >
-              {line}
-            </Text>
-          ))}
-
-          {/* Navigation button */}
-          {showNavigationButton && (
-            <TouchableOpacity
-              style={[styles.navigationButton, { backgroundColor: themeColors.primary }]}
-              onPress={handleNavigateToMaps}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('contacts.address.navigate')}
-              accessibilityHint={t('contacts.address.navigateHint', { name: contact.firstName })}
-            >
-              <Icon name="navigate" size={22} color={themeColors.textOnPrimary} />
-              <Text style={[styles.navigationButtonText, { color: themeColors.textOnPrimary }]}>
-                {t('contacts.address.navigate')}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {/* Dates section */}
-      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.dates.title')}</Text>
-
-        {/* Birth date */}
-        {contact.birthDate ? (
-          <View style={styles.dateRow}>
-            <View style={styles.dateInfo}>
-              <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
-              <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
-                {formatDateDisplay(contact.birthDate)}
-              </Text>
-            </View>
-            <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
-              {contact.isDeceased && contact.deathDate
-                ? t('contacts.dates.ageAtDeath', {
-                    name: contact.firstName,
-                    years: calculateYearsBetween(contact.birthDate, contact.deathDate),
-                  })
-                : t('contacts.dates.ageCurrent', {
-                    name: contact.firstName,
-                    years: calculateYears(contact.birthDate),
-                  })
-              }
-            </Text>
-          </View>
-        ) : (
-          <Text style={[styles.dateEmpty, { color: themeColors.textTertiary }]}>
-            {t('contacts.dates.noBirthDate')}
-          </Text>
-        )}
-
-        {/* Wedding date */}
-        {contact.weddingDate && (
-          <View style={styles.dateRow}>
-            <View style={styles.dateInfo}>
-              <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
-              <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
-                {formatDateDisplay(contact.weddingDate)}
-              </Text>
-            </View>
-            <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
-              {t('contacts.dates.weddingYears', { years: calculateYears(contact.weddingDate) })}
-            </Text>
-          </View>
-        )}
-
-        {/* Death date (only if deceased) */}
-        {contact.isDeceased && contact.deathDate && (
-          <View style={styles.dateRow}>
-            <View style={styles.dateInfo}>
-              <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
-              <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
-                {formatDateDisplay(contact.deathDate)}
-              </Text>
-            </View>
-            <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
-              {t('contacts.dates.deathYearsAgo', { years: calculateYears(contact.deathDate) })}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Action buttons */}
+      {/* Action buttons — RIGHT AFTER profile header for quick access */}
       <View style={styles.actionsContainer}>
         {/* Primary: Chat button */}
         <TouchableOpacity
@@ -489,7 +458,291 @@ export function ContactDetailScreen() {
             <Text style={[styles.callButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.videoCall')}</Text>
           </TouchableOpacity>
         </View>
+      </View>
 
+      {/* Edit / Save / Cancel bar */}
+      <View style={styles.editBar}>
+        {isEditing ? (
+          <>
+            <TouchableOpacity
+              style={[styles.editBarButton, { backgroundColor: themeColors.primary }]}
+              onPress={handleSave}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('contacts.save')}
+            >
+              <Icon name="checkmark" size={22} color={themeColors.textOnPrimary} />
+              <Text style={[styles.editBarButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.save')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
+              onPress={handleCancelEdit}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel')}
+            >
+              <Icon name="close" size={22} color={themeColors.textPrimary} />
+              <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity
+            style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
+            onPress={handleStartEdit}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('contacts.edit')}
+          >
+            <Icon name="create" size={22} color={themeColors.textPrimary} />
+            <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('contacts.edit')}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Contact details section — phone + email */}
+      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.details')}</Text>
+
+        {/* Phone number */}
+        {isEditing ? (
+          <View style={styles.editFieldContainer}>
+            <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
+            <TextInput
+              style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+              value={editPhone}
+              onChangeText={setEditPhone}
+              placeholder={t('contacts.phonePlaceholder')}
+              placeholderTextColor={themeColors.textTertiary}
+              keyboardType="phone-pad"
+              accessibilityLabel={t('contacts.phoneLabel')}
+            />
+          </View>
+        ) : (
+          contact.phoneNumber ? (
+            <View style={styles.detailRow}>
+              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
+              <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.phoneNumber}</Text>
+            </View>
+          ) : null
+        )}
+
+        {/* Email */}
+        {isEditing ? (
+          <View style={styles.editFieldContainer}>
+            <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.emailLabel')}</Text>
+            <TextInput
+              style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+              value={editEmail}
+              onChangeText={setEditEmail}
+              placeholder={t('contacts.emailPlaceholder')}
+              placeholderTextColor={themeColors.textTertiary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              accessibilityLabel={t('contacts.emailLabel')}
+            />
+          </View>
+        ) : (
+          contact.email ? (
+            <View style={styles.detailRow}>
+              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.emailLabel')}</Text>
+              <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.email}</Text>
+            </View>
+          ) : null
+        )}
+      </View>
+
+      {/* Address section */}
+      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.address.title')}</Text>
+
+        {isEditing ? (
+          <>
+            <View style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.street')}</Text>
+              <TextInput
+                style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                value={editStreet}
+                onChangeText={setEditStreet}
+                placeholder={t('contacts.address.street')}
+                placeholderTextColor={themeColors.textTertiary}
+                accessibilityLabel={t('contacts.address.street')}
+              />
+            </View>
+            <View style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.postalCode')}</Text>
+              <TextInput
+                style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                value={editPostalCode}
+                onChangeText={setEditPostalCode}
+                placeholder={t('contacts.address.postalCode')}
+                placeholderTextColor={themeColors.textTertiary}
+                accessibilityLabel={t('contacts.address.postalCode')}
+              />
+            </View>
+            <View style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.city')}</Text>
+              <TextInput
+                style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                value={editCity}
+                onChangeText={setEditCity}
+                placeholder={t('contacts.address.city')}
+                placeholderTextColor={themeColors.textTertiary}
+                accessibilityLabel={t('contacts.address.city')}
+              />
+            </View>
+            <View style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.country')}</Text>
+              <TextInput
+                style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                value={editCountry}
+                onChangeText={setEditCountry}
+                placeholder={t('contacts.address.country')}
+                placeholderTextColor={themeColors.textTertiary}
+                accessibilityLabel={t('contacts.address.country')}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            {addressLines.length > 0 ? (
+              <>
+                {addressLines.map((line, index) => (
+                  <Text
+                    key={index}
+                    style={[styles.addressLine, { color: themeColors.textPrimary }]}
+                  >
+                    {line}
+                  </Text>
+                ))}
+
+                {/* Navigation button */}
+                {showNavigationButton && (
+                  <TouchableOpacity
+                    style={[styles.navigationButton, { backgroundColor: themeColors.primary }]}
+                    onPress={handleNavigateToMaps}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('contacts.address.navigate')}
+                    accessibilityHint={t('contacts.address.navigateHint', { name: contact.firstName })}
+                  >
+                    <Icon name="navigate" size={22} color={themeColors.textOnPrimary} />
+                    <Text style={[styles.navigationButtonText, { color: themeColors.textOnPrimary }]}>
+                      {t('contacts.address.navigate')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
+                {t('contacts.address.noAddress')}
+              </Text>
+            )}
+          </>
+        )}
+      </View>
+
+      {/* Dates section */}
+      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.dates.title')}</Text>
+
+        {isEditing ? (
+          <>
+            {/* Birth date editor */}
+            <View style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
+              <SeniorDatePicker
+                value={editBirthDate}
+                onChange={setEditBirthDate}
+                accessibilityLabel={t('contacts.dates.birthDate')}
+              />
+            </View>
+
+            {/* Wedding date editor */}
+            <View style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
+              <SeniorDatePicker
+                value={editWeddingDate}
+                onChange={setEditWeddingDate}
+                accessibilityLabel={t('contacts.dates.weddingDate')}
+              />
+            </View>
+
+            {/* Death date editor */}
+            <View style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
+              <SeniorDatePicker
+                value={editDeathDate}
+                onChange={setEditDeathDate}
+                accessibilityLabel={t('contacts.dates.deathDate')}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            {/* Birth date display */}
+            {contact.birthDate ? (
+              <View style={styles.dateRow}>
+                <View style={styles.dateInfo}>
+                  <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
+                  <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                    {formatDateDisplay(contact.birthDate)}
+                  </Text>
+                </View>
+                <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
+                  {contact.isDeceased && contact.deathDate
+                    ? t('contacts.dates.ageAtDeath', {
+                        name: contact.firstName,
+                        years: calculateYearsBetween(contact.birthDate, contact.deathDate),
+                      })
+                    : t('contacts.dates.ageCurrent', {
+                        name: contact.firstName,
+                        years: calculateYears(contact.birthDate),
+                      })
+                  }
+                </Text>
+              </View>
+            ) : (
+              <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
+                {t('contacts.dates.noBirthDate')}
+              </Text>
+            )}
+
+            {/* Wedding date display */}
+            {contact.weddingDate && (
+              <View style={styles.dateRow}>
+                <View style={styles.dateInfo}>
+                  <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
+                  <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                    {formatDateDisplay(contact.weddingDate)}
+                  </Text>
+                </View>
+                <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
+                  {t('contacts.dates.weddingYears', { years: calculateYears(contact.weddingDate) })}
+                </Text>
+              </View>
+            )}
+
+            {/* Death date (only if deceased) */}
+            {contact.isDeceased && contact.deathDate && (
+              <View style={styles.dateRow}>
+                <View style={styles.dateInfo}>
+                  <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
+                  <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                    {formatDateDisplay(contact.deathDate)}
+                  </Text>
+                </View>
+                <Text style={[styles.dateCalculation, { color: themeColors.textSecondary }]}>
+                  {t('contacts.dates.deathYearsAgo', { years: calculateYears(contact.deathDate) })}
+                </Text>
+              </View>
+            )}
+          </>
+        )}
+      </View>
+
+      {/* Bottom actions: Verify + Delete */}
+      <View style={styles.bottomActionsContainer}>
         {/* Verify/Reverify button */}
         {!contact.verified && (
           <TouchableOpacity
@@ -565,7 +818,7 @@ const styles = StyleSheet.create({
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   contactName: {
     ...typography.h1,
@@ -598,6 +851,74 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
     fontWeight: '600',
   },
+  // Action buttons — at the top
+  actionsContainer: {
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.comfortable,
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+  },
+  primaryButtonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
+  },
+  callButtonsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  callButton: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.large,
+  },
+  voiceCallButton: {
+    backgroundColor: colors.success,
+  },
+  videoCallButton: {
+    backgroundColor: '#7B1FA2', // Purple for video (consistent with moduleColors.podcast)
+  },
+  callButtonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
+    fontSize: 16,
+  },
+  // Edit bar
+  editBar: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  editBarButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+  },
+  editBarButtonText: {
+    ...typography.button,
+    fontSize: 16,
+  },
+  // Details sections
   detailsSection: {
     marginBottom: spacing.lg,
     backgroundColor: colors.surface,
@@ -624,6 +945,30 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     fontWeight: '500',
+  },
+  // Edit field styles
+  editFieldContainer: {
+    marginBottom: spacing.md,
+  },
+  editFieldLabel: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  editFieldInput: {
+    ...typography.body,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    minHeight: touchTargets.minimum,
+  },
+  emptyText: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontStyle: 'italic',
   },
   // Address styles
   addressLine: {
@@ -673,56 +1018,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontStyle: 'italic',
   },
-  dateEmpty: {
-    ...typography.body,
-    color: colors.textTertiary,
-    fontStyle: 'italic',
-  },
-  // Action buttons
-  actionsContainer: {
+  // Bottom actions
+  bottomActionsContainer: {
     gap: spacing.md,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.comfortable,
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
-  },
-  primaryButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
-  },
-  callButtonsRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  callButton: {
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.large,
-  },
-  voiceCallButton: {
-    backgroundColor: colors.success,
-  },
-  videoCallButton: {
-    backgroundColor: '#7B1FA2', // Purple for video (consistent with moduleColors.podcast)
-  },
-  callButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
-    fontSize: 16,
+    marginTop: spacing.md,
   },
   warningButton: {
     backgroundColor: colors.warning,

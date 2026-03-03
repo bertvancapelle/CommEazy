@@ -244,8 +244,11 @@
     "lastNamePlaceholder": "Entrez le nom de famille (facultatif)",
     "phoneLabel": "Numéro de téléphone",
     "phonePlaceholder": "612345678",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "nom@exemple.fr",
     "addHint": "Vous pouvez aussi scanner un code QR pour ajouter un contact",
     "save": "Enregistrer",
+    "edit": "Modifier",
     "orScanQR": "Ou scannez un code QR",
     "showMyQR": "Afficher mon QR",
     "scanTheirQR": "Scanner QR",
@@ -266,7 +269,8 @@
       "city": "Ville",
       "country": "Pays",
       "navigate": "Naviguer vers l'adresse",
-      "navigateHint": "Ouvre l'application de cartes avec l'adresse de {{name}}"
+      "navigateHint": "Ouvre l'application de cartes avec l'adresse de {{name}}",
+      "noAddress": "Aucune adresse connue"
     },
     "dates": {
       "title": "Dates importantes",

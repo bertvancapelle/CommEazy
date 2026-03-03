@@ -307,8 +307,11 @@
     "lastNamePlaceholder": "Ange efternamn (valfritt)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
+    "emailLabel": "E-postadress",
+    "emailPlaceholder": "namn@exempel.se",
     "addHint": "Du kan också skanna en QR-kod för att lägga till en kontakt",
     "save": "Spara",
+    "edit": "Redigera",
     "orScanQR": "Eller skanna en QR-kod",
     "showMyQR": "Visa min QR",
     "scanTheirQR": "Skanna QR",
@@ -327,7 +330,8 @@
       "city": "Stad",
       "country": "Land",
       "navigate": "Navigera till adressen",
-      "navigateHint": "Öppnar kartappen med adressen till {{name}}"
+      "navigateHint": "Öppnar kartappen med adressen till {{name}}",
+      "noAddress": "Ingen adress känd"
     },
     "dates": {
       "title": "Viktiga datum",

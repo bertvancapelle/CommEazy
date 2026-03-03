@@ -60,6 +60,7 @@ const BASE_MOCK_CONTACTS: Contact[] = [
     firstName: 'Janny',
     lastName: 'Jansen',
     phoneNumber: '+31612345678',
+    email: 'janny.jansen@gmail.com',
     publicKey: MOCK_PUBLIC_KEYS.oma_jansen,
     verified: true,
     lastSeen: Date.now() - 5 * 60 * 1000, // 5 minutes ago (online)
@@ -80,6 +81,7 @@ const BASE_MOCK_CONTACTS: Contact[] = [
     firstName: 'Jan',
     lastName: 'de Vries',
     phoneNumber: '+31687654321',
+    email: 'jan.devries@outlook.nl',
     publicKey: MOCK_PUBLIC_KEYS.papa,
     verified: true,
     lastSeen: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago

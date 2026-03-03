@@ -307,8 +307,11 @@
     "lastNamePlaceholder": "Indtast efternavn (valgfrit)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
+    "emailLabel": "E-mailadresse",
+    "emailPlaceholder": "navn@eksempel.dk",
     "addHint": "Du kan også scanne en QR-kode for at tilføje en kontakt",
     "save": "Gem",
+    "edit": "Rediger",
     "orScanQR": "Eller scan en QR-kode",
     "showMyQR": "Vis min QR",
     "scanTheirQR": "Scan QR",
@@ -327,7 +330,8 @@
       "city": "By",
       "country": "Land",
       "navigate": "Naviger til adressen",
-      "navigateHint": "Åbner kortappen med adressen på {{name}}"
+      "navigateHint": "Åbner kortappen med adressen på {{name}}",
+      "noAddress": "Ingen adresse kendt"
     },
     "dates": {
       "title": "Vigtige datoer",

@@ -249,8 +249,11 @@
     "lastNamePlaceholder": "Voer achternaam in (optioneel)",
     "phoneLabel": "Telefoonnummer",
     "phonePlaceholder": "612345678",
+    "emailLabel": "E-mailadres",
+    "emailPlaceholder": "naam@voorbeeld.nl",
     "addHint": "Je kunt ook een QR-code scannen om een contact toe te voegen",
     "save": "Opslaan",
+    "edit": "Bewerken",
     "orScanQR": "Of scan een QR-code",
     "showMyQR": "Toon mijn QR",
     "scanTheirQR": "Scan QR",
@@ -269,7 +272,8 @@
       "city": "Stad",
       "country": "Land",
       "navigate": "Navigeren",
-      "navigateHint": "Open de route naar {{name}} in de kaarten-app"
+      "navigateHint": "Open de route naar {{name}} in de kaarten-app",
+      "noAddress": "Geen adres bekend"
     },
     "dates": {
       "title": "Belangrijke data",

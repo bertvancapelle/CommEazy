@@ -251,8 +251,11 @@
     "lastNamePlaceholder": "Wprowadź nazwisko (opcjonalnie)",
     "phoneLabel": "Numer telefonu",
     "phonePlaceholder": "612345678",
+    "emailLabel": "Adres e-mail",
+    "emailPlaceholder": "nazwa@przyklad.pl",
     "addHint": "Możesz też zeskanować kod QR, aby dodać kontakt",
     "save": "Zapisz",
+    "edit": "Edytuj",
     "orScanQR": "Lub zeskanuj kod QR",
     "showMyQR": "Pokaż mój QR",
     "scanTheirQR": "Skanuj QR",
@@ -271,7 +274,8 @@
       "city": "Miasto",
       "country": "Kraj",
       "navigate": "Nawiguj do adresu",
-      "navigateHint": "Otwiera aplikację map z adresem {{name}}"
+      "navigateHint": "Otwiera aplikację map z adresem {{name}}",
+      "noAddress": "Brak znanego adresu"
     },
     "dates": {
       "title": "Ważne daty",
