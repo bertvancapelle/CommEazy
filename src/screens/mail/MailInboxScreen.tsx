@@ -150,8 +150,8 @@ export function MailInboxScreen({
 
       // First try to show cached data
       try {
-        const db = mailCache.getMailCacheDb();
-        const cachedHeaders = mailCache.getHeaders(db, account.id, selectedFolder, 50);
+        const db = await mailCache.getMailCacheDb();
+        const cachedHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 50);
         if (cachedHeaders.length > 0 && mountedRef.current) {
           setHeaders(cachedHeaders);
           if (!isRefresh) setIsLoading(false);
@@ -190,11 +190,11 @@ export function MailInboxScreen({
 
       // Cache the headers
       try {
-        const db = mailCache.getMailCacheDb();
-        mailCache.upsertHeaders(db, account.id, selectedFolder, serverHeaders);
+        const db = await mailCache.getMailCacheDb();
+        await mailCache.upsertHeaders(db, account.id, selectedFolder, serverHeaders);
 
         // Read back from cache (includes parsed fromName/fromAddress)
-        const cachedHeaders = mailCache.getHeaders(db, account.id, selectedFolder, 50);
+        const cachedHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 50);
         if (mountedRef.current) setHeaders(cachedHeaders);
       } catch {
         // If cache fails, use server headers directly
@@ -262,8 +262,8 @@ export function MailInboxScreen({
 
       // Update cache
       try {
-        const db = mailCache.getMailCacheDb();
-        mailCache.updateFlaggedStatus(db, account.id, header.folder, header.uid, !header.isFlagged);
+        const db = await mailCache.getMailCacheDb();
+        await mailCache.updateFlaggedStatus(db, account.id, header.folder, header.uid, !header.isFlagged);
       } catch {
         // Cache update failed — non-critical
       }

@@ -169,8 +169,8 @@ export function MailDetailScreen({
 
         // Try cache first
         try {
-          const db = mailCache.getMailCacheDb();
-          const cachedBody = mailCache.getBody(db, account.id, header.uid);
+          const db = await mailCache.getMailCacheDb();
+          const cachedBody = await mailCache.getBody(db, account.id, header.uid);
           if (cachedBody && mountedRef.current) {
             setBody({
               html: cachedBody.html,
@@ -190,8 +190,8 @@ export function MailDetailScreen({
 
           // Cache the body
           try {
-            const db = mailCache.getMailCacheDb();
-            mailCache.upsertBody(db, account.id, header.uid, serverBody.html, serverBody.plainText);
+            const db = await mailCache.getMailCacheDb();
+            await mailCache.upsertBody(db, account.id, header.uid, serverBody.html, serverBody.plainText);
           } catch {
             // Cache write failed — non-critical
           }
@@ -210,8 +210,8 @@ export function MailDetailScreen({
         try {
           if (!header.isRead) {
             await imapBridge.markAsRead(header.uid, header.folder);
-            const db = mailCache.getMailCacheDb();
-            mailCache.updateReadStatus(db, account.id, header.folder, header.uid, true);
+            const db = await mailCache.getMailCacheDb();
+            await mailCache.updateReadStatus(db, account.id, header.folder, header.uid, true);
           }
         } catch {
           console.debug('[MailDetail] Failed to mark as read');
@@ -252,8 +252,8 @@ export function MailDetailScreen({
               await imapBridge.deleteMessage(header.uid, header.folder);
 
               try {
-                const db = mailCache.getMailCacheDb();
-                mailCache.deleteHeader(db, account.id, header.folder, header.uid);
+                const db = await mailCache.getMailCacheDb();
+                await mailCache.deleteHeader(db, account.id, header.folder, header.uid);
               } catch {
                 // Cache cleanup failed — non-critical
               }

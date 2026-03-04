@@ -59,7 +59,7 @@ export async function search(
   ]);
 
   // Phase 3: Combine and deduplicate
-  return combineResults(db, accountId, folder, localUids, remoteUids);
+  return await combineResults(db, accountId, folder, localUids, remoteUids);
 }
 
 /**
@@ -72,13 +72,13 @@ export async function search(
  * @param limit - Maximum results
  * @returns Array of matching UIDs
  */
-export function searchLocal(
+export async function searchLocal(
   db: MailDatabaseConnection,
   accountId: string,
   query: string,
   limit: number = 100,
-): number[] {
-  return mailCache.searchLocal(db, accountId, query, limit);
+): Promise<number[]> {
+  return await mailCache.searchLocal(db, accountId, query, limit);
 }
 
 // ============================================================
@@ -127,13 +127,13 @@ async function searchRemote(
  * @param remoteUids - UIDs from remote IMAP search
  * @returns Merged search results
  */
-function combineResults(
+async function combineResults(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   localUids: number[],
   remoteUids: number[],
-): MailSearchResult[] {
+): Promise<MailSearchResult[]> {
   // Build a set of all unique UIDs
   const allUids = new Set<number>([...localUids, ...remoteUids]);
   const localUidSet = new Set<number>(localUids);
@@ -143,7 +143,7 @@ function combineResults(
   for (const uid of allUids) {
     if (localUidSet.has(uid)) {
       // Available locally — get cached header
-      const header = mailCache.getHeaderByUid(db, accountId, folder, uid);
+      const header = await mailCache.getHeaderByUid(db, accountId, folder, uid);
       results.push({
         uid,
         source: 'local',

@@ -4,6 +4,8 @@
  * Provides CRUD operations on the local mail SQLite database,
  * including FTS5 full-text search indexing.
  *
+ * All operations are async because op-sqlite v9+ uses async APIs.
+ *
  * @see src/models/mailDatabase.ts — Database setup
  * @see src/types/mail.ts — Type definitions
  * @see .claude/plans/MAIL_MODULE_PROMPT.md — Fase 5.5
@@ -28,6 +30,7 @@ import { parseEmailAddress } from '@/types/mail';
 // ============================================================
 
 let dbInstance: MailDatabaseConnection | null = null;
+let dbInitialized = false;
 
 /**
  * Get or create the mail cache database connection.
@@ -36,10 +39,13 @@ let dbInstance: MailDatabaseConnection | null = null;
  * @param encryptionKey - Optional SQLCipher encryption key (hex string)
  * @returns Database connection
  */
-export function getMailCacheDb(encryptionKey?: string): MailDatabaseConnection {
+export async function getMailCacheDb(encryptionKey?: string): Promise<MailDatabaseConnection> {
   if (!dbInstance) {
     dbInstance = openMailDatabase(encryptionKey);
-    initializeMailSchema(dbInstance);
+  }
+  if (!dbInitialized) {
+    await initializeMailSchema(dbInstance);
+    dbInitialized = true;
   }
   return dbInstance;
 }
@@ -52,6 +58,7 @@ export function closeMailCacheDb(): void {
   if (dbInstance) {
     dbInstance.close();
     dbInstance = null;
+    dbInitialized = false;
   }
 }
 
@@ -68,18 +75,18 @@ export function closeMailCacheDb(): void {
  * @param folder - Mailbox folder name
  * @param headers - Array of mail headers from the server
  */
-export function upsertHeaders(
+export async function upsertHeaders(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   headers: MailHeader[],
-): void {
-  db.transaction(() => {
+): Promise<void> {
+  await db.transaction(async (tx) => {
     for (const header of headers) {
       // Parse the from string into name + address
       const parsed = parseEmailAddress(header.from);
 
-      db.execute(
+      await tx.execute(
         `INSERT OR REPLACE INTO mail_headers
          (uid, account_id, folder, from_raw, from_name, from_address,
           to_addresses, subject, date_iso, has_attachment, is_read,
@@ -103,11 +110,11 @@ export function upsertHeaders(
       );
 
       // Update FTS index — delete old entry first, then insert
-      db.execute(
+      await tx.execute(
         'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
         [header.uid, accountId],
       );
-      db.execute(
+      await tx.execute(
         `INSERT INTO mail_fts (uid, account_id, subject, from_address, plain_text)
          VALUES (?, ?, ?, ?, '')`,
         [header.uid, accountId, header.subject, parsed.address],
@@ -126,14 +133,14 @@ export function upsertHeaders(
  * @param offset - Number of headers to skip (for pagination)
  * @returns Array of cached mail headers
  */
-export function getHeaders(
+export async function getHeaders(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   limit: number,
   offset: number = 0,
-): CachedMailHeader[] {
-  const rows = db.executeQuery<RawHeaderRow>(
+): Promise<CachedMailHeader[]> {
+  const rows = await db.executeQuery<RawHeaderRow>(
     `SELECT * FROM mail_headers
      WHERE account_id = ? AND folder = ?
      ORDER BY date_iso DESC
@@ -153,13 +160,13 @@ export function getHeaders(
  * @param uid - Message UID
  * @returns Cached header or null if not found
  */
-export function getHeaderByUid(
+export async function getHeaderByUid(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   uid: number,
-): CachedMailHeader | null {
-  const rows = db.executeQuery<RawHeaderRow>(
+): Promise<CachedMailHeader | null> {
+  const rows = await db.executeQuery<RawHeaderRow>(
     `SELECT * FROM mail_headers
      WHERE uid = ? AND account_id = ? AND folder = ?
      LIMIT 1`,
@@ -178,12 +185,12 @@ export function getHeaderByUid(
  * @param folder - Mailbox folder name
  * @returns Highest UID or 0 if no headers cached
  */
-export function getHighestUid(
+export async function getHighestUid(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
-): number {
-  const rows = db.executeQuery<{ max_uid: number | null }>(
+): Promise<number> {
+  const rows = await db.executeQuery<{ max_uid: number | null }>(
     `SELECT MAX(uid) as max_uid FROM mail_headers
      WHERE account_id = ? AND folder = ?`,
     [accountId, folder],
@@ -201,12 +208,12 @@ export function getHighestUid(
  * @param folder - Mailbox folder name
  * @returns Lowest UID or 0 if no headers cached
  */
-export function getLowestUid(
+export async function getLowestUid(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
-): number {
-  const rows = db.executeQuery<{ min_uid: number | null }>(
+): Promise<number> {
+  const rows = await db.executeQuery<{ min_uid: number | null }>(
     `SELECT MIN(uid) as min_uid FROM mail_headers
      WHERE account_id = ? AND folder = ?`,
     [accountId, folder],
@@ -223,12 +230,12 @@ export function getLowestUid(
  * @param folder - Mailbox folder name
  * @returns Number of cached headers
  */
-export function getHeaderCount(
+export async function getHeaderCount(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
-): number {
-  const rows = db.executeQuery<{ cnt: number }>(
+): Promise<number> {
+  const rows = await db.executeQuery<{ cnt: number }>(
     `SELECT COUNT(*) as cnt FROM mail_headers
      WHERE account_id = ? AND folder = ?`,
     [accountId, folder],
@@ -246,14 +253,14 @@ export function getHeaderCount(
  * @param uid - Message UID
  * @param isRead - New read status
  */
-export function updateReadStatus(
+export async function updateReadStatus(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   uid: number,
   isRead: boolean,
-): void {
-  db.execute(
+): Promise<void> {
+  await db.execute(
     `UPDATE mail_headers SET is_read = ?
      WHERE uid = ? AND account_id = ? AND folder = ?`,
     [isRead ? 1 : 0, uid, accountId, folder],
@@ -269,14 +276,14 @@ export function updateReadStatus(
  * @param uid - Message UID
  * @param isFlagged - New flagged status
  */
-export function updateFlaggedStatus(
+export async function updateFlaggedStatus(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   uid: number,
   isFlagged: boolean,
-): void {
-  db.execute(
+): Promise<void> {
+  await db.execute(
     `UPDATE mail_headers SET is_flagged = ?
      WHERE uid = ? AND account_id = ? AND folder = ?`,
     [isFlagged ? 1 : 0, uid, accountId, folder],
@@ -291,22 +298,22 @@ export function updateFlaggedStatus(
  * @param folder - Mailbox folder name
  * @param uid - Message UID
  */
-export function deleteHeader(
+export async function deleteHeader(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   uid: number,
-): void {
-  db.transaction(() => {
-    db.execute(
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.execute(
       'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
       [uid, accountId],
     );
-    db.execute(
+    await tx.execute(
       'DELETE FROM mail_bodies WHERE uid = ? AND account_id = ?',
       [uid, accountId],
     );
-    db.execute(
+    await tx.execute(
       'DELETE FROM mail_headers WHERE uid = ? AND account_id = ? AND folder = ?',
       [uid, accountId, folder],
     );
@@ -327,15 +334,15 @@ export function deleteHeader(
  * @param html - HTML body content
  * @param plainText - Plain text body content
  */
-export function upsertBody(
+export async function upsertBody(
   db: MailDatabaseConnection,
   accountId: string,
   uid: number,
   html?: string,
   plainText?: string,
-): void {
-  db.transaction(() => {
-    db.execute(
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.execute(
       `INSERT OR REPLACE INTO mail_bodies (uid, account_id, html, plain_text)
        VALUES (?, ?, ?, ?)`,
       [uid, accountId, html ?? null, plainText ?? null],
@@ -347,18 +354,18 @@ export function upsertBody(
       const truncatedText = plainText.substring(0, 10000);
 
       // Get existing FTS row to preserve subject/from_address
-      const existing = db.executeQuery<{ subject: string; from_address: string }>(
+      const existing = await tx.executeQuery<{ subject: string; from_address: string }>(
         'SELECT subject, from_address FROM mail_fts WHERE uid = ? AND account_id = ?',
         [uid, accountId],
       );
 
       if (existing.length > 0) {
         // Update existing FTS entry with body text
-        db.execute(
+        await tx.execute(
           'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
           [uid, accountId],
         );
-        db.execute(
+        await tx.execute(
           `INSERT INTO mail_fts (uid, account_id, subject, from_address, plain_text)
            VALUES (?, ?, ?, ?, ?)`,
           [uid, accountId, existing[0].subject, existing[0].from_address, truncatedText],
@@ -376,12 +383,12 @@ export function upsertBody(
  * @param uid - Message UID
  * @returns Cached body or null if not cached
  */
-export function getBody(
+export async function getBody(
   db: MailDatabaseConnection,
   accountId: string,
   uid: number,
-): CachedMailBody | null {
-  const rows = db.executeQuery<{
+): Promise<CachedMailBody | null> {
+  const rows = await db.executeQuery<{
     uid: number;
     account_id: string;
     html: string | null;
@@ -410,12 +417,12 @@ export function getBody(
  * @param uid - Message UID
  * @returns Whether the body is cached
  */
-export function hasBody(
+export async function hasBody(
   db: MailDatabaseConnection,
   accountId: string,
   uid: number,
-): boolean {
-  const rows = db.executeQuery<{ cnt: number }>(
+): Promise<boolean> {
+  const rows = await db.executeQuery<{ cnt: number }>(
     'SELECT COUNT(*) as cnt FROM mail_bodies WHERE uid = ? AND account_id = ?',
     [uid, accountId],
   );
@@ -436,12 +443,12 @@ export function hasBody(
  * @param limit - Maximum number of results
  * @returns Array of matching UIDs with relevance ranking
  */
-export function searchLocal(
+export async function searchLocal(
   db: MailDatabaseConnection,
   accountId: string,
   query: string,
   limit: number = 100,
-): number[] {
+): Promise<number[]> {
   if (!query.trim()) return [];
 
   // Escape the query for FTS5 (wrap each word in quotes for safety)
@@ -451,7 +458,7 @@ export function searchLocal(
     .map(word => `"${word.replace(/"/g, '')}"`)
     .join(' ');
 
-  const rows = db.executeQuery<{ uid: number }>(
+  const rows = await db.executeQuery<{ uid: number }>(
     `SELECT uid FROM mail_fts
      WHERE account_id = ? AND mail_fts MATCH ?
      ORDER BY rank
@@ -472,14 +479,14 @@ export function searchLocal(
  * @param db - Database connection
  * @param accountId - Account identifier
  */
-export function deleteAccountData(
+export async function deleteAccountData(
   db: MailDatabaseConnection,
   accountId: string,
-): void {
-  db.transaction(() => {
-    db.execute('DELETE FROM mail_fts WHERE account_id = ?', [accountId]);
-    db.execute('DELETE FROM mail_bodies WHERE account_id = ?', [accountId]);
-    db.execute('DELETE FROM mail_headers WHERE account_id = ?', [accountId]);
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.execute('DELETE FROM mail_fts WHERE account_id = ?', [accountId]);
+    await tx.execute('DELETE FROM mail_bodies WHERE account_id = ?', [accountId]);
+    await tx.execute('DELETE FROM mail_headers WHERE account_id = ?', [accountId]);
   });
 
   console.debug('[mailCache] Cleared all data for account:', accountId);
@@ -492,24 +499,24 @@ export function deleteAccountData(
  * @param accountId - Account identifier
  * @param folder - Mailbox folder name
  */
-export function deleteFolderData(
+export async function deleteFolderData(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
-): void {
-  db.transaction(() => {
+): Promise<void> {
+  await db.transaction(async (tx) => {
     // Get UIDs in this folder for FTS cleanup
-    const uids = db.executeQuery<{ uid: number }>(
+    const uids = await tx.executeQuery<{ uid: number }>(
       'SELECT uid FROM mail_headers WHERE account_id = ? AND folder = ?',
       [accountId, folder],
     );
 
     for (const { uid } of uids) {
-      db.execute('DELETE FROM mail_fts WHERE uid = ? AND account_id = ?', [uid, accountId]);
-      db.execute('DELETE FROM mail_bodies WHERE uid = ? AND account_id = ?', [uid, accountId]);
+      await tx.execute('DELETE FROM mail_fts WHERE uid = ? AND account_id = ?', [uid, accountId]);
+      await tx.execute('DELETE FROM mail_bodies WHERE uid = ? AND account_id = ?', [uid, accountId]);
     }
 
-    db.execute(
+    await tx.execute(
       'DELETE FROM mail_headers WHERE account_id = ? AND folder = ?',
       [accountId, folder],
     );

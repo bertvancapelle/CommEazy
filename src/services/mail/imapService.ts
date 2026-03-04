@@ -143,7 +143,7 @@ export async function initialSync(
     }
 
     // Store headers in cache
-    mailCache.upsertHeaders(db, accountId, folder, headers);
+    await mailCache.upsertHeaders(db, accountId, folder, headers);
 
     // Compute sync boundaries
     const highestUid = Math.max(...headers.map(h => h.uid));
@@ -198,7 +198,7 @@ export async function initialSyncForAccount(
       return;
     }
 
-    mailCache.upsertHeaders(db, accountId, folder, headers);
+    await mailCache.upsertHeaders(db, accountId, folder, headers);
 
     const highestUid = Math.max(...headers.map(h => h.uid));
     const lowestUid = Math.min(...headers.map(h => h.uid));
@@ -249,7 +249,7 @@ export async function incrementalSync(
     // No previous sync — do initial sync instead
     console.debug('[imapService] No sync state found, falling back to initial sync');
     await initialSync(config, db, accountId, folder);
-    return mailCache.getHeaderCount(db, accountId, folder);
+    return await mailCache.getHeaderCount(db, accountId, folder);
   }
 
   console.debug('[imapService] Starting incremental sync for', folder, 'from UID', syncState.highestUid);
@@ -280,7 +280,7 @@ export async function incrementalSync(
     }
 
     // Store new headers in cache
-    mailCache.upsertHeaders(db, accountId, folder, newHeaders);
+    await mailCache.upsertHeaders(db, accountId, folder, newHeaders);
 
     // Update sync state
     const newHighestUid = Math.max(
@@ -326,7 +326,7 @@ export async function incrementalSyncForAccount(
   if (!syncState) {
     console.debug('[imapService] No sync state, falling back to account-based initial sync');
     await initialSyncForAccount(db, accountId, providerId, folder);
-    return mailCache.getHeaderCount(db, accountId, folder);
+    return await mailCache.getHeaderCount(db, accountId, folder);
   }
 
   console.debug('[imapService] Starting account-based incremental sync for', folder);
@@ -347,7 +347,7 @@ export async function incrementalSyncForAccount(
       return 0;
     }
 
-    mailCache.upsertHeaders(db, accountId, folder, newHeaders);
+    await mailCache.upsertHeaders(db, accountId, folder, newHeaders);
 
     const newHighestUid = Math.max(
       syncState.highestUid,
@@ -389,7 +389,7 @@ export async function fetchBodyForAccount(
   uid: number,
 ): Promise<MailBody> {
   // Check cache first
-  const cached = mailCache.getBody(db, accountId, uid);
+  const cached = await mailCache.getBody(db, accountId, uid);
   if (cached) {
     return {
       html: cached.html,
@@ -403,7 +403,7 @@ export async function fetchBodyForAccount(
 
   try {
     const body = await imapBridge.fetchMessageBody(uid, folder);
-    mailCache.upsertBody(db, accountId, uid, body.html, body.plainText);
+    await mailCache.upsertBody(db, accountId, uid, body.html, body.plainText);
     return body;
   } finally {
     await imapBridge.disconnect();
@@ -432,9 +432,9 @@ export async function syncFlagForAccount(
 ): Promise<void> {
   // Update cache immediately (optimistic)
   if (flag === 'read') {
-    mailCache.updateReadStatus(db, accountId, folder, uid, value);
+    await mailCache.updateReadStatus(db, accountId, folder, uid, value);
   } else {
-    mailCache.updateFlaggedStatus(db, accountId, folder, uid, value);
+    await mailCache.updateFlaggedStatus(db, accountId, folder, uid, value);
   }
 
   // Sync to server with auto-refresh
@@ -477,9 +477,9 @@ export async function syncFlag(
 ): Promise<void> {
   // Update cache immediately (optimistic)
   if (flag === 'read') {
-    mailCache.updateReadStatus(db, accountId, folder, uid, value);
+    await mailCache.updateReadStatus(db, accountId, folder, uid, value);
   } else {
-    mailCache.updateFlaggedStatus(db, accountId, folder, uid, value);
+    await mailCache.updateFlaggedStatus(db, accountId, folder, uid, value);
   }
 
   // Sync to server
@@ -518,7 +518,7 @@ export async function fetchBody(
   uid: number,
 ): Promise<MailBody> {
   // Check cache first
-  const cached = mailCache.getBody(db, accountId, uid);
+  const cached = await mailCache.getBody(db, accountId, uid);
   if (cached) {
     return {
       html: cached.html,
@@ -534,7 +534,7 @@ export async function fetchBody(
     const body = await imapBridge.fetchMessageBody(uid, folder);
 
     // Cache the body
-    mailCache.upsertBody(db, accountId, uid, body.html, body.plainText);
+    await mailCache.upsertBody(db, accountId, uid, body.html, body.plainText);
 
     return body;
   } finally {
@@ -563,7 +563,7 @@ export async function deleteMessage(
   uid: number,
 ): Promise<void> {
   // Delete from cache immediately (optimistic)
-  mailCache.deleteHeader(db, accountId, folder, uid);
+  await mailCache.deleteHeader(db, accountId, folder, uid);
 
   // Delete from server
   await imapBridge.connectIMAP(config);
@@ -598,7 +598,7 @@ export async function moveMessage(
   uid: number,
 ): Promise<void> {
   // Remove from cache (source folder)
-  mailCache.deleteHeader(db, accountId, fromFolder, uid);
+  await mailCache.deleteHeader(db, accountId, fromFolder, uid);
 
   // Move on server
   await imapBridge.connectIMAP(config);
@@ -625,14 +625,14 @@ export async function moveMessage(
  * @param offset - Pagination offset
  * @returns Array of cached mail headers
  */
-export function getMessages(
+export async function getMessages(
   db: MailDatabaseConnection,
   accountId: string,
   folder: string,
   limit: number,
   offset: number = 0,
-): CachedMailHeader[] {
-  return mailCache.getHeaders(db, accountId, folder, limit, offset);
+): Promise<CachedMailHeader[]> {
+  return await mailCache.getHeaders(db, accountId, folder, limit, offset);
 }
 
 /**

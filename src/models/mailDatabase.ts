@@ -117,24 +117,34 @@ const SCHEMA_SQL = {
 
 /**
  * Minimal interface for SQLite database operations.
- * This abstracts the actual SQLite library (op-sqlite, quick-sqlite, etc.)
- * so the implementation can be swapped without changing the cache layer.
+ * All operations are async because op-sqlite v9+ uses async APIs.
  */
 export interface MailDatabaseConnection {
   /** Execute a SQL statement (no results) */
-  execute(sql: string, params?: unknown[]): void;
+  execute(sql: string, params?: unknown[]): Promise<void>;
 
   /** Execute a SQL query and return rows */
   executeQuery<T = Record<string, unknown>>(
     sql: string,
     params?: unknown[],
-  ): T[];
+  ): Promise<T[]>;
 
   /** Execute multiple statements in a transaction */
-  transaction(fn: () => void): void;
+  transaction(fn: (tx: MailDatabaseTransaction) => Promise<void>): Promise<void>;
 
   /** Close the database connection */
   close(): void;
+}
+
+/**
+ * Transaction interface for executing queries within a transaction.
+ */
+export interface MailDatabaseTransaction {
+  execute(sql: string, params?: unknown[]): Promise<void>;
+  executeQuery<T = Record<string, unknown>>(
+    sql: string,
+    params?: unknown[],
+  ): Promise<T[]>;
 }
 
 // ============================================================
@@ -170,25 +180,36 @@ export function openMailDatabase(encryptionKey?: string): MailDatabaseConnection
     encryptionKey: encryptionKey || undefined,
   });
 
-  // Enable WAL mode for better concurrent read/write performance
-  db.execute('PRAGMA journal_mode = WAL;');
-
-  // Wrapper implementing our interface
+  // Wrapper implementing our async interface
   const connection: MailDatabaseConnection = {
-    execute(sql: string, params?: unknown[]) {
-      db.execute(sql, params);
+    async execute(sql: string, params?: unknown[]) {
+      await db.execute(sql, params);
     },
 
-    executeQuery<T = Record<string, unknown>>(
+    async executeQuery<T = Record<string, unknown>>(
       sql: string,
       params?: unknown[],
-    ): T[] {
-      const result = db.execute(sql, params);
-      return (result.rows?._array ?? result.rows ?? []) as T[];
+    ): Promise<T[]> {
+      const result = await db.execute(sql, params);
+      return (result.rows ?? []) as T[];
     },
 
-    transaction(fn: () => void) {
-      db.transaction(fn);
+    async transaction(fn: (tx: MailDatabaseTransaction) => Promise<void>) {
+      await db.transaction(async (nativeTx: any) => {
+        const tx: MailDatabaseTransaction = {
+          async execute(sql: string, params?: unknown[]) {
+            await nativeTx.execute(sql, params);
+          },
+          async executeQuery<T = Record<string, unknown>>(
+            sql: string,
+            params?: unknown[],
+          ): Promise<T[]> {
+            const result = await nativeTx.execute(sql, params);
+            return (result.rows ?? []) as T[];
+          },
+        };
+        await fn(tx);
+      });
     },
 
     close() {
@@ -205,20 +226,23 @@ export function openMailDatabase(encryptionKey?: string): MailDatabaseConnection
  *
  * @param db - Database connection
  */
-export function initializeMailSchema(db: MailDatabaseConnection): void {
-  db.transaction(() => {
+export async function initializeMailSchema(db: MailDatabaseConnection): Promise<void> {
+  // Enable WAL mode for better concurrent read/write performance
+  await db.execute('PRAGMA journal_mode = WAL;');
+
+  await db.transaction(async (tx) => {
     // Create tables
-    db.execute(SCHEMA_SQL.createHeaders);
-    db.execute(SCHEMA_SQL.createBodies);
-    db.execute(SCHEMA_SQL.createFTS);
-    db.execute(SCHEMA_SQL.createMeta);
+    await tx.execute(SCHEMA_SQL.createHeaders);
+    await tx.execute(SCHEMA_SQL.createBodies);
+    await tx.execute(SCHEMA_SQL.createFTS);
+    await tx.execute(SCHEMA_SQL.createMeta);
 
     // Create indexes
-    db.execute(SCHEMA_SQL.createHeaderIndex);
-    db.execute(SCHEMA_SQL.createHeaderUidIndex);
+    await tx.execute(SCHEMA_SQL.createHeaderIndex);
+    await tx.execute(SCHEMA_SQL.createHeaderUidIndex);
 
     // Set schema version
-    db.execute(
+    await tx.execute(
       'INSERT OR REPLACE INTO mail_meta (key, value) VALUES (?, ?)',
       ['schema_version', String(MAIL_DB_VERSION)],
     );
@@ -232,12 +256,12 @@ export function initializeMailSchema(db: MailDatabaseConnection): void {
  *
  * @param db - Database connection
  */
-export function clearMailDatabase(db: MailDatabaseConnection): void {
-  db.transaction(() => {
-    db.execute('DELETE FROM mail_fts');
-    db.execute('DELETE FROM mail_bodies');
-    db.execute('DELETE FROM mail_headers');
-    db.execute('DELETE FROM mail_meta WHERE key != ?', ['schema_version']);
+export async function clearMailDatabase(db: MailDatabaseConnection): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.execute('DELETE FROM mail_fts');
+    await tx.execute('DELETE FROM mail_bodies');
+    await tx.execute('DELETE FROM mail_headers');
+    await tx.execute('DELETE FROM mail_meta WHERE key != ?', ['schema_version']);
   });
 
   console.debug('[mailDatabase] Mail cache cleared');

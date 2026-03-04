@@ -114,9 +114,9 @@ PODS:
     - nanopb/encode (= 2.30910.0)
   - nanopb/decode (2.30910.0)
   - nanopb/encode (2.30910.0)
-  - op-sqlite (15.2.5):
-    - glog
-    - RCT-Folly (= 2022.05.16.00)
+  - op-sqlite (9.3.0):
+    - React
+    - React-callinvoker
     - React-Core
   - PromisesObjC (2.4.0)
   - RCT-Folly (2022.05.16.00):
@@ -1581,7 +1581,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
-  op-sqlite: fd1ce7b3ec40494081f3ad23d5157eae06cb7aaf
+  op-sqlite: f9a1ecbc3d66104a620e0ae355b7b221fbd55a1b
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: cd21f1661364f975ae76b3308167ad66b09f53f5
   RCTRequired: ca1d7414aba0b27efcfa2ccd37637edb1ab77d96
