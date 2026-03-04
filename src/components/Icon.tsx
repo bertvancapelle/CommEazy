@@ -111,7 +111,8 @@ export type IconName =
   | 'contract'
   | 'airplay'
   | 'pencil'
-  | 'navigate';
+  | 'navigate'
+  | 'mail';
 
 interface IconProps {
   name: IconName;
@@ -1916,6 +1917,27 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
         <Svg {...iconProps}>
           <Path
             d="M3 11L22 2L13 21L11 13L3 11Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'mail':
+      // Envelope icon for e-mail module
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M22 6L12 13L2 6"
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"

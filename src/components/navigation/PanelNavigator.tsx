@@ -76,6 +76,9 @@ import {
   AskAIScreen,
 } from '@/screens/modules';
 
+// Mail screens
+import { MailScreen } from '@/screens/mail/MailScreen';
+
 // Components
 import { MenuModule } from '@/components/modules/MenuModule';
 import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
@@ -422,6 +425,8 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <PhotoAlbumScreen />;
     case 'askAI':
       return <AskAIScreen />;
+    case 'mail':
+      return <MailScreen />;
     case 'help':
       return <PlaceholderScreen />;
 

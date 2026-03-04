@@ -28,3 +28,6 @@ export { PhotoAlbumScreen } from './PhotoAlbumScreen';
 
 // AI modules
 export { AskAIScreen } from './AskAIScreen';
+
+// Communication modules
+export { MailScreen } from '../mail/MailScreen';

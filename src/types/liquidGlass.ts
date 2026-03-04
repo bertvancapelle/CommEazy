@@ -102,6 +102,7 @@ export type ModuleColorId =
   | 'camera'       // Camera module (photo/video capture)
   | 'photoAlbum'   // Photo Album (view, send, delete photos)
   | 'askAI'        // Ask AI assistant module
+  | 'mail'         // E-mail module
   | 'help'
   | 'menu';
 
@@ -250,6 +251,12 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   },
   askAI: {
     moduleId: 'askAI',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  mail: {
+    moduleId: 'mail',
     tintColor: DEFAULT_MODULE_BLUE,
     fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
