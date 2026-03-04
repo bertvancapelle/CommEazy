@@ -94,9 +94,8 @@ export function MailScreen() {
   // Handle onboarding close/skip — user wants to exit wizard
   const handleOnboardingClose = useCallback(() => {
     setShowOnboarding(false);
-    // Don't mark as complete — user can re-enter later
-    // Reset welcome shown so next visit shows welcome modal again
-    AsyncStorage.removeItem(MAIL_WELCOME_SHOWN_KEY).catch(console.error);
+    // Keep mail_welcome_shown=true so the welcome modal doesn't reappear.
+    // User can restart setup from the "not configured" placeholder button.
   }, []);
 
   // Handle add another account — restart wizard

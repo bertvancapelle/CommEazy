@@ -35,6 +35,8 @@ const WELCOME_SHOWN_KEY = '@commeazy/mail_welcome_shown';
 // ============================================================
 
 export interface MailWelcomeModalProps {
+  /** Whether the modal is visible */
+  visible: boolean;
   /** Called when modal is dismissed */
   onDismiss: () => void;
 }
@@ -116,7 +118,7 @@ const WELCOME_STEPS: WelcomeStep[] = [
 // Component
 // ============================================================
 
-export function MailWelcomeModal({ onDismiss }: MailWelcomeModalProps) {
+export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
@@ -128,7 +130,7 @@ export function MailWelcomeModal({ onDismiss }: MailWelcomeModalProps) {
 
   return (
     <Modal
-      visible
+      visible={visible}
       transparent
       animationType="fade"
       onRequestClose={handleDismiss}
