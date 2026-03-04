@@ -74,6 +74,11 @@ RCT_EXTERN_METHOD(searchMessages:(NSString *)folderName
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(fetchHeadersByUIDs:(NSString *)folderName
+                  uids:(NSArray *)uids
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 // ============================================================
 // MARK: - IMAP: Flag Operations
 // ============================================================

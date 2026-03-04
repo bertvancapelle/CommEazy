@@ -32,8 +32,9 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { Icon } from '@/components';
+import { Icon, SearchBar } from '@/components';
 import type { CachedMailHeader, MailAccount, MailboxInfo } from '@/types/mail';
+import { parseEmailAddress } from '@/types/mail';
 import { MailListItem } from './MailListItem';
 
 // ============================================================
@@ -101,6 +102,15 @@ function getFolderDisplayName(
 }
 
 // ============================================================
+// Module-Level State (persists across unmount/remount)
+// ============================================================
+
+/** Timestamp of last successful IMAP fetch — prevents re-fetch on quick return from detail */
+let lastImapFetchTimestamp = 0;
+/** Minimum interval (ms) between automatic IMAP reconnects */
+const IMAP_REFETCH_INTERVAL_MS = 60_000; // 60 seconds
+
+// ============================================================
 // Component
 // ============================================================
 
@@ -123,7 +133,14 @@ export function MailInboxScreen({
   const [error, setError] = useState<string | null>(null);
   const [showFolders, setShowFolders] = useState(false);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<CachedMailHeader[] | null>(null);
+
   const mountedRef = useRef(true);
+  const loadDataRef = useRef<(isRefresh?: boolean) => Promise<void>>();
+  const foldersLoadedRef = useRef(false);
 
   useEffect(() => {
     // Clear unread mail badge when inbox is viewed
@@ -142,80 +159,150 @@ export function MailInboxScreen({
   /**
    * Load folders and headers.
    * Uses cached data first, then fetches from server.
+   * Server data ALWAYS replaces cached data when available.
    */
   const loadData = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setIsLoading(true);
     setError(null);
 
+    let hasCachedData = false;
+
+    const timeSinceLastFetch = Date.now() - lastImapFetchTimestamp;
+    const skipImapFetch = !isRefresh && timeSinceLastFetch < IMAP_REFETCH_INTERVAL_MS;
+    console.debug('[MailInbox] loadData called — isRefresh:', isRefresh, 'accountId:', account.id, 'folder:', selectedFolder, 'skipImap:', skipImapFetch, 'msSinceLastFetch:', timeSinceLastFetch);
+
     try {
       // Try to connect and fetch data
       const imapBridge = await import('@/services/mail/imapBridge');
-      const credentialManager = await import('@/services/mail/credentialManager');
       const mailCache = await import('@/services/mail/mailCache');
 
-      // First try to show cached data
+      // First try to show cached data (instant display while server loads)
       try {
         const db = await mailCache.getMailCacheDb();
         const cachedHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 50);
+        console.debug('[MailInbox] Cache has', cachedHeaders.length, 'headers');
         if (cachedHeaders.length > 0 && mountedRef.current) {
           setHeaders(cachedHeaders);
+          hasCachedData = true;
           if (!isRefresh) setIsLoading(false);
         }
-      } catch {
-        // Cache not available yet — continue to fetch from server
+      } catch (cacheErr) {
+        console.debug('[MailInbox] Cache read failed:', cacheErr instanceof Error ? cacheErr.message : String(cacheErr));
       }
 
-      // Connect to IMAP
+      // Skip full IMAP reconnect if we fetched recently (e.g. returning from detail screen)
+      if (skipImapFetch && hasCachedData) {
+        console.debug('[MailInbox] Skipping IMAP fetch — using cached data');
+        return;
+      }
+
+      // Connect to IMAP (disconnect first to ensure fresh connection)
       try {
+        console.debug('[MailInbox] Disconnecting before reconnect...');
+        await imapBridge.disconnect().catch(() => {});
+        console.debug('[MailInbox] Connecting to IMAP...');
         await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
-      } catch {
+        console.debug('[MailInbox] IMAP connected successfully');
+      } catch (connectErr) {
+        const connectMsg = connectErr instanceof Error ? connectErr.message : String(connectErr);
+        console.debug('[MailInbox] Connection failed:', connectMsg);
         // If connection fails, show cached data if available
-        if (headers.length > 0) {
+        if (hasCachedData) {
           if (mountedRef.current) {
             setError(t('modules.mail.inbox.offlineMode'));
             setIsLoading(false);
           }
           return;
         }
-        throw new Error(t('modules.mail.inbox.connectionFailed'));
+        // Re-throw the original native error (preserves error code)
+        throw connectErr;
       }
 
       // Fetch folders (only on first load)
-      if (folders.length === 0) {
+      if (!foldersLoadedRef.current) {
         try {
           const serverFolders = await imapBridge.listMailboxes();
-          if (mountedRef.current) setFolders(serverFolders);
+          if (mountedRef.current) {
+            setFolders(serverFolders);
+            foldersLoadedRef.current = true;
+          }
         } catch {
           console.debug('[MailInbox] Failed to list mailboxes');
         }
       }
 
-      // Fetch headers from server
-      const serverHeaders = await imapBridge.fetchHeaders(selectedFolder, 50);
+      // Fetch headers from server (with one retry on connection error)
+      console.debug('[MailInbox] Fetching headers from', selectedFolder);
+      let serverHeaders: Awaited<ReturnType<typeof imapBridge.fetchHeaders>>;
+      try {
+        serverHeaders = await imapBridge.fetchHeaders(selectedFolder, 50);
+      } catch (fetchErr) {
+        // If fetch fails, try reconnecting once and retry
+        const code = imapBridge.getMailErrorCode(fetchErr);
+        console.debug('[MailInbox] fetchHeaders failed with code:', code, '— retrying with fresh connection');
+        await imapBridge.disconnect().catch(() => {});
+        await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
+        serverHeaders = await imapBridge.fetchHeaders(selectedFolder, 50);
+      }
+      console.debug('[MailInbox] Got', serverHeaders.length, 'headers from server');
+      lastImapFetchTimestamp = Date.now();
 
-      // Cache the headers
+      // Cache the headers and display fresh data
+      // Clear old cached headers first so stale entries don't persist
+      console.debug('[MailInbox] Updating cache with', serverHeaders.length, 'fresh headers');
       try {
         const db = await mailCache.getMailCacheDb();
+        await db.execute(
+          'DELETE FROM mail_headers WHERE account_id = ? AND folder = ?',
+          [account.id, selectedFolder],
+        );
         await mailCache.upsertHeaders(db, account.id, selectedFolder, serverHeaders);
 
         // Read back from cache (includes parsed fromName/fromAddress)
-        const cachedHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 50);
-        if (mountedRef.current) setHeaders(cachedHeaders);
-      } catch {
-        // If cache fails, use server headers directly
+        const freshHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 50);
+        console.debug('[MailInbox] Fresh headers from cache:', freshHeaders.length, '— newest subject:', freshHeaders[0]?.subject ?? 'none');
+        if (mountedRef.current) setHeaders(freshHeaders);
+      } catch (cacheUpdateErr) {
+        console.debug('[MailInbox] Cache update failed:', cacheUpdateErr instanceof Error ? cacheUpdateErr.message : String(cacheUpdateErr));
+        // If cache fails, use server headers directly with parsed from fields
         if (mountedRef.current) {
-          setHeaders(serverHeaders.map(h => ({
-            ...h,
-            accountId: account.id,
-            folder: selectedFolder,
-            isLocal: false,
-          })));
+          const { parseEmailAddress } = await import('@/types/mail');
+          setHeaders(serverHeaders.map(h => {
+            const parsed = parseEmailAddress(h.from ?? '');
+            return {
+              ...h,
+              accountId: account.id,
+              folder: selectedFolder,
+              fromName: parsed.name ?? undefined,
+              fromAddress: parsed.address ?? undefined,
+              isLocal: false,
+            };
+          }));
         }
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
+      // Map native error codes to translated messages
+      const rawMessage = err instanceof Error ? err.message : String(err);
+      console.debug('[MailInbox] Error:', rawMessage);
+
+      let errorCode = 'UNKNOWN_ERROR';
+      try {
+        const bridge = await import('@/services/mail/imapBridge');
+        errorCode = bridge.getMailErrorCode(err);
+      } catch { /* bridge not available */ }
+
+      // Translate error code to user-friendly message
+      const errorMessages: Record<string, string> = {
+        AUTH_FAILED: t('modules.mail.inbox.errors.authFailed'),
+        CONNECTION_FAILED: t('modules.mail.inbox.errors.connectionFailed'),
+        TIMEOUT: t('modules.mail.inbox.errors.timeout'),
+        NOT_CONNECTED: t('modules.mail.inbox.errors.notConnected'),
+        CERTIFICATE_ERROR: t('modules.mail.inbox.errors.certificateError'),
+      };
+      const translatedError = errorMessages[errorCode] || t('modules.mail.inbox.errors.generic');
+
       if (mountedRef.current) {
-        setError(message);
+        setError(translatedError);
       }
     } finally {
       if (mountedRef.current) {
@@ -223,19 +310,23 @@ export function MailInboxScreen({
         setIsRefreshing(false);
       }
     }
-  }, [account.id, account.providerId, selectedFolder, folders.length, t, headers.length]);
+  }, [account.id, account.providerId, selectedFolder, t]);
+
+  // Keep ref in sync so handleRefresh always uses latest loadData
+  loadDataRef.current = loadData;
 
   // Load data on mount and folder change
   useEffect(() => {
     loadData();
-  }, [selectedFolder]);
+  }, [loadData]);
 
-  // Pull-to-refresh
+  // Pull-to-refresh — use ref to avoid stale closure
   const handleRefresh = useCallback(() => {
     triggerHaptic();
     setIsRefreshing(true);
-    loadData(true);
-  }, [loadData]);
+    console.debug('[MailInbox] Pull-to-refresh triggered');
+    loadDataRef.current?.(true);
+  }, []);
 
   // ============================================================
   // Folder Selection
@@ -283,6 +374,91 @@ export function MailInboxScreen({
       console.debug('[MailInbox] Failed to toggle flag');
     }
   }, [account.id]);
+
+  // ============================================================
+  // Search
+  // ============================================================
+
+  /**
+   * Server-side IMAP search (OR-query: subject, from, body).
+   * Returns UIDs from the server, then fetches headers for those UIDs.
+   */
+  const handleSearch = useCallback(async () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    triggerHaptic();
+    setIsSearching(true);
+    setSearchResults(null);
+    setError(null);
+
+    try {
+      const imapBridge = await import('@/services/mail/imapBridge');
+
+      // Ensure IMAP is connected
+      try {
+        await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
+      } catch {
+        // If connection fails, try disconnect + reconnect
+        await imapBridge.disconnect().catch(() => {});
+        await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
+      }
+
+      // Step 1: Search server for matching UIDs (OR-query: subject, from, body)
+      console.debug('[MailInbox] Searching server for:', query.length, 'chars');
+      const uids = await imapBridge.searchMessages(selectedFolder, query);
+      console.debug('[MailInbox] Search returned', uids.length, 'UIDs');
+
+      if (!mountedRef.current) return;
+
+      if (uids.length === 0) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      // Step 2: Fetch headers for the found UIDs
+      const rawHeaders = await imapBridge.fetchHeadersByUIDs(selectedFolder, uids);
+      console.debug('[MailInbox] Fetched', rawHeaders.length, 'headers for search results');
+
+      if (!mountedRef.current) return;
+
+      // Map to CachedMailHeader format
+      const mapped: CachedMailHeader[] = rawHeaders.map(h => {
+        const parsed = parseEmailAddress(h.from ?? '');
+        return {
+          ...h,
+          accountId: account.id,
+          folder: selectedFolder,
+          fromName: parsed.name ?? undefined,
+          fromAddress: parsed.address ?? undefined,
+          isLocal: false,
+        };
+      });
+
+      // Sort by date descending (newest first)
+      mapped.sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      setSearchResults(mapped);
+    } catch (err) {
+      console.debug('[MailInbox] Search failed:', err instanceof Error ? err.message : String(err));
+      setError(t('modules.mail.inbox.search.error'));
+    } finally {
+      if (mountedRef.current) {
+        setIsSearching(false);
+      }
+    }
+  }, [searchQuery, selectedFolder, account.id, account.providerId, t]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setSearchResults(null);
+    setIsSearching(false);
+  }, []);
 
   // ============================================================
   // Render
@@ -374,6 +550,46 @@ export function MailInboxScreen({
         </View>
       )}
 
+      {/* Search bar */}
+      <View style={[styles.searchContainer, { borderBottomColor: themeColors.border }]}>
+        <SearchBar
+          value={searchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            // Clear results when query is emptied
+            if (!text.trim()) {
+              setSearchResults(null);
+            }
+          }}
+          onSubmit={handleSearch}
+          placeholder={t('modules.mail.inbox.search.placeholder')}
+          searchButtonLabel={t('modules.mail.inbox.search.button')}
+        />
+      </View>
+
+      {/* Search results header */}
+      {searchResults !== null && (
+        <View style={[styles.searchResultsBar, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.searchResultsText, { color: themeColors.textSecondary }]}>
+            {searchResults.length === 0
+              ? t('modules.mail.inbox.search.noResults')
+              : t('modules.mail.inbox.search.resultsCount', { count: String(searchResults.length) })}
+          </Text>
+          <TouchableOpacity
+            onPress={handleClearSearch}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.inbox.search.clear')}
+          >
+            <Text style={[styles.searchClearButton, { color: accentColor.primary }]}>
+              {t('modules.mail.inbox.search.clear')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Error banner */}
       {error && (
         <View style={[styles.errorBanner, { backgroundColor: themeColors.surface }]}>
@@ -397,13 +613,47 @@ export function MailInboxScreen({
       )}
 
       {/* Mail list */}
-      {isLoading ? (
+      {isSearching ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={accentColor.primary} />
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
+            {t('modules.mail.inbox.search.searching')}
+          </Text>
+        </View>
+      ) : isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor.primary} />
           <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
             {t('modules.mail.inbox.loading')}
           </Text>
         </View>
+      ) : searchResults !== null ? (
+        // Show search results
+        searchResults.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Icon name="search" size={48} color={themeColors.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.mail.inbox.search.noResults')}
+            </Text>
+            <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>
+              {t('modules.mail.inbox.search.noResultsHint')}
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {searchResults.map((header) => (
+              <MailListItem
+                key={`search-${header.uid}-${header.folder}`}
+                header={header}
+                onPress={onOpenMail}
+                onToggleFlag={handleToggleFlag}
+              />
+            ))}
+          </ScrollView>
+        )
       ) : headers.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Icon name="mail" size={48} color={themeColors.textSecondary} />
@@ -508,6 +758,26 @@ const styles = StyleSheet.create({
   folderDropdownText: {
     ...typography.body,
     flex: 1,
+  },
+  searchContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  searchResultsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  searchResultsText: {
+    ...typography.small,
+    flex: 1,
+  },
+  searchClearButton: {
+    ...typography.body,
+    fontWeight: '600',
   },
   errorBanner: {
     flexDirection: 'row',

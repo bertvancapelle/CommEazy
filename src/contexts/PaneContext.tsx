@@ -31,7 +31,6 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { NavigationDestination } from '@/types/navigation';
-import { glassPlayer } from '@/services/glassPlayer';
 
 // ============================================================
 // Constants
@@ -246,7 +245,11 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
         // iPhone: auto-hide Glass Player mini player when switching to a different module.
         // Audio keeps playing; user taps the active item in the list to restore.
         if (Platform.OS === 'ios' && moduleId !== mainModuleRef.current) {
-          glassPlayer.setTemporarilyHidden(true);
+          import('@/services/glassPlayer').then(({ glassPlayer: gp }) => {
+            gp.setTemporarilyHidden(true);
+          }).catch(() => {
+            console.debug('[PaneContext] glassPlayer not available');
+          });
         }
         mainModuleRef.current = moduleId;
 

@@ -17,6 +17,7 @@ import type {
 import {
   openMailDatabase,
   initializeMailSchema,
+  isFts5Available,
 } from '@/models/mailDatabase';
 import type {
   MailHeader,
@@ -84,7 +85,13 @@ export async function upsertHeaders(
   await db.transaction(async (tx) => {
     for (const header of headers) {
       // Parse the from string into name + address
-      const parsed = parseEmailAddress(header.from);
+      // Sanitize all values: op-sqlite rejects `undefined`, must be `null` or a concrete value
+      const fromStr = header.from ?? '';
+      const parsed = parseEmailAddress(fromStr);
+      const subjectStr = header.subject ?? '';
+      const dateStr = header.date ?? '';
+      const toStr = JSON.stringify(header.to ?? []);
+      const seqNum = header.sequenceNumber ?? 0;
 
       await tx.execute(
         `INSERT OR REPLACE INTO mail_headers
@@ -96,29 +103,31 @@ export async function upsertHeaders(
           header.uid,
           accountId,
           folder,
-          header.from,
+          fromStr,
           parsed.name ?? null,
-          parsed.address,
-          JSON.stringify(header.to),
-          header.subject,
-          header.date,
+          parsed.address ?? null,
+          toStr,
+          subjectStr,
+          dateStr,
           header.hasAttachment ? 1 : 0,
           header.isRead ? 1 : 0,
           header.isFlagged ? 1 : 0,
-          header.sequenceNumber,
+          seqNum,
         ],
       );
 
-      // Update FTS index — delete old entry first, then insert
-      await tx.execute(
-        'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
-        [header.uid, accountId],
-      );
-      await tx.execute(
-        `INSERT INTO mail_fts (uid, account_id, subject, from_address, plain_text)
-         VALUES (?, ?, ?, ?, '')`,
-        [header.uid, accountId, header.subject, parsed.address],
-      );
+      // Update FTS index (only if FTS5 is available)
+      if (isFts5Available()) {
+        await tx.execute(
+          'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
+          [header.uid, accountId],
+        );
+        await tx.execute(
+          `INSERT INTO mail_fts (uid, account_id, subject, from_address, plain_text)
+           VALUES (?, ?, ?, ?, '')`,
+          [header.uid, accountId, subjectStr, parsed.address ?? ''],
+        );
+      }
     }
   });
 }
@@ -305,10 +314,12 @@ export async function deleteHeader(
   uid: number,
 ): Promise<void> {
   await db.transaction(async (tx) => {
-    await tx.execute(
-      'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
-      [uid, accountId],
-    );
+    if (isFts5Available()) {
+      await tx.execute(
+        'DELETE FROM mail_fts WHERE uid = ? AND account_id = ?',
+        [uid, accountId],
+      );
+    }
     await tx.execute(
       'DELETE FROM mail_bodies WHERE uid = ? AND account_id = ?',
       [uid, accountId],
@@ -348,8 +359,8 @@ export async function upsertBody(
       [uid, accountId, html ?? null, plainText ?? null],
     );
 
-    // Update FTS index with body text (if available)
-    if (plainText) {
+    // Update FTS index with body text (only if FTS5 is available)
+    if (plainText && isFts5Available()) {
       // Truncate plain text for FTS to avoid huge index entries
       const truncatedText = plainText.substring(0, 10000);
 
@@ -451,6 +462,19 @@ export async function searchLocal(
 ): Promise<number[]> {
   if (!query.trim()) return [];
 
+  // FTS5 not available — fall back to LIKE search on headers
+  if (!isFts5Available()) {
+    const likeQuery = `%${query.trim()}%`;
+    const rows = await db.executeQuery<{ uid: number }>(
+      `SELECT uid FROM mail_headers
+       WHERE account_id = ? AND (subject LIKE ? OR from_raw LIKE ?)
+       ORDER BY date_iso DESC
+       LIMIT ?`,
+      [accountId, likeQuery, likeQuery, limit],
+    );
+    return rows.map(r => r.uid);
+  }
+
   // Escape the query for FTS5 (wrap each word in quotes for safety)
   const sanitized = query
     .trim()
@@ -484,7 +508,9 @@ export async function deleteAccountData(
   accountId: string,
 ): Promise<void> {
   await db.transaction(async (tx) => {
-    await tx.execute('DELETE FROM mail_fts WHERE account_id = ?', [accountId]);
+    if (isFts5Available()) {
+      await tx.execute('DELETE FROM mail_fts WHERE account_id = ?', [accountId]);
+    }
     await tx.execute('DELETE FROM mail_bodies WHERE account_id = ?', [accountId]);
     await tx.execute('DELETE FROM mail_headers WHERE account_id = ?', [accountId]);
   });
@@ -505,14 +531,16 @@ export async function deleteFolderData(
   folder: string,
 ): Promise<void> {
   await db.transaction(async (tx) => {
-    // Get UIDs in this folder for FTS cleanup
+    // Get UIDs in this folder for FTS + body cleanup
     const uids = await tx.executeQuery<{ uid: number }>(
       'SELECT uid FROM mail_headers WHERE account_id = ? AND folder = ?',
       [accountId, folder],
     );
 
     for (const { uid } of uids) {
-      await tx.execute('DELETE FROM mail_fts WHERE uid = ? AND account_id = ?', [uid, accountId]);
+      if (isFts5Available()) {
+        await tx.execute('DELETE FROM mail_fts WHERE uid = ? AND account_id = ?', [uid, accountId]);
+      }
       await tx.execute('DELETE FROM mail_bodies WHERE uid = ? AND account_id = ?', [uid, accountId]);
     }
 

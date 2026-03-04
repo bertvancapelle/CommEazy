@@ -671,7 +671,8 @@
     "favorites": "Favorieten",
     "search": "Zoeken",
     "items": "items",
-    "toggleFavorite": "Favoriet aan/uit voor {{name}}"
+    "toggleFavorite": "Favoriet aan/uit voor {{name}}",
+    "dismiss": "Sluiten"
   },
   "validation": {
     "profileIncomplete": "Vul alle velden in",
@@ -1755,6 +1756,24 @@
           "junk": "Ongewenst",
           "archive": "Archief",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Inloggen mislukt. Controleer je inloggegevens.",
+          "connectionFailed": "Kan geen verbinding maken met de mailserver.",
+          "timeout": "Verbinding duurt te lang. Controleer je internet.",
+          "notConnected": "Niet verbonden. Trek omlaag om opnieuw te proberen.",
+          "certificateError": "Beveiligingsprobleem met de mailserver.",
+          "generic": "Er ging iets mis. Trek omlaag om opnieuw te proberen."
+        },
+        "search": {
+          "placeholder": "Zoek in alle berichten...",
+          "button": "Zoeken",
+          "searching": "Zoeken op de server...",
+          "noResults": "Geen resultaten",
+          "noResultsHint": "Probeer andere zoektermen.",
+          "resultsCount": "{{count}} resultaten gevonden",
+          "clear": "Wissen",
+          "error": "Zoeken mislukt. Probeer het opnieuw."
         }
       },
       "detail": {
@@ -1816,7 +1835,9 @@
         "totalSizeWarning": "Bijlagen zijn bijna te groot voor e-mail",
         "removeAttachment": "Bijlage {{name}} verwijderen",
         "removeRecipient": "Ontvanger verwijderen",
-        "attachPhoto": "Foto bijvoegen"
+        "attachPhoto": "Foto bijvoegen",
+        "photoAccessUnavailable": "Foto's niet beschikbaar",
+        "photoAccessHint": "De fotobibliotheek is momenteel niet beschikbaar."
       }
     },
     "askAI": {

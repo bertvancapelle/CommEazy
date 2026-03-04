@@ -757,7 +757,8 @@
     "favorites": "Favoritter",
     "search": "Søk",
     "items": "elementer",
-    "toggleFavorite": "Slå favoritt av/på for {{name}}"
+    "toggleFavorite": "Slå favoritt av/på for {{name}}",
+    "dismiss": "Lukk"
   },
   "validation": {
     "profileIncomplete": "Fyll ut alle felt",
@@ -1619,6 +1620,24 @@
           "junk": "Uønsket",
           "archive": "Arkiv",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Innlogging mislyktes. Sjekk påloggingsinformasjonen din.",
+          "connectionFailed": "Kan ikke koble til e-postserveren.",
+          "timeout": "Tilkoblingen tok for lang tid. Sjekk internettforbindelsen.",
+          "notConnected": "Ikke tilkoblet. Dra ned for å prøve igjen.",
+          "certificateError": "Sikkerhetsproblem med e-postserveren.",
+          "generic": "Noe gikk galt. Dra ned for å prøve igjen."
+        },
+        "search": {
+          "placeholder": "Søk i alle meldinger...",
+          "button": "Søk",
+          "searching": "Søker på serveren...",
+          "noResults": "Ingen resultater",
+          "noResultsHint": "Prøv andre søkeord.",
+          "resultsCount": "{{count}} resultater funnet",
+          "clear": "Tøm",
+          "error": "Søket mislyktes. Prøv igjen."
         }
       },
       "detail": {
@@ -1680,7 +1699,9 @@
         "totalSizeWarning": "Vedleggene er nesten for store for e-post",
         "removeAttachment": "Fjern vedlegg {{name}}",
         "removeRecipient": "Fjern mottaker",
-        "attachPhoto": "Legg ved bilde"
+        "attachPhoto": "Legg ved bilde",
+        "photoAccessUnavailable": "Bilder ikke tilgjengelig",
+        "photoAccessHint": "Fotobiblioteket er for øyeblikket ikke tilgjengelig."
       }
     },
     "askAI": {

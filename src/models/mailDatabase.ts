@@ -23,6 +23,17 @@
 const MAIL_DB_VERSION = 1;
 const MAIL_DB_NAME = 'mail_cache';
 
+/** Whether FTS5 is available in the current SQLite build */
+let _fts5Available = false;
+
+/**
+ * Check if FTS5 full-text search is available.
+ * Returns false if op-sqlite was not compiled with FTS5 support.
+ */
+export function isFts5Available(): boolean {
+  return _fts5Available;
+}
+
 // ============================================================
 // Schema SQL
 // ============================================================
@@ -175,22 +186,29 @@ export function openMailDatabase(encryptionKey?: string): MailDatabaseConnection
   const { open } = opSqlite;
 
   // Open database with optional encryption
-  const db = open({
-    name: MAIL_DB_NAME,
-    encryptionKey: encryptionKey || undefined,
-  });
+  const openOptions: Record<string, string> = { name: MAIL_DB_NAME };
+  if (encryptionKey) {
+    openOptions.encryptionKey = encryptionKey;
+  }
+  const db = open(openOptions);
+
+  // Sanitize bind parameters: op-sqlite rejects `undefined`, convert to `null`
+  function sanitizeParams(params?: unknown[]): unknown[] | undefined {
+    if (!params) return params;
+    return params.map(p => (p === undefined ? null : p));
+  }
 
   // Wrapper implementing our async interface
   const connection: MailDatabaseConnection = {
     async execute(sql: string, params?: unknown[]) {
-      await db.execute(sql, params);
+      await db.execute(sql, sanitizeParams(params));
     },
 
     async executeQuery<T = Record<string, unknown>>(
       sql: string,
       params?: unknown[],
     ): Promise<T[]> {
-      const result = await db.execute(sql, params);
+      const result = await db.execute(sql, sanitizeParams(params));
       return (result.rows ?? []) as T[];
     },
 
@@ -198,13 +216,13 @@ export function openMailDatabase(encryptionKey?: string): MailDatabaseConnection
       await db.transaction(async (nativeTx: any) => {
         const tx: MailDatabaseTransaction = {
           async execute(sql: string, params?: unknown[]) {
-            await nativeTx.execute(sql, params);
+            await nativeTx.execute(sql, sanitizeParams(params));
           },
           async executeQuery<T = Record<string, unknown>>(
             sql: string,
             params?: unknown[],
           ): Promise<T[]> {
-            const result = await nativeTx.execute(sql, params);
+            const result = await nativeTx.execute(sql, sanitizeParams(params));
             return (result.rows ?? []) as T[];
           },
         };
@@ -230,11 +248,10 @@ export async function initializeMailSchema(db: MailDatabaseConnection): Promise<
   // Enable WAL mode for better concurrent read/write performance
   await db.execute('PRAGMA journal_mode = WAL;');
 
+  // Core tables — these MUST succeed
   await db.transaction(async (tx) => {
-    // Create tables
     await tx.execute(SCHEMA_SQL.createHeaders);
     await tx.execute(SCHEMA_SQL.createBodies);
-    await tx.execute(SCHEMA_SQL.createFTS);
     await tx.execute(SCHEMA_SQL.createMeta);
 
     // Create indexes
@@ -248,6 +265,17 @@ export async function initializeMailSchema(db: MailDatabaseConnection): Promise<
     );
   });
 
+  // FTS5 — optional, may not be compiled into op-sqlite
+  try {
+    await db.execute(SCHEMA_SQL.createFTS);
+    _fts5Available = true;
+    console.debug('[mailDatabase] FTS5 search available');
+  } catch (ftsErr) {
+    _fts5Available = false;
+    console.debug('[mailDatabase] FTS5 not available (search disabled) —',
+      ftsErr instanceof Error ? ftsErr.message : String(ftsErr));
+  }
+
   console.debug('[mailDatabase] Schema initialized (version ' + MAIL_DB_VERSION + ')');
 }
 
@@ -258,7 +286,9 @@ export async function initializeMailSchema(db: MailDatabaseConnection): Promise<
  */
 export async function clearMailDatabase(db: MailDatabaseConnection): Promise<void> {
   await db.transaction(async (tx) => {
-    await tx.execute('DELETE FROM mail_fts');
+    if (_fts5Available) {
+      await tx.execute('DELETE FROM mail_fts');
+    }
     await tx.execute('DELETE FROM mail_bodies');
     await tx.execute('DELETE FROM mail_headers');
     await tx.execute('DELETE FROM mail_meta WHERE key != ?', ['schema_version']);

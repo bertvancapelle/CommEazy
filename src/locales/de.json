@@ -834,7 +834,8 @@
     "favorites": "Favoriten",
     "search": "Suchen",
     "items": "Einträge",
-    "toggleFavorite": "Favorit umschalten für {{name}}"
+    "toggleFavorite": "Favorit umschalten für {{name}}",
+    "dismiss": "Schließen"
   },
   "validation": {
     "profileIncomplete": "Alle Felder ausfüllen",
@@ -1745,6 +1746,24 @@
           "junk": "Unerwünscht",
           "archive": "Archiv",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Anmeldung fehlgeschlagen. Überprüfe deine Zugangsdaten.",
+          "connectionFailed": "Verbindung zum Mailserver nicht möglich.",
+          "timeout": "Verbindung hat zu lange gedauert. Überprüfe dein Internet.",
+          "notConnected": "Nicht verbunden. Nach unten ziehen, um es erneut zu versuchen.",
+          "certificateError": "Sicherheitsproblem mit dem Mailserver.",
+          "generic": "Etwas ist schiefgelaufen. Nach unten ziehen, um es erneut zu versuchen."
+        },
+        "search": {
+          "placeholder": "Alle Nachrichten durchsuchen...",
+          "button": "Suchen",
+          "searching": "Suche auf dem Server...",
+          "noResults": "Keine Ergebnisse",
+          "noResultsHint": "Versuche andere Suchbegriffe.",
+          "resultsCount": "{{count}} Ergebnisse gefunden",
+          "clear": "Löschen",
+          "error": "Suche fehlgeschlagen. Bitte versuche es erneut."
         }
       },
       "detail": {
@@ -1806,7 +1825,9 @@
         "totalSizeWarning": "Anhänge sind fast zu groß für E-Mail",
         "removeAttachment": "Anhang {{name}} entfernen",
         "removeRecipient": "Empfänger entfernen",
-        "attachPhoto": "Foto anhängen"
+        "attachPhoto": "Foto anhängen",
+        "photoAccessUnavailable": "Fotos nicht verfügbar",
+        "photoAccessHint": "Die Fotobibliothek ist derzeit nicht verfügbar."
       }
     },
     "askAI": {

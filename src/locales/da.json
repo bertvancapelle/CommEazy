@@ -727,7 +727,8 @@
     "favorites": "Favoritter",
     "search": "Søg",
     "items": "elementer",
-    "toggleFavorite": "Skift favorit for {{name}}"
+    "toggleFavorite": "Skift favorit for {{name}}",
+    "dismiss": "Luk"
   },
   "validation": {
     "profileIncomplete": "Udfyld alle felter",
@@ -1589,6 +1590,24 @@
           "junk": "Uønsket",
           "archive": "Arkiv",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Login mislykkedes. Tjek dine loginoplysninger.",
+          "connectionFailed": "Kan ikke oprette forbindelse til mailserveren.",
+          "timeout": "Forbindelsen tog for lang tid. Tjek din internetforbindelse.",
+          "notConnected": "Ikke forbundet. Træk ned for at prøve igen.",
+          "certificateError": "Sikkerhedsproblem med mailserveren.",
+          "generic": "Noget gik galt. Træk ned for at prøve igen."
+        },
+        "search": {
+          "placeholder": "Søg i alle beskeder...",
+          "button": "Søg",
+          "searching": "Søger på serveren...",
+          "noResults": "Ingen resultater",
+          "noResultsHint": "Prøv andre søgeord.",
+          "resultsCount": "{{count}} resultater fundet",
+          "clear": "Ryd",
+          "error": "Søgningen mislykkedes. Prøv igen."
         }
       },
       "detail": {
@@ -1650,7 +1669,9 @@
         "totalSizeWarning": "Vedhæftede filer er næsten for store til e-mail",
         "removeAttachment": "Fjern vedhæftning {{name}}",
         "removeRecipient": "Fjern modtager",
-        "attachPhoto": "Vedhæft foto"
+        "attachPhoto": "Vedhæft foto",
+        "photoAccessUnavailable": "Fotos ikke tilgængelige",
+        "photoAccessHint": "Fotobiblioteket er i øjeblikket ikke tilgængeligt."
       }
     },
     "askAI": {

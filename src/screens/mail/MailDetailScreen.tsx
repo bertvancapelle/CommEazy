@@ -25,9 +25,12 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Linking,
   Platform,
   useWindowDimensions,
 } from 'react-native';
+import RenderHtml from 'react-native-render-html';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
@@ -110,6 +113,59 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// ============================================================
+// Mail Body Formatting
+// ============================================================
+
+/**
+ * Decode quoted-printable soft line breaks and encoded characters.
+ * Quoted-printable encoding uses '=' followed by hex codes for special chars,
+ * and '=' at end of line as a soft line break (continuation).
+ */
+function decodeQuotedPrintable(text: string): string {
+  // Remove soft line breaks (= at end of line followed by newline)
+  let result = text.replace(/=\r?\n/g, '');
+  // Decode =XX hex sequences
+  result = result.replace(/=([0-9A-Fa-f]{2})/g, (_match, hex) => {
+    return String.fromCharCode(parseInt(hex, 16));
+  });
+  return result;
+}
+
+/**
+ * Shorten long URLs for readability.
+ * Shows domain + truncated path instead of full URL.
+ * Example: "https://www.example.com/very/long/path?query=..." → "example.com/very/lon..."
+ */
+function shortenUrls(text: string): string {
+  return text.replace(
+    /https?:\/\/[^\s<>"{}|\\^`[\]]{40,}/g,
+    (url) => {
+      try {
+        const parsed = new URL(url);
+        const domain = parsed.hostname.replace(/^www\./, '');
+        const pathPart = parsed.pathname + parsed.search;
+        if (pathPart.length <= 1) return domain;
+        const shortPath = pathPart.length > 20 ? pathPart.substring(0, 20) + '...' : pathPart;
+        return domain + shortPath;
+      } catch {
+        // If URL parsing fails, truncate raw
+        return url.substring(0, 50) + '...';
+      }
+    },
+  );
+}
+
+/**
+ * Format mail body text for display.
+ * Handles quoted-printable decoding and URL shortening.
+ */
+function formatMailBody(text: string): string {
+  let result = decodeQuotedPrintable(text);
+  result = shortenUrls(result);
+  return result;
 }
 
 // ============================================================
@@ -287,11 +343,11 @@ export function MailDetailScreen({
   // ============================================================
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={['top']}>
       {/* Top bar */}
       <View style={[styles.topBar, { borderBottomColor: themeColors.border }]}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
           onPress={() => {
             triggerHaptic();
             onBack();
@@ -308,20 +364,18 @@ export function MailDetailScreen({
           </Text>
         </TouchableOpacity>
 
-        {/* Action buttons */}
-        <View style={styles.topActions}>
-          <TouchableOpacity
-            style={styles.actionIcon}
-            onPress={handleDelete}
-            onLongPress={() => {}}
-            delayLongPress={300}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.delete')}
-          >
-            <Icon name="trash" size={22} color={themeColors.textSecondary} />
-          </TouchableOpacity>
-        </View>
+        {/* Delete button */}
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
+          onPress={handleDelete}
+          onLongPress={() => {}}
+          delayLongPress={300}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.delete')}
+        >
+          <Icon name="trash" size={22} color={themeColors.error} />
+        </TouchableOpacity>
       </View>
 
       {/* Body content */}
@@ -407,13 +461,66 @@ export function MailDetailScreen({
               <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
             </TouchableOpacity>
           </View>
+        ) : body?.html ? (
+          <View style={styles.bodyContainer}>
+            <RenderHtml
+              contentWidth={screenWidth - spacing.lg * 2}
+              source={{ html: body.html.replace(/<img[^>]*>/gi, '') }}
+              baseStyle={{
+                color: themeColors.textPrimary,
+                fontSize: 18,
+                lineHeight: 28,
+              }}
+              tagsStyles={{
+                a: { color: accentColor.primary, textDecorationLine: 'underline' },
+                p: { marginVertical: 4 },
+                h1: { fontSize: 24, fontWeight: '700', marginVertical: 8 },
+                h2: { fontSize: 22, fontWeight: '700', marginVertical: 6 },
+                h3: { fontSize: 20, fontWeight: '700', marginVertical: 4 },
+                blockquote: {
+                  borderLeftWidth: 3,
+                  borderLeftColor: themeColors.border,
+                  paddingLeft: 12,
+                  marginVertical: 8,
+                  color: themeColors.textSecondary,
+                },
+              }}
+              ignoredDomTags={['img', 'source', 'video', 'audio', 'picture', 'iframe', 'object', 'embed', 'svg', 'x-plan']}
+              domVisitors={{
+                onElement: (element) => {
+                  // Strip CSS values React Native can't handle (e.g. 'inherit', 'initial', 'unset')
+                  if (element.attribs?.style) {
+                    element.attribs.style = element.attribs.style
+                      .replace(/color\s*:\s*inherit\b[^;]*/gi, '')
+                      .replace(/color\s*:\s*initial\b[^;]*/gi, '')
+                      .replace(/color\s*:\s*unset\b[^;]*/gi, '')
+                      .replace(/;;+/g, ';')
+                      .replace(/^\s*;\s*/, '')
+                      .replace(/\s*;\s*$/, '');
+                  }
+                },
+              }}
+              renderersProps={{
+                a: {
+                  onPress: (_event: unknown, href: string) => {
+                    if (href) {
+                      Linking.openURL(href).catch(() => {
+                        console.debug('[MailDetail] Failed to open URL:', href);
+                      });
+                    }
+                  },
+                },
+              }}
+              enableExperimentalMarginCollapsing
+            />
+          </View>
         ) : (
           <View style={styles.bodyContainer}>
             <Text
               style={[styles.bodyText, { color: themeColors.textPrimary }]}
               selectable
             >
-              {body?.plainText || body?.html?.replace(/<[^>]*>/g, '') || t('modules.mail.detail.noContent')}
+              {formatMailBody(body?.plainText || t('modules.mail.detail.noContent'))}
             </Text>
           </View>
         )}
@@ -472,7 +579,7 @@ export function MailDetailScreen({
       {/* Bottom action bar */}
       <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
         <TouchableOpacity
-          style={[styles.bottomAction, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}
+          style={[styles.bottomAction, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
           onPress={handleReply}
           onLongPress={() => {}}
           delayLongPress={300}
@@ -487,7 +594,7 @@ export function MailDetailScreen({
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.bottomAction, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}
+          style={[styles.bottomAction, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
           onPress={handleForward}
           onLongPress={() => {}}
           delayLongPress={300}
@@ -501,7 +608,7 @@ export function MailDetailScreen({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -663,21 +770,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
     gap: spacing.xs,
   },
   backText: {
     ...typography.body,
     fontWeight: '600',
   },
-  topActions: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  actionIcon: {
+  actionButton: {
     minWidth: touchTargets.minimum,
     minHeight: touchTargets.minimum,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -848,10 +956,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: touchTargets.minimum,
     borderRadius: borderRadius.md,
-    gap: spacing.xs,
+    borderWidth: 1,
+    gap: spacing.sm,
   },
   bottomActionText: {
     ...typography.body,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

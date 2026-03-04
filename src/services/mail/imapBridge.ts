@@ -69,6 +69,11 @@ interface NativeMailModule {
     query: string,
   ): Promise<number[]>;
 
+  fetchHeadersByUIDs(
+    folderName: string,
+    uids: number[],
+  ): Promise<MailHeader[]>;
+
   markAsRead(
     uid: number,
     folderName: string,
@@ -221,6 +226,21 @@ export async function searchMessages(
 }
 
 /**
+ * Fetch headers for specific UIDs (used to get details for search results).
+ *
+ * @param folderName - Mailbox name
+ * @param uids - Array of message UIDs to fetch
+ * @returns Array of mail headers for the requested UIDs
+ */
+export async function fetchHeadersByUIDs(
+  folderName: string,
+  uids: number[],
+): Promise<MailHeader[]> {
+  if (uids.length === 0) return [];
+  return getModule().fetchHeadersByUIDs(folderName, uids);
+}
+
+/**
  * Mark a message as read (set \\Seen flag).
  *
  * @param uid - Message UID
@@ -338,27 +358,44 @@ export async function connectIMAPWithRefresh(
   const credentialManager = await import('./credentialManager');
   const oauth2Service = await import('./oauth2Service');
 
+  console.debug('[imapBridge] connectIMAPWithRefresh — loading credentials for account:', accountId);
   const credentials = await credentialManager.getCredentials(accountId);
   if (!credentials) {
+    console.debug('[imapBridge] No credentials found in Keychain for account');
     throw new Error('[imapBridge] No credentials found for account');
   }
+
+  console.debug('[imapBridge] Credentials found — type:', credentials.type, 'host:', credentials.imapConfig?.host, 'port:', credentials.imapConfig?.port);
 
   let imapConfig = credentialManager.buildIMAPConfig(credentials);
 
   // For OAuth2 accounts, ensure token is valid
   if (credentials.type === 'oauth2') {
-    const { accessToken, refreshed } = await oauth2Service.ensureValidToken(
-      accountId,
-      providerId,
-    );
+    console.debug('[imapBridge] OAuth2 account — checking token validity...');
+    try {
+      const { accessToken, refreshed } = await oauth2Service.ensureValidToken(
+        accountId,
+        providerId,
+      );
+      console.debug('[imapBridge] Token status — refreshed:', refreshed, 'tokenLength:', accessToken?.length ?? 0);
 
-    if (refreshed) {
-      // Use the fresh token
-      imapConfig = { ...imapConfig, accessToken };
+      if (refreshed) {
+        // Use the fresh token
+        imapConfig = { ...imapConfig, accessToken };
+      }
+    } catch (tokenErr) {
+      const tokenMsg = tokenErr instanceof Error ? tokenErr.message : String(tokenErr);
+      console.debug('[imapBridge] Token refresh FAILED:', tokenMsg);
+      throw tokenErr;
     }
+  } else {
+    console.debug('[imapBridge] Password account — no token refresh needed');
   }
 
-  return connectIMAP(imapConfig);
+  console.debug('[imapBridge] Calling native connectIMAP — host:', imapConfig.host, 'port:', imapConfig.port, 'hasPassword:', !!imapConfig.password, 'hasToken:', !!imapConfig.accessToken);
+  const result = await connectIMAP(imapConfig);
+  console.debug('[imapBridge] Native connectIMAP returned:', result);
+  return result;
 }
 
 // ============================================================

@@ -94,6 +94,7 @@ export function AlbumPickerModal({
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const screenWidth = Dimensions.get('window').width;
   const itemSize = (screenWidth - spacing.md * 2 - GRID_SPACING * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
@@ -110,26 +111,13 @@ export function AlbumPickerModal({
 
     const loadPhotos = async () => {
       setIsLoading(true);
+      setLoadError(false);
       try {
-        const CameraRoll = await import('@react-native-camera-roll/camera-roll');
-        const result = await CameraRoll.CameraRoll.getPhotos({
-          first: 100,
-          assetType: 'All',
-          include: ['fileSize', 'filename'],
-        });
-
-        const items: PhotoItem[] = result.edges.map(edge => ({
-          uri: edge.node.image.uri,
-          fileName: edge.node.image.filename || 'photo',
-          fileSize: edge.node.image.fileSize || 0,
-          mimeType: edge.node.type?.includes('video') ? 'video/mp4' : 'image/jpeg',
-          width: edge.node.image.width,
-          height: edge.node.image.height,
-        }));
-
-        setPhotos(items);
-      } catch {
-        console.debug('[AlbumPicker] Failed to load photos');
+        // @react-native-camera-roll/camera-roll is not installed.
+        // When the package is added to the project, replace this block
+        // with CameraRoll.getPhotos() to load device photos.
+        console.warn('[AlbumPicker] @react-native-camera-roll/camera-roll is not installed');
+        setLoadError(true);
       } finally {
         setIsLoading(false);
       }
@@ -250,7 +238,17 @@ export function AlbumPickerModal({
         )}
 
         {/* Photo Grid */}
-        {isLoading ? (
+        {loadError ? (
+          <View style={styles.loadingContainer}>
+            <Icon name="warning" size={48} color={themeColors.textSecondary} />
+            <Text style={[styles.errorText, { color: themeColors.textPrimary }]}>
+              {t('modules.mail.compose.photoAccessUnavailable')}
+            </Text>
+            <Text style={[styles.errorHint, { color: themeColors.textSecondary }]}>
+              {t('modules.mail.compose.photoAccessHint')}
+            </Text>
+          </View>
+        ) : isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={accentColor.primary} />
           </View>
@@ -340,6 +338,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: spacing.xl,
+    gap: spacing.md,
+  },
+  errorText: {
+    ...typography.h3,
+    textAlign: 'center',
+  },
+  errorHint: {
+    ...typography.body,
+    textAlign: 'center',
   },
   gridContent: {
     padding: spacing.md,

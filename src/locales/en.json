@@ -848,7 +848,8 @@
     "favorites": "Favorites",
     "search": "Search",
     "items": "items",
-    "toggleFavorite": "Toggle favorite for {{name}}"
+    "toggleFavorite": "Toggle favorite for {{name}}",
+    "dismiss": "Dismiss"
   },
   "validation": {
     "profileIncomplete": "Complete all fields",
@@ -1760,6 +1761,24 @@
           "junk": "Junk",
           "archive": "Archive",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Login failed. Check your credentials.",
+          "connectionFailed": "Cannot connect to the mail server.",
+          "timeout": "Connection timed out. Check your internet.",
+          "notConnected": "Not connected. Pull down to try again.",
+          "certificateError": "Security issue with the mail server.",
+          "generic": "Something went wrong. Pull down to try again."
+        },
+        "search": {
+          "placeholder": "Search all messages...",
+          "button": "Search",
+          "searching": "Searching the server...",
+          "noResults": "No results",
+          "noResultsHint": "Try different search terms.",
+          "resultsCount": "{{count}} results found",
+          "clear": "Clear",
+          "error": "Search failed. Please try again."
         }
       },
       "detail": {
@@ -1821,7 +1840,9 @@
         "totalSizeWarning": "Attachments are almost too large for email",
         "removeAttachment": "Remove attachment {{name}}",
         "removeRecipient": "Remove recipient",
-        "attachPhoto": "Attach photo"
+        "attachPhoto": "Attach photo",
+        "photoAccessUnavailable": "Photos unavailable",
+        "photoAccessHint": "The photo library is currently not available."
       }
     },
     "askAI": {

@@ -112,7 +112,12 @@ export type IconName =
   | 'airplay'
   | 'pencil'
   | 'navigate'
-  | 'mail';
+  | 'mail'
+  | 'reply'
+  | 'forward'
+  | 'attach'
+  | 'document'
+  | 'download';
 
 interface IconProps {
   name: IconName;
@@ -1921,6 +1926,95 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             strokeWidth={sw}
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'reply':
+      // Reply arrow (curved arrow pointing left)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M10 9V5L3 12L10 19V14.9C15 14.9 18.5 16.5 21 20C20 15 17 10 10 9Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'forward':
+      // Forward arrow (curved arrow pointing right)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M14 9V5L21 12L14 19V14.9C9 14.9 5.5 16.5 3 20C4 15 7 10 14 9Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'attach':
+      // Paperclip icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M21.44 11.05L12.25 20.24C10.72 21.77 8.18 21.77 6.65 20.24C5.12 18.71 5.12 16.17 6.65 14.64L15.84 5.45C16.87 4.42 18.49 4.42 19.52 5.45C20.55 6.48 20.55 8.1 19.52 9.13L10.33 18.32C9.81 18.84 8.99 18.84 8.47 18.32C7.95 17.8 7.95 16.99 8.47 16.46L16.67 8.26"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'document':
+      // Document/file icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M14 2V8H20"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M8 13H16M8 17H13"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'download':
+      // Download arrow icon
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M12 3V15M12 15L7 10M12 15L17 10"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M5 21H19"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
           />
         </Svg>
       );

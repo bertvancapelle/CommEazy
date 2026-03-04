@@ -274,8 +274,10 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
         setHasMailAccounts(false);
       }
     };
+    // Check on mount and re-check each time menu opens
+    // so newly added/removed accounts are detected
     checkMailAccounts();
-  }, []);
+  }, [visible]);
 
   // Hide mail module when no accounts are configured
   const hiddenModules = useMemo((): NavigationDestination[] => {

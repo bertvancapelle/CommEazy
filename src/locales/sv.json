@@ -727,7 +727,8 @@
     "favorites": "Favoriter",
     "search": "Sök",
     "items": "objekt",
-    "toggleFavorite": "Växla favorit för {{name}}"
+    "toggleFavorite": "Växla favorit för {{name}}",
+    "dismiss": "Stäng"
   },
   "validation": {
     "profileIncomplete": "Fyll i alla fält",
@@ -1589,6 +1590,24 @@
           "junk": "Skräppost",
           "archive": "Arkiv",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Inloggningen misslyckades. Kontrollera dina uppgifter.",
+          "connectionFailed": "Kan inte ansluta till e-postservern.",
+          "timeout": "Anslutningen tog för lång tid. Kontrollera din internetanslutning.",
+          "notConnected": "Inte ansluten. Dra nedåt för att försöka igen.",
+          "certificateError": "Säkerhetsproblem med e-postservern.",
+          "generic": "Något gick fel. Dra nedåt för att försöka igen."
+        },
+        "search": {
+          "placeholder": "Sök i alla meddelanden...",
+          "button": "Sök",
+          "searching": "Söker på servern...",
+          "noResults": "Inga resultat",
+          "noResultsHint": "Prova andra sökord.",
+          "resultsCount": "{{count}} resultat hittade",
+          "clear": "Rensa",
+          "error": "Sökningen misslyckades. Försök igen."
         }
       },
       "detail": {
@@ -1650,7 +1669,9 @@
         "totalSizeWarning": "Bilagorna är nästan för stora för e-post",
         "removeAttachment": "Ta bort bilaga {{name}}",
         "removeRecipient": "Ta bort mottagare",
-        "attachPhoto": "Bifoga foto"
+        "attachPhoto": "Bifoga foto",
+        "photoAccessUnavailable": "Foton inte tillgängliga",
+        "photoAccessHint": "Fotobiblioteket är för närvarande inte tillgängligt."
       }
     },
     "askAI": {

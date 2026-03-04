@@ -831,7 +831,8 @@
     "favorites": "Preferiti",
     "search": "Cerca",
     "items": "elementi",
-    "toggleFavorite": "Attiva/disattiva preferito per {{name}}"
+    "toggleFavorite": "Attiva/disattiva preferito per {{name}}",
+    "dismiss": "Chiudi"
   },
   "validation": {
     "profileIncomplete": "Completa tutti i campi",
@@ -1693,6 +1694,24 @@
           "junk": "Indesiderata",
           "archive": "Archivio",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Accesso fallito. Controlla le tue credenziali.",
+          "connectionFailed": "Impossibile connettersi al server di posta.",
+          "timeout": "La connessione ha richiesto troppo tempo. Controlla la tua connessione.",
+          "notConnected": "Non connesso. Scorri verso il basso per riprovare.",
+          "certificateError": "Problema di sicurezza con il server di posta.",
+          "generic": "Qualcosa è andato storto. Scorri verso il basso per riprovare."
+        },
+        "search": {
+          "placeholder": "Cerca in tutti i messaggi...",
+          "button": "Cerca",
+          "searching": "Ricerca sul server...",
+          "noResults": "Nessun risultato",
+          "noResultsHint": "Prova con altri termini di ricerca.",
+          "resultsCount": "{{count}} risultati trovati",
+          "clear": "Cancella",
+          "error": "Ricerca non riuscita. Riprova."
         }
       },
       "detail": {
@@ -1754,7 +1773,9 @@
         "totalSizeWarning": "Gli allegati sono quasi troppo grandi per l'e-mail",
         "removeAttachment": "Rimuovi allegato {{name}}",
         "removeRecipient": "Rimuovi destinatario",
-        "attachPhoto": "Allega foto"
+        "attachPhoto": "Allega foto",
+        "photoAccessUnavailable": "Foto non disponibili",
+        "photoAccessHint": "La libreria fotografica non è attualmente disponibile."
       }
     },
     "askAI": {

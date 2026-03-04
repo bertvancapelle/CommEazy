@@ -141,10 +141,12 @@ export function MailScreen() {
   }, []);
 
   const handleOnboardingComplete = useCallback(async () => {
-    setShowOnboarding(false);
-    setOnboardingComplete(true);
-    AsyncStorage.setItem(MAIL_ONBOARDING_COMPLETE_KEY, 'true').catch(console.error);
+    // Load the account FIRST, then update UI state
+    // This prevents briefly showing the "not configured" placeholder
     await loadAccount();
+    AsyncStorage.setItem(MAIL_ONBOARDING_COMPLETE_KEY, 'true').catch(console.error);
+    setOnboardingComplete(true);
+    setShowOnboarding(false);
   }, [loadAccount]);
 
   const handleOnboardingClose = useCallback(() => {

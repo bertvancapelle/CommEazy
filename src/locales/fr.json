@@ -834,7 +834,8 @@
     "favorites": "Favoris",
     "search": "Rechercher",
     "items": "éléments",
-    "toggleFavorite": "Basculer le favori pour {{name}}"
+    "toggleFavorite": "Basculer le favori pour {{name}}",
+    "dismiss": "Fermer"
   },
   "validation": {
     "profileIncomplete": "Remplissez tous les champs",
@@ -1745,6 +1746,24 @@
           "junk": "Indésirables",
           "archive": "Archives",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Connexion échouée. Vérifie tes identifiants.",
+          "connectionFailed": "Impossible de se connecter au serveur mail.",
+          "timeout": "La connexion a pris trop de temps. Vérifie ton internet.",
+          "notConnected": "Non connecté. Glisse vers le bas pour réessayer.",
+          "certificateError": "Problème de sécurité avec le serveur mail.",
+          "generic": "Une erreur s'est produite. Glisse vers le bas pour réessayer."
+        },
+        "search": {
+          "placeholder": "Rechercher dans tous les messages...",
+          "button": "Rechercher",
+          "searching": "Recherche sur le serveur...",
+          "noResults": "Aucun résultat",
+          "noResultsHint": "Essayez d'autres termes de recherche.",
+          "resultsCount": "{{count}} résultats trouvés",
+          "clear": "Effacer",
+          "error": "La recherche a échoué. Veuillez réessayer."
         }
       },
       "detail": {
@@ -1806,7 +1825,9 @@
         "totalSizeWarning": "Les pièces jointes sont presque trop volumineuses pour l'e-mail",
         "removeAttachment": "Supprimer la pièce jointe {{name}}",
         "removeRecipient": "Supprimer le destinataire",
-        "attachPhoto": "Joindre une photo"
+        "attachPhoto": "Joindre une photo",
+        "photoAccessUnavailable": "Photos non disponibles",
+        "photoAccessHint": "La photothèque n'est actuellement pas disponible."
       }
     },
     "askAI": {

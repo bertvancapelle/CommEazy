@@ -91,6 +91,9 @@ class MailModule: RCTEventEmitter {
         let message = error.localizedDescription
         let lowered = message.lowercased()
 
+        // Always log the actual error for debugging
+        NSLog("[MailModule] mapError: %@", message)
+
         if lowered.contains("auth") || lowered.contains("login") {
             return (.authFailed, "Authentication failed")
         } else if lowered.contains("certificate") || lowered.contains("ssl") || lowered.contains("tls") {
@@ -213,6 +216,8 @@ class MailModule: RCTEventEmitter {
                 let selection = try await imap.selectMailbox(folderName)
                 let messageCount = selection.messageCount
 
+                NSLog("[MailModule] selectMailbox '\(folderName)': messageCount=\(messageCount)")
+
                 guard messageCount > 0 else {
                     resolve([])
                     return
@@ -222,7 +227,11 @@ class MailModule: RCTEventEmitter {
                 let start = max(1, messageCount - limit + 1)
                 let identifierSet = MessageIdentifierSet<SequenceNumber>(SequenceNumber(start)...SequenceNumber(messageCount))
 
+                NSLog("[MailModule] Fetching sequence numbers \(start)...\(messageCount)")
+
                 let messages = try await imap.fetchMessageInfosBulk(using: identifierSet)
+
+                NSLog("[MailModule] Got \(messages.count) messages, newest date: \(messages.last?.date?.ISO8601Format() ?? "nil")")
 
                 let result: [[String: Any]] = messages.map { msg in
                     var dict: [String: Any] = [
@@ -294,11 +303,15 @@ class MailModule: RCTEventEmitter {
                     let mimeType = part.contentType.lowercased()
 
                     if mimeType.hasPrefix("text/html") && htmlBody == nil {
-                        let data = try await imap.fetchPart(section: part.section, of: uidValue)
-                        htmlBody = String(data: data, encoding: .utf8)
+                        let rawData = try await imap.fetchPart(section: part.section, of: uidValue)
+                        let decodedData = rawData.decoded(for: part)
+                        let charset = Self.extractCharset(from: mimeType)
+                        htmlBody = String(data: decodedData, encoding: charset) ?? String(data: decodedData, encoding: .utf8)
                     } else if mimeType.hasPrefix("text/plain") && plainTextBody == nil {
-                        let data = try await imap.fetchPart(section: part.section, of: uidValue)
-                        plainTextBody = String(data: data, encoding: .utf8)
+                        let rawData = try await imap.fetchPart(section: part.section, of: uidValue)
+                        let decodedData = rawData.decoded(for: part)
+                        let charset = Self.extractCharset(from: mimeType)
+                        plainTextBody = String(data: decodedData, encoding: charset) ?? String(data: decodedData, encoding: .utf8)
                     } else if part.disposition?.lowercased() == "attachment" ||
                               (part.filename != nil && !mimeType.hasPrefix("text/html") && !mimeType.hasPrefix("text/plain")) {
                         attachments.append([
@@ -450,6 +463,75 @@ class MailModule: RCTEventEmitter {
                 resolve(uids)
             } catch {
                 NSLog("[MailModule] ERROR: searchMessages failed")
+                let (code, message) = self.mapError(error)
+                self.reject(reject, code: code, message: message)
+            }
+        }
+    }
+
+    // MARK: - IMAP: Fetch Headers by UIDs
+
+    /// Fetch message headers for specific UIDs (used after search)
+    /// - Parameters:
+    ///   - folderName: Mailbox name
+    ///   - uids: Array of message UIDs to fetch
+    @objc(fetchHeadersByUIDs:uids:resolve:reject:)
+    func fetchHeadersByUIDs(
+        _ folderName: String,
+        uids: NSArray,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let imap = imapServer else {
+            self.reject(reject, code: .notConnected, message: "Not connected to IMAP server")
+            return
+        }
+
+        guard let uidInts = uids as? [Int], !uidInts.isEmpty else {
+            resolve([])
+            return
+        }
+
+        Task {
+            do {
+                let _ = try await imap.selectMailbox(folderName)
+
+                // Build UID set from array
+                let uidValues = uidInts.map { UID($0) }
+                var identifierSet = MessageIdentifierSet<UID>()
+                for uid in uidValues {
+                    identifierSet.insert(uid)
+                }
+
+                NSLog("[MailModule] fetchHeadersByUIDs: fetching \(uidInts.count) UIDs from '\(folderName)'")
+
+                let messages = try await imap.fetchMessageInfosBulk(using: identifierSet)
+
+                NSLog("[MailModule] fetchHeadersByUIDs: got \(messages.count) messages")
+
+                let result: [[String: Any]] = messages.map { msg in
+                    var dict: [String: Any] = [
+                        "uid": msg.uid.map { Int($0.value) } ?? 0,
+                        "sequenceNumber": Int(msg.sequenceNumber.value),
+                        "subject": msg.subject ?? "",
+                        "date": msg.date?.ISO8601Format() ?? "",
+                        "isRead": msg.flags.contains(.seen),
+                        "isFlagged": msg.flags.contains(.flagged),
+                    ]
+
+                    dict["from"] = msg.from ?? ""
+                    dict["to"] = msg.to
+                    dict["hasAttachment"] = msg.parts.contains { part in
+                        part.disposition?.lowercased() == "attachment" ||
+                        (part.filename != nil && !part.contentType.lowercased().hasPrefix("text/"))
+                    }
+
+                    return dict
+                }
+
+                resolve(result)
+            } catch {
+                NSLog("[MailModule] ERROR: fetchHeadersByUIDs failed")
                 let (code, message) = self.mapError(error)
                 self.reject(reject, code: code, message: message)
             }
@@ -809,6 +891,53 @@ class MailModule: RCTEventEmitter {
     }
 
     // MARK: - Private Helpers
+
+    /// Extract charset from Content-Type string (e.g. "text/html; charset=utf-8")
+    /// Returns the appropriate String.Encoding, defaulting to .utf8
+    private static func extractCharset(from contentType: String) -> String.Encoding {
+        // Look for charset= parameter (case insensitive)
+        let lowered = contentType.lowercased()
+        guard let range = lowered.range(of: "charset=") else {
+            return .utf8
+        }
+        var charset = String(lowered[range.upperBound...])
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\"", with: "")
+            .replacingOccurrences(of: "'", with: "")
+
+        // Strip anything after a semicolon or whitespace
+        if let endIdx = charset.firstIndex(where: { $0 == ";" || $0 == " " || $0 == "\t" }) {
+            charset = String(charset[..<endIdx])
+        }
+
+        switch charset {
+        case "utf-8", "utf8":
+            return .utf8
+        case "iso-8859-1", "latin1", "iso_8859-1":
+            return .isoLatin1
+        case "iso-8859-2", "latin2", "iso_8859-2":
+            return .isoLatin2
+        case "iso-8859-15", "latin9", "iso_8859-15":
+            return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.isoLatin9.rawValue)))
+        case "windows-1252", "cp1252":
+            return .windowsCP1252
+        case "windows-1250", "cp1250":
+            return .windowsCP1250
+        case "windows-1251", "cp1251":
+            return .windowsCP1251
+        case "ascii", "us-ascii":
+            return .ascii
+        case "utf-16", "utf16":
+            return .utf16
+        default:
+            // Try CFStringConvertIANACharSetNameToEncoding for other charsets
+            let cfEncoding = CFStringConvertIANACharSetNameToEncoding(charset as CFString)
+            if cfEncoding != kCFStringEncodingInvalidId {
+                return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
+            }
+            return .utf8
+        }
+    }
 
     /// Parse an NSArray of dictionaries into EmailAddress array
     private func parseEmailAddresses(_ array: NSArray?) -> [EmailAddress] {

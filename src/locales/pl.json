@@ -748,7 +748,8 @@
     "favorites": "Ulubione",
     "search": "Szukaj",
     "items": "elementy",
-    "toggleFavorite": "Przełącz ulubione dla {{name}}"
+    "toggleFavorite": "Przełącz ulubione dla {{name}}",
+    "dismiss": "Zamknij"
   },
   "validation": {
     "profileIncomplete": "Wypełnij wszystkie pola",
@@ -1551,6 +1552,24 @@
           "junk": "Niechciane",
           "archive": "Archiwum",
           "spam": "Spam"
+        },
+        "errors": {
+          "authFailed": "Logowanie nie powiodło się. Sprawdź swoje dane logowania.",
+          "connectionFailed": "Nie można połączyć się z serwerem pocztowym.",
+          "timeout": "Połączenie trwało zbyt długo. Sprawdź swoje połączenie z internetem.",
+          "notConnected": "Nie połączono. Przeciągnij w dół, aby spróbować ponownie.",
+          "certificateError": "Problem z bezpieczeństwem serwera pocztowego.",
+          "generic": "Coś poszło nie tak. Przeciągnij w dół, aby spróbować ponownie."
+        },
+        "search": {
+          "placeholder": "Szukaj we wszystkich wiadomościach...",
+          "button": "Szukaj",
+          "searching": "Wyszukiwanie na serwerze...",
+          "noResults": "Brak wyników",
+          "noResultsHint": "Spróbuj innych słów kluczowych.",
+          "resultsCount": "Znaleziono {{count}} wyników",
+          "clear": "Wyczyść",
+          "error": "Wyszukiwanie nie powiodło się. Spróbuj ponownie."
         }
       },
       "detail": {
@@ -1612,7 +1631,9 @@
         "totalSizeWarning": "Załączniki są prawie za duże na e-mail",
         "removeAttachment": "Usuń załącznik {{name}}",
         "removeRecipient": "Usuń odbiorcę",
-        "attachPhoto": "Załącz zdjęcie"
+        "attachPhoto": "Załącz zdjęcie",
+        "photoAccessUnavailable": "Zdjęcia niedostępne",
+        "photoAccessHint": "Biblioteka zdjęć jest obecnie niedostępna."
       }
     },
     "weather": {

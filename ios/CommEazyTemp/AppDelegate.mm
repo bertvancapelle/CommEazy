@@ -210,9 +210,13 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
-  // Forward all URL opens to React Native's Linking module.
-  // This handles OAuth2 redirect callbacks (com.commeazy://oauth2redirect)
-  // via react-native-app-auth, and any other deep links.
+  // Forward OAuth2 redirect to react-native-app-auth delegate
+  if ([self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url]) {
+    return YES;
+  }
+
+  // Forward remaining URL opens to React Native's Linking module.
+  // This handles deep links and other URL schemes.
   return [RCTLinkingManager application:application openURL:url options:options];
 }
 
