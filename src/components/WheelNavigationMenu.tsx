@@ -42,6 +42,7 @@ import { useModuleUsage, ALL_MODULES } from '@/hooks/useModuleUsage';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { useMailUnreadCount } from '@/hooks/useMailUnreadCount';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
 // Configuration
@@ -255,6 +256,7 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
   const insets = useSafeAreaInsets();
   const { reducedMotion, triggerHaptic, settings } = useHoldToNavigate();
   const { accentColor } = useAccentColor();
+  const { unreadCount: mailUnreadCount } = useMailUnreadCount();
 
   // Get enabled dynamic modules from ModuleConfigContext
   const { enabledModules, isLoading: modulesLoading } = useModuleConfig();
@@ -491,6 +493,7 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
                 isActive={true}
                 onPress={() => handleModulePress(activeScreen)}
                 t={t}
+                badgeCount={activeScreen === 'mail' ? mailUnreadCount : undefined}
               />
             )}
 
@@ -505,6 +508,7 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
                 isActive={false}
                 onPress={() => handleModulePress(moduleId)}
                 t={t}
+                badgeCount={moduleId === 'mail' ? mailUnreadCount : undefined}
               />
             ))}
 
@@ -596,6 +600,8 @@ interface ModuleButtonProps {
   isActive: boolean;
   onPress: () => void;
   t: (key: string) => string;
+  /** Badge count to show (e.g., unread mail) */
+  badgeCount?: number;
 }
 
 /**
@@ -620,16 +626,22 @@ function getModuleIdForColor(id: NavigationDestination): ModuleColorId {
     appleMusic: 'appleMusic',
     camera: 'camera',
     photoAlbum: 'photoAlbum',
+    askAI: 'askAI',
+    mail: 'mail',
     settings: 'settings',
     help: 'help',
   };
   return staticToModuleId[id as StaticNavigationDestination] || 'chats';
 }
 
-function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
+function ModuleButton({ module, isActive, onPress, t, badgeCount }: ModuleButtonProps) {
   // Get color from context (respects user customization)
   const moduleColorId = getModuleIdForColor(module.id);
   const customColor = useModuleColor(moduleColorId);
+
+  const badgeLabel = badgeCount && badgeCount > 0
+    ? t('navigation.unread_badge', { count: badgeCount, defaultValue: '{{count}} nieuw' })
+    : undefined;
 
   return (
     <TouchableOpacity
@@ -642,23 +654,37 @@ function ModuleButton({ module, isActive, onPress, t }: ModuleButtonProps) {
       activeOpacity={0.8}
       accessible={true}
       accessibilityRole="button"
-      accessibilityLabel={t(module.labelKey)}
+      accessibilityLabel={
+        badgeLabel
+          ? `${t(module.labelKey)}, ${badgeLabel}`
+          : t(module.labelKey)
+      }
       accessibilityState={{ selected: isActive }}
       accessibilityHint={isActive
         ? t('navigation.current_module', 'Dit is je huidige module')
         : t('navigation.tap_to_go')
       }
     >
-      {/* Use custom logo if available, otherwise generic icon */}
-      {module.customLogo ? (
-        <View style={styles.customLogoContainer}>
-          {module.customLogo}
-        </View>
-      ) : (
-        <ModuleIcon type={module.icon} size={40} />
-      )}
+      {/* Icon with optional badge */}
+      <View style={styles.iconWithBadge}>
+        {/* Use custom logo if available, otherwise generic icon */}
+        {module.customLogo ? (
+          <View style={styles.customLogoContainer}>
+            {module.customLogo}
+          </View>
+        ) : (
+          <ModuleIcon type={module.icon} size={40} />
+        )}
+        {/* Badge indicator for unread count */}
+        {badgeCount != null && badgeCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {badgeCount > 99 ? '99+' : badgeCount}
+            </Text>
+          </View>
+        )}
+      </View>
       <Text style={styles.moduleLabel}>{t(module.labelKey)}</Text>
-      {/* Active module: white border only, no chevron/checkmark indicator needed */}
     </TouchableOpacity>
   );
 }
@@ -734,6 +760,29 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
     marginLeft: spacing.md,
     flex: 1,
+  },
+  iconWithBadge: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    backgroundColor: '#FF3B30', // iOS system red
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   customLogoContainer: {
     width: 40,

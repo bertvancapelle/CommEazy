@@ -925,6 +925,7 @@
     "more_hint": "Mostrar mais módulos",
     "back_hint": "Mostrar os módulos mais usados",
     "current_module": "Este é seu módulo atual",
+    "unread_badge": "{{count}} novo",
     "switchModule": "Trocar módulo",
     "switchModuleHint": "Abre o menu de seleção de módulo",
     "sidebar": "Menu de navegação",

@@ -174,7 +174,9 @@ export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageR
     // If no usage data, use default ordering for static modules,
     // then append dynamic modules at the end
     if (Object.keys(usageCounts).length === 0) {
-      const staticFiltered = DEFAULT_MODULE_ORDER.filter(m => m !== excludeModule);
+      const staticFiltered = DEFAULT_MODULE_ORDER.filter(m =>
+        m !== excludeModule && allModules.includes(m)
+      );
       // Add any dynamic modules that aren't in default order
       const dynamicModules = availableModules.filter(m =>
         !DEFAULT_MODULE_ORDER.includes(m as any) && m !== excludeModule
@@ -220,7 +222,7 @@ export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageR
     // Sort remaining by usage count too
     if (Object.keys(usageCounts).length === 0) {
       const staticFiltered = DEFAULT_MODULE_ORDER.filter(m =>
-        m !== excludeModule && !topModules.includes(m)
+        m !== excludeModule && !topModules.includes(m) && allModules.includes(m)
       );
       // Add any dynamic modules not in default order
       const dynamicModules = remaining.filter(m =>

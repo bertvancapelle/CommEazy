@@ -791,6 +791,7 @@
     "more_hint": "Vis flere moduler",
     "back_hint": "Vis de mest brugte moduler",
     "current_module": "Dette er dit nuværende modul",
+    "unread_badge": "{{count}} ny",
     "switchModule": "Skift modul",
     "switchModuleHint": "Åbner modulvalgmenuen",
     "sidebar": "Navigationsmenu",

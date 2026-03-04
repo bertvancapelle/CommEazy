@@ -901,6 +901,7 @@
     "more_hint": "Show more modules",
     "back_hint": "Show most used modules",
     "current_module": "This is your current module",
+    "unread_badge": "{{count}} new",
     "switchModule": "Switch module",
     "switchModuleHint": "Opens the module selection menu",
     "sidebar": "Navigation menu",

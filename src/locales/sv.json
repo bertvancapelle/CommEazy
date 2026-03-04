@@ -791,6 +791,7 @@
     "more_hint": "Visa fler moduler",
     "back_hint": "Visa de mest använda modulerna",
     "current_module": "Detta är din nuvarande modul",
+    "unread_badge": "{{count}} ny",
     "switchModule": "Byt modul",
     "switchModuleHint": "Öppnar modulvalsmenyn",
     "sidebar": "Navigationsmeny",

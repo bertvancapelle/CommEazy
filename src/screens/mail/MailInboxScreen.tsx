@@ -25,6 +25,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Platform,
+  NativeModules,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -125,6 +126,10 @@ export function MailInboxScreen({
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    // Clear unread mail badge when inbox is viewed
+    if (Platform.OS === 'ios') {
+      NativeModules.MailBackgroundFetchModule?.clearUnreadBadge().catch(() => {});
+    }
     return () => {
       mountedRef.current = false;
     };

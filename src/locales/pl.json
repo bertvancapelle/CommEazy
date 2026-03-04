@@ -812,6 +812,7 @@
     "more_hint": "Pokaż więcej modułów",
     "back_hint": "Pokaż najczęściej używane moduły",
     "current_module": "To jest twój obecny moduł",
+    "unread_badge": "{{count}} nowy",
     "switchModule": "Zmień moduł",
     "switchModuleHint": "Otwiera menu wyboru modułu",
     "sidebar": "Menu nawigacji",

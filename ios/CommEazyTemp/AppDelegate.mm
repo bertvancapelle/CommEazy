@@ -55,6 +55,9 @@
     @"includesCallsInRecents": @YES
   }];
 
+  // Enable Background App Refresh for mail checking (~15 min interval)
+  [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:900]; // 15 minutes
+
   self.moduleName = @"CommEazyTemp";
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
@@ -211,6 +214,36 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   // This handles OAuth2 redirect callbacks (com.commeazy://oauth2redirect)
   // via react-native-app-auth, and any other deep links.
   return [RCTLinkingManager application:application openURL:url options:options];
+}
+
+// MARK: - Background App Refresh (Mail)
+
+- (void)application:(UIApplication *)application performFetchWithCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+{
+  NSLog(@"[BGFetch] iOS triggered background fetch");
+
+  // Forward to MailBackgroundFetchModule (runtime lookup to avoid circular build dependency)
+  id module = [NSClassFromString(@"CommEazyTemp.MailBackgroundFetchModule") valueForKey:@"shared"];
+  SEL fetchSelector = NSSelectorFromString(@"performBackgroundFetchWithCompletion:");
+
+  if (module && [module respondsToSelector:fetchSelector]) {
+    // Create a block-based completion wrapper
+    void (^completionBlock)(UIBackgroundFetchResult) = ^(UIBackgroundFetchResult result) {
+      NSLog(@"[BGFetch] Completed with result: %ld", (long)result);
+      completionHandler(result);
+    };
+
+    // Use NSInvocation for block parameter
+    NSMethodSignature *signature = [module methodSignatureForSelector:fetchSelector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation setTarget:module];
+    [invocation setSelector:fetchSelector];
+    [invocation setArgument:&completionBlock atIndex:2];
+    [invocation invoke];
+  } else {
+    NSLog(@"[BGFetch] MailBackgroundFetchModule not available");
+    completionHandler(UIBackgroundFetchResultNoData);
+  }
 }
 
 // MARK: - Orientation Control
