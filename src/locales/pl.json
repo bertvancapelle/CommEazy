@@ -382,6 +382,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-mail",
+    "screenHint": "Zarządzaj ustawieniami e-mail",
+    "accounts": {
+      "title": "Moje konta e-mail",
+      "noAccounts": "Brak połączonego konta e-mail",
+      "addAccount": "Dodaj konto",
+      "addAccountHint": "Połącz nowe konto e-mail",
+      "addAccountPlaceholder": "Dodawanie kont będzie dostępne w przyszłej aktualizacji.",
+      "connected": "Połączono",
+      "disconnected": "Rozłączono",
+      "deleteConfirm": "Czy na pewno chcesz usunąć to konto?",
+      "deleteWarning": "Twoje e-maile na serwerze zostaną zachowane."
+    },
+    "sync": {
+      "title": "Synchronizacja",
+      "messageCount": "Wiadomości przechowywane lokalnie",
+      "messageCountHint": "Wybierz, ile wiadomości przechowywać lokalnie",
+      "messageCountOption": "{{count}} wiadomości",
+      "autoSync": "Automatyczna synchronizacja",
+      "autoSyncHint": "Pobieraj e-maile automatycznie w tle",
+      "autoDownload": "Automatyczne pobieranie załączników",
+      "autoDownloadHint": "Pobieraj załączniki automatycznie przez Wi-Fi",
+      "syncNow": "Synchronizuj teraz",
+      "syncNowPlaceholder": "Synchronizacja będzie dostępna w przyszłej aktualizacji."
+    },
+    "storage": {
+      "title": "Pamięć",
+      "cacheSize": "Lokalna pamięć podręczna",
+      "clearCache": "Wyczyść pamięć podręczną",
+      "clearCacheHint": "Usuń lokalnie przechowywane e-maile",
+      "clearCacheConfirm": "Czy na pewno chcesz wyczyścić pamięć podręczną? Twoje e-maile na serwerze zostaną zachowane.",
+      "clearCacheButton": "Wyczyść",
+      "cacheCleared": "Pamięć podręczna wyczyszczona"
+    },
+    "security": {
+      "title": "Bezpieczeństwo",
+      "emailNotifications": "Powiadomienia o nowych e-mailach",
+      "emailNotificationsHint": "Otrzymuj powiadomienie o nowych e-mailach",
+      "biometricLock": "Zabezpieczenie biometryczne",
+      "biometricLockHint": "Użyj Face ID lub odcisku palca, aby otworzyć e-mail"
+    }
+  },
   "privacySettings": {
     "title": "Prywatność",
     "screenHint": "Zarządzaj ustawieniami prywatności",

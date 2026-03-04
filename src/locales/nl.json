@@ -379,6 +379,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-mail",
+    "screenHint": "Beheer je e-mailinstellingen",
+    "accounts": {
+      "title": "Mijn e-mailaccounts",
+      "noAccounts": "Nog geen e-mailaccount gekoppeld",
+      "addAccount": "Account toevoegen",
+      "addAccountHint": "Koppel een nieuw e-mailaccount",
+      "addAccountPlaceholder": "Account toevoegen wordt beschikbaar in een volgende update.",
+      "connected": "Verbonden",
+      "disconnected": "Niet verbonden",
+      "deleteConfirm": "Weet je zeker dat je dit account wilt verwijderen?",
+      "deleteWarning": "Je e-mails op de server blijven bewaard."
+    },
+    "sync": {
+      "title": "Synchronisatie",
+      "messageCount": "Berichten lokaal bewaren",
+      "messageCountHint": "Kies hoeveel berichten lokaal worden opgeslagen",
+      "messageCountOption": "{{count}} berichten",
+      "autoSync": "Automatisch synchroniseren",
+      "autoSyncHint": "E-mails automatisch ophalen op de achtergrond",
+      "autoDownload": "Bijlagen automatisch downloaden",
+      "autoDownloadHint": "Bijlagen automatisch downloaden bij Wi-Fi",
+      "syncNow": "Nu synchroniseren",
+      "syncNowPlaceholder": "Synchroniseren wordt beschikbaar in een volgende update."
+    },
+    "storage": {
+      "title": "Opslag",
+      "cacheSize": "Lokale cache",
+      "clearCache": "Cache wissen",
+      "clearCacheHint": "Verwijder lokaal opgeslagen e-mails",
+      "clearCacheConfirm": "Weet je zeker dat je de cache wilt wissen? Je e-mails op de server blijven bewaard.",
+      "clearCacheButton": "Wissen",
+      "cacheCleared": "Cache is gewist"
+    },
+    "security": {
+      "title": "Beveiliging",
+      "emailNotifications": "Meldingen voor nieuwe e-mail",
+      "emailNotificationsHint": "Ontvang een melding bij nieuwe e-mails",
+      "biometricLock": "Biometrische beveiliging",
+      "biometricLockHint": "Gebruik Face ID of vingerafdruk om e-mail te openen"
+    }
+  },
   "privacySettings": {
     "title": "Privacy",
     "screenHint": "Beheer je privacy-instellingen",

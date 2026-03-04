@@ -56,6 +56,7 @@ import {
   CallSettingsScreen,
   ComplianceReportScreen,
   AppearanceSettingsScreen,
+  MailSettingsScreen,
 } from '@/screens/settings';
 
 // Module screens (no sub-navigation needed)
@@ -126,6 +127,7 @@ type SettingsPanelParams = {
   DeviceTransfer: undefined;
   DeviceLinkShowQR: undefined;
   PiperTtsTest: undefined;
+  MailSettings: undefined;
 };
 
 // ============================================================
@@ -356,6 +358,11 @@ function SettingsPanelNavigator() {
           name="DeviceLinkShowQR"
           component={DeviceLinkShowQRScreen}
           options={{ title: t('settings.deviceLink') }}
+        />
+        <SettingsPanelStack.Screen
+          name="MailSettings"
+          component={MailSettingsScreen}
+          options={{ title: t('mailSettings.title') }}
         />
         {/* DEV: Piper TTS Test Screen */}
         {__DEV__ && (

@@ -11,3 +11,4 @@ export { ModulesSettingsScreen } from './ModulesSettingsScreen';
 export { CallSettingsScreen } from './CallSettingsScreen';
 export { ComplianceReportScreen } from './ComplianceReportScreen';
 export { AppearanceSettingsScreen } from './AppearanceSettingsScreen';
+export { MailSettingsScreen } from './MailSettingsScreen';

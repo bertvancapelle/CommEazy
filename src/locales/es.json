@@ -376,6 +376,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "Correo electrónico",
+    "screenHint": "Gestiona la configuración de correo electrónico",
+    "accounts": {
+      "title": "Mis cuentas de correo",
+      "noAccounts": "Ninguna cuenta de correo vinculada",
+      "addAccount": "Añadir cuenta",
+      "addAccountHint": "Vincular una nueva cuenta de correo",
+      "addAccountPlaceholder": "Añadir cuentas estará disponible en una futura actualización.",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar esta cuenta?",
+      "deleteWarning": "Tus correos en el servidor se conservarán."
+    },
+    "sync": {
+      "title": "Sincronización",
+      "messageCount": "Mensajes almacenados localmente",
+      "messageCountHint": "Elige cuántos mensajes almacenar localmente",
+      "messageCountOption": "{{count}} mensajes",
+      "autoSync": "Sincronización automática",
+      "autoSyncHint": "Obtener correos automáticamente en segundo plano",
+      "autoDownload": "Descargar adjuntos automáticamente",
+      "autoDownloadHint": "Descargar adjuntos automáticamente con Wi-Fi",
+      "syncNow": "Sincronizar ahora",
+      "syncNowPlaceholder": "La sincronización estará disponible en una futura actualización."
+    },
+    "storage": {
+      "title": "Almacenamiento",
+      "cacheSize": "Caché local",
+      "clearCache": "Borrar caché",
+      "clearCacheHint": "Eliminar correos almacenados localmente",
+      "clearCacheConfirm": "¿Estás seguro de que quieres borrar la caché? Tus correos en el servidor se conservarán.",
+      "clearCacheButton": "Borrar",
+      "cacheCleared": "Caché borrada"
+    },
+    "security": {
+      "title": "Seguridad",
+      "emailNotifications": "Notificaciones de nuevos correos",
+      "emailNotificationsHint": "Recibir una notificación para nuevos correos",
+      "biometricLock": "Seguridad biométrica",
+      "biometricLockHint": "Usar Face ID o huella dactilar para abrir el correo"
+    }
+  },
   "privacySettings": {
     "title": "Privacidad",
     "screenHint": "Gestiona tu configuración de privacidad",

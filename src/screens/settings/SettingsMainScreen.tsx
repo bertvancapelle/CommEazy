@@ -120,6 +120,7 @@ export function SettingsMainScreen() {
     { id: 'voice', label: t('voiceSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('VoiceSettings'); } },
     { id: 'modules', label: t('settings.modules.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('ModulesSettings'); } },
     { id: 'call-settings', label: t('callSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('CallSettings'); } },
+    { id: 'mail-settings', label: t('mailSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('MailSettings'); } },
     { id: 'notifications', label: t('settings.notifications'), onSelect: () => {
       void triggerFeedback('tap');
       Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
@@ -414,11 +415,30 @@ export function SettingsMainScreen() {
           />
         </VoiceFocusable>
 
+        {/* E-mail instellingen */}
+        <VoiceFocusable
+          id="mail-settings"
+          label={t('mailSettings.title')}
+          index={7}
+          onSelect={() => navigation.navigate('MailSettings')}
+        >
+          <SubsectionButton
+            icon="mail"
+            label={t('mailSettings.title')}
+            onPress={() => navigation.navigate('MailSettings')}
+            accessibilityHint={t('mailSettings.screenHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('mail-settings')}
+            focusStyle={getFocusStyle()}
+            themeColors={themeColors}
+          />
+        </VoiceFocusable>
+
         {/* Meldingen - TODO: Create NotificationsSettingsScreen */}
         <VoiceFocusable
           id="notifications"
           label={t('settings.notifications')}
-          index={7}
+          index={8}
           onSelect={() => {
             Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
           }}
@@ -445,7 +465,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="backup"
           label={t('settings.backup')}
-          index={8}
+          index={9}
           onSelect={() => navigation.navigate('BackupSettings')}
         >
           <SubsectionButton
@@ -464,7 +484,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="device-link"
           label={t('settings.deviceLink')}
-          index={9}
+          index={10}
           onSelect={() => navigation.navigate('DeviceLinkShowQR')}
         >
           <SubsectionButton

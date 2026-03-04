@@ -376,6 +376,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-mail",
+    "screenHint": "Gérez vos paramètres e-mail",
+    "accounts": {
+      "title": "Mes comptes e-mail",
+      "noAccounts": "Aucun compte e-mail lié",
+      "addAccount": "Ajouter un compte",
+      "addAccountHint": "Lier un nouveau compte e-mail",
+      "addAccountPlaceholder": "L'ajout de comptes sera disponible dans une mise à jour future.",
+      "connected": "Connecté",
+      "disconnected": "Déconnecté",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce compte ?",
+      "deleteWarning": "Vos e-mails sur le serveur seront conservés."
+    },
+    "sync": {
+      "title": "Synchronisation",
+      "messageCount": "Messages stockés localement",
+      "messageCountHint": "Choisissez combien de messages stocker localement",
+      "messageCountOption": "{{count}} messages",
+      "autoSync": "Synchronisation automatique",
+      "autoSyncHint": "Récupérer automatiquement les e-mails en arrière-plan",
+      "autoDownload": "Télécharger les pièces jointes automatiquement",
+      "autoDownloadHint": "Télécharger automatiquement les pièces jointes en Wi-Fi",
+      "syncNow": "Synchroniser maintenant",
+      "syncNowPlaceholder": "La synchronisation sera disponible dans une mise à jour future."
+    },
+    "storage": {
+      "title": "Stockage",
+      "cacheSize": "Cache local",
+      "clearCache": "Vider le cache",
+      "clearCacheHint": "Supprimer les e-mails stockés localement",
+      "clearCacheConfirm": "Êtes-vous sûr de vouloir vider le cache ? Vos e-mails sur le serveur seront conservés.",
+      "clearCacheButton": "Vider",
+      "cacheCleared": "Cache vidé"
+    },
+    "security": {
+      "title": "Sécurité",
+      "emailNotifications": "Notifications de nouveaux e-mails",
+      "emailNotificationsHint": "Recevoir une notification pour les nouveaux e-mails",
+      "biometricLock": "Sécurité biométrique",
+      "biometricLockHint": "Utiliser Face ID ou l'empreinte digitale pour ouvrir les e-mails"
+    }
+  },
   "privacySettings": {
     "title": "Confidentialité",
     "screenHint": "Gérez vos paramètres de confidentialité",

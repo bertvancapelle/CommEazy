@@ -3343,8 +3343,9 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 38 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
 | 39 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
 | 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | Automatische backup via Cloud KV Store (iOS: NSUbiquitousKeyValueStore, Android: BackupAgentHelper) + platform backup validatie. Zie `BACKUP_RESTORE_PLAN.md` |
+| 41 | **React Native Upgrade** | ⏳ TODO | 🎯 MVP | Upgrade van RN 0.73.6 naar 0.79+. Vereist: New Architecture migratie (18 native modules → TurboModules), AppDelegate Obj-C++ → Swift, React 18 → 19, 49 dependencies compatibiliteit check. op-sqlite v15 vereist RN 0.74+. Groot standalone project — NIET mengen met feature development. Zie impactanalyse in sessie 2026-03-04. |
 
-**📊 Cross-Platform Samenvatting:** 22 items | ✅ 0 DONE | 🔶 3 PARTIAL | ⏳ 19 TODO
+**📊 Cross-Platform Samenvatting:** 23 items | ✅ 0 DONE | 🔶 3 PARTIAL | ⏳ 20 TODO
 
 ---
 
@@ -3354,8 +3355,8 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 |----------|--------|---------|------------|---------|
 | **iOS/iPadOS** | 14 | 13 | 1 | 0 |
 | **Android** | 4 | 0 | 0 | 4 |
-| **Cross-Platform** | 22 | 0 | 3 | 19 |
-| **TOTAAL** | 40 | 13 | 4 | 23 |
+| **Cross-Platform** | 23 | 0 | 3 | 20 |
+| **TOTAAL** | 41 | 13 | 4 | 24 |
 
 ---
 

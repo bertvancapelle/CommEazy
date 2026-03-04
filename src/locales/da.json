@@ -437,6 +437,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-mail",
+    "screenHint": "Administrer dine e-mailindstillinger",
+    "accounts": {
+      "title": "Mine e-mailkonti",
+      "noAccounts": "Ingen e-mailkonto tilknyttet",
+      "addAccount": "Tilføj konto",
+      "addAccountHint": "Tilknyt en ny e-mailkonto",
+      "addAccountPlaceholder": "Tilføjelse af konti vil være tilgængelig i en fremtidig opdatering.",
+      "connected": "Tilsluttet",
+      "disconnected": "Frakoblet",
+      "deleteConfirm": "Er du sikker på, at du vil fjerne denne konto?",
+      "deleteWarning": "Dine e-mails på serveren vil blive bevaret."
+    },
+    "sync": {
+      "title": "Synkronisering",
+      "messageCount": "Beskeder gemt lokalt",
+      "messageCountHint": "Vælg, hvor mange beskeder der skal gemmes lokalt",
+      "messageCountOption": "{{count}} beskeder",
+      "autoSync": "Automatisk synkronisering",
+      "autoSyncHint": "Hent e-mails automatisk i baggrunden",
+      "autoDownload": "Download vedhæftninger automatisk",
+      "autoDownloadHint": "Download vedhæftninger automatisk på Wi-Fi",
+      "syncNow": "Synkroniser nu",
+      "syncNowPlaceholder": "Synkronisering vil være tilgængelig i en fremtidig opdatering."
+    },
+    "storage": {
+      "title": "Lager",
+      "cacheSize": "Lokal cache",
+      "clearCache": "Ryd cache",
+      "clearCacheHint": "Fjern lokalt gemte e-mails",
+      "clearCacheConfirm": "Er du sikker på, at du vil rydde cachen? Dine e-mails på serveren vil blive bevaret.",
+      "clearCacheButton": "Ryd",
+      "cacheCleared": "Cache ryddet"
+    },
+    "security": {
+      "title": "Sikkerhed",
+      "emailNotifications": "Notifikationer for nye e-mails",
+      "emailNotificationsHint": "Modtag en notifikation for nye e-mails",
+      "biometricLock": "Biometrisk sikkerhed",
+      "biometricLockHint": "Brug Face ID eller fingeraftryk til at åbne e-mail"
+    }
+  },
   "privacySettings": {
     "title": "Privatliv",
     "screenHint": "Administrer dine privatlivsindstillinger",

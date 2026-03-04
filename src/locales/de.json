@@ -376,6 +376,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-Mail",
+    "screenHint": "Verwalte deine E-Mail-Einstellungen",
+    "accounts": {
+      "title": "Meine E-Mail-Konten",
+      "noAccounts": "Noch kein E-Mail-Konto verknüpft",
+      "addAccount": "Konto hinzufügen",
+      "addAccountHint": "Ein neues E-Mail-Konto verknüpfen",
+      "addAccountPlaceholder": "Konten hinzufügen wird in einem zukünftigen Update verfügbar sein.",
+      "connected": "Verbunden",
+      "disconnected": "Nicht verbunden",
+      "deleteConfirm": "Bist du sicher, dass du dieses Konto entfernen möchtest?",
+      "deleteWarning": "Deine E-Mails auf dem Server bleiben erhalten."
+    },
+    "sync": {
+      "title": "Synchronisierung",
+      "messageCount": "Lokal gespeicherte Nachrichten",
+      "messageCountHint": "Wähle, wie viele Nachrichten lokal gespeichert werden",
+      "messageCountOption": "{{count}} Nachrichten",
+      "autoSync": "Automatische Synchronisierung",
+      "autoSyncHint": "E-Mails automatisch im Hintergrund abrufen",
+      "autoDownload": "Anhänge automatisch herunterladen",
+      "autoDownloadHint": "Anhänge automatisch bei WLAN herunterladen",
+      "syncNow": "Jetzt synchronisieren",
+      "syncNowPlaceholder": "Synchronisieren wird in einem zukünftigen Update verfügbar sein."
+    },
+    "storage": {
+      "title": "Speicher",
+      "cacheSize": "Lokaler Cache",
+      "clearCache": "Cache leeren",
+      "clearCacheHint": "Lokal gespeicherte E-Mails entfernen",
+      "clearCacheConfirm": "Bist du sicher, dass du den Cache leeren möchtest? Deine E-Mails auf dem Server bleiben erhalten.",
+      "clearCacheButton": "Leeren",
+      "cacheCleared": "Cache geleert"
+    },
+    "security": {
+      "title": "Sicherheit",
+      "emailNotifications": "Benachrichtigungen für neue E-Mails",
+      "emailNotificationsHint": "Erhalte eine Benachrichtigung bei neuen E-Mails",
+      "biometricLock": "Biometrische Sicherheit",
+      "biometricLockHint": "Verwende Face ID oder Fingerabdruck, um E-Mail zu öffnen"
+    }
+  },
   "privacySettings": {
     "title": "Datenschutz",
     "screenHint": "Verwalte deine Datenschutzeinstellungen",

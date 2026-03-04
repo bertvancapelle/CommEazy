@@ -381,6 +381,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-post",
+    "screenHint": "Administrer e-postinnstillingene dine",
+    "accounts": {
+      "title": "Mine e-postkontoer",
+      "noAccounts": "Ingen e-postkonto koblet til",
+      "addAccount": "Legg til konto",
+      "addAccountHint": "Koble til en ny e-postkonto",
+      "addAccountPlaceholder": "Å legge til kontoer vil være tilgjengelig i en fremtidig oppdatering.",
+      "connected": "Tilkoblet",
+      "disconnected": "Frakoblet",
+      "deleteConfirm": "Er du sikker på at du vil fjerne denne kontoen?",
+      "deleteWarning": "E-postene dine på serveren vil bli bevart."
+    },
+    "sync": {
+      "title": "Synkronisering",
+      "messageCount": "Meldinger lagret lokalt",
+      "messageCountHint": "Velg hvor mange meldinger som skal lagres lokalt",
+      "messageCountOption": "{{count}} meldinger",
+      "autoSync": "Automatisk synkronisering",
+      "autoSyncHint": "Hent e-post automatisk i bakgrunnen",
+      "autoDownload": "Last ned vedlegg automatisk",
+      "autoDownloadHint": "Last ned vedlegg automatisk på Wi-Fi",
+      "syncNow": "Synkroniser nå",
+      "syncNowPlaceholder": "Synkronisering vil være tilgjengelig i en fremtidig oppdatering."
+    },
+    "storage": {
+      "title": "Lagring",
+      "cacheSize": "Lokal hurtigbuffer",
+      "clearCache": "Tøm hurtigbuffer",
+      "clearCacheHint": "Fjern lokalt lagrede e-poster",
+      "clearCacheConfirm": "Er du sikker på at du vil tømme hurtigbufferen? E-postene dine på serveren vil bli bevart.",
+      "clearCacheButton": "Tøm",
+      "cacheCleared": "Hurtigbuffer tømt"
+    },
+    "security": {
+      "title": "Sikkerhet",
+      "emailNotifications": "Varsler for nye e-poster",
+      "emailNotificationsHint": "Motta et varsel for nye e-poster",
+      "biometricLock": "Biometrisk sikkerhet",
+      "biometricLockHint": "Bruk Face ID eller fingeravtrykk for å åpne e-post"
+    }
+  },
   "privacySettings": {
     "title": "Personvern",
     "screenHint": "Administrer personverninnstillingene dine",

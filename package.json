@@ -43,6 +43,7 @@
     "react": "18.2.0",
     "react-i18next": "^14.1.0",
     "react-native": "0.73.6",
+    "react-native-app-auth": "^8.1.0",
     "react-native-callkeep": "^4.3.16",
     "react-native-camera-kit": "^14.0.0",
     "react-native-device-info": "^10.13.1",

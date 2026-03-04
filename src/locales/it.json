@@ -382,6 +382,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-mail",
+    "screenHint": "Gestisci le impostazioni e-mail",
+    "accounts": {
+      "title": "I miei account e-mail",
+      "noAccounts": "Nessun account e-mail collegato",
+      "addAccount": "Aggiungi account",
+      "addAccountHint": "Collega un nuovo account e-mail",
+      "addAccountPlaceholder": "L'aggiunta di account sarà disponibile in un futuro aggiornamento.",
+      "connected": "Connesso",
+      "disconnected": "Disconnesso",
+      "deleteConfirm": "Sei sicuro di voler rimuovere questo account?",
+      "deleteWarning": "Le tue e-mail sul server saranno conservate."
+    },
+    "sync": {
+      "title": "Sincronizzazione",
+      "messageCount": "Messaggi archiviati localmente",
+      "messageCountHint": "Scegli quanti messaggi archiviare localmente",
+      "messageCountOption": "{{count}} messaggi",
+      "autoSync": "Sincronizzazione automatica",
+      "autoSyncHint": "Recupera automaticamente le e-mail in background",
+      "autoDownload": "Scarica allegati automaticamente",
+      "autoDownloadHint": "Scarica automaticamente gli allegati in Wi-Fi",
+      "syncNow": "Sincronizza ora",
+      "syncNowPlaceholder": "La sincronizzazione sarà disponibile in un futuro aggiornamento."
+    },
+    "storage": {
+      "title": "Archiviazione",
+      "cacheSize": "Cache locale",
+      "clearCache": "Svuota cache",
+      "clearCacheHint": "Rimuovi le e-mail archiviate localmente",
+      "clearCacheConfirm": "Sei sicuro di voler svuotare la cache? Le tue e-mail sul server saranno conservate.",
+      "clearCacheButton": "Svuota",
+      "cacheCleared": "Cache svuotata"
+    },
+    "security": {
+      "title": "Sicurezza",
+      "emailNotifications": "Notifiche per nuove e-mail",
+      "emailNotificationsHint": "Ricevi una notifica per le nuove e-mail",
+      "biometricLock": "Sicurezza biometrica",
+      "biometricLockHint": "Usa Face ID o impronta digitale per aprire le e-mail"
+    }
+  },
   "privacySettings": {
     "title": "Privacy",
     "screenHint": "Gestisci le tue impostazioni sulla privacy",

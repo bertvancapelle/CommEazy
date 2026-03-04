@@ -380,6 +380,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-mail",
+    "screenHint": "Gerenciar configurações de e-mail",
+    "accounts": {
+      "title": "Minhas contas de e-mail",
+      "noAccounts": "Nenhuma conta de e-mail vinculada",
+      "addAccount": "Adicionar conta",
+      "addAccountHint": "Vincular uma nova conta de e-mail",
+      "addAccountPlaceholder": "A adição de contas estará disponível em uma atualização futura.",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "deleteConfirm": "Tem certeza de que deseja remover esta conta?",
+      "deleteWarning": "Seus e-mails no servidor serão preservados."
+    },
+    "sync": {
+      "title": "Sincronização",
+      "messageCount": "Mensagens armazenadas localmente",
+      "messageCountHint": "Escolha quantas mensagens armazenar localmente",
+      "messageCountOption": "{{count}} mensagens",
+      "autoSync": "Sincronização automática",
+      "autoSyncHint": "Buscar e-mails automaticamente em segundo plano",
+      "autoDownload": "Baixar anexos automaticamente",
+      "autoDownloadHint": "Baixar anexos automaticamente no Wi-Fi",
+      "syncNow": "Sincronizar agora",
+      "syncNowPlaceholder": "A sincronização estará disponível em uma atualização futura."
+    },
+    "storage": {
+      "title": "Armazenamento",
+      "cacheSize": "Cache local",
+      "clearCache": "Limpar cache",
+      "clearCacheHint": "Remover e-mails armazenados localmente",
+      "clearCacheConfirm": "Tem certeza de que deseja limpar o cache? Seus e-mails no servidor serão preservados.",
+      "clearCacheButton": "Limpar",
+      "cacheCleared": "Cache limpo"
+    },
+    "security": {
+      "title": "Segurança",
+      "emailNotifications": "Notificações de novos e-mails",
+      "emailNotificationsHint": "Receber uma notificação para novos e-mails",
+      "biometricLock": "Segurança biométrica",
+      "biometricLockHint": "Usar Face ID ou impressão digital para abrir o e-mail"
+    }
+  },
   "privacySettings": {
     "title": "Privacidade",
     "screenHint": "Gerencie suas configurações de privacidade",

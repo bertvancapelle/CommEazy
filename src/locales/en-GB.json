@@ -376,6 +376,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-mail",
+    "screenHint": "Manage your email settings",
+    "accounts": {
+      "title": "My email accounts",
+      "noAccounts": "No email account linked yet",
+      "addAccount": "Add account",
+      "addAccountHint": "Link a new email account",
+      "addAccountPlaceholder": "Adding accounts will be available in a future update.",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "deleteConfirm": "Are you sure you want to remove this account?",
+      "deleteWarning": "Your emails on the server will be preserved."
+    },
+    "sync": {
+      "title": "Synchronization",
+      "messageCount": "Messages stored locally",
+      "messageCountHint": "Choose how many messages to store locally",
+      "messageCountOption": "{{count}} messages",
+      "autoSync": "Auto-sync",
+      "autoSyncHint": "Automatically fetch emails in the background",
+      "autoDownload": "Auto-download attachments",
+      "autoDownloadHint": "Automatically download attachments on Wi-Fi",
+      "syncNow": "Sync now",
+      "syncNowPlaceholder": "Syncing will be available in a future update."
+    },
+    "storage": {
+      "title": "Storage",
+      "cacheSize": "Local cache",
+      "clearCache": "Clear cache",
+      "clearCacheHint": "Remove locally stored emails",
+      "clearCacheConfirm": "Are you sure you want to clear the cache? Your emails on the server will be preserved.",
+      "clearCacheButton": "Clear",
+      "cacheCleared": "Cache cleared"
+    },
+    "security": {
+      "title": "Security",
+      "emailNotifications": "New email notifications",
+      "emailNotificationsHint": "Receive a notification for new emails",
+      "biometricLock": "Biometric security",
+      "biometricLockHint": "Use Face ID or fingerprint to open email"
+    }
+  },
   "privacySettings": {
     "title": "Privacy",
     "screenHint": "Manage your privacy settings",

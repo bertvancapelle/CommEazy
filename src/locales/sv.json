@@ -437,6 +437,49 @@
       }
     }
   },
+  "mailSettings": {
+    "title": "E-post",
+    "screenHint": "Hantera dina e-postinställningar",
+    "accounts": {
+      "title": "Mina e-postkonton",
+      "noAccounts": "Inget e-postkonto anslutet",
+      "addAccount": "Lägg till konto",
+      "addAccountHint": "Anslut ett nytt e-postkonto",
+      "addAccountPlaceholder": "Att lägga till konton kommer att vara tillgängligt i en framtida uppdatering.",
+      "connected": "Ansluten",
+      "disconnected": "Frånkopplad",
+      "deleteConfirm": "Är du säker på att du vill ta bort detta konto?",
+      "deleteWarning": "Dina e-postmeddelanden på servern kommer att bevaras."
+    },
+    "sync": {
+      "title": "Synkronisering",
+      "messageCount": "Meddelanden lagrade lokalt",
+      "messageCountHint": "Välj hur många meddelanden som ska lagras lokalt",
+      "messageCountOption": "{{count}} meddelanden",
+      "autoSync": "Automatisk synkronisering",
+      "autoSyncHint": "Hämta e-post automatiskt i bakgrunden",
+      "autoDownload": "Ladda ner bilagor automatiskt",
+      "autoDownloadHint": "Ladda ner bilagor automatiskt på Wi-Fi",
+      "syncNow": "Synkronisera nu",
+      "syncNowPlaceholder": "Synkronisering kommer att vara tillgängligt i en framtida uppdatering."
+    },
+    "storage": {
+      "title": "Lagring",
+      "cacheSize": "Lokal cache",
+      "clearCache": "Rensa cache",
+      "clearCacheHint": "Ta bort lokalt lagrade e-postmeddelanden",
+      "clearCacheConfirm": "Är du säker på att du vill rensa cachen? Dina e-postmeddelanden på servern kommer att bevaras.",
+      "clearCacheButton": "Rensa",
+      "cacheCleared": "Cache rensad"
+    },
+    "security": {
+      "title": "Säkerhet",
+      "emailNotifications": "Aviseringar för nya e-postmeddelanden",
+      "emailNotificationsHint": "Få en avisering för nya e-postmeddelanden",
+      "biometricLock": "Biometrisk säkerhet",
+      "biometricLockHint": "Använd Face ID eller fingeravtryck för att öppna e-post"
+    }
+  },
   "privacySettings": {
     "title": "Integritet",
     "screenHint": "Hantera dina integritetsinställningar",
