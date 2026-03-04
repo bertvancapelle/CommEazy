@@ -79,6 +79,7 @@ import {
 
 // Mail screens
 import { MailScreen } from '@/screens/mail/MailScreen';
+import { MailOnboardingScreen } from '@/screens/mail/MailOnboardingScreen';
 
 // Components
 import { MenuModule } from '@/components/modules/MenuModule';
@@ -128,6 +129,7 @@ type SettingsPanelParams = {
   DeviceLinkShowQR: undefined;
   PiperTtsTest: undefined;
   MailSettings: undefined;
+  MailOnboarding: undefined;
 };
 
 // ============================================================
@@ -279,6 +281,28 @@ function GroupPanelNavigator() {
   );
 }
 
+/**
+ * Wrapper for MailOnboardingScreen within the Settings stack.
+ * Provides onComplete/onClose callbacks that navigate back.
+ */
+function MailOnboardingWrapper({ navigation }: { navigation: any }) {
+  const handleComplete = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  return (
+    <MailOnboardingScreen
+      onComplete={handleComplete}
+      onAddAnother={() => {}}
+      onClose={handleClose}
+    />
+  );
+}
+
 function SettingsPanelNavigator() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -363,6 +387,11 @@ function SettingsPanelNavigator() {
           name="MailSettings"
           component={MailSettingsScreen}
           options={{ title: t('mailSettings.title') }}
+        />
+        <SettingsPanelStack.Screen
+          name="MailOnboarding"
+          component={MailOnboardingWrapper}
+          options={{ headerShown: false }}
         />
         {/* DEV: Piper TTS Test Screen */}
         {__DEV__ && (

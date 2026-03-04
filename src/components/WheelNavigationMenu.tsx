@@ -259,6 +259,27 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
   // Get enabled dynamic modules from ModuleConfigContext
   const { enabledModules, isLoading: modulesLoading } = useModuleConfig();
 
+  // Check if mail module should be visible (only when accounts are configured)
+  const [hasMailAccounts, setHasMailAccounts] = useState(false);
+
+  useEffect(() => {
+    const checkMailAccounts = async () => {
+      try {
+        const credentialManager = await import('@/services/mail/credentialManager');
+        const accounts = await credentialManager.getAllAccounts();
+        setHasMailAccounts(accounts.length > 0);
+      } catch {
+        setHasMailAccounts(false);
+      }
+    };
+    checkMailAccounts();
+  }, []);
+
+  // Hide mail module when no accounts are configured
+  const hiddenModules = useMemo((): NavigationDestination[] => {
+    return hasMailAccounts ? [] : ['mail'];
+  }, [hasMailAccounts]);
+
   // Convert enabled modules to NavigationDestination format
   const dynamicModules = useMemo(() => {
     return enabledModules.map(
@@ -266,9 +287,10 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
     );
   }, [enabledModules]);
 
-  // Pass dynamic modules to useModuleUsage hook
+  // Pass dynamic modules and hidden modules to useModuleUsage hook
   const { recordModuleUsage, getTopModules, getRemainingModules } = useModuleUsage({
     dynamicModules,
+    hiddenModules,
   });
 
   const blurIntensity = settings.wheelBlurIntensity;

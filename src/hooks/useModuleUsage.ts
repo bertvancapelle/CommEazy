@@ -43,6 +43,8 @@ interface UseModuleUsageReturn {
 interface UseModuleUsageOptions {
   /** Additional dynamic modules to include (from ModuleConfigContext) */
   dynamicModules?: NavigationDestination[];
+  /** Modules to hide from navigation (e.g., mail when no accounts configured) */
+  hiddenModules?: NavigationDestination[];
 }
 
 // All available modules - this list can grow as functionality expands
@@ -90,12 +92,16 @@ export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageR
   const [usageCounts, setUsageCounts] = useState<ModuleUsageCounts>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Combine static modules with dynamic modules from ModuleConfigContext
+  // Combine static modules with dynamic modules, filtering out hidden modules
   const allModules = useMemo(() => {
     const dynamicModules = options?.dynamicModules ?? [];
-    // Dynamic modules come after static modules in the list
-    return [...ALL_MODULES, ...dynamicModules];
-  }, [options?.dynamicModules]);
+    const hidden = options?.hiddenModules ?? [];
+    const combined = [...ALL_MODULES, ...dynamicModules];
+    // Filter out hidden modules (e.g., mail when no accounts configured)
+    return hidden.length > 0
+      ? combined.filter(m => !hidden.includes(m))
+      : combined;
+  }, [options?.dynamicModules, options?.hiddenModules]);
 
   // Load usage counts from database on mount
   useEffect(() => {

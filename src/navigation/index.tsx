@@ -98,6 +98,7 @@ export type SettingsStackParams = {
   DeviceLinkShowQR: undefined;
   PiperTtsTest: undefined;  // DEV: Test screen for Piper TTS
   MailSettings: undefined;  // E-mail module settings (Fase 9)
+  MailOnboarding: undefined;  // E-mail account setup wizard
 };
 
 // MainTabParams removed — tab navigation replaced by PaneContext

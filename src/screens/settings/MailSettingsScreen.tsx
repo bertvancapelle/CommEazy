@@ -27,7 +27,7 @@ import {
   ActionSheetIOS,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, VoiceFocusable } from '@/components';
@@ -41,6 +41,7 @@ const MESSAGE_COUNT_OPTIONS = [50, 100, 200, 500] as const;
 
 export function MailSettingsScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation<any>();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { triggerFeedback } = useFeedback();
@@ -75,15 +76,11 @@ export function MailSettingsScreen() {
     voiceFocusItems
   );
 
-  // Handle add account — placeholder until OAuth2 is implemented
+  // Handle add account — navigate to mail onboarding wizard
   const handleAddAccount = useCallback(() => {
     void triggerFeedback('tap');
-    Alert.alert(
-      t('mailSettings.accounts.addAccount'),
-      t('mailSettings.accounts.addAccountPlaceholder'),
-      [{ text: t('common.ok') }]
-    );
-  }, [t, triggerFeedback]);
+    navigation.navigate('MailOnboarding');
+  }, [triggerFeedback, navigation]);
 
   // Handle message count selection
   const handleMessageCountPress = useCallback(() => {

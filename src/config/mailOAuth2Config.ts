@@ -34,7 +34,7 @@
  *
  * Format: XXXX.apps.googleusercontent.com
  */
-export const GOOGLE_CLIENT_ID = '__GOOGLE_CLIENT_ID__';
+export const GOOGLE_CLIENT_ID = '190510202819-3na2l35jcit56lvvltis12eqmlp2an68.apps.googleusercontent.com';
 
 // ============================================================
 // Microsoft OAuth2 (Outlook / Hotmail / Live)

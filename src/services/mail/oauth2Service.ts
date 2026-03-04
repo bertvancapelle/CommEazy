@@ -69,8 +69,8 @@ interface AppAuthResult {
 // ============================================================
 
 /**
- * Get the OAuth2 redirect URL for the app.
- * Uses the app's custom URL scheme.
+ * Default OAuth2 redirect URL for the app.
+ * Used by Microsoft and other non-Google providers.
  */
 const REDIRECT_URL = 'com.commeazy://oauth2redirect';
 
@@ -83,16 +83,24 @@ const REDIRECT_URL = 'com.commeazy://oauth2redirect';
  * - email — User's email address
  * - profile — User's name (for display)
  *
+ * Note: Google requires the redirect URL to use the reversed client ID
+ * as URL scheme (not the app's custom scheme). This is an iOS requirement
+ * from Google's OAuth2 implementation.
+ *
  * Note: Client ID must be configured in environment config.
  * App Store review notes must declare the mail.google.com scope.
  */
 function getGmailConfig(): OAuth2ProviderConfig {
   const clientId = getOAuth2ClientId('google');
 
+  // Google requires reversed client ID as redirect URL scheme on iOS
+  const reversedClientId = clientId.split('.').reverse().join('.');
+  const googleRedirectUrl = `${reversedClientId}:/oauthredirect`;
+
   return {
     issuer: 'https://accounts.google.com',
     clientId,
-    redirectUrl: REDIRECT_URL,
+    redirectUrl: googleRedirectUrl,
     scopes: [
       'https://mail.google.com/',
       'openid',
