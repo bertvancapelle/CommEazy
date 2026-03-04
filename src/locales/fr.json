@@ -1755,7 +1755,15 @@
         "downloadAttachment": "Télécharger la pièce jointe",
         "downloadComplete": "Téléchargement terminé",
         "downloadFailed": "Échec du téléchargement",
-        "downloadFailedMessage": "La pièce jointe n'a pas pu être téléchargée. Veuillez réessayer plus tard."
+        "downloadFailedMessage": "La pièce jointe n'a pas pu être téléchargée. Veuillez réessayer plus tard.",
+        "savedToAlbum": "Enregistré dans l'album",
+        "saveToAlbum": "Enregistrer dans l'album",
+        "saveToAlbumFailed": "Enregistrement échoué",
+        "saveToAlbumFailedMessage": "La photo ou la vidéo n'a pas pu être enregistrée. Veuillez réessayer plus tard.",
+        "saveAllMedia": "Enregistrer toutes les photos et vidéos ({{count}})",
+        "saveAllPhotos": "Enregistrer {{count}} photos et vidéos",
+        "saveComplete": "{{saved}} enregistré(s), {{failed}} échoué(s)",
+        "saveAllButton": "Tout enregistrer"
       },
       "compose": {
         "from": "De",
@@ -1780,7 +1788,18 @@
         "forwardedMessage": "Message transféré",
         "fromLabel": "De",
         "subjectLabel": "Objet",
-        "replyPrefix": "Le {{sender}} a écrit :"
+        "replyPrefix": "Le {{sender}} a écrit :",
+        "selectContact": "Choisir un contact",
+        "searchContacts": "Rechercher des contacts...",
+        "noContactsWithEmail": "Aucun contact avec adresse e-mail",
+        "selectPhotos": "Choisir des photos",
+        "attachSelected": "Joindre la sélection",
+        "attach": "Joindre",
+        "totalSizeExceeded": "Taille totale dépassée",
+        "totalSizeWarning": "Les pièces jointes sont presque trop volumineuses pour l'e-mail",
+        "removeAttachment": "Supprimer la pièce jointe {{name}}",
+        "removeRecipient": "Supprimer le destinataire",
+        "attachPhoto": "Joindre une photo"
       }
     },
     "askAI": {

@@ -1765,7 +1765,15 @@
         "downloadAttachment": "Bijlage downloaden",
         "downloadComplete": "Download voltooid",
         "downloadFailed": "Download mislukt",
-        "downloadFailedMessage": "De bijlage kon niet gedownload worden. Probeer het later opnieuw."
+        "downloadFailedMessage": "De bijlage kon niet gedownload worden. Probeer het later opnieuw.",
+        "savedToAlbum": "Opgeslagen in album",
+        "saveToAlbum": "Opslaan in album",
+        "saveToAlbumFailed": "Opslaan mislukt",
+        "saveToAlbumFailedMessage": "De foto of video kon niet opgeslagen worden. Probeer het later opnieuw.",
+        "saveAllMedia": "Alle foto's en video's opslaan ({{count}})",
+        "saveAllPhotos": "{{count}} foto's en video's opslaan",
+        "saveComplete": "{{saved}} opgeslagen, {{failed}} mislukt",
+        "saveAllButton": "Alles opslaan"
       },
       "compose": {
         "from": "Van",
@@ -1790,7 +1798,18 @@
         "forwardedMessage": "Doorgestuurd bericht",
         "fromLabel": "Van",
         "subjectLabel": "Onderwerp",
-        "replyPrefix": "Op {{sender}} schreef:"
+        "replyPrefix": "Op {{sender}} schreef:",
+        "selectContact": "Kies contactpersoon",
+        "searchContacts": "Zoek contacten...",
+        "noContactsWithEmail": "Geen contacten met e-mailadres",
+        "selectPhotos": "Kies foto's",
+        "attachSelected": "Geselecteerde bijvoegen",
+        "attach": "Bijvoegen",
+        "totalSizeExceeded": "Totale grootte overschreden",
+        "totalSizeWarning": "Bijlagen zijn bijna te groot voor e-mail",
+        "removeAttachment": "Bijlage {{name}} verwijderen",
+        "removeRecipient": "Ontvanger verwijderen",
+        "attachPhoto": "Foto bijvoegen"
       }
     },
     "askAI": {

@@ -16,7 +16,7 @@
  * @see .claude/plans/MAIL_MODULE_PROMPT.md
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,10 @@ import type {
   MailAccount,
 } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
+import { canSaveToAlbum } from '@/services/mail/mediaAttachmentService';
+import { getSaveableAttachments } from '@/services/mail/saveToAlbumService';
+import { DownloadProgressIndicator } from '@/components/mail/DownloadProgressIndicator';
+import { BulkSaveSheet } from '@/components/mail/BulkSaveSheet';
 
 // ============================================================
 // Types
@@ -129,8 +133,15 @@ export function MailDetailScreen({
   const [body, setBody] = useState<MailBody | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showBulkSave, setShowBulkSave] = useState(false);
 
   const mountedRef = useRef(true);
+
+  // Saveable attachments (images/videos that can be saved to album)
+  const saveableAttachments = useMemo(
+    () => (body?.attachments ? getSaveableAttachments(body.attachments) : []),
+    [body?.attachments],
+  );
 
   useEffect(() => {
     return () => {
@@ -419,11 +430,44 @@ export function MailDetailScreen({
                 attachment={attachment}
                 uid={header.uid}
                 folder={header.folder}
+                accountId={account.id}
               />
             ))}
+
+            {/* Bulk save button for 2+ saveable attachments */}
+            {saveableAttachments.length >= 2 && (
+              <TouchableOpacity
+                style={[styles.bulkSaveButton, { backgroundColor: accentColor.light }]}
+                onPress={() => {
+                  triggerHaptic();
+                  setShowBulkSave(true);
+                }}
+                onLongPress={() => {}}
+                delayLongPress={300}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.mail.detail.saveAllMedia', { count: saveableAttachments.length })}
+              >
+                <Icon name="download" size={22} color={accentColor.primary} />
+                <Text style={[styles.bulkSaveText, { color: accentColor.primary }]}>
+                  {t('modules.mail.detail.saveAllMedia', { count: saveableAttachments.length })}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </ScrollView>
+
+      {/* Bulk Save Sheet */}
+      <BulkSaveSheet
+        visible={showBulkSave}
+        uid={header.uid}
+        folder={header.folder}
+        accountId={account.id}
+        attachments={saveableAttachments}
+        onComplete={() => {}}
+        onClose={() => setShowBulkSave(false)}
+      />
 
       {/* Bottom action bar */}
       <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
@@ -469,13 +513,18 @@ interface AttachmentRowProps {
   attachment: MailAttachmentMeta;
   uid: number;
   folder: string;
+  accountId: string;
 }
 
-function AttachmentRow({ attachment, uid, folder }: AttachmentRowProps) {
+function AttachmentRow({ attachment, uid, folder, accountId }: AttachmentRowProps) {
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { t } = useTranslation();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
+
+  const isSaveable = canSaveToAlbum(attachment.mimeType);
 
   const handleDownload = useCallback(async () => {
     triggerHaptic();
@@ -483,7 +532,6 @@ function AttachmentRow({ attachment, uid, folder }: AttachmentRowProps) {
     try {
       const imapBridge = await import('@/services/mail/imapBridge');
       await imapBridge.fetchAttachmentData(uid, folder, attachment.index);
-      // File saved — in future, show share sheet
       Alert.alert(
         t('modules.mail.detail.downloadComplete'),
         attachment.name,
@@ -498,41 +546,100 @@ function AttachmentRow({ attachment, uid, folder }: AttachmentRowProps) {
     }
   }, [uid, folder, attachment, t]);
 
+  const handleSaveToAlbum = useCallback(async () => {
+    triggerHaptic();
+    setIsSaving(true);
+    setSaveResult(null);
+    try {
+      const { saveAttachmentToAlbum } = await import('@/services/mail/saveToAlbumService');
+      const result = await saveAttachmentToAlbum(uid, folder, attachment, accountId);
+      setSaveResult(result.success ? 'success' : 'error');
+      if (result.success) {
+        Alert.alert(
+          t('modules.mail.detail.savedToAlbum'),
+          attachment.name,
+        );
+      } else {
+        Alert.alert(
+          t('modules.mail.detail.saveToAlbumFailed'),
+          t('modules.mail.detail.saveToAlbumFailedMessage'),
+        );
+      }
+    } catch {
+      setSaveResult('error');
+      Alert.alert(
+        t('modules.mail.detail.saveToAlbumFailed'),
+        t('modules.mail.detail.saveToAlbumFailedMessage'),
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }, [uid, folder, attachment, accountId, t]);
+
   const iconName = attachment.mimeType.startsWith('image/')
     ? 'image'
-    : attachment.mimeType === 'application/pdf'
-      ? 'document'
-      : 'attach';
+    : attachment.mimeType.startsWith('video/')
+      ? 'videocam'
+      : attachment.mimeType === 'application/pdf'
+        ? 'document'
+        : 'attach';
 
   return (
-    <TouchableOpacity
-      style={[styles.attachmentRow, { borderColor: themeColors.border }]}
-      onPress={handleDownload}
-      onLongPress={() => {}}
-      delayLongPress={300}
-      activeOpacity={0.7}
-      disabled={isDownloading}
-      accessibilityRole="button"
-      accessibilityLabel={`${t('modules.mail.detail.downloadAttachment')}: ${attachment.name}`}
-    >
-      <Icon name={iconName} size={24} color={accentColor.primary} />
-      <View style={styles.attachmentInfo}>
-        <Text
-          style={[styles.attachmentName, { color: themeColors.textPrimary }]}
-          numberOfLines={1}
+    <View style={[styles.attachmentRow, { borderColor: themeColors.border }]}>
+      <TouchableOpacity
+        style={styles.attachmentMainArea}
+        onPress={handleDownload}
+        onLongPress={() => {}}
+        delayLongPress={300}
+        activeOpacity={0.7}
+        disabled={isDownloading}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('modules.mail.detail.downloadAttachment')}: ${attachment.name}`}
+      >
+        <Icon name={iconName} size={24} color={accentColor.primary} />
+        <View style={styles.attachmentInfo}>
+          <Text
+            style={[styles.attachmentName, { color: themeColors.textPrimary }]}
+            numberOfLines={1}
+          >
+            {attachment.name}
+          </Text>
+          <Text style={[styles.attachmentSize, { color: themeColors.textSecondary }]}>
+            {formatFileSize(attachment.size)}
+          </Text>
+        </View>
+        {isDownloading ? (
+          <ActivityIndicator size="small" color={accentColor.primary} />
+        ) : (
+          <Icon name="download" size={20} color={accentColor.primary} />
+        )}
+      </TouchableOpacity>
+
+      {/* Save to album button for images/videos */}
+      {isSaveable && (
+        <TouchableOpacity
+          style={[
+            styles.saveToAlbumButton,
+            saveResult === 'success' && { backgroundColor: '#E8F5E9' },
+          ]}
+          onPress={handleSaveToAlbum}
+          onLongPress={() => {}}
+          delayLongPress={300}
+          activeOpacity={0.7}
+          disabled={isSaving || saveResult === 'success'}
+          accessibilityRole="button"
+          accessibilityLabel={t('modules.mail.detail.saveToAlbum')}
         >
-          {attachment.name}
-        </Text>
-        <Text style={[styles.attachmentSize, { color: themeColors.textSecondary }]}>
-          {formatFileSize(attachment.size)}
-        </Text>
-      </View>
-      {isDownloading ? (
-        <ActivityIndicator size="small" color={accentColor.primary} />
-      ) : (
-        <Icon name="download" size={20} color={accentColor.primary} />
+          {isSaving ? (
+            <ActivityIndicator size="small" color={accentColor.primary} />
+          ) : saveResult === 'success' ? (
+            <Icon name="check" size={18} color="#4CAF50" />
+          ) : (
+            <Icon name="image" size={18} color={accentColor.primary} />
+          )}
+        </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -683,10 +790,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: touchTargets.minimum,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
     borderWidth: 1,
     borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  attachmentMainArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
   attachmentInfo: {
@@ -698,6 +811,28 @@ const styles = StyleSheet.create({
   },
   attachmentSize: {
     ...typography.small,
+  },
+  saveToAlbumButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(0,0,0,0.1)',
+  },
+  bulkSaveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.sm,
+  },
+  bulkSaveText: {
+    ...typography.body,
+    fontWeight: '700',
   },
   bottomBar: {
     flexDirection: 'row',

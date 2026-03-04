@@ -1561,7 +1561,15 @@
         "downloadAttachment": "Pobierz załącznik",
         "downloadComplete": "Pobieranie zakończone",
         "downloadFailed": "Pobieranie nie powiodło się",
-        "downloadFailedMessage": "Nie można pobrać załącznika. Spróbuj ponownie później."
+        "downloadFailedMessage": "Nie można pobrać załącznika. Spróbuj ponownie później.",
+        "savedToAlbum": "Zapisano w albumie",
+        "saveToAlbum": "Zapisz w albumie",
+        "saveToAlbumFailed": "Zapisywanie nie powiodło się",
+        "saveToAlbumFailedMessage": "Nie udało się zapisać zdjęcia lub filmu. Spróbuj ponownie później.",
+        "saveAllMedia": "Zapisz wszystkie zdjęcia i filmy ({{count}})",
+        "saveAllPhotos": "Zapisz {{count}} zdjęć i filmów",
+        "saveComplete": "{{saved}} zapisanych, {{failed}} nieudanych",
+        "saveAllButton": "Zapisz wszystko"
       },
       "compose": {
         "from": "Od",
@@ -1586,7 +1594,18 @@
         "forwardedMessage": "Przekazana wiadomość",
         "fromLabel": "Od",
         "subjectLabel": "Temat",
-        "replyPrefix": "Dnia {{sender}} napisał(a):"
+        "replyPrefix": "Dnia {{sender}} napisał(a):",
+        "selectContact": "Wybierz kontakt",
+        "searchContacts": "Szukaj kontaktów...",
+        "noContactsWithEmail": "Brak kontaktów z adresem e-mail",
+        "selectPhotos": "Wybierz zdjęcia",
+        "attachSelected": "Załącz wybrane",
+        "attach": "Załącz",
+        "totalSizeExceeded": "Przekroczono łączny rozmiar",
+        "totalSizeWarning": "Załączniki są prawie za duże na e-mail",
+        "removeAttachment": "Usuń załącznik {{name}}",
+        "removeRecipient": "Usuń odbiorcę",
+        "attachPhoto": "Załącz zdjęcie"
       }
     },
     "weather": {

@@ -1629,7 +1629,15 @@
         "downloadAttachment": "Last ned vedlegg",
         "downloadComplete": "Nedlasting fullført",
         "downloadFailed": "Nedlasting mislyktes",
-        "downloadFailedMessage": "Vedlegget kunne ikke lastes ned. Prøv igjen senere."
+        "downloadFailedMessage": "Vedlegget kunne ikke lastes ned. Prøv igjen senere.",
+        "savedToAlbum": "Lagret i album",
+        "saveToAlbum": "Lagre i album",
+        "saveToAlbumFailed": "Lagring mislyktes",
+        "saveToAlbumFailedMessage": "Bildet eller videoen kunne ikke lagres. Prøv igjen senere.",
+        "saveAllMedia": "Lagre alle bilder og videoer ({{count}})",
+        "saveAllPhotos": "Lagre {{count}} bilder og videoer",
+        "saveComplete": "{{saved}} lagret, {{failed}} mislyktes",
+        "saveAllButton": "Lagre alle"
       },
       "compose": {
         "from": "Fra",
@@ -1654,7 +1662,18 @@
         "forwardedMessage": "Videresendt melding",
         "fromLabel": "Fra",
         "subjectLabel": "Emne",
-        "replyPrefix": "Den {{sender}} skrev:"
+        "replyPrefix": "Den {{sender}} skrev:",
+        "selectContact": "Velg kontakt",
+        "searchContacts": "Søk kontakter...",
+        "noContactsWithEmail": "Ingen kontakter med e-postadresse",
+        "selectPhotos": "Velg bilder",
+        "attachSelected": "Legg ved valgte",
+        "attach": "Legg ved",
+        "totalSizeExceeded": "Total størrelse overskredet",
+        "totalSizeWarning": "Vedleggene er nesten for store for e-post",
+        "removeAttachment": "Fjern vedlegg {{name}}",
+        "removeRecipient": "Fjern mottaker",
+        "attachPhoto": "Legg ved bilde"
       }
     },
     "askAI": {

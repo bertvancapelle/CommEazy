@@ -1770,7 +1770,15 @@
         "downloadAttachment": "Download attachment",
         "downloadComplete": "Download complete",
         "downloadFailed": "Download failed",
-        "downloadFailedMessage": "The attachment could not be downloaded. Please try again later."
+        "downloadFailedMessage": "The attachment could not be downloaded. Please try again later.",
+        "savedToAlbum": "Saved to album",
+        "saveToAlbum": "Save to album",
+        "saveToAlbumFailed": "Save failed",
+        "saveToAlbumFailedMessage": "The photo or video could not be saved. Please try again later.",
+        "saveAllMedia": "Save all photos and videos ({{count}})",
+        "saveAllPhotos": "Save {{count}} photos and videos",
+        "saveComplete": "{{saved}} saved, {{failed}} failed",
+        "saveAllButton": "Save all"
       },
       "compose": {
         "from": "From",
@@ -1795,7 +1803,18 @@
         "forwardedMessage": "Forwarded message",
         "fromLabel": "From",
         "subjectLabel": "Subject",
-        "replyPrefix": "On {{sender}} wrote:"
+        "replyPrefix": "On {{sender}} wrote:",
+        "selectContact": "Choose contact",
+        "searchContacts": "Search contacts...",
+        "noContactsWithEmail": "No contacts with email address",
+        "selectPhotos": "Choose photos",
+        "attachSelected": "Attach selected",
+        "attach": "Attach",
+        "totalSizeExceeded": "Total size exceeded",
+        "totalSizeWarning": "Attachments are almost too large for email",
+        "removeAttachment": "Remove attachment {{name}}",
+        "removeRecipient": "Remove recipient",
+        "attachPhoto": "Attach photo"
       }
     },
     "askAI": {

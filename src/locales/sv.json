@@ -1599,7 +1599,15 @@
         "downloadAttachment": "Ladda ner bilaga",
         "downloadComplete": "Nedladdning klar",
         "downloadFailed": "Nedladdning misslyckades",
-        "downloadFailedMessage": "Bilagan kunde inte laddas ner. Försök igen senare."
+        "downloadFailedMessage": "Bilagan kunde inte laddas ner. Försök igen senare.",
+        "savedToAlbum": "Sparad i album",
+        "saveToAlbum": "Spara i album",
+        "saveToAlbumFailed": "Kunde inte spara",
+        "saveToAlbumFailedMessage": "Fotot eller videon kunde inte sparas. Försök igen senare.",
+        "saveAllMedia": "Spara alla foton och videor ({{count}})",
+        "saveAllPhotos": "Spara {{count}} foton och videor",
+        "saveComplete": "{{saved}} sparade, {{failed}} misslyckades",
+        "saveAllButton": "Spara alla"
       },
       "compose": {
         "from": "Från",
@@ -1624,7 +1632,18 @@
         "forwardedMessage": "Vidarebefordrat meddelande",
         "fromLabel": "Från",
         "subjectLabel": "Ämne",
-        "replyPrefix": "Den {{sender}} skrev:"
+        "replyPrefix": "Den {{sender}} skrev:",
+        "selectContact": "Välj kontakt",
+        "searchContacts": "Sök kontakter...",
+        "noContactsWithEmail": "Inga kontakter med e-postadress",
+        "selectPhotos": "Välj foton",
+        "attachSelected": "Bifoga valda",
+        "attach": "Bifoga",
+        "totalSizeExceeded": "Total storlek överskriden",
+        "totalSizeWarning": "Bilagorna är nästan för stora för e-post",
+        "removeAttachment": "Ta bort bilaga {{name}}",
+        "removeRecipient": "Ta bort mottagare",
+        "attachPhoto": "Bifoga foto"
       }
     },
     "askAI": {

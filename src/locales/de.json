@@ -1755,7 +1755,15 @@
         "downloadAttachment": "Anhang herunterladen",
         "downloadComplete": "Download abgeschlossen",
         "downloadFailed": "Download fehlgeschlagen",
-        "downloadFailedMessage": "Der Anhang konnte nicht heruntergeladen werden. Bitte versuche es später erneut."
+        "downloadFailedMessage": "Der Anhang konnte nicht heruntergeladen werden. Bitte versuche es später erneut.",
+        "savedToAlbum": "Im Album gespeichert",
+        "saveToAlbum": "Im Album speichern",
+        "saveToAlbumFailed": "Speichern fehlgeschlagen",
+        "saveToAlbumFailedMessage": "Das Foto oder Video konnte nicht gespeichert werden. Bitte versuche es später erneut.",
+        "saveAllMedia": "Alle Fotos und Videos speichern ({{count}})",
+        "saveAllPhotos": "{{count}} Fotos und Videos speichern",
+        "saveComplete": "{{saved}} gespeichert, {{failed}} fehlgeschlagen",
+        "saveAllButton": "Alle speichern"
       },
       "compose": {
         "from": "Von",
@@ -1780,7 +1788,18 @@
         "forwardedMessage": "Weitergeleitete Nachricht",
         "fromLabel": "Von",
         "subjectLabel": "Betreff",
-        "replyPrefix": "Am {{sender}} schrieb:"
+        "replyPrefix": "Am {{sender}} schrieb:",
+        "selectContact": "Kontakt auswählen",
+        "searchContacts": "Kontakte suchen...",
+        "noContactsWithEmail": "Keine Kontakte mit E-Mail-Adresse",
+        "selectPhotos": "Fotos auswählen",
+        "attachSelected": "Ausgewählte anhängen",
+        "attach": "Anhängen",
+        "totalSizeExceeded": "Gesamtgröße überschritten",
+        "totalSizeWarning": "Anhänge sind fast zu groß für E-Mail",
+        "removeAttachment": "Anhang {{name}} entfernen",
+        "removeRecipient": "Empfänger entfernen",
+        "attachPhoto": "Foto anhängen"
       }
     },
     "askAI": {

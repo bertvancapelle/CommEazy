@@ -1755,7 +1755,15 @@
         "downloadAttachment": "Descargar archivo adjunto",
         "downloadComplete": "Descarga completada",
         "downloadFailed": "Error en la descarga",
-        "downloadFailedMessage": "No se pudo descargar el archivo adjunto. Inténtalo de nuevo más tarde."
+        "downloadFailedMessage": "No se pudo descargar el archivo adjunto. Inténtalo de nuevo más tarde.",
+        "savedToAlbum": "Guardado en el álbum",
+        "saveToAlbum": "Guardar en el álbum",
+        "saveToAlbumFailed": "Error al guardar",
+        "saveToAlbumFailedMessage": "No se pudo guardar la foto o el vídeo. Inténtalo de nuevo más tarde.",
+        "saveAllMedia": "Guardar todas las fotos y vídeos ({{count}})",
+        "saveAllPhotos": "Guardar {{count}} fotos y vídeos",
+        "saveComplete": "{{saved}} guardados, {{failed}} fallidos",
+        "saveAllButton": "Guardar todo"
       },
       "compose": {
         "from": "De",
@@ -1780,7 +1788,18 @@
         "forwardedMessage": "Mensaje reenviado",
         "fromLabel": "De",
         "subjectLabel": "Asunto",
-        "replyPrefix": "El {{sender}} escribió:"
+        "replyPrefix": "El {{sender}} escribió:",
+        "selectContact": "Elegir contacto",
+        "searchContacts": "Buscar contactos...",
+        "noContactsWithEmail": "Sin contactos con dirección de correo",
+        "selectPhotos": "Elegir fotos",
+        "attachSelected": "Adjuntar seleccionados",
+        "attach": "Adjuntar",
+        "totalSizeExceeded": "Tamaño total excedido",
+        "totalSizeWarning": "Los archivos adjuntos son casi demasiado grandes para el correo",
+        "removeAttachment": "Eliminar adjunto {{name}}",
+        "removeRecipient": "Eliminar destinatario",
+        "attachPhoto": "Adjuntar foto"
       }
     },
     "askAI": {

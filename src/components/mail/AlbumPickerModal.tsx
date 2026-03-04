@@ -1,0 +1,370 @@
+/**
+ * AlbumPickerModal — Pick photos/videos from device for mail attachment
+ *
+ * Uses PanelAwareModal for iPad Split View compatibility.
+ * Shows device photos in a grid with multi-select support.
+ *
+ * Size warnings:
+ * - > 20MB: inline banner warning
+ * - > 25MB: banner + button disabled
+ *
+ * Senior-inclusive:
+ * - Large grid items (touch target ≥60pt)
+ * - Clear selection indicators
+ * - Haptic feedback
+ *
+ * @see .claude/plans/MAIL_MODULE_PROMPT.md — Fase 14
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Dimensions,
+  Platform,
+} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { typography, touchTargets, borderRadius, spacing } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
+import { useAccentColor } from '@/hooks/useAccentColor';
+import { Icon, PanelAwareModal } from '@/components';
+
+// ============================================================
+// Types
+// ============================================================
+
+interface PhotoItem {
+  uri: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  width?: number;
+  height?: number;
+}
+
+export interface AlbumPickerModalProps {
+  visible: boolean;
+  onSelect: (photos: PhotoItem[]) => void;
+  onClose: () => void;
+  maxTotalSize?: number;
+}
+
+// ============================================================
+// Constants
+// ============================================================
+
+const MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25MB
+const WARNING_SIZE = 20 * 1024 * 1024; // 20MB
+const GRID_COLUMNS = 3;
+const GRID_SPACING = 4;
+
+const triggerHaptic = () => {
+  const options = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+  };
+  const hapticType = Platform.select({
+    ios: 'impactMedium',
+    android: 'effectClick',
+    default: 'impactMedium',
+  }) as string;
+  ReactNativeHapticFeedback.trigger(hapticType, options);
+};
+
+// ============================================================
+// Component
+// ============================================================
+
+export function AlbumPickerModal({
+  visible,
+  onSelect,
+  onClose,
+  maxTotalSize = MAX_TOTAL_SIZE,
+}: AlbumPickerModalProps) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+  const { accentColor } = useAccentColor();
+
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+
+  const screenWidth = Dimensions.get('window').width;
+  const itemSize = (screenWidth - spacing.md * 2 - GRID_SPACING * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
+
+  // ============================================================
+  // Load Photos
+  // ============================================================
+
+  useEffect(() => {
+    if (!visible) {
+      setSelectedPhotos(new Set());
+      return;
+    }
+
+    const loadPhotos = async () => {
+      setIsLoading(true);
+      try {
+        const CameraRoll = await import('@react-native-camera-roll/camera-roll');
+        const result = await CameraRoll.CameraRoll.getPhotos({
+          first: 100,
+          assetType: 'All',
+          include: ['fileSize', 'filename'],
+        });
+
+        const items: PhotoItem[] = result.edges.map(edge => ({
+          uri: edge.node.image.uri,
+          fileName: edge.node.image.filename || 'photo',
+          fileSize: edge.node.image.fileSize || 0,
+          mimeType: edge.node.type?.includes('video') ? 'video/mp4' : 'image/jpeg',
+          width: edge.node.image.width,
+          height: edge.node.image.height,
+        }));
+
+        setPhotos(items);
+      } catch {
+        console.debug('[AlbumPicker] Failed to load photos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPhotos();
+  }, [visible]);
+
+  // ============================================================
+  // Selection
+  // ============================================================
+
+  const selectedTotalSize = Array.from(selectedPhotos).reduce((sum, uri) => {
+    const photo = photos.find(p => p.uri === uri);
+    return sum + (photo?.fileSize || 0);
+  }, 0);
+
+  const isOverWarning = selectedTotalSize > WARNING_SIZE;
+  const isOverLimit = selectedTotalSize > maxTotalSize;
+
+  const handleToggle = useCallback(
+    (uri: string) => {
+      triggerHaptic();
+      setSelectedPhotos(prev => {
+        const next = new Set(prev);
+        if (next.has(uri)) {
+          next.delete(uri);
+        } else {
+          next.add(uri);
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleConfirm = useCallback(() => {
+    if (isOverLimit || selectedPhotos.size === 0) return;
+    triggerHaptic();
+
+    const selected = photos.filter(p => selectedPhotos.has(p.uri));
+    onSelect(selected);
+    onClose();
+  }, [isOverLimit, selectedPhotos, photos, onSelect, onClose]);
+
+  const handleClose = useCallback(() => {
+    triggerHaptic();
+    onClose();
+  }, [onClose]);
+
+  // ============================================================
+  // Render
+  // ============================================================
+
+  return (
+    <PanelAwareModal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={handleClose}
+    >
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        {/* Header */}
+        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleClose}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cancel')}
+          >
+            <Text style={[styles.headerButtonText, { color: accentColor.primary }]}>
+              {t('common.cancel')}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+            {t('modules.mail.compose.selectPhotos')}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleConfirm}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            disabled={isOverLimit || selectedPhotos.size === 0}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.compose.attachSelected')}
+          >
+            <Text
+              style={[
+                styles.headerButtonText,
+                { color: isOverLimit || selectedPhotos.size === 0
+                  ? themeColors.textSecondary
+                  : accentColor.primary
+                },
+              ]}
+            >
+              {selectedPhotos.size > 0
+                ? `${t('modules.mail.compose.attach')} (${selectedPhotos.size})`
+                : t('modules.mail.compose.attach')
+              }
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Size warning */}
+        {isOverWarning && (
+          <View style={[styles.warningBanner, { backgroundColor: isOverLimit ? '#FFEBEE' : '#FFF3E0' }]}>
+            <Icon name="warning" size={20} color={isOverLimit ? '#D32F2F' : '#F57C00'} />
+            <Text style={[styles.warningText, { color: isOverLimit ? '#D32F2F' : '#F57C00' }]}>
+              {isOverLimit
+                ? t('modules.mail.compose.totalSizeExceeded')
+                : t('modules.mail.compose.totalSizeWarning')
+              }
+            </Text>
+          </View>
+        )}
+
+        {/* Photo Grid */}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={accentColor.primary} />
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.gridContent}>
+            <View style={styles.grid}>
+              {photos.map(photo => {
+                const isSelected = selectedPhotos.has(photo.uri);
+                return (
+                  <TouchableOpacity
+                    key={photo.uri}
+                    style={[
+                      styles.gridItem,
+                      { width: itemSize, height: itemSize },
+                      isSelected && { borderColor: accentColor.primary, borderWidth: 3 },
+                    ]}
+                    onPress={() => handleToggle(photo.uri)}
+                    onLongPress={() => {}}
+                    delayLongPress={300}
+                    activeOpacity={0.7}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isSelected }}
+                    accessibilityLabel={photo.fileName}
+                  >
+                    <Image
+                      source={{ uri: photo.uri }}
+                      style={styles.gridImage}
+                      resizeMode="cover"
+                    />
+                    {isSelected && (
+                      <View style={[styles.checkmark, { backgroundColor: accentColor.primary }]}>
+                        <Icon name="check" size={16} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        )}
+      </View>
+    </PanelAwareModal>
+  );
+}
+
+// ============================================================
+// Styles
+// ============================================================
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  headerButton: {
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+  },
+  headerButtonText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  title: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  warningText: {
+    ...typography.small,
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gridContent: {
+    padding: spacing.md,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: GRID_SPACING,
+  },
+  gridItem: {
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden',
+  },
+  gridImage: {
+    width: '100%',
+    height: '100%',
+  },
+  checkmark: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

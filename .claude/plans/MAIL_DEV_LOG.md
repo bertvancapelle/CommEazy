@@ -488,10 +488,40 @@ MailWelcomeModal (AsyncStorage: @commeazy/mail_welcome_shown)
 
 ---
 
-## Fase 9-10: Settings + Mail UI — Sessie 5
+## Fase 9: Settings Menu Integratie — Sessie 4b
 
-### Status: ⏳ Gepland
+### Status: ✅ Voltooid
+### Commit: `5f04a36` — feat(mail): Register mail module in navigation + i18n (Pre-Test 1)
+
+**Wat is gedaan:**
+- Mail module geregistreerd in navigatie (WheelNavigationMenu, Tab.Screen)
+- i18n keys voor navigatie in alle 13 locale bestanden
+
+---
+
+## Fase 10: Inbox, Detail & Compose Screens — Sessie 5
+
+### Status: ✅ Voltooid
+### Commit: `82cba24` — feat(mail): Fase 10 — Inbox, Detail & Compose screens + i18n 13 locales
 ### Test Checkpoint: 🧪 Test 2 na deze fase
+
+**Wat is gedaan:**
+- `MailScreen.tsx` — Herschreven met interne navigatie (MailView discriminated union: inbox | detail | compose)
+- `MailInboxScreen.tsx` — Folder selectie, mail lijst, compose FAB, pull-to-refresh, cache-first loading
+- `MailListItem.tsx` — Mail rij met unread dot, sender, subject, datum, attachment/flag indicators
+- `MailDetailScreen.tsx` — Volledige bericht weergave met sender avatar, body, bijlagen, reply/forward/delete
+- `MailComposeScreen.tsx` — Nieuw/reply/forward modes, To/CC/Subject/Body, SMTP send
+- i18n: ~66 nieuwe keys per taal (inbox + detail + compose) in alle 13 locale bestanden
+
+**Bestanden aangemaakt:**
+- `src/screens/mail/MailInboxScreen.tsx`
+- `src/screens/mail/MailListItem.tsx`
+- `src/screens/mail/MailDetailScreen.tsx`
+- `src/screens/mail/MailComposeScreen.tsx`
+
+**Bestanden gewijzigd:**
+- `src/screens/mail/MailScreen.tsx` (volledig herschreven)
+- 13 locale bestanden (nl, en, en-GB, de, fr, es, it, no, sv, da, pt, pt-BR, pl)
 
 ---
 
@@ -511,6 +541,8 @@ MailWelcomeModal (AsyncStorage: @commeazy/mail_welcome_shown)
 
 ### Status: ⏳ Gepland
 ### Test Checkpoint: 🧪 Test 3 na deze fase
+
+> **⛔ BLOKKEERDER (PNA Beslissing #31):** Fase 17 (Bijlagen opslaan in CommEazy PhotoAlbum) is een **harde vereiste** voordat de mail module als voltooid mag worden beschouwd. Afbeeldingen ontvangen via e-mail MOETEN opgeslagen kunnen worden in de bestaande PhotoAlbum module (`src/screens/modules/PhotoAlbumScreen.tsx`).
 
 ---
 

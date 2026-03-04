@@ -1772,7 +1772,15 @@
         "downloadAttachment": "Transferir anexo",
         "downloadComplete": "Transferência concluída",
         "downloadFailed": "Falha na transferência",
-        "downloadFailedMessage": "Não foi possível transferir o anexo. Tente novamente mais tarde."
+        "downloadFailedMessage": "Não foi possível transferir o anexo. Tente novamente mais tarde.",
+        "savedToAlbum": "Guardado no álbum",
+        "saveToAlbum": "Guardar no álbum",
+        "saveToAlbumFailed": "Falha ao guardar",
+        "saveToAlbumFailedMessage": "Não foi possível guardar a foto ou o vídeo. Tente novamente mais tarde.",
+        "saveAllMedia": "Guardar todas as fotos e vídeos ({{count}})",
+        "saveAllPhotos": "Guardar {{count}} fotos e vídeos",
+        "saveComplete": "{{saved}} guardados, {{failed}} falharam",
+        "saveAllButton": "Guardar tudo"
       },
       "compose": {
         "from": "De",
@@ -1797,7 +1805,18 @@
         "forwardedMessage": "Mensagem reencaminhada",
         "fromLabel": "De",
         "subjectLabel": "Assunto",
-        "replyPrefix": "Em {{sender}} escreveu:"
+        "replyPrefix": "Em {{sender}} escreveu:",
+        "selectContact": "Escolher contacto",
+        "searchContacts": "Pesquisar contactos...",
+        "noContactsWithEmail": "Sem contactos com endereço de e-mail",
+        "selectPhotos": "Escolher fotos",
+        "attachSelected": "Anexar selecionados",
+        "attach": "Anexar",
+        "totalSizeExceeded": "Tamanho total excedido",
+        "totalSizeWarning": "Os anexos são quase demasiado grandes para e-mail",
+        "removeAttachment": "Remover anexo {{name}}",
+        "removeRecipient": "Remover destinatário",
+        "attachPhoto": "Anexar foto"
       }
     },
     "askAI": {

@@ -21,3 +21,12 @@ export * as mailCache from './mailCache';
 export * as credentialManager from './credentialManager';
 export * as oauth2Service from './oauth2Service';
 export * as mailConstants from './mailConstants';
+
+// Fase 13: Contacten-integratie
+export * as contactMailService from './contactMailService';
+
+// Fase 14: Media bijlagen
+export * as mediaAttachmentService from './mediaAttachmentService';
+
+// Fase 17: Opslaan in album
+export * as saveToAlbumService from './saveToAlbumService';

@@ -35,8 +35,16 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { Icon } from '@/components';
-import type { MailAccount, CachedMailHeader, MailBody } from '@/types/mail';
+import type { MailAccount, CachedMailHeader, MailBody, MailAttachment } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
+import { AttachmentPreviewBar } from '@/components/mail/AttachmentPreviewBar';
+import { AlbumPickerModal } from '@/components/mail/AlbumPickerModal';
+import {
+  buildAttachment,
+  compressImageIfNeeded,
+  isImageType,
+  wouldExceedTotalSize,
+} from '@/services/mail/mediaAttachmentService';
 
 // ============================================================
 // Types
@@ -154,6 +162,8 @@ export function MailComposeScreen({
   const [subject, setSubject] = useState(getInitialSubject(mode, originalHeader, t));
   const [body, setBody] = useState(getInitialBody(mode, originalHeader, originalBody, t));
   const [isSending, setIsSending] = useState(false);
+  const [attachments, setAttachments] = useState<MailAttachment[]>([]);
+  const [showAlbumPicker, setShowAlbumPicker] = useState(false);
 
   const bodyInputRef = useRef<TextInput>(null);
 
@@ -248,6 +258,49 @@ export function MailComposeScreen({
   }, [to, subject, body, onClose, t]);
 
   // ============================================================
+  // Attachments
+  // ============================================================
+
+  const handleAddPhotos = useCallback(
+    async (photos: Array<{ uri: string; fileName: string; fileSize: number; mimeType: string }>) => {
+      for (const photo of photos) {
+        if (wouldExceedTotalSize(attachments, photo.fileSize)) {
+          Alert.alert(
+            t('modules.mail.compose.totalSizeExceeded'),
+            t('modules.mail.compose.totalSizeWarning'),
+          );
+          break;
+        }
+
+        const attachment = buildAttachment(
+          photo.uri,
+          photo.fileName,
+          photo.mimeType,
+          photo.fileSize,
+        );
+
+        // Compress images if needed
+        if (isImageType(photo.mimeType)) {
+          const result = await compressImageIfNeeded(photo.uri, photo.fileSize);
+          attachment.localUri = result.localUri;
+          attachment.compressedSize = result.compressedSize;
+          attachment.compressionStatus = result.status === 'done' ? 'done' : 'failed';
+        } else {
+          attachment.compressionStatus = 'done';
+        }
+
+        setAttachments(prev => [...prev, attachment]);
+      }
+    },
+    [attachments, t],
+  );
+
+  const handleRemoveAttachment = useCallback((id: string) => {
+    triggerHaptic();
+    setAttachments(prev => prev.filter(a => a.id !== id));
+  }, []);
+
+  // ============================================================
   // Title
   // ============================================================
 
@@ -286,25 +339,42 @@ export function MailComposeScreen({
           {title}
         </Text>
 
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            { backgroundColor: isValid ? accentColor.primary : themeColors.border },
-          ]}
-          onPress={handleSend}
-          onLongPress={() => {}}
-          delayLongPress={300}
-          activeOpacity={0.7}
-          disabled={!isValid || isSending}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.mail.compose.send')}
-        >
-          {isSending ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Icon name="send" size={20} color="#FFFFFF" />
-          )}
-        </TouchableOpacity>
+        <View style={styles.topBarRight}>
+          <TouchableOpacity
+            style={styles.attachButton}
+            onPress={() => {
+              triggerHaptic();
+              setShowAlbumPicker(true);
+            }}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.compose.attachPhoto')}
+          >
+            <Icon name="attach" size={22} color={accentColor.primary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              { backgroundColor: isValid ? accentColor.primary : themeColors.border },
+            ]}
+            onPress={handleSend}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            disabled={!isValid || isSending}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.compose.send')}
+          >
+            {isSending ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Icon name="send" size={20} color="#FFFFFF" />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -393,6 +463,16 @@ export function MailComposeScreen({
           />
         </View>
 
+        {/* Attachments */}
+        {attachments.length > 0 && (
+          <View style={styles.attachmentSection}>
+            <AttachmentPreviewBar
+              attachments={attachments}
+              onRemove={handleRemoveAttachment}
+            />
+          </View>
+        )}
+
         {/* Body */}
         <TextInput
           ref={bodyInputRef}
@@ -406,6 +486,13 @@ export function MailComposeScreen({
           accessibilityLabel={t('modules.mail.compose.body')}
         />
       </ScrollView>
+
+      {/* Album Picker Modal */}
+      <AlbumPickerModal
+        visible={showAlbumPicker}
+        onSelect={handleAddPhotos}
+        onClose={() => setShowAlbumPicker(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -438,6 +525,17 @@ const styles = StyleSheet.create({
   title: {
     ...typography.body,
     fontWeight: '700',
+  },
+  topBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  attachButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sendButton: {
     width: touchTargets.minimum,
@@ -475,6 +573,10 @@ const styles = StyleSheet.create({
   ccToggle: {
     ...typography.body,
     fontWeight: '700',
+  },
+  attachmentSection: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   bodyInput: {
     ...typography.body,

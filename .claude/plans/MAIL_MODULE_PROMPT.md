@@ -986,7 +986,9 @@ Niet beschikbaar zonder mailaccount: melding + knop "E-mail instellen".
 
 ---
 
-## FASE 17: Bijlagen Opslaan in het CommEazy Fotoalbum
+## FASE 17: Bijlagen Opslaan in het CommEazy Fotoalbum ⛔ BLOKKEERDER
+
+> **⛔ BLOKKEERDER:** De mail module mag NIET als voltooid worden beschouwd voordat Fase 17 volledig is geïmplementeerd. Afbeeldingen ontvangen via e-mail MOETEN opgeslagen kunnen worden in de bestaande PhotoAlbum module (`src/screens/modules/PhotoAlbumScreen.tsx`). Dit is een expliciete PNA-beslissing (#31).
 
 ### 17.1 saveToAlbumService.ts
 
@@ -1074,7 +1076,7 @@ Wacht na elke fase op expliciete goedkeuring.
 10. Fase 14: Foto en video bijlagen
 11. Fase 15: Delen vanuit fotoalbum
 12. Fase 16: Integratie-tests en consistentie check
-13. Fase 17: Bijlagen opslaan in fotoalbum + module registratie check
+13. Fase 17: Bijlagen opslaan in fotoalbum + module registratie check ⛔ **BLOKKEERDER — mail module NIET afsluiten zonder deze fase**
 
 ### Uitgesteld
 
@@ -1143,3 +1145,4 @@ Dit document is het resultaat van een review met 23 bevindingen + 7 PNA beslissi
 | 28 | iOS-first uitvoeringsvolgorde | UITVOERVOLGORDE sectie (herschreven) |
 | 29 | Android Fase 4 uitgesteld | UITVOERVOLGORDE sectie (apart blok) |
 | 30 | Swift Package Manager i.p.v. CocoaPods | Fase 3.1 (SPM instructies) |
+| 31 | Fase 17 (PhotoAlbum integratie) is BLOKKEERDER | Fase 17 (blokkeerder annotatie) + UITVOERVOLGORDE |

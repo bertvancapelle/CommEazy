@@ -1599,7 +1599,15 @@
         "downloadAttachment": "Download vedhæftning",
         "downloadComplete": "Download fuldført",
         "downloadFailed": "Download mislykkedes",
-        "downloadFailedMessage": "Vedhæftningen kunne ikke downloades. Prøv igen senere."
+        "downloadFailedMessage": "Vedhæftningen kunne ikke downloades. Prøv igen senere.",
+        "savedToAlbum": "Gemt i album",
+        "saveToAlbum": "Gem i album",
+        "saveToAlbumFailed": "Gemning mislykkedes",
+        "saveToAlbumFailedMessage": "Fotoet eller videoen kunne ikke gemmes. Prøv igen senere.",
+        "saveAllMedia": "Gem alle fotos og videoer ({{count}})",
+        "saveAllPhotos": "Gem {{count}} fotos og videoer",
+        "saveComplete": "{{saved}} gemt, {{failed}} mislykkedes",
+        "saveAllButton": "Gem alle"
       },
       "compose": {
         "from": "Fra",
@@ -1624,7 +1632,18 @@
         "forwardedMessage": "Videresendt besked",
         "fromLabel": "Fra",
         "subjectLabel": "Emne",
-        "replyPrefix": "Den {{sender}} skrev:"
+        "replyPrefix": "Den {{sender}} skrev:",
+        "selectContact": "Vælg kontakt",
+        "searchContacts": "Søg kontakter...",
+        "noContactsWithEmail": "Ingen kontakter med e-mailadresse",
+        "selectPhotos": "Vælg fotos",
+        "attachSelected": "Vedhæft valgte",
+        "attach": "Vedhæft",
+        "totalSizeExceeded": "Samlet størrelse overskredet",
+        "totalSizeWarning": "Vedhæftede filer er næsten for store til e-mail",
+        "removeAttachment": "Fjern vedhæftning {{name}}",
+        "removeRecipient": "Fjern modtager",
+        "attachPhoto": "Vedhæft foto"
       }
     },
     "askAI": {
