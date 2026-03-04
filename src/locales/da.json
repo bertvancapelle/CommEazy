@@ -1507,6 +1507,7 @@
       "onboarding": {
         "chooseProvider": "Vælg din e-mailudbyder",
         "chooseProviderHint": "Vælg udbyderen af din e-mailadresse.",
+        "skipSetup": "Spring over",
         "selectProviderHint": "Vælg {{provider}} som e-mailudbyder",
         "easyLogin": "Nem login",
         "oauthTitle": "Log ind på {{provider}}",
@@ -1552,6 +1553,12 @@
         "yahooAppPassword": "Yahoo kræver en app-adgangskode. Gå til din Yahoo-kontosikkerhed for at oprette en.",
         "icloudAppPassword": "Apple iCloud kræver en app-specifik adgangskode. Opret en på appleid.apple.com.",
         "protonBridge": "ProtonMail kræver Proton Mail Bridge-appen på din computer."
+      },
+      "setupComplete": "E-mail er sat op! Indbakken bliver snart tilgængelig.",
+      "notConfigured": {
+        "title": "E-mail er ikke sat op endnu",
+        "hint": "Opsæt din e-mailkonto for at læse og sende beskeder.",
+        "setupButton": "Opsæt e-mail"
       }
     },
     "askAI": {

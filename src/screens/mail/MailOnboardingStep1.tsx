@@ -34,6 +34,8 @@ import { getSelectableProviders, type MailProvider } from '@/services/mail/mailC
 export interface MailOnboardingStep1Props {
   /** Called when a provider is selected */
   onSelect: (provider: MailProvider) => void;
+  /** Called when user wants to skip/close the wizard */
+  onClose?: () => void;
   /** Current step for ProgressIndicator */
   currentStep?: number;
   /** Total steps for ProgressIndicator */
@@ -81,6 +83,7 @@ const PROVIDER_EMOJI: Record<string, string> = {
 
 export function MailOnboardingStep1({
   onSelect,
+  onClose,
   currentStep = 1,
   totalSteps = 3,
 }: MailOnboardingStep1Props) {
@@ -96,7 +99,27 @@ export function MailOnboardingStep1({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+      <View style={styles.topBar}>
+        <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+        {onClose && (
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={() => {
+              triggerHaptic();
+              onClose();
+            }}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.onboarding.skipSetup')}
+          >
+            <Text style={[styles.skipButtonText, { color: accentColor.primary }]}>
+              {t('modules.mail.onboarding.skipSetup')}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -167,6 +190,21 @@ export function MailOnboardingStep1({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: spacing.md,
+  },
+  skipButton: {
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  skipButtonText: {
+    ...typography.body,
+    fontWeight: '600',
   },
   scrollContent: {
     flexGrow: 1,

@@ -399,6 +399,7 @@ export function MailOnboardingScreen({
       return (
         <MailOnboardingStep1
           onSelect={handleProviderSelect}
+          onClose={onClose}
           currentStep={1}
           totalSteps={3}
         />

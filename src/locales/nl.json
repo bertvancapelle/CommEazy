@@ -1673,6 +1673,7 @@
       "onboarding": {
         "chooseProvider": "Kies je e-mailprovider",
         "chooseProviderHint": "Selecteer de provider van je e-mailadres.",
+        "skipSetup": "Overslaan",
         "selectProviderHint": "Selecteer {{provider}} als e-mailprovider",
         "easyLogin": "Makkelijk inloggen",
         "oauthTitle": "Inloggen bij {{provider}}",
@@ -1718,6 +1719,12 @@
         "yahooAppPassword": "Yahoo vereist een app-wachtwoord. Ga naar je Yahoo-accountbeveiliging om er een aan te maken.",
         "icloudAppPassword": "Apple iCloud vereist een app-specifiek wachtwoord. Maak er een aan via appleid.apple.com.",
         "protonBridge": "ProtonMail vereist de Proton Mail Bridge app op je computer."
+      },
+      "setupComplete": "E-mail is ingesteld! Inbox wordt binnenkort beschikbaar.",
+      "notConfigured": {
+        "title": "E-mail nog niet ingesteld",
+        "hint": "Stel je e-mailaccount in om berichten te lezen en te versturen.",
+        "setupButton": "E-mail instellen"
       }
     },
     "askAI": {

@@ -1507,6 +1507,7 @@
       "onboarding": {
         "chooseProvider": "Välj din e-postleverantör",
         "chooseProviderHint": "Välj leverantören för din e-postadress.",
+        "skipSetup": "Hoppa över",
         "selectProviderHint": "Välj {{provider}} som e-postleverantör",
         "easyLogin": "Enkel inloggning",
         "oauthTitle": "Logga in på {{provider}}",
@@ -1552,6 +1553,12 @@
         "yahooAppPassword": "Yahoo kräver ett app-lösenord. Gå till din Yahoo-kontosäkerhet för att skapa ett.",
         "icloudAppPassword": "Apple iCloud kräver ett app-specifikt lösenord. Skapa ett på appleid.apple.com.",
         "protonBridge": "ProtonMail kräver Proton Mail Bridge-appen på din dator."
+      },
+      "setupComplete": "E-post är konfigurerad! Inkorgen blir snart tillgänglig.",
+      "notConfigured": {
+        "title": "E-post inte konfigurerad ännu",
+        "hint": "Konfigurera ditt e-postkonto för att läsa och skicka meddelanden.",
+        "setupButton": "Konfigurera e-post"
       }
     },
     "askAI": {
