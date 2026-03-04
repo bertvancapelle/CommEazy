@@ -1547,6 +1547,12 @@
           "running": "I gang",
           "success": "Gennemført",
           "error": "Mislykkedes"
+        },
+        "noAccountFound": "Ingen konto fundet. Prøv at logge ind igen.",
+        "testErrors": {
+          "authFailed": "Login mislykkedes. Kontrollér dine oplysninger og prøv igen.",
+          "timeout": "Forbindelsen tog for lang tid. Kontrollér din internetforbindelse.",
+          "connectionFailed": "Kan ikke oprette forbindelse til mailserveren."
         }
       },
       "providerNotes": {

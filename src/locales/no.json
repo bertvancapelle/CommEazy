@@ -1577,6 +1577,12 @@
           "running": "Pågår",
           "success": "Vellykket",
           "error": "Mislyktes"
+        },
+        "noAccountFound": "Ingen konto funnet. Prøv å logge inn igjen.",
+        "testErrors": {
+          "authFailed": "Innlogging mislyktes. Sjekk opplysningene dine og prøv igjen.",
+          "timeout": "Tilkoblingen tok for lang tid. Sjekk internettforbindelsen.",
+          "connectionFailed": "Kan ikke koble til e-postserveren."
         }
       },
       "providerNotes": {

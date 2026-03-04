@@ -1509,6 +1509,12 @@
           "running": "W toku",
           "success": "Pomyślnie",
           "error": "Niepowodzenie"
+        },
+        "noAccountFound": "Nie znaleziono konta. Spróbuj zalogować się ponownie.",
+        "testErrors": {
+          "authFailed": "Logowanie nie powiodło się. Sprawdź dane logowania i spróbuj ponownie.",
+          "timeout": "Połączenie trwa zbyt długo. Sprawdź połączenie z Internetem.",
+          "connectionFailed": "Nie można połączyć się z serwerem pocztowym."
         }
       },
       "providerNotes": {

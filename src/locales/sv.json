@@ -1547,6 +1547,12 @@
           "running": "Pågår",
           "success": "Lyckades",
           "error": "Misslyckades"
+        },
+        "noAccountFound": "Inget konto hittades. Försök logga in igen.",
+        "testErrors": {
+          "authFailed": "Inloggningen misslyckades. Kontrollera dina uppgifter och försök igen.",
+          "timeout": "Anslutningen tog för lång tid. Kontrollera din internetanslutning.",
+          "connectionFailed": "Kan inte ansluta till e-postservern."
         }
       },
       "providerNotes": {

@@ -1720,6 +1720,12 @@
           "running": "Em curso",
           "success": "Bem-sucedido",
           "error": "Falhado"
+        },
+        "noAccountFound": "Nenhuma conta encontrada. Tente iniciar sessão novamente.",
+        "testErrors": {
+          "authFailed": "Falha no início de sessão. Verifique as suas credenciais e tente novamente.",
+          "timeout": "A ligação demorou demasiado. Verifique a sua ligação à Internet.",
+          "connectionFailed": "Não foi possível ligar ao servidor de e-mail."
         }
       },
       "providerNotes": {

@@ -1703,6 +1703,12 @@
           "running": "En progreso",
           "success": "Correcto",
           "error": "Fallido"
+        },
+        "noAccountFound": "No se encontró ninguna cuenta. Intenta iniciar sesión de nuevo.",
+        "testErrors": {
+          "authFailed": "Error de inicio de sesión. Verifica tus credenciales e intenta de nuevo.",
+          "timeout": "La conexión ha tardado demasiado. Verifica tu conexión a Internet.",
+          "connectionFailed": "No se puede conectar con el servidor de correo."
         }
       },
       "providerNotes": {

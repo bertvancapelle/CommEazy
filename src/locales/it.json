@@ -1651,6 +1651,12 @@
           "running": "In corso",
           "success": "Riuscito",
           "error": "Non riuscito"
+        },
+        "noAccountFound": "Nessun account trovato. Riprova ad accedere.",
+        "testErrors": {
+          "authFailed": "Accesso non riuscito. Controlla le credenziali e riprova.",
+          "timeout": "Connessione scaduta. Controlla la connessione Internet.",
+          "connectionFailed": "Impossibile connettersi al server di posta."
         }
       },
       "providerNotes": {

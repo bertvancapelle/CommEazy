@@ -1707,6 +1707,12 @@
           "running": "In progress",
           "success": "Succeeded",
           "error": "Failed"
+        },
+        "noAccountFound": "No account found. Please try logging in again.",
+        "testErrors": {
+          "authFailed": "Login failed. Check your credentials and try again.",
+          "timeout": "Connection timed out. Check your internet connection.",
+          "connectionFailed": "Unable to connect to the mail server."
         }
       },
       "providerNotes": {

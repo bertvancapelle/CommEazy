@@ -1703,6 +1703,12 @@
           "running": "En cours",
           "success": "Réussi",
           "error": "Échoué"
+        },
+        "noAccountFound": "Aucun compte trouvé. Veuillez réessayer de vous connecter.",
+        "testErrors": {
+          "authFailed": "Échec de la connexion. Vérifiez vos identifiants et réessayez.",
+          "timeout": "La connexion a expiré. Vérifiez votre connexion Internet.",
+          "connectionFailed": "Impossible de se connecter au serveur de messagerie."
         }
       },
       "providerNotes": {

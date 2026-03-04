@@ -1722,6 +1722,12 @@
           "running": "Em andamento",
           "success": "Bem-sucedido",
           "error": "Falhou"
+        },
+        "noAccountFound": "Nenhuma conta encontrada. Tente fazer login novamente.",
+        "testErrors": {
+          "authFailed": "Falha no login. Verifique suas credenciais e tente novamente.",
+          "timeout": "A conexão demorou demais. Verifique sua conexão com a Internet.",
+          "connectionFailed": "Não foi possível conectar ao servidor de e-mail."
         }
       },
       "providerNotes": {

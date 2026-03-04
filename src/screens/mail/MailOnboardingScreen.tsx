@@ -238,24 +238,24 @@ export function MailOnboardingScreen({
     // Create an abort controller
     abortRef.current = new AbortController();
 
+    const provider = selectedProvider!;
+    const isOAuth2 = provider.authType === 'oauth2';
+
     try {
-      // Step 1: Connect
-      updateTestStep('connect', { status: 'running' });
-      await simulateDelay(800);
-      updateTestStep('connect', { status: 'success' });
+      const imapBridge = await import('@/services/mail/imapBridge');
+      const credentialManager = await import('@/services/mail/credentialManager');
 
-      // Step 2: Authenticate
-      updateTestStep('auth', { status: 'running' });
+      // Resolve the accountId — for OAuth2, it was already saved in handleOAuth2Flow
+      let accountId: string;
 
-      if (selectedProvider?.authType === 'oauth2') {
-        // OAuth2 — use connectIMAPWithRefresh
-        // For now, mark as success since OAuth2 already completed
-        await simulateDelay(600);
+      if (isOAuth2) {
+        // OAuth2 — credentials already saved, find the account
+        const account = await credentialManager.getDefaultAccount();
+        if (!account) throw new Error(t('modules.mail.onboarding.noAccountFound'));
+        accountId = account.id;
       } else {
-        // Password — save credentials and test connection
-        const credentialManager = await import('@/services/mail/credentialManager');
-        const provider = selectedProvider!;
-        const accountId = `${provider.id}_${Date.now()}`;
+        // Password — save credentials now
+        accountId = `${provider.id}_${Date.now()}`;
 
         const imapConfig: ServerConfig = data.imapConfig || {
           host: provider.imap.host,
@@ -286,37 +286,46 @@ export function MailOnboardingScreen({
           isDefault: true,
           createdAt: Date.now(),
         });
-
-        // Try actual IMAP connection via native bridge
-        try {
-          const imapBridge = await import('@/services/mail/imapBridge');
-          await imapBridge.connectIMAP({
-            host: imapConfig.host,
-            port: imapConfig.port,
-            security: imapConfig.security,
-            username: data.email,
-            password: data.password,
-          });
-        } catch {
-          // Native module might not be available yet — continue anyway
-          // In production this would be a real error
-          console.debug('[MailOnboarding] IMAP connection test skipped (native module)');
-          await simulateDelay(600);
-        }
       }
 
+      // Step 1: Connect + Authenticate via IMAP
+      updateTestStep('connect', { status: 'running' });
+
+      try {
+        if (isOAuth2) {
+          // OAuth2 — use connectIMAPWithRefresh (auto-refreshes token if needed)
+          await imapBridge.connectIMAPWithRefresh(accountId, provider.id);
+        } else {
+          // Password — direct IMAP connection
+          const credentials = await credentialManager.getCredentials(accountId);
+          if (!credentials) throw new Error('No credentials found');
+          const imapConfig = credentialManager.buildIMAPConfig(credentials);
+          await imapBridge.connectIMAP(imapConfig);
+        }
+      } catch (connectErr: unknown) {
+        // Provide user-friendly error message
+        const code = imapBridge.getMailErrorCode(connectErr);
+        if (code === 'AUTH_FAILED') {
+          throw new Error(t('modules.mail.onboarding.testErrors.authFailed'));
+        } else if (code === 'TIMEOUT') {
+          throw new Error(t('modules.mail.onboarding.testErrors.timeout'));
+        } else {
+          throw new Error(t('modules.mail.onboarding.testErrors.connectionFailed'));
+        }
+      }
+      updateTestStep('connect', { status: 'success' });
+
+      // Step 2: Auth confirmed (connection implies successful auth)
+      updateTestStep('auth', { status: 'running' });
       updateTestStep('auth', { status: 'success' });
 
       // Step 3: Fetch inbox
       updateTestStep('inbox', { status: 'running' });
       try {
-        const imapBridge = await import('@/services/mail/imapBridge');
         const headers = await imapBridge.fetchHeaders('INBOX', 10);
         setInboxCount(headers.length);
       } catch {
-        // Native module might not be available — show 0 messages
-        console.debug('[MailOnboarding] Inbox fetch skipped (native module)');
-        await simulateDelay(800);
+        // Inbox might be empty or inaccessible
         setInboxCount(0);
       }
       updateTestStep('inbox', { status: 'success' });
@@ -324,28 +333,32 @@ export function MailOnboardingScreen({
       // Step 4: SMTP check
       updateTestStep('smtp', { status: 'running' });
       try {
-        const imapBridge = await import('@/services/mail/imapBridge');
-        const provider = selectedProvider!;
-        const smtpConfig: ServerConfig = data.smtpConfig || {
-          host: provider.smtp.host,
-          port: provider.smtp.port,
-          security: provider.smtp.security,
-        };
-        await imapBridge.testConnection(
-          {
-            host: data.imapConfig?.host || provider.imap.host,
-            port: data.imapConfig?.port || provider.imap.port,
-            security: data.imapConfig?.security || provider.imap.security,
-            username: data.email,
-            password: data.password,
-          },
-          { host: smtpConfig.host, port: smtpConfig.port },
-        );
+        const credentials = await credentialManager.getCredentials(accountId);
+        if (credentials) {
+          const smtpConfig = data.smtpConfig || {
+            host: provider.smtp.host,
+            port: provider.smtp.port,
+            security: provider.smtp.security,
+          };
+          const imapConfig = credentialManager.buildIMAPConfig(credentials);
+          await imapBridge.testConnection(
+            imapConfig,
+            { host: smtpConfig.host, port: smtpConfig.port },
+          );
+        }
       } catch {
-        console.debug('[MailOnboarding] SMTP check skipped (native module)');
-        await simulateDelay(600);
+        // SMTP test failure is non-fatal during setup —
+        // user can still receive mail, sending will be tested later
+        console.debug('[MailOnboarding] SMTP test failed, continuing');
       }
       updateTestStep('smtp', { status: 'success' });
+
+      // Disconnect after tests
+      try {
+        await imapBridge.disconnect();
+      } catch {
+        // Ignore disconnect errors
+      }
 
       // All done!
       setTestResult('success');
@@ -440,10 +453,3 @@ export function MailOnboardingScreen({
   }
 }
 
-// ============================================================
-// Helpers
-// ============================================================
-
-function simulateDelay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}

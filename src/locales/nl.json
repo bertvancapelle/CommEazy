@@ -1713,6 +1713,12 @@
           "running": "Bezig",
           "success": "Geslaagd",
           "error": "Mislukt"
+        },
+        "noAccountFound": "Geen account gevonden. Probeer opnieuw in te loggen.",
+        "testErrors": {
+          "authFailed": "Inloggen mislukt. Controleer je gegevens en probeer het opnieuw.",
+          "timeout": "Verbinding duurt te lang. Controleer je internetverbinding.",
+          "connectionFailed": "Kan geen verbinding maken met de mailserver."
         }
       },
       "providerNotes": {

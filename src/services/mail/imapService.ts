@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { IMAPConfig, MailHeader, CachedMailHeader, MailBody, MailSyncState } from '@/types/mail';
 import * as imapBridge from './imapBridge';
 import * as mailCache from './mailCache';
+import * as credentialManager from './credentialManager';
 import type { MailDatabaseConnection } from '@/models/mailDatabase';
 
 // ============================================================
@@ -66,6 +67,39 @@ async function saveSyncState(state: MailSyncState): Promise<void> {
     syncStateKey(state.accountId, state.folder),
     JSON.stringify(state),
   );
+}
+
+// ============================================================
+// Account-Based Connection (OAuth2 + Password)
+// ============================================================
+
+/**
+ * Connect to IMAP using an account ID.
+ * Handles both OAuth2 (with auto token refresh) and password accounts.
+ *
+ * @param accountId - Account identifier
+ * @param providerId - Provider identifier (for OAuth2 config lookup)
+ * @returns The IMAP config used for connection (for subsequent calls)
+ */
+async function connectWithAccount(
+  accountId: string,
+  providerId: string,
+): Promise<IMAPConfig> {
+  const credentials = await credentialManager.getCredentials(accountId);
+  if (!credentials) {
+    throw new Error('[imapService] No credentials found for account');
+  }
+
+  if (credentials.type === 'oauth2') {
+    // OAuth2 — use connectIMAPWithRefresh for auto token renewal
+    await imapBridge.connectIMAPWithRefresh(accountId, providerId);
+  } else {
+    // Password — direct connection
+    const imapConfig = credentialManager.buildIMAPConfig(credentials);
+    await imapBridge.connectIMAP(imapConfig);
+  }
+
+  return credentialManager.buildIMAPConfig(credentials);
 }
 
 // ============================================================
@@ -131,6 +165,57 @@ export async function initialSync(
     );
   } finally {
     // Always disconnect
+    await imapBridge.disconnect();
+  }
+}
+
+/**
+ * Account-based initial sync with automatic OAuth2 token refresh.
+ * Preferred over initialSync() for OAuth2 accounts.
+ *
+ * @param db - Mail cache database connection
+ * @param accountId - Account identifier
+ * @param providerId - Provider identifier
+ * @param folder - Mailbox folder name (default: "INBOX")
+ * @param limit - Maximum number of headers to fetch (default: 200)
+ */
+export async function initialSyncForAccount(
+  db: MailDatabaseConnection,
+  accountId: string,
+  providerId: string,
+  folder: string = 'INBOX',
+  limit: number = DEFAULT_INITIAL_LIMIT,
+): Promise<void> {
+  console.debug('[imapService] Starting account-based initial sync for', folder);
+
+  await connectWithAccount(accountId, providerId);
+
+  try {
+    const headers = await imapBridge.fetchHeaders(folder, limit);
+
+    if (headers.length === 0) {
+      console.debug('[imapService] No messages found in', folder);
+      return;
+    }
+
+    mailCache.upsertHeaders(db, accountId, folder, headers);
+
+    const highestUid = Math.max(...headers.map(h => h.uid));
+    const lowestUid = Math.min(...headers.map(h => h.uid));
+
+    await saveSyncState({
+      accountId,
+      folder,
+      highestUid,
+      lowestUid,
+      lastSyncAt: new Date().toISOString(),
+    });
+
+    console.debug(
+      '[imapService] Account-based initial sync complete:',
+      headers.length, 'headers cached',
+    );
+  } finally {
     await imapBridge.disconnect();
   }
 }
@@ -215,6 +300,152 @@ export async function incrementalSync(
     );
 
     return newHeaders.length;
+  } finally {
+    await imapBridge.disconnect();
+  }
+}
+
+/**
+ * Account-based incremental sync with automatic OAuth2 token refresh.
+ * Preferred over incrementalSync() for OAuth2 accounts.
+ *
+ * @param db - Mail cache database connection
+ * @param accountId - Account identifier
+ * @param providerId - Provider identifier
+ * @param folder - Mailbox folder name (default: "INBOX")
+ * @returns Number of new messages fetched
+ */
+export async function incrementalSyncForAccount(
+  db: MailDatabaseConnection,
+  accountId: string,
+  providerId: string,
+  folder: string = 'INBOX',
+): Promise<number> {
+  const syncState = await loadSyncState(accountId, folder);
+
+  if (!syncState) {
+    console.debug('[imapService] No sync state, falling back to account-based initial sync');
+    await initialSyncForAccount(db, accountId, providerId, folder);
+    return mailCache.getHeaderCount(db, accountId, folder);
+  }
+
+  console.debug('[imapService] Starting account-based incremental sync for', folder);
+
+  await connectWithAccount(accountId, providerId);
+
+  try {
+    const batchSize = 100;
+    const headers = await imapBridge.fetchHeaders(folder, batchSize);
+
+    const newHeaders = headers.filter(h => h.uid > syncState.highestUid);
+
+    if (newHeaders.length === 0) {
+      await saveSyncState({
+        ...syncState,
+        lastSyncAt: new Date().toISOString(),
+      });
+      return 0;
+    }
+
+    mailCache.upsertHeaders(db, accountId, folder, newHeaders);
+
+    const newHighestUid = Math.max(
+      syncState.highestUid,
+      ...newHeaders.map(h => h.uid),
+    );
+
+    await saveSyncState({
+      ...syncState,
+      highestUid: newHighestUid,
+      lastSyncAt: new Date().toISOString(),
+    });
+
+    console.debug(
+      '[imapService] Account-based incremental sync complete:',
+      newHeaders.length, 'new headers cached',
+    );
+
+    return newHeaders.length;
+  } finally {
+    await imapBridge.disconnect();
+  }
+}
+
+/**
+ * Account-based message body fetch with automatic OAuth2 token refresh.
+ *
+ * @param db - Mail cache database connection
+ * @param accountId - Account identifier
+ * @param providerId - Provider identifier
+ * @param folder - Mailbox folder name
+ * @param uid - Message UID
+ * @returns Message body (from cache or server)
+ */
+export async function fetchBodyForAccount(
+  db: MailDatabaseConnection,
+  accountId: string,
+  providerId: string,
+  folder: string,
+  uid: number,
+): Promise<MailBody> {
+  // Check cache first
+  const cached = mailCache.getBody(db, accountId, uid);
+  if (cached) {
+    return {
+      html: cached.html,
+      plainText: cached.plainText,
+      attachments: [],
+    };
+  }
+
+  // Fetch from server with auto-refresh
+  await connectWithAccount(accountId, providerId);
+
+  try {
+    const body = await imapBridge.fetchMessageBody(uid, folder);
+    mailCache.upsertBody(db, accountId, uid, body.html, body.plainText);
+    return body;
+  } finally {
+    await imapBridge.disconnect();
+  }
+}
+
+/**
+ * Account-based flag sync with automatic OAuth2 token refresh.
+ *
+ * @param db - Mail cache database connection
+ * @param accountId - Account identifier
+ * @param providerId - Provider identifier
+ * @param folder - Mailbox folder name
+ * @param uid - Message UID
+ * @param flag - Flag to change
+ * @param value - New flag value
+ */
+export async function syncFlagForAccount(
+  db: MailDatabaseConnection,
+  accountId: string,
+  providerId: string,
+  folder: string,
+  uid: number,
+  flag: 'read' | 'flagged',
+  value: boolean,
+): Promise<void> {
+  // Update cache immediately (optimistic)
+  if (flag === 'read') {
+    mailCache.updateReadStatus(db, accountId, folder, uid, value);
+  } else {
+    mailCache.updateFlaggedStatus(db, accountId, folder, uid, value);
+  }
+
+  // Sync to server with auto-refresh
+  await connectWithAccount(accountId, providerId);
+
+  try {
+    if (flag === 'read') {
+      await imapBridge.markAsRead(uid, folder);
+    } else {
+      await imapBridge.markAsFlagged(uid, folder, value);
+    }
   } finally {
     await imapBridge.disconnect();
   }

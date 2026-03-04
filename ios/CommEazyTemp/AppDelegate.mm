@@ -1,6 +1,7 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
+#import <React/RCTLinkingManager.h>
 #import <Firebase.h>
 #import <FirebaseMessaging/FirebaseMessaging.h>
 #import <UserNotifications/UserNotifications.h>
@@ -200,6 +201,16 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 
   // Let CallKeep handle other call-related activities (Recents)
   return [RNCallKeep application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
+}
+
+// MARK: - URL Handling (OAuth2 Redirect + Deep Links)
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+  // Forward all URL opens to React Native's Linking module.
+  // This handles OAuth2 redirect callbacks (com.commeazy://oauth2redirect)
+  // via react-native-app-auth, and any other deep links.
+  return [RCTLinkingManager application:application openURL:url options:options];
 }
 
 // MARK: - Orientation Control
