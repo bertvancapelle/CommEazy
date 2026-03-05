@@ -20,6 +20,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { colors, typography } from '@/theme';
@@ -286,7 +287,10 @@ function GroupPanelNavigator() {
  * Provides onComplete/onClose callbacks that navigate back.
  */
 function MailOnboardingWrapper({ navigation }: { navigation: any }) {
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback(async () => {
+    // Mark onboarding as complete so MailScreen shows the inbox
+    await AsyncStorage.setItem('mail_onboarding_complete', 'true');
+    await AsyncStorage.setItem('mail_welcome_shown', 'true');
     navigation.goBack();
   }, [navigation]);
 

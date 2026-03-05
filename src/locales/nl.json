@@ -399,6 +399,7 @@
       "addAccountPlaceholder": "Account toevoegen wordt beschikbaar in een volgende update.",
       "connected": "Verbonden",
       "disconnected": "Niet verbonden",
+      "active": "Actief",
       "deleteConfirm": "Weet je zeker dat je dit account wilt verwijderen?",
       "deleteWarning": "Je e-mails op de server blijven bewaard."
     },

@@ -14,7 +14,7 @@
  * @see .claude/plans/MAIL_MODULE_PROMPT.md
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,8 @@ import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
+import { getAllAccounts } from '@/services/mail/credentialManager';
+import type { MailAccount } from '@/types/mail';
 
 // Message count options for sync settings
 const MESSAGE_COUNT_OPTIONS = [50, 100, 200, 500] as const;
@@ -47,15 +49,21 @@ export function MailSettingsScreen() {
   const { triggerFeedback } = useFeedback();
   const isFocused = useIsFocused();
 
-  // State — placeholder values (will be backed by AsyncStorage in later phases)
+  // State
   const [messageCount, setMessageCount] = useState<number>(100);
   const [autoSync, setAutoSync] = useState(true);
   const [autoDownload, setAutoDownload] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [biometricLock, setBiometricLock] = useState(false);
+  const [linkedAccounts, setLinkedAccounts] = useState<MailAccount[]>([]);
 
-  // Placeholder: linked accounts (empty until OAuth2 is implemented)
-  const linkedAccounts: Array<{ email: string; provider: string; connected: boolean }> = [];
+  // Load accounts from credentialManager on mount and when screen regains focus
+  useEffect(() => {
+    if (!isFocused) return;
+    getAllAccounts()
+      .then(setLinkedAccounts)
+      .catch((err) => console.error('[MailSettings] Failed to load accounts:', err));
+  }, [isFocused]);
 
   // Cache size placeholder
   const cacheSize = '0 MB';
@@ -184,7 +192,7 @@ export function MailSettingsScreen() {
             ) : (
               linkedAccounts.map((account) => (
                 <View
-                  key={account.email}
+                  key={account.id}
                   style={[styles.accountRow, { borderBottomColor: themeColors.border }]}
                 >
                   <View style={styles.accountInfo}>
@@ -192,15 +200,15 @@ export function MailSettingsScreen() {
                       {account.email}
                     </Text>
                     <Text style={[styles.accountProvider, { color: themeColors.textSecondary }]}>
-                      {account.provider}
+                      {account.displayName}
                     </Text>
                   </View>
-                  <View
-                    style={[
-                      styles.statusIndicator,
-                      { backgroundColor: account.connected ? colors.success : colors.error },
-                    ]}
-                  />
+                  <View style={styles.statusBadge}>
+                    <View style={styles.statusDot} />
+                    <Text style={styles.statusText}>
+                      {t('mailSettings.accounts.active')}
+                    </Text>
+                  </View>
                 </View>
               ))
             )}
@@ -472,11 +480,22 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
-  statusIndicator: {
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginLeft: spacing.md,
+  },
+  statusDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    marginLeft: spacing.md,
+    backgroundColor: '#2E7D32',
+  },
+  statusText: {
+    ...typography.small,
+    color: '#2E7D32',
+    fontWeight: '700',
   },
   // Add account button
   addAccountButton: {

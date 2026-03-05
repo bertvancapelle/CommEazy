@@ -487,6 +487,7 @@
       "addAccountPlaceholder": "Å legge til kontoer vil være tilgjengelig i en fremtidig oppdatering.",
       "connected": "Tilkoblet",
       "disconnected": "Frakoblet",
+      "active": "Aktiv",
       "deleteConfirm": "Er du sikker på at du vil fjerne denne kontoen?",
       "deleteWarning": "E-postene dine på serveren vil bli bevart."
     },

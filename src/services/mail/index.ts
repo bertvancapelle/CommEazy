@@ -30,3 +30,6 @@ export * as mediaAttachmentService from './mediaAttachmentService';
 
 // Fase 17: Opslaan in album
 export * as saveToAlbumService from './saveToAlbumService';
+
+// Fase 18: Content routing (QLPreviewController + SFSafariViewController)
+export * as contentRouter from './contentRouter';

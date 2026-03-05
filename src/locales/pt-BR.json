@@ -586,6 +586,7 @@
       "addAccountPlaceholder": "A adição de contas estará disponível em uma atualização futura.",
       "connected": "Conectado",
       "disconnected": "Desconectado",
+      "active": "Ativo",
       "deleteConfirm": "Tem certeza de que deseja remover esta conta?",
       "deleteWarning": "Seus e-mails no servidor serão preservados."
     },

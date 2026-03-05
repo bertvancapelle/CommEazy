@@ -457,6 +457,7 @@
       "addAccountPlaceholder": "Att lägga till konton kommer att vara tillgängligt i en framtida uppdatering.",
       "connected": "Ansluten",
       "disconnected": "Frånkopplad",
+      "active": "Aktiv",
       "deleteConfirm": "Är du säker på att du vill ta bort detta konto?",
       "deleteWarning": "Dina e-postmeddelanden på servern kommer att bevaras."
     },

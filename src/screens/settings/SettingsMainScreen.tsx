@@ -309,7 +309,7 @@ export function SettingsMainScreen() {
           onSelect={() => navigation.navigate('PrivacySettings')}
         >
           <SubsectionButton
-            icon="lock-closed"
+            icon="lock"
             label={t('privacySettings.title')}
             onPress={() => navigation.navigate('PrivacySettings')}
             accessibilityHint={t('privacySettings.screenHint')}

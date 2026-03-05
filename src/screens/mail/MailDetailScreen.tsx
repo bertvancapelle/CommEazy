@@ -26,12 +26,11 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
-  Linking,
   Platform,
   useWindowDimensions,
 } from 'react-native';
 import RNFS from 'react-native-fs';
-import RenderHtml from 'react-native-render-html';
+import RenderHtml, { HTMLElementModel, HTMLContentModel } from 'react-native-render-html';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -49,6 +48,7 @@ import type {
 import { parseEmailAddress } from '@/types/mail';
 import { canSaveToAlbum, isImageType } from '@/services/mail/mediaAttachmentService';
 import { getSaveableAttachments, isAlreadySaved } from '@/services/mail/saveToAlbumService';
+import { openURL as contentRouterOpenURL, downloadAndPreview } from '@/services/mail/contentRouter';
 
 // ============================================================
 // Types
@@ -622,6 +622,9 @@ export function MailDetailScreen({
                 h1: { fontSize: 24, fontWeight: '700', marginVertical: 8 },
                 h2: { fontSize: 22, fontWeight: '700', marginVertical: 6 },
                 h3: { fontSize: 20, fontWeight: '700', marginVertical: 4 },
+                h4: { fontSize: 19, fontWeight: '700', marginVertical: 4 },
+                h5: { fontSize: 18, fontWeight: '700', marginVertical: 2 },
+                h6: { fontSize: 18, fontWeight: '600', marginVertical: 2 },
                 blockquote: {
                   borderLeftWidth: 3,
                   borderLeftColor: themeColors.border,
@@ -629,8 +632,90 @@ export function MailDetailScreen({
                   marginVertical: 8,
                   color: themeColors.textSecondary,
                 },
+                center: { textAlign: 'center' },
+                hr: {
+                  borderBottomWidth: 1,
+                  borderBottomColor: themeColors.border,
+                  marginVertical: 12,
+                },
+                ul: { marginVertical: 4, paddingLeft: 16 },
+                ol: { marginVertical: 4, paddingLeft: 16 },
+                li: { marginVertical: 2 },
+                pre: {
+                  backgroundColor: themeColors.surface,
+                  padding: 12,
+                  borderRadius: 8,
+                  marginVertical: 8,
+                  fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
+                  fontSize: 15,
+                },
+                code: {
+                  backgroundColor: themeColors.surface,
+                  paddingHorizontal: 4,
+                  paddingVertical: 2,
+                  borderRadius: 4,
+                  fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
+                  fontSize: 15,
+                },
+                table: { marginVertical: 8 },
+                th: {
+                  fontWeight: '700',
+                  padding: 6,
+                  borderBottomWidth: 1,
+                  borderBottomColor: themeColors.border,
+                },
+                td: { padding: 6 },
+                b: { fontWeight: '700' },
+                strong: { fontWeight: '700' },
+                i: { fontStyle: 'italic' },
+                em: { fontStyle: 'italic' },
+                u: { textDecorationLine: 'underline' },
+                s: { textDecorationLine: 'line-through' },
+                del: { textDecorationLine: 'line-through' },
+                small: { fontSize: 14 },
+                mark: { backgroundColor: '#FFF9C4' },
+                abbr: { textDecorationLine: 'underline', textDecorationStyle: 'dotted' },
+                sub: { fontSize: 14 },
+                sup: { fontSize: 14 },
               }}
-              ignoredDomTags={['img', 'source', 'video', 'audio', 'picture', 'iframe', 'object', 'embed', 'svg', 'x-plan', 'meta', 'link']}
+              ignoredDomTags={[
+                // Media (handled separately via attachments)
+                'img', 'source', 'video', 'audio', 'picture',
+                // Embedded content (security)
+                'iframe', 'object', 'embed', 'svg', 'canvas', 'applet',
+                // Forms (not applicable in email viewing)
+                'form', 'input', 'button', 'select', 'textarea', 'option', 'optgroup', 'fieldset', 'legend', 'datalist', 'output',
+                // Script / Style (security)
+                'script', 'noscript', 'style',
+                // Document structure (not needed)
+                'head', 'title', 'base', 'meta', 'link',
+                // MS Office / Outlook specific
+                'x-plan', 'o:p',
+                // Deprecated / problematic
+                'marquee', 'blink', 'frame', 'frameset', 'noframes',
+              ]}
+              customHTMLElementModels={{
+                center: HTMLElementModel.fromCustomModel({
+                  tagName: 'center',
+                  contentModel: HTMLContentModel.block,
+                }),
+                font: HTMLElementModel.fromCustomModel({
+                  tagName: 'font',
+                  contentModel: HTMLContentModel.mixed,
+                }),
+                big: HTMLElementModel.fromCustomModel({
+                  tagName: 'big',
+                  contentModel: HTMLContentModel.mixed,
+                }),
+                strike: HTMLElementModel.fromCustomModel({
+                  tagName: 'strike',
+                  contentModel: HTMLContentModel.mixed,
+                }),
+                tt: HTMLElementModel.fromCustomModel({
+                  tagName: 'tt',
+                  contentModel: HTMLContentModel.mixed,
+                }),
+              }}
               domVisitors={{
                 onElement: (element) => {
                   // Strip CSS values React Native can't handle (e.g. 'inherit', 'initial', 'unset')
@@ -649,8 +734,8 @@ export function MailDetailScreen({
                 a: {
                   onPress: (_event: unknown, href: string) => {
                     if (href) {
-                      Linking.openURL(href).catch(() => {
-                        console.debug('[MailDetail] Failed to open URL:', href);
+                      contentRouterOpenURL(href, accentColor.primary).catch(() => {
+                        console.debug('[MailDetail] Failed to open URL');
                       });
                     }
                   },
@@ -805,6 +890,32 @@ export function MailDetailScreen({
 }
 
 // ============================================================
+// Attachment Icon Helper
+// ============================================================
+
+function getAttachmentIconName(mimeType: string): string {
+  if (mimeType.startsWith('image/')) return 'image';
+  if (mimeType.startsWith('video/')) return 'videocam';
+  if (mimeType === 'application/pdf') return 'document-text';
+  if (mimeType === 'text/calendar') return 'time';
+  if (mimeType === 'text/vcard' || mimeType === 'text/x-vcard') return 'person';
+  if (mimeType.startsWith('text/')) return 'document-text';
+  if (
+    mimeType.includes('word') ||
+    mimeType.includes('excel') ||
+    mimeType.includes('spreadsheet') ||
+    mimeType.includes('powerpoint') ||
+    mimeType.includes('presentation') ||
+    mimeType.includes('pages') ||
+    mimeType.includes('numbers') ||
+    mimeType.includes('keynote') ||
+    mimeType.includes('rtf')
+  ) return 'document';
+  if (mimeType.includes('zip')) return 'folder';
+  return 'attach';
+}
+
+// ============================================================
 // AttachmentRow Sub-component
 // ============================================================
 
@@ -829,12 +940,19 @@ function AttachmentRow({ attachment, uid, folder, accountId }: AttachmentRowProp
     triggerHaptic();
     setIsDownloading(true);
     try {
-      const imapBridge = await import('@/services/mail/imapBridge');
-      await imapBridge.fetchAttachmentData(uid, folder, attachment.index);
-      Alert.alert(
-        t('modules.mail.detail.downloadComplete'),
+      const result = await downloadAndPreview(
+        uid,
+        folder,
+        attachment.index,
         attachment.name,
+        attachment.mimeType,
       );
+      if (!result.handled) {
+        Alert.alert(
+          t('modules.mail.detail.downloadFailed'),
+          result.error || t('modules.mail.detail.downloadFailedMessage'),
+        );
+      }
     } catch {
       Alert.alert(
         t('modules.mail.detail.downloadFailed'),
@@ -875,13 +993,7 @@ function AttachmentRow({ attachment, uid, folder, accountId }: AttachmentRowProp
     }
   }, [uid, folder, attachment, accountId, t]);
 
-  const iconName = attachment.mimeType.startsWith('image/')
-    ? 'image'
-    : attachment.mimeType.startsWith('video/')
-      ? 'videocam'
-      : attachment.mimeType === 'application/pdf'
-        ? 'document'
-        : 'attach';
+  const iconName = getAttachmentIconName(attachment.mimeType);
 
   return (
     <View style={[styles.attachmentRow, { borderColor: themeColors.border }]}>

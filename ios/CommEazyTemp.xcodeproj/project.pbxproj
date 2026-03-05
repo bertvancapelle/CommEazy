@@ -50,6 +50,8 @@
 		82C418FA2F5358AF00D1FAA8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 82C418F92F5358AE00D1FAA8 /* PrivacyInfo.xcprivacy */; };
 		82C419002F535F6500D1FAA8 /* SiriCallModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C418FF2F535F6500D1FAA8 /* SiriCallModule.swift */; };
 		82C419022F535F6B00D1FAA8 /* SiriCallModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 82C419012F535F6B00D1FAA8 /* SiriCallModule.m */; };
+		82CEC7F52F5988C0000F0198 /* DocumentPreviewModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82CEC7F42F5988BF000F0198 /* DocumentPreviewModule.swift */; };
+		82CEC7F72F5988C9000F0198 /* DocumentPreviewModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 82CEC7F62F5988C9000F0198 /* DocumentPreviewModule.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -124,6 +126,8 @@
 		82C418FE2F535F3F00D1FAA8 /* CommEazyIntents.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CommEazyIntents.entitlements; sourceTree = "<group>"; };
 		82C418FF2F535F6500D1FAA8 /* SiriCallModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriCallModule.swift; sourceTree = "<group>"; };
 		82C419012F535F6B00D1FAA8 /* SiriCallModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SiriCallModule.m; sourceTree = "<group>"; };
+		82CEC7F42F5988BF000F0198 /* DocumentPreviewModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPreviewModule.swift; sourceTree = "<group>"; };
+		82CEC7F62F5988C9000F0198 /* DocumentPreviewModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DocumentPreviewModule.m; sourceTree = "<group>"; };
 		82EFD6552F45F86B0009F977 /* PiperTtsTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiperTtsTestView.swift; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; path = "Target Support Files/Pods-CommEazyTemp-CommEazyTempTests/Pods-CommEazyTemp-CommEazyTempTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -216,6 +220,8 @@
 				82BD72732F577FF3008E2285 /* MailModule.m */,
 				828505ED2F58A30500CC27F1 /* MailBackgroundFetchModule.swift */,
 				828505EF2F58A30600CC27F1 /* MailBackgroundFetchModule.m */,
+				82CEC7F42F5988BF000F0198 /* DocumentPreviewModule.swift */,
+				82CEC7F62F5988C9000F0198 /* DocumentPreviewModule.m */,
 			);
 			name = CommEazyTemp;
 			sourceTree = "<group>";
@@ -655,6 +661,7 @@
 				82BD72742F577FF3008E2285 /* MailModule.m in Sources */,
 				8279C2BE2F544F6400CB204B /* AirPlayModule.swift in Sources */,
 				8291E00F2F46094500C281DA /* sherpa-onnx-tts-wrapper.mm in Sources */,
+				82CEC7F52F5988C0000F0198 /* DocumentPreviewModule.swift in Sources */,
 				82AC31B82F51C7D3007B8E07 /* VoIPPushModule.swift in Sources */,
 				8297F3142F4B265200F4069D /* AppleMusicModule.swift in Sources */,
 				8229565A2F4DBF7C00794A9C /* OrientationModule.m in Sources */,
@@ -679,6 +686,7 @@
 				8291E00C2F46094400C281DA /* sherpa-onnx-model-detect.mm in Sources */,
 				82C419022F535F6B00D1FAA8 /* SiriCallModule.m in Sources */,
 				8279C2C02F544F7900CB204B /* AirPlayModule.m in Sources */,
+				82CEC7F72F5988C9000F0198 /* DocumentPreviewModule.m in Sources */,
 				82520A972F4A518100351FD1 /* LiquidGlassViewManager.swift in Sources */,
 				8297F3162F4B266500F4069D /* AppleMusicModule.m in Sources */,
 				828505F02F58A30600CC27F1 /* MailBackgroundFetchModule.m in Sources */,

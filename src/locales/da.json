@@ -457,6 +457,7 @@
       "addAccountPlaceholder": "Tilføjelse af konti vil være tilgængelig i en fremtidig opdatering.",
       "connected": "Tilsluttet",
       "disconnected": "Frakoblet",
+      "active": "Aktiv",
       "deleteConfirm": "Er du sikker på, at du vil fjerne denne konto?",
       "deleteWarning": "Dine e-mails på serveren vil blive bevaret."
     },

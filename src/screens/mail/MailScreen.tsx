@@ -97,12 +97,22 @@ export function MailScreen() {
 
         if (onboardingDone === 'true') {
           setOnboardingComplete(true);
-          // Load the default account
           await loadAccount();
-        } else if (welcomeShown !== 'true') {
-          setShowWelcome(true);
         } else {
-          setShowOnboarding(true);
+          // Check if an account already exists (e.g. configured via Settings)
+          const credentialManager = await import('@/services/mail/credentialManager');
+          const existingAccount = await credentialManager.getDefaultAccount();
+          if (existingAccount) {
+            // Account exists — mark onboarding as complete and load
+            setAccount(existingAccount);
+            setOnboardingComplete(true);
+            AsyncStorage.setItem(MAIL_ONBOARDING_COMPLETE_KEY, 'true').catch(console.error);
+            AsyncStorage.setItem(MAIL_WELCOME_SHOWN_KEY, 'true').catch(console.error);
+          } else if (welcomeShown !== 'true') {
+            setShowWelcome(true);
+          } else {
+            setShowOnboarding(true);
+          }
         }
       } catch (error) {
         console.error('[MailScreen] Failed to check onboarding state:', error);

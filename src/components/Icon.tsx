@@ -117,7 +117,8 @@ export type IconName =
   | 'forward'
   | 'attach'
   | 'document'
-  | 'download';
+  | 'download'
+  | 'lock';
 
 interface IconProps {
   name: IconName;
@@ -2032,6 +2033,27 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
           />
           <Path
             d="M22 6L12 13L2 6"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'lock':
+      // Padlock icon for privacy / security
+      return (
+        <Svg {...iconProps}>
+          <Rect
+            x="5" y="11" width="14" height="11" rx="2"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11"
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"

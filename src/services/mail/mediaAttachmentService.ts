@@ -43,14 +43,39 @@ const SUPPORTED_VIDEO_TYPES = new Set([
   'video/quicktime',
 ]);
 
+/** Supported document MIME types */
+const SUPPORTED_DOCUMENT_TYPES = new Set([
+  'application/pdf',
+  'text/plain',
+  'text/csv',
+  'text/html',
+  'application/rtf',
+  'text/rtf',
+  // Microsoft Office
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  // iWork
+  'application/vnd.apple.pages',
+  'application/vnd.apple.numbers',
+  'application/vnd.apple.keynote',
+  // Calendar / Contact
+  'text/calendar',
+  'text/vcard',
+  'text/x-vcard',
+  // Archives
+  'application/zip',
+  'application/x-zip-compressed',
+]);
+
 /** All supported MIME types */
 const SUPPORTED_ATTACHMENT_TYPES = new Set([
   ...SUPPORTED_IMAGE_TYPES,
   ...SUPPORTED_VIDEO_TYPES,
-  'application/pdf',
-  'text/plain',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ...SUPPORTED_DOCUMENT_TYPES,
 ]);
 
 // ============================================================
@@ -191,14 +216,43 @@ export async function compressImageIfNeeded(
  */
 export function getExtensionFromMime(mimeType: string): string {
   const map: Record<string, string> = {
+    // Images
     'image/jpeg': '.jpg',
     'image/png': '.png',
     'image/heic': '.heic',
     'image/gif': '.gif',
+    'image/tiff': '.tiff',
+    'image/bmp': '.bmp',
+    'image/webp': '.webp',
+    // Video
     'video/mp4': '.mp4',
     'video/quicktime': '.mov',
+    // PDF
     'application/pdf': '.pdf',
+    // Microsoft Office
+    'application/msword': '.doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'application/vnd.ms-excel': '.xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'application/vnd.ms-powerpoint': '.ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+    // iWork
+    'application/vnd.apple.pages': '.pages',
+    'application/vnd.apple.numbers': '.numbers',
+    'application/vnd.apple.keynote': '.keynote',
+    // Text / Data
     'text/plain': '.txt',
+    'text/csv': '.csv',
+    'text/html': '.html',
+    'application/rtf': '.rtf',
+    'text/rtf': '.rtf',
+    // Calendar / Contact
+    'text/calendar': '.ics',
+    'text/vcard': '.vcf',
+    'text/x-vcard': '.vcf',
+    // Archives
+    'application/zip': '.zip',
+    'application/x-zip-compressed': '.zip',
   };
   return map[mimeType] || '';
 }
