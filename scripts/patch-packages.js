@@ -16,6 +16,12 @@ const path = require('path');
 
 const patches = [
   {
+    package: 'react-native-camera-kit',
+    file: 'ios/ReactNativeCameraKit/Types.swift',
+    find: '    var avQualityPrioritization: AVCapturePhotoOutput.QualityPrioritization {',
+    replace: '    @available(iOS 13.0, *)\n    var avQualityPrioritization: AVCapturePhotoOutput.QualityPrioritization {',
+  },
+  {
     package: 'react-native-render-html',
     file: 'package.json',
     find: '"react-native": "src/"',
