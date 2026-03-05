@@ -258,6 +258,7 @@ function RecipientChip({
   themeColors: ReturnType<typeof useColors>;
 }) {
   const { t } = useTranslation();
+  const { triggerHaptic } = useFeedback();
   const displayName = recipient.name || recipient.email;
 
   return (
@@ -306,6 +307,7 @@ function ContactSuggestionRow({
   accentColor: { primary: string; light: string };
   themeColors: ReturnType<typeof useColors>;
 }) {
+  const { triggerHaptic } = useFeedback();
   const fullName = `${contact.firstName} ${contact.lastName}`.trim();
   const initial = (contact.firstName[0] || '').toUpperCase();
 
@@ -362,6 +364,7 @@ function SelfSuggestionRow({
   themeColors: ReturnType<typeof useColors>;
   label: string;
 }) {
+  const { triggerHaptic } = useFeedback();
   return (
     <TouchableOpacity
       style={[styles.suggestionRow, { borderBottomColor: themeColors.border }]}
@@ -972,16 +975,6 @@ export function MailComposeScreen({
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* From */}
-        <View style={[styles.fieldRow, { borderBottomColor: themeColors.border }]}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
-            {t('modules.mail.compose.from')}
-          </Text>
-          <Text style={[styles.fieldValue, { color: themeColors.textPrimary }]}>
-            {account.email}
-          </Text>
-        </View>
-
         {/* To — Recipient chips with inline search */}
         <RecipientField
           label={t('modules.mail.compose.to')}
@@ -1324,11 +1317,12 @@ const styles = StyleSheet.create({
   },
   suggestionName: {
     ...typography.body,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 18,
   },
   suggestionEmail: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 18,
   },
 
   // CC/BCC toggle

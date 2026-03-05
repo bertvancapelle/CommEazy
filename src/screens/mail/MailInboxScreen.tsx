@@ -491,7 +491,7 @@ export function MailInboxScreen({
           accessibilityRole="button"
           accessibilityLabel={t('modules.mail.inbox.compose')}
         >
-          <Icon name="edit" size={24} color="#FFFFFF" />
+          <Icon name="pencil" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
