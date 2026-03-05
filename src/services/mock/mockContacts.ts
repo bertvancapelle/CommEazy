@@ -34,6 +34,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     firstName: 'Ik',
     lastName: '(simulator)',
     phoneNumber: '+31600000001',
+    email: 'ik@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
@@ -44,6 +45,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     firstName: 'Oma',
     lastName: '(simulator)',
     phoneNumber: '+31600000002',
+    email: 'oma@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
@@ -54,6 +56,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     firstName: 'Test',
     lastName: '(iPhone 14)',
     phoneNumber: '+31600000003',
+    email: 'test@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
@@ -64,6 +67,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     firstName: 'Jeanine',
     lastName: '',
     phoneNumber: '+31600000004',
+    email: 'jeanine@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
@@ -74,6 +78,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     firstName: 'iPad',
     lastName: '(simulator)',
     phoneNumber: '+31600000005',
+    email: 'ipad@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
@@ -84,6 +89,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     firstName: 'iPad',
     lastName: '(fysiek)',
     phoneNumber: '+31600000006',
+    email: 'ipadphys@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
