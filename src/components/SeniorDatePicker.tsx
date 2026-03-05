@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dateButtonChevron: {
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: spacing.sm,
   },
 

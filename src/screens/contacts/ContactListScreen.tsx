@@ -71,6 +71,8 @@ function ContactListItem({
       <TouchableOpacity
         style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}
         onPress={() => onPress(contact)}
+        onLongPress={() => {}}
+        delayLongPress={300}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={displayName}

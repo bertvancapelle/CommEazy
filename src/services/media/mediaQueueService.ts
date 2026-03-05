@@ -14,6 +14,7 @@
 import { Database, Q } from '@nozbe/watermelondb';
 import type { MediaQueueItem, MediaTransferStatus, RETRY_DELAYS_MS } from '@/types/media';
 import { MediaMessageModel } from '@/models/MediaMessage';
+import { calculateRetryDelay, MEDIA_QUEUE_RETRY_CONFIG } from '../retry-utils';
 
 // ============================================================
 // Constants
@@ -21,17 +22,8 @@ import { MediaMessageModel } from '@/models/MediaMessage';
 
 const LOG_PREFIX = '[mediaQueueService]';
 
-/** Maximum retry attempts before giving up */
-const MAX_RETRIES = 5;
-
-/** Retry delays in milliseconds (exponential backoff) */
-const RETRY_DELAYS: number[] = [
-  1000,      // 1 second
-  5000,      // 5 seconds
-  30000,     // 30 seconds
-  120000,    // 2 minutes
-  300000,    // 5 minutes
-];
+/** Maximum retry attempts before giving up (from shared retry-utils) */
+const MAX_RETRIES = MEDIA_QUEUE_RETRY_CONFIG.maxAttempts;
 
 /** 7-day retention period in milliseconds */
 const RETENTION_PERIOD_MS = 7 * 24 * 60 * 60 * 1000;
@@ -562,8 +554,7 @@ export function getRetryDelay(retryCount: number): number {
     return 0;
   }
 
-  const index = Math.min(retryCount - 1, RETRY_DELAYS.length - 1);
-  return RETRY_DELAYS[index];
+  return calculateRetryDelay(MEDIA_QUEUE_RETRY_CONFIG, retryCount);
 }
 
 /**

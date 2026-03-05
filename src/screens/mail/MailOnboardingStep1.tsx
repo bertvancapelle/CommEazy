@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   providerEmoji: {
     fontSize: 28,
-    width: 44,
+    width: 60,
     textAlign: 'center',
   },
   providerInfo: {

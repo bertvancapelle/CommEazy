@@ -62,7 +62,7 @@ import {
   GENDERS,
 } from './profileSettingsConstants';
 import { PickerModal } from './PickerModal';
-import { CityPickerModal } from './CityPickerModal';
+import { CitySearchInline } from './CityPickerModal';
 
 // Field identifiers for validation and scrolling
 type FieldId = 'name' | 'country' | 'region' | 'city' | 'age' | 'gender';
@@ -159,7 +159,7 @@ export function ProfileSettingsScreen() {
         setActivePicker('region');
         break;
       case 'city':
-        // Open city picker modal
+        // Toggle inline city search panel
         setActivePicker('city');
         break;
       case 'age':
@@ -749,7 +749,7 @@ export function ProfileSettingsScreen() {
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.cityLabel')}</Text>
           <TouchableOpacity
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isCityEmpty && styles.pickerRowError]}
-            onPress={() => setActivePicker('city')}
+            onPress={() => setActivePicker(activePicker === 'city' ? null : 'city')}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.cityLabel')}
           >
@@ -758,6 +758,15 @@ export function ProfileSettingsScreen() {
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
           </TouchableOpacity>
+
+          {/* Inline city search — rendered below the field, not in a modal */}
+          <CitySearchInline
+            visible={activePicker === 'city'}
+            onSelect={handleCitySelect}
+            onClose={closePicker}
+            language={i18n.language}
+            countryCode={profile?.countryCode}
+          />
         </View>
 
         {/* Age bracket */}
@@ -870,13 +879,7 @@ export function ProfileSettingsScreen() {
         onClose={closePicker}
       />
 
-      <CityPickerModal
-        visible={activePicker === 'city'}
-        onSelect={handleCitySelect}
-        onClose={closePicker}
-        language={i18n.language}
-        countryCode={profile?.countryCode}
-      />
+      {/* CitySearchInline is now rendered inline below the city field — no modal needed */}
       </ScrollView>
     </KeyboardAvoidingView>
   );

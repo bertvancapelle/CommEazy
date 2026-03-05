@@ -11,10 +11,12 @@ import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/theme';
 import { ModuleHeader } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 
 export function AudioBookScreen() {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const moduleColor = useModuleColor('audiobook');
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -27,7 +29,7 @@ export function AudioBookScreen() {
       />
 
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
+        <View style={[styles.iconContainer, { backgroundColor: moduleColor }]}>
           {/* Headphones icon */}
           <View style={[styles.headphonesBand, { borderColor: themeColors.textOnPrimary }]} />
           <View style={[styles.headphonesLeft, { backgroundColor: themeColors.textOnPrimary }]} />
@@ -62,7 +64,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 120,
     height: 120,
-    backgroundColor: '#7B1FA2',
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',

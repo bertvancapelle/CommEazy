@@ -1327,8 +1327,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   suggestionEmail: {
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 22,
   },
 
   // CC/BCC toggle
@@ -1371,7 +1371,6 @@ const styles = StyleSheet.create({
   originalMessageLabel: {
     ...typography.body,
     fontWeight: '600',
-    fontSize: 14,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },

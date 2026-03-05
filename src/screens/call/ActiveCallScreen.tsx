@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   // controlButtonActive applied dynamically via themeColors.textOnPrimary
   controlLabel: {
     ...typography.small,
-    fontSize: 12,
+    fontSize: 14,
     // color applied dynamically via themeColors
     marginTop: 2,
   },

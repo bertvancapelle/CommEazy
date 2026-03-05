@@ -277,8 +277,8 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   iconContainer: {
-    width: 44,
-    height: 44,
+    width: 60,
+    height: 60,
     borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',

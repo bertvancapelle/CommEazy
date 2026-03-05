@@ -1726,11 +1726,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   favoritesCountText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.textOnPrimary,
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 16,
     includeFontPadding: false,
   },
   filterToggleButtonText: {

@@ -158,10 +158,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   countText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 16,
     includeFontPadding: false,  // Android: remove extra padding
   },
 });

@@ -313,8 +313,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   logoCollapsed: {
-    width: 44,
-    height: 44,
+    width: 60,
+    height: 60,
     borderRadius: borderRadius.md,
     backgroundColor: colors.primary,
     justifyContent: 'center',

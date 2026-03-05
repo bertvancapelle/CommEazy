@@ -371,6 +371,8 @@ export function ChatListScreen() {
               },
             ]}
             onPress={() => handleChatPress(item)}
+            onLongPress={() => {}}
+            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('accessibility.messageFrom', {
@@ -604,7 +606,7 @@ const styles = StyleSheet.create({
   },
   unreadCount: {
     color: colors.textOnPrimary,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     lineHeight: 24, // Match badge height for perfect vertical centering
     textAlign: 'center',

@@ -42,15 +42,13 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon } from '@/components';
 import { useBooksContext, type TtsVoice } from '@/contexts/BooksContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 
 // ============================================================
 // Constants
 // ============================================================
-
-// Module color (consistent with WheelNavigationMenu and BooksScreen)
-const BOOKS_MODULE_COLOR = '#9C27B0';
 
 // Speed options
 const SPEED_OPTIONS = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
@@ -68,6 +66,7 @@ export function BooksPlayerOverlay() {
   const { accentColor } = useAccentColor();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const booksModuleColor = useModuleColor('books');
 
   const {
     currentBook,
@@ -201,7 +200,7 @@ export function BooksPlayerOverlay() {
         {/* Header with close button */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Icon name="book" size={24} color={BOOKS_MODULE_COLOR} />
+            <Icon name="book" size={24} color={booksModuleColor} />
             <Text style={styles.headerTitle}>{t('modules.books.title')}</Text>
           </View>
           <TouchableOpacity
@@ -227,7 +226,7 @@ export function BooksPlayerOverlay() {
               { transform: [{ scale: pulseAnim }] },
             ]}
           >
-            <View style={[styles.readingIconContainer, { backgroundColor: BOOKS_MODULE_COLOR }]}>
+            <View style={[styles.readingIconContainer, { backgroundColor: booksModuleColor }]}>
               <Icon name="book-open" size={80} color={colors.textOnPrimary} strokeWidth={1.5} />
             </View>
           </Animated.View>
@@ -254,7 +253,7 @@ export function BooksPlayerOverlay() {
                   styles.progressFill,
                   {
                     width: `${ttsProgress.percentage}%`,
-                    backgroundColor: BOOKS_MODULE_COLOR,
+                    backgroundColor: booksModuleColor,
                   },
                 ]}
               />
@@ -378,13 +377,13 @@ export function BooksPlayerOverlay() {
                 <View style={[
                   styles.qualityBadge,
                   voiceQualityStatus.selectedVoice.quality === 'premium'
-                    ? { backgroundColor: `${BOOKS_MODULE_COLOR}20` }
+                    ? { backgroundColor: `${booksModuleColor}20` }
                     : { backgroundColor: colors.border }
                 ]}>
                   <Text style={[
                     styles.qualityBadgeText,
                     voiceQualityStatus.selectedVoice.quality === 'premium'
-                      ? { color: BOOKS_MODULE_COLOR }
+                      ? { color: booksModuleColor }
                       : { color: colors.textSecondary }
                   ]}>
                     {voiceQualityStatus.selectedVoice.quality === 'premium'
@@ -520,7 +519,7 @@ export function BooksPlayerOverlay() {
         <View style={styles.voiceModalOverlay}>
           <View style={[styles.voiceModalContent, { backgroundColor: colors.surface }]}>
             <View style={styles.voiceModalHeader}>
-              <Icon name="mic" size={32} color={BOOKS_MODULE_COLOR} />
+              <Icon name="mic" size={32} color={booksModuleColor} />
               <Text style={styles.voiceModalTitle}>
                 {t('modules.books.tts.selectVoiceTitle')}
               </Text>
@@ -587,12 +586,14 @@ export function BooksPlayerOverlay() {
                         {voice.quality === 'premium' && (
                           <View style={[
                             styles.recommendedBadge,
+                            { backgroundColor: `${booksModuleColor}20` },
                             voiceQualityStatus.selectedVoice?.id === voice.id && {
                               backgroundColor: 'rgba(255,255,255,0.3)',
                             },
                           ]}>
                             <Text style={[
                               styles.recommendedBadgeText,
+                              { color: booksModuleColor },
                               voiceQualityStatus.selectedVoice?.id === voice.id && {
                                 color: colors.textOnPrimary,
                               },
@@ -958,7 +959,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   recommendedBadge: {
-    backgroundColor: `${BOOKS_MODULE_COLOR}20`,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
@@ -966,7 +966,6 @@ const styles = StyleSheet.create({
   recommendedBadgeText: {
     ...typography.small,
     fontSize: 11,
-    color: BOOKS_MODULE_COLOR,
     fontWeight: '600',
   },
   voiceModalCancelButton: {

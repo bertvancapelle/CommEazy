@@ -21,6 +21,7 @@ import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { Book, DownloadedBook } from './gutenbergService';
+import { calculateRetryDelay, BOOKS_DOWNLOAD_RETRY_CONFIG } from './retry-utils';
 
 // ============================================================
 // Types
@@ -136,9 +137,8 @@ const DEFAULT_READER_SETTINGS: ReaderSettings = {
 // Books Storage Service
 // ============================================================
 
-/** Download retry constants */
-const DOWNLOAD_MAX_RETRIES = 2;
-const DOWNLOAD_RETRY_DELAYS = [3000, 6000]; // 3s, 6s
+/** Download retry constants (from shared retry-utils) */
+const DOWNLOAD_MAX_RETRIES = BOOKS_DOWNLOAD_RETRY_CONFIG.maxAttempts;
 const DOWNLOAD_TIMEOUT_MS = 120000; // 2 minutes connection timeout
 
 class BooksStorageService {
@@ -297,7 +297,7 @@ class BooksStorageService {
         }
 
         if (attempt > 0) {
-          const retryDelay = DOWNLOAD_RETRY_DELAYS[attempt - 1] || 6000;
+          const retryDelay = calculateRetryDelay(BOOKS_DOWNLOAD_RETRY_CONFIG, attempt);
           console.info('[BooksStorageService] Retry', attempt, '/', DOWNLOAD_MAX_RETRIES, 'in', retryDelay, 'ms');
           await new Promise(resolve => setTimeout(resolve, retryDelay));
           if (this.downloadCancelled) {

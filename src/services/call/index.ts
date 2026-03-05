@@ -43,6 +43,7 @@ import {
 } from './types';
 import { callSoundService, type CallSoundSettings } from './callSoundService';
 import { callKitService } from './callKitService';
+import { calculateRetryDelay, CALL_ICE_RETRY_CONFIG } from '../retry-utils';
 
 // ============================================================
 // Helper Functions
@@ -817,7 +818,7 @@ export class WebRTCCallService implements CallService {
     if (!this.currentCall) return;
 
     const attempt = (this.currentCall.reconnectAttempts ?? 0) + 1;
-    const maxAttempts = CALL_LIMITS.MAX_RECONNECTION_ATTEMPTS;
+    const maxAttempts = CALL_ICE_RETRY_CONFIG.maxAttempts;
 
     if (attempt > maxAttempts) {
       console.warn('[CallService] Max reconnection attempts reached (' + maxAttempts + '), ending call');
@@ -827,8 +828,8 @@ export class WebRTCCallService implements CallService {
 
     this.currentCall.reconnectAttempts = attempt;
 
-    // Exponential backoff: 5s, 10s, 16s (base 5000ms, capped at 16000ms)
-    const delay = Math.min(CALL_TIMEOUTS.RECONNECTION_TIMEOUT_MS * Math.pow(2, attempt - 1), 16000);
+    // Exponential backoff via shared retry-utils (5s, 10s, 16s)
+    const delay = calculateRetryDelay(CALL_ICE_RETRY_CONFIG, attempt);
 
     console.info('[CallService] Scheduling ICE restart attempt', attempt, '/', maxAttempts,
       'for', jid, 'in', delay, 'ms');

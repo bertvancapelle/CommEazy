@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 12,
+    fontSize: 14,
   },
   composeButton: {
     width: touchTargets.minimum,

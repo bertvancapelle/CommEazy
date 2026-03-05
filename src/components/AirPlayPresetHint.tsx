@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   presetIcon: {
-    fontSize: 14,
+    fontSize: 16,
   },
   presetName: {
     ...typography.small,
@@ -119,6 +119,6 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.textSecondary,
     opacity: 0.7,
-    fontSize: 13,
+    fontSize: 14,
   },
 });

@@ -36,15 +36,9 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon } from '@/components';
 import { useRadioContext } from '@/contexts/RadioContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
-
-// ============================================================
-// Constants
-// ============================================================
-
-// Module color (consistent with WheelNavigationMenu and RadioScreen)
-const RADIO_MODULE_COLOR = '#00897B';
 
 // ============================================================
 // Component
@@ -64,6 +58,7 @@ export function RadioPlayerOverlay({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
+  const radioModuleColor = useModuleColor('radio');
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
 
@@ -164,7 +159,7 @@ export function RadioPlayerOverlay({
         {/* Header with close button */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Icon name="radio" size={24} color={RADIO_MODULE_COLOR} />
+            <Icon name="radio" size={24} color={radioModuleColor} />
             <Text style={styles.headerTitle}>{t('modules.radio.title')}</Text>
           </View>
           <TouchableOpacity
@@ -195,7 +190,7 @@ export function RadioPlayerOverlay({
               />
             ) : (
               // Placeholder: Radio icon on teal background
-              <View style={[styles.artwork, styles.artworkPlaceholder]}>
+              <View style={[styles.artwork, styles.artworkPlaceholder, { backgroundColor: radioModuleColor }]}>
                 <Icon name="radio" size={120} color={colors.textOnPrimary} strokeWidth={1.5} />
               </View>
             )}
@@ -371,7 +366,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   artworkPlaceholder: {
-    backgroundColor: RADIO_MODULE_COLOR,
     justifyContent: 'center',
     alignItems: 'center',
   },

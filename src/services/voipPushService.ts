@@ -12,6 +12,7 @@
  */
 
 import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
+import { calculateRetryDelay, VOIP_PUSH_RETRY_CONFIG } from './retry-utils';
 
 const { VoIPPushModule } = NativeModules;
 
@@ -43,14 +44,14 @@ export async function registerForVoIPPush(): Promise<string | null> {
   }
 
   // Wait for token with retry (first-time registration)
-  const maxAttempts = 3;
+  const maxAttempts = VOIP_PUSH_RETRY_CONFIG.maxAttempts + 1; // +1 for initial attempt
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const token = await waitForToken(attempt);
     if (token) {
       return token;
     }
     if (attempt < maxAttempts) {
-      const backoffMs = 5000 * attempt; // 5s, 10s
+      const backoffMs = calculateRetryDelay(VOIP_PUSH_RETRY_CONFIG, attempt);
       console.info('[VoIPPush] Retry ' + attempt + '/' + maxAttempts + ' in ' + backoffMs + 'ms');
       await new Promise(resolve => setTimeout(resolve, backoffMs));
       VoIPPushModule.registerForVoIPPush(); // Re-trigger PushKit

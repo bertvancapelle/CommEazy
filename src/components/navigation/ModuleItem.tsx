@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
     // Background color applied dynamically
   },
   sidebarIconContainer: {
-    width: 44,
-    height: 44,
+    width: 60,
+    height: 60,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',

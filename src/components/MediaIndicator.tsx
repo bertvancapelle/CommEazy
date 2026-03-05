@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   moonIcon: {
-    fontSize: 14,
+    fontSize: 16,
   },
   waveContainer: {
     flexDirection: 'row',

@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     width: 40, // Fixed width for centering
   },
   nowMarkerLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',
   },

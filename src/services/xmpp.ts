@@ -15,6 +15,7 @@ import type {
   Observable,
   Unsubscribe,
 } from './interfaces';
+import { calculateRetryDelay, XMPP_RETRY_CONFIG } from './retry-utils';
 
 // Dev server configuration
 // Simulators use localhost, physical devices use Mac's LAN IP
@@ -50,8 +51,6 @@ export class XmppJsService implements XMPPService {
   private receiptHandlers: Set<(messageId: string, from: string) => void> = new Set();
   private callSignalingHandlers: Set<(from: string, payload: CallSignalingPayload) => void> = new Set();
   private reconnectAttempts = 0;
-  private maxReconnectDelay = 30000; // 30 seconds
-  private maxReconnectAttempts = 10; // Stop retrying after 10 attempts
   private pushEnabled = false;
 
   async connect(userJid: string, password: string): Promise<void> {
@@ -682,17 +681,14 @@ export class XmppJsService implements XMPPService {
   }
 
   private async attemptReconnect(): Promise<void> {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.warn('[XMPP] Max reconnect attempts (' + this.maxReconnectAttempts + ') reached, giving up');
+    if (this.reconnectAttempts >= XMPP_RETRY_CONFIG.maxAttempts) {
+      console.warn('[XMPP] Max reconnect attempts (' + XMPP_RETRY_CONFIG.maxAttempts + ') reached, giving up');
       this.setStatus('error');
       return;
     }
 
-    const delay = Math.min(
-      1000 * Math.pow(2, this.reconnectAttempts),
-      this.maxReconnectDelay,
-    );
     this.reconnectAttempts++;
+    const delay = calculateRetryDelay(XMPP_RETRY_CONFIG, this.reconnectAttempts);
 
     await new Promise(resolve => setTimeout(resolve, delay));
 
