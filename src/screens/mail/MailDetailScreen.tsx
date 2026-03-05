@@ -224,8 +224,8 @@ function buildWebViewHtml(
 
   if (hasDocStructure) {
     // Extract body content — keep styles that are in <head>
-    const bodyMatch = noScripts.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-    const headMatch = noScripts.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    const bodyMatch = noScripts.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const headMatch = noScripts.match(/<head[^>]*>([\s\S]*)<\/head>/i);
     const headStyles = headMatch
       ? (headMatch[1].match(/<style[\s\S]*?<\/style>/gi) || []).join('\n')
       : '';
