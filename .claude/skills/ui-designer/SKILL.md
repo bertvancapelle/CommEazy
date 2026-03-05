@@ -2502,6 +2502,13 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 - [ ] **Module Search Pattern:** Lokale filter = live filtering (alleen voor lokale data zoals contacten)
 - [ ] **Module Search Pattern:** Geen lege onSubmit — `onSubmit={() => {}}` is VERBODEN voor API zoeken
 - [ ] Module screen headers: icoon + naam + module kleur achtergrond (consistent met navigatiemenu)
+- [ ] **Module Colors:** Alle module kleuren via `useModuleColor()` hook, GEEN hardcoded hex — zie CLAUDE.md "Module Color Single Source of Truth"
+- [ ] **Module Colors:** Nieuwe modules MOETEN `ModuleColorId` type, `CUSTOMIZABLE_MODULES`, en `MODULE_LABELS` bijwerken
+- [ ] **Button Styling:** Alle knoppen 60×60pt, cornerRadius 12pt, rgba(255,255,255,0.15) achtergrond — zie CLAUDE.md sectie 10d
+- [ ] **Button Styling:** Border respecteert `ButtonStyleContext` setting (user preference)
+- [ ] **Component Registry:** Alle module screens gebruiken `ModuleHeader` component — zie CLAUDE.md sectie 14
+- [ ] **Component Registry:** Zoekfunctie gebruikt `SearchBar` component, NOOIT custom TextInput
+- [ ] **Component Registry:** Land/taal selectie gebruikt `ChipSelector` component
 - [ ] Module screen headers: safe area insets gerespecteerd, tekst in wit
 - [ ] Tab/toggle selectors: actieve tab = accent achtergrond, inactieve tab = dunne rand
 - [ ] Tab/toggle selectors: iconen + labels, persoonlijke termen ("Mijn zenders" i.p.v. "Favorieten")

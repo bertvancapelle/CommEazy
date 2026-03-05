@@ -783,6 +783,40 @@ let value = config["key"] as! String  // CRASH als nil
 - [ ] **Native Modules:** Platform guard in TypeScript bridge
 - [ ] **Native Modules:** Typed event maps voor alle event emitters
 - [ ] **Native Modules:** NSDictionary met defaults, geen force unwrap
+- [ ] **Downloads:** RNFS downloads annuleerbaar via `CancellableDownload` pattern (zie react-native-expert SKILL.md)
+- [ ] **Downloads:** Cleanup bij unmount, partial files opgeruimd na cancel
+- [ ] **Unified Retry:** Alle retries gebruiken `RetryConfig` met `maxAttempts` en `maxDelayMs` (zie architecture-lead SKILL.md)
+- [ ] **Call ICE Restart:** `restartIce()` in webrtcService en meshManager correct geïmplementeerd
+- [ ] **Module Colors:** `useModuleColor()` hook gebruikt, GEEN hardcoded hex kleuren
+- [ ] **Audio Ducking:** ⏳ TODO — `AudioDuckingModule` native Swift module nog te bouwen (AVAudioSession ducking voor voice commands)
+
+## Liquid Glass Feature Parity (iOS 26+)
+
+**KRITIEK:** De React Native player en native Liquid Glass player MOETEN 100% functioneel identiek zijn.
+
+Bij ELKE wijziging aan player functionaliteit:
+1. Implementeer in React Native (`MiniPlayer.tsx` / `ExpandedAudioPlayer.tsx`)
+2. Update bridge layer (`glassPlayer.ts` types + `updatePlaybackState()`)
+3. Update native Swift (`MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`)
+4. Test op BEIDE iOS <26 (RN player) en iOS 26+ (Glass player)
+
+**Referentie bestanden:**
+- `ios/CommEazyTemp/GlassPlayerWindow/MiniPlayerNativeView.swift`
+- `ios/CommEazyTemp/GlassPlayerWindow/FullPlayerNativeView.swift`
+- `ios/CommEazyTemp/GlassPlayerWindow/GlassPlayerWindowModule.swift`
+- `src/services/glassPlayer.ts`
+
+Zie CLAUDE.md sectie 16 "100% Feature Parity Regel" voor volledige checklist.
+
+## Test Devices (Referentie)
+
+| Device | iOS Versie | Gebruik |
+|--------|-----------|---------|
+| iPhone 17 Pro (Simulator) | iOS 26 | Liquid Glass, Glass Player |
+| iPhone 16e (Simulator) | iOS 26 | Tweede account testen |
+| iPad (Simulator) | iOS 26 | Split View, multitasking |
+| iPhone 14 (Bert, fysiek) | iOS 26.4 BETA | Productie-like testing |
+| iPhone (Jeanine, fysiek) | iOS 26.3 | Senioren UX validatie |
 
 ## Collaboration
 

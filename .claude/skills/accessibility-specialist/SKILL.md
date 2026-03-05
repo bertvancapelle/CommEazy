@@ -1711,6 +1711,14 @@ AccessibilityInfo.announceForAccessibility(
 - [ ] **Panel-aware modals:** Overlay i.p.v. Modal op iPad (focus blijft in pane)
 - [ ] **Pane navigatie:** Module wissel wordt aangekondigd met pane context
 
+### Audio Ducking voor Voice Commands (⏳ TODO — v1.0 vereist)
+- [ ] **AudioDuckingModule (iOS):** Native AVAudioSession ducking naar 15% bij voice session
+- [ ] **AudioDuckingModule (Android):** AudioFocus API ducking naar 15% bij voice session
+- [ ] **Call prioriteit:** Bij actief gesprek ALLEEN call-specifieke voice commands (ophangen, mute, luidspreker)
+- [ ] **Media prioriteit:** Bij actieve media: duck audio → luister → restore volume
+- [ ] **Geen ducking bij call:** Gesprek heeft prioriteit, geen volume wijziging
+- [ ] **Referentie:** CLAUDE.md sectie 11.4a "Audio Conflict Handling"
+
 ---
 
 ## Collaboration

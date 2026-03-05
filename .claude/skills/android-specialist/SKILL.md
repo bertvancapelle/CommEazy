@@ -205,6 +205,10 @@ WorkManager.getInstance(context).enqueueUniquePeriodicWork("offline_sync", KEEP,
 - [ ] Haptic feedback on all interactive elements
 - [ ] ProGuard/R8 rules correct (no stripped crypto classes)
 - [ ] Screenshots generated for phone + tablet × 13 languages (see CONSTANTS.md)
+- [ ] **Downloads:** RNFS downloads annuleerbaar via `CancellableDownload` pattern (zie react-native-expert SKILL.md)
+- [ ] **Downloads:** Cleanup bij unmount, partial files opgeruimd na cancel
+- [ ] **Unified Retry:** Alle retries gebruiken `RetryConfig` met `maxAttempts` en `maxDelayMs` (zie architecture-lead SKILL.md)
+- [ ] **Audio Ducking:** ⏳ TODO — Android audio ducking voor voice commands (AudioFocus API)
 
 ## Collaboration
 

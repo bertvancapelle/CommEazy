@@ -990,6 +990,30 @@ function useConnectionRecoveryUI(state: ConnectionState) {
 }
 ```
 
+### Call Service ICE Restart (Geïmplementeerd)
+
+WebRTC calls gebruiken ICE restart als recovery methode. Geïmplementeerd in `call/index.ts`, `meshManager.ts` en `webrtcService.ts`.
+
+**Flow:**
+```
+PeerConnection state → 'disconnected'/'failed'
+  → CallService.attemptReconnection(jid)
+    → attempt ≤ 3: meshManager.restartIce(jid) → webrtcService.restartIce(state, callType)
+      → createOffer({ iceRestart: true }) → sendOffer via signaling
+    → attempt > 3: endCallInternal('failed')
+
+PeerConnection state → 'connected'/'completed'
+  → Reset reconnectAttempts = 0, clearReconnectTimer()
+```
+
+**Timing:** Exponential backoff 5s → 10s → 16s (base 5000ms, cap 16000ms)
+
+**Referentie bestanden:**
+- `src/services/call/index.ts` — `attemptReconnection()`, `clearReconnectTimer()`
+- `src/services/call/meshManager.ts` — `restartIce(jid)`
+- `src/services/call/webrtcService.ts` — `restartIce(state, callType)`
+- `src/services/call/types.ts` — `reconnectAttempts`, `reconnectTimer` fields
+
 ### Regels
 
 1. **Reset counter bij succes** — `reconnectAttempts = 0` na succesvolle reconnect
@@ -1028,6 +1052,11 @@ function useConnectionRecoveryUI(state: ConnectionState) {
 - [ ] **Connection Recovery:** Reset attempt counter bij succesvolle reconnect
 - [ ] **Connection Recovery:** UI feedback bij reconnecting state
 - [ ] **Connection Recovery:** Handmatige retry optie bij failed state
+- [ ] **Call ICE Restart:** Max 3 attempts met exponential backoff (5s/10s/16s)
+- [ ] **Call ICE Restart:** `clearReconnectTimer()` in `endCallInternal()`
+- [ ] **Call ICE Restart:** Reset `reconnectAttempts = 0` bij succesvolle reconnect
+- [ ] **Module Colors:** Alle module kleuren via `useModuleColor()` hook, GEEN hardcoded hex
+- [ ] **Component Registry:** Nieuwe screens gebruiken verplichte componenten (ModuleHeader, SearchBar, ChipSelector)
 
 ## Collaboration
 

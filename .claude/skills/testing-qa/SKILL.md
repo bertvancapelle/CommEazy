@@ -275,6 +275,13 @@ describe('Senior Flow: Send Message', () => {
 - [ ] Senior user testing: ≥ 80% task completion
 - [ ] Store pre-submission checklist complete (both stores)
 - [ ] No flaky tests (all tests deterministic)
+- [ ] **i18n Completeness:** Alle 13 locale bestanden hebben identieke key-structuur (nl.json als referentie)
+- [ ] **i18n Completeness:** Validatie script draait bij elke i18n wijziging (zie CLAUDE.md "i18n Completeness Validatie")
+- [ ] **Component Registry:** Alle module screens gebruiken `ModuleHeader` — `grep -rL "ModuleHeader" src/screens/modules/*.tsx`
+- [ ] **Component Registry:** Alle zoekschermen gebruiken `SearchBar` — geen custom TextInput voor zoeken
+- [ ] **Call Reconnection:** ICE restart E2E test: WiFi uit → reconnecting state → WiFi aan → reconnected
+- [ ] **Audio Ducking:** ⏳ TODO — Voice commands met actieve audio: ducking naar 15%, restore na session
+- [ ] **Accessibility Compliance:** Valideer tegen `.claude/plans/ACCESSIBILITY_COMPLIANCE.md` rapport
 
 ## Collaboration
 

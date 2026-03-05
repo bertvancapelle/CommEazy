@@ -213,6 +213,10 @@ All connection and delivery status messages must be translated:
 - [ ] Offline sync: pending messages resent on presence
 - [ ] Connection status shown in plain language (13 languages (see CONSTANTS.md): NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 - [ ] No persistent background connection (use push to wake)
+- [ ] **Unified Retry:** Reconnection gebruikt `RetryConfig` met `maxAttempts: 10`, `baseDelayMs: 1000`, `maxDelayMs: 30000`, jitter 0.2 (zie architecture-lead SKILL.md)
+- [ ] **Unified Retry:** Geen unbounded retries — altijd maxAttempts gedefinieerd
+- [ ] **Connection Recovery:** State machine (disconnected→connecting→connected→reconnecting→failed) — zie architecture-lead SKILL.md
+- [ ] **Prosody HA:** Productie deployment volgt `.claude/plans/PROSODY_HA_PRODUCTION.md`
 
 ## Collaboration
 

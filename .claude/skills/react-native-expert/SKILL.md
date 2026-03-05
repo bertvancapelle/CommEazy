@@ -75,16 +75,25 @@ import { initReactI18next } from 'react-i18next';
 import { getLocales } from 'react-native-localize';
 
 const deviceLocale = getLocales()[0]?.languageCode || 'en';
-const supportedLangs = ['nl', 'en', 'de', 'fr', 'es'];
+// All 13 supported languages — see CONSTANTS.md for full list
+const supportedLangs = ['nl', 'en', 'en-GB', 'de', 'fr', 'es', 'it', 'pl', 'no', 'sv', 'da', 'pt', 'pt-BR'];
 const defaultLang = supportedLangs.includes(deviceLocale) ? deviceLocale : 'en';
 
 i18n.use(initReactI18next).init({
   resources: {
     nl: { translation: require('./locales/nl.json') },
     en: { translation: require('./locales/en.json') },
+    'en-GB': { translation: require('./locales/en-GB.json') },
     de: { translation: require('./locales/de.json') },
     fr: { translation: require('./locales/fr.json') },
     es: { translation: require('./locales/es.json') },
+    it: { translation: require('./locales/it.json') },
+    pl: { translation: require('./locales/pl.json') },
+    no: { translation: require('./locales/no.json') },
+    sv: { translation: require('./locales/sv.json') },
+    da: { translation: require('./locales/da.json') },
+    pt: { translation: require('./locales/pt.json') },
+    'pt-BR': { translation: require('./locales/pt-BR.json') },
   },
   lng: defaultLang, // Auto-detect, user can override in Settings
   fallbackLng: 'en',
@@ -1136,6 +1145,11 @@ useEffect(() => {
 - [ ] **Downloads:** RNFS downloads zijn annuleerbaar via `CancellableDownload` pattern
 - [ ] **Downloads:** `useRef` voor download handle, cleanup bij unmount
 - [ ] **Downloads:** Partial files opgeruimd na cancel
+- [ ] **Module Colors:** Alle module kleuren via `useModuleColor()` hook, GEEN hardcoded hex
+- [ ] **Module Colors:** `tintColorHex: moduleColor` in ELKE `showGlassMiniPlayer()` en `updateGlassContent()` call
+- [ ] **Unified Retry:** Alle retries gebruiken `RetryConfig` met `maxAttempts` en `maxDelayMs` (zie architecture-lead SKILL.md)
+- [ ] **Connection Recovery:** State machine pattern voor WebRTC/XMPP/WebSocket (zie architecture-lead SKILL.md)
+- [ ] **Component Registry:** Module screens gebruiken `ModuleHeader`, `SearchBar`, `ChipSelector` (zie CLAUDE.md sectie 14)
 
 ## Lessons Learned — Radio Module (februari 2026)
 

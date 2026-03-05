@@ -3472,7 +3472,7 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 22 | **Firebase Productie Config** | ⏳ TODO | 🎯 MVP | Aparte Firebase project voor productie |
 | 23 | **Prosody Productie Server** | ⏳ TODO | 🎯 MVP | Hosted XMPP server (niet lokaal) |
 | 24 | **TTS Stem Download Service** | ⏳ TODO | ⏳ TBD | CDN + dynamisch downloaden Piper stemmen per taal |
-| 25 | **Call Error Handling** | ⏳ TODO | 🎯 MVP | Reconnectie bij netwerk verlies, ICE restart ontbreekt, geen retry counter |
+| 25 | **Call Error Handling** | 🔶 PARTIAL | 🎯 MVP | ICE restart ✅ (3 attempts, exponential backoff), reconnectAttempts ✅, clearReconnectTimer ✅. TODO: UI reconnecting banner, handmatige retry bij failed state |
 | 26 | **Voice Command Audio Ducking** | ⏳ TODO | ⏳ TBD | Duck audio naar 15% bij voice session (native AudioDuckingModule ontbreekt) |
 | 27 | **Color Theme System** | 🔶 PARTIAL | ⏳ TBD | Module kleuren ✅, Dark mode ❌, High contrast ❌ |
 | 28 | **Universal Presence** | 🔶 PARTIAL | ⏳ TBD | Online/offline indicator (XMPP + React Native) |
@@ -3490,7 +3490,7 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | Automatische backup via Cloud KV Store (iOS: NSUbiquitousKeyValueStore, Android: BackupAgentHelper) + platform backup validatie. Zie `BACKUP_RESTORE_PLAN.md` |
 | 41 | **React Native Upgrade** | ⏳ TODO | 🎯 MVP | Upgrade van RN 0.73.6 naar 0.79+. Vereist: New Architecture migratie (18 native modules → TurboModules), AppDelegate Obj-C++ → Swift, React 18 → 19, 49 dependencies compatibiliteit check. op-sqlite v15 vereist RN 0.74+. Groot standalone project — NIET mengen met feature development. Zie impactanalyse in sessie 2026-03-04. |
 
-**📊 Cross-Platform Samenvatting:** 23 items | ✅ 0 DONE | 🔶 3 PARTIAL | ⏳ 20 TODO
+**📊 Cross-Platform Samenvatting:** 23 items | ✅ 0 DONE | 🔶 4 PARTIAL | ⏳ 19 TODO
 
 ---
 
@@ -3500,8 +3500,8 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 |----------|--------|---------|------------|---------|
 | **iOS/iPadOS** | 15 | 14 | 1 | 0 |
 | **Android** | 4 | 0 | 0 | 4 |
-| **Cross-Platform** | 23 | 0 | 3 | 20 |
-| **TOTAAL** | 42 | 14 | 4 | 24 |
+| **Cross-Platform** | 23 | 0 | 4 | 19 |
+| **TOTAAL** | 42 | 14 | 5 | 23 |
 
 ---
 
