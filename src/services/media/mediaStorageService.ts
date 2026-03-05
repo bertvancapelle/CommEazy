@@ -18,6 +18,9 @@ import {
   compressPhoto,
   generatePhotoThumbnail,
   stripExifData,
+  compressVideo,
+  generateVideoThumbnail,
+  getVideoDuration,
   getFileSize,
   copyToMediaDirectory,
   getMediaTypeFromUri,
@@ -206,40 +209,54 @@ export async function saveVideo(
 
     console.info(LOG_PREFIX, 'Saving video:', { mediaId, source, chatId });
 
-    // TODO: Implement video processing
-    // 1. Compress video (720p, 2Mbps)
-    // 2. Generate thumbnail
-    // 3. Copy to permanent storage
+    // Step 1: Compress video (iOS: native AVFoundation, Android: passthrough)
+    const compressed = await compressVideo(sourceUri, { maxResolution: '720p' });
+    const videoUri = compressed.success ? compressed.uri! : sourceUri;
 
-    // For now, just copy the video as-is
-    const extension = sourceUri.split('.').pop() || 'mp4';
-    const mediaFilename = `${mediaId}.${extension}`;
-    const thumbFilename = `${mediaId}_thumb.jpg`;
-
-    const localUri = await copyToMediaDirectory(sourceUri, mediaFilename);
+    // Step 2: Copy compressed video to permanent storage
+    const mediaFilename = `${mediaId}.mp4`;
+    const localUri = await copyToMediaDirectory(videoUri, mediaFilename);
     if (!localUri) {
       console.error(LOG_PREFIX, 'Failed to copy video file');
       return null;
     }
 
+    // Clean up temp compressed file if different from source
+    if (compressed.success && compressed.uri && compressed.uri !== sourceUri) {
+      RNFS.unlink(compressed.uri).catch(() => {});
+    }
+
     const size = await getFileSize(localUri);
 
-    // TODO: Generate real video thumbnail
-    // For now, create a placeholder
-    const thumbnailUri = getThumbnailPath(thumbFilename);
+    // Step 3: Generate thumbnail
+    const thumbFilename = `${mediaId}_thumb.jpg`;
+    const thumbPath = getThumbnailPath(thumbFilename);
+    let thumbnailUri = '';
+    const thumbResult = await generateVideoThumbnail(localUri, 0);
+    if (thumbResult.success && thumbResult.uri) {
+      // Move generated thumbnail to thumbnails directory
+      await RNFS.moveFile(thumbResult.uri, thumbPath).catch(() => {});
+      thumbnailUri = thumbPath;
+    }
 
-    console.warn(LOG_PREFIX, 'Video thumbnail generation not implemented');
+    // Step 4: Get metadata (use compression result or query separately)
+    const width = compressed.width ?? 0;
+    const height = compressed.height ?? 0;
+    let duration = compressed.duration;
+    if (duration == null) {
+      duration = (await getVideoDuration(localUri)) ?? undefined;
+    }
 
     // Create MediaItem
     const mediaItem: MediaItem = {
       id: mediaId,
       type: 'video',
       localUri,
-      thumbnailUri: '', // TODO: Generate thumbnail
+      thumbnailUri,
       size,
-      width: 0,  // TODO: Get from video metadata
-      height: 0, // TODO: Get from video metadata
-      duration: undefined, // TODO: Get from video metadata
+      width,
+      height,
+      duration,
       source,
       senderJid,
       senderName,
@@ -250,6 +267,10 @@ export async function saveVideo(
     console.info(LOG_PREFIX, 'Video saved:', {
       id: mediaId,
       size,
+      width,
+      height,
+      duration,
+      hasThumbnail: thumbnailUri !== '',
     });
 
     return mediaItem;

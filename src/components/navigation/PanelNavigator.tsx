@@ -17,6 +17,7 @@
  */
 
 import React, { useCallback, useEffect, useRef } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator, type NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
@@ -143,6 +144,32 @@ const GroupPanelStack = createNativeStackNavigator<GroupPanelParams>();
 const SettingsPanelStack = createNativeStackNavigator<SettingsPanelParams>();
 
 // ============================================================
+// Shared Hooks
+// ============================================================
+
+/**
+ * Listen for pane:goBack events and pop the navigation stack.
+ * Each panel navigator calls this to enable voice command "back" support.
+ */
+function usePaneGoBack(
+  navRef: React.RefObject<NavigationContainerRef<any> | null>,
+  panelId: PaneId | undefined
+) {
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      'pane:goBack',
+      (event: { paneId: string }) => {
+        if (!panelId || event.paneId !== panelId) return;
+        if (navRef.current?.canGoBack()) {
+          navRef.current.goBack();
+        }
+      }
+    );
+    return () => subscription.remove();
+  }, [navRef, panelId]);
+}
+
+// ============================================================
 // Panel Navigator Components
 // ============================================================
 
@@ -152,6 +179,8 @@ function ChatPanelNavigator() {
   const paneCtx = usePaneContextSafe();
   const navRef = useRef<NavigationContainerRef<ChatPanelParams>>(null);
   const isReadyRef = useRef(false);
+
+  usePaneGoBack(navRef, panelId);
 
   // Consume pending navigation — called on mount (onReady) and on state changes
   const consumePending = useCallback(() => {
@@ -208,9 +237,13 @@ function ChatPanelNavigator() {
 function ContactPanelNavigator() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const panelId = usePanelId();
+  const navRef = useRef<NavigationContainerRef<ContactPanelParams>>(null);
+
+  usePaneGoBack(navRef, panelId);
 
   return (
-    <NavigationContainer independent={true}>
+    <NavigationContainer independent={true} ref={navRef}>
       <ContactPanelStack.Navigator
         screenOptions={{
           headerTitleStyle: typography.h3,
@@ -249,9 +282,13 @@ function ContactPanelNavigator() {
 function GroupPanelNavigator() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const panelId = usePanelId();
+  const navRef = useRef<NavigationContainerRef<GroupPanelParams>>(null);
+
+  usePaneGoBack(navRef, panelId);
 
   return (
-    <NavigationContainer independent={true}>
+    <NavigationContainer independent={true} ref={navRef}>
       <GroupPanelStack.Navigator
         screenOptions={{
           headerTitleStyle: typography.h3,
@@ -310,9 +347,13 @@ function MailOnboardingWrapper({ navigation }: { navigation: NativeStackNavigati
 function SettingsPanelNavigator() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const panelId = usePanelId();
+  const navRef = useRef<NavigationContainerRef<SettingsPanelParams>>(null);
+
+  usePaneGoBack(navRef, panelId);
 
   return (
-    <NavigationContainer independent={true}>
+    <NavigationContainer independent={true} ref={navRef}>
       <SettingsPanelStack.Navigator
         screenOptions={{
           headerTitleStyle: typography.h3,

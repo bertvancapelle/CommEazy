@@ -173,15 +173,9 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
     };
   }, []);
 
-  // TODO: Add other media contexts when implemented
-  // const { isInCall: isInAudioCall } = useAudioCallContext();
-  // const { isInCall: isInVideoCall } = useVideoCallContext();
-
   // Determine active media type
   const getActiveMedia = useCallback((): { type: MediaType; source: string } | null => {
-    // Priority: video calls > audio calls > apple music > radio/podcast/books
-    // if (isInVideoCall) return { type: 'video', source: 'videoCall' };
-    // if (isInAudioCall) return { type: 'audio', source: 'audioCall' };
+    // Priority: apple music > radio > podcast > books
     if (isAppleMusicPlaying && appleMusicNowPlaying) return { type: 'audio', source: 'appleMusic' };
     if (isRadioPlaying && currentStation) return { type: 'audio', source: 'radio' };
     if (isPodcastPlaying && currentEpisode) return { type: 'audio', source: 'podcast' };

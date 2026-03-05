@@ -714,7 +714,7 @@ export function HoldToNavigateWrapper({
   const executeContactAction = useCallback(
     (contact: Contact, action: 'call' | 'message') => {
       // Generate chat ID for this contact (format: chat:jid1:jid2 sorted)
-      const myJid = 'ik@commeazy.local'; // TODO: Get from chat service
+      const myJid = ServiceContainer.credentials?.jid ?? '';
       const chatId = `chat:${[myJid, contact.jid].sort().join(':')}`;
 
       if (action === 'message') {
@@ -912,7 +912,7 @@ export function HoldToNavigateWrapper({
 
           case 'back':
             // Go back within the pane's inner navigation stack
-            // TODO: Implement via PaneContext goBack mechanism
+            // PanelNavigator listens for this event via usePaneGoBack hook
             DeviceEventEmitter.emit('pane:goBack', { paneId: 'main' });
             // Continue listening in session mode
             if (isVoiceSessionActive) {

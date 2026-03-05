@@ -281,6 +281,23 @@ export class MeshManager {
   }
 
   // ============================================================
+  // ICE Restart
+  // ============================================================
+
+  /**
+   * Perform ICE restart for a specific participant.
+   * Returns the new offer SDP that must be sent via signaling.
+   */
+  async restartIce(jid: string): Promise<RTCSessionDescription> {
+    const participant = this.participants.get(jid);
+    if (!participant) {
+      throw new Error(`[MeshManager] Participant not found: ${jid}`);
+    }
+
+    return this.webrtc.restartIce(participant.peerState, this.callType);
+  }
+
+  // ============================================================
   // Track Management
   // ============================================================
 

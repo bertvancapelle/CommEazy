@@ -97,6 +97,7 @@ const BUNDLED_VOICES: PiperVoice[] = [
 
 class PiperTtsService {
   private isInitialized: boolean = false;
+  private _isGenerating: boolean = false;
   private currentVoice: PiperVoice | null = null;
   private listeners: Map<PiperTtsEventType, Set<(event: PiperTtsEvent) => void>> = new Map();
   private nativeEventSubscriptions: EmitterSubscription[] = [];
@@ -235,12 +236,16 @@ class PiperTtsService {
 
       console.debug('[piperTtsService] Generating speech for text length:', text.length);
 
+      this._isGenerating = true;
+
       // Generate and play speech locally using ONNX model
       // PRIVACY: All processing happens on-device
       const result = await PiperTtsModule.speak(text, clampedSpeed);
 
+      this._isGenerating = false;
       return result === true;
     } catch (error) {
+      this._isGenerating = false;
       console.error('[piperTtsService] speak failed:', error);
       this.emit('piperError', { type: 'piperError', error: String(error) });
       return false;
@@ -378,12 +383,16 @@ class PiperTtsService {
         speed: clampedSpeed,
       });
 
+      this._isGenerating = true;
+
       // Call native chunked playback method
       // PRIVACY: All processing happens on-device
       const result = await PiperTtsModule.speakChunked(chunks, clampedSpeed);
 
+      this._isGenerating = false;
       return result === true;
     } catch (error) {
+      this._isGenerating = false;
       console.error('[piperTtsService] speakChunked failed:', error);
       this.emit('piperError', { type: 'piperError', error: String(error) });
       return false;
@@ -479,6 +488,7 @@ class PiperTtsService {
       }
 
       this.isInitialized = false;
+      this._isGenerating = false;
       this.currentVoice = null;
       this.listeners.clear();
       console.debug('[piperTtsService] Cleaned up');
@@ -493,7 +503,7 @@ class PiperTtsService {
   async getState(): Promise<PiperTtsState> {
     return {
       isInitialized: this.isInitialized,
-      isGenerating: false,  // TODO: Track generation state
+      isGenerating: this._isGenerating,
       isPlaying: await this.isPlaying(),
       currentVoice: this.currentVoice,
       error: null,

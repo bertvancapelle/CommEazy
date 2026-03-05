@@ -460,6 +460,42 @@ export class WebRTCService {
   }
 
   // ============================================================
+  // ICE Restart
+  // ============================================================
+
+  /**
+   * Perform ICE restart for a peer connection.
+   * Creates a new offer with iceRestart: true, which forces
+   * new ICE candidates to be gathered and exchanged.
+   *
+   * This is the standard WebRTC mechanism for recovering from
+   * network changes (WiFi → cellular, temporary disconnections).
+   */
+  async restartIce(state: PeerConnectionState, callType: CallType): Promise<RTCSessionDescription> {
+    state.isNegotiating = true;
+
+    try {
+      const offerOptions = {
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: callType === 'video',
+        iceRestart: true,
+      };
+
+      console.info('[WebRTC] Creating ICE restart offer for:', state.jid);
+      const offer = await state.connection.createOffer(offerOptions);
+      await state.connection.setLocalDescription(offer);
+
+      console.info('[WebRTC] ICE restart offer created for:', state.jid);
+      return offer;
+    } catch (error) {
+      console.error('[WebRTC] ICE restart failed for:', state.jid, error);
+      throw error;
+    } finally {
+      state.isNegotiating = false;
+    }
+  }
+
+  // ============================================================
   // Track Management (for mesh calls)
   // ============================================================
 

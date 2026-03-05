@@ -1182,9 +1182,43 @@ export class ChatService {
     await ServiceContainer.database.updateMessageStatus(messageId, status);
   }
 
-  private async retrySendMessage(messageId: string): Promise<void> {
-    // TODO: Implement retry logic
-    console.log('Retry send message:', messageId);
+  async retrySendMessage(messageId: string): Promise<void> {
+    try {
+      console.info('[ChatService] Retrying message:', messageId);
+
+      // Check XMPP connection
+      const xmpp = ServiceContainer.xmpp;
+      if (xmpp.getConnectionStatus() !== 'connected') {
+        console.warn('[ChatService] Cannot retry — XMPP not connected');
+        return;
+      }
+
+      // Find the message in outbox (already encrypted)
+      const allPending = await ServiceContainer.database.getPendingOutbox();
+      const outboxMsg = allPending.find(msg => msg.id === messageId);
+
+      if (!outboxMsg) {
+        console.warn('[ChatService] Message not found in outbox:', messageId);
+        return;
+      }
+
+      const payload = JSON.parse(outboxMsg.encryptedContent) as EncryptedPayload;
+
+      for (const recipientJid of outboxMsg.pendingTo) {
+        try {
+          await xmpp.sendMessage(recipientJid, payload, messageId);
+          await this.updateMessageStatus(messageId, 'sent');
+          this.statusListeners.forEach(listener => listener(messageId, 'sent'));
+          console.info('[ChatService] Retry successful:', messageId);
+        } catch (error) {
+          console.warn('[ChatService] Retry send failed for', recipientJid, error);
+          await this.updateMessageStatus(messageId, 'failed');
+          this.statusListeners.forEach(listener => listener(messageId, 'failed'));
+        }
+      }
+    } catch (error) {
+      console.error('[ChatService] retrySendMessage error:', error);
+    }
   }
 
   private ensureInitialized(): void {

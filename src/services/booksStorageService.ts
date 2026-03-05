@@ -138,6 +138,7 @@ const DEFAULT_READER_SETTINGS: ReaderSettings = {
 
 class BooksStorageService {
   private initialized = false;
+  private activeDownloadJobId: number | null = null;
 
   /**
    * Initialize the storage service
@@ -296,7 +297,9 @@ class BooksStorageService {
         },
       });
 
+      this.activeDownloadJobId = downloadResult.jobId;
       const result = await downloadResult.promise;
+      this.activeDownloadJobId = null;
 
       if (result.statusCode !== 200) {
         throw new Error(`Download failed with status: ${result.statusCode}`);
@@ -330,6 +333,17 @@ class BooksStorageService {
       }
 
       throw error;
+    }
+  }
+
+  /**
+   * Cancel the currently active download (if any)
+   */
+  cancelActiveDownload(): void {
+    if (this.activeDownloadJobId != null) {
+      console.info('[BooksStorageService] Cancelling download job:', this.activeDownloadJobId);
+      RNFS.stopDownload(this.activeDownloadJobId);
+      this.activeDownloadJobId = null;
     }
   }
 

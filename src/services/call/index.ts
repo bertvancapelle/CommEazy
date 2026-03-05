@@ -753,8 +753,16 @@ export class WebRTCCallService implements CallService {
         // At least one connection is up
         if (this.currentCall.state === 'connecting' || this.currentCall.state === 'reconnecting') {
           this.currentCall.state = 'connected';
-          this.currentCall.startTime = Date.now();
-          this.startDurationInterval();
+
+          // Only set startTime on first connection (not reconnections)
+          if (!this.currentCall.startTime) {
+            this.currentCall.startTime = Date.now();
+            this.startDurationInterval();
+          }
+
+          // Reset reconnection counter on successful (re)connection
+          this.currentCall.reconnectAttempts = 0;
+          this.clearReconnectTimer();
 
           // Stop dial tone when call connects
           if (this.currentCall.direction === 'outgoing') {
@@ -762,20 +770,24 @@ export class WebRTCCallService implements CallService {
             // Report to CallKit that outgoing call is now connected
             callKitService.reportOutgoingCallConnected(this.currentCall.id);
           }
+
+          console.info('[CallService] Call connected/reconnected successfully');
         }
         break;
 
       case 'disconnected':
-        // Temporary disconnection, try to recover
-        if (this.currentCall.state === 'connected') {
+        // Temporary disconnection — attempt ICE restart
+        if (this.currentCall.state === 'connected' || this.currentCall.state === 'reconnecting') {
           this.currentCall.state = 'reconnecting';
+          this.attemptReconnection(jid);
         }
         break;
 
       case 'failed':
-        // Connection failed, check if all connections failed
-        if (this.mesh.getAllParticipants().every((p) => p.connectionState === 'disconnected')) {
-          this.endCallInternal('failed');
+        // Connection failed — attempt ICE restart if retries remain
+        if (this.currentCall.state === 'connected' || this.currentCall.state === 'reconnecting' || this.currentCall.state === 'connecting') {
+          this.currentCall.state = 'reconnecting';
+          this.attemptReconnection(jid);
         }
         break;
 
@@ -785,6 +797,76 @@ export class WebRTCCallService implements CallService {
     }
 
     this.notifyStateChange();
+  }
+
+  // ============================================================
+  // Reconnection Logic
+  // ============================================================
+
+  /**
+   * Attempt to reconnect a failed/disconnected peer connection via ICE restart.
+   *
+   * Strategy:
+   * - Up to MAX_RECONNECTION_ATTEMPTS (3) retries
+   * - Exponential backoff: 2s → 4s → 8s
+   * - Each attempt performs an ICE restart (new offer with iceRestart: true)
+   * - The new offer is sent via signaling so the remote peer can respond
+   * - If all attempts fail, the call is ended with 'failed' reason
+   */
+  private attemptReconnection(jid: string): void {
+    if (!this.currentCall) return;
+
+    const attempt = (this.currentCall.reconnectAttempts ?? 0) + 1;
+    const maxAttempts = CALL_LIMITS.MAX_RECONNECTION_ATTEMPTS;
+
+    if (attempt > maxAttempts) {
+      console.warn('[CallService] Max reconnection attempts reached (' + maxAttempts + '), ending call');
+      this.endCallInternal('failed');
+      return;
+    }
+
+    this.currentCall.reconnectAttempts = attempt;
+
+    // Exponential backoff: 2s, 4s, 8s
+    const delay = Math.min(CALL_TIMEOUTS.RECONNECTION_TIMEOUT_MS * Math.pow(2, attempt - 1), 16000);
+
+    console.info('[CallService] Scheduling ICE restart attempt', attempt, '/', maxAttempts,
+      'for', jid, 'in', delay, 'ms');
+
+    // Clear any existing reconnect timer
+    this.clearReconnectTimer();
+
+    this.currentCall.reconnectTimer = setTimeout(async () => {
+      if (!this.currentCall || this.currentCall.state !== 'reconnecting') {
+        return; // Call ended or already reconnected
+      }
+
+      try {
+        console.info('[CallService] Performing ICE restart attempt', attempt, 'for', jid);
+
+        // Create new offer with ICE restart flag
+        const offer = await this.mesh.restartIce(jid);
+
+        // Send the new offer to the remote peer via signaling
+        await this.signaling.sendOffer(jid, this.currentCall.id, this.currentCall.type, offer);
+
+        console.info('[CallService] ICE restart offer sent to', jid);
+      } catch (error) {
+        console.error('[CallService] ICE restart attempt', attempt, 'failed:', error);
+
+        // If this attempt failed, try again (will check max attempts)
+        if (this.currentCall && this.currentCall.state === 'reconnecting') {
+          this.attemptReconnection(jid);
+        }
+      }
+    }, delay);
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.currentCall?.reconnectTimer) {
+      clearTimeout(this.currentCall.reconnectTimer);
+      this.currentCall.reconnectTimer = undefined;
+    }
   }
 
   // ============================================================
@@ -803,6 +885,7 @@ export class WebRTCCallService implements CallService {
     // Clear timers
     this.clearRingTimeout();
     this.clearDurationInterval();
+    this.clearReconnectTimer();
 
     // Report to CallKit
     callKitService.endCall(callId);

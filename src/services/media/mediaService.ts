@@ -12,6 +12,7 @@
  * @see .claude/plans/PHOTO_VIDEO_MESSAGING.md for architecture
  */
 
+import { NativeModules, Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import type {
@@ -22,6 +23,8 @@ import type {
   ExifStripResult,
   ProgressCallback,
 } from '@/types/media';
+
+const { VideoProcessingModule } = NativeModules;
 
 // Re-export defaults for convenience
 export { MEDIA_DEFAULTS } from '@/types/media';
@@ -271,37 +274,54 @@ export async function compressVideo(
   _onProgress?: ProgressCallback
 ): Promise<CompressionResult> {
   const opts = { ...DEFAULT_VIDEO_OPTIONS, ...options };
-  // Note: _onProgress will be used once video compression is implemented
 
   try {
     console.debug(LOG_PREFIX, 'Compressing video:', uri, opts);
-
-    // TODO: Implement video compression with react-native-video-compress
-    // or expo-av for basic operations
-    //
-    // For now, return the original video as-is
-    // Real implementation will:
-    // 1. Check video duration
-    // 2. Transcode to H.264 if needed
-    // 3. Scale to target resolution
-    // 4. Compress to target bitrate
-    // 5. Strip metadata
 
     const exists = await RNFS.exists(uri);
     if (!exists) {
       return { success: false, error: 'File not found' };
     }
 
+    // Map resolution to quality preset and max width
+    const qualityMap: Record<string, { quality: string; maxWidth: number }> = {
+      '480p': { quality: 'low', maxWidth: 854 },
+      '720p': { quality: 'medium', maxWidth: 1280 },
+      '1080p': { quality: 'high', maxWidth: 1920 },
+    };
+    const preset = qualityMap[opts.maxResolution] ?? qualityMap['720p'];
+
+    if (Platform.OS === 'ios' && VideoProcessingModule) {
+      // Native iOS compression via AVAssetExportSession
+      const result = await VideoProcessingModule.compressVideo(
+        uri,
+        preset.quality,
+        preset.maxWidth
+      );
+
+      console.info(LOG_PREFIX, 'Video compressed:', {
+        originalUri: uri,
+        compressedSize: result.size,
+        dimensions: `${result.width}x${result.height}`,
+      });
+
+      return {
+        success: true,
+        uri: result.uri,
+        size: result.size,
+        width: result.width,
+        height: result.height,
+        duration: result.duration,
+      };
+    }
+
+    // Android fallback: pass through original (Android native module TBD)
+    console.warn(LOG_PREFIX, 'Video compression not available on this platform, using original');
     const stat = await RNFS.stat(uri);
-
-    console.warn(LOG_PREFIX, 'Video compression not implemented, using original');
-
-    // Placeholder: return original video info
     return {
       success: true,
       uri,
       size: Number(stat.size) || 0,
-      // Note: width/height/duration would come from video metadata
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'Video compression failed:', error);
@@ -326,17 +346,26 @@ export async function generateVideoThumbnail(
   try {
     console.debug(LOG_PREFIX, 'Generating video thumbnail:', uri, timeMs);
 
-    // TODO: Implement with expo-video-thumbnails or react-native-video
-    //
-    // Example with expo-video-thumbnails:
-    // import * as VideoThumbnails from 'expo-video-thumbnails';
-    // const { uri: thumbUri } = await VideoThumbnails.getThumbnailAsync(uri, { time: timeMs });
+    if (Platform.OS === 'ios' && VideoProcessingModule) {
+      const result = await VideoProcessingModule.generateThumbnail(uri, timeMs);
 
-    console.warn(LOG_PREFIX, 'Video thumbnail generation not implemented');
+      console.info(LOG_PREFIX, 'Video thumbnail generated:', {
+        dimensions: `${result.width}x${result.height}`,
+      });
 
+      return {
+        success: true,
+        uri: result.uri,
+        width: result.width,
+        height: result.height,
+      };
+    }
+
+    // Android fallback (Android native module TBD)
+    console.warn(LOG_PREFIX, 'Video thumbnail generation not available on this platform');
     return {
       success: false,
-      error: 'Video thumbnail generation not implemented',
+      error: 'Video thumbnail generation not available on this platform',
     };
   } catch (error) {
     console.error(LOG_PREFIX, 'Video thumbnail generation failed:', error);
@@ -353,12 +382,15 @@ export async function generateVideoThumbnail(
  * @param uri - Video URI
  * @returns Duration in seconds, or null if unavailable
  */
-export async function getVideoDuration(_uri: string): Promise<number | null> {
+export async function getVideoDuration(uri: string): Promise<number | null> {
   try {
-    // TODO: Implement with expo-av or react-native-video
-    // _uri will be used when video processing library is added
+    if (Platform.OS === 'ios' && VideoProcessingModule) {
+      const metadata = await VideoProcessingModule.getVideoMetadata(uri);
+      return metadata.duration > 0 ? metadata.duration : null;
+    }
 
-    console.warn(LOG_PREFIX, 'Video duration extraction not implemented');
+    // Android fallback (Android native module TBD)
+    console.warn(LOG_PREFIX, 'Video duration extraction not available on this platform');
     return null;
   } catch (error) {
     console.error(LOG_PREFIX, 'Failed to get video duration:', error);

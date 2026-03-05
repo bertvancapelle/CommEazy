@@ -470,9 +470,10 @@ export function BooksProvider({ children }: BooksProviderProps) {
     setDownloadQueue(prev => prev.filter(b => b.id !== bookId));
 
     if (currentDownload?.id === bookId) {
-      // TODO: Actually cancel the download (needs RNFS support)
+      booksStorageService.cancelActiveDownload();
       setCurrentDownload(null);
       setIsDownloading(false);
+      setDownloadProgress(0);
     }
   }, [currentDownload]);
 

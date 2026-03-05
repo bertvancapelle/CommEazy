@@ -120,6 +120,10 @@ export interface InternalCallState {
   durationInterval?: ReturnType<typeof setInterval>;
   /** Pending offer SDP for incoming calls - set when answering */
   pendingOfferSdp?: RTCSessionDescription;
+  /** Reconnection attempt counter */
+  reconnectAttempts?: number;
+  /** Timer for reconnection attempt */
+  reconnectTimer?: ReturnType<typeof setTimeout>;
 }
 
 // ============================================================

@@ -17,7 +17,7 @@ export {
   generatePhotoThumbnail,
   stripExifData,
 
-  // Video processing (TODO: full implementation)
+  // Video processing (iOS: native AVFoundation, Android: passthrough fallback)
   compressVideo,
   generateVideoThumbnail,
   getVideoDuration,

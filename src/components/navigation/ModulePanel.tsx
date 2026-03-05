@@ -182,8 +182,7 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
         twoFingerTimerRef.current = setTimeout(() => {
           holdGesture?.consumeGesture();
           setActiveVoicePane(panelId);
-          // TODO: Trigger voice commands for this panel
-          console.log(`[ModulePanel] Voice activated for ${panelId} panel`);
+          console.info(`[ModulePanel] Voice activated for ${panelId} panel`);
         }, TWO_FINGER_LONG_PRESS_DURATION);
       }
     },

@@ -361,8 +361,10 @@ export function ChatScreen() {
             isDownloading={item.isMediaDownloading}
             hasError={item.status === 'failed'}
             onRetry={() => {
-              // TODO: Implement retry logic for failed photo downloads
-              console.info('[ChatScreen] Retry photo download:', item.id);
+              if (isOwn && item.status === 'failed') {
+                chatService.retrySendMessage(item.id);
+              }
+              console.info('[ChatScreen] Retry photo:', item.id);
             }}
             onView={() => {
               console.info('[ChatScreen] Photo viewed:', item.id);
@@ -382,7 +384,7 @@ export function ChatScreen() {
         return { backgroundColor: themeColors.primary };
       };
 
-      return (
+      const bubbleContent = (
         <View
           style={[
             styles.messageBubble,
@@ -396,9 +398,11 @@ export function ChatScreen() {
             time: formatTime(item.timestamp),
           }) + `. ${item.content}`}
           accessibilityHint={
-            isOwn
-              ? t('accessibility.deliveryStatus', { status: t(`status.${item.status}`) })
-              : undefined
+            isFailed && isOwn
+              ? t('common.tapToRetry', 'Tap to retry')
+              : isOwn
+                ? t('accessibility.deliveryStatus', { status: t(`status.${item.status}`) })
+                : undefined
           }
         >
           <Text
@@ -413,6 +417,11 @@ export function ChatScreen() {
           </Text>
 
           <View style={styles.messageFooter}>
+            {isFailed && isOwn && (
+              <Text style={[styles.messageTime, { color: 'rgba(255, 255, 255, 0.7)', marginRight: spacing.xs }]}>
+                {t('common.tapToRetry', 'Tap to retry')}
+              </Text>
+            )}
             <Text
               style={[
                 styles.messageTime,
@@ -428,6 +437,19 @@ export function ChatScreen() {
           </View>
         </View>
       );
+
+      if (isFailed && isOwn) {
+        return (
+          <TouchableOpacity
+            onPress={() => chatService.retrySendMessage(item.id)}
+            activeOpacity={0.7}
+          >
+            {bubbleContent}
+          </TouchableOpacity>
+        );
+      }
+
+      return bubbleContent;
     },
     [t, formatTime, themeColors],
   );
