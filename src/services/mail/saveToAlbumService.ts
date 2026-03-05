@@ -18,6 +18,8 @@
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { canSaveToAlbum, isImageType, getExtensionFromMime } from './mediaAttachmentService';
+import { fetchAttachmentData } from './imapBridge';
+import { savePhoto, saveMedia } from '@/services/media/mediaStorageService';
 import type { MailAttachmentMeta } from '@/types/mail';
 
 // ============================================================
@@ -140,8 +142,7 @@ export async function saveAttachmentToAlbum(
 
   try {
     // Step 1: Download attachment data via IMAP bridge
-    const imapBridge = await import('./imapBridge');
-    const attachmentData = await imapBridge.fetchAttachmentData(
+    const attachmentData = await fetchAttachmentData(
       uid,
       folder,
       attachment.index,
@@ -161,10 +162,8 @@ export async function saveAttachmentToAlbum(
     }
 
     // Step 3: Save to CommEazy's Fotoalbum via mediaStorageService
-    const mediaStorage = await import('@/services/media/mediaStorageService');
-
     if (isImageType(attachment.mimeType)) {
-      const mediaItem = await mediaStorage.savePhoto(
+      const mediaItem = await savePhoto(
         tempPath,
         `mail_${accountId}`, // chatId — group by mail account
         'received',          // source
@@ -181,7 +180,7 @@ export async function saveAttachmentToAlbum(
       return { success: false, error: 'ALBUM_ERROR' };
     } else {
       // Video — use saveVideo if available, otherwise saveMedia
-      const mediaItem = await mediaStorage.saveMedia(
+      const mediaItem = await saveMedia(
         tempPath,
         `mail_${accountId}`,
         'received',
