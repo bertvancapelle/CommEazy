@@ -79,7 +79,7 @@ class WeatherServiceImpl {
       url.searchParams.set('country', countryCode);
     }
 
-    console.debug('[weatherService] Searching locations:', query, 'countryCode:', countryCode, 'URL:', url.toString());
+    console.debug('[weatherService] Searching locations, countryCode:', countryCode);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);

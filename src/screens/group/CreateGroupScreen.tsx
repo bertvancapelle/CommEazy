@@ -64,11 +64,7 @@ export function CreateGroupScreen() {
     const loadContacts = async () => {
       try {
         if (ServiceContainer.isInitialized) {
-          const contactList: Contact[] = [];
-          const unsubscribe = ServiceContainer.database.getContacts().subscribe(c => {
-            contactList.push(...c);
-          });
-          unsubscribe();
+          const contactList = await ServiceContainer.database.getContactsOnce();
           if (!cancelled) setContacts(contactList);
         } else if (__DEV__) {
           // Mock contacts for dev mode

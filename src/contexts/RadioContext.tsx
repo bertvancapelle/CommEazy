@@ -205,7 +205,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
     const metadataListener = TrackPlayer.addEventListener(
       Event.PlaybackMetadataReceived,
       async (data) => {
-        console.log('[RadioContext] Metadata received:', data);
+        console.debug('[RadioContext] Metadata received');
 
         // Parse ICY metadata (usually in format "Artist - Title")
         const title = data.title || '';
@@ -359,7 +359,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
         // Start playback
         await TrackPlayer.play();
 
-        console.log('[RadioContext] Playing station:', station.name);
+        console.debug('[RadioContext] Station playback started');
 
         // Announce for accessibility
         AccessibilityInfo.announceForAccessibility(

@@ -124,6 +124,24 @@ CommEazy gebruikt een **dual-engine TTS architectuur** waarbij Nederlands ALTIJD
 | Background tasks (Android) | android-specialist | performance-optimizer |
 | Keychain/Keystore | ios-specialist OF android-specialist, security-expert | - |
 
+### Mail & Document Handling
+
+| Wijzigingstype | Verplichte Skills | Optionele Skills |
+|----------------|-------------------|------------------|
+| Mail IMAP/SMTP configuratie | ios-specialist, security-expert | architecture-lead |
+| Mail compose UI | ui-designer, accessibility-specialist | react-native-expert |
+| Mail bijlage handling | ios-specialist, react-native-expert | security-expert |
+| Document preview | ios-specialist, react-native-expert | - |
+| Background mail fetch | ios-specialist, performance-optimizer | - |
+
+### Video & AirPlay
+
+| Wijzigingstype | Verplichte Skills | Optionele Skills |
+|----------------|-------------------|------------------|
+| Video compressie | ios-specialist, react-native-expert | performance-optimizer |
+| AirPlay route detection | ios-specialist, react-native-expert | - |
+| AirPlay UI (RoutePicker) | ios-specialist, ui-designer | accessibility-specialist |
+
 ### Onboarding & Recovery
 
 | Wijzigingstype | Verplichte Skills | Optionele Skills |

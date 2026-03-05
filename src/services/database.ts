@@ -204,9 +204,9 @@ export class WatermelonDBService implements DatabaseService {
   // Outbox (7-day retention)
   // ============================================================
 
-  async saveOutboxMessage(msg: Omit<OutboxMessage, 'id'>): Promise<OutboxMessage> {
+  async saveOutboxMessage(msg: Omit<OutboxMessage, 'id'> & { id?: string }): Promise<OutboxMessage> {
     const db = this.ensureDatabase();
-    const id = uuid.v4() as string;
+    const id = msg.id || (uuid.v4() as string);
 
     await db.write(async () => {
       await db.get<OutboxMessageModel>('outbox_messages').create(record => {

@@ -705,7 +705,7 @@ export function RadioScreen() {
   }, [selectedCountry, selectedLanguage, filterMode, triggerFeedback, t]);
 
   const handleSearch = useCallback(async () => {
-    console.info('[RadioScreen] handleSearch called, searchQuery:', searchQuery);
+    console.debug('[RadioScreen] handleSearch called');
     if (!searchQuery.trim()) {
       loadStations();
       return;
@@ -747,7 +747,7 @@ export function RadioScreen() {
 
     // Debounce: wait 500ms after user stops typing
     const timeoutId = setTimeout(() => {
-      console.info('[RadioScreen] Debounced search triggered for:', searchQuery);
+      console.debug('[RadioScreen] Debounced search triggered');
       handleSearch();
     }, 500);
 
@@ -781,7 +781,7 @@ export function RadioScreen() {
     triggerFeedback('tap');
 
     const stationId = 'stationuuid' in station ? station.stationuuid : station.id;
-    console.log('[RadioScreen] handleSelectStation called for:', station.name);
+    console.debug('[RadioScreen] handleSelectStation called');
 
     // If this station is already playing, just restore the mini player (don't restart)
     if (contextStation && contextStation.id === stationId && isPlaying) {
@@ -1209,7 +1209,7 @@ export function RadioScreen() {
                   <TouchableOpacity
                     style={styles.stationInfoTouchable}
                     onPress={() => {
-                      console.log('[RadioScreen] Station pressed for:', station.name);
+                      console.debug('[RadioScreen] Station pressed');
                       handleSelectStation(station);
                     }}
                     onLongPress={() => {
@@ -1239,7 +1239,7 @@ export function RadioScreen() {
                     iconActive="heart-filled"
                     isActive={isFavorite(station)}
                     onPress={() => {
-                      console.log('[RadioScreen] Favorite button pressed for:', station.name);
+                      console.debug('[RadioScreen] Favorite toggled');
                       handleToggleFavorite(station);
                     }}
                     accessibilityLabel={

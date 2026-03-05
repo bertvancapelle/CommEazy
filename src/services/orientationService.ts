@@ -7,7 +7,7 @@
  * iPad always allows all orientations.
  *
  * Usage:
- * - orientationService.unlockForVideo() — Call when entering fullscreen video
+ * - orientationService.unlockAllOrientations() — Call when entering fullscreen video
  * - orientationService.lockToPortrait() — Call when exiting fullscreen video
  *
  * @see ios/CommEazyTemp/OrientationModule.m
@@ -67,32 +67,6 @@ class OrientationServiceImpl {
   }
 
   /**
-   * Unlock orientation to allow landscape (for fullscreen video).
-   * Call this when entering fullscreen video mode.
-   * @deprecated Use unlockAllOrientations() instead
-   */
-  unlockForVideo(): void {
-    if (Platform.OS !== 'ios') {
-      console.debug('[orientationService] Android orientation not implemented');
-      return;
-    }
-
-    if (!OrientationModule) {
-      console.warn('[orientationService] OrientationModule not available');
-      return;
-    }
-
-    if (this.isUnlocked) {
-      console.debug('[orientationService] Already unlocked');
-      return;
-    }
-
-    console.info('[orientationService] Unlocking orientation for video');
-    OrientationModule.unlockForVideo();
-    this.isUnlocked = true;
-  }
-
-  /**
    * Lock orientation back to portrait.
    * Call this when exiting fullscreen video mode.
    */
@@ -119,7 +93,7 @@ class OrientationServiceImpl {
 
   /**
    * Set landscape allowed state directly.
-   * Prefer using unlockForVideo() and lockToPortrait() instead.
+   * Prefer using unlockAllOrientations() and lockToPortrait() instead.
    */
   setLandscapeAllowed(allowed: boolean): void {
     if (Platform.OS !== 'ios' || !OrientationModule) {

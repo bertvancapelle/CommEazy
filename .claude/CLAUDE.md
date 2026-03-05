@@ -528,6 +528,17 @@ echo "Exported from:" && grep -r "export.*$TYPE" src/*/index.ts
 | **Bridge parameter** | `glassPlayer.ts` types EN `GlassPlayerWindowModule.swift` |
 | **Module tint color** | `WheelNavigationMenu.tsx`: MODULE_TINT_COLORS |
 
+#### 📧 Mail Module Wijzigingen
+
+| Wanneer je TOEVOEGT/WIJZIGT... | MOET je ook AANPASSEN... |
+|-------------------------------|-------------------------|
+| **Mail account configuratie** | `MailModule.swift`: IMAP/SMTP settings |
+| | `MailBackgroundFetchModule.swift`: background fetch interval |
+| **Mail bijlage handling** | `DocumentPreviewModule.swift`: QLPreview support |
+| | `VideoProcessingModule.swift`: als video bijlage |
+| **Mail compose flow** | `MailComposeScreen.tsx`: recipient chips, CC/BCC |
+| | `contactLookupHelpers.ts`: contact suggesties |
+
 #### 🔊 Context State Wijzigingen
 
 | Wanneer je TOEVOEGT/WIJZIGT... | MOET je ook AANPASSEN... |
@@ -1287,6 +1298,8 @@ zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
 ```
 
 **Reden:** De `.claude/` folder bevat ~200KB aan waardevolle project instructies, skill definities en workflows die buiten git ook bewaard moeten blijven.
+
+**⚠️ NOOIT VERWIJDEREN:** Config backup ZIP bestanden (`~/Projects/CommEazy-claude-config-*.zip`) mogen NOOIT worden verwijderd door opruimscripts, maandelijks onderhoud, of welke cleanup dan ook. Deze backups zijn permanent en worden handmatig beheerd door de gebruiker.
 
 ### ⚠️ Na ELKE Push: Valideer Metro, Prosody en Push Gateway Status
 
@@ -3426,8 +3439,9 @@ Features en taken die alleen voor Apple platforms gelden.
 | 12 | **Glass Player Auto-Hide** | ✅ DONE | ⏳ TBD | setTemporarilyHidden() + WheelMenu + module switch integratie |
 | 13 | **Collapsible Panes iPad** | ✅ DONE | 🎯 MVP | Snap logica, pijl handle, MediaIndicator integratie |
 | 14 | **Piper TTS Nederlands** | ✅ DONE | 🎯 MVP | sherpa-onnx met 4 Nederlandse stemmen, chunked playback |
+| 15 | **Mail Module (IMAP/SMTP)** | ✅ DONE | ⏳ TBD | MailModule + MailBackgroundFetchModule + SwiftMail XOAUTH2 + DocumentPreviewModule |
 
-**📊 iOS/iPadOS Samenvatting:** 14 items | ✅ 13 DONE | 🔶 1 PARTIAL | ⏳ 0 TODO
+**📊 iOS/iPadOS Samenvatting:** 15 items | ✅ 14 DONE | 🔶 1 PARTIAL | ⏳ 0 TODO
 
 ---
 
@@ -3484,10 +3498,10 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 
 | Platform | Totaal | ✅ DONE | 🔶 PARTIAL | ⏳ TODO |
 |----------|--------|---------|------------|---------|
-| **iOS/iPadOS** | 14 | 13 | 1 | 0 |
+| **iOS/iPadOS** | 15 | 14 | 1 | 0 |
 | **Android** | 4 | 0 | 0 | 4 |
 | **Cross-Platform** | 23 | 0 | 3 | 20 |
-| **TOTAAL** | 41 | 13 | 4 | 24 |
+| **TOTAAL** | 42 | 14 | 4 | 24 |
 
 ---
 

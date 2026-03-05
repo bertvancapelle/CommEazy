@@ -16,7 +16,7 @@ export type ContentType = 'text' | 'image' | 'video';
 export type EncryptionMode = '1on1' | 'encrypt-to-all' | 'shared-key';
 export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'expired';
 export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
-export type SupportedLanguage = 'nl' | 'en' | 'de' | 'fr' | 'es' | 'it' | 'pl' | 'no' | 'sv' | 'da';
+export type SupportedLanguage = 'nl' | 'en' | 'en-GB' | 'de' | 'fr' | 'es' | 'it' | 'pl' | 'no' | 'sv' | 'da' | 'pt' | 'pt-BR';
 export type SubscriptionTier = 'free' | 'premium';
 export type AgeBracket =
   | '18-24' | '25-34' | '35-44' | '45-54' | '55-64'
@@ -295,7 +295,7 @@ export interface DatabaseService {
   getUnreadCount(chatId: string): Promise<number>;
 
   // Outbox (7-day retention)
-  saveOutboxMessage(msg: Omit<OutboxMessage, 'id'>): Promise<OutboxMessage>;
+  saveOutboxMessage(msg: Omit<OutboxMessage, 'id'> & { id?: string }): Promise<OutboxMessage>;
   getOutboxForRecipient(jid: string): Promise<OutboxMessage[]>;
   getPendingOutbox(): Promise<OutboxMessage[]>;
   deleteOutboxMessage(messageId: string): Promise<void>;
@@ -334,6 +334,9 @@ export interface EncryptionService {
 
   generateKeyPair(): Promise<KeyPair>;
   getPublicKey(): Promise<string>;
+
+  /** Set the current user's JID for group decryption (shared-key mode). */
+  setMyJid(jid: string): void;
 
   encrypt(plaintext: string | Uint8Array, recipients: Recipient[]): Promise<EncryptedPayload>;
   decrypt(payload: EncryptedPayload, senderPublicKey: Uint8Array): Promise<string>;

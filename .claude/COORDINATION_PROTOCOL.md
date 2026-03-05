@@ -197,6 +197,20 @@ Als een feature een plan heeft in `.claude/plans/`:
 
 ---
 
+## Herbruikbare Code Patterns
+
+Deze patterns zijn gestandaardiseerd in de codebase en MOETEN worden gevolgd bij nieuwe implementaties:
+
+| Pattern | Beschrijving | Referentie |
+|---------|-------------|------------|
+| **Unified Retry** | Exponential backoff met MAX_RETRY_ATTEMPTS (30), ~7h totaal | `chat.ts` scheduleNextRetry() |
+| **DB One-Shot Read** | `getContactsOnce()` i.p.v. subscribe/push/unsubscribe | `interfaces.ts` DatabaseService |
+| **Connection Recovery** | Auto-reconnect met status listeners | `xmpp.ts` reconnect flow |
+| **Download Cancel** | AbortController met cleanup op unmount | `podcastService.ts` downloads |
+| **Native Module Bridge** | Triple File: Swift + ObjC .m + TypeScript bridge | `ios-specialist/SKILL.md` sectie "Native Module Bridge Pattern" |
+
+---
+
 ## Communicatie met Gebruiker
 
 1. **Eén vraag tegelijk** — tenzij onderling afhankelijk

@@ -44,16 +44,8 @@ const RETRY_INTERVALS = [
   15 * 60 * 1000,  // 15 minutes (max)
 ];
 
-/** @deprecated Use ChatListItemWithContact instead */
-export interface ChatListItem {
-  chatId: string;
-  contactJid: string;
-  contactName: string;
-  lastMessage: string;
-  lastMessageTime: number;
-  unreadCount: number;
-  isOnline: boolean;
-}
+// Maximum retry attempts before giving up (at 15m interval = ~7h total)
+const MAX_RETRY_ATTEMPTS = 30;
 
 /** Chat list item with full contact and message objects */
 export interface ChatListItemWithContact {
@@ -127,10 +119,7 @@ export class ChatService {
     this.myName = name;
 
     // Set JID on encryption service for group decryption
-    const encryption = ServiceContainer.encryption as any;
-    if (typeof encryption.setMyJid === 'function') {
-      encryption.setMyJid(jid);
-    }
+    ServiceContainer.encryption.setMyJid(jid);
 
     // Subscribe to XMPP events
     this.setupXMPPListeners();
@@ -953,6 +942,14 @@ export class ChatService {
   // ============================================================
 
   private scheduleNextRetry(): void {
+    // Stop retrying after MAX_RETRY_ATTEMPTS — mark remaining as failed
+    if (this.retryAttempt >= MAX_RETRY_ATTEMPTS) {
+      console.warn(`[ChatService] Max retry attempts (${MAX_RETRY_ATTEMPTS}) reached, marking remaining messages as failed`);
+      void this.markRemainingOutboxAsFailed();
+      this.retryAttempt = 0;
+      return;
+    }
+
     // Get the interval for this attempt (cap at max interval)
     const intervalIndex = Math.min(this.retryAttempt, RETRY_INTERVALS.length - 1);
     const interval = RETRY_INTERVALS[intervalIndex];
@@ -961,7 +958,7 @@ export class ChatService {
       ? `${interval / 60000}m`
       : `${interval / 1000}s`;
 
-    console.log(`[ChatService] Scheduling retry #${this.retryAttempt + 1} in ${intervalText}`);
+    console.log(`[ChatService] Scheduling retry #${this.retryAttempt + 1}/${MAX_RETRY_ATTEMPTS} in ${intervalText}`);
 
     this.retryTimer = setTimeout(() => {
       void this.executeRetry();
@@ -1074,6 +1071,20 @@ export class ChatService {
     }
   }
 
+  private async markRemainingOutboxAsFailed(): Promise<void> {
+    try {
+      const pending = await ServiceContainer.database.getPendingOutbox();
+      for (const msg of pending) {
+        await ServiceContainer.database.updateMessageStatus(msg.id, 'failed');
+        await ServiceContainer.database.deleteOutboxMessage(msg.id);
+        this.statusListeners.forEach(listener => listener(msg.id, 'failed'));
+      }
+      console.info(`[ChatService] Marked ${pending.length} outbox message(s) as failed`);
+    } catch (error) {
+      console.error('[ChatService] Failed to mark outbox messages as failed:', error);
+    }
+  }
+
   // ============================================================
   // Private — Outbox Management
   // ============================================================
@@ -1095,7 +1106,7 @@ export class ChatService {
       deliveredTo: [],
     };
 
-    await ServiceContainer.database.saveOutboxMessage({ ...outboxMsg, id: messageId } as any);
+    await ServiceContainer.database.saveOutboxMessage({ ...outboxMsg, id: messageId });
   }
 
   private async sendPendingOutboxMessages(recipientJid: string): Promise<void> {

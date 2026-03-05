@@ -210,14 +210,3 @@ export const getOtherDevicesPublicKeys = async (myJid: string): Promise<Record<s
   return result;
 };
 
-/**
- * Get the other device's public key (for backward compatibility).
- * When running as 'ik', returns 'oma's public key and vice versa.
- * @deprecated Use getOtherDevicesPublicKeys for 3+ device support
- */
-export const getOtherDevicePublicKey = async (myJid: string): Promise<string | null> => {
-  if (!__DEV__) return null;
-
-  const otherJid = myJid === 'ik@commeazy.local' ? 'oma@commeazy.local' : 'ik@commeazy.local';
-  return getTestPublicKeyForJid(otherJid);
-};

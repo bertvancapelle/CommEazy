@@ -323,7 +323,7 @@ export async function searchPodcasts(
   // Check cache first
   const cached = podcastCacheService.getSearchResults(query, country);
   if (cached) {
-    console.log('[podcastService] Returning cached search results for:', query);
+    console.debug('[podcastService] Returning cached search results');
     return { data: cached, error: null };
   }
 
@@ -332,8 +332,7 @@ export async function searchPodcasts(
     await podcastCacheService.waitForRateLimitSlot();
     const url = `${ITUNES_API}/search?term=${encodeURIComponent(query)}&media=podcast&country=${country}&limit=${limit}`;
 
-    console.log('[podcastService] Searching podcasts:', url);
-    console.log('[podcastService] Remaining requests:', podcastCacheService.getRemainingRequests());
+    console.debug('[podcastService] Searching podcasts, remaining requests:', podcastCacheService.getRemainingRequests());
 
     const response = await fetchWithTimeout(url, API_TIMEOUT_MS);
 

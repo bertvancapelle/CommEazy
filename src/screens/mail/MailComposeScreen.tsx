@@ -653,11 +653,7 @@ export function MailComposeScreen({
           // Production: use ServiceContainer
           const { ServiceContainer } = await import('@/services/container');
           if (ServiceContainer.isInitialized) {
-            const contactList: Contact[] = [];
-            const unsubscribe = ServiceContainer.database.getContacts().subscribe(c => {
-              contactList.push(...c);
-            });
-            unsubscribe();
+            const contactList = await ServiceContainer.database.getContactsOnce();
             if (!cancelled) {
               setContacts(getMailableContacts(contactList));
             }

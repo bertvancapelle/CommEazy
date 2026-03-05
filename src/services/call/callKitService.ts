@@ -382,7 +382,7 @@ class CallKitService {
 
     // Call started from native (e.g., Siri, Recents)
     RNCallKeep.addEventListener('didReceiveStartCallAction', ({ callUUID, handle, name }) => {
-      console.info('[CallKit] Start call from native:', handle, name);
+      console.info('[CallKit] Start call from native');
       // This would need to trigger our call initiation flow
       // For now, we don't support starting calls from outside the app
     });

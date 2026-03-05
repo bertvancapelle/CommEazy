@@ -637,7 +637,7 @@ export class GroupChatService {
       deliveredTo: [],
     };
 
-    await ServiceContainer.database.saveOutboxMessage({ ...outboxMsg, id: messageId } as any);
+    await ServiceContainer.database.saveOutboxMessage({ ...outboxMsg, id: messageId });
   }
 
   private async updateMessageStatus(messageId: string, status: DeliveryStatus): Promise<void> {

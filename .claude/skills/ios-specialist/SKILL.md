@@ -182,7 +182,7 @@ function ChatListScreen() {
 
 ## i18n — iOS Specific
 
-- `InfoPlist.strings` for each language (nl, en, de, fr, es)
+- `InfoPlist.strings` for each language (all 13 languages, see CONSTANTS.md)
 - Localize permission descriptions
 - Localize App Store metadata (via App Store Connect)
 
@@ -688,12 +688,19 @@ export { addEventListener };
 | `TtsModule` | ✅ | ✅ | ✅ | System AVSpeechSynthesizer |
 | `PiperTtsModule` | ✅ | ✅ | ✅ | Sherpa-ONNX offline TTS |
 | `GlassPlayerWindowModule` | ✅ | ✅ | ✅ | iOS 26 Liquid Glass player |
+| `LiquidGlassModule` | ✅ | ✅ | ✅ | UIGlassEffect detection (iOS 26+) |
+| `LiquidGlassViewManager` | ✅ | ✅ | ✅ | Native LiquidGlassNativeView (ViewManager) |
 | `CallKeepModule` | ✅ | ✅ | ✅ | CallKit integratie |
 | `SiriCallModule` | ✅ | ✅ | ✅ | Siri call initiation |
 | `KeychainModule` | ✅ | ✅ | ✅ | Secure key storage |
 | `HapticModule` | ✅ | ✅ | ✅ | UIImpactFeedbackGenerator |
-| `ContentRouterModule` | ✅ | ✅ | ✅ | QLPreview + SFSafari |
-| `AVFoundationCompressor` | ✅ | ✅ | ✅ | Video compressie |
+| `DocumentPreviewModule` | ✅ | ✅ | ✅ | QLPreview + SFSafari content viewing |
+| `VideoProcessingModule` | ✅ | ✅ | ✅ | AVFoundation video compressie + thumbnails |
+| `MailModule` | ✅ | ✅ | ✅ | IMAP/SMTP email via SwiftMail (XOAUTH2) |
+| `MailBackgroundFetchModule` | ✅ | ✅ | ✅ | iOS Background App Refresh voor mail |
+| `AppleMusicModule` | ✅ | ✅ | ✅ | MusicKit catalog search + playback |
+| `AirPlayModule` | ✅ | ✅ | ✅ | AVRouteDetector AirPlay route detection |
+| `AirPlayRoutePickerViewManager` | ✅ | ✅ | ✅ | AVRoutePickerView speaker selectie (ViewManager) |
 | `AudioDuckingModule` | ⏳ TODO | ⏳ TODO | ⏳ TODO | Voice command audio ducking |
 
 ### Regels (VERPLICHT)

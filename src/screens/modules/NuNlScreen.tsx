@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -429,13 +429,10 @@ export function NuNlScreen() {
 
       {/* Error Banner */}
       {error && !isLoading && (
-        <View style={[styles.errorBanner, { backgroundColor: themeColors.errorLight }]}>
-          <Icon name="warning" size={24} color={themeColors.error} />
-          <Text style={[styles.errorText, { color: themeColors.error }]}>{errorMessage}</Text>
-          <TouchableOpacity onPress={handleRefresh}>
-            <Text style={[styles.errorDismiss, { color: themeColors.error }]}>{t('common.try_again')}</Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorView
+          message={errorMessage}
+          onRetry={handleRefresh}
+        />
       )}
 
       {/* Loading State */}

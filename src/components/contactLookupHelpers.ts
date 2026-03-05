@@ -176,12 +176,8 @@ export async function findAllContactsByName(
 
       contacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
     } else {
-      // Production: one-shot read from database observable
-      const db = ServiceContainer.database;
-      const unsubscribe = db.getContacts().subscribe(c => {
-        contacts.push(...c);
-      });
-      unsubscribe();
+      // Production: one-shot read from database
+      contacts = await ServiceContainer.database.getContactsOnce();
     }
 
     // Find all matches above threshold

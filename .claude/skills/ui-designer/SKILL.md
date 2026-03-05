@@ -3552,7 +3552,7 @@ interface ArticlePreviewModalProps {
 // Gebruik relatieve tijd met locale support
 const relativeTime = formatDistanceToNow(article.publishedAt, {
   addSuffix: true,
-  locale: getLocale(i18n.language),  // nl, en, de, fr, es
+  locale: getLocale(i18n.language),  // all 13 languages (see CONSTANTS.md)
 });
 // "3 uur geleden", "1 dag geleden", etc.
 

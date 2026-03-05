@@ -31,7 +31,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon, SearchBar, LoadingView } from '@/components';
+import { Icon, SearchBar, LoadingView, ErrorView } from '@/components';
 import type { CachedMailHeader, MailAccount, MailboxInfo } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { MailListItem } from './MailListItem';
@@ -577,24 +577,12 @@ export function MailInboxScreen({
 
       {/* Error banner */}
       {error && (
-        <View style={[styles.errorBanner, { backgroundColor: themeColors.surface }]}>
-          <Icon name="warning" size={20} color={accentColor.primary} />
-          <Text style={[styles.errorText, { color: themeColors.textPrimary }]}>
-            {error}
-          </Text>
-          <TouchableOpacity
-            onPress={() => setError(null)}
-            onLongPress={() => {}}
-            delayLongPress={300}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.dismiss')}
-          >
-            <Text style={[styles.errorDismiss, { color: accentColor.primary }]}>
-              {t('common.dismiss')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorView
+          message={error}
+          onRetry={() => setError(null)}
+          retryText={t('common.dismiss')}
+          type="warning"
+        />
       )}
 
       {/* Mail list */}

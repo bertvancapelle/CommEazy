@@ -230,7 +230,7 @@ export async function fetchArtwork(
   }
 
   // Try MusicBrainz
-  console.log('[ArtworkService] Searching MusicBrainz for:', artist, '-', title);
+  console.debug('[ArtworkService] Searching MusicBrainz for artwork');
   const musicBrainzUrl = await searchMusicBrainz(artist, title);
   if (musicBrainzUrl) {
     artworkCache.set(cacheKey, { url: musicBrainzUrl, timestamp: Date.now() });
@@ -238,7 +238,7 @@ export async function fetchArtwork(
   }
 
   // Try iTunes as fallback
-  console.log('[ArtworkService] Searching iTunes for:', artist, '-', title);
+  console.debug('[ArtworkService] Searching iTunes for artwork');
   const itunesUrl = await searchItunes(artist, title);
   if (itunesUrl) {
     artworkCache.set(cacheKey, { url: itunesUrl, timestamp: Date.now() });

@@ -49,6 +49,7 @@ import {
   ModuleHeader,
   SearchBar,
   LoadingView,
+  ErrorView,
   AppleMusicDetailModal,
   QueueView,
   type SearchBarRef,
@@ -547,7 +548,7 @@ export function AppleMusicScreen() {
     setSearchError(null);
 
     try {
-      console.log('[AppleMusicScreen] Searching for:', trimmedQuery);
+      console.debug('[AppleMusicScreen] Searching catalog');
       const results = await searchCatalog(trimmedQuery);
       console.log('[AppleMusicScreen] Search results:', {
         songs: results.songs?.length ?? 0,
@@ -1306,13 +1307,11 @@ export function AppleMusicScreen() {
       )}
 
       {searchError && (
-        <View style={[styles.errorBanner, { backgroundColor: themeColors.errorLight }]}>
-          <Icon name="warning" size={24} color={themeColors.error} />
-          <Text style={[styles.errorText, { color: themeColors.error }]}>{t('modules.appleMusic.search.error')}</Text>
-          <TouchableOpacity onPress={clearSearch}>
-            <Text style={[styles.errorDismiss, { color: themeColors.error }]}>{t('common.dismiss')}</Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorView
+          message={t('modules.appleMusic.search.error')}
+          onRetry={clearSearch}
+          retryText={t('common.dismiss')}
+        />
       )}
 
       {/* Discovery sections (shown before user searches) */}

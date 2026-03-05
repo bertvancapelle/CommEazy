@@ -83,5 +83,4 @@ export {
   getOmaKeypair,
   getTestKeypairForJid,
   getTestPublicKeyForJid,
-  getOtherDevicePublicKey,
 } from './testKeys';

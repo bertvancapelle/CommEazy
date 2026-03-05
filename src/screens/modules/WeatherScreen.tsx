@@ -35,7 +35,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView } from '@/components';
+import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -239,11 +239,11 @@ function RadarTab({ latitude, longitude, locationName, accentColor }: RadarTabPr
   if (error && !radarData) {
     return (
       <View style={[styles.radarPlaceholder, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <Icon name="alert" size={80} color={colors.error} />
-        <Text style={styles.radarPlaceholderTitle}>
-          {t('modules.weather.radar.noData')}
-        </Text>
-        <Text style={styles.radarPlaceholderHint}>{error}</Text>
+        <ErrorView
+          title={t('modules.weather.radar.noData')}
+          message={error}
+          fullscreen
+        />
       </View>
     );
   }
@@ -1209,13 +1209,10 @@ export function WeatherScreen() {
 
           {/* Error Banner */}
           {error && !isLoading && !showSearchMode && (
-            <View style={styles.errorBanner}>
-              <Icon name="alert" size={24} color={colors.error} />
-              <Text style={styles.errorText}>{errorMessage}</Text>
-              <TouchableOpacity onPress={handleRefresh}>
-                <Text style={styles.errorDismiss}>{t('common.try_again')}</Text>
-              </TouchableOpacity>
-            </View>
+            <ErrorView
+              message={errorMessage}
+              onRetry={handleRefresh}
+            />
           )}
 
           {/* Loading State */}
