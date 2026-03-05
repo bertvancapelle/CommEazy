@@ -144,8 +144,14 @@ export function getExtension(mimeType: string): string {
  * @returns RouteResult indicating success
  */
 export async function previewFile(filePath: string): Promise<RouteResult> {
+  console.debug('[contentRouter] previewFile called:', {
+    filePath: filePath.slice(-40),
+    platform: Platform.OS,
+    moduleAvailable: !!DocumentPreviewModule,
+  });
+
   if (Platform.OS !== 'ios' || !DocumentPreviewModule) {
-    // Fallback: try OS delegation
+    console.debug('[contentRouter] No native module, delegating to OS');
     return openWithOS(filePath);
   }
 
@@ -259,6 +265,12 @@ export async function downloadAndPreview(
     }
 
     // Preview if supported, otherwise delegate to OS
+    console.debug('[contentRouter] downloadAndPreview:', {
+      mimeType,
+      isPreviewable: isPreviewable(mimeType),
+      filePath: filePath.slice(-40),
+    });
+
     if (isPreviewable(mimeType) && Platform.OS === 'ios') {
       return await previewFile(filePath);
     }

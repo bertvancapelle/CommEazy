@@ -383,7 +383,12 @@ class MailModule: RCTEventEmitter {
                     ])
                 }
 
-                let data = try await imap.fetchPart(section: part.section, of: uidValue)
+                let rawData = try await imap.fetchPart(section: part.section, of: uidValue)
+
+                // Decode content-transfer-encoding (e.g. base64 → binary)
+                // Without this, base64-encoded attachments (like JPEGs) would be
+                // double-encoded when we call .base64EncodedString() below.
+                let data = rawData.decoded(for: part)
 
                 // Emit completion progress
                 if self.hasListeners {

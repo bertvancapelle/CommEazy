@@ -593,6 +593,16 @@
       "emailNotificationsHint": "Recibir una notificación para nuevos correos",
       "biometricLock": "Seguridad biométrica",
       "biometricLockHint": "Usar Face ID o huella dactilar para abrir el correo"
+    },
+    "whitelist": {
+      "title": "Remitentes de confianza",
+      "description": "Las imágenes de estos dominios se cargan automáticamente.",
+      "emptyTitle": "Sin remitentes de confianza",
+      "emptyDescription": "Cuando carga imágenes en un correo, puede añadir el dominio del remitente a esta lista.",
+      "removeDomain": "Eliminar",
+      "removeConfirmTitle": "Eliminar dominio",
+      "removeConfirmMessage": "¿Desea eliminar {{domain}} de los remitentes de confianza? Las imágenes de este dominio ya no se cargarán automáticamente.",
+      "domainRemoved": "{{domain}} eliminado"
     }
   },
   "privacySettings": {
@@ -1801,7 +1811,20 @@
         "saveComplete": "{{saved}} guardados, {{failed}} fallidos",
         "saveAllButton": "Guardar todo",
         "photos": "{{count}} foto(s)",
-        "viewPhoto": "Ver foto: {{name}}"
+        "viewPhoto": "Ver foto: {{name}}",
+        "imagesBlocked": "Las imágenes están bloqueadas para proteger su privacidad.",
+        "loadImages": "Cargar imágenes",
+        "externalImagesTitle": "¿Cargar imágenes externas?",
+        "externalImagesWarning": "Al cargar imágenes externas, el remitente podría ver:\n\n• Que abrió este mensaje\n• Su dirección IP y ubicación aproximada\n• Cuándo leyó el mensaje\n\n¿Desea continuar?",
+        "loadImagesConfirm": "Cargar",
+        "imagesLoadedWarning": "Se han cargado las imágenes externas. El remitente puede saber que abrió este mensaje.",
+        "warningModalTitle": "Imágenes cargadas",
+        "warningModalBody": "Las imágenes externas se han cargado. El remitente ahora puede ver que abrió este mensaje, su dirección IP y cuándo lo leyó.",
+        "warningModalSender": "Remitente:",
+        "warningModalAlwaysAllow": "Permitir siempre para {{domain}}",
+        "warningModalSettingsHint": "Puede gestionar los remitentes de confianza en Ajustes → Correo electrónico.",
+        "warningModalDismiss": "Entendido",
+        "mailBody": "Contenido del correo"
       },
       "compose": {
         "from": "De",

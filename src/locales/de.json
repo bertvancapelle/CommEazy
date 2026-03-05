@@ -593,6 +593,16 @@
       "emailNotificationsHint": "Erhalte eine Benachrichtigung bei neuen E-Mails",
       "biometricLock": "Biometrische Sicherheit",
       "biometricLockHint": "Verwende Face ID oder Fingerabdruck, um E-Mail zu öffnen"
+    },
+    "whitelist": {
+      "title": "Vertrauenswürdige Absender",
+      "description": "Bilder von diesen Domains werden automatisch geladen.",
+      "emptyTitle": "Keine vertrauenswürdigen Absender",
+      "emptyDescription": "Wenn Sie Bilder in einer E-Mail laden, können Sie die Domain des Absenders zu dieser Liste hinzufügen.",
+      "removeDomain": "Entfernen",
+      "removeConfirmTitle": "Domain entfernen",
+      "removeConfirmMessage": "Möchten Sie {{domain}} aus den vertrauenswürdigen Absendern entfernen? Bilder von dieser Domain werden nicht mehr automatisch geladen.",
+      "domainRemoved": "{{domain}} entfernt"
     }
   },
   "privacySettings": {
@@ -1801,7 +1811,20 @@
         "saveComplete": "{{saved}} gespeichert, {{failed}} fehlgeschlagen",
         "saveAllButton": "Alle speichern",
         "photos": "{{count}} Foto(s)",
-        "viewPhoto": "Foto ansehen: {{name}}"
+        "viewPhoto": "Foto ansehen: {{name}}",
+        "imagesBlocked": "Bilder sind zum Schutz Ihrer Privatsphäre blockiert.",
+        "loadImages": "Bilder laden",
+        "externalImagesTitle": "Externe Bilder laden?",
+        "externalImagesWarning": "Durch das Laden externer Bilder kann der Absender sehen:\n\n• Dass Sie diese Nachricht geöffnet haben\n• Ihre IP-Adresse und ungefähren Standort\n• Wann Sie die Nachricht gelesen haben\n\nMöchten Sie fortfahren?",
+        "loadImagesConfirm": "Laden",
+        "imagesLoadedWarning": "Externe Bilder wurden geladen. Der Absender kann sehen, dass Sie diese Nachricht geöffnet haben.",
+        "warningModalTitle": "Bilder geladen",
+        "warningModalBody": "Externe Bilder wurden geladen. Der Absender kann nun möglicherweise sehen, dass Sie diese Nachricht geöffnet haben, Ihre IP-Adresse und wann Sie sie gelesen haben.",
+        "warningModalSender": "Absender:",
+        "warningModalAlwaysAllow": "Immer erlauben für {{domain}}",
+        "warningModalSettingsHint": "Sie können vertrauenswürdige Absender unter Einstellungen → E-Mail verwalten.",
+        "warningModalDismiss": "Verstanden",
+        "mailBody": "E-Mail-Inhalt"
       },
       "compose": {
         "from": "Von",

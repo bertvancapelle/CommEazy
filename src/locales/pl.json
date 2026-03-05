@@ -509,6 +509,16 @@
       "emailNotificationsHint": "Otrzymuj powiadomienie o nowych e-mailach",
       "biometricLock": "Zabezpieczenie biometryczne",
       "biometricLockHint": "Użyj Face ID lub odcisku palca, aby otworzyć e-mail"
+    },
+    "whitelist": {
+      "title": "Zaufani nadawcy",
+      "description": "Obrazy z tych domen są ładowane automatycznie.",
+      "emptyTitle": "Brak zaufanych nadawców",
+      "emptyDescription": "Gdy ładujesz obrazy w wiadomości e-mail, możesz dodać domenę nadawcy do tej listy.",
+      "removeDomain": "Usuń",
+      "removeConfirmTitle": "Usuń domenę",
+      "removeConfirmMessage": "Czy chcesz usunąć {{domain}} z zaufanych nadawców? Obrazy z tej domeny nie będą już ładowane automatycznie.",
+      "domainRemoved": "{{domain}} usunięto"
     }
   },
   "privacySettings": {
@@ -1607,7 +1617,20 @@
         "saveComplete": "{{saved}} zapisanych, {{failed}} nieudanych",
         "saveAllButton": "Zapisz wszystko",
         "photos": "{{count}} zdjęć",
-        "viewPhoto": "Wyświetl zdjęcie: {{name}}"
+        "viewPhoto": "Wyświetl zdjęcie: {{name}}",
+        "imagesBlocked": "Obrazy są zablokowane w celu ochrony Twojej prywatności.",
+        "loadImages": "Załaduj obrazy",
+        "externalImagesTitle": "Załadować zewnętrzne obrazy?",
+        "externalImagesWarning": "Ładując zewnętrzne obrazy, nadawca może zobaczyć:\n\n• Że otworzyłeś tę wiadomość\n• Twój adres IP i przybliżoną lokalizację\n• Kiedy przeczytałeś wiadomość\n\nCzy chcesz kontynuować?",
+        "loadImagesConfirm": "Załaduj",
+        "imagesLoadedWarning": "Zewnętrzne obrazy zostały załadowane. Nadawca może wiedzieć, że otworzyłeś tę wiadomość.",
+        "warningModalTitle": "Obrazy załadowane",
+        "warningModalBody": "Zewnętrzne obrazy zostały załadowane. Nadawca może teraz zobaczyć, że otworzyłeś tę wiadomość, Twój adres IP i kiedy ją przeczytałeś.",
+        "warningModalSender": "Nadawca:",
+        "warningModalAlwaysAllow": "Zawsze zezwalaj dla {{domain}}",
+        "warningModalSettingsHint": "Możesz zarządzać zaufanymi nadawcami w Ustawienia → E-mail.",
+        "warningModalDismiss": "Rozumiem",
+        "mailBody": "Treść e-maila"
       },
       "compose": {
         "from": "Od",

@@ -593,6 +593,16 @@
       "emailNotificationsHint": "Receive a notification for new emails",
       "biometricLock": "Biometric security",
       "biometricLockHint": "Use Face ID or fingerprint to open email"
+    },
+    "whitelist": {
+      "title": "Trusted senders",
+      "description": "Images from these domains are loaded automatically.",
+      "emptyTitle": "No trusted senders",
+      "emptyDescription": "When you load images in an email, you can add the sender's domain to this list.",
+      "removeDomain": "Remove",
+      "removeConfirmTitle": "Remove domain",
+      "removeConfirmMessage": "Do you want to remove {{domain}} from trusted senders? Images from this domain will no longer be loaded automatically.",
+      "domainRemoved": "{{domain}} removed"
     }
   },
   "privacySettings": {
@@ -1805,7 +1815,20 @@
         "saveComplete": "{{saved}} saved, {{failed}} failed",
         "saveAllButton": "Save all",
         "photos": "{{count}} photo(s)",
-        "viewPhoto": "View photo: {{name}}"
+        "viewPhoto": "View photo: {{name}}",
+        "imagesBlocked": "Images are blocked to protect your privacy.",
+        "loadImages": "Load images",
+        "externalImagesTitle": "Load external images?",
+        "externalImagesWarning": "By loading external images, the sender may see:\n\n• That you opened this message\n• Your IP address and approximate location\n• When you read the message\n\nDo you want to continue?",
+        "loadImagesConfirm": "Load",
+        "imagesLoadedWarning": "External images have been loaded. The sender may know that you opened this message.",
+        "warningModalTitle": "Images loaded",
+        "warningModalBody": "External images have been loaded. The sender may now be able to see that you opened this message, your IP address, and when you read it.",
+        "warningModalSender": "Sender:",
+        "warningModalAlwaysAllow": "Always allow for {{domain}}",
+        "warningModalSettingsHint": "You can manage trusted senders in Settings → Email.",
+        "warningModalDismiss": "Understood",
+        "mailBody": "Email content"
       },
       "compose": {
         "from": "From",

@@ -488,6 +488,16 @@
       "emailNotificationsHint": "Modtag en notifikation for nye e-mails",
       "biometricLock": "Biometrisk sikkerhed",
       "biometricLockHint": "Brug Face ID eller fingeraftryk til at åbne e-mail"
+    },
+    "whitelist": {
+      "title": "Betroede afsendere",
+      "description": "Billeder fra disse domæner indlæses automatisk.",
+      "emptyTitle": "Ingen betroede afsendere",
+      "emptyDescription": "Når du indlæser billeder i en e-mail, kan du tilføje afsenderens domæne til denne liste.",
+      "removeDomain": "Fjern",
+      "removeConfirmTitle": "Fjern domæne",
+      "removeConfirmMessage": "Vil du fjerne {{domain}} fra betroede afsendere? Billeder fra dette domæne indlæses ikke længere automatisk.",
+      "domainRemoved": "{{domain}} fjernet"
     }
   },
   "privacySettings": {
@@ -1645,7 +1655,20 @@
         "saveComplete": "{{saved}} gemt, {{failed}} mislykkedes",
         "saveAllButton": "Gem alle",
         "photos": "{{count}} foto(s)",
-        "viewPhoto": "Vis foto: {{name}}"
+        "viewPhoto": "Vis foto: {{name}}",
+        "imagesBlocked": "Billeder er blokeret for at beskytte dit privatliv.",
+        "loadImages": "Indlæs billeder",
+        "externalImagesTitle": "Indlæs eksterne billeder?",
+        "externalImagesWarning": "Ved at indlæse eksterne billeder kan afsenderen se:\n\n• At du åbnede denne besked\n• Din IP-adresse og omtrentlige placering\n• Hvornår du læste beskeden\n\nVil du fortsætte?",
+        "loadImagesConfirm": "Indlæs",
+        "imagesLoadedWarning": "Eksterne billeder er indlæst. Afsenderen kan se, at du åbnede denne besked.",
+        "warningModalTitle": "Billeder indlæst",
+        "warningModalBody": "Eksterne billeder er indlæst. Afsenderen kan nu muligvis se, at du åbnede denne besked, din IP-adresse og hvornår du læste den.",
+        "warningModalSender": "Afsender:",
+        "warningModalAlwaysAllow": "Tillad altid for {{domain}}",
+        "warningModalSettingsHint": "Du kan administrere betroede afsendere i Indstillinger → E-mail.",
+        "warningModalDismiss": "Forstået",
+        "mailBody": "E-mailindhold"
       },
       "compose": {
         "from": "Fra",

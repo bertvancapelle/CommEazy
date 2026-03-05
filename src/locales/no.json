@@ -518,6 +518,16 @@
       "emailNotificationsHint": "Motta et varsel for nye e-poster",
       "biometricLock": "Biometrisk sikkerhet",
       "biometricLockHint": "Bruk Face ID eller fingeravtrykk for å åpne e-post"
+    },
+    "whitelist": {
+      "title": "Pålitelige avsendere",
+      "description": "Bilder fra disse domenene lastes inn automatisk.",
+      "emptyTitle": "Ingen pålitelige avsendere",
+      "emptyDescription": "Når du laster inn bilder i en e-post, kan du legge til avsenderens domene i denne listen.",
+      "removeDomain": "Fjern",
+      "removeConfirmTitle": "Fjern domene",
+      "removeConfirmMessage": "Vil du fjerne {{domain}} fra pålitelige avsendere? Bilder fra dette domenet vil ikke lenger lastes inn automatisk.",
+      "domainRemoved": "{{domain}} fjernet"
     }
   },
   "privacySettings": {
@@ -1675,7 +1685,20 @@
         "saveComplete": "{{saved}} lagret, {{failed}} mislyktes",
         "saveAllButton": "Lagre alle",
         "photos": "{{count}} bilde(r)",
-        "viewPhoto": "Vis bilde: {{name}}"
+        "viewPhoto": "Vis bilde: {{name}}",
+        "imagesBlocked": "Bilder er blokkert for å beskytte personvernet ditt.",
+        "loadImages": "Last inn bilder",
+        "externalImagesTitle": "Laste inn eksterne bilder?",
+        "externalImagesWarning": "Ved å laste inn eksterne bilder kan avsenderen se:\n\n• At du åpnet denne meldingen\n• Din IP-adresse og omtrentlige plassering\n• Når du leste meldingen\n\nVil du fortsette?",
+        "loadImagesConfirm": "Last inn",
+        "imagesLoadedWarning": "Eksterne bilder er lastet inn. Avsenderen kan se at du åpnet denne meldingen.",
+        "warningModalTitle": "Bilder lastet inn",
+        "warningModalBody": "Eksterne bilder er lastet inn. Avsenderen kan nå muligens se at du åpnet denne meldingen, din IP-adresse og når du leste den.",
+        "warningModalSender": "Avsender:",
+        "warningModalAlwaysAllow": "Alltid tillat for {{domain}}",
+        "warningModalSettingsHint": "Du kan administrere pålitelige avsendere i Innstillinger → E-post.",
+        "warningModalDismiss": "Forstått",
+        "mailBody": "E-postinnhold"
       },
       "compose": {
         "from": "Fra",

@@ -8,6 +8,7 @@
  * 2. Synchronisatie-instellingen — message count, auto-sync, auto-download
  * 3. Opslag — cache size, clear cache
  * 4. Beveiliging — notifications toggle, biometric lock toggle
+ * 5. Vertrouwde afzenders — per-domain image whitelist management
  *
  * UI-ready with placeholder actions (OAuth2 deferred).
  *
@@ -36,6 +37,10 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { getAllAccounts } from '@/services/mail/credentialManager';
+import {
+  getAllWhitelistedDomains,
+  removeDomain as removeWhitelistedDomain,
+} from '@/services/mail/imageWhitelistService';
 import type { MailAccount } from '@/types/mail';
 
 // Message count options for sync settings
@@ -56,13 +61,17 @@ export function MailSettingsScreen() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [biometricLock, setBiometricLock] = useState(false);
   const [linkedAccounts, setLinkedAccounts] = useState<MailAccount[]>([]);
+  const [whitelistedDomains, setWhitelistedDomains] = useState<string[]>([]);
 
-  // Load accounts from credentialManager on mount and when screen regains focus
+  // Load accounts and whitelist on mount and when screen regains focus
   useEffect(() => {
     if (!isFocused) return;
     getAllAccounts()
       .then(setLinkedAccounts)
       .catch((err) => console.error('[MailSettings] Failed to load accounts:', err));
+    getAllWhitelistedDomains()
+      .then(setWhitelistedDomains)
+      .catch((err) => console.error('[MailSettings] Failed to load whitelist:', err));
   }, [isFocused]);
 
   // Cache size placeholder
@@ -76,6 +85,7 @@ export function MailSettingsScreen() {
       { id: 'sync', label: t('mailSettings.sync.title'), index: 1, onSelect: () => {} },
       { id: 'storage', label: t('mailSettings.storage.title'), index: 2, onSelect: () => {} },
       { id: 'security', label: t('mailSettings.security.title'), index: 3, onSelect: () => {} },
+      { id: 'whitelist', label: t('mailSettings.whitelist.title'), index: 4, onSelect: () => {} },
     ];
   }, [isFocused, t]);
 
@@ -150,6 +160,30 @@ export function MailSettingsScreen() {
           onPress: () => {
             // Placeholder — will clear SQLite cache in later phases
             Alert.alert(t('mailSettings.storage.cacheCleared'));
+          },
+        },
+      ]
+    );
+  }, [t, triggerFeedback]);
+
+  // Handle remove whitelisted domain
+  const handleRemoveDomain = useCallback((domain: string) => {
+    void triggerFeedback('tap');
+    Alert.alert(
+      t('mailSettings.whitelist.removeConfirmTitle'),
+      t('mailSettings.whitelist.removeConfirmMessage', { domain }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('mailSettings.whitelist.removeDomain'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeWhitelistedDomain(domain);
+              setWhitelistedDomains((prev) => prev.filter((d) => d !== domain));
+            } catch {
+              // Non-critical
+            }
           },
         },
       ]
@@ -419,6 +453,65 @@ export function MailSettingsScreen() {
             </View>
           </View>
         </VoiceFocusable>
+
+        {/* Section 5: Vertrouwde afzenders (image whitelist) */}
+        <VoiceFocusable
+          id="whitelist"
+          label={t('mailSettings.whitelist.title')}
+          index={4}
+          onSelect={() => {}}
+        >
+          <View
+            style={[
+              styles.section,
+              { backgroundColor: themeColors.surface },
+              isItemFocused('whitelist') && getFocusStyle(),
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
+              {t('mailSettings.whitelist.title')}
+            </Text>
+
+            <Text style={[styles.whitelistDescription, { color: themeColors.textSecondary }]}>
+              {t('mailSettings.whitelist.description')}
+            </Text>
+
+            {whitelistedDomains.length === 0 ? (
+              <View style={styles.emptyWhitelistContainer}>
+                <Icon name="shield" size={32} color={themeColors.textTertiary} />
+                <Text style={[styles.emptyWhitelistTitle, { color: themeColors.textSecondary }]}>
+                  {t('mailSettings.whitelist.emptyTitle')}
+                </Text>
+                <Text style={[styles.emptyWhitelistText, { color: themeColors.textTertiary }]}>
+                  {t('mailSettings.whitelist.emptyDescription')}
+                </Text>
+              </View>
+            ) : (
+              whitelistedDomains.map((domain) => (
+                <View
+                  key={domain}
+                  style={[styles.domainRow, { borderBottomColor: themeColors.border }]}
+                >
+                  <Text style={[styles.domainText, { color: themeColors.textPrimary }]}>
+                    {domain}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.removeDomainButton, { borderColor: colors.error }]}
+                    onPress={() => handleRemoveDomain(domain)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('mailSettings.whitelist.removeDomain')}
+                    accessibilityHint={domain}
+                  >
+                    <Text style={[styles.removeDomainText, { color: colors.error }]}>
+                      {t('mailSettings.whitelist.removeDomain')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
+          </View>
+        </VoiceFocusable>
       </ScrollView>
     </View>
   );
@@ -591,5 +684,52 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '600',
     marginLeft: spacing.sm,
+  },
+  // Whitelist section
+  whitelistDescription: {
+    ...typography.body,
+    marginBottom: spacing.md,
+    lineHeight: 26,
+  },
+  emptyWhitelistContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  emptyWhitelistTitle: {
+    ...typography.body,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: spacing.sm,
+  },
+  emptyWhitelistText: {
+    ...typography.small,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  domainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    minHeight: touchTargets.minimum,
+  },
+  domainText: {
+    ...typography.body,
+    flex: 1,
+  },
+  removeDomainButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    marginLeft: spacing.md,
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+  },
+  removeDomainText: {
+    ...typography.small,
+    fontWeight: '600',
   },
 });

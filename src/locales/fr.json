@@ -593,6 +593,16 @@
       "emailNotificationsHint": "Recevoir une notification pour les nouveaux e-mails",
       "biometricLock": "Sécurité biométrique",
       "biometricLockHint": "Utiliser Face ID ou l'empreinte digitale pour ouvrir les e-mails"
+    },
+    "whitelist": {
+      "title": "Expéditeurs de confiance",
+      "description": "Les images de ces domaines sont chargées automatiquement.",
+      "emptyTitle": "Aucun expéditeur de confiance",
+      "emptyDescription": "Lorsque vous chargez des images dans un e-mail, vous pouvez ajouter le domaine de l'expéditeur à cette liste.",
+      "removeDomain": "Supprimer",
+      "removeConfirmTitle": "Supprimer le domaine",
+      "removeConfirmMessage": "Voulez-vous supprimer {{domain}} des expéditeurs de confiance ? Les images de ce domaine ne seront plus chargées automatiquement.",
+      "domainRemoved": "{{domain}} supprimé"
     }
   },
   "privacySettings": {
@@ -1801,7 +1811,20 @@
         "saveComplete": "{{saved}} enregistré(s), {{failed}} échoué(s)",
         "saveAllButton": "Tout enregistrer",
         "photos": "{{count}} photo(s)",
-        "viewPhoto": "Voir la photo : {{name}}"
+        "viewPhoto": "Voir la photo : {{name}}",
+        "imagesBlocked": "Les images sont bloquées pour protéger votre vie privée.",
+        "loadImages": "Charger les images",
+        "externalImagesTitle": "Charger les images externes ?",
+        "externalImagesWarning": "En chargeant les images externes, l'expéditeur pourrait voir :\n\n• Que vous avez ouvert ce message\n• Votre adresse IP et votre emplacement approximatif\n• L'heure à laquelle vous avez lu le message\n\nVoulez-vous continuer ?",
+        "loadImagesConfirm": "Charger",
+        "imagesLoadedWarning": "Les images externes ont été chargées. L'expéditeur peut savoir que vous avez ouvert ce message.",
+        "warningModalTitle": "Images chargées",
+        "warningModalBody": "Les images externes ont été chargées. L'expéditeur peut maintenant voir que vous avez ouvert ce message, votre adresse IP et l'heure à laquelle vous l'avez lu.",
+        "warningModalSender": "Expéditeur :",
+        "warningModalAlwaysAllow": "Toujours autoriser pour {{domain}}",
+        "warningModalSettingsHint": "Vous pouvez gérer les expéditeurs de confiance dans Réglages → E-mail.",
+        "warningModalDismiss": "Compris",
+        "mailBody": "Contenu de l'e-mail"
       },
       "compose": {
         "from": "De",

@@ -592,6 +592,16 @@
       "emailNotificationsHint": "Ricevi una notifica per le nuove e-mail",
       "biometricLock": "Sicurezza biometrica",
       "biometricLockHint": "Usa Face ID o impronta digitale per aprire le e-mail"
+    },
+    "whitelist": {
+      "title": "Mittenti attendibili",
+      "description": "Le immagini da questi domini vengono caricate automaticamente.",
+      "emptyTitle": "Nessun mittente attendibile",
+      "emptyDescription": "Quando carichi le immagini in un'email, puoi aggiungere il dominio del mittente a questo elenco.",
+      "removeDomain": "Rimuovi",
+      "removeConfirmTitle": "Rimuovi dominio",
+      "removeConfirmMessage": "Vuoi rimuovere {{domain}} dai mittenti attendibili? Le immagini da questo dominio non verranno più caricate automaticamente.",
+      "domainRemoved": "{{domain}} rimosso"
     }
   },
   "privacySettings": {
@@ -1749,7 +1759,20 @@
         "saveComplete": "{{saved}} salvati, {{failed}} non riusciti",
         "saveAllButton": "Salva tutto",
         "photos": "{{count}} foto",
-        "viewPhoto": "Visualizza foto: {{name}}"
+        "viewPhoto": "Visualizza foto: {{name}}",
+        "imagesBlocked": "Le immagini sono bloccate per proteggere la tua privacy.",
+        "loadImages": "Carica immagini",
+        "externalImagesTitle": "Caricare immagini esterne?",
+        "externalImagesWarning": "Caricando le immagini esterne, il mittente potrebbe vedere:\n\n• Che hai aperto questo messaggio\n• Il tuo indirizzo IP e la posizione approssimativa\n• Quando hai letto il messaggio\n\nVuoi continuare?",
+        "loadImagesConfirm": "Carica",
+        "imagesLoadedWarning": "Le immagini esterne sono state caricate. Il mittente potrebbe sapere che hai aperto questo messaggio.",
+        "warningModalTitle": "Immagini caricate",
+        "warningModalBody": "Le immagini esterne sono state caricate. Il mittente potrebbe ora vedere che hai aperto questo messaggio, il tuo indirizzo IP e quando lo hai letto.",
+        "warningModalSender": "Mittente:",
+        "warningModalAlwaysAllow": "Consenti sempre per {{domain}}",
+        "warningModalSettingsHint": "Puoi gestire i mittenti attendibili in Impostazioni → E-mail.",
+        "warningModalDismiss": "Capito",
+        "mailBody": "Contenuto dell'email"
       },
       "compose": {
         "from": "Da",

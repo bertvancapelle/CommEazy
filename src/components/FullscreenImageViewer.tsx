@@ -366,6 +366,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
     pointerEvents: 'box-none',
+    zIndex: 15,
   },
   navButton: {
     width: touchTargets.comfortable,

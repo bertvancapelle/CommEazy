@@ -33,3 +33,6 @@ export * as saveToAlbumService from './saveToAlbumService';
 
 // Fase 18: Content routing (QLPreviewController + SFSafariViewController)
 export * as contentRouter from './contentRouter';
+
+// Fase 19: Image whitelist (per-domain auto-load)
+export * as imageWhitelistService from './imageWhitelistService';

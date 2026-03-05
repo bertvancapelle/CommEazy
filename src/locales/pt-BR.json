@@ -617,6 +617,16 @@
       "emailNotificationsHint": "Receber uma notificação para novos e-mails",
       "biometricLock": "Segurança biométrica",
       "biometricLockHint": "Usar Face ID ou impressão digital para abrir o e-mail"
+    },
+    "whitelist": {
+      "title": "Remetentes confiáveis",
+      "description": "As imagens desses domínios são carregadas automaticamente.",
+      "emptyTitle": "Sem remetentes confiáveis",
+      "emptyDescription": "Quando você carrega imagens em um e-mail, pode adicionar o domínio do remetente a esta lista.",
+      "removeDomain": "Remover",
+      "removeConfirmTitle": "Remover domínio",
+      "removeConfirmMessage": "Deseja remover {{domain}} dos remetentes confiáveis? As imagens deste domínio não serão mais carregadas automaticamente.",
+      "domainRemoved": "{{domain}} removido"
     }
   },
   "privacySettings": {
@@ -1820,7 +1830,20 @@
         "saveComplete": "{{saved}} salvos, {{failed}} falharam",
         "saveAllButton": "Salvar tudo",
         "photos": "{{count}} foto(s)",
-        "viewPhoto": "Ver foto: {{name}}"
+        "viewPhoto": "Ver foto: {{name}}",
+        "imagesBlocked": "As imagens estão bloqueadas para proteger sua privacidade.",
+        "loadImages": "Carregar imagens",
+        "externalImagesTitle": "Carregar imagens externas?",
+        "externalImagesWarning": "Ao carregar imagens externas, o remetente poderá ver:\n\n• Que você abriu esta mensagem\n• Seu endereço IP e localização aproximada\n• Quando você leu a mensagem\n\nDeseja continuar?",
+        "loadImagesConfirm": "Carregar",
+        "imagesLoadedWarning": "As imagens externas foram carregadas. O remetente pode saber que você abriu esta mensagem.",
+        "warningModalTitle": "Imagens carregadas",
+        "warningModalBody": "As imagens externas foram carregadas. O remetente agora pode ver que você abriu esta mensagem, seu endereço IP e quando você a leu.",
+        "warningModalSender": "Remetente:",
+        "warningModalAlwaysAllow": "Sempre permitir para {{domain}}",
+        "warningModalSettingsHint": "Você pode gerenciar remetentes confiáveis em Configurações → E-mail.",
+        "warningModalDismiss": "Entendido",
+        "mailBody": "Conteúdo do e-mail"
       },
       "compose": {
         "from": "De",

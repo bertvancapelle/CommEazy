@@ -26,11 +26,13 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Modal,
+  Switch,
   Platform,
-  useWindowDimensions,
 } from 'react-native';
 import RNFS from 'react-native-fs';
-import RenderHtml, { HTMLElementModel, HTMLContentModel } from 'react-native-render-html';
+import { WebView } from 'react-native-webview';
+import type { WebViewNavigation } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -49,6 +51,11 @@ import { parseEmailAddress } from '@/types/mail';
 import { canSaveToAlbum, isImageType } from '@/services/mail/mediaAttachmentService';
 import { getSaveableAttachments, isAlreadySaved } from '@/services/mail/saveToAlbumService';
 import { openURL as contentRouterOpenURL, downloadAndPreview } from '@/services/mail/contentRouter';
+import {
+  extractDomain,
+  isWhitelisted as isDomainWhitelisted,
+  addDomain as whitelistDomain,
+} from '@/services/mail/imageWhitelistService';
 
 // ============================================================
 // Types
@@ -170,6 +177,439 @@ function formatMailBody(text: string): string {
 }
 
 // ============================================================
+// MailBodyWebView — Renders HTML mail body via WebView
+// ============================================================
+
+interface MailBodyWebViewProps {
+  html: string;
+  textColor: string;
+  backgroundColor: string;
+  linkColor: string;
+  bannerBackgroundColor: string;
+  bannerTextColor: string;
+  bannerButtonColor: string;
+  /** Sender domain for whitelist feature (e.g. "microsoft.com") */
+  senderDomain: string;
+}
+
+/**
+ * Build a complete HTML document for the WebView.
+ *
+ * - Preserves original <style> tags for proper layout (tables, CSS classes)
+ * - Strips <script> tags for security
+ * - CSP blocks external images by default (img-src 'none')
+ * - Injects base styling for senior-friendly readability
+ * - Disables user scaling to prevent accidental zoom
+ */
+function buildWebViewHtml(
+  rawHtml: string,
+  imagesAllowed: boolean,
+  textColor: string,
+  backgroundColor: string,
+  linkColor: string,
+): string {
+  // Strip <script> tags entirely (security)
+  const noScripts = rawHtml.replace(/<script[\s\S]*?<\/script>/gi, '');
+
+  // CSP: block or allow external images
+  const imgSrc = imagesAllowed ? "img-src * data: blob:" : "img-src data:";
+  const csp = `default-src 'none'; style-src 'unsafe-inline'; ${imgSrc}; font-src 'none';`;
+
+  // Check if HTML already has <html>/<body> structure
+  const hasDocStructure = /<html[\s>]/i.test(noScripts);
+
+  // Extract existing <style> blocks to preserve them
+  // (they contain CSS classes needed for table/column layouts)
+  let bodyContent = noScripts;
+
+  if (hasDocStructure) {
+    // Extract body content — keep styles that are in <head>
+    const bodyMatch = noScripts.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    const headMatch = noScripts.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    const headStyles = headMatch
+      ? (headMatch[1].match(/<style[\s\S]*?<\/style>/gi) || []).join('\n')
+      : '';
+    bodyContent = `${headStyles}\n${bodyMatch ? bodyMatch[1] : noScripts}`;
+  }
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="${csp}">
+  <style>
+    /* Senior-friendly base styles */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 8px;
+      font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      font-size: 18px;
+      line-height: 1.55;
+      color: ${textColor};
+      background-color: ${backgroundColor};
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      -webkit-text-size-adjust: 100%;
+    }
+    a { color: ${linkColor}; }
+    img { max-width: 100%; height: auto; }
+    table { max-width: 100%; border-collapse: collapse; }
+    td, th { vertical-align: top; }
+    /* Prevent horizontal overflow from wide tables */
+    body > table, body > div > table {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    /* Force table cells to wrap */
+    td { word-break: break-word; }
+    /* Hide tracking pixels (1x1 or hidden images) when images are loaded */
+    img[width="1"], img[height="1"],
+    img[style*="display:none"], img[style*="display: none"] {
+      display: none !important;
+    }
+    pre, code {
+      font-size: 15px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+${bodyContent}
+<script>
+  // Report content height to React Native — use max of multiple measurements
+  function reportHeight() {
+    var h = Math.max(
+      document.body.scrollHeight || 0,
+      document.body.offsetHeight || 0,
+      document.documentElement.scrollHeight || 0,
+      document.documentElement.offsetHeight || 0
+    );
+    if (h > 0) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', value: h }));
+    }
+  }
+  // Report after load with multiple delayed checks for late-rendering content
+  window.addEventListener('load', function() {
+    reportHeight();
+    setTimeout(reportHeight, 100);
+    setTimeout(reportHeight, 300);
+    setTimeout(reportHeight, 600);
+    setTimeout(reportHeight, 1500);
+    setTimeout(reportHeight, 3000);
+  });
+  // Observe DOM mutations (dynamic content, late-loading CSS)
+  var observer = new MutationObserver(function() {
+    reportHeight();
+    setTimeout(reportHeight, 100);
+  });
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+  // Also observe resize events (layout reflows)
+  window.addEventListener('resize', reportHeight);
+
+  // Handle image load requests from React Native
+  window.addEventListener('message', function(e) {
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.type === 'loadImages') {
+        // Remove CSP by creating a new meta tag
+        var metas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+        metas.forEach(function(m) { m.remove(); });
+        var meta = document.createElement('meta');
+        meta.httpEquiv = 'Content-Security-Policy';
+        meta.content = "default-src 'none'; style-src 'unsafe-inline'; img-src * data: blob:; font-src 'none';";
+        document.head.appendChild(meta);
+        // Reload all images by updating their src
+        var imgs = document.querySelectorAll('img');
+        imgs.forEach(function(img) {
+          var src = img.getAttribute('src') || img.getAttribute('data-src');
+          if (src) {
+            img.src = '';
+            img.src = src;
+          }
+        });
+        // Report new height after images load
+        setTimeout(reportHeight, 500);
+        setTimeout(reportHeight, 2000);
+      }
+    } catch(ex) {}
+  });
+</script>
+</body>
+</html>`;
+}
+
+function MailBodyWebView({
+  html,
+  textColor,
+  backgroundColor,
+  linkColor,
+  bannerBackgroundColor,
+  bannerTextColor,
+  bannerButtonColor,
+  senderDomain,
+}: MailBodyWebViewProps) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+  const { accentColor } = useAccentColor();
+  const [webViewHeight, setWebViewHeight] = useState(300);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [whitelistToggle, setWhitelistToggle] = useState(false);
+  const [autoLoadChecked, setAutoLoadChecked] = useState(false);
+  const webViewRef = useRef<WebView>(null);
+
+  // Check if HTML contains external images (http:// or https:// in img src)
+  const hasExternalImages = useMemo(() => {
+    return /<img[^>]+src\s*=\s*["']https?:\/\//i.test(html);
+  }, [html]);
+
+  // Auto-load images if sender domain is whitelisted
+  useEffect(() => {
+    if (!hasExternalImages || autoLoadChecked || imagesLoaded) return;
+
+    let cancelled = false;
+    const checkWhitelist = async () => {
+      try {
+        const whitelisted = await isDomainWhitelisted(senderDomain);
+        if (whitelisted && !cancelled) {
+          setImagesLoaded(true);
+        }
+      } catch {
+        // Non-critical — just don't auto-load
+      } finally {
+        if (!cancelled) setAutoLoadChecked(true);
+      }
+    };
+
+    checkWhitelist();
+    return () => { cancelled = true; };
+  }, [hasExternalImages, senderDomain, autoLoadChecked, imagesLoaded]);
+
+  const webViewHtml = useMemo(
+    () => buildWebViewHtml(html, imagesLoaded, textColor, backgroundColor, linkColor),
+    [html, imagesLoaded, textColor, backgroundColor, linkColor],
+  );
+
+  const handleMessage = useCallback((event: { nativeEvent: { data: string } }) => {
+    try {
+      const msg = JSON.parse(event.nativeEvent.data);
+      if (msg.type === 'height' && typeof msg.value === 'number') {
+        const newHeight = Math.max(msg.value + 32, 100);
+        // Only grow — never shrink (prevents flicker from inconsistent measurements)
+        setWebViewHeight((prev) => Math.max(prev, newHeight));
+      }
+    } catch {
+      // Ignore invalid messages
+    }
+  }, []);
+
+  const handleNavigationRequest = useCallback((request: WebViewNavigation): boolean => {
+    const { url } = request;
+    // Allow initial HTML load (file:// or about:blank used by WebView internally)
+    if (url === 'about:blank' || url.startsWith('about:') || url.startsWith('file://') || url.startsWith('data:')) {
+      return true;
+    }
+    // Intercept links — route through contentRouter instead of in-WebView navigation
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('tel:')) {
+      contentRouterOpenURL(url).catch(() => {
+        console.debug('[MailDetail] Failed to open URL from WebView');
+      });
+      return false;
+    }
+    return false;
+  }, []);
+
+  /** Inject JS to unlock images in the already-loaded WebView */
+  const injectImageLoad = useCallback(() => {
+    webViewRef.current?.injectJavaScript(`
+      try {
+        var metas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+        metas.forEach(function(m) { m.remove(); });
+        var meta = document.createElement('meta');
+        meta.httpEquiv = 'Content-Security-Policy';
+        meta.content = "default-src 'none'; style-src 'unsafe-inline'; img-src * data: blob:; font-src 'none';";
+        document.head.appendChild(meta);
+        var imgs = document.querySelectorAll('img');
+        imgs.forEach(function(img) {
+          var src = img.getAttribute('src') || img.getAttribute('data-src');
+          if (src) { img.src = ''; img.src = src; }
+        });
+        setTimeout(function() {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', value: document.body.scrollHeight }));
+        }, 1000);
+      } catch(e) {}
+      true;
+    `);
+  }, []);
+
+  const handleLoadImages = useCallback(() => {
+    triggerHaptic();
+    Alert.alert(
+      t('modules.mail.detail.externalImagesTitle'),
+      t('modules.mail.detail.externalImagesWarning'),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('modules.mail.detail.loadImagesConfirm'),
+          onPress: () => {
+            setImagesLoaded(true);
+            injectImageLoad();
+            // Show informational modal after images are loaded
+            setWhitelistToggle(false);
+            setShowWarningModal(true);
+          },
+        },
+      ],
+    );
+  }, [t, injectImageLoad]);
+
+  /** Dismiss the warning modal and optionally save domain to whitelist */
+  const handleDismissWarningModal = useCallback(async () => {
+    triggerHaptic();
+    if (whitelistToggle && senderDomain) {
+      try {
+        await whitelistDomain(senderDomain);
+      } catch {
+        // Non-critical — whitelist save failed silently
+      }
+    }
+    setShowWarningModal(false);
+  }, [whitelistToggle, senderDomain]);
+
+  return (
+    <View style={styles.bodyContainer}>
+      {/* Privacy banner — shown when mail contains external images that are blocked */}
+      {hasExternalImages && !imagesLoaded && (
+        <View style={[styles.imageBanner, { backgroundColor: bannerBackgroundColor }]}>
+          <View style={styles.imageBannerContent}>
+            <Icon name="lock" size={20} color={bannerTextColor} />
+            <Text style={[styles.imageBannerText, { color: bannerTextColor }]}>
+              {t('modules.mail.detail.imagesBlocked')}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.loadImagesButton, { backgroundColor: bannerButtonColor }]}
+            onPress={handleLoadImages}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.detail.loadImages')}
+          >
+            <Text style={styles.loadImagesButtonText}>
+              {t('modules.mail.detail.loadImages')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Warning modal — shown after images are loaded (dismissable) */}
+      <Modal
+        visible={showWarningModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleDismissWarningModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]}>
+            {/* Warning icon + title */}
+            <View style={styles.modalHeader}>
+              <Icon name="warning" size={28} color="#E65100" />
+              <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
+                {t('modules.mail.detail.warningModalTitle')}
+              </Text>
+            </View>
+
+            {/* Warning text */}
+            <Text style={[styles.modalBody, { color: themeColors.textPrimary }]}>
+              {t('modules.mail.detail.warningModalBody')}
+            </Text>
+
+            {/* Sender domain info */}
+            {senderDomain ? (
+              <View style={[styles.modalDomainRow, { backgroundColor: themeColors.background }]}>
+                <Text style={[styles.modalDomainLabel, { color: themeColors.textSecondary }]}>
+                  {t('modules.mail.detail.warningModalSender')}
+                </Text>
+                <Text style={[styles.modalDomainValue, { color: themeColors.textPrimary }]}>
+                  {senderDomain}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Whitelist toggle */}
+            {senderDomain ? (
+              <View style={[styles.modalToggleRow, { borderColor: themeColors.border }]}>
+                <Text style={[styles.modalToggleLabel, { color: themeColors.textPrimary }]}>
+                  {t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
+                </Text>
+                <Switch
+                  value={whitelistToggle}
+                  onValueChange={(value) => {
+                    triggerHaptic();
+                    setWhitelistToggle(value);
+                  }}
+                  trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
+                  thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+                  accessibilityLabel={t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
+                />
+              </View>
+            ) : null}
+
+            {/* Settings reference */}
+            <Text style={[styles.modalSettingsHint, { color: themeColors.textSecondary }]}>
+              {t('modules.mail.detail.warningModalSettingsHint')}
+            </Text>
+
+            {/* Dismiss button */}
+            <TouchableOpacity
+              style={[styles.modalDismissButton, { backgroundColor: accentColor.primary }]}
+              onPress={handleDismissWarningModal}
+              onLongPress={() => {}}
+              delayLongPress={300}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.mail.detail.warningModalDismiss')}
+            >
+              <Text style={styles.modalDismissButtonText}>
+                {t('modules.mail.detail.warningModalDismiss')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* WebView — renders the HTML mail body */}
+      <WebView
+        ref={webViewRef}
+        source={{ html: webViewHtml, baseUrl: '' }}
+        style={[styles.webView, { height: webViewHeight, backgroundColor }]}
+        scrollEnabled={false}
+        onMessage={handleMessage}
+        onShouldStartLoadWithRequest={handleNavigationRequest}
+        javaScriptEnabled={true}
+        domStorageEnabled={false}
+        allowsInlineMediaPlayback={false}
+        mediaPlaybackRequiresUserAction={true}
+        allowsLinkPreview={false}
+        automaticallyAdjustContentInsets={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        originWhitelist={['*']}
+        decelerationRate="normal"
+        accessibilityLabel={t('modules.mail.detail.mailBody')}
+      />
+    </View>
+  );
+}
+
+// ============================================================
 // Component
 // ============================================================
 
@@ -184,7 +624,6 @@ export function MailDetailScreen({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
-  const { width: screenWidth } = useWindowDimensions();
 
   // State
   const [body, setBody] = useState<MailBody | null>(null);
@@ -607,143 +1046,16 @@ export function MailDetailScreen({
             </TouchableOpacity>
           </View>
         ) : body?.html ? (
-          <View style={styles.bodyContainer}>
-            <RenderHtml
-              contentWidth={screenWidth - spacing.lg * 2}
-              source={{ html: body.html.replace(/<img[^>]*>/gi, '') }}
-              baseStyle={{
-                color: themeColors.textPrimary,
-                fontSize: 18,
-                lineHeight: 28,
-              }}
-              tagsStyles={{
-                a: { color: accentColor.primary, textDecorationLine: 'underline' },
-                p: { marginVertical: 4 },
-                h1: { fontSize: 24, fontWeight: '700', marginVertical: 8 },
-                h2: { fontSize: 22, fontWeight: '700', marginVertical: 6 },
-                h3: { fontSize: 20, fontWeight: '700', marginVertical: 4 },
-                h4: { fontSize: 19, fontWeight: '700', marginVertical: 4 },
-                h5: { fontSize: 18, fontWeight: '700', marginVertical: 2 },
-                h6: { fontSize: 18, fontWeight: '600', marginVertical: 2 },
-                blockquote: {
-                  borderLeftWidth: 3,
-                  borderLeftColor: themeColors.border,
-                  paddingLeft: 12,
-                  marginVertical: 8,
-                  color: themeColors.textSecondary,
-                },
-                center: { textAlign: 'center' },
-                hr: {
-                  borderBottomWidth: 1,
-                  borderBottomColor: themeColors.border,
-                  marginVertical: 12,
-                },
-                ul: { marginVertical: 4, paddingLeft: 16 },
-                ol: { marginVertical: 4, paddingLeft: 16 },
-                li: { marginVertical: 2 },
-                pre: {
-                  backgroundColor: themeColors.surface,
-                  padding: 12,
-                  borderRadius: 8,
-                  marginVertical: 8,
-                  fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
-                  fontSize: 15,
-                },
-                code: {
-                  backgroundColor: themeColors.surface,
-                  paddingHorizontal: 4,
-                  paddingVertical: 2,
-                  borderRadius: 4,
-                  fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
-                  fontSize: 15,
-                },
-                table: { marginVertical: 8 },
-                th: {
-                  fontWeight: '700',
-                  padding: 6,
-                  borderBottomWidth: 1,
-                  borderBottomColor: themeColors.border,
-                },
-                td: { padding: 6 },
-                b: { fontWeight: '700' },
-                strong: { fontWeight: '700' },
-                i: { fontStyle: 'italic' },
-                em: { fontStyle: 'italic' },
-                u: { textDecorationLine: 'underline' },
-                s: { textDecorationLine: 'line-through' },
-                del: { textDecorationLine: 'line-through' },
-                small: { fontSize: 14 },
-                mark: { backgroundColor: '#FFF9C4' },
-                abbr: { textDecorationLine: 'underline', textDecorationStyle: 'dotted' },
-                sub: { fontSize: 14 },
-                sup: { fontSize: 14 },
-              }}
-              ignoredDomTags={[
-                // Media (handled separately via attachments)
-                'img', 'source', 'video', 'audio', 'picture',
-                // Embedded content (security)
-                'iframe', 'object', 'embed', 'svg', 'canvas', 'applet',
-                // Forms (not applicable in email viewing)
-                'form', 'input', 'button', 'select', 'textarea', 'option', 'optgroup', 'fieldset', 'legend', 'datalist', 'output',
-                // Script / Style (security)
-                'script', 'noscript', 'style',
-                // Document structure (not needed)
-                'head', 'title', 'base', 'meta', 'link',
-                // MS Office / Outlook specific
-                'x-plan', 'o:p',
-                // Deprecated / problematic
-                'marquee', 'blink', 'frame', 'frameset', 'noframes',
-              ]}
-              customHTMLElementModels={{
-                center: HTMLElementModel.fromCustomModel({
-                  tagName: 'center',
-                  contentModel: HTMLContentModel.block,
-                }),
-                font: HTMLElementModel.fromCustomModel({
-                  tagName: 'font',
-                  contentModel: HTMLContentModel.mixed,
-                }),
-                big: HTMLElementModel.fromCustomModel({
-                  tagName: 'big',
-                  contentModel: HTMLContentModel.mixed,
-                }),
-                strike: HTMLElementModel.fromCustomModel({
-                  tagName: 'strike',
-                  contentModel: HTMLContentModel.mixed,
-                }),
-                tt: HTMLElementModel.fromCustomModel({
-                  tagName: 'tt',
-                  contentModel: HTMLContentModel.mixed,
-                }),
-              }}
-              domVisitors={{
-                onElement: (element) => {
-                  // Strip CSS values React Native can't handle (e.g. 'inherit', 'initial', 'unset')
-                  if (element.attribs?.style) {
-                    element.attribs.style = element.attribs.style
-                      .replace(/color\s*:\s*inherit\b[^;]*/gi, '')
-                      .replace(/color\s*:\s*initial\b[^;]*/gi, '')
-                      .replace(/color\s*:\s*unset\b[^;]*/gi, '')
-                      .replace(/;;+/g, ';')
-                      .replace(/^\s*;\s*/, '')
-                      .replace(/\s*;\s*$/, '');
-                  }
-                },
-              }}
-              renderersProps={{
-                a: {
-                  onPress: (_event: unknown, href: string) => {
-                    if (href) {
-                      contentRouterOpenURL(href, accentColor.primary).catch(() => {
-                        console.debug('[MailDetail] Failed to open URL');
-                      });
-                    }
-                  },
-                },
-              }}
-              enableExperimentalMarginCollapsing
-            />
-          </View>
+          <MailBodyWebView
+            html={body.html}
+            textColor={themeColors.textPrimary}
+            backgroundColor={themeColors.background}
+            linkColor={accentColor.primary}
+            bannerBackgroundColor={themeColors.surface}
+            bannerTextColor={themeColors.textSecondary}
+            bannerButtonColor={accentColor.primary}
+            senderDomain={extractDomain(senderEmail)}
+          />
         ) : (
           <View style={styles.bodyContainer}>
             <Text
@@ -1184,6 +1496,113 @@ const styles = StyleSheet.create({
   },
   bodyContainer: {
     padding: spacing.lg,
+  },
+  webView: {
+    width: '100%',
+    opacity: 0.99, // Forces WKWebView to use proper rendering
+  },
+  imageBanner: {
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  imageBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  imageBannerText: {
+    ...typography.small,
+    flex: 1,
+  },
+  loadImagesButton: {
+    minHeight: touchTargets.minimum,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+  loadImagesButtonText: {
+    ...typography.body,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  // Warning modal (shown after images are loaded)
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: spacing.lg,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    gap: spacing.md,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  modalTitle: {
+    ...typography.h3,
+    fontWeight: '700',
+    flex: 1,
+  },
+  modalBody: {
+    ...typography.body,
+    lineHeight: 26,
+  },
+  modalDomainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  modalDomainLabel: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  modalDomainValue: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+  modalToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    minHeight: touchTargets.minimum,
+  },
+  modalToggleLabel: {
+    ...typography.body,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: spacing.md,
+  },
+  modalSettingsHint: {
+    ...typography.small,
+    fontStyle: 'italic',
+  },
+  modalDismissButton: {
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  modalDismissButtonText: {
+    ...typography.body,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   bodyText: {
     ...typography.body,

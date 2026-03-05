@@ -488,6 +488,16 @@
       "emailNotificationsHint": "Få en avisering för nya e-postmeddelanden",
       "biometricLock": "Biometrisk säkerhet",
       "biometricLockHint": "Använd Face ID eller fingeravtryck för att öppna e-post"
+    },
+    "whitelist": {
+      "title": "Betrodda avsändare",
+      "description": "Bilder från dessa domäner laddas automatiskt.",
+      "emptyTitle": "Inga betrodda avsändare",
+      "emptyDescription": "När du laddar bilder i ett e-postmeddelande kan du lägga till avsändarens domän i den här listan.",
+      "removeDomain": "Ta bort",
+      "removeConfirmTitle": "Ta bort domän",
+      "removeConfirmMessage": "Vill du ta bort {{domain}} från betrodda avsändare? Bilder från den här domänen laddas inte längre automatiskt.",
+      "domainRemoved": "{{domain}} borttagen"
     }
   },
   "privacySettings": {
@@ -1645,7 +1655,20 @@
         "saveComplete": "{{saved}} sparade, {{failed}} misslyckades",
         "saveAllButton": "Spara alla",
         "photos": "{{count}} foto(n)",
-        "viewPhoto": "Visa foto: {{name}}"
+        "viewPhoto": "Visa foto: {{name}}",
+        "imagesBlocked": "Bilder är blockerade för att skydda din integritet.",
+        "loadImages": "Ladda bilder",
+        "externalImagesTitle": "Ladda externa bilder?",
+        "externalImagesWarning": "Genom att ladda externa bilder kan avsändaren se:\n\n• Att du öppnade detta meddelande\n• Din IP-adress och ungefärliga plats\n• När du läste meddelandet\n\nVill du fortsätta?",
+        "loadImagesConfirm": "Ladda",
+        "imagesLoadedWarning": "Externa bilder har laddats. Avsändaren kan se att du öppnade detta meddelande.",
+        "warningModalTitle": "Bilder laddade",
+        "warningModalBody": "Externa bilder har laddats. Avsändaren kan nu eventuellt se att du öppnade detta meddelande, din IP-adress och när du läste det.",
+        "warningModalSender": "Avsändare:",
+        "warningModalAlwaysAllow": "Tillåt alltid för {{domain}}",
+        "warningModalSettingsHint": "Du kan hantera betrodda avsändare i Inställningar → E-post.",
+        "warningModalDismiss": "Förstått",
+        "mailBody": "E-postinnehåll"
       },
       "compose": {
         "from": "Från",

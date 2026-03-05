@@ -617,6 +617,16 @@
       "emailNotificationsHint": "Receber uma notificação para novos e-mails",
       "biometricLock": "Segurança biométrica",
       "biometricLockHint": "Usar Face ID ou impressão digital para abrir o e-mail"
+    },
+    "whitelist": {
+      "title": "Remetentes de confiança",
+      "description": "As imagens destes domínios são carregadas automaticamente.",
+      "emptyTitle": "Sem remetentes de confiança",
+      "emptyDescription": "Quando carrega imagens num e-mail, pode adicionar o domínio do remetente a esta lista.",
+      "removeDomain": "Remover",
+      "removeConfirmTitle": "Remover domínio",
+      "removeConfirmMessage": "Deseja remover {{domain}} dos remetentes de confiança? As imagens deste domínio deixarão de ser carregadas automaticamente.",
+      "domainRemoved": "{{domain}} removido"
     }
   },
   "privacySettings": {
@@ -1818,7 +1828,20 @@
         "saveComplete": "{{saved}} guardados, {{failed}} falharam",
         "saveAllButton": "Guardar tudo",
         "photos": "{{count}} foto(s)",
-        "viewPhoto": "Ver foto: {{name}}"
+        "viewPhoto": "Ver foto: {{name}}",
+        "imagesBlocked": "As imagens estão bloqueadas para proteger a sua privacidade.",
+        "loadImages": "Carregar imagens",
+        "externalImagesTitle": "Carregar imagens externas?",
+        "externalImagesWarning": "Ao carregar imagens externas, o remetente poderá ver:\n\n• Que abriu esta mensagem\n• O seu endereço IP e localização aproximada\n• Quando leu a mensagem\n\nDeseja continuar?",
+        "loadImagesConfirm": "Carregar",
+        "imagesLoadedWarning": "As imagens externas foram carregadas. O remetente pode saber que abriu esta mensagem.",
+        "warningModalTitle": "Imagens carregadas",
+        "warningModalBody": "As imagens externas foram carregadas. O remetente pode agora ver que abriu esta mensagem, o seu endereço IP e quando a leu.",
+        "warningModalSender": "Remetente:",
+        "warningModalAlwaysAllow": "Permitir sempre para {{domain}}",
+        "warningModalSettingsHint": "Pode gerir remetentes de confiança em Definições → E-mail.",
+        "warningModalDismiss": "Compreendido",
+        "mailBody": "Conteúdo do e-mail"
       },
       "compose": {
         "from": "De",

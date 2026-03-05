@@ -430,6 +430,16 @@
       "emailNotificationsHint": "Ontvang een melding bij nieuwe e-mails",
       "biometricLock": "Biometrische beveiliging",
       "biometricLockHint": "Gebruik Face ID of vingerafdruk om e-mail te openen"
+    },
+    "whitelist": {
+      "title": "Vertrouwde afzenders",
+      "description": "Afbeeldingen van deze domeinen worden automatisch geladen.",
+      "emptyTitle": "Geen vertrouwde afzenders",
+      "emptyDescription": "Wanneer u afbeeldingen laadt in een e-mail, kunt u het domein van de afzender toevoegen aan deze lijst.",
+      "removeDomain": "Verwijderen",
+      "removeConfirmTitle": "Domein verwijderen",
+      "removeConfirmMessage": "Wilt u {{domain}} verwijderen van de vertrouwde afzenders? Afbeeldingen van dit domein worden niet meer automatisch geladen.",
+      "domainRemoved": "{{domain}} verwijderd"
     }
   },
   "privacySettings": {
@@ -1811,7 +1821,20 @@
         "saveComplete": "{{saved}} opgeslagen, {{failed}} mislukt",
         "saveAllButton": "Alles opslaan",
         "photos": "{{count}} foto('s)",
-        "viewPhoto": "Foto bekijken: {{name}}"
+        "viewPhoto": "Foto bekijken: {{name}}",
+        "imagesBlocked": "Afbeeldingen zijn geblokkeerd ter bescherming van uw privacy.",
+        "loadImages": "Afbeeldingen laden",
+        "externalImagesTitle": "Externe afbeeldingen laden?",
+        "externalImagesWarning": "Door externe afbeeldingen te laden, kan de afzender zien:\n\n• Dat u dit bericht heeft geopend\n• Uw IP-adres en geschatte locatie\n• Het tijdstip waarop u het bericht las\n\nWilt u doorgaan?",
+        "loadImagesConfirm": "Laden",
+        "imagesLoadedWarning": "Externe afbeeldingen zijn geladen. De afzender kan zien dat u dit bericht heeft geopend.",
+        "warningModalTitle": "Afbeeldingen geladen",
+        "warningModalBody": "Externe afbeeldingen zijn geladen. De afzender kan nu mogelijk zien dat u dit bericht heeft geopend, uw IP-adres en het tijdstip waarop u het las.",
+        "warningModalSender": "Afzender:",
+        "warningModalAlwaysAllow": "Altijd toestaan voor {{domain}}",
+        "warningModalSettingsHint": "U kunt vertrouwde afzenders beheren via Instellingen → E-mail.",
+        "warningModalDismiss": "Begrepen",
+        "mailBody": "E-mail inhoud"
       },
       "compose": {
         "from": "Van",
