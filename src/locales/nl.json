@@ -9,6 +9,15 @@
       "searchBy": "Zoeken op basis van:",
       "tapToChange": "{{current}} - tik om te wijzigen",
       "tapToChangeHint": "Open menu om te wisselen tussen land en taal"
+    },
+    "imageViewer": {
+      "photo": "Foto {{current}} van {{total}}",
+      "counter": "{{current}} van {{total}}",
+      "previous": "Vorige foto",
+      "next": "Volgende foto",
+      "saveToAlbum": "Opslaan in Fotoalbum",
+      "saved": "Opgeslagen",
+      "alreadySaved": "Al opgeslagen in Fotoalbum"
     }
   },
   "colors": {
@@ -1799,7 +1808,9 @@
         "saveAllMedia": "Alle foto's en video's opslaan ({{count}})",
         "saveAllPhotos": "{{count}} foto's en video's opslaan",
         "saveComplete": "{{saved}} opgeslagen, {{failed}} mislukt",
-        "saveAllButton": "Alles opslaan"
+        "saveAllButton": "Alles opslaan",
+        "photos": "{{count}} foto('s)",
+        "viewPhoto": "Foto bekijken: {{name}}"
       },
       "compose": {
         "from": "Van",

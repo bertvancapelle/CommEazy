@@ -1,26 +1,24 @@
 /**
- * Save To Album Service — Save mail attachments to CommEazy PhotoAlbum
+ * Save To Album Service — Save mail attachments to CommEazy Fotoalbum
  *
- * Thin wrapper — does NOT duplicate album logic. Uses existing media
- * service and PhotoAlbum module for actual storage.
+ * Saves photos from mail attachments into CommEazy's own media storage
+ * (DocumentDirectoryPath/media/) via mediaStorageService. Does NOT use
+ * the iOS Camera Roll or @react-native-camera-roll/camera-roll.
  *
  * Flow:
- * 1. Duplicate check via album service
- * 2. Download attachment via imapBridge.fetchAttachmentData()
- * 3. Write temporary file
- * 4. Save to album via media service
- * 5. Clean up temporary file (even on error)
- * 6. Return SaveResult
- *
- * ⛔ BLOKKEERDER: Mail module cannot be considered complete without this.
+ * 1. Download attachment via imapBridge.fetchAttachmentData()
+ * 2. Write to temporary file
+ * 3. Save to Fotoalbum via mediaStorageService.savePhoto()
+ * 4. Clean up temporary file (even on error)
+ * 5. Return SaveResult
  *
  * @see .claude/plans/MAIL_MODULE_PROMPT.md — Fase 17
  */
 
 import RNFS from 'react-native-fs';
-import { NativeModules, Platform } from 'react-native';
-import { canSaveToAlbum, isImageType, isVideoType, getExtensionFromMime } from './mediaAttachmentService';
-import type { MailAttachmentMeta, AttachmentData } from '@/types/mail';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { canSaveToAlbum, isImageType, getExtensionFromMime } from './mediaAttachmentService';
+import type { MailAttachmentMeta } from '@/types/mail';
 
 // ============================================================
 // Types
@@ -37,8 +35,7 @@ export type SaveError =
   | 'UNSUPPORTED_FORMAT'
   | 'DOWNLOAD_FAILED'
   | 'ALREADY_SAVED'
-  | 'ALBUM_ERROR'
-  | 'PERMISSION_DENIED';
+  | 'ALBUM_ERROR';
 
 export interface DownloadProgress {
   attachmentId: string;
@@ -55,11 +52,62 @@ export interface BulkSaveResult {
 }
 
 // ============================================================
+// Duplicate Prevention
+// ============================================================
+
+/** AsyncStorage prefix for tracking saved mail attachments */
+const SAVE_KEY_PREFIX = '@commeazy/mail_saved_';
+
+/**
+ * Build a unique key for a mail attachment.
+ */
+function buildSaveKey(accountId: string, uid: number, attachmentIndex: number): string {
+  return `${SAVE_KEY_PREFIX}${accountId}_${uid}_${attachmentIndex}`;
+}
+
+/**
+ * Check if an attachment has already been saved to the album.
+ */
+export async function isAlreadySaved(
+  accountId: string,
+  uid: number,
+  attachmentIndex: number,
+): Promise<boolean> {
+  try {
+    const key = buildSaveKey(accountId, uid, attachmentIndex);
+    const value = await AsyncStorage.getItem(key);
+    return value !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Mark an attachment as saved in AsyncStorage.
+ */
+async function markAsSaved(
+  accountId: string,
+  uid: number,
+  attachmentIndex: number,
+  mediaId: string,
+): Promise<void> {
+  try {
+    const key = buildSaveKey(accountId, uid, attachmentIndex);
+    await AsyncStorage.setItem(key, mediaId);
+  } catch {
+    // Non-critical: duplicate prevention data lost
+  }
+}
+
+// ============================================================
 // Single Save
 // ============================================================
 
 /**
- * Save a single mail attachment to the device photo album.
+ * Save a single mail attachment to CommEazy's Fotoalbum.
+ *
+ * Downloads the attachment via IMAP, writes to a temp file,
+ * then saves to the app's own media storage via mediaStorageService.
  *
  * @param uid - Mail UID
  * @param folder - Mail folder name
@@ -73,11 +121,17 @@ export async function saveAttachmentToAlbum(
   folder: string,
   attachment: MailAttachmentMeta,
   accountId: string,
-  onProgress?: (progress: DownloadProgress) => void,
+  _onProgress?: (progress: DownloadProgress) => void,
 ): Promise<SaveResult> {
   // Validate MIME type
   if (!canSaveToAlbum(attachment.mimeType)) {
     return { success: false, error: 'UNSUPPORTED_FORMAT' };
+  }
+
+  // Check for duplicates
+  const alreadySaved = await isAlreadySaved(accountId, uid, attachment.index);
+  if (alreadySaved) {
+    return { success: false, error: 'ALREADY_SAVED' };
   }
 
   const extension = getExtensionFromMime(attachment.mimeType);
@@ -106,43 +160,50 @@ export async function saveAttachmentToAlbum(
       return { success: false, error: 'DOWNLOAD_FAILED' };
     }
 
-    // Step 3: Save to device Camera Roll / Photos app
-    if (Platform.OS === 'ios') {
-      // On iOS, use CameraRoll API to save to Photos
-      try {
-        const CameraRoll = await import('@react-native-camera-roll/camera-roll');
-        const savedUri = await CameraRoll.CameraRoll.saveAsset(tempPath, {
-          type: isVideoType(attachment.mimeType) ? 'video' : 'photo',
-        });
-        return { success: true, mediaId: savedUri.node?.image?.uri };
-      } catch {
-        return { success: false, error: 'ALBUM_ERROR' };
+    // Step 3: Save to CommEazy's Fotoalbum via mediaStorageService
+    const mediaStorage = await import('@/services/media/mediaStorageService');
+
+    if (isImageType(attachment.mimeType)) {
+      const mediaItem = await mediaStorage.savePhoto(
+        tempPath,
+        `mail_${accountId}`, // chatId — group by mail account
+        'received',          // source
+        undefined,           // senderJid
+        undefined,           // senderName
+      );
+
+      if (mediaItem) {
+        // Mark as saved to prevent duplicates
+        await markAsSaved(accountId, uid, attachment.index, mediaItem.id);
+        return { success: true, mediaId: mediaItem.id };
       }
+
+      return { success: false, error: 'ALBUM_ERROR' };
     } else {
-      // Android: save to MediaStore
-      try {
-        const CameraRoll = await import('@react-native-camera-roll/camera-roll');
-        const savedUri = await CameraRoll.CameraRoll.saveAsset(tempPath, {
-          type: isVideoType(attachment.mimeType) ? 'video' : 'photo',
-        });
-        return { success: true, mediaId: savedUri.node?.image?.uri };
-      } catch {
-        return { success: false, error: 'ALBUM_ERROR' };
+      // Video — use saveVideo if available, otherwise saveMedia
+      const mediaItem = await mediaStorage.saveMedia(
+        tempPath,
+        `mail_${accountId}`,
+        'received',
+      );
+
+      if (mediaItem) {
+        await markAsSaved(accountId, uid, attachment.index, mediaItem.id);
+        return { success: true, mediaId: mediaItem.id };
       }
+
+      return { success: false, error: 'ALBUM_ERROR' };
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
 
-    if (message.includes('permission') || message.includes('Permission')) {
-      return { success: false, error: 'PERMISSION_DENIED' };
-    }
     if (message.includes('space') || message.includes('storage')) {
       return { success: false, error: 'STORAGE_FULL' };
     }
 
     return { success: false, error: 'DOWNLOAD_FAILED' };
   } finally {
-    // Step 5: Always clean up temp file
+    // Always clean up temp file
     try {
       const exists = await RNFS.exists(tempPath);
       if (exists) {
@@ -184,7 +245,6 @@ export async function saveAttachmentsBulk(
   for (let i = 0; i < attachments.length; i++) {
     // Check for cancellation
     if (abortSignal?.aborted) {
-      // Mark remaining as failed
       for (let j = i; j < attachments.length; j++) {
         results.push({ success: false, error: 'DOWNLOAD_FAILED' });
         failed++;

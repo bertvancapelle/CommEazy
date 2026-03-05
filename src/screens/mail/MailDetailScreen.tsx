@@ -20,6 +20,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
@@ -29,6 +30,7 @@ import {
   Platform,
   useWindowDimensions,
 } from 'react-native';
+import RNFS from 'react-native-fs';
 import RenderHtml from 'react-native-render-html';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +38,8 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { Icon } from '@/components';
+import { Icon, FullscreenImageViewer } from '@/components';
+import type { ViewerImage } from '@/components';
 import type {
   CachedMailHeader,
   MailBody,
@@ -44,10 +47,8 @@ import type {
   MailAccount,
 } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
-import { canSaveToAlbum } from '@/services/mail/mediaAttachmentService';
-import { getSaveableAttachments } from '@/services/mail/saveToAlbumService';
-import { DownloadProgressIndicator } from '@/components/mail/DownloadProgressIndicator';
-import { BulkSaveSheet } from '@/components/mail/BulkSaveSheet';
+import { canSaveToAlbum, isImageType } from '@/services/mail/mediaAttachmentService';
+import { getSaveableAttachments, isAlreadySaved } from '@/services/mail/saveToAlbumService';
 
 // ============================================================
 // Types
@@ -189,7 +190,16 @@ export function MailDetailScreen({
   const [body, setBody] = useState<MailBody | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showBulkSave, setShowBulkSave] = useState(false);
+
+  // Image viewer state
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
+  /** Map of attachment index → local temp file URI (for downloaded thumbnails) */
+  const [downloadedImages, setDownloadedImages] = useState<Map<number, string>>(new Map());
+  /** Set of attachment indices currently being downloaded */
+  const [downloadingImages, setDownloadingImages] = useState<Set<number>>(new Set());
+  /** Set of attachment indices already saved to album */
+  const [savedToAlbumIndices, setSavedToAlbumIndices] = useState<Set<number>>(new Set());
 
   const mountedRef = useRef(true);
 
@@ -198,6 +208,23 @@ export function MailDetailScreen({
     () => (body?.attachments ? getSaveableAttachments(body.attachments) : []),
     [body?.attachments],
   );
+
+  // Image attachments only (for inline thumbnails + viewer)
+  const imageAttachments = useMemo(
+    () => (body?.attachments?.filter(a => isImageType(a.mimeType)) ?? []),
+    [body?.attachments],
+  );
+
+  // Build viewer images array from downloaded images
+  const viewerImages: ViewerImage[] = useMemo(() => {
+    return imageAttachments
+      .filter(a => downloadedImages.has(a.index))
+      .map(a => ({
+        id: `att_${a.index}`,
+        uri: downloadedImages.get(a.index)!,
+        savedToAlbum: savedToAlbumIndices.has(a.index),
+      }));
+  }, [imageAttachments, downloadedImages, savedToAlbumIndices]);
 
   useEffect(() => {
     return () => {
@@ -282,6 +309,124 @@ export function MailDetailScreen({
 
     loadBody();
   }, [header.uid, header.folder, account.id]);
+
+  // ============================================================
+  // Auto-download image thumbnails
+  // ============================================================
+
+  useEffect(() => {
+    if (imageAttachments.length === 0) return;
+
+    const downloadImageThumbnails = async () => {
+      const imapBridge = await import('@/services/mail/imapBridge');
+
+      for (const attachment of imageAttachments) {
+        if (!mountedRef.current) break;
+        if (downloadedImages.has(attachment.index)) continue;
+        if (downloadingImages.has(attachment.index)) continue;
+
+        // Mark as downloading
+        setDownloadingImages(prev => new Set(prev).add(attachment.index));
+
+        try {
+          const data = await imapBridge.fetchAttachmentData(
+            header.uid,
+            header.folder,
+            attachment.index,
+          );
+
+          if (!data || !mountedRef.current) continue;
+
+          // Write to temp file for display
+          const ext = attachment.mimeType === 'image/png' ? '.png' : '.jpg';
+          const tempPath = `${RNFS.CachesDirectoryPath}/mail_thumb_${header.uid}_${attachment.index}${ext}`;
+
+          if (data.base64) {
+            await RNFS.writeFile(tempPath, data.base64, 'base64');
+          } else if (data.filePath) {
+            await RNFS.copyFile(data.filePath, tempPath);
+          } else {
+            continue;
+          }
+
+          if (mountedRef.current) {
+            setDownloadedImages(prev => new Map(prev).set(attachment.index, tempPath));
+          }
+        } catch {
+          console.debug('[MailDetail] Failed to download image thumbnail:', attachment.name);
+        } finally {
+          if (mountedRef.current) {
+            setDownloadingImages(prev => {
+              const next = new Set(prev);
+              next.delete(attachment.index);
+              return next;
+            });
+          }
+        }
+      }
+
+      // Check saved status for all image attachments
+      if (mountedRef.current) {
+        for (const attachment of imageAttachments) {
+          const saved = await isAlreadySaved(account.id, header.uid, attachment.index);
+          if (saved && mountedRef.current) {
+            setSavedToAlbumIndices(prev => new Set(prev).add(attachment.index));
+          }
+        }
+      }
+    };
+
+    downloadImageThumbnails();
+  }, [imageAttachments, header.uid, header.folder, account.id]);
+
+  // Cleanup temp files on unmount
+  useEffect(() => {
+    return () => {
+      downloadedImages.forEach(async (tempPath) => {
+        try {
+          const exists = await RNFS.exists(tempPath);
+          if (exists) await RNFS.unlink(tempPath);
+        } catch {
+          // Non-critical
+        }
+      });
+    };
+  }, []);
+
+  // ============================================================
+  // Image viewer save handler
+  // ============================================================
+
+  const handleViewerSave = useCallback(async (image: ViewerImage, index: number): Promise<boolean> => {
+    // Find the original attachment for this viewer image
+    const downloadedArr = imageAttachments.filter(a => downloadedImages.has(a.index));
+    const attachment = downloadedArr[index];
+    if (!attachment) return false;
+
+    try {
+      const { saveAttachmentToAlbum } = await import('@/services/mail/saveToAlbumService');
+      const result = await saveAttachmentToAlbum(
+        header.uid,
+        header.folder,
+        attachment,
+        account.id,
+      );
+
+      if (result.success) {
+        setSavedToAlbumIndices(prev => new Set(prev).add(attachment.index));
+        return true;
+      }
+
+      if (result.error === 'ALREADY_SAVED') {
+        setSavedToAlbumIndices(prev => new Set(prev).add(attachment.index));
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }, [imageAttachments, downloadedImages, header.uid, header.folder, account.id]);
 
   // ============================================================
   // Actions
@@ -485,7 +630,7 @@ export function MailDetailScreen({
                   color: themeColors.textSecondary,
                 },
               }}
-              ignoredDomTags={['img', 'source', 'video', 'audio', 'picture', 'iframe', 'object', 'embed', 'svg', 'x-plan']}
+              ignoredDomTags={['img', 'source', 'video', 'audio', 'picture', 'iframe', 'object', 'embed', 'svg', 'x-plan', 'meta', 'link']}
               domVisitors={{
                 onElement: (element) => {
                   // Strip CSS values React Native can't handle (e.g. 'inherit', 'initial', 'unset')
@@ -525,55 +670,102 @@ export function MailDetailScreen({
           </View>
         )}
 
-        {/* Attachments */}
-        {body?.attachments && body.attachments.length > 0 && (
+        {/* Inline image thumbnails */}
+        {imageAttachments.length > 0 && (
+          <View style={styles.inlineImagesSection}>
+            <Text style={[styles.attachmentsTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.mail.detail.photos', { count: imageAttachments.length })}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.inlineImagesScroll}
+            >
+              {imageAttachments.map((attachment, idx) => {
+                const localUri = downloadedImages.get(attachment.index);
+                const isDownloading = downloadingImages.has(attachment.index);
+                const isSavedAlready = savedToAlbumIndices.has(attachment.index);
+
+                return (
+                  <TouchableOpacity
+                    key={attachment.index}
+                    style={[styles.inlineThumbnailContainer, { borderColor: themeColors.border }]}
+                    onPress={() => {
+                      if (localUri) {
+                        triggerHaptic();
+                        // Find the viewer index for this attachment
+                        const viewerIdx = imageAttachments
+                          .filter(a => downloadedImages.has(a.index))
+                          .findIndex(a => a.index === attachment.index);
+                        setViewerInitialIndex(viewerIdx >= 0 ? viewerIdx : 0);
+                        setViewerVisible(true);
+                      }
+                    }}
+                    onLongPress={() => {}}
+                    delayLongPress={300}
+                    activeOpacity={0.7}
+                    disabled={!localUri}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.mail.detail.viewPhoto', { name: attachment.name })}
+                  >
+                    {localUri ? (
+                      <Image
+                        source={{ uri: localUri }}
+                        style={styles.inlineThumbnail}
+                        resizeMode="cover"
+                      />
+                    ) : isDownloading ? (
+                      <View style={styles.thumbnailPlaceholder}>
+                        <ActivityIndicator size="small" color={accentColor.primary} />
+                      </View>
+                    ) : (
+                      <View style={styles.thumbnailPlaceholder}>
+                        <Icon name="image" size={24} color={themeColors.textSecondary} />
+                      </View>
+                    )}
+
+                    {/* Saved badge */}
+                    {isSavedAlready && (
+                      <View style={[styles.savedBadge, { backgroundColor: 'rgba(76, 175, 80, 0.85)' }]}>
+                        <Icon name="check" size={12} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Non-image attachments */}
+        {body?.attachments && body.attachments.filter(a => !isImageType(a.mimeType)).length > 0 && (
           <View style={styles.attachmentsSection}>
             <Text style={[styles.attachmentsTitle, { color: themeColors.textPrimary }]}>
-              {t('modules.mail.detail.attachments', { count: body.attachments.length })}
+              {t('modules.mail.detail.attachments', { count: body.attachments.filter(a => !isImageType(a.mimeType)).length })}
             </Text>
-            {body.attachments.map((attachment) => (
-              <AttachmentRow
-                key={attachment.index}
-                attachment={attachment}
-                uid={header.uid}
-                folder={header.folder}
-                accountId={account.id}
-              />
-            ))}
-
-            {/* Bulk save button for 2+ saveable attachments */}
-            {saveableAttachments.length >= 2 && (
-              <TouchableOpacity
-                style={[styles.bulkSaveButton, { backgroundColor: accentColor.light }]}
-                onPress={() => {
-                  triggerHaptic();
-                  setShowBulkSave(true);
-                }}
-                onLongPress={() => {}}
-                delayLongPress={300}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.mail.detail.saveAllMedia', { count: saveableAttachments.length })}
-              >
-                <Icon name="download" size={22} color={accentColor.primary} />
-                <Text style={[styles.bulkSaveText, { color: accentColor.primary }]}>
-                  {t('modules.mail.detail.saveAllMedia', { count: saveableAttachments.length })}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {body.attachments
+              .filter(a => !isImageType(a.mimeType))
+              .map((attachment) => (
+                <AttachmentRow
+                  key={attachment.index}
+                  attachment={attachment}
+                  uid={header.uid}
+                  folder={header.folder}
+                  accountId={account.id}
+                />
+              ))}
           </View>
         )}
       </ScrollView>
 
-      {/* Bulk Save Sheet */}
-      <BulkSaveSheet
-        visible={showBulkSave}
-        uid={header.uid}
-        folder={header.folder}
-        accountId={account.id}
-        attachments={saveableAttachments}
-        onComplete={() => {}}
-        onClose={() => setShowBulkSave(false)}
+      {/* Fullscreen Image Viewer */}
+      <FullscreenImageViewer
+        visible={viewerVisible}
+        images={viewerImages}
+        initialIndex={viewerInitialIndex}
+        onClose={() => setViewerVisible(false)}
+        onSave={handleViewerSave}
+        accentColor={accentColor.primary}
       />
 
       {/* Bottom action bar */}
@@ -885,6 +1077,43 @@ const styles = StyleSheet.create({
     ...typography.body,
     lineHeight: 28,
   },
+  inlineImagesSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  inlineImagesScroll: {
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  inlineThumbnailContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  inlineThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbnailPlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  savedBadge: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   attachmentsSection: {
     padding: spacing.lg,
     gap: spacing.sm,
@@ -928,20 +1157,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: 'rgba(0,0,0,0.1)',
   },
-  bulkSaveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginTop: spacing.sm,
-  },
-  bulkSaveText: {
-    ...typography.body,
-    fontWeight: '700',
-  },
+  // bulkSave styles removed — replaced by inline thumbnails + viewer
   bottomBar: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,

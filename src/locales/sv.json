@@ -9,6 +9,15 @@
       "searchBy": "Sök baserat på:",
       "tapToChange": "{{current}} - tryck för att ändra",
       "tapToChangeHint": "Öppna meny för att växla mellan land och språk"
+    },
+    "imageViewer": {
+      "photo": "Foto {{current}} av {{total}}",
+      "counter": "{{current}} av {{total}}",
+      "previous": "Föregående foto",
+      "next": "Nästa foto",
+      "saveToAlbum": "Spara i fotoalbum",
+      "saved": "Sparad",
+      "alreadySaved": "Redan sparad i fotoalbum"
     }
   },
   "colors": {
@@ -1633,7 +1642,9 @@
         "saveAllMedia": "Spara alla foton och videor ({{count}})",
         "saveAllPhotos": "Spara {{count}} foton och videor",
         "saveComplete": "{{saved}} sparade, {{failed}} misslyckades",
-        "saveAllButton": "Spara alla"
+        "saveAllButton": "Spara alla",
+        "photos": "{{count}} foto(n)",
+        "viewPhoto": "Visa foto: {{name}}"
       },
       "compose": {
         "from": "Från",

@@ -570,20 +570,22 @@ export function MailInboxScreen({
       {/* Search results header */}
       {searchResults !== null && (
         <View style={[styles.searchResultsBar, { backgroundColor: themeColors.surface }]}>
-          <Text style={[styles.searchResultsText, { color: themeColors.textSecondary }]}>
+          <Text style={[styles.searchResultsText, { color: themeColors.textPrimary }]}>
             {searchResults.length === 0
               ? t('modules.mail.inbox.search.noResults')
               : t('modules.mail.inbox.search.resultsCount', { count: String(searchResults.length) })}
           </Text>
           <TouchableOpacity
+            style={[styles.searchClearPill, { backgroundColor: 'rgba(128, 128, 128, 0.15)' }]}
             onPress={handleClearSearch}
             onLongPress={() => {}}
             delayLongPress={300}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.inbox.search.clear')}
           >
-            <Text style={[styles.searchClearButton, { color: accentColor.primary }]}>
+            <Icon name="x" size={16} color={accentColor.primary} />
+            <Text style={[styles.searchClearButtonText, { color: accentColor.primary }]}>
               {t('modules.mail.inbox.search.clear')}
             </Text>
           </TouchableOpacity>
@@ -772,11 +774,20 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   searchResultsText: {
-    ...typography.small,
+    ...typography.body,
+    fontWeight: '700',
     flex: 1,
   },
-  searchClearButton: {
-    ...typography.body,
+  searchClearPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 8,
+    borderRadius: borderRadius.md,
+  },
+  searchClearButtonText: {
+    ...typography.label,
     fontWeight: '600',
   },
   errorBanner: {

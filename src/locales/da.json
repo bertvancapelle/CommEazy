@@ -9,6 +9,15 @@
       "searchBy": "Søg baseret på:",
       "tapToChange": "{{current}} - tryk for at ændre",
       "tapToChangeHint": "Åbn menu for at skifte mellem land og sprog"
+    },
+    "imageViewer": {
+      "photo": "Foto {{current}} af {{total}}",
+      "counter": "{{current}} af {{total}}",
+      "previous": "Forrige foto",
+      "next": "Næste foto",
+      "saveToAlbum": "Gem i fotoalbum",
+      "saved": "Gemt",
+      "alreadySaved": "Allerede gemt i fotoalbum"
     }
   },
   "colors": {
@@ -1633,7 +1642,9 @@
         "saveAllMedia": "Gem alle fotos og videoer ({{count}})",
         "saveAllPhotos": "Gem {{count}} fotos og videoer",
         "saveComplete": "{{saved}} gemt, {{failed}} mislykkedes",
-        "saveAllButton": "Gem alle"
+        "saveAllButton": "Gem alle",
+        "photos": "{{count}} foto(s)",
+        "viewPhoto": "Vis foto: {{name}}"
       },
       "compose": {
         "from": "Fra",

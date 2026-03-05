@@ -160,6 +160,10 @@ export type { QueueViewProps } from './QueueView';
 export { SeniorDatePicker } from './SeniorDatePicker';
 export type { SeniorDatePickerProps } from './SeniorDatePicker';
 
+// Fullscreen Image Viewer (reusable — mail, chat, photo album)
+export { FullscreenImageViewer } from './FullscreenImageViewer';
+export type { FullscreenImageViewerProps, ViewerImage } from './FullscreenImageViewer';
+
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';

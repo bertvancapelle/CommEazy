@@ -9,6 +9,15 @@
       "searchBy": "Search by:",
       "tapToChange": "{{current}} - tap to change",
       "tapToChangeHint": "Open menu to switch between country and language"
+    },
+    "imageViewer": {
+      "photo": "Photo {{current}} of {{total}}",
+      "counter": "{{current}} of {{total}}",
+      "previous": "Previous photo",
+      "next": "Next photo",
+      "saveToAlbum": "Save to Photo Album",
+      "saved": "Saved",
+      "alreadySaved": "Already saved to Photo Album"
     }
   },
   "colors": {
@@ -1793,7 +1802,9 @@
         "saveAllMedia": "Save all photos and videos ({{count}})",
         "saveAllPhotos": "Save {{count}} photos and videos",
         "saveComplete": "{{saved}} saved, {{failed}} failed",
-        "saveAllButton": "Save all"
+        "saveAllButton": "Save all",
+        "photos": "{{count}} photo(s)",
+        "viewPhoto": "View photo: {{name}}"
       },
       "compose": {
         "from": "From",

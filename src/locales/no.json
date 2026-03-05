@@ -9,6 +9,15 @@
       "searchBy": "Søk basert på:",
       "tapToChange": "{{current}} - trykk for å endre",
       "tapToChangeHint": "Åpne meny for å bytte mellom land og språk"
+    },
+    "imageViewer": {
+      "photo": "Bilde {{current}} av {{total}}",
+      "counter": "{{current}} av {{total}}",
+      "previous": "Forrige bilde",
+      "next": "Neste bilde",
+      "saveToAlbum": "Lagre i fotoalbum",
+      "saved": "Lagret",
+      "alreadySaved": "Allerede lagret i fotoalbum"
     }
   },
   "colors": {
@@ -1663,7 +1672,9 @@
         "saveAllMedia": "Lagre alle bilder og videoer ({{count}})",
         "saveAllPhotos": "Lagre {{count}} bilder og videoer",
         "saveComplete": "{{saved}} lagret, {{failed}} mislyktes",
-        "saveAllButton": "Lagre alle"
+        "saveAllButton": "Lagre alle",
+        "photos": "{{count}} bilde(r)",
+        "viewPhoto": "Vis bilde: {{name}}"
       },
       "compose": {
         "from": "Fra",

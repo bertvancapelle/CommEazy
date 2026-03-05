@@ -9,6 +9,15 @@
       "searchBy": "Rechercher par :",
       "tapToChange": "{{current}} - appuyez pour changer",
       "tapToChangeHint": "Ouvrir le menu pour basculer entre pays et langue"
+    },
+    "imageViewer": {
+      "photo": "Photo {{current}} sur {{total}}",
+      "counter": "{{current}} sur {{total}}",
+      "previous": "Photo précédente",
+      "next": "Photo suivante",
+      "saveToAlbum": "Enregistrer dans l'album photo",
+      "saved": "Enregistrée",
+      "alreadySaved": "Déjà enregistrée dans l'album photo"
     }
   },
   "colors": {
@@ -1789,7 +1798,9 @@
         "saveAllMedia": "Enregistrer toutes les photos et vidéos ({{count}})",
         "saveAllPhotos": "Enregistrer {{count}} photos et vidéos",
         "saveComplete": "{{saved}} enregistré(s), {{failed}} échoué(s)",
-        "saveAllButton": "Tout enregistrer"
+        "saveAllButton": "Tout enregistrer",
+        "photos": "{{count}} photo(s)",
+        "viewPhoto": "Voir la photo : {{name}}"
       },
       "compose": {
         "from": "De",
