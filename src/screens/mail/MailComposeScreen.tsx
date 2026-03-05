@@ -32,8 +32,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -298,7 +298,7 @@ function RecipientChip({
         }}
         onLongPress={() => {}}
         delayLongPress={300}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
         accessibilityRole="button"
         accessibilityLabel={t('modules.mail.compose.removeRecipient')}
       >
@@ -363,6 +363,57 @@ function ContactSuggestionRow({
 }
 
 // ============================================================
+// SelfSuggestionRow Sub-Component — "Aan mezelf"
+// ============================================================
+
+function SelfSuggestionRow({
+  email,
+  onSelect,
+  accentColor,
+  themeColors,
+  label,
+}: {
+  email: string;
+  onSelect: () => void;
+  accentColor: { primary: string; light: string };
+  themeColors: ReturnType<typeof useColors>;
+  label: string;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.suggestionRow, { borderBottomColor: themeColors.border }]}
+      onPress={() => {
+        triggerHaptic();
+        onSelect();
+      }}
+      onLongPress={() => {}}
+      delayLongPress={300}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${email}`}
+    >
+      <View style={[styles.suggestionAvatar, { backgroundColor: accentColor.primary }]}>
+        <Icon name="user" size={20} color="#FFFFFF" />
+      </View>
+      <View style={styles.suggestionInfo}>
+        <Text
+          style={[styles.suggestionName, { color: themeColors.textPrimary }]}
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+        <Text
+          style={[styles.suggestionEmail, { color: themeColors.textSecondary }]}
+          numberOfLines={1}
+        >
+          {email}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ============================================================
 // RecipientField Sub-Component
 // ============================================================
 
@@ -375,6 +426,8 @@ function RecipientField({
   accentColor,
   themeColors,
   placeholder,
+  accountEmail,
+  accountDisplayName,
 }: {
   label: string;
   recipients: MailRecipient[];
@@ -384,20 +437,38 @@ function RecipientField({
   accentColor: { primary: string; light: string };
   themeColors: ReturnType<typeof useColors>;
   placeholder: string;
+  /** Account email for "To myself" suggestion */
+  accountEmail?: string;
+  /** Account display name for "To myself" chip */
+  accountDisplayName?: string;
 }) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  // Determine if own email is already added as recipient
+  const isSelfAlreadyAdded = useMemo(() => {
+    if (!accountEmail) return true; // Hide self-row if no account email
+    return recipients.some(r => r.email.toLowerCase() === accountEmail.toLowerCase());
+  }, [recipients, accountEmail]);
+
   // Filter contacts by search query, excluding already-added recipients
   const suggestions = useMemo(() => {
-    if (inputValue.length < 2) return [];
     const addedEmails = new Set(recipients.map(r => r.email.toLowerCase()));
+    if (inputValue.length < 2) {
+      // Show all contacts (max 5) when input is empty/short — enables browsing on focus
+      return contacts
+        .filter(c => !addedEmails.has((c.email || '').toLowerCase()))
+        .slice(0, 5);
+    }
     return searchContactsForMail(contacts, inputValue, 5).filter(
       c => !addedEmails.has((c.email || '').toLowerCase()),
     );
   }, [inputValue, contacts, recipients]);
+
+  // Show suggestions when there are contacts or self to show
+  const hasSuggestionsToShow = showSuggestions && (suggestions.length > 0 || !isSelfAlreadyAdded);
 
   const handleSelectContact = useCallback(
     (contact: Contact) => {
@@ -411,12 +482,24 @@ function RecipientField({
     [onAddRecipient],
   );
 
+  const handleSelectSelf = useCallback(() => {
+    if (!accountEmail) return;
+    onAddRecipient({
+      email: accountEmail,
+      name: accountDisplayName,
+      isFromContacts: false,
+    });
+    setInputValue('');
+    setShowSuggestions(false);
+  }, [accountEmail, accountDisplayName, onAddRecipient]);
+
   const handleSubmitManualAddress = useCallback(() => {
     const trimmed = inputValue.trim();
     if (trimmed.length === 0) return;
 
-    // Basic email validation
-    if (!trimmed.includes('@') || !trimmed.includes('.')) return;
+    // Basic email validation — user@domain.tld format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) return;
 
     // Check for duplicates
     const exists = recipients.some(
@@ -437,7 +520,7 @@ function RecipientField({
 
   const handleChangeText = useCallback((text: string) => {
     setInputValue(text);
-    setShowSuggestions(text.length >= 2);
+    setShowSuggestions(true);
   }, []);
 
   return (
@@ -476,17 +559,25 @@ function RecipientField({
               // Small delay so tapping a suggestion still works
               setTimeout(() => setShowSuggestions(false), 200);
             }}
-            onFocus={() => {
-              if (inputValue.length >= 2) setShowSuggestions(true);
-            }}
+            onFocus={() => setShowSuggestions(true)}
             accessibilityLabel={label}
           />
         </View>
       </View>
 
       {/* Contact suggestions dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
+      {hasSuggestionsToShow && (
         <View style={[styles.suggestionsContainer, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+          {/* "Aan mezelf" — always first when not already added */}
+          {!isSelfAlreadyAdded && accountEmail && (
+            <SelfSuggestionRow
+              email={accountEmail}
+              onSelect={handleSelectSelf}
+              accentColor={accentColor}
+              themeColors={themeColors}
+              label={t('modules.mail.compose.toMyself')}
+            />
+          )}
           {suggestions.map(contact => (
             <ContactSuggestionRow
               key={contact.userUuid}
@@ -517,7 +608,7 @@ export function MailComposeScreen({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
-  const { width: windowWidth } = useWindowDimensions();
+
 
   // Contact loading
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -867,9 +958,13 @@ export function MailComposeScreen({
   // Render
   // ============================================================
 
+  // Check if CameraRoll is available (photo attachments)
+  const isCameraRollAvailable = false; // @react-native-camera-roll/camera-roll is not installed
+
   return (
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={['top']}>
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: themeColors.background }]}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Top bar — cancel + title */}
@@ -918,6 +1013,8 @@ export function MailComposeScreen({
           accentColor={accentColor}
           themeColors={themeColors}
           placeholder={t('modules.mail.compose.toPlaceholder')}
+          accountEmail={account.email}
+          accountDisplayName={account.displayName}
         />
 
         {/* CC/BCC toggle */}
@@ -943,7 +1040,7 @@ export function MailComposeScreen({
         {/* CC field */}
         {showCcBcc && (
           <RecipientField
-            label="CC"
+            label={t('modules.mail.compose.ccLabel')}
             recipients={ccRecipients}
             onAddRecipient={handleAddCcRecipient}
             onRemoveRecipient={handleRemoveCcRecipient}
@@ -957,7 +1054,7 @@ export function MailComposeScreen({
         {/* BCC field */}
         {showCcBcc && (
           <RecipientField
-            label="BCC"
+            label={t('modules.mail.compose.bccLabel')}
             recipients={bccRecipients}
             onAddRecipient={handleAddBccRecipient}
             onRemoveRecipient={handleRemoveBccRecipient}
@@ -1037,28 +1134,30 @@ export function MailComposeScreen({
       </ScrollView>
 
       {/* Bottom action bar — attach + send */}
-      <View style={[styles.bottomBar, { borderTopColor: themeColors.border }]}>
-        {/* Attach photo button */}
-        <TouchableOpacity
-          style={[
-            styles.bottomAction,
-            { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border },
-          ]}
-          onPress={() => {
-            triggerHaptic();
-            setShowAlbumPicker(true);
-          }}
-          onLongPress={() => {}}
-          delayLongPress={300}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.mail.compose.attachPhoto')}
-        >
-          <Icon name="attach" size={22} color={accentColor.primary} />
-          <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
-            {t('modules.mail.compose.attachPhoto')}
-          </Text>
-        </TouchableOpacity>
+      <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
+        {/* Attach photo button — hidden when CameraRoll not available */}
+        {isCameraRollAvailable && (
+          <TouchableOpacity
+            style={[
+              styles.bottomAction,
+              { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border },
+            ]}
+            onPress={() => {
+              triggerHaptic();
+              setShowAlbumPicker(true);
+            }}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.compose.attachPhoto')}
+          >
+            <Icon name="attach" size={22} color={accentColor.primary} />
+            <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
+              {t('modules.mail.compose.attachPhoto')}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Send button */}
         <TouchableOpacity
@@ -1091,12 +1190,15 @@ export function MailComposeScreen({
       </View>
 
       {/* Album Picker Modal */}
-      <AlbumPickerModal
-        visible={showAlbumPicker}
-        onSelect={handleAddPhotos}
-        onClose={() => setShowAlbumPicker(false)}
-      />
+      {isCameraRollAvailable && (
+        <AlbumPickerModal
+          visible={showAlbumPicker}
+          onSelect={handleAddPhotos}
+          onClose={() => setShowAlbumPicker(false)}
+        />
+      )}
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -1181,7 +1283,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     flex: 1,
     minWidth: 120,
-    minHeight: 40,
+    minHeight: touchTargets.minimum,
     paddingVertical: 0,
   },
 

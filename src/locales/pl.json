@@ -1638,6 +1638,8 @@
         "toPlaceholder": "adres e-mail",
         "addCc": "Dodaj DW",
         "addCcBcc": "Dodaj CC/UDW",
+        "ccLabel": "CC",
+        "bccLabel": "BCC",
         "ccPlaceholder": "adres DW",
         "bccPlaceholder": "Adres e-mail UDW",
         "subject": "Temat",

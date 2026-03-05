@@ -1847,6 +1847,8 @@
         "toPlaceholder": "email address",
         "addCc": "Add CC",
         "addCcBcc": "Add CC/BCC",
+        "ccLabel": "CC",
+        "bccLabel": "BCC",
         "ccPlaceholder": "CC email address",
         "bccPlaceholder": "BCC email address",
         "subject": "Subject",

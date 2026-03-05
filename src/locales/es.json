@@ -1832,6 +1832,8 @@
         "toPlaceholder": "dirección de correo",
         "addCc": "Añadir CC",
         "addCcBcc": "Añadir CC/CCO",
+        "ccLabel": "CC",
+        "bccLabel": "BCC",
         "ccPlaceholder": "dirección CC",
         "bccPlaceholder": "Dirección de correo CCO",
         "subject": "Asunto",

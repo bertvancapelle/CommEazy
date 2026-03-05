@@ -1842,6 +1842,8 @@
         "toPlaceholder": "e-mailadres",
         "addCc": "CC toevoegen",
         "addCcBcc": "CC/BCC toevoegen",
+        "ccLabel": "CC",
+        "bccLabel": "BCC",
         "ccPlaceholder": "CC e-mailadres",
         "bccPlaceholder": "BCC e-mailadres",
         "subject": "Onderwerp",

@@ -1832,6 +1832,8 @@
         "toPlaceholder": "E-Mail-Adresse",
         "addCc": "CC hinzufügen",
         "addCcBcc": "CC/BCC hinzufügen",
+        "ccLabel": "CC",
+        "bccLabel": "BCC",
         "ccPlaceholder": "CC E-Mail-Adresse",
         "bccPlaceholder": "BCC E-Mail-Adresse",
         "subject": "Betreff",

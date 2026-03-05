@@ -413,7 +413,9 @@ class MailModule: RCTEventEmitter {
                 } else {
                     // Write to temp file for large attachments
                     let tempDir = FileManager.default.temporaryDirectory
-                    let fileName = part.filename ?? "attachment_\(uid)_\(partIndex)"
+                    let rawFileName = part.filename ?? "attachment_\(uid)_\(partIndex)"
+                    // Sanitize filename to prevent path traversal
+                    let fileName = (rawFileName as NSString).lastPathComponent
                     let fileURL = tempDir.appendingPathComponent(fileName)
 
                     try data.write(to: fileURL)

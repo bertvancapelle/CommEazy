@@ -1851,6 +1851,8 @@
         "toPlaceholder": "endereço de e-mail",
         "addCc": "Adicionar CC",
         "addCcBcc": "Adicionar CC/CCO",
+        "ccLabel": "CC",
+        "bccLabel": "BCC",
         "ccPlaceholder": "endereço CC",
         "bccPlaceholder": "Endereço de e-mail CCO",
         "subject": "Assunto",

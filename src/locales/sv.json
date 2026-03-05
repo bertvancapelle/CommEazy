@@ -1676,6 +1676,8 @@
         "toPlaceholder": "e-postadress",
         "addCc": "Lägg till CC",
         "addCcBcc": "Lägg till CC/BCC",
+        "ccLabel": "CC",
+        "bccLabel": "BCC",
         "ccPlaceholder": "CC e-postadress",
         "bccPlaceholder": "BCC e-postadress",
         "subject": "Ämne",
