@@ -1846,7 +1846,9 @@
         "to": "To",
         "toPlaceholder": "email address",
         "addCc": "Add CC",
+        "addCcBcc": "Add CC/BCC",
         "ccPlaceholder": "CC email address",
+        "bccPlaceholder": "BCC email address",
         "subject": "Subject",
         "subjectPlaceholder": "Message subject",
         "body": "Message",
@@ -1876,6 +1878,7 @@
         "removeAttachment": "Remove attachment {{name}}",
         "removeRecipient": "Remove recipient",
         "attachPhoto": "Attach photo",
+        "originalMessage": "Original message",
         "photoAccessUnavailable": "Photos unavailable",
         "photoAccessHint": "The photo library is currently not available."
       }

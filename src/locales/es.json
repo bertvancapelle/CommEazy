@@ -1831,7 +1831,9 @@
         "to": "Para",
         "toPlaceholder": "dirección de correo",
         "addCc": "Añadir CC",
+        "addCcBcc": "Añadir CC/CCO",
         "ccPlaceholder": "dirección CC",
+        "bccPlaceholder": "Dirección de correo CCO",
         "subject": "Asunto",
         "subjectPlaceholder": "Asunto de tu mensaje",
         "body": "Mensaje",
@@ -1861,6 +1863,7 @@
         "removeAttachment": "Eliminar adjunto {{name}}",
         "removeRecipient": "Eliminar destinatario",
         "attachPhoto": "Adjuntar foto",
+        "originalMessage": "Mensaje original",
         "photoAccessUnavailable": "Fotos no disponibles",
         "photoAccessHint": "La biblioteca de fotos no está disponible actualmente."
       }

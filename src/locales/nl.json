@@ -1841,7 +1841,9 @@
         "to": "Aan",
         "toPlaceholder": "e-mailadres",
         "addCc": "CC toevoegen",
+        "addCcBcc": "CC/BCC toevoegen",
         "ccPlaceholder": "CC e-mailadres",
+        "bccPlaceholder": "BCC e-mailadres",
         "subject": "Onderwerp",
         "subjectPlaceholder": "Onderwerp van je bericht",
         "body": "Bericht",
@@ -1871,6 +1873,7 @@
         "removeAttachment": "Bijlage {{name}} verwijderen",
         "removeRecipient": "Ontvanger verwijderen",
         "attachPhoto": "Foto bijvoegen",
+        "originalMessage": "Oorspronkelijk bericht",
         "photoAccessUnavailable": "Foto's niet beschikbaar",
         "photoAccessHint": "De fotobibliotheek is momenteel niet beschikbaar."
       }

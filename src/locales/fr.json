@@ -1831,7 +1831,9 @@
         "to": "À",
         "toPlaceholder": "adresse e-mail",
         "addCc": "Ajouter CC",
+        "addCcBcc": "Ajouter CC/CCI",
         "ccPlaceholder": "adresse e-mail CC",
+        "bccPlaceholder": "Adresse e-mail CCI",
         "subject": "Objet",
         "subjectPlaceholder": "Objet de votre message",
         "body": "Message",
@@ -1861,6 +1863,7 @@
         "removeAttachment": "Supprimer la pièce jointe {{name}}",
         "removeRecipient": "Supprimer le destinataire",
         "attachPhoto": "Joindre une photo",
+        "originalMessage": "Message d'origine",
         "photoAccessUnavailable": "Photos non disponibles",
         "photoAccessHint": "La photothèque n'est actuellement pas disponible."
       }

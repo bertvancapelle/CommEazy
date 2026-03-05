@@ -1675,7 +1675,9 @@
         "to": "Til",
         "toPlaceholder": "e-mailadresse",
         "addCc": "Tilføj CC",
+        "addCcBcc": "Tilføj CC/BCC",
         "ccPlaceholder": "CC e-mailadresse",
+        "bccPlaceholder": "BCC e-mailadresse",
         "subject": "Emne",
         "subjectPlaceholder": "Beskedens emne",
         "body": "Besked",
@@ -1705,6 +1707,7 @@
         "removeAttachment": "Fjern vedhæftning {{name}}",
         "removeRecipient": "Fjern modtager",
         "attachPhoto": "Vedhæft foto",
+        "originalMessage": "Oprindelig besked",
         "photoAccessUnavailable": "Fotos ikke tilgængelige",
         "photoAccessHint": "Fotobiblioteket er i øjeblikket ikke tilgængeligt."
       }

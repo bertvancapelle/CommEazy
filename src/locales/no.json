@@ -1705,7 +1705,9 @@
         "to": "Til",
         "toPlaceholder": "e-postadresse",
         "addCc": "Legg til CC",
+        "addCcBcc": "Legg til CC/BCC",
         "ccPlaceholder": "CC e-postadresse",
+        "bccPlaceholder": "BCC e-postadresse",
         "subject": "Emne",
         "subjectPlaceholder": "Emne for meldingen",
         "body": "Melding",
@@ -1735,6 +1737,7 @@
         "removeAttachment": "Fjern vedlegg {{name}}",
         "removeRecipient": "Fjern mottaker",
         "attachPhoto": "Legg ved bilde",
+        "originalMessage": "Opprinnelig melding",
         "photoAccessUnavailable": "Bilder ikke tilgjengelig",
         "photoAccessHint": "Fotobiblioteket er for øyeblikket ikke tilgjengelig."
       }

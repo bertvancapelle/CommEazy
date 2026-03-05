@@ -1675,7 +1675,9 @@
         "to": "Till",
         "toPlaceholder": "e-postadress",
         "addCc": "Lägg till CC",
+        "addCcBcc": "Lägg till CC/BCC",
         "ccPlaceholder": "CC e-postadress",
+        "bccPlaceholder": "BCC e-postadress",
         "subject": "Ämne",
         "subjectPlaceholder": "Meddelandets ämne",
         "body": "Meddelande",
@@ -1705,6 +1707,7 @@
         "removeAttachment": "Ta bort bilaga {{name}}",
         "removeRecipient": "Ta bort mottagare",
         "attachPhoto": "Bifoga foto",
+        "originalMessage": "Ursprungligt meddelande",
         "photoAccessUnavailable": "Foton inte tillgängliga",
         "photoAccessHint": "Fotobiblioteket är för närvarande inte tillgängligt."
       }

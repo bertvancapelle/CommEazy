@@ -1779,7 +1779,9 @@
         "to": "A",
         "toPlaceholder": "indirizzo e-mail",
         "addCc": "Aggiungi CC",
+        "addCcBcc": "Aggiungi CC/CCN",
         "ccPlaceholder": "indirizzo CC",
+        "bccPlaceholder": "Indirizzo e-mail CCN",
         "subject": "Oggetto",
         "subjectPlaceholder": "Oggetto del messaggio",
         "body": "Messaggio",
@@ -1809,6 +1811,7 @@
         "removeAttachment": "Rimuovi allegato {{name}}",
         "removeRecipient": "Rimuovi destinatario",
         "attachPhoto": "Allega foto",
+        "originalMessage": "Messaggio originale",
         "photoAccessUnavailable": "Foto non disponibili",
         "photoAccessHint": "La libreria fotografica non è attualmente disponibile."
       }

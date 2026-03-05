@@ -1,22 +1,26 @@
 /**
- * MailComposeScreen — Compose and send emails
+ * MailComposeScreen — Compose, reply, and forward emails
  *
- * Supports:
- * - New message, reply, and forward
- * - To/CC recipients
- * - Subject and body input
- * - Send via SMTP bridge
+ * Features:
+ * - Recipient chips (contacts with ✕ remove)
+ * - Inline contact search dropdown (filtered by email)
+ * - Manual email address entry
+ * - CC/BCC hidden by default with toggle link
+ * - HTML preservation for forward/reply with read-only WebView preview
+ * - SMTP sends htmlBody for forward/reply
+ * - Photo attachments via AlbumPickerModal
  *
  * Senior-inclusive design:
  * - Large input fields (≥60pt height)
- * - Clear labels above fields
- * - Prominent send button
- * - Confirmation before discarding draft
+ * - 60pt touch targets on all buttons
+ * - Clear labels, haptic feedback
+ * - Bottom action bar with send button (CommEazy standard)
+ * - Recipient chips with large ✕ remove button
  *
  * @see .claude/plans/MAIL_MODULE_PROMPT.md
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -28,14 +32,16 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { Icon } from '@/components';
-import type { MailAccount, CachedMailHeader, MailBody, MailAttachment } from '@/types/mail';
+import type { MailAccount, CachedMailHeader, MailBody, MailAttachment, MailRecipient } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { AttachmentPreviewBar } from '@/components/mail/AttachmentPreviewBar';
 import { AlbumPickerModal } from '@/components/mail/AlbumPickerModal';
@@ -45,6 +51,12 @@ import {
   isImageType,
   wouldExceedTotalSize,
 } from '@/services/mail/mediaAttachmentService';
+import {
+  searchContactsForMail,
+  contactToMailRecipient,
+  getMailableContacts,
+} from '@/services/mail/contactMailService';
+import type { Contact } from '@/services/interfaces';
 
 // ============================================================
 // Types
@@ -59,7 +71,7 @@ export interface MailComposeScreenProps {
   mode: ComposeMode;
   /** Original header (for reply/forward) */
   originalHeader?: CachedMailHeader;
-  /** Original body (for forward) */
+  /** Original body (for forward/reply) */
   originalBody?: MailBody | null;
   /** Go back / close compose */
   onClose: () => void;
@@ -88,18 +100,26 @@ const triggerHaptic = () => {
 // Helpers
 // ============================================================
 
-function getInitialTo(mode: ComposeMode, header?: CachedMailHeader): string {
+function getInitialRecipients(
+  mode: ComposeMode,
+  header?: CachedMailHeader,
+): MailRecipient[] {
   if (mode === 'reply' && header) {
     const parsed = parseEmailAddress(header.from);
-    return parsed.address;
+    return [
+      {
+        email: parsed.address,
+        name: parsed.name,
+        isFromContacts: false,
+      },
+    ];
   }
-  return '';
+  return [];
 }
 
 function getInitialSubject(
   mode: ComposeMode,
   header?: CachedMailHeader,
-  t?: (key: string) => string,
 ): string {
   if (!header) return '';
   const subject = header.subject || '';
@@ -123,20 +143,363 @@ function getInitialBody(
   body?: MailBody | null,
   t?: (key: string, opts?: Record<string, string>) => string,
 ): string {
-  if (mode === 'forward' && body) {
-    const originalText = body.plainText || body.html?.replace(/<[^>]*>/g, '') || '';
-    const senderParsed = parseEmailAddress(header?.from || '');
-    const senderDisplay = senderParsed.name || senderParsed.address;
-
-    return `\n\n--- ${t?.('modules.mail.compose.forwardedMessage') || 'Forwarded message'} ---\n${t?.('modules.mail.compose.fromLabel') || 'From'}: ${senderDisplay}\n${t?.('modules.mail.compose.subjectLabel') || 'Subject'}: ${header?.subject || ''}\n\n${originalText}`;
-  }
   if (mode === 'reply' && header) {
     const senderParsed = parseEmailAddress(header.from);
     const senderDisplay = senderParsed.name || senderParsed.address;
-
     return `\n\n${t?.('modules.mail.compose.replyPrefix', { sender: senderDisplay }) || `On ${header.date}, ${senderDisplay} wrote:`}\n`;
   }
+  // For forward: body text is empty, original message shown in WebView preview
+  if (mode === 'forward') {
+    return '';
+  }
   return '';
+}
+
+/**
+ * Get the original HTML content for forward/reply preview.
+ * Returns the raw HTML if available, or wraps plain text in basic HTML.
+ */
+function getOriginalHtml(body?: MailBody | null): string | null {
+  if (!body) return null;
+  if (body.html) return body.html;
+  if (body.plainText) {
+    // Wrap plain text in HTML with basic formatting
+    const escaped = body.plainText
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+    return `<p>${escaped}</p>`;
+  }
+  return null;
+}
+
+/**
+ * Build HTML for the read-only original message preview.
+ * Simplified version of the MailDetailScreen buildWebViewHtml.
+ */
+function buildPreviewHtml(
+  rawHtml: string,
+  textColor: string,
+  backgroundColor: string,
+): string {
+  // Strip <script> tags for security
+  const noScripts = rawHtml.replace(/<script[\s\S]*?<\/script>/gi, '');
+
+  // Strip MSO conditional comments
+  const noMso = noScripts
+    .replace(/<!--\[if\s[^\]]*mso[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '');
+
+  // Extract body content if full HTML document
+  let bodyContent = noMso;
+  const hasDocStructure = /<html[\s>]/i.test(noMso);
+  if (hasDocStructure) {
+    const bodyMatch = noMso.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const headMatch = noMso.match(/<head[^>]*>([\s\S]*)<\/head>/i);
+    const headStyles = headMatch
+      ? (headMatch[1].match(/<style[\s\S]*?<\/style>/gi) || []).join('\n')
+      : '';
+    bodyContent = `${headStyles}\n${bodyMatch ? bodyMatch[1] : noMso}`;
+  }
+
+  // CSP: block external images in preview
+  const csp = `default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src 'none';`;
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="${csp}">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 8px;
+      font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: ${textColor};
+      background-color: ${backgroundColor};
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      -webkit-text-size-adjust: 100%;
+    }
+    img { max-width: 100%; height: auto; }
+    table { max-width: 100%; border-collapse: collapse; }
+    td, th { vertical-align: top; }
+    body > table, body > div > table { width: 100% !important; max-width: 100% !important; }
+    td { word-break: break-word; }
+    img[width="1"], img[height="1"],
+    img[style*="display:none"], img[style*="display: none"] { display: none !important; }
+    pre, code { font-size: 14px; white-space: pre-wrap; word-wrap: break-word; }
+  </style>
+</head>
+<body>
+${bodyContent}
+<script>
+  function reportHeight() {
+    var h = Math.max(
+      document.body.scrollHeight || 0,
+      document.body.offsetHeight || 0,
+      document.documentElement.scrollHeight || 0,
+      document.documentElement.offsetHeight || 0
+    );
+    if (h > 0) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', value: h }));
+    }
+  }
+  window.addEventListener('load', function() {
+    reportHeight();
+    setTimeout(reportHeight, 200);
+    setTimeout(reportHeight, 600);
+  });
+</script>
+</body>
+</html>`;
+}
+
+// ============================================================
+// RecipientChip Sub-Component
+// ============================================================
+
+function RecipientChip({
+  recipient,
+  onRemove,
+  accentColor,
+  themeColors,
+}: {
+  recipient: MailRecipient;
+  onRemove: () => void;
+  accentColor: string;
+  themeColors: ReturnType<typeof useColors>;
+}) {
+  const { t } = useTranslation();
+  const displayName = recipient.name || recipient.email;
+
+  return (
+    <View
+      style={[
+        styles.chip,
+        { backgroundColor: accentColor + '20', borderColor: accentColor + '40' },
+      ]}
+    >
+      <Text
+        style={[styles.chipText, { color: themeColors.textPrimary }]}
+        numberOfLines={1}
+      >
+        {displayName}
+      </Text>
+      <TouchableOpacity
+        style={styles.chipRemove}
+        onPress={() => {
+          triggerHaptic();
+          onRemove();
+        }}
+        onLongPress={() => {}}
+        delayLongPress={300}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityRole="button"
+        accessibilityLabel={t('modules.mail.compose.removeRecipient')}
+      >
+        <Icon name="x" size={16} color={themeColors.textSecondary} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ============================================================
+// ContactSuggestionRow Sub-Component
+// ============================================================
+
+function ContactSuggestionRow({
+  contact,
+  onSelect,
+  accentColor,
+  themeColors,
+}: {
+  contact: Contact;
+  onSelect: () => void;
+  accentColor: { primary: string; light: string };
+  themeColors: ReturnType<typeof useColors>;
+}) {
+  const fullName = `${contact.firstName} ${contact.lastName}`.trim();
+  const initial = (contact.firstName[0] || '').toUpperCase();
+
+  return (
+    <TouchableOpacity
+      style={[styles.suggestionRow, { borderBottomColor: themeColors.border }]}
+      onPress={() => {
+        triggerHaptic();
+        onSelect();
+      }}
+      onLongPress={() => {}}
+      delayLongPress={300}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${fullName}, ${contact.email}`}
+    >
+      <View style={[styles.suggestionAvatar, { backgroundColor: accentColor.light }]}>
+        <Text style={[styles.suggestionAvatarText, { color: accentColor.primary }]}>
+          {initial}
+        </Text>
+      </View>
+      <View style={styles.suggestionInfo}>
+        <Text
+          style={[styles.suggestionName, { color: themeColors.textPrimary }]}
+          numberOfLines={1}
+        >
+          {fullName}
+        </Text>
+        <Text
+          style={[styles.suggestionEmail, { color: themeColors.textSecondary }]}
+          numberOfLines={1}
+        >
+          {contact.email}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ============================================================
+// RecipientField Sub-Component
+// ============================================================
+
+function RecipientField({
+  label,
+  recipients,
+  onAddRecipient,
+  onRemoveRecipient,
+  contacts,
+  accentColor,
+  themeColors,
+  placeholder,
+}: {
+  label: string;
+  recipients: MailRecipient[];
+  onAddRecipient: (recipient: MailRecipient) => void;
+  onRemoveRecipient: (email: string) => void;
+  contacts: Contact[];
+  accentColor: { primary: string; light: string };
+  themeColors: ReturnType<typeof useColors>;
+  placeholder: string;
+}) {
+  const { t } = useTranslation();
+  const [inputValue, setInputValue] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+
+  // Filter contacts by search query, excluding already-added recipients
+  const suggestions = useMemo(() => {
+    if (inputValue.length < 2) return [];
+    const addedEmails = new Set(recipients.map(r => r.email.toLowerCase()));
+    return searchContactsForMail(contacts, inputValue, 5).filter(
+      c => !addedEmails.has((c.email || '').toLowerCase()),
+    );
+  }, [inputValue, contacts, recipients]);
+
+  const handleSelectContact = useCallback(
+    (contact: Contact) => {
+      const recipient = contactToMailRecipient(contact);
+      if (recipient) {
+        onAddRecipient(recipient);
+      }
+      setInputValue('');
+      setShowSuggestions(false);
+    },
+    [onAddRecipient],
+  );
+
+  const handleSubmitManualAddress = useCallback(() => {
+    const trimmed = inputValue.trim();
+    if (trimmed.length === 0) return;
+
+    // Basic email validation
+    if (!trimmed.includes('@') || !trimmed.includes('.')) return;
+
+    // Check for duplicates
+    const exists = recipients.some(
+      r => r.email.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (exists) {
+      setInputValue('');
+      return;
+    }
+
+    onAddRecipient({
+      email: trimmed,
+      isFromContacts: false,
+    });
+    setInputValue('');
+    setShowSuggestions(false);
+  }, [inputValue, recipients, onAddRecipient]);
+
+  const handleChangeText = useCallback((text: string) => {
+    setInputValue(text);
+    setShowSuggestions(text.length >= 2);
+  }, []);
+
+  return (
+    <View>
+      <View style={[styles.recipientFieldRow, { borderBottomColor: themeColors.border }]}>
+        <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
+          {label}
+        </Text>
+
+        <View style={styles.recipientFieldContent}>
+          {/* Chips */}
+          {recipients.map(recipient => (
+            <RecipientChip
+              key={recipient.email}
+              recipient={recipient}
+              onRemove={() => onRemoveRecipient(recipient.email)}
+              accentColor={accentColor.primary}
+              themeColors={themeColors}
+            />
+          ))}
+
+          {/* Text input for adding new recipients */}
+          <TextInput
+            ref={inputRef}
+            style={[styles.recipientInput, { color: themeColors.textPrimary }]}
+            value={inputValue}
+            onChangeText={handleChangeText}
+            placeholder={recipients.length === 0 ? placeholder : ''}
+            placeholderTextColor={themeColors.textSecondary}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={handleSubmitManualAddress}
+            onBlur={() => {
+              // Small delay so tapping a suggestion still works
+              setTimeout(() => setShowSuggestions(false), 200);
+            }}
+            onFocus={() => {
+              if (inputValue.length >= 2) setShowSuggestions(true);
+            }}
+            accessibilityLabel={label}
+          />
+        </View>
+      </View>
+
+      {/* Contact suggestions dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <View style={[styles.suggestionsContainer, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+          {suggestions.map(contact => (
+            <ContactSuggestionRow
+              key={contact.userUuid}
+              contact={contact}
+              onSelect={() => handleSelectContact(contact)}
+              accentColor={accentColor}
+              themeColors={themeColors}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
 }
 
 // ============================================================
@@ -154,24 +517,137 @@ export function MailComposeScreen({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { width: windowWidth } = useWindowDimensions();
+
+  // Contact loading
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
   // Form state
-  const [to, setTo] = useState(getInitialTo(mode, originalHeader));
-  const [cc, setCc] = useState('');
-  const [showCc, setShowCc] = useState(false);
-  const [subject, setSubject] = useState(getInitialSubject(mode, originalHeader, t));
+  const [toRecipients, setToRecipients] = useState<MailRecipient[]>(
+    getInitialRecipients(mode, originalHeader),
+  );
+  const [ccRecipients, setCcRecipients] = useState<MailRecipient[]>([]);
+  const [bccRecipients, setBccRecipients] = useState<MailRecipient[]>([]);
+  const [showCcBcc, setShowCcBcc] = useState(false);
+  const [subject, setSubject] = useState(getInitialSubject(mode, originalHeader));
   const [body, setBody] = useState(getInitialBody(mode, originalHeader, originalBody, t));
   const [isSending, setIsSending] = useState(false);
   const [attachments, setAttachments] = useState<MailAttachment[]>([]);
   const [showAlbumPicker, setShowAlbumPicker] = useState(false);
 
+  // Original message HTML for forward/reply preview
+  const originalHtml = useMemo(
+    () => (mode !== 'new' ? getOriginalHtml(originalBody) : null),
+    [mode, originalBody],
+  );
+  const [previewHeight, setPreviewHeight] = useState(200);
+
   const bodyInputRef = useRef<TextInput>(null);
+
+  // ============================================================
+  // Load Contacts
+  // ============================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadContacts = async () => {
+      try {
+        if (__DEV__) {
+          const { getMockContactsForDevice } = await import('@/services/mock');
+          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
+          const { chatService } = await import('@/services/chat');
+
+          const currentUserJid = chatService.isInitialized
+            ? chatService.getMyJid()
+            : 'ik@commeazy.local';
+
+          const publicKeyMap = await getOtherDevicesPublicKeys(
+            currentUserJid || 'ik@commeazy.local',
+          );
+
+          const deviceContacts = getMockContactsForDevice(
+            currentUserJid || 'ik@commeazy.local',
+            publicKeyMap,
+          );
+
+          if (!cancelled) {
+            // Only keep contacts with email addresses
+            setContacts(getMailableContacts(deviceContacts));
+          }
+        } else {
+          // Production: use ServiceContainer
+          const { ServiceContainer } = await import('@/services/container');
+          if (ServiceContainer.isInitialized) {
+            const contactList: Contact[] = [];
+            const unsubscribe = ServiceContainer.database.getContacts().subscribe(c => {
+              contactList.push(...c);
+            });
+            unsubscribe();
+            if (!cancelled) {
+              setContacts(getMailableContacts(contactList));
+            }
+          }
+        }
+      } catch (error) {
+        console.debug('[MailCompose] Failed to load contacts:', error);
+      }
+    };
+
+    void loadContacts();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ============================================================
   // Validation
   // ============================================================
 
-  const isValid = to.trim().length > 0 && to.includes('@');
+  const isValid = toRecipients.length > 0;
+
+  // ============================================================
+  // Recipient Handlers
+  // ============================================================
+
+  const handleAddToRecipient = useCallback((recipient: MailRecipient) => {
+    setToRecipients(prev => {
+      const exists = prev.some(r => r.email.toLowerCase() === recipient.email.toLowerCase());
+      if (exists) return prev;
+      return [...prev, recipient];
+    });
+  }, []);
+
+  const handleRemoveToRecipient = useCallback((email: string) => {
+    triggerHaptic();
+    setToRecipients(prev => prev.filter(r => r.email !== email));
+  }, []);
+
+  const handleAddCcRecipient = useCallback((recipient: MailRecipient) => {
+    setCcRecipients(prev => {
+      const exists = prev.some(r => r.email.toLowerCase() === recipient.email.toLowerCase());
+      if (exists) return prev;
+      return [...prev, recipient];
+    });
+  }, []);
+
+  const handleRemoveCcRecipient = useCallback((email: string) => {
+    triggerHaptic();
+    setCcRecipients(prev => prev.filter(r => r.email !== email));
+  }, []);
+
+  const handleAddBccRecipient = useCallback((recipient: MailRecipient) => {
+    setBccRecipients(prev => {
+      const exists = prev.some(r => r.email.toLowerCase() === recipient.email.toLowerCase());
+      if (exists) return prev;
+      return [...prev, recipient];
+    });
+  }, []);
+
+  const handleRemoveBccRecipient = useCallback((email: string) => {
+    triggerHaptic();
+    setBccRecipients(prev => prev.filter(r => r.email !== email));
+  }, []);
 
   // ============================================================
   // Send
@@ -194,26 +670,70 @@ export function MailComposeScreen({
 
       const smtpConfig = credentialManager.buildSMTPConfig(credentials);
 
-      // Parse recipients
-      const toAddresses = to
-        .split(/[,;]/)
-        .map(addr => addr.trim())
-        .filter(addr => addr.length > 0)
-        .map(addr => parseEmailAddress(addr));
+      // Build address arrays from recipient chips
+      const toAddresses = toRecipients.map(r => ({
+        name: r.name,
+        address: r.email,
+      }));
 
-      const ccAddresses = cc
-        .split(/[,;]/)
-        .map(addr => addr.trim())
-        .filter(addr => addr.length > 0)
-        .map(addr => parseEmailAddress(addr));
+      const ccAddresses = ccRecipients.map(r => ({
+        name: r.name,
+        address: r.email,
+      }));
+
+      const bccAddresses = bccRecipients.map(r => ({
+        name: r.name,
+        address: r.email,
+      }));
+
+      // Build htmlBody for forward/reply (preserve original HTML)
+      let htmlBody: string | undefined;
+      if (mode !== 'new' && originalHtml) {
+        // Wrap user's new text + original HTML
+        const userTextHtml = body
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\n/g, '<br>');
+
+        const senderParsed = originalHeader
+          ? parseEmailAddress(originalHeader.from)
+          : null;
+        const senderDisplay = senderParsed?.name || senderParsed?.address || '';
+
+        const dividerLabel =
+          mode === 'forward'
+            ? t('modules.mail.compose.forwardedMessage')
+            : t('modules.mail.compose.replyPrefix', { sender: senderDisplay });
+
+        htmlBody = `<div>${userTextHtml}</div>
+<br>
+<div style="border-top: 1px solid #ccc; padding-top: 12px; margin-top: 12px; color: #666;">
+  <p><strong>${dividerLabel}</strong></p>
+  ${originalHtml}
+</div>`;
+      }
+
+      // Prepare attachments for sending
+      const sendAttachments =
+        attachments.length > 0
+          ? attachments.map(a => ({
+              filePath: a.localUri,
+              fileName: a.name,
+              mimeType: a.mimeType,
+            }))
+          : undefined;
 
       await smtpBridge.sendMessage({
         smtpConfig,
         from: { name: account.displayName, address: account.email },
         to: toAddresses,
         cc: ccAddresses.length > 0 ? ccAddresses : undefined,
+        bcc: bccAddresses.length > 0 ? bccAddresses : undefined,
         subject,
         body,
+        htmlBody,
+        attachments: sendAttachments,
       });
 
       onSent?.();
@@ -227,7 +747,23 @@ export function MailComposeScreen({
     } finally {
       setIsSending(false);
     }
-  }, [isValid, isSending, to, cc, subject, body, account, onClose, onSent, t]);
+  }, [
+    isValid,
+    isSending,
+    toRecipients,
+    ccRecipients,
+    bccRecipients,
+    subject,
+    body,
+    account,
+    mode,
+    originalHtml,
+    originalHeader,
+    attachments,
+    onClose,
+    onSent,
+    t,
+  ]);
 
   // ============================================================
   // Close with Draft Warning
@@ -236,8 +772,10 @@ export function MailComposeScreen({
   const handleClose = useCallback(() => {
     triggerHaptic();
 
-    // Check if there's any content to discard
-    const hasContent = to.trim().length > 0 || subject.trim().length > 0 || body.trim().length > 0;
+    const hasContent =
+      toRecipients.length > 0 ||
+      subject.trim().length > 0 ||
+      body.trim().length > 0;
 
     if (hasContent) {
       Alert.alert(
@@ -255,7 +793,7 @@ export function MailComposeScreen({
     } else {
       onClose();
     }
-  }, [to, subject, body, onClose, t]);
+  }, [toRecipients, subject, body, onClose, t]);
 
   // ============================================================
   // Attachments
@@ -279,7 +817,6 @@ export function MailComposeScreen({
           photo.fileSize,
         );
 
-        // Compress images if needed
         if (isImageType(photo.mimeType)) {
           const result = await compressImageIfNeeded(photo.uri, photo.fileSize);
           attachment.localUri = result.localUri;
@@ -301,14 +838,30 @@ export function MailComposeScreen({
   }, []);
 
   // ============================================================
+  // WebView Height Handling
+  // ============================================================
+
+  const handlePreviewMessage = useCallback((event: { nativeEvent: { data: string } }) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'height' && data.value > 0) {
+        setPreviewHeight(Math.min(data.value + 16, 600));
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  // ============================================================
   // Title
   // ============================================================
 
-  const title = mode === 'reply'
-    ? t('modules.mail.compose.replyTitle')
-    : mode === 'forward'
-      ? t('modules.mail.compose.forwardTitle')
-      : t('modules.mail.compose.newTitle');
+  const title =
+    mode === 'reply'
+      ? t('modules.mail.compose.replyTitle')
+      : mode === 'forward'
+        ? t('modules.mail.compose.forwardTitle')
+        : t('modules.mail.compose.newTitle');
 
   // ============================================================
   // Render
@@ -319,10 +872,10 @@ export function MailComposeScreen({
       style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Top bar */}
+      {/* Top bar — cancel + title */}
       <View style={[styles.topBar, { borderBottomColor: themeColors.border }]}>
         <TouchableOpacity
-          style={styles.closeButton}
+          style={styles.topBarButton}
           onPress={handleClose}
           onLongPress={() => {}}
           delayLongPress={300}
@@ -330,51 +883,15 @@ export function MailComposeScreen({
           accessibilityRole="button"
           accessibilityLabel={t('common.cancel')}
         >
-          <Text style={[styles.closeText, { color: accentColor.primary }]}>
-            {t('common.cancel')}
-          </Text>
+          <Icon name="x" size={24} color={themeColors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={[styles.title, { color: themeColors.textPrimary }]}>
           {title}
         </Text>
 
-        <View style={styles.topBarRight}>
-          <TouchableOpacity
-            style={styles.attachButton}
-            onPress={() => {
-              triggerHaptic();
-              setShowAlbumPicker(true);
-            }}
-            onLongPress={() => {}}
-            delayLongPress={300}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.mail.compose.attachPhoto')}
-          >
-            <Icon name="attach" size={22} color={accentColor.primary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              { backgroundColor: isValid ? accentColor.primary : themeColors.border },
-            ]}
-            onPress={handleSend}
-            onLongPress={() => {}}
-            delayLongPress={300}
-            activeOpacity={0.7}
-            disabled={!isValid || isSending}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.mail.compose.send')}
-          >
-            {isSending ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Icon name="send" size={20} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
-        </View>
+        {/* Spacer to balance layout */}
+        <View style={styles.topBarButton} />
       </View>
 
       <ScrollView
@@ -391,59 +908,64 @@ export function MailComposeScreen({
           </Text>
         </View>
 
-        {/* To */}
-        <View style={[styles.fieldRow, { borderBottomColor: themeColors.border }]}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
-            {t('modules.mail.compose.to')}
-          </Text>
-          <TextInput
-            style={[styles.fieldInput, { color: themeColors.textPrimary }]}
-            value={to}
-            onChangeText={setTo}
-            placeholder={t('modules.mail.compose.toPlaceholder')}
-            placeholderTextColor={themeColors.textSecondary}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="next"
-            accessibilityLabel={t('modules.mail.compose.to')}
-          />
-          {!showCc && (
-            <TouchableOpacity
-              onPress={() => {
-                triggerHaptic();
-                setShowCc(true);
-              }}
-              onLongPress={() => {}}
-              delayLongPress={300}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.mail.compose.addCc')}
-            >
-              <Text style={[styles.ccToggle, { color: accentColor.primary }]}>CC</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* To — Recipient chips with inline search */}
+        <RecipientField
+          label={t('modules.mail.compose.to')}
+          recipients={toRecipients}
+          onAddRecipient={handleAddToRecipient}
+          onRemoveRecipient={handleRemoveToRecipient}
+          contacts={contacts}
+          accentColor={accentColor}
+          themeColors={themeColors}
+          placeholder={t('modules.mail.compose.toPlaceholder')}
+        />
 
-        {/* CC (optional) */}
-        {showCc && (
-          <View style={[styles.fieldRow, { borderBottomColor: themeColors.border }]}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
-              CC
+        {/* CC/BCC toggle */}
+        {!showCcBcc && (
+          <TouchableOpacity
+            style={[styles.ccBccToggle, { borderBottomColor: themeColors.border }]}
+            onPress={() => {
+              triggerHaptic();
+              setShowCcBcc(true);
+            }}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.compose.addCcBcc')}
+          >
+            <Text style={[styles.ccBccToggleText, { color: accentColor.primary }]}>
+              {t('modules.mail.compose.addCcBcc')}
             </Text>
-            <TextInput
-              style={[styles.fieldInput, { color: themeColors.textPrimary }]}
-              value={cc}
-              onChangeText={setCc}
-              placeholder={t('modules.mail.compose.ccPlaceholder')}
-              placeholderTextColor={themeColors.textSecondary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="next"
-              accessibilityLabel="CC"
-            />
-          </View>
+          </TouchableOpacity>
+        )}
+
+        {/* CC field */}
+        {showCcBcc && (
+          <RecipientField
+            label="CC"
+            recipients={ccRecipients}
+            onAddRecipient={handleAddCcRecipient}
+            onRemoveRecipient={handleRemoveCcRecipient}
+            contacts={contacts}
+            accentColor={accentColor}
+            themeColors={themeColors}
+            placeholder={t('modules.mail.compose.ccPlaceholder')}
+          />
+        )}
+
+        {/* BCC field */}
+        {showCcBcc && (
+          <RecipientField
+            label="BCC"
+            recipients={bccRecipients}
+            onAddRecipient={handleAddBccRecipient}
+            onRemoveRecipient={handleRemoveBccRecipient}
+            contacts={contacts}
+            accentColor={accentColor}
+            themeColors={themeColors}
+            placeholder={t('modules.mail.compose.bccPlaceholder')}
+          />
         )}
 
         {/* Subject */}
@@ -485,7 +1007,88 @@ export function MailComposeScreen({
           textAlignVertical="top"
           accessibilityLabel={t('modules.mail.compose.body')}
         />
+
+        {/* Original message preview (forward/reply) */}
+        {originalHtml && (
+          <View style={[styles.originalMessageContainer, { borderColor: themeColors.border }]}>
+            <Text style={[styles.originalMessageLabel, { color: themeColors.textSecondary }]}>
+              {mode === 'forward'
+                ? t('modules.mail.compose.originalMessage')
+                : t('modules.mail.compose.originalMessage')}
+            </Text>
+            <View style={[styles.originalMessageWebView, { height: previewHeight }]}>
+              <WebView
+                source={{
+                  html: buildPreviewHtml(
+                    originalHtml,
+                    themeColors.textPrimary,
+                    themeColors.surface,
+                  ),
+                }}
+                style={{ backgroundColor: 'transparent' }}
+                scrollEnabled={previewHeight >= 600}
+                onMessage={handlePreviewMessage}
+                originWhitelist={['*']}
+                javaScriptEnabled
+              />
+            </View>
+          </View>
+        )}
       </ScrollView>
+
+      {/* Bottom action bar — attach + send */}
+      <View style={[styles.bottomBar, { borderTopColor: themeColors.border }]}>
+        {/* Attach photo button */}
+        <TouchableOpacity
+          style={[
+            styles.bottomAction,
+            { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border },
+          ]}
+          onPress={() => {
+            triggerHaptic();
+            setShowAlbumPicker(true);
+          }}
+          onLongPress={() => {}}
+          delayLongPress={300}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('modules.mail.compose.attachPhoto')}
+        >
+          <Icon name="attach" size={22} color={accentColor.primary} />
+          <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
+            {t('modules.mail.compose.attachPhoto')}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Send button */}
+        <TouchableOpacity
+          style={[
+            styles.bottomAction,
+            {
+              backgroundColor: isValid ? accentColor.primary : themeColors.border,
+              borderColor: isValid ? accentColor.primary : themeColors.border,
+            },
+          ]}
+          onPress={handleSend}
+          onLongPress={() => {}}
+          delayLongPress={300}
+          activeOpacity={0.7}
+          disabled={!isValid || isSending}
+          accessibilityRole="button"
+          accessibilityLabel={t('modules.mail.compose.send')}
+        >
+          {isSending ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <Icon name="mail" size={22} color="#FFFFFF" />
+              <Text style={[styles.bottomActionText, { color: '#FFFFFF' }]}>
+                {t('modules.mail.compose.send')}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
 
       {/* Album Picker Modal */}
       <AlbumPickerModal
@@ -505,6 +1108,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
+  // Top bar
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -512,41 +1117,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-  },
-  closeButton: {
     minHeight: touchTargets.minimum,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.sm,
   },
-  closeText: {
-    ...typography.body,
-    fontWeight: '600',
+  topBarButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     ...typography.body,
     fontWeight: '700',
   },
-  topBarRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  attachButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+
+  // Scroll content
   scrollContent: {
     flexGrow: 1,
   },
+
+  // Field rows
   fieldRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -570,19 +1159,166 @@ const styles = StyleSheet.create({
     minHeight: touchTargets.minimum,
     paddingVertical: 0,
   },
-  ccToggle: {
+
+  // Recipient field
+  recipientFieldRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    minHeight: touchTargets.minimum,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    gap: spacing.sm,
+  },
+  recipientFieldContent: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  recipientInput: {
+    ...typography.body,
+    flex: 1,
+    minWidth: 120,
+    minHeight: 40,
+    paddingVertical: 0,
+  },
+
+  // Chips
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    gap: spacing.xs,
+  },
+  chipText: {
+    ...typography.body,
+    fontSize: 15,
+    maxWidth: 180,
+  },
+  chipRemove: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Contact suggestions
+  suggestionsContainer: {
+    marginHorizontal: spacing.lg,
+    marginLeft: spacing.lg + 60 + spacing.sm, // Align with input (label width + gap)
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: spacing.md,
+  },
+  suggestionAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  suggestionAvatarText: {
     ...typography.body,
     fontWeight: '700',
+    fontSize: 18,
   },
+  suggestionInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  suggestionName: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  suggestionEmail: {
+    fontSize: 14,
+    lineHeight: 18,
+  },
+
+  // CC/BCC toggle
+  ccBccToggle: {
+    paddingHorizontal: spacing.lg,
+    paddingLeft: spacing.lg + 60 + spacing.sm, // Align with input
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+  },
+  ccBccToggleText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+
+  // Attachments
   attachmentSection: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },
+
+  // Body input
   bodyInput: {
     ...typography.body,
     flex: 1,
-    minHeight: 200,
+    minHeight: 150,
     padding: spacing.lg,
     lineHeight: 28,
+  },
+
+  // Original message preview
+  originalMessageContainer: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  originalMessageLabel: {
+    ...typography.body,
+    fontWeight: '600',
+    fontSize: 14,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  originalMessageWebView: {
+    minHeight: 100,
+  },
+
+  // Bottom action bar
+  bottomBar: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingBottom: spacing.md + 20, // Account for home indicator
+    borderTopWidth: 1,
+    gap: spacing.sm,
+  },
+  bottomAction: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+  },
+  bottomActionText: {
+    ...typography.body,
+    fontWeight: '700',
   },
 });

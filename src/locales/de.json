@@ -1831,7 +1831,9 @@
         "to": "An",
         "toPlaceholder": "E-Mail-Adresse",
         "addCc": "CC hinzufügen",
+        "addCcBcc": "CC/BCC hinzufügen",
         "ccPlaceholder": "CC E-Mail-Adresse",
+        "bccPlaceholder": "BCC E-Mail-Adresse",
         "subject": "Betreff",
         "subjectPlaceholder": "Betreff deiner Nachricht",
         "body": "Nachricht",
@@ -1861,6 +1863,7 @@
         "removeAttachment": "Anhang {{name}} entfernen",
         "removeRecipient": "Empfänger entfernen",
         "attachPhoto": "Foto anhängen",
+        "originalMessage": "Ursprüngliche Nachricht",
         "photoAccessUnavailable": "Fotos nicht verfügbar",
         "photoAccessHint": "Die Fotobibliothek ist derzeit nicht verfügbar."
       }

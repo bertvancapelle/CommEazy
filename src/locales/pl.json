@@ -1637,7 +1637,9 @@
         "to": "Do",
         "toPlaceholder": "adres e-mail",
         "addCc": "Dodaj DW",
+        "addCcBcc": "Dodaj CC/UDW",
         "ccPlaceholder": "adres DW",
+        "bccPlaceholder": "Adres e-mail UDW",
         "subject": "Temat",
         "subjectPlaceholder": "Temat wiadomości",
         "body": "Wiadomość",
@@ -1667,6 +1669,7 @@
         "removeAttachment": "Usuń załącznik {{name}}",
         "removeRecipient": "Usuń odbiorcę",
         "attachPhoto": "Załącz zdjęcie",
+        "originalMessage": "Oryginalna wiadomość",
         "photoAccessUnavailable": "Zdjęcia niedostępne",
         "photoAccessHint": "Biblioteka zdjęć jest obecnie niedostępna."
       }
