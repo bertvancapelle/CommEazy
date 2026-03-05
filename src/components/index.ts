@@ -16,6 +16,8 @@
 
 // Core UI components
 export { Button } from './Button';
+export { HapticTouchable } from './HapticTouchable';
+export type { HapticTouchableProps } from './HapticTouchable';
 export { TextInput } from './TextInput';
 export { ProgressIndicator } from './ProgressIndicator';
 export { PinInput } from './PinInput';

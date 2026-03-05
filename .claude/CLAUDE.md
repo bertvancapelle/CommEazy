@@ -693,6 +693,109 @@ De **architecture-lead** skill is verantwoordelijk voor:
 - Conflict resolutie tussen skills
 - Handhaving van het protocol
 
+### Wijziging Classificatie (Tier Systeem)
+
+| Tier | Type | Voorbeeld | PNA-gedrag |
+|------|------|-----------|------------|
+| **Tier 1** | Eenvoudig, 1 skill | Typo fix, kleur aanpassing | Geen extra overleg nodig |
+| **Tier 2** | Meerdere skills, 1 module | Nieuwe knop met i18n + haptic | Standaard skill validatie |
+| **Tier 3** | Cross-cutting, meerdere modules | Navigatie wijziging, nieuw component systeem, architectuur refactor | **Automatische PNA-trigger** (zie hieronder) |
+
+### Automatische PNA-trigger voor Tier 3 (VERPLICHT)
+
+Bij Tier 3 wijzigingen MOET Claude automatisch een PNA-achtig overlegmoment inlassen, OOK als de gebruiker niet expliciet "PNA" heeft getypt.
+
+**Gedrag:**
+1. **Classificeer** de wijziging en toon de impactanalyse
+2. **Benoem** alle getroffen skills, bestanden en modules
+3. **Vraag expliciet** om bevestiging vóór implementatie
+4. **Stel vragen één voor één** over onduidelijke aspecten
+
+**Verschil met echte PNA-modus:**
+- Claude activeert dit **automatisch** (gebruiker hoeft niet "PNA" te typen)
+- De formele PNA-regels (🔒 header, exit-bevestiging) gelden **niet**
+- Claude MAG implementeren na één expliciete bevestiging van de gebruiker
+
+**Voorbeeld:**
+```
+Gebruiker: "Refactor alle modals naar PanelAwareModal"
+
+Claude:
+"⚠️ **Tier 3 wijziging gedetecteerd** — Cross-cutting refactor
+
+**Impact:**
+- 12 screens geraakt
+- Skills: ui-designer, accessibility-specialist, architecture-lead, react-native-expert
+- Risico: Bestaande modal gedrag kan breken op iPad Split View
+
+**Plan:**
+1. Inventariseer alle Modal → PanelAwareModal migraties
+2. Test elke migratie op iPhone + iPad layout
+3. Valideer accessibility labels behouden blijven
+
+Wil je dat ik hiermee doorga?"
+```
+
+### Skill Validatie in Commit Flow (VERPLICHT)
+
+Bij ELKE commit van Tier 2 of Tier 3 wijzigingen MOET Claude een uitgebreide skill-validatie rapportage opnemen.
+
+**Format (VERPLICHT — uitgebreid per skill):**
+
+```
+📋 **Skill Validatie Rapport**
+
+[ui-designer] ✅
+  - Touch targets: alle ≥60pt gevalideerd
+  - Typography: body ≥18pt bevestigd
+  - Form fields: labels boven veld, buiten border
+
+[accessibility-specialist] ✅
+  - Haptic feedback: HapticTouchable gebruikt
+  - VoiceOver labels: aanwezig op alle interactieve elementen
+  - Reduced motion: gerespecteerd
+
+[security-expert] ⚠️
+  - Input sanitisatie: toegevoegd (filename lastPathComponent)
+  - PII logging: geen PII in console output
+  - Waarschuwing: email regex niet RFC-compliant (bewuste keuze voor UX)
+
+[react-native-expert] ✅
+  - Platform compatibility: iOS + Android getest
+  - Memory: geen leaks gedetecteerd
+```
+
+**Regels:**
+- Elke relevante skill krijgt een eigen sectie
+- Per skill: WAT specifiek is gevalideerd (niet alleen ✅/❌)
+- ⚠️ waarschuwingen benoemen met rationale
+- ❌ blokkeerders MOETEN opgelost worden vóór commit
+
+### Component Registry Validatie (VERPLICHT)
+
+CommEazy heeft een validatie-script dat component-adoptie en touch target compliance controleert.
+
+**Script:** `scripts/validate-components.sh`
+
+**Wat het controleert:**
+1. **ModuleHeader** adoptie op module screens
+2. **PanelAwareModal** adoptie (geen raw Modal)
+3. **LoadingView** adoptie (geen bare ActivityIndicator)
+4. **HapticTouchable** adoptie (geen raw TouchableOpacity)
+5. **ErrorView** adoptie (geen Alert.alert voor errors)
+6. **Touch target linting** (geen sub-60pt waarden)
+
+**Gebruik:**
+```bash
+./scripts/validate-components.sh          # Volledig rapport
+./scripts/validate-components.sh --strict # Exit 1 bij violations
+```
+
+**Claude's Verantwoordelijkheid:**
+- Na het toevoegen van nieuwe screens: run het script en rapporteer resultaten
+- Bij refactoring: controleer of warnings afnemen
+- Bij nieuwe standaard componenten: voeg checks toe aan het script
+
 ## Quality Gates (ALL code must pass)
 1. **Store Compliance** — Privacy Manifest (iOS), Data Safety (Android)
 2. **Senior Inclusive** — Typography, touch targets, contrast, VoiceOver/TalkBack
@@ -1508,6 +1611,34 @@ Dit is de PRIMAIRE verdediging tegen double-action:
 **Twee-laagse bescherming:**
 1. **`onLongPress={() => {}}`** — Primaire blokkade (React Native niveau)
 2. **`useHoldGestureGuard()`** — Backup voor edge cases (HoldGestureContext niveau)
+
+**⚠️ AANBEVOLEN: Gebruik `HapticTouchable` in plaats van raw `TouchableOpacity`**
+
+`HapticTouchable` (uit `@/components`) bundelt ALLE drie beschermingen automatisch:
+- ✅ Haptic feedback (via `useFeedback`)
+- ✅ Empty `onLongPress` handler (blokkeert onPress na long-press)
+- ✅ Hold gesture guard (via `useHoldGestureGuard`)
+
+```typescript
+// ❌ OUD — handmatig alles toevoegen
+<TouchableOpacity
+  onPress={() => handleAction()}
+  onLongPress={() => {}}
+  delayLongPress={300}
+>
+
+// ✅ NIEUW — alles ingebouwd
+import { HapticTouchable } from '@/components';
+
+<HapticTouchable onPress={handleAction}>
+  <Text>Tap me</Text>
+</HapticTouchable>
+
+// Opt-out props beschikbaar:
+// hapticDisabled — geen haptic (bijv. decoratief element)
+// longPressGuardDisabled — geen guard (bijv. buiten HoldToNavigateWrapper)
+// hapticType — override feedback type ('tap' | 'success' | 'warning' | 'error' | 'navigation')
+```
 
 ### 10c. UX Consistentie Principe (VERPLICHT)
 

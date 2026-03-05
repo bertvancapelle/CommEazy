@@ -174,3 +174,10 @@ export {
   AskAIProvider,
   useAskAI,
 } from './AskAIContext';
+
+export {
+  HoldGestureProvider,
+  useHoldGestureContext,
+  useHoldGestureContextSafe,
+  useHoldGestureGuard,
+} from './HoldGestureContext';
