@@ -720,9 +720,7 @@ class FullPlayerNativeView: UIView {
             preferredStyle: .actionSheet
         )
         
-        // Add options - including 30 seconds for testing (TODO: remove before production)
         let options: [(title: String, minutes: Int?)] = [
-            ("30 seconden (TEST)", 0),  // 0 = 30 seconds for testing
             ("15 minuten", 15),
             ("30 minuten", 30),
             ("45 minuten", 45),

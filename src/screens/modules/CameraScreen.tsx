@@ -498,9 +498,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   overlayButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',

@@ -85,8 +85,10 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const { target } = event.nativeEvent;
     if (target) {
-      // Use measure() to get absolute screen position
-      const viewRef = event.target as any;
+      // event.target at runtime is a host component with measure(), but TypeScript types it as number
+      const viewRef = event.target as unknown as {
+        measure?: (callback: (x: number, y: number, width: number, height: number, screenX: number, screenY: number) => void) => void;
+      };
       if (viewRef && typeof viewRef.measure === 'function') {
         viewRef.measure((
           _x: number,

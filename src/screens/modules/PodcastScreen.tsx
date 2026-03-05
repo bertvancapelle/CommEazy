@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, PanelAwareModal, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, PanelAwareModal, LoadingView, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -236,8 +236,9 @@ export function PodcastScreen() {
   const [pulseAnim] = useState(new Animated.Value(1));
 
   // Seek slider state — for smooth dragging
-  const [isSeeking, setIsSeeking] = useState(false);
-  const [seekPosition, setSeekPosition] = useState(0);
+  const [seekState, setSeekState] = useState({ active: false, position: 0 });
+  const isSeeking = seekState.active;
+  const seekPosition = seekState.position;
 
   useEffect(() => {
     if (isBuffering && !isReducedMotion) {
@@ -743,10 +744,7 @@ export function PodcastScreen() {
 
         {/* Show list */}
         {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={accentColor.primary} />
-            <Text style={styles.loadingText}>{t('modules.podcast.loading')}</Text>
-          </View>
+          <LoadingView message={t('modules.podcast.loading')} fullscreen />
         ) : apiError ? (
           <View style={styles.errorContainer}>
             <Icon name="warning" size={64} color={colors.error} />
@@ -1013,9 +1011,7 @@ export function PodcastScreen() {
                   </Text>
 
                   {isLoadingEpisodes ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="large" color={accentColor.primary} />
-                    </View>
+                    <LoadingView />
                   ) : (
                     <ScrollView style={styles.episodeList}>
                       {sortedShowEpisodes.map((episode) => {
@@ -1161,11 +1157,11 @@ export function PodcastScreen() {
                     <SeekSlider
                       value={progress.position}
                       duration={progress.duration || currentEpisode.duration || 1}
-                      onSeekStart={() => setIsSeeking(true)}
-                      onSeeking={(position) => setSeekPosition(position)}
+                      onSeekStart={() => setSeekState(s => ({ ...s, active: true }))}
+                      onSeeking={(position) => setSeekState(s => ({ ...s, position }))}
                       onSeekEnd={(position) => {
                         seekTo(position);
-                        setIsSeeking(false);
+                        setSeekState({ active: false, position: 0 });
                       }}
                       accentColor={accentColor.primary}
                       accessibilityLabel={`${formatTime(isSeeking ? seekPosition : progress.position)} van ${formatTime(progress.duration || currentEpisode.duration)}`}
@@ -1778,7 +1774,7 @@ const styles = StyleSheet.create({
   },
   errorBannerDismiss: {
     minWidth: touchTargets.minimum,
-    minHeight: 44,
+    minHeight: touchTargets.minimum,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
@@ -1956,7 +1952,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 2,
     marginTop: spacing.md,
-    minHeight: 44,
+    minHeight: touchTargets.minimum,
   },
   subscribeButtonActive: {
     backgroundColor: colors.success,
@@ -2039,9 +2035,9 @@ const styles = StyleSheet.create({
     borderRadius: 1.5,
   },
   playButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2133,9 +2129,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   secondaryButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 60,
+    height: 60,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.surface,

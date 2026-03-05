@@ -14,7 +14,7 @@
  * @see https://github.com/k2-fsa/sherpa-onnx
  */
 
-import { NativeModules, NativeEventEmitter } from 'react-native';
+import { NativeModules, NativeEventEmitter, EmitterSubscription } from 'react-native';
 
 // Native module interface
 const { PiperTtsModule } = NativeModules;
@@ -99,7 +99,7 @@ class PiperTtsService {
   private isInitialized: boolean = false;
   private currentVoice: PiperVoice | null = null;
   private listeners: Map<PiperTtsEventType, Set<(event: PiperTtsEvent) => void>> = new Map();
-  private nativeEventSubscriptions: any[] = [];
+  private nativeEventSubscriptions: EmitterSubscription[] = [];
 
   /**
    * Initialize the Piper TTS service.

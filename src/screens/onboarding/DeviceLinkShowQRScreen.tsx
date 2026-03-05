@@ -13,13 +13,12 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, typography, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button } from '@/components';
+import { Button, LoadingView } from '@/components';
 import type { SettingsStackParams } from '@/navigation';
 import { deviceLinkService } from '@/services/deviceLink';
 
@@ -100,10 +99,7 @@ export function DeviceLinkShowQRScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
-          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('deviceLink.generatingQR')}</Text>
-        </View>
+        <LoadingView message={t('deviceLink.generatingQR')} fullscreen />
       </SafeAreaView>
     );
   }

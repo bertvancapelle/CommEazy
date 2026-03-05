@@ -22,10 +22,12 @@ import {
   TouchableWithoutFeedback,
   Platform,
   AccessibilityInfo,
+  GestureResponderEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { OnboardingStackParams } from '@/navigation';
 import {
   typography,
   spacing,
@@ -40,7 +42,7 @@ import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
 type TutorialStep = 'intro' | 'practice' | 'menu' | 'customize' | 'done';
 
 interface NavigationTutorialScreenProps {
-  navigation: NativeStackNavigationProp<any>;
+  navigation: NativeStackNavigationProp<OnboardingStackParams>;
 }
 
 export function NavigationTutorialScreen({
@@ -74,7 +76,7 @@ export function NavigationTutorialScreen({
 
   // Handle press start
   const handlePressIn = useCallback(
-    (event: any) => {
+    (event: GestureResponderEvent) => {
       if (currentStep !== 'practice') return;
 
       const { locationX, locationY, pageX, pageY } = event.nativeEvent;

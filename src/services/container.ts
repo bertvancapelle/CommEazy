@@ -362,7 +362,7 @@ class ServiceContainerClass {
         for (const contact of contactsToSubscribe) {
           try {
             await this._xmpp.subscribeToPresence(contact.jid);
-            console.log(`[ServiceContainer] Subscribed to presence of ${getContactDisplayName(contact)} (${contact.jid})`);
+            console.debug('[ServiceContainer] Subscribed to presence of contact');
           } catch (subError) {
             console.warn(`[ServiceContainer] Failed to subscribe to ${contact.jid}:`, subError);
           }
@@ -497,8 +497,9 @@ class ServiceContainerClass {
     // Re-initialize encryption service to load the new keys
     // Note: This is a hack for dev mode only
     // CRITICAL: Must use base64_variants.ORIGINAL to match the encoding from testKeys.ts
-    (this._encryption as any).publicKey = from_base64(keypair.publicKey, base64_variants.ORIGINAL);
-    (this._encryption as any).privateKey = from_base64(keypair.privateKey, base64_variants.ORIGINAL);
+    const encryptionImpl = this._encryption as unknown as { publicKey: Uint8Array | null; privateKey: Uint8Array | null };
+    encryptionImpl.publicKey = from_base64(keypair.publicKey, base64_variants.ORIGINAL);
+    encryptionImpl.privateKey = from_base64(keypair.privateKey, base64_variants.ORIGINAL);
 
     console.log('[ServiceContainer] Replaced encryption keys with test keypair');
   }

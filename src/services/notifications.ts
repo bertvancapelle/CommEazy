@@ -226,7 +226,7 @@ export class FCMNotificationService implements NotificationService {
     const data = parseNotificationData(message);
     if (!data) return;
 
-    console.log('[FCM] Handling notification:', data.type, 'from:', data.senderName);
+    console.debug('[FCM] Handling notification:', data.type);
 
     // Notify all handlers
     this.handlers.forEach((handler) => {
@@ -270,7 +270,7 @@ export const setBackgroundMessageHandler = (): void => {
     const data = parseNotificationData(message);
     if (!data) return;
 
-    console.log('[FCM] Background notification:', data.type, 'from:', data.senderName);
+    console.debug('[FCM] Background notification:', data.type);
 
     // For background messages, we can:
     // 1. Show a local notification (if silent push)

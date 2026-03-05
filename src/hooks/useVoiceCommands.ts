@@ -378,7 +378,7 @@ export function useVoiceCommands() {
   });
 
   // Native speech recognition module reference
-  const speechRecognitionRef = useRef<any>(null);
+  const speechRecognitionRef = useRef<{ requestPermissions: () => Promise<{ speech: string; microphone: string }>; startListening: (language: string) => void; stopListening: () => void } | null>(null);
   const eventEmitterRef = useRef<NativeEventEmitter | null>(null);
 
   // Use ref for language to avoid stale closure in event listeners

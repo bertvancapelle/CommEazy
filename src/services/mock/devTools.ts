@@ -8,7 +8,7 @@
  * Only active when __DEV__ is true.
  */
 
-import { MOCK_CONTACTS, MOCK_CHAT_IDS, getMockContactsForDevice } from './mockContacts';
+import { MOCK_CONTACTS, getMockContactsForDevice } from './mockContacts';
 import { MOCK_MESSAGES, MOCK_CURRENT_USER } from './mockChats';
 // Note: chatService is imported lazily in seedMockData to avoid circular dependency
 import {
@@ -193,9 +193,9 @@ export const seedMockData = async (
           try {
             await db.saveMessage(message);
             addedCount++;
-          } catch (saveError: any) {
+          } catch (saveError) {
             // UNIQUE constraint = already exists, skip
-            if (saveError?.message?.includes('UNIQUE constraint')) {
+            if (saveError instanceof Error && saveError.message.includes('UNIQUE constraint')) {
               existingCount++;
             } else {
               throw saveError;
@@ -394,7 +394,6 @@ export const simulateQRScan = (
 export const DevMockData = __DEV__
   ? {
       contacts: MOCK_CONTACTS,
-      chatIds: MOCK_CHAT_IDS,
       messages: MOCK_MESSAGES,
       currentUser: MOCK_CURRENT_USER,
       qr: {

@@ -26,36 +26,30 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
-  Modal,
-  Switch,
-  Platform,
 } from 'react-native';
 import RNFS from 'react-native-fs';
-import { WebView } from 'react-native-webview';
-import type { WebViewNavigation } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { Icon, FullscreenImageViewer } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
+import { Icon, FullscreenImageViewer, LoadingView } from '@/components';
 import type { ViewerImage } from '@/components';
 import type {
   CachedMailHeader,
   MailBody,
-  MailAttachmentMeta,
   MailAccount,
 } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
-import { canSaveToAlbum, isImageType } from '@/services/mail/mediaAttachmentService';
+import { isImageType } from '@/services/mail/mediaAttachmentService';
 import { getSaveableAttachments, isAlreadySaved } from '@/services/mail/saveToAlbumService';
-import { openURL as contentRouterOpenURL, downloadAndPreview } from '@/services/mail/contentRouter';
-import {
-  extractDomain,
-  isWhitelisted as isDomainWhitelisted,
-  addDomain as whitelistDomain,
-} from '@/services/mail/imageWhitelistService';
+import { extractDomain } from '@/services/mail/imageWhitelistService';
+
+// Extracted sub-components and helpers
+import { formatDetailDate, formatMailBody } from './mailDetailHelpers';
+import { MailBodyWebView } from './MailBodyWebView';
+import { AttachmentRow } from './AttachmentRow';
 
 // ============================================================
 // Types
@@ -77,576 +71,6 @@ export interface MailDetailScreenProps {
 }
 
 // ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
-
-// ============================================================
-// Date Formatting (Detailed)
-// ============================================================
-
-function formatDetailDate(isoDate: string): string {
-  try {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString([], {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return '';
-  }
-}
-
-// ============================================================
-// Attachment Size Formatting
-// ============================================================
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-// ============================================================
-// Mail Body Formatting
-// ============================================================
-
-/**
- * Decode quoted-printable soft line breaks and encoded characters.
- * Quoted-printable encoding uses '=' followed by hex codes for special chars,
- * and '=' at end of line as a soft line break (continuation).
- */
-function decodeQuotedPrintable(text: string): string {
-  // Remove soft line breaks (= at end of line followed by newline)
-  let result = text.replace(/=\r?\n/g, '');
-  // Decode =XX hex sequences
-  result = result.replace(/=([0-9A-Fa-f]{2})/g, (_match, hex) => {
-    return String.fromCharCode(parseInt(hex, 16));
-  });
-  return result;
-}
-
-/**
- * Shorten long URLs for readability.
- * Shows domain + truncated path instead of full URL.
- * Example: "https://www.example.com/very/long/path?query=..." → "example.com/very/lon..."
- */
-function shortenUrls(text: string): string {
-  return text.replace(
-    /https?:\/\/[^\s<>"{}|\\^`[\]]{40,}/g,
-    (url) => {
-      try {
-        const parsed = new URL(url);
-        const domain = parsed.hostname.replace(/^www\./, '');
-        const pathPart = parsed.pathname + parsed.search;
-        if (pathPart.length <= 1) return domain;
-        const shortPath = pathPart.length > 20 ? pathPart.substring(0, 20) + '...' : pathPart;
-        return domain + shortPath;
-      } catch {
-        // If URL parsing fails, truncate raw
-        return url.substring(0, 50) + '...';
-      }
-    },
-  );
-}
-
-/**
- * Format mail body text for display.
- * Handles quoted-printable decoding and URL shortening.
- */
-function formatMailBody(text: string): string {
-  let result = decodeQuotedPrintable(text);
-  result = shortenUrls(result);
-  return result;
-}
-
-// ============================================================
-// MailBodyWebView — Renders HTML mail body via WebView
-// ============================================================
-
-interface MailBodyWebViewProps {
-  html: string;
-  textColor: string;
-  backgroundColor: string;
-  linkColor: string;
-  bannerBackgroundColor: string;
-  bannerTextColor: string;
-  bannerButtonColor: string;
-  /** Sender domain for whitelist feature (e.g. "microsoft.com") */
-  senderDomain: string;
-}
-
-/**
- * Build a complete HTML document for the WebView.
- *
- * Apple Mail strategy: respect the email's CSS fully (including display:none,
- * visibility:hidden, etc.) and let the email render as the sender intended.
- *
- * - Preserves original <style> tags for proper layout (tables, CSS classes)
- * - Strips <script> tags for security
- * - Strips MSO conditional comments (Outlook-specific markup)
- * - CSP blocks external images by default (img-src 'none')
- * - Injects base styling for senior-friendly readability
- * - Height fallback (5000px + scrollEnabled) when JS height measurement fails
- */
-function buildWebViewHtml(
-  rawHtml: string,
-  imagesAllowed: boolean,
-  textColor: string,
-  backgroundColor: string,
-  linkColor: string,
-): string {
-  // Strip <script> tags entirely (security)
-  const noScripts = rawHtml.replace(/<script[\s\S]*?<\/script>/gi, '');
-
-  // Strip Microsoft conditional comments (<!--[if mso]>...content...<![endif]-->)
-  // These contain Outlook-specific markup that doesn't render in WebView
-  // and can interfere with body/head extraction regex
-  const noMsoComments = noScripts
-    .replace(/<!--\[if\s[^\]]*mso[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')
-    .replace(/<!--\[if\s[^\]]*mso[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '');
-
-  // CSP: block or allow external images
-  const imgSrc = imagesAllowed ? "img-src * data: blob:" : "img-src data:";
-  const csp = `default-src 'none'; style-src 'unsafe-inline'; ${imgSrc}; font-src 'none';`;
-
-  // Check if HTML already has <html>/<body> structure
-  const hasDocStructure = /<html[\s>]/i.test(noMsoComments);
-
-  // Extract existing <style> blocks to preserve them
-  // (they contain CSS classes needed for table/column layouts)
-  let bodyContent = noMsoComments;
-
-  if (hasDocStructure) {
-    // Extract body content — keep styles that are in <head>
-    const bodyMatch = noMsoComments.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-    const headMatch = noMsoComments.match(/<head[^>]*>([\s\S]*)<\/head>/i);
-    const headStyles = headMatch
-      ? (headMatch[1].match(/<style[\s\S]*?<\/style>/gi) || []).join('\n')
-      : '';
-    bodyContent = `${headStyles}\n${bodyMatch ? bodyMatch[1] : noMsoComments}`;
-  }
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="${csp}">
-  <style>
-    /* Senior-friendly base styles */
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 8px;
-      font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-      font-size: 18px;
-      line-height: 1.55;
-      color: ${textColor};
-      background-color: ${backgroundColor};
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      -webkit-text-size-adjust: 100%;
-    }
-    a { color: ${linkColor}; }
-    img { max-width: 100%; height: auto; }
-    table { max-width: 100%; border-collapse: collapse; }
-    td, th { vertical-align: top; }
-    /* Prevent horizontal overflow from wide tables */
-    body > table, body > div > table {
-      width: 100% !important;
-      max-width: 100% !important;
-    }
-    /* Force table cells to wrap */
-    td { word-break: break-word; }
-    /* Hide tracking pixels (1x1 or hidden images) when images are loaded */
-    img[width="1"], img[height="1"],
-    img[style*="display:none"], img[style*="display: none"] {
-      display: none !important;
-    }
-    pre, code {
-      font-size: 15px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-  </style>
-</head>
-<body>
-${bodyContent}
-<script>
-  // Report content height to React Native — use max of multiple measurements
-  function reportHeight() {
-    var h = Math.max(
-      document.body.scrollHeight || 0,
-      document.body.offsetHeight || 0,
-      document.documentElement.scrollHeight || 0,
-      document.documentElement.offsetHeight || 0
-    );
-    if (h > 0) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', value: h }));
-    }
-  }
-  // Report after load with multiple delayed checks for late-rendering content
-  window.addEventListener('load', function() {
-    reportHeight();
-    setTimeout(reportHeight, 100);
-    setTimeout(reportHeight, 300);
-    setTimeout(reportHeight, 600);
-    setTimeout(reportHeight, 1500);
-    setTimeout(reportHeight, 3000);
-  });
-  // Observe DOM mutations (dynamic content, late-loading CSS)
-  var observer = new MutationObserver(function() {
-    reportHeight();
-    setTimeout(reportHeight, 100);
-  });
-  observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-  // Also observe resize events (layout reflows)
-  window.addEventListener('resize', reportHeight);
-
-  // Handle image load requests from React Native
-  window.addEventListener('message', function(e) {
-    try {
-      var msg = JSON.parse(e.data);
-      if (msg.type === 'loadImages') {
-        // Remove CSP by creating a new meta tag
-        var metas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
-        metas.forEach(function(m) { m.remove(); });
-        var meta = document.createElement('meta');
-        meta.httpEquiv = 'Content-Security-Policy';
-        meta.content = "default-src 'none'; style-src 'unsafe-inline'; img-src * data: blob:; font-src 'none';";
-        document.head.appendChild(meta);
-        // Reload all images by updating their src
-        var imgs = document.querySelectorAll('img');
-        imgs.forEach(function(img) {
-          var src = img.getAttribute('src') || img.getAttribute('data-src');
-          if (src) {
-            img.src = '';
-            img.src = src;
-          }
-        });
-        // Report new height after images load
-        setTimeout(reportHeight, 500);
-        setTimeout(reportHeight, 2000);
-      }
-    } catch(ex) {}
-  });
-</script>
-</body>
-</html>`;
-}
-
-function MailBodyWebView({
-  html,
-  textColor,
-  backgroundColor,
-  linkColor,
-  bannerBackgroundColor,
-  bannerTextColor,
-  bannerButtonColor,
-  senderDomain,
-}: MailBodyWebViewProps) {
-  const { t } = useTranslation();
-  const themeColors = useColors();
-  const { accentColor } = useAccentColor();
-  const [webViewHeight, setWebViewHeight] = useState(300);
-  const [heightReceived, setHeightReceived] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState(false);
-  const [showWarningModal, setShowWarningModal] = useState(false);
-  const [whitelistToggle, setWhitelistToggle] = useState(false);
-  const [autoLoadChecked, setAutoLoadChecked] = useState(false);
-  const webViewRef = useRef<WebView>(null);
-
-  // Check if HTML contains external images (http:// or https:// in img src)
-  const hasExternalImages = useMemo(() => {
-    return /<img[^>]+src\s*=\s*["']https?:\/\//i.test(html);
-  }, [html]);
-
-  // Auto-load images if sender domain is whitelisted
-  useEffect(() => {
-    if (!hasExternalImages || autoLoadChecked || imagesLoaded) return;
-
-    let cancelled = false;
-    const checkWhitelist = async () => {
-      try {
-        const whitelisted = await isDomainWhitelisted(senderDomain);
-        if (whitelisted && !cancelled) {
-          setImagesLoaded(true);
-        }
-      } catch {
-        // Non-critical — just don't auto-load
-      } finally {
-        if (!cancelled) setAutoLoadChecked(true);
-      }
-    };
-
-    checkWhitelist();
-    return () => { cancelled = true; };
-  }, [hasExternalImages, senderDomain, autoLoadChecked, imagesLoaded]);
-
-  const webViewHtml = useMemo(
-    () => buildWebViewHtml(html, imagesLoaded, textColor, backgroundColor, linkColor),
-    [html, imagesLoaded, textColor, backgroundColor, linkColor],
-  );
-
-  const handleMessage = useCallback((event: { nativeEvent: { data: string } }) => {
-    try {
-      const msg = JSON.parse(event.nativeEvent.data);
-      if (msg.type === 'height' && typeof msg.value === 'number') {
-        const newHeight = Math.max(msg.value + 32, 100);
-        setHeightReceived(true);
-        // Only grow — never shrink (prevents flicker from inconsistent measurements)
-        setWebViewHeight((prev) => Math.max(prev, newHeight));
-      }
-    } catch {
-      // Ignore invalid messages
-    }
-  }, []);
-
-  const handleNavigationRequest = useCallback((request: WebViewNavigation): boolean => {
-    const { url } = request;
-    // Allow initial HTML load (file:// or about:blank used by WebView internally)
-    if (url === 'about:blank' || url.startsWith('about:') || url.startsWith('file://') || url.startsWith('data:')) {
-      return true;
-    }
-    // Intercept links — route through contentRouter instead of in-WebView navigation
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('tel:')) {
-      contentRouterOpenURL(url).catch(() => {
-        console.debug('[MailDetail] Failed to open URL from WebView');
-      });
-      return false;
-    }
-    return false;
-  }, []);
-
-  /** Inject JS to unlock images in the already-loaded WebView */
-  const injectImageLoad = useCallback(() => {
-    webViewRef.current?.injectJavaScript(`
-      try {
-        var metas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
-        metas.forEach(function(m) { m.remove(); });
-        var meta = document.createElement('meta');
-        meta.httpEquiv = 'Content-Security-Policy';
-        meta.content = "default-src 'none'; style-src 'unsafe-inline'; img-src * data: blob:; font-src 'none';";
-        document.head.appendChild(meta);
-        var imgs = document.querySelectorAll('img');
-        imgs.forEach(function(img) {
-          var src = img.getAttribute('src') || img.getAttribute('data-src');
-          if (src) { img.src = ''; img.src = src; }
-        });
-        setTimeout(function() {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', value: document.body.scrollHeight }));
-        }, 1000);
-      } catch(e) {}
-      true;
-    `);
-  }, []);
-
-  const handleLoadImages = useCallback(() => {
-    triggerHaptic();
-    Alert.alert(
-      t('modules.mail.detail.externalImagesTitle'),
-      t('modules.mail.detail.externalImagesWarning'),
-      [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('modules.mail.detail.loadImagesConfirm'),
-          onPress: () => {
-            setImagesLoaded(true);
-            injectImageLoad();
-            // Show informational modal after images are loaded
-            setWhitelistToggle(false);
-            setShowWarningModal(true);
-          },
-        },
-      ],
-    );
-  }, [t, injectImageLoad]);
-
-  /** Dismiss the warning modal and optionally save domain to whitelist */
-  const handleDismissWarningModal = useCallback(async () => {
-    triggerHaptic();
-    if (whitelistToggle && senderDomain) {
-      try {
-        await whitelistDomain(senderDomain);
-      } catch {
-        // Non-critical — whitelist save failed silently
-      }
-    }
-    setShowWarningModal(false);
-  }, [whitelistToggle, senderDomain]);
-
-  return (
-    <View style={styles.bodyContainer}>
-      {/* Privacy banner — shown when mail contains external images that are blocked */}
-      {hasExternalImages && !imagesLoaded && (
-        <View style={[styles.imageBanner, { backgroundColor: bannerBackgroundColor }]}>
-          <View style={styles.imageBannerContent}>
-            <Icon name="lock" size={20} color={bannerTextColor} />
-            <Text style={[styles.imageBannerText, { color: bannerTextColor }]}>
-              {t('modules.mail.detail.imagesBlocked')}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[styles.loadImagesButton, { backgroundColor: bannerButtonColor }]}
-            onPress={handleLoadImages}
-            onLongPress={() => {}}
-            delayLongPress={300}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.mail.detail.loadImages')}
-          >
-            <Text style={styles.loadImagesButtonText}>
-              {t('modules.mail.detail.loadImages')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Warning modal — shown after images are loaded (dismissable) */}
-      <Modal
-        visible={showWarningModal}
-        transparent
-        animationType="fade"
-        onRequestClose={handleDismissWarningModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]}>
-            {/* Warning icon + title */}
-            <View style={styles.modalHeader}>
-              <Icon name="warning" size={28} color="#E65100" />
-              <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
-                {t('modules.mail.detail.warningModalTitle')}
-              </Text>
-            </View>
-
-            {/* Warning text */}
-            <Text style={[styles.modalBody, { color: themeColors.textPrimary }]}>
-              {t('modules.mail.detail.warningModalBody')}
-            </Text>
-
-            {/* Sender domain info */}
-            {senderDomain ? (
-              <View style={[styles.modalDomainRow, { backgroundColor: themeColors.background }]}>
-                <Text style={[styles.modalDomainLabel, { color: themeColors.textSecondary }]}>
-                  {t('modules.mail.detail.warningModalSender')}
-                </Text>
-                <Text style={[styles.modalDomainValue, { color: themeColors.textPrimary }]}>
-                  {senderDomain}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Whitelist toggle */}
-            {senderDomain ? (
-              <View style={[styles.modalToggleRow, { borderColor: themeColors.border }]}>
-                <Text style={[styles.modalToggleLabel, { color: themeColors.textPrimary }]}>
-                  {t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
-                </Text>
-                <Switch
-                  value={whitelistToggle}
-                  onValueChange={(value) => {
-                    triggerHaptic();
-                    setWhitelistToggle(value);
-                  }}
-                  trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
-                  thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
-                  accessibilityLabel={t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
-                />
-              </View>
-            ) : null}
-
-            {/* Settings reference */}
-            <Text style={[styles.modalSettingsHint, { color: themeColors.textSecondary }]}>
-              {t('modules.mail.detail.warningModalSettingsHint')}
-            </Text>
-
-            {/* Dismiss button */}
-            <TouchableOpacity
-              style={[styles.modalDismissButton, { backgroundColor: accentColor.primary }]}
-              onPress={handleDismissWarningModal}
-              onLongPress={() => {}}
-              delayLongPress={300}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.mail.detail.warningModalDismiss')}
-            >
-              <Text style={styles.modalDismissButtonText}>
-                {t('modules.mail.detail.warningModalDismiss')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* WebView — renders the HTML mail body */}
-      <WebView
-        ref={webViewRef}
-        source={{ html: webViewHtml, baseUrl: '' }}
-        style={[
-          styles.webView,
-          {
-            // Use measured height if available, otherwise generous fallback
-            height: heightReceived ? webViewHeight : 5000,
-            backgroundColor,
-          },
-        ]}
-        scrollEnabled={!heightReceived}
-        nestedScrollEnabled={!heightReceived}
-        onMessage={handleMessage}
-        onShouldStartLoadWithRequest={handleNavigationRequest}
-        onLoadEnd={() => {
-          // Backup height measurement via injected JS in case the inline script didn't fire
-          webViewRef.current?.injectJavaScript(`
-            try {
-              var h = Math.max(
-                document.body.scrollHeight || 0,
-                document.body.offsetHeight || 0,
-                document.documentElement.scrollHeight || 0
-              );
-              if (h > 0) {
-                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', value: h }));
-              }
-            } catch(e) {}
-            true;
-          `);
-        }}
-        javaScriptEnabled={true}
-        domStorageEnabled={false}
-        allowsInlineMediaPlayback={false}
-        mediaPlaybackRequiresUserAction={true}
-        allowsLinkPreview={false}
-        automaticallyAdjustContentInsets={false}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        originWhitelist={['*']}
-        decelerationRate="normal"
-        accessibilityLabel={t('modules.mail.detail.mailBody')}
-      />
-    </View>
-  );
-}
-
-// ============================================================
 // Component
 // ============================================================
 
@@ -661,6 +85,7 @@ export function MailDetailScreen({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   // State
   const [body, setBody] = useState<MailBody | null>(null);
@@ -829,7 +254,7 @@ export function MailDetailScreen({
             setDownloadedImages(prev => new Map(prev).set(attachment.index, tempPath));
           }
         } catch {
-          console.debug('[MailDetail] Failed to download image thumbnail:', attachment.name);
+          console.debug('[MailDetail] Failed to download image thumbnail');
         } finally {
           if (mountedRef.current) {
             setDownloadingImages(prev => {
@@ -909,7 +334,7 @@ export function MailDetailScreen({
   // ============================================================
 
   const handleDelete = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     Alert.alert(
       t('modules.mail.detail.deleteTitle'),
       t('modules.mail.detail.deleteMessage'),
@@ -950,12 +375,12 @@ export function MailDetailScreen({
   }, [header.uid, header.folder, account.id, onBack, onDeleted, t]);
 
   const handleReply = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onReply?.(header);
   }, [header, onReply]);
 
   const handleForward = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onForward?.(header, body);
   }, [header, body, onForward]);
 
@@ -970,7 +395,7 @@ export function MailDetailScreen({
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
           onPress={() => {
-            triggerHaptic();
+            triggerHaptic('tap');
             onBack();
           }}
           onLongPress={() => {}}
@@ -1053,12 +478,7 @@ export function MailDetailScreen({
 
         {/* Body */}
         {isLoading ? (
-          <View style={styles.bodyLoading}>
-            <ActivityIndicator size="large" color={accentColor.primary} />
-            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-              {t('modules.mail.detail.loadingBody')}
-            </Text>
-          </View>
+          <LoadingView message={t('modules.mail.detail.loadingBody')} />
         ) : error && !body ? (
           <View style={styles.bodyError}>
             <Icon name="warning" size={32} color={themeColors.textSecondary} />
@@ -1068,7 +488,7 @@ export function MailDetailScreen({
             <TouchableOpacity
               style={[styles.retryButton, { backgroundColor: accentColor.primary }]}
               onPress={() => {
-                triggerHaptic();
+                triggerHaptic('tap');
                 setError(null);
                 setIsLoading(true);
                 // Re-trigger load
@@ -1126,7 +546,7 @@ export function MailDetailScreen({
                     style={[styles.inlineThumbnailContainer, { borderColor: themeColors.border }]}
                     onPress={() => {
                       if (localUri) {
-                        triggerHaptic();
+                        triggerHaptic('tap');
                         // Find the viewer index for this attachment
                         const viewerIdx = imageAttachments
                           .filter(a => downloadedImages.has(a.index))
@@ -1239,171 +659,6 @@ export function MailDetailScreen({
 }
 
 // ============================================================
-// Attachment Icon Helper
-// ============================================================
-
-function getAttachmentIconName(mimeType: string): string {
-  if (mimeType.startsWith('image/')) return 'image';
-  if (mimeType.startsWith('video/')) return 'videocam';
-  if (mimeType === 'application/pdf') return 'document-text';
-  if (mimeType === 'text/calendar') return 'time';
-  if (mimeType === 'text/vcard' || mimeType === 'text/x-vcard') return 'person';
-  if (mimeType.startsWith('text/')) return 'document-text';
-  if (
-    mimeType.includes('word') ||
-    mimeType.includes('excel') ||
-    mimeType.includes('spreadsheet') ||
-    mimeType.includes('powerpoint') ||
-    mimeType.includes('presentation') ||
-    mimeType.includes('pages') ||
-    mimeType.includes('numbers') ||
-    mimeType.includes('keynote') ||
-    mimeType.includes('rtf')
-  ) return 'document';
-  if (mimeType.includes('zip')) return 'folder';
-  return 'attach';
-}
-
-// ============================================================
-// AttachmentRow Sub-component
-// ============================================================
-
-interface AttachmentRowProps {
-  attachment: MailAttachmentMeta;
-  uid: number;
-  folder: string;
-  accountId: string;
-}
-
-function AttachmentRow({ attachment, uid, folder, accountId }: AttachmentRowProps) {
-  const themeColors = useColors();
-  const { accentColor } = useAccentColor();
-  const { t } = useTranslation();
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
-
-  const isSaveable = canSaveToAlbum(attachment.mimeType);
-
-  const handleDownload = useCallback(async () => {
-    triggerHaptic();
-    setIsDownloading(true);
-    try {
-      const result = await downloadAndPreview(
-        uid,
-        folder,
-        attachment.index,
-        attachment.name,
-        attachment.mimeType,
-      );
-      if (!result.handled) {
-        Alert.alert(
-          t('modules.mail.detail.downloadFailed'),
-          result.error || t('modules.mail.detail.downloadFailedMessage'),
-        );
-      }
-    } catch {
-      Alert.alert(
-        t('modules.mail.detail.downloadFailed'),
-        t('modules.mail.detail.downloadFailedMessage'),
-      );
-    } finally {
-      setIsDownloading(false);
-    }
-  }, [uid, folder, attachment, t]);
-
-  const handleSaveToAlbum = useCallback(async () => {
-    triggerHaptic();
-    setIsSaving(true);
-    setSaveResult(null);
-    try {
-      const { saveAttachmentToAlbum } = await import('@/services/mail/saveToAlbumService');
-      const result = await saveAttachmentToAlbum(uid, folder, attachment, accountId);
-      setSaveResult(result.success ? 'success' : 'error');
-      if (result.success) {
-        Alert.alert(
-          t('modules.mail.detail.savedToAlbum'),
-          attachment.name,
-        );
-      } else {
-        Alert.alert(
-          t('modules.mail.detail.saveToAlbumFailed'),
-          t('modules.mail.detail.saveToAlbumFailedMessage'),
-        );
-      }
-    } catch {
-      setSaveResult('error');
-      Alert.alert(
-        t('modules.mail.detail.saveToAlbumFailed'),
-        t('modules.mail.detail.saveToAlbumFailedMessage'),
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  }, [uid, folder, attachment, accountId, t]);
-
-  const iconName = getAttachmentIconName(attachment.mimeType);
-
-  return (
-    <View style={[styles.attachmentRow, { borderColor: themeColors.border }]}>
-      <TouchableOpacity
-        style={styles.attachmentMainArea}
-        onPress={handleDownload}
-        onLongPress={() => {}}
-        delayLongPress={300}
-        activeOpacity={0.7}
-        disabled={isDownloading}
-        accessibilityRole="button"
-        accessibilityLabel={`${t('modules.mail.detail.downloadAttachment')}: ${attachment.name}`}
-      >
-        <Icon name={iconName} size={24} color={accentColor.primary} />
-        <View style={styles.attachmentInfo}>
-          <Text
-            style={[styles.attachmentName, { color: themeColors.textPrimary }]}
-            numberOfLines={1}
-          >
-            {attachment.name}
-          </Text>
-          <Text style={[styles.attachmentSize, { color: themeColors.textSecondary }]}>
-            {formatFileSize(attachment.size)}
-          </Text>
-        </View>
-        {isDownloading ? (
-          <ActivityIndicator size="small" color={accentColor.primary} />
-        ) : (
-          <Icon name="download" size={20} color={accentColor.primary} />
-        )}
-      </TouchableOpacity>
-
-      {/* Save to album button for images/videos */}
-      {isSaveable && (
-        <TouchableOpacity
-          style={[
-            styles.saveToAlbumButton,
-            saveResult === 'success' && { backgroundColor: '#E8F5E9' },
-          ]}
-          onPress={handleSaveToAlbum}
-          onLongPress={() => {}}
-          delayLongPress={300}
-          activeOpacity={0.7}
-          disabled={isSaving || saveResult === 'success'}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.mail.detail.saveToAlbum')}
-        >
-          {isSaving ? (
-            <ActivityIndicator size="small" color={accentColor.primary} />
-          ) : saveResult === 'success' ? (
-            <Icon name="check" size={18} color="#4CAF50" />
-          ) : (
-            <Icon name="image" size={18} color={accentColor.primary} />
-          )}
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
-
-// ============================================================
 // Styles
 // ============================================================
 
@@ -1498,16 +753,6 @@ const styles = StyleSheet.create({
     height: 1,
     marginHorizontal: spacing.lg,
   },
-  bodyLoading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
-  loadingText: {
-    ...typography.body,
-  },
   bodyError: {
     flex: 1,
     justifyContent: 'center',
@@ -1533,113 +778,6 @@ const styles = StyleSheet.create({
   },
   bodyContainer: {
     padding: spacing.lg,
-  },
-  webView: {
-    width: '100%',
-    opacity: 0.99, // Forces WKWebView to use proper rendering
-  },
-  imageBanner: {
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-  },
-  imageBannerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  imageBannerText: {
-    ...typography.small,
-    flex: 1,
-  },
-  loadImagesButton: {
-    minHeight: touchTargets.minimum,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-  },
-  loadImagesButtonText: {
-    ...typography.body,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  // Warning modal (shown after images are loaded)
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingHorizontal: spacing.lg,
-  },
-  modalContent: {
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  modalTitle: {
-    ...typography.h3,
-    fontWeight: '700',
-    flex: 1,
-  },
-  modalBody: {
-    ...typography.body,
-    lineHeight: 26,
-  },
-  modalDomainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-  },
-  modalDomainLabel: {
-    ...typography.body,
-    fontWeight: '600',
-  },
-  modalDomainValue: {
-    ...typography.body,
-    fontWeight: '700',
-  },
-  modalToggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    minHeight: touchTargets.minimum,
-  },
-  modalToggleLabel: {
-    ...typography.body,
-    fontWeight: '600',
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  modalSettingsHint: {
-    ...typography.small,
-    fontStyle: 'italic',
-  },
-  modalDismissButton: {
-    minHeight: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  modalDismissButtonText: {
-    ...typography.body,
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
   bodyText: {
     ...typography.body,
@@ -1691,41 +829,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: spacing.xs,
   },
-  attachmentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: touchTargets.minimum,
-    borderWidth: 1,
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
-  },
-  attachmentMainArea: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
-  },
-  attachmentInfo: {
-    flex: 1,
-  },
-  attachmentName: {
-    ...typography.body,
-    fontWeight: '600',
-  },
-  attachmentSize: {
-    ...typography.small,
-  },
-  saveToAlbumButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderLeftWidth: 1,
-    borderLeftColor: 'rgba(0,0,0,0.1)',
-  },
-  // bulkSave styles removed — replaced by inline thumbnails + viewer
   bottomBar: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,

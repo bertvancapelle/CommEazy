@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
+import { HapticTouchable } from './HapticTouchable';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { useFeedback } from '@/hooks/useFeedback';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 
 // ============================================================
@@ -112,24 +112,18 @@ export function FavoriteTabButton({
 }: FavoriteTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
-  const { triggerFeedback } = useFeedback();
 
   const displayLabel = label ?? t('common.favorites');
 
-  const handlePress = async () => {
-    await triggerFeedback('tap');
-    onPress();
-  };
-
   return (
-    <TouchableOpacity
+    <HapticTouchable
       style={[
         styles.tab,
         isActive
           ? { backgroundColor: accentColor.primary }
           : styles.tabInactive,
       ]}
-      onPress={handlePress}
+      onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected: isActive }}
       accessibilityLabel={
@@ -164,7 +158,7 @@ export function FavoriteTabButton({
       ]}>
         {displayLabel}
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

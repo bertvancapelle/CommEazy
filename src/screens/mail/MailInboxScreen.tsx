@@ -22,17 +22,16 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
   TouchableOpacity,
   Platform,
   NativeModules,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { Icon, SearchBar } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
+import { Icon, SearchBar, LoadingView } from '@/components';
 import type { CachedMailHeader, MailAccount, MailboxInfo } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { MailListItem } from './MailListItem';
@@ -51,23 +50,6 @@ export interface MailInboxScreenProps {
   /** Navigate to settings */
   onSettings?: () => void;
 }
-
-// ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 // ============================================================
 // Folder Icons
@@ -123,6 +105,7 @@ export function MailInboxScreen({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   // State
   const [folders, setFolders] = useState<MailboxInfo[]>([]);
@@ -322,7 +305,7 @@ export function MailInboxScreen({
 
   // Pull-to-refresh — use ref to avoid stale closure
   const handleRefresh = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setIsRefreshing(true);
     console.debug('[MailInbox] Pull-to-refresh triggered');
     loadDataRef.current?.(true);
@@ -333,12 +316,12 @@ export function MailInboxScreen({
   // ============================================================
 
   const handleFolderToggle = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setShowFolders(prev => !prev);
   }, []);
 
   const handleFolderSelect = useCallback((folderName: string) => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setSelectedFolder(folderName);
     setShowFolders(false);
     setHeaders([]); // Clear while loading new folder
@@ -349,7 +332,7 @@ export function MailInboxScreen({
   // ============================================================
 
   const handleToggleFlag = useCallback(async (header: CachedMailHeader) => {
-    triggerHaptic();
+    triggerHaptic('tap');
     try {
       const imapBridge = await import('@/services/mail/imapBridge');
       const mailCache = await import('@/services/mail/mailCache');
@@ -387,7 +370,7 @@ export function MailInboxScreen({
     const query = searchQuery.trim();
     if (!query) return;
 
-    triggerHaptic();
+    triggerHaptic('tap');
     setIsSearching(true);
     setSearchResults(null);
     setError(null);
@@ -499,7 +482,7 @@ export function MailInboxScreen({
         <TouchableOpacity
           style={[styles.composeButton, { backgroundColor: accentColor.primary }]}
           onPress={() => {
-            triggerHaptic();
+            triggerHaptic('tap');
             onCompose();
           }}
           onLongPress={() => {}}
@@ -616,19 +599,9 @@ export function MailInboxScreen({
 
       {/* Mail list */}
       {isSearching ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={accentColor.primary} />
-          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-            {t('modules.mail.inbox.search.searching')}
-          </Text>
-        </View>
+        <LoadingView message={t('modules.mail.inbox.search.searching')} />
       ) : isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={accentColor.primary} />
-          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-            {t('modules.mail.inbox.loading')}
-          </Text>
-        </View>
+        <LoadingView message={t('modules.mail.inbox.loading')} />
       ) : searchResults !== null ? (
         // Show search results
         searchResults.length === 0 ? (

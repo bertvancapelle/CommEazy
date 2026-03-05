@@ -179,7 +179,7 @@ export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageR
       );
       // Add any dynamic modules that aren't in default order
       const dynamicModules = availableModules.filter(m =>
-        !DEFAULT_MODULE_ORDER.includes(m as any) && m !== excludeModule
+        !DEFAULT_MODULE_ORDER.includes(m) && m !== excludeModule
       );
       return [...staticFiltered, ...dynamicModules].slice(0, count);
     }
@@ -196,8 +196,8 @@ export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageR
       }
 
       // For ties, use default ordering (dynamic modules get high index)
-      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a as any);
-      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b as any);
+      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a);
+      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b);
       // If not in default order, put at end (use large number)
       const indexA = defaultIndexA === -1 ? 1000 : defaultIndexA;
       const indexB = defaultIndexB === -1 ? 1000 : defaultIndexB;
@@ -226,7 +226,7 @@ export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageR
       );
       // Add any dynamic modules not in default order
       const dynamicModules = remaining.filter(m =>
-        !DEFAULT_MODULE_ORDER.includes(m as any)
+        !DEFAULT_MODULE_ORDER.includes(m)
       );
       return [...staticFiltered, ...dynamicModules];
     }
@@ -241,8 +241,8 @@ export function useModuleUsage(options?: UseModuleUsageOptions): UseModuleUsageR
       }
 
       // For ties, use default ordering (dynamic modules get high index)
-      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a as any);
-      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b as any);
+      const defaultIndexA = DEFAULT_MODULE_ORDER.indexOf(a);
+      const defaultIndexB = DEFAULT_MODULE_ORDER.indexOf(b);
       const indexA = defaultIndexA === -1 ? 1000 : defaultIndexA;
       const indexB = defaultIndexB === -1 ? 1000 : defaultIndexB;
       return indexA - indexB;

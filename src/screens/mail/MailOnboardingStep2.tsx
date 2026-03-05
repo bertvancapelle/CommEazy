@@ -22,10 +22,10 @@ import {
   Switch,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Button, TextInput, Icon, ProgressIndicator } from '@/components';
 import type { MailProvider, SecurityMethod, ServerConfig } from '@/services/mail/mailConstants';
 
@@ -64,23 +64,6 @@ export interface AuthFormData {
 }
 
 // ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
-
-// ============================================================
 // Security Options
 // ============================================================
 
@@ -102,6 +85,7 @@ export function MailOnboardingStep2({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   // Form state
   const [email, setEmail] = useState('');
@@ -142,7 +126,7 @@ export function MailOnboardingStep2({
   // ============================================================
 
   const handleOAuthPress = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onSubmit({
       email: '',
       providerId: provider.id,
@@ -150,7 +134,7 @@ export function MailOnboardingStep2({
   }, [onSubmit, provider.id]);
 
   const handlePasswordSubmit = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
 
     const data: AuthFormData = {
       email: email.trim().toLowerCase(),
@@ -257,7 +241,7 @@ export function MailOnboardingStep2({
       <TouchableOpacity
         style={[styles.serverConfigToggle, { borderColor: themeColors.border }]}
         onPress={() => {
-          triggerHaptic();
+          triggerHaptic('tap');
           setShowServerConfig(!showServerConfig);
         }}
         accessibilityRole="button"
@@ -462,6 +446,8 @@ interface SecuritySelectorProps {
 }
 
 function SecuritySelector({ value, onChange, themeColors, accentColor }: SecuritySelectorProps) {
+  const { triggerHaptic } = useFeedback();
+
   return (
     <View style={secStyles.container}>
       {SECURITY_OPTIONS.map((option) => (
@@ -475,7 +461,7 @@ function SecuritySelector({ value, onChange, themeColors, accentColor }: Securit
             },
           ]}
           onPress={() => {
-            triggerHaptic();
+            triggerHaptic('tap');
             onChange(option);
           }}
           accessibilityRole="radio"

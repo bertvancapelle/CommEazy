@@ -20,6 +20,7 @@ import { Icon, type IconName } from './Icon';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useHoldGestureGuard } from '@/contexts/HoldGestureContext';
 import { colors, borderRadius, touchTargets } from '@/theme';
 
 export interface IconButtonProps {
@@ -102,6 +103,9 @@ export function IconButton({
     onPress();
   }, [onPress, triggerFeedback]);
 
+  // Wrap with hold gesture guard to prevent double-action on long-press
+  const guardedPress = useHoldGestureGuard(handlePress);
+
   // Determine visual state
   const showFilled = isPressed || isFlashing;
   const currentIcon = isActive ? (iconActive || icon) : icon;
@@ -109,9 +113,11 @@ export function IconButton({
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPress={guardedPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      onLongPress={() => {}}
+      delayLongPress={300}
       disabled={disabled}
       style={[
         styles.container,

@@ -17,7 +17,9 @@
  */
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, Text, Platform, Modal, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Platform } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
+import { PanelAwareModal } from './PanelAwareModal';
 import Slider from '@react-native-community/slider';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { useTranslation } from 'react-i18next';
@@ -250,29 +252,30 @@ export function TimeSlider({
       </View>
 
       {/* Warning Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showWarning}
         transparent
         animationType="fade"
         onRequestClose={dismissWarning}
       >
-        <TouchableOpacity
+        <HapticTouchable
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={dismissWarning}
+          hapticDisabled
         >
           <View style={styles.warningBox}>
             <Text style={styles.warningIcon}>⚠️</Text>
             <Text style={styles.warningText}>{warningMessage}</Text>
-            <TouchableOpacity
+            <HapticTouchable
               style={[styles.warningButton, { backgroundColor: accentColor.primary }]}
               onPress={dismissWarning}
             >
               <Text style={styles.warningButtonText}>{t('common.ok')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
-        </TouchableOpacity>
-      </Modal>
+        </HapticTouchable>
+      </PanelAwareModal>
     </View>
   );
 }

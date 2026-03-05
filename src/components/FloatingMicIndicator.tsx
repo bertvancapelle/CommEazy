@@ -22,6 +22,7 @@ import {
   Easing,
   AccessibilityInfo,
   Platform,
+  type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -142,7 +143,7 @@ export function FloatingMicIndicator({
     // Header is ~44pt, indicator is 60pt, so offset = (44 - 60) / 2 + some padding = ~6pt
     // This places the mic indicator horizontally aligned with the screen title
     const headerOffset = 6;
-    const baseStyle: any = {
+    const baseStyle: ViewStyle = {
       position: 'absolute' as const,
     };
 

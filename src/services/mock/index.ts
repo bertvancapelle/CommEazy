@@ -1,11 +1,11 @@
 /**
  * Mock Data Module - Barrel Export
  *
- * Central export point for all mock data and dev tools.
+ * Central export point for test device fixture data and dev tools.
  * Only active in __DEV__ mode.
  *
  * Usage:
- *   import { MOCK_CONTACTS, seedMockData, DevMockData } from '@/services/mock';
+ *   import { seedMockData, getMockContactsForDevice } from '@/services/mock';
  *
  *   // In App.tsx during initialization:
  *   if (__DEV__) {
@@ -13,10 +13,9 @@
  *   }
  */
 
-// Mock Contacts
+// Test Device Contacts
 export {
   MOCK_CONTACTS,
-  MOCK_CHAT_IDS,
   getMockContactByJid,
   getMockContactByChatId,
   getMockContactsForDevice,
@@ -25,14 +24,10 @@ export {
   getMockContactPresence,
 } from './mockContacts';
 
-// Mock Chats & Messages
+// Test Device Chats & Messages
 export {
   MOCK_CURRENT_USER,
   MOCK_MESSAGES,
-  MOCK_MESSAGES_OMA,
-  MOCK_MESSAGES_PAPA,
-  MOCK_MESSAGES_TANTE_MARIA,
-  MOCK_MESSAGES_BUURMAN_HENK,
   MOCK_MESSAGES_DEVICE_CHAT,
   DEVICE_CHAT_ID,
   getMockMessages,

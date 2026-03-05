@@ -299,10 +299,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   speedButton: {
-    width: 48,
-    height: 48,
+    width: 60,
+    height: 60,
     backgroundColor: '#FFF',
-    borderRadius: 24,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,

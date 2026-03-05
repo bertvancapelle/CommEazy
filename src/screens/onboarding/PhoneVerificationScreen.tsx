@@ -53,11 +53,13 @@ export function PhoneVerificationScreen({ navigation }: Props) {
       const confirmationResult = await auth().signInWithPhoneNumber(fullPhoneNumber);
       setConfirmation(confirmationResult);
       setStep('code');
-    } catch (err: any) {
-      console.log('Firebase phone auth error:', err.code, err.message);
-      if (err.code === 'auth/invalid-phone-number') {
+    } catch (err) {
+      const errCode = (err as { code?: string }).code;
+      const errMessage = err instanceof Error ? err.message : '';
+      console.log('Firebase phone auth error:', errCode, errMessage);
+      if (errCode === 'auth/invalid-phone-number') {
         setError(t('errors.invalidPhone'));
-      } else if (err.code === 'auth/too-many-requests') {
+      } else if (errCode === 'auth/too-many-requests') {
         setError(t('errors.tooManyRequests'));
       } else {
         setError(t('errors.E500'));
@@ -78,9 +80,11 @@ export function PhoneVerificationScreen({ navigation }: Props) {
       }
       await confirmation.confirm(verificationCode);
       navigation.navigate('NameInput');
-    } catch (err: any) {
-      console.log('Firebase verify error:', err.code, err.message);
-      if (err.code === 'auth/invalid-verification-code') {
+    } catch (err) {
+      const errCode = (err as { code?: string }).code;
+      const errMessage = err instanceof Error ? err.message : '';
+      console.log('Firebase verify error:', errCode, errMessage);
+      if (errCode === 'auth/invalid-verification-code') {
         setError(t('errors.invalidCode'));
       } else {
         setError(t('errors.E500'));

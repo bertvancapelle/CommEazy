@@ -7,7 +7,7 @@
  * Only loaded in __DEV__ mode.
  */
 
-import { MOCK_CONTACTS, getMockContactByJid } from './mockContacts';
+import { getMockContactByJid } from './mockContacts';
 import { MOCK_CURRENT_USER } from './mockChats';
 import { getContactDisplayName } from '../interfaces';
 
@@ -235,24 +235,14 @@ export const verifyMockDeviceLinkQR = (qrData: string): MockDeviceLinkResult => 
 // QR data that can be used for testing in development
 // Using getters to avoid execution at module load time
 export const MOCK_TEST_QR_CODES = {
-  // Valid QR code for Oma Jansen
-  get OMA_JANSEN() {
-    return generateMockContactQRData('oma.jansen@commeazy.local');
-  },
-
-  // Valid QR code for Papa
-  get PAPA() {
-    return generateMockContactQRData('papa@commeazy.local');
-  },
-
-  // Valid QR code for unverified contact (Tante Maria)
-  get TANTE_MARIA() {
-    return generateMockContactQRData('tante.maria@commeazy.local');
+  // Valid QR code for test device contact
+  get TEST_DEVICE() {
+    return generateMockContactQRData('test@commeazy.local');
   },
 
   // Device link QR code
   get DEVICE_LINK() {
-    return generateMockDeviceLinkQR("Jan's iPhone");
+    return generateMockDeviceLinkQR("Test iPhone");
   },
 
   // Invalid QR codes for error testing
@@ -278,9 +268,9 @@ export const getTestQRCodeForScanning = (
 ): string => {
   switch (scenario) {
     case 'success':
-      return MOCK_TEST_QR_CODES.OMA_JANSEN ?? '';
+      return MOCK_TEST_QR_CODES.TEST_DEVICE ?? '';
     case 'unverified':
-      return MOCK_TEST_QR_CODES.TANTE_MARIA ?? '';
+      return MOCK_TEST_QR_CODES.TEST_DEVICE ?? '';
     case 'expired':
       return MOCK_TEST_QR_CODES.EXPIRED;
     case 'invalid':

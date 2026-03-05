@@ -14,12 +14,12 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
+import { HapticTouchable } from './HapticTouchable';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import { useFeedback } from '@/hooks/useFeedback';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 
 // ============================================================
@@ -67,27 +67,21 @@ export function SearchButton({
 }: SearchButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
-  const { triggerFeedback } = useFeedback();
-
-  const handlePress = async () => {
-    await triggerFeedback('tap');
-    onPress();
-  };
 
   return (
-    <TouchableOpacity
+    <HapticTouchable
       style={[
         styles.iconButton,
         { backgroundColor: accentColor.primary },
         disabled && styles.disabled,
       ]}
-      onPress={handlePress}
+      onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? t('common.search')}
     >
       <Icon name="search" size={size} color={colors.textOnPrimary} />
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -111,24 +105,18 @@ export function SearchTabButton({
 }: SearchTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
-  const { triggerFeedback } = useFeedback();
 
   const displayLabel = label ?? t('common.search');
 
-  const handlePress = async () => {
-    await triggerFeedback('tap');
-    onPress();
-  };
-
   return (
-    <TouchableOpacity
+    <HapticTouchable
       style={[
         styles.tab,
         isActive
           ? { backgroundColor: accentColor.primary }
           : styles.tabInactive,
       ]}
-      onPress={handlePress}
+      onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected: isActive }}
       accessibilityLabel={displayLabel}
@@ -146,7 +134,7 @@ export function SearchTabButton({
       ]}>
         {displayLabel}
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

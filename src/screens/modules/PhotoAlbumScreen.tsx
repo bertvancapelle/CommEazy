@@ -299,9 +299,12 @@ export function PhotoAlbumScreen() {
         console.info(LOG_PREFIX, 'Loaded contacts:', contactList.length);
       } else if (__DEV__) {
         // Use mock contacts in dev mode
-        const { MOCK_CONTACTS } = await import('@/services/mock');
-        setContacts(MOCK_CONTACTS);
-        console.info(LOG_PREFIX, 'Using mock contacts:', MOCK_CONTACTS.length);
+        const { getMockContactsForDevice } = await import('@/services/mock');
+        const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
+        const publicKeyMap = await getOtherDevicesPublicKeys('ik@commeazy.local');
+        const deviceContacts = getMockContactsForDevice('ik@commeazy.local', publicKeyMap);
+        setContacts(deviceContacts);
+        console.info(LOG_PREFIX, 'Using test device contacts:', deviceContacts.length);
       }
     } catch (error) {
       console.error(LOG_PREFIX, 'Failed to load contacts:', error);

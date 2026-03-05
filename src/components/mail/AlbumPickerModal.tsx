@@ -26,13 +26,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, PanelAwareModal } from '@/components';
 
 // ============================================================
@@ -64,19 +63,6 @@ const WARNING_SIZE = 20 * 1024 * 1024; // 20MB
 const GRID_COLUMNS = 3;
 const GRID_SPACING = 4;
 
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
-
 // ============================================================
 // Component
 // ============================================================
@@ -90,6 +76,7 @@ export function AlbumPickerModal({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
@@ -140,7 +127,7 @@ export function AlbumPickerModal({
 
   const handleToggle = useCallback(
     (uri: string) => {
-      triggerHaptic();
+      triggerHaptic('tap');
       setSelectedPhotos(prev => {
         const next = new Set(prev);
         if (next.has(uri)) {
@@ -156,7 +143,7 @@ export function AlbumPickerModal({
 
   const handleConfirm = useCallback(() => {
     if (isOverLimit || selectedPhotos.size === 0) return;
-    triggerHaptic();
+    triggerHaptic('tap');
 
     const selected = photos.filter(p => selectedPhotos.has(p.uri));
     onSelect(selected);
@@ -164,7 +151,7 @@ export function AlbumPickerModal({
   }, [isOverLimit, selectedPhotos, photos, onSelect, onClose]);
 
   const handleClose = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onClose();
   }, [onClose]);
 

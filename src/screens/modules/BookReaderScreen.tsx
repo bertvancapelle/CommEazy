@@ -27,7 +27,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Modal,
   PanResponder,
   Linking,
@@ -38,7 +37,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton } from '@/components';
+import { Icon, IconButton, LoadingView } from '@/components';
 import { useBooksContext } from '@/contexts/BooksContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -369,12 +368,7 @@ export function BookReaderScreen() {
           ]}
         >
           {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={accentColor.primary} />
-              <Text style={[styles.loadingText, { color: theme.secondary }]}>
-                {t('modules.books.loading')}
-              </Text>
-            </View>
+            <LoadingView message={t('modules.books.loading')} />
           ) : (
             <Text
               style={[

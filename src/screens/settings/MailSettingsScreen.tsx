@@ -29,6 +29,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SettingsStackParams } from '@/navigation';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, VoiceFocusable } from '@/components';
@@ -48,7 +50,7 @@ const MESSAGE_COUNT_OPTIONS = [50, 100, 200, 500] as const;
 
 export function MailSettingsScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParams>>();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { triggerFeedback } = useFeedback();

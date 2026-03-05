@@ -197,7 +197,7 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
       setError(null);
 
       // Dynamic import to avoid crash when package is not yet installed
-      let GoogleSignin: any;
+      let GoogleSignin: { hasPlayServices: () => Promise<void>; signIn: () => Promise<{ type: string; data?: unknown }>; getTokens: () => Promise<{ accessToken: string }> };
       try {
         const module = await import(
           '@react-native-google-signin/google-signin'
@@ -237,10 +237,11 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
         if (currentUser) {
           await currentUser.linkWithCredential(googleCredential);
         }
-      } catch (linkErr: any) {
+      } catch (linkErr) {
         // If already linked, that's fine
-        if (linkErr.code !== 'auth/provider-already-linked') {
-          console.warn('[AskAIContext] Firebase link skipped:', linkErr.code);
+        const errCode = (linkErr as { code?: string }).code;
+        if (errCode !== 'auth/provider-already-linked') {
+          console.warn('[AskAIContext] Firebase link skipped:', errCode);
         }
       }
 
@@ -249,8 +250,9 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
       await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_ACCESS_TOKEN, token);
       setIsGoogleLinked(true);
       setAccessToken(token);
-    } catch (err: any) {
-      if (err.code === 'auth/credential-already-in-use') {
+    } catch (err) {
+      const errCode = (err as { code?: string }).code;
+      if (errCode === 'auth/credential-already-in-use') {
         setError(t('modules.askAI.errors.accountAlreadyLinked'));
       } else {
         setError(t('modules.askAI.errors.linkFailed'));
@@ -410,10 +412,12 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
         setCurrentConversation(finalConversation);
         currentConvRef.current = finalConversation;
         await saveConversation(finalConversation);
-      } catch (err: any) {
-        if (err.statusCode === 429) {
+      } catch (err) {
+        const statusCode = (err as { statusCode?: number }).statusCode;
+        const message = err instanceof Error ? err.message : '';
+        if (statusCode === 429) {
           setError(t('modules.askAI.errors.rateLimited'));
-        } else if (err.message?.includes('network') || err.message?.includes('Network')) {
+        } else if (message.includes('network') || message.includes('Network')) {
           setError(t('modules.askAI.errors.networkError'));
         } else {
           setError(t('modules.askAI.errors.sendFailed'));

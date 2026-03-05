@@ -40,7 +40,7 @@ import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, MiniPlayer, ModuleHeader } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, MiniPlayer, ModuleHeader, LoadingView } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -268,10 +268,7 @@ export function BookPlayerScreen() {
   if (!currentBook) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={accentColor.primary} />
-          <Text style={styles.emptyText}>{t('common.loading')}</Text>
-        </View>
+        <LoadingView fullscreen />
       </View>
     );
   }

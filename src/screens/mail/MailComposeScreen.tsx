@@ -36,10 +36,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon } from '@/components';
 import type { MailAccount, CachedMailHeader, MailBody, MailAttachment, MailRecipient } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
@@ -78,23 +78,6 @@ export interface MailComposeScreenProps {
   /** Called after successful send */
   onSent?: () => void;
 }
-
-// ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 // ============================================================
 // Helpers
@@ -293,7 +276,7 @@ function RecipientChip({
       <TouchableOpacity
         style={styles.chipRemove}
         onPress={() => {
-          triggerHaptic();
+          triggerHaptic('tap');
           onRemove();
         }}
         onLongPress={() => {}}
@@ -330,7 +313,7 @@ function ContactSuggestionRow({
     <TouchableOpacity
       style={[styles.suggestionRow, { borderBottomColor: themeColors.border }]}
       onPress={() => {
-        triggerHaptic();
+        triggerHaptic('tap');
         onSelect();
       }}
       onLongPress={() => {}}
@@ -383,7 +366,7 @@ function SelfSuggestionRow({
     <TouchableOpacity
       style={[styles.suggestionRow, { borderBottomColor: themeColors.border }]}
       onPress={() => {
-        triggerHaptic();
+        triggerHaptic('tap');
         onSelect();
       }}
       onLongPress={() => {}}
@@ -608,7 +591,7 @@ export function MailComposeScreen({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
-
+  const { triggerHaptic } = useFeedback();
 
   // Contact loading
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -710,7 +693,7 @@ export function MailComposeScreen({
   }, []);
 
   const handleRemoveToRecipient = useCallback((email: string) => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setToRecipients(prev => prev.filter(r => r.email !== email));
   }, []);
 
@@ -723,7 +706,7 @@ export function MailComposeScreen({
   }, []);
 
   const handleRemoveCcRecipient = useCallback((email: string) => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setCcRecipients(prev => prev.filter(r => r.email !== email));
   }, []);
 
@@ -736,7 +719,7 @@ export function MailComposeScreen({
   }, []);
 
   const handleRemoveBccRecipient = useCallback((email: string) => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setBccRecipients(prev => prev.filter(r => r.email !== email));
   }, []);
 
@@ -747,7 +730,7 @@ export function MailComposeScreen({
   const handleSend = useCallback(async () => {
     if (!isValid || isSending) return;
 
-    triggerHaptic();
+    triggerHaptic('tap');
     setIsSending(true);
 
     try {
@@ -861,7 +844,7 @@ export function MailComposeScreen({
   // ============================================================
 
   const handleClose = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
 
     const hasContent =
       toRecipients.length > 0 ||
@@ -924,7 +907,7 @@ export function MailComposeScreen({
   );
 
   const handleRemoveAttachment = useCallback((id: string) => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setAttachments(prev => prev.filter(a => a.id !== id));
   }, []);
 
@@ -1022,7 +1005,7 @@ export function MailComposeScreen({
           <TouchableOpacity
             style={[styles.ccBccToggle, { borderBottomColor: themeColors.border }]}
             onPress={() => {
-              triggerHaptic();
+              triggerHaptic('tap');
               setShowCcBcc(true);
             }}
             onLongPress={() => {}}
@@ -1143,7 +1126,7 @@ export function MailComposeScreen({
               { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border },
             ]}
             onPress={() => {
-              triggerHaptic();
+              triggerHaptic('tap');
               setShowAlbumPicker(true);
             }}
             onLongPress={() => {}}

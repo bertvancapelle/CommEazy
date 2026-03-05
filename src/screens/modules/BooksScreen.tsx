@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, type SearchBarRef } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -521,10 +521,7 @@ export function BooksScreen() {
 
         {/* Book list */}
         {(showLibrary ? isLibraryLoading : isSearching) ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={accentColor.primary} />
-            <Text style={styles.loadingText}>{t('modules.books.loading')}</Text>
-          </View>
+          <LoadingView message={t('modules.books.loading')} fullscreen />
         ) : apiError ? (
           <View style={styles.errorContainer}>
             <Icon name="warning" size={64} color={colors.error} />
@@ -1057,7 +1054,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    minHeight: 44,
+    minHeight: touchTargets.minimum,
   },
   cleanupButtonText: {
     ...typography.body,

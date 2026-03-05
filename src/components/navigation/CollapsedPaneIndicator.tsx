@@ -27,6 +27,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { usePaneContext } from '@/contexts/PaneContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { colors } from '@/theme';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
 // Constants
@@ -55,7 +56,7 @@ export interface CollapsedPaneIndicatorProps {
 
 export function CollapsedPaneIndicator({ side, moduleId }: CollapsedPaneIndicatorProps) {
   const { openCollapsedPane } = usePaneContext();
-  const moduleColor = useModuleColor(moduleId as any);
+  const moduleColor = useModuleColor(moduleId as ModuleColorId);
 
   const handlePress = () => {
     // Haptic feedback

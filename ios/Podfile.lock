@@ -1013,6 +1013,8 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
+  - react-native-render-html (6.3.4):
+    - React-Core
   - react-native-safe-area-context (4.14.1):
     - React-Core
   - react-native-slider (4.5.7):
@@ -1314,6 +1316,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-image-resizer (from `../node_modules/@bam.tech/react-native-image-resizer`)"
   - react-native-libsodium (from `../node_modules/react-native-libsodium`)
+  - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-track-player (from `../node_modules/react-native-track-player`)
@@ -1462,6 +1465,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@bam.tech/react-native-image-resizer"
   react-native-libsodium:
     :path: "../node_modules/react-native-libsodium"
+  react-native-render-html:
+    :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
@@ -1611,6 +1616,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: bb3a66064010886b9472200945841e2cf79e1b52
   react-native-image-resizer: 24c5d06fae2176dc0caed4b6396e02befb44064a
   react-native-libsodium: 959307f22d05a94cbf68a5f5cdb662548f500a25
+  react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 758e894ca5a9bd1868d2a9cfbca7326a2b6bf9dc
   react-native-slider: e8ab0ed7726099a06f9866b4b84886df7aab9ca2
   react-native-track-player: dd56f9948e03756a217c75e0a61aa04aab65b5a1

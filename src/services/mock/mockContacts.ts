@@ -1,47 +1,22 @@
 /**
- * Mock Contacts Data
+ * Test Device Contacts Data
  *
- * Test contacts for UI development and flow testing.
+ * Contacts for multi-device development testing.
  * Only loaded in __DEV__ mode.
  *
- * Characters represent realistic Dutch family scenarios:
- * - Oma Jansen: verified, active (grandmother testing the app)
- * - Papa: verified, recently online
- * - Tante Maria: not verified yet (for testing verification flow)
- * - Buurman Henk: edge case - long name, offline for days
+ * Test devices:
+ * - ik@commeazy.local: iPhone 17 Pro (simulator)
+ * - oma@commeazy.local: iPhone 16e (simulator)
+ * - test@commeazy.local: iPhone 14 (physical, Bert)
+ * - jeanine@commeazy.local: iPhone 12 (physical, Jeanine)
+ * - ipad@commeazy.local: iPad (simulator)
+ * - ipadphys@commeazy.local: iPad (physical)
  */
 
 import type { Contact, PresenceShow } from '../interfaces';
 
-// Valid test Curve25519 public keys (32 bytes = 44 base64 chars with padding)
-// These are pre-generated deterministic keys for testing only.
-// In production, real keys are exchanged via QR code verification.
-//
-// Generated with: sodium.crypto_box_keypair() - these are REAL Curve25519 public keys
-// that can be used for crypto_box operations. The corresponding private keys
-// are not stored (mock contacts don't need to decrypt).
-//
-// To generate new keys: run in Node.js with libsodium:
-//   const sodium = require('libsodium-wrappers');
-//   await sodium.ready;
-//   const kp = sodium.crypto_box_keypair();
-//   console.log(sodium.to_base64(kp.publicKey));
-const MOCK_PUBLIC_KEYS = {
-  // Real Curve25519 public keys generated for testing
-  ik: 'PlaceholderKey_WillBeReplacedWithRealKey_AtRuntime=', // Replaced dynamically
-  oma: 'PlaceholderKey_WillBeReplacedWithRealKey_AtRuntime2=', // Replaced dynamically
-  oma_jansen: 'de8qPk8RSQGZ3J39tS3rsqShVnZtCsLjwqaQZqJVhW4=',
-  papa: 'rWwrVz/b/pNYAHHnSt37oeYjPYCG8K8pz/x8IYJ8uGI=',
-  tante_maria: '3v8LfUqMqLYtQlNKKzNvL4UzLhPPShNyoKSsMcAewgI=',
-  buurman_henk: 'WIuZr/H9wd/F2FGK4SNd0mYKj2NJJL+F/7xHWRdJDRc=',
-};
-
-// Mock UUIDs for test contacts (stable identifiers)
+// Stable UUIDs for test device contacts
 const MOCK_UUIDS = {
-  oma_jansen: 'a1b2c3d4-e5f6-4a1b-8c2d-9e0f1a2b3c4d',
-  papa: 'b2c3d4e5-f6a7-4b2c-9d3e-0f1a2b3c4d5e',
-  tante_maria: 'c3d4e5f6-a7b8-4c3d-0e4f-1a2b3c4d5e6f',
-  buurman_henk: 'd4e5f6a7-b8c9-4d4e-1f5a-2b3c4d5e6f7a',
   ik: 'e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b',
   oma: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c',
   test: 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d',
@@ -50,87 +25,8 @@ const MOCK_UUIDS = {
   ipadphys: 'd0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a',
 };
 
-// Mock contacts with Dutch family-themed personas
-// NOTE: For 2-device testing, 'ik' and 'oma' contacts are added dynamically
-// based on which device is running (see getMockContactsForDevice)
-const BASE_MOCK_CONTACTS: Contact[] = [
-  {
-    userUuid: MOCK_UUIDS.oma_jansen,
-    jid: 'oma.jansen@commeazy.local',
-    firstName: 'Janny',
-    lastName: 'Jansen',
-    phoneNumber: '+31612345678',
-    email: 'janny.jansen@gmail.com',
-    publicKey: MOCK_PUBLIC_KEYS.oma_jansen,
-    verified: true,
-    lastSeen: Date.now() - 5 * 60 * 1000, // 5 minutes ago (online)
-    address: {
-      street: 'Kerkstraat 42',
-      postalCode: '1012 AB',
-      city: 'Amsterdam',
-      country: 'Nederland',
-    },
-    birthDate: '1948-03-15',
-    weddingDate: '1970-06-20',
-    deathDate: undefined,
-    isDeceased: false,
-  },
-  {
-    userUuid: MOCK_UUIDS.papa,
-    jid: 'papa@commeazy.local',
-    firstName: 'Jan',
-    lastName: 'de Vries',
-    phoneNumber: '+31687654321',
-    email: 'jan.devries@outlook.nl',
-    publicKey: MOCK_PUBLIC_KEYS.papa,
-    verified: true,
-    lastSeen: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
-    address: {
-      street: 'Dorpsweg 7',
-      postalCode: '3421 BA',
-      city: 'Oudewater',
-      country: 'Nederland',
-    },
-    birthDate: '1965-11-28',
-    weddingDate: '1990-09-14',
-  },
-  {
-    userUuid: MOCK_UUIDS.tante_maria,
-    jid: 'tante.maria@commeazy.local',
-    firstName: 'Maria',
-    lastName: 'Bakker',
-    phoneNumber: '+31698765432',
-    publicKey: MOCK_PUBLIC_KEYS.tante_maria,
-    verified: false, // Not verified - for testing verification flow
-    lastSeen: Date.now() - 24 * 60 * 60 * 1000, // 1 day ago
-    birthDate: '1958-07-04',
-  },
-  {
-    userUuid: MOCK_UUIDS.buurman_henk,
-    jid: 'buurman.henk@commeazy.local',
-    firstName: 'Henk',
-    lastName: 'van der Berg',
-    phoneNumber: '+31654321987',
-    publicKey: MOCK_PUBLIC_KEYS.buurman_henk,
-    verified: true,
-    lastSeen: Date.now() - 5 * 24 * 60 * 60 * 1000, // 5 days ago (almost expired)
-    address: {
-      street: 'Hoofdstraat 156',
-      city: 'Utrecht',
-      country: 'Nederland',
-    },
-    birthDate: '1952-01-10',
-    deathDate: '2024-08-22',
-    isDeceased: true,
-  },
-];
-
-// Additional contacts for multi-device testing
-// Each test device gets the other test devices as contacts
-// For test devices, set lastSeen to old timestamp so they default to "offline"
-// The REAL presence status comes from XMPP subscription, not mock lastSeen data
-
-// Test device contacts - added dynamically based on which device is running
+// Test device contacts — each device sees all other test devices as contacts
+// lastSeen is set to 0 (unknown) — real presence comes from XMPP subscription
 const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
   'ik@commeazy.local': {
     userUuid: MOCK_UUIDS.ik,
@@ -197,18 +93,19 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
 // All test device JIDs
 const TEST_DEVICE_JIDS = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local', 'ipadphys@commeazy.local'];
 
-// Export function to get contacts based on current user
-// Call this AFTER encryption is initialized to get real public keys
-// Now supports 3+ test devices - each device sees all other test devices as contacts
+/**
+ * Get test device contacts for the current user.
+ * Returns all other test devices as contacts with their public keys.
+ * Call AFTER encryption is initialized to get real public keys.
+ */
 export const getMockContactsForDevice = (currentUserJid: string, publicKeyMap?: Record<string, string>): Contact[] => {
-  const contacts = [...BASE_MOCK_CONTACTS];
+  const contacts: Contact[] = [];
 
-  // Add all other test devices as contacts
   for (const jid of TEST_DEVICE_JIDS) {
     if (jid !== currentUserJid) {
       const contactTemplate = TEST_DEVICE_CONTACTS[jid];
       if (contactTemplate) {
-        contacts.unshift({
+        contacts.push({
           ...contactTemplate,
           publicKey: publicKeyMap?.[jid] || '',
         });
@@ -219,64 +116,35 @@ export const getMockContactsForDevice = (currentUserJid: string, publicKeyMap?: 
   return contacts;
 };
 
-// Default export for backward compatibility (without device-specific contacts)
-export const MOCK_CONTACTS: Contact[] = BASE_MOCK_CONTACTS;
+/**
+ * Empty contacts array for backward compatibility.
+ * Previously contained fake personas — now only test device contacts exist.
+ * @deprecated Use getMockContactsForDevice() instead
+ */
+export const MOCK_CONTACTS: Contact[] = [];
 
-// Dev user JID (must match container.ts DEV_USER_JID)
-const DEV_USER_JID = 'ik@commeazy.local';
-
-// Generate chat ID matching ChatService.getChatId() format
-const makeChatId = (contactJid: string): string => {
-  const jids = [DEV_USER_JID, contactJid].sort();
-  return `chat:${jids.join(':')}`;
-};
-
-// Chat IDs for conversations (derived from JIDs for consistency with ChatService)
-export const MOCK_CHAT_IDS = {
-  OMA: makeChatId('oma.jansen@commeazy.local'),
-  PAPA: makeChatId('papa@commeazy.local'),
-  TANTE_MARIA: makeChatId('tante.maria@commeazy.local'),
-  BUURMAN_HENK: makeChatId('buurman.henk@commeazy.local'),
-};
-
-// Helper to get contact by JID
-// Searches both base contacts AND test device contacts
+/**
+ * Get a test device contact by JID.
+ */
 export const getMockContactByJid = (jid: string): Contact | undefined => {
-  // First check base mock contacts
-  const baseContact = MOCK_CONTACTS.find(c => c.jid === jid);
-  if (baseContact) return baseContact;
-
-  // Then check test device contacts
   return TEST_DEVICE_CONTACTS[jid];
 };
 
-// Helper to get contact by chat ID
-// Supports both base contacts AND test device contacts
+/**
+ * Get a test device contact by chat ID.
+ * Chat ID format: chat:jid1:jid2 (sorted alphabetically)
+ */
 export const getMockContactByChatId = (chatId: string): Contact | undefined => {
-  // First check static mapping for base contacts
-  const jidMap: Record<string, string> = {
-    [MOCK_CHAT_IDS.OMA]: 'oma.jansen@commeazy.local',
-    [MOCK_CHAT_IDS.PAPA]: 'papa@commeazy.local',
-    [MOCK_CHAT_IDS.TANTE_MARIA]: 'tante.maria@commeazy.local',
-    [MOCK_CHAT_IDS.BUURMAN_HENK]: 'buurman.henk@commeazy.local',
-  };
-  const mappedJid = jidMap[chatId];
-  if (mappedJid) return getMockContactByJid(mappedJid);
-
-  // For test device contacts, parse the chat ID to extract the other JID
-  // Chat ID format: chat:jid1:jid2 (sorted alphabetically)
   if (chatId.startsWith('chat:')) {
     const parts = chatId.split(':');
     if (parts.length === 3) {
       const [_, jid1, jid2] = parts;
-      // Return the contact that isn't us (check both test device JIDs)
       for (const jid of [jid1, jid2]) {
         const contact = TEST_DEVICE_CONTACTS[jid];
         if (contact) return contact;
       }
     }
   }
-
   return undefined;
 };
 

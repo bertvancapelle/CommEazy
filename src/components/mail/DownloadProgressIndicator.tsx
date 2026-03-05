@@ -13,13 +13,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon } from '@/components';
 
 // ============================================================
@@ -41,19 +40,6 @@ export interface DownloadProgressIndicatorProps {
 // Helpers
 // ============================================================
 
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
-
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
@@ -73,6 +59,7 @@ export function DownloadProgressIndicator({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   const percentage = Math.round(progress * 100);
 
@@ -94,7 +81,7 @@ export function DownloadProgressIndicator({
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => {
-              triggerHaptic();
+              triggerHaptic('tap');
               onCancel();
             }}
             onLongPress={() => {}}

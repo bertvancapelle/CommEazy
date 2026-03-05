@@ -11,13 +11,12 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ModuleHeader, Icon } from '@/components';
+import { ModuleHeader, Icon, HapticTouchable, LoadingView } from '@/components';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -43,23 +42,6 @@ type MailView =
   | { type: 'inbox' }
   | { type: 'detail'; header: CachedMailHeader }
   | { type: 'compose'; mode: ComposeMode; originalHeader?: CachedMailHeader; originalBody?: MailBody | null };
-
-// ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 // ============================================================
 // Component
@@ -164,7 +146,6 @@ export function MailScreen() {
   }, []);
 
   const handleStartSetup = useCallback(() => {
-    triggerHaptic();
     setShowOnboarding(true);
     AsyncStorage.setItem(MAIL_WELCOME_SHOWN_KEY, 'true').catch(console.error);
   }, []);
@@ -215,9 +196,7 @@ export function MailScreen() {
           icon="mail"
           title={t('navigation.mail')}
         />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={accentColor.primary} />
-        </View>
+        <LoadingView fullscreen />
       </View>
     );
   }
@@ -262,11 +241,9 @@ export function MailScreen() {
           <Text style={[styles.notConfiguredHint, { color: themeColors.textSecondary }]}>
             {t('modules.mail.notConfigured.hint')}
           </Text>
-          <TouchableOpacity
+          <HapticTouchable
             style={[styles.setupButton, { backgroundColor: accentColor.primary }]}
             onPress={handleStartSetup}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.notConfigured.setupButton')}
@@ -274,7 +251,7 @@ export function MailScreen() {
             <Text style={styles.setupButtonText}>
               {t('modules.mail.notConfigured.setupButton')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
     );

@@ -136,6 +136,7 @@ export function useHoldGestureContextSafe(): HoldGestureContextValue | null {
  * When a hold gesture completes (user long-pressed to open menu/voice),
  * the wrapped handler will NOT execute, preventing double-action.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required: any is needed for bivariant function constraint
 export function useHoldGestureGuard<T extends (...args: any[]) => any>(
   handler: T | undefined
 ): T | undefined {

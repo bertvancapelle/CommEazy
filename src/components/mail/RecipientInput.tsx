@@ -23,13 +23,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon } from '@/components';
 import type { MailRecipient } from '@/types/mail';
 
@@ -53,23 +52,6 @@ export interface RecipientInputProps {
   /** Called when input text changes (for autocomplete) */
   onSearchChange?: (query: string) => void;
 }
-
-// ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 // ============================================================
 // Email Validation
@@ -97,6 +79,7 @@ export function RecipientInput({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<TextInput>(null);
@@ -111,7 +94,7 @@ export function RecipientInput({
       // Deduplicate by email
       if (recipients.some(r => r.email.toLowerCase() === recipient.email.toLowerCase())) return;
 
-      triggerHaptic();
+      triggerHaptic('tap');
       onRecipientsChange([...recipients, recipient]);
       setInputValue('');
       setShowSuggestions(false);
@@ -122,7 +105,7 @@ export function RecipientInput({
 
   const removeRecipient = useCallback(
     (email: string) => {
-      triggerHaptic();
+      triggerHaptic('tap');
       onRecipientsChange(recipients.filter(r => r.email !== email));
     },
     [recipients, onRecipientsChange],

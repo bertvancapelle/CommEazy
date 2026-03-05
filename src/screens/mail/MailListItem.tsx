@@ -14,13 +14,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon } from '@/components';
 import type { CachedMailHeader } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
@@ -37,23 +36,6 @@ export interface MailListItemProps {
   /** Called when flag is toggled */
   onToggleFlag?: (header: CachedMailHeader) => void;
 }
-
-// ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 // ============================================================
 // Date Formatting
@@ -93,6 +75,7 @@ export function MailListItem({ header, onPress, onToggleFlag }: MailListItemProp
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   // Parse sender name
   const senderDisplay = header.fromName || (() => {
@@ -103,12 +86,12 @@ export function MailListItem({ header, onPress, onToggleFlag }: MailListItemProp
   const dateDisplay = formatMailDate(header.date, t);
 
   const handlePress = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onPress(header);
   }, [header, onPress]);
 
   const handleFlagToggle = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onToggleFlag?.(header);
   }, [header, onToggleFlag]);
 

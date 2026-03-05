@@ -24,7 +24,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   Image,
   Modal,
@@ -35,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -441,10 +440,7 @@ export function NuNlScreen() {
 
       {/* Loading State */}
       {isLoading && articles.length === 0 && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={nunlModuleColor} />
-          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('modules.nunl.loading')}</Text>
-        </View>
+        <LoadingView message={t('modules.nunl.loading')} fullscreen />
       )}
 
       {/* Empty State */}

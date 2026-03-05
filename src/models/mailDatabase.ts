@@ -173,7 +173,7 @@ export interface MailDatabaseTransaction {
  */
 export function openMailDatabase(encryptionKey?: string): MailDatabaseConnection {
   // Dynamic import to avoid crash if op-sqlite is not yet installed
-  let opSqlite: any;
+  let opSqlite: { open: (options: Record<string, string>) => Record<string, unknown> };
   try {
     opSqlite = require('@op-engineering/op-sqlite');
   } catch {
@@ -213,7 +213,7 @@ export function openMailDatabase(encryptionKey?: string): MailDatabaseConnection
     },
 
     async transaction(fn: (tx: MailDatabaseTransaction) => Promise<void>) {
-      await db.transaction(async (nativeTx: any) => {
+      await db.transaction(async (nativeTx: { execute: (sql: string, params?: unknown[]) => Promise<{ rows?: unknown[] }> }) => {
         const tx: MailDatabaseTransaction = {
           async execute(sql: string, params?: unknown[]) {
             await nativeTx.execute(sql, sanitizeParams(params));

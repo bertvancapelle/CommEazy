@@ -512,8 +512,7 @@ export function getNowFrameIndex(frames: RadarFrame[]): number {
 export function formatFrameTime(
   frameTime: number,
   nowTime?: number,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t?: (key: string, options?: any) => string
+  t?: (key: string, options?: Record<string, unknown>) => string
 ): string {
   const now = nowTime || Math.floor(Date.now() / 1000);
   const diffSeconds = frameTime - now;

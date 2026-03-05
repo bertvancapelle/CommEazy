@@ -12,7 +12,7 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useReducer, useState } from 'react';
 import {
   View,
   Text,
@@ -54,19 +54,60 @@ export function AddContactScreen() {
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryCode, setCountryCode] = useState('+31');
+  // Form state consolidated into a single reducer
+  interface FormState {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    countryCode: string;
+    email: string;
+    street: string;
+    postalCode: string;
+    city: string;
+    country: string;
+    birthDate: string | undefined;
+    weddingDate: string | undefined;
+    deathDate: string | undefined;
+  }
+
+  type FormAction =
+    | { type: 'SET_FIELD'; field: keyof FormState; value: string | undefined }
+    | { type: 'SET_COUNTRY_CODE'; value: string };
+
+  const formReducer = useCallback((state: FormState, action: FormAction): FormState => {
+    switch (action.type) {
+      case 'SET_FIELD':
+        return { ...state, [action.field]: action.value };
+      case 'SET_COUNTRY_CODE':
+        return { ...state, countryCode: action.value };
+      default:
+        return state;
+    }
+  }, []);
+
+  const [form, dispatch] = useReducer(formReducer, {
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    countryCode: '+31',
+    email: '',
+    street: '',
+    postalCode: '',
+    city: '',
+    country: '',
+    birthDate: undefined,
+    weddingDate: undefined,
+    deathDate: undefined,
+  });
+
+  const setField = useCallback((field: keyof FormState, value: string | undefined) => {
+    dispatch({ type: 'SET_FIELD', field, value });
+  }, []);
+
+  // Convenience accessors for backward compatibility
+  const { firstName, lastName, phoneNumber, countryCode, email, street, postalCode, city, country, birthDate, weddingDate, deathDate } = form;
+
   const [showCountryCodes, setShowCountryCodes] = useState(false);
-  const [email, setEmail] = useState('');
-  const [street, setStreet] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('');
-  const [birthDate, setBirthDate] = useState<string | undefined>(undefined);
-  const [weddingDate, setWeddingDate] = useState<string | undefined>(undefined);
-  const [deathDate, setDeathDate] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
 
   const isValidPhone = useCallback((phone: string): boolean => {
@@ -144,9 +185,9 @@ export function AddContactScreen() {
 
   const selectCountryCode = useCallback((code: string) => {
     void triggerFeedback('tap');
-    setCountryCode(code);
+    setField('countryCode', code);
     setShowCountryCodes(false);
-  }, [triggerFeedback]);
+  }, [triggerFeedback, setField]);
 
   return (
     <KeyboardAvoidingView
@@ -166,7 +207,7 @@ export function AddContactScreen() {
             placeholder={t('contacts.firstNamePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             value={firstName}
-            onChangeText={setFirstName}
+            onChangeText={(v) => setField('firstName', v)}
             autoCapitalize="words"
             autoCorrect={false}
             returnKeyType="next"
@@ -183,7 +224,7 @@ export function AddContactScreen() {
             placeholder={t('contacts.lastNamePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             value={lastName}
-            onChangeText={setLastName}
+            onChangeText={(v) => setField('lastName', v)}
             autoCapitalize="words"
             autoCorrect={false}
             returnKeyType="next"
@@ -214,7 +255,7 @@ export function AddContactScreen() {
               placeholder={t('contacts.phonePlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               value={phoneNumber}
-              onChangeText={setPhoneNumber}
+              onChangeText={(v) => setField('phoneNumber', v)}
               keyboardType="phone-pad"
               returnKeyType="done"
               accessibilityLabel={t('contacts.phoneLabel')}
@@ -250,7 +291,7 @@ export function AddContactScreen() {
             placeholder={t('contacts.emailPlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(v) => setField('email', v)}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -269,7 +310,7 @@ export function AddContactScreen() {
             placeholder={t('contacts.address.street')}
             placeholderTextColor={themeColors.textTertiary}
             value={street}
-            onChangeText={setStreet}
+            onChangeText={(v) => setField('street', v)}
             autoCapitalize="words"
             returnKeyType="next"
             accessibilityLabel={t('contacts.address.street')}
@@ -284,7 +325,7 @@ export function AddContactScreen() {
               placeholder={t('contacts.address.postalCode')}
               placeholderTextColor={themeColors.textTertiary}
               value={postalCode}
-              onChangeText={setPostalCode}
+              onChangeText={(v) => setField('postalCode', v)}
               autoCapitalize="characters"
               returnKeyType="next"
               accessibilityLabel={t('contacts.address.postalCode')}
@@ -298,7 +339,7 @@ export function AddContactScreen() {
               placeholder={t('contacts.address.city')}
               placeholderTextColor={themeColors.textTertiary}
               value={city}
-              onChangeText={setCity}
+              onChangeText={(v) => setField('city', v)}
               autoCapitalize="words"
               returnKeyType="next"
               accessibilityLabel={t('contacts.address.city')}
@@ -313,7 +354,7 @@ export function AddContactScreen() {
             placeholder={t('contacts.address.country')}
             placeholderTextColor={themeColors.textTertiary}
             value={country}
-            onChangeText={setCountry}
+            onChangeText={(v) => setField('country', v)}
             autoCapitalize="words"
             returnKeyType="done"
             accessibilityLabel={t('contacts.address.country')}
@@ -327,7 +368,7 @@ export function AddContactScreen() {
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.birthDate')}</Text>
           <SeniorDatePicker
             value={birthDate}
-            onChange={setBirthDate}
+            onChange={(v) => setField('birthDate', v)}
             accessibilityLabel={t('contacts.dates.birthDate')}
             minYear={1900}
           />
@@ -337,7 +378,7 @@ export function AddContactScreen() {
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.weddingDate')}</Text>
           <SeniorDatePicker
             value={weddingDate}
-            onChange={setWeddingDate}
+            onChange={(v) => setField('weddingDate', v)}
             accessibilityLabel={t('contacts.dates.weddingDate')}
             minYear={1940}
           />
@@ -347,7 +388,7 @@ export function AddContactScreen() {
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.deathDate')}</Text>
           <SeniorDatePicker
             value={deathDate}
-            onChange={setDeathDate}
+            onChange={(v) => setField('deathDate', v)}
             accessibilityLabel={t('contacts.dates.deathDate')}
             minYear={1940}
           />

@@ -18,7 +18,7 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, type NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -286,7 +286,7 @@ function GroupPanelNavigator() {
  * Wrapper for MailOnboardingScreen within the Settings stack.
  * Provides onComplete/onClose callbacks that navigate back.
  */
-function MailOnboardingWrapper({ navigation }: { navigation: any }) {
+function MailOnboardingWrapper({ navigation }: { navigation: NativeStackNavigationProp<SettingsPanelParams, 'MailOnboarding'> }) {
   const handleComplete = useCallback(async () => {
     // Mark onboarding as complete so MailScreen shows the inbox
     await AsyncStorage.setItem('mail_onboarding_complete', 'true');

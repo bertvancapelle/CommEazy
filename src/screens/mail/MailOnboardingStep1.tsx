@@ -16,13 +16,12 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon } from '@/components';
 import { ProgressIndicator } from '@/components';
 import { getSelectableProviders, type MailProvider } from '@/services/mail/mailConstants';
@@ -41,23 +40,6 @@ export interface MailOnboardingStep1Props {
   /** Total steps for ProgressIndicator */
   totalSteps?: number;
 }
-
-// ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 // ============================================================
 // Provider Icons (emoji fallback for familiar branding)
@@ -90,10 +72,11 @@ export function MailOnboardingStep1({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
   const providers = getSelectableProviders();
 
   const handleProviderPress = (provider: MailProvider) => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onSelect(provider);
   };
 
@@ -105,7 +88,7 @@ export function MailOnboardingStep1({
           <TouchableOpacity
             style={styles.skipButton}
             onPress={() => {
-              triggerHaptic();
+              triggerHaptic('tap');
               onClose();
             }}
             onLongPress={() => {}}

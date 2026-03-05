@@ -32,6 +32,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { usePaneContext } from '@/contexts/PaneContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { colors } from '@/theme';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
 // Constants
@@ -86,7 +87,7 @@ export function DraggableDivider({ ratio, onRatioChange }: DraggableDividerProps
   const { width: screenWidth } = useWindowDimensions();
   const { panes } = usePaneContext();
   const leftPanel = panes.left!;
-  const leftModuleColor = useModuleColor(leftPanel?.moduleId as any);
+  const leftModuleColor = useModuleColor((leftPanel?.moduleId ?? 'chats') as ModuleColorId);
   const [isDragging, setIsDragging] = useState(false);
   const startRatioRef = useRef(ratio);
   const startXRef = useRef(0);
@@ -384,8 +385,8 @@ const styles = StyleSheet.create({
   handleContainer: {
     position: 'absolute',
     top: '50%',
-    marginTop: -22,
-    height: 44,
+    marginTop: -30,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'flex-start',
     overflow: 'visible',
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
   },
   handle: {
     // width is set dynamically based on collapsed state
-    height: 44,
+    height: 60,
     backgroundColor: colors.surface,
     borderRadius: 12,
     flexDirection: 'row',

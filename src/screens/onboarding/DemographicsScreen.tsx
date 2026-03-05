@@ -335,8 +335,8 @@ const cityPickerStyles = StyleSheet.create({
     ...typography.h3,
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: 60,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -422,8 +422,8 @@ const pickerStyles = StyleSheet.create({
     ...typography.h3,
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: 60,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },

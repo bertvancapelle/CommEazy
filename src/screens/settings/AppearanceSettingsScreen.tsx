@@ -1067,8 +1067,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   overlayColorSwatch: {
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',

@@ -29,8 +29,6 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
-  Modal,
-  Keyboard,
   Platform,
   KeyboardAvoidingView,
   NativeSyntheticEvent,
@@ -43,7 +41,7 @@ import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { ContactAvatar, VoiceFocusable } from '@/components';
+import { ContactAvatar, LoadingView } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import {
   pickImageFromCamera,
@@ -51,470 +49,20 @@ import {
   saveAvatar,
   getAvatarPath,
 } from '@/services/imageService';
-import { weatherService } from '@/services/weatherService';
-import type { WeatherLocation } from '@/types/weather';
 import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 import type { UserProfile, AgeBracket, SupportedLanguage, Gender } from '@/services/interfaces';
-
-// Supported languages (matches SupportedLanguage type from interfaces)
-const SUPPORTED_LANGUAGES: readonly SupportedLanguage[] = ['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'no', 'sv', 'da'];
-
-// Country and region data with flag emojis
-const COUNTRIES = ['NL', 'BE', 'LU', 'DE', 'AT', 'CH', 'FR', 'ES', 'GB', 'IE', 'US'] as const;
-
-// Flag emojis for countries
-const COUNTRY_FLAGS: Record<string, string> = {
-  NL: '🇳🇱',
-  BE: '🇧🇪',
-  LU: '🇱🇺',
-  DE: '🇩🇪',
-  AT: '🇦🇹',
-  CH: '🇨🇭',
-  FR: '🇫🇷',
-  ES: '🇪🇸',
-  GB: '🇬🇧',
-  IE: '🇮🇪',
-  US: '🇺🇸',
-};
-
-// Flag emojis for languages
-const LANGUAGE_FLAGS: Record<string, string> = {
-  nl: '🇳🇱',
-  en: '🇬🇧',
-  de: '🇩🇪',
-  fr: '🇫🇷',
-  es: '🇪🇸',
-  it: '🇮🇹',
-  pl: '🇵🇱',
-  no: '🇳🇴',
-  sv: '🇸🇪',
-  da: '🇩🇰',
-};
-
-const REGIONS_BY_COUNTRY: Record<string, string[]> = {
-  NL: ['NL-DR', 'NL-FL', 'NL-FR', 'NL-GE', 'NL-GR', 'NL-LI', 'NL-NB', 'NL-NH', 'NL-OV', 'NL-UT', 'NL-ZE', 'NL-ZH'],
-  BE: ['BE-VLG', 'BE-WAL', 'BE-BRU'],
-  DE: ['DE-BW', 'DE-BY', 'DE-BE', 'DE-BB', 'DE-HB', 'DE-HH', 'DE-HE', 'DE-MV', 'DE-NI', 'DE-NW', 'DE-RP', 'DE-SL', 'DE-SN', 'DE-ST', 'DE-SH', 'DE-TH'],
-  AT: ['AT-1', 'AT-2', 'AT-3', 'AT-4', 'AT-5', 'AT-6', 'AT-7', 'AT-8', 'AT-9'],
-  CH: ['CH-ZH', 'CH-BE', 'CH-LU', 'CH-UR', 'CH-SZ', 'CH-OW', 'CH-NW', 'CH-GL', 'CH-ZG', 'CH-FR', 'CH-SO', 'CH-BS', 'CH-BL', 'CH-SH', 'CH-AR', 'CH-AI', 'CH-SG', 'CH-GR', 'CH-AG', 'CH-TG', 'CH-TI', 'CH-VD', 'CH-VS', 'CH-NE', 'CH-GE', 'CH-JU'],
-  FR: ['FR-IDF', 'FR-CVL', 'FR-BFC', 'FR-NOR', 'FR-HDF', 'FR-GES', 'FR-PDL', 'FR-BRE', 'FR-NAQ', 'FR-OCC', 'FR-ARA', 'FR-PAC', 'FR-COR'],
-  ES: ['ES-AN', 'ES-AR', 'ES-AS', 'ES-CN', 'ES-CB', 'ES-CL', 'ES-CM', 'ES-CT', 'ES-EX', 'ES-GA', 'ES-IB', 'ES-RI', 'ES-MD', 'ES-MC', 'ES-NC', 'ES-PV', 'ES-VC'],
-  GB: ['GB-ENG', 'GB-SCT', 'GB-WLS', 'GB-NIR'],
-  IE: ['IE-L', 'IE-M', 'IE-C', 'IE-U'],
-  US: ['US-CA', 'US-TX', 'US-FL', 'US-NY', 'US-PA', 'US-IL', 'US-OH', 'US-GA', 'US-NC', 'US-MI'],
-  LU: ['LU'],
-};
-
-// Extended age brackets up to 110 years (in 5-year intervals)
-const AGE_BRACKETS: AgeBracket[] = [
-  '18-24', '25-34', '35-44', '45-54', '55-64',
-  '65-69', '70-74', '75-79', '80-84', '85-89',
-  '90-94', '95-99', '100-104', '105-110'
-];
-
-// Gender options
-const GENDERS: Gender[] = ['male', 'female', 'other'];
-
-interface PickerModalProps {
-  visible: boolean;
-  title: string;
-  options: { value: string; label: string }[];
-  selectedValue?: string;
-  onSelect: (value: string) => void;
-  onClose: () => void;
-}
-
-function PickerModal({ visible, title, options, selectedValue, onSelect, onClose }: PickerModalProps) {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-  const themeColors = useColors();
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={[pickerStyles.container, { backgroundColor: themeColors.background }]}>
-        <View style={[pickerStyles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[pickerStyles.title, { color: themeColors.textPrimary }]}>{title}</Text>
-          <TouchableOpacity
-            onPress={onClose}
-            style={pickerStyles.closeButton}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Text style={[pickerStyles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView style={pickerStyles.optionsList}>
-          {options.map((option) => (
-            <TouchableOpacity
-              key={option.value}
-              style={[
-                pickerStyles.option,
-                { borderBottomColor: themeColors.border },
-                selectedValue === option.value && { backgroundColor: accentColor.primaryLight + '20' },
-              ]}
-              onPress={() => {
-                onSelect(option.value);
-                onClose();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={option.label}
-              accessibilityState={{ selected: selectedValue === option.value }}
-            >
-              <Text
-                style={[
-                  pickerStyles.optionText,
-                  { color: themeColors.textPrimary },
-                  selectedValue === option.value && { color: accentColor.primary, fontWeight: '600' },
-                ]}
-              >
-                {option.label}
-              </Text>
-              {selectedValue === option.value && (
-                <Text style={[pickerStyles.checkmark, { color: accentColor.primary }]}>✓</Text>
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-}
-
-const pickerStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  title: {
-    ...typography.h3,
-    color: colors.textPrimary,
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeText: {
-    ...typography.h3,
-    color: colors.textSecondary,
-  },
-  optionsList: {
-    flex: 1,
-  },
-  option: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    minHeight: touchTargets.comfortable,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  optionSelected: {
-    backgroundColor: colors.primaryLight,
-  },
-  optionText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    flex: 1,
-  },
-  optionTextSelected: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  checkmark: {
-    ...typography.h3,
-    color: colors.primary,
-    marginLeft: spacing.sm,
-  },
-});
-
-// Helper function to format city display with disambiguation metadata
-function formatCityDisplay(location: WeatherLocation): string {
-  const parts = [location.name];
-
-  // Add admin1 (state/province) if different from city name
-  if (location.admin1 && location.admin1 !== location.name) {
-    parts.push(location.admin1);
-  }
-
-  // Add country
-  if (location.country) {
-    parts.push(location.country);
-  }
-
-  return parts.join(', ');
-}
-
-// City Picker Modal with search functionality
-interface CityPickerModalProps {
-  visible: boolean;
-  onSelect: (location: WeatherLocation) => void;
-  onClose: () => void;
-  language: string;
-  countryCode?: string; // ISO 3166-1 alpha-2 country code to filter results
-}
-
-function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: CityPickerModalProps) {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-  const themeColors = useColors();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<WeatherLocation[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Debounced search
-  useEffect(() => {
-    if (searchQuery.length < 2) {
-      setSearchResults([]);
-      setSearchError(null);
-      return;
-    }
-
-    setSearchError(null);
-
-    // Debounce search by 500ms
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        console.debug('[CityPickerModal] Searching with countryCode:', countryCode, 'query:', searchQuery);
-        const results = await weatherService.searchLocations(searchQuery, language, countryCode);
-        setSearchResults(results);
-        if (results.length === 0) {
-          setSearchError(t('demographics.noCitiesFound'));
-        }
-      } catch (error) {
-        console.error('[ProfileSettingsScreen] City search failed:', error);
-        setSearchError(t('demographics.citySearchError'));
-      } finally {
-        setIsSearching(false);
-      }
-    }, 500);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchQuery, language, countryCode, t]);
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!visible) {
-      setSearchQuery('');
-      setSearchResults([]);
-      setSearchError(null);
-    }
-  }, [visible]);
-
-  const handleSelectCity = (location: WeatherLocation) => {
-    onSelect(location);
-    onClose();
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={[cityPickerStyles.container, { backgroundColor: themeColors.background }]}>
-        <View style={[cityPickerStyles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[cityPickerStyles.title, { color: themeColors.textPrimary }]}>{t('demographics.selectCity')}</Text>
-          <TouchableOpacity
-            onPress={onClose}
-            style={cityPickerStyles.closeButton}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Text style={[cityPickerStyles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Search input */}
-        <View style={[cityPickerStyles.searchContainer, { borderBottomColor: themeColors.border }]}>
-          <TextInput
-            style={[cityPickerStyles.searchInput, { backgroundColor: themeColors.surface, borderColor: themeColors.border, color: themeColors.textPrimary }]}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder={t('demographics.citySearchPlaceholder')}
-            placeholderTextColor={themeColors.textTertiary}
-            autoCapitalize="words"
-            autoCorrect={false}
-            autoFocus={true}
-            accessibilityLabel={t('demographics.citySearchPlaceholder')}
-          />
-          {isSearching && (
-            <ActivityIndicator
-              style={cityPickerStyles.searchSpinner}
-              size="small"
-              color={accentColor.primary}
-            />
-          )}
-        </View>
-
-        {/* Search hint */}
-        {searchQuery.length === 0 && (
-          <View style={cityPickerStyles.hintContainer}>
-            <Text style={[cityPickerStyles.hintText, { color: themeColors.textSecondary }]}>
-              {t('demographics.citySearchHint')}
-            </Text>
-          </View>
-        )}
-
-        {/* Search error */}
-        {searchError && !isSearching && (
-          <View style={cityPickerStyles.errorContainer}>
-            <Text style={[cityPickerStyles.errorText, { color: themeColors.error }]}>{searchError}</Text>
-          </View>
-        )}
-
-        {/* Search results */}
-        <ScrollView style={cityPickerStyles.resultsList}>
-          {searchResults.map((location) => (
-            <TouchableOpacity
-              key={location.id}
-              style={[cityPickerStyles.resultItem, { borderBottomColor: themeColors.border }]}
-              onPress={() => handleSelectCity(location)}
-              accessibilityRole="button"
-              accessibilityLabel={formatCityDisplay(location)}
-            >
-              <View style={cityPickerStyles.resultContent}>
-                <Text style={[cityPickerStyles.cityName, { color: themeColors.textPrimary }]}>{location.name}</Text>
-                <Text style={[cityPickerStyles.cityMeta, { color: themeColors.textSecondary }]}>
-                  {[location.admin1, location.country].filter(Boolean).join(', ')}
-                </Text>
-              </View>
-              <Text style={[cityPickerStyles.selectIcon, { color: themeColors.textTertiary }]}>›</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-}
-
-const cityPickerStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  title: {
-    ...typography.h3,
-    color: colors.textPrimary,
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeText: {
-    ...typography.h3,
-    color: colors.textSecondary,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  searchInput: {
-    flex: 1,
-    ...typography.body,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    color: colors.textPrimary,
-    minHeight: touchTargets.comfortable,
-  },
-  searchSpinner: {
-    marginLeft: spacing.sm,
-  },
-  hintContainer: {
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
-  hintText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  errorContainer: {
-    padding: spacing.lg,
-    alignItems: 'center',
-  },
-  errorText: {
-    ...typography.body,
-    color: colors.error,
-    textAlign: 'center',
-  },
-  resultsList: {
-    flex: 1,
-  },
-  resultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    minHeight: touchTargets.comfortable,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  resultContent: {
-    flex: 1,
-  },
-  cityName: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  cityMeta: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  selectIcon: {
-    ...typography.h2,
-    color: colors.textTertiary,
-    marginLeft: spacing.sm,
-  },
-});
+import type { WeatherLocation } from '@/types/weather';
+import {
+  SUPPORTED_LANGUAGES,
+  COUNTRIES,
+  COUNTRY_FLAGS,
+  LANGUAGE_FLAGS,
+  REGIONS_BY_COUNTRY,
+  AGE_BRACKETS,
+  GENDERS,
+} from './profileSettingsConstants';
+import { PickerModal } from './PickerModal';
+import { CityPickerModal } from './CityPickerModal';
 
 // Field identifiers for validation and scrolling
 type FieldId = 'name' | 'country' | 'region' | 'city' | 'age' | 'gender';
@@ -562,13 +110,10 @@ export function ProfileSettingsScreen() {
   cityInputRef2.current = cityInput;
   profileRef.current = profile;
 
-  // Picker modals
-  const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
-  const [countryPickerVisible, setCountryPickerVisible] = useState(false);
-  const [regionPickerVisible, setRegionPickerVisible] = useState(false);
-  const [cityPickerVisible, setCityPickerVisible] = useState(false);
-  const [agePickerVisible, setAgePickerVisible] = useState(false);
-  const [genderPickerVisible, setGenderPickerVisible] = useState(false);
+  // Single active picker state (only one picker can be open at a time)
+  type PickerType = 'language' | 'country' | 'region' | 'city' | 'age' | 'gender' | null;
+  const [activePicker, setActivePicker] = useState<PickerType>(null);
+  const closePicker = useCallback(() => setActivePicker(null), []);
 
   // Helper to find first missing field
   const getFirstMissingField = useCallback((
@@ -608,20 +153,20 @@ export function ProfileSettingsScreen() {
         setEditingName(true);
         break;
       case 'country':
-        setCountryPickerVisible(true);
+        setActivePicker('country');
         break;
       case 'region':
-        setRegionPickerVisible(true);
+        setActivePicker('region');
         break;
       case 'city':
         // Open city picker modal
-        setCityPickerVisible(true);
+        setActivePicker('city');
         break;
       case 'age':
-        setAgePickerVisible(true);
+        setActivePicker('age');
         break;
       case 'gender':
-        setGenderPickerVisible(true);
+        setActivePicker('gender');
         break;
     }
   }, [displayName]);
@@ -935,13 +480,13 @@ export function ProfileSettingsScreen() {
         id: 'language',
         label: t('settings.language'),
         index: index++,
-        onSelect: () => setLanguagePickerVisible(true),
+        onSelect: () => setActivePicker('language'),
       },
       {
         id: 'country',
         label: t('demographics.countryLabel'),
         index: index++,
-        onSelect: () => setCountryPickerVisible(true),
+        onSelect: () => setActivePicker('country'),
       },
     ];
 
@@ -951,7 +496,7 @@ export function ProfileSettingsScreen() {
         id: 'region',
         label: t('demographics.regionLabel'),
         index: index++,
-        onSelect: () => setRegionPickerVisible(true),
+        onSelect: () => setActivePicker('region'),
       });
     }
 
@@ -960,19 +505,19 @@ export function ProfileSettingsScreen() {
         id: 'city',
         label: t('demographics.cityLabel'),
         index: index++,
-        onSelect: () => setCityPickerVisible(true),
+        onSelect: () => setActivePicker('city'),
       },
       {
         id: 'age',
         label: t('demographics.ageLabel'),
         index: index++,
-        onSelect: () => setAgePickerVisible(true),
+        onSelect: () => setActivePicker('age'),
       },
       {
         id: 'gender',
         label: t('demographics.genderLabel'),
         index: index++,
-        onSelect: () => setGenderPickerVisible(true),
+        onSelect: () => setActivePicker('gender'),
       }
     );
 
@@ -992,10 +537,7 @@ export function ProfileSettingsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: themeColors.background }]}>
-        <ActivityIndicator size="large" color={accentColor.primary} />
-        <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
-      </View>
+      <LoadingView fullscreen />
     );
   }
 
@@ -1119,7 +661,7 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('settings.language')}</Text>
         <TouchableOpacity
           style={[styles.fieldRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-          onPress={() => setLanguagePickerVisible(true)}
+          onPress={() => setActivePicker('language')}
           accessibilityRole="button"
           accessibilityHint={t('profile.tapToChange')}
         >
@@ -1163,7 +705,7 @@ export function ProfileSettingsScreen() {
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.countryLabel')}</Text>
           <TouchableOpacity
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isCountryEmpty && styles.pickerRowError]}
-            onPress={() => setCountryPickerVisible(true)}
+            onPress={() => setActivePicker('country')}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.countryLabel')}
           >
@@ -1185,7 +727,7 @@ export function ProfileSettingsScreen() {
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.regionLabel')}</Text>
             <TouchableOpacity
               style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isRegionEmpty && styles.pickerRowError]}
-              onPress={() => setRegionPickerVisible(true)}
+              onPress={() => setActivePicker('region')}
               accessibilityRole="button"
               accessibilityLabel={t('demographics.regionLabel')}
             >
@@ -1207,7 +749,7 @@ export function ProfileSettingsScreen() {
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.cityLabel')}</Text>
           <TouchableOpacity
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isCityEmpty && styles.pickerRowError]}
-            onPress={() => setCityPickerVisible(true)}
+            onPress={() => setActivePicker('city')}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.cityLabel')}
           >
@@ -1226,7 +768,7 @@ export function ProfileSettingsScreen() {
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.ageLabel')}</Text>
           <TouchableOpacity
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isAgeEmpty && styles.pickerRowError]}
-            onPress={() => setAgePickerVisible(true)}
+            onPress={() => setActivePicker('age')}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.ageLabel')}
           >
@@ -1247,7 +789,7 @@ export function ProfileSettingsScreen() {
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.genderLabel')}</Text>
           <TouchableOpacity
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isGenderEmpty && styles.pickerRowError]}
-            onPress={() => setGenderPickerVisible(true)}
+            onPress={() => setActivePicker('gender')}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.genderLabel')}
           >
@@ -1284,54 +826,54 @@ export function ProfileSettingsScreen() {
 
       {/* Picker modals */}
       <PickerModal
-        visible={languagePickerVisible}
+        visible={activePicker === 'language'}
         title={t('profile.selectLanguage')}
         options={languageOptions}
         selectedValue={i18n.language}
         onSelect={handleLanguageSelect}
-        onClose={() => setLanguagePickerVisible(false)}
+        onClose={closePicker}
       />
 
       <PickerModal
-        visible={countryPickerVisible}
+        visible={activePicker === 'country'}
         title={t('demographics.selectCountry')}
         options={countryOptions}
         selectedValue={profile?.countryCode}
         onSelect={handleCountrySelect}
-        onClose={() => setCountryPickerVisible(false)}
+        onClose={closePicker}
       />
 
       <PickerModal
-        visible={regionPickerVisible}
+        visible={activePicker === 'region'}
         title={t('demographics.selectRegion')}
         options={regionOptions}
         selectedValue={profile?.regionCode}
         onSelect={handleRegionSelect}
-        onClose={() => setRegionPickerVisible(false)}
+        onClose={closePicker}
       />
 
       <PickerModal
-        visible={agePickerVisible}
+        visible={activePicker === 'age'}
         title={t('demographics.selectAge')}
         options={ageOptions}
         selectedValue={profile?.ageBracket}
         onSelect={handleAgeSelect}
-        onClose={() => setAgePickerVisible(false)}
+        onClose={closePicker}
       />
 
       <PickerModal
-        visible={genderPickerVisible}
+        visible={activePicker === 'gender'}
         title={t('demographics.selectGender')}
         options={genderOptions}
         selectedValue={profile?.gender}
         onSelect={handleGenderSelect}
-        onClose={() => setGenderPickerVisible(false)}
+        onClose={closePicker}
       />
 
       <CityPickerModal
-        visible={cityPickerVisible}
+        visible={activePicker === 'city'}
         onSelect={handleCitySelect}
-        onClose={() => setCityPickerVisible(false)}
+        onClose={closePicker}
         language={i18n.language}
         countryCode={profile?.countryCode}
       />
@@ -1351,17 +893,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: spacing.lg,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-  },
-  loadingText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginTop: spacing.md,
   },
   profileSection: {
     alignItems: 'center',
@@ -1481,24 +1012,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     minHeight: touchTargets.comfortable,
   },
-  textInput: {
-    ...typography.body,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    color: colors.textPrimary,
-    minHeight: touchTargets.comfortable,
-  },
   pickerValue: {
     ...typography.body,
     color: colors.textPrimary,
     flex: 1,
-  },
-  pickerPlaceholder: {
-    color: colors.textTertiary,
   },
   warningBox: {
     backgroundColor: colors.warning + '20',

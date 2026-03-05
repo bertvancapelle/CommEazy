@@ -10,7 +10,7 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
-import { StatusBar, AccessibilityInfo, AppState, AppStateStatus, View } from 'react-native';
+import { AccessibilityInfo, AppState, AppStateStatus, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/i18n'; // Initialize i18n
@@ -18,44 +18,19 @@ import AppNavigator from '@/navigation';
 import { colors } from '@/theme';
 import { ServiceProvider } from '@/hooks/useServices';
 import { HoldToNavigateProvider } from '@/hooks/useHoldToNavigate';
-import { AccentColorProvider } from '@/contexts/AccentColorContext';
-import { ThemeProvider, useTheme, useColors } from '@/contexts/ThemeContext';
-import { LiquidGlassProvider } from '@/contexts/LiquidGlassContext';
-import { ModuleColorsProvider } from '@/contexts/ModuleColorsContext';
-import { VoiceFocusProvider } from '@/contexts/VoiceFocusContext';
-import { VoiceSettingsProvider } from '@/contexts/VoiceSettingsContext';
-import { VoiceFormProvider } from '@/contexts/VoiceFormContext';
+import { ThemeSystemProvider } from '@/contexts/ThemeSystemProvider';
+import { VoiceSystemProvider } from '@/contexts/VoiceSystemProvider';
+import { AudioModulesProvider } from '@/contexts/AudioModulesProvider';
 import { HoldGestureProvider } from '@/contexts/HoldGestureContext';
-import { RadioProvider } from '@/contexts/RadioContext';
-import { PodcastProvider } from '@/contexts/PodcastContext';
-import { BooksProvider } from '@/contexts/BooksContext';
-import { AppleMusicProvider } from '@/contexts/AppleMusicContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { CallProvider } from '@/contexts/CallContext';
-import { AudioOrchestratorProvider } from '@/contexts/AudioOrchestratorContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ReducedMotionProvider } from '@/contexts/ReducedMotionContext';
-import { ButtonStyleProvider } from '@/contexts/ButtonStyleContext';
 import { PresenceProvider } from '@/contexts/PresenceContext';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
-
-/**
- * ThemedStatusBar — Dynamically updates StatusBar based on theme
- */
-function ThemedStatusBar() {
-  const { isDarkMode } = useTheme();
-  const themeColors = useColors();
-
-  return (
-    <StatusBar
-      barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-      backgroundColor={themeColors.background}
-    />
-  );
-}
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -129,50 +104,29 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ReducedMotionProvider>
-      <ServiceProvider reducedMotion={reducedMotion}>
-        <ThemeProvider>
-          <ThemedStatusBar />
-          <AccentColorProvider>
-            <LiquidGlassProvider>
-              <ButtonStyleProvider>
-              <ModuleColorsProvider>
+        <ServiceProvider reducedMotion={reducedMotion}>
+          <ThemeSystemProvider>
             <PresenceProvider>
-            <VoiceSettingsProvider>
-            <VoiceFocusProvider>
-              <VoiceFormProvider>
+              <VoiceSystemProvider>
                 <HoldGestureProvider>
-                  <AudioOrchestratorProvider>
-                    <RadioProvider>
-                      <PodcastProvider>
-                        <BooksProvider>
-                          <AppleMusicProvider>
-                            <ModuleConfigProvider>
-                            <NavigationProvider>
-                              <FavoriteLocationsProvider>
-                                <CallProvider>
-                                  <HoldToNavigateProvider>
-                                    <AppNavigator />
-                                  </HoldToNavigateProvider>
-                                </CallProvider>
-                              </FavoriteLocationsProvider>
-                            </NavigationProvider>
-                            </ModuleConfigProvider>
-                          </AppleMusicProvider>
-                        </BooksProvider>
-                      </PodcastProvider>
-                    </RadioProvider>
-                  </AudioOrchestratorProvider>
+                  <AudioModulesProvider>
+                    <ModuleConfigProvider>
+                      <NavigationProvider>
+                        <FavoriteLocationsProvider>
+                          <CallProvider>
+                            <HoldToNavigateProvider>
+                              <AppNavigator />
+                            </HoldToNavigateProvider>
+                          </CallProvider>
+                        </FavoriteLocationsProvider>
+                      </NavigationProvider>
+                    </ModuleConfigProvider>
+                  </AudioModulesProvider>
                 </HoldGestureProvider>
-              </VoiceFormProvider>
-            </VoiceFocusProvider>
-          </VoiceSettingsProvider>
+              </VoiceSystemProvider>
             </PresenceProvider>
-            </ModuleColorsProvider>
-              </ButtonStyleProvider>
-            </LiquidGlassProvider>
-          </AccentColorProvider>
-        </ThemeProvider>
-      </ServiceProvider>
+          </ThemeSystemProvider>
+        </ServiceProvider>
       </ReducedMotionProvider>
     </SafeAreaProvider>
   );
@@ -291,7 +245,7 @@ async function forceReconnect(xmpp: typeof ServiceContainer.xmpp): Promise<void>
 
     // Reconnect with stored credentials
     await xmpp.connect(credentials.jid, credentials.password);
-    console.log('[App] XMPP reconnected successfully as', credentials.jid);
+    console.log('[App] XMPP reconnected successfully');
 
     // Re-subscribe to contacts' presence after reconnect
     if (chatService.isInitialized) {

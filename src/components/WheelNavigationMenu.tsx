@@ -25,6 +25,7 @@ import {
   ScrollView,
   Vibration,
   GestureResponderEvent,
+  type LayoutChangeEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -425,10 +426,16 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
   }, [dismissMargin, handleClose]);
 
   // Store container layout
-  const handleContainerLayout = useCallback((event: any) => {
-    event.target.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
-      containerLayout.current = { x: pageX, y: pageY, width, height };
-    });
+  const handleContainerLayout = useCallback((event: LayoutChangeEvent) => {
+    // event.target at runtime is a host component with measure(), but TypeScript types it as number
+    const viewRef = event.target as unknown as {
+      measure?: (callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => void;
+    };
+    if (viewRef && typeof viewRef.measure === 'function') {
+      viewRef.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
+        containerLayout.current = { x: pageX, y: pageY, width, height };
+      });
+    }
   }, []);
 
   if (!visible) {

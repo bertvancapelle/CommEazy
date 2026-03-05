@@ -19,13 +19,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, SearchBar, PanelAwareModal } from '@/components';
 import type { MailRecipient } from '@/types/mail';
 
@@ -49,23 +48,6 @@ export interface ContactPickerModalProps {
 }
 
 // ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
-
-// ============================================================
 // Component
 // ============================================================
 
@@ -78,6 +60,7 @@ export function ContactPickerModal({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter contacts by search query
@@ -96,7 +79,7 @@ export function ContactPickerModal({
 
   const handleSelect = useCallback(
     (contact: ContactItem) => {
-      triggerHaptic();
+      triggerHaptic('tap');
       onSelect({
         id: contact.id,
         name: `${contact.firstName} ${contact.lastName}`.trim(),
@@ -109,7 +92,7 @@ export function ContactPickerModal({
   );
 
   const handleClose = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setSearchQuery('');
     onClose();
   }, [onClose]);

@@ -560,7 +560,7 @@ export class GroupChatService {
       // Notify listeners
       this.messageListeners.forEach(listener => listener(message));
 
-      console.log(`[GroupChatService] Saved group message from ${senderName}`);
+      console.debug('[GroupChatService] Saved group message');
     } catch (error) {
       console.error('[GroupChatService] Failed to process group message:', error);
     }

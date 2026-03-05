@@ -80,7 +80,7 @@ export async function sendToGemini(
 
   if (!response.ok) {
     const errorMessage = data.error?.message || 'Unknown Gemini API error';
-    const error = new Error(errorMessage) as any;
+    const error = new Error(errorMessage) as Error & { statusCode: number };
     error.name = 'GeminiError';
     error.statusCode = response.status;
     throw error;
@@ -88,7 +88,7 @@ export async function sendToGemini(
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
-    const error = new Error('Empty response from Gemini') as any;
+    const error = new Error('Empty response from Gemini') as Error & { statusCode: number };
     error.name = 'GeminiError';
     error.statusCode = 200;
     throw error;

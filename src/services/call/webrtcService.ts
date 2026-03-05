@@ -437,7 +437,7 @@ export class WebRTCService {
    */
   async addIceCandidate(state: PeerConnectionState, candidate: RTCIceCandidate): Promise<void> {
     // Log candidate type for debugging
-    const candidateStr = (candidate as any).candidate || '';
+    const candidateStr = candidate.candidate || '';
     let candidateType = 'unknown';
     if (candidateStr.includes('typ host')) candidateType = 'host (local)';
     else if (candidateStr.includes('typ srflx')) candidateType = 'srflx (STUN)';

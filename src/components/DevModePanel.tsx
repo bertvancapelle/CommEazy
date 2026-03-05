@@ -114,9 +114,9 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
       });
 
       Alert.alert('Succes', 'Lokale notification verstuurd!');
-    } catch (error: any) {
+    } catch (error) {
       // Notifee might not be installed, try basic alert
-      console.log('[DevMode] Notifee not available, using alert:', error.message);
+      console.log('[DevMode] Notifee not available, using alert:', error instanceof Error ? error.message : error);
       Alert.alert(
         'Push Notification Test',
         'Notifee is niet geïnstalleerd. FCM token check:\n\n' +
@@ -157,8 +157,8 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
           },
         ]
       );
-    } catch (error: any) {
-      Alert.alert('Error', `Kon FCM token niet ophalen: ${error.message}`);
+    } catch (error) {
+      Alert.alert('Error', `Kon FCM token niet ophalen: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 
@@ -175,8 +175,8 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
         `Status: ${authStatus}\nEnabled: ${enabled ? 'Ja' : 'Nee'}\n\n` +
         '0 = NOT_DETERMINED\n1 = DENIED\n2 = AUTHORIZED\n3 = PROVISIONAL'
       );
-    } catch (error: any) {
-      Alert.alert('Error', `Permission check failed: ${error.message}`);
+    } catch (error) {
+      Alert.alert('Error', `Permission check failed: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
     }
   };
 
@@ -272,14 +272,14 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
                   style={styles.option}
                   onPress={() => handleSimulateQR('success')}
                 >
-                  <Text style={styles.optionText}>Scan: Verified Contact (Oma)</Text>
+                  <Text style={styles.optionText}>Scan: Verified Contact (Test Device)</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.option}
                   onPress={() => handleSimulateQR('unverified')}
                 >
-                  <Text style={styles.optionText}>Scan: Unverified Contact (Tante Maria)</Text>
+                  <Text style={styles.optionText}>Scan: Unverified Contact</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     right: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#FF6B00',
     justifyContent: 'center',
     alignItems: 'center',

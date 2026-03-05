@@ -14,14 +14,13 @@ import {
   Text,
   StyleSheet,
   Modal,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Button, Icon } from '@/components';
 
 // ============================================================
@@ -40,23 +39,6 @@ export interface MailWelcomeModalProps {
   /** Called when modal is dismissed */
   onDismiss: () => void;
 }
-
-// ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 // ============================================================
 // Hook: useMailWelcome
@@ -122,9 +104,10 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   const handleDismiss = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     onDismiss();
   }, [onDismiss]);
 

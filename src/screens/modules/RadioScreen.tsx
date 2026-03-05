@@ -42,7 +42,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, SearchBar, ChipSelector, PanelAwareModal, type SearchBarRef, type FilterMode } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, SearchBar, ChipSelector, PanelAwareModal, LoadingView, type SearchBarRef, type FilterMode } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -1123,10 +1123,7 @@ export function RadioScreen() {
 
       {/* Station list — ALWAYS visible, with bottom padding for mini-player */}
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={accentColor.primary} />
-          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('modules.radio.loading')}</Text>
-        </View>
+        <LoadingView message={t('modules.radio.loading')} fullscreen />
       ) : apiError ? (
         // Error state with user-friendly message and retry button
         <View style={styles.errorContainer}>
@@ -1867,7 +1864,7 @@ const styles = StyleSheet.create({
   },
   playbackErrorDismiss: {
     minWidth: touchTargets.minimum,
-    minHeight: 44,
+    minHeight: touchTargets.minimum,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.md,

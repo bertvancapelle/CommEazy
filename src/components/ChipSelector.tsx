@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     alignSelf: 'flex-start', // Don't stretch full width
-    minHeight: 44, // Minimum touch target
+    minHeight: touchTargets.minimum, // 60pt minimum touch target
   },
   label: {
     ...typography.label,

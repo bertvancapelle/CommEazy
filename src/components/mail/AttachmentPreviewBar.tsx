@@ -23,13 +23,12 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { Icon } from '@/components';
+import { useFeedback } from '@/hooks/useFeedback';
 import type { MailAttachment } from '@/types/mail';
 import { isImageType, isVideoType } from '@/services/mail/mediaAttachmentService';
 
@@ -45,19 +44,6 @@ export interface AttachmentPreviewBarProps {
 // ============================================================
 // Helpers
 // ============================================================
-
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -82,13 +68,14 @@ export function AttachmentPreviewBar({
 }: AttachmentPreviewBarProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const { triggerHaptic } = useFeedback();
 
   const handleRemove = useCallback(
     (id: string) => {
-      triggerHaptic();
+      triggerHaptic('tap');
       onRemove(id);
     },
-    [onRemove],
+    [onRemove, triggerHaptic],
   );
 
   if (attachments.length === 0) return null;

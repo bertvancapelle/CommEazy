@@ -22,13 +22,12 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, PanelAwareModal } from '@/components';
 import type { MailAttachmentMeta } from '@/types/mail';
 import { saveAttachmentsBulk, type BulkSaveResult, type SaveResult } from '@/services/mail/saveToAlbumService';
@@ -59,19 +58,6 @@ interface ItemState {
 // Helpers
 // ============================================================
 
-const triggerHaptic = () => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-  const hapticType = Platform.select({
-    ios: 'impactMedium',
-    android: 'effectClick',
-    default: 'impactMedium',
-  }) as string;
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
-
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
@@ -94,6 +80,7 @@ export function BulkSaveSheet({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
 
   const [items, setItems] = useState<ItemState[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -120,7 +107,7 @@ export function BulkSaveSheet({
   // ============================================================
 
   const handleSaveAll = useCallback(async () => {
-    triggerHaptic();
+    triggerHaptic('tap');
     setIsSaving(true);
 
     const controller = new AbortController();
@@ -162,12 +149,12 @@ export function BulkSaveSheet({
   }, [attachments, uid, folder, accountId, onComplete]);
 
   const handleCancel = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     abortControllerRef.current?.abort();
   }, []);
 
   const handleClose = useCallback(() => {
-    triggerHaptic();
+    triggerHaptic('tap');
     abortControllerRef.current?.abort();
     onClose();
   }, [onClose]);

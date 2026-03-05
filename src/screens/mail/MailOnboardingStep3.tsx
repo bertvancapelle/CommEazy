@@ -16,13 +16,12 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Button, Icon, ProgressIndicator } from '@/components';
 import type { MailProvider } from '@/services/mail/mailConstants';
 
@@ -68,40 +67,6 @@ export interface MailOnboardingStep3Props {
 }
 
 // ============================================================
-// Haptic Helper
-// ============================================================
-
-const triggerHaptic = (type: 'success' | 'error' | 'medium' = 'medium') => {
-  const options = {
-    enableVibrateFallback: true,
-    ignoreAndroidSystemSettings: false,
-  };
-
-  let hapticType: string;
-  if (type === 'success') {
-    hapticType = Platform.select({
-      ios: 'notificationSuccess',
-      android: 'effectHeavyClick',
-      default: 'notificationSuccess',
-    }) as string;
-  } else if (type === 'error') {
-    hapticType = Platform.select({
-      ios: 'notificationError',
-      android: 'effectDoubleClick',
-      default: 'notificationError',
-    }) as string;
-  } else {
-    hapticType = Platform.select({
-      ios: 'impactMedium',
-      android: 'effectClick',
-      default: 'impactMedium',
-    }) as string;
-  }
-
-  ReactNativeHapticFeedback.trigger(hapticType, options);
-};
-
-// ============================================================
 // Component
 // ============================================================
 
@@ -120,6 +85,7 @@ export function MailOnboardingStep3({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const { triggerHaptic } = useFeedback();
   const hasTriggeredHaptic = useRef(false);
 
   // Trigger haptic on result
@@ -226,14 +192,14 @@ export function MailOnboardingStep3({
         <Button
           title={t('modules.mail.onboarding.goToInbox')}
           onPress={() => {
-            triggerHaptic();
+            triggerHaptic('tap');
             onGoToInbox();
           }}
         />
         <Button
           title={t('modules.mail.onboarding.addAnotherAccount')}
           onPress={() => {
-            triggerHaptic();
+            triggerHaptic('tap');
             onAddAnother();
           }}
           variant="secondary"
@@ -270,7 +236,7 @@ export function MailOnboardingStep3({
           <Button
             title={t('modules.mail.onboarding.adjustSettings')}
             onPress={() => {
-              triggerHaptic();
+              triggerHaptic('tap');
               onRetry();
             }}
           />

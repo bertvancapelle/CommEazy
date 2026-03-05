@@ -16,6 +16,8 @@ import {
   StyleSheet,
   Platform,
   requireNativeComponent,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { touchTargets, borderRadius } from '@/theme';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
@@ -29,7 +31,7 @@ interface AirPlayRoutePickerNativeProps {
   tintColorHex: string;
   activeTintColorHex: string;
   buttonSize: number;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 interface AirPlayButtonProps {

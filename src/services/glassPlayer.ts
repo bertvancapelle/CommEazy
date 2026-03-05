@@ -142,7 +142,7 @@ class GlassPlayerService {
   private nativeModule: GlassPlayerWindowModuleInterface | null = null;
   private eventEmitter: NativeEventEmitter | null = null;
   private isAvailableCache: boolean | null = null;
-  private listeners: Map<string, Set<(...args: any[]) => void>> = new Map();
+  private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
   private lastContentJSON: string = '';
   private lastPlaybackStateJSON: string = '';
 
@@ -397,7 +397,7 @@ class GlassPlayerService {
    */
   addEventListener(
     event: GlassPlayerEventType,
-    callback: (data?: any) => void
+    callback: (data?: unknown) => void
   ): () => void {
     if (!this.eventEmitter) {
       return () => {};

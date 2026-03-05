@@ -21,6 +21,8 @@ import {
   TextInputProps as RNTextInputProps,
   ViewStyle,
   TouchableOpacity,
+  type NativeSyntheticEvent,
+  type TextInputFocusEventData,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -117,15 +119,15 @@ export const VoiceTextInput = forwardRef<VoiceTextInputRef, VoiceTextInputProps>
     const showVoiceFocus = voiceEnabled && isVoiceActive;
 
     // Handle focus/blur to track state
-    const handleFocus = useCallback(() => {
+    const handleFocus = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
       setIsFocused(true);
       setActive();
-      props.onFocus?.({} as any);
+      props.onFocus?.(e);
     }, [setActive, props.onFocus]);
 
-    const handleBlur = useCallback(() => {
+    const handleBlur = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
       setIsFocused(false);
-      props.onBlur?.({} as any);
+      props.onBlur?.(e);
     }, [props.onBlur]);
 
     return (

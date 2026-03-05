@@ -30,6 +30,7 @@ import {
   ActivityIndicator,
   Image,
   Platform,
+  type GestureResponderEvent,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -153,14 +154,14 @@ export function MiniPlayer({
     onPress();
   }, [onPress, triggerFeedback]);
 
-  const handlePlayPause = useCallback(async (e: any) => {
+  const handlePlayPause = useCallback(async (e: GestureResponderEvent) => {
     // Prevent propagation to parent TouchableOpacity
     e.stopPropagation();
     await triggerFeedback('tap');
     onPlayPause();
   }, [onPlayPause, triggerFeedback]);
 
-  const handleStop = useCallback(async (e: any) => {
+  const handleStop = useCallback(async (e: GestureResponderEvent) => {
     e.stopPropagation();
     await triggerFeedback('tap');
     onStop?.();

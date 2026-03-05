@@ -160,7 +160,7 @@ export class ChatService {
       for (const contact of contacts) {
         try {
           await xmpp.subscribeToPresence(contact.jid);
-          console.log(`[ChatService] Subscribed to presence of ${contact.jid}`);
+          console.debug('[ChatService] Subscribed to presence of contact');
           // Also probe for current presence status immediately
           await xmpp.probePresence(contact.jid);
         } catch (error) {
@@ -749,11 +749,11 @@ export class ChatService {
       return;
     }
 
-    console.log(`[ChatService] handleIncomingMessage from: ${from}, id: ${id}`);
+    console.debug(`[ChatService] handleIncomingMessage id: ${id}`);
     try {
       // Extract bare JID (remove resource like /gajim.ABC123)
       const bareFrom = from.split('/')[0];
-      console.log(`[ChatService] Looking up contact: ${bareFrom}`);
+      console.debug('[ChatService] Looking up contact for incoming message');
 
       // Get sender's contact info
       const contact = await ServiceContainer.database.getContact(bareFrom);
@@ -761,7 +761,7 @@ export class ChatService {
         console.warn(`[ChatService] Unknown contact: ${bareFrom} — message ignored`);
         return;
       }
-      console.log(`[ChatService] Found contact: ${getContactDisplayName(contact)}, publicKey length: ${contact.publicKey?.length ?? 0}`);
+      console.debug(`[ChatService] Found contact, publicKey length: ${contact.publicKey?.length ?? 0}`);
 
       let content: string;
 
@@ -787,7 +787,7 @@ export class ChatService {
                 ...contact,
                 publicKey: testKey,
               });
-              console.log(`[ChatService] Loaded test key for ${bareFrom} and saved to database`);
+              console.debug('[ChatService] Loaded test key and saved to database');
             }
           } catch (testKeyError) {
             console.warn(`[ChatService] Failed to load test key for ${bareFrom}:`, testKeyError);
@@ -807,7 +807,7 @@ export class ChatService {
         const senderPk = from_base64(senderPublicKey, base64_variants.ORIGINAL);
         content = await ServiceContainer.encryption.decrypt(payload, senderPk);
       }
-      console.log(`[ChatService] Message content: ${content.substring(0, 50)}...`);
+      console.debug('[ChatService] Message received, length:', content.length);
 
       // Check if this is a photo/media message (JSON payload)
       let message: Message;
@@ -890,9 +890,9 @@ export class ChatService {
       // Also update outbox (may not exist if message was sent directly)
       try {
         await ServiceContainer.database.markDelivered(messageId, from);
-      } catch (outboxError: any) {
+      } catch (outboxError) {
         // Ignore "not found" errors - message wasn't in outbox (direct send)
-        if (!outboxError?.message?.includes('not found')) {
+        if (!(outboxError instanceof Error) || !outboxError.message.includes('not found')) {
           throw outboxError;
         }
       }

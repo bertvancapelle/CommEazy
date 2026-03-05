@@ -472,7 +472,7 @@ export function ChatScreen() {
       >
         {sortedMessages.map((item) => (
           <View key={keyExtractor(item)}>
-            {renderMessage({ item, index: 0, separators: {} as any })}
+            {renderMessage({ item })}
           </View>
         ))}
       </ScrollView>

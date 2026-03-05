@@ -48,6 +48,7 @@ import {
   ExpandedAudioPlayer,
   ModuleHeader,
   SearchBar,
+  LoadingView,
   AppleMusicDetailModal,
   QueueView,
   type SearchBarRef,
@@ -1301,10 +1302,7 @@ export function AppleMusicScreen() {
       />
 
       {isSearching && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={appleMusicColor} />
-          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
-        </View>
+        <LoadingView />
       )}
 
       {searchError && (
@@ -1364,12 +1362,7 @@ export function AppleMusicScreen() {
       >
         {/* Loading state */}
         {isRecentlyPlayedLoading && recentlyPlayed.length === 0 && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={appleMusicColor} />
-            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-              {t('common.loading')}
-            </Text>
-          </View>
+          <LoadingView />
         )}
 
         {/* Recently played items */}
@@ -1497,12 +1490,7 @@ export function AppleMusicScreen() {
         {/* Genre-filtered top charts */}
         {selectedGenreId ? (
           isGenreChartsLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={appleMusicColor} />
-              <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-                {t('common.loading')}
-              </Text>
-            </View>
+            <LoadingView />
           ) : genreCharts?.songs && genreCharts.songs.length > 0 ? (
             <View style={styles.discoverChartsSection}>
               <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
@@ -1573,12 +1561,7 @@ export function AppleMusicScreen() {
       <View style={styles.tabContent}>
         {/* Loading state */}
         {isLibraryCacheLoading && !hasFavorites && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={appleMusicColor} />
-            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-              {t('common.loading')}
-            </Text>
-          </View>
+          <LoadingView />
         )}
 
         {/* Favorites content */}

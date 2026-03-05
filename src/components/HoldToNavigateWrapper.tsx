@@ -32,6 +32,7 @@ import {
   AppStateStatus,
   DeviceEventEmitter,
   LayoutChangeEvent,
+  type NativeTouchEvent,
 } from 'react-native';
 import { WheelNavigationMenu, NavigationDestination } from './WheelNavigationMenu';
 import { usePaneContext } from '@/contexts/PaneContext';
@@ -47,198 +48,12 @@ import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { ServiceContainer } from '@/services/container';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
-
-// ============================================================
-// Pending Voice Action (for multi-match contact selection)
-// ============================================================
-
-/**
- * Represents a pending voice action that requires contact selection
- */
-interface PendingVoiceAction {
-  /** The type of action to perform after selection */
-  action: 'call' | 'message';
-  /** The original search term */
-  searchTerm: string;
-}
-
-/**
- * Represents a pending voice list navigation (focus on a name in a list)
- */
-interface PendingVoiceListNavigation {
-  /** The original search term */
-  searchTerm: string;
-}
-
-// ============================================================
-// Contact Lookup Helpers
-// ============================================================
-
-/**
- * Calculate Levenshtein distance between two strings
- */
-function levenshteinDistance(a: string, b: string): number {
-  const matrix: number[][] = [];
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
-      }
-    }
-  }
-  return matrix[b.length][a.length];
-}
-
-/**
- * Calculate similarity score (0-1) between search term and contact name
- *
- * Supports WORD-LEVEL matching:
- * - "oma" matches "Oma Jansen" (exact word match → score 0.95)
- * - "maria" matches "Tante Maria" (exact word match → score 0.95)
- * - "jansen" matches "Oma Jansen" (exact word match → score 0.95)
- *
- * Also supports partial matching:
- * - "jan" matches "Jansen" (prefix → score 0.85)
- * - "oma" matches "omas" (prefix → score 0.85)
- */
-function similarityScore(searchTerm: string, contactName: string): number {
-  const searchLower = searchTerm.toLowerCase().trim();
-  const nameLower = contactName.toLowerCase().trim();
-
-  if (searchLower === nameLower) return 1;
-  if (searchLower.length === 0 || nameLower.length === 0) return 0;
-
-  // Split contact name into words
-  const nameWords = nameLower.split(/\s+/);
-
-  // Check for exact word match (highest priority for voice commands)
-  // "oma" in "Oma Jansen" → exact word match
-  for (const word of nameWords) {
-    if (word === searchLower) {
-      return 0.95; // Exact word match
-    }
-  }
-
-  // Check if search term is a prefix of any word
-  // "jan" in "Jansen" → prefix match
-  for (const word of nameWords) {
-    if (word.startsWith(searchLower)) {
-      return 0.85; // Prefix match within a word
-    }
-  }
-
-  // Check if full name starts with search term
-  // "oma j" matches "Oma Jansen"
-  if (nameLower.startsWith(searchLower)) {
-    return 0.9;
-  }
-
-  // Check for fuzzy word match using Levenshtein
-  // "omaa" → "oma" (typo tolerance)
-  let bestWordScore = 0;
-  for (const word of nameWords) {
-    const distance = levenshteinDistance(searchLower, word);
-    const maxLen = Math.max(searchLower.length, word.length);
-    const wordScore = 1 - distance / maxLen;
-    if (wordScore > bestWordScore) {
-      bestWordScore = wordScore;
-    }
-  }
-
-  // If we found a good word match, return it
-  if (bestWordScore >= 0.7) {
-    return bestWordScore * 0.9; // Slight penalty for fuzzy match
-  }
-
-  // Fallback: full string Levenshtein
-  const fullDistance = levenshteinDistance(searchLower, nameLower);
-  const fullMaxLen = Math.max(searchLower.length, nameLower.length);
-  return 1 - fullDistance / fullMaxLen;
-}
-
-/**
- * Contact match result with score for multi-match handling
- */
-export interface ContactMatch {
-  contact: Contact;
-  score: number;
-}
-
-/**
- * Find ALL matching contacts by name using fuzzy matching
- * Returns all contacts with similarity score above threshold, sorted by score (highest first)
- */
-async function findAllContactsByName(
-  contactName: string,
-  threshold: number = 0.7
-): Promise<ContactMatch[]> {
-  try {
-    let contacts: Contact[] = [];
-
-    if (__DEV__) {
-      // Dynamic import to avoid module loading at bundle time
-      const { getMockContactsForDevice } = await import('@/services/mock');
-      const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-      const { chatService } = await import('@/services/chat');
-
-      const currentUserJid = chatService.isInitialized
-        ? chatService.getMyJid()
-        : 'ik@commeazy.local';
-
-      // Get public keys for other test devices
-      const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'ik@commeazy.local');
-
-      contacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
-    } else {
-      // Production: use database service
-      // TODO: Implement ServiceContainer.database.getContacts()
-      contacts = [];
-    }
-
-    // Find all matches above threshold
-    const matches: ContactMatch[] = [];
-
-    for (const contact of contacts) {
-      const score = similarityScore(contactName, getContactDisplayName(contact));
-      if (score >= threshold) {
-        matches.push({ contact, score });
-      }
-    }
-
-    // Sort by score descending
-    matches.sort((a, b) => b.score - a.score);
-
-    console.log('[findAllContactsByName] Matches for:', contactName, '->', matches.map(m => `${getContactDisplayName(m.contact)}(${m.score.toFixed(2)})`).join(', '));
-    return matches;
-  } catch (error) {
-    console.error('[findAllContactsByName] Failed to find contacts:', error);
-    return [];
-  }
-}
-
-/**
- * Find best matching contact by name using fuzzy matching
- * Returns the contact with highest similarity score above threshold
- */
-async function findContactByName(
-  contactName: string,
-  threshold: number = 0.7
-): Promise<Contact | null> {
-  const matches = await findAllContactsByName(contactName, threshold);
-  return matches.length > 0 ? matches[0].contact : null;
-}
+import {
+  findAllContactsByName,
+  findContactByName,
+  type ContactMatch,
+  type PendingVoiceAction,
+} from './contactLookupHelpers';
 
 // ============================================================
 // Component Props
@@ -427,7 +242,7 @@ export function HoldToNavigateWrapper({
   // Voice command callback refs - declared early so they can be used in startTwoFingerGesture
   const clearCallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callbackRegisteredRef = useRef(false);
-  const handleVoiceCommandResultRef = useRef<((result: any) => void) | null>(null);
+  const handleVoiceCommandResultRef = useRef<((result: VoiceCommandResult | null) => void) | null>(null);
 
   // CRITICAL: Refs for voiceCommands functions to avoid stale closures in setTimeout
   // When setTimeout fires after 800ms, the voiceCommands object in the closure may be stale
@@ -523,7 +338,7 @@ export function HoldToNavigateWrapper({
   // - 1 finger long-press: Opens navigation wheel
   // - 2 finger long-press: Opens voice command overlay (SAME timing & threshold)
   // Helper function to start two-finger gesture
-  const startTwoFingerGesture = useCallback((touches: any[], pageX: number, pageY: number) => {
+  const startTwoFingerGesture = useCallback((touches: NativeTouchEvent[], pageX: number, pageY: number) => {
     // Cancel any single-finger gesture (including the delay timer)
     clearSingleFingerDelayTimer();
     clearIndicatorDelayTimer();
@@ -626,7 +441,7 @@ export function HoldToNavigateWrapper({
     // IMPORTANT: Detect transition from 1 to 2 fingers in touchStart
     // This happens when second finger is added on iOS
     if (previousTouchCount === 1 && touchCount === 2) {
-      startTwoFingerGesture(touches as any, pageX, pageY);
+      startTwoFingerGesture(touches, pageX, pageY);
       return;
     }
 
@@ -692,7 +507,7 @@ export function HoldToNavigateWrapper({
 
     } else if (touchCount === 2) {
       // TWO FINGERS: Voice command gesture (both fingers started at same time)
-      startTwoFingerGesture(touches as any, pageX, pageY);
+      startTwoFingerGesture(touches, pageX, pageY);
     } else {
       // 3+ fingers: Cancel all gestures
       clearAllGestureState();
@@ -732,14 +547,14 @@ export function HoldToNavigateWrapper({
     // onTouchStart may not be called again when second finger arrives on some devices
     if (previousTouchCount === 1 && touchCount === 2) {
       hasMoved.current = false;
-      startTwoFingerGesture(touches as any, pageX, pageY);
+      startTwoFingerGesture(touches, pageX, pageY);
       return;
     }
 
     // Also detect if we somehow jumped directly to 2 fingers
     if (previousTouchCount === 0 && touchCount === 2) {
       hasMoved.current = false;
-      startTwoFingerGesture(touches as any, pageX, pageY);
+      startTwoFingerGesture(touches, pageX, pageY);
       return;
     }
 
@@ -1436,8 +1251,10 @@ export function HoldToNavigateWrapper({
     // LayoutChangeEvent only gives us relative dimensions, not screen position
     const { target } = event.nativeEvent;
     if (target) {
-      // Cast to any to access measure() which isn't in TypeScript types
-      const viewRef = event.target as any;
+      // event.target at runtime is a host component with measure(), but TypeScript types it as number
+      const viewRef = event.target as unknown as {
+        measure?: (callback: (x: number, y: number, width: number, height: number, screenX: number, screenY: number) => void) => void;
+      };
       if (viewRef && typeof viewRef.measure === 'function') {
         viewRef.measure((
           _x: number,

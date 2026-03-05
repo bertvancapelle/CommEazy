@@ -35,7 +35,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider } from '@/components';
+import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -1220,10 +1220,7 @@ export function WeatherScreen() {
 
           {/* Loading State */}
           {isLoading && !weather && !showSearchMode && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={accentColor.primary} />
-              <Text style={styles.loadingText}>{t('modules.weather.loading')}</Text>
-            </View>
+            <LoadingView message={t('modules.weather.loading')} fullscreen />
           )}
 
           {/* Empty State - No location selected */}

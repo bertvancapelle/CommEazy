@@ -72,8 +72,10 @@ export function CreateGroupScreen() {
           if (!cancelled) setContacts(contactList);
         } else if (__DEV__) {
           // Mock contacts for dev mode
-          const { getMockContacts } = await import('@/services/mock');
-          if (!cancelled) setContacts(getMockContacts());
+          const { getMockContactsForDevice } = await import('@/services/mock');
+          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
+          const publicKeyMap = await getOtherDevicesPublicKeys('ik@commeazy.local');
+          if (!cancelled) setContacts(getMockContactsForDevice('ik@commeazy.local', publicKeyMap));
         }
       } catch (error) {
         console.error('Failed to load contacts:', error);
