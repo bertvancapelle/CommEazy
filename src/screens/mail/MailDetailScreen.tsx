@@ -195,11 +195,15 @@ interface MailBodyWebViewProps {
 /**
  * Build a complete HTML document for the WebView.
  *
+ * Apple Mail strategy: respect the email's CSS fully (including display:none,
+ * visibility:hidden, etc.) and let the email render as the sender intended.
+ *
  * - Preserves original <style> tags for proper layout (tables, CSS classes)
  * - Strips <script> tags for security
+ * - Strips MSO conditional comments (Outlook-specific markup)
  * - CSP blocks external images by default (img-src 'none')
  * - Injects base styling for senior-friendly readability
- * - Disables user scaling to prevent accidental zoom
+ * - Height fallback (5000px + scrollEnabled) when JS height measurement fails
  */
 function buildWebViewHtml(
   rawHtml: string,
@@ -211,25 +215,32 @@ function buildWebViewHtml(
   // Strip <script> tags entirely (security)
   const noScripts = rawHtml.replace(/<script[\s\S]*?<\/script>/gi, '');
 
+  // Strip Microsoft conditional comments (<!--[if mso]>...content...<![endif]-->)
+  // These contain Outlook-specific markup that doesn't render in WebView
+  // and can interfere with body/head extraction regex
+  const noMsoComments = noScripts
+    .replace(/<!--\[if\s[^\]]*mso[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '')
+    .replace(/<!--\[if\s[^\]]*mso[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, '');
+
   // CSP: block or allow external images
   const imgSrc = imagesAllowed ? "img-src * data: blob:" : "img-src data:";
   const csp = `default-src 'none'; style-src 'unsafe-inline'; ${imgSrc}; font-src 'none';`;
 
   // Check if HTML already has <html>/<body> structure
-  const hasDocStructure = /<html[\s>]/i.test(noScripts);
+  const hasDocStructure = /<html[\s>]/i.test(noMsoComments);
 
   // Extract existing <style> blocks to preserve them
   // (they contain CSS classes needed for table/column layouts)
-  let bodyContent = noScripts;
+  let bodyContent = noMsoComments;
 
   if (hasDocStructure) {
     // Extract body content — keep styles that are in <head>
-    const bodyMatch = noScripts.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-    const headMatch = noScripts.match(/<head[^>]*>([\s\S]*)<\/head>/i);
+    const bodyMatch = noMsoComments.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const headMatch = noMsoComments.match(/<head[^>]*>([\s\S]*)<\/head>/i);
     const headStyles = headMatch
       ? (headMatch[1].match(/<style[\s\S]*?<\/style>/gi) || []).join('\n')
       : '';
-    bodyContent = `${headStyles}\n${bodyMatch ? bodyMatch[1] : noScripts}`;
+    bodyContent = `${headStyles}\n${bodyMatch ? bodyMatch[1] : noMsoComments}`;
   }
 
   return `<!DOCTYPE html>
@@ -355,6 +366,7 @@ function MailBodyWebView({
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const [webViewHeight, setWebViewHeight] = useState(300);
+  const [heightReceived, setHeightReceived] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [whitelistToggle, setWhitelistToggle] = useState(false);
@@ -398,6 +410,7 @@ function MailBodyWebView({
       const msg = JSON.parse(event.nativeEvent.data);
       if (msg.type === 'height' && typeof msg.value === 'number') {
         const newHeight = Math.max(msg.value + 32, 100);
+        setHeightReceived(true);
         // Only grow — never shrink (prevents flicker from inconsistent measurements)
         setWebViewHeight((prev) => Math.max(prev, newHeight));
       }
@@ -589,10 +602,34 @@ function MailBodyWebView({
       <WebView
         ref={webViewRef}
         source={{ html: webViewHtml, baseUrl: '' }}
-        style={[styles.webView, { height: webViewHeight, backgroundColor }]}
-        scrollEnabled={false}
+        style={[
+          styles.webView,
+          {
+            // Use measured height if available, otherwise generous fallback
+            height: heightReceived ? webViewHeight : 5000,
+            backgroundColor,
+          },
+        ]}
+        scrollEnabled={!heightReceived}
+        nestedScrollEnabled={!heightReceived}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleNavigationRequest}
+        onLoadEnd={() => {
+          // Backup height measurement via injected JS in case the inline script didn't fire
+          webViewRef.current?.injectJavaScript(`
+            try {
+              var h = Math.max(
+                document.body.scrollHeight || 0,
+                document.body.offsetHeight || 0,
+                document.documentElement.scrollHeight || 0
+              );
+              if (h > 0) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', value: h }));
+              }
+            } catch(e) {}
+            true;
+          `);
+        }}
         javaScriptEnabled={true}
         domStorageEnabled={false}
         allowsInlineMediaPlayback={false}
