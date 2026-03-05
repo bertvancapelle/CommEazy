@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, PanelAwareModal, LoadingView, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, PanelAwareModal, LoadingView, ErrorView, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -746,22 +746,15 @@ export function PodcastScreen() {
         {isLoading ? (
           <LoadingView message={t('modules.podcast.loading')} fullscreen />
         ) : apiError ? (
-          <View style={styles.errorContainer}>
-            <Icon name="warning" size={64} color={colors.error} />
-            <Text style={styles.errorTitle}>{t(`modules.podcast.errors.${apiError}Title`)}</Text>
-            <Text style={styles.errorMessage}>{t(`modules.podcast.errors.${apiError}`)}</Text>
-            <TouchableOpacity
-              style={[styles.retryButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => {
-                triggerFeedback('tap');
-                handleSearch();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.tryAgain')}
-            >
-              <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
-            </TouchableOpacity>
-          </View>
+          <ErrorView
+            title={t(`modules.podcast.errors.${apiError}Title`)}
+            message={t(`modules.podcast.errors.${apiError}`)}
+            onRetry={() => {
+              triggerFeedback('tap');
+              handleSearch();
+            }}
+            fullscreen
+          />
         ) : displayedShows.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Icon name={showSubscriptions ? 'heart' : 'podcast'} size={64} color={colors.textTertiary} />
@@ -1794,38 +1787,6 @@ const styles = StyleSheet.create({
   loadingText: {
     ...typography.body,
     color: colors.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    gap: spacing.md,
-  },
-  errorTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  errorMessage: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  retryButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  retryButtonText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,

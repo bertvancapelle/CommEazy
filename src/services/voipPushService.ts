@@ -42,7 +42,29 @@ export async function registerForVoIPPush(): Promise<string | null> {
     return existingToken;
   }
 
-  // Wait for token (first-time registration)
+  // Wait for token with retry (first-time registration)
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const token = await waitForToken(attempt);
+    if (token) {
+      return token;
+    }
+    if (attempt < maxAttempts) {
+      const backoffMs = 5000 * attempt; // 5s, 10s
+      console.info('[VoIPPush] Retry ' + attempt + '/' + maxAttempts + ' in ' + backoffMs + 'ms');
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+      VoIPPushModule.registerForVoIPPush(); // Re-trigger PushKit
+    }
+  }
+
+  console.warn('[VoIPPush] VoIP token not received after ' + maxAttempts + ' attempts');
+  return null;
+}
+
+/**
+ * Wait for VoIP token from PushKit with a 10s timeout.
+ */
+function waitForToken(attempt: number): Promise<string | null> {
   return new Promise((resolve) => {
     if (!eventEmitter) {
       eventEmitter = new NativeEventEmitter(VoIPPushModule);
@@ -51,16 +73,16 @@ export async function registerForVoIPPush(): Promise<string | null> {
     const subscription = eventEmitter.addListener('onVoIPToken', (event) => {
       const token = event?.token;
       if (token) {
-        console.info('[VoIPPush] VoIP token received: ...' + token.slice(-6));
+        console.info('[VoIPPush] VoIP token received (attempt ' + attempt + '): ...' + token.slice(-6));
         subscription.remove();
         resolve(token);
       }
     });
 
-    // Timeout after 10s — token may not be available (simulator, no VoIP cert, etc.)
+    // Timeout after 10s
     setTimeout(() => {
       subscription.remove();
-      console.debug('[VoIPPush] VoIP token not received within 10s (may need VoIP certificate)');
+      console.debug('[VoIPPush] VoIP token not received within 10s (attempt ' + attempt + ')');
       resolve(null);
     }, 10000);
   });

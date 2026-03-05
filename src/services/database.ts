@@ -356,6 +356,12 @@ export class WatermelonDBService implements DatabaseService {
     };
   }
 
+  async getContactsOnce(): Promise<Contact[]> {
+    const db = this.ensureDatabase();
+    const models = await db.get<ContactModel>('contacts').query().fetch();
+    return models.map(c => this.contactModelToInterface(c));
+  }
+
   async getContact(jid: string): Promise<Contact | null> {
     const db = this.ensureDatabase();
     const contacts = await db
@@ -424,6 +430,12 @@ export class WatermelonDBService implements DatabaseService {
         return () => subscription.unsubscribe();
       },
     };
+  }
+
+  async getGroupsOnce(): Promise<Group[]> {
+    const db = this.ensureDatabase();
+    const models = await db.get<GroupModel>('groups').query().fetch();
+    return models.map(g => this.groupModelToInterface(g));
   }
 
   async getGroup(id: string): Promise<Group | null> {

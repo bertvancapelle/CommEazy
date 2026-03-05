@@ -274,13 +274,7 @@ export class GroupChatService {
     this.ensureInitialized();
 
     const groupList: GroupListItem[] = [];
-    const groups: Group[] = [];
-
-    // Get all groups via subscription
-    const unsubscribe = ServiceContainer.database.getGroups().subscribe(g => {
-      groups.push(...g);
-    });
-    unsubscribe();
+    const groups = await ServiceContainer.database.getGroupsOnce();
 
     for (const group of groups) {
       const messages = await ServiceContainer.database.getMessages(group.id, 1);
@@ -571,11 +565,7 @@ export class GroupChatService {
   // ============================================================
 
   private async joinAllGroups(): Promise<void> {
-    const groups: Group[] = [];
-    const unsubscribe = ServiceContainer.database.getGroups().subscribe(g => {
-      groups.push(...g);
-    });
-    unsubscribe();
+    const groups = await ServiceContainer.database.getGroupsOnce();
 
     const xmpp = ServiceContainer.xmpp;
     if (xmpp.getConnectionStatus() !== 'connected') {

@@ -672,6 +672,334 @@ const articles = await newsService.fetchArticles(config.id, category);
 | **Module registry** | Eenvoudig nieuwe bronnen toevoegen |
 | **Category via URL** | Geen extra API calls nodig |
 
+## Unified Retry Pattern (VERPLICHT)
+
+Alle herhaalpogingen in CommEazy MOETEN dit gestandaardiseerde pattern volgen. Dit voorkomt inconsistente retry-strategieën tussen modules.
+
+### Configuratie Interface
+
+```typescript
+interface RetryConfig {
+  /** Maximum aantal pogingen (inclusief eerste poging) */
+  maxAttempts: number;
+  /** Basisvertraging in milliseconden */
+  baseDelayMs: number;
+  /** Maximale vertraging (cap) in milliseconden */
+  maxDelayMs: number;
+  /** Strategie: 'exponential' of 'fixed-schedule' */
+  strategy: 'exponential' | 'fixed-schedule';
+  /** Vaste vertragingen per poging (alleen bij 'fixed-schedule') */
+  fixedDelays?: number[];
+  /** Optionele jitter (0-1, percentage van delay om te randomiseren) */
+  jitter?: number;
+}
+```
+
+### Delay Berekening
+
+```typescript
+function calculateRetryDelay(config: RetryConfig, attempt: number): number {
+  let delay: number;
+
+  if (config.strategy === 'fixed-schedule' && config.fixedDelays) {
+    // Fixed schedule: gebruik specifieke delay per poging
+    const index = Math.min(attempt - 1, config.fixedDelays.length - 1);
+    delay = config.fixedDelays[index];
+  } else {
+    // Exponential backoff: baseDelay * 2^(attempt-1), gecapped
+    delay = Math.min(
+      config.baseDelayMs * Math.pow(2, attempt - 1),
+      config.maxDelayMs
+    );
+  }
+
+  // Optionele jitter om thundering herd te voorkomen
+  if (config.jitter && config.jitter > 0) {
+    const jitterRange = delay * config.jitter;
+    delay += Math.random() * jitterRange - jitterRange / 2;
+  }
+
+  return Math.max(0, Math.round(delay));
+}
+```
+
+### Standaard Configuraties per Module
+
+| Module | maxAttempts | strategy | delays | Rationale |
+|--------|-------------|----------|--------|-----------|
+| **Media Queue** | 5 | `fixed-schedule` | [1s, 5s, 30s, 2m, 5m] | Lange levensduur, achtergrond |
+| **XMPP Reconnect** | 10 | `exponential` | 1s base, 30s cap | Persistent verbinding, jitter 0.2 |
+| **Call ICE Restart** | 3 | `exponential` | 5s base, 16s cap | Kort tijdsvenster, gebruiker wacht |
+| **API Fetch** | 3 | `exponential` | 1s base, 10s cap | Gebruiker ziet loading state |
+| **Download (RNFS)** | 3 | `exponential` | 2s base, 10s cap | Resumable, gebruiker kan annuleren |
+| **VoIP Push** | 2 | `exponential` | 1s base, 3s cap | Tijd-kritiek, snel falen |
+
+### Implementatie Voorbeeld
+
+```typescript
+// Definieer configuratie als const
+const XMPP_RETRY_CONFIG: RetryConfig = {
+  maxAttempts: 10,
+  baseDelayMs: 1000,
+  maxDelayMs: 30000,
+  strategy: 'exponential',
+  jitter: 0.2,
+};
+
+// Gebruik in service
+async function connectWithRetry(config: RetryConfig): Promise<void> {
+  for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
+    try {
+      await connect();
+      return; // Succes
+    } catch (error) {
+      if (attempt === config.maxAttempts) {
+        throw error; // Laatste poging gefaald
+      }
+      const delay = calculateRetryDelay(config, attempt);
+      console.info(`[Service] Retry ${attempt}/${config.maxAttempts} in ${delay}ms`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+```
+
+### Regels (VERPLICHT)
+
+1. **Altijd maxAttempts definiëren** — NOOIT unbounded retries (voorkomt oneindige loops)
+2. **Altijd maxDelayMs definiëren** — Cap voorkomt absurd lange wachttijden
+3. **Jitter voor server-facing retries** — XMPP, API calls: jitter 0.1-0.3
+4. **Geen jitter voor user-facing retries** — Call ICE restart: deterministic timing
+5. **Log elke poging** — `[Module] Retry {attempt}/{max} in {delay}ms`
+6. **Config als const** — Retry config ALTIJD als benoemde const, niet inline
+
+### ❌ NOOIT
+
+```typescript
+// ❌ Unbounded retry (geen max)
+while (true) { try { await connect(); break; } catch { delay *= 2; } }
+
+// ❌ Hardcoded delays inline
+setTimeout(retry, 5000 * Math.pow(2, attempt));
+
+// ❌ Verschillende formules per module (inconsistent)
+// Module A: delay * 2^n   Module B: delay + 1000*n   Module C: fixed 5000
+```
+
+---
+
+## Database One-Shot Read Pattern (VERPLICHT)
+
+WatermelonDB observables zijn bedoeld voor reactieve UI updates, maar soms is een eenmalige snapshot nodig (bijv. bij service initialization, data export, of background sync).
+
+### Probleem
+
+```typescript
+// ❌ FOUT: Observable blijft actief → memory leak
+const messages = await database.get('messages').query().fetch();
+// ↑ Dit bestaat niet als eenvoudige async API in WatermelonDB
+```
+
+### Correct Pattern
+
+```typescript
+/**
+ * One-shot read van WatermelonDB observable.
+ * Subscribet, leest eerste waarde, en unsubscribet direct.
+ */
+function readOnce<T>(observable: Observable<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let resolved = false;
+    const subscription = observable.subscribe({
+      next: (value) => {
+        if (!resolved) {
+          resolved = true;
+          subscription.unsubscribe();
+          resolve(value);
+        }
+      },
+      error: (err) => {
+        if (!resolved) {
+          resolved = true;
+          reject(err);
+        }
+      },
+    });
+  });
+}
+
+// Gebruik:
+const contacts = await readOnce(
+  database.get('contacts').query().observe()
+);
+```
+
+### Wanneer Toepassen
+
+| Situatie | Gebruik |
+|----------|---------|
+| **Service initialization** | Laad configuratie bij startup |
+| **Data export** | Snapshot voor backup/export |
+| **Background sync** | Lees unsent messages voor outbox |
+| **One-time validation** | Check of data exists |
+
+### Wanneer NIET Toepassen
+
+| Situatie | Gebruik in plaats |
+|----------|------------------|
+| **UI rendering** | `useObservable()` hook — reactief |
+| **Lijst weergave** | `withObservables()` HOC — reactief |
+| **Real-time updates** | `.observe()` met subscription — reactief |
+
+### Regels
+
+1. **Altijd `unsubscribe()` na eerste waarde** — Voorkom memory leaks
+2. **Guard tegen dubbele resolve** — `resolved` flag pattern
+3. **Error handling** — Observable kan falen, vang errors
+4. **Geen `readOnce` in render path** — Alleen in services/utilities
+
+---
+
+## Connection Recovery Pattern (VERPLICHT)
+
+Voor alle persistent verbindingen (WebRTC, XMPP, WebSocket) die automatisch hersteld moeten worden na network failures.
+
+### Architectuur
+
+```
+Verbinding Actief
+    │
+    ├── Connection Lost (netwerk wissel, timeout)
+    │   └── State → 'reconnecting'
+    │       └── Schedule retry met Unified Retry Pattern
+    │           ├── ICE Restart Offer (WebRTC)
+    │           ├── Reconnect (XMPP)
+    │           └── WebSocket.connect() (WS)
+    │
+    ├── Retry Succesvol
+    │   └── State → 'connected'
+    │       └── Reset attempt counter
+    │
+    └── Max Attempts Bereikt
+        └── State → 'failed'
+            └── Gebruiker notificatie + handmatige retry optie
+```
+
+### State Machine
+
+```typescript
+type ConnectionState =
+  | 'disconnected'  // Niet verbonden (initieel)
+  | 'connecting'    // Eerste verbinding
+  | 'connected'     // Actief verbonden
+  | 'reconnecting'  // Automatisch herstellen na failure
+  | 'failed';       // Max attempts bereikt, handmatige actie nodig
+
+// Geldige transities:
+// disconnected → connecting
+// connecting → connected | failed
+// connected → reconnecting
+// reconnecting → connected | failed
+// failed → connecting (handmatige retry)
+```
+
+### Implementatie Pattern
+
+```typescript
+interface RecoveryState {
+  connectionState: ConnectionState;
+  reconnectAttempts: number;
+  reconnectTimer?: ReturnType<typeof setTimeout>;
+}
+
+function attemptRecovery(
+  state: RecoveryState,
+  config: RetryConfig,
+  reconnectFn: () => Promise<void>,
+  onMaxAttemptsReached: () => void,
+): void {
+  const attempt = state.reconnectAttempts + 1;
+
+  if (attempt > config.maxAttempts) {
+    state.connectionState = 'failed';
+    onMaxAttemptsReached();
+    return;
+  }
+
+  state.reconnectAttempts = attempt;
+  state.connectionState = 'reconnecting';
+
+  const delay = calculateRetryDelay(config, attempt);
+
+  console.info(`[Recovery] Attempt ${attempt}/${config.maxAttempts} in ${delay}ms`);
+
+  state.reconnectTimer = setTimeout(async () => {
+    try {
+      await reconnectFn();
+      // Succes — reset counter
+      state.reconnectAttempts = 0;
+      state.connectionState = 'connected';
+    } catch (error) {
+      console.warn(`[Recovery] Attempt ${attempt} failed:`, error);
+      // Recursief volgende poging
+      attemptRecovery(state, config, reconnectFn, onMaxAttemptsReached);
+    }
+  }, delay);
+}
+
+function clearRecovery(state: RecoveryState): void {
+  if (state.reconnectTimer) {
+    clearTimeout(state.reconnectTimer);
+    state.reconnectTimer = undefined;
+  }
+  state.reconnectAttempts = 0;
+}
+```
+
+### Per Verbindingstype
+
+| Verbinding | Recovery Methode | Config |
+|------------|-----------------|--------|
+| **WebRTC (Call)** | ICE Restart (`iceRestart: true` in offer) | 3 attempts, 5s base |
+| **XMPP** | `xmpp.connect()` met bestaande credentials | 10 attempts, 1s base, jitter |
+| **WebSocket** | `new WebSocket(url)` | 5 attempts, 2s base |
+
+### Integratie met UI
+
+```typescript
+// Hook voor connection state → UI mapping
+function useConnectionRecoveryUI(state: ConnectionState) {
+  switch (state) {
+    case 'reconnecting':
+      return {
+        banner: true,
+        message: t('connection.reconnecting'),
+        icon: 'wifi-off',
+        showSpinner: true,
+      };
+    case 'failed':
+      return {
+        banner: true,
+        message: t('connection.failed'),
+        icon: 'error',
+        showRetryButton: true,
+      };
+    default:
+      return { banner: false };
+  }
+}
+```
+
+### Regels
+
+1. **Reset counter bij succes** — `reconnectAttempts = 0` na succesvolle reconnect
+2. **Clear timer bij cleanup** — Altijd `clearTimeout` bij component unmount of call end
+3. **State machine respecteren** — Geen retry vanuit `failed` state zonder gebruikersactie
+4. **UI feedback bij reconnecting** — Gebruiker MOET weten dat er hersteld wordt
+5. **Handmatige retry bij failed** — ErrorView met retry button na max attempts
+
+---
+
 ## Quality Checklist
 
 - [ ] All service interfaces defined before implementation starts
@@ -691,6 +1019,15 @@ const articles = await newsService.fetchArticles(config.id, category);
 - [ ] **Pane model:** Zero device-specifieke branches in screen code
 - [ ] **Glass Player:** Content en playback state gescheiden in aparte useEffects
 - [ ] **Shared Objects:** Nieuwe module raadpleegt Shared Objects Registry
+- [ ] **Retry Pattern:** Alle retries gebruiken `RetryConfig` met `maxAttempts` en `maxDelayMs`
+- [ ] **Retry Pattern:** Geen unbounded retries in ENIGE module
+- [ ] **Retry Pattern:** Jitter voor server-facing retries (XMPP, API)
+- [ ] **DB One-Shot:** `readOnce()` pattern voor eenmalige WatermelonDB reads
+- [ ] **DB One-Shot:** Geen observable subscriptions zonder unsubscribe in services
+- [ ] **Connection Recovery:** State machine (disconnected→connecting→connected→reconnecting→failed)
+- [ ] **Connection Recovery:** Reset attempt counter bij succesvolle reconnect
+- [ ] **Connection Recovery:** UI feedback bij reconnecting state
+- [ ] **Connection Recovery:** Handmatige retry optie bij failed state
 
 ## Collaboration
 

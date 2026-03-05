@@ -827,7 +827,7 @@ export class WebRTCCallService implements CallService {
 
     this.currentCall.reconnectAttempts = attempt;
 
-    // Exponential backoff: 2s, 4s, 8s
+    // Exponential backoff: 5s, 10s, 16s (base 5000ms, capped at 16000ms)
     const delay = Math.min(CALL_TIMEOUTS.RECONNECTION_TIMEOUT_MS * Math.pow(2, attempt - 1), 16000);
 
     console.info('[CallService] Scheduling ICE restart attempt', attempt, '/', maxAttempts,

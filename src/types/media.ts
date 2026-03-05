@@ -171,6 +171,12 @@ export interface MediaQueueItem {
   /** Timestamp when added to queue */
   createdAt: number;
 
+  /** Timestamp of last processing attempt */
+  lastAttempt: number;
+
+  /** Original creation timestamp */
+  timestamp: number;
+
   /** Expiration timestamp (7 days) */
   expiresAt: number;
 

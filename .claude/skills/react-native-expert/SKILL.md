@@ -939,6 +939,165 @@ useEffect(() => {
 
 ---
 
+## Download Cancel Pattern (VERPLICHT)
+
+Alle download-operaties via `react-native-fs` (RNFS) MOETEN annuleerbaar zijn. Dit is essentieel voor:
+- Senior-UX: gebruiker kan lange downloads annuleren
+- Memory management: afbreken van downloads bij navigatie
+- Cleanup: geen orphaned downloads bij component unmount
+
+### Probleem
+
+```typescript
+// ❌ FOUT: Download kan niet geannuleerd worden
+async function downloadFile(url: string): Promise<string> {
+  const result = await RNFS.downloadFile({
+    fromUrl: url,
+    toFile: localPath,
+  }).promise;
+  return localPath;
+}
+```
+
+### Correct Pattern
+
+```typescript
+import RNFS, { DownloadResult } from 'react-native-fs';
+
+interface CancellableDownload {
+  promise: Promise<DownloadResult>;
+  cancel: () => void;
+  jobId: number;
+}
+
+/**
+ * Start een annuleerbare download.
+ * Retourneert een object met promise (voor completion) en cancel functie.
+ */
+function startCancellableDownload(
+  fromUrl: string,
+  toFile: string,
+  onProgress?: (received: number, total: number) => void,
+): CancellableDownload {
+  const { jobId, promise } = RNFS.downloadFile({
+    fromUrl,
+    toFile,
+    progress: onProgress
+      ? (res) => onProgress(res.bytesWritten, res.contentLength)
+      : undefined,
+    progressDivider: 5, // Progress callback elke 5%
+  });
+
+  return {
+    promise,
+    cancel: () => {
+      RNFS.stopDownload(jobId);
+      // Cleanup partial file
+      RNFS.unlink(toFile).catch(() => {});
+    },
+    jobId,
+  };
+}
+```
+
+### Gebruik in Component (useRef Pattern)
+
+```typescript
+function DownloadScreen({ url, filename }: Props) {
+  const [progress, setProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const downloadRef = useRef<CancellableDownload | null>(null);
+
+  const startDownload = useCallback(async () => {
+    const localPath = `${RNFS.DocumentDirectoryPath}/${filename}`;
+    setIsDownloading(true);
+
+    downloadRef.current = startCancellableDownload(
+      url,
+      localPath,
+      (received, total) => {
+        if (total > 0) setProgress(received / total);
+      },
+    );
+
+    try {
+      await downloadRef.current.promise;
+      setProgress(1);
+      console.info('[Download] Completed:', filename);
+    } catch (error) {
+      if (error.message?.includes('aborted')) {
+        console.info('[Download] Cancelled by user');
+      } else {
+        console.error('[Download] Failed:', error.message);
+      }
+    } finally {
+      downloadRef.current = null;
+      setIsDownloading(false);
+    }
+  }, [url, filename]);
+
+  const cancelDownload = useCallback(() => {
+    downloadRef.current?.cancel();
+  }, []);
+
+  // Cleanup bij unmount — VERPLICHT
+  useEffect(() => {
+    return () => {
+      downloadRef.current?.cancel();
+    };
+  }, []);
+
+  return (/* UI */);
+}
+```
+
+### Regels (VERPLICHT)
+
+1. **Altijd `useRef` voor download handle** — Voorkomt stale closures
+2. **Altijd cleanup bij unmount** — `useEffect` return moet `cancel()` aanroepen
+3. **Altijd partial file opruimen** — `RNFS.unlink()` na cancel
+4. **Progress throttling** — `progressDivider: 5` (elke 5%) om bridge overhead te beperken
+5. **Distinguish cancel vs error** — Check `error.message` voor "aborted" pattern
+6. **Retry bij failure** — Gebruik Unified Retry Pattern (architecture-lead SKILL.md)
+
+### Meerdere Simultane Downloads
+
+```typescript
+// Track meerdere downloads
+const activeDownloads = useRef<Map<string, CancellableDownload>>(new Map());
+
+function startDownloadForItem(itemId: string, url: string) {
+  // Cancel bestaande download voor dit item (indien actief)
+  activeDownloads.current.get(itemId)?.cancel();
+
+  const download = startCancellableDownload(url, localPath);
+  activeDownloads.current.set(itemId, download);
+
+  download.promise
+    .then(() => activeDownloads.current.delete(itemId))
+    .catch(() => activeDownloads.current.delete(itemId));
+}
+
+// Cancel alles bij unmount
+useEffect(() => {
+  return () => {
+    activeDownloads.current.forEach(d => d.cancel());
+    activeDownloads.current.clear();
+  };
+}, []);
+```
+
+### Wanneer Toepassen
+
+| Situatie | Toepassen? |
+|----------|-----------|
+| Boeken download (EPUB/PDF) | ✅ Ja — grote bestanden, lang durend |
+| Podcast episode download | ✅ Ja — gebruiker kan annuleren |
+| Artwork download | ❌ Nee — klein bestand, fetch + timeout voldoende |
+| API response | ❌ Nee — gebruik AbortController voor fetch |
+
+---
+
 ## Quality Checklist
 
 - [ ] TypeScript strict mode, zero `any`
@@ -974,6 +1133,9 @@ useEffect(() => {
 - [ ] **useEffect scheiding:** Content en playback state in aparte useEffects voor bridge
 - [ ] **useRef voor events:** Native event listeners gebruiken ref voor callbacks
 - [ ] **Shared checklist:** Nieuwe module raadpleegt Shared Hooks/Components Checklist
+- [ ] **Downloads:** RNFS downloads zijn annuleerbaar via `CancellableDownload` pattern
+- [ ] **Downloads:** `useRef` voor download handle, cleanup bij unmount
+- [ ] **Downloads:** Partial files opgeruimd na cancel
 
 ## Lessons Learned — Radio Module (februari 2026)
 

@@ -51,6 +51,7 @@ export class XmppJsService implements XMPPService {
   private callSignalingHandlers: Set<(from: string, payload: CallSignalingPayload) => void> = new Set();
   private reconnectAttempts = 0;
   private maxReconnectDelay = 30000; // 30 seconds
+  private maxReconnectAttempts = 10; // Stop retrying after 10 attempts
   private pushEnabled = false;
 
   async connect(userJid: string, password: string): Promise<void> {
@@ -681,6 +682,12 @@ export class XmppJsService implements XMPPService {
   }
 
   private async attemptReconnect(): Promise<void> {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.warn('[XMPP] Max reconnect attempts (' + this.maxReconnectAttempts + ') reached, giving up');
+      this.setStatus('error');
+      return;
+    }
+
     const delay = Math.min(
       1000 * Math.pow(2, this.reconnectAttempts),
       this.maxReconnectDelay,
@@ -696,6 +703,21 @@ export class XmppJsService implements XMPPService {
       } catch {
         // Will trigger offline event → retry
       }
+    }
+  }
+
+  /**
+   * Manual reconnect — resets attempt counter and tries again.
+   * Use after status has reached 'error' from max retry exhaustion.
+   */
+  async manualReconnect(): Promise<void> {
+    console.info('[XMPP] Manual reconnect requested');
+    this.reconnectAttempts = 0;
+    this.setStatus('connecting');
+    try {
+      await this.xmpp?.start();
+    } catch {
+      // Will trigger offline event → automatic retry resumes
     }
   }
 

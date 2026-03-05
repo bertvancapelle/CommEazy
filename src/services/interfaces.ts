@@ -306,12 +306,16 @@ export interface DatabaseService {
   // Contacts
   saveContact(contact: Contact): Promise<void>;
   getContacts(): Observable<Contact[]>;
+  /** One-shot fetch of all contacts (no subscription). */
+  getContactsOnce(): Promise<Contact[]>;
   getContact(jid: string): Promise<Contact | null>;
   deleteContact(jid: string): Promise<void>;
 
   // Groups
   saveGroup(group: Group): Promise<void>;
   getGroups(): Observable<Group[]>;
+  /** One-shot fetch of all groups (no subscription). */
+  getGroupsOnce(): Promise<Group[]>;
   getGroup(id: string): Promise<Group | null>;
   updateGroupMembers(groupId: string, members: string[]): Promise<void>;
 
@@ -356,6 +360,8 @@ export interface EncryptedBackup {
 export interface XMPPService {
   connect(jid: string, password: string): Promise<void>;
   disconnect(): Promise<void>;
+  /** Manual reconnect — resets retry counter and attempts connection. Use after status 'error'. */
+  manualReconnect(): Promise<void>;
   getConnectionStatus(): ConnectionStatus;
   observeConnectionStatus(): Observable<ConnectionStatus>;
 

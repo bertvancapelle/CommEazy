@@ -2153,21 +2153,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.md,
   },
-  retryButton: {
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  retryButtonText: {
-    ...typography.body,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-
   // Error
   errorBanner: {
     flexDirection: 'row',

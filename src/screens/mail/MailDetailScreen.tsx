@@ -34,7 +34,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon, FullscreenImageViewer, LoadingView } from '@/components';
+import { Icon, FullscreenImageViewer, LoadingView, ErrorView } from '@/components';
 import type { ViewerImage } from '@/components';
 import type {
   CachedMailHeader,
@@ -480,28 +480,14 @@ export function MailDetailScreen({
         {isLoading ? (
           <LoadingView message={t('modules.mail.detail.loadingBody')} />
         ) : error && !body ? (
-          <View style={styles.bodyError}>
-            <Icon name="warning" size={32} color={themeColors.textSecondary} />
-            <Text style={[styles.errorText, { color: themeColors.textPrimary }]}>
-              {error}
-            </Text>
-            <TouchableOpacity
-              style={[styles.retryButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => {
-                triggerHaptic('tap');
-                setError(null);
-                setIsLoading(true);
-                // Re-trigger load
-              }}
-              onLongPress={() => {}}
-              delayLongPress={300}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.tryAgain')}
-            >
-              <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
-            </TouchableOpacity>
-          </View>
+          <ErrorView
+            message={error}
+            onRetry={() => {
+              triggerHaptic('tap');
+              setError(null);
+              setIsLoading(true);
+            }}
+          />
         ) : body?.html ? (
           <MailBodyWebView
             html={body.html}
@@ -752,29 +738,6 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginHorizontal: spacing.lg,
-  },
-  bodyError: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
-  errorText: {
-    ...typography.body,
-    textAlign: 'center',
-  },
-  retryButton: {
-    minHeight: touchTargets.minimum,
-    paddingHorizontal: spacing.xl,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  retryButtonText: {
-    ...typography.body,
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
   bodyContainer: {
     padding: spacing.lg,

@@ -533,6 +533,221 @@ Bij ELKE nieuwe UIButton in native code:
 
 ---
 
+## Native Module Bridge Pattern (VERPLICHT)
+
+Alle native iOS modules in CommEazy MOETEN het "Triple File" patroon volgen: Swift implementatie + Objective-C bridge + TypeScript bridge. Dit garandeert correcte integratie met React Native's bridge.
+
+### Bestandsstructuur
+
+```
+ios/
+├── ModuleName/
+│   ├── ModuleNameModule.swift          ← Native implementatie
+│   └── ModuleNameModule.m              ← ObjC bridge macro's
+src/
+└── services/
+    └── moduleName.ts                   ← TypeScript bridge + types
+```
+
+### 1. Swift Module (Implementatie)
+
+```swift
+// ios/ModuleName/ModuleNameModule.swift
+import Foundation
+import React
+
+@objc(ModuleNameModule)
+class ModuleNameModule: RCTEventEmitter {
+
+    // MARK: - RCTEventEmitter Override
+
+    override func supportedEvents() -> [String]! {
+        return ["onModuleEvent", "onModuleError"]
+    }
+
+    override static func requiresMainQueueSetup() -> Bool {
+        return false  // true als UI-gerelateerd
+    }
+
+    // MARK: - Synchrone Methods (voor configuratie)
+
+    @objc func configure(_ config: NSDictionary) {
+        // Parse NSDictionary met defaults
+        let param = config["key"] as? String ?? "default"
+        // ...
+    }
+
+    // MARK: - Async Methods (Promise-based)
+
+    @objc func doSomething(
+        _ input: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let result = try self.performWork(input)
+                resolve(result)
+            } catch {
+                reject("E_MODULE", error.localizedDescription, error)
+            }
+        }
+    }
+
+    // MARK: - Events (naar React Native)
+
+    private func emitEvent(_ name: String, body: [String: Any]) {
+        if self.bridge != nil {
+            self.sendEvent(withName: name, body: body)
+        }
+    }
+}
+```
+
+### 2. Objective-C Bridge (Macro's)
+
+```objc
+// ios/ModuleName/ModuleNameModule.m
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
+
+@interface RCT_EXTERN_MODULE(ModuleNameModule, RCTEventEmitter)
+
+// Synchrone methods
+RCT_EXTERN_METHOD(configure:(NSDictionary *)config)
+
+// Async methods (Promise-based)
+RCT_EXTERN_METHOD(doSomething:(NSString *)input
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+@end
+```
+
+### 3. TypeScript Bridge (Types + API)
+
+```typescript
+// src/services/moduleName.ts
+import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
+
+// Types voor de module
+interface ModuleNameInterface {
+  configure(config: ModuleConfig): void;
+  doSomething(input: string): Promise<string>;
+}
+
+interface ModuleConfig {
+  key: string;
+  // ...
+}
+
+// Event types
+interface ModuleEventMap {
+  onModuleEvent: { data: string };
+  onModuleError: { code: string; message: string };
+}
+
+// Module singleton met platform check
+const NativeModule: ModuleNameInterface | null =
+  Platform.OS === 'ios'
+    ? NativeModules.ModuleNameModule
+    : null;
+
+const eventEmitter =
+  NativeModule
+    ? new NativeEventEmitter(NativeModules.ModuleNameModule)
+    : null;
+
+// Typed event listener
+function addEventListener<K extends keyof ModuleEventMap>(
+  event: K,
+  handler: (data: ModuleEventMap[K]) => void,
+): () => void {
+  if (!eventEmitter) return () => {};
+  const subscription = eventEmitter.addListener(event, handler);
+  return () => subscription.remove();
+}
+
+// Publieke API met null-checks
+export async function doSomething(input: string): Promise<string | null> {
+  if (!NativeModule) {
+    console.warn('[ModuleName] Not available on this platform');
+    return null;
+  }
+  return NativeModule.doSomething(input);
+}
+
+export { addEventListener };
+```
+
+### Bestaande Native Modules in CommEazy
+
+| Module | Swift | ObjC Bridge | TS Bridge | Doel |
+|--------|-------|-------------|-----------|------|
+| `VoIPPushModule` | ✅ | ✅ | ✅ | PushKit VoIP notifications |
+| `TtsModule` | ✅ | ✅ | ✅ | System AVSpeechSynthesizer |
+| `PiperTtsModule` | ✅ | ✅ | ✅ | Sherpa-ONNX offline TTS |
+| `GlassPlayerWindowModule` | ✅ | ✅ | ✅ | iOS 26 Liquid Glass player |
+| `CallKeepModule` | ✅ | ✅ | ✅ | CallKit integratie |
+| `SiriCallModule` | ✅ | ✅ | ✅ | Siri call initiation |
+| `KeychainModule` | ✅ | ✅ | ✅ | Secure key storage |
+| `HapticModule` | ✅ | ✅ | ✅ | UIImpactFeedbackGenerator |
+| `ContentRouterModule` | ✅ | ✅ | ✅ | QLPreview + SFSafari |
+| `AVFoundationCompressor` | ✅ | ✅ | ✅ | Video compressie |
+| `AudioDuckingModule` | ⏳ TODO | ⏳ TODO | ⏳ TODO | Voice command audio ducking |
+
+### Regels (VERPLICHT)
+
+1. **Altijd Triple File** — Swift + .m + .ts — NOOIT één van de drie overslaan
+2. **Platform guard in TS** — `Platform.OS === 'ios'` check, null voor Android
+3. **Typed events** — `ModuleEventMap` interface voor type-safe event listeners
+4. **Promise-based async** — Gebruik `RCTPromiseResolveBlock` / `RCTPromiseRejectBlock`
+5. **NSDictionary met defaults** — Parse altijd met `as? Type ?? defaultValue`
+6. **Error codes** — Gebruik `E_MODULE_NAME` prefix (bijv. `E_TTS`, `E_VOIP`)
+7. **Thread safety** — `requiresMainQueueSetup()` = true voor UI, false voor background
+8. **Null-safe publieke API** — TS functies retourneren `null` als module niet beschikbaar
+9. **Cleanup** — Event listener subscriptions altijd met remove() in useEffect cleanup
+
+### @available Guard Pattern (iOS 26+)
+
+```swift
+// Module met iOS 26+ requirement
+@objc func isAvailable(
+    _ resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+) {
+    if #available(iOS 26, *) {
+        resolve(true)
+    } else {
+        resolve(false)
+    }
+}
+
+// In TypeScript
+export async function isGlassAvailable(): Promise<boolean> {
+  if (!NativeModule) return false;
+  return NativeModule.isAvailable();
+}
+```
+
+### ❌ NOOIT
+
+```swift
+// ❌ Geen ObjC bridge → crash bij runtime
+// (vergeten ModuleNameModule.m aan te maken)
+
+// ❌ Force unwrap van NSDictionary waarden
+let value = config["key"] as! String  // CRASH als nil
+
+// ❌ Main thread blocking voor zware operaties
+@objc func heavyWork(_ resolve: @escaping RCTPromiseResolveBlock, ...) {
+    let result = self.expensiveComputation()  // BLOKKEERT UI!
+    resolve(result)
+}
+```
+
+---
+
 ## Quality Checklist
 
 - [ ] Privacy Manifest complete and accurate
@@ -557,6 +772,10 @@ Bij ELKE nieuwe UIButton in native code:
 - [ ] **Liquid Glass:** @available(iOS 26, *) guards correct
 - [ ] **Buttons:** 60pt touch target, 12pt cornerRadius, rgba background
 - [ ] **Buttons:** Border support via configureButtonStyle()
+- [ ] **Native Modules:** Triple File pattern (Swift + .m + .ts) voor elk module
+- [ ] **Native Modules:** Platform guard in TypeScript bridge
+- [ ] **Native Modules:** Typed event maps voor alle event emitters
+- [ ] **Native Modules:** NSDictionary met defaults, geen force unwrap
 
 ## Collaboration
 

@@ -149,11 +149,7 @@ export class ChatService {
    */
   private async subscribeToAllContactsPresence(): Promise<void> {
     try {
-      const contacts: Contact[] = [];
-      const unsubscribe = ServiceContainer.database.getContacts().subscribe(c => {
-        contacts.push(...c);
-      });
-      unsubscribe();
+      const contacts = await ServiceContainer.database.getContactsOnce();
 
       const xmpp = ServiceContainer.xmpp;
 
@@ -503,13 +499,7 @@ export class ChatService {
     this.ensureInitialized();
 
     const chatList: ChatListItemWithContact[] = [];
-    const contacts: Contact[] = [];
-
-    // Get all contacts via subscription
-    const unsubscribe = ServiceContainer.database.getContacts().subscribe(c => {
-      contacts.push(...c);
-    });
-    unsubscribe();
+    const contacts = await ServiceContainer.database.getContactsOnce();
 
     for (const contact of contacts) {
       const chatId = this.getChatId(contact.jid);

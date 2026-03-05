@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -523,26 +523,19 @@ export function BooksScreen() {
         {(showLibrary ? isLibraryLoading : isSearching) ? (
           <LoadingView message={t('modules.books.loading')} fullscreen />
         ) : apiError ? (
-          <View style={styles.errorContainer}>
-            <Icon name="warning" size={64} color={colors.error} />
-            <Text style={styles.errorTitle}>{t(`modules.books.errors.${apiError}Title`)}</Text>
-            <Text style={styles.errorMessage}>{t(`modules.books.errors.${apiError}`)}</Text>
-            <TouchableOpacity
-              style={[styles.retryButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => {
-                triggerFeedback('tap');
-                if (showLibrary) {
-                  refreshLibrary();
-                } else {
-                  handleSearch();
-                }
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.tryAgain')}
-            >
-              <Text style={styles.retryButtonText}>{t('common.tryAgain')}</Text>
-            </TouchableOpacity>
-          </View>
+          <ErrorView
+            title={t(`modules.books.errors.${apiError}Title`)}
+            message={t(`modules.books.errors.${apiError}`)}
+            onRetry={() => {
+              triggerFeedback('tap');
+              if (showLibrary) {
+                refreshLibrary();
+              } else {
+                handleSearch();
+              }
+            }}
+            fullscreen
+          />
         ) : displayedBooks.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Icon
@@ -1109,38 +1102,6 @@ const styles = StyleSheet.create({
   loadingText: {
     ...typography.body,
     color: colors.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    gap: spacing.md,
-  },
-  errorTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  errorMessage: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  retryButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  retryButtonText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,

@@ -136,9 +136,15 @@ const DEFAULT_READER_SETTINGS: ReaderSettings = {
 // Books Storage Service
 // ============================================================
 
+/** Download retry constants */
+const DOWNLOAD_MAX_RETRIES = 2;
+const DOWNLOAD_RETRY_DELAYS = [3000, 6000]; // 3s, 6s
+const DOWNLOAD_TIMEOUT_MS = 120000; // 2 minutes connection timeout
+
 class BooksStorageService {
   private initialized = false;
   private activeDownloadJobId: number | null = null;
+  private downloadCancelled = false;
 
   /**
    * Initialize the storage service
@@ -281,28 +287,42 @@ class BooksStorageService {
         }
       }
 
-      // Download file with progress
-      const downloadResult = RNFS.downloadFile({
-        fromUrl: book.downloadUrl,
-        toFile: localPath,
-        progress: (res) => {
-          const progress = res.contentLength > 0
-            ? res.bytesWritten / res.contentLength
-            : 0;
-          onProgress?.(progress);
-        },
-        progressInterval: 100, // Update every 100ms
-        begin: (res) => {
-          console.debug('[BooksStorageService] Download started, size:', res.contentLength);
-        },
-      });
+      // Download file with progress + retry
+      this.downloadCancelled = false;
+      let lastError: Error | null = null;
 
-      this.activeDownloadJobId = downloadResult.jobId;
-      const result = await downloadResult.promise;
-      this.activeDownloadJobId = null;
+      for (let attempt = 0; attempt <= DOWNLOAD_MAX_RETRIES; attempt++) {
+        if (this.downloadCancelled) {
+          throw new Error('Download cancelled');
+        }
 
-      if (result.statusCode !== 200) {
-        throw new Error(`Download failed with status: ${result.statusCode}`);
+        if (attempt > 0) {
+          const retryDelay = DOWNLOAD_RETRY_DELAYS[attempt - 1] || 6000;
+          console.info('[BooksStorageService] Retry', attempt, '/', DOWNLOAD_MAX_RETRIES, 'in', retryDelay, 'ms');
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          if (this.downloadCancelled) {
+            throw new Error('Download cancelled');
+          }
+        }
+
+        try {
+          const result = await this.executeDownload(book.downloadUrl, localPath, onProgress);
+          if (result.statusCode !== 200) {
+            throw new Error(`Download failed with status: ${result.statusCode}`);
+          }
+          lastError = null;
+          break; // Success
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err));
+          if (this.downloadCancelled) {
+            throw lastError;
+          }
+          console.warn('[BooksStorageService] Download attempt', attempt + 1, 'failed:', lastError.message);
+        }
+      }
+
+      if (lastError) {
+        throw lastError;
       }
 
       // Get file size
@@ -337,9 +357,51 @@ class BooksStorageService {
   }
 
   /**
+   * Execute a single download attempt with timeout.
+   */
+  private async executeDownload(
+    url: string,
+    localPath: string,
+    onProgress?: DownloadProgressCallback,
+  ): Promise<{ statusCode: number }> {
+    // Guard against overwriting an active jobId
+    if (this.activeDownloadJobId != null) {
+      console.warn('[BooksStorageService] Previous download still active, stopping:', this.activeDownloadJobId);
+      RNFS.stopDownload(this.activeDownloadJobId);
+      this.activeDownloadJobId = null;
+    }
+
+    const downloadResult = RNFS.downloadFile({
+      fromUrl: url,
+      toFile: localPath,
+      connectionTimeout: DOWNLOAD_TIMEOUT_MS,
+      readTimeout: DOWNLOAD_TIMEOUT_MS,
+      progress: (res) => {
+        const progress = res.contentLength > 0
+          ? res.bytesWritten / res.contentLength
+          : 0;
+        onProgress?.(progress);
+      },
+      progressInterval: 100,
+      begin: (res) => {
+        console.debug('[BooksStorageService] Download started, size:', res.contentLength);
+      },
+    });
+
+    this.activeDownloadJobId = downloadResult.jobId;
+    try {
+      const result = await downloadResult.promise;
+      return result;
+    } finally {
+      this.activeDownloadJobId = null;
+    }
+  }
+
+  /**
    * Cancel the currently active download (if any)
    */
   cancelActiveDownload(): void {
+    this.downloadCancelled = true;
     if (this.activeDownloadJobId != null) {
       console.info('[BooksStorageService] Cancelling download job:', this.activeDownloadJobId);
       RNFS.stopDownload(this.activeDownloadJobId);

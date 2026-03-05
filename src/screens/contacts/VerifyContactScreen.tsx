@@ -32,6 +32,7 @@ import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { ErrorView } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import type { ContactStackParams } from '@/navigation';
 
@@ -263,19 +264,11 @@ export function VerifyContactScreen() {
           </View>
         </>
       ) : (
-        <View style={styles.noCameraContainer}>
-          <Text style={[styles.noCameraText, { color: themeColors.textSecondary }]}>
-            {t('contacts.cameraNotAvailable')}
-          </Text>
-          <TouchableOpacity
-            style={[styles.retryButton, { backgroundColor: themeColors.primary }]}
-            onPress={() => void handleTabChange('scan')}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.tryAgain')}
-          >
-            <Text style={[styles.retryButtonText, { color: themeColors.textOnPrimary }]}>{t('common.tryAgain')}</Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorView
+          message={t('contacts.cameraNotAvailable')}
+          onRetry={() => void handleTabChange('scan')}
+          fullscreen
+        />
       )}
     </View>
   );
@@ -459,19 +452,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.lg,
-  },
-  retryButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  retryButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
   },
   successContainer: {
     flex: 1,

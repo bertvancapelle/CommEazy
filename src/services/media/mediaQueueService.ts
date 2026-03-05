@@ -378,7 +378,7 @@ function shouldProcessItem(item: MediaQueueItem): boolean {
   // Calculate next retry time using exponential backoff
   const delayIndex = Math.min(item.retryCount - 1, RETRY_DELAYS.length - 1);
   const delay = RETRY_DELAYS[delayIndex];
-  const nextRetryTime = item.timestamp + delay;
+  const nextRetryTime = item.lastAttempt + delay;
 
   return Date.now() >= nextRetryTime;
 }
