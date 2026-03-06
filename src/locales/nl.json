@@ -1411,7 +1411,7 @@
       "photoWithCaption": "Foto: {{caption}}",
       "sendPhotoTo": "Verstuur foto naar...",
       "sendPhotosTo": "Verstuur {{count}} foto's naar...",
-      "recipientCount": "{{selected}} van {{max}} geselecteerd",
+      "recipientCount": "{{count}} geselecteerd",
       "noContacts": "Geen contacten",
       "noContactsHint": "Voeg contacten toe om foto's te kunnen versturen.",
       "selectRecipients": "Selecteer ontvangers",

@@ -1390,7 +1390,7 @@
       "photoWithCaption": "Foto: {{caption}}",
       "sendPhotoTo": "Invia foto a...",
       "sendPhotosTo": "Invia {{count}} foto a...",
-      "recipientCount": "{{selected}} di {{max}} selezionati",
+      "recipientCount": "{{count}} selezionati",
       "noContacts": "Nessun contatto",
       "noContactsHint": "Aggiungi contatti per inviare foto.",
       "selectRecipients": "Seleziona destinatari",

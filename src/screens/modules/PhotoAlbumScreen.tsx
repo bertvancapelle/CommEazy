@@ -6,7 +6,7 @@
  *
  * Design principles (from PNA discussion):
  * - Photo Album is the ONLY place for photo actions
- * - Select 1 or more photos → Send to 1-8 people
+ * - Select 1 or more photos → Send to any number of people
  * - Clear multi-select UX for seniors
  * - Consistent with Camera (which only captures)
  *
@@ -74,9 +74,6 @@ import type { PhotoAlbum } from '@/types/media';
 // ============================================================
 
 const LOG_PREFIX = '[PhotoAlbumScreen]';
-
-// Maximum recipients for photo sharing (dual-path encryption limit)
-const MAX_RECIPIENTS = 8;
 
 // Grid layout
 const GRID_PADDING = spacing.sm;

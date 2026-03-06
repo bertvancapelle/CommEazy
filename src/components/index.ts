@@ -142,7 +142,7 @@ export { PhotoMessageBubble } from './PhotoMessageBubble';
 export type { PhotoMessageBubbleProps } from './PhotoMessageBubble';
 
 // Photo Recipient Modal (for selecting photo send recipients)
-export { PhotoRecipientModal, MAX_RECIPIENTS as PHOTO_MAX_RECIPIENTS } from './PhotoRecipientModal';
+export { PhotoRecipientModal } from './PhotoRecipientModal';
 export type { PhotoRecipientModalProps } from './PhotoRecipientModal';
 
 // Liquid Glass View (Apple iOS 26+ glass effects with fallback)

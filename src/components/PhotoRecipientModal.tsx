@@ -1,14 +1,15 @@
 /**
- * PhotoRecipientModal — Modal for selecting photo recipients (1-8 contacts)
+ * PhotoRecipientModal — Modal for selecting photo recipients
  *
  * Used in PhotoAlbum and ChatScreen for selecting who to send photos to.
- * Supports multi-select up to MAX_RECIPIENTS (8) due to encryption constraints.
+ * No recipient limit — encryption auto-switches between encrypt-to-all (≤8)
+ * and shared-key (>8) transparently. Seniors should never think about this.
  *
  * Senior-inclusive design:
  * - Large touch targets (60pt)
  * - Clear selection indicators
  * - Visual feedback on selection
- * - Counter showing selected/max
+ * - Counter showing number selected
  *
  * @see .claude/skills/ui-designer/SKILL.md
  */
@@ -38,9 +39,6 @@ import { getContactDisplayName } from '@/services/interfaces';
 // ============================================================
 
 const LOG_PREFIX = '[PhotoRecipientModal]';
-
-// Maximum recipients (dual-path encryption limit)
-export const MAX_RECIPIENTS = 8;
 
 // ============================================================
 // Types
@@ -94,7 +92,7 @@ export function PhotoRecipientModal({
       const newSet = new Set(prev);
       if (newSet.has(contact.jid)) {
         newSet.delete(contact.jid);
-      } else if (newSet.size < MAX_RECIPIENTS) {
+      } else {
         newSet.add(contact.jid);
       }
       return newSet;
@@ -142,9 +140,8 @@ export function PhotoRecipientModal({
         {/* Selection counter */}
         <View style={[styles.counterBar, { backgroundColor: themeColors.surface }]}>
           <Text style={[styles.counterText, { color: themeColors.textSecondary }]}>
-            {t('modules.photoAlbum.recipientCount', '{{selected}} of {{max}} selected', {
-              selected: selectedContacts.size,
-              max: MAX_RECIPIENTS,
+            {t('modules.photoAlbum.recipientCount', '{{count}} selected', {
+              count: selectedContacts.size,
             })}
           </Text>
         </View>
@@ -175,7 +172,6 @@ export function PhotoRecipientModal({
           >
             {contacts.map((contact) => {
               const isSelected = selectedContacts.has(contact.jid);
-              const isDisabled = !isSelected && selectedContacts.size >= MAX_RECIPIENTS;
 
               return (
                 <HapticTouchable
@@ -184,14 +180,11 @@ export function PhotoRecipientModal({
                     styles.contactRow,
                     { backgroundColor: themeColors.surface, borderColor: themeColors.border },
                     isSelected && { borderColor: resolvedAccent, borderWidth: 2 },
-                    isDisabled && styles.contactRowDisabled,
                   ]}
-                  onPress={() => !isDisabled && handleToggleContact(contact)}
-                  disabled={isDisabled}
-                  hapticDisabled={isDisabled}
+                  onPress={() => handleToggleContact(contact)}
                   accessibilityRole="checkbox"
                   accessibilityLabel={getContactDisplayName(contact)}
-                  accessibilityState={{ checked: isSelected, disabled: isDisabled }}
+                  accessibilityState={{ checked: isSelected }}
                 >
                   <ContactAvatar
                     name={getContactDisplayName(contact)}
@@ -202,7 +195,6 @@ export function PhotoRecipientModal({
                     style={[
                       styles.contactName,
                       { color: themeColors.textPrimary },
-                      isDisabled && { color: themeColors.textSecondary },
                     ]}
                     numberOfLines={1}
                   >
@@ -320,9 +312,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     minHeight: touchTargets.comfortable,
     borderWidth: 1,
-  },
-  contactRowDisabled: {
-    opacity: 0.5,
   },
   contactName: {
     ...typography.body,

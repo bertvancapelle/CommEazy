@@ -1286,7 +1286,7 @@
       "photoWithCaption": "Foto: {{caption}}",
       "sendPhotoTo": "Skicka foto till...",
       "sendPhotosTo": "Skicka {{count}} foton till...",
-      "recipientCount": "{{selected}} av {{max}} valda",
+      "recipientCount": "{{count}} valda",
       "noContacts": "Inga kontakter",
       "noContactsHint": "Lägg till kontakter för att skicka foton.",
       "selectRecipients": "Välj mottagare",

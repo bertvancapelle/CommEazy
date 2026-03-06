@@ -1286,7 +1286,7 @@
       "photoWithCaption": "Billede: {{caption}}",
       "sendPhotoTo": "Send billede til...",
       "sendPhotosTo": "Send {{count}} billeder til...",
-      "recipientCount": "{{selected}} af {{max}} valgt",
+      "recipientCount": "{{count}} valgt",
       "noContacts": "Ingen kontakter",
       "noContactsHint": "Tilføj kontakter for at sende billeder.",
       "selectRecipients": "Vælg modtagere",
