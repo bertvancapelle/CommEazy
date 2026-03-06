@@ -372,16 +372,22 @@ export function PhotoAlbumScreen() {
         setContacts(contactList);
         console.debug(LOG_PREFIX, 'Loaded contacts:', { count: contactList.length });
       } else if (__DEV__) {
-        // Use mock contacts in dev mode
+        // Use mock contacts in dev mode — detect current user dynamically
+        const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
         const { getMockContactsForDevice } = await import('@/services/mock');
-        const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-        const publicKeyMap = await getOtherDevicesPublicKeys('ik@commeazy.local');
-        const deviceContacts = getMockContactsForDevice('ik@commeazy.local', publicKeyMap);
+        let publicKeyMap: Record<string, string> | undefined;
+        try {
+          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
+          publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid);
+        } catch (keyError) {
+          console.warn(LOG_PREFIX, 'Could not load test keys (libsodium not ready?), loading contacts without keys');
+        }
+        const deviceContacts = getMockContactsForDevice(currentUserJid, publicKeyMap);
         setContacts(deviceContacts);
-        console.debug(LOG_PREFIX, 'Using test device contacts:', { count: deviceContacts.length });
+        console.debug(LOG_PREFIX, 'Using test device contacts:', { count: deviceContacts.length, currentUser: currentUserJid });
       }
     } catch (error) {
-      console.error(LOG_PREFIX, 'Failed to load contacts');
+      console.error(LOG_PREFIX, 'Failed to load contacts:', error instanceof Error ? error.message : String(error));
     } finally {
       setIsLoadingContacts(false);
     }

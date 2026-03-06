@@ -1084,6 +1084,38 @@ Dit is **niet optioneel**. Na elke logische milestone MOET Claude voorstellen om
 - Met bekende bugs die nog gefixed moeten worden
 - Met debug code (`console.log` overal)
 
+### ⚠️ Plan Continuïteit bij Onderbreking (VERPLICHT)
+
+**KRITIEK:** Wanneer een implementatieplan (bijv. `PHOTO_ALBUM_OPTIMIZATION.md`) meerdere fasen heeft, MOET Claude:
+
+1. **Altijd terugkeren** naar openstaande fasen na een onderbreking (bug fix, PNA discussie, context switch)
+2. **Expliciet afsluiten** — Een plan is pas "klaar" wanneer ALLE fasen zijn voltooid OF expliciet uitgesteld
+3. **Status rapporteren** — Bij hervatting altijd de huidige status van het plan tonen
+4. **Niet vergeten** — Onderbrekingen (bugs, vragen, PNA) zijn GEEN reden om een plan te abandonneren
+
+**Claude's gedrag bij onderbreking:**
+```
+[Onderbreking opgelost]
+
+"De onderbreking is afgehandeld. Terug naar het plan:
+
+📋 **PHOTO_ALBUM_OPTIMIZATION.md**
+✅ Fase 1: Technische schuld — VOLTOOID
+✅ Fase 2: UX verbeteringen — VOLTOOID
+⏳ Fase 3: Albums & Organisatie — AAN DE BEURT
+⏳ Fase 4: Slideshow — Wacht
+⏳ Fase 5: Module integratie — Wacht
+
+Ik ga nu door met Fase 3."
+```
+
+**Anti-pattern (VERBODEN):**
+```
+❌ Fase 1-2 voltooid → bug fix → PNA discussie → vergeet dat Fase 3-5 nog open staan
+❌ "Het plan is klaar" terwijl er nog fasen open staan
+❌ Wachten tot de gebruiker vraagt "waarom is Fase 3 niet uitgevoerd?"
+```
+
 ### ⚠️ Code Hygiene Check (VERPLICHT vóór commit)
 
 **Dit is onderdeel van de commit flow.** Claude MOET deze checks uitvoeren voordat een commit wordt voorgesteld.

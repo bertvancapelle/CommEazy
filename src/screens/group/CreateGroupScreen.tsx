@@ -33,6 +33,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { Button, TextInput, LoadingView } from '@/components';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
+import { chatService } from '@/services/chat';
 import { groupChatService } from '@/services/groupChat';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
@@ -67,11 +68,17 @@ export function CreateGroupScreen() {
           const contactList = await ServiceContainer.database.getContactsOnce();
           if (!cancelled) setContacts(contactList);
         } else if (__DEV__) {
-          // Mock contacts for dev mode
+          // Mock contacts for dev mode — detect current user dynamically
+          const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
           const { getMockContactsForDevice } = await import('@/services/mock');
-          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-          const publicKeyMap = await getOtherDevicesPublicKeys('ik@commeazy.local');
-          if (!cancelled) setContacts(getMockContactsForDevice('ik@commeazy.local', publicKeyMap));
+          let publicKeyMap: Record<string, string> | undefined;
+          try {
+            const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
+            publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid);
+          } catch (keyError) {
+            console.warn('[CreateGroupScreen] Could not load test keys, loading contacts without keys');
+          }
+          if (!cancelled) setContacts(getMockContactsForDevice(currentUserJid, publicKeyMap));
         }
       } catch (error) {
         console.error('Failed to load contacts:', error);

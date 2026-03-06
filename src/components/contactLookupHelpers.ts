@@ -164,17 +164,22 @@ export async function findAllContactsByName(
     if (__DEV__) {
       // Dynamic import to avoid module loading at bundle time
       const { getMockContactsForDevice } = await import('@/services/mock');
-      const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
       const { chatService } = await import('@/services/chat');
 
       const currentUserJid = chatService.isInitialized
         ? chatService.getMyJid()
         : 'ik@commeazy.local';
 
-      // Get public keys for other test devices
-      const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'ik@commeazy.local');
+      // Get public keys for other test devices (optional — contacts load without keys too)
+      let publicKeyMap: Record<string, string> | undefined;
+      try {
+        const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
+        publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid);
+      } catch {
+        // libsodium not ready — proceed without keys
+      }
 
-      contacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
+      contacts = getMockContactsForDevice(currentUserJid, publicKeyMap);
     } else {
       // Production: one-shot read from database
       contacts = await ServiceContainer.database.getContactsOnce();
