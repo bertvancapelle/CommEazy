@@ -1676,16 +1676,34 @@
         "emptyHint": "Selecteer een genre om populaire muziek te ontdekken"
       },
       "favorites": {
+        "title": "Favorieten",
         "songs": "Nummers",
         "albums": "Albums",
         "artists": "Artiesten",
         "emptyTitle": "Nog geen favorieten",
-        "emptyDescription": "Voeg nummers toe aan je bibliotheek om ze hier te zien",
+        "emptyDescription": "Tik op het ♥ icoon bij een nummer om het aan je favorieten toe te voegen.",
+        "addToFavorites": "Toevoegen aan favorieten",
+        "removeFromFavorites": "Verwijderen uit favorieten",
         "searchMusic": "Zoek muziek",
         "showAll": "Toon alle {{count}}",
         "showAllSongs": "Toon alle nummers",
         "showAllAlbums": "Toon alle albums",
         "showAllArtists": "Toon alle artiesten"
+      },
+      "collections": {
+        "allFavorites": "Alle favorieten",
+        "createCollection": "Nieuwe verzameling",
+        "new": "Nieuw",
+        "collectionName": "Naam",
+        "collectionNamePlaceholder": "bijv. Feestje, Relaxen...",
+        "rename": "Hernoemen",
+        "songCount": "{{count}} nummers",
+        "deleteCollection": "Verzameling verwijderen",
+        "deleteCollectionConfirm": "Weet je zeker dat je de verzameling '{{name}}' wilt verwijderen? De nummers blijven in je favorieten.",
+        "addToCollection": "Toevoegen aan verzameling",
+        "songs": "nummers",
+        "noCollections": "Je hebt nog geen verzamelingen. Maak er een aan!",
+        "collectionEmpty": "Deze verzameling is leeg. Voeg nummers toe via het mapje-icoon."
       },
       "myMusic": {
         "shuffleAll": "Shuffle alles",

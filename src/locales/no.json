@@ -1540,16 +1540,34 @@
         "emptyHint": "Velg en sjanger for å oppdage populær musikk"
       },
       "favorites": {
+        "title": "Favoritter",
         "songs": "Sanger",
         "albums": "Album",
         "artists": "Artister",
         "emptyTitle": "Ingen favoritter ennå",
-        "emptyDescription": "Legg til sanger i biblioteket for å se dem her",
+        "emptyDescription": "Trykk på ♥-ikonet på en sang for å legge den til i favorittene dine.",
         "searchMusic": "Søk etter musikk",
         "showAll": "Vis alle {{count}}",
         "showAllSongs": "Vis alle sanger",
         "showAllAlbums": "Vis alle album",
-        "showAllArtists": "Vis alle artister"
+        "showAllArtists": "Vis alle artister",
+        "addToFavorites": "Legg til i favoritter",
+        "removeFromFavorites": "Fjern fra favoritter"
+      },
+      "collections": {
+        "allFavorites": "Alle favoritter",
+        "createCollection": "Ny samling",
+        "new": "Ny",
+        "collectionName": "Navn",
+        "collectionNamePlaceholder": "f.eks. Fest, Avslapping...",
+        "rename": "Gi nytt navn",
+        "songCount": "{{count}} sanger",
+        "deleteCollection": "Slett samling",
+        "deleteCollectionConfirm": "Er du sikker på at du vil slette samlingen '{{name}}'? Sangene forblir i favorittene dine.",
+        "addToCollection": "Legg til i samling",
+        "songs": "sanger",
+        "noCollections": "Du har ingen samlinger ennå. Opprett en!",
+        "collectionEmpty": "Denne samlingen er tom. Legg til sanger via mappeikonet."
       },
       "myMusic": {
         "shuffleAll": "Bland alle",

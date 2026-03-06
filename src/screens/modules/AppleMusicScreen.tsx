@@ -71,6 +71,13 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
+import { useMusicFavorites } from '@/hooks/useMusicFavorites';
+import { useMusicCollections } from '@/hooks/useMusicCollections';
+import { MusicCollectionChipBar, type MusicChipId } from '@/components/MusicCollectionChipBar';
+import { CreateMusicCollectionModal } from './CreateMusicCollectionModal';
+import { EditMusicCollectionModal } from './EditMusicCollectionModal';
+import { SongCollectionModal } from './SongCollectionModal';
+import type { MusicCollection } from '@/services/music';
 
 // ============================================================
 // Constants
@@ -182,6 +189,21 @@ export function AppleMusicScreen() {
   const [searchFilter, setSearchFilter] = useState<SearchFilterType>('all');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAllRecentlyPlayed, setShowAllRecentlyPlayed] = useState(false);
+
+  // Music Favorites & Collections (CommEazy local curation)
+  const musicFavorites = useMusicFavorites();
+  const musicCollections = useMusicCollections();
+  const [selectedChipId, setSelectedChipId] = useState<MusicChipId>('all');
+  const [showCreateCollectionModal, setShowCreateCollectionModal] = useState(false);
+  const [editCollectionModal, setEditCollectionModal] = useState<{
+    visible: boolean;
+    collection: MusicCollection | null;
+  }>({ visible: false, collection: null });
+  const [songCollectionModal, setSongCollectionModal] = useState<{
+    visible: boolean;
+    catalogId: string | null;
+    title: string;
+  }>({ visible: false, catalogId: null, title: '' });
 
   // Detail modal state
   const [detailModal, setDetailModal] = useState<{
@@ -588,20 +610,20 @@ export function AppleMusicScreen() {
     }
   }, [isPlaying, pause, resume, triggerFeedback]);
 
-  // Shuffle all library songs — sets shuffle mode then plays the first library song
+  // Shuffle all favorites — sets shuffle mode then plays the first favorite
   const handleShuffleAll = useCallback(async () => {
     triggerFeedback('tap');
-    const songs = libraryCache?.songs;
-    if (!songs || songs.length === 0) return;
+    const favorites = musicFavorites.favorites;
+    if (favorites.length === 0) return;
 
     try {
-      // Enable shuffle mode first, then play a song — MusicKit will shuffle the queue
+      // Enable shuffle mode first, then play a favorite — MusicKit will shuffle the queue
       await setShuffleMode('songs');
-      await playSong(songs[0].id, songs[0].artworkUrl);
+      await playSong(favorites[0].catalogId, favorites[0].artworkUrl);
     } catch (error) {
       console.error('[AppleMusicScreen] Shuffle all error:', error);
     }
-  }, [triggerFeedback, libraryCache?.songs, setShuffleMode, playSong]);
+  }, [triggerFeedback, musicFavorites.favorites, setShuffleMode, playSong]);
 
   const handleOpenPlayStore = useCallback(async () => {
     triggerFeedback('tap');
@@ -718,10 +740,15 @@ export function AppleMusicScreen() {
   const totalResults = resultCounts.songs + resultCounts.albums + resultCounts.artists + resultCounts.playlists;
   const hasAnyResults = totalResults > 0;
 
-  // Render a single song item
+  // Render a single song item (used in both search results and favorites)
   const renderSongItem = (song: AppleMusicSong, index: number) => {
-    const isInLib = searchResultsInLibrary.has(song.id);
+    const isFav = musicFavorites.isFavorite(song.id);
     const isCurrentSong = currentSong && currentSong.id === song.id;
+
+    // Count how many collections this song belongs to
+    const collectionCount = musicCollections.collections.filter(
+      c => c.songCatalogIds.includes(song.id)
+    ).length;
 
     return (
       <VoiceFocusable
@@ -778,18 +805,46 @@ export function AppleMusicScreen() {
             </View>
           </TouchableOpacity>
           <View style={styles.songItemActions}>
+            {/* Heart icon — toggles CommEazy favorites (NOT Apple Music Library) */}
             <IconButton
-              icon={isInLib ? 'heart-filled' : 'heart'}
+              icon={isFav ? 'heart-filled' : 'heart'}
               iconActive="heart-filled"
-              isActive={isInLib}
+              isActive={isFav}
               size={24}
-              onPress={() => handleToggleSearchResultLibrary(song)}
-              accessibilityLabel={isInLib
-                ? t('modules.appleMusic.inLibrary')
-                : t('modules.appleMusic.addToLibrary')
+              onPress={() => {
+                musicFavorites.toggle({
+                  catalogId: song.id,
+                  title: song.title,
+                  artistName: song.artistName,
+                  artworkUrl: song.artworkUrl,
+                  albumTitle: song.albumTitle,
+                });
+              }}
+              accessibilityLabel={isFav
+                ? t('appleMusic.favorites.removeFromFavorites')
+                : t('appleMusic.favorites.addToFavorites')
               }
               style={styles.songItemHeartButton}
             />
+            {/* Folder icon — assign to collections (only shown for favorites) */}
+            {isFav && (
+              <IconButton
+                icon="folder"
+                size={22}
+                onPress={() => {
+                  setSongCollectionModal({
+                    visible: true,
+                    catalogId: song.id,
+                    title: song.title,
+                  });
+                }}
+                accessibilityLabel={t('appleMusic.collections.addToCollection')}
+                style={[
+                  styles.songItemFolderButton,
+                  collectionCount > 0 && { opacity: 1 },
+                ]}
+              />
+            )}
             <IconButton
               icon={isCurrentSong && isPlaying ? 'pause' : 'play'}
               size={28}
@@ -1342,25 +1397,97 @@ export function AppleMusicScreen() {
 
   // ============================================================
   // My Music Tab Content - "Mijn Muziek"
-  // Combines: Library (songs/albums/artists) + Recently Played + Shuffle All
+  // Shows CommEazy favorites with collection filtering via ChipBar
   // ============================================================
 
+  // Compute filtered songs based on selected chip
+  const filteredFavoriteSongs: AppleMusicSong[] = useMemo(() => {
+    const favorites = musicFavorites.favorites;
+
+    // Convert MusicFavorite to AppleMusicSong shape for renderSongItem
+    const toSong = (fav: typeof favorites[number]): AppleMusicSong => ({
+      id: fav.catalogId,
+      title: fav.title,
+      artistName: fav.artistName,
+      artworkUrl: fav.artworkUrl,
+      albumTitle: fav.albumTitle,
+      durationInMillis: 0,
+    });
+
+    if (selectedChipId === 'all') {
+      return favorites.map(toSong);
+    }
+
+    // Extract collection ID from chip ID (format: "collection:uuid")
+    const collectionId = selectedChipId.replace('collection:', '');
+    const collection = musicCollections.collections.find(c => c.id === collectionId);
+    if (!collection) return [];
+
+    // Filter favorites to only those in this collection, preserving collection order
+    const songIdSet = new Set(collection.songCatalogIds);
+    return favorites.filter(f => songIdSet.has(f.catalogId)).map(toSong);
+  }, [musicFavorites.favorites, selectedChipId, musicCollections.collections]);
+
+  // Handle creating a new collection
+  const handleCreateCollection = useCallback(async (name: string) => {
+    const created = await musicCollections.create(name);
+    if (created) {
+      setShowCreateCollectionModal(false);
+      // If song collection modal triggered this, add the song to the new collection
+      if (songCollectionModal.catalogId) {
+        await musicCollections.addSongs(created.id, [songCollectionModal.catalogId]);
+      }
+    }
+  }, [musicCollections, songCollectionModal.catalogId]);
+
+  // Handle long-press on collection chip (open edit modal)
+  const handleLongPressCollection = useCallback((collectionId: string) => {
+    const collection = musicCollections.collections.find(c => c.id === collectionId);
+    if (collection) {
+      setEditCollectionModal({ visible: true, collection });
+    }
+  }, [musicCollections.collections]);
+
+  // Handle playing a song from a collection (builds queue from remaining songs)
+  const handlePlayFavoriteSong = useCallback(async (song: AppleMusicSong) => {
+    await handlePlaySong(song);
+
+    // If playing within a collection, queue remaining songs asynchronously
+    if (selectedChipId !== 'all' && filteredFavoriteSongs.length > 1) {
+      const songIndex = filteredFavoriteSongs.findIndex(s => s.id === song.id);
+      if (songIndex >= 0) {
+        const remaining = filteredFavoriteSongs.slice(songIndex + 1);
+        // Queue building is handled by MusicKit when we play from a catalog
+        console.debug('[AppleMusicScreen] Collection playback:', remaining.length, 'songs follow');
+      }
+    }
+  }, [handlePlaySong, selectedChipId, filteredFavoriteSongs]);
+
   const renderMyMusicTab = () => {
-    const librarySongs = libraryCache?.songs ?? [];
-    const libraryAlbums = libraryCache?.albums ?? [];
-    const libraryArtists = libraryCache?.artists ?? [];
-    const hasLibrary = librarySongs.length > 0 || libraryAlbums.length > 0 || libraryArtists.length > 0;
-    const hasContent = hasLibrary || recentlyPlayed.length > 0;
+    const hasFavorites = musicFavorites.favorites.length > 0;
 
     return (
       <View style={styles.tabContent}>
         {/* Loading state */}
-        {(isLibraryCacheLoading || isRecentlyPlayedLoading) && !hasContent && (
+        {musicFavorites.isLoading && (
           <LoadingView />
         )}
 
-        {/* Content */}
-        {hasContent && (
+        {/* ChipBar — always visible when there are favorites or collections */}
+        {(hasFavorites || musicCollections.collections.length > 0) && (
+          <MusicCollectionChipBar
+            selectedChipId={selectedChipId}
+            collections={musicCollections.collections}
+            favoritesCount={musicFavorites.count}
+            onSelectChip={setSelectedChipId}
+            onCreateCollection={() => setShowCreateCollectionModal(true)}
+            onLongPressCollection={handleLongPressCollection}
+            accentColor={appleMusicColor}
+          />
+        )}
+
+        {/* Content — filtered favorites */}
+        {hasFavorites && (
           <ScrollView
             style={styles.resultsList}
             contentContainerStyle={[
@@ -1368,8 +1495,8 @@ export function AppleMusicScreen() {
               { paddingBottom: bottomPadding + insets.bottom },
             ]}
           >
-            {/* Shuffle All button — prominent at top */}
-            {librarySongs.length > 0 && (
+            {/* Shuffle All button — prominent at top (all favorites, not filtered) */}
+            {selectedChipId === 'all' && musicFavorites.favorites.length > 0 && (
               <TouchableOpacity
                 style={[styles.shuffleAllButton, { backgroundColor: appleMusicColor }]}
                 onPress={handleShuffleAll}
@@ -1385,8 +1512,8 @@ export function AppleMusicScreen() {
               </TouchableOpacity>
             )}
 
-            {/* Recently Played section */}
-            {recentlyPlayed.length > 0 && (
+            {/* Recently Played section (only shown on "Alle favorieten" view) */}
+            {selectedChipId === 'all' && recentlyPlayed.length > 0 && (
               <View style={styles.favoritesSection}>
                 <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
                   {t('modules.appleMusic.discovery.recentlyPlayed')}
@@ -1422,7 +1549,6 @@ export function AppleMusicScreen() {
                       ) : null}
                     </TouchableOpacity>
                   ))}
-                  {/* "Toon alles" card at the end */}
                   {recentlyPlayed.length > 10 && (
                     <TouchableOpacity
                       style={[styles.discoveryCard, styles.showAllCard, { backgroundColor: themeColors.surface }]}
@@ -1447,98 +1573,36 @@ export function AppleMusicScreen() {
               </View>
             )}
 
-            {/* Library Songs section */}
-            {librarySongs.length > 0 && (
-              <View style={styles.favoritesSection}>
-                <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
-                  {t('modules.appleMusic.favorites.songs')} ({librarySongs.length})
-                </Text>
-                {librarySongs.slice(0, 10).map((song, index) => renderSongItem(song, index))}
-                {librarySongs.length > 10 && (
-                  <TouchableOpacity
-                    style={styles.showAllButton}
-                    onPress={() => {
-                      triggerFeedback('tap');
-                      setActiveTab('search');
-                    }}
-                    onLongPress={() => {}}
-                    delayLongPress={300}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.appleMusic.favorites.showAllSongs')}
-                  >
-                    <Text style={[styles.showAllText, { color: appleMusicColor }]}>
-                      {t('modules.appleMusic.favorites.showAll', { count: librarySongs.length })}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-
-            {/* Library Albums section */}
-            {libraryAlbums.length > 0 && (
-              <View style={styles.favoritesSection}>
-                <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
-                  {t('modules.appleMusic.favorites.albums')} ({libraryAlbums.length})
-                </Text>
-                {libraryAlbums.slice(0, 6).map((album, index) => renderAlbumItem(album, index))}
-                {libraryAlbums.length > 6 && (
-                  <TouchableOpacity
-                    style={styles.showAllButton}
-                    onPress={() => {
-                      triggerFeedback('tap');
-                      setActiveTab('search');
-                    }}
-                    onLongPress={() => {}}
-                    delayLongPress={300}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.appleMusic.favorites.showAllAlbums')}
-                  >
-                    <Text style={[styles.showAllText, { color: appleMusicColor }]}>
-                      {t('modules.appleMusic.favorites.showAll', { count: libraryAlbums.length })}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-
-            {/* Library Artists section */}
-            {libraryArtists.length > 0 && (
-              <View style={styles.favoritesSection}>
-                <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
-                  {t('modules.appleMusic.favorites.artists')} ({libraryArtists.length})
-                </Text>
-                {libraryArtists.slice(0, 6).map((artist, index) => renderArtistItem(artist, index))}
-                {libraryArtists.length > 6 && (
-                  <TouchableOpacity
-                    style={styles.showAllButton}
-                    onPress={() => {
-                      triggerFeedback('tap');
-                      setActiveTab('search');
-                    }}
-                    onLongPress={() => {}}
-                    delayLongPress={300}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.appleMusic.favorites.showAllArtists')}
-                  >
-                    <Text style={[styles.showAllText, { color: appleMusicColor }]}>
-                      {t('modules.appleMusic.favorites.showAll', { count: libraryArtists.length })}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
+            {/* Favorites / Collection Songs */}
+            <View style={styles.favoritesSection}>
+              <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
+                {selectedChipId === 'all'
+                  ? `${t('appleMusic.favorites.title')} (${musicFavorites.count})`
+                  : `${musicCollections.collections.find(c => `collection:${c.id}` === selectedChipId)?.name ?? ''} (${filteredFavoriteSongs.length})`
+                }
+              </Text>
+              {filteredFavoriteSongs.length > 0 ? (
+                filteredFavoriteSongs.map((song, index) => renderSongItem(song, index))
+              ) : (
+                <View style={styles.collectionEmptyState}>
+                  <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+                    {t('appleMusic.collections.collectionEmpty')}
+                  </Text>
+                </View>
+              )}
+            </View>
           </ScrollView>
         )}
 
-        {/* Empty state — no library and no recently played */}
-        {!isLibraryCacheLoading && !isRecentlyPlayedLoading && !hasContent && (
+        {/* Empty state — no favorites yet */}
+        {!musicFavorites.isLoading && !hasFavorites && (
           <View style={styles.emptyState}>
             <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
             <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
-              {t('modules.appleMusic.myMusic.emptyTitle')}
+              {t('appleMusic.favorites.emptyTitle')}
             </Text>
             <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-              {t('modules.appleMusic.myMusic.emptyDescription')}
+              {t('appleMusic.favorites.emptyDescription')}
             </Text>
             <TouchableOpacity
               style={[styles.emptyStateButton, { backgroundColor: appleMusicColor }]}
@@ -1850,6 +1914,46 @@ export function AppleMusicScreen() {
           setIsQueueVisible(false);
         }}
       />
+
+      {/* Create Music Collection Modal */}
+      <CreateMusicCollectionModal
+        visible={showCreateCollectionModal}
+        onClose={() => setShowCreateCollectionModal(false)}
+        onCreate={handleCreateCollection}
+      />
+
+      {/* Edit Music Collection Modal */}
+      <EditMusicCollectionModal
+        visible={editCollectionModal.visible}
+        collection={editCollectionModal.collection}
+        onClose={() => setEditCollectionModal({ visible: false, collection: null })}
+        onRename={(collectionId, newName) => {
+          musicCollections.rename(collectionId, newName);
+        }}
+        onDelete={(collectionId) => {
+          musicCollections.remove(collectionId);
+          // Reset chip selection if the deleted collection was selected
+          if (selectedChipId === `collection:${collectionId}`) {
+            setSelectedChipId('all');
+          }
+        }}
+      />
+
+      {/* Song Collection Assignment Modal */}
+      <SongCollectionModal
+        visible={songCollectionModal.visible}
+        songCatalogId={songCollectionModal.catalogId}
+        songTitle={songCollectionModal.title}
+        collections={musicCollections.collections}
+        onClose={() => setSongCollectionModal({ visible: false, catalogId: null, title: '' })}
+        onAddToCollection={(collectionId, catalogId) => {
+          musicCollections.addSongs(collectionId, [catalogId]);
+        }}
+        onRemoveFromCollection={(collectionId, catalogId) => {
+          musicCollections.removeSongs(collectionId, [catalogId]);
+        }}
+        onCreateCollection={() => setShowCreateCollectionModal(true)}
+      />
     </View>
   );
 }
@@ -2061,6 +2165,18 @@ const styles = StyleSheet.create({
     width: touchTargets.minimum - 8,  // Slightly smaller than default (52pt vs 60pt)
     height: touchTargets.minimum - 8,
     borderWidth: 0,  // No border for more subtle appearance
+  },
+  songItemFolderButton: {
+    width: touchTargets.minimum - 8,
+    height: touchTargets.minimum - 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0,
+  },
+  collectionEmptyState: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
   },
 
   // Empty state

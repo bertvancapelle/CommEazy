@@ -1472,16 +1472,34 @@
         "emptyHint": "Wybierz gatunek, aby odkryć popularną muzykę"
       },
       "favorites": {
+        "title": "Ulubione",
         "songs": "Utwory",
         "albums": "Albumy",
         "artists": "Artyści",
         "emptyTitle": "Brak ulubionych",
-        "emptyDescription": "Dodaj utwory do biblioteki, aby je tutaj zobaczyć",
+        "emptyDescription": "Naciśnij ikonę ♥ przy utworze, aby dodać go do ulubionych.",
+        "addToFavorites": "Dodaj do ulubionych",
+        "removeFromFavorites": "Usuń z ulubionych",
         "searchMusic": "Szukaj muzyki",
         "showAll": "Pokaż wszystkie ({{count}})",
         "showAllSongs": "Pokaż wszystkie utwory",
         "showAllAlbums": "Pokaż wszystkie albumy",
         "showAllArtists": "Pokaż wszystkich artystów"
+      },
+      "collections": {
+        "allFavorites": "Wszystkie ulubione",
+        "createCollection": "Nowa kolekcja",
+        "new": "Nowy",
+        "collectionName": "Nazwa",
+        "collectionNamePlaceholder": "np. Impreza, Relaks...",
+        "rename": "Zmień nazwę",
+        "songCount": "{{count}} utworów",
+        "deleteCollection": "Usuń kolekcję",
+        "deleteCollectionConfirm": "Czy na pewno chcesz usunąć kolekcję '{{name}}'? Utwory pozostaną w Twoich ulubionych.",
+        "addToCollection": "Dodaj do kolekcji",
+        "songs": "utworów",
+        "noCollections": "Nie masz jeszcze żadnych kolekcji. Utwórz jedną!",
+        "collectionEmpty": "Ta kolekcja jest pusta. Dodaj utwory za pomocą ikony folderu."
       },
       "myMusic": {
         "shuffleAll": "Losowe odtwarzanie",

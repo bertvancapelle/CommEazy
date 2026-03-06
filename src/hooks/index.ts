@@ -44,6 +44,10 @@ export { usePhotoAlbums, type UsePhotoAlbumsReturn } from './usePhotoAlbums';
 // Contact Groups
 export { useContactGroups, type UseContactGroupsReturn } from './useContactGroups';
 
+// Music Favorites & Collections
+export { useMusicFavorites, type UseMusicFavoritesReturn } from './useMusicFavorites';
+export { useMusicCollections, type UseMusicCollectionsReturn } from './useMusicCollections';
+
 // Siri integration
 export {
   useSiriCall,

@@ -1670,16 +1670,34 @@
         "emptyHint": "Select a genre to discover popular music"
       },
       "favorites": {
+        "title": "Favourites",
         "songs": "Songs",
         "albums": "Albums",
         "artists": "Artists",
         "emptyTitle": "No favourites yet",
-        "emptyDescription": "Add songs to your library to see them here",
+        "emptyDescription": "Tap the ♥ icon on a song to add it to your favourites.",
+        "addToFavorites": "Add to favourites",
+        "removeFromFavorites": "Remove from favourites",
         "searchMusic": "Search music",
         "showAll": "Show all {{count}}",
         "showAllSongs": "Show all songs",
         "showAllAlbums": "Show all albums",
         "showAllArtists": "Show all artists"
+      },
+      "collections": {
+        "allFavorites": "All favourites",
+        "createCollection": "New collection",
+        "new": "New",
+        "collectionName": "Name",
+        "collectionNamePlaceholder": "e.g. Party, Relaxing...",
+        "rename": "Rename",
+        "songCount": "{{count}} songs",
+        "deleteCollection": "Delete collection",
+        "deleteCollectionConfirm": "Are you sure you want to delete the collection '{{name}}'? The songs will remain in your favourites.",
+        "addToCollection": "Add to collection",
+        "songs": "songs",
+        "noCollections": "You don't have any collections yet. Create one!",
+        "collectionEmpty": "This collection is empty. Add songs via the folder icon."
       },
       "myMusic": {
         "shuffleAll": "Shuffle All",

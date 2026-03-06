@@ -1666,16 +1666,34 @@
         "emptyHint": "Wähle ein Genre, um beliebte Musik zu entdecken"
       },
       "favorites": {
+        "title": "Favoriten",
         "songs": "Songs",
         "albums": "Alben",
         "artists": "Künstler",
         "emptyTitle": "Noch keine Favoriten",
-        "emptyDescription": "Füge Songs zu deiner Mediathek hinzu, um sie hier zu sehen",
+        "emptyDescription": "Tippe auf das ♥ Symbol bei einem Lied, um es zu deinen Favoriten hinzuzufügen.",
         "searchMusic": "Musik suchen",
         "showAll": "Alle {{count}} anzeigen",
         "showAllSongs": "Alle Songs anzeigen",
         "showAllAlbums": "Alle Alben anzeigen",
-        "showAllArtists": "Alle Künstler anzeigen"
+        "showAllArtists": "Alle Künstler anzeigen",
+        "addToFavorites": "Zu Favoriten hinzufügen",
+        "removeFromFavorites": "Aus Favoriten entfernen"
+      },
+      "collections": {
+        "allFavorites": "Alle Favoriten",
+        "createCollection": "Neue Sammlung",
+        "new": "Neu",
+        "collectionName": "Name",
+        "collectionNamePlaceholder": "z.B. Party, Entspannung...",
+        "rename": "Umbenennen",
+        "songCount": "{{count}} Lieder",
+        "deleteCollection": "Sammlung löschen",
+        "deleteCollectionConfirm": "Möchtest du die Sammlung '{{name}}' wirklich löschen? Die Lieder bleiben in deinen Favoriten.",
+        "addToCollection": "Zur Sammlung hinzufügen",
+        "songs": "Lieder",
+        "noCollections": "Du hast noch keine Sammlungen. Erstelle eine!",
+        "collectionEmpty": "Diese Sammlung ist leer. Füge Lieder über das Ordner-Symbol hinzu."
       },
       "myMusic": {
         "shuffleAll": "Alle mischen",

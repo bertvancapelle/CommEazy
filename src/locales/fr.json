@@ -1666,16 +1666,34 @@
         "emptyHint": "Sélectionnez un genre pour découvrir de la musique populaire"
       },
       "favorites": {
+        "title": "Favoris",
         "songs": "Titres",
         "albums": "Albums",
         "artists": "Artistes",
         "emptyTitle": "Pas encore de favoris",
-        "emptyDescription": "Ajoutez des titres à votre bibliothèque pour les voir ici",
+        "emptyDescription": "Appuyez sur l'icône ♥ d'une chanson pour l'ajouter à vos favoris.",
         "searchMusic": "Rechercher de la musique",
         "showAll": "Afficher les {{count}}",
         "showAllSongs": "Afficher tous les titres",
         "showAllAlbums": "Afficher tous les albums",
-        "showAllArtists": "Afficher tous les artistes"
+        "showAllArtists": "Afficher tous les artistes",
+        "addToFavorites": "Ajouter aux favoris",
+        "removeFromFavorites": "Retirer des favoris"
+      },
+      "collections": {
+        "allFavorites": "Tous les favoris",
+        "createCollection": "Nouvelle collection",
+        "new": "Nouveau",
+        "collectionName": "Nom",
+        "collectionNamePlaceholder": "p.ex. Fête, Détente...",
+        "rename": "Renommer",
+        "songCount": "{{count}} chansons",
+        "deleteCollection": "Supprimer la collection",
+        "deleteCollectionConfirm": "Êtes-vous sûr de vouloir supprimer la collection '{{name}}' ? Les chansons resteront dans vos favoris.",
+        "addToCollection": "Ajouter à la collection",
+        "songs": "chansons",
+        "noCollections": "Vous n'avez pas encore de collections. Créez-en une !",
+        "collectionEmpty": "Cette collection est vide. Ajoutez des chansons via l'icône dossier."
       },
       "myMusic": {
         "shuffleAll": "Lecture aléatoire",

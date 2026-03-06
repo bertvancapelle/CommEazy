@@ -1666,16 +1666,34 @@
         "emptyHint": "Selecciona un género para descubrir música popular"
       },
       "favorites": {
+        "title": "Favoritos",
         "songs": "Canciones",
         "albums": "Álbumes",
         "artists": "Artistas",
         "emptyTitle": "Sin favoritos aún",
-        "emptyDescription": "Añade canciones a tu biblioteca para verlas aquí",
+        "emptyDescription": "Toca el icono ♥ en una canción para añadirla a tus favoritos.",
         "searchMusic": "Buscar música",
         "showAll": "Mostrar todos ({{count}})",
         "showAllSongs": "Mostrar todas las canciones",
         "showAllAlbums": "Mostrar todos los álbumes",
-        "showAllArtists": "Mostrar todos los artistas"
+        "showAllArtists": "Mostrar todos los artistas",
+        "addToFavorites": "Añadir a favoritos",
+        "removeFromFavorites": "Eliminar de favoritos"
+      },
+      "collections": {
+        "allFavorites": "Todos los favoritos",
+        "createCollection": "Nueva colección",
+        "new": "Nuevo",
+        "collectionName": "Nombre",
+        "collectionNamePlaceholder": "p.ej. Fiesta, Relajación...",
+        "rename": "Renombrar",
+        "songCount": "{{count}} canciones",
+        "deleteCollection": "Eliminar colección",
+        "deleteCollectionConfirm": "¿Estás seguro de que quieres eliminar la colección '{{name}}'? Las canciones permanecerán en tus favoritos.",
+        "addToCollection": "Añadir a colección",
+        "songs": "canciones",
+        "noCollections": "Aún no tienes colecciones. ¡Crea una!",
+        "collectionEmpty": "Esta colección está vacía. Añade canciones con el icono de carpeta."
       },
       "myMusic": {
         "shuffleAll": "Reproducir todo",

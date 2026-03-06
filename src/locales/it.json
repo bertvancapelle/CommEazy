@@ -1614,16 +1614,34 @@
         "emptyHint": "Seleziona un genere per scoprire musica popolare"
       },
       "favorites": {
+        "title": "Preferiti",
         "songs": "Brani",
         "albums": "Album",
         "artists": "Artisti",
         "emptyTitle": "Nessun preferito ancora",
-        "emptyDescription": "Aggiungi brani alla libreria per vederli qui",
+        "emptyDescription": "Tocca l'icona ♥ su un brano per aggiungerlo ai tuoi preferiti.",
+        "addToFavorites": "Aggiungi ai preferiti",
+        "removeFromFavorites": "Rimuovi dai preferiti",
         "searchMusic": "Cerca musica",
         "showAll": "Mostra tutti ({{count}})",
         "showAllSongs": "Mostra tutti i brani",
         "showAllAlbums": "Mostra tutti gli album",
         "showAllArtists": "Mostra tutti gli artisti"
+      },
+      "collections": {
+        "allFavorites": "Tutti i preferiti",
+        "createCollection": "Nuova raccolta",
+        "new": "Nuovo",
+        "collectionName": "Nome",
+        "collectionNamePlaceholder": "es. Festa, Relax...",
+        "rename": "Rinomina",
+        "songCount": "{{count}} brani",
+        "deleteCollection": "Elimina raccolta",
+        "deleteCollectionConfirm": "Sei sicuro di voler eliminare la raccolta '{{name}}'? I brani rimarranno nei tuoi preferiti.",
+        "addToCollection": "Aggiungi alla raccolta",
+        "songs": "brani",
+        "noCollections": "Non hai ancora raccolte. Creane una!",
+        "collectionEmpty": "Questa raccolta è vuota. Aggiungi brani tramite l'icona cartella."
       },
       "myMusic": {
         "shuffleAll": "Riproduzione casuale",

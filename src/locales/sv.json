@@ -1510,16 +1510,34 @@
         "emptyHint": "Välj en genre för att upptäcka populär musik"
       },
       "favorites": {
+        "title": "Favoriter",
         "songs": "Låtar",
         "albums": "Album",
         "artists": "Artister",
         "emptyTitle": "Inga favoriter ännu",
-        "emptyDescription": "Lägg till låtar i ditt bibliotek för att se dem här",
+        "emptyDescription": "Tryck på ♥-ikonen på en låt för att lägga till den i dina favoriter.",
+        "addToFavorites": "Lägg till i favoriter",
+        "removeFromFavorites": "Ta bort från favoriter",
         "searchMusic": "Sök musik",
         "showAll": "Visa alla {{count}}",
         "showAllSongs": "Visa alla låtar",
         "showAllAlbums": "Visa alla album",
         "showAllArtists": "Visa alla artister"
+      },
+      "collections": {
+        "allFavorites": "Alla favoriter",
+        "createCollection": "Ny samling",
+        "new": "Ny",
+        "collectionName": "Namn",
+        "collectionNamePlaceholder": "t.ex. Fest, Avkoppling...",
+        "rename": "Byt namn",
+        "songCount": "{{count}} låtar",
+        "deleteCollection": "Ta bort samling",
+        "deleteCollectionConfirm": "Är du säker på att du vill ta bort samlingen '{{name}}'? Låtarna finns kvar i dina favoriter.",
+        "addToCollection": "Lägg till i samling",
+        "songs": "låtar",
+        "noCollections": "Du har inga samlingar ännu. Skapa en!",
+        "collectionEmpty": "Den här samlingen är tom. Lägg till låtar via mappikonen."
       },
       "myMusic": {
         "shuffleAll": "Blanda alla",

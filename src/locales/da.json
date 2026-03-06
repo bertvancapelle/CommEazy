@@ -1510,16 +1510,34 @@
         "emptyHint": "Vælg en genre for at opdage populær musik"
       },
       "favorites": {
+        "title": "Favoritter",
         "songs": "Sange",
         "albums": "Album",
         "artists": "Kunstnere",
         "emptyTitle": "Ingen favoritter endnu",
-        "emptyDescription": "Tilføj sange til dit bibliotek for at se dem her",
+        "emptyDescription": "Tryk på ♥-ikonet på en sang for at tilføje den til dine favoritter.",
         "searchMusic": "Søg efter musik",
         "showAll": "Vis alle {{count}}",
         "showAllSongs": "Vis alle sange",
         "showAllAlbums": "Vis alle album",
-        "showAllArtists": "Vis alle kunstnere"
+        "showAllArtists": "Vis alle kunstnere",
+        "addToFavorites": "Tilføj til favoritter",
+        "removeFromFavorites": "Fjern fra favoritter"
+      },
+      "collections": {
+        "allFavorites": "Alle favoritter",
+        "createCollection": "Ny samling",
+        "new": "Ny",
+        "collectionName": "Navn",
+        "collectionNamePlaceholder": "f.eks. Fest, Afslapning...",
+        "rename": "Omdøb",
+        "songCount": "{{count}} sange",
+        "deleteCollection": "Slet samling",
+        "deleteCollectionConfirm": "Er du sikker på, at du vil slette samlingen '{{name}}'? Sangene forbliver i dine favoritter.",
+        "addToCollection": "Tilføj til samling",
+        "songs": "sange",
+        "noCollections": "Du har ingen samlinger endnu. Opret en!",
+        "collectionEmpty": "Denne samling er tom. Tilføj sange via mappeikonet."
       },
       "myMusic": {
         "shuffleAll": "Bland alle",
