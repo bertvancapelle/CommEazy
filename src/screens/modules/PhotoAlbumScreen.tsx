@@ -694,6 +694,7 @@ export function PhotoAlbumScreen() {
       console.debug(LOG_PREFIX, 'Album created');
       setIsCreateAlbumModalVisible(false);
       setNewAlbumName('');
+      setActiveTab('albums');
       setActiveAlbumId(album.id);
     }
   }, [newAlbumName, albumHook]);
