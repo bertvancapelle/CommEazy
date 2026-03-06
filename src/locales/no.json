@@ -1503,7 +1503,8 @@
         "search": "Søk",
         "recent": "Nylige",
         "discover": "Oppdag",
-        "favorites": "Favoritter"
+        "favorites": "Favoritter",
+        "myMusic": "Min Musikk"
       },
       "search": {
         "placeholder": "Søk etter musikk...",
@@ -1549,6 +1550,12 @@
         "showAllSongs": "Vis alle sanger",
         "showAllAlbums": "Vis alle album",
         "showAllArtists": "Vis alle artister"
+      },
+      "myMusic": {
+        "shuffleAll": "Bland alle",
+        "emptyTitle": "Ingen musikk ennå",
+        "emptyDescription": "Legg til sanger i biblioteket ditt eller spill noe for å komme i gang.",
+        "searchMusic": "Søk etter musikk"
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" er allerede i biblioteket ditt",

@@ -43,6 +43,7 @@ import { useModuleUsage, ALL_MODULES } from '@/hooks/useModuleUsage';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
 import { useMailUnreadCount } from '@/hooks/useMailUnreadCount';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
@@ -259,6 +260,10 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
   const { accentColor } = useAccentColor();
   const { unreadCount: mailUnreadCount } = useMailUnreadCount();
 
+  // Apple Music authorization — hide module when not authorized
+  const appleMusicContext = useAppleMusicContextSafe();
+  const isAppleMusicAuthorized = appleMusicContext?.isAuthorized ?? false;
+
   // Get enabled dynamic modules from ModuleConfigContext
   const { enabledModules, isLoading: modulesLoading } = useModuleConfig();
 
@@ -280,10 +285,13 @@ export const WheelNavigationMenu = React.memo(function WheelNavigationMenu({
     checkMailAccounts();
   }, [visible]);
 
-  // Hide mail module when no accounts are configured
+  // Hide modules when not available
   const hiddenModules = useMemo((): NavigationDestination[] => {
-    return hasMailAccounts ? [] : ['mail'];
-  }, [hasMailAccounts]);
+    const hidden: NavigationDestination[] = [];
+    if (!hasMailAccounts) hidden.push('mail');
+    if (!isAppleMusicAuthorized) hidden.push('appleMusic');
+    return hidden;
+  }, [hasMailAccounts, isAppleMusicAuthorized]);
 
   // Convert enabled modules to NavigationDestination format
   const dynamicModules = useMemo(() => {

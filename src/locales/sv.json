@@ -1473,7 +1473,8 @@
         "search": "Sök",
         "recent": "Senaste",
         "discover": "Upptäck",
-        "favorites": "Favoriter"
+        "favorites": "Favoriter",
+        "myMusic": "Min Musik"
       },
       "search": {
         "placeholder": "Sök musik...",
@@ -1519,6 +1520,12 @@
         "showAllSongs": "Visa alla låtar",
         "showAllAlbums": "Visa alla album",
         "showAllArtists": "Visa alla artister"
+      },
+      "myMusic": {
+        "shuffleAll": "Blanda alla",
+        "emptyTitle": "Ingen musik ännu",
+        "emptyDescription": "Lägg till låtar i ditt bibliotek eller spela något för att komma igång.",
+        "searchMusic": "Sök musik"
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" finns redan i ditt bibliotek",

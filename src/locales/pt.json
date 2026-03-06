@@ -1646,7 +1646,8 @@
         "search": "Pesquisar",
         "recent": "Recentes",
         "discover": "Descobrir",
-        "favorites": "Favoritos"
+        "favorites": "Favoritos",
+        "myMusic": "A Minha Música"
       },
       "search": {
         "placeholder": "Pesquisar música...",
@@ -1692,6 +1693,12 @@
         "showAllSongs": "Mostrar todas as músicas",
         "showAllAlbums": "Mostrar todos os álbuns",
         "showAllArtists": "Mostrar todos os artistas"
+      },
+      "myMusic": {
+        "shuffleAll": "Reprodução aleatória",
+        "emptyTitle": "Ainda sem música",
+        "emptyDescription": "Adicione músicas à sua biblioteca ou reproduza algo para começar.",
+        "searchMusic": "Procurar música"
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",

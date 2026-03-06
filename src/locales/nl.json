@@ -1639,7 +1639,8 @@
         "search": "Zoeken",
         "recent": "Recent",
         "discover": "Ontdekken",
-        "favorites": "Favorieten"
+        "favorites": "Favorieten",
+        "myMusic": "Mijn Muziek"
       },
       "search": {
         "placeholder": "Zoek muziek...",
@@ -1685,6 +1686,12 @@
         "showAllSongs": "Toon alle nummers",
         "showAllAlbums": "Toon alle albums",
         "showAllArtists": "Toon alle artiesten"
+      },
+      "myMusic": {
+        "shuffleAll": "Shuffle alles",
+        "emptyTitle": "Nog geen muziek",
+        "emptyDescription": "Voeg nummers toe aan je bibliotheek of speel iets af om hier te beginnen.",
+        "searchMusic": "Muziek zoeken"
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" staat al in je bibliotheek",

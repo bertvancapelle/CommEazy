@@ -1633,7 +1633,8 @@
         "search": "Search",
         "recent": "Recent",
         "discover": "Discover",
-        "favorites": "Favourites"
+        "favorites": "Favourites",
+        "myMusic": "My Music"
       },
       "search": {
         "placeholder": "Search music...",
@@ -1679,6 +1680,12 @@
         "showAllSongs": "Show all songs",
         "showAllAlbums": "Show all albums",
         "showAllArtists": "Show all artists"
+      },
+      "myMusic": {
+        "shuffleAll": "Shuffle All",
+        "emptyTitle": "No music yet",
+        "emptyDescription": "Add songs to your library or play something to get started here.",
+        "searchMusic": "Search Music"
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" is already in your library",

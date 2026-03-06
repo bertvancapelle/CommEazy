@@ -1577,7 +1577,8 @@
         "search": "Cerca",
         "recent": "Recenti",
         "discover": "Scopri",
-        "favorites": "Preferiti"
+        "favorites": "Preferiti",
+        "myMusic": "La Mia Musica"
       },
       "search": {
         "placeholder": "Cerca musica...",
@@ -1623,6 +1624,12 @@
         "showAllSongs": "Mostra tutti i brani",
         "showAllAlbums": "Mostra tutti gli album",
         "showAllArtists": "Mostra tutti gli artisti"
+      },
+      "myMusic": {
+        "shuffleAll": "Riproduzione casuale",
+        "emptyTitle": "Nessuna musica",
+        "emptyDescription": "Aggiungi brani alla tua libreria o riproduci qualcosa per iniziare.",
+        "searchMusic": "Cerca musica"
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" è già nella tua libreria",
