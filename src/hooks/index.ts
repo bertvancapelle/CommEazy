@@ -41,6 +41,9 @@ export { useWeather } from './useWeather';
 // Media / Photo Albums
 export { usePhotoAlbums, type UsePhotoAlbumsReturn } from './usePhotoAlbums';
 
+// Contact Groups
+export { useContactGroups, type UseContactGroupsReturn } from './useContactGroups';
+
 // Siri integration
 export {
   useSiriCall,

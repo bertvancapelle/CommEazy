@@ -119,6 +119,8 @@ export interface Contact {
   weddingDate?: string;      // Trouwdatum
   deathDate?: string;        // Sterfdatum
   isDeceased?: boolean;      // Overleden toggle
+  // Emergency contact (ICE)
+  isEmergencyContact?: boolean; // Noodcontact toggle
 }
 
 /** Get full display name for a contact (e.g., "Oma Jansen") */

@@ -16,6 +16,7 @@
  * - v12: Added call sound settings (ringtone, dial tone, vibration)
  * - v13: Added media_messages table and media fields to messages
  * - v14: Added contact details (firstName, lastName, address, dates, isDeceased)
+ * - v15: Added is_emergency_contact to contacts (ICE — In Case of Emergency)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -249,6 +250,18 @@ export const migrations = schemaMigrations({
             { name: 'wedding_date', type: 'string', isOptional: true },
             { name: 'death_date', type: 'string', isOptional: true },
             { name: 'is_deceased', type: 'boolean', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v14 to v15: Add emergency contact (ICE) flag
+    {
+      toVersion: 15,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'is_emergency_contact', type: 'boolean', isOptional: true },
           ],
         }),
       ],

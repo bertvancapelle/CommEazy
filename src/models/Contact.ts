@@ -30,6 +30,8 @@ export class ContactModel extends Model {
   @field('wedding_date') weddingDate?: string;
   @field('death_date') deathDate?: string;
   @field('is_deceased') isDeceased?: boolean;
+  // Emergency contact (v15)
+  @field('is_emergency_contact') isEmergencyContact?: boolean;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 
@@ -80,6 +82,15 @@ export class ContactModel extends Model {
       record.addressPostalCode = address.postalCode;
       record.addressCity = address.city;
       record.addressCountry = address.country;
+    });
+  }
+
+  /**
+   * Toggle emergency contact (ICE) status
+   */
+  @writer async setEmergencyContact(isICE: boolean): Promise<void> {
+    await this.update(record => {
+      record.isEmergencyContact = isICE;
     });
   }
 

@@ -22,6 +22,7 @@
  * - v12: Added call sound settings (ringtone, dial tone, vibration)
  * - v13: Added media_messages table for photo/video messaging
  * - v14: Added contact details (firstName, lastName, address, dates, isDeceased)
+ * - v15: Added is_emergency_contact to contacts (ICE — In Case of Emergency)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -46,10 +47,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 
 export const schema = appSchema({
-  version: 14,
+  version: 15,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -140,6 +141,8 @@ export const schema = appSchema({
         { name: 'wedding_date', type: 'string', isOptional: true },         // Trouwdatum
         { name: 'death_date', type: 'string', isOptional: true },           // Sterfdatum
         { name: 'is_deceased', type: 'boolean', isOptional: true },         // Overleden toggle
+        // Emergency contact (v15)
+        { name: 'is_emergency_contact', type: 'boolean', isOptional: true }, // ICE — In Case of Emergency
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

@@ -38,7 +38,6 @@ import type {
   AgeBracket,
   Gender,
 } from './interfaces';
-import { getContactDisplayName } from './interfaces';
 
 export class WatermelonDBService implements DatabaseService {
   private database: Database | null = null;
@@ -313,24 +312,48 @@ export class WatermelonDBService implements DatabaseService {
         await existing.update(record => {
           record.userUuid = contact.userUuid;
           record.jid = contact.jid;
-          record.name = getContactDisplayName(contact);
+          record.firstName = contact.firstName;
+          record.lastName = contact.lastName;
           record.phoneNumber = contact.phoneNumber;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
           record.lastSeen = contact.lastSeen;
           record.photoPath = contact.photoUrl;
+          if (contact.address) {
+            record.addressStreet = contact.address.street;
+            record.addressPostalCode = contact.address.postalCode;
+            record.addressCity = contact.address.city;
+            record.addressCountry = contact.address.country;
+          }
+          record.birthDate = contact.birthDate;
+          record.weddingDate = contact.weddingDate;
+          record.deathDate = contact.deathDate;
+          record.isDeceased = contact.isDeceased;
+          record.isEmergencyContact = contact.isEmergencyContact;
         });
       } else {
         await db.get<ContactModel>('contacts').create(record => {
           record._raw.id = uuid.v4() as string;
           record.userUuid = contact.userUuid;
           record.jid = contact.jid;
-          record.name = getContactDisplayName(contact);
+          record.firstName = contact.firstName;
+          record.lastName = contact.lastName;
           record.phoneNumber = contact.phoneNumber;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
           record.lastSeen = contact.lastSeen;
           record.photoPath = contact.photoUrl;
+          if (contact.address) {
+            record.addressStreet = contact.address.street;
+            record.addressPostalCode = contact.address.postalCode;
+            record.addressCity = contact.address.city;
+            record.addressCountry = contact.address.country;
+          }
+          record.birthDate = contact.birthDate;
+          record.weddingDate = contact.weddingDate;
+          record.deathDate = contact.deathDate;
+          record.isDeceased = contact.isDeceased;
+          record.isEmergencyContact = contact.isEmergencyContact;
         });
       }
     });
@@ -622,12 +645,26 @@ export class WatermelonDBService implements DatabaseService {
     return {
       userUuid: c.userUuid,
       jid: c.jid,
-      name: c.name,
+      firstName: c.firstName,
+      lastName: c.lastName,
       phoneNumber: c.phoneNumber,
       publicKey: c.publicKey,
       verified: c.verified,
       lastSeen: c.lastSeen,
       photoUrl: c.photoPath,
+      address: (c.addressStreet || c.addressPostalCode || c.addressCity || c.addressCountry)
+        ? {
+          street: c.addressStreet,
+          postalCode: c.addressPostalCode,
+          city: c.addressCity,
+          country: c.addressCountry,
+        }
+        : undefined,
+      birthDate: c.birthDate,
+      weddingDate: c.weddingDate,
+      deathDate: c.deathDate,
+      isDeceased: c.isDeceased,
+      isEmergencyContact: c.isEmergencyContact,
     };
   }
 
