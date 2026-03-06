@@ -1529,7 +1529,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" finns redan i ditt bibliotek",
-        "addError": "Kunde inte lägga till låten i biblioteket"
+        "addError": "Kunde inte lägga till låten i biblioteket",
+        "cloudLibraryDisabled": "Aktivera 'Synkronisera bibliotek' i Inställningar > Musik för att lägga till låtar.",
+        "noSubscription": "Ett Apple Music-abonnemang krävs för att lägga till låtar i biblioteket.",
+        "catalogFetchError": "Låten kunde inte hittas. Försök igen.",
+        "addErrorGeneric": "Något gick fel vid tillägg. Försök igen senare."
       },
       "authRequired": {
         "title": "Apple Music-åtkomst",

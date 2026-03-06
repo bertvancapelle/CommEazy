@@ -1681,35 +1681,104 @@ class AppleMusicModule: RCTEventEmitter {
     // ============================================================
 
     /// Add a song to the user's library
-    /// Requires Apple Music subscription
+    /// Requires Apple Music subscription with Cloud Library enabled
     /// Automatically invalidates library cache after adding
     @objc
     func addToLibrary(_ songId: String,
                       resolve: @escaping RCTPromiseResolveBlock,
                       reject: @escaping RCTPromiseRejectBlock) {
         Task {
-            do {
-                // Fetch the song first
-                let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
-                let response = try await request.response()
+            // Pre-check 1: MusicKit authorization
+            let authStatus = MusicAuthorization.currentStatus
+            guard authStatus == .authorized else {
+                NSLog("[AppleMusicModule] addToLibrary: not authorized (status: \(authStatus))")
+                reject("AUTH_ERROR", "MusicKit not authorized. Status: \(authStatus)", nil)
+                return
+            }
 
-                guard let song = response.items.first else {
-                    reject("SONG_NOT_FOUND", "Song with ID \(songId) not found", nil)
+            // Pre-check 2: Active subscription with Cloud Library enabled
+            do {
+                let subscription = try await MusicSubscription.current
+                NSLog("[AppleMusicModule] addToLibrary: subscription check — canPlayCatalogContent: \(subscription.canPlayCatalogContent), hasCloudLibraryEnabled: \(subscription.hasCloudLibraryEnabled)")
+
+                guard subscription.canPlayCatalogContent else {
+                    reject("NO_SUBSCRIPTION", "Apple Music subscription required to add songs to library", nil)
                     return
                 }
 
-                // Add to library
-                try await MusicLibrary.shared.add(song)
-                
-                // Invalidate cache since library has changed
-                self.invalidateCache()
-                NSLog("[AppleMusicModule] addToLibrary: cache invalidated after adding '\(song.title)'")
+                guard subscription.hasCloudLibraryEnabled else {
+                    reject("CLOUD_LIBRARY_DISABLED", "iCloud Music Library must be enabled. Go to Settings > Music > Sync Library", nil)
+                    return
+                }
+            } catch {
+                NSLog("[AppleMusicModule] addToLibrary: subscription check failed — \(error)")
+                reject("SUBSCRIPTION_CHECK_ERROR", "Could not verify subscription: \(error.localizedDescription)", error)
+                return
+            }
 
+            // Step 1: Fetch song from catalog
+            let song: Song
+            do {
+                let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(songId))
+                let response = try await request.response()
+
+                guard let fetchedSong = response.items.first else {
+                    reject("SONG_NOT_FOUND", "Song with ID \(songId) not found in catalog", nil)
+                    return
+                }
+                song = fetchedSong
+                NSLog("[AppleMusicModule] addToLibrary: fetched song '\(song.title)' from catalog")
+            } catch {
+                self.logMusicKitError(error, context: "addToLibrary catalog fetch")
+                reject("CATALOG_FETCH_ERROR", "Failed to fetch song from catalog: \(self.musicKitErrorMessage(error))", error)
+                return
+            }
+
+            // Step 2: Add to user's library
+            do {
+                try await MusicLibrary.shared.add(song)
+                self.invalidateCache()
+                NSLog("[AppleMusicModule] addToLibrary: successfully added '\(song.title)' and invalidated cache")
                 resolve(true)
             } catch {
-                reject("ADD_TO_LIBRARY_ERROR", "Failed to add song to library: \(error.localizedDescription)", error)
+                self.logMusicKitError(error, context: "addToLibrary MusicLibrary.add")
+                reject("LIBRARY_ADD_ERROR", "Failed to add song to library: \(self.musicKitErrorMessage(error))", error)
             }
         }
+    }
+
+    /// Log detailed MusicKit error information for debugging
+    private func logMusicKitError(_ error: Error, context: String) {
+        let nsError = error as NSError
+        NSLog("[AppleMusicModule] \(context): domain=\(nsError.domain) code=\(nsError.code)")
+        NSLog("[AppleMusicModule] \(context): localizedDescription=\(error.localizedDescription)")
+
+        if let dataRequestError = error as? MusicDataRequest.Error {
+            NSLog("[AppleMusicModule] \(context): MusicDataRequest.Error — status=\(dataRequestError.status) code=\(dataRequestError.code)")
+            NSLog("[AppleMusicModule] \(context): title=\(dataRequestError.title) detailText=\(dataRequestError.detailText)")
+            NSLog("[AppleMusicModule] \(context): id=\(dataRequestError.id)")
+        }
+
+        // Log userInfo keys for additional context
+        if !nsError.userInfo.isEmpty {
+            NSLog("[AppleMusicModule] \(context): userInfo keys=\(nsError.userInfo.keys.joined(separator: ", "))")
+        }
+    }
+
+    /// Extract a user-friendly message from MusicKit errors
+    private func musicKitErrorMessage(_ error: Error) -> String {
+        if let dataRequestError = error as? MusicDataRequest.Error {
+            let detail = dataRequestError.detailText
+            if !detail.isEmpty {
+                return detail
+            }
+            let title = dataRequestError.title
+            if !title.isEmpty {
+                return title
+            }
+            return "API error (status \(dataRequestError.status), code \(dataRequestError.code))"
+        }
+        return error.localizedDescription
     }
 
     /// Check if a song is in the user's library

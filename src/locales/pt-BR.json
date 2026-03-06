@@ -1704,7 +1704,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" já está na sua biblioteca",
-        "addError": "Não foi possível adicionar a música à biblioteca"
+        "addError": "Não foi possível adicionar a música à biblioteca",
+        "cloudLibraryDisabled": "Ative 'Sincronizar biblioteca' em Ajustes > Música para adicionar músicas.",
+        "noSubscription": "Uma assinatura do Apple Music é necessária para adicionar músicas à biblioteca.",
+        "catalogFetchError": "A música não foi encontrada. Tente novamente.",
+        "addErrorGeneric": "Algo deu errado ao adicionar. Tente novamente mais tarde."
       },
       "authRequired": {
         "title": "Acesso ao Apple Music",

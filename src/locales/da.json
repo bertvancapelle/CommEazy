@@ -1529,7 +1529,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" er allerede i dit bibliotek",
-        "addError": "Kunne ikke tilføje sangen til biblioteket"
+        "addError": "Kunne ikke tilføje sangen til biblioteket",
+        "cloudLibraryDisabled": "Aktiver 'Synkroniser bibliotek' i Indstillinger > Musik for at tilføje sange.",
+        "noSubscription": "Et Apple Music-abonnement er nødvendigt for at tilføje sange til dit bibliotek.",
+        "catalogFetchError": "Sangen kunne ikke findes. Prøv igen.",
+        "addErrorGeneric": "Noget gik galt under tilføjelsen. Prøv igen senere."
       },
       "authRequired": {
         "title": "Apple Music-adgang",

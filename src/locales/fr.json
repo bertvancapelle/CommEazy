@@ -1685,7 +1685,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" est déjà dans votre bibliothèque",
-        "addError": "Impossible d'ajouter la chanson à la bibliothèque"
+        "addError": "Impossible d'ajouter la chanson à la bibliothèque",
+        "cloudLibraryDisabled": "Activez 'Synchroniser la bibliothèque' dans Réglages > Musique pour ajouter des morceaux.",
+        "noSubscription": "Un abonnement Apple Music est nécessaire pour ajouter des morceaux à votre bibliothèque.",
+        "catalogFetchError": "Le morceau n'a pas pu être trouvé. Veuillez réessayer.",
+        "addErrorGeneric": "Une erreur est survenue lors de l'ajout. Veuillez réessayer plus tard."
       },
       "authRequired": {
         "title": "Accès Apple Music",

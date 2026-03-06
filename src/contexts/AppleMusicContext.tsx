@@ -720,8 +720,9 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
 
     try {
       return await AppleMusicModule.addToLibrary(songId);
-    } catch (error) {
-      console.error('[AppleMusicContext] Add to library error:', error);
+    } catch (error: any) {
+      const errorCode = error?.code ?? error?.message?.split(']')?.[0]?.replace('[', '') ?? 'UNKNOWN';
+      console.error(`[AppleMusicContext] Add to library error [${errorCode}]:`, error?.message ?? error);
       throw error;
     }
   }, [isIOS]);

@@ -1695,7 +1695,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" staat al in je bibliotheek",
-        "addError": "Kon nummer niet toevoegen aan bibliotheek"
+        "addError": "Kon nummer niet toevoegen aan bibliotheek",
+        "cloudLibraryDisabled": "Schakel 'Synchroniseer bibliotheek' in via Instellingen > Muziek om nummers toe te voegen.",
+        "noSubscription": "Een Apple Music abonnement is nodig om nummers aan je bibliotheek toe te voegen.",
+        "catalogFetchError": "Het nummer kon niet worden gevonden. Probeer het opnieuw.",
+        "addErrorGeneric": "Er ging iets mis bij het toevoegen. Probeer het later opnieuw."
       },
       "authRequired": {
         "title": "Apple Music Toegang",

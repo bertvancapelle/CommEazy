@@ -1685,7 +1685,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" ist bereits in deiner Bibliothek",
-        "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden"
+        "addError": "Titel konnte nicht zur Bibliothek hinzugefügt werden",
+        "cloudLibraryDisabled": "Aktiviere 'Mediathek synchronisieren' unter Einstellungen > Musik, um Songs hinzuzufügen.",
+        "noSubscription": "Ein Apple Music Abo wird benötigt, um Songs zur Mediathek hinzuzufügen.",
+        "catalogFetchError": "Der Song konnte nicht gefunden werden. Bitte versuche es erneut.",
+        "addErrorGeneric": "Beim Hinzufügen ist ein Fehler aufgetreten. Bitte versuche es später erneut."
       },
       "authRequired": {
         "title": "Apple Music Zugriff",

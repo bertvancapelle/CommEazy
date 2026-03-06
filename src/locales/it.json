@@ -1633,7 +1633,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" è già nella tua libreria",
-        "addError": "Impossibile aggiungere il brano alla libreria"
+        "addError": "Impossibile aggiungere il brano alla libreria",
+        "cloudLibraryDisabled": "Attiva 'Sincronizza libreria' in Impostazioni > Musica per aggiungere brani.",
+        "noSubscription": "È necessario un abbonamento Apple Music per aggiungere brani alla libreria.",
+        "catalogFetchError": "Il brano non è stato trovato. Riprova.",
+        "addErrorGeneric": "Si è verificato un errore durante l'aggiunta. Riprova più tardi."
       },
       "authRequired": {
         "title": "Accesso Apple Music",

@@ -1689,7 +1689,11 @@
       },
       "library": {
         "alreadyInLibraryMessage": "\"{{title}}\" is already in your library",
-        "addError": "Could not add song to library"
+        "addError": "Could not add song to library",
+        "cloudLibraryDisabled": "Enable 'Sync Library' in Settings > Music to add songs.",
+        "noSubscription": "An Apple Music subscription is needed to add songs to your library.",
+        "catalogFetchError": "The song could not be found. Please try again.",
+        "addErrorGeneric": "Something went wrong whilst adding the song. Please try again later."
       },
       "authRequired": {
         "title": "Apple Music Access",

@@ -425,6 +425,21 @@ export function AppleMusicScreen() {
   // Handlers
   // ============================================================
 
+  const getLibraryErrorMessage = useCallback((error: any): string => {
+    const code = error?.code ?? '';
+    switch (code) {
+      case 'CLOUD_LIBRARY_DISABLED':
+        return t('modules.appleMusic.library.cloudLibraryDisabled');
+      case 'NO_SUBSCRIPTION':
+        return t('modules.appleMusic.library.noSubscription');
+      case 'CATALOG_FETCH_ERROR':
+        return t('modules.appleMusic.library.catalogFetchError');
+      case 'LIBRARY_ADD_ERROR':
+      default:
+        return t('modules.appleMusic.library.addErrorGeneric');
+    }
+  }, [t]);
+
   const handleAddToLibrary = useCallback(async () => {
     if (!currentSong?.id || currentSongInLibrary || isAddingToLibrary) return;
 
@@ -432,12 +447,17 @@ export function AppleMusicScreen() {
     try {
       await addToLibrary(currentSong.id);
       setCurrentSongInLibrary(true);
-    } catch (error) {
+      triggerFeedback('success');
+    } catch (error: any) {
       console.error('[AppleMusicScreen] Failed to add to library:', error);
+      Alert.alert(
+        t('modules.appleMusic.library.addError'),
+        getLibraryErrorMessage(error),
+      );
     } finally {
       setIsAddingToLibrary(false);
     }
-  }, [currentSong?.id, currentSongInLibrary, isAddingToLibrary, addToLibrary]);
+  }, [currentSong?.id, currentSongInLibrary, isAddingToLibrary, addToLibrary, triggerFeedback, t, getLibraryErrorMessage]);
 
   // Handler for toggling library status from search results
   const handleToggleSearchResultLibrary = useCallback(async (song: AppleMusicSong) => {
@@ -462,15 +482,15 @@ export function AppleMusicScreen() {
         });
         // Provide haptic feedback
         triggerFeedback('success');
-      } catch (error) {
+      } catch (error: any) {
         console.error('[AppleMusicScreen] Failed to add to library:', error);
         Alert.alert(
-          t('modules.appleMusic.playError.title'),
-          t('modules.appleMusic.library.addError')
+          t('modules.appleMusic.library.addError'),
+          getLibraryErrorMessage(error),
         );
       }
     }
-  }, [searchResultsInLibrary, addToLibrary, triggerFeedback, t]);
+  }, [searchResultsInLibrary, addToLibrary, triggerFeedback, t, getLibraryErrorMessage]);
 
   // Handle tap on recently played container
   const handleRecentlyPlayedTap = useCallback((item: RecentlyPlayedItem) => {
