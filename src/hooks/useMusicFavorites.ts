@@ -68,7 +68,7 @@ const LOG_PREFIX = '[useMusicFavorites]';
 // Hook
 // ============================================================
 
-export function useMusicFavorites(): UseMusicFavoritesReturn {
+export function useMusicFavorites(isFocused?: boolean): UseMusicFavoritesReturn {
   const [favorites, setFavorites] = useState<MusicFavorite[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
@@ -89,10 +89,12 @@ export function useMusicFavorites(): UseMusicFavoritesReturn {
     }
   }, []);
 
-  // Load on mount
+  // Load on mount + reload when screen regains focus
   useEffect(() => {
-    reload();
-  }, [reload]);
+    if (isFocused === undefined || isFocused) {
+      reload();
+    }
+  }, [reload, isFocused]);
 
   // Quick sync lookup (uses in-memory Set, no async needed)
   const isFavorite = useCallback((catalogId: string): boolean => {

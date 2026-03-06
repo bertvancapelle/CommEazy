@@ -200,7 +200,7 @@ export function AppleMusicScreen() {
   const [playlistCount, setPlaylistCount] = useState(0);
 
   // Music Favorites & Collections (CommEazy local curation)
-  const musicFavorites = useMusicFavorites();
+  const musicFavorites = useMusicFavorites(isFocused);
   const musicCollections = useMusicCollections();
   const [selectedChipId, setSelectedChipId] = useState<MusicChipId>('all');
   const [showCreateCollectionModal, setShowCreateCollectionModal] = useState(false);
@@ -490,7 +490,9 @@ export function AppleMusicScreen() {
     }
 
     // Silent background sync — no UI, no user confirmation
-    musicCollections.backgroundSync(getLibraryPlaylists, getPlaylistDetails);
+    // Reload favorites after sync to pick up newly added tracks
+    musicCollections.backgroundSync(getLibraryPlaylists, getPlaylistDetails)
+      .then(() => musicFavorites.reload());
   }, [isAuthorized, isIOS, isFocused, musicCollections.importDone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ============================================================
@@ -1481,8 +1483,10 @@ export function AppleMusicScreen() {
   // Handle playlist import (user taps "Alles overnemen")
   const handleImportPlaylists = useCallback(async () => {
     await musicCollections.startImport(getLibraryPlaylists, getPlaylistDetails);
+    // Reload favorites so imported songs appear in the UI immediately
+    await musicFavorites.reload();
     setShowPlaylistImportModal(false);
-  }, [musicCollections, getLibraryPlaylists, getPlaylistDetails]);
+  }, [musicCollections, musicFavorites, getLibraryPlaylists, getPlaylistDetails]);
 
   // Handle skip import (user taps "Overslaan")
   const handleSkipImport = useCallback(async () => {
