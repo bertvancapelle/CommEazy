@@ -15,7 +15,7 @@
  * @see .claude/plans/MAIL_MODULE_PROMPT.md
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,8 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, SearchBar, LoadingView, ErrorView } from '@/components';
+import { VoiceFocusable } from '@/components/VoiceFocusable';
+import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import type { CachedMailHeader, MailAccount, MailboxInfo } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { MailListItem } from './MailListItem';
@@ -130,6 +132,25 @@ export function MailInboxScreen({
   const mountedRef = useRef(true);
   const loadDataRef = useRef<(isRefresh?: boolean) => Promise<void>>();
   const foldersLoadedRef = useRef(false);
+
+  // ============================================================
+  // Voice Focus — Enable voice navigation for mail list
+  // ============================================================
+
+  const voiceFocusItems: VoiceFocusableItem[] = useMemo(() => {
+    const activeList = searchResults ?? headers;
+    return activeList.map((header, index) => {
+      const senderName = parseEmailAddress(header.from).name || parseEmailAddress(header.from).address;
+      return {
+        id: `mail-${header.uid}`,
+        label: `${senderName}: ${header.subject || t('modules.mail.inbox.noSubject')}`,
+        index,
+        onSelect: () => onOpenMail(header),
+      };
+    });
+  }, [headers, searchResults, onOpenMail, t]);
+
+  const { scrollRef } = useVoiceFocusList('mail-inbox', voiceFocusItems);
 
   useEffect(() => {
     // Clear unread mail badge when inbox is viewed
@@ -622,16 +643,24 @@ export function MailInboxScreen({
           </View>
         ) : (
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           >
-            {searchResults.map((header) => (
-              <MailListItem
+            {searchResults.map((header, index) => (
+              <VoiceFocusable
                 key={`search-${header.uid}-${header.folder}`}
-                header={header}
-                onPress={onOpenMail}
-                onToggleFlag={handleToggleFlag}
-              />
+                id={`mail-${header.uid}`}
+                label={`${parseEmailAddress(header.from).name || parseEmailAddress(header.from).address}: ${header.subject || ''}`}
+                index={index}
+                onSelect={() => onOpenMail(header)}
+              >
+                <MailListItem
+                  header={header}
+                  onPress={onOpenMail}
+                  onToggleFlag={handleToggleFlag}
+                />
+              </VoiceFocusable>
             ))}
           </ScrollView>
         )
@@ -647,6 +676,7 @@ export function MailInboxScreen({
         </View>
       ) : (
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -657,13 +687,20 @@ export function MailInboxScreen({
             />
           }
         >
-          {headers.map((header) => (
-            <MailListItem
+          {headers.map((header, index) => (
+            <VoiceFocusable
               key={`${header.uid}-${header.folder}`}
-              header={header}
-              onPress={onOpenMail}
-              onToggleFlag={handleToggleFlag}
-            />
+              id={`mail-${header.uid}`}
+              label={`${parseEmailAddress(header.from).name || parseEmailAddress(header.from).address}: ${header.subject || ''}`}
+              index={index}
+              onSelect={() => onOpenMail(header)}
+            >
+              <MailListItem
+                header={header}
+                onPress={onOpenMail}
+                onToggleFlag={handleToggleFlag}
+              />
+            </VoiceFocusable>
           ))}
         </ScrollView>
       )}

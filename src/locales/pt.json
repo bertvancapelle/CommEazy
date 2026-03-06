@@ -1748,7 +1748,10 @@
           "authFailed": "Falha no início de sessão. Verifique as suas credenciais e tente novamente.",
           "timeout": "A ligação demorou demasiado. Verifique a sua ligação à Internet.",
           "connectionFailed": "Não foi possível ligar ao servidor de e-mail."
-        }
+        },
+        "enterEmailTitle": "Inserir endereço de e-mail",
+        "enterEmailMessage": "Não conseguimos detetar o seu endereço de e-mail automaticamente. Por favor, insira o seu endereço de e-mail.",
+        "emailRequired": "É necessário um endereço de e-mail para continuar"
       },
       "providerNotes": {
         "yahooAppPassword": "O Yahoo requer uma palavra-passe de aplicação. Aceda à segurança da sua conta Yahoo para criar uma.",
@@ -1849,7 +1852,18 @@
         "textSize": "Tamanho do texto: {{size}}",
         "textSizeNormal": "Normal",
         "textSizeLarge": "Grande",
-        "textSizeExtraLarge": "Muito grande"
+        "textSizeExtraLarge": "Muito grande",
+        "readAloud": "Ler em voz alta",
+        "stopReading": "Parar leitura",
+        "pauseReading": "Pausar leitura",
+        "resumeReading": "Retomar leitura",
+        "readingAloud": "A ler em voz alta...",
+        "readingPaused": "Leitura em pausa"
+      },
+      "notifications": {
+        "newMailTitle": "Novo e-mail",
+        "newMailBodySingular": "Você tem {{count}} nova mensagem",
+        "newMailBodyPlural": "Você tem {{count}} novas mensagens"
       },
       "compose": {
         "from": "De",
@@ -1893,6 +1907,7 @@
         "originalMessage": "Mensagem original",
         "photoAccessUnavailable": "Fotos indisponíveis",
         "photoAccessHint": "A biblioteca de fotos não está disponível de momento.",
+        "openSettings": "Abrir Definições",
         "replyAllTitle": "Responder a todos",
         "sentSuccess": "Mensagem enviada",
         "sentSuccessHint": "Toque para fechar",

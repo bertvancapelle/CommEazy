@@ -26,8 +26,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  Platform,
+  Linking,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -100,10 +104,41 @@ export function AlbumPickerModal({
       setIsLoading(true);
       setLoadError(false);
       try {
-        // @react-native-camera-roll/camera-roll is not installed.
-        // When the package is added to the project, replace this block
-        // with CameraRoll.getPhotos() to load device photos.
-        console.warn('[AlbumPicker] @react-native-camera-roll/camera-roll is not installed');
+        // Request photo library permission
+        const permission = Platform.OS === 'ios'
+          ? PERMISSIONS.IOS.PHOTO_LIBRARY
+          : PERMISSIONS.ANDROID.READ_MEDIA_IMAGES;
+
+        let status = await check(permission);
+        if (status === RESULTS.DENIED) {
+          status = await request(permission);
+        }
+
+        if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+          console.debug('[AlbumPicker] Photo library permission denied:', status);
+          setLoadError(true);
+          return;
+        }
+
+        // Fetch recent photos from device
+        const result = await CameraRoll.getPhotos({
+          first: 100,
+          assetType: 'Photos',
+          include: ['filename', 'fileSize', 'imageSize'],
+        });
+
+        const items: PhotoItem[] = result.edges.map(edge => ({
+          uri: edge.node.image.uri,
+          fileName: edge.node.image.filename || 'photo.jpg',
+          fileSize: edge.node.image.fileSize || 0,
+          mimeType: edge.node.type || 'image/jpeg',
+          width: edge.node.image.width,
+          height: edge.node.image.height,
+        }));
+
+        setPhotos(items);
+      } catch (error) {
+        console.debug('[AlbumPicker] Failed to load photos:', (error as Error).message);
         setLoadError(true);
       } finally {
         setIsLoading(false);
@@ -234,6 +269,18 @@ export function AlbumPickerModal({
             <Text style={[styles.errorHint, { color: themeColors.textSecondary }]}>
               {t('modules.mail.compose.photoAccessHint')}
             </Text>
+            <TouchableOpacity
+              style={[styles.settingsButton, { backgroundColor: accentColor.primary }]}
+              onPress={() => Linking.openSettings()}
+              onLongPress={() => {}}
+              delayLongPress={300}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.mail.compose.openSettings')}
+            >
+              <Text style={styles.settingsButtonText}>
+                {t('modules.mail.compose.openSettings')}
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : isLoading ? (
           <View style={styles.loadingContainer}>
@@ -335,6 +382,19 @@ const styles = StyleSheet.create({
   errorHint: {
     ...typography.body,
     textAlign: 'center',
+  },
+  settingsButton: {
+    minHeight: touchTargets.minimum,
+    paddingHorizontal: spacing.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.md,
+    marginTop: spacing.md,
+  },
+  settingsButtonText: {
+    ...typography.body,
+    color: 'white',
+    fontWeight: '700',
   },
   gridContent: {
     padding: spacing.md,

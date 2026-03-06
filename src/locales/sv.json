@@ -1575,7 +1575,10 @@
           "authFailed": "Inloggningen misslyckades. Kontrollera dina uppgifter och försök igen.",
           "timeout": "Anslutningen tog för lång tid. Kontrollera din internetanslutning.",
           "connectionFailed": "Kan inte ansluta till e-postservern."
-        }
+        },
+        "enterEmailTitle": "Ange e-postadress",
+        "enterEmailMessage": "Vi kunde inte identifiera din e-postadress automatiskt. Vänligen ange din e-postadress.",
+        "emailRequired": "En e-postadress krävs för att fortsätta"
       },
       "providerNotes": {
         "yahooAppPassword": "Yahoo kräver ett app-lösenord. Gå till din Yahoo-kontosäkerhet för att skapa ett.",
@@ -1676,7 +1679,18 @@
         "textSize": "Textstorlek: {{size}}",
         "textSizeNormal": "Normal",
         "textSizeLarge": "Stor",
-        "textSizeExtraLarge": "Extra stor"
+        "textSizeExtraLarge": "Extra stor",
+        "readAloud": "Läs högt",
+        "stopReading": "Sluta läsa",
+        "pauseReading": "Pausa läsning",
+        "resumeReading": "Fortsätt läsa",
+        "readingAloud": "Läser högt...",
+        "readingPaused": "Läsning pausad"
+      },
+      "notifications": {
+        "newMailTitle": "Ny e-post",
+        "newMailBodySingular": "Du har {{count}} nytt meddelande",
+        "newMailBodyPlural": "Du har {{count}} nya meddelanden"
       },
       "compose": {
         "from": "Från",
@@ -1720,6 +1734,7 @@
         "originalMessage": "Ursprungligt meddelande",
         "photoAccessUnavailable": "Foton inte tillgängliga",
         "photoAccessHint": "Fotobiblioteket är för närvarande inte tillgängligt.",
+        "openSettings": "Öppna Inställningar",
         "replyAllTitle": "Svara alla",
         "sentSuccess": "Meddelande skickat",
         "sentSuccessHint": "Tryck för att stänga",

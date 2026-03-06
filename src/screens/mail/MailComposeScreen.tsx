@@ -1061,7 +1061,7 @@ export function MailComposeScreen({
   // ============================================================
 
   // Check if CameraRoll is available (photo attachments)
-  const isCameraRollAvailable = false; // @react-native-camera-roll/camera-roll is not installed
+  const isCameraRollAvailable = true; // @react-native-camera-roll/camera-roll installed
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={['top']}>

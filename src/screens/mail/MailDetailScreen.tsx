@@ -46,6 +46,7 @@ import { parseEmailAddress } from '@/types/mail';
 import { isImageType } from '@/services/mail/mediaAttachmentService';
 import { getSaveableAttachments, isAlreadySaved } from '@/services/mail/saveToAlbumService';
 import { extractDomain } from '@/services/mail/imageWhitelistService';
+import { useMailTTS } from '@/hooks/useMailTTS';
 
 // Extracted sub-components and helpers
 import { formatDetailDate, formatMailBody } from './mailDetailHelpers';
@@ -123,6 +124,19 @@ export function MailDetailScreen({
   const [savedToAlbumIndices, setSavedToAlbumIndices] = useState<Set<number>>(new Set());
 
   const mountedRef = useRef(true);
+
+  // TTS read-aloud
+  const {
+    startReading,
+    stopReading,
+    pauseReading,
+    resumeReading,
+    isPlaying: isTtsPlaying,
+    isPaused: isTtsPaused,
+    isLoading: isTtsLoading,
+    progress: ttsProgress,
+    error: ttsError,
+  } = useMailTTS();
 
   // Saveable attachments (images/videos that can be saved to album)
   const saveableAttachments = useMemo(
@@ -449,6 +463,34 @@ export function MailDetailScreen({
     onForward?.(header, body);
   }, [header, body, onForward]);
 
+  const handleTtsToggle = useCallback(async () => {
+    triggerHaptic('tap');
+
+    if (isTtsPlaying && !isTtsPaused) {
+      await pauseReading();
+    } else if (isTtsPaused) {
+      await resumeReading();
+    } else {
+      // Start reading — prefer plain text, fall back to HTML stripped
+      const text = body?.plainText || body?.html || '';
+      if (text.trim()) {
+        await startReading(text);
+      }
+    }
+  }, [isTtsPlaying, isTtsPaused, body, pauseReading, resumeReading, startReading, triggerHaptic]);
+
+  const handleTtsStop = useCallback(async () => {
+    triggerHaptic('tap');
+    await stopReading();
+  }, [stopReading, triggerHaptic]);
+
+  // Stop TTS when leaving the screen
+  useEffect(() => {
+    return () => {
+      stopReading().catch(() => {});
+    };
+  }, [stopReading]);
+
   // ============================================================
   // Render
   // ============================================================
@@ -491,6 +533,42 @@ export function MailDetailScreen({
             <Text style={[styles.fontSizeLabel, { color: accentColor.primary }]}>
               Aa
             </Text>
+          </TouchableOpacity>
+
+          {/* TTS Read-Aloud toggle */}
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: isTtsPlaying || isTtsPaused
+                  ? accentColor.primary
+                  : themeColors.surface,
+                borderColor: themeColors.border,
+              },
+            ]}
+            onPress={handleTtsToggle}
+            onLongPress={isTtsPlaying || isTtsPaused ? handleTtsStop : undefined}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            disabled={!body || isTtsLoading}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isTtsPlaying && !isTtsPaused
+                ? t('modules.mail.detail.pauseReading')
+                : isTtsPaused
+                  ? t('modules.mail.detail.resumeReading')
+                  : t('modules.mail.detail.readAloud')
+            }
+          >
+            {isTtsLoading ? (
+              <ActivityIndicator size="small" color={accentColor.primary} />
+            ) : (
+              <Icon
+                name="headphones"
+                size={22}
+                color={isTtsPlaying || isTtsPaused ? 'white' : accentColor.primary}
+              />
+            )}
           </TouchableOpacity>
 
           {/* Read/Unread toggle */}
@@ -578,6 +656,55 @@ export function MailDetailScreen({
 
         {/* Divider */}
         <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+
+        {/* TTS Progress Bar */}
+        {(isTtsPlaying || isTtsPaused) && (
+          <View style={[styles.ttsBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
+            <View style={styles.ttsProgressTrack}>
+              <View
+                style={[
+                  styles.ttsProgressFill,
+                  { width: `${Math.round(ttsProgress * 100)}%`, backgroundColor: accentColor.primary },
+                ]}
+              />
+            </View>
+            <View style={styles.ttsControls}>
+              <TouchableOpacity
+                style={styles.ttsControlButton}
+                onPress={handleTtsToggle}
+                onLongPress={() => {}}
+                delayLongPress={300}
+                accessibilityRole="button"
+                accessibilityLabel={isTtsPaused
+                  ? t('modules.mail.detail.resumeReading')
+                  : t('modules.mail.detail.pauseReading')
+                }
+              >
+                <Icon
+                  name={isTtsPaused ? 'play' : 'pause'}
+                  size={20}
+                  color={accentColor.primary}
+                />
+              </TouchableOpacity>
+              <Text style={[styles.ttsLabel, { color: themeColors.textSecondary }]}>
+                {isTtsPaused
+                  ? t('modules.mail.detail.readingPaused')
+                  : t('modules.mail.detail.readingAloud')
+                }
+              </Text>
+              <TouchableOpacity
+                style={styles.ttsControlButton}
+                onPress={handleTtsStop}
+                onLongPress={() => {}}
+                delayLongPress={300}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.mail.detail.stopReading')}
+              >
+                <Icon name="stop" size={20} color={themeColors.error} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Body */}
         {isLoading ? (
@@ -942,5 +1069,37 @@ const styles = StyleSheet.create({
   bottomActionText: {
     ...typography.body,
     fontWeight: '700',
+  },
+  ttsBar: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  ttsProgressTrack: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    overflow: 'hidden',
+    marginBottom: spacing.xs,
+  },
+  ttsProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  ttsControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  ttsControlButton: {
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.sm,
+  },
+  ttsLabel: {
+    ...typography.small,
+    flex: 1,
   },
 });

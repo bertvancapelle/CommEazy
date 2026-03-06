@@ -1741,7 +1741,10 @@
           "authFailed": "Inloggen mislukt. Controleer je gegevens en probeer het opnieuw.",
           "timeout": "Verbinding duurt te lang. Controleer je internetverbinding.",
           "connectionFailed": "Kan geen verbinding maken met de mailserver."
-        }
+        },
+        "enterEmailTitle": "E-mailadres invoeren",
+        "enterEmailMessage": "We konden je e-mailadres niet automatisch ophalen. Vul je e-mailadres in.",
+        "emailRequired": "Een e-mailadres is vereist om door te gaan"
       },
       "providerNotes": {
         "yahooAppPassword": "Yahoo vereist een app-wachtwoord. Ga naar je Yahoo-accountbeveiliging om er een aan te maken.",
@@ -1842,7 +1845,18 @@
         "textSize": "Tekstgrootte: {{size}}",
         "textSizeNormal": "Normaal",
         "textSizeLarge": "Groot",
-        "textSizeExtraLarge": "Extra groot"
+        "textSizeExtraLarge": "Extra groot",
+        "readAloud": "Voorlezen",
+        "stopReading": "Stoppen met voorlezen",
+        "pauseReading": "Pauzeer voorlezen",
+        "resumeReading": "Hervat voorlezen",
+        "readingAloud": "Wordt voorgelezen...",
+        "readingPaused": "Voorlezen gepauzeerd"
+      },
+      "notifications": {
+        "newMailTitle": "Nieuwe e-mail",
+        "newMailBodySingular": "Je hebt {{count}} nieuw bericht",
+        "newMailBodyPlural": "Je hebt {{count}} nieuwe berichten"
       },
       "compose": {
         "from": "Van",
@@ -1886,6 +1900,7 @@
         "originalMessage": "Oorspronkelijk bericht",
         "photoAccessUnavailable": "Foto's niet beschikbaar",
         "photoAccessHint": "De fotobibliotheek is momenteel niet beschikbaar.",
+        "openSettings": "Open Instellingen",
         "replyAllTitle": "Allen beantwoorden",
         "sentSuccess": "Bericht verzonden",
         "sentSuccessHint": "Tik om te sluiten",

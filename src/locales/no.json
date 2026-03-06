@@ -1605,7 +1605,10 @@
           "authFailed": "Innlogging mislyktes. Sjekk opplysningene dine og prøv igjen.",
           "timeout": "Tilkoblingen tok for lang tid. Sjekk internettforbindelsen.",
           "connectionFailed": "Kan ikke koble til e-postserveren."
-        }
+        },
+        "enterEmailTitle": "Skriv inn e-postadresse",
+        "enterEmailMessage": "Vi kunne ikke oppdage e-postadressen din automatisk. Vennligst skriv inn e-postadressen din.",
+        "emailRequired": "En e-postadresse er nødvendig for å fortsette"
       },
       "providerNotes": {
         "yahooAppPassword": "Yahoo krever et app-passord. Gå til Yahoo-kontosikkerheten din for å opprette et.",
@@ -1706,7 +1709,18 @@
         "textSize": "Tekststørrelse: {{size}}",
         "textSizeNormal": "Normal",
         "textSizeLarge": "Stor",
-        "textSizeExtraLarge": "Ekstra stor"
+        "textSizeExtraLarge": "Ekstra stor",
+        "readAloud": "Les høyt",
+        "stopReading": "Stopp lesing",
+        "pauseReading": "Pause lesing",
+        "resumeReading": "Fortsett lesing",
+        "readingAloud": "Leser høyt...",
+        "readingPaused": "Lesing satt på pause"
+      },
+      "notifications": {
+        "newMailTitle": "Ny e-post",
+        "newMailBodySingular": "Du har {{count}} ny melding",
+        "newMailBodyPlural": "Du har {{count}} nye meldinger"
       },
       "compose": {
         "from": "Fra",
@@ -1750,6 +1764,7 @@
         "originalMessage": "Opprinnelig melding",
         "photoAccessUnavailable": "Bilder ikke tilgjengelig",
         "photoAccessHint": "Fotobiblioteket er for øyeblikket ikke tilgjengelig.",
+        "openSettings": "Åpne Innstillinger",
         "replyAllTitle": "Svar alle",
         "sentSuccess": "Melding sendt",
         "sentSuccessHint": "Trykk for å lukke",

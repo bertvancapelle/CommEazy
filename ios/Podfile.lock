@@ -997,6 +997,10 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
+  - react-native-cameraroll (7.10.2):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - react-native-geolocation (3.4.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1311,6 +1315,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - react-native-app-auth (from `../node_modules/react-native-app-auth`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
+  - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
@@ -1455,6 +1460,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-app-auth"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
+  react-native-cameraroll:
+    :path: "../node_modules/@react-native-camera-roll/camera-roll"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-get-random-values:
@@ -1611,6 +1618,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 15dfcfeb4428d8799cce75e7fe85b18b706029e0
   react-native-app-auth: e21c8ee920876b960e38c9381971bd189ebea06b
   react-native-blur: 9a53b0cc99ebd9d2dcd48f30cb61d0e32392a17d
+  react-native-cameraroll: fc61080d4409a68c428f9b232264f7fb9fc4a07d
   react-native-geolocation: 49ea939d13f095705a71891555cc76215e63ec6a
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: bb3a66064010886b9472200945841e2cf79e1b52

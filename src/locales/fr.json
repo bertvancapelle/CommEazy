@@ -1731,7 +1731,10 @@
           "authFailed": "Échec de la connexion. Vérifiez vos identifiants et réessayez.",
           "timeout": "La connexion a expiré. Vérifiez votre connexion Internet.",
           "connectionFailed": "Impossible de se connecter au serveur de messagerie."
-        }
+        },
+        "enterEmailTitle": "Saisir l'adresse e-mail",
+        "enterEmailMessage": "Nous n'avons pas pu détecter votre adresse e-mail automatiquement. Veuillez saisir votre adresse e-mail.",
+        "emailRequired": "Une adresse e-mail est requise pour continuer"
       },
       "providerNotes": {
         "yahooAppPassword": "Yahoo nécessite un mot de passe d'application. Accédez à la sécurité de votre compte Yahoo pour en créer un.",
@@ -1832,7 +1835,18 @@
         "textSize": "Taille du texte : {{size}}",
         "textSizeNormal": "Normal",
         "textSizeLarge": "Grand",
-        "textSizeExtraLarge": "Très grand"
+        "textSizeExtraLarge": "Très grand",
+        "readAloud": "Lire à haute voix",
+        "stopReading": "Arrêter la lecture",
+        "pauseReading": "Mettre en pause",
+        "resumeReading": "Reprendre la lecture",
+        "readingAloud": "Lecture en cours...",
+        "readingPaused": "Lecture en pause"
+      },
+      "notifications": {
+        "newMailTitle": "Nouvel e-mail",
+        "newMailBodySingular": "Vous avez {{count}} nouveau message",
+        "newMailBodyPlural": "Vous avez {{count}} nouveaux messages"
       },
       "compose": {
         "from": "De",
@@ -1876,6 +1890,7 @@
         "originalMessage": "Message d'origine",
         "photoAccessUnavailable": "Photos non disponibles",
         "photoAccessHint": "La photothèque n'est actuellement pas disponible.",
+        "openSettings": "Ouvrir les réglages",
         "replyAllTitle": "Répondre à tous",
         "sentSuccess": "Message envoyé",
         "sentSuccessHint": "Appuyez pour fermer",

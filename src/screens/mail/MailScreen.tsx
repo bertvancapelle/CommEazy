@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Text, Alert } from 'react-native';
+import { View, StyleSheet, Text, Alert, NativeModules } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -74,6 +74,19 @@ export function MailScreen() {
   // Init — Check Onboarding State + Load Account
   // ============================================================
 
+  // Sync i18n notification strings to native module for background fetch
+  const syncNotificationStrings = useCallback(() => {
+    try {
+      NativeModules.MailBackgroundFetchModule?.configureNotificationStrings(
+        t('modules.mail.notifications.newMailTitle'),
+        t('modules.mail.notifications.newMailBodySingular'),
+        t('modules.mail.notifications.newMailBodyPlural'),
+      );
+    } catch {
+      console.debug('[MailScreen] Failed to sync notification strings');
+    }
+  }, [t]);
+
   useEffect(() => {
     const checkState = async () => {
       try {
@@ -85,6 +98,8 @@ export function MailScreen() {
         if (onboardingDone === 'true') {
           setOnboardingComplete(true);
           await loadAccount();
+          // Sync i18n strings to native for background notifications
+          syncNotificationStrings();
         } else {
           // Check if an account already exists (e.g. configured via Settings)
           const credentialManager = await import('@/services/mail/credentialManager');
@@ -95,6 +110,8 @@ export function MailScreen() {
             setOnboardingComplete(true);
             AsyncStorage.setItem(MAIL_ONBOARDING_COMPLETE_KEY, 'true').catch(console.error);
             AsyncStorage.setItem(MAIL_WELCOME_SHOWN_KEY, 'true').catch(console.error);
+            // Sync i18n strings to native for background notifications
+            syncNotificationStrings();
           } else if (welcomeShown !== 'true') {
             setShowWelcome(true);
           } else {

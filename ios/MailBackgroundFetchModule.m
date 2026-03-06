@@ -18,6 +18,12 @@ RCT_EXTERN_METHOD(clearUnreadBadge:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(checkMailNow:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(configureNotificationStrings:(NSString *)title
+                  bodySingular:(NSString *)bodySingular
+                  bodyPlural:(NSString *)bodyPlural
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(initializeBaseline:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 

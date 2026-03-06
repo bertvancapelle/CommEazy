@@ -1575,7 +1575,10 @@
           "authFailed": "Login mislykkedes. Kontrollér dine oplysninger og prøv igen.",
           "timeout": "Forbindelsen tog for lang tid. Kontrollér din internetforbindelse.",
           "connectionFailed": "Kan ikke oprette forbindelse til mailserveren."
-        }
+        },
+        "enterEmailTitle": "Indtast e-mailadresse",
+        "enterEmailMessage": "Vi kunne ikke registrere din e-mailadresse automatisk. Indtast venligst din e-mailadresse.",
+        "emailRequired": "En e-mailadresse er påkrævet for at fortsætte"
       },
       "providerNotes": {
         "yahooAppPassword": "Yahoo kræver en app-adgangskode. Gå til din Yahoo-kontosikkerhed for at oprette en.",
@@ -1676,7 +1679,18 @@
         "textSize": "Tekststørrelse: {{size}}",
         "textSizeNormal": "Normal",
         "textSizeLarge": "Stor",
-        "textSizeExtraLarge": "Ekstra stor"
+        "textSizeExtraLarge": "Ekstra stor",
+        "readAloud": "Læs højt",
+        "stopReading": "Stop oplæsning",
+        "pauseReading": "Pause oplæsning",
+        "resumeReading": "Genoptag oplæsning",
+        "readingAloud": "Læser højt...",
+        "readingPaused": "Oplæsning sat på pause"
+      },
+      "notifications": {
+        "newMailTitle": "Ny e-mail",
+        "newMailBodySingular": "Du har {{count}} ny besked",
+        "newMailBodyPlural": "Du har {{count}} nye beskeder"
       },
       "compose": {
         "from": "Fra",
@@ -1720,6 +1734,7 @@
         "originalMessage": "Oprindelig besked",
         "photoAccessUnavailable": "Fotos ikke tilgængelige",
         "photoAccessHint": "Fotobiblioteket er i øjeblikket ikke tilgængeligt.",
+        "openSettings": "Åbn Indstillinger",
         "replyAllTitle": "Svar alle",
         "sentSuccess": "Besked sendt",
         "sentSuccessHint": "Tryk for at lukke",

@@ -1731,7 +1731,10 @@
           "authFailed": "Anmeldung fehlgeschlagen. Überprüfe deine Zugangsdaten.",
           "timeout": "Verbindung dauert zu lange. Überprüfe deine Internetverbindung.",
           "connectionFailed": "Verbindung zum Mailserver nicht möglich."
-        }
+        },
+        "enterEmailTitle": "E-Mail-Adresse eingeben",
+        "enterEmailMessage": "Wir konnten deine E-Mail-Adresse nicht automatisch erkennen. Bitte gib deine E-Mail-Adresse ein.",
+        "emailRequired": "Eine E-Mail-Adresse ist erforderlich, um fortzufahren"
       },
       "providerNotes": {
         "yahooAppPassword": "Yahoo erfordert ein App-Passwort. Gehe zu deiner Yahoo-Kontosicherheit, um eines zu erstellen.",
@@ -1832,7 +1835,18 @@
         "textSize": "Textgröße: {{size}}",
         "textSizeNormal": "Normal",
         "textSizeLarge": "Groß",
-        "textSizeExtraLarge": "Sehr groß"
+        "textSizeExtraLarge": "Sehr groß",
+        "readAloud": "Vorlesen",
+        "stopReading": "Vorlesen beenden",
+        "pauseReading": "Vorlesen pausieren",
+        "resumeReading": "Vorlesen fortsetzen",
+        "readingAloud": "Wird vorgelesen...",
+        "readingPaused": "Vorlesen pausiert"
+      },
+      "notifications": {
+        "newMailTitle": "Neue E-Mail",
+        "newMailBodySingular": "Du hast {{count}} neue Nachricht",
+        "newMailBodyPlural": "Du hast {{count}} neue Nachrichten"
       },
       "compose": {
         "from": "Von",
@@ -1876,6 +1890,7 @@
         "originalMessage": "Ursprüngliche Nachricht",
         "photoAccessUnavailable": "Fotos nicht verfügbar",
         "photoAccessHint": "Die Fotobibliothek ist derzeit nicht verfügbar.",
+        "openSettings": "Einstellungen öffnen",
         "replyAllTitle": "Allen antworten",
         "sentSuccess": "Nachricht gesendet",
         "sentSuccessHint": "Tippen zum Schließen",

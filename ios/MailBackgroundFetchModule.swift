@@ -51,6 +51,11 @@ class MailBackgroundFetchModule: NSObject {
     /// UserDefaults key for last background fetch timestamp
     private let lastFetchKey = "com.commeazy.mail.lastFetchTimestamp"
 
+    /// UserDefaults keys for i18n notification strings (set via bridge from RN)
+    private let i18nTitleKey = "com.commeazy.mail.notification.title"
+    private let i18nBodySingularKey = "com.commeazy.mail.notification.bodySingular"
+    private let i18nBodyPluralKey = "com.commeazy.mail.notification.bodyPlural"
+
     /// Notification category identifier
     private let notificationCategory = "MAIL_NEW_MESSAGE"
 
@@ -310,9 +315,16 @@ class MailBackgroundFetchModule: NSObject {
 
     // MARK: - Localization Helpers
 
-    /// Localized notification title based on system language.
-    /// Supports all 13 CommEazy languages.
+    /// Localized notification title.
+    /// Reads from UserDefaults first (set via RN bridge configureNotificationStrings),
+    /// falls back to hardcoded strings based on system language.
     private func localizedTitle(for lang: String, count: Int) -> String {
+        // Try RN-provided i18n string first (single source of truth)
+        if let title = UserDefaults.standard.string(forKey: i18nTitleKey), !title.isEmpty {
+            return title
+        }
+
+        // Fallback: hardcoded strings (used when RN bridge hasn't run yet)
         switch lang {
         case "nl": return "Nieuwe e-mail"
         case "de": return "Neue E-Mail"
@@ -328,8 +340,21 @@ class MailBackgroundFetchModule: NSObject {
         }
     }
 
-    /// Localized notification body based on system language.
+    /// Localized notification body.
+    /// Reads from UserDefaults first (set via RN bridge configureNotificationStrings),
+    /// falls back to hardcoded strings based on system language.
     private func localizedBody(for lang: String, count: Int) -> String {
+        // Try RN-provided i18n strings first (single source of truth)
+        let singularTemplate = UserDefaults.standard.string(forKey: i18nBodySingularKey)
+        let pluralTemplate = UserDefaults.standard.string(forKey: i18nBodyPluralKey)
+
+        if count == 1, let template = singularTemplate, !template.isEmpty {
+            return template.replacingOccurrences(of: "{{count}}", with: "\(count)")
+        } else if count != 1, let template = pluralTemplate, !template.isEmpty {
+            return template.replacingOccurrences(of: "{{count}}", with: "\(count)")
+        }
+
+        // Fallback: hardcoded strings (used when RN bridge hasn't run yet)
         switch lang {
         case "nl": return count == 1
             ? "Je hebt 1 nieuw bericht"
@@ -416,6 +441,22 @@ class MailBackgroundFetchModule: NSObject {
 
             resolve(totalNewMessages)
         }
+    }
+
+    /// Configure localized notification strings from React Native i18n system.
+    /// Called at app start to sync RN translations with native background fetch notifications.
+    /// Strings are stored in UserDefaults so they survive background wake without RN bridge.
+    ///
+    /// - Parameters:
+    ///   - title: Notification title (e.g. "Nieuwe e-mail")
+    ///   - bodySingular: Body for 1 message, with {{count}} placeholder (e.g. "Je hebt {{count}} nieuw bericht")
+    ///   - bodyPlural: Body for >1 messages, with {{count}} placeholder (e.g. "Je hebt {{count}} nieuwe berichten")
+    @objc func configureNotificationStrings(_ title: String, bodySingular: String, bodyPlural: String,
+                                             resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        UserDefaults.standard.set(title, forKey: i18nTitleKey)
+        UserDefaults.standard.set(bodySingular, forKey: i18nBodySingularKey)
+        UserDefaults.standard.set(bodyPlural, forKey: i18nBodyPluralKey)
+        resolve(true)
     }
 
     /// Initialize baseline message counts for all accounts.

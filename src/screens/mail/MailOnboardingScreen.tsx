@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useCallback, useRef } from 'react';
+import { Alert, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { MailProvider, ServerConfig } from '@/services/mail/mailConstants';
 import { MailOnboardingStep1 } from './MailOnboardingStep1';
@@ -155,8 +156,41 @@ export function MailOnboardingScreen({
       }
 
       if (!email) {
-        // Fallback: ask user for email (shouldn't normally happen)
-        email = `user@${data.providerId === 'gmail' ? 'gmail.com' : 'outlook.com'}`;
+        // Ask user for email when ID token extraction fails
+        email = await new Promise<string>((resolve) => {
+          if (Platform.OS === 'ios') {
+            Alert.prompt(
+              t('modules.mail.onboarding.enterEmailTitle'),
+              t('modules.mail.onboarding.enterEmailMessage'),
+              [
+                {
+                  text: t('common.cancel'),
+                  style: 'cancel',
+                  onPress: () => resolve(''),
+                },
+                {
+                  text: t('common.confirm'),
+                  onPress: (value) => resolve(value?.trim() || ''),
+                },
+              ],
+              'plain-text',
+              '',
+              'email-address',
+            );
+          } else {
+            // Android: Alert.prompt not available, use a simple alert
+            // The email will need to be entered on the next step
+            Alert.alert(
+              t('modules.mail.onboarding.enterEmailTitle'),
+              t('modules.mail.onboarding.enterEmailMessage'),
+              [{ text: t('common.confirm'), onPress: () => resolve('') }],
+            );
+          }
+        });
+
+        if (!email) {
+          throw new Error(t('modules.mail.onboarding.emailRequired'));
+        }
       }
 
       setAccountEmail(email);
