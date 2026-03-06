@@ -379,7 +379,7 @@ function SelfSuggestionRow({
       accessibilityLabel={`${label}, ${email}`}
     >
       <View style={[styles.suggestionAvatar, { backgroundColor: accentColor.primary }]}>
-        <Icon name="user" size={20} color="#FFFFFF" />
+        <Icon name="user" size={20} color="white" />
       </View>
       <View style={styles.suggestionInfo}>
         <Text
@@ -1112,7 +1112,7 @@ export function MailComposeScreen({
           <TouchableOpacity
             style={[
               styles.bottomAction,
-              { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border },
+              { backgroundColor: themeColors.surface, borderColor: themeColors.border },
             ]}
             onPress={() => {
               triggerHaptic('tap');
@@ -1149,11 +1149,11 @@ export function MailComposeScreen({
           accessibilityLabel={t('modules.mail.compose.send')}
         >
           {isSending ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color="white" />
           ) : (
             <>
-              <Icon name="mail" size={22} color="#FFFFFF" />
-              <Text style={[styles.bottomActionText, { color: '#FFFFFF' }]}>
+              <Icon name="mail" size={22} color="white" />
+              <Text style={[styles.bottomActionText, { color: 'white' }]}>
                 {t('modules.mail.compose.send')}
               </Text>
             </>
@@ -1272,7 +1272,6 @@ const styles = StyleSheet.create({
   },
   chipText: {
     ...typography.body,
-    fontSize: 15,
     maxWidth: 180,
   },
   chipRemove: {
@@ -1321,8 +1320,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   suggestionEmail: {
-    fontSize: 14,
-    lineHeight: 18,
+    ...typography.label,
   },
 
   // CC/BCC toggle

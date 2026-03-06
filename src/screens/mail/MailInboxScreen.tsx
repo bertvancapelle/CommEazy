@@ -491,7 +491,7 @@ export function MailInboxScreen({
           accessibilityRole="button"
           accessibilityLabel={t('modules.mail.inbox.compose')}
         >
-          <Icon name="pencil" size={24} color="#FFFFFF" />
+          <Icon name="pencil" size={24} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -559,11 +559,11 @@ export function MailInboxScreen({
               : t('modules.mail.inbox.search.resultsCount', { count: String(searchResults.length) })}
           </Text>
           <TouchableOpacity
-            style={[styles.searchClearPill, { backgroundColor: 'rgba(128, 128, 128, 0.15)' }]}
+            style={[styles.searchClearPill, { backgroundColor: themeColors.surface }]}
             onPress={handleClearSearch}
             onLongPress={() => {}}
             delayLongPress={300}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.inbox.search.clear')}
           >
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
   },
   unreadBadgeText: {
     ...typography.small,
-    color: '#FFFFFF',
+    color: 'white',
     fontWeight: '700',
     fontSize: 14,
   },
@@ -743,9 +743,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
+    minHeight: touchTargets.minimum,
   },
   searchClearButtonText: {
     ...typography.label,

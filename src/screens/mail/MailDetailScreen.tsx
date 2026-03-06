@@ -393,7 +393,7 @@ export function MailDetailScreen({
       {/* Top bar */}
       <View style={[styles.topBar, { borderBottomColor: themeColors.border }]}>
         <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
+          style={[styles.backButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={() => {
             triggerHaptic('tap');
             onBack();
@@ -412,7 +412,7 @@ export function MailDetailScreen({
 
         {/* Delete button */}
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
+          style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={handleDelete}
           onLongPress={() => {}}
           delayLongPress={300}
@@ -555,19 +555,19 @@ export function MailDetailScreen({
                         resizeMode="cover"
                       />
                     ) : isDownloading ? (
-                      <View style={styles.thumbnailPlaceholder}>
+                      <View style={[styles.thumbnailPlaceholder, { backgroundColor: themeColors.surface }]}>
                         <ActivityIndicator size="small" color={accentColor.primary} />
                       </View>
                     ) : (
-                      <View style={styles.thumbnailPlaceholder}>
+                      <View style={[styles.thumbnailPlaceholder, { backgroundColor: themeColors.surface }]}>
                         <Icon name="image" size={24} color={themeColors.textSecondary} />
                       </View>
                     )}
 
                     {/* Saved badge */}
                     {isSavedAlready && (
-                      <View style={[styles.savedBadge, { backgroundColor: 'rgba(76, 175, 80, 0.85)' }]}>
-                        <Icon name="check" size={12} color="#FFFFFF" />
+                      <View style={[styles.savedBadge, { backgroundColor: themeColors.success }]}>
+                        <Icon name="check" size={12} color="white" />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -611,7 +611,7 @@ export function MailDetailScreen({
       {/* Bottom action bar */}
       <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
         <TouchableOpacity
-          style={[styles.bottomAction, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
+          style={[styles.bottomAction, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={handleReply}
           onLongPress={() => {}}
           delayLongPress={300}
@@ -626,7 +626,7 @@ export function MailDetailScreen({
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.bottomAction, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border }]}
+          style={[styles.bottomAction, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={handleForward}
           onLongPress={() => {}}
           delayLongPress={300}
@@ -771,7 +771,6 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   savedBadge: {
     position: 'absolute',

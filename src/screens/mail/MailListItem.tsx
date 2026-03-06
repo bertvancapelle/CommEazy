@@ -162,11 +162,11 @@ export function MailListItem({ header, onPress, onToggleFlag }: MailListItemProp
                 onPress={handleFlagToggle}
                 onLongPress={() => {}}
                 delayLongPress={300}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                hitSlop={{ top: 18, bottom: 18, left: 18, right: 18 }}
                 accessibilityRole="button"
                 accessibilityLabel={t('modules.mail.inbox.unflag')}
               >
-                <Icon name="star" size={18} color={accentColor.primary} />
+                <Icon name="star" size={24} color={accentColor.primary} />
               </TouchableOpacity>
             )}
           </View>

@@ -496,7 +496,7 @@ const secStyles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    minHeight: 36,
+    minHeight: touchTargets.minimum,
     justifyContent: 'center',
     alignItems: 'center',
   },
