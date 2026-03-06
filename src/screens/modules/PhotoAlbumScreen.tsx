@@ -14,7 +14,7 @@
  * @see src/services/media/ for media storage services
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -28,9 +28,14 @@ import {
   ActivityIndicator,
   InteractionManager,
   Linking,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import RNFS from 'react-native-fs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import {
@@ -60,6 +65,8 @@ import {
 import { chatService } from '@/services/chat';
 import { ServiceContainer } from '@/services/container';
 import type { Contact } from '@/services/interfaces';
+import { usePhotoAlbums } from '@/hooks/usePhotoAlbums';
+import type { PhotoAlbum } from '@/types/media';
 
 // ============================================================
 // Constants
@@ -74,6 +81,33 @@ const MAX_RECIPIENTS = 8;
 const GRID_PADDING = spacing.sm;
 const GRID_GAP = spacing.xs;
 const NUM_COLUMNS = 3;
+
+// Tab types
+type AlbumTab = 'albums' | 'allPhotos' | 'received';
+
+// Received photos metadata store
+const RECEIVED_PHOTOS_KEY = '@commeazy/receivedPhotos';
+
+interface ReceivedPhotoMeta {
+  id: string;
+  senderName: string;
+  timestamp: number;
+}
+
+/**
+ * Read received photos metadata from AsyncStorage.
+ * Maps mediaId → sender/timestamp info for quick lookup.
+ */
+async function readReceivedMeta(): Promise<Map<string, ReceivedPhotoMeta>> {
+  try {
+    const raw = await AsyncStorage.getItem(RECEIVED_PHOTOS_KEY);
+    if (!raw) return new Map();
+    const list = JSON.parse(raw) as ReceivedPhotoMeta[];
+    return new Map(list.map(item => [item.id, item]));
+  } catch {
+    return new Map();
+  }
+}
 
 // ============================================================
 // Date Grouping Utility
@@ -141,6 +175,10 @@ interface PhotoItem {
   type: MediaItemType;
   /** Video duration in seconds (only for videos) */
   duration?: number;
+  /** Source of the media */
+  source?: 'camera' | 'gallery' | 'received';
+  /** Sender name (for received photos) */
+  senderName?: string;
 }
 
 /**
@@ -172,6 +210,17 @@ export function PhotoAlbumScreen() {
     () => (screenWidth - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS,
     [screenWidth],
   );
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<AlbumTab>('allPhotos');
+
+  // Album state
+  const albumHook = usePhotoAlbums();
+  const [activeAlbumId, setActiveAlbumId] = useState<string | null>(null);
+  const [isCreateAlbumModalVisible, setIsCreateAlbumModalVisible] = useState(false);
+  const [newAlbumName, setNewAlbumName] = useState('');
+  const [isAddToAlbumModalVisible, setIsAddToAlbumModalVisible] = useState(false);
+  const albumNameInputRef = useRef<TextInput>(null);
 
   // Photo state
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -250,6 +299,9 @@ export function PhotoAlbumScreen() {
              /\.(jpg|jpeg|png|mp4|mov)$/i.test(f.name)
       );
 
+      // Read received photos metadata for source annotation
+      const receivedMeta = await readReceivedMeta();
+
       // Build media items
       const items: PhotoItem[] = [];
 
@@ -261,13 +313,18 @@ export function PhotoAlbumScreen() {
         // Get thumbnail
         const thumbnailUri = await getThumbnailUri(mediaId);
 
+        // Check if this is a received photo
+        const meta = receivedMeta.get(mediaId);
+
         items.push({
           id: mediaId,
           uri,
           thumbnailUri: thumbnailUri || uri,
-          timestamp: file.mtime ? new Date(file.mtime).getTime() : Date.now(),
+          timestamp: meta?.timestamp || (file.mtime ? new Date(file.mtime).getTime() : Date.now()),
           size: Number(file.size) || 0,
           type: isVideo ? 'video' : 'photo',
+          source: meta ? 'received' : 'camera',
+          senderName: meta?.senderName,
         });
       }
 
@@ -571,6 +628,153 @@ export function PhotoAlbumScreen() {
     }
   }, [loadPhotos, t]);
 
+  // Active album object (when viewing an album)
+  const activeAlbum = useMemo(
+    () => activeAlbumId ? albumHook.albums.find(a => a.id === activeAlbumId) : null,
+    [activeAlbumId, albumHook.albums],
+  );
+
+  // Photos filtered by active tab/album
+  const displayPhotos = useMemo(() => {
+    if (activeTab === 'albums' && activeAlbum) {
+      const idSet = new Set(activeAlbum.photoIds);
+      return photos.filter(p => idSet.has(p.id));
+    }
+    if (activeTab === 'received') {
+      return photos.filter(p => p.source === 'received');
+    }
+    return photos;
+  }, [activeTab, activeAlbum, photos]);
+
+  // Count received photos for tab badge
+  const receivedCount = useMemo(
+    () => photos.filter(p => p.source === 'received').length,
+    [photos],
+  );
+
+  // Date groups based on display photos
+  const displayDateGroups = useMemo(
+    () => groupPhotosByDate(displayPhotos, t),
+    [displayPhotos, t],
+  );
+
+  // Handle tab change
+  const handleTabChange = useCallback((tab: AlbumTab) => {
+    setActiveTab(tab);
+    setActiveAlbumId(null);
+    setIsSelectionMode(false);
+    setSelectedPhotos(new Set());
+  }, []);
+
+  // Handle opening an album
+  const handleOpenAlbum = useCallback((albumId: string) => {
+    setActiveAlbumId(albumId);
+    setIsSelectionMode(false);
+    setSelectedPhotos(new Set());
+  }, []);
+
+  // Handle going back from album detail to album list
+  const handleBackToAlbums = useCallback(() => {
+    setActiveAlbumId(null);
+    setIsSelectionMode(false);
+    setSelectedPhotos(new Set());
+  }, []);
+
+  // Handle create album
+  const handleCreateAlbum = useCallback(async () => {
+    const name = newAlbumName.trim();
+    if (!name) return;
+
+    const album = await albumHook.create(name);
+    if (album) {
+      console.debug(LOG_PREFIX, 'Album created');
+      setIsCreateAlbumModalVisible(false);
+      setNewAlbumName('');
+      setActiveAlbumId(album.id);
+    }
+  }, [newAlbumName, albumHook]);
+
+  // Handle rename album
+  const handleRenameAlbum = useCallback((albumId: string, currentName: string) => {
+    Alert.prompt(
+      t('modules.photoAlbum.renameAlbum', 'Rename album'),
+      '',
+      async (text: string) => {
+        if (text?.trim()) {
+          await albumHook.rename(albumId, text);
+        }
+      },
+      'plain-text',
+      currentName,
+    );
+  }, [albumHook, t]);
+
+  // Handle delete album
+  const handleDeleteAlbum = useCallback((albumId: string) => {
+    Alert.alert(
+      t('modules.photoAlbum.deleteAlbum', 'Delete album'),
+      t('modules.photoAlbum.deleteAlbumConfirm', 'Delete album? Photos will be kept.'),
+      [
+        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+        {
+          text: t('common.delete', 'Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            const success = await albumHook.remove(albumId);
+            if (success && activeAlbumId === albumId) {
+              setActiveAlbumId(null);
+            }
+          },
+        },
+      ],
+    );
+  }, [albumHook, activeAlbumId, t]);
+
+  // Handle "Add to album" from selection mode
+  const handleAddToAlbumPress = useCallback(() => {
+    if (selectedPhotos.size === 0) return;
+    setIsAddToAlbumModalVisible(true);
+  }, [selectedPhotos]);
+
+  // Handle selecting an album to add photos to
+  const handleAddToAlbumSelect = useCallback(async (albumId: string) => {
+    const ids = Array.from(selectedPhotos);
+    const success = await albumHook.addPhotos(albumId, ids);
+    if (success) {
+      setIsAddToAlbumModalVisible(false);
+      setIsSelectionMode(false);
+      setSelectedPhotos(new Set());
+      Alert.alert(
+        t('modules.photoAlbum.addedToAlbum', 'Added to album'),
+        t('modules.photoAlbum.addedToAlbumMessage', '{{count}} photo(s) added to album.', { count: ids.length }),
+        [{ text: t('common.ok', 'OK') }],
+      );
+    }
+  }, [selectedPhotos, albumHook, t]);
+
+  // Handle creating a new album from the "Add to album" modal
+  const handleCreateAndAddToAlbum = useCallback(async (name: string) => {
+    const ids = Array.from(selectedPhotos);
+    const album = await albumHook.create(name, ids);
+    if (album) {
+      setIsAddToAlbumModalVisible(false);
+      setIsSelectionMode(false);
+      setSelectedPhotos(new Set());
+    }
+  }, [selectedPhotos, albumHook]);
+
+  // Handle removing photos from current album
+  const handleRemoveFromAlbum = useCallback(async () => {
+    if (!activeAlbumId || selectedPhotos.size === 0) return;
+
+    const ids = Array.from(selectedPhotos);
+    const success = await albumHook.removePhotos(activeAlbumId, ids);
+    if (success) {
+      setIsSelectionMode(false);
+      setSelectedPhotos(new Set());
+    }
+  }, [activeAlbumId, selectedPhotos, albumHook]);
+
   // Format storage size
   const formatStorageSize = useCallback((bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -602,6 +806,99 @@ export function PhotoAlbumScreen() {
         </Text>
       </HapticTouchable>
     </View>
+  );
+
+  // Render album card
+  const renderAlbumCard = (album: PhotoAlbum) => {
+    // Find cover photo URI
+    const coverPhoto = album.coverPhotoId
+      ? photos.find(p => p.id === album.coverPhotoId)
+      : album.photoIds.length > 0
+        ? photos.find(p => p.id === album.photoIds[0])
+        : null;
+
+    return (
+      <HapticTouchable
+        key={album.id}
+        style={[
+          styles.albumCard,
+          { width: itemSize, backgroundColor: themeColors.surface, borderColor: themeColors.border },
+        ]}
+        onPress={() => handleOpenAlbum(album.id)}
+        onLongPress={() => {
+          Alert.alert(
+            album.name,
+            '',
+            [
+              {
+                text: t('modules.photoAlbum.renameAlbum', 'Rename'),
+                onPress: () => handleRenameAlbum(album.id, album.name),
+              },
+              {
+                text: t('modules.photoAlbum.deleteAlbum', 'Delete album'),
+                style: 'destructive',
+                onPress: () => handleDeleteAlbum(album.id),
+              },
+              { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+            ],
+          );
+        }}
+        longPressGuardDisabled
+        accessibilityRole="button"
+        accessibilityLabel={`${album.name}, ${album.photoIds.length} ${t('modules.photoAlbum.photoCount', '{{count}} photos', { count: album.photoIds.length })}`}
+      >
+        {/* Cover image or placeholder */}
+        <View style={[styles.albumCover, { height: itemSize * 0.75 }]}>
+          {coverPhoto ? (
+            <Image
+              source={{ uri: coverPhoto.thumbnailUri }}
+              style={styles.albumCoverImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.albumCoverPlaceholder, { backgroundColor: themeColors.backgroundSecondary }]}>
+              <Icon name="image" size={32} color={themeColors.textSecondary} />
+            </View>
+          )}
+        </View>
+        {/* Album info */}
+        <View style={styles.albumInfo}>
+          <Text style={[styles.albumName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+            {album.name}
+          </Text>
+          <Text style={[styles.albumPhotoCount, { color: themeColors.textSecondary }]}>
+            {t('modules.photoAlbum.photoCount', '{{count}} photos', { count: album.photoIds.length })}
+          </Text>
+        </View>
+      </HapticTouchable>
+    );
+  };
+
+  // Render "New album" card
+  const renderNewAlbumCard = () => (
+    <HapticTouchable
+      key="new-album"
+      style={[
+        styles.albumCard,
+        styles.newAlbumCard,
+        { width: itemSize, borderColor: themeColors.border },
+      ]}
+      onPress={() => {
+        setNewAlbumName('');
+        setIsCreateAlbumModalVisible(true);
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={t('modules.photoAlbum.newAlbum', 'New album')}
+    >
+      <View style={[styles.albumCover, styles.newAlbumCover, { height: itemSize * 0.75, backgroundColor: themeColors.backgroundSecondary }]}>
+        <Icon name="plus" size={40} color={moduleColor} />
+      </View>
+      <View style={styles.albumInfo}>
+        <Text style={[styles.albumName, { color: moduleColor }]}>
+          {t('modules.photoAlbum.newAlbum', 'New album')}
+        </Text>
+      </View>
+    </HapticTouchable>
   );
 
   // Render photo/video grid item
@@ -652,6 +949,15 @@ export function PhotoAlbumScreen() {
           </>
         )}
 
+        {/* Sender name badge for received photos */}
+        {photo.source === 'received' && photo.senderName && activeTab === 'received' && (
+          <View style={styles.senderBadge}>
+            <Text style={styles.senderBadgeText} numberOfLines={1}>
+              {photo.senderName}
+            </Text>
+          </View>
+        )}
+
         {isSelectionMode && isSelected && (
           <View style={[styles.selectionBadge, { backgroundColor: moduleColor }]}>
             <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
@@ -688,6 +994,9 @@ export function PhotoAlbumScreen() {
     }
   }, [photoOnlyItems, viewerInitialIndex, handleCloseViewer, handleDeletePhotos]);
 
+  // Whether we're showing photos (all photos tab, or album detail)
+  const isShowingPhotos = activeTab === 'allPhotos' || (activeTab === 'albums' && activeAlbumId != null);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleHeader
@@ -696,6 +1005,114 @@ export function PhotoAlbumScreen() {
         title={t('navigation.photoAlbum', 'Photo Album')}
         showAdMob={false}
       />
+
+      {/* Album detail header (back button + album name) */}
+      {activeTab === 'albums' && activeAlbum && !isSelectionMode && (
+        <View style={[styles.albumDetailHeader, { borderBottomColor: themeColors.border }]}>
+          <HapticTouchable
+            style={styles.backButton}
+            onPress={handleBackToAlbums}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back', 'Back')}
+          >
+            <Icon name="chevron-left" size={24} color={themeColors.textPrimary} />
+          </HapticTouchable>
+          <Text style={[styles.albumDetailTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+            {activeAlbum.name}
+          </Text>
+          <HapticTouchable
+            style={styles.albumDetailAction}
+            onPress={() => {
+              Alert.alert(
+                activeAlbum.name,
+                '',
+                [
+                  {
+                    text: t('modules.photoAlbum.renameAlbum', 'Rename'),
+                    onPress: () => handleRenameAlbum(activeAlbum.id, activeAlbum.name),
+                  },
+                  {
+                    text: t('modules.photoAlbum.deleteAlbum', 'Delete album'),
+                    style: 'destructive',
+                    onPress: () => handleDeleteAlbum(activeAlbum.id),
+                  },
+                  { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+                ],
+              );
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.options', 'Options')}
+          >
+            <Icon name="settings" size={24} color={themeColors.textSecondary} />
+          </HapticTouchable>
+        </View>
+      )}
+
+      {/* Tab Bar — only when not in album detail or selection mode */}
+      {!activeAlbumId && !isSelectionMode && (
+        <View style={[styles.tabBar, { borderBottomColor: themeColors.border }]}>
+          <HapticTouchable
+            style={[
+              styles.tab,
+              activeTab === 'albums' && [styles.tabActive, { borderBottomColor: moduleColor }],
+            ]}
+            onPress={() => handleTabChange('albums')}
+            accessibilityRole="tab"
+            accessibilityLabel={t('modules.photoAlbum.albums', 'Albums')}
+            accessibilityState={{ selected: activeTab === 'albums' }}
+          >
+            <Icon name="folder" size={20} color={activeTab === 'albums' ? moduleColor : themeColors.textSecondary} />
+            <Text style={[
+              styles.tabText,
+              { color: activeTab === 'albums' ? moduleColor : themeColors.textSecondary },
+              activeTab === 'albums' && styles.tabTextActive,
+            ]}>
+              {t('modules.photoAlbum.albums', 'Albums')}
+            </Text>
+          </HapticTouchable>
+
+          <HapticTouchable
+            style={[
+              styles.tab,
+              activeTab === 'allPhotos' && [styles.tabActive, { borderBottomColor: moduleColor }],
+            ]}
+            onPress={() => handleTabChange('allPhotos')}
+            accessibilityRole="tab"
+            accessibilityLabel={t('modules.photoAlbum.allPhotos', 'All photos')}
+            accessibilityState={{ selected: activeTab === 'allPhotos' }}
+          >
+            <Icon name="image" size={20} color={activeTab === 'allPhotos' ? moduleColor : themeColors.textSecondary} />
+            <Text style={[
+              styles.tabText,
+              { color: activeTab === 'allPhotos' ? moduleColor : themeColors.textSecondary },
+              activeTab === 'allPhotos' && styles.tabTextActive,
+            ]}>
+              {t('modules.photoAlbum.allPhotos', 'All photos')}
+            </Text>
+          </HapticTouchable>
+
+          <HapticTouchable
+            style={[
+              styles.tab,
+              activeTab === 'received' && [styles.tabActive, { borderBottomColor: moduleColor }],
+            ]}
+            onPress={() => handleTabChange('received')}
+            accessibilityRole="tab"
+            accessibilityLabel={t('modules.photoAlbum.received', 'Received')}
+            accessibilityState={{ selected: activeTab === 'received' }}
+          >
+            <Icon name="download" size={20} color={activeTab === 'received' ? moduleColor : themeColors.textSecondary} />
+            <Text style={[
+              styles.tabText,
+              { color: activeTab === 'received' ? moduleColor : themeColors.textSecondary },
+              activeTab === 'received' && styles.tabTextActive,
+            ]}>
+              {t('modules.photoAlbum.received', 'Received')}
+              {receivedCount > 0 ? ` (${receivedCount})` : ''}
+            </Text>
+          </HapticTouchable>
+        </View>
+      )}
 
       {/* Selection Mode Header */}
       {isSelectionMode && (
@@ -716,8 +1133,8 @@ export function PhotoAlbumScreen() {
         </View>
       )}
 
-      {/* Storage info bar */}
-      {!isSelectionMode && photoCount > 0 && (
+      {/* Storage info bar — only in all photos view */}
+      {!isSelectionMode && activeTab === 'allPhotos' && photoCount > 0 && (
         <View style={styles.storageBar}>
           <Icon name="image" size={16} color={themeColors.textSecondary} />
           <Text style={[styles.storageText, { color: themeColors.textSecondary }]}>
@@ -729,12 +1146,13 @@ export function PhotoAlbumScreen() {
         </View>
       )}
 
-      {/* Photo Grid */}
+      {/* Content area */}
       <ScrollView
         style={styles.gridContainer}
         contentContainerStyle={[
           styles.gridContent,
-          photos.length === 0 && styles.gridContentEmpty,
+          !isShowingPhotos && albumHook.albums.length === 0 && styles.gridContentEmpty,
+          isShowingPhotos && displayPhotos.length === 0 && styles.gridContentEmpty,
         ]}
         refreshControl={
           <RefreshControl
@@ -744,10 +1162,27 @@ export function PhotoAlbumScreen() {
           />
         }
       >
-        {photos.length === 0 && !isLoading ? (
+        {activeTab === 'albums' && !activeAlbumId ? (
+          /* Albums grid view */
+          <View style={styles.grid}>
+            {albumHook.albums.map(renderAlbumCard)}
+            {renderNewAlbumCard()}
+          </View>
+        ) : activeTab === 'received' && displayPhotos.length === 0 && !isLoading ? (
+          /* Received photos empty state */
+          <View style={styles.emptyState}>
+            <Icon name="download" size={80} color={themeColors.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.photoAlbum.noReceivedPhotos', 'No received photos')}
+            </Text>
+            <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>
+              {t('modules.photoAlbum.noReceivedPhotosHint', 'Photos sent to you via chat will appear here.')}
+            </Text>
+          </View>
+        ) : isShowingPhotos && displayPhotos.length === 0 && !isLoading ? (
           renderEmptyState()
         ) : (
-          dateGroups.map((group) => (
+          displayDateGroups.map((group) => (
             <View key={group.label}>
               {/* Date section header */}
               <Text style={[styles.dateHeader, { color: themeColors.textPrimary }]}>
@@ -762,70 +1197,109 @@ export function PhotoAlbumScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View style={[styles.actionBar, { borderTopColor: themeColors.border }]}>
-        {isSelectionMode ? (
-          // Selection mode actions
-          <>
-            <HapticTouchable
-              style={[
-                styles.actionButton,
-                { backgroundColor: moduleColor },
-                selectedPhotos.size === 0 && styles.actionButtonDisabled,
-              ]}
-              onPress={handleSendPhotos}
-              hapticDisabled={selectedPhotos.size === 0}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.photoAlbum.send', 'Send')}
-              disabled={selectedPhotos.size === 0}
-            >
-              <Icon name="chat" size={24} color={themeColors.textOnPrimary} />
-              <Text style={styles.actionText}>
-                {t('modules.photoAlbum.send', 'Send')}
-              </Text>
-            </HapticTouchable>
+      {isShowingPhotos && (
+        <View style={[styles.actionBar, { borderTopColor: themeColors.border }]}>
+          {isSelectionMode ? (
+            // Selection mode actions
+            <>
+              <HapticTouchable
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: moduleColor },
+                  selectedPhotos.size === 0 && styles.actionButtonDisabled,
+                ]}
+                onPress={handleSendPhotos}
+                hapticDisabled={selectedPhotos.size === 0}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.photoAlbum.send', 'Send')}
+                disabled={selectedPhotos.size === 0}
+              >
+                <Icon name="chat" size={24} color={themeColors.textOnPrimary} />
+                <Text style={styles.actionText}>
+                  {t('modules.photoAlbum.send', 'Send')}
+                </Text>
+              </HapticTouchable>
 
-            <HapticTouchable
-              style={[
-                styles.actionButton,
-                styles.deleteButton,
-                selectedPhotos.size === 0 && styles.actionButtonDisabled,
-              ]}
-              onPress={handleDeletePhotos}
-              hapticType="warning"
-              hapticDisabled={selectedPhotos.size === 0}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.delete', 'Delete')}
-              disabled={selectedPhotos.size === 0}
-            >
-              <Icon name="trash" size={24} color={themeColors.textOnPrimary} />
-              <Text style={styles.actionText}>
-                {t('common.delete', 'Delete')}
-              </Text>
-            </HapticTouchable>
-          </>
-        ) : (
-          // Normal mode: Select button
-          <HapticTouchable
-            style={[
-              styles.actionButton,
-              { backgroundColor: moduleColor },
-              photos.length === 0 && styles.actionButtonDisabled,
-            ]}
-            onPress={handleToggleSelectionMode}
-            hapticDisabled={photos.length === 0}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.photoAlbum.select', 'Select photos')}
-            disabled={photos.length === 0}
-          >
-            <Icon name="checkmark" size={24} color={themeColors.textOnPrimary} />
-            <Text style={styles.actionText}>
-              {t('modules.photoAlbum.select', 'Select')}
-            </Text>
-          </HapticTouchable>
-        )}
-      </View>
+              {/* Add to Album button */}
+              <HapticTouchable
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: moduleColor },
+                  selectedPhotos.size === 0 && styles.actionButtonDisabled,
+                ]}
+                onPress={handleAddToAlbumPress}
+                hapticDisabled={selectedPhotos.size === 0}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.photoAlbum.addToAlbum', 'Add to album')}
+                disabled={selectedPhotos.size === 0}
+              >
+                <Icon name="folder" size={24} color={moduleColor} />
+                <Text style={[styles.actionText, { color: moduleColor }]}>
+                  {t('modules.photoAlbum.addToAlbum', 'Album')}
+                </Text>
+              </HapticTouchable>
 
-      {/* Fullscreen Photo Viewer — uses shared FullscreenImageViewer component */}
+              {/* Remove from album (only when inside an album) */}
+              {activeAlbumId ? (
+                <HapticTouchable
+                  style={[
+                    styles.actionButton,
+                    styles.deleteButton,
+                    selectedPhotos.size === 0 && styles.actionButtonDisabled,
+                  ]}
+                  onPress={handleRemoveFromAlbum}
+                  hapticType="warning"
+                  hapticDisabled={selectedPhotos.size === 0}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.photoAlbum.removeFromAlbum', 'Remove from album')}
+                  disabled={selectedPhotos.size === 0}
+                >
+                  <Icon name="x" size={24} color={themeColors.textOnPrimary} />
+                </HapticTouchable>
+              ) : (
+                <HapticTouchable
+                  style={[
+                    styles.actionButton,
+                    styles.deleteButton,
+                    selectedPhotos.size === 0 && styles.actionButtonDisabled,
+                  ]}
+                  onPress={handleDeletePhotos}
+                  hapticType="warning"
+                  hapticDisabled={selectedPhotos.size === 0}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.delete', 'Delete')}
+                  disabled={selectedPhotos.size === 0}
+                >
+                  <Icon name="trash" size={24} color={themeColors.textOnPrimary} />
+                </HapticTouchable>
+              )}
+            </>
+          ) : (
+            // Normal mode: Select button + Import button
+            <>
+              <HapticTouchable
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: moduleColor },
+                  displayPhotos.length === 0 && styles.actionButtonDisabled,
+                ]}
+                onPress={handleToggleSelectionMode}
+                hapticDisabled={displayPhotos.length === 0}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.photoAlbum.select', 'Select photos')}
+                disabled={displayPhotos.length === 0}
+              >
+                <Icon name="checkmark" size={24} color={themeColors.textOnPrimary} />
+                <Text style={styles.actionText}>
+                  {t('modules.photoAlbum.select', 'Select')}
+                </Text>
+              </HapticTouchable>
+            </>
+          )}
+        </View>
+      )}
+
+      {/* Fullscreen Photo Viewer */}
       <FullscreenImageViewer
         visible={viewerVisible}
         images={viewerImages}
@@ -844,6 +1318,171 @@ export function PhotoAlbumScreen() {
         onClose={() => setIsRecipientModalVisible(false)}
         accentColor={moduleColor}
       />
+
+      {/* Create Album Modal */}
+      <Modal
+        visible={isCreateAlbumModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setIsCreateAlbumModalVisible(false)}
+        onShow={() => {
+          // Focus the text input after modal animation
+          setTimeout(() => albumNameInputRef.current?.focus(), 300);
+        }}
+        accessibilityViewIsModal
+      >
+        <KeyboardAvoidingView
+          style={[styles.modalContainer, { backgroundColor: themeColors.background }]}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          {/* Modal header */}
+          <View style={[styles.modalHeader, { borderBottomColor: themeColors.border }]}>
+            <HapticTouchable
+              style={styles.modalCloseButton}
+              onPress={() => setIsCreateAlbumModalVisible(false)}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel', 'Cancel')}
+            >
+              <Icon name="x" size={24} color={themeColors.textPrimary} />
+            </HapticTouchable>
+            <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.photoAlbum.newAlbum', 'New album')}
+            </Text>
+            <View style={styles.modalHeaderSpacer} />
+          </View>
+
+          {/* Album name input */}
+          <View style={styles.modalContent}>
+            <Text style={[styles.modalLabel, { color: themeColors.textPrimary }]}>
+              {t('modules.photoAlbum.albumName', 'Album name')}
+            </Text>
+            <TextInput
+              ref={albumNameInputRef}
+              style={[
+                styles.modalInput,
+                {
+                  color: themeColors.textPrimary,
+                  backgroundColor: themeColors.surface,
+                  borderColor: themeColors.border,
+                },
+              ]}
+              value={newAlbumName}
+              onChangeText={setNewAlbumName}
+              placeholder={t('modules.photoAlbum.albumNamePlaceholder', 'e.g. Vacation, Family...')}
+              placeholderTextColor={themeColors.textSecondary}
+              maxLength={50}
+              returnKeyType="done"
+              onSubmitEditing={handleCreateAlbum}
+              autoCapitalize="sentences"
+            />
+
+            <HapticTouchable
+              style={[
+                styles.modalCreateButton,
+                { backgroundColor: moduleColor },
+                !newAlbumName.trim() && styles.actionButtonDisabled,
+              ]}
+              onPress={handleCreateAlbum}
+              disabled={!newAlbumName.trim()}
+              hapticDisabled={!newAlbumName.trim()}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.photoAlbum.createAlbum', 'Create album')}
+            >
+              <Icon name="plus" size={24} color={themeColors.textOnPrimary} />
+              <Text style={styles.actionText}>
+                {t('modules.photoAlbum.createAlbum', 'Create album')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Add to Album Modal */}
+      <Modal
+        visible={isAddToAlbumModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setIsAddToAlbumModalVisible(false)}
+        accessibilityViewIsModal
+      >
+        <View style={[styles.modalContainer, { backgroundColor: themeColors.background }]}>
+          {/* Modal header */}
+          <View style={[styles.modalHeader, { borderBottomColor: themeColors.border }]}>
+            <HapticTouchable
+              style={styles.modalCloseButton}
+              onPress={() => setIsAddToAlbumModalVisible(false)}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel', 'Cancel')}
+            >
+              <Icon name="x" size={24} color={themeColors.textPrimary} />
+            </HapticTouchable>
+            <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.photoAlbum.addToAlbum', 'Add to album')}
+            </Text>
+            <View style={styles.modalHeaderSpacer} />
+          </View>
+
+          {/* Album list */}
+          <ScrollView style={styles.modalContent}>
+            {/* New album option */}
+            <HapticTouchable
+              style={[styles.addToAlbumRow, { borderColor: themeColors.border }]}
+              onPress={() => {
+                setIsAddToAlbumModalVisible(false);
+                setNewAlbumName('');
+                setIsCreateAlbumModalVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.photoAlbum.newAlbum', 'New album')}
+            >
+              <View style={[styles.addToAlbumIcon, { backgroundColor: moduleColor }]}>
+                <Icon name="plus" size={24} color={themeColors.textOnPrimary} />
+              </View>
+              <Text style={[styles.addToAlbumName, { color: moduleColor }]}>
+                {t('modules.photoAlbum.newAlbum', 'New album')}
+              </Text>
+            </HapticTouchable>
+
+            {/* Existing albums */}
+            {albumHook.albums.map((album) => {
+              const coverPhoto = album.coverPhotoId
+                ? photos.find(p => p.id === album.coverPhotoId)
+                : album.photoIds.length > 0
+                  ? photos.find(p => p.id === album.photoIds[0])
+                  : null;
+
+              return (
+                <HapticTouchable
+                  key={album.id}
+                  style={[styles.addToAlbumRow, { borderColor: themeColors.border }]}
+                  onPress={() => handleAddToAlbumSelect(album.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${album.name}, ${album.photoIds.length} ${t('modules.photoAlbum.photoCount', '{{count}} photos', { count: album.photoIds.length })}`}
+                >
+                  {coverPhoto ? (
+                    <Image
+                      source={{ uri: coverPhoto.thumbnailUri }}
+                      style={styles.addToAlbumThumb}
+                    />
+                  ) : (
+                    <View style={[styles.addToAlbumIcon, { backgroundColor: themeColors.backgroundSecondary }]}>
+                      <Icon name="image" size={24} color={themeColors.textSecondary} />
+                    </View>
+                  )}
+                  <View style={styles.addToAlbumInfo}>
+                    <Text style={[styles.addToAlbumName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                      {album.name}
+                    </Text>
+                    <Text style={[styles.addToAlbumCount, { color: themeColors.textSecondary }]}>
+                      {t('modules.photoAlbum.photoCount', '{{count}} photos', { count: album.photoIds.length })}
+                    </Text>
+                  </View>
+                </HapticTouchable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </Modal>
 
       {/* Sending overlay */}
       {isSending && (
@@ -943,6 +1582,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
+  senderBadge: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+  },
+  senderBadgeText: {
+    ...typography.small,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   selectionBadge: {
     position: 'absolute',
     top: spacing.xs,
@@ -1016,6 +1670,183 @@ const styles = StyleSheet.create({
   actionText: {
     ...typography.button,
     color: '#FFFFFF',
+  },
+  // Tab bar styles
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+    minHeight: touchTargets.minimum,
+  },
+  tabActive: {
+    // borderBottomColor set inline
+  },
+  tabText: {
+    ...typography.body,
+  },
+  tabTextActive: {
+    fontWeight: '700',
+  },
+  // Album detail header
+  albumDetailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    minHeight: touchTargets.minimum,
+  },
+  backButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  albumDetailTitle: {
+    ...typography.h3,
+    fontWeight: '700',
+    flex: 1,
+    marginHorizontal: spacing.sm,
+  },
+  albumDetailAction: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Album card styles
+  albumCard: {
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
+  newAlbumCard: {
+    borderStyle: 'dashed',
+  },
+  albumCover: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  albumCoverImage: {
+    width: '100%',
+    height: '100%',
+  },
+  albumCoverPlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newAlbumCover: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  albumInfo: {
+    padding: spacing.sm,
+  },
+  albumName: {
+    ...typography.label,
+    fontWeight: '700',
+  },
+  albumPhotoCount: {
+    ...typography.small,
+    marginTop: 2,
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
+  modalCloseButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    ...typography.h3,
+    flex: 1,
+    textAlign: 'center',
+  },
+  modalHeaderSpacer: {
+    width: touchTargets.minimum,
+  },
+  modalContent: {
+    padding: spacing.lg,
+  },
+  modalLabel: {
+    ...typography.body,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  modalInput: {
+    ...typography.body,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    minHeight: touchTargets.comfortable,
+  },
+  modalCreateButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.full,
+    minHeight: touchTargets.comfortable,
+  },
+  // Add to Album modal list
+  addToAlbumRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    minHeight: touchTargets.comfortable,
+  },
+  addToAlbumIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addToAlbumThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
+  },
+  addToAlbumInfo: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  addToAlbumName: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  addToAlbumCount: {
+    ...typography.small,
+    marginTop: 2,
   },
   // Sending overlay styles
   sendingOverlay: {

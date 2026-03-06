@@ -188,6 +188,35 @@ export interface MediaQueueItem {
 }
 
 // ============================================================
+// Photo Albums
+// ============================================================
+
+/**
+ * Photo album metadata
+ * Albums are stored in AsyncStorage as lightweight metadata.
+ * Actual photos remain in DocumentDirectory/media.
+ */
+export interface PhotoAlbum {
+  /** Unique album ID (UUID v4) */
+  id: string;
+
+  /** User-defined album name */
+  name: string;
+
+  /** ID of the photo used as album cover (defaults to first photo) */
+  coverPhotoId?: string;
+
+  /** Ordered list of media IDs in this album */
+  photoIds: string[];
+
+  /** Timestamp when album was created */
+  createdAt: number;
+
+  /** Timestamp when album was last modified */
+  updatedAt: number;
+}
+
+// ============================================================
 // Compression Options
 // ============================================================
 

@@ -86,3 +86,22 @@ export {
   isQueueInitialized,
   triggerQueueProcessing,
 } from './mediaQueueService';
+
+// ============================================================
+// Album Service
+// ============================================================
+
+export {
+  // Album CRUD
+  getAlbums,
+  getAlbumById,
+  createAlbum,
+  renameAlbum,
+  deleteAlbum,
+
+  // Album photo management
+  addPhotosToAlbum,
+  removePhotosFromAlbum,
+  setAlbumCover,
+  removePhotoFromAllAlbums,
+} from './albumService';

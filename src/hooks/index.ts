@@ -38,6 +38,9 @@ export { useModuleUsage } from './useModuleUsage';
 export { useNewsArticles } from './useNewsArticles';
 export { useWeather } from './useWeather';
 
+// Media / Photo Albums
+export { usePhotoAlbums, type UsePhotoAlbumsReturn } from './usePhotoAlbums';
+
 // Siri integration
 export {
   useSiriCall,
