@@ -1698,7 +1698,10 @@
         "warningModalAlwaysAllow": "Alltid tillat for {{domain}}",
         "warningModalSettingsHint": "Du kan administrere pålitelige avsendere i Innstillinger → E-post.",
         "warningModalDismiss": "Forstått",
-        "mailBody": "E-postinnhold"
+        "mailBody": "E-postinnhold",
+        "markUnread": "Merk som ulest",
+        "markRead": "Merk som lest",
+        "replyAll": "Svar alle"
       },
       "compose": {
         "from": "Fra",
@@ -1741,7 +1744,10 @@
         "attachPhoto": "Legg ved bilde",
         "originalMessage": "Opprinnelig melding",
         "photoAccessUnavailable": "Bilder ikke tilgjengelig",
-        "photoAccessHint": "Fotobiblioteket er for øyeblikket ikke tilgjengelig."
+        "photoAccessHint": "Fotobiblioteket er for øyeblikket ikke tilgjengelig.",
+        "replyAllTitle": "Svar alle",
+        "sentSuccess": "Melding sendt",
+        "sentSuccessHint": "Trykk for å lukke"
       }
     },
     "askAI": {

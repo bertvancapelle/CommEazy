@@ -1630,7 +1630,10 @@
         "warningModalAlwaysAllow": "Zawsze zezwalaj dla {{domain}}",
         "warningModalSettingsHint": "Możesz zarządzać zaufanymi nadawcami w Ustawienia → E-mail.",
         "warningModalDismiss": "Rozumiem",
-        "mailBody": "Treść e-maila"
+        "mailBody": "Treść e-maila",
+        "markUnread": "Oznacz jako nieprzeczytane",
+        "markRead": "Oznacz jako przeczytane",
+        "replyAll": "Odpowiedz wszystkim"
       },
       "compose": {
         "from": "Od",
@@ -1673,7 +1676,10 @@
         "attachPhoto": "Załącz zdjęcie",
         "originalMessage": "Oryginalna wiadomość",
         "photoAccessUnavailable": "Zdjęcia niedostępne",
-        "photoAccessHint": "Biblioteka zdjęć jest obecnie niedostępna."
+        "photoAccessHint": "Biblioteka zdjęć jest obecnie niedostępna.",
+        "replyAllTitle": "Odpowiedz wszystkim",
+        "sentSuccess": "Wiadomość wysłana",
+        "sentSuccessHint": "Dotknij, aby zamknąć"
       }
     },
     "weather": {

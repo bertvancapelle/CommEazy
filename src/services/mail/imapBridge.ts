@@ -77,6 +77,7 @@ interface NativeMailModule {
   markAsRead(
     uid: number,
     folderName: string,
+    read: boolean,
   ): Promise<boolean>;
 
   markAsFlagged(
@@ -249,8 +250,9 @@ export async function fetchHeadersByUIDs(
 export async function markAsRead(
   uid: number,
   folderName: string,
+  read: boolean = true,
 ): Promise<boolean> {
-  return getModule().markAsRead(uid, folderName);
+  return getModule().markAsRead(uid, folderName, read);
 }
 
 /**

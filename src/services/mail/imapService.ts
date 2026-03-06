@@ -442,7 +442,7 @@ export async function syncFlagForAccount(
 
   try {
     if (flag === 'read') {
-      await imapBridge.markAsRead(uid, folder);
+      await imapBridge.markAsRead(uid, folder, value);
     } else {
       await imapBridge.markAsFlagged(uid, folder, value);
     }
@@ -487,7 +487,7 @@ export async function syncFlag(
 
   try {
     if (flag === 'read') {
-      await imapBridge.markAsRead(uid, folder);
+      await imapBridge.markAsRead(uid, folder, value);
     } else {
       await imapBridge.markAsFlagged(uid, folder, value);
     }

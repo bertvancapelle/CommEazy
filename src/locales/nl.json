@@ -1834,7 +1834,10 @@
         "warningModalAlwaysAllow": "Altijd toestaan voor {{domain}}",
         "warningModalSettingsHint": "U kunt vertrouwde afzenders beheren via Instellingen → E-mail.",
         "warningModalDismiss": "Begrepen",
-        "mailBody": "E-mail inhoud"
+        "mailBody": "E-mail inhoud",
+        "markUnread": "Markeer als ongelezen",
+        "markRead": "Markeer als gelezen",
+        "replyAll": "Allen beantwoorden"
       },
       "compose": {
         "from": "Van",
@@ -1877,7 +1880,10 @@
         "attachPhoto": "Foto bijvoegen",
         "originalMessage": "Oorspronkelijk bericht",
         "photoAccessUnavailable": "Foto's niet beschikbaar",
-        "photoAccessHint": "De fotobibliotheek is momenteel niet beschikbaar."
+        "photoAccessHint": "De fotobibliotheek is momenteel niet beschikbaar.",
+        "replyAllTitle": "Allen beantwoorden",
+        "sentSuccess": "Bericht verzonden",
+        "sentSuccessHint": "Tik om te sluiten"
       }
     },
     "askAI": {

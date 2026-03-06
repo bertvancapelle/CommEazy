@@ -1843,7 +1843,10 @@
         "warningModalAlwaysAllow": "Sempre permitir para {{domain}}",
         "warningModalSettingsHint": "Você pode gerenciar remetentes confiáveis em Configurações → E-mail.",
         "warningModalDismiss": "Entendido",
-        "mailBody": "Conteúdo do e-mail"
+        "mailBody": "Conteúdo do e-mail",
+        "markUnread": "Marcar como não lida",
+        "markRead": "Marcar como lida",
+        "replyAll": "Responder a todos"
       },
       "compose": {
         "from": "De",
@@ -1886,7 +1889,10 @@
         "attachPhoto": "Anexar foto",
         "originalMessage": "Mensagem original",
         "photoAccessUnavailable": "Fotos indisponíveis",
-        "photoAccessHint": "A biblioteca de fotos não está disponível no momento."
+        "photoAccessHint": "A biblioteca de fotos não está disponível no momento.",
+        "replyAllTitle": "Responder a todos",
+        "sentSuccess": "Mensagem enviada",
+        "sentSuccessHint": "Toque para fechar"
       }
     },
     "askAI": {

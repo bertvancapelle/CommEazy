@@ -1828,7 +1828,10 @@
         "warningModalAlwaysAllow": "Always allow for {{domain}}",
         "warningModalSettingsHint": "You can manage trusted senders in Settings → Email.",
         "warningModalDismiss": "Understood",
-        "mailBody": "Email content"
+        "mailBody": "Email content",
+        "markUnread": "Mark as unread",
+        "markRead": "Mark as read",
+        "replyAll": "Reply all"
       },
       "compose": {
         "from": "From",
@@ -1871,7 +1874,10 @@
         "attachPhoto": "Attach photo",
         "originalMessage": "Original message",
         "photoAccessUnavailable": "Photos unavailable",
-        "photoAccessHint": "The photo library is currently not available."
+        "photoAccessHint": "The photo library is currently not available.",
+        "replyAllTitle": "Reply all",
+        "sentSuccess": "Message sent",
+        "sentSuccessHint": "Tap to close"
       }
     },
     "askAI": {

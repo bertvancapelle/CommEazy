@@ -85,6 +85,7 @@ RCT_EXTERN_METHOD(fetchHeadersByUIDs:(NSString *)folderName
 
 RCT_EXTERN_METHOD(markAsRead:(NSInteger)uid
                   folderName:(NSString *)folderName
+                  read:(BOOL)read
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 

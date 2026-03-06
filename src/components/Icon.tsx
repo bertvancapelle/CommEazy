@@ -114,6 +114,7 @@ export type IconName =
   | 'navigate'
   | 'mail'
   | 'reply'
+  | 'reply-all'
   | 'forward'
   | 'attach'
   | 'document'
@@ -1937,6 +1938,28 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
         <Svg {...iconProps}>
           <Path
             d="M10 9V5L3 12L10 19V14.9C15 14.9 18.5 16.5 21 20C20 15 17 10 10 9Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'reply-all':
+      // Reply all — two stacked reply arrows
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M7 9V5L1 12L7 19V15"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+          <Path
+            d="M13 9V5L6 12L13 19V14.9C18 14.9 21.5 16.5 23 20C22 15 19 10 13 9Z"
             stroke={color}
             strokeWidth={sw}
             strokeLinecap="round"

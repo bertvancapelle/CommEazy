@@ -64,6 +64,8 @@ export interface MailDetailScreenProps {
   onBack: () => void;
   /** Open compose for reply */
   onReply?: (header: CachedMailHeader) => void;
+  /** Open compose for reply all */
+  onReplyAll?: (header: CachedMailHeader) => void;
   /** Open compose for forward */
   onForward?: (header: CachedMailHeader, body: MailBody | null) => void;
   /** Called after message is deleted */
@@ -79,6 +81,7 @@ export function MailDetailScreen({
   account,
   onBack,
   onReply,
+  onReplyAll,
   onForward,
   onDeleted,
 }: MailDetailScreenProps) {
@@ -91,6 +94,7 @@ export function MailDetailScreen({
   const [body, setBody] = useState<MailBody | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRead, setIsRead] = useState(header.isRead);
 
   // Image viewer state
   const [viewerVisible, setViewerVisible] = useState(false);
@@ -193,7 +197,7 @@ export function MailDetailScreen({
         // Mark as read
         try {
           if (!header.isRead) {
-            await imapBridge.markAsRead(header.uid, header.folder);
+            await imapBridge.markAsRead(header.uid, header.folder, true);
             const db = await mailCache.getMailCacheDb();
             await mailCache.updateReadStatus(db, account.id, header.folder, header.uid, true);
           }
@@ -374,10 +378,32 @@ export function MailDetailScreen({
     );
   }, [header.uid, header.folder, account.id, onBack, onDeleted, t]);
 
+  const handleToggleRead = useCallback(async () => {
+    const newValue = !isRead;
+    triggerHaptic('tap');
+    setIsRead(newValue);
+    try {
+      const imapBridge = await import('@/services/mail/imapBridge');
+      const mailCache = await import('@/services/mail/mailCache');
+      await imapBridge.markAsRead(header.uid, header.folder, newValue);
+      const db = await mailCache.getMailCacheDb();
+      await mailCache.updateReadStatus(db, account.id, header.folder, header.uid, newValue);
+    } catch {
+      // Revert optimistic update on failure
+      setIsRead(!newValue);
+      console.debug('[MailDetail] Failed to toggle read status');
+    }
+  }, [isRead, header.uid, header.folder, account.id, triggerHaptic]);
+
   const handleReply = useCallback(() => {
     triggerHaptic('tap');
     onReply?.(header);
   }, [header, onReply]);
+
+  const handleReplyAll = useCallback(() => {
+    triggerHaptic('tap');
+    onReplyAll?.(header);
+  }, [header, onReplyAll]);
 
   const handleForward = useCallback(() => {
     triggerHaptic('tap');
@@ -410,18 +436,39 @@ export function MailDetailScreen({
           </Text>
         </TouchableOpacity>
 
-        {/* Delete button */}
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-          onPress={handleDelete}
-          onLongPress={() => {}}
-          delayLongPress={300}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.delete')}
-        >
-          <Icon name="trash" size={22} color={themeColors.error} />
-        </TouchableOpacity>
+        <View style={styles.topBarRight}>
+          {/* Read/Unread toggle */}
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={handleToggleRead}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={isRead
+              ? t('modules.mail.detail.markUnread')
+              : t('modules.mail.detail.markRead')}
+          >
+            <Icon
+              name={isRead ? 'mail' : 'mail'}
+              size={22}
+              color={isRead ? themeColors.textSecondary : accentColor.primary}
+            />
+          </TouchableOpacity>
+
+          {/* Delete button */}
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={handleDelete}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.delete')}
+          >
+            <Icon name="trash" size={22} color={themeColors.error} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Body content */}
@@ -625,6 +672,24 @@ export function MailDetailScreen({
           </Text>
         </TouchableOpacity>
 
+        {/* Reply All — only when multiple recipients */}
+        {header.to && header.to.length > 1 && (
+          <TouchableOpacity
+            style={[styles.bottomAction, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={handleReplyAll}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.detail.replyAll')}
+          >
+            <Icon name="reply-all" size={22} color={accentColor.primary} />
+            <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
+              {t('modules.mail.detail.replyAll')}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={[styles.bottomAction, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={handleForward}
@@ -672,6 +737,11 @@ const styles = StyleSheet.create({
   backText: {
     ...typography.body,
     fontWeight: '600',
+  },
+  topBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   actionButton: {
     minWidth: touchTargets.minimum,

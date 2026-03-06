@@ -1824,7 +1824,10 @@
         "warningModalAlwaysAllow": "Immer erlauben für {{domain}}",
         "warningModalSettingsHint": "Sie können vertrauenswürdige Absender unter Einstellungen → E-Mail verwalten.",
         "warningModalDismiss": "Verstanden",
-        "mailBody": "E-Mail-Inhalt"
+        "mailBody": "E-Mail-Inhalt",
+        "markUnread": "Als ungelesen markieren",
+        "markRead": "Als gelesen markieren",
+        "replyAll": "Allen antworten"
       },
       "compose": {
         "from": "Von",
@@ -1867,7 +1870,10 @@
         "attachPhoto": "Foto anhängen",
         "originalMessage": "Ursprüngliche Nachricht",
         "photoAccessUnavailable": "Fotos nicht verfügbar",
-        "photoAccessHint": "Die Fotobibliothek ist derzeit nicht verfügbar."
+        "photoAccessHint": "Die Fotobibliothek ist derzeit nicht verfügbar.",
+        "replyAllTitle": "Allen antworten",
+        "sentSuccess": "Nachricht gesendet",
+        "sentSuccessHint": "Tippen zum Schließen"
       }
     },
     "askAI": {

@@ -57,12 +57,13 @@ import {
   getMailableContacts,
 } from '@/services/mail/contactMailService';
 import type { Contact } from '@/services/interfaces';
+import { SendConfirmationOverlay } from './SendConfirmationOverlay';
 
 // ============================================================
 // Types
 // ============================================================
 
-export type ComposeMode = 'new' | 'reply' | 'forward';
+export type ComposeMode = 'new' | 'reply' | 'replyAll' | 'forward';
 
 export interface MailComposeScreenProps {
   /** Current account for sending */
@@ -86,16 +87,37 @@ export interface MailComposeScreenProps {
 function getInitialRecipients(
   mode: ComposeMode,
   header?: CachedMailHeader,
+  accountEmail?: string,
 ): MailRecipient[] {
-  if (mode === 'reply' && header) {
+  if ((mode === 'reply' || mode === 'replyAll') && header) {
     const parsed = parseEmailAddress(header.from);
-    return [
+    const recipients: MailRecipient[] = [
       {
         email: parsed.address,
         name: parsed.name,
         isFromContacts: false,
       },
     ];
+
+    // For Reply All, add all To recipients (excluding self and sender)
+    if (mode === 'replyAll') {
+      const addedEmails = new Set([parsed.address.toLowerCase()]);
+      if (accountEmail) addedEmails.add(accountEmail.toLowerCase());
+
+      for (const addr of header.to) {
+        const toParsed = parseEmailAddress(addr);
+        if (!addedEmails.has(toParsed.address.toLowerCase())) {
+          addedEmails.add(toParsed.address.toLowerCase());
+          recipients.push({
+            email: toParsed.address,
+            name: toParsed.name,
+            isFromContacts: false,
+          });
+        }
+      }
+    }
+
+    return recipients;
   }
   return [];
 }
@@ -107,7 +129,7 @@ function getInitialSubject(
   if (!header) return '';
   const subject = header.subject || '';
 
-  if (mode === 'reply') {
+  if (mode === 'reply' || mode === 'replyAll') {
     if (subject.toLowerCase().startsWith('re:')) return subject;
     return `Re: ${subject}`;
   }
@@ -126,7 +148,7 @@ function getInitialBody(
   body?: MailBody | null,
   t?: (key: string, opts?: Record<string, string>) => string,
 ): string {
-  if (mode === 'reply' && header) {
+  if ((mode === 'reply' || mode === 'replyAll') && header) {
     const senderParsed = parseEmailAddress(header.from);
     const senderDisplay = senderParsed.name || senderParsed.address;
     return `\n\n${t?.('modules.mail.compose.replyPrefix', { sender: senderDisplay }) || `On ${header.date}, ${senderDisplay} wrote:`}\n`;
@@ -601,7 +623,7 @@ export function MailComposeScreen({
 
   // Form state
   const [toRecipients, setToRecipients] = useState<MailRecipient[]>(
-    getInitialRecipients(mode, originalHeader),
+    getInitialRecipients(mode, originalHeader, account.email),
   );
   const [ccRecipients, setCcRecipients] = useState<MailRecipient[]>([]);
   const [bccRecipients, setBccRecipients] = useState<MailRecipient[]>([]);
@@ -609,6 +631,7 @@ export function MailComposeScreen({
   const [subject, setSubject] = useState(getInitialSubject(mode, originalHeader));
   const [body, setBody] = useState(getInitialBody(mode, originalHeader, originalBody, t));
   const [isSending, setIsSending] = useState(false);
+  const [showSentConfirmation, setShowSentConfirmation] = useState(false);
   const [attachments, setAttachments] = useState<MailAttachment[]>([]);
   const [showAlbumPicker, setShowAlbumPicker] = useState(false);
 
@@ -809,8 +832,8 @@ export function MailComposeScreen({
         attachments: sendAttachments,
       });
 
-      onSent?.();
-      onClose();
+      // Show confirmation overlay — it auto-dismisses after 2 seconds
+      setShowSentConfirmation(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       Alert.alert(
@@ -837,6 +860,16 @@ export function MailComposeScreen({
     onSent,
     t,
   ]);
+
+  // ============================================================
+  // Send Confirmation Dismiss
+  // ============================================================
+
+  const handleSentConfirmationDismiss = useCallback(() => {
+    setShowSentConfirmation(false);
+    onSent?.();
+    onClose();
+  }, [onSent, onClose]);
 
   // ============================================================
   // Close with Draft Warning
@@ -932,9 +965,11 @@ export function MailComposeScreen({
   const title =
     mode === 'reply'
       ? t('modules.mail.compose.replyTitle')
-      : mode === 'forward'
-        ? t('modules.mail.compose.forwardTitle')
-        : t('modules.mail.compose.newTitle');
+      : mode === 'replyAll'
+        ? t('modules.mail.compose.replyAllTitle')
+        : mode === 'forward'
+          ? t('modules.mail.compose.forwardTitle')
+          : t('modules.mail.compose.newTitle');
 
   // ============================================================
   // Render
@@ -1170,6 +1205,11 @@ export function MailComposeScreen({
         />
       )}
     </KeyboardAvoidingView>
+
+    {/* Send confirmation overlay — shown after successful send */}
+    {showSentConfirmation && (
+      <SendConfirmationOverlay onDismiss={handleSentConfirmationDismiss} />
+    )}
     </SafeAreaView>
   );
 }

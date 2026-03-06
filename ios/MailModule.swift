@@ -545,13 +545,14 @@ class MailModule: RCTEventEmitter {
         }
     }
 
-    // MARK: - IMAP: Mark as Read
+    // MARK: - IMAP: Mark as Read/Unread
 
-    /// Mark a message as read by UID
-    @objc(markAsRead:folderName:resolve:reject:)
+    /// Set or clear the \Seen flag on a message
+    @objc(markAsRead:folderName:read:resolve:reject:)
     func markAsRead(
         _ uid: Int,
         folderName: String,
+        read: Bool,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -569,7 +570,7 @@ class MailModule: RCTEventEmitter {
                 try await imap.store(
                     flags: [.seen],
                     on: identifierSet,
-                    operation: .add
+                    operation: read ? .add : .remove
                 )
 
                 resolve(true)

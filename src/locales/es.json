@@ -1824,7 +1824,10 @@
         "warningModalAlwaysAllow": "Permitir siempre para {{domain}}",
         "warningModalSettingsHint": "Puede gestionar los remitentes de confianza en Ajustes → Correo electrónico.",
         "warningModalDismiss": "Entendido",
-        "mailBody": "Contenido del correo"
+        "mailBody": "Contenido del correo",
+        "markUnread": "Marcar como no leído",
+        "markRead": "Marcar como leído",
+        "replyAll": "Responder a todos"
       },
       "compose": {
         "from": "De",
@@ -1867,7 +1870,10 @@
         "attachPhoto": "Adjuntar foto",
         "originalMessage": "Mensaje original",
         "photoAccessUnavailable": "Fotos no disponibles",
-        "photoAccessHint": "La biblioteca de fotos no está disponible actualmente."
+        "photoAccessHint": "La biblioteca de fotos no está disponible actualmente.",
+        "replyAllTitle": "Responder a todos",
+        "sentSuccess": "Mensaje enviado",
+        "sentSuccessHint": "Toca para cerrar"
       }
     },
     "askAI": {

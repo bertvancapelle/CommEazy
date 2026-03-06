@@ -166,6 +166,10 @@ export function MailScreen() {
     setCurrentView({ type: 'compose', mode: 'reply', originalHeader: header });
   }, []);
 
+  const handleReplyAll = useCallback((header: CachedMailHeader) => {
+    setCurrentView({ type: 'compose', mode: 'replyAll', originalHeader: header });
+  }, []);
+
   const handleForward = useCallback((header: CachedMailHeader, body: MailBody | null) => {
     setCurrentView({ type: 'compose', mode: 'forward', originalHeader: header, originalBody: body });
   }, []);
@@ -268,6 +272,7 @@ export function MailScreen() {
         account={account}
         onBack={handleBackToInbox}
         onReply={handleReply}
+        onReplyAll={handleReplyAll}
         onForward={handleForward}
         onDeleted={handleMailDeleted}
       />

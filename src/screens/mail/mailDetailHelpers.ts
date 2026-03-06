@@ -258,6 +258,87 @@ ${bodyContent}
 }
 
 // ============================================================
+// Folder Name Normalization
+// ============================================================
+
+/**
+ * Known folder name mappings from various providers to normalized keys.
+ * These keys match the i18n keys in modules.mail.inbox.folders.*
+ *
+ * Gmail:    [Gmail]/Sent Mail, [Gmail]/Drafts, [Gmail]/Trash, [Gmail]/Spam
+ * Outlook:  Sent Items, Deleted Items, Junk Email
+ * Yahoo:    Sent, Draft, Trash, Bulk Mail
+ * Generic:  Sent, Drafts, Trash, Junk, Archive, Spam
+ */
+const FOLDER_NAME_MAPPING: Record<string, string> = {
+  // Sent folder variants
+  'sent mail': 'sent',
+  'sent items': 'sent',
+  'sent messages': 'sent',
+  'verzonden items': 'sent',
+  'verzonden': 'sent',
+  'envoy\u00e9s': 'sent',
+  'gesendet': 'sent',
+  'enviados': 'sent',
+  'inviati': 'sent',
+  // Draft folder variants
+  'draft': 'drafts',
+  'draft messages': 'drafts',
+  'concepten': 'drafts',
+  'brouillons': 'drafts',
+  'entw\u00fcrfe': 'drafts',
+  'borradores': 'drafts',
+  'bozze': 'drafts',
+  // Trash folder variants
+  'deleted items': 'trash',
+  'deleted messages': 'trash',
+  'prullenbak': 'trash',
+  'corbeille': 'trash',
+  'papierkorb': 'trash',
+  'papelera': 'trash',
+  'cestino': 'trash',
+  'bin': 'trash',
+  // Junk/Spam folder variants
+  'junk email': 'junk',
+  'junk e-mail': 'junk',
+  'bulk mail': 'spam',
+  'courrier ind\u00e9sirable': 'spam',
+  'spamverdacht': 'spam',
+  'ongewenst': 'junk',
+};
+
+/**
+ * Normalize a folder name to an i18n key.
+ *
+ * Strips provider prefixes like "[Gmail]/" and looks up known aliases.
+ * Falls back to the last path component for display.
+ *
+ * @param folderName - Raw IMAP folder name (e.g. "[Gmail]/Sent Mail")
+ * @returns Normalized key matching modules.mail.inbox.folders.* (e.g. "sent")
+ */
+export function normalizeFolderName(folderName: string): string {
+  // Strip provider prefixes: [Gmail]/, [Google Mail]/, INBOX., etc.
+  const stripped = folderName
+    .replace(/^\[.*?\][/.]/, '')
+    .replace(/^INBOX[/.]/, '');
+
+  // Check exact match first (case-insensitive)
+  const lowerStripped = stripped.toLowerCase();
+  if (FOLDER_NAME_MAPPING[lowerStripped]) {
+    return FOLDER_NAME_MAPPING[lowerStripped];
+  }
+
+  // Check last path component (for nested folders like "Folders/Sent")
+  const lastComponent = stripped.replace(/^.*[/.]/, '');
+  const lowerLast = lastComponent.toLowerCase();
+  if (FOLDER_NAME_MAPPING[lowerLast]) {
+    return FOLDER_NAME_MAPPING[lowerLast];
+  }
+
+  return lowerLast;
+}
+
+// ============================================================
 // Attachment Icon Helper
 // ============================================================
 

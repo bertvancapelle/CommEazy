@@ -35,6 +35,7 @@ import { Icon, SearchBar, LoadingView, ErrorView } from '@/components';
 import type { CachedMailHeader, MailAccount, MailboxInfo } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { MailListItem } from './MailListItem';
+import { normalizeFolderName } from './mailDetailHelpers';
 
 // ============================================================
 // Types
@@ -66,20 +67,22 @@ const FOLDER_ICONS: Record<string, string> = {
 };
 
 function getFolderIcon(folderName: string): string {
-  // Normalize folder name for matching
-  const normalized = folderName.replace(/^.*[/.]/, '');
-  return FOLDER_ICONS[normalized] || 'folder';
+  // Use normalized name to match known folder types
+  const normalized = normalizeFolderName(folderName);
+  // Map normalized keys to icon names (capitalize first letter for FOLDER_ICONS lookup)
+  const capitalized = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  return FOLDER_ICONS[capitalized] || FOLDER_ICONS[normalized] || 'folder';
 }
 
 function getFolderDisplayName(
   folderName: string,
   t: (key: string, opts?: Record<string, string>) => string,
 ): string {
-  const normalized = folderName.replace(/^.*[/.]/, '');
-  const key = `modules.mail.inbox.folders.${normalized.toLowerCase()}`;
+  const normalized = normalizeFolderName(folderName);
+  const key = `modules.mail.inbox.folders.${normalized}`;
   const translated = t(key);
-  // If translation is the key itself, use the original folder name
-  if (translated === key) return normalized;
+  // If translation is the key itself, use the raw last component
+  if (translated === key) return folderName.replace(/^.*[/.]/, '');
   return translated;
 }
 

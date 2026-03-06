@@ -1772,7 +1772,10 @@
         "warningModalAlwaysAllow": "Consenti sempre per {{domain}}",
         "warningModalSettingsHint": "Puoi gestire i mittenti attendibili in Impostazioni → E-mail.",
         "warningModalDismiss": "Capito",
-        "mailBody": "Contenuto dell'email"
+        "mailBody": "Contenuto dell'email",
+        "markUnread": "Segna come non letto",
+        "markRead": "Segna come letto",
+        "replyAll": "Rispondi a tutti"
       },
       "compose": {
         "from": "Da",
@@ -1815,7 +1818,10 @@
         "attachPhoto": "Allega foto",
         "originalMessage": "Messaggio originale",
         "photoAccessUnavailable": "Foto non disponibili",
-        "photoAccessHint": "La libreria fotografica non è attualmente disponibile."
+        "photoAccessHint": "La libreria fotografica non è attualmente disponibile.",
+        "replyAllTitle": "Rispondi a tutti",
+        "sentSuccess": "Messaggio inviato",
+        "sentSuccessHint": "Tocca per chiudere"
       }
     },
     "askAI": {

@@ -1668,7 +1668,10 @@
         "warningModalAlwaysAllow": "Tillåt alltid för {{domain}}",
         "warningModalSettingsHint": "Du kan hantera betrodda avsändare i Inställningar → E-post.",
         "warningModalDismiss": "Förstått",
-        "mailBody": "E-postinnehåll"
+        "mailBody": "E-postinnehåll",
+        "markUnread": "Markera som oläst",
+        "markRead": "Markera som läst",
+        "replyAll": "Svara alla"
       },
       "compose": {
         "from": "Från",
@@ -1711,7 +1714,10 @@
         "attachPhoto": "Bifoga foto",
         "originalMessage": "Ursprungligt meddelande",
         "photoAccessUnavailable": "Foton inte tillgängliga",
-        "photoAccessHint": "Fotobiblioteket är för närvarande inte tillgängligt."
+        "photoAccessHint": "Fotobiblioteket är för närvarande inte tillgängligt.",
+        "replyAllTitle": "Svara alla",
+        "sentSuccess": "Meddelande skickat",
+        "sentSuccessHint": "Tryck för att stänga"
       }
     },
     "askAI": {

@@ -1668,7 +1668,10 @@
         "warningModalAlwaysAllow": "Tillad altid for {{domain}}",
         "warningModalSettingsHint": "Du kan administrere betroede afsendere i Indstillinger → E-mail.",
         "warningModalDismiss": "Forstået",
-        "mailBody": "E-mailindhold"
+        "mailBody": "E-mailindhold",
+        "markUnread": "Markér som ulæst",
+        "markRead": "Markér som læst",
+        "replyAll": "Svar alle"
       },
       "compose": {
         "from": "Fra",
@@ -1711,7 +1714,10 @@
         "attachPhoto": "Vedhæft foto",
         "originalMessage": "Oprindelig besked",
         "photoAccessUnavailable": "Fotos ikke tilgængelige",
-        "photoAccessHint": "Fotobiblioteket er i øjeblikket ikke tilgængeligt."
+        "photoAccessHint": "Fotobiblioteket er i øjeblikket ikke tilgængeligt.",
+        "replyAllTitle": "Svar alle",
+        "sentSuccess": "Besked sendt",
+        "sentSuccessHint": "Tryk for at lukke"
       }
     },
     "askAI": {
