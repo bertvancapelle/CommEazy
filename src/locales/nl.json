@@ -304,6 +304,43 @@
       "selectYear": "Kies een jaar",
       "clear": "Wissen",
       "chooseDate": "Kies een datum"
+    },
+    "iceToggle": "Noodcontact (ICE)",
+    "iceToggleHint": "Markeer als noodcontact voor noodsituaties",
+    "iceDescription": "Zichtbaar bij noodoproepen",
+    "smartSections": {
+      "ice": "Noodcontacten",
+      "birthdays": "Verjaardagen",
+      "frequentCalls": "Vaak gebeld",
+      "longNoContact": "Lang niet gesproken",
+      "recentlyAdded": "Recent toegevoegd"
+    },
+    "groups": {
+      "all": "Alle",
+      "title": "Groepen",
+      "createGroup": "Nieuw",
+      "groupName": "Groepsnaam",
+      "groupNamePlaceholder": "bijv. Familie, Vrienden...",
+      "chooseEmoji": "Kies een icoon",
+      "selectContacts": "Selecteer contacten",
+      "deleteGroup": "Groep verwijderen",
+      "deleteGroupConfirm": "Weet je zeker dat je de groep '{{name}}' wilt verwijderen? De contacten blijven behouden.",
+      "renameGroup": "Hernoemen",
+      "changeEmoji": "Icoon wijzigen",
+      "manageMembers": "Leden beheren",
+      "noGroups": "Niet in een groep",
+      "addToGroup": "Toevoegen aan groep",
+      "addTo": "Toevoegen aan {{group}}",
+      "removeFrom": "Verwijderen uit {{group}}",
+      "alreadyInAll": "Al in alle groepen",
+      "memberCount": "{{count}} leden",
+      "groupActionsToolbar": "Groepsacties voor {{group}}, {{count}} leden",
+      "groupActions": {
+        "sendPhoto": "Foto",
+        "sendMessage": "Bericht",
+        "sendMail": "Mail",
+        "callMember": "Bellen"
+      }
     }
   },
   "settings": {

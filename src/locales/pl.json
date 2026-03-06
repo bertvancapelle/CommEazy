@@ -382,6 +382,43 @@
       "selectYear": "Wybierz rok",
       "clear": "Wyczyść",
       "chooseDate": "Wybierz datę"
+    },
+    "iceToggle": "Kontakt alarmowy (ICE)",
+    "iceToggleHint": "Oznacz jako kontakt alarmowy",
+    "iceDescription": "Widoczny przy połączeniach alarmowych",
+    "smartSections": {
+      "ice": "Kontakty alarmowe",
+      "birthdays": "Urodziny",
+      "frequentCalls": "Często dzwonione",
+      "longNoContact": "Dawno bez kontaktu",
+      "recentlyAdded": "Ostatnio dodane"
+    },
+    "groups": {
+      "all": "Wszystkie",
+      "title": "Grupy",
+      "createGroup": "Nowa",
+      "groupName": "Nazwa grupy",
+      "groupNamePlaceholder": "np. Rodzina, Przyjaciele...",
+      "chooseEmoji": "Wybierz ikonę",
+      "selectContacts": "Wybierz kontakty",
+      "deleteGroup": "Usuń grupę",
+      "deleteGroupConfirm": "Czy na pewno chcesz usunąć grupę '{{name}}'? Kontakty zostaną zachowane.",
+      "renameGroup": "Zmień nazwę",
+      "changeEmoji": "Zmień ikonę",
+      "manageMembers": "Zarządzaj członkami",
+      "noGroups": "Brak grupy",
+      "addToGroup": "Dodaj do grupy",
+      "addTo": "Dodaj do {{group}}",
+      "removeFrom": "Usuń z {{group}}",
+      "alreadyInAll": "Już we wszystkich grupach",
+      "memberCount": "{{count}} członków",
+      "groupActionsToolbar": "Akcje grupowe dla {{group}}, {{count}} członków",
+      "groupActions": {
+        "sendPhoto": "Zdjęcie",
+        "sendMessage": "Wiadomość",
+        "sendMail": "E-mail",
+        "callMember": "Zadzwoń"
+      }
     }
   },
   "settings": {

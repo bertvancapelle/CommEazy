@@ -392,6 +392,43 @@
       "selectYear": "Velg år",
       "clear": "Tøm",
       "chooseDate": "Velg en dato"
+    },
+    "iceToggle": "Nødkontakt (ICE)",
+    "iceToggleHint": "Merk som nødkontakt for nødsituasjoner",
+    "iceDescription": "Synlig ved nødanrop",
+    "smartSections": {
+      "ice": "Nødkontakter",
+      "birthdays": "Bursdager",
+      "frequentCalls": "Ofte ringt",
+      "longNoContact": "Lenge siden kontakt",
+      "recentlyAdded": "Nylig lagt til"
+    },
+    "groups": {
+      "all": "Alle",
+      "title": "Grupper",
+      "createGroup": "Ny",
+      "groupName": "Gruppenavn",
+      "groupNamePlaceholder": "f.eks. Familie, Venner...",
+      "chooseEmoji": "Velg et ikon",
+      "selectContacts": "Velg kontakter",
+      "deleteGroup": "Slett gruppe",
+      "deleteGroupConfirm": "Er du sikker på at du vil slette gruppen '{{name}}'? Kontaktene beholdes.",
+      "renameGroup": "Gi nytt navn",
+      "changeEmoji": "Endre ikon",
+      "manageMembers": "Administrer medlemmer",
+      "noGroups": "Ikke i en gruppe",
+      "addToGroup": "Legg til i gruppe",
+      "addTo": "Legg til i {{group}}",
+      "removeFrom": "Fjern fra {{group}}",
+      "alreadyInAll": "Allerede i alle grupper",
+      "memberCount": "{{count}} medlemmer",
+      "groupActionsToolbar": "Gruppehandlinger for {{group}}, {{count}} medlemmer",
+      "groupActions": {
+        "sendPhoto": "Bilde",
+        "sendMessage": "Melding",
+        "sendMail": "E-post",
+        "callMember": "Ring"
+      }
     }
   },
   "settings": {

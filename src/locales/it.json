@@ -465,6 +465,43 @@
       "selectYear": "Seleziona anno",
       "clear": "Cancella",
       "chooseDate": "Scegli una data"
+    },
+    "iceToggle": "Contatto di emergenza (ICE)",
+    "iceToggleHint": "Segna come contatto di emergenza",
+    "iceDescription": "Visibile durante le chiamate di emergenza",
+    "smartSections": {
+      "ice": "Contatti di emergenza",
+      "birthdays": "Compleanni",
+      "frequentCalls": "Chiamate frequenti",
+      "longNoContact": "Non contattati da tempo",
+      "recentlyAdded": "Aggiunti di recente"
+    },
+    "groups": {
+      "all": "Tutti",
+      "title": "Gruppi",
+      "createGroup": "Nuovo",
+      "groupName": "Nome del gruppo",
+      "groupNamePlaceholder": "es. Famiglia, Amici...",
+      "chooseEmoji": "Scegli un'icona",
+      "selectContacts": "Seleziona contatti",
+      "deleteGroup": "Elimina gruppo",
+      "deleteGroupConfirm": "Sei sicuro di voler eliminare il gruppo '{{name}}'? I contatti verranno mantenuti.",
+      "renameGroup": "Rinomina",
+      "changeEmoji": "Cambia icona",
+      "manageMembers": "Gestisci membri",
+      "noGroups": "Non in un gruppo",
+      "addToGroup": "Aggiungi al gruppo",
+      "addTo": "Aggiungi a {{group}}",
+      "removeFrom": "Rimuovi da {{group}}",
+      "alreadyInAll": "Già in tutti i gruppi",
+      "memberCount": "{{count}} membri",
+      "groupActionsToolbar": "Azioni di gruppo per {{group}}, {{count}} membri",
+      "groupActions": {
+        "sendPhoto": "Foto",
+        "sendMessage": "Messaggio",
+        "sendMail": "E-mail",
+        "callMember": "Chiama"
+      }
     }
   },
   "settings": {

@@ -467,6 +467,43 @@
       "selectYear": "Select a year",
       "clear": "Clear",
       "chooseDate": "Choose a date"
+    },
+    "iceToggle": "Emergency Contact (ICE)",
+    "iceToggleHint": "Mark as emergency contact for emergencies",
+    "iceDescription": "Visible during emergency calls",
+    "smartSections": {
+      "ice": "Emergency Contacts",
+      "birthdays": "Birthdays",
+      "frequentCalls": "Frequently Called",
+      "longNoContact": "Long No Contact",
+      "recentlyAdded": "Recently Added"
+    },
+    "groups": {
+      "all": "All",
+      "title": "Groups",
+      "createGroup": "New",
+      "groupName": "Group name",
+      "groupNamePlaceholder": "e.g. Family, Friends...",
+      "chooseEmoji": "Choose an icon",
+      "selectContacts": "Select contacts",
+      "deleteGroup": "Delete group",
+      "deleteGroupConfirm": "Are you sure you want to delete the group '{{name}}'? The contacts will be kept.",
+      "renameGroup": "Rename",
+      "changeEmoji": "Change icon",
+      "manageMembers": "Manage members",
+      "noGroups": "Not in a group",
+      "addToGroup": "Add to group",
+      "addTo": "Add to {{group}}",
+      "removeFrom": "Remove from {{group}}",
+      "alreadyInAll": "Already in all groups",
+      "memberCount": "{{count}} members",
+      "groupActionsToolbar": "Group actions for {{group}}, {{count}} members",
+      "groupActions": {
+        "sendPhoto": "Photo",
+        "sendMessage": "Message",
+        "sendMail": "Mail",
+        "callMember": "Call"
+      }
     }
   },
   "settings": {

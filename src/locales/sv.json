@@ -362,6 +362,43 @@
       "selectYear": "Välj år",
       "clear": "Rensa",
       "chooseDate": "Välj ett datum"
+    },
+    "iceToggle": "Nödkontakt (ICE)",
+    "iceToggleHint": "Markera som nödkontakt för nödsituationer",
+    "iceDescription": "Synlig vid nödsamtal",
+    "smartSections": {
+      "ice": "Nödkontakter",
+      "birthdays": "Födelsedagar",
+      "frequentCalls": "Ofta ringda",
+      "longNoContact": "Länge sedan kontakt",
+      "recentlyAdded": "Nyligen tillagda"
+    },
+    "groups": {
+      "all": "Alla",
+      "title": "Grupper",
+      "createGroup": "Ny",
+      "groupName": "Gruppnamn",
+      "groupNamePlaceholder": "t.ex. Familj, Vänner...",
+      "chooseEmoji": "Välj en ikon",
+      "selectContacts": "Välj kontakter",
+      "deleteGroup": "Ta bort grupp",
+      "deleteGroupConfirm": "Är du säker på att du vill ta bort gruppen '{{name}}'? Kontakterna behålls.",
+      "renameGroup": "Byt namn",
+      "changeEmoji": "Ändra ikon",
+      "manageMembers": "Hantera medlemmar",
+      "noGroups": "Inte i en grupp",
+      "addToGroup": "Lägg till i grupp",
+      "addTo": "Lägg till i {{group}}",
+      "removeFrom": "Ta bort från {{group}}",
+      "alreadyInAll": "Redan i alla grupper",
+      "memberCount": "{{count}} medlemmar",
+      "groupActionsToolbar": "Gruppåtgärder för {{group}}, {{count}} medlemmar",
+      "groupActions": {
+        "sendPhoto": "Foto",
+        "sendMessage": "Meddelande",
+        "sendMail": "E-post",
+        "callMember": "Ring"
+      }
     }
   },
   "settings": {
