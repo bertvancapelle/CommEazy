@@ -121,6 +121,7 @@ export function SettingsMainScreen() {
     { id: 'modules', label: t('settings.modules.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('ModulesSettings'); } },
     { id: 'call-settings', label: t('callSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('CallSettings'); } },
     { id: 'mail-settings', label: t('mailSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('MailSettings'); } },
+    { id: 'apple-music-settings', label: t('appleMusicSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AppleMusicSettings'); } },
     { id: 'notifications', label: t('settings.notifications'), onSelect: () => {
       void triggerFeedback('tap');
       Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
@@ -434,11 +435,30 @@ export function SettingsMainScreen() {
           />
         </VoiceFocusable>
 
+        {/* Apple Music instellingen */}
+        <VoiceFocusable
+          id="apple-music-settings"
+          label={t('appleMusicSettings.title')}
+          index={8}
+          onSelect={() => navigation.navigate('AppleMusicSettings')}
+        >
+          <SubsectionButton
+            icon="musical-notes"
+            label={t('appleMusicSettings.title')}
+            onPress={() => navigation.navigate('AppleMusicSettings')}
+            accessibilityHint={t('appleMusicSettings.screenHint')}
+            iconColor={accentColor.primary}
+            focused={isItemFocused('apple-music-settings')}
+            focusStyle={getFocusStyle()}
+            themeColors={themeColors}
+          />
+        </VoiceFocusable>
+
         {/* Meldingen - TODO: Create NotificationsSettingsScreen */}
         <VoiceFocusable
           id="notifications"
           label={t('settings.notifications')}
-          index={8}
+          index={9}
           onSelect={() => {
             Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
           }}
@@ -465,7 +485,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="backup"
           label={t('settings.backup')}
-          index={9}
+          index={10}
           onSelect={() => navigation.navigate('BackupSettings')}
         >
           <SubsectionButton
@@ -484,7 +504,7 @@ export function SettingsMainScreen() {
         <VoiceFocusable
           id="device-link"
           label={t('settings.deviceLink')}
-          index={10}
+          index={11}
           onSelect={() => navigation.navigate('DeviceLinkShowQR')}
         >
           <SubsectionButton

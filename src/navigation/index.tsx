@@ -99,6 +99,7 @@ export type SettingsStackParams = {
   PiperTtsTest: undefined;  // DEV: Test screen for Piper TTS
   MailSettings: undefined;  // E-mail module settings (Fase 9)
   MailOnboarding: undefined;  // E-mail account setup wizard
+  AppleMusicSettings: undefined;  // Apple Music sync settings
 };
 
 // MainTabParams removed — tab navigation replaced by PaneContext

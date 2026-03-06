@@ -33,6 +33,8 @@ export {
   getLinkedCollections,
   getCollectionByPlaylistId,
   syncCollection,
+  deleteAllLinkedCollections,
+  getLastSyncTimestamp,
 } from './musicCollectionService';
 export type { MusicCollection } from './musicCollectionService';
 

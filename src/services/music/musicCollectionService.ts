@@ -325,3 +325,33 @@ export async function syncCollection(
   });
   return true;
 }
+
+/**
+ * Delete all collections that were imported from Apple Music playlists.
+ * Songs are NOT removed from favorites — only the collection metadata.
+ * Returns the number of collections deleted.
+ */
+export async function deleteAllLinkedCollections(): Promise<number> {
+  const collections = await readCollections();
+  const linked = collections.filter(c => !!c.sourcePlaylistId);
+  const remaining = collections.filter(c => !c.sourcePlaylistId);
+
+  if (linked.length === 0) return 0;
+
+  await writeCollections(remaining);
+  console.debug(LOG_PREFIX, 'All linked collections deleted', { count: linked.length });
+  return linked.length;
+}
+
+/**
+ * Get the most recent lastSyncedAt timestamp across all linked collections.
+ * Returns null if no linked collections exist or none have been synced.
+ */
+export async function getLastSyncTimestamp(): Promise<number | null> {
+  const collections = await readCollections();
+  const linked = collections.filter(c => !!c.sourcePlaylistId && !!c.lastSyncedAt);
+
+  if (linked.length === 0) return null;
+
+  return Math.max(...linked.map(c => c.lastSyncedAt!));
+}

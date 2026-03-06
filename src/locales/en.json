@@ -656,6 +656,27 @@
       "domainRemoved": "{{domain}} removed"
     }
   },
+  "appleMusicSettings": {
+    "title": "Apple Music",
+    "screenHint": "Manage Apple Music sync settings",
+    "syncSectionTitle": "Synchronisation",
+    "syncToggle": "Sync Apple Music",
+    "syncToggleHint": "Sync your Apple Music playlists with CommEazy",
+    "neverSynced": "Not yet synced",
+    "lastSyncedToday": "Last synced today at {{time}}",
+    "lastSyncedYesterday": "Last synced yesterday at {{time}}",
+    "lastSyncedDate": "Last synced on {{date}}",
+    "linkedCollections": "{{count}} linked playlists",
+    "syncNow": "Sync now",
+    "syncing": "Syncing...",
+    "syncInfoTitle": "Synchronisation",
+    "syncInfoMessage": "Synchronisation runs automatically when you open Apple Music. Your playlists will be updated then.",
+    "disableConfirmTitle": "Disable sync",
+    "disableConfirmMessage": "You have {{count}} linked playlists. These will be removed, but your favorite songs will be kept.",
+    "disableConfirmMessageEmpty": "Are you sure you want to disable sync?",
+    "disableConfirmButton": "Disable",
+    "footerNote": "Your favorite songs are always kept, even when you disable sync."
+  },
   "privacySettings": {
     "title": "Privacy",
     "screenHint": "Manage your privacy settings",

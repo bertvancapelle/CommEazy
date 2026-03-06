@@ -59,6 +59,7 @@ import {
   ComplianceReportScreen,
   AppearanceSettingsScreen,
   MailSettingsScreen,
+  AppleMusicSettingsScreen,
 } from '@/screens/settings';
 
 // Module screens (no sub-navigation needed)
@@ -132,6 +133,7 @@ type SettingsPanelParams = {
   PiperTtsTest: undefined;
   MailSettings: undefined;
   MailOnboarding: undefined;
+  AppleMusicSettings: undefined;
 };
 
 // ============================================================
@@ -437,6 +439,11 @@ function SettingsPanelNavigator() {
           name="MailOnboarding"
           component={MailOnboardingWrapper}
           options={{ headerShown: false }}
+        />
+        <SettingsPanelStack.Screen
+          name="AppleMusicSettings"
+          component={AppleMusicSettingsScreen}
+          options={{ title: t('appleMusicSettings.title') }}
         />
         {/* DEV: Piper TTS Test Screen */}
         {__DEV__ && (

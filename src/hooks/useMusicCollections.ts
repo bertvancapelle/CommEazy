@@ -22,6 +22,10 @@ import {
   isImportDone as isImportDoneService,
   importAllPlaylists,
   syncAllLinkedCollections,
+  deleteAllLinkedCollections as deleteAllLinkedService,
+  getLinkedCollections as getLinkedCollectionsService,
+  getLastSyncTimestamp as getLastSyncTimestampService,
+  resetImportStatus as resetImportStatusService,
 } from '@/services/music';
 
 // ============================================================
@@ -63,6 +67,14 @@ export interface UseMusicCollectionsReturn {
     getLibraryPlaylists: (limit?: number, offset?: number) => Promise<{ items: any[]; total: number }>,
     getPlaylistDetails: (playlistId: string) => Promise<any>,
   ) => Promise<void>;
+  /** Disable sync: delete all linked collections + reset import status */
+  disableSync: () => Promise<number>;
+  /** Enable sync: reset import status so modal reappears */
+  enableSync: () => Promise<void>;
+  /** Get count of linked (imported from Apple Music) collections */
+  getLinkedCount: () => Promise<number>;
+  /** Get timestamp of most recent sync */
+  getLastSyncTimestamp: () => Promise<number | null>;
 }
 
 // ============================================================
@@ -222,6 +234,51 @@ export function useMusicCollections(): UseMusicCollectionsReturn {
     }
   }, [reload]);
 
+  // Disable sync: delete all linked collections + reset import status
+  const disableSync = useCallback(async (): Promise<number> => {
+    try {
+      const count = await deleteAllLinkedService();
+      await resetImportStatusService();
+      setImportDone(false);
+      await reload();
+      return count;
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Failed to disable sync');
+      return 0;
+    }
+  }, [reload]);
+
+  // Enable sync: reset import status so modal reappears on next Apple Music visit
+  const enableSync = useCallback(async (): Promise<void> => {
+    try {
+      await resetImportStatusService();
+      setImportDone(false);
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Failed to enable sync');
+    }
+  }, []);
+
+  // Get count of linked collections
+  const getLinkedCount = useCallback(async (): Promise<number> => {
+    try {
+      const linked = await getLinkedCollectionsService();
+      return linked.length;
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Failed to get linked count');
+      return 0;
+    }
+  }, []);
+
+  // Get last sync timestamp
+  const getLastSyncTimestamp = useCallback(async (): Promise<number | null> => {
+    try {
+      return await getLastSyncTimestampService();
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Failed to get last sync timestamp');
+      return null;
+    }
+  }, []);
+
   return {
     collections,
     isLoading,
@@ -237,5 +294,9 @@ export function useMusicCollections(): UseMusicCollectionsReturn {
     importProgress,
     startImport,
     backgroundSync,
+    disableSync,
+    enableSync,
+    getLinkedCount,
+    getLastSyncTimestamp,
   };
 }

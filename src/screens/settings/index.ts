@@ -12,3 +12,4 @@ export { CallSettingsScreen } from './CallSettingsScreen';
 export { ComplianceReportScreen } from './ComplianceReportScreen';
 export { AppearanceSettingsScreen } from './AppearanceSettingsScreen';
 export { MailSettingsScreen } from './MailSettingsScreen';
+export { AppleMusicSettingsScreen } from './AppleMusicSettingsScreen';

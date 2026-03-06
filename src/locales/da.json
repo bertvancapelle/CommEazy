@@ -537,6 +537,27 @@
       "domainRemoved": "{{domain}} fjernet"
     }
   },
+  "appleMusicSettings": {
+    "title": "Apple Music",
+    "screenHint": "Administrer synkroniseringsindstillinger for Apple Music",
+    "syncSectionTitle": "Synkronisering",
+    "syncToggle": "Synkroniser Apple Music",
+    "syncToggleHint": "Synkroniser dine Apple Music-playlister med CommEazy",
+    "neverSynced": "Ikke synkroniseret endnu",
+    "lastSyncedToday": "Sidst synkroniseret i dag kl. {{time}}",
+    "lastSyncedYesterday": "Sidst synkroniseret i går kl. {{time}}",
+    "lastSyncedDate": "Sidst synkroniseret {{date}}",
+    "linkedCollections": "{{count}} linkede playlister",
+    "syncNow": "Synkroniser nu",
+    "syncing": "Synkroniserer...",
+    "syncInfoTitle": "Synkronisering",
+    "syncInfoMessage": "Synkroniseringen kører automatisk, når du åbner Apple Music. Dine playlister opdateres derefter.",
+    "disableConfirmTitle": "Deaktiver synkronisering",
+    "disableConfirmMessage": "Du har {{count}} linkede playlister. Disse fjernes, men dine favoritnumre beholdes.",
+    "disableConfirmMessageEmpty": "Er du sikker på, at du vil deaktivere synkroniseringen?",
+    "disableConfirmButton": "Deaktiver",
+    "footerNote": "Dine favoritnumre beholdes altid, selv når du deaktiverer synkroniseringen."
+  },
   "privacySettings": {
     "title": "Privatliv",
     "screenHint": "Administrer dine privatlivsindstillinger",

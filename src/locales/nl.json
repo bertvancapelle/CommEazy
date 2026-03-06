@@ -479,6 +479,27 @@
       "domainRemoved": "{{domain}} verwijderd"
     }
   },
+  "appleMusicSettings": {
+    "title": "Apple Music",
+    "screenHint": "Beheer Apple Music synchronisatie-instellingen",
+    "syncSectionTitle": "Synchronisatie",
+    "syncToggle": "Apple Music synchroniseren",
+    "syncToggleHint": "Synchroniseer je Apple Music afspeellijsten met CommEazy",
+    "neverSynced": "Nog niet gesynchroniseerd",
+    "lastSyncedToday": "Laatst gesynchroniseerd vandaag om {{time}}",
+    "lastSyncedYesterday": "Laatst gesynchroniseerd gisteren om {{time}}",
+    "lastSyncedDate": "Laatst gesynchroniseerd op {{date}}",
+    "linkedCollections": "{{count}} gekoppelde afspeellijsten",
+    "syncNow": "Nu synchroniseren",
+    "syncing": "Bezig met synchroniseren...",
+    "syncInfoTitle": "Synchronisatie",
+    "syncInfoMessage": "De synchronisatie wordt automatisch uitgevoerd wanneer je Apple Music opent. Je afspeellijsten worden dan bijgewerkt.",
+    "disableConfirmTitle": "Synchronisatie uitschakelen",
+    "disableConfirmMessage": "Je hebt {{count}} gekoppelde afspeellijsten. Deze worden verwijderd, maar je favoriete nummers blijven bewaard.",
+    "disableConfirmMessageEmpty": "Weet je zeker dat je de synchronisatie wilt uitschakelen?",
+    "disableConfirmButton": "Uitschakelen",
+    "footerNote": "Favoriete nummers blijven altijd bewaard, ook als je de synchronisatie uitschakelt."
+  },
   "privacySettings": {
     "title": "Privacy",
     "screenHint": "Beheer je privacy-instellingen",
