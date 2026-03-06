@@ -43,8 +43,9 @@ import {
   PhotoRecipientModal,
   HapticTouchable,
   FullscreenImageViewer,
+  SlideshowViewer,
 } from '@/components';
-import type { ViewerImage } from '@/components';
+import type { ViewerImage, SlideshowPhoto } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
   typography,
@@ -244,6 +245,9 @@ export function PhotoAlbumScreen() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoadingContacts, setIsLoadingContacts] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Slideshow state
+  const [isSlideshowVisible, setIsSlideshowVisible] = useState(false);
 
   // Map photos to FullscreenImageViewer format (exclude videos — viewer is image-only)
   const photoOnlyItems = useMemo(
@@ -994,8 +998,16 @@ export function PhotoAlbumScreen() {
     }
   }, [photoOnlyItems, viewerInitialIndex, handleCloseViewer, handleDeletePhotos]);
 
-  // Whether we're showing photos (all photos tab, or album detail)
-  const isShowingPhotos = activeTab === 'allPhotos' || (activeTab === 'albums' && activeAlbumId != null);
+  // Whether we're showing photos (all photos tab, album detail, or received tab)
+  const isShowingPhotos = activeTab === 'allPhotos' || activeTab === 'received' || (activeTab === 'albums' && activeAlbumId != null);
+
+  // Photos suitable for slideshow (only photos, not videos)
+  const slideshowPhotos: SlideshowPhoto[] = useMemo(
+    () => displayPhotos
+      .filter(p => p.type === 'photo')
+      .map(p => ({ id: p.id, uri: p.uri, timestamp: p.timestamp })),
+    [displayPhotos],
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -1275,8 +1287,27 @@ export function PhotoAlbumScreen() {
               )}
             </>
           ) : (
-            // Normal mode: Select button + Import button
+            // Normal mode: Slideshow + Select buttons
             <>
+              {/* Slideshow button — only when there are photos (not videos) */}
+              <HapticTouchable
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: moduleColor },
+                  slideshowPhotos.length === 0 && styles.actionButtonDisabled,
+                ]}
+                onPress={() => setIsSlideshowVisible(true)}
+                hapticDisabled={slideshowPhotos.length === 0}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.photoAlbum.slideshowStart', 'Start slideshow')}
+                disabled={slideshowPhotos.length === 0}
+              >
+                <Icon name="play" size={24} color={moduleColor} />
+                <Text style={[styles.actionText, { color: moduleColor }]}>
+                  {t('modules.photoAlbum.slideshow', 'Slideshow')}
+                </Text>
+              </HapticTouchable>
+
               <HapticTouchable
                 style={[
                   styles.actionButton,
@@ -1305,6 +1336,14 @@ export function PhotoAlbumScreen() {
         images={viewerImages}
         initialIndex={viewerInitialIndex}
         onClose={handleCloseViewer}
+        accentColor={moduleColor}
+      />
+
+      {/* Slideshow (Fotolijst) */}
+      <SlideshowViewer
+        visible={isSlideshowVisible}
+        photos={slideshowPhotos}
+        onClose={() => setIsSlideshowVisible(false)}
         accentColor={moduleColor}
       />
 

@@ -1316,7 +1316,17 @@
       "addedToAlbumMessage": "{{count}} foto(s) tilføjet til album.",
       "received": "Modtaget",
       "noReceivedPhotos": "Ingen modtagne fotos",
-      "noReceivedPhotosHint": "Fotos sendt til dig via chat vises her."
+      "noReceivedPhotosHint": "Fotos sendt til dig via chat vises her.",
+      "slideshow": "Diasshow",
+      "slideshowStart": "Start diasshow",
+      "slideshowStop": "Stop",
+      "slideshowPause": "Pause",
+      "slideshowResume": "Fortsæt",
+      "slideshowInterval": "Interval",
+      "slideshowShuffle": "Tilfældig rækkefølge",
+      "slideshowSeconds": "{{count}}s",
+      "slideshowHideControls": "Tryk for at skjule kontroller",
+      "slideshowShowControls": "Tryk for at vise kontroller"
     },
     "nunl": {
       "title": "© nu.nl",

@@ -165,6 +165,8 @@ export type { SeniorDatePickerProps } from './SeniorDatePicker';
 // Fullscreen Image Viewer (reusable — mail, chat, photo album)
 export { FullscreenImageViewer } from './FullscreenImageViewer';
 export type { FullscreenImageViewerProps, ViewerImage } from './FullscreenImageViewer';
+export { SlideshowViewer } from './SlideshowViewer';
+export type { SlideshowViewerProps, SlideshowPhoto } from './SlideshowViewer';
 
 // Note: DevModePanel is NOT exported here to avoid loading mock data at startup.
 // Import directly from './DevModePanel' if needed:

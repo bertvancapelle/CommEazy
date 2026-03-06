@@ -1420,7 +1420,17 @@
       "addedToAlbumMessage": "{{count}} foto aggiunta/e all'album.",
       "received": "Ricevute",
       "noReceivedPhotos": "Nessuna foto ricevuta",
-      "noReceivedPhotosHint": "Le foto inviate tramite chat appariranno qui."
+      "noReceivedPhotosHint": "Le foto inviate tramite chat appariranno qui.",
+      "slideshow": "Presentazione",
+      "slideshowStart": "Avvia presentazione",
+      "slideshowStop": "Ferma",
+      "slideshowPause": "Pausa",
+      "slideshowResume": "Riprendi",
+      "slideshowInterval": "Intervallo",
+      "slideshowShuffle": "Ordine casuale",
+      "slideshowSeconds": "{{count}}s",
+      "slideshowHideControls": "Tocca per nascondere i controlli",
+      "slideshowShowControls": "Tocca per mostrare i controlli"
     },
     "nunl": {
       "title": "© nu.nl",

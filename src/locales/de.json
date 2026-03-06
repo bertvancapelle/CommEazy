@@ -1423,7 +1423,17 @@
       "addedToAlbumMessage": "{{count}} Foto(s) zum Album hinzugefügt.",
       "received": "Empfangen",
       "noReceivedPhotos": "Keine empfangenen Fotos",
-      "noReceivedPhotosHint": "Fotos, die dir per Chat gesendet werden, erscheinen hier."
+      "noReceivedPhotosHint": "Fotos, die dir per Chat gesendet werden, erscheinen hier.",
+      "slideshow": "Diashow",
+      "slideshowStart": "Diashow starten",
+      "slideshowStop": "Stopp",
+      "slideshowPause": "Pause",
+      "slideshowResume": "Weiter",
+      "slideshowInterval": "Intervall",
+      "slideshowShuffle": "Zufällige Reihenfolge",
+      "slideshowSeconds": "{{count}}s",
+      "slideshowHideControls": "Tippen um Steuerung auszublenden",
+      "slideshowShowControls": "Tippen um Steuerung einzublenden"
     },
     "nunl": {
       "title": "© nu.nl",

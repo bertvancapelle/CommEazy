@@ -1013,6 +1013,8 @@ PODS:
     - React-Core
   - react-native-image-resizer (3.0.11):
     - React-Core
+  - react-native-keep-awake (4.0.0):
+    - React
   - react-native-libsodium (1.7.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1320,6 +1322,7 @@ DEPENDENCIES:
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-image-resizer (from `../node_modules/@bam.tech/react-native-image-resizer`)"
+  - react-native-keep-awake (from `../node_modules/react-native-keep-awake`)
   - react-native-libsodium (from `../node_modules/react-native-libsodium`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -1470,6 +1473,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-image-resizer:
     :path: "../node_modules/@bam.tech/react-native-image-resizer"
+  react-native-keep-awake:
+    :path: "../node_modules/react-native-keep-awake"
   react-native-libsodium:
     :path: "../node_modules/react-native-libsodium"
   react-native-render-html:
@@ -1623,6 +1628,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: bb3a66064010886b9472200945841e2cf79e1b52
   react-native-image-resizer: 24c5d06fae2176dc0caed4b6396e02befb44064a
+  react-native-keep-awake: 21ff40767cde4bd81021ffee12480aee4b5b91bb
   react-native-libsodium: 959307f22d05a94cbf68a5f5cdb662548f500a25
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 758e894ca5a9bd1868d2a9cfbca7326a2b6bf9dc

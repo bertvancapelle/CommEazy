@@ -1441,7 +1441,17 @@
       "addedToAlbumMessage": "{{count}} foto('s) toegevoegd aan album.",
       "received": "Ontvangen",
       "noReceivedPhotos": "Geen ontvangen foto's",
-      "noReceivedPhotosHint": "Foto's die naar je verstuurd worden via chat verschijnen hier."
+      "noReceivedPhotosHint": "Foto's die naar je verstuurd worden via chat verschijnen hier.",
+      "slideshow": "Fotolijst",
+      "slideshowStart": "Start fotolijst",
+      "slideshowStop": "Stop",
+      "slideshowPause": "Pauze",
+      "slideshowResume": "Verder",
+      "slideshowInterval": "Wisseltijd",
+      "slideshowShuffle": "Willekeurige volgorde",
+      "slideshowSeconds": "{{count}}s",
+      "slideshowHideControls": "Tik om knoppen te verbergen",
+      "slideshowShowControls": "Tik om knoppen te tonen"
     },
     "nunl": {
       "title": "© nu.nl",
