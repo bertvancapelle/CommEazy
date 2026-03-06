@@ -181,3 +181,13 @@ export {
   useHoldGestureContextSafe,
   useHoldGestureGuard,
 } from './HoldGestureContext';
+
+export {
+  FeedbackProvider,
+  useFeedbackContext,
+  useFeedbackContextSafe,
+  DEFAULT_FEEDBACK_SETTINGS,
+  type FeedbackContextValue,
+  type FeedbackSettings,
+  type HapticIntensity,
+} from './FeedbackContext';

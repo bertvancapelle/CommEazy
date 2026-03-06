@@ -7,10 +7,15 @@
  *
  * Audio volume is tied to system volume with optional +20% boost.
  *
+ * IMPORTANT: Settings are shared via FeedbackContext. All useFeedback() instances
+ * across the entire app share the same settings state. When a setting is changed
+ * in one place (e.g. AccessibilitySettings), ALL components immediately reflect
+ * the change. This is a REQUIREMENT for all modules (existing and new).
+ *
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback } from 'react';
 import {
   Platform,
   NativeModules,
@@ -18,7 +23,16 @@ import {
 import ReactNativeHapticFeedback, {
   HapticFeedbackTypes,
 } from 'react-native-haptic-feedback';
-import { ServiceContainer } from '@/services/container';
+import {
+  useFeedbackContextSafe,
+  DEFAULT_FEEDBACK_SETTINGS,
+  type HapticIntensity,
+  type FeedbackSettings,
+} from '@/contexts/FeedbackContext';
+
+// Re-export types from context so consumers don't need to change imports
+export type { HapticIntensity, FeedbackSettings } from '@/contexts/FeedbackContext';
+export { DEFAULT_FEEDBACK_SETTINGS } from '@/contexts/FeedbackContext';
 
 // System Sound IDs for iOS (AudioServicesPlaySystemSound)
 // Reference: https://iphonedev.wiki/index.php/AudioServices
@@ -41,9 +55,6 @@ const IOS_SYSTEM_SOUND_IDS = {
 // Boosted sound - native module handles the sequence
 const IOS_BOOSTED_SOUND_ID = 1005; // New Voicemail (loud)
 
-// Haptic intensity levels
-export type HapticIntensity = 'off' | 'veryLight' | 'light' | 'normal' | 'strong';
-
 // Feedback types
 export type FeedbackType =
   | 'tap'           // Button tap, selection
@@ -51,20 +62,6 @@ export type FeedbackType =
   | 'warning'       // Attention needed
   | 'error'         // Action failed
   | 'navigation';   // Screen transition
-
-// Feedback settings (persisted in user profile)
-export interface FeedbackSettings {
-  hapticIntensity: HapticIntensity;
-  audioFeedbackEnabled: boolean;
-  audioFeedbackBoost: boolean; // +20% volume boost
-}
-
-// Default settings
-export const DEFAULT_FEEDBACK_SETTINGS: FeedbackSettings = {
-  hapticIntensity: 'normal',
-  audioFeedbackEnabled: true,
-  audioFeedbackBoost: false,
-};
 
 // Haptic intensity level mapping for Core Haptics native module
 // Maps our intensity names to numeric levels (1-4)
@@ -93,49 +90,19 @@ const HAPTIC_OPTIONS = {
 };
 
 /**
- * Hook providing combined haptic + audio feedback
+ * Hook providing combined haptic + audio feedback.
+ *
+ * Settings are read from FeedbackContext (shared across all components).
+ * Falls back to DEFAULT_FEEDBACK_SETTINGS if used outside FeedbackProvider
+ * (e.g. during app startup before provider is mounted).
  */
 export function useFeedback() {
-  const [settings, setSettings] = useState<FeedbackSettings>(DEFAULT_FEEDBACK_SETTINGS);
-  const [isSilentMode, setIsSilentMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // Read from shared context — all instances share the same state
+  const context = useFeedbackContextSafe();
 
-  // Load settings from database
-  useEffect(() => {
-    async function loadSettings() {
-      try {
-        if (!ServiceContainer.isInitialized) {
-          setIsLoading(false);
-          return;
-        }
-
-        const profile = await ServiceContainer.database.getUserProfile();
-        if (profile) {
-          setSettings({
-            hapticIntensity: (profile.hapticIntensity as HapticIntensity) ?? DEFAULT_FEEDBACK_SETTINGS.hapticIntensity,
-            audioFeedbackEnabled: profile.audioFeedbackEnabled ?? DEFAULT_FEEDBACK_SETTINGS.audioFeedbackEnabled,
-            audioFeedbackBoost: profile.audioFeedbackBoost ?? DEFAULT_FEEDBACK_SETTINGS.audioFeedbackBoost,
-          });
-        }
-      } catch (error) {
-        console.error('[useFeedback] Failed to load settings:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    void loadSettings();
-  }, []);
-
-  // Check for silent mode (iOS only - Android handles this automatically)
-  useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-
-    // iOS doesn't have a direct API for silent mode detection
-    // System sounds will automatically be silent when ringer switch is off
-    // So we don't need to track this - iOS handles it
-    setIsSilentMode(false);
-  }, []);
+  // Fallback for usage outside FeedbackProvider (startup, tests)
+  const settings = context?.settings ?? DEFAULT_FEEDBACK_SETTINGS;
+  const isLoading = context?.isLoading ?? false;
 
   // Trigger haptic feedback using Core Haptics native module (iOS) or fallback
   const triggerHaptic = useCallback(
@@ -253,70 +220,32 @@ export function useFeedback() {
     [triggerHaptic, triggerAudio],
   );
 
-  // Update haptic intensity setting
+  // Update functions — delegate to context (or no-op if outside provider)
   const updateHapticIntensity = useCallback(
     async (intensity: HapticIntensity) => {
-      setSettings(prev => ({ ...prev, hapticIntensity: intensity }));
-
-      try {
-        if (!ServiceContainer.isInitialized) return;
-
-        const profile = await ServiceContainer.database.getUserProfile();
-        if (profile) {
-          await ServiceContainer.database.saveUserProfile({
-            ...profile,
-            hapticIntensity: intensity,
-          });
-        }
-      } catch (error) {
-        console.error('[useFeedback] Failed to save haptic intensity:', error);
+      if (context) {
+        await context.updateHapticIntensity(intensity);
       }
     },
-    [],
+    [context],
   );
 
-  // Update audio feedback enabled setting
   const updateAudioFeedbackEnabled = useCallback(
     async (enabled: boolean) => {
-      setSettings(prev => ({ ...prev, audioFeedbackEnabled: enabled }));
-
-      try {
-        if (!ServiceContainer.isInitialized) return;
-
-        const profile = await ServiceContainer.database.getUserProfile();
-        if (profile) {
-          await ServiceContainer.database.saveUserProfile({
-            ...profile,
-            audioFeedbackEnabled: enabled,
-          });
-        }
-      } catch (error) {
-        console.error('[useFeedback] Failed to save audio feedback enabled:', error);
+      if (context) {
+        await context.updateAudioFeedbackEnabled(enabled);
       }
     },
-    [],
+    [context],
   );
 
-  // Update audio feedback boost setting
   const updateAudioFeedbackBoost = useCallback(
     async (boost: boolean) => {
-      setSettings(prev => ({ ...prev, audioFeedbackBoost: boost }));
-
-      try {
-        if (!ServiceContainer.isInitialized) return;
-
-        const profile = await ServiceContainer.database.getUserProfile();
-        if (profile) {
-          await ServiceContainer.database.saveUserProfile({
-            ...profile,
-            audioFeedbackBoost: boost,
-          });
-        }
-      } catch (error) {
-        console.error('[useFeedback] Failed to save audio feedback boost:', error);
+      if (context) {
+        await context.updateAudioFeedbackBoost(boost);
       }
     },
-    [],
+    [context],
   );
 
   return {

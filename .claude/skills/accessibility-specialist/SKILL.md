@@ -268,6 +268,45 @@ function FadeInView({ children }: PropsWithChildren) {
 
 ## Haptic & Audio Feedback
 
+### VERPLICHT: FeedbackContext — Gedeelde Feedback State (BLOKKEERDER)
+
+**KRITIEK:** Alle haptic- en audio-instellingen worden gedeeld via `FeedbackContext`. Dit is een **VERPLICHTE VOORWAARDE** voor alle modules (bestaand én nieuw).
+
+**Architectuur:**
+- `FeedbackProvider` wrappt de gehele app (in `App.tsx`, direct onder `ServiceProvider`)
+- `useFeedback()` hook leest instellingen uit de gedeelde context
+- Wijzigingen in Instellingen → Toegankelijkheid propageren **onmiddellijk** naar ALLE componenten
+- Elke `useFeedback()` instantie (in HapticTouchable, screens, etc.) deelt dezelfde state
+
+**Regels:**
+1. **Haptic feedback** staat standaard AAN (`hapticIntensity: 'normal'`)
+2. **Audio feedback** staat standaard UIT (`audioFeedbackEnabled: false`)
+3. **NOOIT** lokale feedback state opslaan — altijd via `useFeedback()` hook
+4. **NOOIT** eigen `useState` voor haptic/audio instellingen — de context IS de single source of truth
+5. **HapticTouchable** component gebruikt `useFeedback()` intern — dit is de aanbevolen wrapper
+
+**Gebruik in componenten:**
+```typescript
+import { useFeedback } from '@/hooks/useFeedback';
+
+function MyComponent() {
+  const { triggerFeedback } = useFeedback();
+  // triggerFeedback leest automatisch de gedeelde instellingen
+  // Als haptic UIT staat in Instellingen, doet triggerFeedback NIETS
+}
+```
+
+**Gebruik in instellingen:**
+```typescript
+import { useFeedback } from '@/hooks/useFeedback';
+
+function AccessibilitySettings() {
+  const { settings, updateHapticIntensity, updateAudioFeedbackEnabled } = useFeedback();
+  // updateHapticIntensity wijzigt de gedeelde state + slaat op in DB
+  // ALLE componenten zien de wijziging ONMIDDELLIJK
+}
+```
+
 ### VERPLICHT: Gecombineerde Feedback
 Elke interactie die haptic feedback krijgt, MOET ook audio feedback krijgen (tenzij uitgeschakeld door gebruiker). Dit zorgt voor multi-sensorische bevestiging die essentieel is voor gebruikers met verminderd gevoel of gehoor.
 

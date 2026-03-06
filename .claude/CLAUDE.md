@@ -335,6 +335,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Type export toevoegen** | **VERPLICHT** — Type MOET geëxporteerd worden in relevante `index.ts` bestanden, zie "Type Export Consistency" |
 | **Nieuwe button/knop toevoegen** | **ui-designer, ios-specialist** — Button Standaardisatie (ui-designer SKILL.md sectie 15) MOET worden gevolgd: 60pt, 12pt cornerRadius, rgba background, border support |
 | **Native iOS button wijzigen** | **ios-specialist** — Zie "Native Button Standaardisatie" in ios-specialist SKILL.md |
+| **Haptic/audio feedback instelling** | **accessibility-specialist** — MOET `useFeedback()` hook gebruiken (leest uit gedeelde `FeedbackContext`). NOOIT lokale state voor feedback instellingen. |
 | **Required Reason API gebruiken** | **ios-specialist** — Privacy Manifest (PrivacyInfo.xcprivacy) MOET worden bijgewerkt met juiste reason code |
 | **Keychain accessible/sync wijziging** | **security-expert, ios-specialist** — Zero-server-storage compliance, `THIS_DEVICE_ONLY` vereist, zie `BACKUP_RESTORE_PLAN.md` |
 | **Backup/restore functionaliteit** | **security-expert, architecture-lead** — Cloud KV Store data MOET encrypted zijn, PIN-based key encryption verplicht |

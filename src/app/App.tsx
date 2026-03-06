@@ -21,6 +21,7 @@ import { HoldToNavigateProvider } from '@/hooks/useHoldToNavigate';
 import { ThemeSystemProvider } from '@/contexts/ThemeSystemProvider';
 import { VoiceSystemProvider } from '@/contexts/VoiceSystemProvider';
 import { AudioModulesProvider } from '@/contexts/AudioModulesProvider';
+import { FeedbackProvider } from '@/contexts/FeedbackContext';
 import { HoldGestureProvider } from '@/contexts/HoldGestureContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
@@ -105,6 +106,7 @@ export default function App() {
     <SafeAreaProvider>
       <ReducedMotionProvider>
         <ServiceProvider reducedMotion={reducedMotion}>
+          <FeedbackProvider>
           <ThemeSystemProvider>
             <PresenceProvider>
               <VoiceSystemProvider>
@@ -126,6 +128,7 @@ export default function App() {
               </VoiceSystemProvider>
             </PresenceProvider>
           </ThemeSystemProvider>
+          </FeedbackProvider>
         </ServiceProvider>
       </ReducedMotionProvider>
     </SafeAreaProvider>
