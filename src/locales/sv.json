@@ -1628,7 +1628,8 @@
           "resultsCount": "{{count}} resultat hittade",
           "clear": "Rensa",
           "error": "Sökningen misslyckades. Försök igen."
-        }
+        },
+        "composeDraft": "Nytt meddelande (utkast tillgängligt)"
       },
       "detail": {
         "to": "Till",
@@ -1671,7 +1672,11 @@
         "mailBody": "E-postinnehåll",
         "markUnread": "Markera som oläst",
         "markRead": "Markera som läst",
-        "replyAll": "Svara alla"
+        "replyAll": "Svara alla",
+        "textSize": "Textstorlek: {{size}}",
+        "textSizeNormal": "Normal",
+        "textSizeLarge": "Stor",
+        "textSizeExtraLarge": "Extra stor"
       },
       "compose": {
         "from": "Från",
@@ -1717,7 +1722,12 @@
         "photoAccessHint": "Fotobiblioteket är för närvarande inte tillgängligt.",
         "replyAllTitle": "Svara alla",
         "sentSuccess": "Meddelande skickat",
-        "sentSuccessHint": "Tryck för att stänga"
+        "sentSuccessHint": "Tryck för att stänga",
+        "saveDraft": "Spara utkast",
+        "draftFound": "Utkast hittat",
+        "draftFoundMessage": "Du har ett ofärdigt utkast. Vill du fortsätta skriva?",
+        "draftRestore": "Fortsätt skriva",
+        "draftDiscard": "Börja om"
       }
     },
     "askAI": {

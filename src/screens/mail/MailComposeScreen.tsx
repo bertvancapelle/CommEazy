@@ -32,6 +32,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -58,6 +59,7 @@ import {
 } from '@/services/mail/contactMailService';
 import type { Contact } from '@/services/interfaces';
 import { SendConfirmationOverlay } from './SendConfirmationOverlay';
+import { saveDraft, deleteDraft } from '@/services/mail/draftService';
 
 // ============================================================
 // Types
@@ -78,6 +80,14 @@ export interface MailComposeScreenProps {
   onClose: () => void;
   /** Called after successful send */
   onSent?: () => void;
+  /** Pre-fill from a restored draft */
+  restoredDraft?: {
+    to: MailRecipient[];
+    cc: MailRecipient[];
+    bcc: MailRecipient[];
+    subject: string;
+    body: string;
+  };
 }
 
 // ============================================================
@@ -612,6 +622,7 @@ export function MailComposeScreen({
   originalBody,
   onClose,
   onSent,
+  restoredDraft,
 }: MailComposeScreenProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
@@ -621,15 +632,25 @@ export function MailComposeScreen({
   // Contact loading
   const [contacts, setContacts] = useState<Contact[]>([]);
 
-  // Form state
+  // Form state — pre-fill from restored draft if available
   const [toRecipients, setToRecipients] = useState<MailRecipient[]>(
-    getInitialRecipients(mode, originalHeader, account.email),
+    restoredDraft?.to ?? getInitialRecipients(mode, originalHeader, account.email),
   );
-  const [ccRecipients, setCcRecipients] = useState<MailRecipient[]>([]);
-  const [bccRecipients, setBccRecipients] = useState<MailRecipient[]>([]);
-  const [showCcBcc, setShowCcBcc] = useState(false);
-  const [subject, setSubject] = useState(getInitialSubject(mode, originalHeader));
-  const [body, setBody] = useState(getInitialBody(mode, originalHeader, originalBody, t));
+  const [ccRecipients, setCcRecipients] = useState<MailRecipient[]>(
+    restoredDraft?.cc ?? [],
+  );
+  const [bccRecipients, setBccRecipients] = useState<MailRecipient[]>(
+    restoredDraft?.bcc ?? [],
+  );
+  const [showCcBcc, setShowCcBcc] = useState(
+    (restoredDraft?.cc?.length ?? 0) > 0 || (restoredDraft?.bcc?.length ?? 0) > 0,
+  );
+  const [subject, setSubject] = useState(
+    restoredDraft?.subject ?? getInitialSubject(mode, originalHeader),
+  );
+  const [body, setBody] = useState(
+    restoredDraft?.body ?? getInitialBody(mode, originalHeader, originalBody, t),
+  );
   const [isSending, setIsSending] = useState(false);
   const [showSentConfirmation, setShowSentConfirmation] = useState(false);
   const [attachments, setAttachments] = useState<MailAttachment[]>([]);
@@ -695,6 +716,57 @@ export function MailComposeScreen({
       cancelled = true;
     };
   }, []);
+
+  // ============================================================
+  // Auto-Save Draft (30s timer + AppState background)
+  // ============================================================
+
+  const saveDraftNow = useCallback(() => {
+    const hasContent =
+      toRecipients.length > 0 ||
+      subject.trim().length > 0 ||
+      body.trim().length > 0;
+
+    if (!hasContent) return;
+
+    saveDraft({
+      to: toRecipients,
+      cc: ccRecipients,
+      bcc: bccRecipients,
+      subject,
+      body,
+      mode,
+      accountId: account.id,
+      savedAt: new Date().toISOString(),
+      replyToUid: originalHeader?.uid,
+    }).catch(() => {});
+  }, [toRecipients, ccRecipients, bccRecipients, subject, body, mode, account.id, originalHeader]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      saveDraftNow();
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, [saveDraftNow]);
+
+  // Save when app goes to background
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') {
+        saveDraftNow();
+      }
+    });
+    return () => sub.remove();
+  }, [saveDraftNow]);
+
+  // Clear draft from previous session if this compose was opened from a restored draft
+  useEffect(() => {
+    if (restoredDraft) {
+      // Draft has been loaded into state — clear it from storage
+      deleteDraft().catch(() => {});
+    }
+  }, []); // Only on mount
 
   // ============================================================
   // Validation
@@ -832,6 +904,9 @@ export function MailComposeScreen({
         attachments: sendAttachments,
       });
 
+      // Clear saved draft — message was sent successfully
+      deleteDraft().catch(() => {});
+
       // Show confirmation overlay — it auto-dismisses after 2 seconds
       setShowSentConfirmation(true);
     } catch (err: unknown) {
@@ -890,16 +965,26 @@ export function MailComposeScreen({
         [
           { text: t('common.cancel'), style: 'cancel' },
           {
+            text: t('modules.mail.compose.saveDraft'),
+            onPress: () => {
+              saveDraftNow();
+              onClose();
+            },
+          },
+          {
             text: t('modules.mail.compose.discard'),
             style: 'destructive',
-            onPress: onClose,
+            onPress: () => {
+              deleteDraft().catch(() => {});
+              onClose();
+            },
           },
         ],
       );
     } else {
       onClose();
     }
-  }, [toRecipients, subject, body, onClose, t]);
+  }, [toRecipients, subject, body, onClose, t, saveDraftNow]);
 
   // ============================================================
   // Attachments

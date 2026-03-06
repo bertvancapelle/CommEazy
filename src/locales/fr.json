@@ -1784,7 +1784,8 @@
           "resultsCount": "{{count}} résultats trouvés",
           "clear": "Effacer",
           "error": "La recherche a échoué. Veuillez réessayer."
-        }
+        },
+        "composeDraft": "Nouveau message (brouillon disponible)"
       },
       "detail": {
         "to": "À",
@@ -1827,7 +1828,11 @@
         "mailBody": "Contenu de l'e-mail",
         "markUnread": "Marquer comme non lu",
         "markRead": "Marquer comme lu",
-        "replyAll": "Répondre à tous"
+        "replyAll": "Répondre à tous",
+        "textSize": "Taille du texte : {{size}}",
+        "textSizeNormal": "Normal",
+        "textSizeLarge": "Grand",
+        "textSizeExtraLarge": "Très grand"
       },
       "compose": {
         "from": "De",
@@ -1873,7 +1878,12 @@
         "photoAccessHint": "La photothèque n'est actuellement pas disponible.",
         "replyAllTitle": "Répondre à tous",
         "sentSuccess": "Message envoyé",
-        "sentSuccessHint": "Appuyez pour fermer"
+        "sentSuccessHint": "Appuyez pour fermer",
+        "saveDraft": "Enregistrer le brouillon",
+        "draftFound": "Brouillon trouvé",
+        "draftFoundMessage": "Vous avez un brouillon inachevé. Voulez-vous continuer à écrire ?",
+        "draftRestore": "Continuer à écrire",
+        "draftDiscard": "Recommencer"
       }
     },
     "askAI": {

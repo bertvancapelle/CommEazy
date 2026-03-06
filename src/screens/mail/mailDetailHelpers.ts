@@ -116,6 +116,7 @@ export function buildWebViewHtml(
   textColor: string,
   backgroundColor: string,
   linkColor: string,
+  baseFontSize: number = 18,
 ): string {
   // Strip <script> tags entirely (security)
   const noScripts = rawHtml.replace(/<script[\s\S]*?<\/script>/gi, '');
@@ -161,7 +162,7 @@ export function buildWebViewHtml(
       margin: 0;
       padding: 8px;
       font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-      font-size: 18px;
+      font-size: ${baseFontSize}px;
       line-height: 1.55;
       color: ${textColor};
       background-color: ${backgroundColor};

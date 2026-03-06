@@ -51,6 +51,8 @@ export interface MailBodyWebViewProps {
   bannerButtonColor: string;
   /** Sender domain for whitelist feature (e.g. "microsoft.com") */
   senderDomain: string;
+  /** Base font size for mail body text (default: 18) */
+  baseFontSize?: number;
 }
 
 // ============================================================
@@ -66,6 +68,7 @@ export function MailBodyWebView({
   bannerTextColor,
   bannerButtonColor,
   senderDomain,
+  baseFontSize = 18,
 }: MailBodyWebViewProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
@@ -107,8 +110,8 @@ export function MailBodyWebView({
   }, [hasExternalImages, senderDomain, autoLoadChecked, imagesLoaded]);
 
   const webViewHtml = useMemo(
-    () => buildWebViewHtml(html, imagesLoaded, textColor, backgroundColor, linkColor),
-    [html, imagesLoaded, textColor, backgroundColor, linkColor],
+    () => buildWebViewHtml(html, imagesLoaded, textColor, backgroundColor, linkColor, baseFontSize),
+    [html, imagesLoaded, textColor, backgroundColor, linkColor, baseFontSize],
   );
 
   const handleMessage = useCallback((event: { nativeEvent: { data: string } }) => {

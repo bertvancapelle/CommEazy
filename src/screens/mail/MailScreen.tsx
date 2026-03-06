@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,6 +26,8 @@ import { MailOnboardingScreen } from './MailOnboardingScreen';
 import { MailInboxScreen } from './MailInboxScreen';
 import { MailDetailScreen } from './MailDetailScreen';
 import { MailComposeScreen, type ComposeMode } from './MailComposeScreen';
+import { loadDraft, deleteDraft, hasDraft } from '@/services/mail/draftService';
+import type { MailRecipient } from '@/types/mail';
 
 // ============================================================
 // Constants
@@ -41,7 +43,7 @@ const MAIL_WELCOME_SHOWN_KEY = 'mail_welcome_shown';
 type MailView =
   | { type: 'inbox' }
   | { type: 'detail'; header: CachedMailHeader }
-  | { type: 'compose'; mode: ComposeMode; originalHeader?: CachedMailHeader; originalBody?: MailBody | null };
+  | { type: 'compose'; mode: ComposeMode; originalHeader?: CachedMailHeader; originalBody?: MailBody | null; restoredDraft?: { to: MailRecipient[]; cc: MailRecipient[]; bcc: MailRecipient[]; subject: string; body: string } };
 
 // ============================================================
 // Component
@@ -64,6 +66,9 @@ export function MailScreen() {
 
   // Internal navigation
   const [currentView, setCurrentView] = useState<MailView>({ type: 'inbox' });
+
+  // Draft indicator
+  const [draftAvailable, setDraftAvailable] = useState(false);
 
   // ============================================================
   // Init — Check Onboarding State + Load Account
@@ -101,6 +106,9 @@ export function MailScreen() {
       } finally {
         setIsLoading(false);
       }
+
+      // Check for saved draft (for compose button badge)
+      hasDraft().then(setDraftAvailable).catch(() => {});
     };
 
     checkState();
@@ -158,9 +166,50 @@ export function MailScreen() {
     setCurrentView({ type: 'detail', header });
   }, []);
 
-  const handleCompose = useCallback(() => {
+  const handleCompose = useCallback(async () => {
+    try {
+      const draft = await loadDraft();
+      if (draft) {
+        // Ask user if they want to continue their draft
+        Alert.alert(
+          t('modules.mail.compose.draftFound'),
+          t('modules.mail.compose.draftFoundMessage'),
+          [
+            {
+              text: t('modules.mail.compose.draftDiscard'),
+              style: 'destructive',
+              onPress: () => {
+                deleteDraft().catch(() => {});
+                setDraftAvailable(false);
+                setCurrentView({ type: 'compose', mode: 'new' });
+              },
+            },
+            {
+              text: t('modules.mail.compose.draftRestore'),
+              onPress: () => {
+                setDraftAvailable(false);
+                setCurrentView({
+                  type: 'compose',
+                  mode: draft.mode,
+                  restoredDraft: {
+                    to: draft.to,
+                    cc: draft.cc,
+                    bcc: draft.bcc,
+                    subject: draft.subject,
+                    body: draft.body,
+                  },
+                });
+              },
+            },
+          ],
+        );
+        return;
+      }
+    } catch {
+      // Non-critical — proceed with empty compose
+    }
     setCurrentView({ type: 'compose', mode: 'new' });
-  }, []);
+  }, [t]);
 
   const handleReply = useCallback((header: CachedMailHeader) => {
     setCurrentView({ type: 'compose', mode: 'reply', originalHeader: header });
@@ -176,6 +225,8 @@ export function MailScreen() {
 
   const handleBackToInbox = useCallback(() => {
     setCurrentView({ type: 'inbox' });
+    // Check if a draft was saved when leaving compose
+    hasDraft().then(setDraftAvailable).catch(() => {});
   }, []);
 
   const handleMailDeleted = useCallback((_uid: number) => {
@@ -292,6 +343,7 @@ export function MailScreen() {
         originalBody={currentView.originalBody}
         onClose={handleBackToInbox}
         onSent={handleSent}
+        restoredDraft={currentView.restoredDraft}
       />
     );
   }
@@ -312,6 +364,7 @@ export function MailScreen() {
         account={account}
         onOpenMail={handleOpenMail}
         onCompose={handleCompose}
+        hasDraft={draftAvailable}
       />
     </View>
   );

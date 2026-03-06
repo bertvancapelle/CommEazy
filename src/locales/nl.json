@@ -1794,7 +1794,8 @@
           "resultsCount": "{{count}} resultaten gevonden",
           "clear": "Wissen",
           "error": "Zoeken mislukt. Probeer het opnieuw."
-        }
+        },
+        "composeDraft": "Nieuw bericht (concept beschikbaar)"
       },
       "detail": {
         "to": "Aan",
@@ -1837,7 +1838,11 @@
         "mailBody": "E-mail inhoud",
         "markUnread": "Markeer als ongelezen",
         "markRead": "Markeer als gelezen",
-        "replyAll": "Allen beantwoorden"
+        "replyAll": "Allen beantwoorden",
+        "textSize": "Tekstgrootte: {{size}}",
+        "textSizeNormal": "Normaal",
+        "textSizeLarge": "Groot",
+        "textSizeExtraLarge": "Extra groot"
       },
       "compose": {
         "from": "Van",
@@ -1883,7 +1888,12 @@
         "photoAccessHint": "De fotobibliotheek is momenteel niet beschikbaar.",
         "replyAllTitle": "Allen beantwoorden",
         "sentSuccess": "Bericht verzonden",
-        "sentSuccessHint": "Tik om te sluiten"
+        "sentSuccessHint": "Tik om te sluiten",
+        "saveDraft": "Bewaar concept",
+        "draftFound": "Concept gevonden",
+        "draftFoundMessage": "Je hebt een onvoltooid concept. Wil je verder schrijven?",
+        "draftRestore": "Verder schrijven",
+        "draftDiscard": "Nieuw beginnen"
       }
     },
     "askAI": {

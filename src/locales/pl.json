@@ -1590,7 +1590,8 @@
           "resultsCount": "Znaleziono {{count}} wyników",
           "clear": "Wyczyść",
           "error": "Wyszukiwanie nie powiodło się. Spróbuj ponownie."
-        }
+        },
+        "composeDraft": "Nowa wiadomość (szkic dostępny)"
       },
       "detail": {
         "to": "Do",
@@ -1633,7 +1634,11 @@
         "mailBody": "Treść e-maila",
         "markUnread": "Oznacz jako nieprzeczytane",
         "markRead": "Oznacz jako przeczytane",
-        "replyAll": "Odpowiedz wszystkim"
+        "replyAll": "Odpowiedz wszystkim",
+        "textSize": "Rozmiar tekstu: {{size}}",
+        "textSizeNormal": "Normalny",
+        "textSizeLarge": "Duży",
+        "textSizeExtraLarge": "Bardzo duży"
       },
       "compose": {
         "from": "Od",
@@ -1679,7 +1684,12 @@
         "photoAccessHint": "Biblioteka zdjęć jest obecnie niedostępna.",
         "replyAllTitle": "Odpowiedz wszystkim",
         "sentSuccess": "Wiadomość wysłana",
-        "sentSuccessHint": "Dotknij, aby zamknąć"
+        "sentSuccessHint": "Dotknij, aby zamknąć",
+        "saveDraft": "Zapisz szkic",
+        "draftFound": "Znaleziono szkic",
+        "draftFoundMessage": "Masz niedokończony szkic. Czy chcesz kontynuować pisanie?",
+        "draftRestore": "Kontynuuj pisanie",
+        "draftDiscard": "Zacznij od nowa"
       }
     },
     "weather": {

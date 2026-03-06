@@ -1628,7 +1628,8 @@
           "resultsCount": "{{count}} resultater fundet",
           "clear": "Ryd",
           "error": "Søgningen mislykkedes. Prøv igen."
-        }
+        },
+        "composeDraft": "Ny besked (kladde tilgængelig)"
       },
       "detail": {
         "to": "Til",
@@ -1671,7 +1672,11 @@
         "mailBody": "E-mailindhold",
         "markUnread": "Markér som ulæst",
         "markRead": "Markér som læst",
-        "replyAll": "Svar alle"
+        "replyAll": "Svar alle",
+        "textSize": "Tekststørrelse: {{size}}",
+        "textSizeNormal": "Normal",
+        "textSizeLarge": "Stor",
+        "textSizeExtraLarge": "Ekstra stor"
       },
       "compose": {
         "from": "Fra",
@@ -1717,7 +1722,12 @@
         "photoAccessHint": "Fotobiblioteket er i øjeblikket ikke tilgængeligt.",
         "replyAllTitle": "Svar alle",
         "sentSuccess": "Besked sendt",
-        "sentSuccessHint": "Tryk for at lukke"
+        "sentSuccessHint": "Tryk for at lukke",
+        "saveDraft": "Gem kladde",
+        "draftFound": "Kladde fundet",
+        "draftFoundMessage": "Du har en ufærdig kladde. Vil du fortsætte med at skrive?",
+        "draftRestore": "Fortsæt med at skrive",
+        "draftDiscard": "Start forfra"
       }
     },
     "askAI": {

@@ -1658,7 +1658,8 @@
           "resultsCount": "{{count}} resultater funnet",
           "clear": "Tøm",
           "error": "Søket mislyktes. Prøv igjen."
-        }
+        },
+        "composeDraft": "Ny melding (utkast tilgjengelig)"
       },
       "detail": {
         "to": "Til",
@@ -1701,7 +1702,11 @@
         "mailBody": "E-postinnhold",
         "markUnread": "Merk som ulest",
         "markRead": "Merk som lest",
-        "replyAll": "Svar alle"
+        "replyAll": "Svar alle",
+        "textSize": "Tekststørrelse: {{size}}",
+        "textSizeNormal": "Normal",
+        "textSizeLarge": "Stor",
+        "textSizeExtraLarge": "Ekstra stor"
       },
       "compose": {
         "from": "Fra",
@@ -1747,7 +1752,12 @@
         "photoAccessHint": "Fotobiblioteket er for øyeblikket ikke tilgjengelig.",
         "replyAllTitle": "Svar alle",
         "sentSuccess": "Melding sendt",
-        "sentSuccessHint": "Trykk for å lukke"
+        "sentSuccessHint": "Trykk for å lukke",
+        "saveDraft": "Lagre utkast",
+        "draftFound": "Utkast funnet",
+        "draftFoundMessage": "Du har et uferdig utkast. Vil du fortsette å skrive?",
+        "draftRestore": "Fortsett å skrive",
+        "draftDiscard": "Start på nytt"
       }
     },
     "askAI": {

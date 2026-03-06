@@ -32,6 +32,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { SettingsStackParams } from '@/navigation';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, VoiceFocusable } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
@@ -47,6 +48,15 @@ import type { MailAccount } from '@/types/mail';
 
 // Message count options for sync settings
 const MESSAGE_COUNT_OPTIONS = [50, 100, 200, 500] as const;
+
+// AsyncStorage keys for persistent settings
+const SETTINGS_KEYS = {
+  messageCount: '@commeazy/mail/messageCount',
+  autoSync: '@commeazy/mail/autoSync',
+  autoDownload: '@commeazy/mail/autoDownload',
+  emailNotifications: '@commeazy/mail/emailNotifications',
+  biometricLock: '@commeazy/mail/biometricLock',
+} as const;
 
 export function MailSettingsScreen() {
   const { t } = useTranslation();
@@ -75,6 +85,34 @@ export function MailSettingsScreen() {
       .then(setWhitelistedDomains)
       .catch((err) => console.error('[MailSettings] Failed to load whitelist:', err));
   }, [isFocused]);
+
+  // Load persisted settings on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const [count, sync, download, notifications, biometric] = await Promise.all([
+          AsyncStorage.getItem(SETTINGS_KEYS.messageCount),
+          AsyncStorage.getItem(SETTINGS_KEYS.autoSync),
+          AsyncStorage.getItem(SETTINGS_KEYS.autoDownload),
+          AsyncStorage.getItem(SETTINGS_KEYS.emailNotifications),
+          AsyncStorage.getItem(SETTINGS_KEYS.biometricLock),
+        ]);
+        if (count !== null) {
+          const parsed = parseInt(count, 10);
+          if ((MESSAGE_COUNT_OPTIONS as readonly number[]).includes(parsed)) {
+            setMessageCount(parsed);
+          }
+        }
+        if (sync !== null) setAutoSync(sync === 'true');
+        if (download !== null) setAutoDownload(download === 'true');
+        if (notifications !== null) setEmailNotifications(notifications === 'true');
+        if (biometric !== null) setBiometricLock(biometric === 'true');
+      } catch {
+        // Non-critical — defaults will be used
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Cache size placeholder
   const cacheSize = '0 MB';
@@ -119,7 +157,9 @@ export function MailSettingsScreen() {
         },
         (buttonIndex) => {
           if (buttonIndex < MESSAGE_COUNT_OPTIONS.length) {
-            setMessageCount(MESSAGE_COUNT_OPTIONS[buttonIndex]);
+            const newCount = MESSAGE_COUNT_OPTIONS[buttonIndex];
+            setMessageCount(newCount);
+            AsyncStorage.setItem(SETTINGS_KEYS.messageCount, String(newCount)).catch(() => {});
           }
         }
       );
@@ -130,7 +170,10 @@ export function MailSettingsScreen() {
         [
           ...MESSAGE_COUNT_OPTIONS.map((count) => ({
             text: t('mailSettings.sync.messageCountOption', { count }),
-            onPress: () => setMessageCount(count),
+            onPress: () => {
+              setMessageCount(count);
+              AsyncStorage.setItem(SETTINGS_KEYS.messageCount, String(count)).catch(() => {});
+            },
           })),
           { text: t('common.cancel'), style: 'cancel' as const },
         ]
@@ -314,6 +357,7 @@ export function MailSettingsScreen() {
                 onValueChange={(value) => {
                   void triggerFeedback('tap');
                   setAutoSync(value);
+                  AsyncStorage.setItem(SETTINGS_KEYS.autoSync, String(value)).catch(() => {});
                 }}
                 trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
@@ -332,6 +376,7 @@ export function MailSettingsScreen() {
                 onValueChange={(value) => {
                   void triggerFeedback('tap');
                   setAutoDownload(value);
+                  AsyncStorage.setItem(SETTINGS_KEYS.autoDownload, String(value)).catch(() => {});
                 }}
                 trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
@@ -428,6 +473,7 @@ export function MailSettingsScreen() {
                 onValueChange={(value) => {
                   void triggerFeedback('tap');
                   setEmailNotifications(value);
+                  AsyncStorage.setItem(SETTINGS_KEYS.emailNotifications, String(value)).catch(() => {});
                 }}
                 trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
@@ -446,6 +492,7 @@ export function MailSettingsScreen() {
                 onValueChange={(value) => {
                   void triggerFeedback('tap');
                   setBiometricLock(value);
+                  AsyncStorage.setItem(SETTINGS_KEYS.biometricLock, String(value)).catch(() => {});
                 }}
                 trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}

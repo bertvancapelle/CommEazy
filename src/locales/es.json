@@ -1784,7 +1784,8 @@
           "resultsCount": "{{count}} resultados encontrados",
           "clear": "Borrar",
           "error": "La búsqueda falló. Inténtalo de nuevo."
-        }
+        },
+        "composeDraft": "Nuevo mensaje (borrador disponible)"
       },
       "detail": {
         "to": "Para",
@@ -1827,7 +1828,11 @@
         "mailBody": "Contenido del correo",
         "markUnread": "Marcar como no leído",
         "markRead": "Marcar como leído",
-        "replyAll": "Responder a todos"
+        "replyAll": "Responder a todos",
+        "textSize": "Tamaño del texto: {{size}}",
+        "textSizeNormal": "Normal",
+        "textSizeLarge": "Grande",
+        "textSizeExtraLarge": "Muy grande"
       },
       "compose": {
         "from": "De",
@@ -1873,7 +1878,12 @@
         "photoAccessHint": "La biblioteca de fotos no está disponible actualmente.",
         "replyAllTitle": "Responder a todos",
         "sentSuccess": "Mensaje enviado",
-        "sentSuccessHint": "Toca para cerrar"
+        "sentSuccessHint": "Toca para cerrar",
+        "saveDraft": "Guardar borrador",
+        "draftFound": "Borrador encontrado",
+        "draftFoundMessage": "Tienes un borrador sin terminar. ¿Quieres seguir escribiendo?",
+        "draftRestore": "Seguir escribiendo",
+        "draftDiscard": "Empezar de nuevo"
       }
     },
     "askAI": {

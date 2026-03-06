@@ -28,6 +28,7 @@ import {
   Alert,
 } from 'react-native';
 import RNFS from 'react-native-fs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
@@ -73,6 +74,20 @@ export interface MailDetailScreenProps {
 }
 
 // ============================================================
+// Text Size Settings
+// ============================================================
+
+const MAIL_FONT_SIZE_KEY = '@commeazy/mailFontSize';
+const FONT_SIZES = [18, 24, 32] as const;
+type FontSizeOption = typeof FONT_SIZES[number];
+
+const FONT_SIZE_LABELS: Record<FontSizeOption, string> = {
+  18: 'textSizeNormal',
+  24: 'textSizeLarge',
+  32: 'textSizeExtraLarge',
+};
+
+// ============================================================
 // Component
 // ============================================================
 
@@ -95,6 +110,7 @@ export function MailDetailScreen({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRead, setIsRead] = useState(header.isRead);
+  const [baseFontSize, setBaseFontSize] = useState<FontSizeOption>(18);
 
   // Image viewer state
   const [viewerVisible, setViewerVisible] = useState(false);
@@ -135,6 +151,18 @@ export function MailDetailScreen({
     return () => {
       mountedRef.current = false;
     };
+  }, []);
+
+  // Load persisted font size
+  useEffect(() => {
+    AsyncStorage.getItem(MAIL_FONT_SIZE_KEY).then((value) => {
+      if (value && mountedRef.current) {
+        const parsed = parseInt(value, 10) as FontSizeOption;
+        if (FONT_SIZES.includes(parsed)) {
+          setBaseFontSize(parsed);
+        }
+      }
+    }).catch(() => {});
   }, []);
 
   // Parse sender
@@ -395,6 +423,17 @@ export function MailDetailScreen({
     }
   }, [isRead, header.uid, header.folder, account.id, triggerHaptic]);
 
+  const handleToggleFontSize = useCallback(() => {
+    triggerHaptic('tap');
+    setBaseFontSize((prev) => {
+      const currentIdx = FONT_SIZES.indexOf(prev);
+      const nextIdx = (currentIdx + 1) % FONT_SIZES.length;
+      const nextSize = FONT_SIZES[nextIdx];
+      AsyncStorage.setItem(MAIL_FONT_SIZE_KEY, String(nextSize)).catch(() => {});
+      return nextSize;
+    });
+  }, [triggerHaptic]);
+
   const handleReply = useCallback(() => {
     triggerHaptic('tap');
     onReply?.(header);
@@ -437,6 +476,23 @@ export function MailDetailScreen({
         </TouchableOpacity>
 
         <View style={styles.topBarRight}>
+          {/* Text size toggle */}
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={handleToggleFontSize}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.mail.detail.textSize', {
+              size: t(`modules.mail.detail.${FONT_SIZE_LABELS[baseFontSize]}`),
+            })}
+          >
+            <Text style={[styles.fontSizeLabel, { color: accentColor.primary }]}>
+              Aa
+            </Text>
+          </TouchableOpacity>
+
           {/* Read/Unread toggle */}
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -545,6 +601,7 @@ export function MailDetailScreen({
             bannerTextColor={themeColors.textSecondary}
             bannerButtonColor={accentColor.primary}
             senderDomain={extractDomain(senderEmail)}
+            baseFontSize={baseFontSize}
           />
         ) : (
           <View style={styles.bodyContainer}>
@@ -750,6 +807,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: borderRadius.md,
     borderWidth: 1,
+  },
+  fontSizeLabel: {
+    fontSize: 16,
+    fontWeight: '700',
   },
   scrollContent: {
     flexGrow: 1,

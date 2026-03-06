@@ -1788,7 +1788,8 @@
           "resultsCount": "{{count}} results found",
           "clear": "Clear",
           "error": "Search failed. Please try again."
-        }
+        },
+        "composeDraft": "New message (draft available)"
       },
       "detail": {
         "to": "To",
@@ -1831,7 +1832,11 @@
         "mailBody": "Email content",
         "markUnread": "Mark as unread",
         "markRead": "Mark as read",
-        "replyAll": "Reply all"
+        "replyAll": "Reply all",
+        "textSize": "Text size: {{size}}",
+        "textSizeNormal": "Normal",
+        "textSizeLarge": "Large",
+        "textSizeExtraLarge": "Extra large"
       },
       "compose": {
         "from": "From",
@@ -1877,7 +1882,12 @@
         "photoAccessHint": "The photo library is currently not available.",
         "replyAllTitle": "Reply all",
         "sentSuccess": "Message sent",
-        "sentSuccessHint": "Tap to close"
+        "sentSuccessHint": "Tap to close",
+        "saveDraft": "Save draft",
+        "draftFound": "Draft found",
+        "draftFoundMessage": "You have an unfinished draft. Do you want to continue writing?",
+        "draftRestore": "Continue writing",
+        "draftDiscard": "Start new"
       }
     },
     "askAI": {

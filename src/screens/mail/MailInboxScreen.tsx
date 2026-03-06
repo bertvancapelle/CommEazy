@@ -50,6 +50,8 @@ export interface MailInboxScreenProps {
   onCompose: () => void;
   /** Navigate to settings */
   onSettings?: () => void;
+  /** Whether a saved draft is available (shows badge on compose button) */
+  hasDraft?: boolean;
 }
 
 // ============================================================
@@ -104,6 +106,7 @@ export function MailInboxScreen({
   onOpenMail,
   onCompose,
   onSettings,
+  hasDraft: hasDraftProp,
 }: MailInboxScreenProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
@@ -482,20 +485,32 @@ export function MailInboxScreen({
         </TouchableOpacity>
 
         {/* Compose button */}
-        <TouchableOpacity
-          style={[styles.composeButton, { backgroundColor: accentColor.primary }]}
-          onPress={() => {
-            triggerHaptic('tap');
-            onCompose();
-          }}
-          onLongPress={() => {}}
-          delayLongPress={300}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.mail.inbox.compose')}
-        >
-          <Icon name="pencil" size={24} color="white" />
-        </TouchableOpacity>
+        <View>
+          <TouchableOpacity
+            style={[styles.composeButton, { backgroundColor: accentColor.primary }]}
+            onPress={() => {
+              triggerHaptic('tap');
+              onCompose();
+            }}
+            onLongPress={() => {}}
+            delayLongPress={300}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={
+              hasDraftProp
+                ? t('modules.mail.inbox.composeDraft')
+                : t('modules.mail.inbox.compose')
+            }
+          >
+            <Icon name="pencil" size={24} color="white" />
+          </TouchableOpacity>
+          {/* Draft badge */}
+          {hasDraftProp && (
+            <View style={styles.draftBadge}>
+              <View style={[styles.draftBadgeDot, { backgroundColor: themeColors.warning || '#FF9800' }]} />
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Folder dropdown */}
@@ -706,6 +721,18 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  draftBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+  },
+  draftBadgeDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: 'white',
   },
   folderDropdown: {
     marginHorizontal: spacing.md,
