@@ -34,10 +34,12 @@ import type { RouteProp } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, Icon, SeniorDatePicker } from '@/components';
+import { ContactAvatar, Icon, SeniorDatePicker, HapticTouchable } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
+import { useContactGroups } from '@/hooks/useContactGroups';
+import { removeContactFromAllGroups } from '@/services/contacts';
 import {
   getContactDisplayName,
   hasNavigableAddress,
@@ -116,9 +118,12 @@ export function ContactDetailScreen() {
   const themeColors = useColors();
   const { navigateToModuleInOtherPane } = useNavigateToModule();
 
+  const { groups, addContacts, removeContacts } = useContactGroups();
+
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [showGroupPicker, setShowGroupPicker] = useState(false);
 
   // Edit state for all editable fields
   const [editPhone, setEditPhone] = useState('');
@@ -175,6 +180,40 @@ export function ContactDetailScreen() {
     () => (contact ? getContactDisplayName(contact) : ''),
     [contact],
   );
+
+  // Groups this contact belongs to
+  const contactGroups = useMemo(
+    () => groups.filter(g => g.contactJids.includes(jid)),
+    [groups, jid],
+  );
+
+  // Toggle ICE (In Case of Emergency) status
+  const handleToggleICE = useCallback(() => {
+    void triggerFeedback('tap');
+    if (!contact) return;
+
+    const updatedContact: Contact = {
+      ...contact,
+      isEmergencyContact: !contact.isEmergencyContact,
+    };
+    setContact(updatedContact);
+    console.info('[ContactDetail] ICE toggled:', !contact.isEmergencyContact);
+    // TODO: Persist to database in production
+  }, [contact, triggerFeedback]);
+
+  // Toggle group membership for this contact
+  const handleToggleGroup = useCallback(async (groupId: string) => {
+    void triggerFeedback('tap');
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+
+    const isMember = group.contactJids.includes(jid);
+    if (isMember) {
+      await removeContacts(groupId, [jid]);
+    } else {
+      await addContacts(groupId, [jid]);
+    }
+  }, [groups, jid, addContacts, removeContacts, triggerFeedback]);
 
   const handleStartEdit = useCallback(() => {
     void triggerFeedback('tap');
@@ -328,6 +367,9 @@ export function ContactDetailScreen() {
           onPress: () => {
             void (async () => {
               try {
+                // Remove contact from all groups (referential integrity)
+                await removeContactFromAllGroups(jid);
+
                 if (__DEV__) {
                   console.log('[DEV] Would delete contact:', jid);
                 } else {
@@ -458,6 +500,119 @@ export function ContactDetailScreen() {
             <Text style={[styles.callButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.videoCall')}</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* ICE (In Case of Emergency) toggle */}
+      <HapticTouchable
+        style={[
+          styles.iceToggleRow,
+          {
+            backgroundColor: contact.isEmergencyContact ? '#FFF3E0' : themeColors.surface,
+            borderColor: contact.isEmergencyContact ? '#E65100' : themeColors.border,
+          },
+        ]}
+        onPress={handleToggleICE}
+        accessibilityRole="switch"
+        accessibilityState={{ checked: contact.isEmergencyContact === true }}
+        accessibilityLabel={t('contacts.iceToggle', 'Noodcontact (ICE)')}
+        accessibilityHint={t('contacts.iceToggleHint', 'Markeer als noodcontact voor noodsituaties')}
+      >
+        <Text style={styles.iceEmoji}>{'\u26A0\uFE0F'}</Text>
+        <View style={styles.iceTextContainer}>
+          <Text style={[styles.iceLabel, { color: themeColors.textPrimary }]}>
+            {t('contacts.iceToggle', 'Noodcontact (ICE)')}
+          </Text>
+          <Text style={[styles.iceDescription, { color: themeColors.textSecondary }]}>
+            {t('contacts.iceDescription', 'Zichtbaar bij noodoproepen')}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.iceIndicator,
+            {
+              backgroundColor: contact.isEmergencyContact ? '#E65100' : themeColors.border,
+            },
+          ]}
+        >
+          <Text style={styles.iceIndicatorText}>
+            {contact.isEmergencyContact ? '\u2713' : ''}
+          </Text>
+        </View>
+      </HapticTouchable>
+
+      {/* Group membership section */}
+      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
+          {t('contacts.groups.title', 'Groepen')}
+        </Text>
+
+        {contactGroups.length > 0 ? (
+          contactGroups.map(group => (
+            <View key={group.id} style={styles.groupRow}>
+              <Text style={[styles.groupEmoji, { color: themeColors.textPrimary }]}>
+                {group.emoji || '\uD83D\uDC65'}
+              </Text>
+              <Text style={[styles.groupName, { color: themeColors.textPrimary }]}>
+                {group.name}
+              </Text>
+              <HapticTouchable
+                onPress={() => handleToggleGroup(group.id)}
+                style={[styles.groupRemoveButton, { borderColor: themeColors.border }]}
+                accessibilityRole="button"
+                accessibilityLabel={t('contacts.groups.removeFrom', { group: group.name })}
+              >
+                <Icon name="x" size={16} color={themeColors.textSecondary} />
+              </HapticTouchable>
+            </View>
+          ))
+        ) : (
+          <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
+            {t('contacts.groups.noGroups', 'Niet in een groep')}
+          </Text>
+        )}
+
+        {/* Add to group button */}
+        <HapticTouchable
+          style={[styles.addToGroupButton, { borderColor: themeColors.border }]}
+          onPress={() => setShowGroupPicker(!showGroupPicker)}
+          accessibilityRole="button"
+          accessibilityLabel={t('contacts.groups.addToGroup', 'Toevoegen aan groep')}
+        >
+          <Icon name="plus" size={20} color={themeColors.primary} />
+          <Text style={[styles.addToGroupText, { color: themeColors.primary }]}>
+            {t('contacts.groups.addToGroup', 'Toevoegen aan groep')}
+          </Text>
+        </HapticTouchable>
+
+        {/* Inline group picker (toggled) */}
+        {showGroupPicker && groups.length > 0 && (
+          <View style={styles.groupPickerContainer}>
+            {groups
+              .filter(g => !g.contactJids.includes(jid))
+              .map(group => (
+                <HapticTouchable
+                  key={group.id}
+                  style={[styles.groupPickerItem, { borderColor: themeColors.border }]}
+                  onPress={() => {
+                    void handleToggleGroup(group.id);
+                    setShowGroupPicker(false);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('contacts.groups.addTo', { group: group.name })}
+                >
+                  <Text style={styles.groupEmoji}>{group.emoji || '\uD83D\uDC65'}</Text>
+                  <Text style={[styles.groupName, { color: themeColors.textPrimary }]}>{group.name}</Text>
+                  <Icon name="plus" size={16} color={themeColors.primary} />
+                </HapticTouchable>
+              ))
+            }
+            {groups.filter(g => !g.contactJids.includes(jid)).length === 0 && (
+              <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
+                {t('contacts.groups.alreadyInAll', 'Al in alle groepen')}
+              </Text>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Save / Cancel bar (only visible when editing) */}
@@ -1042,5 +1197,96 @@ const styles = StyleSheet.create({
   dangerButtonText: {
     ...typography.button,
     color: colors.error,
+  },
+  // ICE toggle
+  iceToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    marginBottom: spacing.lg,
+    minHeight: touchTargets.minimum,
+    gap: spacing.md,
+  },
+  iceEmoji: {
+    fontSize: 24,
+  },
+  iceTextContainer: {
+    flex: 1,
+  },
+  iceLabel: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+  iceDescription: {
+    ...typography.label,
+    marginTop: 2,
+  },
+  iceIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iceIndicatorText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  // Group membership
+  groupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
+  },
+  groupEmoji: {
+    fontSize: 20,
+  },
+  groupName: {
+    ...typography.body,
+    flex: 1,
+  },
+  groupRemoveButton: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addToGroupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    minHeight: touchTargets.minimum,
+  },
+  addToGroupText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  groupPickerContainer: {
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  groupPickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    minHeight: touchTargets.minimum,
   },
 });

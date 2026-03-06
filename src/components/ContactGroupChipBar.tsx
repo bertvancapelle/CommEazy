@@ -49,6 +49,8 @@ export interface ContactGroupChipBarProps {
   onSelectChip: (chipId: ChipId) => void;
   /** Callback when the [+] create button is pressed */
   onCreateGroup: () => void;
+  /** Callback when a manual group chip is long-pressed (for editing) */
+  onLongPressGroup?: (groupId: string) => void;
   /** Module accent color */
   accentColor?: string;
 }
@@ -63,6 +65,7 @@ export function ContactGroupChipBar({
   groups,
   onSelectChip,
   onCreateGroup,
+  onLongPressGroup,
   accentColor,
 }: ContactGroupChipBarProps) {
   const { t } = useTranslation();
@@ -85,6 +88,7 @@ export function ContactGroupChipBar({
     label: string,
     emoji?: string,
     count?: number,
+    chipOnLongPress?: () => void,
   ) => {
     const isSelected = selectedChipId === chipId;
 
@@ -99,6 +103,7 @@ export function ContactGroupChipBar({
           },
         ]}
         onPress={() => handleChipPress(chipId)}
+        onLongPress={chipOnLongPress}
         accessibilityRole="button"
         accessibilityState={{ selected: isSelected }}
         accessibilityLabel={
@@ -168,13 +173,14 @@ export function ContactGroupChipBar({
           <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
         )}
 
-        {/* Manual groups */}
+        {/* Manual groups — long-press to edit */}
         {groups.map(group =>
           renderChip(
             `group:${group.id}` as ChipId,
             group.name,
             group.emoji,
             group.contactJids.length,
+            onLongPressGroup ? () => onLongPressGroup(group.id) : undefined,
           )
         )}
 

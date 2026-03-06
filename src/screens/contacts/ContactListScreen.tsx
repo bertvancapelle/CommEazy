@@ -43,8 +43,10 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { useContactGroups } from '@/hooks/useContactGroups';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
 import { getSmartSections, getCallFrequency } from '@/services/contacts';
-import type { SmartSection } from '@/services/contacts';
+import type { SmartSection, ContactGroup } from '@/services/contacts';
 import type { ContactStackParams } from '@/navigation';
+import { CreateGroupModal } from './CreateGroupModal';
+import { EditGroupModal } from './EditGroupModal';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactList'>;
 
@@ -121,7 +123,12 @@ export function ContactListScreen() {
   // Contact groups state
   const [selectedChipId, setSelectedChipId] = useState<ChipId>('all');
   const [callFrequency, setCallFrequency] = useState<Record<string, number>>({});
-  const { groups } = useContactGroups();
+  const { groups, create, rename, updateEmoji, addContacts, removeContacts, remove: deleteGroup } = useContactGroups();
+
+  // Group CRUD modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<ContactGroup | null>(null);
 
   // Voice focus navigation handler
   const handleContactPress = useCallback(
@@ -255,12 +262,58 @@ export function ContactListScreen() {
     navigation.navigate('AddContact' as never);
   }, [navigation, triggerFeedback]);
 
-  // Placeholder — Fase 4 implements full CreateGroupModal
+  // Open create group modal
   const handleCreateGroup = useCallback(() => {
     void triggerFeedback('tap');
-    // TODO: Navigate to CreateGroupModal (Fase 4)
-    console.info('[ContactListScreen] Create group tapped — modal not yet implemented');
+    setShowCreateModal(true);
   }, [triggerFeedback]);
+
+  // Handle group creation from modal
+  const handleGroupCreated = useCallback(async (name: string, emoji: string | undefined, contactJids: string[]) => {
+    const newGroup = await create(name, emoji, contactJids);
+    if (newGroup) {
+      setSelectedChipId(`group:${newGroup.id}` as ChipId);
+    }
+    setShowCreateModal(false);
+  }, [create]);
+
+  // Open edit group modal (long-press on group chip)
+  const handleLongPressGroup = useCallback((groupId: string) => {
+    void triggerFeedback('tap');
+    const group = groups.find(g => g.id === groupId);
+    if (group) {
+      setEditingGroup(group);
+      setShowEditModal(true);
+    }
+  }, [groups, triggerFeedback]);
+
+  // Edit modal callbacks
+  const handleEditRename = useCallback(async (groupId: string, newName: string) => {
+    await rename(groupId, newName);
+  }, [rename]);
+
+  const handleEditChangeEmoji = useCallback(async (groupId: string, emoji: string | undefined) => {
+    if (emoji) {
+      await updateEmoji(groupId, emoji);
+    }
+  }, [updateEmoji]);
+
+  const handleEditUpdateMembers = useCallback(async (groupId: string, addJids: string[], removeJids: string[]) => {
+    if (addJids.length > 0) await addContacts(groupId, addJids);
+    if (removeJids.length > 0) await removeContacts(groupId, removeJids);
+  }, [addContacts, removeContacts]);
+
+  const handleEditDelete = useCallback(async (groupId: string) => {
+    await deleteGroup(groupId);
+    setSelectedChipId('all');
+    setShowEditModal(false);
+    setEditingGroup(null);
+  }, [deleteGroup]);
+
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setEditingGroup(null);
+  }, []);
 
   // Compute selected group/section label for accessibility
   const selectedGroupLabel = useMemo(() => {
@@ -354,6 +407,7 @@ export function ContactListScreen() {
         groups={groups}
         onSelectChip={setSelectedChipId}
         onCreateGroup={handleCreateGroup}
+        onLongPressGroup={handleLongPressGroup}
       />
 
       {/* Search bar — standardized SearchBar component */}
@@ -414,6 +468,26 @@ export function ContactListScreen() {
           <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
         </TouchableOpacity>
       )}
+
+      {/* Create Group Modal */}
+      <CreateGroupModal
+        visible={showCreateModal}
+        contacts={contacts}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={handleGroupCreated}
+      />
+
+      {/* Edit Group Modal (long-press on group chip) */}
+      <EditGroupModal
+        visible={showEditModal}
+        group={editingGroup}
+        contacts={contacts}
+        onClose={handleCloseEditModal}
+        onRename={handleEditRename}
+        onChangeEmoji={handleEditChangeEmoji}
+        onUpdateMembers={handleEditUpdateMembers}
+        onDelete={handleEditDelete}
+      />
     </View>
   );
 }
