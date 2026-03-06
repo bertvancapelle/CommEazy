@@ -1630,7 +1630,9 @@
           "noResultsHint": "Prova andra sökord.",
           "resultsCount": "{{count}} resultat hittade",
           "clear": "Rensa",
-          "error": "Sökningen misslyckades. Försök igen."
+          "error": "Sökningen misslyckades. Försök igen.",
+          "connectionError": "Kan inte ansluta till e-postservern. Kontrollera din internetanslutning.",
+          "timeoutError": "Sökningen tog för lång tid. Försök igen."
         },
         "composeDraft": "Nytt meddelande (utkast tillgängligt)"
       },
@@ -1686,7 +1688,9 @@
         "resumeReading": "Fortsätt läsa",
         "readingAloud": "Läser högt...",
         "readingPaused": "Läsning pausad",
-        "ttsIntro": "E-post från {{sender}}. Ämne: {{subject}}."
+        "ttsIntro": "E-post från {{sender}}. Ämne: {{subject}}.",
+        "markedRead": "Markerad som läst",
+        "markedUnread": "Markerad som oläst"
       },
       "notifications": {
         "newMailTitle": "Ny e-post",

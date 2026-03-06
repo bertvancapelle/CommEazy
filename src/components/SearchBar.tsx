@@ -27,6 +27,7 @@ import {
   Keyboard,
   Platform,
   TextInputProps,
+  Pressable,
 } from 'react-native';
 
 import { Icon } from './Icon';
@@ -55,6 +56,8 @@ export interface SearchBarProps {
   placeholder: string;
   /** Accessibility label for the search button */
   searchButtonLabel?: string;
+  /** Accessibility label for the clear button */
+  clearButtonLabel?: string;
   /** Maximum input length (default: 100) */
   maxLength?: number;
   /** Show the search button (default: true) */
@@ -87,6 +90,7 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
       onSubmit,
       placeholder,
       searchButtonLabel = 'Search',
+      clearButtonLabel = 'Clear',
       maxLength = 100,
       showButton = true,
       textInputProps,
@@ -115,23 +119,42 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
       handleSubmit();
     };
 
+    const handleClear = async () => {
+      await triggerFeedback('tap');
+      onChangeText('');
+      inputRef.current?.focus();
+    };
+
     return (
       <View style={styles.container}>
-        <TextInput
-          ref={inputRef}
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor={colors.textTertiary}
-          value={value}
-          onChangeText={onChangeText}
-          onSubmitEditing={handleSubmit}
-          returnKeyType="search"
-          maxLength={maxLength}
-          autoCorrect={false}
-          autoCapitalize="none"
-          accessibilityLabel={placeholder}
-          {...textInputProps}
-        />
+        <View style={styles.inputWrapper}>
+          <TextInput
+            ref={inputRef}
+            style={[styles.input, value.length > 0 && styles.inputWithClear]}
+            placeholder={placeholder}
+            placeholderTextColor={colors.textTertiary}
+            value={value}
+            onChangeText={onChangeText}
+            onSubmitEditing={handleSubmit}
+            returnKeyType="search"
+            maxLength={maxLength}
+            autoCorrect={false}
+            autoCapitalize="none"
+            accessibilityLabel={placeholder}
+            {...textInputProps}
+          />
+          {value.length > 0 && (
+            <Pressable
+              style={styles.clearButton}
+              onPress={handleClear}
+              accessibilityRole="button"
+              accessibilityLabel={clearButtonLabel}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Icon name="x" size={18} color={colors.textTertiary} />
+            </Pressable>
+          )}
+        </View>
         {showButton && (
           <TouchableOpacity
             style={[styles.button, { backgroundColor: accentColor.primary }]}
@@ -158,8 +181,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
-  input: {
+  inputWrapper: {
     flex: 1,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  input: {
     // Fixed height to match button exactly (no minHeight + padding accumulation)
     height: touchTargets.minimum, // 60pt
     // Typography without lineHeight to prevent text shift
@@ -179,6 +206,19 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     // Android: remove extra font padding that causes text shift
     includeFontPadding: false,
+  },
+  inputWithClear: {
+    paddingRight: 44, // Room for clear button
+  },
+  clearButton: {
+    position: 'absolute',
+    right: spacing.sm,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
     width: touchTargets.minimum, // 60pt

@@ -1805,7 +1805,9 @@
           "noResultsHint": "Tente outros termos de pesquisa.",
           "resultsCount": "{{count}} resultados encontrados",
           "clear": "Limpar",
-          "error": "A pesquisa falhou. Tente novamente."
+          "error": "A pesquisa falhou. Tente novamente.",
+          "connectionError": "Não foi possível conectar ao servidor de e-mail. Verifique sua conexão.",
+          "timeoutError": "A pesquisa demorou muito. Tente novamente."
         },
         "composeDraft": "Nova mensagem (rascunho disponível)"
       },
@@ -1861,7 +1863,9 @@
         "resumeReading": "Retomar leitura",
         "readingAloud": "Lendo em voz alta...",
         "readingPaused": "Leitura em pausa",
-        "ttsIntro": "E-mail de {{sender}}. Assunto: {{subject}}."
+        "ttsIntro": "E-mail de {{sender}}. Assunto: {{subject}}.",
+        "markedRead": "Marcado como lido",
+        "markedUnread": "Marcado como não lido"
       },
       "notifications": {
         "newMailTitle": "Novo e-mail",

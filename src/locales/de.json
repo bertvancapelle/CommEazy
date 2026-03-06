@@ -1786,7 +1786,9 @@
           "noResultsHint": "Versuche andere Suchbegriffe.",
           "resultsCount": "{{count}} Ergebnisse gefunden",
           "clear": "Löschen",
-          "error": "Suche fehlgeschlagen. Bitte versuche es erneut."
+          "error": "Suche fehlgeschlagen. Bitte versuche es erneut.",
+          "connectionError": "Keine Verbindung zum Mailserver. Prüfe deine Internetverbindung.",
+          "timeoutError": "Suche hat zu lange gedauert. Bitte versuche es erneut."
         },
         "composeDraft": "Neue Nachricht (Entwurf vorhanden)"
       },
@@ -1842,7 +1844,9 @@
         "resumeReading": "Vorlesen fortsetzen",
         "readingAloud": "Wird vorgelesen...",
         "readingPaused": "Vorlesen pausiert",
-        "ttsIntro": "E-Mail von {{sender}}. Betreff: {{subject}}."
+        "ttsIntro": "E-Mail von {{sender}}. Betreff: {{subject}}.",
+        "markedRead": "Als gelesen markiert",
+        "markedUnread": "Als ungelesen markiert"
       },
       "notifications": {
         "newMailTitle": "Neue E-Mail",

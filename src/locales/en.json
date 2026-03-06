@@ -1801,7 +1801,9 @@
           "noResultsHint": "Try different search terms.",
           "resultsCount": "{{count}} results found",
           "clear": "Clear",
-          "error": "Search failed. Please try again."
+          "error": "Search failed. Please try again.",
+          "connectionError": "Cannot connect to mail server. Check your internet.",
+          "timeoutError": "Search took too long. Please try again."
         },
         "composeDraft": "New message (draft available)"
       },
@@ -1857,7 +1859,9 @@
         "resumeReading": "Resume Reading",
         "readingAloud": "Reading aloud...",
         "readingPaused": "Reading paused",
-        "ttsIntro": "Email from {{sender}}. Subject: {{subject}}."
+        "ttsIntro": "Email from {{sender}}. Subject: {{subject}}.",
+        "markedRead": "Marked as read",
+        "markedUnread": "Marked as unread"
       },
       "notifications": {
         "newMailTitle": "New email",

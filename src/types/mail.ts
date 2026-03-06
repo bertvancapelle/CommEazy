@@ -141,6 +141,9 @@ export interface MailAttachmentMeta {
 
   /** MIME type (e.g., "image/jpeg", "application/pdf") */
   mimeType: string;
+
+  /** Content-ID for inline images (CID references in HTML body) */
+  contentId?: string;
 }
 
 /**

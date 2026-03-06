@@ -26,6 +26,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Animated,
+  AccessibilityInfo,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -122,8 +124,40 @@ export function MailDetailScreen({
   const [downloadingImages, setDownloadingImages] = useState<Set<number>>(new Set());
   /** Set of attachment indices already saved to album */
   const [savedToAlbumIndices, setSavedToAlbumIndices] = useState<Set<number>>(new Set());
+  /** Map of contentId → data URI for CID inline image resolution */
+  const [cidDataUris, setCidDataUris] = useState<Map<string, string>>(new Map());
 
   const mountedRef = useRef(true);
+
+  // Toast feedback for read/unread toggle
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const showToast = useCallback((message: string) => {
+    // Clear any pending timer
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+
+    setToastMessage(message);
+    // Announce for VoiceOver/TalkBack
+    AccessibilityInfo.announceForAccessibility(message);
+
+    Animated.timing(toastOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+
+    toastTimerRef.current = setTimeout(() => {
+      Animated.timing(toastOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => {
+        if (mountedRef.current) setToastMessage(null);
+      });
+    }, 2500);
+  }, [toastOpacity]);
 
   // TTS read-aloud
   const {
@@ -161,9 +195,23 @@ export function MailDetailScreen({
       }));
   }, [imageAttachments, downloadedImages, savedToAlbumIndices]);
 
+  // Resolve CID references in HTML body with downloaded inline image data URIs
+  const resolvedHtml = useMemo(() => {
+    if (!body?.html || cidDataUris.size === 0) return body?.html ?? null;
+
+    let html = body.html;
+    cidDataUris.forEach((dataUri, cid) => {
+      // Replace both cid:XXX and CID:XXX (case-insensitive)
+      const cidPattern = new RegExp(`cid:${cid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gi');
+      html = html.replace(cidPattern, dataUri);
+    });
+    return html;
+  }, [body?.html, cidDataUris]);
+
   useEffect(() => {
     return () => {
       mountedRef.current = false;
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
 
@@ -241,12 +289,13 @@ export function MailDetailScreen({
           }
         }
 
-        // Mark as read
+        // Mark as read (silently, no toast)
         try {
           if (!header.isRead) {
             await imapBridge.markAsRead(header.uid, header.folder, true);
             const db = await mailCache.getMailCacheDb();
             await mailCache.updateReadStatus(db, account.id, header.folder, header.uid, true);
+            if (mountedRef.current) setIsRead(true);
           }
         } catch {
           console.debug('[MailDetail] Failed to mark as read');
@@ -303,6 +352,22 @@ export function MailDetailScreen({
 
           if (mountedRef.current) {
             setDownloadedImages(prev => new Map(prev).set(attachment.index, tempPath));
+
+            // For CID-referenced images, store data URI for inline HTML resolution
+            if (attachment.contentId) {
+              let base64Data = data.base64;
+              if (!base64Data && data.filePath) {
+                try {
+                  base64Data = await RNFS.readFile(data.filePath, 'base64');
+                } catch {
+                  // Non-critical — CID image just won't render inline
+                }
+              }
+              if (base64Data) {
+                const dataUri = `data:${attachment.mimeType};base64,${base64Data}`;
+                setCidDataUris(prev => new Map(prev).set(attachment.contentId!, dataUri));
+              }
+            }
           }
         } catch {
           console.debug('[MailDetail] Failed to download image thumbnail');
@@ -429,6 +494,14 @@ export function MailDetailScreen({
     const newValue = !isRead;
     triggerHaptic('tap');
     setIsRead(newValue);
+
+    // Show toast for manual toggle
+    showToast(
+      newValue
+        ? t('modules.mail.detail.markedRead')
+        : t('modules.mail.detail.markedUnread'),
+    );
+
     try {
       const imapBridge = await import('@/services/mail/imapBridge');
       const mailCache = await import('@/services/mail/mailCache');
@@ -440,7 +513,7 @@ export function MailDetailScreen({
       setIsRead(!newValue);
       console.debug('[MailDetail] Failed to toggle read status');
     }
-  }, [isRead, header.uid, header.folder, account.id, triggerHaptic]);
+  }, [isRead, header.uid, header.folder, account.id, triggerHaptic, showToast, t]);
 
   const handleToggleFontSize = useCallback(() => {
     triggerHaptic('tap');
@@ -587,11 +660,11 @@ export function MailDetailScreen({
             )}
           </TouchableOpacity>
 
-          {/* Read/Unread toggle — blue bg + white icon when mail is read (action: mark unread) */}
+          {/* Read/Unread toggle — filled blue = unread state, outline blue = read state */}
           <TouchableOpacity
             style={[
               styles.actionButton,
-              isRead
+              !isRead
                 ? { backgroundColor: accentColor.primary, borderColor: accentColor.primary }
                 : { backgroundColor: themeColors.surface, borderColor: themeColors.border },
             ]}
@@ -607,7 +680,7 @@ export function MailDetailScreen({
             <Icon
               name="mail"
               size={22}
-              color={isRead ? 'white' : themeColors.textSecondary}
+              color={!isRead ? 'white' : accentColor.primary}
             />
           </TouchableOpacity>
 
@@ -739,9 +812,9 @@ export function MailDetailScreen({
               setIsLoading(true);
             }}
           />
-        ) : body?.html ? (
+        ) : (resolvedHtml || body?.html) ? (
           <MailBodyWebView
-            html={body.html}
+            html={resolvedHtml || body!.html}
             textColor={themeColors.textPrimary}
             backgroundColor={themeColors.background}
             linkColor={accentColor.primary}
@@ -859,6 +932,20 @@ export function MailDetailScreen({
         onSave={handleViewerSave}
         accentColor={accentColor.primary}
       />
+
+      {/* Toast feedback */}
+      {toastMessage && (
+        <Animated.View
+          style={[
+            styles.toast,
+            { backgroundColor: accentColor.primary, opacity: toastOpacity },
+          ]}
+          pointerEvents="none"
+          accessibilityLiveRegion="polite"
+        >
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </Animated.View>
+      )}
 
       {/* Bottom action bar */}
       <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
@@ -1122,5 +1209,22 @@ const styles = StyleSheet.create({
   ttsLabel: {
     ...typography.small,
     flex: 1,
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 100,
+    left: spacing.lg,
+    right: spacing.lg,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  toastText: {
+    ...typography.body,
+    color: 'white',
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

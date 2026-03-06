@@ -1734,7 +1734,9 @@
           "noResultsHint": "Prova con altri termini di ricerca.",
           "resultsCount": "{{count}} risultati trovati",
           "clear": "Cancella",
-          "error": "Ricerca non riuscita. Riprova."
+          "error": "Ricerca non riuscita. Riprova.",
+          "connectionError": "Impossibile connettersi al server di posta. Controlla la tua connessione.",
+          "timeoutError": "La ricerca ha impiegato troppo tempo. Riprova."
         },
         "composeDraft": "Nuovo messaggio (bozza disponibile)"
       },
@@ -1790,7 +1792,9 @@
         "resumeReading": "Riprendi lettura",
         "readingAloud": "Lettura in corso...",
         "readingPaused": "Lettura in pausa",
-        "ttsIntro": "E-mail da {{sender}}. Oggetto: {{subject}}."
+        "ttsIntro": "E-mail da {{sender}}. Oggetto: {{subject}}.",
+        "markedRead": "Contrassegnato come letto",
+        "markedUnread": "Contrassegnato come non letto"
       },
       "notifications": {
         "newMailTitle": "Nuova e-mail",

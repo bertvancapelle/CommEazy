@@ -1630,7 +1630,9 @@
           "noResultsHint": "Prøv andre søgeord.",
           "resultsCount": "{{count}} resultater fundet",
           "clear": "Ryd",
-          "error": "Søgningen mislykkedes. Prøv igen."
+          "error": "Søgningen mislykkedes. Prøv igen.",
+          "connectionError": "Kan ikke oprette forbindelse til mailserveren. Tjek din internetforbindelse.",
+          "timeoutError": "Søgningen tog for lang tid. Prøv igen."
         },
         "composeDraft": "Ny besked (kladde tilgængelig)"
       },
@@ -1686,7 +1688,9 @@
         "resumeReading": "Genoptag oplæsning",
         "readingAloud": "Læser højt...",
         "readingPaused": "Oplæsning sat på pause",
-        "ttsIntro": "E-mail fra {{sender}}. Emne: {{subject}}."
+        "ttsIntro": "E-mail fra {{sender}}. Emne: {{subject}}.",
+        "markedRead": "Markeret som læst",
+        "markedUnread": "Markeret som ulæst"
       },
       "notifications": {
         "newMailTitle": "Ny e-mail",

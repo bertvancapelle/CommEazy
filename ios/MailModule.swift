@@ -313,13 +313,20 @@ class MailModule: RCTEventEmitter {
                         let charset = Self.extractCharset(from: mimeType)
                         plainTextBody = String(data: decodedData, encoding: charset) ?? String(data: decodedData, encoding: .utf8)
                     } else if part.disposition?.lowercased() == "attachment" ||
-                              (part.filename != nil && !mimeType.hasPrefix("text/html") && !mimeType.hasPrefix("text/plain")) {
-                        attachments.append([
+                              (part.filename != nil && !mimeType.hasPrefix("text/html") && !mimeType.hasPrefix("text/plain")) ||
+                              (part.contentId != nil && mimeType.hasPrefix("image/")) {
+                        var attachmentDict: [String: Any] = [
                             "index": index,
                             "name": part.filename ?? "attachment_\(index)",
                             "size": part.data?.count ?? 0,
                             "mimeType": mimeType,
-                        ])
+                        ]
+                        if let cid = part.contentId {
+                            // Strip angle brackets if present (e.g., "<image001@01D...>" → "image001@01D...")
+                            let cleanCid = cid.trimmingCharacters(in: CharacterSet(charactersIn: "<>"))
+                            attachmentDict["contentId"] = cleanCid
+                        }
+                        attachments.append(attachmentDict)
                     }
                 }
 

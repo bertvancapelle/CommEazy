@@ -1660,7 +1660,9 @@
           "noResultsHint": "Prøv andre søkeord.",
           "resultsCount": "{{count}} resultater funnet",
           "clear": "Tøm",
-          "error": "Søket mislyktes. Prøv igjen."
+          "error": "Søket mislyktes. Prøv igjen.",
+          "connectionError": "Kan ikke koble til e-postserveren. Sjekk internettforbindelsen.",
+          "timeoutError": "Søket tok for lang tid. Prøv igjen."
         },
         "composeDraft": "Ny melding (utkast tilgjengelig)"
       },
@@ -1716,7 +1718,9 @@
         "resumeReading": "Fortsett lesing",
         "readingAloud": "Leser høyt...",
         "readingPaused": "Lesing satt på pause",
-        "ttsIntro": "E-post fra {{sender}}. Emne: {{subject}}."
+        "ttsIntro": "E-post fra {{sender}}. Emne: {{subject}}.",
+        "markedRead": "Merket som lest",
+        "markedUnread": "Merket som ulest"
       },
       "notifications": {
         "newMailTitle": "Ny e-post",

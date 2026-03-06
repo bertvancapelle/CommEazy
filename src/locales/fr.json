@@ -1786,7 +1786,9 @@
           "noResultsHint": "Essayez d'autres termes de recherche.",
           "resultsCount": "{{count}} résultats trouvés",
           "clear": "Effacer",
-          "error": "La recherche a échoué. Veuillez réessayer."
+          "error": "La recherche a échoué. Veuillez réessayer.",
+          "connectionError": "Impossible de se connecter au serveur de messagerie. Vérifiez votre connexion.",
+          "timeoutError": "La recherche a pris trop de temps. Veuillez réessayer."
         },
         "composeDraft": "Nouveau message (brouillon disponible)"
       },
@@ -1842,7 +1844,9 @@
         "resumeReading": "Reprendre la lecture",
         "readingAloud": "Lecture en cours...",
         "readingPaused": "Lecture en pause",
-        "ttsIntro": "E-mail de {{sender}}. Objet : {{subject}}."
+        "ttsIntro": "E-mail de {{sender}}. Objet : {{subject}}.",
+        "markedRead": "Marqué comme lu",
+        "markedUnread": "Marqué comme non lu"
       },
       "notifications": {
         "newMailTitle": "Nouvel e-mail",

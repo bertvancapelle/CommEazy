@@ -330,25 +330,7 @@ export function MailScreen() {
   }
 
   // ============================================================
-  // Render — Mail Detail View
-  // ============================================================
-
-  if (currentView.type === 'detail') {
-    return (
-      <MailDetailScreen
-        header={currentView.header}
-        account={account}
-        onBack={handleBackToInbox}
-        onReply={handleReply}
-        onReplyAll={handleReplyAll}
-        onForward={handleForward}
-        onDeleted={handleMailDeleted}
-      />
-    );
-  }
-
-  // ============================================================
-  // Render — Compose View
+  // Render — Compose View (replaces everything)
   // ============================================================
 
   if (currentView.type === 'compose') {
@@ -366,23 +348,44 @@ export function MailScreen() {
   }
 
   // ============================================================
-  // Render — Inbox View (default)
+  // Render — Inbox (always mounted) + Detail (overlay)
+  // Keep MailInboxScreen mounted so search state persists
   // ============================================================
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <ModuleHeader
-        moduleId="mail"
-        icon="mail"
-        title={t('navigation.mail')}
-      />
+      {/* Inbox — hidden when detail is visible, but stays mounted */}
+      <View style={[
+        styles.container,
+        currentView.type === 'detail' && styles.hidden,
+      ]}>
+        <ModuleHeader
+          moduleId="mail"
+          icon="mail"
+          title={t('navigation.mail')}
+        />
+        <MailInboxScreen
+          account={account}
+          onOpenMail={handleOpenMail}
+          onCompose={handleCompose}
+          hasDraft={draftAvailable}
+        />
+      </View>
 
-      <MailInboxScreen
-        account={account}
-        onOpenMail={handleOpenMail}
-        onCompose={handleCompose}
-        hasDraft={draftAvailable}
-      />
+      {/* Detail — rendered on top when active */}
+      {currentView.type === 'detail' && (
+        <View style={StyleSheet.absoluteFill}>
+          <MailDetailScreen
+            header={currentView.header}
+            account={account}
+            onBack={handleBackToInbox}
+            onReply={handleReply}
+            onReplyAll={handleReplyAll}
+            onForward={handleForward}
+            onDeleted={handleMailDeleted}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -394,6 +397,9 @@ export function MailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  hidden: {
+    display: 'none',
   },
   loadingContainer: {
     flex: 1,

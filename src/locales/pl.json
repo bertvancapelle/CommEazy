@@ -1592,7 +1592,9 @@
           "noResultsHint": "Spróbuj innych słów kluczowych.",
           "resultsCount": "Znaleziono {{count}} wyników",
           "clear": "Wyczyść",
-          "error": "Wyszukiwanie nie powiodło się. Spróbuj ponownie."
+          "error": "Wyszukiwanie nie powiodło się. Spróbuj ponownie.",
+          "connectionError": "Nie można połączyć się z serwerem poczty. Sprawdź połączenie internetowe.",
+          "timeoutError": "Wyszukiwanie trwało zbyt długo. Spróbuj ponownie."
         },
         "composeDraft": "Nowa wiadomość (szkic dostępny)"
       },
@@ -1648,7 +1650,9 @@
         "resumeReading": "Wznów czytanie",
         "readingAloud": "Czytanie na głos...",
         "readingPaused": "Czytanie wstrzymane",
-        "ttsIntro": "E-mail od {{sender}}. Temat: {{subject}}."
+        "ttsIntro": "E-mail od {{sender}}. Temat: {{subject}}.",
+        "markedRead": "Oznaczono jako przeczytane",
+        "markedUnread": "Oznaczono jako nieprzeczytane"
       },
       "notifications": {
         "newMailTitle": "Nowy e-mail",

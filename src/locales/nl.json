@@ -1796,7 +1796,9 @@
           "noResultsHint": "Probeer andere zoektermen.",
           "resultsCount": "{{count}} resultaten gevonden",
           "clear": "Wissen",
-          "error": "Zoeken mislukt. Probeer het opnieuw."
+          "error": "Zoeken mislukt. Probeer het opnieuw.",
+          "connectionError": "Geen verbinding met de mailserver. Controleer je internet.",
+          "timeoutError": "Zoeken duurde te lang. Probeer het opnieuw."
         },
         "composeDraft": "Nieuw bericht (concept beschikbaar)"
       },
@@ -1852,7 +1854,9 @@
         "resumeReading": "Hervat voorlezen",
         "readingAloud": "Wordt voorgelezen...",
         "readingPaused": "Voorlezen gepauzeerd",
-        "ttsIntro": "E-mail van {{sender}}. Onderwerp: {{subject}}."
+        "ttsIntro": "E-mail van {{sender}}. Onderwerp: {{subject}}.",
+        "markedRead": "Gemarkeerd als gelezen",
+        "markedUnread": "Gemarkeerd als ongelezen"
       },
       "notifications": {
         "newMailTitle": "Nieuwe e-mail",

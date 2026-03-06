@@ -408,14 +408,21 @@ export function MailInboxScreen({
       // Ensure IMAP is connected
       try {
         await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
-      } catch {
+      } catch (connErr) {
         // If connection fails, try disconnect + reconnect
-        await imapBridge.disconnect().catch(() => {});
-        await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
+        console.warn('[MailInbox] Initial connection failed, retrying:', connErr instanceof Error ? connErr.message : String(connErr));
+        try {
+          await imapBridge.disconnect().catch(() => {});
+          await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
+        } catch (retryErr) {
+          console.error('[MailInbox] Reconnect also failed:', retryErr instanceof Error ? retryErr.message : String(retryErr));
+          setError(t('modules.mail.inbox.search.connectionError'));
+          return;
+        }
       }
 
       // Step 1: Search server for matching UIDs (OR-query: subject, from, body)
-      console.debug('[MailInbox] Searching server for:', query.length, 'chars');
+      console.debug('[MailInbox] Searching server for:', query.length, 'chars in folder:', selectedFolder);
       const uids = await imapBridge.searchMessages(selectedFolder, query);
       console.debug('[MailInbox] Search returned', uids.length, 'UIDs');
 
@@ -455,8 +462,16 @@ export function MailInboxScreen({
 
       setSearchResults(mapped);
     } catch (err) {
-      console.debug('[MailInbox] Search failed:', err instanceof Error ? err.message : String(err));
-      setError(t('modules.mail.inbox.search.error'));
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error('[MailInbox] Search failed:', errMsg);
+      // Show specific error based on failure type
+      if (errMsg.includes('timeout') || errMsg.includes('TIMEOUT')) {
+        setError(t('modules.mail.inbox.search.timeoutError'));
+      } else if (errMsg.includes('connect') || errMsg.includes('CONNECT') || errMsg.includes('socket')) {
+        setError(t('modules.mail.inbox.search.connectionError'));
+      } else {
+        setError(t('modules.mail.inbox.search.error'));
+      }
     } finally {
       if (mountedRef.current) {
         setIsSearching(false);
