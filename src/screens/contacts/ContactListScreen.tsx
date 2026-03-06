@@ -34,12 +34,16 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar } from '@/components';
+import type { ChipId } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useContactGroups } from '@/hooks/useContactGroups';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
+import { getSmartSections, getCallFrequency } from '@/services/contacts';
+import type { SmartSection } from '@/services/contacts';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactList'>;
@@ -114,6 +118,11 @@ export function ContactListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Contact groups state
+  const [selectedChipId, setSelectedChipId] = useState<ChipId>('all');
+  const [callFrequency, setCallFrequency] = useState<Record<string, number>>({});
+  const { groups } = useContactGroups();
+
   // Voice focus navigation handler
   const handleContactPress = useCallback(
     (contact: Contact) => {
@@ -186,22 +195,54 @@ export function ContactListScreen() {
     void loadContacts();
   }, []);
 
-  // Filter contacts when search query changes
+  // Compute smart sections from contacts (memoized for performance)
+  const smartSections: SmartSection[] = useMemo(() => {
+    if (contacts.length === 0) return [];
+    return getSmartSections(contacts, callFrequency);
+  }, [contacts, callFrequency]);
+
+  // Load call frequency data
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredContacts(contacts);
-    } else {
+    getCallFrequency().then(setCallFrequency).catch(() => {});
+  }, []);
+
+  // Filter contacts by chip selection + search query
+  useEffect(() => {
+    let base = contacts;
+
+    // Apply chip filter first
+    if (selectedChipId !== 'all') {
+      if (selectedChipId.startsWith('smart:')) {
+        const sectionId = selectedChipId.replace('smart:', '');
+        const section = smartSections.find(s => s.id === sectionId);
+        if (section) {
+          const sectionJids = new Set(section.contacts.map(c => c.jid));
+          base = contacts.filter(c => sectionJids.has(c.jid));
+        }
+      } else if (selectedChipId.startsWith('group:')) {
+        const groupId = selectedChipId.replace('group:', '');
+        const group = groups.find(g => g.id === groupId);
+        if (group) {
+          const groupJids = new Set(group.contactJids);
+          base = contacts.filter(c => groupJids.has(c.jid));
+        }
+      }
+    }
+
+    // Apply search filter on top
+    if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      const filtered = contacts.filter(
+      base = base.filter(
         (c) =>
           getContactDisplayName(c).toLowerCase().includes(query) ||
           c.firstName.toLowerCase().includes(query) ||
           c.lastName.toLowerCase().includes(query) ||
           (c.phoneNumber?.includes(query) ?? false)
       );
-      setFilteredContacts(filtered);
     }
-  }, [searchQuery, contacts]);
+
+    setFilteredContacts(base);
+  }, [searchQuery, contacts, selectedChipId, smartSections, groups]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -213,6 +254,13 @@ export function ContactListScreen() {
     void triggerFeedback('tap');
     navigation.navigate('AddContact' as never);
   }, [navigation, triggerFeedback]);
+
+  // Placeholder — Fase 4 implements full CreateGroupModal
+  const handleCreateGroup = useCallback(() => {
+    void triggerFeedback('tap');
+    // TODO: Navigate to CreateGroupModal (Fase 4)
+    console.info('[ContactListScreen] Create group tapped — modal not yet implemented');
+  }, [triggerFeedback]);
 
   const renderContactItem = useCallback(
     (item: Contact, index: number) => (
@@ -256,6 +304,15 @@ export function ContactListScreen() {
         icon="contacts"
         title={t('tabs.contacts')}
         showAdMob={true}
+      />
+
+      {/* Contact group chip bar — smart sections + manual groups */}
+      <ContactGroupChipBar
+        selectedChipId={selectedChipId}
+        smartSections={smartSections}
+        groups={groups}
+        onSelectChip={setSelectedChipId}
+        onCreateGroup={handleCreateGroup}
       />
 
       {/* Search bar — standardized SearchBar component */}

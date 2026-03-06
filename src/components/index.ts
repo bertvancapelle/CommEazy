@@ -172,6 +172,10 @@ export type { SlideshowViewerProps, SlideshowPhoto } from './SlideshowViewer';
 // Import directly from './DevModePanel' if needed:
 //   import { DevModePanel, DevModeButton } from '@/components/DevModePanel';
 
+// Contact Group Chip Bar (horizontal scrollable group filter)
+export { ContactGroupChipBar } from './ContactGroupChipBar';
+export type { ContactGroupChipBarProps, ChipId } from './ContactGroupChipBar';
+
 // Adaptive Navigation Components (iPad/iPhone hybrid menu)
 export {
   ModuleItem,
