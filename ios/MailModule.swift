@@ -103,7 +103,7 @@ class MailModule: RCTEventEmitter {
         } else if lowered.contains("connect") || lowered.contains("refused") {
             return (.connectionFailed, "Could not connect to server")
         } else {
-            return (.unknownError, "An unexpected error occurred")
+            return (.unknownError, "An unexpected error occurred: \(message)")
         }
     }
 
@@ -464,9 +464,10 @@ class MailModule: RCTEventEmitter {
             do {
                 let _ = try await imap.selectMailbox(folderName)
 
-                // Search using OR on subject, from, body
+                // Search using OR on subject, from, to (no body — causes PayloadTooLargeError on large mailboxes)
+                // Body search is handled by local SQLite cache with substring matching
                 let criteria: [SearchCriteria] = [
-                    .or(.subject(query), .or(.from(query), .body(query)))
+                    .or(.subject(query), .or(.from(query), .to(query)))
                 ]
 
                 let results: MessageIdentifierSet<UID> = try await imap.search(criteria: criteria)

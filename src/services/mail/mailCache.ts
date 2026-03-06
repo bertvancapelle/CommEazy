@@ -466,51 +466,52 @@ export async function hasBody(
 // ============================================================
 
 /**
- * Search the local mail cache using FTS5 full-text search.
+ * Search the local mail cache using substring matching on all header fields.
+ * Searches: subject, from_name, from_address, from_raw, to_addresses.
+ *
+ * Uses LIKE '%query%' for true substring matching (finds "overlij" in "overlijden").
+ * This is more reliable than FTS5 or IMAP SEARCH which do whole-word matching.
  *
  * @param db - Database connection
  * @param accountId - Account identifier
  * @param query - Search query string
+ * @param folder - Optional folder to restrict search to
  * @param limit - Maximum number of results
- * @returns Array of matching UIDs with relevance ranking
+ * @returns Array of matching cached headers
  */
 export async function searchLocal(
   db: MailDatabaseConnection,
   accountId: string,
   query: string,
-  limit: number = 100,
-): Promise<number[]> {
+  folder?: string,
+  limit: number = 200,
+): Promise<CachedMailHeader[]> {
   if (!query.trim()) return [];
 
-  // FTS5 not available — fall back to LIKE search on headers
-  if (!isFts5Available()) {
-    const likeQuery = `%${query.trim()}%`;
-    const rows = await db.executeQuery<{ uid: number }>(
-      `SELECT uid FROM mail_headers
-       WHERE account_id = ? AND (subject LIKE ? OR from_raw LIKE ?)
-       ORDER BY date_iso DESC
-       LIMIT ?`,
-      [accountId, likeQuery, likeQuery, limit],
-    );
-    return rows.map(r => r.uid);
-  }
+  const likeQuery = `%${query.trim()}%`;
 
-  // Escape the query for FTS5 (wrap each word in quotes for safety)
-  const sanitized = query
-    .trim()
-    .split(/\s+/)
-    .map(word => `"${word.replace(/"/g, '')}"`)
-    .join(' ');
+  // Build query with optional folder filter
+  const folderClause = folder ? 'AND folder = ?' : '';
+  const params = folder
+    ? [accountId, folder, likeQuery, likeQuery, likeQuery, likeQuery, likeQuery, limit]
+    : [accountId, likeQuery, likeQuery, likeQuery, likeQuery, likeQuery, limit];
 
-  const rows = await db.executeQuery<{ uid: number }>(
-    `SELECT uid FROM mail_fts
-     WHERE account_id = ? AND mail_fts MATCH ?
-     ORDER BY rank
+  const rows = await db.executeQuery<RawHeaderRow>(
+    `SELECT * FROM mail_headers
+     WHERE account_id = ? ${folderClause}
+       AND (
+         subject LIKE ?
+         OR from_name LIKE ?
+         OR from_address LIKE ?
+         OR from_raw LIKE ?
+         OR to_addresses LIKE ?
+       )
+     ORDER BY date_iso DESC
      LIMIT ?`,
-    [accountId, sanitized, limit],
+    params,
   );
 
-  return rows.map(r => r.uid);
+  return rows.map(rowToCachedHeader);
 }
 
 // ============================================================

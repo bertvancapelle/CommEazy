@@ -4,7 +4,7 @@
  * Displays mail headers from the selected folder. Supports:
  * - Folder selection (INBOX, Sent, Drafts, etc.)
  * - Pull-to-refresh to sync new messages
- * - Search via SearchBar (local FTS5 + remote IMAP)
+ * - Search via SearchBar (local substring matching + remote IMAP fallback)
  * - Unread count per folder
  *
  * Senior-inclusive design:
@@ -189,7 +189,7 @@ export function MailInboxScreen({
       // First try to show cached data (instant display while server loads)
       try {
         const db = await mailCache.getMailCacheDb();
-        const cachedHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 50);
+        const cachedHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 500);
         console.debug('[MailInbox] Cache has', cachedHeaders.length, 'headers');
         if (cachedHeaders.length > 0 && mountedRef.current) {
           setHeaders(cachedHeaders);
@@ -242,17 +242,18 @@ export function MailInboxScreen({
       }
 
       // Fetch headers from server (with one retry on connection error)
+      // Fetch up to 500 headers for local search cache
       console.debug('[MailInbox] Fetching headers from', selectedFolder);
       let serverHeaders: Awaited<ReturnType<typeof imapBridge.fetchHeaders>>;
       try {
-        serverHeaders = await imapBridge.fetchHeaders(selectedFolder, 50);
+        serverHeaders = await imapBridge.fetchHeaders(selectedFolder, 500);
       } catch (fetchErr) {
         // If fetch fails, try reconnecting once and retry
         const code = imapBridge.getMailErrorCode(fetchErr);
         console.debug('[MailInbox] fetchHeaders failed with code:', code, '— retrying with fresh connection');
         await imapBridge.disconnect().catch(() => {});
         await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
-        serverHeaders = await imapBridge.fetchHeaders(selectedFolder, 50);
+        serverHeaders = await imapBridge.fetchHeaders(selectedFolder, 500);
       }
       console.debug('[MailInbox] Got', serverHeaders.length, 'headers from server');
       lastImapFetchTimestamp = Date.now();
@@ -269,7 +270,7 @@ export function MailInboxScreen({
         await mailCache.upsertHeaders(db, account.id, selectedFolder, serverHeaders);
 
         // Read back from cache (includes parsed fromName/fromAddress)
-        const freshHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 50);
+        const freshHeaders = await mailCache.getHeaders(db, account.id, selectedFolder, 500);
         console.debug('[MailInbox] Fresh headers from cache:', freshHeaders.length, '— newest subject:', freshHeaders[0]?.subject ?? 'none');
         if (mountedRef.current) setHeaders(freshHeaders);
       } catch (cacheUpdateErr) {
@@ -390,8 +391,13 @@ export function MailInboxScreen({
   // ============================================================
 
   /**
-   * Server-side IMAP search (OR-query: subject, from, body).
-   * Returns UIDs from the server, then fetches headers for those UIDs.
+   * Hybrid search: local cache first (substring matching), then IMAP as supplement.
+   *
+   * Local search uses LIKE '%query%' which supports partial words
+   * (e.g. "overlij" finds "overlijden"). IMAP search is used as fallback
+   * for mails not in the local cache (whole-word matching only).
+   *
+   * Results are merged and deduplicated by UID.
    */
   const handleSearch = useCallback(async () => {
     const query = searchQuery.trim();
@@ -403,75 +409,92 @@ export function MailInboxScreen({
     setError(null);
 
     try {
-      const imapBridge = await import('@/services/mail/imapBridge');
+      const mailCache = await import('@/services/mail/mailCache');
 
-      // Ensure IMAP is connected
+      // Step 1: Search LOCAL cache first (substring matching — instant)
+      const db = await mailCache.getMailCacheDb();
+      const localResults = await mailCache.searchLocal(db, account.id, query, selectedFolder);
+      console.debug('[MailInbox] Local search found', localResults.length, 'results for:', query);
+
+      if (!mountedRef.current) return;
+
+      // Show local results immediately
+      if (localResults.length > 0) {
+        setSearchResults(localResults);
+      }
+
+      // Step 2: Also search IMAP server for mails not in cache (whole-word matching)
+      let imapResults: CachedMailHeader[] = [];
       try {
-        await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
-      } catch (connErr) {
-        // If connection fails, try disconnect + reconnect
-        console.warn('[MailInbox] Initial connection failed, retrying:', connErr instanceof Error ? connErr.message : String(connErr));
+        const imapBridge = await import('@/services/mail/imapBridge');
+
+        // Ensure IMAP is connected
         try {
-          await imapBridge.disconnect().catch(() => {});
           await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
-        } catch (retryErr) {
-          console.error('[MailInbox] Reconnect also failed:', retryErr instanceof Error ? retryErr.message : String(retryErr));
-          setError(t('modules.mail.inbox.search.connectionError'));
-          return;
+        } catch (connErr) {
+          console.warn('[MailInbox] IMAP connection failed, retrying:', connErr instanceof Error ? connErr.message : String(connErr));
+          try {
+            await imapBridge.disconnect().catch(() => {});
+            await imapBridge.connectIMAPWithRefresh(account.id, account.providerId);
+          } catch {
+            // IMAP unavailable — local results only
+            console.debug('[MailInbox] IMAP unavailable, using local results only');
+            if (localResults.length === 0 && mountedRef.current) {
+              setSearchResults([]);
+            }
+            return;
+          }
         }
-      }
 
-      // Step 1: Search server for matching UIDs (OR-query: subject, from, body)
-      console.debug('[MailInbox] Searching server for:', query.length, 'chars in folder:', selectedFolder);
-      const uids = await imapBridge.searchMessages(selectedFolder, query);
-      console.debug('[MailInbox] Search returned', uids.length, 'UIDs');
+        console.debug('[MailInbox] Searching IMAP server for:', query.length, 'chars in folder:', selectedFolder);
+        const uids = await imapBridge.searchMessages(selectedFolder, query);
+        console.debug('[MailInbox] IMAP search returned', uids.length, 'UIDs');
+
+        if (!mountedRef.current) return;
+
+        if (uids.length > 0) {
+          // Filter out UIDs we already have from local results
+          const localUids = new Set(localResults.map(h => h.uid));
+          const newUids = uids.filter(uid => !localUids.has(uid));
+
+          if (newUids.length > 0) {
+            console.debug('[MailInbox] Fetching', newUids.length, 'additional headers from IMAP');
+            const rawHeaders = await imapBridge.fetchHeadersByUIDs(selectedFolder, newUids);
+
+            imapResults = rawHeaders.map(h => {
+              const parsed = parseEmailAddress(h.from ?? '');
+              return {
+                ...h,
+                accountId: account.id,
+                folder: selectedFolder,
+                fromName: parsed.name ?? undefined,
+                fromAddress: parsed.address ?? undefined,
+                isLocal: false,
+              };
+            });
+          }
+        }
+      } catch (imapErr) {
+        const errMsg = imapErr instanceof Error ? imapErr.message : String(imapErr);
+        console.debug('[MailInbox] IMAP search failed (using local results only):', errMsg);
+        // Don't show error if we have local results
+      }
 
       if (!mountedRef.current) return;
 
-      if (uids.length === 0) {
-        setSearchResults([]);
-        setIsSearching(false);
-        return;
-      }
-
-      // Step 2: Fetch headers for the found UIDs
-      const rawHeaders = await imapBridge.fetchHeadersByUIDs(selectedFolder, uids);
-      console.debug('[MailInbox] Fetched', rawHeaders.length, 'headers for search results');
-
-      if (!mountedRef.current) return;
-
-      // Map to CachedMailHeader format
-      const mapped: CachedMailHeader[] = rawHeaders.map(h => {
-        const parsed = parseEmailAddress(h.from ?? '');
-        return {
-          ...h,
-          accountId: account.id,
-          folder: selectedFolder,
-          fromName: parsed.name ?? undefined,
-          fromAddress: parsed.address ?? undefined,
-          isLocal: false,
-        };
-      });
-
-      // Sort by date descending (newest first)
-      mapped.sort((a, b) => {
+      // Step 3: Merge local + IMAP results, deduplicate, sort by date
+      const merged = [...localResults, ...imapResults];
+      merged.sort((a, b) => {
         const dateA = a.date ? new Date(a.date).getTime() : 0;
         const dateB = b.date ? new Date(b.date).getTime() : 0;
         return dateB - dateA;
       });
 
-      setSearchResults(mapped);
+      setSearchResults(merged);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       console.error('[MailInbox] Search failed:', errMsg);
-      // Show specific error based on failure type
-      if (errMsg.includes('timeout') || errMsg.includes('TIMEOUT')) {
-        setError(t('modules.mail.inbox.search.timeoutError'));
-      } else if (errMsg.includes('connect') || errMsg.includes('CONNECT') || errMsg.includes('socket')) {
-        setError(t('modules.mail.inbox.search.connectionError'));
-      } else {
-        setError(t('modules.mail.inbox.search.error'));
-      }
+      setError(t('modules.mail.inbox.search.error'));
     } finally {
       if (mountedRef.current) {
         setIsSearching(false);
