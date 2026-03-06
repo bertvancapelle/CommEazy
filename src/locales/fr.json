@@ -1841,7 +1841,8 @@
         "pauseReading": "Mettre en pause",
         "resumeReading": "Reprendre la lecture",
         "readingAloud": "Lecture en cours...",
-        "readingPaused": "Lecture en pause"
+        "readingPaused": "Lecture en pause",
+        "ttsIntro": "E-mail de {{sender}}. Objet : {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Nouvel e-mail",

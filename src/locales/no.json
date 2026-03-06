@@ -1715,7 +1715,8 @@
         "pauseReading": "Pause lesing",
         "resumeReading": "Fortsett lesing",
         "readingAloud": "Leser høyt...",
-        "readingPaused": "Lesing satt på pause"
+        "readingPaused": "Lesing satt på pause",
+        "ttsIntro": "E-post fra {{sender}}. Emne: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Ny e-post",

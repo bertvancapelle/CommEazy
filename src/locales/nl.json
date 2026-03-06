@@ -1851,7 +1851,8 @@
         "pauseReading": "Pauzeer voorlezen",
         "resumeReading": "Hervat voorlezen",
         "readingAloud": "Wordt voorgelezen...",
-        "readingPaused": "Voorlezen gepauzeerd"
+        "readingPaused": "Voorlezen gepauzeerd",
+        "ttsIntro": "E-mail van {{sender}}. Onderwerp: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Nieuwe e-mail",

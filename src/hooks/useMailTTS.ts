@@ -47,7 +47,7 @@ export interface UseMailTTSReturn {
 // Helpers
 // ============================================================
 
-/** Strip HTML tags from email body for clean TTS text */
+/** Strip HTML tags, URLs, email addresses, and signatures for clean TTS text */
 function stripHtmlForTTS(html: string): string {
   let text = html;
 
@@ -67,6 +67,18 @@ function stripHtmlForTTS(html: string): string {
   text = text.replace(/&#039;/g, "'");
   text = text.replace(/&apos;/g, "'");
   text = text.replace(/&nbsp;/g, ' ');
+
+  // Remove URLs (http/https/www) — confusing when read aloud
+  text = text.replace(/https?:\/\/[^\s<>"{}|\\^`[\]]+/gi, '');
+  text = text.replace(/www\.[^\s<>"{}|\\^`[\]]+/gi, '');
+
+  // Remove email addresses — confusing when read aloud
+  text = text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '');
+
+  // Remove common email signature markers and everything after
+  // Matches lines starting with: --, Verstuurd vanaf, Sent from, Envoyé de, Gesendet von
+  text = text.replace(/\n\s*--\s*\n[\s\S]*$/m, '');
+  text = text.replace(/\n\s*(Verstuurd vanaf|Sent from|Envoyé de|Gesendet von|Enviado desde|Inviato da|Sendt fra|Skickat från|Sendt fra|Enviado de|Wysłano z)[^\n]*[\s\S]*$/im, '');
 
   // Collapse multiple whitespace/newlines
   text = text.replace(/\n{3,}/g, '\n\n');

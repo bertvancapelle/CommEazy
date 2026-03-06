@@ -1685,7 +1685,8 @@
         "pauseReading": "Pause oplæsning",
         "resumeReading": "Genoptag oplæsning",
         "readingAloud": "Læser højt...",
-        "readingPaused": "Oplæsning sat på pause"
+        "readingPaused": "Oplæsning sat på pause",
+        "ttsIntro": "E-mail fra {{sender}}. Emne: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Ny e-mail",

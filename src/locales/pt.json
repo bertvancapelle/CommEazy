@@ -1858,7 +1858,8 @@
         "pauseReading": "Pausar leitura",
         "resumeReading": "Retomar leitura",
         "readingAloud": "A ler em voz alta...",
-        "readingPaused": "Leitura em pausa"
+        "readingPaused": "Leitura em pausa",
+        "ttsIntro": "E-mail de {{sender}}. Assunto: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Novo e-mail",

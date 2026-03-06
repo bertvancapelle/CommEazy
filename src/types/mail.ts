@@ -317,6 +317,9 @@ export interface CachedMailBody {
 
   /** Plain text body content */
   plainText?: string;
+
+  /** Cached attachment metadata (from server fetch) */
+  attachments?: MailAttachmentMeta[];
 }
 
 /**

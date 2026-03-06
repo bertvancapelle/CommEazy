@@ -1845,7 +1845,8 @@
         "pauseReading": "Pause Reading",
         "resumeReading": "Resume Reading",
         "readingAloud": "Reading aloud...",
-        "readingPaused": "Reading paused"
+        "readingPaused": "Reading paused",
+        "ttsIntro": "Email from {{sender}}. Subject: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "New email",

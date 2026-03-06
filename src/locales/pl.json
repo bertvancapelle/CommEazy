@@ -1647,7 +1647,8 @@
         "pauseReading": "Wstrzymaj czytanie",
         "resumeReading": "Wznów czytanie",
         "readingAloud": "Czytanie na głos...",
-        "readingPaused": "Czytanie wstrzymane"
+        "readingPaused": "Czytanie wstrzymane",
+        "ttsIntro": "E-mail od {{sender}}. Temat: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Nowy e-mail",

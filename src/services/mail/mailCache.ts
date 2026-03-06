@@ -21,6 +21,7 @@ import {
 } from '@/models/mailDatabase';
 import type {
   MailHeader,
+  MailAttachmentMeta,
   CachedMailHeader,
   CachedMailBody,
 } from '@/types/mail';
@@ -344,6 +345,7 @@ export async function deleteHeader(
  * @param uid - Message UID
  * @param html - HTML body content
  * @param plainText - Plain text body content
+ * @param attachments - Attachment metadata list (cached as JSON)
  */
 export async function upsertBody(
   db: MailDatabaseConnection,
@@ -351,12 +353,17 @@ export async function upsertBody(
   uid: number,
   html?: string,
   plainText?: string,
+  attachments?: MailAttachmentMeta[],
 ): Promise<void> {
+  const attachmentsJson = attachments && attachments.length > 0
+    ? JSON.stringify(attachments)
+    : null;
+
   await db.transaction(async (tx) => {
     await tx.execute(
-      `INSERT OR REPLACE INTO mail_bodies (uid, account_id, html, plain_text)
-       VALUES (?, ?, ?, ?)`,
-      [uid, accountId, html ?? null, plainText ?? null],
+      `INSERT OR REPLACE INTO mail_bodies (uid, account_id, html, plain_text, attachments_json)
+       VALUES (?, ?, ?, ?, ?)`,
+      [uid, accountId, html ?? null, plainText ?? null, attachmentsJson],
     );
 
     // Update FTS index with body text (only if FTS5 is available)
@@ -404,6 +411,7 @@ export async function getBody(
     account_id: string;
     html: string | null;
     plain_text: string | null;
+    attachments_json: string | null;
   }>(
     'SELECT * FROM mail_bodies WHERE uid = ? AND account_id = ? LIMIT 1',
     [uid, accountId],
@@ -412,11 +420,23 @@ export async function getBody(
   if (rows.length === 0) return null;
 
   const row = rows[0];
+
+  // Parse cached attachment metadata
+  let attachments: MailAttachmentMeta[] | undefined;
+  if (row.attachments_json) {
+    try {
+      attachments = JSON.parse(row.attachments_json);
+    } catch {
+      // Corrupt JSON — ignore
+    }
+  }
+
   return {
     uid: row.uid,
     accountId: row.account_id,
     html: row.html ?? undefined,
     plainText: row.plain_text ?? undefined,
+    attachments,
   };
 }
 

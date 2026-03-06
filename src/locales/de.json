@@ -1841,7 +1841,8 @@
         "pauseReading": "Vorlesen pausieren",
         "resumeReading": "Vorlesen fortsetzen",
         "readingAloud": "Wird vorgelesen...",
-        "readingPaused": "Vorlesen pausiert"
+        "readingPaused": "Vorlesen pausiert",
+        "ttsIntro": "E-Mail von {{sender}}. Betreff: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Neue E-Mail",

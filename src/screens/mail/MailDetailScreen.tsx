@@ -101,7 +101,7 @@ export function MailDetailScreen({
   onForward,
   onDeleted,
 }: MailDetailScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { triggerHaptic } = useFeedback();
@@ -198,6 +198,7 @@ export function MailDetailScreen({
         const imapBridge = await import('@/services/mail/imapBridge');
 
         // Try cache first
+        let hasCachedBody = false;
         try {
           const db = await mailCache.getMailCacheDb();
           const cachedBody = await mailCache.getBody(db, account.id, header.uid);
@@ -205,23 +206,27 @@ export function MailDetailScreen({
             setBody({
               html: cachedBody.html,
               plainText: cachedBody.plainText,
-              attachments: [],
+              attachments: cachedBody.attachments ?? [],
             });
             setIsLoading(false);
-            // Still fetch from server to get attachments
+            hasCachedBody = true;
           }
         } catch {
           // Cache miss — will fetch from server
         }
 
-        // Fetch from server
+        // Fetch from server (always, to get latest attachments if cache was stale)
         try {
           const serverBody = await imapBridge.fetchMessageBody(header.uid, header.folder);
 
-          // Cache the body
+          // Cache the body including attachment metadata
           try {
             const db = await mailCache.getMailCacheDb();
-            await mailCache.upsertBody(db, account.id, header.uid, serverBody.html, serverBody.plainText);
+            await mailCache.upsertBody(
+              db, account.id, header.uid,
+              serverBody.html, serverBody.plainText,
+              serverBody.attachments,
+            );
           } catch {
             // Cache write failed — non-critical
           }
@@ -230,8 +235,8 @@ export function MailDetailScreen({
             setBody(serverBody);
           }
         } catch {
-          // If we already have cached body, show that
-          if (!body && mountedRef.current) {
+          // If we don't have cached body at all, show error
+          if (!hasCachedBody && mountedRef.current) {
             setError(t('modules.mail.detail.loadFailed'));
           }
         }
@@ -471,13 +476,24 @@ export function MailDetailScreen({
     } else if (isTtsPaused) {
       await resumeReading();
     } else {
-      // Start reading — prefer plain text, fall back to HTML stripped
-      const text = body?.plainText || body?.html || '';
-      if (text.trim()) {
-        await startReading(text);
-      }
+      // Build structured TTS text: sender → subject → body content
+      const bodyText = body?.plainText || body?.html || '';
+      if (!bodyText.trim()) return;
+
+      // Prepend sender and subject for context
+      const intro = t('modules.mail.detail.ttsIntro', {
+        sender: senderName,
+        subject: header.subject || t('modules.mail.inbox.noSubject'),
+      });
+
+      const fullText = `${intro}\n\n${bodyText}`;
+
+      // Use app language for TTS voice selection
+      const appLanguage = i18n.language || 'nl';
+
+      await startReading(fullText, appLanguage);
     }
-  }, [isTtsPlaying, isTtsPaused, body, pauseReading, resumeReading, startReading, triggerHaptic]);
+  }, [isTtsPlaying, isTtsPaused, body, senderName, header.subject, i18n.language, pauseReading, resumeReading, startReading, triggerHaptic, t]);
 
   const handleTtsStop = useCallback(async () => {
     triggerHaptic('tap');
@@ -564,16 +580,21 @@ export function MailDetailScreen({
               <ActivityIndicator size="small" color={accentColor.primary} />
             ) : (
               <Icon
-                name="headphones"
+                name="mic"
                 size={22}
                 color={isTtsPlaying || isTtsPaused ? 'white' : accentColor.primary}
               />
             )}
           </TouchableOpacity>
 
-          {/* Read/Unread toggle */}
+          {/* Read/Unread toggle — blue bg + white icon when mail is read (action: mark unread) */}
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            style={[
+              styles.actionButton,
+              isRead
+                ? { backgroundColor: accentColor.primary, borderColor: accentColor.primary }
+                : { backgroundColor: themeColors.surface, borderColor: themeColors.border },
+            ]}
             onPress={handleToggleRead}
             onLongPress={() => {}}
             delayLongPress={300}
@@ -584,9 +605,9 @@ export function MailDetailScreen({
               : t('modules.mail.detail.markRead')}
           >
             <Icon
-              name={isRead ? 'mail' : 'mail'}
+              name="mail"
               size={22}
-              color={isRead ? themeColors.textSecondary : accentColor.primary}
+              color={isRead ? 'white' : themeColors.textSecondary}
             />
           </TouchableOpacity>
 

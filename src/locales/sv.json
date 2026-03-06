@@ -1685,7 +1685,8 @@
         "pauseReading": "Pausa läsning",
         "resumeReading": "Fortsätt läsa",
         "readingAloud": "Läser högt...",
-        "readingPaused": "Läsning pausad"
+        "readingPaused": "Läsning pausad",
+        "ttsIntro": "E-post från {{sender}}. Ämne: {{subject}}."
       },
       "notifications": {
         "newMailTitle": "Ny e-post",

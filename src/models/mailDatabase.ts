@@ -20,7 +20,7 @@
 // Database Schema Version
 // ============================================================
 
-const MAIL_DB_VERSION = 1;
+const MAIL_DB_VERSION = 2;
 const MAIL_DB_NAME = 'mail_cache';
 
 /** Whether FTS5 is available in the current SQLite build */
@@ -264,6 +264,29 @@ export async function initializeMailSchema(db: MailDatabaseConnection): Promise<
       ['schema_version', String(MAIL_DB_VERSION)],
     );
   });
+
+  // Schema migrations
+  try {
+    const versionRows = await db.executeQuery<{ value: string }>(
+      "SELECT value FROM mail_meta WHERE key = 'schema_version'",
+    );
+    const currentVersion = versionRows.length > 0 ? parseInt(versionRows[0].value, 10) : 1;
+
+    if (currentVersion < 2) {
+      // V2: Add attachments_json column to mail_bodies for attachment metadata caching
+      try {
+        await db.execute('ALTER TABLE mail_bodies ADD COLUMN attachments_json TEXT');
+        console.debug('[mailDatabase] Migration v2: added attachments_json column');
+      } catch {
+        // Column may already exist if migration was partially applied
+      }
+      await db.execute(
+        "INSERT OR REPLACE INTO mail_meta (key, value) VALUES ('schema_version', '2')",
+      );
+    }
+  } catch {
+    console.debug('[mailDatabase] Migration check skipped (meta table may not exist yet)');
+  }
 
   // FTS5 — optional, may not be compiled into op-sqlite
   try {
