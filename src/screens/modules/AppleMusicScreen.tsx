@@ -77,7 +77,9 @@ import { MusicCollectionChipBar, type MusicChipId } from '@/components/MusicColl
 import { CreateMusicCollectionModal } from './CreateMusicCollectionModal';
 import { EditMusicCollectionModal } from './EditMusicCollectionModal';
 import { SongCollectionModal } from './SongCollectionModal';
+import { PlaylistImportModal } from './PlaylistImportModal';
 import type { MusicCollection } from '@/services/music';
+import { markImportDone } from '@/services/music';
 
 // ============================================================
 // Constants
@@ -166,6 +168,9 @@ export function AppleMusicScreen() {
     isTopChartsLoading,
     loadTopCharts,
     recentLibraryItems,
+    // Playlist import & sync
+    getLibraryPlaylists,
+    getPlaylistDetails,
   } = useAppleMusicContext();
 
   // Sleep timer hook - shared logic for all audio modules
@@ -189,6 +194,10 @@ export function AppleMusicScreen() {
   const [searchFilter, setSearchFilter] = useState<SearchFilterType>('all');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAllRecentlyPlayed, setShowAllRecentlyPlayed] = useState(false);
+
+  // Playlist import state
+  const [showPlaylistImportModal, setShowPlaylistImportModal] = useState(false);
+  const [playlistCount, setPlaylistCount] = useState(0);
 
   // Music Favorites & Collections (CommEazy local curation)
   const musicFavorites = useMusicFavorites();
@@ -442,6 +451,47 @@ export function AppleMusicScreen() {
 
     checkLibraryStatus();
   }, [searchResults?.songs, isAuthorized, isIOS, isInLibrary]);
+
+  // ============================================================
+  // Playlist Import — First-use detection
+  // ============================================================
+
+  useEffect(() => {
+    // Only check when authorized, focused, and import not yet done
+    if (!isAuthorized || !isIOS || !isFocused || musicCollections.importDone) {
+      return;
+    }
+
+    const checkPlaylists = async () => {
+      try {
+        const page = await getLibraryPlaylists(1, 0);
+        if (page.total > 0) {
+          setPlaylistCount(page.total);
+          setShowPlaylistImportModal(true);
+        } else {
+          // No playlists → mark import as done (nothing to import)
+          await markImportDone();
+        }
+      } catch (error) {
+        console.warn('[AppleMusicScreen] Failed to check playlists for import');
+      }
+    };
+
+    checkPlaylists();
+  }, [isAuthorized, isIOS, isFocused, musicCollections.importDone, getLibraryPlaylists]);
+
+  // ============================================================
+  // Playlist Import — Background sync (on each module open)
+  // ============================================================
+
+  useEffect(() => {
+    if (!isAuthorized || !isIOS || !isFocused || !musicCollections.importDone) {
+      return;
+    }
+
+    // Silent background sync — no UI, no user confirmation
+    musicCollections.backgroundSync(getLibraryPlaylists, getPlaylistDetails);
+  }, [isAuthorized, isIOS, isFocused, musicCollections.importDone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ============================================================
   // Handlers
@@ -1428,6 +1478,18 @@ export function AppleMusicScreen() {
     return favorites.filter(f => songIdSet.has(f.catalogId)).map(toSong);
   }, [musicFavorites.favorites, selectedChipId, musicCollections.collections]);
 
+  // Handle playlist import (user taps "Alles overnemen")
+  const handleImportPlaylists = useCallback(async () => {
+    await musicCollections.startImport(getLibraryPlaylists, getPlaylistDetails);
+    setShowPlaylistImportModal(false);
+  }, [musicCollections, getLibraryPlaylists, getPlaylistDetails]);
+
+  // Handle skip import (user taps "Overslaan")
+  const handleSkipImport = useCallback(async () => {
+    await markImportDone();
+    setShowPlaylistImportModal(false);
+  }, []);
+
   // Handle creating a new collection
   const handleCreateCollection = useCallback(async (name: string) => {
     const created = await musicCollections.create(name);
@@ -1953,6 +2015,16 @@ export function AppleMusicScreen() {
           musicCollections.removeSongs(collectionId, [catalogId]);
         }}
         onCreateCollection={() => setShowCreateCollectionModal(true)}
+      />
+
+      {/* Playlist Import Modal (first-use welcome + import progress) */}
+      <PlaylistImportModal
+        visible={showPlaylistImportModal}
+        playlistCount={playlistCount}
+        isImporting={musicCollections.isImporting}
+        importProgress={musicCollections.importProgress}
+        onImport={handleImportPlaylists}
+        onSkip={handleSkipImport}
       />
     </View>
   );

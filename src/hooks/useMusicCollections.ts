@@ -8,8 +8,9 @@
  * to multiple collections (many-to-many).
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { MusicCollection } from '@/services/music';
+import type { PlaylistImportProgress, PlaylistImportResult } from '@/services/music';
 import {
   getCollections,
   createCollection as createCollectionService,
@@ -18,6 +19,9 @@ import {
   addSongsToCollection as addSongsService,
   removeSongsFromCollection as removeSongsService,
   getCollectionsForSong as getCollectionsForSongService,
+  isImportDone as isImportDoneService,
+  importAllPlaylists,
+  syncAllLinkedCollections,
 } from '@/services/music';
 
 // ============================================================
@@ -43,6 +47,22 @@ export interface UseMusicCollectionsReturn {
   removeSongs: (collectionId: string, catalogIds: string[]) => Promise<boolean>;
   /** Get all collections that contain a specific song */
   getCollectionsForSong: (catalogId: string) => Promise<MusicCollection[]>;
+  /** Whether the initial playlist import has been completed */
+  importDone: boolean;
+  /** Whether an import is currently in progress */
+  isImporting: boolean;
+  /** Current import progress (null when not importing) */
+  importProgress: PlaylistImportProgress | null;
+  /** Start importing all Apple Music playlists */
+  startImport: (
+    getLibraryPlaylists: (limit?: number, offset?: number) => Promise<{ items: any[]; total: number }>,
+    getPlaylistDetails: (playlistId: string) => Promise<any>,
+  ) => Promise<PlaylistImportResult>;
+  /** Sync all linked collections in the background */
+  backgroundSync: (
+    getLibraryPlaylists: (limit?: number, offset?: number) => Promise<{ items: any[]; total: number }>,
+    getPlaylistDetails: (playlistId: string) => Promise<any>,
+  ) => Promise<void>;
 }
 
 // ============================================================
@@ -58,6 +78,10 @@ const LOG_PREFIX = '[useMusicCollections]';
 export function useMusicCollections(): UseMusicCollectionsReturn {
   const [collections, setCollections] = useState<MusicCollection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [importDone, setImportDone] = useState(true); // Default true to avoid flash
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<PlaylistImportProgress | null>(null);
+  const syncInProgress = useRef(false);
 
   // Load collections from storage
   const reload = useCallback(async () => {
@@ -71,9 +95,14 @@ export function useMusicCollections(): UseMusicCollectionsReturn {
     }
   }, []);
 
-  // Load on mount
+  // Load on mount + check import status
   useEffect(() => {
-    reload();
+    const init = async () => {
+      await reload();
+      const done = await isImportDoneService();
+      setImportDone(done);
+    };
+    init();
   }, [reload]);
 
   // Create a new collection
@@ -149,6 +178,50 @@ export function useMusicCollections(): UseMusicCollectionsReturn {
     }
   }, []);
 
+  // Start importing all Apple Music playlists
+  const startImport = useCallback(async (
+    getLibraryPlaylists: (limit?: number, offset?: number) => Promise<{ items: any[]; total: number }>,
+    getPlaylistDetails: (playlistId: string) => Promise<any>,
+  ): Promise<PlaylistImportResult> => {
+    setIsImporting(true);
+    setImportProgress(null);
+    try {
+      const result = await importAllPlaylists(
+        getLibraryPlaylists,
+        getPlaylistDetails,
+        (progress) => setImportProgress(progress),
+      );
+      setImportDone(true);
+      await reload();
+      return result;
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Import failed');
+      return { collectionsCreated: 0, songsAdded: 0, failures: 0 };
+    } finally {
+      setIsImporting(false);
+      setImportProgress(null);
+    }
+  }, [reload]);
+
+  // Sync all linked collections in the background
+  const backgroundSync = useCallback(async (
+    getLibraryPlaylists: (limit?: number, offset?: number) => Promise<{ items: any[]; total: number }>,
+    getPlaylistDetails: (playlistId: string) => Promise<any>,
+  ): Promise<void> => {
+    // Prevent concurrent syncs
+    if (syncInProgress.current) return;
+    syncInProgress.current = true;
+
+    try {
+      await syncAllLinkedCollections(getLibraryPlaylists, getPlaylistDetails);
+      await reload();
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Background sync failed');
+    } finally {
+      syncInProgress.current = false;
+    }
+  }, [reload]);
+
   return {
     collections,
     isLoading,
@@ -159,5 +232,10 @@ export function useMusicCollections(): UseMusicCollectionsReturn {
     addSongs,
     removeSongs,
     getCollectionsForSong,
+    importDone,
+    isImporting,
+    importProgress,
+    startImport,
+    backgroundSync,
   };
 }

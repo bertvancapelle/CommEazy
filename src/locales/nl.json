@@ -1705,6 +1705,14 @@
         "noCollections": "Je hebt nog geen verzamelingen. Maak er een aan!",
         "collectionEmpty": "Deze verzameling is leeg. Voeg nummers toe via het mapje-icoon."
       },
+      "import": {
+        "welcomeTitle": "Welkom bij Apple Muziek",
+        "welcomeDescription": "We vonden {{count}} afspeellijsten in je Apple Music bibliotheek. Wil je ze overnemen zodat je ze hier ook kunt gebruiken?",
+        "importAll": "Alles overnemen",
+        "skip": "Overslaan",
+        "importing": "Bezig met importeren...",
+        "progressCount": "{{current}} van {{total}}"
+      },
       "myMusic": {
         "shuffleAll": "Shuffle alles",
         "emptyTitle": "Nog geen muziek",

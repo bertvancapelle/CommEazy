@@ -40,6 +40,10 @@ export interface MusicCollection {
   createdAt: number;
   /** Timestamp when collection was last modified */
   updatedAt: number;
+  /** Apple Music playlist ID — set when collection was imported from a playlist */
+  sourcePlaylistId?: string;
+  /** Timestamp of last sync with Apple Music playlist */
+  lastSyncedAt?: number;
 }
 
 // ============================================================
@@ -234,4 +238,90 @@ export async function removeSongFromAllCollections(catalogId: string): Promise<v
 export async function getCollectionsForSong(catalogId: string): Promise<MusicCollection[]> {
   const collections = await readCollections();
   return collections.filter(c => c.songCatalogIds.includes(catalogId));
+}
+
+// ============================================================
+// Public API — Playlist Import & Sync
+// ============================================================
+
+/**
+ * Create a collection from an Apple Music playlist.
+ * Sets sourcePlaylistId so we can sync later.
+ * Returns the created collection.
+ */
+export async function createCollectionFromPlaylist(
+  name: string,
+  sourcePlaylistId: string,
+  songCatalogIds: string[] = [],
+): Promise<MusicCollection> {
+  const collections = await readCollections();
+  const now = Date.now();
+
+  const newCollection: MusicCollection = {
+    id: uuid.v4() as string,
+    name: name.trim(),
+    songCatalogIds: [...new Set(songCatalogIds)],
+    createdAt: now,
+    updatedAt: now,
+    sourcePlaylistId,
+    lastSyncedAt: now,
+  };
+
+  collections.push(newCollection);
+  await writeCollections(collections);
+
+  console.debug(LOG_PREFIX, 'Collection created from playlist', {
+    id: newCollection.id,
+    sourcePlaylistId,
+    songCount: songCatalogIds.length,
+  });
+  return newCollection;
+}
+
+/**
+ * Get all collections that were imported from Apple Music playlists.
+ */
+export async function getLinkedCollections(): Promise<MusicCollection[]> {
+  const collections = await readCollections();
+  return collections.filter(c => !!c.sourcePlaylistId);
+}
+
+/**
+ * Find collection by its source Apple Music playlist ID.
+ */
+export async function getCollectionByPlaylistId(playlistId: string): Promise<MusicCollection | undefined> {
+  const collections = await readCollections();
+  return collections.find(c => c.sourcePlaylistId === playlistId);
+}
+
+/**
+ * Sync a linked collection with updated playlist data.
+ * Updates name, song list, and lastSyncedAt — silently, no user confirmation.
+ */
+export async function syncCollection(
+  collectionId: string,
+  newName: string,
+  newSongCatalogIds: string[],
+): Promise<boolean> {
+  const collections = await readCollections();
+  const collection = collections.find(c => c.id === collectionId);
+
+  if (!collection) {
+    console.warn(LOG_PREFIX, 'Collection not found for sync');
+    return false;
+  }
+
+  const now = Date.now();
+  collection.name = newName.trim();
+  collection.songCatalogIds = [...new Set(newSongCatalogIds)];
+  collection.updatedAt = now;
+  collection.lastSyncedAt = now;
+
+  await writeCollections(collections);
+
+  console.debug(LOG_PREFIX, 'Collection synced', {
+    id: collectionId,
+    songCount: newSongCatalogIds.length,
+  });
+  return true;
 }

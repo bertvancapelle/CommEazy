@@ -1710,6 +1710,14 @@
         "noCollections": "You don't have any collections yet. Create one!",
         "collectionEmpty": "This collection is empty. Add songs via the folder icon."
       },
+      "import": {
+        "welcomeTitle": "Welcome to Apple Music",
+        "welcomeDescription": "We found {{count}} playlists in your Apple Music library. Would you like to import them so you can use them here too?",
+        "importAll": "Import All",
+        "skip": "Skip",
+        "importing": "Importing...",
+        "progressCount": "{{current}} of {{total}}"
+      },
       "myMusic": {
         "shuffleAll": "Shuffle All",
         "emptyTitle": "No music yet",

@@ -1695,6 +1695,14 @@
         "noCollections": "Aún no tienes colecciones. ¡Crea una!",
         "collectionEmpty": "Esta colección está vacía. Añade canciones con el icono de carpeta."
       },
+      "import": {
+        "welcomeTitle": "Bienvenido a Apple Music",
+        "welcomeDescription": "Encontramos {{count}} listas de reproducción en tu biblioteca de Apple Music. ¿Quieres importarlas para usarlas aquí también?",
+        "importAll": "Importar todo",
+        "skip": "Omitir",
+        "importing": "Importando...",
+        "progressCount": "{{current}} de {{total}}"
+      },
       "myMusic": {
         "shuffleAll": "Reproducir todo",
         "emptyTitle": "Aún no hay música",

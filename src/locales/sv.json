@@ -1539,6 +1539,14 @@
         "noCollections": "Du har inga samlingar ännu. Skapa en!",
         "collectionEmpty": "Den här samlingen är tom. Lägg till låtar via mappikonen."
       },
+      "import": {
+        "welcomeTitle": "Välkommen till Apple Music",
+        "welcomeDescription": "Vi hittade {{count}} spellistor i ditt Apple Music-bibliotek. Vill du importera dem så att du kan använda dem här också?",
+        "importAll": "Importera alla",
+        "skip": "Hoppa över",
+        "importing": "Importerar...",
+        "progressCount": "{{current}} av {{total}}"
+      },
       "myMusic": {
         "shuffleAll": "Blanda alla",
         "emptyTitle": "Ingen musik ännu",

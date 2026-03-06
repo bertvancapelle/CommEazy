@@ -1695,6 +1695,14 @@
         "noCollections": "Du hast noch keine Sammlungen. Erstelle eine!",
         "collectionEmpty": "Diese Sammlung ist leer. Füge Lieder über das Ordner-Symbol hinzu."
       },
+      "import": {
+        "welcomeTitle": "Willkommen bei Apple Music",
+        "welcomeDescription": "Wir haben {{count}} Wiedergabelisten in deiner Apple Music Bibliothek gefunden. Möchtest du sie übernehmen, damit du sie auch hier nutzen kannst?",
+        "importAll": "Alle übernehmen",
+        "skip": "Überspringen",
+        "importing": "Wird importiert...",
+        "progressCount": "{{current}} von {{total}}"
+      },
       "myMusic": {
         "shuffleAll": "Alle mischen",
         "emptyTitle": "Noch keine Musik",
