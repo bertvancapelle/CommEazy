@@ -34,7 +34,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar, ContactGroupActionsBar } from '@/components';
 import type { ChipId } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
@@ -262,6 +262,47 @@ export function ContactListScreen() {
     console.info('[ContactListScreen] Create group tapped — modal not yet implemented');
   }, [triggerFeedback]);
 
+  // Compute selected group/section label for accessibility
+  const selectedGroupLabel = useMemo(() => {
+    if (selectedChipId === 'all') return '';
+    if (selectedChipId.startsWith('smart:')) {
+      const sectionId = selectedChipId.replace('smart:', '');
+      const section = smartSections.find(s => s.id === sectionId);
+      return section ? t(section.labelKey, sectionId) : sectionId;
+    }
+    if (selectedChipId.startsWith('group:')) {
+      const groupId = selectedChipId.replace('group:', '');
+      const group = groups.find(g => g.id === groupId);
+      return group?.name ?? groupId;
+    }
+    return '';
+  }, [selectedChipId, smartSections, groups, t]);
+
+  // Group action handlers — operate on filteredContacts (current visible group members)
+  const handleGroupSendPhoto = useCallback(() => {
+    void triggerFeedback('tap');
+    // TODO: Open PhotoRecipientModal with filteredContacts pre-selected
+    console.info('[ContactListScreen] Send photo to group:', selectedGroupLabel, filteredContacts.length, 'contacts');
+  }, [triggerFeedback, selectedGroupLabel, filteredContacts]);
+
+  const handleGroupSendMessage = useCallback(() => {
+    void triggerFeedback('tap');
+    // TODO: Navigate to group chat with filteredContacts
+    console.info('[ContactListScreen] Send message to group:', selectedGroupLabel, filteredContacts.length, 'contacts');
+  }, [triggerFeedback, selectedGroupLabel, filteredContacts]);
+
+  const handleGroupSendMail = useCallback(() => {
+    void triggerFeedback('tap');
+    // TODO: Navigate to MailComposeScreen with filteredContacts as recipients
+    console.info('[ContactListScreen] Send mail to group:', selectedGroupLabel, filteredContacts.length, 'contacts');
+  }, [triggerFeedback, selectedGroupLabel, filteredContacts]);
+
+  const handleGroupCallMember = useCallback(() => {
+    void triggerFeedback('tap');
+    // TODO: Show contact picker modal → initiate 1-on-1 call
+    console.info('[ContactListScreen] Call member from group:', selectedGroupLabel, filteredContacts.length, 'contacts');
+  }, [triggerFeedback, selectedGroupLabel, filteredContacts]);
+
   const renderContactItem = useCallback(
     (item: Contact, index: number) => (
       <ContactListItem
@@ -348,6 +389,18 @@ export function ContactListScreen() {
           filteredContacts.map((contact, index) => renderContactItem(contact, index))
         )}
       </ScrollView>
+
+      {/* Group actions bar — visible when a group/smart section is selected */}
+      {selectedChipId !== 'all' && filteredContacts.length > 0 && (
+        <ContactGroupActionsBar
+          memberCount={filteredContacts.length}
+          groupLabel={selectedGroupLabel}
+          onSendPhoto={handleGroupSendPhoto}
+          onSendMessage={handleGroupSendMessage}
+          onSendMail={handleGroupSendMail}
+          onCallMember={handleGroupCallMember}
+        />
+      )}
 
       {/* FAB for adding contacts */}
       {contacts.length > 0 && (

@@ -176,6 +176,10 @@ export type { SlideshowViewerProps, SlideshowPhoto } from './SlideshowViewer';
 export { ContactGroupChipBar } from './ContactGroupChipBar';
 export type { ContactGroupChipBarProps, ChipId } from './ContactGroupChipBar';
 
+// Contact Group Actions Bar (bulk actions for selected group)
+export { ContactGroupActionsBar } from './ContactGroupActionsBar';
+export type { ContactGroupActionsBarProps } from './ContactGroupActionsBar';
+
 // Adaptive Navigation Components (iPad/iPhone hybrid menu)
 export {
   ModuleItem,
