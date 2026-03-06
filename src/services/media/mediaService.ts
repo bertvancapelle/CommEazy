@@ -49,6 +49,11 @@ const DEFAULT_VIDEO_OPTIONS: Required<VideoCompressionOptions> = {
   maxDuration: 120,   // 2 minutes
 };
 
+/** Strip file:// scheme so native FileManager receives a raw filesystem path */
+function toNativePath(uri: string): string {
+  return uri.startsWith('file://') ? uri.replace('file://', '') : uri;
+}
+
 /** Thumbnail settings */
 const THUMBNAIL_OPTIONS = {
   maxWidth: 200,
@@ -294,7 +299,7 @@ export async function compressVideo(
     if (Platform.OS === 'ios' && VideoProcessingModule) {
       // Native iOS compression via AVAssetExportSession
       const result = await VideoProcessingModule.compressVideo(
-        uri,
+        toNativePath(uri),
         preset.quality,
         preset.maxWidth
       );
@@ -347,7 +352,7 @@ export async function generateVideoThumbnail(
     console.debug(LOG_PREFIX, 'Generating video thumbnail:', uri, timeMs);
 
     if (Platform.OS === 'ios' && VideoProcessingModule) {
-      const result = await VideoProcessingModule.generateThumbnail(uri, timeMs);
+      const result = await VideoProcessingModule.generateThumbnail(toNativePath(uri), timeMs);
 
       console.info(LOG_PREFIX, 'Video thumbnail generated:', {
         dimensions: `${result.width}x${result.height}`,
@@ -385,7 +390,7 @@ export async function generateVideoThumbnail(
 export async function getVideoDuration(uri: string): Promise<number | null> {
   try {
     if (Platform.OS === 'ios' && VideoProcessingModule) {
-      const metadata = await VideoProcessingModule.getVideoMetadata(uri);
+      const metadata = await VideoProcessingModule.getVideoMetadata(toNativePath(uri));
       return metadata.duration > 0 ? metadata.duration : null;
     }
 
