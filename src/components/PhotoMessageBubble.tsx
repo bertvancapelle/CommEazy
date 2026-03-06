@@ -12,29 +12,21 @@
  * @see .claude/skills/ui-designer/SKILL.md
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
-  Modal,
-  StatusBar,
-  useWindowDimensions,
   ActivityIndicator,
-  Vibration,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@/components/Icon';
-import {
-  colors,
-  typography,
-  spacing,
-  touchTargets,
-  borderRadius,
-} from '@/theme';
+import { HapticTouchable } from '@/components/HapticTouchable';
+import { FullscreenImageViewer } from '@/components/FullscreenImageViewer';
+import type { ViewerImage } from '@/components/FullscreenImageViewer';
+import { typography, spacing, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 
@@ -47,9 +39,6 @@ const LOG_PREFIX = '[PhotoMessageBubble]';
 // Thumbnail size in chat bubble
 const THUMBNAIL_WIDTH = 200;
 const THUMBNAIL_HEIGHT = 150;
-
-// Haptic feedback duration
-const HAPTIC_DURATION = 50;
 
 // ============================================================
 // Types
@@ -103,13 +92,17 @@ export function PhotoMessageBubble({
   const { t } = useTranslation();
   const themeColors = useColors();
   const moduleColor = useModuleColor('photoAlbum');
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // Fullscreen viewer state
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [isViewerLoading, setIsViewerLoading] = useState(true);
   const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
   const [thumbnailError, setThumbnailError] = useState(false);
+
+  // Memoized viewer images array for FullscreenImageViewer
+  const viewerImages = useMemo<ViewerImage[]>(() => [{
+    id: uri,
+    uri,
+  }], [uri]);
 
   // Calculate aspect ratio for thumbnail
   const aspectRatio = width && height ? width / height : 4 / 3;
@@ -124,13 +117,11 @@ export function PhotoMessageBubble({
     });
   }, []);
 
-  // Handle thumbnail tap
+  // Handle thumbnail tap — haptic is handled by HapticTouchable
   const handlePress = useCallback(() => {
     if (hasError || isDownloading) return;
 
-    Vibration.vibrate(HAPTIC_DURATION);
-    console.info(LOG_PREFIX, 'Opening fullscreen viewer');
-    setIsViewerLoading(true);
+    console.debug(LOG_PREFIX, 'Opening fullscreen viewer');
     setIsViewerOpen(true);
     onView?.();
   }, [hasError, isDownloading, onView]);
@@ -138,13 +129,11 @@ export function PhotoMessageBubble({
   // Handle close viewer
   const handleCloseViewer = useCallback(() => {
     setIsViewerOpen(false);
-    setIsViewerLoading(true);
   }, []);
 
-  // Handle retry
+  // Handle retry — haptic is handled by HapticTouchable
   const handleRetry = useCallback(() => {
-    Vibration.vibrate(HAPTIC_DURATION);
-    console.info(LOG_PREFIX, 'Retry loading photo');
+    console.debug(LOG_PREFIX, 'Retry loading photo');
     setThumbnailError(false);
     onRetry?.();
   }, [onRetry]);
@@ -167,20 +156,21 @@ export function PhotoMessageBubble({
 
   // Render error state
   const renderError = () => (
-    <TouchableOpacity
+    <HapticTouchable
       style={[styles.placeholder, styles.errorPlaceholder, { backgroundColor: themeColors.backgroundSecondary }]}
       onPress={handleRetry}
+      hapticType="warning"
       accessibilityRole="button"
       accessibilityLabel={t('modules.photoAlbum.retryLoad', 'Retry loading photo')}
     >
-      <Icon name="warning" size={32} color={colors.error} />
+      <Icon name="warning" size={32} color={themeColors.error} />
       <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>
         {t('modules.photoAlbum.loadError', 'Could not load photo')}
       </Text>
       <Text style={[styles.retryText, { color: moduleColor }]}>
         {t('common.tapToRetry', 'Tap to retry')}
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 
   return (
@@ -201,9 +191,10 @@ export function PhotoMessageBubble({
         accessibilityHint={t('modules.photoAlbum.tapToView', 'Tap to view fullscreen')}
       >
         {/* Photo thumbnail */}
-        <TouchableOpacity
+        <HapticTouchable
           onPress={handlePress}
           disabled={hasError || isDownloading}
+          hapticDisabled={hasError || isDownloading}
           style={[
             styles.thumbnailContainer,
             { width: displayWidth, height: displayHeight },
@@ -234,14 +225,14 @@ export function PhotoMessageBubble({
               />
             </>
           )}
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Caption (if any) */}
         {caption && (
           <Text
             style={[
               styles.caption,
-              { color: isOwn ? colors.textOnPrimary : themeColors.textPrimary },
+              { color: isOwn ? themeColors.textOnPrimary : themeColors.textPrimary },
             ]}
             numberOfLines={3}
           >
@@ -262,46 +253,14 @@ export function PhotoMessageBubble({
         </View>
       </View>
 
-      {/* Fullscreen Viewer Modal */}
-      <Modal
+      {/* Fullscreen Viewer — uses shared component */}
+      <FullscreenImageViewer
         visible={isViewerOpen}
-        animationType="fade"
-        presentationStyle="fullScreen"
-        onRequestClose={handleCloseViewer}
-      >
-        <StatusBar hidden />
-        <View style={styles.viewerContainer}>
-          {/* Close button */}
-          <TouchableOpacity
-            style={styles.viewerCloseButton}
-            onPress={handleCloseViewer}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close', 'Close')}
-          >
-            <Icon name="x" size={28} color={colors.textOnPrimary} />
-          </TouchableOpacity>
-
-          {/* Loading indicator */}
-          {isViewerLoading && (
-            <View style={styles.viewerLoadingOverlay}>
-              <ActivityIndicator size="large" color={moduleColor} />
-            </View>
-          )}
-
-          {/* Full resolution photo */}
-          <Image
-            source={{ uri }}
-            style={{
-              width: windowWidth,
-              height: windowHeight,
-            }}
-            resizeMode="contain"
-            onLoadStart={() => setIsViewerLoading(true)}
-            onLoadEnd={() => setIsViewerLoading(false)}
-            accessibilityLabel={t('modules.photoAlbum.fullPhoto', 'Full size photo')}
-          />
-        </View>
-      </Modal>
+        images={viewerImages}
+        initialIndex={0}
+        onClose={handleCloseViewer}
+        accentColor={moduleColor}
+      />
     </>
   );
 }
@@ -379,35 +338,6 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     ...typography.small,
-  },
-  // Fullscreen viewer styles
-  viewerContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  viewerCloseButton: {
-    position: 'absolute',
-    top: spacing.xl + 20,
-    left: spacing.lg,
-    zIndex: 10,
-    width: touchTargets.comfortable,
-    height: touchTargets.comfortable,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: borderRadius.full,
-  },
-  viewerLoadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 5,
   },
 });
 

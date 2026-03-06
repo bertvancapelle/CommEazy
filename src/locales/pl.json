@@ -1317,7 +1317,11 @@
       "sendSuccessMessage": "Pomyślnie wysłano {{count}} zdjęcie/a do {{recipients}} kontaktu/ów.",
       "sendPartial": "Częściowo wysłane",
       "sendPartialMessage": "Wysłano {{success}} zdjęcie/a, ale {{fail}} nie powiodło się.",
-      "sendFailed": "Nie udało się wysłać zdjęć. Spróbuj ponownie."
+      "sendFailed": "Nie udało się wysłać zdjęć. Spróbuj ponownie.",
+      "dateLastWeek": "Ostatni tydzień",
+      "importFromGallery": "Importuj z galerii",
+      "importError": "Nie udało się zaimportować zdjęć. Spróbuj ponownie.",
+      "video": "Wideo"
     },
     "nunl": {
       "title": "© nu.nl",

@@ -14,36 +14,40 @@
  * @see src/services/media/ for media storage services
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   SafeAreaView,
   Alert,
   ScrollView,
   Image,
-  Dimensions,
   RefreshControl,
-  Vibration,
-  Modal,
-  StatusBar,
   useWindowDimensions,
   ActivityIndicator,
+  InteractionManager,
+  Linking,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import RNFS from 'react-native-fs';
+import { launchImageLibrary } from 'react-native-image-picker';
 
-import { ModuleHeader, PhotoRecipientModal } from '@/components';
+import {
+  ModuleHeader,
+  PhotoRecipientModal,
+  HapticTouchable,
+  FullscreenImageViewer,
+} from '@/components';
+import type { ViewerImage } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
-  colors,
   typography,
   spacing,
   touchTargets,
   borderRadius,
 } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { usePaneContextSafe, type PaneId } from '@/contexts/PaneContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
@@ -51,6 +55,7 @@ import {
   deleteMediaBatch,
   getStorageUsage,
   getThumbnailUri,
+  saveMedia,
 } from '@/services/media';
 import { chatService } from '@/services/chat';
 import { ServiceContainer } from '@/services/container';
@@ -66,18 +71,66 @@ const LOG_PREFIX = '[PhotoAlbumScreen]';
 const MAX_RECIPIENTS = 8;
 
 // Grid layout
-const SCREEN_WIDTH = Dimensions.get('window').width;
 const GRID_PADDING = spacing.sm;
 const GRID_GAP = spacing.xs;
 const NUM_COLUMNS = 3;
-const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
 
-// Haptic feedback
-const HAPTIC_DURATION = 50;
+// ============================================================
+// Date Grouping Utility
+// ============================================================
+
+interface DateGroup {
+  label: string;
+  photos: PhotoItem[];
+}
+
+/**
+ * Group photos by date label for section headers.
+ * Uses i18n keys for "Today", "Yesterday"; locale date for older items.
+ */
+function groupPhotosByDate(
+  photos: PhotoItem[],
+  t: (key: string) => string,
+): DateGroup[] {
+  if (photos.length === 0) return [];
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 86400000; // 24h in ms
+  const lastWeekStart = todayStart - 7 * 86400000;
+
+  const groups: Record<string, PhotoItem[]> = {};
+  const groupOrder: string[] = [];
+
+  for (const photo of photos) {
+    let label: string;
+    if (photo.timestamp >= todayStart) {
+      label = t('chat.today');
+    } else if (photo.timestamp >= yesterdayStart) {
+      label = t('chat.yesterday');
+    } else if (photo.timestamp >= lastWeekStart) {
+      label = t('modules.photoAlbum.dateLastWeek');
+    } else {
+      // Format as localized month + year (e.g., "Februari 2026")
+      const d = new Date(photo.timestamp);
+      label = d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    if (!groups[label]) {
+      groups[label] = [];
+      groupOrder.push(label);
+    }
+    groups[label].push(photo);
+  }
+
+  return groupOrder.map(label => ({ label, photos: groups[label] }));
+}
 
 // ============================================================
 // Types
 // ============================================================
+
+type MediaItemType = 'photo' | 'video';
 
 interface PhotoItem {
   id: string;
@@ -85,6 +138,21 @@ interface PhotoItem {
   thumbnailUri: string;
   timestamp: number;
   size: number;
+  type: MediaItemType;
+  /** Video duration in seconds (only for videos) */
+  duration?: number;
+}
+
+/**
+ * Format video duration as "M:SS" or "H:MM:SS".
+ */
+function formatDuration(seconds: number): string {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 // ============================================================
@@ -93,9 +161,17 @@ interface PhotoItem {
 
 export function PhotoAlbumScreen() {
   const { t } = useTranslation();
+  const themeColors = useColors();
   const moduleColor = useModuleColor('photoAlbum');
   const paneContext = usePaneContextSafe();
   const panelId = usePanelId();
+  const { width: screenWidth } = useWindowDimensions();
+
+  // Responsive grid item size
+  const itemSize = useMemo(
+    () => (screenWidth - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS,
+    [screenWidth],
+  );
 
   // Photo state
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -110,10 +186,9 @@ export function PhotoAlbumScreen() {
   const [storageUsed, setStorageUsed] = useState(0);
   const [photoCount, setPhotoCount] = useState(0);
 
-  // Fullscreen viewer state
-  const [viewerPhoto, setViewerPhoto] = useState<PhotoItem | null>(null);
-  const [isViewerLoading, setIsViewerLoading] = useState(true);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  // Fullscreen viewer state (uses FullscreenImageViewer)
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
 
   // Recipient modal state
   const [isRecipientModalVisible, setIsRecipientModalVisible] = useState(false);
@@ -121,13 +196,29 @@ export function PhotoAlbumScreen() {
   const [isLoadingContacts, setIsLoadingContacts] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
+  // Map photos to FullscreenImageViewer format (exclude videos — viewer is image-only)
+  const photoOnlyItems = useMemo(
+    () => photos.filter(p => p.type === 'photo'),
+    [photos],
+  );
+  const viewerImages: ViewerImage[] = useMemo(
+    () => photoOnlyItems.map(p => ({ id: p.id, uri: p.uri })),
+    [photoOnlyItems],
+  );
+
+  // Group photos by date for section headers
+  const dateGroups = useMemo(
+    () => groupPhotosByDate(photos, t),
+    [photos, t],
+  );
+
   // Check for pending navigation (e.g., photo ID from Camera)
   useEffect(() => {
     if (paneContext && panelId) {
       const pending = paneContext.consumePendingNavigation(panelId as PaneId);
       if (pending?.params?.selectPhotoId) {
         const photoId = pending.params.selectPhotoId as string;
-        console.info(LOG_PREFIX, 'Received photo selection from Camera:', photoId);
+        console.debug(LOG_PREFIX, 'Received photo selection from Camera');
         // Enter selection mode with this photo selected
         setIsSelectionMode(true);
         setSelectedPhotos(new Set([photoId]));
@@ -138,7 +229,7 @@ export function PhotoAlbumScreen() {
   // Load photos from storage
   const loadPhotos = useCallback(async () => {
     try {
-      console.info(LOG_PREFIX, 'Loading photos...');
+      console.debug(LOG_PREFIX, 'Loading photos...');
 
       const mediaDir = `${RNFS.DocumentDirectoryPath}/media`;
       const dirExists = await RNFS.exists(mediaDir);
@@ -152,19 +243,20 @@ export function PhotoAlbumScreen() {
       // Read all files in media directory
       const files = await RNFS.readDir(mediaDir);
 
-      // Filter for photos (not thumbnails or temp)
-      const photoFiles = files.filter(
+      // Filter for photos and videos (not thumbnails or temp)
+      const mediaFiles = files.filter(
         f => f.isFile() &&
              !f.name.includes('_thumb') && !f.name.startsWith('.') &&
-             (f.name.endsWith('.jpg') || f.name.endsWith('.jpeg') || f.name.endsWith('.png'))
+             /\.(jpg|jpeg|png|mp4|mov)$/i.test(f.name)
       );
 
-      // Build photo items
+      // Build media items
       const items: PhotoItem[] = [];
 
-      for (const file of photoFiles) {
-        const mediaId = file.name.replace(/\.(jpg|jpeg|png)$/i, '');
+      for (const file of mediaFiles) {
+        const mediaId = file.name.replace(/\.(jpg|jpeg|png|mp4|mov)$/i, '');
         const uri = file.path;
+        const isVideo = /\.(mp4|mov)$/i.test(file.name);
 
         // Get thumbnail
         const thumbnailUri = await getThumbnailUri(mediaId);
@@ -175,6 +267,7 @@ export function PhotoAlbumScreen() {
           thumbnailUri: thumbnailUri || uri,
           timestamp: file.mtime ? new Date(file.mtime).getTime() : Date.now(),
           size: Number(file.size) || 0,
+          type: isVideo ? 'video' : 'photo',
         });
       }
 
@@ -188,9 +281,9 @@ export function PhotoAlbumScreen() {
       const usage = await getStorageUsage();
       setStorageUsed(usage);
 
-      console.info(LOG_PREFIX, 'Loaded photos:', items.length);
+      console.debug(LOG_PREFIX, 'Loaded photos:', { count: items.length });
     } catch (error) {
-      console.error(LOG_PREFIX, 'Failed to load photos:', error);
+      console.error(LOG_PREFIX, 'Failed to load photos');
     }
   }, []);
 
@@ -207,9 +300,8 @@ export function PhotoAlbumScreen() {
     setIsRefreshing(false);
   }, [loadPhotos]);
 
-  // Toggle selection mode
+  // Toggle selection mode (haptic handled by HapticTouchable)
   const handleToggleSelectionMode = useCallback(() => {
-    Vibration.vibrate(HAPTIC_DURATION);
     setIsSelectionMode(prev => {
       if (prev) {
         setSelectedPhotos(new Set()); // Clear selection when exiting
@@ -218,9 +310,8 @@ export function PhotoAlbumScreen() {
     });
   }, []);
 
-  // Toggle photo selection
+  // Toggle photo selection (haptic handled by HapticTouchable)
   const handleTogglePhoto = useCallback((photoId: string) => {
-    Vibration.vibrate(HAPTIC_DURATION);
     setSelectedPhotos(prev => {
       const newSet = new Set(prev);
       if (newSet.has(photoId)) {
@@ -236,54 +327,37 @@ export function PhotoAlbumScreen() {
   const handlePhotoPress = useCallback((photoId: string) => {
     if (isSelectionMode) {
       handleTogglePhoto(photoId);
+      return;
+    }
+
+    const item = photos.find(p => p.id === photoId);
+    if (!item) return;
+
+    if (item.type === 'video') {
+      // Open video in system player
+      console.debug(LOG_PREFIX, 'Opening video in system player');
+      Linking.openURL(item.uri).catch(() => {
+        console.error(LOG_PREFIX, 'Failed to open video');
+      });
     } else {
-      // Open full-screen viewer
-      const photo = photos.find(p => p.id === photoId);
-      if (photo) {
-        console.info(LOG_PREFIX, 'Opening viewer for:', photoId);
-        setIsViewerLoading(true);
-        setViewerPhoto(photo);
+      // Open FullscreenImageViewer at the correct index (photo-only index)
+      const photoIndex = photoOnlyItems.findIndex(p => p.id === photoId);
+      if (photoIndex >= 0) {
+        console.debug(LOG_PREFIX, 'Opening viewer');
+        setViewerInitialIndex(photoIndex);
+        setViewerVisible(true);
       }
     }
-  }, [isSelectionMode, handleTogglePhoto, photos]);
+  }, [isSelectionMode, handleTogglePhoto, photos, photoOnlyItems]);
 
   // Close fullscreen viewer
   const handleCloseViewer = useCallback(() => {
-    setViewerPhoto(null);
-    setIsViewerLoading(true);
+    setViewerVisible(false);
   }, []);
-
-  // Navigate to previous photo in viewer
-  const handleViewerPrevious = useCallback(() => {
-    if (!viewerPhoto) return;
-    const currentIndex = photos.findIndex(p => p.id === viewerPhoto.id);
-    if (currentIndex > 0) {
-      setIsViewerLoading(true);
-      setViewerPhoto(photos[currentIndex - 1]);
-      Vibration.vibrate(HAPTIC_DURATION);
-    }
-  }, [viewerPhoto, photos]);
-
-  // Navigate to next photo in viewer
-  const handleViewerNext = useCallback(() => {
-    if (!viewerPhoto) return;
-    const currentIndex = photos.findIndex(p => p.id === viewerPhoto.id);
-    if (currentIndex < photos.length - 1) {
-      setIsViewerLoading(true);
-      setViewerPhoto(photos[currentIndex + 1]);
-      Vibration.vibrate(HAPTIC_DURATION);
-    }
-  }, [viewerPhoto, photos]);
-
-  // Get current photo index for display
-  const viewerPhotoIndex = viewerPhoto
-    ? photos.findIndex(p => p.id === viewerPhoto.id) + 1
-    : 0;
 
   // Long-press to start selection mode
   const handlePhotoLongPress = useCallback((photoId: string) => {
     if (!isSelectionMode) {
-      Vibration.vibrate(HAPTIC_DURATION * 2);
       setIsSelectionMode(true);
       setSelectedPhotos(new Set([photoId]));
     }
@@ -296,7 +370,7 @@ export function PhotoAlbumScreen() {
       if (ServiceContainer.isInitialized && chatService.isInitialized) {
         const contactList = await chatService.getContacts();
         setContacts(contactList);
-        console.info(LOG_PREFIX, 'Loaded contacts:', contactList.length);
+        console.debug(LOG_PREFIX, 'Loaded contacts:', { count: contactList.length });
       } else if (__DEV__) {
         // Use mock contacts in dev mode
         const { getMockContactsForDevice } = await import('@/services/mock');
@@ -304,10 +378,10 @@ export function PhotoAlbumScreen() {
         const publicKeyMap = await getOtherDevicesPublicKeys('ik@commeazy.local');
         const deviceContacts = getMockContactsForDevice('ik@commeazy.local', publicKeyMap);
         setContacts(deviceContacts);
-        console.info(LOG_PREFIX, 'Using test device contacts:', deviceContacts.length);
+        console.debug(LOG_PREFIX, 'Using test device contacts:', { count: deviceContacts.length });
       }
     } catch (error) {
-      console.error(LOG_PREFIX, 'Failed to load contacts:', error);
+      console.error(LOG_PREFIX, 'Failed to load contacts');
     } finally {
       setIsLoadingContacts(false);
     }
@@ -324,7 +398,7 @@ export function PhotoAlbumScreen() {
       return;
     }
 
-    console.info(LOG_PREFIX, 'Send photos pressed:', selectedPhotos.size);
+    console.debug(LOG_PREFIX, 'Send photos pressed:', { count: selectedPhotos.size });
 
     // Load contacts and show recipient modal
     loadContacts();
@@ -333,7 +407,7 @@ export function PhotoAlbumScreen() {
 
   // Handle recipient selection confirmation — send photos to selected contacts
   const handleRecipientConfirm = useCallback(async (recipients: Contact[]) => {
-    console.info(LOG_PREFIX, 'Sending photos to:', recipients.length, 'recipients');
+    console.debug(LOG_PREFIX, 'Sending photos', { photos: selectedPhotos.size, recipients: recipients.length });
     setIsRecipientModalVisible(false);
     setIsSending(true);
 
@@ -348,8 +422,6 @@ export function PhotoAlbumScreen() {
       for (const photo of photoItems) {
         for (const recipient of recipients) {
           try {
-            console.info(LOG_PREFIX, `Sending photo ${photo.id} to ${recipient.jid}`);
-
             // Check if chat service is available
             if (ServiceContainer.isInitialized && chatService.isInitialized) {
               const result = await chatService.sendPhotoMessage(recipient.jid, photo.uri, {
@@ -359,26 +431,23 @@ export function PhotoAlbumScreen() {
 
               if (result.success) {
                 successCount++;
-                console.info(LOG_PREFIX, 'Photo sent successfully:', result.messageId);
               } else {
                 failCount++;
-                console.error(LOG_PREFIX, 'Failed to send photo:', result.error);
+                console.error(LOG_PREFIX, 'Failed to send photo');
               }
             } else if (__DEV__) {
               // In dev mode without service, simulate success
-              console.info(LOG_PREFIX, '[DEV] Simulating photo send success');
+              console.debug(LOG_PREFIX, '[DEV] Simulating photo send success');
               successCount++;
             }
           } catch (error) {
             failCount++;
-            console.error(LOG_PREFIX, 'Error sending photo:', error);
+            console.error(LOG_PREFIX, 'Error sending photo');
           }
         }
       }
 
       // Show result
-      Vibration.vibrate(HAPTIC_DURATION);
-
       if (failCount === 0) {
         Alert.alert(
           t('modules.photoAlbum.sendSuccess', 'Photos Sent'),
@@ -409,7 +478,7 @@ export function PhotoAlbumScreen() {
         );
       }
     } catch (error) {
-      console.error(LOG_PREFIX, 'Send photos error:', error);
+      console.error(LOG_PREFIX, 'Send photos error');
       Alert.alert(
         t('common.error', 'Error'),
         t('modules.photoAlbum.sendFailed', 'Failed to send photos. Please try again.'),
@@ -433,14 +502,13 @@ export function PhotoAlbumScreen() {
           text: t('common.delete', 'Delete'),
           style: 'destructive',
           onPress: async () => {
-            console.info(LOG_PREFIX, 'Deleting photos:', selectedPhotos.size);
-            Vibration.vibrate(HAPTIC_DURATION);
+            console.debug(LOG_PREFIX, 'Deleting photos:', { count: selectedPhotos.size });
 
             try {
               const idsToDelete = Array.from(selectedPhotos);
-              const deleted = await deleteMediaBatch(idsToDelete);
+              await deleteMediaBatch(idsToDelete);
 
-              console.info(LOG_PREFIX, 'Deleted photos:', deleted);
+              console.debug(LOG_PREFIX, 'Photos deleted');
 
               // Refresh list
               await loadPhotos();
@@ -449,7 +517,7 @@ export function PhotoAlbumScreen() {
               setSelectedPhotos(new Set());
               setIsSelectionMode(false);
             } catch (error) {
-              console.error(LOG_PREFIX, 'Failed to delete photos:', error);
+              console.error(LOG_PREFIX, 'Failed to delete photos');
               Alert.alert(
                 t('common.error', 'Error'),
                 t('modules.photoAlbum.deleteError', 'Could not delete photos. Please try again.'),
@@ -462,6 +530,41 @@ export function PhotoAlbumScreen() {
     );
   }, [selectedPhotos, t, loadPhotos]);
 
+  // Import photos from device gallery
+  const handleImportFromGallery = useCallback(async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'mixed',
+        selectionLimit: 20,
+        quality: 0.9,
+      });
+
+      if (result.didCancel || !result.assets?.length) return;
+
+      console.debug(LOG_PREFIX, 'Importing photos', { count: result.assets.length });
+
+      let importCount = 0;
+      for (const asset of result.assets) {
+        if (asset.uri) {
+          const saved = await saveMedia(asset.uri, 'album', 'gallery');
+          if (saved) importCount++;
+        }
+      }
+
+      if (importCount > 0) {
+        console.debug(LOG_PREFIX, 'Import complete', { imported: importCount });
+        await loadPhotos();
+      }
+    } catch (error) {
+      console.error(LOG_PREFIX, 'Gallery import failed');
+      Alert.alert(
+        t('common.error', 'Error'),
+        t('modules.photoAlbum.importError', 'Could not import photos. Please try again.'),
+        [{ text: t('common.ok', 'OK') }],
+      );
+    }
+  }, [loadPhotos, t]);
+
   // Format storage size
   const formatStorageSize = useCallback((bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -469,37 +572,55 @@ export function PhotoAlbumScreen() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }, []);
 
-  // Render empty state
+  // Render empty state with CTA buttons
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Icon name="image" size={80} color={colors.textSecondary} />
-      <Text style={styles.emptyTitle}>
+      <Icon name="image" size={80} color={themeColors.textSecondary} />
+      <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
         {t('modules.photoAlbum.emptyTitle', 'No photos yet')}
       </Text>
-      <Text style={styles.emptyHint}>
+      <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>
         {t('modules.photoAlbum.emptyHint', 'Use the Camera module to take photos.\nThey will appear here automatically.')}
       </Text>
+
+      {/* CTA: Import from gallery */}
+      <HapticTouchable
+        style={[styles.emptyCtaButton, { backgroundColor: moduleColor }]}
+        onPress={handleImportFromGallery}
+        accessibilityRole="button"
+        accessibilityLabel={t('modules.photoAlbum.importFromGallery', 'Import from gallery')}
+      >
+        <Icon name="download" size={24} color={themeColors.textOnPrimary} />
+        <Text style={styles.emptyCtaText}>
+          {t('modules.photoAlbum.importFromGallery', 'Import from gallery')}
+        </Text>
+      </HapticTouchable>
     </View>
   );
 
-  // Render photo grid item
+  // Render photo/video grid item
   const renderPhotoItem = (photo: PhotoItem) => {
     const isSelected = selectedPhotos.has(photo.id);
+    const isVideo = photo.type === 'video';
 
     return (
-      <TouchableOpacity
+      <HapticTouchable
         key={photo.id}
         style={[
           styles.photoItem,
+          { width: itemSize, height: itemSize },
           isSelected && { borderColor: moduleColor, borderWidth: 3 },
         ]}
         onPress={() => handlePhotoPress(photo.id)}
         onLongPress={() => handlePhotoLongPress(photo.id)}
+        longPressGuardDisabled
         accessibilityRole="button"
         accessibilityLabel={
           isSelected
             ? t('modules.photoAlbum.photoSelected', 'Photo selected')
-            : t('modules.photoAlbum.photo', 'Photo')
+            : isVideo
+              ? t('modules.photoAlbum.video', 'Video')
+              : t('modules.photoAlbum.photo', 'Photo')
         }
         accessibilityState={{ selected: isSelected }}
       >
@@ -508,17 +629,61 @@ export function PhotoAlbumScreen() {
           style={styles.photoThumbnail}
           resizeMode="cover"
         />
+
+        {/* Video overlay: play icon + duration badge */}
+        {isVideo && (
+          <>
+            <View style={styles.videoPlayOverlay}>
+              <Icon name="play" size={32} color="#FFFFFF" />
+            </View>
+            {photo.duration != null && photo.duration > 0 && (
+              <View style={styles.videoDurationBadge}>
+                <Text style={styles.videoDurationText}>
+                  {formatDuration(photo.duration)}
+                </Text>
+              </View>
+            )}
+          </>
+        )}
+
         {isSelectionMode && isSelected && (
           <View style={[styles.selectionBadge, { backgroundColor: moduleColor }]}>
-            <Icon name="checkmark" size={16} color={colors.textOnPrimary} />
+            <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
           </View>
         )}
-      </TouchableOpacity>
+      </HapticTouchable>
     );
   };
 
+  // Handle send from viewer — uses InteractionManager instead of setTimeout
+  const handleViewerSend = useCallback(() => {
+    // viewerInitialIndex maps to photoOnlyItems (viewer excludes videos)
+    const photo = photoOnlyItems[viewerInitialIndex];
+    if (photo) {
+      setSelectedPhotos(new Set([photo.id]));
+      setIsSelectionMode(true);
+      handleCloseViewer();
+      InteractionManager.runAfterInteractions(() => {
+        loadContacts();
+        setIsRecipientModalVisible(true);
+      });
+    }
+  }, [photoOnlyItems, viewerInitialIndex, handleCloseViewer, loadContacts]);
+
+  // Handle delete from viewer — uses InteractionManager instead of setTimeout
+  const handleViewerDelete = useCallback(() => {
+    const photo = photoOnlyItems[viewerInitialIndex];
+    if (photo) {
+      setSelectedPhotos(new Set([photo.id]));
+      handleCloseViewer();
+      InteractionManager.runAfterInteractions(() => {
+        handleDeletePhotos();
+      });
+    }
+  }, [photoOnlyItems, viewerInitialIndex, handleCloseViewer, handleDeletePhotos]);
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleHeader
         moduleId="photoAlbum"
         icon="image"
@@ -534,22 +699,22 @@ export function PhotoAlbumScreen() {
               ? t('modules.photoAlbum.selectedCount', '{{count}} selected', { count: selectedPhotos.size })
               : t('modules.photoAlbum.selectPhotos', 'Select photos')}
           </Text>
-          <TouchableOpacity
+          <HapticTouchable
             style={styles.cancelButton}
             onPress={handleToggleSelectionMode}
             accessibilityRole="button"
             accessibilityLabel={t('common.cancel', 'Cancel')}
           >
-            <Icon name="x" size={24} color={colors.textOnPrimary} />
-          </TouchableOpacity>
+            <Icon name="x" size={24} color={themeColors.textOnPrimary} />
+          </HapticTouchable>
         </View>
       )}
 
       {/* Storage info bar */}
       {!isSelectionMode && photoCount > 0 && (
         <View style={styles.storageBar}>
-          <Icon name="image" size={16} color={colors.textSecondary} />
-          <Text style={styles.storageText}>
+          <Icon name="image" size={16} color={themeColors.textSecondary} />
+          <Text style={[styles.storageText, { color: themeColors.textSecondary }]}>
             {t('modules.photoAlbum.storageInfo', '{{count}} photos • {{size}}', {
               count: photoCount,
               size: formatStorageSize(storageUsed),
@@ -576,202 +741,92 @@ export function PhotoAlbumScreen() {
         {photos.length === 0 && !isLoading ? (
           renderEmptyState()
         ) : (
-          <View style={styles.grid}>
-            {photos.map(renderPhotoItem)}
-          </View>
+          dateGroups.map((group) => (
+            <View key={group.label}>
+              {/* Date section header */}
+              <Text style={[styles.dateHeader, { color: themeColors.textPrimary }]}>
+                {group.label}
+              </Text>
+              <View style={styles.grid}>
+                {group.photos.map(renderPhotoItem)}
+              </View>
+            </View>
+          ))
         )}
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View style={styles.actionBar}>
+      <View style={[styles.actionBar, { borderTopColor: themeColors.border }]}>
         {isSelectionMode ? (
           // Selection mode actions
           <>
-            <TouchableOpacity
+            <HapticTouchable
               style={[
                 styles.actionButton,
                 { backgroundColor: moduleColor },
                 selectedPhotos.size === 0 && styles.actionButtonDisabled,
               ]}
               onPress={handleSendPhotos}
+              hapticDisabled={selectedPhotos.size === 0}
               accessibilityRole="button"
               accessibilityLabel={t('modules.photoAlbum.send', 'Send')}
               disabled={selectedPhotos.size === 0}
             >
-              <Icon name="chat" size={24} color={colors.textOnPrimary} />
+              <Icon name="chat" size={24} color={themeColors.textOnPrimary} />
               <Text style={styles.actionText}>
                 {t('modules.photoAlbum.send', 'Send')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
 
-            <TouchableOpacity
+            <HapticTouchable
               style={[
                 styles.actionButton,
                 styles.deleteButton,
                 selectedPhotos.size === 0 && styles.actionButtonDisabled,
               ]}
               onPress={handleDeletePhotos}
+              hapticType="warning"
+              hapticDisabled={selectedPhotos.size === 0}
               accessibilityRole="button"
               accessibilityLabel={t('common.delete', 'Delete')}
               disabled={selectedPhotos.size === 0}
             >
-              <Icon name="trash" size={24} color={colors.textOnPrimary} />
+              <Icon name="trash" size={24} color={themeColors.textOnPrimary} />
               <Text style={styles.actionText}>
                 {t('common.delete', 'Delete')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </>
         ) : (
           // Normal mode: Select button
-          <TouchableOpacity
+          <HapticTouchable
             style={[
               styles.actionButton,
               { backgroundColor: moduleColor },
               photos.length === 0 && styles.actionButtonDisabled,
             ]}
             onPress={handleToggleSelectionMode}
+            hapticDisabled={photos.length === 0}
             accessibilityRole="button"
             accessibilityLabel={t('modules.photoAlbum.select', 'Select photos')}
             disabled={photos.length === 0}
           >
-            <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
+            <Icon name="checkmark" size={24} color={themeColors.textOnPrimary} />
             <Text style={styles.actionText}>
               {t('modules.photoAlbum.select', 'Select')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
       </View>
 
-      {/* Fullscreen Photo Viewer Modal */}
-      <Modal
-        visible={viewerPhoto !== null}
-        animationType="fade"
-        presentationStyle="fullScreen"
-        onRequestClose={handleCloseViewer}
-      >
-        <StatusBar hidden />
-        <View style={styles.viewerContainer}>
-          {/* Close button */}
-          <TouchableOpacity
-            style={styles.viewerCloseButton}
-            onPress={handleCloseViewer}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close', 'Close')}
-          >
-            <Icon name="x" size={28} color={colors.textOnPrimary} />
-          </TouchableOpacity>
-
-          {/* Photo counter */}
-          <View style={styles.viewerCounter}>
-            <Text style={styles.viewerCounterText}>
-              {viewerPhotoIndex} / {photos.length}
-            </Text>
-          </View>
-
-          {/* Loading indicator */}
-          {isViewerLoading && (
-            <View style={styles.viewerLoadingOverlay}>
-              <ActivityIndicator size="large" color={moduleColor} />
-            </View>
-          )}
-
-          {/* Photo display */}
-          {viewerPhoto && (
-            <Image
-              source={{ uri: viewerPhoto.uri }}
-              style={{
-                width: windowWidth,
-                height: windowHeight,
-              }}
-              resizeMode="contain"
-              onLoadStart={() => setIsViewerLoading(true)}
-              onLoadEnd={() => setIsViewerLoading(false)}
-              accessibilityLabel={t('modules.photoAlbum.fullPhoto', 'Full size photo')}
-            />
-          )}
-
-          {/* Navigation buttons */}
-          <View style={styles.viewerNavigation}>
-            {/* Previous button */}
-            <TouchableOpacity
-              style={[
-                styles.viewerNavButton,
-                viewerPhotoIndex <= 1 && styles.viewerNavButtonDisabled,
-              ]}
-              onPress={handleViewerPrevious}
-              disabled={viewerPhotoIndex <= 1}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.photoAlbum.previousPhoto', 'Previous photo')}
-            >
-              <Icon
-                name="chevron-left"
-                size={32}
-                color={viewerPhotoIndex <= 1 ? 'rgba(255,255,255,0.3)' : colors.textOnPrimary}
-              />
-            </TouchableOpacity>
-
-            {/* Next button */}
-            <TouchableOpacity
-              style={[
-                styles.viewerNavButton,
-                viewerPhotoIndex >= photos.length && styles.viewerNavButtonDisabled,
-              ]}
-              onPress={handleViewerNext}
-              disabled={viewerPhotoIndex >= photos.length}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.photoAlbum.nextPhoto', 'Next photo')}
-            >
-              <Icon
-                name="chevron-right"
-                size={32}
-                color={viewerPhotoIndex >= photos.length ? 'rgba(255,255,255,0.3)' : colors.textOnPrimary}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Bottom action bar */}
-          <View style={styles.viewerActionBar}>
-            <TouchableOpacity
-              style={[styles.viewerActionButton, { backgroundColor: moduleColor }]}
-              onPress={() => {
-                if (viewerPhoto) {
-                  setSelectedPhotos(new Set([viewerPhoto.id]));
-                  setIsSelectionMode(true);
-                  handleCloseViewer();
-                  // Small delay to let modal close, then trigger send
-                  setTimeout(handleSendPhotos, 100);
-                }
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.photoAlbum.send', 'Send')}
-            >
-              <Icon name="chat" size={24} color={colors.textOnPrimary} />
-              <Text style={styles.viewerActionText}>
-                {t('modules.photoAlbum.send', 'Send')}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.viewerActionButton, styles.deleteButton]}
-              onPress={() => {
-                if (viewerPhoto) {
-                  setSelectedPhotos(new Set([viewerPhoto.id]));
-                  handleCloseViewer();
-                  // Small delay to let modal close, then trigger delete
-                  setTimeout(handleDeletePhotos, 100);
-                }
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.delete', 'Delete')}
-            >
-              <Icon name="trash" size={24} color={colors.textOnPrimary} />
-              <Text style={styles.viewerActionText}>
-                {t('common.delete', 'Delete')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Fullscreen Photo Viewer — uses shared FullscreenImageViewer component */}
+      <FullscreenImageViewer
+        visible={viewerVisible}
+        images={viewerImages}
+        initialIndex={viewerInitialIndex}
+        onClose={handleCloseViewer}
+        accentColor={moduleColor}
+      />
 
       {/* Recipient Selection Modal */}
       <PhotoRecipientModal
@@ -804,7 +859,6 @@ export function PhotoAlbumScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   selectionHeader: {
     flexDirection: 'row',
@@ -815,7 +869,7 @@ const styles = StyleSheet.create({
   },
   selectionText: {
     ...typography.h3,
-    color: colors.textOnPrimary,
+    color: '#FFFFFF',
   },
   cancelButton: {
     padding: spacing.sm,
@@ -829,7 +883,6 @@ const styles = StyleSheet.create({
   },
   storageText: {
     ...typography.label,
-    color: colors.textSecondary,
   },
   gridContainer: {
     flex: 1,
@@ -840,21 +893,49 @@ const styles = StyleSheet.create({
   gridContentEmpty: {
     flex: 1,
   },
+  dateHeader: {
+    ...typography.h3,
+    fontWeight: '700',
+    paddingHorizontal: spacing.xs,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: GRID_GAP,
   },
   photoItem: {
-    width: ITEM_SIZE,
-    height: ITEM_SIZE,
     borderRadius: borderRadius.sm,
     overflow: 'hidden',
-    backgroundColor: colors.surface,
   },
   photoThumbnail: {
     width: '100%',
     height: '100%',
+  },
+  videoPlayOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  },
+  videoDurationBadge: {
+    position: 'absolute',
+    bottom: spacing.xs,
+    left: spacing.xs,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+  },
+  videoDurationText: {
+    ...typography.small,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   selectionBadge: {
     position: 'absolute',
@@ -875,16 +956,30 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
     marginTop: spacing.lg,
     textAlign: 'center',
   },
   emptyHint: {
     ...typography.body,
-    color: colors.textSecondary,
     marginTop: spacing.md,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  emptyCtaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.comfortable,
+  },
+  emptyCtaText: {
+    ...typography.button,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   actionBar: {
     flexDirection: 'row',
@@ -894,7 +989,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   actionButton: {
     flex: 1,
@@ -911,102 +1005,11 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   deleteButton: {
-    backgroundColor: colors.error,
+    backgroundColor: '#D32F2F',
   },
   actionText: {
     ...typography.button,
-    color: colors.textOnPrimary,
-  },
-  // Fullscreen viewer styles
-  viewerContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  viewerCloseButton: {
-    position: 'absolute',
-    top: spacing.xl + 20, // Account for status bar area
-    left: spacing.lg,
-    zIndex: 10,
-    width: touchTargets.comfortable,
-    height: touchTargets.comfortable,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: borderRadius.full,
-  },
-  viewerCounter: {
-    position: 'absolute',
-    top: spacing.xl + 20, // Account for status bar area
-    right: spacing.lg,
-    zIndex: 10,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: borderRadius.md,
-  },
-  viewerCounterText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-  },
-  viewerLoadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 5,
-  },
-  viewerNavigation: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    pointerEvents: 'box-none',
-  },
-  viewerNavButton: {
-    width: touchTargets.comfortable,
-    height: touchTargets.comfortable * 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: borderRadius.md,
-  },
-  viewerNavButtonDisabled: {
-    opacity: 0.5,
-  },
-  viewerActionBar: {
-    position: 'absolute',
-    bottom: spacing.xl + 20, // Account for home indicator
-    left: spacing.lg,
-    right: spacing.lg,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
-  },
-  viewerActionButton: {
-    flex: 1,
-    maxWidth: 160,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.full,
-    minHeight: touchTargets.comfortable,
-  },
-  viewerActionText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
+    color: '#FFFFFF',
   },
   // Sending overlay styles
   sendingOverlay: {
@@ -1018,7 +1021,7 @@ const styles = StyleSheet.create({
   },
   sendingText: {
     ...typography.h3,
-    color: colors.textOnPrimary,
+    color: '#FFFFFF',
   },
 });
 

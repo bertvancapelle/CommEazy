@@ -20,13 +20,13 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
-  Vibration,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
+import { typography, spacing, borderRadius, touchTargets } from '@/theme';
+import { useColors } from '@/contexts/ThemeContext';
+import { HapticTouchable } from './HapticTouchable';
 import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
 import { Icon } from './Icon';
@@ -41,9 +41,6 @@ const LOG_PREFIX = '[PhotoRecipientModal]';
 
 // Maximum recipients (dual-path encryption limit)
 export const MAX_RECIPIENTS = 8;
-
-// Haptic feedback
-const HAPTIC_DURATION = 50;
 
 // ============================================================
 // Types
@@ -77,9 +74,11 @@ export function PhotoRecipientModal({
   isLoading = false,
   onConfirm,
   onClose,
-  accentColor = colors.primary,
+  accentColor,
 }: PhotoRecipientModalProps) {
   const { t } = useTranslation();
+  const themeColors = useColors();
+  const resolvedAccent = accentColor || themeColors.primary;
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
 
   // Reset selection when modal opens
@@ -89,9 +88,8 @@ export function PhotoRecipientModal({
     }
   }, [visible]);
 
-  // Toggle contact selection
+  // Toggle contact selection — haptic is handled by HapticTouchable
   const handleToggleContact = useCallback((contact: Contact) => {
-    Vibration.vibrate(HAPTIC_DURATION);
     setSelectedContacts(prev => {
       const newSet = new Set(prev);
       if (newSet.has(contact.jid)) {
@@ -106,7 +104,7 @@ export function PhotoRecipientModal({
   // Handle confirm
   const handleConfirm = useCallback(() => {
     const selected = contacts.filter(c => selectedContacts.has(c.jid));
-    console.info(LOG_PREFIX, 'Confirmed selection:', selected.length, 'contacts');
+    console.debug(LOG_PREFIX, 'Confirmed selection', { count: selected.length });
     onConfirm(selected);
   }, [contacts, selectedContacts, onConfirm]);
 
@@ -126,24 +124,24 @@ export function PhotoRecipientModal({
       onRequestClose={onClose}
       accessibilityViewIsModal
     >
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
+        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+          <HapticTouchable
             style={styles.closeButton}
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel={t('common.cancel', 'Cancel')}
           >
-            <Icon name="x" size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.title}>{getTitle()}</Text>
+            <Icon name="x" size={24} color={themeColors.textPrimary} />
+          </HapticTouchable>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{getTitle()}</Text>
           <View style={styles.headerSpacer} />
         </View>
 
         {/* Selection counter */}
-        <View style={styles.counterBar}>
-          <Text style={styles.counterText}>
+        <View style={[styles.counterBar, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.counterText, { color: themeColors.textSecondary }]}>
             {t('modules.photoAlbum.recipientCount', '{{selected}} of {{max}} selected', {
               selected: selectedContacts.size,
               max: MAX_RECIPIENTS,
@@ -154,18 +152,18 @@ export function PhotoRecipientModal({
         {/* Contact list */}
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={accentColor} />
-            <Text style={styles.loadingText}>
+            <ActivityIndicator size="large" color={resolvedAccent} />
+            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
               {t('common.loading', 'Loading...')}
             </Text>
           </View>
         ) : contacts.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Icon name="users" size={64} color={colors.textSecondary} />
-            <Text style={styles.emptyTitle}>
+            <Icon name="users" size={64} color={themeColors.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
               {t('modules.photoAlbum.noContacts', 'No contacts')}
             </Text>
-            <Text style={styles.emptyHint}>
+            <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>
               {t('modules.photoAlbum.noContactsHint', 'Add contacts to send photos.')}
             </Text>
           </View>
@@ -180,15 +178,17 @@ export function PhotoRecipientModal({
               const isDisabled = !isSelected && selectedContacts.size >= MAX_RECIPIENTS;
 
               return (
-                <TouchableOpacity
+                <HapticTouchable
                   key={contact.jid}
                   style={[
                     styles.contactRow,
-                    isSelected && { borderColor: accentColor, borderWidth: 2 },
+                    { backgroundColor: themeColors.surface, borderColor: themeColors.border },
+                    isSelected && { borderColor: resolvedAccent, borderWidth: 2 },
                     isDisabled && styles.contactRowDisabled,
                   ]}
                   onPress={() => !isDisabled && handleToggleContact(contact)}
                   disabled={isDisabled}
+                  hapticDisabled={isDisabled}
                   accessibilityRole="checkbox"
                   accessibilityLabel={getContactDisplayName(contact)}
                   accessibilityState={{ checked: isSelected, disabled: isDisabled }}
@@ -201,25 +201,26 @@ export function PhotoRecipientModal({
                   <Text
                     style={[
                       styles.contactName,
-                      isDisabled && styles.contactNameDisabled,
+                      { color: themeColors.textPrimary },
+                      isDisabled && { color: themeColors.textSecondary },
                     ]}
                     numberOfLines={1}
                   >
                     {getContactDisplayName(contact)}
                   </Text>
                   {isSelected && (
-                    <View style={[styles.checkBadge, { backgroundColor: accentColor }]}>
-                      <Icon name="checkmark" size={16} color={colors.textOnPrimary} />
+                    <View style={[styles.checkBadge, { backgroundColor: resolvedAccent }]}>
+                      <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
                     </View>
                   )}
-                </TouchableOpacity>
+                </HapticTouchable>
               );
             })}
           </ScrollView>
         )}
 
         {/* Footer */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { borderTopColor: themeColors.border }]}>
           <Button
             title={
               selectedContacts.size === 0
@@ -233,7 +234,7 @@ export function PhotoRecipientModal({
             disabled={selectedContacts.size === 0}
             style={[
               styles.confirmButton,
-              { backgroundColor: selectedContacts.size > 0 ? accentColor : colors.disabled },
+              { backgroundColor: selectedContacts.size > 0 ? resolvedAccent : themeColors.disabled },
             ]}
           />
         </View>
@@ -249,7 +250,6 @@ export function PhotoRecipientModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -258,7 +258,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   closeButton: {
     width: touchTargets.minimum,
@@ -268,7 +267,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h3,
-    color: colors.textPrimary,
     flex: 1,
     textAlign: 'center',
   },
@@ -278,11 +276,9 @@ const styles = StyleSheet.create({
   counterBar: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
   },
   counterText: {
     ...typography.label,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -293,7 +289,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.body,
-    color: colors.textSecondary,
   },
   emptyContainer: {
     flex: 1,
@@ -303,13 +298,11 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
     marginTop: spacing.lg,
     textAlign: 'center',
   },
   emptyHint: {
     ...typography.body,
-    color: colors.textSecondary,
     marginTop: spacing.sm,
     textAlign: 'center',
   },
@@ -325,10 +318,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: borderRadius.md,
     marginBottom: spacing.sm,
-    backgroundColor: colors.surface,
     minHeight: touchTargets.comfortable,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   contactRowDisabled: {
     opacity: 0.5,
@@ -336,12 +327,8 @@ const styles = StyleSheet.create({
   contactName: {
     ...typography.body,
     fontWeight: '600',
-    color: colors.textPrimary,
     marginLeft: spacing.md,
     flex: 1,
-  },
-  contactNameDisabled: {
-    color: colors.textSecondary,
   },
   checkBadge: {
     width: 28,
@@ -353,7 +340,6 @@ const styles = StyleSheet.create({
   footer: {
     padding: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   confirmButton: {
     minHeight: touchTargets.comfortable,

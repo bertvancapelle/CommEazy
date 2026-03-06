@@ -1326,7 +1326,11 @@
       "sendSuccessMessage": "{{count}} bilde(r) sendt til {{recipients}} kontakt(er).",
       "sendPartial": "Delvis sendt",
       "sendPartialMessage": "{{success}} bilde(r) sendt, men {{fail}} mislyktes.",
-      "sendFailed": "Kunne ikke sende bilder. Prøv igjen."
+      "sendFailed": "Kunne ikke sende bilder. Prøv igjen.",
+      "dateLastWeek": "Siste uke",
+      "importFromGallery": "Importer fra galleri",
+      "importError": "Kunne ikke importere bilder. Prøv igjen.",
+      "video": "Video"
     },
     "nunl": {
       "title": "© nu.nl",

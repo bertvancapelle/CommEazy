@@ -1296,7 +1296,11 @@
       "sendSuccessMessage": "{{count}} billede(r) sendt til {{recipients}} kontakt(er).",
       "sendPartial": "Delvist sendt",
       "sendPartialMessage": "{{success}} billede(r) sendt, men {{fail}} mislykkedes.",
-      "sendFailed": "Kunne ikke sende billeder. Prøv igen."
+      "sendFailed": "Kunne ikke sende billeder. Prøv igen.",
+      "dateLastWeek": "Sidste uge",
+      "importFromGallery": "Importér fra galleri",
+      "importError": "Kunne ikke importere fotos. Prøv igen.",
+      "video": "Video"
     },
     "nunl": {
       "title": "© nu.nl",

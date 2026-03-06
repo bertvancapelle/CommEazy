@@ -1296,7 +1296,11 @@
       "sendSuccessMessage": "{{count}} foto(n) skickade till {{recipients}} kontakt(er).",
       "sendPartial": "Delvis skickat",
       "sendPartialMessage": "{{success}} foto(n) skickade, men {{fail}} misslyckades.",
-      "sendFailed": "Kunde inte skicka foton. Försök igen."
+      "sendFailed": "Kunde inte skicka foton. Försök igen.",
+      "dateLastWeek": "Förra veckan",
+      "importFromGallery": "Importera från galleri",
+      "importError": "Kunde inte importera foton. Försök igen.",
+      "video": "Video"
     },
     "nunl": {
       "title": "© nu.nl",

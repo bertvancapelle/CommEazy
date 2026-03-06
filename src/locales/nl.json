@@ -1421,7 +1421,11 @@
       "sendSuccessMessage": "{{count}} foto('s) verstuurd naar {{recipients}} contact(en).",
       "sendPartial": "Gedeeltelijk verstuurd",
       "sendPartialMessage": "{{success}} foto('s) verstuurd, maar {{fail}} mislukt.",
-      "sendFailed": "Kon foto's niet versturen. Probeer het opnieuw."
+      "sendFailed": "Kon foto's niet versturen. Probeer het opnieuw.",
+      "dateLastWeek": "Afgelopen week",
+      "importFromGallery": "Importeer uit galerij",
+      "importError": "Kon foto's niet importeren. Probeer het opnieuw.",
+      "video": "Video"
     },
     "nunl": {
       "title": "© nu.nl",
