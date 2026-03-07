@@ -191,3 +191,46 @@ export async function getFavoriteIds(): Promise<Set<string>> {
   const favorites = await readFavorites();
   return new Set(favorites.map(f => f.catalogId));
 }
+
+/**
+ * Batch add multiple songs to favorites in a single AsyncStorage write.
+ * Much more efficient than calling addFavorite() per song during import.
+ *
+ * Returns the number of NEW songs actually added (excludes duplicates).
+ */
+export async function addFavoritesBatch(songs: {
+  catalogId: string;
+  title: string;
+  artistName: string;
+  artworkUrl: string | null;
+  albumTitle?: string;
+}[]): Promise<number> {
+  const favorites = await readFavorites();
+  const existingIds = new Set(favorites.map(f => f.catalogId));
+  let addedCount = 0;
+
+  for (const song of songs) {
+    if (existingIds.has(song.catalogId)) {
+      continue;
+    }
+    existingIds.add(song.catalogId);
+    favorites.push({
+      catalogId: song.catalogId,
+      title: song.title,
+      artistName: song.artistName,
+      artworkUrl: song.artworkUrl,
+      albumTitle: song.albumTitle,
+      addedAt: Date.now(),
+    });
+    addedCount++;
+  }
+
+  if (addedCount > 0) {
+    await writeFavorites(favorites);
+    console.debug(LOG_PREFIX, 'Batch added songs to favorites', { added: addedCount, skipped: songs.length - addedCount });
+  } else {
+    console.debug(LOG_PREFIX, 'Batch: all songs already in favorites', { count: songs.length });
+  }
+
+  return addedCount;
+}

@@ -9,6 +9,7 @@ export {
   getFavorites,
   isFavorite,
   addFavorite,
+  addFavoritesBatch,
   removeFavorite,
   toggleFavorite,
   getFavoritesCount,

@@ -7,13 +7,15 @@
  *
  * Senior-inclusive design:
  * - Progress callback for UI feedback during import
- * - Parallel fetching (max 5 concurrent) for speed
+ * - Sequential processing with batch writes (prevents UI freezes)
+ * - InteractionManager pauses between playlists (keeps app responsive)
  * - Graceful error handling per playlist (skip failures, continue)
  *
  * @see musicCollectionService.ts
  * @see musicFavoritesService.ts
  */
 
+import { InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createCollectionFromPlaylist,
@@ -21,7 +23,7 @@ import {
   getCollectionByPlaylistId,
   syncCollection,
 } from './musicCollectionService';
-import { addFavorite } from './musicFavoritesService';
+import { addFavoritesBatch } from './musicFavoritesService';
 import type { AppleMusicPlaylist, PlaylistDetails } from '@/contexts/appleMusicContextTypes';
 
 // ============================================================
@@ -30,7 +32,18 @@ import type { AppleMusicPlaylist, PlaylistDetails } from '@/contexts/appleMusicC
 
 const LOG_PREFIX = '[playlistImportService]';
 const IMPORT_DONE_KEY = '@commeazy/playlistImportDone';
-const MAX_CONCURRENT = 5;
+
+/**
+ * Pause between playlists to let the UI thread breathe.
+ * Returns a promise that resolves after pending interactions + a small delay.
+ */
+function yieldToUI(): Promise<void> {
+  return new Promise(resolve => {
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(resolve, 50);
+    });
+  });
+}
 
 // ============================================================
 // Types
@@ -87,33 +100,6 @@ export async function resetImportStatus(): Promise<void> {
 }
 
 // ============================================================
-// Parallel Helper
-// ============================================================
-
-/**
- * Execute async tasks in parallel with concurrency limit.
- */
-async function parallelLimit<T, R>(
-  items: T[],
-  limit: number,
-  fn: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  const results: R[] = [];
-  let index = 0;
-
-  async function next(): Promise<void> {
-    const currentIndex = index++;
-    if (currentIndex >= items.length) return;
-    results[currentIndex] = await fn(items[currentIndex], currentIndex);
-    await next();
-  }
-
-  const workers = Array.from({ length: Math.min(limit, items.length) }, () => next());
-  await Promise.all(workers);
-  return results;
-}
-
-// ============================================================
 // Import Flow
 // ============================================================
 
@@ -122,9 +108,14 @@ async function parallelLimit<T, R>(
  *
  * Flow:
  * 1. Fetch all playlists via getLibraryPlaylists
- * 2. For each: fetch tracks via getPlaylistDetails
- * 3. Add all tracks as MusicFavorites (deduplicated)
- * 4. Create MusicCollection linked to the playlist
+ * 2. For each playlist (sequentially, to avoid race conditions):
+ *    a. Fetch tracks via getPlaylistDetails
+ *    b. Batch-add all tracks as MusicFavorites (1 AsyncStorage write per playlist)
+ *    c. Create MusicCollection linked to the playlist
+ *    d. Yield to UI thread (InteractionManager + 50ms pause)
+ *
+ * Performance: Sequential processing with batch writes eliminates the O(n²)
+ * per-song read/write pattern that caused UI freezes on large libraries.
  *
  * @param getLibraryPlaylists - Context function to fetch playlists
  * @param getPlaylistDetails - Context function to fetch playlist tracks
@@ -167,8 +158,10 @@ export async function importAllPlaylists(
 
   console.debug(LOG_PREFIX, 'Found playlists to import', { count: allPlaylists.length });
 
-  // Step 2: Import each playlist (parallel with limit)
-  await parallelLimit(allPlaylists, MAX_CONCURRENT, async (playlist, index) => {
+  // Step 2: Import each playlist sequentially (prevents AsyncStorage race conditions)
+  for (let index = 0; index < allPlaylists.length; index++) {
+    const playlist = allPlaylists[index];
+
     onProgress?.({
       current: index,
       total: allPlaylists.length,
@@ -180,34 +173,33 @@ export async function importAllPlaylists(
       const existing = await getCollectionByPlaylistId(playlist.id);
       if (existing) {
         console.debug(LOG_PREFIX, 'Playlist already imported, skipping', { name: playlist.name });
-        return;
+        continue;
       }
 
       // Fetch tracks
       const details = await getPlaylistDetails(playlist.id);
       console.debug(LOG_PREFIX, 'Playlist tracks fetched', { name: playlist.name, trackCount: details.tracks.length });
 
-      // Update progress with track count now that we have it
+      // Update progress with track count
       onProgress?.({
         current: index,
         total: allPlaylists.length,
         currentName: playlist.name,
         currentTrackCount: details.tracks.length,
       });
-      const trackCatalogIds: string[] = [];
 
-      // Add each track as favorite (deduplicated by addFavorite)
-      for (const track of details.tracks) {
-        await addFavorite({
-          catalogId: track.id,
-          title: track.title,
-          artistName: track.artistName,
-          artworkUrl: track.artworkUrl || null,
-          albumTitle: track.albumTitle,
-        });
-        trackCatalogIds.push(track.id);
-        result.songsAdded++;
-      }
+      // Batch-add all tracks as favorites (1 read + 1 write instead of N reads + N writes)
+      const songsToAdd = details.tracks.map(track => ({
+        catalogId: track.id,
+        title: track.title,
+        artistName: track.artistName,
+        artworkUrl: track.artworkUrl || null,
+        albumTitle: track.albumTitle,
+      }));
+      const addedCount = await addFavoritesBatch(songsToAdd);
+      result.songsAdded += addedCount;
+
+      const trackCatalogIds = details.tracks.map(t => t.id);
 
       // Create linked collection
       await createCollectionFromPlaylist(
@@ -220,7 +212,10 @@ export async function importAllPlaylists(
       console.warn(LOG_PREFIX, 'Failed to import playlist', { name: playlist.name });
       result.failures++;
     }
-  });
+
+    // Yield to UI thread between playlists so app stays responsive
+    await yieldToUI();
+  }
 
   // Final progress update
   onProgress?.({
@@ -248,11 +243,11 @@ export async function importAllPlaylists(
  * Sync all linked collections with their Apple Music source playlists.
  * Runs silently in the background — no UI, no user confirmation.
  *
- * For each linked collection:
+ * For each linked collection (sequentially to avoid AsyncStorage race conditions):
  * - Re-fetch playlist details
- * - Update collection name if changed
- * - Add new tracks as favorites
+ * - Batch-add new tracks as favorites
  * - Update collection song list (add new, remove deleted)
+ * - Yield to UI thread between playlists
  *
  * Also detects new playlists created in Apple Music since last import
  * and imports them automatically.
@@ -279,53 +274,53 @@ export async function syncAllLinkedCollections(
     const linkedCollections = await getLinkedCollections();
     const linkedPlaylistIds = new Set(linkedCollections.map(c => c.sourcePlaylistId!));
 
-    // Sync existing linked collections
-    await parallelLimit(linkedCollections, MAX_CONCURRENT, async (collection) => {
-      if (!collection.sourcePlaylistId) return;
+    // Sync existing linked collections sequentially
+    for (const collection of linkedCollections) {
+      if (!collection.sourcePlaylistId) continue;
 
       try {
         const details = await getPlaylistDetails(collection.sourcePlaylistId);
         const newCatalogIds = details.tracks.map(t => t.id);
 
-        // Add new tracks as favorites
-        for (const track of details.tracks) {
-          await addFavorite({
-            catalogId: track.id,
-            title: track.title,
-            artistName: track.artistName,
-            artworkUrl: track.artworkUrl || null,
-            albumTitle: track.albumTitle,
-          });
-        }
+        // Batch-add new tracks as favorites
+        const songsToAdd = details.tracks.map(track => ({
+          catalogId: track.id,
+          title: track.title,
+          artistName: track.artistName,
+          artworkUrl: track.artworkUrl || null,
+          albumTitle: track.albumTitle,
+        }));
+        await addFavoritesBatch(songsToAdd);
 
         // Update collection (name + song list)
         await syncCollection(collection.id, details.name, newCatalogIds);
       } catch (error) {
         console.warn(LOG_PREFIX, 'Failed to sync collection', { id: collection.id });
       }
-    });
+
+      await yieldToUI();
+    }
 
     // Import new playlists that don't have a linked collection yet
     const newPlaylists = allPlaylists.filter(p => !linkedPlaylistIds.has(p.id));
     if (newPlaylists.length > 0) {
       console.debug(LOG_PREFIX, 'New playlists detected', { count: newPlaylists.length });
 
-      await parallelLimit(newPlaylists, MAX_CONCURRENT, async (playlist) => {
+      for (const playlist of newPlaylists) {
         try {
           const details = await getPlaylistDetails(playlist.id);
-          const trackCatalogIds: string[] = [];
 
-          for (const track of details.tracks) {
-            await addFavorite({
-              catalogId: track.id,
-              title: track.title,
-              artistName: track.artistName,
-              artworkUrl: track.artworkUrl || null,
-              albumTitle: track.albumTitle,
-            });
-            trackCatalogIds.push(track.id);
-          }
+          // Batch-add all tracks as favorites
+          const songsToAdd = details.tracks.map(track => ({
+            catalogId: track.id,
+            title: track.title,
+            artistName: track.artistName,
+            artworkUrl: track.artworkUrl || null,
+            albumTitle: track.albumTitle,
+          }));
+          await addFavoritesBatch(songsToAdd);
 
+          const trackCatalogIds = details.tracks.map(t => t.id);
           await createCollectionFromPlaylist(
             playlist.name,
             playlist.id,
@@ -334,7 +329,9 @@ export async function syncAllLinkedCollections(
         } catch (error) {
           console.warn(LOG_PREFIX, 'Failed to import new playlist', { name: playlist.name });
         }
-      });
+
+        await yieldToUI();
+      }
     }
 
     console.debug(LOG_PREFIX, 'Background sync complete');
