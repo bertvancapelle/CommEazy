@@ -1653,24 +1653,36 @@ class AppleMusicModule: RCTEventEmitter {
                     return
                 }
                 
-                var result = playlistToDictionary(playlist)
+                // Load entries explicitly — MusicLibraryRequest doesn't include them by default
+                let playlistWithEntries = try await playlist.with(.entries)
                 
-                // For library playlists, fetch entries (tracks)
-                // Note: MusicLibraryRequest for Playlist doesn't include .tracks property by default
-                // We need to use Playlist.Entry to get the tracks
-                if let entries = playlist.entries {
+                var result = playlistToDictionary(playlistWithEntries)
+                
+                if let entries = playlistWithEntries.entries {
+                    NSLog("[AppleMusicModule] Library playlist '\(playlistWithEntries.name)' has \(entries.count) entries")
                     result["tracks"] = entries.compactMap { entry -> [String: Any]? in
-                        if let song = entry.item as? Song {
-                            return songToDictionary(song)
-                        }
-                        return nil
+                        // Playlist.Entry has song properties directly (title, artistName, artwork, etc.)
+                        // Use these when the entry's item isn't loaded as a Song
+                        return [
+                            "id": entry.id.rawValue,
+                            "title": entry.title,
+                            "artistName": entry.artistName,
+                            "albumTitle": entry.albumTitle ?? "",
+                            "duration": entry.duration ?? 0,
+                            "artworkUrl": entry.artwork?.url(width: 600, height: 600)?.absoluteString ?? "",
+                            "trackNumber": 0,
+                            "discNumber": 0,
+                            "isExplicit": (entry.contentRating == .explicit),
+                        ]
                     }
                 } else {
+                    NSLog("[AppleMusicModule] Library playlist '\(playlist.name)' has NO entries after loading")
                     result["tracks"] = []
                 }
                 
                 resolve(result)
             } catch {
+                NSLog("[AppleMusicModule] Library playlist request failed: \(error.localizedDescription)")
                 reject("PLAYLIST_ERROR", "Failed to get playlist details: \(error.localizedDescription)", error)
             }
         }

@@ -1726,7 +1726,13 @@
         "importAll": "Import All",
         "skip": "Skip",
         "importing": "Importing...",
-        "progressCount": "{{current}} of {{total}}"
+        "progressCount": "{{current}} of {{total}}",
+        "floatingImporting": "Importing",
+        "floatingProgress": "{{current}} of {{total}}: {{name}}",
+        "floatingComplete": "Import complete",
+        "floatingDone": "Done!",
+        "floatingTrackCount": "{{count}} tracks",
+        "floatingHint": "Tap for details"
       },
       "myMusic": {
         "shuffleAll": "Shuffle All",

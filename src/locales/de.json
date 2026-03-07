@@ -1722,7 +1722,13 @@
         "importAll": "Alle übernehmen",
         "skip": "Überspringen",
         "importing": "Wird importiert...",
-        "progressCount": "{{current}} von {{total}}"
+        "progressCount": "{{current}} von {{total}}",
+        "floatingImporting": "Import läuft",
+        "floatingProgress": "{{current}} von {{total}}: {{name}}",
+        "floatingComplete": "Import abgeschlossen",
+        "floatingDone": "Fertig!",
+        "floatingTrackCount": "{{count}} Titel",
+        "floatingHint": "Tippen für Details"
       },
       "myMusic": {
         "shuffleAll": "Alle mischen",

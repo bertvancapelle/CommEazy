@@ -80,6 +80,7 @@ import { SongCollectionModal } from './SongCollectionModal';
 import { PlaylistImportModal } from './PlaylistImportModal';
 import type { MusicCollection } from '@/services/music';
 import { markImportDone } from '@/services/music';
+import { usePlaylistImportContext } from '@/contexts/PlaylistImportContext';
 
 // ============================================================
 // Constants
@@ -118,6 +119,7 @@ export function AppleMusicScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+  const playlistImportCtx = usePlaylistImportContext();
 
   // Apple Music Context
   const {
@@ -479,6 +481,16 @@ export function AppleMusicScreen() {
 
     checkPlaylists();
   }, [isAuthorized, isIOS, isFocused, musicCollections.importDone, getLibraryPlaylists]);
+
+  // ============================================================
+  // Playlist Import — Sync progress to floating indicator context
+  // ============================================================
+
+  useEffect(() => {
+    if (musicCollections.importProgress) {
+      playlistImportCtx.updateProgress(musicCollections.importProgress);
+    }
+  }, [musicCollections.importProgress]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ============================================================
   // Playlist Import — Background sync (on each module open)
@@ -1481,12 +1493,26 @@ export function AppleMusicScreen() {
   }, [musicFavorites.favorites, selectedChipId, musicCollections.collections]);
 
   // Handle playlist import (user taps "Alles overnemen")
-  const handleImportPlaylists = useCallback(async () => {
-    await musicCollections.startImport(getLibraryPlaylists, getPlaylistDetails);
-    // Reload favorites so imported songs appear in the UI immediately
-    await musicFavorites.reload();
+  // Fire-and-forget: close modal immediately, floating indicator tracks progress
+  const handleImportPlaylists = useCallback(() => {
+    // Close the welcome modal immediately
     setShowPlaylistImportModal(false);
-  }, [musicCollections, musicFavorites, getLibraryPlaylists, getPlaylistDetails]);
+
+    // Signal the floating indicator that import is starting
+    playlistImportCtx.setImporting(true);
+
+    // Start import in background — don't await
+    musicCollections.startImport(
+      getLibraryPlaylists,
+      getPlaylistDetails,
+    ).then(async () => {
+      // Reload favorites so imported songs appear in the UI
+      await musicFavorites.reload();
+    }).finally(() => {
+      // Signal the floating indicator that import is done
+      playlistImportCtx.setImporting(false);
+    });
+  }, [musicCollections, musicFavorites, getLibraryPlaylists, getPlaylistDetails, playlistImportCtx]);
 
   // Handle skip import (user taps "Overslaan")
   const handleSkipImport = useCallback(async () => {
@@ -2021,12 +2047,10 @@ export function AppleMusicScreen() {
         onCreateCollection={() => setShowCreateCollectionModal(true)}
       />
 
-      {/* Playlist Import Modal (first-use welcome + import progress) */}
+      {/* Playlist Import Modal (first-use welcome — progress via FloatingImportIndicator) */}
       <PlaylistImportModal
         visible={showPlaylistImportModal}
         playlistCount={playlistCount}
-        isImporting={musicCollections.isImporting}
-        importProgress={musicCollections.importProgress}
         onImport={handleImportPlaylists}
         onSkip={handleSkipImport}
       />

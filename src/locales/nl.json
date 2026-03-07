@@ -1732,7 +1732,13 @@
         "importAll": "Alles overnemen",
         "skip": "Overslaan",
         "importing": "Bezig met importeren...",
-        "progressCount": "{{current}} van {{total}}"
+        "progressCount": "{{current}} van {{total}}",
+        "floatingImporting": "Bezig met importeren",
+        "floatingProgress": "{{current}} van {{total}}: {{name}}",
+        "floatingComplete": "Import voltooid",
+        "floatingDone": "Klaar!",
+        "floatingTrackCount": "{{count}} nummers",
+        "floatingHint": "Tik om details te tonen"
       },
       "myMusic": {
         "shuffleAll": "Shuffle alles",

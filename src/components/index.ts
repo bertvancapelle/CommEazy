@@ -157,6 +157,7 @@ export { AirPlayPresetHint } from './AirPlayPresetHint';
 export { AppleMusicDetailModal } from './appleMusic';
 export { QueueView } from './QueueView';
 export type { QueueViewProps } from './QueueView';
+export { FloatingImportIndicator } from './FloatingImportIndicator';
 
 // SeniorDatePicker Component (single-field date picker with popup for seniors — reusable)
 export { SeniorDatePicker } from './SeniorDatePicker';

@@ -1566,7 +1566,13 @@
         "importAll": "Importera alla",
         "skip": "Hoppa över",
         "importing": "Importerar...",
-        "progressCount": "{{current}} av {{total}}"
+        "progressCount": "{{current}} av {{total}}",
+        "floatingImporting": "Importerar",
+        "floatingProgress": "{{current}} av {{total}}: {{name}}",
+        "floatingComplete": "Import slutförd",
+        "floatingDone": "Klart!",
+        "floatingTrackCount": "{{count}} spår",
+        "floatingHint": "Tryck för detaljer"
       },
       "myMusic": {
         "shuffleAll": "Blanda alla",

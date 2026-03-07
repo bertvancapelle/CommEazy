@@ -1596,7 +1596,13 @@
         "importAll": "Importer alle",
         "skip": "Hopp over",
         "importing": "Importerer...",
-        "progressCount": "{{current}} av {{total}}"
+        "progressCount": "{{current}} av {{total}}",
+        "floatingImporting": "Importerer",
+        "floatingProgress": "{{current}} av {{total}}: {{name}}",
+        "floatingComplete": "Import fullført",
+        "floatingDone": "Ferdig!",
+        "floatingTrackCount": "{{count}} spor",
+        "floatingHint": "Trykk for detaljer"
       },
       "myMusic": {
         "shuffleAll": "Bland alle",

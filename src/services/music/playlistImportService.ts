@@ -43,6 +43,8 @@ export interface PlaylistImportProgress {
   total: number;
   /** Name of the playlist currently being imported */
   currentName: string;
+  /** Number of tracks in the current playlist (available after fetch) */
+  currentTrackCount?: number;
 }
 
 export interface PlaylistImportResult {
@@ -183,6 +185,15 @@ export async function importAllPlaylists(
 
       // Fetch tracks
       const details = await getPlaylistDetails(playlist.id);
+      console.debug(LOG_PREFIX, 'Playlist tracks fetched', { name: playlist.name, trackCount: details.tracks.length });
+
+      // Update progress with track count now that we have it
+      onProgress?.({
+        current: index,
+        total: allPlaylists.length,
+        currentName: playlist.name,
+        currentTrackCount: details.tracks.length,
+      });
       const trackCatalogIds: string[] = [];
 
       // Add each track as favorite (deduplicated by addFavorite)

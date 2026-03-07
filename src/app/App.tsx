@@ -29,6 +29,8 @@ import { CallProvider } from '@/contexts/CallContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ReducedMotionProvider } from '@/contexts/ReducedMotionContext';
 import { PresenceProvider } from '@/contexts/PresenceContext';
+import { PlaylistImportProvider } from '@/contexts/PlaylistImportContext';
+import { FloatingImportIndicator } from '@/components';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
@@ -116,9 +118,12 @@ export default function App() {
                       <NavigationProvider>
                         <FavoriteLocationsProvider>
                           <CallProvider>
-                            <HoldToNavigateProvider>
-                              <AppNavigator />
-                            </HoldToNavigateProvider>
+                            <PlaylistImportProvider>
+                              <HoldToNavigateProvider>
+                                <AppNavigator />
+                                <FloatingImportIndicator />
+                              </HoldToNavigateProvider>
+                            </PlaylistImportProvider>
                           </CallProvider>
                         </FavoriteLocationsProvider>
                       </NavigationProvider>
