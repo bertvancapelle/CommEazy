@@ -206,8 +206,8 @@ function generateOccurrences(
     return occurrences;
   }
 
-  // Recurring: generate occurrences
-  let current = new Date(item.itemDate);
+  // Recurring: generate occurrences (normalize to start-of-day to avoid timezone drift)
+  let current = new Date(startOfDay(item.itemDate));
   const endDate = item.endDate ? new Date(item.endDate) : null;
   const rangeEnd = new Date(endRange);
 
@@ -409,9 +409,14 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
         id => contactMap.get(id) ?? '?',
       );
 
+      // Deduplicate occurrences by dateKey to prevent duplicate React keys
+      const seenDates = new Set<string>();
       for (const occ of occurrences) {
+        const dateKey = toDateKey(occ.date);
+        if (seenDates.has(dateKey)) continue;
+        seenDates.add(dateKey);
         allItems.push({
-          id: `${item.id}-${toDateKey(occ.date)}`,
+          id: `${item.id}-${dateKey}`,
           source: 'manual',
           category: item.category as AgendaCategory,
           icon: getCategoryIcon(item.category as AgendaCategory),

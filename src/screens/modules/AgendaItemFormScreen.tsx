@@ -510,9 +510,9 @@ export function AgendaItemFormScreen({
           <DateTimePicker
             value={selectedDate}
             mode="date"
-            display={Platform.OS === 'ios' ? 'inline' : 'default'}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleDateChange}
-            minimumDate={new Date()}
+            minimumDate={new Date(new Date().setHours(0, 0, 0, 0))}
             locale={locale}
           />
         )}
@@ -669,7 +669,7 @@ export function AgendaItemFormScreen({
           <DateTimePicker
             value={endDate ?? new Date(selectedDate.getTime() + 30 * 24 * 60 * 60 * 1000)}
             mode="date"
-            display={Platform.OS === 'ios' ? 'inline' : 'default'}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleEndDateChange}
             minimumDate={selectedDate}
             locale={locale}
