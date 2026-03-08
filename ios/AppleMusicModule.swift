@@ -2256,13 +2256,21 @@ class AppleMusicModule: RCTEventEmitter {
                 let endIndex = min(offset + limit, response.items.count)
                 let paginatedItems = Array(response.items[startIndex..<endIndex])
 
-                // Load entries for each playlist to get track count
+                // Load entries for each playlist to get track count + fallback artwork
                 var playlists: [[String: Any]] = []
                 for playlist in paginatedItems {
                     var dict = playlistToDictionary(playlist)
                     // Load entries relationship to get track count
                     if let detailed = try? await playlist.with(.entries, preferredSource: .library) {
-                        dict["trackCount"] = detailed.entries?.count ?? 0
+                        let entries = detailed.entries
+                        dict["trackCount"] = entries?.count ?? 0
+                        // Use first entry's artwork as fallback when playlist has no artwork
+                        let currentArtwork = dict["artworkUrl"] as? String ?? ""
+                        if currentArtwork.isEmpty, let firstEntry = entries?.first,
+                           let entryArtwork = firstEntry.artwork,
+                           let artworkUrl = entryArtwork.url(width: 300, height: 300) {
+                            dict["artworkUrl"] = artworkUrl.httpURLString
+                        }
                     } else {
                         dict["trackCount"] = 0
                     }
