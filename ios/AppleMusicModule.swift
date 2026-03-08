@@ -1647,39 +1647,26 @@ class AppleMusicModule: RCTEventEmitter {
                 var libraryRequest = MusicLibraryRequest<Playlist>()
                 libraryRequest.filter(matching: \.id, equalTo: MusicItemID(playlistId))
                 let libraryResponse = try await libraryRequest.response()
-                
+
                 guard let playlist = libraryResponse.items.first else {
                     reject("PLAYLIST_NOT_FOUND", "Playlist with ID \(playlistId) not found in catalog or library", nil)
                     return
                 }
-                
-                // Load entries explicitly — MusicLibraryRequest doesn't include them by default
-                let playlistWithEntries = try await playlist.with(.entries)
-                
-                var result = playlistToDictionary(playlistWithEntries)
-                
-                if let entries = playlistWithEntries.entries {
-                    NSLog("[AppleMusicModule] Library playlist '\(playlistWithEntries.name)' has \(entries.count) entries")
-                    result["tracks"] = entries.compactMap { entry -> [String: Any]? in
-                        // Playlist.Entry has song properties directly (title, artistName, artwork, etc.)
-                        // Use these when the entry's item isn't loaded as a Song
-                        return [
-                            "id": entry.id.rawValue,
-                            "title": entry.title,
-                            "artistName": entry.artistName,
-                            "albumTitle": entry.albumTitle ?? "",
-                            "duration": entry.duration ?? 0,
-                            "artworkUrl": entry.artwork?.url(width: 600, height: 600)?.absoluteString ?? "",
-                            "trackNumber": 0,
-                            "discNumber": 0,
-                            "isExplicit": (entry.contentRating == .explicit),
-                        ]
-                    }
+
+                // Load tracks explicitly — gives us Track (Song/MusicVideo) with proper IDs and artwork
+                // Using .tracks instead of .entries ensures we get song catalog/library IDs (not entry IDs)
+                let playlistWithTracks = try await playlist.with(.tracks, preferredSource: .library)
+
+                var result = playlistToDictionary(playlistWithTracks)
+
+                if let tracks = playlistWithTracks.tracks {
+                    NSLog("[AppleMusicModule] Library playlist '\(playlistWithTracks.name)' has \(tracks.count) tracks")
+                    result["tracks"] = tracks.map { trackToDictionary($0) }
                 } else {
-                    NSLog("[AppleMusicModule] Library playlist '\(playlist.name)' has NO entries after loading")
+                    NSLog("[AppleMusicModule] Library playlist '\(playlist.name)' has NO tracks after loading")
                     result["tracks"] = []
                 }
-                
+
                 resolve(result)
             } catch {
                 NSLog("[AppleMusicModule] Library playlist request failed: \(error.localizedDescription)")
