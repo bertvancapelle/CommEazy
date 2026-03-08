@@ -2211,6 +2211,14 @@ class AppleMusicModule: RCTEventEmitter {
                 request.sort(by: \.name, ascending: true)
                 let response = try await request.response()
 
+                // Debug: log all playlist names to diagnose ghost playlists
+                if offset == 0 {
+                    NSLog("[AppleMusic] Total playlists from MusicKit: \(response.items.count)")
+                    for (i, pl) in response.items.enumerated() {
+                        NSLog("[AppleMusic] Playlist \(i+1): \"\(pl.name)\"")
+                    }
+                }
+
                 // Apply pagination
                 let startIndex = min(offset, response.items.count)
                 let endIndex = min(offset + limit, response.items.count)

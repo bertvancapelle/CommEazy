@@ -71,22 +71,6 @@ export function FloatingImportIndicator() {
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const expandAnim = useRef(new Animated.Value(0)).current;
-  const spinAnim = useRef(new Animated.Value(0)).current;
-
-  // Spin animation loop
-  useEffect(() => {
-    if (!isImporting || reducedMotion) return;
-
-    const spin = Animated.loop(
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 1500,
-        useNativeDriver: true,
-      }),
-    );
-    spin.start();
-    return () => spin.stop();
-  }, [isImporting, reducedMotion, spinAnim]);
 
   // Show/hide based on importing state
   useEffect(() => {
@@ -149,12 +133,6 @@ export function FloatingImportIndicator() {
   const playlistName = importProgress?.currentName || '';
   const trackCount = importProgress?.currentTrackCount;
 
-  // Spin interpolation
-  const spinInterpolation = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
   // Width interpolation for expand/collapse
   const containerWidth = expandAnim.interpolate({
     inputRange: [0, 1],
@@ -169,7 +147,7 @@ export function FloatingImportIndicator() {
       ]}
       pointerEvents="box-none"
     >
-      <Animated.View style={{ width: containerWidth }}>
+      <Animated.View style={{ width: containerWidth }} pointerEvents="box-none">
       <HapticTouchable
         style={[
           styles.indicator,
@@ -207,18 +185,10 @@ export function FloatingImportIndicator() {
           {showComplete ? (
             <Icon name="checkmark" size={28} color="#FFFFFF" />
           ) : (
-            <Animated.View
-              style={
-                reducedMotion
-                  ? undefined
-                  : { transform: [{ rotate: spinInterpolation }] }
-              }
-            >
-              <ActivityIndicator
-                size="small"
-                color={themeColors.primary}
-              />
-            </Animated.View>
+            <ActivityIndicator
+              size="small"
+              color={themeColors.primary}
+            />
           )}
         </View>
 
