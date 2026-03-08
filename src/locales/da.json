@@ -2049,6 +2049,25 @@
         "addTime": "+ Tilføj tid",
         "removeTime": "Fjern",
         "titleRequired": "Indtast venligst en titel"
+      },
+      "detail": {
+        "allDay": "Hele dagen",
+        "until": "Til",
+        "edit": "Rediger",
+        "share": "Del",
+        "delete": "Slet",
+        "deleteTitle": "Slet element",
+        "deleteMessage": "Er du sikker på, at du vil slette dette element?",
+        "editWhat": "Hvad vil du ændre?",
+        "deleteWhat": "Hvad vil du slette?",
+        "todayOnly": "Kun i dag",
+        "allFollowing": "I dag og alle følgende",
+        "medicationActions": "Medicinhandlinger",
+        "taken": "Taget",
+        "skipped": "Sprunget over",
+        "remindLater": "Påmind mig senere",
+        "markedTaken": "Markeret som taget",
+        "markedSkipped": "Markeret som sprunget over"
       }
     }
   },

@@ -41,6 +41,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import type { AgendaCategory } from '@/constants/agendaCategories';
 import { AgendaCategoryPickerScreen } from './AgendaCategoryPickerScreen';
 import { AgendaItemFormScreen } from './AgendaItemFormScreen';
+import { AgendaItemDetailScreen } from './AgendaItemDetailScreen';
 
 // ============================================================
 // Constants
@@ -221,7 +222,8 @@ function TimelineSectionView({ day, onItemPress, moduleColor }: TimelineSectionP
 type AgendaView =
   | { screen: 'timeline' }
   | { screen: 'categoryPicker' }
-  | { screen: 'form'; category: AgendaCategory };
+  | { screen: 'form'; category: AgendaCategory; editItem?: TimelineItem }
+  | { screen: 'detail'; item: TimelineItem };
 
 function AgendaScreenInner() {
   const { t } = useTranslation();
@@ -229,7 +231,7 @@ function AgendaScreenInner() {
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor(MODULE_ID);
-  const { timelineDays, pastItems, isLoading, refresh, createItem } = useAgendaContext();
+  const { timelineDays, pastItems, isLoading, refresh, createItem, updateItem } = useAgendaContext();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPastItems, setShowPastItems] = useState(false);
@@ -242,10 +244,9 @@ function AgendaScreenInner() {
     setIsRefreshing(false);
   }, [refresh]);
 
-  // Item tap — Fase 4 will open detail screen
+  // Item tap — open detail screen
   const handleItemPress = useCallback((item: TimelineItem) => {
-    // TODO: Fase 4 — navigate to AgendaItemDetailScreen
-    console.debug('[AgendaScreen] Item pressed:', item.id, item.category);
+    setCurrentView({ screen: 'detail', item });
   }, []);
 
   // Past items toggle
@@ -263,15 +264,30 @@ function AgendaScreenInner() {
     setCurrentView({ screen: 'form', category });
   }, []);
 
-  // Form saved → create item and return to timeline
+  // Edit from detail — open form pre-filled
+  const handleEditItem = useCallback((item: TimelineItem) => {
+    setCurrentView({
+      screen: 'form',
+      category: item.category,
+      editItem: item,
+    });
+  }, []);
+
+  // Form saved → create or update item and return to timeline
   const handleFormSave = useCallback(async (data: CreateAgendaItemData) => {
     try {
-      await createItem(data);
+      // Check if we are editing an existing item
+      const cv = currentView;
+      if (cv.screen === 'form' && cv.editItem?.modelId) {
+        await updateItem(cv.editItem.modelId, data);
+      } else {
+        await createItem(data);
+      }
       setCurrentView({ screen: 'timeline' });
     } catch (error) {
-      console.error('[AgendaScreen] Failed to create item:', error);
+      console.error('[AgendaScreen] Failed to save item:', error);
     }
-  }, [createItem]);
+  }, [currentView, createItem, updateItem]);
 
   // Back navigation
   const handleBackToTimeline = useCallback(() => {
@@ -301,12 +317,35 @@ function AgendaScreenInner() {
     );
   }
 
+  if (currentView.screen === 'detail') {
+    return (
+      <AgendaItemDetailScreen
+        item={currentView.item}
+        onBack={handleBackToTimeline}
+        onEdit={handleEditItem}
+      />
+    );
+  }
+
   if (currentView.screen === 'form') {
+    const editData = currentView.editItem
+      ? {
+          title: currentView.editItem.title,
+          date: currentView.editItem.date,
+          time: currentView.editItem.time ?? undefined,
+          times: currentView.editItem.times.length > 0 ? currentView.editItem.times : undefined,
+          repeatType: currentView.editItem.repeatType ?? undefined,
+          endDate: currentView.editItem.endDate ?? undefined,
+          reminderOffset: currentView.editItem.reminderOffset,
+          contactIds: currentView.editItem.contactIds,
+        }
+      : undefined;
     return (
       <AgendaItemFormScreen
         category={currentView.category}
+        initialData={editData}
         onSave={handleFormSave}
-        onBack={handleBackToCategoryPicker}
+        onBack={currentView.editItem ? handleBackToTimeline : handleBackToCategoryPicker}
       />
     );
   }

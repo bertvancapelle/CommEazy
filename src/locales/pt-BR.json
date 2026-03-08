@@ -2224,6 +2224,25 @@
         "addTime": "+ Adicionar horário",
         "removeTime": "Remover",
         "titleRequired": "Digite um título"
+      },
+      "detail": {
+        "allDay": "Dia inteiro",
+        "until": "Até",
+        "edit": "Editar",
+        "share": "Compartilhar",
+        "delete": "Excluir",
+        "deleteTitle": "Excluir item",
+        "deleteMessage": "Tem certeza de que deseja excluir este item?",
+        "editWhat": "O que você quer alterar?",
+        "deleteWhat": "O que você quer excluir?",
+        "todayOnly": "Apenas hoje",
+        "allFollowing": "Hoje e todos os seguintes",
+        "medicationActions": "Ações de medicação",
+        "taken": "Tomado",
+        "skipped": "Pulado",
+        "remindLater": "Lembrar-me mais tarde",
+        "markedTaken": "Marcado como tomado",
+        "markedSkipped": "Marcado como pulado"
       }
     }
   },

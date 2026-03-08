@@ -2222,6 +2222,25 @@
         "addTime": "+ Adicionar hora",
         "removeTime": "Remover",
         "titleRequired": "Introduza um título"
+      },
+      "detail": {
+        "allDay": "Dia inteiro",
+        "until": "Até",
+        "edit": "Editar",
+        "share": "Partilhar",
+        "delete": "Eliminar",
+        "deleteTitle": "Eliminar item",
+        "deleteMessage": "Tem a certeza de que pretende eliminar este item?",
+        "editWhat": "O que pretende alterar?",
+        "deleteWhat": "O que pretende eliminar?",
+        "todayOnly": "Apenas hoje",
+        "allFollowing": "Hoje e todos os seguintes",
+        "medicationActions": "Ações de medicação",
+        "taken": "Tomado",
+        "skipped": "Saltado",
+        "remindLater": "Lembrar-me mais tarde",
+        "markedTaken": "Marcado como tomado",
+        "markedSkipped": "Marcado como saltado"
       }
     }
   },

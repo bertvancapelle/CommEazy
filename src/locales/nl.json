@@ -2215,6 +2215,25 @@
         "addTime": "+ Tijd toevoegen",
         "removeTime": "Verwijder",
         "titleRequired": "Vul een titel in"
+      },
+      "detail": {
+        "allDay": "Hele dag",
+        "until": "Tot",
+        "edit": "Bewerken",
+        "share": "Delen",
+        "delete": "Verwijderen",
+        "deleteTitle": "Item verwijderen",
+        "deleteMessage": "Weet je zeker dat je dit item wilt verwijderen?",
+        "editWhat": "Wat wil je aanpassen?",
+        "deleteWhat": "Wat wil je verwijderen?",
+        "todayOnly": "Alleen vandaag",
+        "allFollowing": "Vandaag en alle volgende",
+        "medicationActions": "Medicijn acties",
+        "taken": "Ingenomen",
+        "skipped": "Overgeslagen",
+        "remindLater": "Later herinneren",
+        "markedTaken": "Gemarkeerd als ingenomen",
+        "markedSkipped": "Gemarkeerd als overgeslagen"
       }
     }
   },

@@ -2070,6 +2070,25 @@
         "addTime": "+ Dodaj godzinę",
         "removeTime": "Usuń",
         "titleRequired": "Wpisz tytuł"
+      },
+      "detail": {
+        "allDay": "Cały dzień",
+        "until": "Do",
+        "edit": "Edytuj",
+        "share": "Udostępnij",
+        "delete": "Usuń",
+        "deleteTitle": "Usuń element",
+        "deleteMessage": "Czy na pewno chcesz usunąć ten element?",
+        "editWhat": "Co chcesz zmienić?",
+        "deleteWhat": "Co chcesz usunąć?",
+        "todayOnly": "Tylko dzisiaj",
+        "allFollowing": "Dziś i wszystkie następne",
+        "medicationActions": "Działania leku",
+        "taken": "Przyjęty",
+        "skipped": "Pominięty",
+        "remindLater": "Przypomnij mi później",
+        "markedTaken": "Oznaczony jako przyjęty",
+        "markedSkipped": "Oznaczony jako pominięty"
       }
     }
   },

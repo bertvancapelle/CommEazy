@@ -2209,6 +2209,25 @@
         "addTime": "+ Add time",
         "removeTime": "Remove",
         "titleRequired": "Please enter a title"
+      },
+      "detail": {
+        "allDay": "All day",
+        "until": "Until",
+        "edit": "Edit",
+        "share": "Share",
+        "delete": "Delete",
+        "deleteTitle": "Delete item",
+        "deleteMessage": "Are you sure you want to delete this item?",
+        "editWhat": "What would you like to change?",
+        "deleteWhat": "What would you like to delete?",
+        "todayOnly": "Today only",
+        "allFollowing": "Today and all following",
+        "medicationActions": "Medication actions",
+        "taken": "Taken",
+        "skipped": "Skipped",
+        "remindLater": "Remind me later",
+        "markedTaken": "Marked as taken",
+        "markedSkipped": "Marked as skipped"
       }
     }
   },

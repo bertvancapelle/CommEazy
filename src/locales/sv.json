@@ -2049,6 +2049,25 @@
         "addTime": "+ Lägg till tid",
         "removeTime": "Ta bort",
         "titleRequired": "Ange en titel"
+      },
+      "detail": {
+        "allDay": "Hela dagen",
+        "until": "Till",
+        "edit": "Redigera",
+        "share": "Dela",
+        "delete": "Radera",
+        "deleteTitle": "Radera post",
+        "deleteMessage": "Är du säker på att du vill radera denna post?",
+        "editWhat": "Vad vill du ändra?",
+        "deleteWhat": "Vad vill du radera?",
+        "todayOnly": "Bara idag",
+        "allFollowing": "Idag och alla följande",
+        "medicationActions": "Medicinåtgärder",
+        "taken": "Tagen",
+        "skipped": "Hoppad över",
+        "remindLater": "Påminn mig senare",
+        "markedTaken": "Markerad som tagen",
+        "markedSkipped": "Markerad som hoppad över"
       }
     }
   },

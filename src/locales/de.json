@@ -2205,6 +2205,25 @@
         "addTime": "+ Uhrzeit hinzufügen",
         "removeTime": "Entfernen",
         "titleRequired": "Bitte geben Sie einen Titel ein"
+      },
+      "detail": {
+        "allDay": "Ganztägig",
+        "until": "Bis",
+        "edit": "Bearbeiten",
+        "share": "Teilen",
+        "delete": "Löschen",
+        "deleteTitle": "Eintrag löschen",
+        "deleteMessage": "Möchten Sie diesen Eintrag wirklich löschen?",
+        "editWhat": "Was möchten Sie ändern?",
+        "deleteWhat": "Was möchten Sie löschen?",
+        "todayOnly": "Nur heute",
+        "allFollowing": "Heute und alle folgenden",
+        "medicationActions": "Medikamenten-Aktionen",
+        "taken": "Eingenommen",
+        "skipped": "Übersprungen",
+        "remindLater": "Später erinnern",
+        "markedTaken": "Als eingenommen markiert",
+        "markedSkipped": "Als übersprungen markiert"
       }
     }
   },
