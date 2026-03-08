@@ -27,18 +27,18 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, ModuleHeader, HapticTouchable, LoadingView } from '@/components';
+import { Icon, ModuleHeader, HapticTouchable, LoadingView, SearchBar } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import {
   AgendaProvider,
   useAgendaContext,
-  type TimelineDay,
   type TimelineItem,
+  type TimelineDay,
   type CreateAgendaItemData,
 } from '@/contexts/AgendaContext';
+import { getCategoryById, type AgendaCategory } from '@/constants/agendaCategories';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
-import type { AgendaCategory } from '@/constants/agendaCategories';
 import { AgendaCategoryPickerScreen } from './AgendaCategoryPickerScreen';
 import { AgendaItemFormScreen } from './AgendaItemFormScreen';
 import { AgendaItemDetailScreen } from './AgendaItemDetailScreen';
@@ -236,6 +236,8 @@ function AgendaScreenInner() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPastItems, setShowPastItems] = useState(false);
   const [currentView, setCurrentView] = useState<AgendaView>({ screen: 'timeline' });
+  const [activeTab, setActiveTab] = useState<'overview' | 'search'>('overview');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Pull-to-refresh
   const handleRefresh = useCallback(async () => {
@@ -303,6 +305,40 @@ function AgendaScreenInner() {
     () => timelineDays.filter((day) => day.items.length > 0),
     [timelineDays],
   );
+
+  // Search: filter all items by query (local filtering)
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return { upcoming: [], past: [] };
+
+    const query = searchQuery.toLowerCase().trim();
+    const now = Date.now();
+
+    // Collect all items from timeline + past
+    const allItems: TimelineItem[] = [];
+    for (const day of timelineDays) {
+      allItems.push(...day.items);
+    }
+    allItems.push(...pastItems);
+
+    // Filter by title, contact names, or category label
+    const filtered = allItems.filter((item) => {
+      if (item.title.toLowerCase().includes(query)) return true;
+      if (item.contactNames.some(n => n.toLowerCase().includes(query))) return true;
+      // Match category label
+      const catDef = getCategoryById(item.category);
+      if (catDef) {
+        const catLabel = t(catDef.labelKey).toLowerCase();
+        if (catLabel.includes(query)) return true;
+      }
+      return false;
+    });
+
+    // Split into upcoming and past
+    const upcoming = filtered.filter(item => item.date >= now).sort((a, b) => a.date - b.date);
+    const past = filtered.filter(item => item.date < now).sort((a, b) => b.date - a.date);
+
+    return { upcoming, past };
+  }, [searchQuery, timelineDays, pastItems, t]);
 
   // ============================================================
   // Sub-screen rendering
@@ -377,94 +413,213 @@ function AgendaScreenInner() {
         showAdMob={false}
       />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + spacing.xl },
-        ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={moduleColor}
-          />
-        }
-      >
-        {/* Empty state */}
-        {visibleDays.length === 0 && pastItems.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>📅</Text>
-            <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-              {t('modules.agenda.emptyTitle')}
-            </Text>
-            <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
-              {t('modules.agenda.emptySubtitle')}
-            </Text>
+      {/* Tab bar: Overzicht / Zoeken */}
+      <View style={[styles.tabBar, { borderBottomColor: themeColors.divider }]}>
+        <HapticTouchable
+          style={[
+            styles.tab,
+            activeTab === 'overview' && [styles.tabActive, { borderBottomColor: moduleColor }],
+          ]}
+          onPress={() => { setActiveTab('overview'); setSearchQuery(''); }}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: activeTab === 'overview' }}
+          accessibilityLabel={t('modules.agenda.search.tabOverview')}
+        >
+          <Text style={[
+            styles.tabText,
+            { color: activeTab === 'overview' ? moduleColor : themeColors.textSecondary },
+          ]}>
+            📋 {t('modules.agenda.search.tabOverview')}
+          </Text>
+        </HapticTouchable>
+        <HapticTouchable
+          style={[
+            styles.tab,
+            activeTab === 'search' && [styles.tabActive, { borderBottomColor: moduleColor }],
+          ]}
+          onPress={() => setActiveTab('search')}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: activeTab === 'search' }}
+          accessibilityLabel={t('modules.agenda.search.tabSearch')}
+        >
+          <Text style={[
+            styles.tabText,
+            { color: activeTab === 'search' ? moduleColor : themeColors.textSecondary },
+          ]}>
+            🔍 {t('modules.agenda.search.tabSearch')}
+          </Text>
+        </HapticTouchable>
+      </View>
+
+      {/* Search tab content */}
+      {activeTab === 'search' ? (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + spacing.xl },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.searchBarContainer}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={() => {}}
+              placeholder={t('modules.agenda.search.placeholder')}
+              searchButtonLabel={t('modules.agenda.search.tabSearch')}
+            />
           </View>
-        )}
 
-        {/* Timeline sections */}
-        {visibleDays.map((day) => (
-          <TimelineSectionView
-            key={day.dateKey}
-            day={day}
-            onItemPress={handleItemPress}
-            moduleColor={moduleColor}
-          />
-        ))}
-
-        {/* Bottom buttons */}
-        <View style={styles.bottomButtons}>
-          {/* Past items button */}
-          {pastItems.length > 0 && (
-            <HapticTouchable
-              style={[styles.secondaryButton, { borderColor: themeColors.border }]}
-              onPress={handleTogglePastItems}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.agenda.viewPast')}
-            >
-              <Icon name="chevron-down" size={20} color={themeColors.textSecondary} />
-              <Text style={[styles.secondaryButtonText, { color: themeColors.textSecondary }]}>
-                {t('modules.agenda.viewPast')} ({pastItems.length})
-              </Text>
-            </HapticTouchable>
-          )}
-
-          {/* Past items list (expandable) */}
-          {showPastItems && pastItems.length > 0 && (
-            <View style={styles.pastItemsContainer}>
-              {pastItems.slice(0, 20).map((item) => (
-                <TimelineItemRow
-                  key={item.id}
-                  item={item}
-                  isExpired={true}
-                  onPress={handleItemPress}
-                  moduleColor={moduleColor}
-                />
-              ))}
-              {pastItems.length > 20 && (
-                <Text style={[styles.moreItemsText, { color: themeColors.textSecondary }]}>
-                  {t('modules.agenda.moreItems', { count: pastItems.length - 20 })}
-                </Text>
+          {/* Search results */}
+          {searchQuery.trim() ? (
+            <>
+              {/* Upcoming section */}
+              {searchResults.upcoming.length > 0 && (
+                <View style={styles.searchSection}>
+                  <Text style={[styles.searchSectionLabel, { color: themeColors.textSecondary }]}>
+                    {t('modules.agenda.search.sectionUpcoming')}
+                  </Text>
+                  {searchResults.upcoming.map((item) => (
+                    <TimelineItemRow
+                      key={item.id}
+                      item={item}
+                      isExpired={false}
+                      onPress={handleItemPress}
+                      moduleColor={moduleColor}
+                    />
+                  ))}
+                </View>
               )}
+
+              {/* Past section */}
+              {searchResults.past.length > 0 && (
+                <View style={styles.searchSection}>
+                  <Text style={[styles.searchSectionLabel, { color: themeColors.textSecondary }]}>
+                    {t('modules.agenda.search.sectionPast')}
+                  </Text>
+                  {searchResults.past.map((item) => (
+                    <TimelineItemRow
+                      key={item.id}
+                      item={item}
+                      isExpired={true}
+                      onPress={handleItemPress}
+                      moduleColor={moduleColor}
+                    />
+                  ))}
+                </View>
+              )}
+
+              {/* No results */}
+              {searchResults.upcoming.length === 0 && searchResults.past.length === 0 && (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyIcon}>🔍</Text>
+                  <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+                    {t('modules.agenda.search.noResults')}
+                  </Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>🔍</Text>
+              <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
+                {t('modules.agenda.search.placeholder')}
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      ) : (
+        /* Overview tab content */
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + spacing.xl },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={moduleColor}
+            />
+          }
+        >
+          {/* Empty state */}
+          {visibleDays.length === 0 && pastItems.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📅</Text>
+              <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+                {t('modules.agenda.emptyTitle')}
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
+                {t('modules.agenda.emptySubtitle')}
+              </Text>
             </View>
           )}
 
-          {/* Add new item button */}
-          <HapticTouchable
-            style={[styles.addButton, { backgroundColor: accentColor.primary }]}
-            onPress={handleAddItem}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.agenda.addItem')}
-          >
-            <Icon name="plus" size={24} color={colors.textOnPrimary} />
-            <Text style={[styles.addButtonText, { color: colors.textOnPrimary }]}>
-              {t('modules.agenda.addItem')}
-            </Text>
-          </HapticTouchable>
-        </View>
-      </ScrollView>
+          {/* Timeline sections */}
+          {visibleDays.map((day) => (
+            <TimelineSectionView
+              key={day.dateKey}
+              day={day}
+              onItemPress={handleItemPress}
+              moduleColor={moduleColor}
+            />
+          ))}
+
+          {/* Bottom buttons */}
+          <View style={styles.bottomButtons}>
+            {/* Past items button */}
+            {pastItems.length > 0 && (
+              <HapticTouchable
+                style={[styles.secondaryButton, { borderColor: themeColors.border }]}
+                onPress={handleTogglePastItems}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.agenda.viewPast')}
+              >
+                <Icon name="chevron-down" size={20} color={themeColors.textSecondary} />
+                <Text style={[styles.secondaryButtonText, { color: themeColors.textSecondary }]}>
+                  {t('modules.agenda.viewPast')} ({pastItems.length})
+                </Text>
+              </HapticTouchable>
+            )}
+
+            {/* Past items list (expandable) */}
+            {showPastItems && pastItems.length > 0 && (
+              <View style={styles.pastItemsContainer}>
+                {pastItems.slice(0, 20).map((item) => (
+                  <TimelineItemRow
+                    key={item.id}
+                    item={item}
+                    isExpired={true}
+                    onPress={handleItemPress}
+                    moduleColor={moduleColor}
+                  />
+                ))}
+                {pastItems.length > 20 && (
+                  <Text style={[styles.moreItemsText, { color: themeColors.textSecondary }]}>
+                    {t('modules.agenda.moreItems', { count: pastItems.length - 20 })}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* Add new item button */}
+            <HapticTouchable
+              style={[styles.addButton, { backgroundColor: accentColor.primary }]}
+              onPress={handleAddItem}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.agenda.addItem')}
+            >
+              <Icon name="plus" size={24} color={colors.textOnPrimary} />
+              <Text style={[styles.addButtonText, { color: colors.textOnPrimary }]}>
+                {t('modules.agenda.addItem')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -489,11 +644,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  // Tab bar
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.minimum,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: {
+    // borderBottomColor set dynamically
+  },
+  tabText: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: spacing.md,
+  },
+
+  // Search
+  searchBarContainer: {
+    paddingTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  searchSection: {
+    marginTop: spacing.md,
+  },
+  searchSectionLabel: {
+    ...typography.label,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
 
   // Section (day group)

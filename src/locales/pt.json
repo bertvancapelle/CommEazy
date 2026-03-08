@@ -2223,6 +2223,14 @@
         "removeTime": "Remover",
         "titleRequired": "Introduza um título"
       },
+      "search": {
+        "tabOverview": "Visão geral",
+        "tabSearch": "Pesquisar",
+        "placeholder": "Pesquisar por título, nome ou categoria",
+        "sectionUpcoming": "Próximos",
+        "sectionPast": "Passados",
+        "noResults": "Nenhum resultado encontrado"
+      },
       "detail": {
         "allDay": "Dia inteiro",
         "until": "Até",

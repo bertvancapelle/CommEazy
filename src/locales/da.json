@@ -2050,6 +2050,14 @@
         "removeTime": "Fjern",
         "titleRequired": "Indtast venligst en titel"
       },
+      "search": {
+        "tabOverview": "Overblik",
+        "tabSearch": "Søg",
+        "placeholder": "Søg efter titel, navn eller kategori",
+        "sectionUpcoming": "Kommende",
+        "sectionPast": "Tidligere",
+        "noResults": "Ingen resultater fundet"
+      },
       "detail": {
         "allDay": "Hele dagen",
         "until": "Til",

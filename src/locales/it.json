@@ -2154,6 +2154,14 @@
         "removeTime": "Rimuovi",
         "titleRequired": "Inserisci un titolo"
       },
+      "search": {
+        "tabOverview": "Panoramica",
+        "tabSearch": "Cerca",
+        "placeholder": "Cerca per titolo, nome o categoria",
+        "sectionUpcoming": "In arrivo",
+        "sectionPast": "Passato",
+        "noResults": "Nessun risultato trovato"
+      },
       "detail": {
         "allDay": "Tutto il giorno",
         "until": "Fino al",

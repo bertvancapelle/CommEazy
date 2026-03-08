@@ -2216,6 +2216,14 @@
         "removeTime": "Verwijder",
         "titleRequired": "Vul een titel in"
       },
+      "search": {
+        "tabOverview": "Overzicht",
+        "tabSearch": "Zoeken",
+        "placeholder": "Zoek op titel, naam of categorie",
+        "sectionUpcoming": "Binnenkort",
+        "sectionPast": "Afgelopen",
+        "noResults": "Geen resultaten gevonden"
+      },
       "detail": {
         "allDay": "Hele dag",
         "until": "Tot",

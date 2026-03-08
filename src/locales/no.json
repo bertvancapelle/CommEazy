@@ -2080,6 +2080,14 @@
         "removeTime": "Fjern",
         "titleRequired": "Vennligst skriv inn en tittel"
       },
+      "search": {
+        "tabOverview": "Oversikt",
+        "tabSearch": "Søk",
+        "placeholder": "Søk etter tittel, navn eller kategori",
+        "sectionUpcoming": "Kommende",
+        "sectionPast": "Tidligere",
+        "noResults": "Ingen resultater funnet"
+      },
       "detail": {
         "allDay": "Hele dagen",
         "until": "Til",

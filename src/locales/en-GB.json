@@ -2210,6 +2210,14 @@
         "removeTime": "Remove",
         "titleRequired": "Please enter a title"
       },
+      "search": {
+        "tabOverview": "Overview",
+        "tabSearch": "Search",
+        "placeholder": "Search by title, name or category",
+        "sectionUpcoming": "Upcoming",
+        "sectionPast": "Past",
+        "noResults": "No results found"
+      },
       "detail": {
         "allDay": "All day",
         "until": "Until",

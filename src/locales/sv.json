@@ -2050,6 +2050,14 @@
         "removeTime": "Ta bort",
         "titleRequired": "Ange en titel"
       },
+      "search": {
+        "tabOverview": "Översikt",
+        "tabSearch": "Sök",
+        "placeholder": "Sök efter titel, namn eller kategori",
+        "sectionUpcoming": "Kommande",
+        "sectionPast": "Tidigare",
+        "noResults": "Inga resultat hittades"
+      },
       "detail": {
         "allDay": "Hela dagen",
         "until": "Till",

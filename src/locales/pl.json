@@ -2071,6 +2071,14 @@
         "removeTime": "Usuń",
         "titleRequired": "Wpisz tytuł"
       },
+      "search": {
+        "tabOverview": "Przegląd",
+        "tabSearch": "Szukaj",
+        "placeholder": "Szukaj po tytule, nazwie lub kategorii",
+        "sectionUpcoming": "Nadchodzące",
+        "sectionPast": "Minione",
+        "noResults": "Nie znaleziono wyników"
+      },
       "detail": {
         "allDay": "Cały dzień",
         "until": "Do",

@@ -2206,6 +2206,14 @@
         "removeTime": "Supprimer",
         "titleRequired": "Veuillez saisir un titre"
       },
+      "search": {
+        "tabOverview": "Aperçu",
+        "tabSearch": "Rechercher",
+        "placeholder": "Rechercher par titre, nom ou catégorie",
+        "sectionUpcoming": "À venir",
+        "sectionPast": "Passé",
+        "noResults": "Aucun résultat trouvé"
+      },
       "detail": {
         "allDay": "Toute la journée",
         "until": "Jusqu'au",
