@@ -605,6 +605,15 @@ export class WatermelonDBService implements DatabaseService {
   }
 
   // ============================================================
+  // Direct Database Access (for model-level queries)
+  // ============================================================
+
+  /** Get the underlying WatermelonDB instance for direct model queries */
+  getDb(): Database {
+    return this.ensureDatabase();
+  }
+
+  // ============================================================
   // Private Helpers
   // ============================================================
 

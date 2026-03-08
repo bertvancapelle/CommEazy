@@ -1052,6 +1052,7 @@
     "photoAlbum": "Fotoalbum",
     "askAI": "Vraag het AI",
     "mail": "E-mail",
+    "agenda": "Agenda",
     "menu_button": "Menu knop",
     "menu_button_hint": "Tik om het navigatiemenu te openen. Houd lang ingedrukt om te verplaatsen.",
     "drag_mode_enabled": "Sleepstand actief. Sleep de knop naar een nieuwe positie.",
@@ -2152,6 +2153,50 @@
         "viewHistory": "Bekijk vorige gesprekken",
         "aiResponse": "Antwoord van AI assistent",
         "userMessage": "Jouw bericht"
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "emptyTitle": "Nog geen afspraken",
+      "emptySubtitle": "Voeg een afspraak, herinnering of medicijn toe om te beginnen.",
+      "viewPast": "Afgelopen bekijken",
+      "addItem": "+ Nieuw item toevoegen",
+      "years": "jaar",
+      "moreItems": "En nog {{count}} meer...",
+      "categories": {
+        "doctor": "Dokter",
+        "dentist": "Tandarts",
+        "hairdresser": "Kapper",
+        "optician": "Opticien",
+        "bank": "Bank",
+        "municipality": "Gemeente",
+        "other": "Overig",
+        "family": "Familie-afspraak",
+        "reminder": "Herinnering",
+        "medication": "Medicijn",
+        "birthday": "Verjaardag",
+        "wedding": "Trouwdag",
+        "memorial": "Herdenking"
+      },
+      "groups": {
+        "appointments": "Afspraken",
+        "family": "Familie",
+        "reminders": "Herinneringen"
+      },
+      "repeat": {
+        "none": "Eenmalig",
+        "daily": "Dagelijks",
+        "weekly": "Wekelijks",
+        "biweekly": "Tweewekelijks",
+        "monthly": "Maandelijks",
+        "yearly": "Jaarlijks"
+      },
+      "reminder": {
+        "atTime": "Op het moment zelf",
+        "15min": "15 minuten van tevoren",
+        "30min": "30 minuten van tevoren",
+        "1hour": "1 uur van tevoren",
+        "1day": "1 dag van tevoren"
       }
     }
   },

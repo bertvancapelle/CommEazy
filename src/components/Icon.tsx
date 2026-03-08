@@ -119,7 +119,8 @@ export type IconName =
   | 'attach'
   | 'document'
   | 'download'
-  | 'lock';
+  | 'lock'
+  | 'calendar';
 
 interface IconProps {
   name: IconName;
@@ -2082,6 +2083,30 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+        </Svg>
+      );
+
+    case 'calendar':
+      // Calendar icon — page with date grid
+      return (
+        <Svg {...iconProps}>
+          <Rect
+            x="3" y="4" width="18" height="18" rx="2"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M16 2V6M8 2V6M3 10H21"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Rect x="8" y="14" width="2" height="2" rx="0.5" fill={color} />
+          <Rect x="14" y="14" width="2" height="2" rx="0.5" fill={color} />
+          <Rect x="8" y="18" width="2" height="2" rx="0.5" fill={color} />
         </Svg>
       );
 

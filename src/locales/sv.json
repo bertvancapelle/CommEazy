@@ -921,6 +921,7 @@
     "photoAlbum": "Fotoalbum",
     "askAI": "Fråga AI",
     "mail": "E-post",
+    "agenda": "Kalender",
     "menu_button": "Menyknapp",
     "menu_button_hint": "Tryck för att öppna navigeringsmenyn.",
     "drag_mode_enabled": "Dra-läge aktivt.",
@@ -1986,6 +1987,50 @@
         "viewHistory": "Visa tidigare samtal",
         "aiResponse": "Svar från AI-assistenten",
         "userMessage": "Ditt meddelande"
+      }
+    },
+    "agenda": {
+      "title": "Kalender",
+      "emptyTitle": "Inga möten ännu",
+      "emptySubtitle": "Lägg till ett möte, påminnelse eller medicin för att komma igång.",
+      "viewPast": "Visa tidigare",
+      "addItem": "+ Lägg till nytt",
+      "years": "år",
+      "moreItems": "Och {{count}} till...",
+      "categories": {
+        "doctor": "Läkare",
+        "dentist": "Tandläkare",
+        "hairdresser": "Frisör",
+        "optician": "Optiker",
+        "bank": "Bank",
+        "municipality": "Kommun",
+        "other": "Övrigt",
+        "family": "Familjemöte",
+        "reminder": "Påminnelse",
+        "medication": "Medicin",
+        "birthday": "Födelsedag",
+        "wedding": "Bröllopsdag",
+        "memorial": "Minnesdag"
+      },
+      "groups": {
+        "appointments": "Möten",
+        "family": "Familj",
+        "reminders": "Påminnelser"
+      },
+      "repeat": {
+        "none": "Engångs",
+        "daily": "Dagligen",
+        "weekly": "Veckovis",
+        "biweekly": "Varannan vecka",
+        "monthly": "Månadsvis",
+        "yearly": "Årligen"
+      },
+      "reminder": {
+        "atTime": "Vid tidpunkten",
+        "15min": "15 minuter före",
+        "30min": "30 minuter före",
+        "1hour": "1 timme före",
+        "1day": "1 dag före"
       }
     }
   },

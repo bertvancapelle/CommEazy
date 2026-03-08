@@ -81,6 +81,7 @@ import {
   CameraScreen,
   PhotoAlbumScreen,
   AskAIScreen,
+  AgendaScreen,
 } from '@/screens/modules';
 
 // Mail screens
@@ -536,6 +537,8 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <AskAIScreen />;
     case 'mail':
       return <MailScreen />;
+    case 'agenda':
+      return <AgendaScreen />;
     case 'help':
       return <PlaceholderScreen />;
 

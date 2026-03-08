@@ -63,6 +63,7 @@ export const ALL_MODULES: NavigationDestination[] = [
   'photoAlbum',  // Photo Album (view, send, delete photos)
   'askAI',       // Ask AI assistant module
   'mail',        // E-mail module
+  'agenda',      // Agenda (appointments, reminders, medication)
   'settings',
   'help',
 ];
@@ -83,6 +84,7 @@ const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'books',       // Books - e-books from Gutenberg with optional TTS
   'podcast',     // Podcasts
   'askAI',       // Ask AI assistant
+  'agenda',      // Agenda - appointments, reminders, medication
   'mail',        // E-mail
   'settings',    // Settings
   'help',        // Help

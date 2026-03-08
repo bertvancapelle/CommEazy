@@ -1028,6 +1028,7 @@
     "photoAlbum": "Fotoalbum",
     "askAI": "Frag die KI",
     "mail": "E-Mail",
+    "agenda": "Kalender",
     "menu_button": "Menü-Taste",
     "menu_button_hint": "Tippen zum Öffnen des Navigationsmenüs. Lang drücken zum Verschieben.",
     "drag_mode_enabled": "Verschiebemodus aktiv. Ziehe die Taste an eine neue Position.",
@@ -2142,6 +2143,50 @@
         "viewHistory": "Vorherige Gespräche anzeigen",
         "aiResponse": "Antwort des KI-Assistenten",
         "userMessage": "Ihre Nachricht"
+      }
+    },
+    "agenda": {
+      "title": "Kalender",
+      "emptyTitle": "Noch keine Termine",
+      "emptySubtitle": "Fügen Sie einen Termin, eine Erinnerung oder ein Medikament hinzu.",
+      "viewPast": "Vergangene anzeigen",
+      "addItem": "+ Neuen Eintrag hinzufügen",
+      "years": "Jahre",
+      "moreItems": "Und {{count}} weitere...",
+      "categories": {
+        "doctor": "Arzt",
+        "dentist": "Zahnarzt",
+        "hairdresser": "Friseur",
+        "optician": "Optiker",
+        "bank": "Bank",
+        "municipality": "Gemeinde",
+        "other": "Sonstiges",
+        "family": "Familientermin",
+        "reminder": "Erinnerung",
+        "medication": "Medikament",
+        "birthday": "Geburtstag",
+        "wedding": "Hochzeitstag",
+        "memorial": "Gedenktag"
+      },
+      "groups": {
+        "appointments": "Termine",
+        "family": "Familie",
+        "reminders": "Erinnerungen"
+      },
+      "repeat": {
+        "none": "Einmalig",
+        "daily": "Täglich",
+        "weekly": "Wöchentlich",
+        "biweekly": "Zweiwöchentlich",
+        "monthly": "Monatlich",
+        "yearly": "Jährlich"
+      },
+      "reminder": {
+        "atTime": "Zum Zeitpunkt",
+        "15min": "15 Minuten vorher",
+        "30min": "30 Minuten vorher",
+        "1hour": "1 Stunde vorher",
+        "1day": "1 Tag vorher"
       }
     }
   },

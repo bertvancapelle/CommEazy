@@ -24,10 +24,12 @@
  * - v14: Added contact details (firstName, lastName, address, dates, isDeceased)
  * - v15: Added is_emergency_contact to contacts (ICE — In Case of Emergency)
  * - v16: Added trust_level to contacts (0=Unknown, 1=Invited, 2=Connected, 3=Verified)
+ * - v17: Added agenda_items table for appointments, reminders, medication
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
  * @see TRUST_AND_ATTESTATION_PLAN.md for trust level definitions
+ * @see constants/agendaCategories.ts for agenda category definitions
  */
 
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
@@ -49,10 +51,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 16;
+export const SCHEMA_VERSION = 17;
 
 export const schema = appSchema({
-  version: 16,
+  version: 17,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -218,6 +220,37 @@ export const schema = appSchema({
         { name: 'incoming_call_vibration', type: 'boolean', isOptional: true }, // Vibrate on incoming call
         { name: 'outgoing_call_vibration', type: 'boolean', isOptional: true }, // Vibrate on outgoing call feedback
 
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+
+    // Agenda items table (v17) — appointments, reminders, medication
+    tableSchema({
+      name: 'agenda_items',
+      columns: [
+        { name: 'category', type: 'string', isIndexed: true },       // AgendaCategory
+        { name: 'title', type: 'string' },
+        { name: 'item_date', type: 'number', isIndexed: true },      // Start date timestamp
+        { name: 'time', type: 'string', isOptional: true },          // "11:00" (null for all-day)
+        { name: 'times', type: 'string', isOptional: true },         // JSON: ["09:00", "21:00"]
+        // Repeat pattern
+        { name: 'repeat_type', type: 'string', isOptional: true },   // 'daily'|'weekly'|'biweekly'|'monthly'|'yearly'
+        { name: 'end_date', type: 'number', isOptional: true },      // End date timestamp
+        // Reminder
+        { name: 'reminder_offset', type: 'string' },                 // ReminderOffset
+        // Contacts (family appointments)
+        { name: 'contact_ids', type: 'string', isOptional: true },   // JSON array of Contact record IDs
+        // Medication log
+        { name: 'medication_log', type: 'string', isOptional: true }, // JSON: MedicationLogEntry[]
+        // Sharing
+        { name: 'shared_with', type: 'string', isOptional: true },   // JSON array of JIDs
+        { name: 'shared_from', type: 'string', isOptional: true },   // JID (if received)
+        // Soft delete
+        { name: 'is_hidden', type: 'boolean' },
+        // Recurring exceptions ("alleen vandaag" edits)
+        { name: 'parent_id', type: 'string', isOptional: true },     // Ref to parent recurring item
+        { name: 'exception_date', type: 'number', isOptional: true }, // Date this exception overrides
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

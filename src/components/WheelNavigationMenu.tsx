@@ -67,7 +67,8 @@ export type StaticNavigationDestination =
   | 'camera'       // Camera module (photo/video capture)
   | 'photoAlbum'   // Photo Album (view, send, delete photos)
   | 'askAI'        // Ask AI assistant module
-  | 'mail';        // E-mail module
+  | 'mail'         // E-mail module
+  | 'agenda';      // Agenda module (appointments, reminders, medication)
 
 // Dynamic navigation destinations for country-specific modules
 // Format: 'module:{moduleId}' (e.g., 'module:nunl')
@@ -107,7 +108,8 @@ export type ModuleIconType =
   | 'camera'      // Camera module
   | 'image'       // Photo Album module
   | 'chatbubble'  // Ask AI module
-  | 'mail';       // E-mail module
+  | 'mail'        // E-mail module
+  | 'calendar';   // Agenda module
 
 /**
  * Map ModuleIconType to IconName for unified SVG icons
@@ -151,6 +153,8 @@ function mapModuleIconToIconName(type: ModuleIconType): IconName {
       return 'chatbubble';
     case 'mail':
       return 'mail';
+    case 'calendar':
+      return 'calendar';
     default:
       return 'info'; // fallback
   }
@@ -182,6 +186,7 @@ const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<Module
   photoAlbum: { labelKey: 'navigation.photoAlbum', icon: 'image' },
   askAI: { labelKey: 'navigation.askAI', icon: 'chatbubble' },
   mail: { labelKey: 'navigation.mail', icon: 'mail' },
+  agenda: { labelKey: 'navigation.agenda', icon: 'calendar' },
   settings: { labelKey: 'navigation.settings', icon: 'settings' },
   help: { labelKey: 'navigation.help', icon: 'help' },
 };
@@ -645,6 +650,7 @@ function getModuleIdForColor(id: NavigationDestination): ModuleColorId {
     photoAlbum: 'photoAlbum',
     askAI: 'askAI',
     mail: 'mail',
+    agenda: 'agenda',
     settings: 'settings',
     help: 'help',
   };

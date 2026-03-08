@@ -197,3 +197,13 @@ export {
   type FeedbackSettings,
   type HapticIntensity,
 } from './FeedbackContext';
+
+export {
+  AgendaProvider,
+  useAgendaContext,
+  useAgendaContextSafe,
+  type AgendaContextValue,
+  type TimelineItem,
+  type TimelineDay,
+  type CreateAgendaItemData,
+} from './AgendaContext';

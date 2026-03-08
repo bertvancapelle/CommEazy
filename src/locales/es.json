@@ -1028,6 +1028,7 @@
     "photoAlbum": "Álbum de fotos",
     "askAI": "Pregunta a la IA",
     "mail": "Correo",
+    "agenda": "Agenda",
     "menu_button": "Botón de menú",
     "menu_button_hint": "Toca para abrir el menú. Mantén pulsado para mover.",
     "drag_mode_enabled": "Modo de arrastre activo. Arrastra el botón a una nueva posición.",
@@ -2142,6 +2143,50 @@
         "viewHistory": "Ver conversaciones anteriores",
         "aiResponse": "Respuesta del asistente de IA",
         "userMessage": "Tu mensaje"
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "emptyTitle": "Aún no hay citas",
+      "emptySubtitle": "Añade una cita, recordatorio o medicamento para empezar.",
+      "viewPast": "Ver pasados",
+      "addItem": "+ Añadir nuevo elemento",
+      "years": "años",
+      "moreItems": "Y {{count}} más...",
+      "categories": {
+        "doctor": "Médico",
+        "dentist": "Dentista",
+        "hairdresser": "Peluquero",
+        "optician": "Óptico",
+        "bank": "Banco",
+        "municipality": "Ayuntamiento",
+        "other": "Otro",
+        "family": "Cita familiar",
+        "reminder": "Recordatorio",
+        "medication": "Medicamento",
+        "birthday": "Cumpleaños",
+        "wedding": "Aniversario de boda",
+        "memorial": "Conmemoración"
+      },
+      "groups": {
+        "appointments": "Citas",
+        "family": "Familia",
+        "reminders": "Recordatorios"
+      },
+      "repeat": {
+        "none": "Una vez",
+        "daily": "Diario",
+        "weekly": "Semanal",
+        "biweekly": "Quincenal",
+        "monthly": "Mensual",
+        "yearly": "Anual"
+      },
+      "reminder": {
+        "atTime": "En el momento",
+        "15min": "15 minutos antes",
+        "30min": "30 minutos antes",
+        "1hour": "1 hora antes",
+        "1day": "1 día antes"
       }
     }
   },

@@ -25,7 +25,8 @@ export type StaticNavigationDestination =
   | 'radio'
   | 'books'
   | 'weather'
-  | 'askAI';      // Ask AI assistant module
+  | 'askAI'        // Ask AI assistant module
+  | 'agenda';      // Agenda module (appointments, reminders, medication)
 
 /**
  * Dynamic navigation destinations for country-specific modules
@@ -87,7 +88,8 @@ export type ModuleIconType =
   | 'appleMusic'  // Apple Music module
   | 'camera'      // Camera module
   | 'image'       // Photo Album module
-  | 'chatbubble'; // Ask AI module
+  | 'chatbubble'  // Ask AI module
+  | 'calendar';   // Agenda module
 
 // ============================================================
 // Module Definitions
@@ -126,7 +128,7 @@ export interface ModuleDefinition {
  */
 export const MODULE_SIDEBAR_GROUPS = {
   primary: ['chats', 'contacts', 'groups', 'calls'] as const,
-  secondary: ['radio', 'podcast', 'books', 'weather'] as const,
+  secondary: ['radio', 'podcast', 'books', 'weather', 'agenda'] as const,
   footer: ['menu', 'settings', 'help'] as const,
 } as const;
 

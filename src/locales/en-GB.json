@@ -1031,6 +1031,7 @@
     "photoAlbum": "Photo Album",
     "askAI": "Ask AI",
     "mail": "Email",
+    "agenda": "Diary",
     "menu_button": "Menu button",
     "menu_button_hint": "Tap to open the navigation menu. Long press to reposition.",
     "drag_mode_enabled": "Drag mode active. Drag the button to a new position.",
@@ -2146,6 +2147,50 @@
         "viewHistory": "View previous conversations",
         "aiResponse": "AI assistant response",
         "userMessage": "Your message"
+      }
+    },
+    "agenda": {
+      "title": "Diary",
+      "emptyTitle": "No appointments yet",
+      "emptySubtitle": "Add an appointment, reminder or medication to get started.",
+      "viewPast": "View past",
+      "addItem": "+ Add new item",
+      "years": "years",
+      "moreItems": "And {{count}} more...",
+      "categories": {
+        "doctor": "Doctor",
+        "dentist": "Dentist",
+        "hairdresser": "Hairdresser",
+        "optician": "Optician",
+        "bank": "Bank",
+        "municipality": "Council",
+        "other": "Other",
+        "family": "Family appointment",
+        "reminder": "Reminder",
+        "medication": "Medication",
+        "birthday": "Birthday",
+        "wedding": "Wedding anniversary",
+        "memorial": "Memorial"
+      },
+      "groups": {
+        "appointments": "Appointments",
+        "family": "Family",
+        "reminders": "Reminders"
+      },
+      "repeat": {
+        "none": "One-off",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "biweekly": "Fortnightly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "reminder": {
+        "atTime": "At the time",
+        "15min": "15 minutes before",
+        "30min": "30 minutes before",
+        "1hour": "1 hour before",
+        "1day": "1 day before"
       }
     }
   },

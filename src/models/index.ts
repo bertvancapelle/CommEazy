@@ -12,6 +12,7 @@ export { ContactModel } from './Contact';
 export { GroupModel } from './Group';
 export { UserProfileModel } from './UserProfile';
 export { MediaMessageModel } from './MediaMessage';
+export { AgendaItemModel, type MedicationLogEntry } from './AgendaItem';
 
 // Model classes array for database initialization
 export const modelClasses = [
@@ -21,4 +22,5 @@ export const modelClasses = [
   require('./Group').GroupModel,
   require('./UserProfile').UserProfileModel,
   require('./MediaMessage').MediaMessageModel,
+  require('./AgendaItem').AgendaItemModel,
 ];

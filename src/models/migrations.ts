@@ -18,6 +18,7 @@
  * - v14: Added contact details (firstName, lastName, address, dates, isDeceased)
  * - v15: Added is_emergency_contact to contacts (ICE — In Case of Emergency)
  * - v16: Added trust_level to contacts (0=Unknown, 1=Invited, 2=Connected, 3=Verified)
+ * - v17: Added agenda_items table for appointments, reminders, medication
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -275,6 +276,34 @@ export const migrations = schemaMigrations({
           table: 'contacts',
           columns: [
             { name: 'trust_level', type: 'number' },
+          ],
+        }),
+      ],
+    },
+    // Migration from v16 to v17: Add agenda_items table
+    {
+      toVersion: 17,
+      steps: [
+        createTable({
+          name: 'agenda_items',
+          columns: [
+            { name: 'category', type: 'string', isIndexed: true },
+            { name: 'title', type: 'string' },
+            { name: 'item_date', type: 'number', isIndexed: true },
+            { name: 'time', type: 'string', isOptional: true },
+            { name: 'times', type: 'string', isOptional: true },
+            { name: 'repeat_type', type: 'string', isOptional: true },
+            { name: 'end_date', type: 'number', isOptional: true },
+            { name: 'reminder_offset', type: 'string' },
+            { name: 'contact_ids', type: 'string', isOptional: true },
+            { name: 'medication_log', type: 'string', isOptional: true },
+            { name: 'shared_with', type: 'string', isOptional: true },
+            { name: 'shared_from', type: 'string', isOptional: true },
+            { name: 'is_hidden', type: 'boolean' },
+            { name: 'parent_id', type: 'string', isOptional: true },
+            { name: 'exception_date', type: 'number', isOptional: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
           ],
         }),
       ],

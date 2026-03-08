@@ -921,6 +921,7 @@
     "photoAlbum": "Fotoalbum",
     "askAI": "Spørg AI",
     "mail": "E-mail",
+    "agenda": "Kalender",
     "menu_button": "Menuknap",
     "menu_button_hint": "Tryk for at åbne navigationsmenuen.",
     "drag_mode_enabled": "Træk-tilstand aktiv.",
@@ -1986,6 +1987,50 @@
         "viewHistory": "Se tidligere samtaler",
         "aiResponse": "Svar fra AI-assistenten",
         "userMessage": "Din besked"
+      }
+    },
+    "agenda": {
+      "title": "Kalender",
+      "emptyTitle": "Ingen aftaler endnu",
+      "emptySubtitle": "Tilføj en aftale, påmindelse eller medicin for at komme i gang.",
+      "viewPast": "Vis tidligere",
+      "addItem": "+ Tilføj nyt element",
+      "years": "år",
+      "moreItems": "Og {{count}} mere...",
+      "categories": {
+        "doctor": "Læge",
+        "dentist": "Tandlæge",
+        "hairdresser": "Frisør",
+        "optician": "Optiker",
+        "bank": "Bank",
+        "municipality": "Kommune",
+        "other": "Andet",
+        "family": "Familieaftale",
+        "reminder": "Påmindelse",
+        "medication": "Medicin",
+        "birthday": "Fødselsdag",
+        "wedding": "Bryllupsdag",
+        "memorial": "Mindedag"
+      },
+      "groups": {
+        "appointments": "Aftaler",
+        "family": "Familie",
+        "reminders": "Påmindelser"
+      },
+      "repeat": {
+        "none": "Engangs",
+        "daily": "Dagligt",
+        "weekly": "Ugentligt",
+        "biweekly": "Hver anden uge",
+        "monthly": "Månedligt",
+        "yearly": "Årligt"
+      },
+      "reminder": {
+        "atTime": "På tidspunktet",
+        "15min": "15 minutter før",
+        "30min": "30 minutter før",
+        "1hour": "1 time før",
+        "1day": "1 dag før"
       }
     }
   },

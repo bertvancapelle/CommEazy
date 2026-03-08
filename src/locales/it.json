@@ -1025,6 +1025,7 @@
     "photoAlbum": "Album fotografico",
     "askAI": "Chiedi all'IA",
     "mail": "E-mail",
+    "agenda": "Agenda",
     "menu_button": "Pulsante menu",
     "menu_button_hint": "Tocca per aprire il menu di navigazione. Tieni premuto per spostare.",
     "drag_mode_enabled": "Modalità trascinamento attiva. Trascina il pulsante in una nuova posizione.",
@@ -2090,6 +2091,50 @@
         "viewHistory": "Visualizza conversazioni precedenti",
         "aiResponse": "Risposta dell'assistente IA",
         "userMessage": "Il tuo messaggio"
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "emptyTitle": "Nessun appuntamento",
+      "emptySubtitle": "Aggiungi un appuntamento, promemoria o farmaco per iniziare.",
+      "viewPast": "Visualizza passati",
+      "addItem": "+ Aggiungi nuovo elemento",
+      "years": "anni",
+      "moreItems": "E altri {{count}}...",
+      "categories": {
+        "doctor": "Medico",
+        "dentist": "Dentista",
+        "hairdresser": "Parrucchiere",
+        "optician": "Ottico",
+        "bank": "Banca",
+        "municipality": "Comune",
+        "other": "Altro",
+        "family": "Appuntamento familiare",
+        "reminder": "Promemoria",
+        "medication": "Farmaco",
+        "birthday": "Compleanno",
+        "wedding": "Anniversario di matrimonio",
+        "memorial": "Commemorazione"
+      },
+      "groups": {
+        "appointments": "Appuntamenti",
+        "family": "Famiglia",
+        "reminders": "Promemoria"
+      },
+      "repeat": {
+        "none": "Una volta",
+        "daily": "Giornaliero",
+        "weekly": "Settimanale",
+        "biweekly": "Bisettimanale",
+        "monthly": "Mensile",
+        "yearly": "Annuale"
+      },
+      "reminder": {
+        "atTime": "Al momento",
+        "15min": "15 minuti prima",
+        "30min": "30 minuti prima",
+        "1hour": "1 ora prima",
+        "1day": "1 giorno prima"
       }
     }
   },

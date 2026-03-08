@@ -70,6 +70,7 @@ export const CUSTOMIZABLE_MODULES: ModuleColorId[] = [
   'photoAlbum',
   'askAI',
   'mail',
+  'agenda',
   'settings',
 ];
 
@@ -95,6 +96,7 @@ export const MODULE_LABELS: Record<ModuleColorId, string> = {
   photoAlbum: 'navigation.photoAlbum',
   askAI: 'navigation.askAI',
   mail: 'navigation.mail',
+  agenda: 'navigation.agenda',
   settings: 'navigation.settings',
   help: 'navigation.help',
   menu: 'navigation.menu',

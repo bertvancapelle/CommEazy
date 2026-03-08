@@ -103,6 +103,7 @@ export type ModuleColorId =
   | 'photoAlbum'   // Photo Album (view, send, delete photos)
   | 'askAI'        // Ask AI assistant module
   | 'mail'         // E-mail module
+  | 'agenda'       // Agenda module (appointments, reminders, medication)
   | 'help'
   | 'menu';
 
@@ -257,6 +258,12 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   },
   mail: {
     moduleId: 'mail',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  agenda: {
+    moduleId: 'agenda',
     tintColor: DEFAULT_MODULE_BLUE,
     fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',

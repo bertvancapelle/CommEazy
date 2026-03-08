@@ -951,6 +951,7 @@
     "photoAlbum": "Fotoalbum",
     "askAI": "Spør KI",
     "mail": "E-post",
+    "agenda": "Kalender",
     "menu_button": "Menyknapp",
     "menu_button_hint": "Trykk for å åpne navigasjonsmenyen. Hold lenge for å flytte.",
     "drag_mode_enabled": "Dra-modus aktiv. Dra knappen til en ny posisjon.",
@@ -2016,6 +2017,50 @@
         "viewHistory": "Vis tidligere samtaler",
         "aiResponse": "Svar fra KI-assistenten",
         "userMessage": "Din melding"
+      }
+    },
+    "agenda": {
+      "title": "Kalender",
+      "emptyTitle": "Ingen avtaler ennå",
+      "emptySubtitle": "Legg til en avtale, påminnelse eller medisin for å komme i gang.",
+      "viewPast": "Vis tidligere",
+      "addItem": "+ Legg til nytt element",
+      "years": "år",
+      "moreItems": "Og {{count}} til...",
+      "categories": {
+        "doctor": "Lege",
+        "dentist": "Tannlege",
+        "hairdresser": "Frisør",
+        "optician": "Optiker",
+        "bank": "Bank",
+        "municipality": "Kommune",
+        "other": "Annet",
+        "family": "Familieavtale",
+        "reminder": "Påminnelse",
+        "medication": "Medisin",
+        "birthday": "Bursdag",
+        "wedding": "Bryllupsdag",
+        "memorial": "Minnedag"
+      },
+      "groups": {
+        "appointments": "Avtaler",
+        "family": "Familie",
+        "reminders": "Påminnelser"
+      },
+      "repeat": {
+        "none": "Engangs",
+        "daily": "Daglig",
+        "weekly": "Ukentlig",
+        "biweekly": "Annenhver uke",
+        "monthly": "Månedlig",
+        "yearly": "Årlig"
+      },
+      "reminder": {
+        "atTime": "På tidspunktet",
+        "15min": "15 minutter før",
+        "30min": "30 minutter før",
+        "1hour": "1 time før",
+        "1day": "1 dag før"
       }
     }
   },

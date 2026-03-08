@@ -942,6 +942,7 @@
     "photoAlbum": "Album zdjęć",
     "askAI": "Zapytaj AI",
     "mail": "E-mail",
+    "agenda": "Kalendarz",
     "menu_button": "Przycisk menu",
     "menu_button_hint": "Dotknij, aby otworzyć menu nawigacji. Przytrzymaj, aby przenieść.",
     "drag_mode_enabled": "Tryb przeciągania aktywny. Przeciągnij przycisk w nowe miejsce.",
@@ -2007,6 +2008,50 @@
         "viewHistory": "Zobacz poprzednie rozmowy",
         "aiResponse": "Odpowiedź asystenta AI",
         "userMessage": "Twoja wiadomość"
+      }
+    },
+    "agenda": {
+      "title": "Kalendarz",
+      "emptyTitle": "Brak spotkań",
+      "emptySubtitle": "Dodaj spotkanie, przypomnienie lub lek, aby zacząć.",
+      "viewPast": "Pokaż minione",
+      "addItem": "+ Dodaj nowy element",
+      "years": "lat",
+      "moreItems": "I jeszcze {{count}} więcej...",
+      "categories": {
+        "doctor": "Lekarz",
+        "dentist": "Dentysta",
+        "hairdresser": "Fryzjer",
+        "optician": "Optyk",
+        "bank": "Bank",
+        "municipality": "Urząd gminy",
+        "other": "Inne",
+        "family": "Spotkanie rodzinne",
+        "reminder": "Przypomnienie",
+        "medication": "Lek",
+        "birthday": "Urodziny",
+        "wedding": "Rocznica ślubu",
+        "memorial": "Rocznica pamięci"
+      },
+      "groups": {
+        "appointments": "Spotkania",
+        "family": "Rodzina",
+        "reminders": "Przypomnienia"
+      },
+      "repeat": {
+        "none": "Jednorazowo",
+        "daily": "Codziennie",
+        "weekly": "Co tydzień",
+        "biweekly": "Co dwa tygodnie",
+        "monthly": "Co miesiąc",
+        "yearly": "Co rok"
+      },
+      "reminder": {
+        "atTime": "W momencie",
+        "15min": "15 minut przed",
+        "30min": "30 minut przed",
+        "1hour": "1 godzinę przed",
+        "1day": "1 dzień przed"
       }
     }
   },

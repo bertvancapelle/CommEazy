@@ -29,5 +29,8 @@ export { PhotoAlbumScreen } from './PhotoAlbumScreen';
 // AI modules
 export { AskAIScreen } from './AskAIScreen';
 
+// Agenda module
+export { AgendaScreen } from './AgendaScreen';
+
 // Communication modules
 export { MailScreen } from '../mail/MailScreen';
