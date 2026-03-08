@@ -29,23 +29,15 @@ export {
   removeSongsFromCollection,
   removeSongFromAllCollections,
   getCollectionsForSong,
-  // Playlist Import & Sync
+  // Playlist Import
   createCollectionFromPlaylist,
-  getLinkedCollections,
   getCollectionByPlaylistId,
-  syncCollection,
-  deleteAllLinkedCollections,
-  getLastSyncTimestamp,
 } from './musicCollectionService';
 export type { MusicCollection } from './musicCollectionService';
 
-// Playlist Import & Sync
+// Playlist Import
 export {
-  isImportDone,
-  markImportDone,
-  resetImportStatus,
-  importAllPlaylists,
-  syncAllLinkedCollections,
+  importSinglePlaylist,
 } from './playlistImportService';
 export type {
   PlaylistImportProgress,

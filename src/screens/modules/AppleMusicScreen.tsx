@@ -31,7 +31,6 @@ import {
   Platform,
   Image,
   Alert,
-  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -51,6 +50,7 @@ import {
   ErrorView,
   AppleMusicDetailModal,
   QueueView,
+  HapticTouchable,
   type SearchBarRef,
 } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
@@ -77,9 +77,8 @@ import { MusicCollectionChipBar, type MusicChipId } from '@/components/MusicColl
 
 import { EditMusicCollectionModal } from './EditMusicCollectionModal';
 import { SongCollectionModal } from './SongCollectionModal';
-import { PlaylistImportModal } from './PlaylistImportModal';
+import { PlaylistBrowserModal } from './PlaylistBrowserModal';
 import type { MusicCollection } from '@/services/music';
-import { markImportDone } from '@/services/music';
 import { usePlaylistImportContext } from '@/contexts/PlaylistImportContext';
 
 // ============================================================
@@ -158,9 +157,6 @@ export function AppleMusicScreen() {
     // Library (used for Favorites)
     addToLibrary,
     isInLibrary,
-    // Library Cache (preloaded at startup - used for Favorites tab)
-    libraryCache,
-    isLibraryCacheLoading,
     // Queue
     queue,
     // Discovery
@@ -169,8 +165,7 @@ export function AppleMusicScreen() {
     topCharts: topChartsData,
     isTopChartsLoading,
     loadTopCharts,
-    recentLibraryItems,
-    // Playlist import & sync
+    // Playlist import & browser
     getLibraryPlaylists,
     getPlaylistDetails,
   } = useAppleMusicContext();
@@ -197,9 +192,8 @@ export function AppleMusicScreen() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAllRecentlyPlayed, setShowAllRecentlyPlayed] = useState(false);
 
-  // Playlist import state
-  const [showPlaylistImportModal, setShowPlaylistImportModal] = useState(false);
-  const [playlistCount, setPlaylistCount] = useState(0);
+  // Playlist browser state
+  const [showPlaylistBrowser, setShowPlaylistBrowser] = useState(false);
 
   // Music Favorites & Collections (CommEazy local curation)
   const musicFavorites = useMusicFavorites(isFocused);
@@ -457,34 +451,6 @@ export function AppleMusicScreen() {
   }, [searchResults?.songs, isAuthorized, isIOS, isInLibrary]);
 
   // ============================================================
-  // Playlist Import — First-use detection
-  // ============================================================
-
-  useEffect(() => {
-    // Only check when authorized, focused, and import not yet done
-    if (!isAuthorized || !isIOS || !isFocused || musicCollections.importDone) {
-      return;
-    }
-
-    const checkPlaylists = async () => {
-      try {
-        const page = await getLibraryPlaylists(1, 0);
-        if (page.total > 0) {
-          setPlaylistCount(page.total);
-          setShowPlaylistImportModal(true);
-        } else {
-          // No playlists → mark import as done (nothing to import)
-          await markImportDone();
-        }
-      } catch (error) {
-        console.warn('[AppleMusicScreen] Failed to check playlists for import');
-      }
-    };
-
-    checkPlaylists();
-  }, [isAuthorized, isIOS, isFocused, musicCollections.importDone, getLibraryPlaylists]);
-
-  // ============================================================
   // Playlist Import — Sync progress to floating indicator context
   // ============================================================
 
@@ -493,21 +459,6 @@ export function AppleMusicScreen() {
       playlistImportCtx.updateProgress(musicCollections.importProgress);
     }
   }, [musicCollections.importProgress]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ============================================================
-  // Playlist Import — Background sync (on each module open)
-  // ============================================================
-
-  useEffect(() => {
-    if (!isAuthorized || !isIOS || !isFocused || !musicCollections.importDone) {
-      return;
-    }
-
-    // Silent background sync — no UI, no user confirmation
-    // Reload favorites after sync to pick up newly added tracks
-    musicCollections.backgroundSync(getLibraryPlaylists, getPlaylistDetails)
-      .then(() => musicFavorites.reload());
-  }, [isAuthorized, isIOS, isFocused, musicCollections.importDone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ============================================================
   // Handlers
@@ -1362,51 +1313,8 @@ export function AppleMusicScreen() {
         </View>
       )}
 
-      {/* Layer 3: From Your Library */}
-      {recentLibraryItems.length > 0 && (
-        <View style={styles.discoverySection}>
-          <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
-            {t('modules.appleMusic.discovery.fromLibrary')}
-          </Text>
-          {recentLibraryItems.slice(0, 5).map((song, index) => (
-            <TouchableOpacity
-              key={song.id}
-              style={[styles.discoveryListItem, { backgroundColor: themeColors.surface }]}
-              onPress={() => {
-                triggerFeedback('tap');
-                void playSong(song.id, song.artworkUrl);
-              }}
-              onLongPress={() => {}}
-              delayLongPress={300}
-              accessibilityRole="button"
-              accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
-            >
-              {song.artworkUrl && song.artworkUrl.startsWith('http') ? (
-                <Image
-                  source={{ uri: song.artworkUrl.replace('{w}', '50').replace('{h}', '50') }}
-                  style={styles.discoveryListArtwork}
-                />
-              ) : (
-                <View style={[styles.discoveryListArtwork, styles.discoveryArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
-                  <Icon name="appleMusic" size={20} color={themeColors.textSecondary} />
-                </View>
-              )}
-              <View style={styles.discoveryListInfo}>
-                <Text style={[styles.discoveryListTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                  {song.title}
-                </Text>
-                <Text style={[styles.discoveryListSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                  {song.artistName} — {song.albumTitle}
-                </Text>
-              </View>
-              <Icon name="play" size={24} color={appleMusicColor} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
       {/* Empty discovery state (nothing to show yet) */}
-      {!isRecentlyPlayedLoading && recentlyPlayed.length === 0 && !isTopChartsLoading && !topChartsData?.songs?.length && recentLibraryItems.length === 0 && (
+      {!isRecentlyPlayedLoading && recentlyPlayed.length === 0 && !isTopChartsLoading && !topChartsData?.songs?.length && (
         <View style={styles.emptyState}>
           <Icon name="search" size={48} color={themeColors.textSecondary} />
           <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
@@ -1505,33 +1413,38 @@ export function AppleMusicScreen() {
     return favorites.filter(f => songIdSet.has(f.catalogId)).map(toSong);
   }, [musicFavorites.favorites, selectedChipId, musicCollections.collections]);
 
-  // Handle playlist import (user taps "Alles overnemen")
-  // Fire-and-forget: close modal immediately, floating indicator tracks progress
-  const handleImportPlaylists = useCallback(() => {
-    // Close the welcome modal immediately
-    setShowPlaylistImportModal(false);
-
-    // Signal the floating indicator that import is starting
+  // Handle playlist import started (set up result callback in context)
+  const handleImportStarted = useCallback((playlistId: string, playlistName: string) => {
     playlistImportCtx.setImporting(true);
 
-    // Start import in background — don't await
-    musicCollections.startImport(
-      getLibraryPlaylists,
-      getPlaylistDetails,
-    ).then(async () => {
-      // Reload favorites so imported songs appear in the UI
-      await musicFavorites.reload();
-    }).finally(() => {
-      // Signal the floating indicator that import is done
-      playlistImportCtx.setImporting(false);
+    // Set up callback for "View playlist" button on success screen
+    playlistImportCtx.setOnViewPlaylist(() => {
+      // Find the newly created collection and select it
+      const newCollection = musicCollections.collections.find(c => c.sourcePlaylistId === playlistId);
+      if (newCollection) {
+        setSelectedChipId(`collection:${newCollection.id}` as MusicChipId);
+        setActiveTab('favorites');
+      }
     });
-  }, [musicCollections, musicFavorites, getLibraryPlaylists, getPlaylistDetails, playlistImportCtx]);
 
-  // Handle skip import (user taps "Overslaan")
-  const handleSkipImport = useCallback(async () => {
-    await markImportDone();
-    setShowPlaylistImportModal(false);
-  }, []);
+    // Start import and handle result
+    musicCollections.startSingleImport(playlistId, playlistName, getPlaylistDetails)
+      .then(async (result) => {
+        await musicFavorites.reload();
+
+        // Find the created collection for navigation
+        const newCollection = musicCollections.collections.find(c => c.sourcePlaylistId === playlistId);
+
+        playlistImportCtx.setImportResult({
+          result,
+          playlistName,
+          collectionId: newCollection?.id,
+        });
+      })
+      .finally(() => {
+        playlistImportCtx.setImporting(false);
+      });
+  }, [musicCollections, musicFavorites, getPlaylistDetails, playlistImportCtx, setActiveTab]);
 
   // Handle long-press on collection chip (open edit modal)
   const handleLongPressCollection = useCallback((collectionId: string) => {
@@ -1595,6 +1508,22 @@ export function AppleMusicScreen() {
             accentColor={appleMusicColor}
           />
         )}
+
+        {/* Import playlists button */}
+        <HapticTouchable
+          style={[
+            styles.importPlaylistsButton,
+            { borderColor: appleMusicColor },
+          ]}
+          onPress={() => setShowPlaylistBrowser(true)}
+          accessibilityRole="button"
+          accessibilityLabel={t('appleMusic.import.importButton', 'Importeer afspeellijsten')}
+        >
+          <Icon name="download" size={20} color={appleMusicColor} />
+          <Text style={[styles.importPlaylistsText, { color: appleMusicColor }]}>
+            {t('appleMusic.import.importButton', 'Importeer afspeellijsten')}
+          </Text>
+        </HapticTouchable>
 
         {/* Content — filtered favorites */}
         {hasFavorites && (
@@ -2076,13 +2005,17 @@ export function AppleMusicScreen() {
         }}
       />
 
-      {/* Playlist Import Modal (first-use welcome — progress via FloatingImportIndicator) */}
-      <PlaylistImportModal
-        visible={showPlaylistImportModal}
-        playlistCount={playlistCount}
-        onImport={handleImportPlaylists}
-        onSkip={handleSkipImport}
+      {/* Playlist Browser Modal */}
+      <PlaylistBrowserModal
+        visible={showPlaylistBrowser}
+        onClose={() => setShowPlaylistBrowser(false)}
+        getLibraryPlaylists={getLibraryPlaylists}
+        collections={musicCollections.collections}
+        isImporting={musicCollections.isImporting}
+        accentColor={appleMusicColor}
+        onImportStarted={handleImportStarted}
       />
+
     </View>
   );
 }
@@ -2334,6 +2267,24 @@ const styles = StyleSheet.create({
   },
   emptyStateButtonText: {
     ...typography.body,
+    fontWeight: '600',
+  },
+
+  // Import playlists button
+  importPlaylistsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
+    minHeight: 44,
+  },
+  importPlaylistsText: {
+    ...typography.label,
     fontWeight: '600',
   },
 

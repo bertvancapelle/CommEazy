@@ -6,7 +6,6 @@
  * Contains:
  * - All type definitions (song, album, artist, playlist, playback state, etc.)
  * - Context value interface
- * - Helper functions (deduplicateAndPrepend)
  * - Constants (storage keys, limits)
  */
 
@@ -140,16 +139,6 @@ export interface RecentlyPlayedItem {
   source?: 'musickit' | 'local'; // Where this item came from
 }
 
-// Library cache structure
-export interface LibraryCache {
-  songs: AppleMusicSong[];
-  albums: AppleMusicAlbum[];
-  artists: AppleMusicArtist[];
-  playlists: AppleMusicPlaylist[];
-  counts: LibraryCounts | null;
-  lastUpdated: number | null;  // timestamp
-}
-
 export interface AppleMusicContextValue {
   // Platform info
   isIOS: boolean;
@@ -185,12 +174,6 @@ export interface AppleMusicContextValue {
   getLibraryArtists: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicArtist>>;
   getLibraryPlaylists: (limit?: number, offset?: number) => Promise<LibraryPaginatedResponse<AppleMusicPlaylist>>;
   getLibraryCounts: () => Promise<LibraryCounts>;
-
-  // Library Cache (preloaded at startup for instant access)
-  libraryCache: LibraryCache;
-  isLibraryCacheLoading: boolean;
-  preloadLibrary: () => Promise<void>;
-  refreshLibraryCache: () => Promise<void>;
 
   // Playback (iOS only)
   playbackState: PlaybackState | null;
@@ -247,9 +230,6 @@ export interface AppleMusicContextValue {
   loadGenres: () => Promise<void>;
   getTopChartsByGenre: (genreId: string, types?: string[], limit?: number) => Promise<SearchResults>;
 
-  // Discovery: Recent Library Items
-  recentLibraryItems: AppleMusicSong[];
-
   // Player visibility
   showPlayer: boolean;
   setShowPlayer: (show: boolean) => void;
@@ -262,20 +242,3 @@ export interface AppleMusicContextValue {
 export const RECENTLY_PLAYED_STORAGE_KEY = '@commeazy/apple-music-recently-played';
 export const RECENTLY_PLAYED_MAX_ITEMS = 20;
 
-// ============================================================
-// Helpers
-// ============================================================
-
-/**
- * Prepend new items to an existing array, deduplicating by a key field.
- * Used for delta sync: new songs/albums are prepended, existing entries are kept.
- */
-export function deduplicateAndPrepend<T extends Record<string, unknown>>(
-  existing: T[],
-  newItems: T[],
-  keyField: string
-): T[] {
-  const existingIds = new Set(existing.map((item) => item[keyField]));
-  const uniqueNew = newItems.filter((item) => !existingIds.has(item[keyField]));
-  return [...uniqueNew, ...existing];
-}

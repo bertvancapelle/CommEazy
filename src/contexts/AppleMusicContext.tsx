@@ -54,13 +54,11 @@ import type {
   Subscription,
   PlatformCapabilities,
   RecentlyPlayedItem,
-  LibraryCache,
   AppleMusicContextValue,
 } from './appleMusicContextTypes';
 import {
   RECENTLY_PLAYED_STORAGE_KEY,
   RECENTLY_PLAYED_MAX_ITEMS,
-  deduplicateAndPrepend,
 } from './appleMusicContextTypes';
 
 // ============================================================
@@ -105,17 +103,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   // Maps song ID to artwork URL
   const [artworkCache, setArtworkCache] = useState<Map<string, string>>(new Map());
 
-  // Library cache for instant access (preloaded at startup)
-  const [libraryCache, setLibraryCache] = useState<LibraryCache>({
-    songs: [],
-    albums: [],
-    artists: [],
-    playlists: [],
-    counts: null,
-    lastUpdated: null,
-  });
-  const [isLibraryCacheLoading, setIsLibraryCacheLoading] = useState(false);
-
   // Discovery: Recently Played (locally tracked via AsyncStorage)
   const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>([]);
   const [isRecentlyPlayedLoading, setIsRecentlyPlayedLoading] = useState(true);
@@ -128,20 +115,11 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   const [genres, setGenres] = useState<AppleMusicGenre[]>([]);
   const [isGenresLoading, setIsGenresLoading] = useState(false);
 
-  // Track when app went to background for refresh logic
-  const lastBackgroundTimeRef = useRef<number | null>(null);
-
   // Derived state
   const isAuthorized = authStatus === 'authorized' || authStatus === 'app_installed';
   const isPlaying = playbackState?.status === 'playing';
   const shuffleMode = playbackState?.shuffleMode ?? 'off';
   const repeatMode = playbackState?.repeatMode ?? 'off';
-
-  // Discovery: Recent library items (sorted by dateAdded — most recent first)
-  // Since MusicKit doesn't expose dateAdded in JS, we use the cache order (newest first from native)
-  const recentLibraryItems = useMemo(() => {
-    return libraryCache.songs.slice(0, 10);
-  }, [libraryCache.songs]);
 
   // Effective artwork URL: prefer cached URL from search results over MusicKit queue URL
   // MusicKit queue entries often have musicKit:// URLs that don't work in React Native
@@ -289,117 +267,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   addToRecentlyPlayedRef.current = addToRecentlyPlayed;
   const artworkCacheRef = useRef(artworkCache);
   artworkCacheRef.current = artworkCache;
-  const libraryCacheRef = useRef(libraryCache);
-  libraryCacheRef.current = libraryCache;
-
-  /**
-   * Handle library changes detected by native MusicKit observer.
-   * Uses count-based delta detection:
-   * - Count higher → additions: load only new items (fast delta load)
-   * - Count lower → deletions: full cache refresh (rare, acceptable)
-   * - Count equal → ignore (metadata change only)
-   */
-  const handleLibraryChange = useCallback(async (freshCounts: LibraryCounts | null) => {
-    if (!isIOS || !AppleMusicModule) return;
-
-    const currentCache = libraryCacheRef.current;
-    const cachedCounts = currentCache.counts;
-
-    // If no fresh counts from native (error case), do full refresh
-    if (!freshCounts) {
-      console.log('[AppleMusicContext] No counts from native, doing full refresh');
-      await refreshLibraryCache();
-      return;
-    }
-
-    // If no cached counts yet (first load), do full refresh
-    if (!cachedCounts) {
-      console.log('[AppleMusicContext] No cached counts yet, doing full refresh');
-      await refreshLibraryCache();
-      return;
-    }
-
-    const songsDelta = freshCounts.songs - cachedCounts.songs;
-    const albumsDelta = freshCounts.albums - cachedCounts.albums;
-
-    console.log('[AppleMusicContext] Library delta detection:', {
-      songsDelta,
-      albumsDelta,
-      freshSongs: freshCounts.songs,
-      cachedSongs: cachedCounts.songs,
-      freshAlbums: freshCounts.albums,
-      cachedAlbums: cachedCounts.albums,
-    });
-
-    // Count equal — no meaningful change (metadata only)
-    if (songsDelta === 0 && albumsDelta === 0) {
-      console.log('[AppleMusicContext] Counts unchanged, skipping sync');
-      // Still update counts in cache (artists/playlists may have changed)
-      setLibraryCache((prev) => ({
-        ...prev,
-        counts: freshCounts,
-      }));
-      return;
-    }
-
-    // Count decreased — deletions detected, full refresh needed
-    if (songsDelta < 0 || albumsDelta < 0) {
-      console.log('[AppleMusicContext] Deletions detected, doing full refresh');
-      await refreshLibraryCache();
-      return;
-    }
-
-    // Count increased — additions detected, delta load only
-    console.log(`[AppleMusicContext] Additions detected: +${songsDelta} songs, +${albumsDelta} albums`);
-
-    try {
-      // Fetch only the newly added items (with small margin for safety)
-      const margin = 5;
-      const promises: Promise<{ items: Record<string, unknown>[]; total: number; offset?: number } | null>[] = [];
-
-      if (songsDelta > 0) {
-        promises.push(AppleMusicModule.getRecentLibrarySongs(songsDelta + margin));
-      } else {
-        promises.push(Promise.resolve(null));
-      }
-
-      if (albumsDelta > 0) {
-        promises.push(AppleMusicModule.getRecentLibraryAlbums(albumsDelta + margin));
-      } else {
-        promises.push(Promise.resolve(null));
-      }
-
-      const [recentSongs, recentAlbums] = await Promise.all(promises);
-
-      setLibraryCache((prev) => {
-        const updatedSongs = recentSongs
-          ? deduplicateAndPrepend(prev.songs, recentSongs.items, 'id')
-          : prev.songs;
-
-        const updatedAlbums = recentAlbums
-          ? deduplicateAndPrepend(prev.albums, recentAlbums.items, 'id')
-          : prev.albums;
-
-        console.log('[AppleMusicContext] Delta sync complete:', {
-          newSongs: recentSongs?.items?.length ?? 0,
-          newAlbums: recentAlbums?.items?.length ?? 0,
-          totalSongs: updatedSongs.length,
-          totalAlbums: updatedAlbums.length,
-        });
-
-        return {
-          ...prev,
-          songs: updatedSongs,
-          albums: updatedAlbums,
-          counts: freshCounts,
-          lastUpdated: Date.now(),
-        };
-      });
-    } catch (error) {
-      console.error('[AppleMusicContext] Delta sync failed, falling back to full refresh:', error);
-      await refreshLibraryCache();
-    }
-  }, [isIOS, refreshLibraryCache]);
 
   useEffect(() => {
     if (!isIOS || !AppleMusicModule) return;
@@ -450,22 +317,11 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       }
     );
 
-    // Library change event (debounced 2s on native side)
-    // Native sends fresh counts so we can do delta detection
-    const libraryChangeSubscription = eventEmitter.addListener(
-      'AppleMusicLibraryDidChange',
-      (data: { counts?: LibraryCounts } | null) => {
-        console.log('[AppleMusicContext] Library change detected from native');
-        handleLibraryChange(data?.counts ?? null);
-      }
-    );
-
     return () => {
       playbackStateSubscription.remove();
       nowPlayingSubscription.remove();
       queueSubscription.remove();
       authSubscription.remove();
-      libraryChangeSubscription.remove();
     };
   }, [isIOS]);
 
@@ -838,105 +694,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [isIOS]);
 
   // ============================================================
-  // Library Cache (Preload at Startup)
-  // ============================================================
-
-  /**
-   * Preload ENTIRE library content for instant access.
-   * Called at app startup to ensure "Mijn Muziek" is immediately available.
-   *
-   * Native module uses in-memory cache — first call loads from MusicKit (slow),
-   * subsequent calls return cached data instantly.
-   * Artists and playlists are loaded on-demand (smaller datasets).
-   */
-  const preloadLibrary = useCallback(async (): Promise<void> => {
-    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
-      console.log('[AppleMusicContext] Skipping library preload (not iOS or not authorized)');
-      return;
-    }
-
-    // Skip if already loading or recently loaded (within 5 minutes)
-    if (isLibraryCacheLoading) {
-      console.log('[AppleMusicContext] Library preload already in progress');
-      return;
-    }
-
-    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-    if (libraryCache.lastUpdated && libraryCache.lastUpdated > fiveMinutesAgo) {
-      console.log('[AppleMusicContext] Library cache is fresh, skipping preload');
-      return;
-    }
-
-    setIsLibraryCacheLoading(true);
-    console.log('[AppleMusicContext] Starting FULL library preload...');
-
-    try {
-      // Load counts + ALL songs + ALL albums in parallel
-      // Native module caches internally — first call is slow (MusicKit), subsequent calls instant
-      const [counts, songsResult, albumsResult] = await Promise.all([
-        AppleMusicModule.getLibraryCounts(),
-        AppleMusicModule.getLibrarySongs(999999, 0),
-        AppleMusicModule.getLibraryAlbums(999999, 0),
-      ]);
-
-      setLibraryCache({
-        songs: songsResult.items,
-        albums: albumsResult.items,
-        artists: [],  // Load on-demand (smaller dataset)
-        playlists: [],  // Load on-demand (smaller dataset)
-        counts,
-        lastUpdated: Date.now(),
-      });
-
-      console.log('[AppleMusicContext] Library preload complete:', {
-        songs: songsResult.items.length,
-        albums: albumsResult.items.length,
-        totalSongs: counts.songs,
-        totalAlbums: counts.albums,
-      });
-    } catch (error) {
-      console.error('[AppleMusicContext] Library preload error:', error);
-    } finally {
-      setIsLibraryCacheLoading(false);
-    }
-  }, [isIOS, authStatus, isLibraryCacheLoading, libraryCache.lastUpdated]);
-
-  /**
-   * Force refresh library cache.
-   * Called when user pulls to refresh or after returning from background >30 min.
-   */
-  const refreshLibraryCache = useCallback(async (): Promise<void> => {
-    if (!isIOS || !AppleMusicModule || authStatus !== 'authorized') {
-      return;
-    }
-
-    setIsLibraryCacheLoading(true);
-    console.log('[AppleMusicContext] Refreshing library cache...');
-
-    try {
-      const [counts, songsResult, albumsResult] = await Promise.all([
-        AppleMusicModule.getLibraryCounts(),
-        AppleMusicModule.getLibrarySongs(999999, 0),
-        AppleMusicModule.getLibraryAlbums(999999, 0),
-      ]);
-
-      setLibraryCache((prev) => ({
-        ...prev,
-        songs: songsResult.items,
-        albums: albumsResult.items,
-        counts,
-        lastUpdated: Date.now(),
-      }));
-
-      console.log('[AppleMusicContext] Library cache refreshed');
-    } catch (error) {
-      console.error('[AppleMusicContext] Library refresh error:', error);
-    } finally {
-      setIsLibraryCacheLoading(false);
-    }
-  }, [isIOS, authStatus]);
-
-  // ============================================================
   // Playback Control (iOS only)
   // ============================================================
 
@@ -1229,61 +986,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [audioOrchestrator]);
 
   // ============================================================
-  // Library Preload at Startup
-  // ============================================================
-
-  // Use ref to avoid preloadLibrary in effect deps (its deps change during preload → cascading re-triggers)
-  const preloadLibraryRef = useRef(preloadLibrary);
-  preloadLibraryRef.current = preloadLibrary;
-
-  // Preload library when authorized (runs once after authorization)
-  useEffect(() => {
-    if (authStatus === 'authorized' && isIOS) {
-      void preloadLibraryRef.current();
-    }
-  }, [authStatus, isIOS]);
-
-  // ============================================================
-  // Foreground Refresh (after 30+ min in background)
-  // ============================================================
-
-  useEffect(() => {
-    if (!isIOS) return;
-
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'background' || nextAppState === 'inactive') {
-        // Record when app went to background
-        lastBackgroundTimeRef.current = Date.now();
-        console.log('[AppleMusicContext] App going to background');
-      } else if (nextAppState === 'active') {
-        // App returned to foreground
-        const backgroundTime = lastBackgroundTimeRef.current;
-        if (backgroundTime) {
-          const timeInBackground = Date.now() - backgroundTime;
-          const thirtyMinutes = 30 * 60 * 1000;
-
-          if (timeInBackground > thirtyMinutes && authStatus === 'authorized') {
-            console.log('[AppleMusicContext] App returned after 30+ min, refreshing library cache...');
-            void refreshLibraryCache();
-          } else {
-            console.log('[AppleMusicContext] App returned to foreground (background time:',
-              Math.round(timeInBackground / 1000), 'seconds)');
-          }
-        }
-        lastBackgroundTimeRef.current = null;
-      }
-    };
-
-    // Import AppState dynamically to avoid issues
-    const { AppState } = require('react-native');
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      subscription.remove();
-    };
-  }, [isIOS, authStatus, refreshLibraryCache]);
-
-  // ============================================================
   // Context Value
   // ============================================================
 
@@ -1323,12 +1025,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       getLibraryArtists,
       getLibraryPlaylists,
       getLibraryCounts,
-
-      // Library Cache
-      libraryCache,
-      isLibraryCacheLoading,
-      preloadLibrary,
-      refreshLibraryCache,
 
       // Playback
       playbackState,
@@ -1382,9 +1078,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       loadGenres,
       getTopChartsByGenre: getTopChartsByGenreCallback,
 
-      // Discovery: Recent Library Items
-      recentLibraryItems,
-
       // Player visibility
       showPlayer,
       setShowPlayer,
@@ -1411,10 +1104,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       getLibraryArtists,
       getLibraryPlaylists,
       getLibraryCounts,
-      libraryCache,
-      isLibraryCacheLoading,
-      preloadLibrary,
-      refreshLibraryCache,
       playbackState,
       nowPlaying,
       effectiveArtworkUrl,
@@ -1450,7 +1139,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
       isGenresLoading,
       loadGenres,
       getTopChartsByGenreCallback,
-      recentLibraryItems,
       showPlayer,
     ]
   );
@@ -1546,6 +1234,5 @@ export type {
   Subscription,
   PlatformCapabilities,
   RecentlyPlayedItem,
-  LibraryCache,
   AppleMusicContextValue,
 } from './appleMusicContextTypes';
