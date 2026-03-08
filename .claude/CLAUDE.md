@@ -3520,7 +3520,7 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 34 | **Groepsvideobellen (4+)** | ⏳ TODO | ⏳ TBD | SFU server nodig |
 | 35 | **Spraakberichten** | ⏳ TODO | ⏳ TBD | Opnemen en verzenden |
 | 36 | **Locatie delen** | ⏳ TODO | ⏳ TBD | Real-time locatie |
-| 37 | **Herinneringen** | ⏳ TODO | ⏳ TBD | Medicatie, afspraken |
+| 37 | **Agenda Module** | ⏳ TODO | ⏳ TBD | Tijdlijn met afspraken, herinneringen, medicijnen, contactdatums (verjaardagen/trouwdagen/sterfdagen). Delen via XMPP. Zie `AGENDA_MODULE.md` |
 | 38 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
 | 39 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
 | 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | iOS/iPadOS: iCloud Backup is afdoende — minimale implementatie: iCloud detectie + waarschuwingsbanner + mail re-login na restore. Android: uitgesteld (Keystore device-bound, 25MB limiet). Zie `BACKUP_RESTORE_PLAN.md` |
@@ -3578,6 +3578,7 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | Prosody HA Production | Backend | `.claude/plans/PROSODY_HA_PRODUCTION.md` |
 | Backup & Restore | Cross | `.claude/plans/BACKUP_RESTORE_PLAN.md` |
 | Trust & Attestation | Cross | `.claude/plans/TRUST_AND_ATTESTATION_PLAN.md` |
+| Agenda Module | Cross | `.claude/plans/AGENDA_MODULE.md` |
 
 ---
 
