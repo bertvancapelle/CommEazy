@@ -1,10 +1,12 @@
 /**
  * Onboarding Screens
  *
- * Flow: Language → Welcome → DeviceChoice → Phone/LinkScan → Name → PIN → Demographics → NavigationTutorial → Completion
+ * Flow: Language → Welcome → DeviceChoice → Phone/LinkScan/InvitationCode → Name → PIN → Demographics → NavigationTutorial → Completion
  *
- * DeviceChoice allows tablets to link to existing accounts via QR scan
- * instead of phone verification.
+ * DeviceChoice allows three paths:
+ * 1. New Account → Phone verification (standard)
+ * 2. Link Device → QR scan from existing device (tablets)
+ * 3. Invitation Code → Enter code from family member (iPad standalone)
  *
  * Demographics is required for free users (country, region, age bracket).
  *
@@ -17,6 +19,7 @@ export { DeviceChoiceScreen } from './DeviceChoiceScreen';
 export { PhoneVerificationScreen } from './PhoneVerificationScreen';
 export { DeviceLinkScanScreen } from './DeviceLinkScanScreen';
 export { DeviceLinkShowQRScreen } from './DeviceLinkShowQRScreen';
+export { InvitationCodeScreen } from './InvitationCodeScreen';
 export { NameInputScreen } from './NameInputScreen';
 export { PinSetupScreen } from './PinSetupScreen';
 export { DemographicsScreen } from './DemographicsScreen';

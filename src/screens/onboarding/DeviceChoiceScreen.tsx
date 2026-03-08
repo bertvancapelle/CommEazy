@@ -4,8 +4,11 @@
  * First screen after language selection. Allows user to choose between:
  * 1. New Account - Continue with phone verification (existing flow)
  * 2. Link Device - Scan QR from existing device (tablets without phone number)
+ * 3. Invitation Code - Enter a code received from a family member (iPad standalone)
  *
  * Senior-inclusive design: Large buttons, clear icons, simple choice.
+ *
+ * @see TRUST_AND_ATTESTATION_PLAN.md section 4.3
  */
 
 import React from 'react';
@@ -36,6 +39,10 @@ export function DeviceChoiceScreen({ navigation }: Props) {
 
   const handleLinkDevice = () => {
     navigation.navigate('DeviceLinkScan');
+  };
+
+  const handleInvitationCode = () => {
+    navigation.navigate('InvitationCode');
   };
 
   return (
@@ -84,6 +91,26 @@ export function DeviceChoiceScreen({ navigation }: Props) {
               <Text style={[styles.optionTitle, { color: themeColors.textPrimary }]}>{t('deviceLink.linkDevice')}</Text>
               <Text style={[styles.optionDescription, { color: themeColors.textSecondary }]}>
                 {t('deviceLink.linkDeviceDescription')}
+              </Text>
+            </View>
+            <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
+          </TouchableOpacity>
+
+          {/* Invitation Code Option (iPad standalone) */}
+          <TouchableOpacity
+            style={[styles.optionCard, { backgroundColor: themeColors.surface, shadowColor: themeColors.textPrimary }]}
+            onPress={handleInvitationCode}
+            accessibilityRole="button"
+            accessibilityLabel={t('deviceLink.invitationCode')}
+            accessibilityHint={t('deviceLink.invitationCodeHint')}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: themeColors.primaryLight }]}>
+              <Text style={styles.icon}>🎟️</Text>
+            </View>
+            <View style={styles.optionText}>
+              <Text style={[styles.optionTitle, { color: themeColors.textPrimary }]}>{t('deviceLink.invitationCode')}</Text>
+              <Text style={[styles.optionDescription, { color: themeColors.textSecondary }]}>
+                {t('deviceLink.invitationCodeDescription')}
               </Text>
             </View>
             <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>

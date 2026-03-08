@@ -30,6 +30,7 @@ import {
   DeviceChoiceScreen,
   PhoneVerificationScreen,
   DeviceLinkScanScreen,
+  InvitationCodeScreen,
   NameInputScreen,
   PinSetupScreen,
   DemographicsScreen,
@@ -53,6 +54,7 @@ export type OnboardingStackParams = {
   DeviceChoice: undefined;
   PhoneVerification: undefined;
   DeviceLinkScan: undefined;
+  InvitationCode: undefined;
   NameInput: undefined;
   PinSetup: { name: string };
   Demographics: { name: string };
@@ -71,6 +73,9 @@ export type ContactStackParams = {
   ContactList: undefined;
   ContactDetail: { jid: string };
   AddContact: undefined;
+  ManualAddContact: undefined;
+  InviteContact: undefined;
+  AcceptInvitation: undefined;
   VerifyContact: { jid: string; name: string };
   QRScanner: undefined;
   QRDisplay: undefined;
@@ -174,6 +179,11 @@ function OnboardingNavigator() {
       <OnboardingStack.Screen
         name="DeviceLinkScan"
         component={DeviceLinkScanScreen}
+        options={{ title: '' }}
+      />
+      <OnboardingStack.Screen
+        name="InvitationCode"
+        component={InvitationCodeScreen}
         options={{ title: '' }}
       />
       <OnboardingStack.Screen

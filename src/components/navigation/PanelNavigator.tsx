@@ -37,6 +37,9 @@ import {
   ContactListScreen,
   ContactDetailScreen,
   AddContactScreen,
+  ManualAddContactScreen,
+  InviteContactScreen,
+  AcceptInvitationScreen,
   VerifyContactScreen,
 } from '@/screens/contacts';
 
@@ -107,6 +110,9 @@ type ContactPanelParams = {
   ContactList: undefined;
   ContactDetail: { jid: string };
   AddContact: undefined;
+  ManualAddContact: undefined;
+  InviteContact: undefined;
+  AcceptInvitation: undefined;
   VerifyContact: { jid: string; name: string };
 };
 
@@ -269,7 +275,22 @@ function ContactPanelNavigator() {
         <ContactPanelStack.Screen
           name="AddContact"
           component={AddContactScreen}
-          options={{ title: t('contacts.add') }}
+          options={{ title: t('contacts.addButton') }}
+        />
+        <ContactPanelStack.Screen
+          name="ManualAddContact"
+          component={ManualAddContactScreen}
+          options={{ title: t('contacts.add.manualTitle', 'Bekende toevoegen') }}
+        />
+        <ContactPanelStack.Screen
+          name="InviteContact"
+          component={InviteContactScreen}
+          options={{ title: t('contacts.invite.title', 'Iemand uitnodigen') }}
+        />
+        <ContactPanelStack.Screen
+          name="AcceptInvitation"
+          component={AcceptInvitationScreen}
+          options={{ title: t('contacts.accept.title', 'Code invoeren') }}
         />
         <ContactPanelStack.Screen
           name="VerifyContact"

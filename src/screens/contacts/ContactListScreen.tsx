@@ -377,9 +377,9 @@ export function ContactListScreen() {
           style={[styles.addButton, { backgroundColor: themeColors.primary }]}
           onPress={handleAddContact}
           accessibilityRole="button"
-          accessibilityLabel={t('contacts.add')}
+          accessibilityLabel={t('contacts.addButton')}
         >
-          <Text style={[styles.addButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.add')}</Text>
+          <Text style={[styles.addButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.addButton')}</Text>
         </TouchableOpacity>
       </View>
     ),
@@ -463,7 +463,7 @@ export function ContactListScreen() {
           onPress={handleAddContact}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel={t('contacts.add')}
+          accessibilityLabel={t('contacts.addButton')}
         >
           <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
         </TouchableOpacity>

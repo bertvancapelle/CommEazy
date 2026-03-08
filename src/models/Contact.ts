@@ -32,6 +32,8 @@ export class ContactModel extends Model {
   @field('is_deceased') isDeceased?: boolean;
   // Emergency contact (v15)
   @field('is_emergency_contact') isEmergencyContact?: boolean;
+  // Trust level (v16): 0=Unknown, 1=Invited, 2=Connected, 3=Verified
+  @field('trust_level') trustLevel!: number;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 
@@ -41,11 +43,28 @@ export class ContactModel extends Model {
   }
 
   /**
-   * Mark contact as verified (via QR code scan)
+   * Mark contact as verified (via QR code scan) — sets trust level to 3
    */
   @writer async markVerified(): Promise<void> {
     await this.update(record => {
       record.verified = true;
+      record.trustLevel = 3;
+    });
+  }
+
+  /**
+   * Update trust level
+   * 0 = Unknown (manual add, no CommEazy)
+   * 1 = Invited (invitation sent, not yet accepted)
+   * 2 = Connected (invitation accepted via relay)
+   * 3 = Verified (QR code scan, highest trust)
+   */
+  @writer async setTrustLevel(level: number): Promise<void> {
+    await this.update(record => {
+      record.trustLevel = level;
+      if (level >= 3) {
+        record.verified = true;
+      }
     });
   }
 

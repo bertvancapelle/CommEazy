@@ -17,6 +17,7 @@
  * - v13: Added media_messages table and media fields to messages
  * - v14: Added contact details (firstName, lastName, address, dates, isDeceased)
  * - v15: Added is_emergency_contact to contacts (ICE — In Case of Emergency)
+ * - v16: Added trust_level to contacts (0=Unknown, 1=Invited, 2=Connected, 3=Verified)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -262,6 +263,18 @@ export const migrations = schemaMigrations({
           table: 'contacts',
           columns: [
             { name: 'is_emergency_contact', type: 'boolean', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v15 to v16: Add trust level for attestation-based trust
+    {
+      toVersion: 16,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'trust_level', type: 'number' },
           ],
         }),
       ],
