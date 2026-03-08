@@ -2511,5 +2511,19 @@
     "stepperCurrentValue": "{{setting}}: {{value}}",
     "decreaseHint": "Diminuisci {{setting}}",
     "increaseHint": "Aumenta {{setting}}"
+  },
+  "notifications": {
+    "agenda": {
+      "medicationTime": "È ora di prendere il medicinale",
+      "medicationTaken": "Assunto",
+      "medicationSnooze": "Dopo",
+      "medicationSnoozeReminder": "Promemoria: medicinale non ancora assunto",
+      "snoozeAttempt": "Promemoria {{current}} di {{max}}",
+      "atTime": "Adesso",
+      "15minBefore": "Tra 15 minuti",
+      "30minBefore": "Tra 30 minuti",
+      "1hourBefore": "Tra 1 ora",
+      "1dayBefore": "Domani"
+    }
   }
 }

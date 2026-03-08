@@ -2434,5 +2434,19 @@
     "stepperCurrentValue": "{{setting}}: {{value}}",
     "decreaseHint": "Reduser {{setting}}",
     "increaseHint": "Øk {{setting}}"
+  },
+  "notifications": {
+    "agenda": {
+      "medicationTime": "Tid for å ta medisinen",
+      "medicationTaken": "Tatt",
+      "medicationSnooze": "Senere",
+      "medicationSnoozeReminder": "Påminnelse: medisin ikke tatt ennå",
+      "snoozeAttempt": "Påminnelse {{current}} av {{max}}",
+      "atTime": "Nå",
+      "15minBefore": "Om 15 minutter",
+      "30minBefore": "Om 30 minutter",
+      "1hourBefore": "Om 1 time",
+      "1dayBefore": "I morgen"
+    }
   }
 }

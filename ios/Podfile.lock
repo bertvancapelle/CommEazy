@@ -1257,6 +1257,11 @@ PODS:
     - React-Core
   - RNLocalize (3.7.0):
     - React-Core
+  - RNNotifee (9.1.8):
+    - React-Core
+    - RNNotifee/NotifeeCore (= 9.1.8)
+  - RNNotifee/NotifeeCore (9.1.8):
+    - React-Core
   - RNPermissions (4.1.5):
     - React-Core
   - RNReactNativeHapticFeedback (2.3.3):
@@ -1367,6 +1372,7 @@ DEPENDENCIES:
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - RNLocalize (from `../node_modules/react-native-localize`)
+  - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -1562,6 +1568,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-keychain"
   RNLocalize:
     :path: "../node_modules/react-native-localize"
+  RNNotifee:
+    :path: "../node_modules/@notifee/react-native"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
@@ -1677,6 +1685,7 @@ SPEC CHECKSUMS:
   RNImageCropPicker: e2af973019fc2e23e54d2a91a5deb0db73b05c3b
   RNKeychain: bbe2f6d5cc008920324acb49ef86ccc03d3b38e4
   RNLocalize: 5b24342fb7288242c2215756412d8dcb8dadf31e
+  RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
   RNPermissions: 4f7b81b0d457c8ec4e892cc36ef2376734a4b22c
   RNReactNativeHapticFeedback: 9d07fb28f9ef1e81440181602954cb3c78d30184
   RNScreens: 3ce54903891fd6281865ad3e7cfe4c2bb438c70c

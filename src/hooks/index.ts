@@ -56,3 +56,9 @@ export {
   type UseSiriCallOptions,
   type UseSiriCallReturn,
 } from './useSiriCall';
+
+// Agenda Notifications
+export {
+  useAgendaNotifications,
+  type UseAgendaNotificationsReturn,
+} from './useAgendaNotifications';

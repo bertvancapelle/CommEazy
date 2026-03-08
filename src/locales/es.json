@@ -2569,5 +2569,19 @@
     "stepperCurrentValue": "{{setting}}: {{value}}",
     "decreaseHint": "Disminuir {{setting}}",
     "increaseHint": "Aumentar {{setting}}"
+  },
+  "notifications": {
+    "agenda": {
+      "medicationTime": "Hora de tomar su medicamento",
+      "medicationTaken": "Tomado",
+      "medicationSnooze": "Más tarde",
+      "medicationSnoozeReminder": "Recordatorio: medicamento aún no tomado",
+      "snoozeAttempt": "Recordatorio {{current}} de {{max}}",
+      "atTime": "Ahora",
+      "15minBefore": "En 15 minutos",
+      "30minBefore": "En 30 minutos",
+      "1hourBefore": "En 1 hora",
+      "1dayBefore": "Mañana"
+    }
   }
 }

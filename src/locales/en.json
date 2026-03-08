@@ -1769,7 +1769,7 @@
         "albums": "Albums",
         "artists": "Artists",
         "emptyTitle": "No favorites yet",
-        "emptyDescription": "Tap the \u2665 icon on a song to add it to your favorites.",
+        "emptyDescription": "Tap the ♥ icon on a song to add it to your favorites.",
         "addToFavorites": "Add to favorites",
         "removeFromFavorites": "Remove from favorites",
         "searchMusic": "Search music",
@@ -2587,5 +2587,19 @@
     "stepperCurrentValue": "{{setting}}: {{value}}",
     "decreaseHint": "Decrease {{setting}}",
     "increaseHint": "Increase {{setting}}"
+  },
+  "notifications": {
+    "agenda": {
+      "medicationTime": "Time to take your medication",
+      "medicationTaken": "Taken",
+      "medicationSnooze": "Later",
+      "medicationSnoozeReminder": "Reminder: medication not yet taken",
+      "snoozeAttempt": "Reminder {{current}} of {{max}}",
+      "atTime": "Now",
+      "15minBefore": "In 15 minutes",
+      "30minBefore": "In 30 minutes",
+      "1hourBefore": "In 1 hour",
+      "1dayBefore": "Tomorrow"
+    }
   }
 }

@@ -171,3 +171,19 @@ export {
   type GlassPlayerPlaybackState,
   type GlassPlayerConfig,
 } from './glassPlayer';
+
+// ============================================================
+// Local Notifications
+// ============================================================
+
+export {
+  localNotificationService,
+  NOTIFICATION_CHANNELS,
+  NOTIFICATION_CATEGORIES,
+  type NotificationChannel,
+  type NotificationAction,
+  type ScheduleRequest,
+  type DisplayRequest,
+  type NotificationEvent,
+  type NotificationEventHandler,
+} from './localNotifications';

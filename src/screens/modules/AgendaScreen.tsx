@@ -39,6 +39,7 @@ import {
 import { getCategoryById, type AgendaCategory } from '@/constants/agendaCategories';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useAgendaNotifications } from '@/hooks/useAgendaNotifications';
 import { AgendaCategoryPickerScreen } from './AgendaCategoryPickerScreen';
 import { AgendaItemFormScreen } from './AgendaItemFormScreen';
 import { AgendaItemDetailScreen } from './AgendaItemDetailScreen';
@@ -232,6 +233,9 @@ function AgendaScreenInner() {
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor(MODULE_ID);
   const { timelineDays, pastItems, isLoading, refresh, createItem, updateItem } = useAgendaContext();
+
+  // Activate notification scheduling — auto-reschedules on timeline changes
+  useAgendaNotifications();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPastItems, setShowPastItems] = useState(false);

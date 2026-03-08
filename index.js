@@ -33,6 +33,11 @@ import { name as appName } from './app.json';
 import { setBackgroundMessageHandler } from './src/services/notifications';
 setBackgroundMessageHandler();
 
+// Local Notifications - Background event handler
+// MUST be registered before AppRegistry.registerComponent
+import { localNotificationService } from './src/services/localNotifications';
+localNotificationService.registerBackgroundHandler();
+
 // Disable the inspector overlay in dev mode (the Inspect/Perf/Network/Touchables bar)
 if (__DEV__) {
   // Ignore common warnings that clutter development

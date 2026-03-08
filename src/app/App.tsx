@@ -290,4 +290,15 @@ async function initializeApp(): Promise<void> {
     console.warn('[App] Podcast cache initialization failed:', error);
     // Non-critical, continue anyway
   }
+
+  // Initialize local notification service (agenda reminders, medication, etc.)
+  try {
+    const { localNotificationService } = await import('@/services/localNotifications');
+    await localNotificationService.initialize();
+    await localNotificationService.requestPermission();
+    console.log('[App] Local notification service initialized');
+  } catch (error) {
+    console.warn('[App] Local notification service failed:', error);
+    // Non-critical, continue anyway
+  }
 }

@@ -2573,5 +2573,19 @@
     "stepperCurrentValue": "{{setting}}: {{value}}",
     "decreaseHint": "Verlaag {{setting}}",
     "increaseHint": "Verhoog {{setting}}"
+  },
+  "notifications": {
+    "agenda": {
+      "medicationTime": "Tijd om in te nemen",
+      "medicationTaken": "Ingenomen",
+      "medicationSnooze": "Later",
+      "medicationSnoozeReminder": "Herinnering: medicijn nog niet ingenomen",
+      "snoozeAttempt": "Herinnering {{current}} van {{max}}",
+      "atTime": "Nu",
+      "15minBefore": "Over 15 minuten",
+      "30minBefore": "Over 30 minuten",
+      "1hourBefore": "Over 1 uur",
+      "1dayBefore": "Morgen"
+    }
   }
 }

@@ -2404,5 +2404,19 @@
     "stepperCurrentValue": "{{setting}}: {{value}}",
     "decreaseHint": "Minska {{setting}}",
     "increaseHint": "Öka {{setting}}"
+  },
+  "notifications": {
+    "agenda": {
+      "medicationTime": "Dags att ta din medicin",
+      "medicationTaken": "Tagen",
+      "medicationSnooze": "Senare",
+      "medicationSnoozeReminder": "Påminnelse: medicin inte tagen ännu",
+      "snoozeAttempt": "Påminnelse {{current}} av {{max}}",
+      "atTime": "Nu",
+      "15minBefore": "Om 15 minuter",
+      "30minBefore": "Om 30 minuter",
+      "1hourBefore": "Om 1 timme",
+      "1dayBefore": "I morgon"
+    }
   }
 }
