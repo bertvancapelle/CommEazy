@@ -337,8 +337,11 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Native iOS button wijzigen** | **ios-specialist** — Zie "Native Button Standaardisatie" in ios-specialist SKILL.md |
 | **Haptic/audio feedback instelling** | **accessibility-specialist** — MOET `useFeedback()` hook gebruiken (leest uit gedeelde `FeedbackContext`). NOOIT lokale state voor feedback instellingen. |
 | **Required Reason API gebruiken** | **ios-specialist** — Privacy Manifest (PrivacyInfo.xcprivacy) MOET worden bijgewerkt met juiste reason code |
-| **Keychain accessible/sync wijziging** | **security-expert, ios-specialist** — Zero-server-storage compliance, `THIS_DEVICE_ONLY` vereist, zie `BACKUP_RESTORE_PLAN.md` |
-| **Backup/restore functionaliteit** | **security-expert, architecture-lead** — Cloud KV Store data MOET encrypted zijn, PIN-based key encryption verplicht |
+| **Keychain accessible/sync wijziging** | **security-expert, ios-specialist** — E2E sleutels GEEN `THIS_DEVICE_ONLY` (moet iCloud Backup overleven), mail credentials WEL `THIS_DEVICE_ONLY`. Zie `BACKUP_RESTORE_PLAN.md` |
+| **Backup/restore functionaliteit** | **security-expert, architecture-lead** — iOS/iPadOS: iCloud Backup is afdoende, geen custom backup nodig. Android: uitgesteld. Zie `BACKUP_RESTORE_PLAN.md` |
+| **App Attestation / JWT tokens** | **security-expert, ios-specialist, android-specialist** — App Attest (iOS) / Play Integrity (Android), JWT token systeem. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
+| **Invitation Relay / Contact exchange** | **security-expert, architecture-lead, onboarding-recovery-specialist** — Encrypted invitation codes, relay server, key exchange. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
+| **Contact verificatie flow** | **security-expert, ui-designer, onboarding-recovery-specialist** — QR-code exchange, trust levels, invitation flow. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
 
 ### Consistency Safeguards (VERPLICHT)
 
@@ -3520,10 +3523,11 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 37 | **Herinneringen** | ⏳ TODO | ⏳ TBD | Medicatie, afspraken |
 | 38 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
 | 39 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
-| 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | Automatische backup via Cloud KV Store (iOS: NSUbiquitousKeyValueStore, Android: BackupAgentHelper) + platform backup validatie. Zie `BACKUP_RESTORE_PLAN.md` |
+| 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | iOS/iPadOS: iCloud Backup is afdoende — minimale implementatie: iCloud detectie + waarschuwingsbanner + mail re-login na restore. Android: uitgesteld (Keystore device-bound, 25MB limiet). Zie `BACKUP_RESTORE_PLAN.md` |
 | 41 | **React Native Upgrade** | ⏳ TODO | 🎯 MVP | Upgrade van RN 0.73.6 naar 0.79+. Vereist: New Architecture migratie (18 native modules → TurboModules), AppDelegate Obj-C++ → Swift, React 18 → 19, 49 dependencies compatibiliteit check. op-sqlite v15 vereist RN 0.74+. Groot standalone project — NIET mengen met feature development. Zie impactanalyse in sessie 2026-03-04. |
+| 42 | **Trust & Attestation** | ⏳ TODO | 🎯 MVP | User-to-User Trust (QR-code + Invitation Relay) + App-to-Server Trust (App Attest/Play Integrity + API Gateway + JWT). Contact flow refactor (3 opties: in de buurt/uitnodigen/bekende). iPad standalone onboarding via invitation code. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
 
-**📊 Cross-Platform Samenvatting:** 23 items | ✅ 0 DONE | 🔶 4 PARTIAL | ⏳ 19 TODO
+**📊 Cross-Platform Samenvatting:** 24 items | ✅ 0 DONE | 🔶 4 PARTIAL | ⏳ 20 TODO
 
 ---
 
@@ -3533,8 +3537,8 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 |----------|--------|---------|------------|---------|
 | **iOS/iPadOS** | 15 | 14 | 1 | 0 |
 | **Android** | 4 | 0 | 0 | 4 |
-| **Cross-Platform** | 23 | 0 | 4 | 19 |
-| **TOTAAL** | 42 | 14 | 5 | 23 |
+| **Cross-Platform** | 24 | 0 | 4 | 20 |
+| **TOTAAL** | 43 | 14 | 5 | 24 |
 
 ---
 
@@ -3573,6 +3577,7 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | Country-Specific Modules | Cross | `.claude/plans/COUNTRY_SPECIFIC_MODULES.md` |
 | Prosody HA Production | Backend | `.claude/plans/PROSODY_HA_PRODUCTION.md` |
 | Backup & Restore | Cross | `.claude/plans/BACKUP_RESTORE_PLAN.md` |
+| Trust & Attestation | Cross | `.claude/plans/TRUST_AND_ATTESTATION_PLAN.md` |
 
 ---
 

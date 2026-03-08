@@ -2,775 +2,310 @@
 
 ## Overzicht
 
-CommEazy's zero-server-storage architectuur betekent dat ALLE gebruikersdata op het apparaat staat. Zonder een betrouwbaar backup & restore systeem verliest een gebruiker bij verlies/vervanging van device: berichten, encryptiesleutels, contacten, instellingen, favorieten, en podcast voortgang.
+CommEazy's zero-server-storage architectuur betekent dat ALLE gebruikersdata op het apparaat staat. Bij verlies/vervanging van device moet alle data hersteld kunnen worden.
 
 **Doelgroep:** Senioren (65+) — backup MOET 100% automatisch en onzichtbaar zijn. Geen technische keuzes, geen configuratie, geen handleiding.
 
-**Gekozen Strategie:** A+B (Passieve Validatie + Actieve Cloud KV Store)
+**Gekozen Strategie:** Platform Backup (iCloud Backup voor iOS/iPadOS)
 
 ---
 
-## 1. Strategie Uitleg
+## 1. Strategie — Apple iCloud Backup (iOS/iPadOS)
 
-### Strategie A — Passieve Validatie
+### Kernconclussie
 
-Controleer of het platform's eigen backup systeem correct is geconfigureerd:
-- iCloud account aanwezig
-- Device passcode ingesteld (vereist voor encrypted backups)
-- Keychain items correct geconfigureerd voor backup inclusie
+Apple's iCloud Backup is **afdoende** voor het backuppen van ALLE CommEazy gebruikersdata op iOS/iPadOS. Er is geen custom backup infrastructuur nodig.
 
-**Beperking:** Kan NIET verifiëren of backup daadwerkelijk plaatsvindt of slaagt.
+**Wat iCloud Backup automatisch opslaat:**
 
-### Strategie B — Actieve Cloud KV Store
+| Data | Opslag locatie | Overleeft iCloud Backup | Bewijs |
+|------|----------------|-------------------------|--------|
+| **Berichten** (WatermelonDB/SQLCipher) | App sandbox `Library/` | ✅ Ja | SQLite db in app container |
+| **Contacten, instellingen, favorieten** (AsyncStorage) | App sandbox `Library/` | ✅ Ja | SQLite-backed KV store |
+| **Foto's, audio, media** | App sandbox `Documents/` | ✅ Ja | Bestanden in app container |
+| **E2E publieke sleutel** (Keychain) | iOS Keychain | ✅ Ja | `AFTER_FIRST_UNLOCK` (default) — géén `THIS_DEVICE_ONLY` |
+| **E2E privésleutel** (Keychain) | iOS Keychain | ✅ Ja | `BIOMETRY_ANY` access control, géén `THIS_DEVICE_ONLY` |
+| **Podcast voortgang** (AsyncStorage) | App sandbox `Library/` | ✅ Ja | Onderdeel van AsyncStorage |
+| **Module kleuren** (AsyncStorage) | App sandbox `Library/` | ✅ Ja | Onderdeel van AsyncStorage |
+| **Radio/Podcast favorieten** (AsyncStorage) | App sandbox `Library/` | ✅ Ja | Onderdeel van AsyncStorage |
+| **Apple Music favorieten/lijsten** (AsyncStorage) | App sandbox `Library/` | ✅ Ja | Onderdeel van AsyncStorage |
+| **Voice command instellingen** (AsyncStorage) | App sandbox `Library/` | ✅ Ja | Onderdeel van AsyncStorage |
 
-Sla kritieke data zelf op in platform cloud storage:
-- iOS/iPadOS: `NSUbiquitousKeyValueStore` (Apple iCloud KV)
-- Android: `BackupAgentHelper` (Google Backup KV)
+**Wat NIET overleeft (intentioneel):**
 
-**Voordeel:** Kan verifiëren dat data daadwerkelijk de cloud bereikt (write + read test).
+| Data | Reden | Herstel na restore |
+|------|-------|-------------------|
+| **Mail credentials** (Keychain) | `WHEN_UNLOCKED_THIS_DEVICE_ONLY` — bewust uitgesloten | Gebruiker logt opnieuw in bij mail provider |
 
-### Strategie A+B — Gecombineerd (GEKOZEN)
+### Waarom dit werkt
 
-1. **Valideer** platform backup configuratie (Strategie A)
-2. **Sla aanvullend** kritieke data op in eigen cloud KV store (Strategie B)
-3. **Verifieer** dat cloud schrijf/lees test slaagt
-4. **Toon** backup gezondheid aan gebruiker (groen/geel/rood banner)
+1. **iCloud Backup slaat de volledige app sandbox op** — databases, bestanden, AsyncStorage, alles
+2. **Keychain items ZONDER `THIS_DEVICE_ONLY` overleven iCloud Backup** — onze E2E sleutels zijn correct geconfigureerd
+3. **Apple versleutelt iCloud Backups** — met AES-256, optioneel end-to-end met Advanced Data Protection
+4. **Zero-server-storage blijft intact** — iCloud is de cloud van de GEBRUIKER, niet van CommEazy
+5. **Geen actie nodig van senioren** — iCloud Backup werkt automatisch (dagelijks, bij Wi-Fi + opladen)
+
+### Waarom GEEN custom backup
+
+De vorige versie van dit plan beschreef een uitgebreide Strategie A+B met:
+- PIN-encrypted Cloud KV Store (NSUbiquitousKeyValueStore)
+- Native BackupModule.swift/BackupModule.kt
+- BackupContext, BackupHealthBanner, BackupSettingsScreen
+- Keychain wijzigingen naar `THIS_DEVICE_ONLY`
+- 6 implementatiefasen met 22 taken
+
+**Dit is overbodig voor iOS/iPadOS** omdat Apple's iCloud Backup al precies doet wat we nodig hebben. Vrijwel alle apps vertrouwen op dit mechanisme — CommEazy hoeft geen uitzondering te zijn.
 
 ---
 
-## 2. Platform Specificaties
+## 2. Keychain Configuratie — NIET WIJZIGEN
 
-### 2.1 iOS/iPadOS — NSUbiquitousKeyValueStore
+### Huidige Configuratie (CORRECT)
 
-| Eigenschap | Waarde |
-|------------|--------|
-| **API** | `NSUbiquitousKeyValueStore.default` |
-| **Max opslag** | 1 MB totaal |
-| **Max keys** | 1.024 |
-| **Max key lengte** | 64 bytes |
-| **Sync snelheid** | Seconden tot minuten (near-realtime) |
-| **Vereisten** | iCloud account + iCloud Drive ingeschakeld |
-| **Entitlement** | `com.apple.developer.ubiquity-kvstore-identifier` |
-| **Beschikbaarheid** | iOS 5+, iPadOS 13+ |
+| Sleutel | Accessibility | THIS_DEVICE_ONLY | Overleeft iCloud Backup |
+|---------|---------------|-------------------|-------------------------|
+| **Publieke sleutel** | `AFTER_FIRST_UNLOCK` (default) | Nee | ✅ Ja |
+| **Privésleutel** | `BIOMETRY_ANY` (access control) | Nee | ✅ Ja |
+| **Mail credentials** | `WHEN_UNLOCKED_THIS_DEVICE_ONLY` | Ja | ❌ Nee (bewust) |
 
-**Benodigde Xcode configuratie:**
-```xml
-<!-- CommEazyTemp.entitlements -->
-<key>com.apple.developer.ubiquity-kvstore-identifier</key>
-<string>$(TeamIdentifierPrefix)$(CFBundleIdentifier)</string>
-```
+**Waarom de sleutels in iCloud Backup acceptabel zijn:**
+- Apple versleutelt iCloud Backups met AES-256
+- Met Advanced Data Protection (ADP) is de backup end-to-end encrypted
+- De privésleutel is NOOIT in plaintext buiten de Keychain — Apple beheert de encryptie
+- Dit is hetzelfde vertrouwensmodel als Signal, WhatsApp, en andere E2E apps
 
-**Swift API:**
+**⚠️ NIET WIJZIGEN:** Voeg GEEN `THIS_DEVICE_ONLY` toe aan de E2E sleutels. Dit zou ze uitsluiten van iCloud Backup en de automatische restore breken.
+
+### Bestand Referenties
+
+- `src/services/encryption.ts` (regels 126-135) — publieke sleutel opslag
+- `src/services/encryption.ts` — privésleutel opslag met `BIOMETRY_ANY`
+- `src/services/mail/credentialManager.ts` (regels 59-66) — mail credentials met `THIS_DEVICE_ONLY`
+
+---
+
+## 3. Wat CommEazy WEL Moet Doen (Minimale Implementatie)
+
+### 3.1 iCloud Account Detectie
+
+Detecteer of de gebruiker een iCloud account heeft ingesteld. Als dat niet zo is, toon een waarschuwingsbanner.
+
+**iOS API:**
 ```swift
-let store = NSUbiquitousKeyValueStore.default
-
-// Schrijven
-store.set(data, forKey: "backup_encryption_keys")
-store.synchronize()
-
-// Lezen
-let data = store.data(forKey: "backup_encryption_keys")
-
-// Wijzigingen detecteren (andere devices)
-NotificationCenter.default.addObserver(
-    forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-    object: store,
-    queue: .main
-) { notification in
-    // Handle external changes
-}
+// FileManager.ubiquityIdentityToken
+// ≠ nil → iCloud account aanwezig ✅
+// == nil → geen iCloud account ⚠️
+let hasICloud = FileManager.default.ubiquityIdentityToken != nil
 ```
 
-### 2.2 Android — BackupAgentHelper
+**Beperking:** Apple biedt GEEN API om te controleren of de iCloud Backup toggle AAN staat. We kunnen alleen detecteren of er een iCloud account is.
 
-| Eigenschap | Waarde |
-|------------|--------|
-| **API** | `BackupAgentHelper` + `SharedPreferencesBackupHelper` |
-| **Max opslag** | 5 MB (key-value backup) |
-| **Sync snelheid** | Eén keer per 24 uur |
-| **Vereisten** | Google account + backup ingeschakeld in Android settings |
-| **Manifest** | `android:backupAgent` + `android:fullBackupContent` |
-| **Beschikbaarheid** | Android 2.2+ (API 8+) |
+### 3.2 Waarschuwingsbanner (Alleen bij ontbrekend iCloud account)
 
-**Android Manifest:**
-```xml
-<application
-    android:backupAgent=".CommEazyBackupAgent"
-    android:fullBackupContent="@xml/backup_rules"
-    android:dataExtractionRules="@xml/data_extraction_rules">
+In het Instellingen scherm, toon een banner als geen iCloud account gedetecteerd is:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  ⚠️ Je gegevens worden niet automatisch beveiligd            │
+│     Schakel iCloud in via Instellingen op je iPhone           │
+│                                              [Meer info]     │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-**BackupAgent:**
-```java
-public class CommEazyBackupAgent extends BackupAgentHelper {
-    @Override
-    public void onCreate() {
-        SharedPreferencesBackupHelper helper =
-            new SharedPreferencesBackupHelper(this, "commeazy_backup_prefs");
-        addHelper("prefs", helper);
-    }
-}
-```
+**Senior-friendly tekst:**
+- GEEN technisch jargon ("backup", "sync", "cloud storage")
+- WEL: "beveiligd", "opgeslagen", "veilig"
+- Geen paniek creëren — informatief, niet alarmerend
 
-**Beslissing:** Android's 24-uurs sync cyclus is geaccepteerd als platform standaard. Dit is voldoende voor CommEazy's use case — data verandert niet zo vaak dat realtime sync nodig is.
+### 3.3 Mail Re-login na Restore
 
----
+Na een iCloud Backup restore zijn mail credentials verloren (intentioneel `THIS_DEVICE_ONLY`). De app moet:
 
-## 3. Data die Opgeslagen Wordt
+1. Detecteren dat mail was geconfigureerd maar credentials ontbreken
+2. Gebruiker vriendelijk vragen om opnieuw in te loggen
+3. Geen foutmelding — gewoon een "Log opnieuw in" scherm tonen
 
-### 3.1 Data Inventaris
-
-| Data | Grootte (geschat) | Kritiek? | Backup methode |
-|------|--------------------|----------|----------------|
-| **Encryptie publieke sleutel** | ~44 bytes (base64) | KRITIEK | Cloud KV Store (B) |
-| **Encryptie privésleutel** (encrypted met PIN) | ~88 bytes (base64) | KRITIEK | Cloud KV Store (B) — ALLEEN encrypted opslaan |
-| **Contact lijst** (JIDs + namen) | ~2-5 KB | KRITIEK | Cloud KV Store (B) |
-| **App instellingen** | ~1-2 KB | BELANGRIJK | Cloud KV Store (B) |
-| **Module favorieten** (radio stations, podcasts) | ~5-10 KB | BELANGRIJK | Cloud KV Store (B) |
-| **Podcast voortgang** (per episode) | ~2-5 KB | BELANGRIJK | Cloud KV Store (B) |
-| **Module kleuren** (user customization) | ~0.5 KB | NUTTIG | Cloud KV Store (B) |
-| **Voice command customizations** | ~1-2 KB | NUTTIG | Cloud KV Store (B) |
-| **Backup metadata** (timestamp, device info) | ~0.5 KB | INTERN | Cloud KV Store (B) |
-| **Berichtgeschiedenis** | ~50-500 KB | BELANGRIJK | Platform backup (A) — WatermelonDB |
-| **Media bestanden** (foto's, audio) | Variabel | NUTTIG | Platform backup (A) — niet in KV store |
-
-**Totaal Cloud KV Store:** ~15-30 KB (ruim binnen 1 MB iOS / 5 MB Android limiet)
-
-### 3.2 Wat NIET in Cloud KV Store
-
-| Data | Reden |
-|------|-------|
-| **Onversleutelde privésleutel** | Security — NOOIT plaintext in cloud |
-| **Berichten (plaintext)** | Privacy — zero-server-storage principe |
-| **Media bestanden** | Te groot voor KV store |
-| **WatermelonDB database** | Te groot, backup via platform |
-| **Auth tokens** | Korte levensduur, opnieuw te verkrijgen |
-
-### 3.3 Encryptiesleutel Backup Strategie
-
-**KRITIEK:** De privésleutel is het belangrijkste om te backuppen. Zonder deze sleutel kan de gebruiker bestaande berichten niet meer lezen na device wissel.
-
-**Aanpak:**
-1. Privésleutel wordt versleuteld met de gebruiker's PIN (die ze al hebben)
-2. Versleutelde sleutel + salt + nonce worden opgeslagen in Cloud KV Store
-3. Bij restore: gebruiker voert PIN in → privésleutel wordt ontsleuteld
-4. Publieke sleutel wordt plaintext opgeslagen (is per definitie publiek)
-
+**Detectie:**
 ```typescript
-// Conceptuele flow
-interface BackupKeyBundle {
-  publicKey: string;           // Base64, plaintext OK
-  encryptedPrivateKey: string; // Base64, encrypted met PIN
-  salt: string;                // Base64, voor key derivation
-  nonce: string;               // Base64, voor decryptie
-  algorithm: 'xchacha20poly1305'; // Gebruikt algoritme
-  createdAt: string;           // ISO timestamp
-  deviceId: string;            // Bron device identificatie
-}
+// Als mailAccountConfig bestaat in AsyncStorage
+// MAAR Keychain credentials voor mail ontbreken
+// → Toon mail re-login scherm
 ```
+
+### 3.4 Biometrische Her-registratie na Restore
+
+Na iCloud Backup restore op een nieuw device moeten biometrische gegevens opnieuw worden geregistreerd. De Keychain item met `BIOMETRY_ANY` overleeft de restore, maar de biometrische referentie is gekoppeld aan het nieuwe device.
+
+**Gedrag:** iOS handelt dit automatisch af — bij eerste toegang tot de privésleutel wordt de gebruiker gevraagd om Face ID/Touch ID te bevestigen op het nieuwe device.
 
 ---
 
-## 4. Architectuur
+## 4. Implementatie (iOS/iPadOS)
 
-### 4.1 Componenten Overzicht
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      React Native Layer                          │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │  BackupContext (React Context)                           │    │
-│  │  - backupHealth: 'healthy' | 'warning' | 'critical'    │    │
-│  │  - lastBackupDate: Date | null                          │    │
-│  │  - isRestoring: boolean                                 │    │
-│  │  - performBackup(): Promise<void>                       │    │
-│  │  - restoreFromBackup(pin: string): Promise<void>        │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                                                                  │
-│  ┌─────────────────────┐  ┌──────────────────────────────┐     │
-│  │  backupService.ts    │  │  BackupHealthBanner.tsx      │     │
-│  │  - serialize data   │  │  - Groen/Geel/Rood status   │     │
-│  │  - encrypt keys     │  │  - Senior-friendly tekst    │     │
-│  │  - schedule backup  │  │  - Geen technisch jargon    │     │
-│  └─────────────────────┘  └──────────────────────────────┘     │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │  backupBridge.ts (unified cross-platform interface)      │    │
-│  │  - writeToCloudKV(key, data): Promise<boolean>          │    │
-│  │  - readFromCloudKV(key): Promise<data | null>           │    │
-│  │  - checkCloudAvailability(): Promise<CloudStatus>       │    │
-│  │  - getLastSyncTimestamp(): Promise<Date | null>          │    │
-│  └─────────────────────────────────────────────────────────┘    │
-├─────────────────────────────────────────────────────────────────┤
-│                      Native Layer                                │
-│                                                                  │
-│  ┌──────────────────────────┐  ┌─────────────────────────────┐ │
-│  │  iOS: BackupModule.swift  │  │  Android: BackupModule.kt   │ │
-│  │                           │  │                              │ │
-│  │  NSUbiquitousKeyValue-   │  │  BackupAgentHelper          │ │
-│  │  Store                    │  │  SharedPreferencesBackup-   │ │
-│  │                           │  │  Helper                     │ │
-│  │  Validatie:               │  │                              │ │
-│  │  - iCloud account check  │  │  Validatie:                  │ │
-│  │  - Passcode check        │  │  - Google account check     │ │
-│  │  - KV write/read test    │  │  - Backup enabled check     │ │
-│  └──────────────────────────┘  └─────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### 4.2 Bestandsstructuur
+### 4.1 Bestanden
 
 ```
 src/
   services/
     backup/
-      backupService.ts        ← Kern backup logica
-      backupBridge.ts          ← Cross-platform native bridge
-      backupSerializer.ts      ← Data serialization/deserialization
-      backupCrypto.ts          ← PIN-based key encryption voor backup
-      index.ts                 ← Exports
-  contexts/
-    BackupContext.tsx           ← App-wide backup state
+      iCloudCheck.ts            ← iCloud account detectie (native bridge)
+      index.ts                  ← Exports
   components/
-    BackupHealthBanner.tsx      ← Status banner component
-  screens/
-    settings/
-      BackupSettingsScreen.tsx  ← Backup instellingen scherm
-  types/
-    backup.ts                  ← Type definities
+    BackupWarningBanner.tsx     ← Waarschuwingsbanner (alleen bij geen iCloud)
 
 ios/CommEazyTemp/
-  BackupModule.swift           ← iOS native module
-  BackupModule.m               ← ObjC bridge
-
-android/app/src/main/java/.../
-  BackupModule.kt              ← Android native module
-  CommEazyBackupAgent.kt       ← BackupAgentHelper implementatie
+  ICloudCheckModule.swift       ← Native module voor ubiquityIdentityToken check
+  ICloudCheckModule.m           ← ObjC bridge
 ```
 
-### 4.3 Type Definities
-
-```typescript
-// types/backup.ts
-
-export type BackupHealth = 'healthy' | 'warning' | 'critical' | 'unknown';
-
-export interface CloudStatus {
-  available: boolean;           // Cloud account beschikbaar
-  accountName?: string;         // "iCloud" of "Google"
-  passcodeSet: boolean;         // Device heeft passcode/PIN
-  kvWriteTestPassed: boolean;   // Schrijf/lees test geslaagd
-  lastSyncTimestamp: string | null; // ISO timestamp laatste sync
-}
-
-export interface BackupData {
-  version: number;              // Schema versie (voor migratie)
-  createdAt: string;            // ISO timestamp
-  deviceId: string;             // Unieke device identifier
-  deviceName: string;           // "iPhone van Oma"
-
-  // Kritieke data
-  keyBundle: BackupKeyBundle;   // Encrypted encryptiesleutels
-
-  // Belangrijke data
-  contacts: BackupContact[];    // JID + naam + avatar hash
-  settings: BackupSettings;     // App instellingen
-  favorites: BackupFavorites;   // Module favorieten
-  podcastProgress: BackupPodcastProgress[];
-  moduleColors: Record<string, string>; // User color customizations
-
-  // Metadata
-  checksum: string;             // Integriteits hash
-}
-
-export interface BackupKeyBundle {
-  publicKey: string;
-  encryptedPrivateKey: string;
-  salt: string;
-  nonce: string;
-  algorithm: string;
-  createdAt: string;
-  deviceId: string;
-}
-
-export interface BackupContact {
-  jid: string;
-  displayName: string;
-  avatarHash?: string;
-}
-
-export interface BackupSettings {
-  language: string;
-  fontSize: number;
-  buttonBorderEnabled: boolean;
-  buttonBorderColor?: string;
-  reducedMotion: boolean;
-  voiceCommandsEnabled: boolean;
-  voiceCustomPatterns: Record<string, string[]>;
-}
-
-export interface BackupFavorites {
-  radioStations: Array<{ id: string; name: string; streamUrl: string }>;
-  podcastShows: Array<{ id: string; title: string; feedUrl: string }>;
-}
-
-export interface BackupPodcastProgress {
-  episodeId: string;
-  showId: string;
-  position: number;    // Seconden
-  duration: number;    // Seconden
-  completed: boolean;
-}
-```
-
----
-
-## 5. Validatie Checks (Strategie A)
-
-### 5.1 iOS Validatie Matrix
-
-| # | Check | API | Resultaat |
-|---|-------|-----|-----------|
-| 1 | **iCloud account aanwezig** | `FileManager.default.ubiquityIdentityToken` | ≠ nil → ✅ |
-| 2 | **Device passcode ingesteld** | `LAContext().canEvaluatePolicy(.deviceOwnerAuthentication)` | true → ✅ |
-| 3 | **KV Store schrijf/lees test** | `NSUbiquitousKeyValueStore` write → read → compare | match → ✅ |
-| 4 | **Keychain items correct** | Verify `kSecAttrAccessible` en `kSecAttrSynchronizable` | correct → ✅ |
-
-**NIET mogelijk via Apple API's:**
-- ❌ Controleren of iCloud Backup toggle AAN staat
-- ❌ Laatste backup datum ophalen
-- ❌ Backup grootte controleren
-- ❌ Backup completeness verifiëren
-
-### 5.2 Android Validatie Matrix
-
-| # | Check | API | Resultaat |
-|---|-------|-----|-----------|
-| 1 | **Google account aanwezig** | `AccountManager.getAccountsByType("com.google")` | length > 0 → ✅ |
-| 2 | **Backup ingeschakeld** | `BackupManager(context).isBackupEnabled` | true → ✅ |
-| 3 | **KV Store schrijf/lees test** | SharedPreferences write → read → compare | match → ✅ |
-
-### 5.3 Gezondheids Status Mapping
-
-| Status | Kleur | Conditie | Gebruiker ziet |
-|--------|-------|----------|----------------|
-| **healthy** | 🟢 Groen | Alle checks ✅ + KV sync <7 dagen | "Je gegevens zijn veilig opgeslagen" |
-| **warning** | 🟡 Geel | Cloud account mist OF sync >7 dagen | "Controleer je [iCloud/Google] instellingen" |
-| **critical** | 🔴 Rood | Geen cloud + geen passcode | "Je gegevens zijn niet beveiligd" |
-| **unknown** | ⚪ Grijs | Check nog niet voltooid | (geen banner) |
-
----
-
-## 6. Backup Flow
-
-### 6.1 Automatische Backup (dagelijks)
-
-```
-App Start / App Foreground
-    │
-    ├── Check: >24u sinds laatste backup?
-    │   ├── Nee → Skip
-    │   └── Ja ↓
-    │
-    ├── Verzamel data
-    │   ├── Contacten uit WatermelonDB
-    │   ├── Instellingen uit AsyncStorage
-    │   ├── Favorieten uit AsyncStorage
-    │   ├── Podcast voortgang uit AsyncStorage
-    │   ├── Module kleuren uit AsyncStorage
-    │   └── Encryptiesleutels uit Keychain (encrypt met opgeslagen PIN hash)
-    │
-    ├── Serialiseer naar JSON
-    │
-    ├── Bereken checksum (SHA-256)
-    │
-    ├── Schrijf naar Cloud KV Store
-    │   ├── Key: "backup_data" → gecomprimeerde JSON
-    │   ├── Key: "backup_timestamp" → ISO timestamp
-    │   ├── Key: "backup_version" → schema versie nummer
-    │   └── Key: "backup_checksum" → SHA-256 hash
-    │
-    ├── Verifieer: lees terug en vergelijk checksum
-    │   ├── Match → ✅ Backup geslaagd
-    │   └── Mismatch → ⚠️ Retry (max 3x)
-    │
-    └── Update BackupContext.lastBackupDate
-```
-
-### 6.2 Restore Flow (nieuw device / herinstallatie)
-
-```
-App Eerste Start (geen lokale data)
-    │
-    ├── Detecteer: is dit een fresh install?
-    │   ├── Check AsyncStorage voor bestaande data
-    │   └── Check Keychain voor bestaande sleutels
-    │
-    ├── Check Cloud KV Store voor backup
-    │   ├── Geen backup gevonden → Normale onboarding
-    │   └── Backup gevonden ↓
-    │
-    ├── Toon Restore Scherm
-    │   ├── "We hebben je gegevens gevonden!"
-    │   ├── Backup datum tonen
-    │   ├── Device naam tonen (bron)
-    │   └── "Voer je PIN in om te herstellen"
-    │
-    ├── Gebruiker voert PIN in
-    │   ├── Decrypt privésleutel met PIN
-    │   ├── Verifieer: public key matcht?
-    │   │   ├── Ja → ✅ Sleutels hersteld
-    │   │   └── Nee → ❌ "PIN klopt niet, probeer opnieuw"
-    │   └── Max 5 pogingen
-    │
-    ├── Herstel alle data
-    │   ├── Sleutels → Keychain
-    │   ├── Contacten → WatermelonDB
-    │   ├── Instellingen → AsyncStorage
-    │   ├── Favorieten → AsyncStorage
-    │   ├── Podcast voortgang → AsyncStorage
-    │   └── Module kleuren → AsyncStorage
-    │
-    ├── Toon Succes Scherm
-    │   ├── "Je gegevens zijn hersteld!"
-    │   ├── Samenvatting: X contacten, Y favorieten
-    │   └── "Berichten worden geladen wanneer je online bent"
-    │
-    └── Ga door naar app (skip onboarding stappen die al hersteld zijn)
-```
-
----
-
-## 7. Keychain Configuratie Wijzigingen (VEREIST)
-
-### 7.1 Huidige Situatie (PROBLEMEN)
-
-Gebaseerd op analyse van `src/services/encryption.ts` en `node_modules/react-native-keychain/ios/RNKeychainManager.m`:
-
-| Sleutel | Huidige config | Probleem |
-|---------|----------------|----------|
-| **Publieke sleutel** | `kSecAttrAccessibleAfterFirstUnlock` (default) | `kSecAttrSynchronizable` NIET expliciet op `NO` → kan naar iCloud Keychain syncen |
-| **Privésleutel** | `ACCESS_CONTROL.BIOMETRY_ANY` | Overleeft ALLEEN encrypted backups (iTunes/Finder); geen iCloud Backup |
-
-### 7.2 Benodigde Wijzigingen
-
-```typescript
-// src/services/encryption.ts — HUIDIGE code (problematisch)
-await Keychain.setGenericPassword(
-  KEY_ACCOUNT_PUBLIC,
-  to_base64(kp.publicKey, base64_variants.ORIGINAL),
-  { service: `${KEY_SERVICE}.public` },  // ← Geen accessible option
-);
-
-// NIEUWE code (na implementatie)
-await Keychain.setGenericPassword(
-  KEY_ACCOUNT_PUBLIC,
-  to_base64(kp.publicKey, base64_variants.ORIGINAL),
-  {
-    service: `${KEY_SERVICE}.public`,
-    accessible: Keychain.ACCESSIBLE.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-    // ↑ THIS_DEVICE_ONLY voorkomt iCloud Keychain sync
-    // Backup gaat via eigen Cloud KV Store (Strategie B)
-  },
-);
-
-// Privésleutel — geen wijziging nodig
-// BIOMETRY_ANY + ACCESS_CONTROL is al correct
-// Backup gaat via encrypted Cloud KV Store (Strategie B)
-```
-
-**Waarom `THIS_DEVICE_ONLY`?**
-- Zero-server-storage principe: sleutels horen niet in Apple's iCloud Keychain
-- We backuppen sleutels zelf via Cloud KV Store (encrypted met PIN)
-- `THIS_DEVICE_ONLY` items worden NIET opgenomen in iCloud Keychain sync
-
----
-
-## 8. UX Design voor Senioren
-
-### 8.1 BackupHealthBanner
-
-Altijd zichtbaar bovenaan het Instellingen scherm:
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  🟢 Je gegevens zijn veilig opgeslagen                       │
-│     Laatste opslag: vandaag om 14:32                         │
-└──────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────┐
-│  🟡 Controleer je iCloud instellingen                        │
-│     Je gegevens worden niet automatisch opgeslagen           │
-│                                                 [Meer info]  │
-└──────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────┐
-│  🔴 Je gegevens zijn niet beveiligd!                         │
-│     Bij verlies van je telefoon raak je alles kwijt           │
-│                                          [Wat moet ik doen?]  │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### 8.2 Restore Scherm (Nieuw Device)
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                                                               │
-│              🎉                                               │
-│                                                               │
-│     We hebben je gegevens gevonden!                          │
-│                                                               │
-│     Opgeslagen op: 28 februari 2026                          │
-│     Vanaf: iPhone van Oma                                    │
-│                                                               │
-│     ┌────────────────────────────────┐                       │
-│     │  Voer je PIN in: ● ● ● ●      │                       │
-│     └────────────────────────────────┘                       │
-│                                                               │
-│     ┌────────────────────────────────┐                       │
-│     │        Gegevens herstellen     │                       │
-│     └────────────────────────────────┘                       │
-│                                                               │
-│     Of: Begin opnieuw (alle gegevens verloren)               │
-│                                                               │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### 8.3 Taalregels
-
-- GEEN technisch jargon: "backup", "restore", "sync", "cloud" vermijden in UI
-- WEL gebruiken: "opslaan", "herstellen", "beveiligd", "veilig"
-- Alle teksten via `t()` in 13 talen
-
-### 8.4 i18n Keys (nieuw)
-
-```
-backup.health.healthy.title       = "Je gegevens zijn veilig opgeslagen"
-backup.health.healthy.subtitle    = "Laatste opslag: {{date}}"
-backup.health.warning.title       = "Controleer je {{provider}} instellingen"
-backup.health.warning.subtitle    = "Je gegevens worden niet automatisch opgeslagen"
-backup.health.warning.action      = "Meer info"
-backup.health.critical.title      = "Je gegevens zijn niet beveiligd!"
-backup.health.critical.subtitle   = "Bij verlies van je telefoon raak je alles kwijt"
-backup.health.critical.action     = "Wat moet ik doen?"
-
-backup.restore.found.title        = "We hebben je gegevens gevonden!"
-backup.restore.found.date         = "Opgeslagen op: {{date}}"
-backup.restore.found.device       = "Vanaf: {{device}}"
-backup.restore.enterPin           = "Voer je PIN in"
-backup.restore.button             = "Gegevens herstellen"
-backup.restore.startFresh         = "Begin opnieuw (alle gegevens verloren)"
-backup.restore.wrongPin           = "PIN klopt niet, probeer opnieuw"
-backup.restore.success.title      = "Je gegevens zijn hersteld!"
-backup.restore.success.summary    = "{{contacts}} contacten, {{favorites}} favorieten hersteld"
-backup.restore.success.messages   = "Berichten worden geladen wanneer je online bent"
-
-backup.settings.title             = "Gegevens opslaan"
-backup.settings.status            = "Status"
-backup.settings.lastBackup        = "Laatste opslag"
-backup.settings.manualBackup      = "Nu opslaan"
-backup.settings.backupInProgress  = "Bezig met opslaan..."
-```
-
----
-
-## 9. Privacy & Security
-
-### 9.1 Privacy Manifest Update (iOS)
-
-```xml
-<!-- PrivacyInfo.xcprivacy — TOEVOEGEN -->
-<dict>
-    <key>NSPrivacyAccessedAPIType</key>
-    <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
-    <key>NSPrivacyAccessedAPITypeReasons</key>
-    <array>
-        <string>CA92.1</string>  <!-- Al aanwezig: app preferences -->
-    </array>
-</dict>
-
-<!-- NSUbiquitousKeyValueStore gebruikt UserDefaults-achtige API
-     maar valt NIET onder NSPrivacyAccessedAPICategoryUserDefaults.
-     Geen extra reason code nodig. -->
-```
-
-### 9.2 Data Safety Section (Android)
-
-```
-Data types collected:
-- Device identifiers (device name for backup)
-
-Data types shared: None
-
-Data encrypted in transit: Yes (TLS)
-Data encrypted at rest: Yes (PIN-encrypted keys)
-
-Data deletion: Users can delete backup via Settings
-```
-
-### 9.3 Security Overwegingen
-
-| Risico | Mitigatie |
-|--------|----------|
-| **Privésleutel in cloud** | ALTIJD encrypted met PIN vóór cloud opslag |
-| **PIN brute-force** | Argon2id key derivation (hoog geheugen/CPU cost) |
-| **Man-in-the-middle** | Platform TLS (iCloud/Google) |
-| **Ongeautoriseerde restore** | PIN vereist + max 5 pogingen |
-| **Device diefstal + PIN bekend** | Biometrische check vóór restore op nieuw device |
-| **Cloud provider data access** | Encrypted data — Apple/Google zien alleen ciphertext |
-| **Backup data grootte leak** | Vaste structuur, geen variabele padding nodig voor KV |
-
-### 9.4 Keychain Best Practices (NA implementatie)
+### 4.2 Native Module (iOS)
 
 ```swift
-// Alle Keychain items MOETEN:
-// 1. kSecAttrSynchronizable = false (geen iCloud Keychain sync)
-// 2. kSecAttrAccessible = ...ThisDeviceOnly (niet in backup)
-// 3. Backup gaat ALLEEN via eigen Cloud KV Store
+// ICloudCheckModule.swift
+import Foundation
 
-// De reden: zero-server-storage principe
-// Apple/Google mogen GEEN onversleutelde sleutels bevatten
+@objc(ICloudCheckModule)
+class ICloudCheckModule: NSObject {
+
+  @objc
+  func checkICloudAvailability(_ resolve: @escaping RCTPromiseResolveBlock,
+                                reject: @escaping RCTPromiseRejectBlock) {
+    let hasICloud = FileManager.default.ubiquityIdentityToken != nil
+    resolve(["available": hasICloud])
+  }
+
+  @objc
+  static func requiresMainQueueSetup() -> Bool {
+    return false
+  }
+}
 ```
 
----
+### 4.3 React Native Bridge
 
-## 10. Implementatie Volgorde
+```typescript
+// src/services/backup/iCloudCheck.ts
+import { NativeModules, Platform } from 'react-native';
 
-### Fase 1: Native Modules + Bridge
+export async function isICloudAvailable(): Promise<boolean> {
+  if (Platform.OS !== 'ios') return false;
 
-1. **iOS BackupModule.swift** — NSUbiquitousKeyValueStore wrapper
-2. **iOS BackupModule.m** — ObjC bridge
-3. **backupBridge.ts** — Cross-platform TypeScript interface
-4. **Xcode entitlements** — iCloud KV store entitlement toevoegen
-5. **Types** — backup.ts type definities
+  try {
+    const { ICloudCheckModule } = NativeModules;
+    const result = await ICloudCheckModule.checkICloudAvailability();
+    return result.available === true;
+  } catch {
+    console.warn('[iCloudCheck] Failed to check iCloud availability');
+    return false; // Bij fout, niet waarschuwen (false positive vermijden)
+  }
+}
+```
 
-### Fase 2: Backup Service
+### 4.4 i18n Keys (nieuw — minimaal)
 
-6. **backupSerializer.ts** — Data verzamelen en serialiseren
-7. **backupCrypto.ts** — PIN-based encryption voor sleutels
-8. **backupService.ts** — Backup orchestratie (dagelijkse automatische backup)
+```
+backup.warning.title          = "Je gegevens worden niet automatisch beveiligd"
+backup.warning.subtitle       = "Schakel iCloud in via Instellingen op je iPhone"
+backup.warning.action         = "Meer info"
+backup.warning.infoTitle      = "Waarom iCloud?"
+backup.warning.infoBody       = "iCloud slaat al je gegevens veilig op zodat je niets kwijtraakt bij een nieuw toestel"
 
-### Fase 3: Context + UI
+backup.mail.reloginTitle      = "Log opnieuw in bij je e-mail"
+backup.mail.reloginSubtitle   = "Na het herstellen van je toestel moet je opnieuw inloggen"
+```
 
-9. **BackupContext.tsx** — React context voor backup state
-10. **BackupHealthBanner.tsx** — Status banner component
-11. **BackupSettingsScreen.tsx** — Instellingen scherm
-12. **Onboarding integratie** — Restore detectie bij eerste start
-
-### Fase 4: Keychain Fix
-
-13. **encryption.ts** — Accessible option wijzigen naar `THIS_DEVICE_ONLY`
-14. **Migratie** — Bestaande Keychain items updaten bij app update
-
-### Fase 5: Android (Later)
-
-15. **CommEazyBackupAgent.kt** — Android BackupAgentHelper
-16. **BackupModule.kt** — Android native module
-17. **Android manifest** — backup agent configuratie
-18. **backup_rules.xml** — Backup inclusion/exclusion regels
-
-### Fase 6: i18n + Testing
-
-19. **13 locale bestanden** — Alle backup.* keys in alle talen
-20. **Unit tests** — Serialization, encryption, restore flow
-21. **Integration tests** — Full backup/restore cycle
-22. **Senior user testing** — Restore flow met test personen
+Alle 13 locales moeten worden bijgewerkt (nl, en, en-GB, de, fr, es, it, no, sv, da, pt, pt-BR, pl).
 
 ---
 
-## 11. Edge Cases & Error Scenarios
+## 5. Android — Uitgesteld (Aparte Strategie Nodig)
+
+### Waarom Android Anders Is
+
+| Aspect | iOS/iPadOS | Android |
+|--------|-----------|---------|
+| **Keystore/Keychain** | Items overleven iCloud Backup | Items overleven NOOIT (altijd device-bound) |
+| **Auto Backup grootte** | Onbeperkt (iCloud storage plan) | 25 MB limiet per app |
+| **Backup frequentie** | Dagelijks (Wi-Fi + opladen) | Eén keer per 24 uur |
+| **Gebruiker controle** | Automatisch | Moet expliciet inschakelen |
+
+### Android Vereist Custom Oplossing
+
+Voor Android zal een aangepaste backup strategie nodig zijn, waarschijnlijk:
+- PIN-encrypted key backup naar Google Cloud KV Store (BackupAgentHelper)
+- Of: peer-to-peer key overdracht bij device wissel
+- Of: QR-code export van encryptiesleutels
+
+**Status:** ⏳ Uitgesteld — wordt opgepakt wanneer Android development start.
+
+---
+
+## 6. Edge Cases (iOS/iPadOS)
 
 | Scenario | Gedrag |
 |----------|--------|
-| **Geen iCloud/Google account** | Gele banner + instructie om account toe te voegen |
-| **iCloud opslag vol** | KV Store is apart (1MB) — niet afhankelijk van iCloud Storage |
-| **Meerdere devices, zelfde account** | Laatste backup wint; device naam wordt getoond |
-| **PIN vergeten bij restore** | "Begin opnieuw" optie — verliest encryptiesleutels |
-| **Schema versie mismatch** | Migratie code per versie; backward compatible |
-| **Netwerk niet beschikbaar** | Backup wordt uitgesteld; retry bij volgende foreground |
-| **Backup corrupt (checksum fail)** | Vorige backup behouden; retry met verse data |
-| **Device wisselt platform** (iOS → Android) | NIET ondersteund — KV stores zijn platform-specifiek |
-
-### Cross-Platform Device Wissel
-
-**iOS → Android of Android → iOS wordt NIET ondersteund** via automatische backup.
-
-Reden: NSUbiquitousKeyValueStore en BackupAgentHelper zijn volledig gescheiden ecosystemen.
-
-**Oplossing voor cross-platform:** Handmatige export/import via QR-code of bestandsoverdracht. Dit is een toekomstige feature (niet in scope van dit plan).
+| **Geen iCloud account** | Waarschuwingsbanner in Instellingen |
+| **iCloud Backup toggle UIT** | Niet detecteerbaar via API — banner alleen bij geen account |
+| **iCloud opslag vol** | Apple waarschuwt gebruiker zelf; CommEazy app data is klein |
+| **Nieuw device, zelfde Apple ID** | iCloud Backup restore → alle data intact |
+| **Nieuw device, ANDER Apple ID** | Data verloren — niet te voorkomen (Apple beperking) |
+| **Mail credentials na restore** | Gebruiker logt opnieuw in (verwacht gedrag) |
+| **Face ID/Touch ID na restore** | iOS vraagt automatisch om her-registratie |
+| **iOS → Android wissel** | NIET ondersteund — platform-specifieke backup |
+| **Advanced Data Protection (ADP)** | Extra beveiliging — E2E encrypted backup. CommEazy profiteert automatisch |
 
 ---
 
-## 12. Monitoring & Logging
+## 7. Privacy & Security
 
-```typescript
-// Logging richtlijnen (conform CLAUDE.md sectie "Logging Richtlijnen")
+### Zero-Server-Storage Compliance
 
-// ✅ WEL loggen:
-console.info('[BackupService] Backup completed', {
-  dataSize: 28400,  // bytes
-  itemCount: { contacts: 12, favorites: 8 },
-  duration: 1200,   // ms
-});
+| Vraag | Antwoord |
+|-------|----------|
+| Slaat CommEazy data op een CommEazy server? | ❌ Nee |
+| Heeft CommEazy toegang tot iCloud Backup data? | ❌ Nee |
+| Wie beheert de backup encryptie? | Apple (AES-256, optioneel E2E met ADP) |
+| Wie heeft de decryptiesleutel? | Alleen de gebruiker (via Apple ID) |
+| Is dit consistent met privacy beleid? | ✅ Ja — "wij slaan niets op" blijft waar |
 
-console.warn('[BackupService] Cloud KV not available - retrying');
+### Keychain Security Model
 
-console.error('[BackupService] Backup verification failed', {
-  reason: 'checksum_mismatch'
-});
+| Sleutel | Wie kan lezen | Backup inclusie | Acceptabel? |
+|---------|---------------|-----------------|-------------|
+| E2E publieke sleutel | App (na device unlock) | iCloud Backup (encrypted door Apple) | ✅ Ja — publiek per definitie |
+| E2E privésleutel | App (na biometrie) | iCloud Backup (encrypted door Apple) | ✅ Ja — Apple beheert encryptie |
+| Mail credentials | App (na device unlock) | ❌ Uitgesloten | ✅ Ja — gebruiker logt opnieuw in |
 
-// ❌ NIET loggen:
-console.log('[BackupService] Contact:', contact.name);     // PII
-console.log('[BackupService] Key:', publicKey);             // Security
-console.log('[BackupService] Data:', JSON.stringify(data)); // Privacy
-```
+### Privacy Manifest (iOS)
 
----
-
-## 13. Afhankelijkheden
-
-| Dependency | Doel | Status |
-|------------|------|--------|
-| **react-native-keychain** | Keychain toegang | ✅ Al geïnstalleerd (v8.2.0) |
-| **libsodium** | Encryptie (PIN-based) | ✅ Al geïnstalleerd |
-| **@react-native-async-storage** | AsyncStorage backup bron | ✅ Al geïnstalleerd |
-| **WatermelonDB** | Database backup bron | ✅ Al geïnstalleerd |
-| **iCloud KV entitlement** | iOS cloud opslag | ❌ Toe te voegen |
-| **Android Backup manifest** | Android backup | ❌ Toe te voegen |
-
-Geen nieuwe npm dependencies vereist.
+Geen wijzigingen nodig — iCloud Backup is een systeemfunctie die geen extra Privacy Manifest entries vereist. De bestaande `PrivacyInfo.xcprivacy` is correct.
 
 ---
 
-## 14. Productie Validatie Gate
+## 8. Pre-Productie Checklist (iOS/iPadOS)
 
-**Dit item is een BLOKKEERDER voor productie release.**
-
-Zie CLAUDE.md Feature Backlog voor de productie gate entry.
-
-### Pre-Productie Checklist
-
-- [ ] iOS BackupModule.swift werkend
-- [ ] Android BackupModule.kt werkend
-- [ ] Automatische dagelijkse backup actief
-- [ ] Restore flow getest op nieuw device
-- [ ] PIN-encrypted key backup/restore cyclus getest
-- [ ] BackupHealthBanner zichtbaar in Instellingen
+- [ ] ICloudCheckModule.swift native module werkend
+- [ ] iCloud account detectie getest
+- [ ] BackupWarningBanner zichtbaar wanneer geen iCloud account
+- [ ] Mail re-login flow na restore getest
+- [ ] Biometrische her-registratie na restore geverifieerd
 - [ ] i18n keys in alle 13 talen
-- [ ] Privacy Manifest bijgewerkt
-- [ ] Data Safety Section bijgewerkt
-- [ ] Keychain `THIS_DEVICE_ONLY` migratie getest
-- [ ] Edge cases getest (geen cloud, vol, corrupt)
-- [ ] Senior user test uitgevoerd
+- [ ] Volledige iCloud Backup restore getest op fysiek device
+  - [ ] Berichten intact
+  - [ ] Contacten intact
+  - [ ] Encryptiesleutels intact (kan berichten decrypten)
+  - [ ] Instellingen intact
+  - [ ] Favorieten intact (radio, podcast, muziek)
+  - [ ] Mail credentials: re-login flow geactiveerd
+- [ ] Getest met Advanced Data Protection (ADP) aan en uit
 
 ---
 
-## Referenties
+## 9. Referenties
 
-- [Apple: NSUbiquitousKeyValueStore](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore)
-- [Apple: Designing iCloud Key-Value Storage](https://developer.apple.com/library/archive/documentation/General/Conceptual/iCloudDesignGuide/Chapters/DesigningForKey-ValueDataIniCloud.html)
-- [Android: Key/Value Backup](https://developer.android.com/identity/data/keyvaluebackup)
-- [Android: BackupAgentHelper](https://developer.android.com/reference/android/app/backup/BackupAgentHelper)
+- [Apple: About iCloud Backup](https://support.apple.com/en-us/108770)
+- [Apple: Advanced Data Protection](https://support.apple.com/en-us/102651)
+- [Apple: Keychain Data Protection](https://developer.apple.com/documentation/security/keychain_services/keychain_items/restricting_keychain_item_accessibility)
+- [Apple: FileManager.ubiquityIdentityToken](https://developer.apple.com/documentation/foundation/filemanager/1408036-ubiquityidentitytoken)
 - CommEazy Security Expert SKILL.md
 - CommEazy Architecture Lead SKILL.md
