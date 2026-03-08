@@ -58,6 +58,8 @@ interface AppleMusicDetailModalProps {
   onClose: () => void;
   // Initial data from search results (shown while loading full details)
   initialData?: AppleMusicArtist | AppleMusicAlbum | AppleMusicPlaylist;
+  /** Callback when user taps heart on a song — opens "add to list" flow */
+  onAddToList?: (song: AppleMusicSong) => void;
 }
 
 // ============================================================
@@ -70,6 +72,7 @@ export function AppleMusicDetailModal({
   id,
   onClose,
   initialData,
+  onAddToList,
 }: AppleMusicDetailModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -218,10 +221,10 @@ export function AppleMusicDetailModal({
           </Text>
         </View>
         <IconButton
-          icon="play"
+          icon="heart"
           size={36}
-          onPress={() => handlePlaySong(song)}
-          accessibilityLabel={t('modules.appleMusic.play', { title: song.title })}
+          onPress={() => onAddToList?.(song)}
+          accessibilityLabel={t('appleMusic.collections.addToList', { title: song.title })}
         />
       </TouchableOpacity>
     </VoiceFocusable>
