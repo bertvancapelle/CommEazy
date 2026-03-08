@@ -792,12 +792,12 @@ export class ChatService {
       let message: Message;
       const chatId = this.getChatId(bareFrom);
 
-      // Try to parse as media message
-      let isMediaMessage = false;
+      // Try to parse as structured message (photo, agenda item, etc.)
+      let isStructuredMessage = false;
       try {
         const parsed = JSON.parse(content);
         if (parsed.type === 'image' && parsed.data) {
-          isMediaMessage = true;
+          isStructuredMessage = true;
           console.log(`[ChatService] Received photo message`);
 
           // Save photo to local file system
@@ -828,13 +828,29 @@ export class ChatService {
             mediaSize: parsed.size,
           };
           console.log(`[ChatService] Photo saved to: ${photoPath}`);
+        } else if (parsed.type === 'agenda_item' && parsed.title) {
+          isStructuredMessage = true;
+          console.log(`[ChatService] Received agenda item: ${parsed.title}`);
+
+          // Store the full JSON payload as content for rendering
+          message = {
+            id,
+            chatId,
+            senderId: bareFrom,
+            senderName: getContactDisplayName(contact),
+            content, // Full JSON string — parsed by AgendaItemBubble
+            contentType: 'agenda_item',
+            timestamp: Date.now(),
+            status: 'delivered',
+            isRead: false,
+          };
         }
       } catch {
         // Not JSON, treat as regular text message
       }
 
       // Regular text message
-      if (!isMediaMessage) {
+      if (!isStructuredMessage) {
         message = {
           id,
           chatId,

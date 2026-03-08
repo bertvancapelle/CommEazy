@@ -2242,6 +2242,29 @@
         "remindLater": "Later herinneren",
         "markedTaken": "Gemarkeerd als ingenomen",
         "markedSkipped": "Gemarkeerd als overgeslagen"
+      },
+      "share": {
+        "title": "Delen met...",
+        "selectContact": "Kies een contact",
+        "sendButton": "Versturen ({{count}})",
+        "sending": "Versturen...",
+        "successTitle": "Gedeeld",
+        "successMessage": "Item gedeeld met {{count}} contact(en)",
+        "errorTitle": "Delen mislukt",
+        "errorMessage": "Er ging iets mis. Probeer het opnieuw.",
+        "noContacts": "Geen contacten gevonden",
+        "medicationWarning": "Dit medicijn wordt gedeeld. De ontvanger kan dit toevoegen aan eigen agenda."
+      },
+      "chat": {
+        "agendaItem": "Agenda-afspraak",
+        "addToAgenda": "Toevoegen aan mijn agenda",
+        "addedToAgenda": "Toegevoegd aan agenda"
+      },
+      "welcome": {
+        "step1": "Plan afspraken, verjaardagen en medicijnen op één plek.",
+        "step2": "Stel herinneringen in zodat je niets vergeet.",
+        "step3": "Deel agenda-items met familie en vrienden.",
+        "understood": "Begrepen"
       }
     }
   },

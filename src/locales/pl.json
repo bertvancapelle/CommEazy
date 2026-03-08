@@ -2097,6 +2097,29 @@
         "remindLater": "Przypomnij mi później",
         "markedTaken": "Oznaczony jako przyjęty",
         "markedSkipped": "Oznaczony jako pominięty"
+      },
+      "share": {
+        "title": "Udostępnij...",
+        "selectContact": "Wybierz kontakt",
+        "sendButton": "Wyślij ({{count}})",
+        "sending": "Wysyłanie...",
+        "successTitle": "Udostępniono",
+        "successMessage": "Element udostępniony {{count}} kontaktowi/om",
+        "errorTitle": "Udostępnianie nie powiodło się",
+        "errorMessage": "Coś poszło nie tak. Spróbuj ponownie.",
+        "noContacts": "Nie znaleziono kontaktów",
+        "medicationWarning": "Ten lek zostanie udostępniony. Odbiorca może dodać go do swojego kalendarza."
+      },
+      "chat": {
+        "agendaItem": "Wydarzenie w kalendarzu",
+        "addToAgenda": "Dodaj do mojego kalendarza",
+        "addedToAgenda": "Dodano do kalendarza"
+      },
+      "welcome": {
+        "step1": "Planuj wizyty, urodziny i leki w jednym miejscu.",
+        "step2": "Ustaw przypomnienia, aby niczego nie zapomnieć.",
+        "step3": "Udostępniaj pozycje kalendarza rodzinie i znajomym.",
+        "understood": "Rozumiem"
       }
     }
   },

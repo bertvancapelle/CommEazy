@@ -2232,6 +2232,29 @@
         "remindLater": "Recordarme más tarde",
         "markedTaken": "Marcado como tomado",
         "markedSkipped": "Marcado como omitido"
+      },
+      "share": {
+        "title": "Compartir con...",
+        "selectContact": "Elige un contacto",
+        "sendButton": "Enviar ({{count}})",
+        "sending": "Enviando...",
+        "successTitle": "Compartido",
+        "successMessage": "Elemento compartido con {{count}} contacto(s)",
+        "errorTitle": "Error al compartir",
+        "errorMessage": "Algo salió mal. Por favor, inténtalo de nuevo.",
+        "noContacts": "No se encontraron contactos",
+        "medicationWarning": "Este medicamento se compartirá. El destinatario puede añadirlo a su propia agenda."
+      },
+      "chat": {
+        "agendaItem": "Cita de agenda",
+        "addToAgenda": "Añadir a mi agenda",
+        "addedToAgenda": "Añadido a la agenda"
+      },
+      "welcome": {
+        "step1": "Planifica citas, cumpleaños y medicamentos en un solo lugar.",
+        "step2": "Configura recordatorios para no olvidar nada.",
+        "step3": "Comparte elementos de agenda con familia y amigos.",
+        "understood": "Entendido"
       }
     }
   },

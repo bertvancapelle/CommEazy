@@ -42,7 +42,8 @@ import {
 } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
-import { MessageStatus, PhotoMessageBubble, Icon } from '@/components';
+import { MessageStatus, PhotoMessageBubble, AgendaItemBubble, Icon } from '@/components';
+import type { AgendaItemPayload } from '@/components';
 import type { Message } from '@/services/interfaces';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import type { ChatStackParams } from '@/navigation';
@@ -345,6 +346,31 @@ export function ChatScreen() {
       const isOwn = myJid
         ? item.senderId === myJid
         : item.senderName === 'Ik'; // Fallback for dev mode without service
+
+      // Render agenda item message with AgendaItemBubble
+      if (item.contentType === 'agenda_item') {
+        try {
+          const payload: AgendaItemPayload = JSON.parse(item.content);
+          return (
+            <AgendaItemBubble
+              payload={payload}
+              isOwn={isOwn}
+              timestamp={item.timestamp}
+              onAddToAgenda={!isOwn ? async (p) => {
+                try {
+                  const { addAgendaItemFromShare } = await import('@/services/agendaShare');
+                  await addAgendaItemFromShare(p, item.senderId);
+                  console.info('[ChatScreen] Agenda item added to own agenda');
+                } catch (error) {
+                  console.warn('[ChatScreen] Failed to add agenda item:', error);
+                }
+              } : undefined}
+            />
+          );
+        } catch {
+          // Invalid JSON — fall through to text rendering
+        }
+      }
 
       // Render photo message with PhotoMessageBubble
       if (item.contentType === 'image' && item.mediaUri) {

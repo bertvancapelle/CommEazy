@@ -12,7 +12,7 @@
 // Common Types
 // ============================================================
 
-export type ContentType = 'text' | 'image' | 'video';
+export type ContentType = 'text' | 'image' | 'video' | 'agenda_item';
 export type EncryptionMode = '1on1' | 'encrypt-to-all' | 'shared-key';
 export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'expired';
 export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';

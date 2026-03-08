@@ -2076,6 +2076,29 @@
         "remindLater": "Påmind mig senere",
         "markedTaken": "Markeret som taget",
         "markedSkipped": "Markeret som sprunget over"
+      },
+      "share": {
+        "title": "Del med...",
+        "selectContact": "Vælg en kontakt",
+        "sendButton": "Send ({{count}})",
+        "sending": "Sender...",
+        "successTitle": "Delt",
+        "successMessage": "Element delt med {{count}} kontakt(er)",
+        "errorTitle": "Deling mislykkedes",
+        "errorMessage": "Noget gik galt. Prøv venligst igen.",
+        "noContacts": "Ingen kontakter fundet",
+        "medicationWarning": "Denne medicin vil blive delt. Modtageren kan tilføje den til sin egen kalender."
+      },
+      "chat": {
+        "agendaItem": "Kalenderbegivenhed",
+        "addToAgenda": "Tilføj til min kalender",
+        "addedToAgenda": "Tilføjet til kalenderen"
+      },
+      "welcome": {
+        "step1": "Planlæg aftaler, fødselsdage og medicin ét sted.",
+        "step2": "Indstil påmindelser, så du ikke glemmer noget.",
+        "step3": "Del kalenderpunkter med familie og venner.",
+        "understood": "Forstået"
       }
     }
   },

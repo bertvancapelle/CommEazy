@@ -141,6 +141,10 @@ export type { TimeSliderProps } from './TimeSlider';
 export { PhotoMessageBubble } from './PhotoMessageBubble';
 export type { PhotoMessageBubbleProps } from './PhotoMessageBubble';
 
+// Agenda Item Bubble (for shared agenda items in chat)
+export { AgendaItemBubble } from './AgendaItemBubble';
+export type { AgendaItemBubbleProps, AgendaItemPayload } from './AgendaItemBubble';
+
 // Photo Recipient Modal (for selecting photo send recipients)
 export { PhotoRecipientModal } from './PhotoRecipientModal';
 export type { PhotoRecipientModalProps } from './PhotoRecipientModal';

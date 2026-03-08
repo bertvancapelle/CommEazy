@@ -187,3 +187,9 @@ export {
   type NotificationEvent,
   type NotificationEventHandler,
 } from './localNotifications';
+
+// ============================================================
+// Agenda Sharing
+// ============================================================
+
+export { addAgendaItemFromShare } from './agendaShare';

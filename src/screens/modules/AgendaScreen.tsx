@@ -15,14 +15,17 @@
  * @see .claude/plans/AGENDA_MODULE.md for full spec
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Modal,
+  TouchableOpacity,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -49,6 +52,7 @@ import { AgendaItemDetailScreen } from './AgendaItemDetailScreen';
 // ============================================================
 
 const MODULE_ID = 'agenda';
+const WELCOME_SHOWN_KEY = 'agenda_welcome_shown';
 
 // ============================================================
 // TimelineItemRow — Individual agenda item
@@ -242,6 +246,19 @@ function AgendaScreenInner() {
   const [currentView, setCurrentView] = useState<AgendaView>({ screen: 'timeline' });
   const [activeTab, setActiveTab] = useState<'overview' | 'search'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Welcome modal for first-time users
+  useEffect(() => {
+    AsyncStorage.getItem(WELCOME_SHOWN_KEY).then((value) => {
+      if (!value) setShowWelcome(true);
+    });
+  }, []);
+
+  const handleWelcomeDismiss = useCallback(async () => {
+    setShowWelcome(false);
+    await AsyncStorage.setItem(WELCOME_SHOWN_KEY, 'true');
+  }, []);
 
   // Pull-to-refresh
   const handleRefresh = useCallback(async () => {
@@ -624,6 +641,69 @@ function AgendaScreenInner() {
           </View>
         </ScrollView>
       )}
+
+      {/* Welcome Modal */}
+      <Modal
+        visible={showWelcome}
+        animationType="fade"
+        transparent
+        onRequestClose={handleWelcomeDismiss}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
+            {/* Header */}
+            <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
+              <Icon name="calendar" size={48} color={colors.textOnPrimary} />
+              <Text style={[styles.welcomeTitle, { color: colors.textOnPrimary }]}>
+                {t('modules.agenda.title')}
+              </Text>
+            </View>
+
+            {/* Steps */}
+            <View style={styles.welcomeContent}>
+              <View style={styles.welcomeStep}>
+                <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                  <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>1</Text>
+                </View>
+                <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                  {t('modules.agenda.welcome.step1')}
+                </Text>
+              </View>
+
+              <View style={styles.welcomeStep}>
+                <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                  <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>2</Text>
+                </View>
+                <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                  {t('modules.agenda.welcome.step2')}
+                </Text>
+              </View>
+
+              <View style={styles.welcomeStep}>
+                <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                  <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>3</Text>
+                </View>
+                <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                  {t('modules.agenda.welcome.step3')}
+                </Text>
+              </View>
+            </View>
+
+            {/* Button */}
+            <TouchableOpacity
+              style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
+              onPress={handleWelcomeDismiss}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.agenda.welcome.understood')}
+            >
+              <Text style={[styles.welcomeButtonText, { color: colors.textOnPrimary }]}>
+                {t('modules.agenda.welcome.understood')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -835,5 +915,68 @@ const styles = StyleSheet.create({
     ...typography.body,
     textAlign: 'center',
     paddingVertical: spacing.md,
+  },
+
+  // Welcome modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  welcomeModal: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  welcomeHeader: {
+    alignItems: 'center',
+    padding: spacing.xl,
+    gap: spacing.sm,
+  },
+  welcomeTitle: {
+    ...typography.h2,
+    color: colors.textOnPrimary,
+    textAlign: 'center',
+  },
+  welcomeContent: {
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  welcomeStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  stepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumberText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+  },
+  stepText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  welcomeButton: {
+    margin: spacing.lg,
+    marginTop: 0,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
+  },
+  welcomeButtonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
   },
 });

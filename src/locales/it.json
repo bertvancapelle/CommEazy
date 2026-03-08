@@ -2180,6 +2180,29 @@
         "remindLater": "Ricordami più tardi",
         "markedTaken": "Segnato come assunto",
         "markedSkipped": "Segnato come saltato"
+      },
+      "share": {
+        "title": "Condividi con...",
+        "selectContact": "Scegli un contatto",
+        "sendButton": "Invia ({{count}})",
+        "sending": "Invio in corso...",
+        "successTitle": "Condiviso",
+        "successMessage": "Elemento condiviso con {{count}} contatto/i",
+        "errorTitle": "Condivisione fallita",
+        "errorMessage": "Qualcosa è andato storto. Riprova.",
+        "noContacts": "Nessun contatto trovato",
+        "medicationWarning": "Questo farmaco verrà condiviso. Il destinatario può aggiungerlo alla propria agenda."
+      },
+      "chat": {
+        "agendaItem": "Appuntamento",
+        "addToAgenda": "Aggiungi alla mia agenda",
+        "addedToAgenda": "Aggiunto all'agenda"
+      },
+      "welcome": {
+        "step1": "Pianifica appuntamenti, compleanni e farmaci in un unico posto.",
+        "step2": "Imposta promemoria per non dimenticare nulla.",
+        "step3": "Condividi elementi dell'agenda con familiari e amici.",
+        "understood": "Capito"
       }
     }
   },

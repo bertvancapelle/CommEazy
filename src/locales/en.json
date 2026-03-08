@@ -2247,6 +2247,29 @@
         "remindLater": "Remind me later",
         "markedTaken": "Marked as taken",
         "markedSkipped": "Marked as skipped"
+      },
+      "share": {
+        "title": "Share with...",
+        "selectContact": "Select a contact",
+        "sendButton": "Send ({{count}})",
+        "sending": "Sending...",
+        "successTitle": "Shared",
+        "successMessage": "Item shared with {{count}} contact(s)",
+        "errorTitle": "Sharing failed",
+        "errorMessage": "Something went wrong. Please try again.",
+        "noContacts": "No contacts found",
+        "medicationWarning": "This medication will be shared. The recipient can add it to their own agenda."
+      },
+      "chat": {
+        "agendaItem": "Agenda item",
+        "addToAgenda": "Add to my agenda",
+        "addedToAgenda": "Added to agenda"
+      },
+      "welcome": {
+        "step1": "Plan appointments, birthdays, and medications in one place.",
+        "step2": "Set reminders so you never forget.",
+        "step3": "Share agenda items with family and friends.",
+        "understood": "Got it"
       }
     }
   },

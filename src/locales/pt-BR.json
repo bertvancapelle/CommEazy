@@ -2251,6 +2251,29 @@
         "remindLater": "Lembrar-me mais tarde",
         "markedTaken": "Marcado como tomado",
         "markedSkipped": "Marcado como pulado"
+      },
+      "share": {
+        "title": "Compartilhar com...",
+        "selectContact": "Escolher um contato",
+        "sendButton": "Enviar ({{count}})",
+        "sending": "Enviando...",
+        "successTitle": "Compartilhado",
+        "successMessage": "Item compartilhado com {{count}} contato(s)",
+        "errorTitle": "Falha ao compartilhar",
+        "errorMessage": "Algo deu errado. Tente novamente.",
+        "noContacts": "Nenhum contato encontrado",
+        "medicationWarning": "Este medicamento será compartilhado. O destinatário pode adicioná-lo à sua própria agenda."
+      },
+      "chat": {
+        "agendaItem": "Compromisso",
+        "addToAgenda": "Adicionar à minha agenda",
+        "addedToAgenda": "Adicionado à agenda"
+      },
+      "welcome": {
+        "step1": "Planeje consultas, aniversários e medicamentos em um só lugar.",
+        "step2": "Defina lembretes para não esquecer de nada.",
+        "step3": "Compartilhe itens da agenda com família e amigos.",
+        "understood": "Entendido"
       }
     }
   },

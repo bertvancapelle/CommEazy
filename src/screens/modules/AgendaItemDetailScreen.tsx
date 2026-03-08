@@ -20,12 +20,13 @@ import {
   ScrollView,
   Alert,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable } from '@/components';
+import { Icon, HapticTouchable, ContactAvatar, Button } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -38,6 +39,9 @@ import {
   REPEAT_OPTIONS,
   REMINDER_OPTIONS,
 } from '@/constants/agendaCategories';
+import type { Contact } from '@/services/interfaces';
+import { getContactDisplayName } from '@/services/interfaces';
+import { ServiceContainer } from '@/services/container';
 
 // ============================================================
 // Props
@@ -228,6 +232,7 @@ export function AgendaItemDetailScreen({
     deleteItem,
     logMedication,
     deleteSingleOccurrence,
+    shareItem,
   } = useAgendaContext();
 
   const locale = getLocaleString(i18n.language);
@@ -237,6 +242,13 @@ export function AgendaItemDetailScreen({
     visible: boolean;
     action: 'edit' | 'delete';
   }>({ visible: false, action: 'edit' });
+
+  // Share modal state
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareContacts, setShareContacts] = useState<Contact[]>([]);
+  const [shareContactsLoading, setShareContactsLoading] = useState(false);
+  const [selectedShareContacts, setSelectedShareContacts] = useState<Set<string>>(new Set());
+  const [isSharing, setIsSharing] = useState(false);
 
   // ============================================================
   // Info display values
@@ -364,11 +376,63 @@ export function AgendaItemDetailScreen({
     onBack();
   }, [item, logMedication, onBack]);
 
-  // Share (placeholder — Fase 7)
-  const handleShare = useCallback(() => {
-    // TODO: Fase 7 — share via XMPP
-    console.debug('[AgendaDetail] Share tapped for item:', item.id);
-  }, [item.id]);
+  // Share — open contact picker modal
+  const handleShare = useCallback(async () => {
+    setShowShareModal(true);
+    setSelectedShareContacts(new Set());
+    setShareContactsLoading(true);
+
+    try {
+      const contacts = await ServiceContainer.database.getContactsOnce();
+      setShareContacts(contacts);
+    } catch (error) {
+      console.warn('[AgendaDetail] Failed to load contacts:', error);
+      setShareContacts([]);
+    } finally {
+      setShareContactsLoading(false);
+    }
+  }, []);
+
+  const handleShareToggleContact = useCallback((contact: Contact) => {
+    setSelectedShareContacts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(contact.jid)) {
+        newSet.delete(contact.jid);
+      } else {
+        newSet.add(contact.jid);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleShareConfirm = useCallback(async () => {
+    if (!item.modelId || selectedShareContacts.size === 0) return;
+
+    setIsSharing(true);
+    try {
+      const jids = Array.from(selectedShareContacts);
+      await shareItem(item.modelId, jids);
+      setShowShareModal(false);
+
+      // Show success feedback
+      Alert.alert(
+        t('modules.agenda.share.successTitle'),
+        t('modules.agenda.share.successMessage', { count: jids.length }),
+      );
+    } catch (error) {
+      console.warn('[AgendaDetail] Share failed:', error);
+      Alert.alert(
+        t('modules.agenda.share.errorTitle'),
+        t('modules.agenda.share.errorMessage'),
+      );
+    } finally {
+      setIsSharing(false);
+    }
+  }, [item.modelId, selectedShareContacts, shareItem, t]);
+
+  const handleShareClose = useCallback(() => {
+    setShowShareModal(false);
+  }, []);
 
   // Check if medication was already logged for this date
   const medicationStatus = useMemo(() => {
@@ -565,6 +629,159 @@ export function AgendaItemDetailScreen({
         onAllFollowing={handleAllFollowing}
         onCancel={handleCancelRecurring}
       />
+
+      {/* Share contact picker modal */}
+      <Modal
+        visible={showShareModal}
+        animationType="slide"
+        onRequestClose={handleShareClose}
+      >
+        <View style={[shareStyles.container, { backgroundColor: themeColors.background }]}>
+          {/* Header */}
+          <View
+            style={[
+              shareStyles.header,
+              {
+                backgroundColor: moduleColor,
+                paddingTop: insets.top + spacing.sm,
+              },
+            ]}
+          >
+            <HapticTouchable
+              style={shareStyles.closeButton}
+              onPress={handleShareClose}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel')}
+            >
+              <Icon name="x" size={24} color={colors.textOnPrimary} />
+            </HapticTouchable>
+            <Text style={shareStyles.headerTitle}>
+              {t('modules.agenda.share.title')}
+            </Text>
+            <View style={shareStyles.headerSpacer} />
+          </View>
+
+          {/* Item summary */}
+          <View style={[shareStyles.itemSummary, { borderColor: themeColors.border }]}>
+            <Text style={[shareStyles.itemIcon]}>{item.icon}</Text>
+            <View style={shareStyles.itemInfo}>
+              <Text
+                style={[shareStyles.itemTitle, { color: themeColors.textPrimary }]}
+                numberOfLines={1}
+              >
+                {item.title}
+              </Text>
+              <Text style={[shareStyles.itemDate, { color: themeColors.textSecondary }]}>
+                {dateDisplay}
+                {item.time ? ` — ${item.time}` : ''}
+              </Text>
+            </View>
+          </View>
+
+          {/* Medication privacy warning */}
+          {item.isMedication && (
+            <View style={[shareStyles.privacyWarning, { borderColor: themeColors.warning ?? '#FF9800' }]}>
+              <Text style={shareStyles.privacyIcon}>⚠️</Text>
+              <Text style={[shareStyles.privacyText, { color: themeColors.textPrimary }]}>
+                {t('modules.agenda.share.medicationWarning')}
+              </Text>
+            </View>
+          )}
+
+          {/* Contact list */}
+          {shareContactsLoading ? (
+            <View style={shareStyles.loadingContainer}>
+              <ActivityIndicator size="large" />
+              <Text style={[shareStyles.loadingText, { color: themeColors.textSecondary }]}>
+                {t('common.loading')}
+              </Text>
+            </View>
+          ) : shareContacts.length === 0 ? (
+            <View style={shareStyles.emptyContainer}>
+              <Text style={[shareStyles.emptyText, { color: themeColors.textSecondary }]}>
+                {t('modules.agenda.share.noContacts')}
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={shareStyles.contactList}>
+              {shareContacts.map(contact => {
+                const isSelected = selectedShareContacts.has(contact.jid);
+                const displayName = getContactDisplayName(contact);
+                return (
+                  <HapticTouchable
+                    key={contact.jid}
+                    style={[
+                      shareStyles.contactRow,
+                      { borderColor: themeColors.border },
+                      isSelected && {
+                        backgroundColor: accentColor.primary + '15',
+                        borderColor: accentColor.primary,
+                      },
+                    ]}
+                    onPress={() => handleShareToggleContact(contact)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isSelected }}
+                    accessibilityLabel={displayName}
+                  >
+                    <ContactAvatar
+                      name={displayName}
+                      size={44}
+                    />
+                    <Text
+                      style={[shareStyles.contactName, { color: themeColors.textPrimary }]}
+                      numberOfLines={1}
+                    >
+                      {displayName}
+                    </Text>
+                    <View
+                      style={[
+                        shareStyles.checkbox,
+                        { borderColor: themeColors.border },
+                        isSelected && {
+                          backgroundColor: accentColor.primary,
+                          borderColor: accentColor.primary,
+                        },
+                      ]}
+                    >
+                      {isSelected && (
+                        <Icon name="check" size={16} color={colors.textOnPrimary} />
+                      )}
+                    </View>
+                  </HapticTouchable>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {/* Bottom bar with send button */}
+          <View
+            style={[
+              shareStyles.bottomBar,
+              {
+                paddingBottom: insets.bottom + spacing.md,
+                borderTopColor: themeColors.border,
+              },
+            ]}
+          >
+            <Button
+              title={
+                isSharing
+                  ? t('modules.agenda.share.sending')
+                  : selectedShareContacts.size === 0
+                    ? t('modules.agenda.share.selectContact')
+                    : t('modules.agenda.share.sendButton', { count: selectedShareContacts.size })
+              }
+              onPress={handleShareConfirm}
+              disabled={selectedShareContacts.size === 0 || isSharing}
+              style={{
+                ...shareStyles.sendButton,
+                backgroundColor: accentColor.primary,
+                opacity: (selectedShareContacts.size === 0 || isSharing) ? 0.5 : 1,
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -706,5 +923,144 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     ...typography.button,
     fontWeight: '600',
+  },
+});
+
+// ============================================================
+// Share Modal Styles
+// ============================================================
+
+const shareStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  closeButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+  },
+  headerTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: spacing.sm,
+  },
+  headerSpacer: {
+    width: touchTargets.minimum,
+  },
+
+  // Item summary
+  itemSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    margin: spacing.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+  },
+  itemIcon: {
+    fontSize: 28,
+  },
+  itemInfo: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  itemTitle: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+  itemDate: {
+    ...typography.label,
+  },
+
+  // Privacy warning (medication)
+  privacyWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    backgroundColor: 'rgba(255, 152, 0, 0.08)',
+  },
+  privacyIcon: {
+    fontSize: 18,
+  },
+  privacyText: {
+    ...typography.label,
+    flex: 1,
+  },
+
+  // Contact list
+  contactList: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+    minHeight: touchTargets.comfortable,
+  },
+  contactName: {
+    ...typography.body,
+    flex: 1,
+  },
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Loading / Empty
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  loadingText: {
+    ...typography.body,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  emptyText: {
+    ...typography.body,
+    textAlign: 'center',
+  },
+
+  // Bottom bar
+  bottomBar: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+  },
+  sendButton: {
+    minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
   },
 });

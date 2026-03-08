@@ -2249,6 +2249,29 @@
         "remindLater": "Lembrar-me mais tarde",
         "markedTaken": "Marcado como tomado",
         "markedSkipped": "Marcado como saltado"
+      },
+      "share": {
+        "title": "Partilhar com...",
+        "selectContact": "Escolher um contacto",
+        "sendButton": "Enviar ({{count}})",
+        "sending": "A enviar...",
+        "successTitle": "Partilhado",
+        "successMessage": "Item partilhado com {{count}} contacto(s)",
+        "errorTitle": "Falha ao partilhar",
+        "errorMessage": "Algo correu mal. Tente novamente.",
+        "noContacts": "Nenhum contacto encontrado",
+        "medicationWarning": "Este medicamento será partilhado. O destinatário pode adicioná-lo à sua própria agenda."
+      },
+      "chat": {
+        "agendaItem": "Compromisso",
+        "addToAgenda": "Adicionar à minha agenda",
+        "addedToAgenda": "Adicionado à agenda"
+      },
+      "welcome": {
+        "step1": "Planeie consultas, aniversários e medicamentos num só lugar.",
+        "step2": "Defina lembretes para não se esquecer de nada.",
+        "step3": "Partilhe itens da agenda com família e amigos.",
+        "understood": "Entendido"
       }
     }
   },

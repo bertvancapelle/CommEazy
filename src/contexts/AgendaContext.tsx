@@ -591,8 +591,41 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     const collection = db.get<AgendaItemModel>('agenda_items');
 
     const record = await collection.find(id);
-    await record.markSharedWith(jids);
 
+    // Build structured agenda payload for XMPP
+    const agendaPayload = JSON.stringify({
+      type: 'agenda_item',
+      category: record.category,
+      icon: getCategoryIcon(record.category as AgendaCategory),
+      title: record.title,
+      date: new Date(record.date).toISOString().split('T')[0], // "YYYY-MM-DD"
+      time: record.parsedTimes.length > 0
+        ? record.parsedTimes[0]
+        : null,
+      times: record.parsedTimes.length > 1
+        ? record.parsedTimes
+        : undefined,
+      repeat: record.repeatType || null,
+      endDate: record.endDate
+        ? new Date(record.endDate).toISOString().split('T')[0]
+        : null,
+      reminderOffset: record.reminderOffset,
+      isMedication: record.isMedication,
+    });
+
+    // Send via XMPP to each recipient
+    const { chatService } = await import('@/services/chat');
+    for (const jid of jids) {
+      try {
+        await chatService.sendMessage(jid, agendaPayload);
+        console.info('[AgendaContext] Shared item with:', jid);
+      } catch (error) {
+        console.warn('[AgendaContext] Failed to share with:', jid, error);
+      }
+    }
+
+    // Mark as shared in database
+    await record.markSharedWith(jids);
     await loadData();
   }, [loadData]);
 

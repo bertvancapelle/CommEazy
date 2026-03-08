@@ -2232,6 +2232,29 @@
         "remindLater": "Später erinnern",
         "markedTaken": "Als eingenommen markiert",
         "markedSkipped": "Als übersprungen markiert"
+      },
+      "share": {
+        "title": "Teilen mit...",
+        "selectContact": "Kontakt auswählen",
+        "sendButton": "Senden ({{count}})",
+        "sending": "Wird gesendet...",
+        "successTitle": "Geteilt",
+        "successMessage": "Element mit {{count}} Kontakt(en) geteilt",
+        "errorTitle": "Teilen fehlgeschlagen",
+        "errorMessage": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+        "noContacts": "Keine Kontakte gefunden",
+        "medicationWarning": "Dieses Medikament wird geteilt. Der Empfänger kann es seinem eigenen Kalender hinzufügen."
+      },
+      "chat": {
+        "agendaItem": "Kalendertermin",
+        "addToAgenda": "Zu meinem Kalender hinzufügen",
+        "addedToAgenda": "Zum Kalender hinzugefügt"
+      },
+      "welcome": {
+        "step1": "Planen Sie Termine, Geburtstage und Medikamente an einem Ort.",
+        "step2": "Stellen Sie Erinnerungen ein, damit Sie nichts vergessen.",
+        "step3": "Teilen Sie Kalendereinträge mit Familie und Freunden.",
+        "understood": "Verstanden"
       }
     }
   },
