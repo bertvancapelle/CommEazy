@@ -5,7 +5,7 @@
  * User taps a playlist to import it as a MusicCollection (one-time snapshot).
  *
  * Already imported playlists show "✓ Geïmporteerd" badge.
- * Empty playlists are filtered out.
+ * Track count shown per playlist.
  *
  * Senior-inclusive design:
  * - 60pt minimum touch targets
@@ -94,12 +94,10 @@ export function PlaylistBrowserModal({
       try {
         // Fetch all playlists (up to 200)
         const response = await getLibraryPlaylists(200, 0);
-        // Filter out empty playlists (no tracks) — we can't know track count from metadata alone,
-        // so we show all and let the user decide
         setPlaylists(response.items);
         setHasLoaded(true);
       } catch (err) {
-        console.error('[PlaylistBrowserModal] Failed to load playlists');
+        console.error('[PlaylistBrowserModal] Failed to load playlists', err);
         setError(t('appleMusic.import.loadError', 'Kon afspeellijsten niet laden'));
       } finally {
         setIsLoading(false);
@@ -256,6 +254,14 @@ export function PlaylistBrowserModal({
                           {playlist.curatorName}
                         </Text>
                       ) : null}
+                      {playlist.trackCount != null && playlist.trackCount > 0 ? (
+                        <Text
+                          style={[styles.playlistTrackCount, { color: themeColors.textSecondary }]}
+                          numberOfLines={1}
+                        >
+                          {t('appleMusic.import.trackCount', '{{count}} nummers', { count: playlist.trackCount })}
+                        </Text>
+                      ) : null}
                     </View>
 
                     {/* Import status */}
@@ -295,7 +301,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: borderRadius.lg,
     borderTopRightRadius: borderRadius.lg,
     overflow: 'hidden',
-    maxHeight: '85%',
+    height: '85%',
   },
   header: {
     flexDirection: 'row',
@@ -361,6 +367,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   playlistCurator: {
+    ...typography.small,
+    marginTop: 2,
+  },
+  playlistTrackCount: {
     ...typography.small,
     marginTop: 2,
   },

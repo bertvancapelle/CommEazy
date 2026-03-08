@@ -1794,6 +1794,7 @@
         "alreadyImported": "{{name}} — déjà importée",
         "tapToImport": "{{name}} — touchez pour importer",
         "imported": "Importée",
+        "trackCount": "{{count}} morceaux",
         "successTitle": "Réussi",
         "failureTitle": "Partiellement importée",
         "successDetail": "{{songs}} chansons ajoutées à \"{{name}}\"",

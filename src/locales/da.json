@@ -1638,6 +1638,7 @@
         "alreadyImported": "{{name}} — allerede importeret",
         "tapToImport": "{{name}} — tryk for at importere",
         "imported": "Importeret",
+        "trackCount": "{{count}} numre",
         "successTitle": "Fuldført",
         "failureTitle": "Delvist importeret",
         "successDetail": "{{songs}} sange tilføjet til \"{{name}}\"",

@@ -2256,7 +2256,18 @@ class AppleMusicModule: RCTEventEmitter {
                 let endIndex = min(offset + limit, response.items.count)
                 let paginatedItems = Array(response.items[startIndex..<endIndex])
 
-                let playlists = paginatedItems.map { playlistToDictionary($0) }
+                // Load entries for each playlist to get track count
+                var playlists: [[String: Any]] = []
+                for playlist in paginatedItems {
+                    var dict = playlistToDictionary(playlist)
+                    // Load entries relationship to get track count
+                    if let detailed = try? await playlist.with(.entries, preferredSource: .library) {
+                        dict["trackCount"] = detailed.entries?.count ?? 0
+                    } else {
+                        dict["trackCount"] = 0
+                    }
+                    playlists.append(dict)
+                }
 
                 resolve([
                     "items": playlists,

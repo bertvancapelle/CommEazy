@@ -59,6 +59,7 @@ export interface AppleMusicPlaylist {
   curatorName: string;
   artworkUrl: string;
   description: string;
+  trackCount?: number;
 }
 
 export interface AppleMusicGenre {
