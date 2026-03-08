@@ -31,6 +31,7 @@ import {
   Platform,
   Image,
   Alert,
+  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
