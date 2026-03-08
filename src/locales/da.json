@@ -2031,6 +2031,24 @@
         "30min": "30 minutter før",
         "1hour": "1 time før",
         "1day": "1 dag før"
+      },
+      "form": {
+        "pickCategory": "Hvad vil du tilføje?",
+        "newTitle": "Nyt element",
+        "editTitle": "Rediger element",
+        "titleLabel": "Titel",
+        "titlePlaceholder": "Indtast en titel",
+        "dateLabel": "Dato",
+        "timeLabel": "Tid",
+        "timesLabel": "Tidspunkt(er)",
+        "repeatLabel": "Gentagelse",
+        "reminderLabel": "Påmind mig",
+        "endDateLabel": "Slutdato",
+        "noEndDate": "Ingen slutdato",
+        "clearEndDate": "Fjern slutdato",
+        "addTime": "+ Tilføj tid",
+        "removeTime": "Fjern",
+        "titleRequired": "Indtast venligst en titel"
       }
     }
   },

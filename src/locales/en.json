@@ -2202,6 +2202,24 @@
         "30min": "30 minutes before",
         "1hour": "1 hour before",
         "1day": "1 day before"
+      },
+      "form": {
+        "pickCategory": "What would you like to add?",
+        "newTitle": "New item",
+        "editTitle": "Edit item",
+        "titleLabel": "Title",
+        "titlePlaceholder": "Enter a title",
+        "dateLabel": "Date",
+        "timeLabel": "Time",
+        "timesLabel": "Time(s)",
+        "repeatLabel": "Repeat",
+        "reminderLabel": "Remind me",
+        "endDateLabel": "End date",
+        "noEndDate": "No end date",
+        "clearEndDate": "Remove end date",
+        "addTime": "+ Add time",
+        "removeTime": "Remove",
+        "titleRequired": "Please enter a title"
       }
     }
   },

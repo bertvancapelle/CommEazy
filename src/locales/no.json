@@ -2061,6 +2061,24 @@
         "30min": "30 minutter før",
         "1hour": "1 time før",
         "1day": "1 dag før"
+      },
+      "form": {
+        "pickCategory": "Hva vil du legge til?",
+        "newTitle": "Nytt element",
+        "editTitle": "Rediger element",
+        "titleLabel": "Tittel",
+        "titlePlaceholder": "Skriv inn en tittel",
+        "dateLabel": "Dato",
+        "timeLabel": "Tid",
+        "timesLabel": "Tidspunkt(er)",
+        "repeatLabel": "Gjentakelse",
+        "reminderLabel": "Påminn meg",
+        "endDateLabel": "Sluttdato",
+        "noEndDate": "Ingen sluttdato",
+        "clearEndDate": "Fjern sluttdato",
+        "addTime": "+ Legg til tid",
+        "removeTime": "Fjern",
+        "titleRequired": "Vennligst skriv inn en tittel"
       }
     }
   },

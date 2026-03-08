@@ -34,9 +34,13 @@ import {
   useAgendaContext,
   type TimelineDay,
   type TimelineItem,
+  type CreateAgendaItemData,
 } from '@/contexts/AgendaContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import type { AgendaCategory } from '@/constants/agendaCategories';
+import { AgendaCategoryPickerScreen } from './AgendaCategoryPickerScreen';
+import { AgendaItemFormScreen } from './AgendaItemFormScreen';
 
 // ============================================================
 // Constants
@@ -210,16 +214,26 @@ function TimelineSectionView({ day, onItemPress, moduleColor }: TimelineSectionP
 // AgendaScreenInner — Main content (inside provider)
 // ============================================================
 
+// ============================================================
+// Internal navigation state
+// ============================================================
+
+type AgendaView =
+  | { screen: 'timeline' }
+  | { screen: 'categoryPicker' }
+  | { screen: 'form'; category: AgendaCategory };
+
 function AgendaScreenInner() {
   const { t } = useTranslation();
   const themeColors = useColors();
   const insets = useSafeAreaInsets();
-  const accentColor = useAccentColor();
+  const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor(MODULE_ID);
-  const { timelineDays, pastItems, isLoading, refresh } = useAgendaContext();
+  const { timelineDays, pastItems, isLoading, refresh, createItem } = useAgendaContext();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPastItems, setShowPastItems] = useState(false);
+  const [currentView, setCurrentView] = useState<AgendaView>({ screen: 'timeline' });
 
   // Pull-to-refresh
   const handleRefresh = useCallback(async () => {
@@ -239,10 +253,33 @@ function AgendaScreenInner() {
     setShowPastItems((prev) => !prev);
   }, []);
 
-  // Add new item — Fase 3 will navigate to category picker
+  // Add new item → open category picker
   const handleAddItem = useCallback(() => {
-    // TODO: Fase 3 — navigate to AgendaCategoryPickerScreen
-    console.debug('[AgendaScreen] Add item pressed');
+    setCurrentView({ screen: 'categoryPicker' });
+  }, []);
+
+  // Category selected → open form
+  const handleCategorySelected = useCallback((category: AgendaCategory) => {
+    setCurrentView({ screen: 'form', category });
+  }, []);
+
+  // Form saved → create item and return to timeline
+  const handleFormSave = useCallback(async (data: CreateAgendaItemData) => {
+    try {
+      await createItem(data);
+      setCurrentView({ screen: 'timeline' });
+    } catch (error) {
+      console.error('[AgendaScreen] Failed to create item:', error);
+    }
+  }, [createItem]);
+
+  // Back navigation
+  const handleBackToTimeline = useCallback(() => {
+    setCurrentView({ screen: 'timeline' });
+  }, []);
+
+  const handleBackToCategoryPicker = useCallback(() => {
+    setCurrentView({ screen: 'categoryPicker' });
   }, []);
 
   // Filter days with items
@@ -250,6 +287,33 @@ function AgendaScreenInner() {
     () => timelineDays.filter((day) => day.items.length > 0),
     [timelineDays],
   );
+
+  // ============================================================
+  // Sub-screen rendering
+  // ============================================================
+
+  if (currentView.screen === 'categoryPicker') {
+    return (
+      <AgendaCategoryPickerScreen
+        onSelectCategory={handleCategorySelected}
+        onBack={handleBackToTimeline}
+      />
+    );
+  }
+
+  if (currentView.screen === 'form') {
+    return (
+      <AgendaItemFormScreen
+        category={currentView.category}
+        onSave={handleFormSave}
+        onBack={handleBackToCategoryPicker}
+      />
+    );
+  }
+
+  // ============================================================
+  // Timeline view (default)
+  // ============================================================
 
   if (isLoading) {
     return (

@@ -2031,6 +2031,24 @@
         "30min": "30 minuter före",
         "1hour": "1 timme före",
         "1day": "1 dag före"
+      },
+      "form": {
+        "pickCategory": "Vad vill du lägga till?",
+        "newTitle": "Nytt objekt",
+        "editTitle": "Redigera objekt",
+        "titleLabel": "Titel",
+        "titlePlaceholder": "Ange en titel",
+        "dateLabel": "Datum",
+        "timeLabel": "Tid",
+        "timesLabel": "Tidpunkt(er)",
+        "repeatLabel": "Upprepning",
+        "reminderLabel": "Påminn mig",
+        "endDateLabel": "Slutdatum",
+        "noEndDate": "Inget slutdatum",
+        "clearEndDate": "Ta bort slutdatum",
+        "addTime": "+ Lägg till tid",
+        "removeTime": "Ta bort",
+        "titleRequired": "Ange en titel"
       }
     }
   },

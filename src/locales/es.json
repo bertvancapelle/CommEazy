@@ -2187,6 +2187,24 @@
         "30min": "30 minutos antes",
         "1hour": "1 hora antes",
         "1day": "1 día antes"
+      },
+      "form": {
+        "pickCategory": "¿Qué desea añadir?",
+        "newTitle": "Nuevo elemento",
+        "editTitle": "Editar elemento",
+        "titleLabel": "Título",
+        "titlePlaceholder": "Introduzca un título",
+        "dateLabel": "Fecha",
+        "timeLabel": "Hora",
+        "timesLabel": "Hora(s)",
+        "repeatLabel": "Repetición",
+        "reminderLabel": "Recordarme",
+        "endDateLabel": "Fecha de fin",
+        "noEndDate": "Sin fecha de fin",
+        "clearEndDate": "Eliminar fecha de fin",
+        "addTime": "+ Añadir hora",
+        "removeTime": "Eliminar",
+        "titleRequired": "Introduzca un título"
       }
     }
   },

@@ -2197,6 +2197,24 @@
         "30min": "30 minuten van tevoren",
         "1hour": "1 uur van tevoren",
         "1day": "1 dag van tevoren"
+      },
+      "form": {
+        "pickCategory": "Wat wil je toevoegen?",
+        "newTitle": "Nieuw item",
+        "editTitle": "Item bewerken",
+        "titleLabel": "Titel",
+        "titlePlaceholder": "Voer een titel in",
+        "dateLabel": "Datum",
+        "timeLabel": "Tijd",
+        "timesLabel": "Tijdstip(pen)",
+        "repeatLabel": "Herhaling",
+        "reminderLabel": "Herinner mij",
+        "endDateLabel": "Einddatum",
+        "noEndDate": "Geen einddatum",
+        "clearEndDate": "Einddatum verwijderen",
+        "addTime": "+ Tijd toevoegen",
+        "removeTime": "Verwijder",
+        "titleRequired": "Vul een titel in"
       }
     }
   },
