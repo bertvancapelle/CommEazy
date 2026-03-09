@@ -2337,9 +2337,9 @@ interface MiniPlayerProps {
   progress?: number;          // 0-1, alleen voor "bar" type
   listenDuration?: number;    // Seconden, alleen voor "duration" type
 
-  // Stop button (optioneel)
-  showStopButton?: boolean;   // Radio/Books: true, Podcast: false
-  onStop?: () => void;        // Stop playback en disconnect
+  // Stop button (altijd zichtbaar voor consistente senior UX)
+  showStopButton?: boolean;   // Default: true — altijd tonen in alle modules
+  onStop?: () => void;        // Stop playback, wis state, sluit MiniPlayer
 }
 ```
 
@@ -2347,8 +2347,9 @@ interface MiniPlayerProps {
 | Module | progressType | showStopButton | Wat wordt getoond |
 |--------|--------------|----------------|-------------------|
 | Radio | `duration` | `true` | "🎧 45:32" + Stop button |
-| Podcast | `bar` | `false` | Progress bar (pause is voldoende) |
+| Podcast | `bar` | `true` | Progress bar + Stop button |
 | Books | `bar` | `true` | Progress bar + Stop button (TTS engine) |
+| Apple Music | `bar` | `true` | Progress bar + Stop button (stop + wis queue) |
 
 #### 13.3 ExpandedAudioPlayer Component
 
@@ -2425,16 +2426,18 @@ interface ExpandedAudioPlayerProps {
 
 #### 13.4 Per Module Configuratie
 
-| Control | Radio | Podcast | Books (TTS) |
-|---------|-------|---------|-------------|
-| **showAdMob** | ✅ | ✅ | ✅ |
-| **seekSlider** | ❌ | ✅ | ✅ |
-| **skipButtons** | ❌ | ✅ (10s/30s) | ✅ (10s/30s) |
-| **stop** | ✅ | ❌ | ✅ |
-| **speedControl** | ❌ | ✅ | ✅ |
-| **sleepTimer** | ✅ | ✅ | ✅ |
-| **favorite** | ✅ | ✅ | ❌ |
-| **listenDuration** | ✅ | ❌ | ❌ |
+| Control | Radio | Podcast | Books (TTS) | Apple Music |
+|---------|-------|---------|-------------|-------------|
+| **showAdMob** | ✅ | ✅ | ✅ | ❌ |
+| **seekSlider** | ❌ | ✅ | ✅ | ✅ |
+| **skipButtons** | ❌ | ✅ (10s/30s) | ✅ (10s/30s) | ✅ |
+| **stop** | ✅ | ✅ | ✅ | ✅ |
+| **speedControl** | ❌ | ✅ | ✅ | ❌ |
+| **sleepTimer** | ✅ | ✅ | ✅ | ✅ |
+| **favorite** | ✅ | ✅ | ❌ | ✅ |
+| **listenDuration** | ✅ | ❌ | ❌ | ❌ |
+| **shuffle** | ❌ | ❌ | ❌ | ✅ |
+| **repeat** | ❌ | ❌ | ❌ | ✅ |
 
 **Skip Button Durations (standaard):**
 - **Backward:** 10 seconden

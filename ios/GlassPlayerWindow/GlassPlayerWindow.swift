@@ -216,6 +216,34 @@ class GlassPlayerWindow: UIWindow {
         // Adding a gesture here would interfere with button touch handling.
     }
 
+    // ============================================================
+    // MARK: Touch Passthrough
+    // ============================================================
+
+    /// Override hitTest at window level to ensure touches outside the
+    /// visible player content fall through to the React Native window below.
+    /// Without this, the transparent window area would consume touches,
+    /// making the entire app unresponsive.
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard !isHidden, alpha > 0.01 else { return nil }
+
+        // Convert point to rootView coordinate space
+        guard let rootView = rootViewController?.view else { return nil }
+        let convertedPoint = convert(point, to: rootView)
+
+        // Let the rootView's subviews (glassView → miniPlayer/fullPlayer) do their own hitTest.
+        // If they return nil, the touch falls through to RN.
+        let hitView = rootView.hitTest(convertedPoint, with: event)
+
+        // If hitView is the rootView itself (not a subview), that means nothing
+        // meaningful was hit — pass through to RN.
+        if hitView === rootView {
+            return nil
+        }
+
+        return hitView
+    }
+
     /// Returns the effective bounds for positioning — panelBounds on iPad, screen bounds on iPhone
     private var effectiveBounds: CGRect {
         return panelBounds ?? UIScreen.main.bounds
@@ -293,9 +321,10 @@ class GlassPlayerWindow: UIWindow {
         // Without this, a concurrent hide() fade-out animation can override our alpha = 1.
         self.layer.removeAllAnimations()
         
-        // Make window visible
+        // Make window visible WITHOUT stealing key window status.
+        // Using makeKeyAndVisible() would steal key window from React Native,
+        // causing ALL touches to route here first — blocking the entire app.
         isHidden = false
-        makeKeyAndVisible()
         alpha = 1
 
         currentState = .mini
@@ -409,6 +438,9 @@ class GlassPlayerWindow: UIWindow {
         currentState = .hidden
         isMinimized = false
 
+        // Cancel any in-progress animations to prevent stale completion handlers
+        self.layer.removeAllAnimations()
+
         UIView.animate(withDuration: 0.25) {
             self.alpha = 0
         } completion: { _ in
@@ -468,10 +500,10 @@ class GlassPlayerWindow: UIWindow {
         layoutViewsForMini()
         currentState = .mini
         
-        // Show with animation
+        // Show with animation — do NOT call makeKeyAndVisible()
+        // to avoid stealing key window from React Native
         alpha = 0
         isHidden = false
-        makeKeyAndVisible()
         
         UIView.animate(withDuration: 0.25) {
             self.alpha = 1
@@ -765,7 +797,7 @@ struct PlayerContent {
         progressType = config["progressType"] as? String ?? "duration"
         progress = config["progress"] as? Double ?? 0
         listenDuration = config["listenDuration"] as? Double ?? 0
-        showStopButton = config["showStopButton"] as? Bool ?? false
+        showStopButton = config["showStopButton"] as? Bool ?? true
         
         // Parse panel bounds for iPad Split View
         if let boundsDict = config["panelBounds"] as? NSDictionary,

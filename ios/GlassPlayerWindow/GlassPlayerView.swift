@@ -175,6 +175,20 @@ class GlassPlayerView: UIView {
     // MARK: Public Methods
     // ============================================================
 
+    // ============================================================
+    // MARK: Touch Passthrough
+    // ============================================================
+
+    /// Pass touches through the glass view to subviews (miniPlayer/fullPlayer).
+    /// If no subview claims the touch, return nil so the window's hitTest
+    /// can pass it through to React Native.
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hit = super.hitTest(point, with: event)
+        // If only this view (the glass container) was hit, pass through
+        if hit === self { return nil }
+        return hit
+    }
+
     /// Update the tint color for the glass effect
     func updateTintColor(_ hexColor: String) {
         guard let color = UIColor.fromHex(hexColor) else { return }

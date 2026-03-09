@@ -405,14 +405,13 @@ export function AppleMusicScreen() {
     console.log('[AppleMusicScreen] Showing Glass Player with artwork:', artworkUrl);
 
     // Configure controls for Apple Music (skip buttons, shuffle, repeat, etc.)
-    // Apple Music: NO stop button (pause is sufficient for on-demand content)
     configureGlassControls({
       seekSlider: true,
       skipButtons: true,
       speedControl: false,
       sleepTimer: true,
       favorite: true,
-      stopButton: false,  // Apple Music doesn't need stop (pause is sufficient)
+      stopButton: true,  // Consistent stop button across all modules
       shuffle: true,
       repeat: true,
     });
@@ -425,7 +424,7 @@ export function AppleMusicScreen() {
       subtitle: currentSong.artistName,
       progressType: 'bar',
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-      showStopButton: false,  // Apple Music doesn't need stop button
+      showStopButton: true,  // Consistent stop button across all modules
     });
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, showGlassMiniPlayer, configureGlassControls, appleMusicColor, playbackState?.currentTime, playbackState?.duration]);
 
@@ -463,7 +462,7 @@ export function AppleMusicScreen() {
       title: currentSong.title,
       subtitle: currentSong.artistName,
       progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
-      showStopButton: false,  // Apple Music doesn't need stop button
+      showStopButton: true,  // Consistent stop button across all modules
     });
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, playbackState?.currentTime, playbackState?.duration, appleMusicColor, updateGlassContent]);
 
@@ -2253,6 +2252,8 @@ export function AppleMusicScreen() {
           progress={(playbackState?.currentTime ?? 0) / (playbackState?.duration || 1)}
           onPress={() => setIsPlayerExpanded(true)}
           onPlayPause={handlePlayPause}
+          showStopButton={true}
+          onStop={stop}
           style={styles.miniPlayer}
         />
       )}

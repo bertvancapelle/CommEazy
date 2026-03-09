@@ -77,9 +77,9 @@ export interface MiniPlayerProps {
   expandAccessibilityLabel?: string;
   /** Accessibility hint for the expand action */
   expandAccessibilityHint?: string;
-  /** Optional stop button (for live streams like radio) */
+  /** Stop button — always shown for consistent UX across all modules */
   showStopButton?: boolean;
-  /** Callback for stop button */
+  /** Callback for stop button — stops playback and hides MiniPlayer */
   onStop?: () => void;
   /**
    * Optional style override for container positioning
@@ -126,7 +126,7 @@ export function MiniPlayer({
   listenDuration = 0,
   expandAccessibilityLabel,
   expandAccessibilityHint,
-  showStopButton = false,
+  showStopButton = true,
   onStop,
   style,
 }: MiniPlayerProps) {
@@ -233,7 +233,7 @@ export function MiniPlayer({
           )}
         </TouchableOpacity>
 
-        {/* Optional Stop button (for live streams) */}
+        {/* Stop button — always shown for consistent senior UX */}
         {showStopButton && onStop && (
           <TouchableOpacity
             style={[styles.playButton, styles.stopButton, buttonBorderStyle]}
