@@ -283,6 +283,7 @@ export function AppleMusicScreen() {
   // Auto-scroll collection songs to currently playing song
   // Triggers when collection opens or when returning to module via MediaIndicator
   useEffect(() => {
+    if (!isFocused) return; // Only scroll when screen is focused
     if (!openCollectionId || !currentSong || openCollectionSongs.length === 0) return;
 
     const currentIndex = openCollectionSongs.findIndex(s => s.id === currentSong.id);
@@ -294,11 +295,11 @@ export function AppleMusicScreen() {
 
     // Delay to ensure ScrollView has rendered after mount/navigation
     const timer = setTimeout(() => {
-      collectionScrollRef.current?.scrollTo({ y: scrollY, animated: false });
-    }, 100);
+      collectionScrollRef.current?.scrollTo({ y: scrollY, animated: !isReducedMotion });
+    }, 150);
 
     return () => clearTimeout(timer);
-  }, [openCollectionId, currentSong, openCollectionSongs]);
+  }, [openCollectionId, currentSong, openCollectionSongs, isFocused, isReducedMotion]);
 
   const [selectedChipId, setSelectedChipId] = useState<MusicChipId>((savedBrowsing?.selectedChipId ?? 'all') as MusicChipId);
   const [editCollectionModal, setEditCollectionModal] = useState<{
@@ -464,10 +465,13 @@ export function AppleMusicScreen() {
       title: currentSong.title,
       subtitle: currentSong.artistName,
       progressType: 'bar',
-      progress: (playbackState?.currentTime ?? 0) / (playbackState?.duration || 1),
+      progress: 0,  // Initial progress; Effect 2 handles ongoing updates
       showStopButton: true,  // Consistent stop button across all modules
     });
-  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, showGlassMiniPlayer, configureGlassControls, appleMusicColor, playbackState?.currentTime, playbackState?.duration]);
+    // Note: playbackState time/duration intentionally excluded from deps.
+    // Effect 2 handles ongoing progress updates — including them here causes
+    // this effect to re-fire on every position tick, flooding showGlassMiniPlayer calls.
+  }, [isGlassPlayerAvailable, isGlassPlayerVisible, currentSong, effectiveArtworkUrl, showGlassMiniPlayer, configureGlassControls, appleMusicColor]);
 
   // Effect 2: Update playback state when playing/paused changes
   useEffect(() => {
@@ -710,6 +714,9 @@ export function AppleMusicScreen() {
     }
   }, [requestAuthorization]);
 
+  // Guard against rapid duplicate playSong calls (user tapping multiple times while loading)
+  const playInProgressRef = useRef<string | null>(null);
+
   const handlePlaySong = useCallback(async (song: AppleMusicSong) => {
     triggerFeedback('tap');
 
@@ -719,6 +726,14 @@ export function AppleMusicScreen() {
       await showGlassFromMinimized();
       return;
     }
+
+    // Prevent duplicate calls while a play request is in progress
+    if (playInProgressRef.current === song.id) {
+      console.log('[AppleMusicScreen] Play already in progress for:', song.id);
+      return;
+    }
+
+    playInProgressRef.current = song.id;
 
     try {
       console.log('[AppleMusicScreen] Playing song:', song.id, song.title, 'artworkUrl:', song.artworkUrl?.substring(0, 60));
@@ -730,6 +745,8 @@ export function AppleMusicScreen() {
         t('modules.appleMusic.playError.title'),
         t('modules.appleMusic.playError.message')
       );
+    } finally {
+      playInProgressRef.current = null;
     }
   }, [playSong, triggerFeedback, t, currentSong, isPlaying, showGlassFromMinimized]);
 

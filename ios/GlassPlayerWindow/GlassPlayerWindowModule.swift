@@ -25,7 +25,10 @@ class GlassPlayerWindowModule: RCTEventEmitter {
 
     // Singleton window instance (iOS 26+ only)
     private var playerWindow: Any?
-    
+
+    // Track whether JS listeners are registered (prevents "no listeners" warning)
+    private var hasListeners = false
+
     // Stored button style settings — applied after window creation
     private var storedBorderEnabled: Bool = false
     private var storedBorderColorHex: String = "#FFFFFF"
@@ -61,6 +64,20 @@ class GlassPlayerWindowModule: RCTEventEmitter {
             "onShuffleToggle",
             "onRepeatToggle"
         ]
+    }
+
+    override func startObserving() {
+        hasListeners = true
+    }
+
+    override func stopObserving() {
+        hasListeners = false
+    }
+
+    /// Send event only when JS listeners are registered
+    private func safeEmit(_ name: String, body: Any? = nil) {
+        guard hasListeners else { return }
+        sendEvent(withName: name, body: body)
     }
 
     // ============================================================
@@ -101,7 +118,7 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         if #available(iOS 26.0, *) {
             DispatchQueue.main.async {
                 self.glassWindow?.expandToFull()
-                self.sendEvent(withName: "onExpand", body: nil)
+                self.safeEmit("onExpand")
                 resolve(true)
             }
         } else {
@@ -116,7 +133,7 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         if #available(iOS 26.0, *) {
             DispatchQueue.main.async {
                 self.glassWindow?.collapseToMini()
-                self.sendEvent(withName: "onCollapse", body: nil)
+                self.safeEmit("onCollapse")
                 resolve(true)
             }
         } else {
@@ -146,7 +163,7 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         if #available(iOS 26.0, *) {
             DispatchQueue.main.async {
                 self.glassWindow?.minimize()
-                self.sendEvent(withName: "onMinimize", body: nil)
+                self.safeEmit("onMinimize")
                 resolve(true)
             }
         } else {
@@ -299,62 +316,62 @@ class GlassPlayerWindowModule: RCTEventEmitter {
 extension GlassPlayerWindowModule: GlassPlayerWindowEventDelegate {
 
     func playerDidTapPlayPause() {
-        sendEvent(withName: "onPlayPause", body: nil)
+        safeEmit("onPlayPause")
     }
 
     func playerDidTapStop() {
-        sendEvent(withName: "onStop", body: nil)
+        safeEmit("onStop")
     }
 
     func playerDidTapExpand() {
-        sendEvent(withName: "onExpand", body: nil)
+        safeEmit("onExpand")
     }
     
     func playerDidTapMinimize() {
-        sendEvent(withName: "onMinimize", body: nil)
+        safeEmit("onMinimize")
     }
 
     func playerDidTapCollapse() {
-        sendEvent(withName: "onCollapse", body: nil)
+        safeEmit("onCollapse")
     }
 
     func playerDidSeek(to position: Double) {
-        sendEvent(withName: "onSeek", body: ["position": position])
+        safeEmit("onSeek", body: ["position": position])
     }
 
     func playerDidSkipForward() {
-        sendEvent(withName: "onSkipForward", body: nil)
+        safeEmit("onSkipForward")
     }
 
     func playerDidSkipBackward() {
-        sendEvent(withName: "onSkipBackward", body: nil)
+        safeEmit("onSkipBackward")
     }
 
     func playerDidClose() {
-        sendEvent(withName: "onClose", body: nil)
+        safeEmit("onClose")
     }
     
     func playerDidTapFavorite() {
-        sendEvent(withName: "onFavoriteToggle", body: nil)
+        safeEmit("onFavoriteToggle")
     }
     
     func playerDidSetSleepTimer(_ minutes: NSNumber?) {
         if let mins = minutes {
-            sendEvent(withName: "onSleepTimerSet", body: ["minutes": mins.intValue])
+            safeEmit("onSleepTimerSet", body: ["minutes": mins.intValue])
         } else {
-            sendEvent(withName: "onSleepTimerSet", body: ["minutes": NSNull()])
+            safeEmit("onSleepTimerSet", body: ["minutes": NSNull()])
         }
     }
     
     func playerDidChangeSpeed(_ speed: Float) {
-        sendEvent(withName: "onSpeedChange", body: ["speed": speed])
+        safeEmit("onSpeedChange", body: ["speed": speed])
     }
 
     func playerDidTapShuffle() {
-        sendEvent(withName: "onShuffleToggle", body: nil)
+        safeEmit("onShuffleToggle")
     }
 
     func playerDidTapRepeat() {
-        sendEvent(withName: "onRepeatToggle", body: nil)
+        safeEmit("onRepeatToggle")
     }
 }

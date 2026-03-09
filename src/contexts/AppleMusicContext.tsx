@@ -273,8 +273,10 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
 
     const eventEmitter = new NativeEventEmitter(AppleMusicModule);
 
-    // Track last logged status to avoid excessive console spam
+    // Track last state to skip redundant updates (reduces re-renders)
     let lastLoggedStatus: string | null = null;
+    let lastPosition: number = 0;
+    let lastStatus: string | null = null;
 
     const playbackStateSubscription = eventEmitter.addListener(
       'onPlaybackStateChange',
@@ -284,6 +286,19 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
           console.log('[AppleMusicContext] Playback state changed:', state.status);
           lastLoggedStatus = state.status;
         }
+
+        // Debounce: skip update if only position changed by <0.5s and status is the same.
+        // This prevents re-rendering the entire component tree on every timer tick.
+        const statusChanged = state.status !== lastStatus;
+        const positionDelta = Math.abs((state.currentTime ?? 0) - lastPosition);
+
+        if (!statusChanged && positionDelta < 0.5) {
+          return; // Skip redundant update
+        }
+
+        lastStatus = state.status;
+        lastPosition = state.currentTime ?? 0;
+
         setPlaybackState(state);
         setIsLoading(false);
       }

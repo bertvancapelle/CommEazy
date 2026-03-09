@@ -49,8 +49,11 @@ class AppleMusicModule: RCTEventEmitter {
     private var lastEmittedStatus: String?
     // Timestamp of last state event to rate-limit emissions
     private var lastStateEventTime: CFAbsoluteTime = 0
-    // Minimum interval between state events (100ms)
-    private let minStateEventInterval: CFAbsoluteTime = 0.1
+    // Minimum interval between observer-emitted playback state events.
+    // The timer handles periodic position updates at 1s intervals,
+    // so the observer only needs to fire promptly for status changes (play/pause/stop).
+    // A 500ms debounce prevents redundant bridge events while keeping status transitions responsive.
+    private let minStateEventInterval: CFAbsoluteTime = 0.5
     
     // MARK: - Library Change Debouncing (batches rapid changes)
     // When a playlist with 20 songs is added, observer fires 20+ times rapidly.
@@ -683,6 +686,11 @@ class AppleMusicModule: RCTEventEmitter {
                 resolve(["success": true])
             } catch {
                 NSLog("[AppleMusicModule] playSong error: \(error.localizedDescription)")
+                // Stop the player to prevent state cycling that floods the bridge
+                self.player.stop()
+                DispatchQueue.main.async { [weak self] in
+                    self?.stopTimeUpdateTimer()
+                }
                 reject("PLAY_ERROR", "Failed to play catalog song: \(error.localizedDescription)", error)
             }
         }
@@ -755,6 +763,12 @@ class AppleMusicModule: RCTEventEmitter {
                 resolve(["success": true])
             } catch {
                 NSLog("[AppleMusicModule] playLibrarySong error: \(error.localizedDescription)")
+                // Stop the player to prevent state cycling (stopped→paused→playing→stopped loop)
+                // that floods the bridge with events and freezes the UI
+                self.player.stop()
+                DispatchQueue.main.async { [weak self] in
+                    self?.stopTimeUpdateTimer()
+                }
                 reject("PLAY_ERROR", "Failed to play library song: \(error.localizedDescription)", error)
             }
         }
@@ -1150,32 +1164,34 @@ class AppleMusicModule: RCTEventEmitter {
                 let stateDict = buildPlaybackState()
                 let status = stateDict["status"] as? String ?? "unknown"
                 
-                // DEBOUNCING: Only emit if status actually changed OR enough time has passed
+                // DEBOUNCING: Throttle all emissions to avoid flooding the bridge.
+                // Status changes are emitted immediately but at most once per minStateEventInterval.
+                // Same-status events (e.g. position-only updates) are dropped here — the timer handles those.
                 let now = CFAbsoluteTimeGetCurrent()
                 let statusChanged = (status != lastEmittedStatus)
                 let enoughTimePassed = (now - lastStateEventTime) >= minStateEventInterval
-                
-                if statusChanged || enoughTimePassed {
-                    // Only log when actually emitting to reduce noise
-                    if statusChanged {
-                        NSLog("[AppleMusicModule] Playback status changed: \(lastEmittedStatus ?? "nil") -> \(status)")
-                    }
-                    
-                    lastEmittedStatus = status
-                    lastStateEventTime = now
-                    sendEvent(withName: "onPlaybackStateChange", body: stateDict)
 
-                    // Start/stop time update timer based on playback state
-                    DispatchQueue.main.async { [weak self] in
-                        if status == "playing" {
-                            self?.startTimeUpdateTimer()
-                        } else {
-                            self?.stopTimeUpdateTimer()
-                        }
+                // Require minimum interval even for status changes to prevent
+                // rapid cycling (stopped→paused→playing→stopped) from flooding the bridge
+                guard enoughTimePassed else { continue }
+                guard statusChanged else { continue }
+
+                NSLog("[AppleMusicModule] Playback status changed: \(lastEmittedStatus ?? "nil") -> \(status)")
+
+                lastEmittedStatus = status
+                lastStateEventTime = now
+                sendEvent(withName: "onPlaybackStateChange", body: stateDict)
+
+                // Start/stop time update timer based on playback state
+                DispatchQueue.main.async { [weak self] in
+                    if status == "playing" {
+                        self?.startTimeUpdateTimer()
+                    } else {
+                        self?.stopTimeUpdateTimer()
                     }
                 }
 
-                // Also check if now playing changed (always check, regardless of debouncing)
+                // Also check if now playing changed
                 checkNowPlayingChange()
             }
         }
@@ -1185,13 +1201,13 @@ class AppleMusicModule: RCTEventEmitter {
     // MARK: - Periodic Time Update Timer
     // ============================================================
 
-    /// Start periodic timer to send time updates every 500ms while playing
+    /// Start periodic timer to send time updates every 1s while playing
     private func startTimeUpdateTimer() {
         // Don't start if already running
         guard timeUpdateTimer == nil else { return }
 
         NSLog("[AppleMusicModule] Starting time update timer")
-        timeUpdateTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        timeUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self, self.hasListeners else { return }
 
             // Only send updates while playing
@@ -1203,8 +1219,9 @@ class AppleMusicModule: RCTEventEmitter {
             let stateDict = self.buildPlaybackState()
             self.sendEvent(withName: "onPlaybackStateChange", body: stateDict)
         }
-        // Add to common run loop mode to ensure timer fires during UI interactions
-        RunLoop.main.add(timeUpdateTimer!, forMode: .common)
+        // Use .default run loop mode so timer does NOT fire during touch tracking.
+        // Using .common would block touch handling by firing bridge events during gestures.
+        RunLoop.main.add(timeUpdateTimer!, forMode: .default)
     }
 
     /// Stop the periodic time update timer

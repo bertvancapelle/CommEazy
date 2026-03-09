@@ -314,14 +314,27 @@ class ServiceContainerClass {
               ? await this._notifications.getApnsToken()
               : null;
 
-            // Register for VoIP push (iOS only) — triggers PushKit
-            const voipToken = await registerForVoIPPush();
-
-            await this._xmpp.enablePushNotifications(fcmToken, apnsToken ?? undefined, voipToken ?? undefined);
+            // Register FCM/APNs push immediately (fast, non-blocking)
+            await this._xmpp.enablePushNotifications(fcmToken, apnsToken ?? undefined, undefined);
             console.info('[ServiceContainer] Push notifications registered with Prosody');
-            if (voipToken) {
-              console.info('[ServiceContainer] VoIP push registered (incoming calls)');
-            }
+
+            // Register VoIP push DEFERRED (non-blocking) — PushKit token can take 10-30s
+            // on first registration. Don't block startup for this.
+            const xmppRef = this._xmpp;
+            registerForVoIPPush().then(async (voipToken) => {
+              if (voipToken) {
+                try {
+                  await xmppRef.enablePushNotifications(fcmToken, apnsToken ?? undefined, voipToken);
+                  console.info('[ServiceContainer] VoIP push registered (deferred, incoming calls ready)');
+                } catch (err) {
+                  console.warn('[ServiceContainer] Deferred VoIP push registration failed:', err);
+                }
+              } else {
+                console.debug('[ServiceContainer] No VoIP token received (calls still work via regular push)');
+              }
+            }).catch((err) => {
+              console.debug('[ServiceContainer] VoIP push registration error (non-fatal):', err);
+            });
 
             // 6b-2. Listen for incoming VoIP pushes (iOS only)
             // Native layer already shows CallKit UI immediately (Apple requirement).

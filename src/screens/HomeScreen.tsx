@@ -205,7 +205,7 @@ export function HomeScreen({
 
     // Use floor to get the cell the finger is inside (not nearest center)
     const col = Math.floor((gridX - GRID_PADDING_H + GRID_GAP / 2) / (GRID_CELL_WIDTH + GRID_GAP));
-    const row = Math.floor((gridY + ROW_HEIGHT * 0.25) / ROW_HEIGHT);
+    const row = Math.floor(gridY / ROW_HEIGHT);
 
     const clampedCol = Math.max(0, Math.min(GRID_COLUMNS - 1, col));
     const clampedRow = Math.max(0, Math.min(Math.ceil(itemCount / GRID_COLUMNS) - 1, row));

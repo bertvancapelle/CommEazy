@@ -26,6 +26,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
   Platform,
   AccessibilityInfo,
   KeyboardAvoidingView,
@@ -46,6 +47,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import { useModuleBrowsingState, type RadioBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
@@ -267,6 +269,7 @@ export function RadioScreen() {
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const holdGesture = useHoldGestureContextSafe();
   const { triggerFeedback } = useFeedback();
+  const isReducedMotion = useReducedMotion();
   const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
 
