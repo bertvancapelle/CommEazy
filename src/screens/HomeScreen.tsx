@@ -129,6 +129,9 @@ export function HomeScreen({
 
   // Drag state — all in refs to avoid re-renders during drag
   const [_dragRenderTick, setDragRenderTick] = useState(0); // Force render for overlay + drop target
+  // Brief highlight when tapping without dragging in wiggle mode
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const dragScale = useRef(new Animated.Value(1)).current;
   const isDraggingRef = useRef(false);
@@ -345,8 +348,37 @@ export function HomeScreen({
           setDragRenderTick(prev => prev + 1);
         }
       },
-      onPanResponderRelease: () => {
+      onPanResponderRelease: (_evt, gs) => {
         if (!isDraggingRef.current) return;
+
+        // Detect tap-without-drag: finger barely moved
+        const wasTap = Math.abs(gs.dx) < 5 && Math.abs(gs.dy) < 5;
+
+        if (wasTap) {
+          // Show brief highlight on the tapped item, no reorder
+          const currentOrder = dragOrderRef.current;
+          const draggedId = draggedModuleIdRef.current;
+          const tappedIdx = draggedId ? currentOrder.indexOf(draggedId) : -1;
+
+          isDraggingRef.current = false;
+          draggedModuleIdRef.current = null;
+          dropTargetIndexRef.current = -1;
+          dragScale.setValue(1);
+          setDragRenderTick(prev => prev + 1);
+
+          if (tappedIdx >= 0) {
+            // Clear any previous highlight timer
+            if (highlightTimerRef.current) {
+              clearTimeout(highlightTimerRef.current);
+            }
+            setHighlightedIndex(tappedIdx);
+            highlightTimerRef.current = setTimeout(() => {
+              setHighlightedIndex(-1);
+              highlightTimerRef.current = null;
+            }, 300);
+          }
+          return;
+        }
 
         // Commit the drag order to state
         const finalOrder = [...dragOrderRef.current];
@@ -487,6 +519,7 @@ export function HomeScreen({
             const isDropTargetItem = isDraggingRef.current &&
               currentDropTarget === index &&
               currentDraggedId !== moduleId;
+            const isHighlighted = highlightedIndex === index;
 
             return (
               <View
@@ -499,6 +532,8 @@ export function HomeScreen({
                   index % GRID_COLUMNS !== 0 && styles.gridCellColGap,
                   // Placeholder style for the dragged item
                   isDraggedItem && styles.placeholderItem,
+                  // Brief highlight on tap-without-drag
+                  isHighlighted && styles.highlightedItem,
                 ]}
               >
                 <HomeGridItem
@@ -635,6 +670,10 @@ const styles = StyleSheet.create({
   },
   placeholderItem: {
     opacity: 0.15,
+  },
+  highlightedItem: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: borderRadius.md,
   },
   dragOverlay: {
     position: 'absolute',

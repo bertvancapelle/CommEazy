@@ -183,58 +183,75 @@ export function HomeGridItem({
         isDropTarget && styles.dropTargetContainer,
       ]}
     >
-      <HapticTouchable
-        onPress={onPress}
-        onLongPress={onLongPress}
-        delayLongPress={800}
-        hapticType="tap"
-        style={styles.touchable}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        accessibilityHint={
-          showBadge
-            ? `${badgeCount} ${badgeCount === 1 ? 'melding' : 'meldingen'}`
-            : undefined
-        }
-      >
-        {/* Icon circle with optional audio ring */}
-        <View style={styles.iconWrapper}>
-          {/* Audio active ring */}
-          {isAudioActive && (
-            <Animated.View
-              style={[
-                styles.audioRing,
-                {
-                  borderColor: color,
-                  transform: [{ scale: reduceMotion ? 1 : pulseAnim }],
-                },
-              ]}
-            />
-          )}
-
-          {/* Colored circle with icon */}
-          <View style={[styles.iconCircle, { backgroundColor: color }]}>
-            <Icon name={icon} size={ICON_SIZE} color="#FFFFFF" />
-          </View>
-
-          {/* Badge */}
-          {showBadge && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{badgeText}</Text>
+      {/* In wiggle mode: plain View so grid PanResponder can capture touches.
+          Normal mode: HapticTouchable for tap/long-press. */}
+      {isWiggling ? (
+        <View style={styles.touchable} pointerEvents="none">
+          <View style={styles.iconWrapper}>
+            <View style={[styles.iconCircle, { backgroundColor: color }]}>
+              <Icon name={icon} size={ICON_SIZE} color="#FFFFFF" />
             </View>
-          )}
+            {showBadge && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{badgeText}</Text>
+              </View>
+            )}
+          </View>
+          <Text
+            style={styles.label}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
+            {label}
+          </Text>
         </View>
-
-        {/* Label */}
-        <Text
-          style={styles.label}
-          numberOfLines={2}
-          adjustsFontSizeToFit
-          minimumFontScale={0.85}
+      ) : (
+        <HapticTouchable
+          onPress={onPress}
+          onLongPress={onLongPress}
+          delayLongPress={800}
+          hapticType="tap"
+          style={styles.touchable}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          accessibilityHint={
+            showBadge
+              ? `${badgeCount} ${badgeCount === 1 ? 'melding' : 'meldingen'}`
+              : undefined
+          }
         >
-          {label}
-        </Text>
-      </HapticTouchable>
+          <View style={styles.iconWrapper}>
+            {isAudioActive && (
+              <Animated.View
+                style={[
+                  styles.audioRing,
+                  {
+                    borderColor: color,
+                    transform: [{ scale: reduceMotion ? 1 : pulseAnim }],
+                  },
+                ]}
+              />
+            )}
+            <View style={[styles.iconCircle, { backgroundColor: color }]}>
+              <Icon name={icon} size={ICON_SIZE} color="#FFFFFF" />
+            </View>
+            {showBadge && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{badgeText}</Text>
+              </View>
+            )}
+          </View>
+          <Text
+            style={styles.label}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
+            {label}
+          </Text>
+        </HapticTouchable>
+      )}
     </Animated.View>
   );
 }
