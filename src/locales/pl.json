@@ -1571,7 +1571,9 @@
         "showAll": "Pokaż wszystkie ({{count}})",
         "showAllSongs": "Pokaż wszystkie utwory",
         "showAllAlbums": "Pokaż wszystkie albumy",
-        "showAllArtists": "Pokaż wszystkich artystów"
+        "showAllArtists": "Pokaż wszystkich artystów",
+        "changeCategory": "Zmień kategorię",
+        "changeCategoryHint": "Dotknij, aby przełączyć między utworami, albumami i artystami"
       },
       "collections": {
         "allFavorites": "Wszystkie ulubione",

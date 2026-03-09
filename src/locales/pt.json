@@ -1781,6 +1781,8 @@
         "showAllSongs": "Mostrar todas as músicas",
         "showAllAlbums": "Mostrar todos os álbuns",
         "showAllArtists": "Mostrar todos os artistas",
+        "changeCategory": "Alterar categoria",
+        "changeCategoryHint": "Toque para alternar entre músicas, álbuns e artistas",
         "addToFavorites": "Adicionar aos favoritos",
         "removeFromFavorites": "Remover dos favoritos"
       },

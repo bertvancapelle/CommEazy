@@ -1764,6 +1764,8 @@
         "showAllSongs": "Afficher tous les titres",
         "showAllAlbums": "Afficher tous les albums",
         "showAllArtists": "Afficher tous les artistes",
+        "changeCategory": "Changer de catégorie",
+        "changeCategoryHint": "Appuyez pour basculer entre chansons, albums et artistes",
         "addToFavorites": "Ajouter aux favoris",
         "removeFromFavorites": "Retirer des favoris"
       },

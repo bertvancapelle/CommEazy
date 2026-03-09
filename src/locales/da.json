@@ -1608,6 +1608,8 @@
         "showAllSongs": "Vis alle sange",
         "showAllAlbums": "Vis alle album",
         "showAllArtists": "Vis alle kunstnere",
+        "changeCategory": "Skift kategori",
+        "changeCategoryHint": "Tryk for at skifte mellem sange, album og kunstnere",
         "addToFavorites": "Tilføj til favoritter",
         "removeFromFavorites": "Fjern fra favoritter"
       },

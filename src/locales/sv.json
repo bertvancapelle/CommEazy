@@ -1609,7 +1609,9 @@
         "showAll": "Visa alla {{count}}",
         "showAllSongs": "Visa alla låtar",
         "showAllAlbums": "Visa alla album",
-        "showAllArtists": "Visa alla artister"
+        "showAllArtists": "Visa alla artister",
+        "changeCategory": "Ändra kategori",
+        "changeCategoryHint": "Tryck för att växla mellan låtar, album och artister"
       },
       "collections": {
         "allFavorites": "Alla favoriter",

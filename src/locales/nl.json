@@ -1775,7 +1775,9 @@
         "showAll": "Toon alle {{count}}",
         "showAllSongs": "Toon alle nummers",
         "showAllAlbums": "Toon alle albums",
-        "showAllArtists": "Toon alle artiesten"
+        "showAllArtists": "Toon alle artiesten",
+        "changeCategory": "Categorie wijzigen",
+        "changeCategoryHint": "Tik om te wisselen tussen nummers, albums en artiesten"
       },
       "collections": {
         "allFavorites": "Alle favorieten",
