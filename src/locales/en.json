@@ -1057,8 +1057,7 @@
   },
   "homeScreen": {
     "editModeDone": "Done",
-    "tapToSelect": "Tap an icon to move it",
-    "tapToSwap": "Tap another icon to swap",
+    "dragToReorder": "Hold and drag to move",
     "miniPlayer": {
       "nowPlaying": "Now playing",
       "tapToOpen": "Tap to open"

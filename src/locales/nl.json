@@ -1067,8 +1067,7 @@
   },
   "homeScreen": {
     "editModeDone": "Klaar",
-    "tapToSelect": "Tik op een icoon om te verplaatsen",
-    "tapToSwap": "Tik op een ander icoon om te wisselen",
+    "dragToReorder": "Houd vast en sleep om te verplaatsen",
     "miniPlayer": {
       "nowPlaying": "Nu aan het spelen",
       "tapToOpen": "Tik om te openen"

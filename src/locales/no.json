@@ -966,8 +966,7 @@
   },
   "homeScreen": {
     "editModeDone": "Ferdig",
-    "tapToSelect": "Trykk på et ikon for å flytte det",
-    "tapToSwap": "Trykk på et annet ikon for å bytte",
+    "dragToReorder": "Hold og dra for å flytte",
     "miniPlayer": {
       "nowPlaying": "Spilles nå",
       "tapToOpen": "Trykk for å åpne"

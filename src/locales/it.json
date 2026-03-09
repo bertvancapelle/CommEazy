@@ -1040,8 +1040,7 @@
   },
   "homeScreen": {
     "editModeDone": "Fatto",
-    "tapToSelect": "Tocca un'icona per spostarla",
-    "tapToSwap": "Tocca un'altra icona per scambiare",
+    "dragToReorder": "Tieni premuto e trascina per spostare",
     "miniPlayer": {
       "nowPlaying": "In riproduzione",
       "tapToOpen": "Tocca per aprire"

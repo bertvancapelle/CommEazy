@@ -957,8 +957,7 @@
   },
   "homeScreen": {
     "editModeDone": "Gotowe",
-    "tapToSelect": "Dotknij ikony, aby ją przenieść",
-    "tapToSwap": "Dotknij innej ikony, aby zamienić",
+    "dragToReorder": "Przytrzymaj i przeciągnij, aby przenieść",
     "miniPlayer": {
       "nowPlaying": "Teraz odtwarzane",
       "tapToOpen": "Dotknij, aby otworzyć"

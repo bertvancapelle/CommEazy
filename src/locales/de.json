@@ -1043,8 +1043,7 @@
   },
   "homeScreen": {
     "editModeDone": "Fertig",
-    "tapToSelect": "Tippe auf ein Symbol zum Verschieben",
-    "tapToSwap": "Tippe auf ein anderes Symbol zum Tauschen",
+    "dragToReorder": "Halten und ziehen zum Verschieben",
     "miniPlayer": {
       "nowPlaying": "Wird gerade gespielt",
       "tapToOpen": "Tippe zum Öffnen"

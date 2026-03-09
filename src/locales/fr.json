@@ -1043,8 +1043,7 @@
   },
   "homeScreen": {
     "editModeDone": "Terminé",
-    "tapToSelect": "Appuyez sur une icône pour la déplacer",
-    "tapToSwap": "Appuyez sur une autre icône pour échanger",
+    "dragToReorder": "Maintenez et glissez pour déplacer",
     "miniPlayer": {
       "nowPlaying": "En cours de lecture",
       "tapToOpen": "Appuyez pour ouvrir"

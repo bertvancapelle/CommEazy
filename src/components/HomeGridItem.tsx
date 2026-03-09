@@ -54,6 +54,8 @@ export interface HomeGridItemProps {
   isWiggling?: boolean;
   /** Whether this item is selected for swap in wiggle mode */
   isSelected?: boolean;
+  /** Whether this item is currently being dragged (placeholder in grid) */
+  isDragging?: boolean;
   /** Tap handler */
   onPress: () => void;
   /** Long press handler (activates wiggle mode) */
@@ -93,6 +95,7 @@ export function HomeGridItem({
   isAudioActive = false,
   isWiggling = false,
   isSelected = false,
+  isDragging = false,
   onPress,
   onLongPress,
 }: HomeGridItemProps) {

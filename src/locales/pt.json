@@ -1068,8 +1068,7 @@
   },
   "homeScreen": {
     "editModeDone": "Concluído",
-    "tapToSelect": "Toque num ícone para o mover",
-    "tapToSwap": "Toque noutro ícone para trocar",
+    "dragToReorder": "Mantenha premido e arraste para mover",
     "miniPlayer": {
       "nowPlaying": "A reproduzir",
       "tapToOpen": "Toque para abrir"
