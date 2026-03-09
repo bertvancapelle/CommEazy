@@ -1601,7 +1601,7 @@
         "tapToImport": "{{name}} — dotknij, aby zaimportować",
         "imported": "Zaimportowana",
         "trackCount": "{{count}} utworów",
-        "successTitle": "Ukończono",
+        "successTitle": "Import zakończony",
         "failureTitle": "Częściowo zaimportowana",
         "successDetail": "{{songs}} utworów dodanych do \"{{name}}\"",
         "failureDetail": "{{songs}} z {{total}} utworów zaimportowanych",

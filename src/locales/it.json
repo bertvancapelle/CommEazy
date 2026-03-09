@@ -1743,7 +1743,7 @@
         "tapToImport": "{{name}} — tocca per importare",
         "imported": "Importata",
         "trackCount": "{{count}} brani",
-        "successTitle": "Completato",
+        "successTitle": "Importazione riuscita",
         "failureTitle": "Parzialmente importata",
         "successDetail": "{{songs}} brani aggiunti a \"{{name}}\"",
         "failureDetail": "{{songs}} di {{total}} brani importati",

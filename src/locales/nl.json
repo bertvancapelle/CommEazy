@@ -1805,7 +1805,7 @@
         "tapToImport": "{{name}} — tik om te importeren",
         "imported": "Geïmporteerd",
         "trackCount": "{{count}} nummers",
-        "successTitle": "Geslaagd",
+        "successTitle": "Import geslaagd",
         "failureTitle": "Gedeeltelijk geïmporteerd",
         "successDetail": "{{songs}} nummers toegevoegd aan \"{{name}}\"",
         "failureDetail": "{{songs}} van {{total}} nummers geïmporteerd",

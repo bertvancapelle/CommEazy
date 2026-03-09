@@ -1812,7 +1812,7 @@
         "tapToImport": "{{name}} — toque para importar",
         "imported": "Importada",
         "trackCount": "{{count}} faixas",
-        "successTitle": "Concluído",
+        "successTitle": "Importação concluída",
         "failureTitle": "Parcialmente importada",
         "successDetail": "{{songs}} músicas adicionadas a \"{{name}}\"",
         "failureDetail": "{{songs}} de {{total}} músicas importadas",

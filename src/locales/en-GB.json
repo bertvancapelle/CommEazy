@@ -1799,7 +1799,7 @@
         "tapToImport": "{{name}} — tap to import",
         "imported": "Imported",
         "trackCount": "{{count}} tracks",
-        "successTitle": "Success",
+        "successTitle": "Import successful",
         "failureTitle": "Partially imported",
         "successDetail": "{{songs}} songs added to \"{{name}}\"",
         "failureDetail": "{{songs}} of {{total}} songs imported",

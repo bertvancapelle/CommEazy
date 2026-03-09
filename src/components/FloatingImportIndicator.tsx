@@ -7,19 +7,20 @@
  * States:
  * 1. Hidden: Not importing and no result → component returns null
  * 2. Importing: Spinner + progress text, collapsible via tap
- * 3. Success: Green card with "✓ Geslaagd" + two buttons (Bekijk / Sluiten)
- * 4. Failure: Orange card with partial import info + two buttons (Opnieuw / Bewaar)
+ * 3. Success: Centered modal card with "✓ Import geslaagd" + two buttons
+ * 4. Failure: Centered modal card with partial import info + two buttons
  *
- * Draggable: PanResponder pattern from DraggableMenuButton.
- * Snaps to left/right edge on release.
+ * Import progress: Draggable floating indicator (PanResponder).
+ * Result: Centered modal overlay with backdrop (blocks interaction).
  *
  * Reads state from PlaylistImportContext (producer: AppleMusicScreen).
  *
  * Senior-inclusive design:
  * - 60pt minimum touch target
  * - Clear visual feedback (spinner → checkmark/warning)
- * - Non-blocking — user can use the app normally
- * - Draggable — user can move out of the way
+ * - Non-blocking during import — user can use the app normally
+ * - Result card blocks interaction — prevents confusion
+ * - Draggable indicator during import
  * - Action buttons ≥60pt touch targets
  */
 
@@ -49,7 +50,7 @@ import { Icon } from './Icon';
 
 const INDICATOR_SIZE = 60;
 const EXPANDED_WIDTH = 300;
-const RESULT_CARD_WIDTH = 280;
+const RESULT_CARD_WIDTH = 300;
 const EDGE_PADDING = 12;
 const FADE_DURATION_MS = 300;
 const DRAG_THRESHOLD = 5;
@@ -124,7 +125,7 @@ export function FloatingImportIndicator() {
     [dimensions, insets],
   );
 
-  // PanResponder for drag
+  // PanResponder for drag (only used during import, not for result card)
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
@@ -218,6 +219,86 @@ export function FloatingImportIndicator() {
     : '';
   const playlistName = importProgress?.currentName || '';
 
+  // Result card: centered modal overlay with backdrop
+  if (showResultCard) {
+    return (
+      <Animated.View
+        style={[
+          styles.resultOverlay,
+          { opacity: fadeAnim },
+        ]}
+      >
+        <View
+          style={[
+            styles.resultCard,
+            {
+              backgroundColor: isSuccess
+                ? '#1B5E20'
+                : '#E65100',
+            },
+            shadows.medium,
+          ]}
+        >
+          {/* Header icon + title */}
+          <View style={styles.resultHeader}>
+            <Icon
+              name={isSuccess ? 'checkmark-circle' : 'warning'}
+              size={32}
+              color="#FFFFFF"
+            />
+            <Text style={styles.resultTitle}>
+              {isSuccess
+                ? t('appleMusic.import.successTitle', 'Import geslaagd')
+                : t('appleMusic.import.failureTitle', 'Gedeeltelijk geïmporteerd')}
+            </Text>
+          </View>
+
+          {/* Details */}
+          <Text style={styles.resultDetail}>
+            {isSuccess
+              ? t('appleMusic.import.successDetail', '{{songs}} nummers toegevoegd aan "{{name}}"', {
+                  songs: importResult.result.songsAdded,
+                  name: importResult.playlistName,
+                })
+              : t('appleMusic.import.failureDetail', '{{songs}} van {{total}} nummers geïmporteerd', {
+                  songs: importResult.result.songsAdded,
+                  total: importResult.result.songsAdded + importResult.result.failures,
+                })}
+          </Text>
+
+          {/* Action buttons */}
+          <View style={styles.resultButtons}>
+            {isSuccess && onViewPlaylist ? (
+              <HapticTouchable
+                style={[styles.resultButton, styles.resultButtonPrimary]}
+                onPress={handleViewPlaylist}
+                accessibilityRole="button"
+                accessibilityLabel={t('appleMusic.import.viewPlaylist', 'Bekijk afspeellijst')}
+              >
+                <Icon name="musical-notes" size={18} color="#1B5E20" />
+                <Text style={[styles.resultButtonText, { color: '#1B5E20' }]}>
+                  {t('appleMusic.import.viewPlaylist', 'Bekijk afspeellijst')}
+                </Text>
+              </HapticTouchable>
+            ) : null}
+
+            <HapticTouchable
+              style={[styles.resultButton, styles.resultButtonSecondary]}
+              onPress={handleDismiss}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close', 'Sluiten')}
+            >
+              <Text style={styles.resultButtonTextSecondary}>
+                {t('common.close', 'Sluiten')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        </View>
+      </Animated.View>
+    );
+  }
+
+  // Progress indicator: draggable floating element
   return (
     <Animated.View
       style={[
@@ -232,123 +313,52 @@ export function FloatingImportIndicator() {
         ]}
         {...panResponder.panHandlers}
       >
-        {showResultCard ? (
-          // Success / Failure result card
-          <View
-            style={[
-              styles.resultCard,
-              {
-                backgroundColor: isSuccess
-                  ? '#1B5E20'
-                  : '#E65100',
-              },
-              shadows.medium,
-            ]}
-          >
-            {/* Header icon + title */}
-            <View style={styles.resultHeader}>
-              <Icon
-                name={isSuccess ? 'checkmark-circle' : 'warning'}
-                size={32}
-                color="#FFFFFF"
-              />
-              <Text style={styles.resultTitle}>
-                {isSuccess
-                  ? t('appleMusic.import.successTitle', 'Geslaagd')
-                  : t('appleMusic.import.failureTitle', 'Gedeeltelijk geïmporteerd')}
-              </Text>
-            </View>
-
-            {/* Details */}
-            <Text style={styles.resultDetail}>
-              {isSuccess
-                ? t('appleMusic.import.successDetail', '{{songs}} nummers toegevoegd aan "{{name}}"', {
-                    songs: importResult.result.songsAdded,
-                    name: importResult.playlistName,
-                  })
-                : t('appleMusic.import.failureDetail', '{{songs}} van {{total}} nummers geïmporteerd', {
-                    songs: importResult.result.songsAdded,
-                    total: importResult.result.songsAdded + importResult.result.failures,
-                  })}
-            </Text>
-
-            {/* Action buttons */}
-            <View style={styles.resultButtons}>
-              {isSuccess && onViewPlaylist ? (
-                <HapticTouchable
-                  style={[styles.resultButton, styles.resultButtonPrimary]}
-                  onPress={handleViewPlaylist}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('appleMusic.import.viewPlaylist', 'Bekijk afspeellijst')}
-                >
-                  <Icon name="musical-notes" size={18} color="#1B5E20" />
-                  <Text style={[styles.resultButtonText, { color: '#1B5E20' }]}>
-                    {t('appleMusic.import.viewPlaylist', 'Bekijk afspeellijst')}
-                  </Text>
-                </HapticTouchable>
-              ) : null}
-
-              <HapticTouchable
-                style={[styles.resultButton, styles.resultButtonSecondary]}
-                onPress={handleDismiss}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close', 'Sluiten')}
-              >
-                <Text style={styles.resultButtonTextSecondary}>
-                  {t('common.close', 'Sluiten')}
-                </Text>
-              </HapticTouchable>
-            </View>
+        <HapticTouchable
+          style={[
+            styles.indicator,
+            isExpanded && styles.indicatorExpanded,
+            {
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border,
+            },
+            shadows.medium,
+          ]}
+          onPress={handlePress}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isExpanded && importProgress
+              ? t('appleMusic.import.floatingProgress', '{{current}} van {{total}}: {{name}}', {
+                  current: importProgress.current,
+                  total: importProgress.total,
+                  name: playlistName,
+                })
+              : t('appleMusic.import.floatingImporting', 'Bezig met importeren')
+          }
+          accessibilityHint={t('appleMusic.import.floatingHint', 'Tik om details te tonen')}
+        >
+          <View style={styles.iconContainer}>
+            <ActivityIndicator size="small" color={themeColors.primary} />
           </View>
-        ) : (
-          // Progress indicator (importing)
-          <HapticTouchable
-            style={[
-              styles.indicator,
-              isExpanded && styles.indicatorExpanded,
-              {
-                backgroundColor: themeColors.surface,
-                borderColor: themeColors.border,
-              },
-              shadows.medium,
-            ]}
-            onPress={handlePress}
-            accessibilityRole="button"
-            accessibilityLabel={
-              isExpanded && importProgress
-                ? t('appleMusic.import.floatingProgress', '{{current}} van {{total}}: {{name}}', {
-                    current: importProgress.current,
-                    total: importProgress.total,
-                    name: playlistName,
-                  })
-                : t('appleMusic.import.floatingImporting', 'Bezig met importeren')
-            }
-            accessibilityHint={t('appleMusic.import.floatingHint', 'Tik om details te tonen')}
-          >
-            <View style={styles.iconContainer}>
-              <ActivityIndicator size="small" color={themeColors.primary} />
-            </View>
 
-            {isExpanded && (
-              <View style={styles.expandedContent}>
+          {isExpanded && (
+            <View style={styles.expandedContent}>
+              <Text
+                style={[styles.progressText, { color: themeColors.textPrimary }]}
+                numberOfLines={1}
+              >
+                {progressText}
+              </Text>
+              {playlistName ? (
                 <Text
-                  style={[styles.progressText, { color: themeColors.textPrimary }]}
+                  style={[styles.playlistName, { color: themeColors.textSecondary }]}
                   numberOfLines={1}
                 >
-                  {progressText}
+                  {playlistName}
                 </Text>
-                {playlistName ? (
-                  <Text
-                    style={[styles.playlistName, { color: themeColors.textSecondary }]}
-                    numberOfLines={1}
-                  >
-                    {playlistName}
-                  </Text>
-                ) : null}
-              </View>
-            )}
-          </HapticTouchable>
-        )}
+              ) : null}
+            </View>
+          )}
+        </HapticTouchable>
       </Animated.View>
     </Animated.View>
   );
@@ -364,6 +374,14 @@ const styles = StyleSheet.create({
     zIndex: zIndex.toast,
     elevation: 10,
     pointerEvents: 'box-none',
+  },
+  resultOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: zIndex.toast,
+    elevation: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   indicator: {
     flexDirection: 'row',
@@ -397,7 +415,7 @@ const styles = StyleSheet.create({
     ...typography.small,
     fontStyle: 'italic',
   },
-  // Result card styles
+  // Result card styles (centered modal)
   resultCard: {
     width: RESULT_CARD_WIDTH,
     borderRadius: borderRadius.lg,

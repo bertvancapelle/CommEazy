@@ -1669,7 +1669,7 @@
         "tapToImport": "{{name}} — trykk for å importere",
         "imported": "Importert",
         "trackCount": "{{count}} spor",
-        "successTitle": "Fullført",
+        "successTitle": "Import vellykket",
         "failureTitle": "Delvis importert",
         "successDetail": "{{songs}} sanger lagt til i \"{{name}}\"",
         "failureDetail": "{{songs}} av {{total}} sanger importert",

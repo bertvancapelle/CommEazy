@@ -1639,7 +1639,7 @@
         "tapToImport": "{{name}} — tryck för att importera",
         "imported": "Importerad",
         "trackCount": "{{count}} spår",
-        "successTitle": "Slutfört",
+        "successTitle": "Import lyckades",
         "failureTitle": "Delvis importerad",
         "successDetail": "{{songs}} låtar tillagda i \"{{name}}\"",
         "failureDetail": "{{songs}} av {{total}} låtar importerade",
