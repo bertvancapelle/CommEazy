@@ -204,6 +204,9 @@ export function AppleMusicScreen() {
   // Playlist browser state
   const [showPlaylistBrowser, setShowPlaylistBrowser] = useState(false);
 
+  // Collection detail view (null = show collection list, string = show songs for that collection)
+  const [openCollectionId, setOpenCollectionId] = useState<string | null>(null);
+
   // Music Favorites & Collections (CommEazy local curation)
   const musicFavorites = useMusicFavorites(isFocused);
   const musicCollections = useMusicCollections();
@@ -243,6 +246,30 @@ export function AppleMusicScreen() {
       return b.addedAt - a.addedAt;
     });
   }, [artistFavorites.artists, artistStatsMap]);
+
+  // Songs for the currently opened collection (collection detail view)
+  const openCollection = useMemo(() => {
+    if (!openCollectionId) return null;
+    return musicCollections.collections.find(c => c.id === openCollectionId) ?? null;
+  }, [openCollectionId, musicCollections.collections]);
+
+  const openCollectionSongs: AppleMusicSong[] = useMemo(() => {
+    if (!openCollection) return [];
+    return openCollection.songCatalogIds
+      .map(catalogId => {
+        const fav = musicFavorites.favorites.find(f => f.catalogId === catalogId);
+        if (!fav) return null;
+        return {
+          id: fav.catalogId,
+          title: fav.title,
+          artistName: fav.artistName,
+          artworkUrl: fav.artworkUrl,
+          albumTitle: fav.albumTitle,
+          durationInMillis: 0,
+        } as AppleMusicSong;
+      })
+      .filter((s): s is AppleMusicSong => s !== null);
+  }, [openCollection, musicFavorites.favorites]);
 
   const [selectedChipId, setSelectedChipId] = useState<MusicChipId>('all');
   const [editCollectionModal, setEditCollectionModal] = useState<{
@@ -1610,143 +1637,195 @@ export function AppleMusicScreen() {
         {/* ===== PLAYLISTS sub-tab ===== */}
         {favoritesSubTab === 'playlists' && !musicCollections.isLoading && (
           <>
-            {/* Sticky header: New playlist + Last Played */}
-            <View style={styles.favStickyHeader}>
-              {/* New playlist button */}
-              <HapticTouchable
-                style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
-                onPress={() => {
-                  Alert.prompt(
-                    t('modules.appleMusic.collections.createCollection'),
-                    t('modules.appleMusic.collections.newListName'),
-                    [
-                      { text: t('common.cancel'), style: 'cancel' },
-                      {
-                        text: t('common.create', 'Aanmaken'),
-                        onPress: (name?: string) => {
-                          if (name?.trim()) {
-                            musicCollections.create(name.trim());
-                          }
-                        },
-                      },
-                    ],
-                    'plain-text',
-                  );
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.appleMusic.favorites.newPlaylist')}
-              >
-                <Icon name="plus" size={20} color={appleMusicColor} />
-                <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
-                  {t('modules.appleMusic.favorites.newPlaylist')}
-                </Text>
-              </HapticTouchable>
-
-              {/* Last played playlist */}
-              {renderLastPlayed(lastPlayedPlaylist, () => {
-                if (lastPlayedPlaylist) {
-                  // Find and select the collection
-                  const collection = musicCollections.collections.find(c => c.id === lastPlayedPlaylist.itemId);
-                  if (collection) {
-                    setSelectedChipId(`collection:${collection.id}` as MusicChipId);
-                    // Play the first song in the collection
-                    if (collection.songCatalogIds.length > 0) {
-                      const firstSongId = collection.songCatalogIds[0];
-                      const favorite = musicFavorites.favorites.find(f => f.catalogId === firstSongId);
-                      if (favorite) {
-                        handlePlaySong({
-                          id: favorite.catalogId,
-                          title: favorite.title,
-                          artistName: favorite.artistName,
-                          artworkUrl: favorite.artworkUrl,
-                          albumTitle: favorite.albumTitle,
-                          durationInMillis: 0,
-                        });
-                      }
-                    }
-                  }
-                }
-              })}
-
-              {/* Import playlists button — only if un-imported playlists may exist */}
-              <HapticTouchable
-                style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
-                onPress={() => setShowPlaylistBrowser(true)}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.appleMusic.import.importButton')}
-              >
-                <Icon name="download" size={20} color={appleMusicColor} />
-                <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
-                  {t('modules.appleMusic.import.importButton')}
-                </Text>
-              </HapticTouchable>
-            </View>
-
-            {/* Scrollable collection list */}
-            {hasCollections ? (
-              <ScrollView
-                style={styles.resultsList}
-                contentContainerStyle={[
-                  styles.resultsContent,
-                  { paddingBottom: bottomPadding + insets.bottom },
-                ]}
-              >
-                {sortedCollections.map((collection, index) => (
+            {openCollectionId && openCollection ? (
+              /* ---- Collection detail view: show songs in this collection ---- */
+              <>
+                {/* Back button + collection name + Play All */}
+                <View style={styles.favStickyHeader}>
                   <HapticTouchable
-                    key={collection.id}
-                    style={[styles.songItem, { backgroundColor: themeColors.surface }]}
-                    onPress={() => {
-                      setSelectedChipId(`collection:${collection.id}` as MusicChipId);
-                      // Navigate to detail: open the collection's songs
-                      // For now, play the first song in the collection
-                      if (collection.songCatalogIds.length > 0) {
-                        const firstSongId = collection.songCatalogIds[0];
-                        const favorite = musicFavorites.favorites.find(f => f.catalogId === firstSongId);
-                        if (favorite) {
-                          playStats.recordPlay('playlist', collection.id, {
-                            displayName: collection.name,
-                            artworkUrl: null,
-                          });
-                          handlePlaySong({
-                            id: favorite.catalogId,
-                            title: favorite.title,
-                            artistName: favorite.artistName,
-                            artworkUrl: favorite.artworkUrl,
-                            albumTitle: favorite.albumTitle,
-                            durationInMillis: 0,
-                          });
-                        }
-                      }
-                    }}
+                    style={[styles.collectionBackRow, { borderColor: themeColors.border }]}
+                    onPress={() => setOpenCollectionId(null)}
                     accessibilityRole="button"
-                    accessibilityLabel={`${collection.name}, ${collection.songCatalogIds.length} ${t('modules.appleMusic.collections.songs')}`}
+                    accessibilityLabel={t('modules.appleMusic.favorites.playlists')}
                   >
+                    <Icon name="chevron-left" size={22} color={appleMusicColor} />
+                    <Text style={[styles.collectionBackText, { color: appleMusicColor }]} numberOfLines={1}>
+                      {t('modules.appleMusic.favorites.playlists')}
+                    </Text>
+                  </HapticTouchable>
+
+                  <View style={styles.collectionDetailHeader}>
                     <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: appleMusicColor + '20' }]}>
                       <Icon name="list" size={24} color={appleMusicColor} />
                     </View>
-                    <View style={styles.songInfo}>
+                    <View style={{ flex: 1 }}>
                       <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                        {collection.name}
+                        {openCollection.name}
                       </Text>
                       <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                        {collection.songCatalogIds.length} {t('modules.appleMusic.collections.songs')}
-                        {collection.sourcePlaylistId ? ` • ${t('modules.appleMusic.favorites.imported')}` : ''}
+                        {openCollection.songCatalogIds.length} {t('modules.appleMusic.collections.songs')}
                       </Text>
                     </View>
-                    <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
-                  </HapticTouchable>
-                ))}
-              </ScrollView>
+                    <HapticTouchable
+                      style={[styles.collectionEditButton]}
+                      onPress={() => setEditCollectionModal({ visible: true, collection: openCollection })}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.edit')}
+                    >
+                      <Icon name="settings" size={20} color={themeColors.textSecondary} />
+                    </HapticTouchable>
+                  </View>
+
+                  {/* Play All button */}
+                  {openCollectionSongs.length > 0 && (
+                    <HapticTouchable
+                      style={[styles.collectionPlayAllButton, { backgroundColor: appleMusicColor }]}
+                      onPress={() => {
+                        playStats.recordPlay('playlist', openCollection.id, {
+                          displayName: openCollection.name,
+                          artworkUrl: null,
+                        });
+                        if (openCollectionSongs.length > 0) {
+                          handlePlaySong(openCollectionSongs[0]);
+                        }
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('modules.appleMusic.detail.playAll')}
+                    >
+                      <Icon name="play" size={20} color="#FFFFFF" />
+                      <Text style={styles.collectionPlayAllText}>
+                        {t('modules.appleMusic.detail.playAll')}
+                      </Text>
+                    </HapticTouchable>
+                  )}
+                </View>
+
+                {/* Song list */}
+                <ScrollView
+                  style={styles.resultsList}
+                  contentContainerStyle={[
+                    styles.resultsContent,
+                    { paddingBottom: bottomPadding + insets.bottom },
+                  ]}
+                >
+                  {openCollectionSongs.map((song, index) =>
+                    renderSongItem(song, index, 'favorites')
+                  )}
+                  {openCollectionSongs.length === 0 && (
+                    <View style={styles.emptyState}>
+                      <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
+                      <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
+                        {t('modules.appleMusic.collections.collectionEmpty')}
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
+              </>
             ) : (
-              <View style={styles.emptyState}>
-                <Icon name="list" size={48} color={themeColors.textSecondary} />
-                <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
-                  {t('modules.appleMusic.favorites.emptyPlaylistsTitle')}
-                </Text>
-                <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-                  {t('modules.appleMusic.favorites.emptyPlaylistsDescription')}
-                </Text>
-              </View>
+              /* ---- Collection list view ---- */
+              <>
+                {/* Sticky header: New playlist + Last Played */}
+                <View style={styles.favStickyHeader}>
+                  {/* New playlist button */}
+                  <HapticTouchable
+                    style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
+                    onPress={() => {
+                      Alert.prompt(
+                        t('modules.appleMusic.collections.createCollection'),
+                        t('modules.appleMusic.collections.newListName'),
+                        [
+                          { text: t('common.cancel'), style: 'cancel' },
+                          {
+                            text: t('common.create', 'Aanmaken'),
+                            onPress: (name?: string) => {
+                              if (name?.trim()) {
+                                musicCollections.create(name.trim());
+                              }
+                            },
+                          },
+                        ],
+                        'plain-text',
+                      );
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.appleMusic.favorites.newPlaylist')}
+                  >
+                    <Icon name="plus" size={20} color={appleMusicColor} />
+                    <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
+                      {t('modules.appleMusic.favorites.newPlaylist')}
+                    </Text>
+                  </HapticTouchable>
+
+                  {/* Last played playlist */}
+                  {renderLastPlayed(lastPlayedPlaylist, () => {
+                    if (lastPlayedPlaylist) {
+                      setOpenCollectionId(lastPlayedPlaylist.itemId);
+                      setSelectedChipId(`collection:${lastPlayedPlaylist.itemId}` as MusicChipId);
+                    }
+                  })}
+
+                  {/* Import playlists button */}
+                  <HapticTouchable
+                    style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
+                    onPress={() => setShowPlaylistBrowser(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.appleMusic.import.importButton')}
+                  >
+                    <Icon name="download" size={20} color={appleMusicColor} />
+                    <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
+                      {t('modules.appleMusic.import.importButton')}
+                    </Text>
+                  </HapticTouchable>
+                </View>
+
+                {/* Scrollable collection list */}
+                {hasCollections ? (
+                  <ScrollView
+                    style={styles.resultsList}
+                    contentContainerStyle={[
+                      styles.resultsContent,
+                      { paddingBottom: bottomPadding + insets.bottom },
+                    ]}
+                  >
+                    {sortedCollections.map((collection, index) => (
+                      <HapticTouchable
+                        key={collection.id}
+                        style={[styles.songItem, { backgroundColor: themeColors.surface }]}
+                        onPress={() => {
+                          setOpenCollectionId(collection.id);
+                          setSelectedChipId(`collection:${collection.id}` as MusicChipId);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${collection.name}, ${collection.songCatalogIds.length} ${t('modules.appleMusic.collections.songs')}`}
+                      >
+                        <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: appleMusicColor + '20' }]}>
+                          <Icon name="list" size={24} color={appleMusicColor} />
+                        </View>
+                        <View style={styles.songInfo}>
+                          <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                            {collection.name}
+                          </Text>
+                          <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                            {collection.songCatalogIds.length} {t('modules.appleMusic.collections.songs')}
+                            {collection.sourcePlaylistId ? ` • ${t('modules.appleMusic.favorites.imported')}` : ''}
+                          </Text>
+                        </View>
+                        <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
+                      </HapticTouchable>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Icon name="list" size={48} color={themeColors.textSecondary} />
+                    <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
+                      {t('modules.appleMusic.favorites.emptyPlaylistsTitle')}
+                    </Text>
+                    <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+                      {t('modules.appleMusic.favorites.emptyPlaylistsDescription')}
+                    </Text>
+                  </View>
+                )}
+              </>
             )}
           </>
         )}
@@ -1964,6 +2043,7 @@ export function AppleMusicScreen() {
                         onPress={() => {
                           setFavoritesSubTab(key);
                           setShowFavoritesDropdown(false);
+                          setOpenCollectionId(null);
                         }}
                         onLongPress={() => {}}
                         delayLongPress={300}
@@ -2411,6 +2491,8 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     backgroundColor: colors.surface,
     gap: spacing.sm,
+    zIndex: 10,
+    overflow: 'visible',
   },
   twoTab: {
     flex: 1,
@@ -2449,6 +2531,7 @@ const styles = StyleSheet.create({
   tabContent: {
     flex: 1,
     padding: spacing.md,
+    zIndex: 1,
   },
 
   // Loading
@@ -2667,6 +2750,45 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '600',
     flex: 1,
+  },
+
+  // Collection detail view
+  collectionBackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
+  },
+  collectionBackText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  collectionDetailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  collectionEditButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  collectionPlayAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.minimum,
+  },
+  collectionPlayAllText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 
   // Favorites dropdown overlay (used by tab bar dropdown)
