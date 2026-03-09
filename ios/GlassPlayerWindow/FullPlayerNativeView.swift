@@ -424,8 +424,8 @@ class FullPlayerNativeView: UIView {
         skipForwardButton.isHidden = true
         contentView.addSubview(skipForwardButton)
         
-        // Stop button — uses 22pt icon to match other bottom-row buttons (sleep, favorite)
-        let stopIconConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        // Stop button — uses 20pt icon consistent with all secondary-row buttons
+        let stopIconConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
         stopButton.setImage(UIImage(systemName: "stop.fill", withConfiguration: stopIconConfig), for: .normal)
         stopButton.tintColor = .white
         stopButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)

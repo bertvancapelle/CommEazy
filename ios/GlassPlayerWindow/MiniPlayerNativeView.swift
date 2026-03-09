@@ -70,7 +70,6 @@ class MiniPlayerNativeView: UIView {
     // Dynamic constraints for artwork leading edge (depends on minimize button visibility)
     private var artworkLeadingDefault: NSLayoutConstraint?
     private var artworkLeadingWithMinimize: NSLayoutConstraint?
-    private var minimizeButtonSize: CGFloat = 48  // Smaller to avoid glass panel cornerRadius clipping
     
     // MARK: - Constants
     
@@ -189,12 +188,12 @@ class MiniPlayerNativeView: UIView {
         addSubview(stopButton)
         
         // Minimize button (iPad only — chevron.down to hide player without stopping)
-        // Smaller (48pt) to avoid being clipped by glass panel 24pt cornerRadius
-        let minimizeConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        // Standard 60pt button with extra leading padding (32pt) to clear glass panel 24pt cornerRadius
+        let minimizeConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
         minimizeButton.setImage(UIImage(systemName: "chevron.down", withConfiguration: minimizeConfig), for: .normal)
         minimizeButton.tintColor = .white
         minimizeButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        minimizeButton.layer.cornerRadius = 10  // Slightly smaller for 48pt button
+        minimizeButton.layer.cornerRadius = Layout.buttonCornerRadius
         minimizeButton.addTarget(self, action: #selector(handleMinimize), for: .touchUpInside)
         minimizeButton.translatesAutoresizingMaskIntoConstraints = false
         minimizeButton.accessibilityLabel = "Minimaliseren"
@@ -210,11 +209,11 @@ class MiniPlayerNativeView: UIView {
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Minimize button - far left, before artwork (hidden by default, iPad only)
-            // Extra padding (20pt) to clear glass panel 24pt cornerRadius
-            minimizeButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            // Extra padding (32pt) to clear glass panel 24pt cornerRadius with 60pt button
+            minimizeButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 32),
             minimizeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            minimizeButton.widthAnchor.constraint(equalToConstant: minimizeButtonSize),
-            minimizeButton.heightAnchor.constraint(equalToConstant: minimizeButtonSize),
+            minimizeButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
+            minimizeButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
             
             // Artwork - left side
             artworkImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
