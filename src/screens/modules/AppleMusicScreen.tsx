@@ -211,6 +211,9 @@ export function AppleMusicScreen() {
   // Collection detail view (null = show collection list, string = show songs for that collection)
   const [openCollectionId, setOpenCollectionId] = useState<string | null>(savedBrowsing?.openCollectionId ?? null);
 
+  // Ref for auto-scrolling collection songs to currently playing song
+  const collectionScrollRef = useRef<ScrollView>(null);
+
   // Music Favorites & Collections (CommEazy local curation)
   const musicFavorites = useMusicFavorites(isFocused);
   const musicCollections = useMusicCollections();
@@ -276,6 +279,26 @@ export function AppleMusicScreen() {
       })
       .filter((s): s is AppleMusicSong => s !== null);
   }, [openCollection, musicFavorites.favorites]);
+
+  // Auto-scroll collection songs to currently playing song
+  // Triggers when collection opens or when returning to module via MediaIndicator
+  useEffect(() => {
+    if (!openCollectionId || !currentSong || openCollectionSongs.length === 0) return;
+
+    const currentIndex = openCollectionSongs.findIndex(s => s.id === currentSong.id);
+    if (currentIndex <= 0) return; // No scroll needed if not found or first item
+
+    // Item height: minHeight (72) + marginBottom (8) = 80pt per item
+    const ITEM_HEIGHT = touchTargets.comfortable + spacing.sm;
+    const scrollY = currentIndex * ITEM_HEIGHT;
+
+    // Delay to ensure ScrollView has rendered after mount/navigation
+    const timer = setTimeout(() => {
+      collectionScrollRef.current?.scrollTo({ y: scrollY, animated: false });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [openCollectionId, currentSong, openCollectionSongs]);
 
   const [selectedChipId, setSelectedChipId] = useState<MusicChipId>((savedBrowsing?.selectedChipId ?? 'all') as MusicChipId);
   const [editCollectionModal, setEditCollectionModal] = useState<{
@@ -1790,8 +1813,9 @@ export function AppleMusicScreen() {
                   )}
                 </View>
 
-                {/* Song list */}
+                {/* Song list — ref for auto-scroll to currently playing song */}
                 <ScrollView
+                  ref={collectionScrollRef}
                   style={styles.resultsList}
                   contentContainerStyle={[
                     styles.resultsContent,

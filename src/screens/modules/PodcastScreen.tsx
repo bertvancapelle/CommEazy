@@ -594,7 +594,8 @@ export function PodcastScreen() {
     // Store the episode list in context for next/previous navigation
     setCurrentShowEpisodes(showEpisodes);
     await playEpisode(episode, selectedShow);
-    setSelectedShow(null);
+    // Keep the show detail view open so the senior stays in context
+    // (previously setSelectedShow(null) closed the modal, which was confusing)
   }, [holdGesture, selectedShow, showEpisodes, playEpisode, setCurrentShowEpisodes, triggerFeedback, currentEpisode, isPlaying, showGlassFromMinimized]);
 
   // Subscribe/unsubscribe
