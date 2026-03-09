@@ -1776,8 +1776,14 @@
         "showAllSongs": "Toon alle nummers",
         "showAllAlbums": "Toon alle albums",
         "showAllArtists": "Toon alle artiesten",
+        "playlists": "Afspeellijsten",
+        "lastPlayed": "Laatst gespeeld",
+        "newPlaylist": "Nieuwe afspeellijst",
+        "imported": "Geïmporteerd",
+        "emptyPlaylistsTitle": "Nog geen afspeellijsten",
+        "emptyPlaylistsDescription": "Maak een afspeellijst aan of importeer er een vanuit Apple Music.",
         "changeCategory": "Categorie wijzigen",
-        "changeCategoryHint": "Tik om te wisselen tussen nummers, albums en artiesten"
+        "changeCategoryHint": "Tik om te wisselen tussen afspeellijsten, albums en artiesten"
       },
       "collections": {
         "allFavorites": "Alle favorieten",

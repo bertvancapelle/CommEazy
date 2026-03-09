@@ -1610,8 +1610,14 @@
         "showAllSongs": "Visa alla låtar",
         "showAllAlbums": "Visa alla album",
         "showAllArtists": "Visa alla artister",
+        "playlists": "Spellistor",
+        "lastPlayed": "Senast spelad",
+        "newPlaylist": "Ny spellista",
+        "imported": "Importerad",
+        "emptyPlaylistsTitle": "Inga spellistor än",
+        "emptyPlaylistsDescription": "Skapa en spellista eller importera en från Apple Music.",
         "changeCategory": "Ändra kategori",
-        "changeCategoryHint": "Tryck för att växla mellan låtar, album och artister"
+        "changeCategoryHint": "Tryck för att växla mellan spellistor, album och artister"
       },
       "collections": {
         "allFavorites": "Alla favoriter",

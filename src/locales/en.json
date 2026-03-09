@@ -1781,8 +1781,14 @@
         "showAllSongs": "Show all songs",
         "showAllAlbums": "Show all albums",
         "showAllArtists": "Show all artists",
+        "playlists": "Playlists",
+        "lastPlayed": "Last played",
+        "newPlaylist": "New playlist",
+        "imported": "Imported",
+        "emptyPlaylistsTitle": "No playlists yet",
+        "emptyPlaylistsDescription": "Create a playlist or import one from Apple Music.",
         "changeCategory": "Change category",
-        "changeCategoryHint": "Tap to switch between songs, albums and artists"
+        "changeCategoryHint": "Tap to switch between playlists, albums and artists"
       },
       "collections": {
         "allFavorites": "All favorites",

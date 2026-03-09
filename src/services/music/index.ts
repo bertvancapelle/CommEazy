@@ -65,3 +65,16 @@ export type {
   PlaylistImportProgress,
   PlaylistImportResult,
 } from './playlistImportService';
+
+// Play Stats (play count + last played tracking)
+export {
+  recordPlay,
+  getPlayStats,
+  getLastPlayed,
+  getStatsSortedByPlayCount,
+  removePlayStats,
+} from './musicPlayStatsService';
+export type {
+  PlayStatsCategory,
+  PlayStatEntry,
+} from './musicPlayStatsService';

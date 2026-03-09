@@ -59,6 +59,9 @@ export {
   type UseSiriCallReturn,
 } from './useSiriCall';
 
+// Music Play Stats
+export { useMusicPlayStats, type UseMusicPlayStatsReturn } from './useMusicPlayStats';
+
 // Agenda Notifications
 export {
   useAgendaNotifications,

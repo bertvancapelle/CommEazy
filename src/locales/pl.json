@@ -1572,8 +1572,14 @@
         "showAllSongs": "Pokaż wszystkie utwory",
         "showAllAlbums": "Pokaż wszystkie albumy",
         "showAllArtists": "Pokaż wszystkich artystów",
+        "playlists": "Playlisty",
+        "lastPlayed": "Ostatnio odtwarzane",
+        "newPlaylist": "Nowa playlista",
+        "imported": "Zaimportowana",
+        "emptyPlaylistsTitle": "Brak playlist",
+        "emptyPlaylistsDescription": "Utwórz playlistę lub zaimportuj ją z Apple Music.",
         "changeCategory": "Zmień kategorię",
-        "changeCategoryHint": "Dotknij, aby przełączyć między utworami, albumami i artystami"
+        "changeCategoryHint": "Dotknij, aby przełączyć między playlistami, albumami i artystami"
       },
       "collections": {
         "allFavorites": "Wszystkie ulubione",
