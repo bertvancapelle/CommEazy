@@ -1,8 +1,8 @@
 /**
  * Module Screens — Built-in and country-specific modules
  *
- * These screens are used by the WheelNavigationMenu
- * module switching functionality.
+ * These screens are used by PanelNavigator for
+ * module switching via HomeScreen grid navigation.
  */
 
 // Built-in modules

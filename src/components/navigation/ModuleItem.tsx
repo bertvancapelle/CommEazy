@@ -1,8 +1,8 @@
 /**
  * ModuleItem — Shared module button component
  *
- * A reusable module button used by both:
- * - WheelNavigationMenu (iPhone)
+ * A reusable module button used by:
+ * - HomeScreen grid (iPhone)
  * - Sidebar (iPad)
  *
  * Supports different variants for each context while sharing core logic.
@@ -53,7 +53,7 @@ export interface ModuleItemProps {
 
   /**
    * Visual variant:
-   * - 'wheel': Full-width button with color background (iPhone wheel menu)
+   * - 'wheel': Full-width button with color background (HomeScreen grid)
    * - 'sidebar': Horizontal row with icon + label (iPad sidebar expanded)
    * - 'sidebar-compact': Icon-only button (iPad sidebar collapsed)
    */

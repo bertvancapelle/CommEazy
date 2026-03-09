@@ -1,12 +1,8 @@
 /**
  * AdaptiveNavigation — Device-adaptive navigation wrapper
  *
- * Automatically switches between:
- * - iPhone: WheelNavigationMenu (hold-to-navigate)
- * - iPad: Sidebar navigation (always visible or collapsible)
- *
- * Wraps the app's main content and provides the appropriate
- * navigation UI based on device type.
+ * Legacy component — currently unused (replaced by AdaptiveNavigationWrapper).
+ * Kept for reference. SplitViewLayout export below is still active.
  *
  * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
  */
@@ -28,22 +24,13 @@ export interface AdaptiveNavigationProps {
   /** Main content to render */
   children: ReactNode;
 
-  /**
-   * WheelNavigationMenu component (passed to avoid circular deps)
-   * Only rendered on iPhone
-   */
+  /** Legacy: unused (WheelMenu removed) */
   WheelMenu?: React.ComponentType;
 
-  /**
-   * Show sidebar on iPad (default: true)
-   * Set to false to hide sidebar on specific screens
-   */
+  /** Show sidebar on iPad (default: true) */
   showSidebar?: boolean;
 
-  /**
-   * Show wheel menu on iPhone (default: true)
-   * Set to false to hide wheel on specific screens (e.g., onboarding)
-   */
+  /** Legacy: unused (WheelMenu removed) */
   showWheel?: boolean;
 }
 

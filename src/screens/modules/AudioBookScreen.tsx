@@ -1,8 +1,7 @@
 /**
  * AudioBookScreen — Placeholder module for audiobook listening
  *
- * This is a placeholder module screen used to test module switching
- * in the WheelNavigationMenu.
+ * This is a placeholder module screen for audiobook functionality.
  */
 
 import React from 'react';

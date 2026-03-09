@@ -8,7 +8,7 @@
  *
  * All three behaviors are ON by default. Opt out per-instance:
  * - hapticDisabled: skip haptic feedback (e.g. decorative touches)
- * - longPressGuardDisabled: skip hold gesture guard (e.g. no wheel menu context)
+ * - longPressGuardDisabled: skip hold gesture guard (e.g. outside HoldToNavigateWrapper)
  * - hapticType: override feedback type (default: 'tap')
  *
  * @example

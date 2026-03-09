@@ -2,7 +2,7 @@
  * ModulePanel — Panel wrapper for pane-based layout
  *
  * Wraps a module component with:
- * - Long-press gesture for opening WheelNavigationMenu (consistent UX)
+ * - Long-press gesture for navigating to HomeScreen grid
  * - Two-finger long-press for panel-scoped voice commands
  * - Pane identification for context
  * - Stack Navigator for modules that need sub-navigation
@@ -10,8 +10,8 @@
  * Used by both iPhone (SinglePaneLayout) and iPad (SplitViewLayout).
  *
  * UX CONSISTENCY PRINCIPLE:
- * Long-press MUST behave the same on iPhone and iPad.
- * Both show the circular WheelNavigationMenu.
+ * 1-finger long-press → navigates to HomeScreen grid (same on iPhone and iPad).
+ * 2-finger long-press → voice commands.
  *
  * @see .claude/plans/sunny-yawning-sunset.md
  */
@@ -29,7 +29,6 @@ import {
 import { usePaneContext } from '@/contexts/PaneContext';
 import { PanelIdProvider, type PaneId } from '@/contexts/PanelIdContext';
 import { useHoldGestureContext } from '@/contexts/HoldGestureContext';
-import { useWheelMenuContext } from '@/contexts/WheelMenuContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { PanelNavigator } from './PanelNavigator';
 import { HoldIndicator } from '@/components/HoldIndicator';
@@ -62,9 +61,8 @@ export interface ModulePanelProps {
 // ============================================================
 
 export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
-  const { setActiveVoicePane } = usePaneContext();
+  const { setPaneModule, setActiveVoicePane } = usePaneContext();
   const holdGesture = useHoldGestureContext();
-  const wheelMenu = useWheelMenuContext();
   const reducedMotion = useReducedMotion();
 
   // Touch tracking refs
@@ -99,7 +97,6 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
           screenY: number
         ) => {
           containerOffset.current = { x: screenX, y: screenY };
-          console.log('[ModulePanel] Container offset updated:', { x: screenX, y: screenY });
         });
       }
     }
@@ -118,14 +115,14 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
   }, []);
 
   // ============================================================
-  // WheelNavigationMenu Handler
+  // Navigate to HomeScreen Grid
   // ============================================================
 
-  const openWheelMenu = useCallback(() => {
+  const navigateToHome = useCallback(() => {
     triggerHaptic();
-    // Open menu via context — renders at root level for full-screen overlay
-    wheelMenu.openMenu(panelId, moduleId);
-  }, [triggerHaptic, wheelMenu, panelId, moduleId]);
+    // Navigate to HomeScreen grid via PaneContext
+    setPaneModule(panelId, 'home');
+  }, [triggerHaptic, setPaneModule, panelId]);
 
   // ============================================================
   // Gesture Handlers
@@ -147,8 +144,6 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
       const touchCount = event.nativeEvent.touches.length;
       touchCountRef.current = touchCount;
 
-      console.log('[ModulePanel] handleTouchStart', { touchCount, panelId });
-
       clearTimers();
 
       if (touchCount === 1) {
@@ -157,22 +152,15 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
         const { pageX, pageY } = event.nativeEvent;
         const localX = pageX - containerOffset.current.x;
         const localY = pageY - containerOffset.current.y;
-        console.log('[ModulePanel] Single finger touch, starting hold indicator', {
-          pageX, pageY,
-          offset: containerOffset.current,
-          local: { x: localX, y: localY },
-        });
         setHoldPosition({ x: localX, y: localY });
         setIsHolding(true);
 
-        // Single finger: start long-press timer for WheelNavigationMenu
-        // UX CONSISTENCY: Same behavior as iPhone — opens wheel menu, not list modal
+        // Single finger: start long-press timer → navigate to HomeScreen grid
         longPressTimerRef.current = setTimeout(() => {
-          console.log('[ModulePanel] Long press timer completed, opening menu');
           // Consume gesture to prevent underlying elements from firing
           holdGesture?.consumeGesture();
           setIsHolding(false);
-          openWheelMenu();
+          navigateToHome();
         }, LONG_PRESS_DURATION);
       } else if (touchCount === 2) {
         // Two fingers: cancel single-finger hold indicator
@@ -186,20 +174,16 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
         }, TWO_FINGER_LONG_PRESS_DURATION);
       }
     },
-    [panelId, openWheelMenu, setActiveVoicePane, holdGesture, clearTimers]
+    [panelId, navigateToHome, setActiveVoicePane, holdGesture, clearTimers]
   );
 
   const handleTouchMove = useCallback(() => {
-    // Any movement cancels the long-press (only log first cancellation)
-    if (longPressTimerRef.current || twoFingerTimerRef.current) {
-      console.log('[ModulePanel] handleTouchMove - cancelling hold');
-    }
+    // Any movement cancels the long-press
     setIsHolding(false);
     clearTimers();
   }, [clearTimers]);
 
   const handleTouchEnd = useCallback(() => {
-    console.log('[ModulePanel] handleTouchEnd');
     touchCountRef.current = 0;
     setIsHolding(false);
     clearTimers();
@@ -230,9 +214,6 @@ export function ModulePanel({ panelId, moduleId }: ModulePanelProps) {
           reducedMotion={reducedMotion}
         />
       </PanelIdProvider>
-
-      {/* WheelNavigationMenu is rendered at root level via WheelMenuContext
-          for full-screen overlay on iPad Split View */}
     </View>
   );
 }

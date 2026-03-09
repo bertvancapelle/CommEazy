@@ -1,8 +1,8 @@
 /**
  * Navigation components — Exports for adaptive navigation system
  *
- * These components are shared between iPhone (WheelNavigationMenu)
- * and iPad (Sidebar) navigation.
+ * These components are shared between iPhone (single-pane + HomeScreen grid)
+ * and iPad (Split View with dual panes) navigation.
  *
  * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
  */

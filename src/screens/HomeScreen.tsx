@@ -41,11 +41,11 @@ import { HomeMiniPlayer } from '@/components/HomeMiniPlayer';
 import {
   STATIC_MODULE_DEFINITIONS,
   mapModuleIconToIconName,
-} from '@/components/WheelNavigationMenu';
+} from '@/types/navigation';
 import type {
   NavigationDestination,
   StaticNavigationDestination,
-} from '@/components/WheelNavigationMenu';
+} from '@/types/navigation';
 import { LoadingView } from '@/components/LoadingView';
 import { useModuleOrder } from '@/hooks/useModuleOrder';
 import { useModuleColorsContextSafe } from '@/contexts/ModuleColorsContext';

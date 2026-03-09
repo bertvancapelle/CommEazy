@@ -2,7 +2,7 @@
  * useMailUnreadCount — Track unread mail count for badge display
  *
  * Reads unread count from native MailBackgroundFetchModule and listens
- * for updates via NativeEventEmitter. Used by WheelNavigationMenu to
+ * for updates via NativeEventEmitter. Used by HomeScreen grid to
  * show a badge on the mail module icon.
  *
  * @see ios/MailBackgroundFetchModule.swift

@@ -2,8 +2,7 @@
  * Hold-to-Navigate — Context Provider and Hook
  *
  * Provides a universal navigation mechanism for all screens:
- * - Long-press anywhere reveals menu button
- * - Menu button position is customizable (draggable, snaps to edges)
+ * - Long-press anywhere navigates to HomeScreen grid
  * - Settings are persisted in user profile
  *
  * @see .claude/skills/ui-designer/SKILL.md#hold-to-navigate
@@ -29,11 +28,9 @@ import { glassPlayer } from '@/services/glassPlayer';
 
 // Default values
 const DEFAULT_LONG_PRESS_DELAY = 1000; // 1 second
-const DEFAULT_MENU_POSITION_X = 0.9; // Right side (90% of screen width)
-const DEFAULT_MENU_POSITION_Y = 0.5; // Middle height (50% of screen height)
 const DEFAULT_EDGE_EXCLUSION_SIZE = 40; // 40px edge exclusion zone (seniors often grip edges)
-const DEFAULT_WHEEL_BLUR_INTENSITY = 15; // Blur radius (0-30)
-const DEFAULT_WHEEL_DISMISS_MARGIN = 50; // Margin around wheel for tap-outside-to-dismiss (px)
+const DEFAULT_WHEEL_BLUR_INTENSITY = 15; // Legacy setting (kept for settings compat)
+const DEFAULT_WHEEL_DISMISS_MARGIN = 50; // Legacy setting (kept for settings compat)
 const MIN_LONG_PRESS_DELAY = 500;
 const MAX_LONG_PRESS_DELAY = 3000;
 const MIN_EDGE_EXCLUSION_SIZE = 0;
@@ -46,15 +43,11 @@ const MAX_WHEEL_DISMISS_MARGIN = 100;
 export interface HoldToNavigateSettings {
   /** Long press delay in ms (500-3000, default 1000) */
   longPressDelay: number;
-  /** Menu button X position (0-1 as % of screen width) */
-  menuButtonPositionX: number;
-  /** Menu button Y position (0-1 as % of screen height) */
-  menuButtonPositionY: number;
   /** Edge exclusion zone in pixels (0-100, default 40). Touches in this zone are ignored. */
   edgeExclusionSize: number;
-  /** Wheel background blur intensity (0-30, default 15). 0 = no blur, transparent overlay only. */
+  /** Legacy setting (kept for settings compat) */
   wheelBlurIntensity: number;
-  /** Margin around wheel for tap-outside-to-dismiss in pixels (20-100, default 50). */
+  /** Legacy setting (kept for settings compat) */
   wheelDismissMargin: number;
 }
 
@@ -62,32 +55,14 @@ export interface HoldToNavigateContextValue {
   /** Current settings */
   settings: HoldToNavigateSettings;
 
-  /** Whether the menu button is currently visible */
-  isMenuButtonVisible: boolean;
-
-  /** Whether the navigation menu is open */
-  isNavigationMenuOpen: boolean;
-
   /** Whether the user is currently in the onboarding tutorial */
   isInTutorial: boolean;
 
   /** Whether reduced motion is enabled */
   reducedMotion: boolean;
 
-  /** Show the menu button (triggered by long press) */
-  showMenuButton: () => void;
-
-  /** Hide the menu button */
-  hideMenuButton: () => void;
-
-  /** Open the navigation menu */
-  openNavigationMenu: () => void;
-
-  /** Close the navigation menu */
+  /** Close the navigation menu (hides Glass Player overlay) */
   closeNavigationMenu: () => void;
-
-  /** Update the menu button position */
-  updateMenuButtonPosition: (x: number, y: number) => Promise<void>;
 
   /** Update the long press delay */
   updateLongPressDelay: (delayMs: number) => Promise<void>;
@@ -95,10 +70,10 @@ export interface HoldToNavigateContextValue {
   /** Update the edge exclusion size */
   updateEdgeExclusionSize: (sizePx: number) => Promise<void>;
 
-  /** Update the wheel blur intensity */
+  /** Update the wheel blur intensity (legacy setting) */
   updateWheelBlurIntensity: (intensity: number) => Promise<void>;
 
-  /** Update the wheel dismiss margin */
+  /** Update the wheel dismiss margin (legacy setting) */
   updateWheelDismissMargin: (marginPx: number) => Promise<void>;
 
   /** Check if a touch position is valid (single finger, not in edge zone) */
@@ -106,9 +81,6 @@ export interface HoldToNavigateContextValue {
 
   /** Mark tutorial as complete */
   completeTutorial: () => void;
-
-  /** Get menu button position in pixels */
-  getMenuButtonPixelPosition: () => { x: number; y: number };
 
   /** Trigger haptic feedback */
   triggerHaptic: () => void;
@@ -138,18 +110,14 @@ export function HoldToNavigateProvider({
   // State
   const [settings, setSettings] = useState<HoldToNavigateSettings>({
     longPressDelay: DEFAULT_LONG_PRESS_DELAY,
-    menuButtonPositionX: DEFAULT_MENU_POSITION_X,
-    menuButtonPositionY: DEFAULT_MENU_POSITION_Y,
     edgeExclusionSize: DEFAULT_EDGE_EXCLUSION_SIZE,
     wheelBlurIntensity: DEFAULT_WHEEL_BLUR_INTENSITY,
     wheelDismissMargin: DEFAULT_WHEEL_DISMISS_MARGIN,
   });
-  const [isMenuButtonVisible, setIsMenuButtonVisible] = useState(false);
-  const [isNavigationMenuOpen, setIsNavigationMenuOpen] = useState(false);
   const [isInTutorial, setIsInTutorial] = useState(isFirstLaunch);
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  // Screen dimensions (for pixel position calculations)
+  // Screen dimensions (for edge exclusion calculations)
   const screenDimensions = useRef(Dimensions.get('window'));
 
   // Load settings from database on mount
@@ -165,8 +133,6 @@ export function HoldToNavigateProvider({
         if (profile) {
           setSettings({
             longPressDelay: profile.longPressDelay ?? DEFAULT_LONG_PRESS_DELAY,
-            menuButtonPositionX: profile.menuButtonPositionX ?? DEFAULT_MENU_POSITION_X,
-            menuButtonPositionY: profile.menuButtonPositionY ?? DEFAULT_MENU_POSITION_Y,
             edgeExclusionSize: profile.edgeExclusionSize ?? DEFAULT_EDGE_EXCLUSION_SIZE,
             wheelBlurIntensity: profile.wheelBlurIntensity ?? DEFAULT_WHEEL_BLUR_INTENSITY,
             wheelDismissMargin: profile.wheelDismissMargin ?? DEFAULT_WHEEL_DISMISS_MARGIN,
@@ -214,66 +180,11 @@ export function HoldToNavigateProvider({
     }
   }, []);
 
-  // Show menu button (called when long press is detected)
-  const showMenuButton = useCallback(() => {
-    setIsMenuButtonVisible(true);
-    triggerHaptic();
-  }, [triggerHaptic]);
-
-  // Hide menu button
-  const hideMenuButton = useCallback(() => {
-    setIsMenuButtonVisible(false);
-  }, []);
-
-  // Open navigation menu (and hide menu button)
-  const openNavigationMenu = useCallback(() => {
-    setIsMenuButtonVisible(false); // Hide button when wheel opens
-    setIsNavigationMenuOpen(true);
-    triggerHaptic();
-    // Hide Glass Player (iOS 26+) so it doesn't overlay the navigation menu
-    glassPlayer.setTemporarilyHidden(true);
-  }, [triggerHaptic]);
-
-  // Close navigation menu
+  // Close navigation menu (restores Glass Player)
   const closeNavigationMenu = useCallback(() => {
-    setIsNavigationMenuOpen(false);
-    setIsMenuButtonVisible(false);
     // Restore Glass Player visibility (iOS 26+)
     glassPlayer.setTemporarilyHidden(false);
   }, []);
-
-  // Update menu button position (persisted)
-  const updateMenuButtonPosition = useCallback(
-    async (x: number, y: number) => {
-      // Clamp values to valid range
-      const clampedX = Math.max(0, Math.min(1, x));
-      const clampedY = Math.max(0, Math.min(1, y));
-
-      // Update local state immediately for responsiveness
-      setSettings(prev => ({
-        ...prev,
-        menuButtonPositionX: clampedX,
-        menuButtonPositionY: clampedY,
-      }));
-
-      // Persist to database
-      const db = getDatabase();
-      if (!db) return;
-      try {
-        const profile = await db.getUserProfile();
-        if (profile) {
-          await db.saveUserProfile({
-            ...profile,
-            menuButtonPositionX: clampedX,
-            menuButtonPositionY: clampedY,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to save menu button position:', error);
-      }
-    },
-    [],
-  );
 
   // Update long press delay (persisted)
   const updateLongPressDelay = useCallback(
@@ -341,7 +252,7 @@ export function HoldToNavigateProvider({
     [],
   );
 
-  // Update wheel blur intensity (persisted)
+  // Update wheel blur intensity (legacy setting, persisted)
   const updateWheelBlurIntensity = useCallback(
     async (intensity: number) => {
       // Clamp to valid range
@@ -374,7 +285,7 @@ export function HoldToNavigateProvider({
     [],
   );
 
-  // Update wheel dismiss margin (persisted)
+  // Update wheel dismiss margin (legacy setting, persisted)
   const updateWheelDismissMargin = useCallback(
     async (marginPx: number) => {
       // Clamp to valid range
@@ -443,55 +354,32 @@ export function HoldToNavigateProvider({
     setIsInTutorial(false);
   }, []);
 
-  // Get menu button position in pixels
-  const getMenuButtonPixelPosition = useCallback(() => {
-    const { width, height } = screenDimensions.current;
-    return {
-      x: settings.menuButtonPositionX * width,
-      y: settings.menuButtonPositionY * height,
-    };
-  }, [settings.menuButtonPositionX, settings.menuButtonPositionY]);
-
   // Context value (memoized to prevent unnecessary re-renders)
   const contextValue = useMemo<HoldToNavigateContextValue>(
     () => ({
       settings,
-      isMenuButtonVisible,
-      isNavigationMenuOpen,
       isInTutorial,
       reducedMotion,
-      showMenuButton,
-      hideMenuButton,
-      openNavigationMenu,
       closeNavigationMenu,
-      updateMenuButtonPosition,
       updateLongPressDelay,
       updateEdgeExclusionSize,
       updateWheelBlurIntensity,
       updateWheelDismissMargin,
       isTouchValid,
       completeTutorial,
-      getMenuButtonPixelPosition,
       triggerHaptic,
     }),
     [
       settings,
-      isMenuButtonVisible,
-      isNavigationMenuOpen,
       isInTutorial,
       reducedMotion,
-      showMenuButton,
-      hideMenuButton,
-      openNavigationMenu,
       closeNavigationMenu,
-      updateMenuButtonPosition,
       updateLongPressDelay,
       updateEdgeExclusionSize,
       updateWheelBlurIntensity,
       updateWheelDismissMargin,
       isTouchValid,
       completeTutorial,
-      getMenuButtonPixelPosition,
       triggerHaptic,
     ],
   );
@@ -514,53 +402,9 @@ export function useHoldToNavigate(): HoldToNavigateContextValue {
   return context;
 }
 
-/**
- * Hook to create a long-press gesture handler
- * Use this on any View that should respond to hold-to-navigate
- */
-export function useLongPressHandler() {
-  const { settings, showMenuButton } = useHoldToNavigate();
-  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isPressed = useRef(false);
-
-  const onPressIn = useCallback(() => {
-    isPressed.current = true;
-    pressTimer.current = setTimeout(() => {
-      if (isPressed.current) {
-        showMenuButton();
-      }
-    }, settings.longPressDelay);
-  }, [settings.longPressDelay, showMenuButton]);
-
-  const onPressOut = useCallback(() => {
-    isPressed.current = false;
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (pressTimer.current) {
-        clearTimeout(pressTimer.current);
-      }
-    };
-  }, []);
-
-  return {
-    onPressIn,
-    onPressOut,
-    longPressDelay: settings.longPressDelay,
-  };
-}
-
 // Export constants for use in settings UI
 export const HOLD_TO_NAVIGATE_CONSTANTS = {
   DEFAULT_LONG_PRESS_DELAY,
-  DEFAULT_MENU_POSITION_X,
-  DEFAULT_MENU_POSITION_Y,
   DEFAULT_EDGE_EXCLUSION_SIZE,
   DEFAULT_WHEEL_BLUR_INTENSITY,
   DEFAULT_WHEEL_DISMISS_MARGIN,

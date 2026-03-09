@@ -2,7 +2,7 @@
  * useModuleUsage — Track and persist module usage for smart navigation ordering
  *
  * Tracks how often each module is accessed and persists to UserProfile.
- * Used by WheelNavigationMenu to show most-used modules first.
+ * Used by HomeScreen grid to show most-used modules first.
  *
  * Features:
  * - Persists usage counts to database (survives app restarts)
@@ -16,7 +16,7 @@
 
 import { useCallback, useMemo, useEffect, useState } from 'react';
 import { ServiceContainer } from '@/services/container';
-import type { NavigationDestination } from '@/components/WheelNavigationMenu';
+import type { NavigationDestination } from '@/types/navigation';
 
 // Module usage counts stored in UserProfile
 export interface ModuleUsageCounts {

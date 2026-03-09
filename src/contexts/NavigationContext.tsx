@@ -149,12 +149,12 @@ interface NavigationContextValue {
   /** Register navigation callback (called from inside NavigationContainer) */
   setNavigateCallback: (callback: NavigateCallback | null) => void;
 
-  // iPhone-specific (wheel menu)
-  /** Is the wheel menu currently visible (iPhone only) */
+  // Legacy (wheel menu removed — kept for interface compat)
+  /** Legacy: always false (wheel menu removed) */
   isWheelOpen: boolean;
-  /** Open the wheel menu (iPhone only) */
+  /** Legacy: no-op (wheel menu removed) */
   openWheel: () => void;
-  /** Close the wheel menu (iPhone only) */
+  /** Legacy: no-op (wheel menu removed) */
   closeWheel: () => void;
 
   // iPad-specific (sidebar)
@@ -313,7 +313,7 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
   );
 
   // ============================================================
-  // Wheel Menu (iPhone)
+  // Legacy Wheel Menu stubs (no consumers — safe to remove later)
   // ============================================================
 
   const openWheel = useCallback(() => {

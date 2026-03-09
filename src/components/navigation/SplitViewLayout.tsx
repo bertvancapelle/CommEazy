@@ -114,8 +114,6 @@ export function SplitViewLayout() {
         />
       )}
 
-      {/* Note: WheelNavigationMenu is now rendered inside each ModulePanel
-          for consistent UX with iPhone (long-press opens wheel, not list modal) */}
     </View>
   );
 }

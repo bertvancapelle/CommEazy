@@ -51,14 +51,6 @@ export {
 } from './NavigationContext';
 
 export {
-  WheelMenuProvider,
-  useWheelMenuContext,
-  useWheelMenuContextSafe,
-  type WheelMenuContextValue,
-  type WheelMenuRequest,
-} from './WheelMenuContext';
-
-export {
   LiquidGlassProvider,
   useLiquidGlassContext,
   useLiquidGlassContextSafe,

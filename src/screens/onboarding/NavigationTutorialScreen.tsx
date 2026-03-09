@@ -36,10 +36,9 @@ import {
 import { useColors } from '@/contexts/ThemeContext';
 import { Button } from '@/components';
 import { HoldIndicator } from '@/components/HoldIndicator';
-import { DraggableMenuButton } from '@/components/DraggableMenuButton';
 import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
 
-type TutorialStep = 'intro' | 'practice' | 'menu' | 'customize' | 'done';
+type TutorialStep = 'intro' | 'practice' | 'customize' | 'done';
 
 interface NavigationTutorialScreenProps {
   navigation: NativeStackNavigationProp<OnboardingStackParams>;
@@ -54,9 +53,6 @@ export function NavigationTutorialScreen({
   const {
     settings,
     reducedMotion,
-    showMenuButton,
-    hideMenuButton,
-    isMenuButtonVisible,
     completeTutorial,
     triggerHaptic,
   } = useHoldToNavigate();
@@ -89,15 +85,14 @@ export function NavigationTutorialScreen({
         triggerHaptic();
         setIsPressing(false);
         setPracticeCompleted(true);
-        showMenuButton();
 
         // Move to next step after short delay
         setTimeout(() => {
-          setCurrentStep('menu');
+          setCurrentStep('customize');
         }, 500);
       }, longPressDelay);
     },
-    [currentStep, longPressDelay, showMenuButton, triggerHaptic],
+    [currentStep, longPressDelay, triggerHaptic],
   );
 
   // Handle press end
@@ -109,18 +104,6 @@ export function NavigationTutorialScreen({
     }
   }, []);
 
-  // Handle menu button press in tutorial
-  const handleMenuButtonPress = useCallback(() => {
-    if (currentStep === 'menu') {
-      hideMenuButton();
-
-      // Move to customize step
-      setTimeout(() => {
-        setCurrentStep('customize');
-      }, 300);
-    }
-  }, [currentStep, hideMenuButton]);
-
   // Go to next step
   const goToNextStep = useCallback(() => {
     fadeAnimation.setValue(1);
@@ -131,9 +114,6 @@ export function NavigationTutorialScreen({
         break;
       case 'practice':
         // Wait for user to complete long press
-        break;
-      case 'menu':
-        // Wait for user to tap menu button
         break;
       case 'customize':
         setCurrentStep('done');
@@ -166,7 +146,6 @@ export function NavigationTutorialScreen({
       const announcements: Record<TutorialStep, string> = {
         intro: t('navigation_tutorial.intro_announce'),
         practice: t('navigation_tutorial.practice_announce'),
-        menu: t('navigation_tutorial.menu_announce'),
         customize: t('navigation_tutorial.customize_announce'),
         done: t('navigation_tutorial.done_announce'),
       };
@@ -243,25 +222,6 @@ export function NavigationTutorialScreen({
           </View>
         );
 
-      case 'menu':
-        return (
-          <View style={styles.stepContent}>
-            <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
-              {t('navigation_tutorial.menu_title')}
-            </Text>
-            <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
-              {t('navigation_tutorial.menu_description')}
-            </Text>
-
-            <View style={styles.arrowContainer}>
-              <Text style={[styles.arrow, { color: themeColors.primary }]}>↓</Text>
-              <Text style={[styles.arrowLabel, { color: themeColors.primary }]}>
-                {t('navigation_tutorial.tap_the_button')}
-              </Text>
-            </View>
-          </View>
-        );
-
       case 'customize':
         return (
           <View style={styles.stepContent}>
@@ -315,14 +275,14 @@ export function NavigationTutorialScreen({
     >
       {/* Progress indicator */}
       <View style={styles.progressContainer}>
-        {['intro', 'practice', 'menu', 'customize', 'done'].map((step, index) => (
+        {['intro', 'practice', 'customize', 'done'].map((step, index) => (
           <View
             key={step}
             style={[
               styles.progressDot,
               { backgroundColor: themeColors.divider },
               currentStep === step && { backgroundColor: themeColors.primary, width: 16, height: 16, borderRadius: 8 },
-              ['intro', 'practice', 'menu', 'customize', 'done'].indexOf(currentStep) > index &&
+              ['intro', 'practice', 'customize', 'done'].indexOf(currentStep) > index &&
                 { backgroundColor: themeColors.success },
             ]}
           />
@@ -343,13 +303,6 @@ export function NavigationTutorialScreen({
         </View>
       </TouchableWithoutFeedback>
 
-      {/* Menu button (shown in menu step) */}
-      {currentStep === 'menu' && (
-        <DraggableMenuButton
-          visible={isMenuButtonVisible}
-          onPress={handleMenuButtonPress}
-        />
-      )}
     </View>
   );
 }
@@ -429,17 +382,6 @@ const styles = StyleSheet.create({
     ...typography.small,
     textAlign: 'center',
     marginTop: spacing.sm,
-  },
-  arrowContainer: {
-    alignItems: 'center',
-    marginTop: spacing.xl,
-  },
-  arrow: {
-    fontSize: 48,
-  },
-  arrowLabel: {
-    ...typography.body,
-    fontWeight: '600',
   },
   checkmark: {
     width: 80,

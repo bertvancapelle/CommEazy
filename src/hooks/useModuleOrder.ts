@@ -13,7 +13,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import type { NavigationDestination } from '@/components/WheelNavigationMenu';
+import type { NavigationDestination } from '@/types/navigation';
 import { ALL_MODULES } from '@/hooks/useModuleUsage';
 import {
   getModuleOrder,

@@ -8,7 +8,7 @@
  * - Command result feedback
  * - Close button
  *
- * Activated by two-finger long press (same timing as navigation wheel).
+ * Activated by two-finger long press (same timing as hold-to-navigate).
  *
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */

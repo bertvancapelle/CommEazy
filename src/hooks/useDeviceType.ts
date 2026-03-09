@@ -4,9 +4,9 @@
  * Detects whether the app is running on iPhone or iPad,
  * and provides information about screen orientation and size classes.
  *
- * Used by AdaptiveNavigation to select the appropriate navigation strategy:
- * - iPhone: WheelNavigationMenu (hold-to-navigate)
- * - iPad: Sidebar navigation (always visible or slide-in)
+ * Used by AdaptiveNavigationWrapper to select the appropriate layout:
+ * - iPhone: Single-pane with HoldToNavigateWrapper (long-press → HomeScreen grid)
+ * - iPad: Split View with dual panes
  *
  * @see .claude/plans/IPAD_IPHONE_HYBRID_MENU.md
  */

@@ -53,7 +53,7 @@ interface ModuleConfigContextValue {
   /** Disable a module */
   disableModule: (moduleId: string) => Promise<void>;
 
-  /** Get modules to show in WheelNavigationMenu (sorted by 24h usage) */
+  /** Get modules to show in HomeScreen grid (sorted by 24h usage) */
   getMenuModules: () => string[];
 
   /** Get module definition for an enabled module */

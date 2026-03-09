@@ -7,8 +7,8 @@
  * ├──────────────────────────────────────────────────────────────┤
  * │  [═══════════ AdMob Banner ═══════════════════]              │
  * ├──────────────────────────────────────────────────────────────┤
- * │  📻 Radio                              🔊 [MediaIndicator]    │
- * │  ↑ Links (spacing.md)                  ↑ Rechts (spacing.md)  │
+ * │  📻 Radio                    🔊 [MediaIndicator] [🏠 Grid]    │
+ * │  ↑ Icon (decoratief) + Title          ↑ Rechts (spacing.md)  │
  * ├──────────────────────────────────────────────────────────────┤
  * │  ─ ─ ─ ─ ─ ─ ─  Separator line (1pt) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
  * └──────────────────────────────────────────────────────────────┘
@@ -19,7 +19,7 @@
  * - Module tint colors defined in MODULE_TINT_COLORS
  *
  * Senior-inclusive design:
- * - Touch targets ≥60pt for MediaIndicator
+ * - Touch targets ≥60pt for MediaIndicator and Grid button
  * - High contrast text on colored background
  * - Consistent layout across all modules
  *
@@ -61,7 +61,7 @@ import type { IconName } from './Icon';
 export interface ModuleHeaderProps {
   /** Module identifier for color lookup */
   moduleId: string;
-  /** Module icon name */
+  /** Module icon name (displayed decoratively, not interactive) */
   icon: IconName;
   /** Module title (use t('modules.xxx.title')) */
   title: string;
@@ -86,25 +86,10 @@ export interface ModuleHeaderProps {
    */
   style?: StyleProp<ViewStyle>;
   /**
-   * @deprecated No longer needed — ModuleHeader auto-navigates to HomeScreen grid.
-   * Only use this if you need to override the default behavior.
+   * Show Grid button to navigate back to HomeScreen grid (default: true)
+   * Hidden when showBackButton is true (detail screens show back instead)
    */
-  onModuleIconPress?: () => void;
-  /**
-   * @deprecated No longer needed — uses t('navigation.switchModule') automatically.
-   * Only use this if you need a custom label.
-   */
-  moduleIconLabel?: string;
-  /**
-   * Disable automatic icon button navigation (default: false)
-   * Set to true for detail screens or screens that shouldn't have quick navigation
-   */
-  disableIconNavigation?: boolean;
-  /**
-   * Show Home button to navigate back to HomeScreen grid (default: true on iPhone)
-   * Hidden when showBackButton is true (detail screens show back instead of home)
-   */
-  showHomeButton?: boolean;
+  showGridButton?: boolean;
 }
 
 // ============================================================
@@ -123,10 +108,7 @@ export function ModuleHeader({
   backButtonLabel = 'Terug',
   customLogo,
   style,
-  onModuleIconPress,
-  moduleIconLabel,
-  disableIconNavigation = false,
-  showHomeButton = true,
+  showGridButton = true,
 }: ModuleHeaderProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -143,50 +125,27 @@ export function ModuleHeader({
   // Button style context for optional border styling
   const buttonStyle = useButtonStyleSafe();
 
-  // PaneContext for Home button navigation
+  // PaneContext for Grid button navigation
   const paneCtx = usePaneContextSafe();
 
   // Navigate to HomeScreen grid
-  const handleHomePress = useCallback(() => {
+  const handleGridPress = useCallback(() => {
     if (paneCtx && panelId) {
       void triggerFeedback('navigation');
       paneCtx.setPaneModule(panelId, 'home');
     }
   }, [paneCtx, panelId, triggerFeedback]);
 
-  // Show Home button only when:
-  // - showHomeButton is true (default)
-  // - showBackButton is false (detail screens show back, not home)
+  // Show Grid button only when:
+  // - showGridButton is true (default)
+  // - showBackButton is false (detail screens show back, not grid)
   // - PaneContext is available
   // - Not on the HomeScreen itself
-  const shouldShowHomeButton =
-    showHomeButton &&
+  const shouldShowGridButton =
+    showGridButton &&
     !showBackButton &&
     paneCtx &&
     moduleId !== 'home';
-
-  // Auto-generated icon press handler — navigates to HomeScreen grid
-  // On iPhone: navigates to fullscreen grid
-  // On iPad: shows grid IN the pane (replaces module content)
-  const handleAutoIconPress = useCallback(() => {
-    if (paneCtx && panelId) {
-      void triggerFeedback('navigation');
-      paneCtx.setPaneModule(panelId, 'home');
-    }
-  }, [paneCtx, panelId, triggerFeedback]);
-
-  // Determine if icon/logo should be tappable:
-  // 1. Explicit onModuleIconPress overrides auto behavior
-  // 2. Auto-enable when: PaneContext available + not disabled + not back button
-  // Note: customLogo is now also tappable (e.g., nu.nl logo opens grid)
-  const effectiveOnIconPress = onModuleIconPress ?? (
-    !disableIconNavigation && !showBackButton && paneCtx
-      ? handleAutoIconPress
-      : undefined
-  );
-
-  // Use provided label or default translation
-  const effectiveIconLabel = moduleIconLabel ?? t('navigation.switchModule');
 
   // Common header content
   const headerContent = (
@@ -203,24 +162,8 @@ export function ModuleHeader({
 
       {/* Title Row */}
       <View style={styles.titleRow}>
-        {/* Left: Home button + Back button (optional) + Icon + Title */}
+        {/* Left: Back button (optional) + Icon (decorative) + Title */}
         <View style={styles.titleContent}>
-          {shouldShowHomeButton && (
-            <TouchableOpacity
-              style={[
-                styles.homeButton,
-                buttonStyle?.settings.borderEnabled && {
-                  borderWidth: 2,
-                  borderColor: buttonStyle.getBorderColorHex(),
-                },
-              ]}
-              onPress={handleHomePress}
-              accessibilityRole="button"
-              accessibilityLabel={t('navigation.backToHome', 'Terug naar startscherm')}
-            >
-              <Icon name="grid" size={24} color={colors.textOnPrimary} />
-            </TouchableOpacity>
-          )}
           {showBackButton && onBackPress && (
             <TouchableOpacity
               style={[
@@ -238,57 +181,39 @@ export function ModuleHeader({
             </TouchableOpacity>
           )}
           {customLogo ? (
-            // Custom logo — wrap in TouchableOpacity if navigation is enabled
-            effectiveOnIconPress ? (
-              <TouchableOpacity
-                style={[
-                  styles.moduleIconButton,
-                  buttonStyle?.settings.borderEnabled && {
-                    borderWidth: 2,
-                    borderColor: buttonStyle.getBorderColorHex(),
-                  },
-                ]}
-                onPress={effectiveOnIconPress}
-                accessibilityRole="button"
-                accessibilityLabel={effectiveIconLabel}
-                accessibilityHint={t('navigation.switchModuleHint')}
-              >
-                {customLogo}
-              </TouchableOpacity>
-            ) : (
-              customLogo
-            )
+            // Custom logo — purely decorative
+            customLogo
           ) : (
-            // Default icon — wrap in TouchableOpacity if navigation is enabled
-            effectiveOnIconPress ? (
-              <TouchableOpacity
-                style={[
-                  styles.moduleIconButton,
-                  buttonStyle?.settings.borderEnabled && {
-                    borderWidth: 2,
-                    borderColor: buttonStyle.getBorderColorHex(),
-                  },
-                ]}
-                onPress={effectiveOnIconPress}
-                accessibilityRole="button"
-                accessibilityLabel={effectiveIconLabel}
-                accessibilityHint={t('navigation.switchModuleHint')}
-              >
-                <Icon name={icon} size={32} color={colors.textOnPrimary} />
-              </TouchableOpacity>
-            ) : (
-              <Icon name={icon} size={32} color={colors.textOnPrimary} />
-            )
+            // Default icon — purely decorative
+            <Icon name={icon} size={32} color={colors.textOnPrimary} />
           )}
           <Text style={styles.title}>{title}</Text>
         </View>
 
-        {/* Right: MediaIndicator with ≥60pt touch wrapper */}
-        <View style={styles.mediaIndicatorWrapper}>
-          <MediaIndicator
-            moduleColor={moduleColor}
-            currentSource={currentSource}
-          />
+        {/* Right: MediaIndicator + Grid button */}
+        <View style={styles.rightControls}>
+          <View style={styles.mediaIndicatorWrapper}>
+            <MediaIndicator
+              moduleColor={moduleColor}
+              currentSource={currentSource}
+            />
+          </View>
+          {shouldShowGridButton && (
+            <TouchableOpacity
+              style={[
+                styles.gridButton,
+                buttonStyle?.settings.borderEnabled && {
+                  borderWidth: 2,
+                  borderColor: buttonStyle.getBorderColorHex(),
+                },
+              ]}
+              onPress={handleGridPress}
+              accessibilityRole="button"
+              accessibilityLabel={t('navigation.backToHome', 'Terug naar startscherm')}
+            >
+              <Icon name="grid" size={24} color={colors.textOnPrimary} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -326,33 +251,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,                   // 8pt tussen icon en titel
+    flex: 1,
   },
-  homeButton: {
-    // Senior-inclusive touch target ≥60pt
-    width: touchTargets.minimum,           // 60pt (consistent with other header buttons)
-    height: touchTargets.minimum,          // 60pt
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',  // Subtle white fill
-    borderRadius: borderRadius.md,         // 12pt (consistent with other header buttons)
-    justifyContent: 'center',
+  rightControls: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: spacing.xs,
+    gap: spacing.xs,                   // 4pt tussen MediaIndicator en Grid button
   },
   backButton: {
     // Senior-inclusive touch target ≥60pt
-    width: touchTargets.minimum,           // 60pt (consistent with moduleIconButton)
-    height: touchTargets.minimum,          // 60pt (consistent with moduleIconButton)
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',  // Subtle white fill (like moduleIconButton)
-    borderRadius: borderRadius.md,         // 12pt (consistent with moduleIconButton)
+    width: touchTargets.minimum,           // 60pt
+    height: touchTargets.minimum,          // 60pt
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,         // 12pt
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.xs,
   },
-  moduleIconButton: {
-    // Match SearchBar button size for visual uniformity
-    width: touchTargets.minimum,        // 60pt (same as SearchBar button)
-    height: touchTargets.minimum,       // 60pt (same as SearchBar button)
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',  // Subtle white fill (like SearchBar button style)
-    borderRadius: borderRadius.md,      // Match SearchBar button (12pt)
+  gridButton: {
+    // Senior-inclusive touch target ≥60pt — far right position
+    width: touchTargets.minimum,           // 60pt
+    height: touchTargets.minimum,          // 60pt
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,         // 12pt
     justifyContent: 'center',
     alignItems: 'center',
   },

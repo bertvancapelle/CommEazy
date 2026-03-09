@@ -17,7 +17,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Platform, NativeModules, NativeEventEmitter } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ServiceContainer } from '@/services/container';
-import type { NavigationDestination } from '@/components/WheelNavigationMenu';
+import type { NavigationDestination } from '@/types/navigation';
 
 // Mic indicator position type
 export type MicIndicatorPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';

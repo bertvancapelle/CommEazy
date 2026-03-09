@@ -1,8 +1,7 @@
 /**
  * EBookScreen — Placeholder module for e-book reading
  *
- * This is a placeholder module screen used to test module switching
- * in the WheelNavigationMenu.
+ * This is a placeholder module screen for e-book functionality.
  */
 
 import React from 'react';

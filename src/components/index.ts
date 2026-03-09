@@ -35,11 +35,7 @@ export type { StatusType } from './StatusIndicator';
 
 // Hold-to-Navigate components
 export { HoldIndicator } from './HoldIndicator';
-export { DraggableMenuButton } from './DraggableMenuButton';
 export { NavigationMenu } from './NavigationMenu';
-export { WheelNavigationMenu } from './WheelNavigationMenu';
-export type { NavigationDestination, ModuleItem, ModuleIconType } from './WheelNavigationMenu';
-export { STATIC_MODULE_DEFINITIONS, mapModuleIconToIconName } from './WheelNavigationMenu';
 export { HoldToNavigateWrapper } from './HoldToNavigateWrapper';
 
 // HomeScreen Grid

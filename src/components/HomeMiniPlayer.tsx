@@ -36,7 +36,7 @@ import { useBooksContextSafe } from '@/contexts/BooksContext';
 import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import type { NavigationDestination } from '@/components/WheelNavigationMenu';
+import type { NavigationDestination } from '@/types/navigation';
 import {
   spacing,
   touchTargets,

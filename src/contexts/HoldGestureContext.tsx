@@ -1,7 +1,7 @@
 /**
  * HoldGestureContext — Prevents double-action on hold gestures
  *
- * When a user performs a long-press gesture (for navigation wheel or voice commands),
+ * When a user performs a long-press gesture (for HomeScreen navigation or voice commands),
  * the underlying tappable element should NOT also trigger its onPress handler.
  *
  * This context provides:

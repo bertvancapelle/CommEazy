@@ -2,11 +2,9 @@
  * HoldToNavigateWrapper — Global Hold-to-Navigate overlay
  *
  * Wraps the main app content and provides:
- * - Long-press detection anywhere on screen (1 finger = navigation wheel)
+ * - Long-press detection anywhere on screen (1 finger = navigate to HomeScreen grid)
  * - Two-finger long-press for voice commands (same timing as single-finger)
- * - DraggableMenuButton display
- * - NavigationMenu overlay
- * - Voice command overlay
+ * - Voice command overlay + voice session mode
  *
  * This component should wrap the main navigation container.
  *
@@ -15,7 +13,7 @@
  * normal interaction with the app while still detecting long presses.
  *
  * Gesture Detection:
- * - 1 finger long-press: Opens navigation wheel
+ * - 1 finger long-press: Navigates to HomeScreen grid via PaneContext
  * - 2 finger long-press: Opens voice command mode (same delay, threshold, haptic)
  *
  * @see .claude/skills/ui-designer/SKILL.md#hold-to-navigate
@@ -34,7 +32,7 @@ import {
   LayoutChangeEvent,
   type NativeTouchEvent,
 } from 'react-native';
-import { WheelNavigationMenu, NavigationDestination } from './WheelNavigationMenu';
+import type { NavigationDestination } from '@/types/navigation';
 import { usePaneContext } from '@/contexts/PaneContext';
 import { HoldIndicator } from './HoldIndicator';
 import { VoiceCommandOverlay } from './VoiceCommandOverlay';
@@ -90,9 +88,7 @@ export function HoldToNavigateWrapper({
 
   const {
     settings,
-    isNavigationMenuOpen,
     reducedMotion,
-    openNavigationMenu,
     closeNavigationMenu,
     triggerHaptic,
     isTouchValid,
@@ -335,7 +331,7 @@ export function HoldToNavigateWrapper({
   // This allows normal app interaction while detecting long presses
   //
   // Gesture detection:
-  // - 1 finger long-press: Opens navigation wheel
+  // - 1 finger long-press: Navigates to HomeScreen grid
   // - 2 finger long-press: Opens voice command overlay (SAME timing & threshold)
   // Helper function to start two-finger gesture
   const startTwoFingerGesture = useCallback((touches: NativeTouchEvent[], pageX: number, pageY: number) => {
@@ -416,13 +412,7 @@ export function HoldToNavigateWrapper({
   ]);
 
   const handleTouchStart = useCallback((event: GestureResponderEvent) => {
-    console.log('[HoldToNavigate] handleTouchStart:', {
-      enabled,
-      isNavigationMenuOpen,
-      isVoiceOverlayVisible,
-      touchCount: event.nativeEvent.touches?.length ?? 1,
-    });
-    if (!enabled || isNavigationMenuOpen || isVoiceOverlayVisible) return;
+    if (!enabled || isVoiceOverlayVisible) return;
 
     // Convert absolute screen coordinates to local coordinates
     // This is needed for iPad Split View where the wrapper doesn't start at (0,0)
@@ -447,15 +437,10 @@ export function HoldToNavigateWrapper({
 
     // Handle based on touch count
     if (touchCount === 1) {
-      // SINGLE FINGER: Navigation wheel gesture
+      // SINGLE FINGER: Long-press → navigate to HomeScreen grid
       // But wait briefly in case a second finger is coming (for two-finger gesture)
       // Check if touch is valid (not in edge zone) - use raw coordinates for edge detection
       const touchValid = isTouchValid(rawPageX, rawPageY, 1);
-      console.log('[HoldToNavigate] Touch validity check:', {
-        rawPageX,
-        rawPageY,
-        touchValid,
-      });
       if (!touchValid) {
         return;
       }
@@ -472,24 +457,19 @@ export function HoldToNavigateWrapper({
       singleFingerDelayTimer.current = setTimeout(() => {
         // Only start single-finger gesture if still only 1 finger
         if (currentTouchCount.current === 1 && !hasMoved.current) {
-          // Start long press timer immediately (wheel menu timing stays at longPressDelay total)
+          // Start long press timer for HomeScreen grid navigation
           clearPressTimer();
           pressTimer.current = setTimeout(() => {
-            console.log('[HoldToNavigate] Long press timer fired:', {
-              hasMoved: hasMoved.current,
-              isPressing: isPressingRef.current,
-              touchCount: currentTouchCount.current,
-            });
             if (!hasMoved.current && isPressingRef.current && currentTouchCount.current === 1) {
-              console.log('[HoldToNavigate] All checks passed, opening navigation menu');
               longPressCompleted.current = true;
               triggerHaptic();
               setIsPressing(false);
               isPressingRef.current = false;
-              // CRITICAL: Mark gesture as consumed BEFORE opening menu
+              // CRITICAL: Mark gesture as consumed BEFORE navigating
               // This prevents underlying onPress handlers from firing when finger is released
               holdGesture?.consumeGesture();
-              openNavigationMenu();
+              // Navigate to HomeScreen grid via PaneContext
+              paneCtx.setPaneModule('main', 'home');
             }
           }, settings.longPressDelay - twoFingerDetectionDelay); // Subtract delay already waited
 
@@ -514,11 +494,10 @@ export function HoldToNavigateWrapper({
     }
   }, [
     enabled,
-    isNavigationMenuOpen,
     isVoiceOverlayVisible,
     isTouchValid,
     settings.longPressDelay,
-    openNavigationMenu,
+    paneCtx,
     triggerHaptic,
     clearSingleFingerDelayTimer,
     clearIndicatorDelayTimer,
@@ -613,23 +592,15 @@ export function HoldToNavigateWrapper({
     clearAllGestureState();
   }, [clearAllGestureState]);
 
-  // Handle navigation from menu (also used by voice commands)
+  // Handle navigation from voice commands
   // Uses PaneContext to switch the 'main' pane's module
   const handleNavigate = useCallback(
-    (destination: NavigationDestination, _resetStack: boolean = false) => {
+    (destination: NavigationDestination) => {
       closeNavigationMenu();
-
-      // Switch the main pane to the requested module
-      console.log('[HoldToNavigate] Navigating to module:', destination);
       paneCtx.setPaneModule('main', destination);
     },
     [paneCtx, closeNavigationMenu],
   );
-
-  // Handle menu close
-  const handleCloseMenu = useCallback(() => {
-    closeNavigationMenu();
-  }, [closeNavigationMenu]);
 
   // Note: clearCallbackTimeoutRef, callbackRegisteredRef and isVoiceSessionActiveRef are declared earlier (near top of component)
 
@@ -1241,9 +1212,6 @@ export function HoldToNavigateWrapper({
     };
   }, [isVoiceOverlayVisible, isVoiceSessionActive]);
 
-  // Active screen is directly the module ID from pane context
-  const activeScreen = currentModuleId as NavigationDestination | undefined;
-
   // Handle layout changes to track wrapper's screen position
   // This is needed for iPad Split View where the wrapper doesn't start at (0,0)
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
@@ -1318,14 +1286,6 @@ export function HoldToNavigateWrapper({
           />
         </>
       )}
-
-      {/* Navigation wheel overlay - opens directly after single-finger long press */}
-      <WheelNavigationMenu
-        visible={isNavigationMenuOpen}
-        onNavigate={handleNavigate}
-        onClose={handleCloseMenu}
-        activeScreen={activeScreen}
-      />
 
       {/* Voice command overlay - opens after two-finger long press */}
       <VoiceCommandOverlay

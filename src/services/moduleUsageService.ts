@@ -2,8 +2,8 @@
  * Module Usage Service — 24-hour rolling window usage tracking
  *
  * Tracks time spent in each module to enable smart sorting
- * in the WheelNavigationMenu. Modules with more usage time
- * in the last 24 hours appear higher in the menu.
+ * in the HomeScreen grid. Modules with more usage time
+ * in the last 24 hours appear higher in the grid.
  *
  * Features:
  * - Session-based time tracking (start/end)

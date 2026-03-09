@@ -8,7 +8,7 @@
  * @see .claude/plans/COUNTRY_SPECIFIC_MODULES.md
  */
 
-import type { NavigationDestination } from '@/components/WheelNavigationMenu';
+import type { NavigationDestination } from '@/types/navigation';
 
 // ============================================================
 // Module Icon Types
@@ -16,7 +16,7 @@ import type { NavigationDestination } from '@/components/WheelNavigationMenu';
 
 /**
  * Icon types available for country modules
- * Extends the existing WheelNavigationMenu icon system
+ * Extends the existing navigation icon system
  */
 export type ModuleIconType =
   | 'news'        // Newspaper icon for news modules
@@ -72,7 +72,7 @@ export interface CountryModuleDefinition {
   /** i18n key for the module title */
   labelKey: string;
 
-  /** Icon type for WheelNavigationMenu */
+  /** Icon type for module display */
   icon: ModuleIconType;
 
   /** Accent color for the module (hex) */
