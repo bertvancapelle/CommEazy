@@ -242,11 +242,16 @@ export function PaneProvider({ paneCount, children }: PaneProviderProps) {
       };
 
       if (paneId === 'main') {
-        // iPhone: auto-hide Glass Player mini player when switching to a different module.
-        // Audio keeps playing; user taps the active item in the list to restore.
+        // iPhone: briefly hide Glass Player during module transition, then restore.
+        // The Glass Player itself handles visibility (only shows when audio is playing).
         if (Platform.OS === 'ios' && moduleId !== mainModuleRef.current) {
           import('@/services/glassPlayer').then(({ glassPlayer: gp }) => {
             gp.setTemporarilyHidden(true);
+            // Restore after module transition completes — the Glass Player
+            // will only be visible if audio is actually playing
+            setTimeout(() => {
+              gp.setTemporarilyHidden(false);
+            }, 300);
           }).catch(() => {
             console.debug('[PaneContext] glassPlayer not available');
           });

@@ -36,7 +36,7 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { useRadioContext } from '@/contexts/RadioContext';
+import { useRadioContextSafe } from '@/contexts/RadioContext';
 import { usePodcastContextSafe } from '@/contexts/PodcastContext';
 import { useBooksContextSafe } from '@/contexts/BooksContext';
 import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
@@ -125,8 +125,11 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const bar2Anim = useRef(new Animated.Value(0.6)).current;
   const bar3Anim = useRef(new Animated.Value(0.4)).current;
 
-  // Radio context
-  const { isPlaying: isRadioPlaying, currentStation, sleepTimerActive } = useRadioContext();
+  // Radio context (safe - returns null if provider not ready)
+  const radioContext = useRadioContextSafe();
+  const isRadioPlaying = radioContext?.isPlaying ?? false;
+  const currentStation = radioContext?.currentStation ?? null;
+  const sleepTimerActive = radioContext?.sleepTimerActive ?? false;
 
   // Podcast context (safe - returns null if provider not ready)
   const podcastContext = usePodcastContextSafe();

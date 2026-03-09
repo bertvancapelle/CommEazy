@@ -504,6 +504,14 @@ export function useRadioContext(): RadioContextValue {
 }
 
 /**
+ * Safe hook to access radio context
+ * Returns null if not within a RadioProvider (useful for MediaIndicator and other cross-module components)
+ */
+export function useRadioContextSafe(): RadioContextValue | null {
+  return useContext(RadioContext);
+}
+
+/**
  * Hook for basic radio state (lightweight)
  */
 export function useRadioState(): {

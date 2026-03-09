@@ -348,12 +348,8 @@ export function PodcastScreen() {
   // Glass Player Effects (iOS 26+ Liquid Glass)
   // ============================================================
 
-  // Hide Glass Player when navigating away from this screen
-  useEffect(() => {
-    if (!isFocused && isGlassPlayerAvailable && isGlassPlayerVisible) {
-      hideGlassPlayer();
-    }
-  }, [isFocused, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
+  // Glass Player visibility during module switch is handled by PaneContext
+  // (setTemporarilyHidden with auto-restore). No navigation cleanup needed here.
 
   // Show Glass Mini Player when episode is playing
   useEffect(() => {

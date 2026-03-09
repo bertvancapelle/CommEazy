@@ -80,6 +80,7 @@ class FullPlayerNativeView: UIView {
     private let stopButton = UIButton(type: .system)
     
     // Secondary controls
+    private let secondaryControlsStack = UIStackView()
     private let shuffleButton = UIButton(type: .system)
     private let speedButton = UIButton(type: .system)
     private let sleepButton = UIButton(type: .system)
@@ -130,7 +131,9 @@ class FullPlayerNativeView: UIView {
         static let padding: CGFloat = 20
         static let artworkSize: CGFloat = 200  // Smaller artwork for more compact player
         static let buttonSize: CGFloat = 60    // ALL buttons uniform 60pt (senior-inclusive minimum)
+        static let secondaryButtonSize: CGFloat = 48  // Secondary controls: smaller to fit 5 buttons
         static let buttonCornerRadius: CGFloat = 12  // Rounded square (NOT circular!)
+        static let secondaryCornerRadius: CGFloat = 10  // Slightly smaller for secondary buttons
         static let titleFontSize: CGFloat = 24
         static let subtitleFontSize: CGFloat = 18
         static let timeFontSize: CGFloat = 14
@@ -435,66 +438,71 @@ class FullPlayerNativeView: UIView {
     }
     
     private func setupSecondaryControls() {
-        let iconConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        let btnSize = Layout.secondaryButtonSize
+        let btnRadius = Layout.secondaryCornerRadius
+
+        // UIStackView for automatic equal spacing — prevents overlapping on narrow screens
+        secondaryControlsStack.axis = .horizontal
+        secondaryControlsStack.distribution = .equalSpacing
+        secondaryControlsStack.alignment = .center
+        secondaryControlsStack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(secondaryControlsStack)
+
+        // Helper to configure secondary buttons consistently
+        func configureSecondary(_ button: UIButton, icon: String? = nil, title: String? = nil, label: String, hidden: Bool = false) {
+            if let icon = icon {
+                button.setImage(UIImage(systemName: icon, withConfiguration: iconConfig), for: .normal)
+            }
+            if let title = title {
+                button.setTitle(title, for: .normal)
+                button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+                button.setTitleColor(.white, for: .normal)
+            }
+            button.tintColor = .white
+            button.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+            button.layer.cornerRadius = btnRadius
+            button.clipsToBounds = true
+            button.translatesAutoresizingMaskIntoConstraints = false
+            button.accessibilityLabel = label
+            button.isHidden = hidden
+            // Fixed size constraints for secondary buttons
+            button.widthAnchor.constraint(equalToConstant: btnSize).isActive = true
+            button.heightAnchor.constraint(equalToConstant: btnSize).isActive = true
+        }
 
         // Shuffle button
-        shuffleButton.setImage(UIImage(systemName: "shuffle", withConfiguration: iconConfig), for: .normal)
-        shuffleButton.tintColor = .white
-        shuffleButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        shuffleButton.layer.cornerRadius = Layout.buttonCornerRadius
-        shuffleButton.clipsToBounds = true
+        configureSecondary(shuffleButton, icon: "shuffle", label: "Willekeurig uit", hidden: true)
         shuffleButton.addTarget(self, action: #selector(handleShuffleTap), for: .touchUpInside)
-        shuffleButton.translatesAutoresizingMaskIntoConstraints = false
-        shuffleButton.accessibilityLabel = "Willekeurig uit"
-        shuffleButton.isHidden = true
-        contentView.addSubview(shuffleButton)
+        secondaryControlsStack.addArrangedSubview(shuffleButton)
 
         // Speed control
-        speedButton.setTitle("1×", for: .normal)
-        speedButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        speedButton.setTitleColor(.white, for: .normal)
-        speedButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        speedButton.layer.cornerRadius = Layout.buttonCornerRadius
-        speedButton.clipsToBounds = true
+        configureSecondary(speedButton, title: "1×", label: "Afspeelsnelheid", hidden: true)
         speedButton.addTarget(self, action: #selector(handleSpeedTap), for: .touchUpInside)
-        speedButton.translatesAutoresizingMaskIntoConstraints = false
-        speedButton.accessibilityLabel = "Afspeelsnelheid"
-        speedButton.isHidden = true
-        contentView.addSubview(speedButton)
+        secondaryControlsStack.addArrangedSubview(speedButton)
 
-        // Sleep timer - starts with outline moon (white), filled moon (yellow) when active
-        sleepButton.setImage(UIImage(systemName: "moon", withConfiguration: iconConfig), for: .normal)
-        sleepButton.tintColor = .white
-        sleepButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        sleepButton.layer.cornerRadius = Layout.buttonCornerRadius
-        sleepButton.clipsToBounds = true
+        // Sleep timer
+        configureSecondary(sleepButton, icon: "moon", label: "Slaaptimer uit")
         sleepButton.addTarget(self, action: #selector(handleSleepTap), for: .touchUpInside)
-        sleepButton.translatesAutoresizingMaskIntoConstraints = false
-        sleepButton.accessibilityLabel = "Slaaptimer uit"
-        contentView.addSubview(sleepButton)
+        secondaryControlsStack.addArrangedSubview(sleepButton)
+
+        // Stop button — moved into secondary stack for proper spacing
+        // Re-add stop button to stack (remove from contentView first)
+        stopButton.removeFromSuperview()
+        stopButton.widthAnchor.constraint(equalToConstant: btnSize).isActive = true
+        stopButton.heightAnchor.constraint(equalToConstant: btnSize).isActive = true
+        stopButton.layer.cornerRadius = btnRadius
+        secondaryControlsStack.addArrangedSubview(stopButton)
 
         // Favorite
-        favoriteButton.setImage(UIImage(systemName: "heart", withConfiguration: iconConfig), for: .normal)
-        favoriteButton.tintColor = .white
-        favoriteButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        favoriteButton.layer.cornerRadius = Layout.buttonCornerRadius
-        favoriteButton.clipsToBounds = true
+        configureSecondary(favoriteButton, icon: "heart", label: "Favoriet")
         favoriteButton.addTarget(self, action: #selector(handleFavoriteTap), for: .touchUpInside)
-        favoriteButton.translatesAutoresizingMaskIntoConstraints = false
-        favoriteButton.accessibilityLabel = "Favoriet"
-        contentView.addSubview(favoriteButton)
+        secondaryControlsStack.addArrangedSubview(favoriteButton)
 
         // Repeat button
-        repeatButton.setImage(UIImage(systemName: "repeat", withConfiguration: iconConfig), for: .normal)
-        repeatButton.tintColor = .white
-        repeatButton.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        repeatButton.layer.cornerRadius = Layout.buttonCornerRadius
-        repeatButton.clipsToBounds = true
+        configureSecondary(repeatButton, icon: "repeat", label: "Herhalen uit", hidden: true)
         repeatButton.addTarget(self, action: #selector(handleRepeatTap), for: .touchUpInside)
-        repeatButton.translatesAutoresizingMaskIntoConstraints = false
-        repeatButton.accessibilityLabel = "Herhalen uit"
-        repeatButton.isHidden = true
-        contentView.addSubview(repeatButton)
+        secondaryControlsStack.addArrangedSubview(repeatButton)
     }
     
     private func setupLoadingIndicator() {
@@ -582,52 +590,21 @@ class FullPlayerNativeView: UIView {
             skipForwardButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
             skipForwardButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
             
-            // Secondary controls row - spread horizontally
-            // Layout: [Shuffle] [Moon] [Stop/center] [Heart] [Repeat]
-            // Stop button in CENTER of secondary row
-            stopButton.topAnchor.constraint(equalTo: playPauseButton.bottomAnchor, constant: Layout.verticalSpacing + 8),
-            stopButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            stopButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
-            stopButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
-
-            // Shuffle button (far left)
-            shuffleButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            shuffleButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
-            shuffleButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
-            shuffleButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
-
-            // Sleep button (moon) - left of center
-            sleepButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            sleepButton.trailingAnchor.constraint(equalTo: stopButton.leadingAnchor, constant: -16),
-            sleepButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
-            sleepButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
-
-            // Speed button (positioned but often hidden)
-            speedButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            speedButton.trailingAnchor.constraint(equalTo: sleepButton.leadingAnchor, constant: -8),
-            speedButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
-            speedButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
-
-            // Favorite button (heart) - right of center
-            favoriteButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            favoriteButton.leadingAnchor.constraint(equalTo: stopButton.trailingAnchor, constant: 16),
-            favoriteButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
-            favoriteButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
-
-            // Repeat button (far right)
-            repeatButton.centerYAnchor.constraint(equalTo: stopButton.centerYAnchor),
-            repeatButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
-            repeatButton.widthAnchor.constraint(equalToConstant: Layout.buttonSize),
-            repeatButton.heightAnchor.constraint(equalToConstant: Layout.buttonSize),
+            // Secondary controls stack — UIStackView with .equalSpacing distribution
+            // Automatically distributes visible buttons evenly across the available width
+            secondaryControlsStack.topAnchor.constraint(equalTo: playPauseButton.bottomAnchor, constant: Layout.verticalSpacing + 8),
+            secondaryControlsStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.padding),
+            secondaryControlsStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.padding),
+            secondaryControlsStack.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonSize),
             
             // Loading indicator - centered on play button
             loadingIndicator.centerXAnchor.constraint(equalTo: playPauseButton.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
         ])
         
-        // Bottom constraint for secondary controls - ensures proper spacing from bottom
-        // Use greaterThanOrEqualTo to prevent clipping on smaller screens
-        stopButton.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -Layout.padding).isActive = true
+        // Bottom constraint for secondary controls stack - ensures proper spacing from bottom
+        // Use lessThanOrEqualTo to prevent clipping on smaller screens
+        secondaryControlsStack.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -Layout.padding).isActive = true
     }
     
     // MARK: - Actions

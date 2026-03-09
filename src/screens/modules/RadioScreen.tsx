@@ -414,23 +414,8 @@ export function RadioScreen() {
     }
   }, [contextStation, isGlassPlayerAvailable, isGlassPlayerVisible, hideGlassPlayer]);
 
-  // Hide Glass Player when this screen unmounts (module switch).
-  // RadioScreen is rendered directly by PanelNavigator — it gets fully unmounted
-  // when the user switches to another module. useIsFocused() does NOT work here
-  // because RadioScreen is not inside a React Navigation navigator.
-  const hideGlassPlayerRef = useRef(hideGlassPlayer);
-  hideGlassPlayerRef.current = hideGlassPlayer;
-  const isGlassPlayerAvailableRef = useRef(isGlassPlayerAvailable);
-  isGlassPlayerAvailableRef.current = isGlassPlayerAvailable;
-
-  useEffect(() => {
-    return () => {
-      // Component unmounting — hide the glass player
-      if (isGlassPlayerAvailableRef.current) {
-        hideGlassPlayerRef.current();
-      }
-    };
-  }, []);
+  // Glass Player visibility during module switch is handled by PaneContext
+  // (setTemporarilyHidden with auto-restore). No unmount cleanup needed here.
 
   // Show/update Glass Player when station is playing (iOS 26+)
   // This component is only mounted when RadioScreen is the active module,
