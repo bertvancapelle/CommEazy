@@ -56,6 +56,8 @@ export interface HomeGridItemProps {
   isSelected?: boolean;
   /** Whether this item is currently being dragged (placeholder in grid) */
   isDragging?: boolean;
+  /** Whether this cell is the current drop target during drag */
+  isDropTarget?: boolean;
   /** Tap handler */
   onPress: () => void;
   /** Long press handler (activates wiggle mode) */
@@ -96,6 +98,7 @@ export function HomeGridItem({
   isWiggling = false,
   isSelected = false,
   isDragging = false,
+  isDropTarget = false,
   onPress,
   onLongPress,
 }: HomeGridItemProps) {
@@ -177,6 +180,7 @@ export function HomeGridItem({
           ? styles.wiggleReducedMotion
           : undefined,
         isSelected && styles.selectedContainer,
+        isDropTarget && styles.dropTargetContainer,
       ]}
     >
       <HapticTouchable
@@ -310,5 +314,12 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: colors.primary,
     borderRadius: borderRadius.md,
+  },
+  dropTargetContainer: {
+    backgroundColor: 'rgba(0, 122, 255, 0.08)',
+    borderWidth: 3,
+    borderColor: colors.primary,
+    borderRadius: borderRadius.md,
+    borderStyle: 'dashed',
   },
 });
