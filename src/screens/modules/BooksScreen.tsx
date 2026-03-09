@@ -56,6 +56,7 @@ import { glassPlayer } from '@/services/glassPlayer';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useModuleBrowsingState, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
 
 // ============================================================
 // Constants
@@ -117,17 +118,20 @@ export function BooksScreen() {
   // Audio Player Context (for listen mode)
   const { openBookForListening } = useBooksAudioPlayer();
 
-  // State
-  const [searchResults, setSearchResults] = useState<Book[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  // Browsing state persistence — restores tab, search, filters on return
+  const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<BooksBrowsingState>('books');
+
+  // State — initialized from saved browsing state if available
+  const [searchResults, setSearchResults] = useState<Book[]>(savedBrowsing?.searchResults as Book[] ?? []);
+  const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isSearching, setIsSearching] = useState(false);
   const [apiError, setApiError] = useState<ApiError>(null);
   // Selected language for search (default: app language)
   const [selectedLanguage, setSelectedLanguage] = useState(
-    detectLanguageFromLocale(i18n.language)
+    savedBrowsing?.selectedLanguage ?? detectLanguageFromLocale(i18n.language)
   );
   // Default to Library tab — seniors want quick access to their downloaded books
-  const [showLibrary, setShowLibrary] = useState(true);
+  const [showLibrary, setShowLibrary] = useState(savedBrowsing?.showLibrary ?? true);
   // Welcome modal for first-time users
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   // Cleanup modal for deleting books
@@ -139,6 +143,17 @@ export function BooksScreen() {
   // Mode selection modal (Read vs Listen)
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedBookForMode, setSelectedBookForMode] = useState<DownloadedBook | null>(null);
+
+  // Save browsing state on every change — restored on return navigation
+  useEffect(() => {
+    saveBrowsing({
+      module: 'books',
+      showLibrary,
+      searchQuery,
+      selectedLanguage,
+      searchResults,
+    });
+  }, [showLibrary, searchQuery, selectedLanguage, searchResults, saveBrowsing]);
 
   // Handle language change
   const handleLanguageChange = useCallback((code: string) => {

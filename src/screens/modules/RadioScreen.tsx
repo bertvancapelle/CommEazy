@@ -53,6 +53,7 @@ import { usePanelId } from '@/contexts/PanelIdContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
+import { useModuleBrowsingState, type RadioBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { ServiceContainer } from '@/services/container';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
@@ -357,17 +358,20 @@ export function RadioScreen() {
     console.log('[RadioScreen] isCheckingGlassPlayerAvailability:', isCheckingGlassPlayerAvailability, 'isGlassPlayerAvailable:', isGlassPlayerAvailable);
   }, [isCheckingGlassPlayerAvailability, isGlassPlayerAvailable]);
 
-  // State
-  const [stations, setStations] = useState<RadioStation[]>([]);
+  // Browsing state persistence — restores tab, search, filters on return
+  const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<RadioBrowsingState>('radio');
+
+  // State — initialized from saved browsing state if available
+  const [stations, setStations] = useState<RadioStation[]>(savedBrowsing?.stations as RadioStation[] ?? []);
   const [favorites, setFavorites] = useState<FavoriteStation[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState('NL');
-  const [selectedLanguage, setSelectedLanguage] = useState('nl');
-  const [filterMode, setFilterMode] = useState<FilterMode>('country');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState(savedBrowsing?.selectedCountry ?? 'NL');
+  const [selectedLanguage, setSelectedLanguage] = useState(savedBrowsing?.selectedLanguage ?? 'nl');
+  const [filterMode, setFilterMode] = useState<FilterMode>(savedBrowsing?.filterMode ?? 'country');
+  const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | null>(null);
   // Default to Favorites tab — seniors want quick access to their saved stations
-  const [showFavorites, setShowFavorites] = useState(true);
+  const [showFavorites, setShowFavorites] = useState(savedBrowsing?.showFavorites ?? true);
   // Popup shown when no favorites exist — explains how to find and save stations
   const [showNoFavoritesModal, setShowNoFavoritesModal] = useState(false);
   // Track if we've already shown the modal this session
@@ -402,6 +406,19 @@ export function RadioScreen() {
       pulseAnim.setValue(1);
     }
   }, [isBuffering, isReducedMotion, pulseAnim]);
+
+  // Save browsing state on every change — restored on return navigation
+  useEffect(() => {
+    saveBrowsing({
+      module: 'radio',
+      showFavorites,
+      searchQuery,
+      filterMode,
+      selectedCountry,
+      selectedLanguage,
+      stations,
+    });
+  }, [showFavorites, searchQuery, filterMode, selectedCountry, selectedLanguage, stations, saveBrowsing]);
 
   // Close expanded player when music stops
   useEffect(() => {

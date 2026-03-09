@@ -65,6 +65,7 @@ import { ServiceContainer } from '@/services/container';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useModuleBrowsingState, type PodcastBrowsingState } from '@/contexts/ModuleBrowsingContext';
 
 // ============================================================
 // Constants
@@ -195,20 +196,23 @@ export function PodcastScreen() {
     },
   });
 
-  // State
-  const [searchResults, setSearchResults] = useState<PodcastShow[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  // Browsing state persistence — restores tab, search, filters on return
+  const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<PodcastBrowsingState>('podcast');
+
+  // State — initialized from saved browsing state if available
+  const [searchResults, setSearchResults] = useState<PodcastShow[]>(savedBrowsing?.searchResults as PodcastShow[] ?? []);
+  const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | 'parse' | null>(null);
-  const [showSubscriptions, setShowSubscriptions] = useState(true);
+  const [showSubscriptions, setShowSubscriptions] = useState(savedBrowsing?.showSubscriptions ?? true);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const hasShownWelcomeRef = useRef(false);
   // Podcast uses country filter (iTunes API is store/region-based, not language-based)
-  const [selectedCountry, setSelectedCountry] = useState('NL');
+  const [selectedCountry, setSelectedCountry] = useState(savedBrowsing?.selectedCountry ?? 'NL');
 
   // Show detail modal
-  const [selectedShow, setSelectedShow] = useState<PodcastShow | null>(null);
-  const [showEpisodes, setShowEpisodes] = useState<PodcastEpisode[]>([]);
+  const [selectedShow, setSelectedShow] = useState<PodcastShow | null>(savedBrowsing?.selectedShow as PodcastShow | null ?? null);
+  const [showEpisodes, setShowEpisodes] = useState<PodcastEpisode[]>(savedBrowsing?.showEpisodes as PodcastEpisode[] ?? []);
   const [isLoadingEpisodes, setIsLoadingEpisodes] = useState(false);
 
   // Expanded player
@@ -262,6 +266,19 @@ export function PodcastScreen() {
       pulseAnim.setValue(1);
     }
   }, [isBuffering, isReducedMotion, pulseAnim]);
+
+  // Save browsing state on every change — restored on return navigation
+  useEffect(() => {
+    saveBrowsing({
+      module: 'podcast',
+      showSubscriptions,
+      searchQuery,
+      selectedCountry,
+      selectedShow,
+      showEpisodes,
+      searchResults,
+    });
+  }, [showSubscriptions, searchQuery, selectedCountry, selectedShow, showEpisodes, searchResults, saveBrowsing]);
 
   // Close expanded player when episode ends
   useEffect(() => {

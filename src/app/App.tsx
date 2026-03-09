@@ -24,6 +24,7 @@ import { AudioModulesProvider } from '@/contexts/AudioModulesProvider';
 import { FeedbackProvider } from '@/contexts/FeedbackContext';
 import { HoldGestureProvider } from '@/contexts/HoldGestureContext';
 import { ModuleConfigProvider } from '@/contexts/ModuleConfigContext';
+import { ModuleBrowsingProvider } from '@/contexts/ModuleBrowsingContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { CallProvider } from '@/contexts/CallContext';
 import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
@@ -115,6 +116,7 @@ export default function App() {
                 <HoldGestureProvider>
                   <AudioModulesProvider>
                     <ModuleConfigProvider>
+                    <ModuleBrowsingProvider>
                       <NavigationProvider>
                         <FavoriteLocationsProvider>
                           <CallProvider>
@@ -127,6 +129,7 @@ export default function App() {
                           </CallProvider>
                         </FavoriteLocationsProvider>
                       </NavigationProvider>
+                    </ModuleBrowsingProvider>
                     </ModuleConfigProvider>
                   </AudioModulesProvider>
                 </HoldGestureProvider>

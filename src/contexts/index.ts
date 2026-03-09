@@ -199,3 +199,16 @@ export {
   type TimelineDay,
   type CreateAgendaItemData,
 } from './AgendaContext';
+
+export {
+  ModuleBrowsingProvider,
+  useModuleBrowsingContext,
+  useModuleBrowsingContextSafe,
+  useModuleBrowsingState,
+  type ModuleBrowsingState,
+  type RadioBrowsingState,
+  type PodcastBrowsingState,
+  type BooksBrowsingState,
+  type AppleMusicBrowsingState,
+  type BrowsableModuleId,
+} from './ModuleBrowsingContext';

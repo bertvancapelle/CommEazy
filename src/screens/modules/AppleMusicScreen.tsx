@@ -84,6 +84,7 @@ import { SongCollectionModal } from './SongCollectionModal';
 import { PlaylistBrowserModal } from './PlaylistBrowserModal';
 import type { MusicCollection } from '@/services/music';
 import { usePlaylistImportContext } from '@/contexts/PlaylistImportContext';
+import { useModuleBrowsingState, type AppleMusicBrowsingState } from '@/contexts/ModuleBrowsingContext';
 
 // ============================================================
 // Constants
@@ -185,19 +186,22 @@ export function AppleMusicScreen() {
     enableTestMode: true, // Allow 0 minutes = 30 seconds for testing
   });
 
+  // Browsing state persistence — restores tab, search, filters on return
+  const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<AppleMusicBrowsingState>('appleMusic');
+
   // Local search state (context returns Promise, we manage state here)
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(savedBrowsing?.searchResults as SearchResults | null ?? null);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  // State
-  const [activeTab, setActiveTab] = useState<TabType>('favorites');
-  const [favoritesSubTab, setFavoritesSubTab] = useState<FavoritesSubTab>('playlists');
+  // State — initialized from saved browsing state if available
+  const [activeTab, setActiveTab] = useState<TabType>(savedBrowsing?.activeTab ?? 'favorites');
+  const [favoritesSubTab, setFavoritesSubTab] = useState<FavoritesSubTab>(savedBrowsing?.favoritesSubTab ?? 'playlists');
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [isQueueVisible, setIsQueueVisible] = useState(false);
-  const [searchFilter, setSearchFilter] = useState<SearchFilterType>('all');
+  const [searchFilter, setSearchFilter] = useState<SearchFilterType>(savedBrowsing?.searchFilter ?? 'all');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAllRecentlyPlayed, setShowAllRecentlyPlayed] = useState(false);
 
@@ -205,7 +209,7 @@ export function AppleMusicScreen() {
   const [showPlaylistBrowser, setShowPlaylistBrowser] = useState(false);
 
   // Collection detail view (null = show collection list, string = show songs for that collection)
-  const [openCollectionId, setOpenCollectionId] = useState<string | null>(null);
+  const [openCollectionId, setOpenCollectionId] = useState<string | null>(savedBrowsing?.openCollectionId ?? null);
 
   // Music Favorites & Collections (CommEazy local curation)
   const musicFavorites = useMusicFavorites(isFocused);
@@ -273,7 +277,7 @@ export function AppleMusicScreen() {
       .filter((s): s is AppleMusicSong => s !== null);
   }, [openCollection, musicFavorites.favorites]);
 
-  const [selectedChipId, setSelectedChipId] = useState<MusicChipId>('all');
+  const [selectedChipId, setSelectedChipId] = useState<MusicChipId>((savedBrowsing?.selectedChipId ?? 'all') as MusicChipId);
   const [editCollectionModal, setEditCollectionModal] = useState<{
     visible: boolean;
     collection: MusicCollection | null;
@@ -306,6 +310,20 @@ export function AppleMusicScreen() {
   // Track which search result songs are in library (for heart icon display)
   const [searchResultsInLibrary, setSearchResultsInLibrary] = useState<Set<string>>(new Set());
   const [isCheckingLibraryStatus, setIsCheckingLibraryStatus] = useState(false);
+
+  // Save browsing state on every change — restored on return navigation
+  useEffect(() => {
+    saveBrowsing({
+      module: 'appleMusic',
+      activeTab,
+      favoritesSubTab,
+      searchQuery,
+      searchFilter,
+      openCollectionId,
+      selectedChipId,
+      searchResults,
+    });
+  }, [activeTab, favoritesSubTab, searchQuery, searchFilter, openCollectionId, selectedChipId, searchResults, saveBrowsing]);
 
   // Check if platform supports full functionality
   const hasFullSupport = capabilities?.hasMusicKit && capabilities?.canPlayback;
