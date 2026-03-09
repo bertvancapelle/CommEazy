@@ -33,6 +33,7 @@ export { useSleepTimer } from './useSleepTimer';
 
 // Module management
 export { useModuleUsage } from './useModuleUsage';
+export { useModuleOrder, type UseModuleOrderReturn } from './useModuleOrder';
 
 // Content
 export { useNewsArticles } from './useNewsArticles';
@@ -67,3 +68,6 @@ export {
   useAgendaNotifications,
   type UseAgendaNotificationsReturn,
 } from './useAgendaNotifications';
+
+// HomeScreen Badges
+export { useModuleBadges, type UseModuleBadgesReturn } from './useModuleBadges';

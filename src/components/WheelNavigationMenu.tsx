@@ -1,15 +1,20 @@
 /**
  * WheelNavigationMenu — Smart navigation menu with usage-based ordering
  *
- * A streamlined navigation menu designed for seniors:
- * - Active module (where user came from) always at top
- * - Top 4 most-used modules shown next
- * - "Meer" toggle button to see remaining modules
- * - Large touch targets and clear labels
- * - Haptic feedback on interactions
- * - Scalable for future module additions
+ * @deprecated The WheelNavigationMenu component is deprecated in favor of
+ * the HomeScreen grid navigation (see src/screens/HomeScreen.tsx).
+ * The component is kept for backward compatibility but navigation now
+ * flows through the HomeScreen grid.
  *
- * @see .claude/skills/ui-designer/SKILL.md#hold-to-navigate
+ * This file still exports critical types and constants used throughout
+ * the codebase:
+ * - NavigationDestination, StaticNavigationDestination types
+ * - STATIC_MODULE_DEFINITIONS constant
+ * - mapModuleIconToIconName helper
+ * - ModuleItem, ModuleIconType types
+ *
+ * @see src/screens/HomeScreen.tsx — New grid navigation
+ * @see .claude/plans/HOMESCREEN_GRID_NAVIGATION.md
  */
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
@@ -53,6 +58,7 @@ const MODULES_PER_PAGE = 4;
 
 // Static navigation destinations (built-in modules)
 export type StaticNavigationDestination =
+  | 'home'         // HomeScreen grid (start screen)
   | 'chats'
   | 'contacts'
   | 'groups'
@@ -115,7 +121,7 @@ export type ModuleIconType =
  * Map ModuleIconType to IconName for unified SVG icons
  * This allows WheelNavigationMenu to use the same Icon component as modules
  */
-function mapModuleIconToIconName(type: ModuleIconType): IconName {
+export function mapModuleIconToIconName(type: ModuleIconType): IconName {
   switch (type) {
     case 'chat':
       return 'chat';
@@ -160,7 +166,7 @@ function mapModuleIconToIconName(type: ModuleIconType): IconName {
   }
 }
 
-interface ModuleItem {
+export interface ModuleItem {
   id: NavigationDestination;
   labelKey: string;
   icon: ModuleIconType;
@@ -172,7 +178,7 @@ interface ModuleItem {
 
 // Static module definitions - built-in modules
 // Colors come from ModuleColorsContext via useModuleColor() hook
-const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<ModuleItem, 'id'>> = {
+export const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit<ModuleItem, 'id'>> = {
   chats: { labelKey: 'navigation.chats', icon: 'chat' },
   contacts: { labelKey: 'navigation.contacts', icon: 'contacts' },
   groups: { labelKey: 'navigation.groups', icon: 'groups' },

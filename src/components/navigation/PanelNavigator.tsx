@@ -65,6 +65,9 @@ import {
   AppleMusicSettingsScreen,
 } from '@/screens/settings';
 
+// HomeScreen (start screen / grid)
+import { HomeScreen } from '@/screens/HomeScreen';
+
 // Module screens (no sub-navigation needed)
 import {
   CallsScreen,
@@ -481,6 +484,31 @@ function SettingsPanelNavigator() {
 }
 
 // ============================================================
+// HomeScreen Navigator
+// ============================================================
+
+function HomePanelNavigator() {
+  const panelId = usePanelId();
+  const paneCtx = usePaneContextSafe();
+
+  const handleModulePress = useCallback(
+    (moduleId: NavigationDestination) => {
+      if (paneCtx && panelId) {
+        paneCtx.setPaneModule(panelId, moduleId);
+      }
+    },
+    [paneCtx, panelId],
+  );
+
+  return (
+    <HomeScreen
+      onModulePress={handleModulePress}
+      variant={panelId === 'main' ? 'fullscreen' : 'pane'}
+    />
+  );
+}
+
+// ============================================================
 // Props
 // ============================================================
 
@@ -502,6 +530,10 @@ export interface PanelNavigatorProps {
  */
 export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
   switch (moduleId) {
+    // HomeScreen grid — start screen
+    case 'home':
+      return <HomePanelNavigator />;
+
     // Modules WITH sub-navigation — wrapped in Stack Navigators
     case 'chats':
       return <ChatPanelNavigator />;

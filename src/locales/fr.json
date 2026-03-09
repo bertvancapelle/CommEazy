@@ -1032,12 +1032,22 @@
     "unread_badge": "{{count}} nouveau",
     "switchModule": "Changer de module",
     "switchModuleHint": "Ouvre le menu de sélection de module",
+    "backToHome": "Retour à l'écran d'accueil",
     "sidebar": "Menu de navigation",
     "sections": {
       "communication": "Communication",
       "media": "Médias",
       "modules": "Extras",
       "system": "Système"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Terminé",
+    "tapToSelect": "Appuyez sur une icône pour la déplacer",
+    "tapToSwap": "Appuyez sur une autre icône pour échanger",
+    "miniPlayer": {
+      "nowPlaying": "En cours de lecture",
+      "tapToOpen": "Appuyez pour ouvrir"
     }
   },
   "splitView": {

@@ -47,12 +47,11 @@ import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
-import { useWheelMenuContextSafe } from '@/contexts/WheelMenuContext';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
+import { usePaneContextSafe } from '@/contexts/PaneContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { ModuleColorId } from '@/types/liquidGlass';
-import type { NavigationDestination } from '@/types/navigation';
 import type { IconName } from './Icon';
 
 // ============================================================
@@ -87,7 +86,7 @@ export interface ModuleHeaderProps {
    */
   style?: StyleProp<ViewStyle>;
   /**
-   * @deprecated No longer needed — ModuleHeader auto-enables icon navigation when WheelMenuContext is available.
+   * @deprecated No longer needed — ModuleHeader auto-navigates to HomeScreen grid.
    * Only use this if you need to override the default behavior.
    */
   onModuleIconPress?: () => void;
@@ -101,6 +100,11 @@ export interface ModuleHeaderProps {
    * Set to true for detail screens or screens that shouldn't have quick navigation
    */
   disableIconNavigation?: boolean;
+  /**
+   * Show Home button to navigate back to HomeScreen grid (default: true on iPhone)
+   * Hidden when showBackButton is true (detail screens show back instead of home)
+   */
+  showHomeButton?: boolean;
 }
 
 // ============================================================
@@ -122,6 +126,7 @@ export function ModuleHeader({
   onModuleIconPress,
   moduleIconLabel,
   disableIconNavigation = false,
+  showHomeButton = true,
 }: ModuleHeaderProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -132,29 +137,50 @@ export function ModuleHeader({
   const liquidGlassContext = useLiquidGlassContextSafe();
   const useLiquidGlass = liquidGlassContext?.isEnabled ?? false;
 
-  // Auto-enable icon navigation when WheelMenuContext is available
-  const wheelMenu = useWheelMenuContextSafe();
   const panelId = usePanelId();
   const { triggerFeedback } = useFeedback();
 
   // Button style context for optional border styling
   const buttonStyle = useButtonStyleSafe();
 
-  // Auto-generated icon press handler — opens wheel navigation menu
-  // Uses panelId from PanelIdContext so iPad Split View navigates the correct panel
-  const handleAutoIconPress = useCallback(() => {
-    if (wheelMenu) {
-      void triggerFeedback('tap');
-      wheelMenu.openMenu(panelId, moduleId as NavigationDestination);
+  // PaneContext for Home button navigation
+  const paneCtx = usePaneContextSafe();
+
+  // Navigate to HomeScreen grid
+  const handleHomePress = useCallback(() => {
+    if (paneCtx && panelId) {
+      void triggerFeedback('navigation');
+      paneCtx.setPaneModule(panelId, 'home');
     }
-  }, [wheelMenu, panelId, moduleId, triggerFeedback]);
+  }, [paneCtx, panelId, triggerFeedback]);
+
+  // Show Home button only when:
+  // - showHomeButton is true (default)
+  // - showBackButton is false (detail screens show back, not home)
+  // - PaneContext is available
+  // - Not on the HomeScreen itself
+  const shouldShowHomeButton =
+    showHomeButton &&
+    !showBackButton &&
+    paneCtx &&
+    moduleId !== 'home';
+
+  // Auto-generated icon press handler — navigates to HomeScreen grid
+  // On iPhone: navigates to fullscreen grid
+  // On iPad: shows grid IN the pane (replaces module content)
+  const handleAutoIconPress = useCallback(() => {
+    if (paneCtx && panelId) {
+      void triggerFeedback('navigation');
+      paneCtx.setPaneModule(panelId, 'home');
+    }
+  }, [paneCtx, panelId, triggerFeedback]);
 
   // Determine if icon/logo should be tappable:
   // 1. Explicit onModuleIconPress overrides auto behavior
-  // 2. Auto-enable when: WheelMenuContext available + not disabled + not back button
-  // Note: customLogo is now also tappable (e.g., nu.nl logo opens wheel menu)
+  // 2. Auto-enable when: PaneContext available + not disabled + not back button
+  // Note: customLogo is now also tappable (e.g., nu.nl logo opens grid)
   const effectiveOnIconPress = onModuleIconPress ?? (
-    !disableIconNavigation && !showBackButton && wheelMenu
+    !disableIconNavigation && !showBackButton && paneCtx
       ? handleAutoIconPress
       : undefined
   );
@@ -177,8 +203,24 @@ export function ModuleHeader({
 
       {/* Title Row */}
       <View style={styles.titleRow}>
-        {/* Left: Back button (optional) + Icon + Title */}
+        {/* Left: Home button + Back button (optional) + Icon + Title */}
         <View style={styles.titleContent}>
+          {shouldShowHomeButton && (
+            <TouchableOpacity
+              style={[
+                styles.homeButton,
+                buttonStyle?.settings.borderEnabled && {
+                  borderWidth: 2,
+                  borderColor: buttonStyle.getBorderColorHex(),
+                },
+              ]}
+              onPress={handleHomePress}
+              accessibilityRole="button"
+              accessibilityLabel={t('navigation.backToHome', 'Terug naar startscherm')}
+            >
+              <Icon name="grid" size={24} color={colors.textOnPrimary} />
+            </TouchableOpacity>
+          )}
           {showBackButton && onBackPress && (
             <TouchableOpacity
               style={[
@@ -284,6 +326,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,                   // 8pt tussen icon en titel
+  },
+  homeButton: {
+    // Senior-inclusive touch target ≥60pt
+    width: touchTargets.minimum,           // 60pt (consistent with other header buttons)
+    height: touchTargets.minimum,          // 60pt
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',  // Subtle white fill
+    borderRadius: borderRadius.md,         // 12pt (consistent with other header buttons)
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.xs,
   },
   backButton: {
     // Senior-inclusive touch target ≥60pt

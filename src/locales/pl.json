@@ -946,12 +946,22 @@
     "unread_badge": "{{count}} nowy",
     "switchModule": "Zmień moduł",
     "switchModuleHint": "Otwiera menu wyboru modułu",
+    "backToHome": "Powrót do ekranu głównego",
     "sidebar": "Menu nawigacji",
     "sections": {
       "communication": "Komunikacja",
       "media": "Media",
       "modules": "Dodatki",
       "system": "System"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Gotowe",
+    "tapToSelect": "Dotknij ikony, aby ją przenieść",
+    "tapToSwap": "Dotknij innej ikony, aby zamienić",
+    "miniPlayer": {
+      "nowPlaying": "Teraz odtwarzane",
+      "tapToOpen": "Dotknij, aby otworzyć"
     }
   },
   "splitView": {

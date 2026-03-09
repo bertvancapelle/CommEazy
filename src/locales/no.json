@@ -955,12 +955,22 @@
     "unread_badge": "{{count}} ny",
     "switchModule": "Bytt modul",
     "switchModuleHint": "Åpner modulvalgmenyen",
+    "backToHome": "Tilbake til startskjermen",
     "sidebar": "Navigasjonsmeny",
     "sections": {
       "communication": "Kommunikasjon",
       "media": "Media",
       "modules": "Ekstra",
       "system": "System"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Ferdig",
+    "tapToSelect": "Trykk på et ikon for å flytte det",
+    "tapToSwap": "Trykk på et annet ikon for å bytte",
+    "miniPlayer": {
+      "nowPlaying": "Spilles nå",
+      "tapToOpen": "Trykk for å åpne"
     }
   },
   "splitView": {

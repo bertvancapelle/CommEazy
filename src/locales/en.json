@@ -1046,12 +1046,22 @@
     "unread_badge": "{{count}} new",
     "switchModule": "Switch module",
     "switchModuleHint": "Opens the module selection menu",
+    "backToHome": "Back to home screen",
     "sidebar": "Navigation menu",
     "sections": {
       "communication": "Communication",
       "media": "Media",
       "modules": "Extras",
       "system": "System"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Done",
+    "tapToSelect": "Tap an icon to move it",
+    "tapToSwap": "Tap another icon to swap",
+    "miniPlayer": {
+      "nowPlaying": "Now playing",
+      "tapToOpen": "Tap to open"
     }
   },
   "splitView": {

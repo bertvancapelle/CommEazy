@@ -38,8 +38,14 @@ export { HoldIndicator } from './HoldIndicator';
 export { DraggableMenuButton } from './DraggableMenuButton';
 export { NavigationMenu } from './NavigationMenu';
 export { WheelNavigationMenu } from './WheelNavigationMenu';
-export type { NavigationDestination } from './WheelNavigationMenu';
+export type { NavigationDestination, ModuleItem, ModuleIconType } from './WheelNavigationMenu';
+export { STATIC_MODULE_DEFINITIONS, mapModuleIconToIconName } from './WheelNavigationMenu';
 export { HoldToNavigateWrapper } from './HoldToNavigateWrapper';
+
+// HomeScreen Grid
+export { HomeGridItem } from './HomeGridItem';
+export type { HomeGridItemProps } from './HomeGridItem';
+export { HomeMiniPlayer } from './HomeMiniPlayer';
 
 // Voice Focus components
 export { VoiceFocusable } from './VoiceFocusable';

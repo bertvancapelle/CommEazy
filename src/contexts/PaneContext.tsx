@@ -46,7 +46,7 @@ const STORAGE_KEY_MAIN_MODULE = 'iphone_main_module';
 const DEFAULT_PANEL_RATIO = 0.33;
 const DEFAULT_LEFT_MODULE: NavigationDestination = 'menu';
 const DEFAULT_RIGHT_MODULE: NavigationDestination = 'contacts';
-const DEFAULT_MAIN_MODULE: NavigationDestination = 'chats';
+const DEFAULT_MAIN_MODULE: NavigationDestination = 'home';
 
 /** Minimum expanded ratio (for restoration from collapsed) */
 const MIN_EXPANDED_RATIO = 0.25;

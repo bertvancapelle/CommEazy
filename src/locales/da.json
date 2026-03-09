@@ -925,12 +925,22 @@
     "unread_badge": "{{count}} ny",
     "switchModule": "Skift modul",
     "switchModuleHint": "Åbner modulvalgmenuen",
+    "backToHome": "Tilbage til startskærmen",
     "sidebar": "Navigationsmenu",
     "sections": {
       "communication": "Kommunikation",
       "media": "Medier",
       "modules": "Ekstra",
       "system": "System"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Færdig",
+    "tapToSelect": "Tryk på et ikon for at flytte det",
+    "tapToSwap": "Tryk på et andet ikon for at bytte",
+    "miniPlayer": {
+      "nowPlaying": "Afspilles nu",
+      "tapToOpen": "Tryk for at åbne"
     }
   },
   "splitView": {

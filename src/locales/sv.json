@@ -925,12 +925,22 @@
     "unread_badge": "{{count}} ny",
     "switchModule": "Byt modul",
     "switchModuleHint": "Öppnar modulvalsmenyn",
+    "backToHome": "Tillbaka till startskärmen",
     "sidebar": "Navigationsmeny",
     "sections": {
       "communication": "Kommunikation",
       "media": "Media",
       "modules": "Extra",
       "system": "System"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Klar",
+    "tapToSelect": "Tryck på en ikon för att flytta den",
+    "tapToSwap": "Tryck på en annan ikon för att byta",
+    "miniPlayer": {
+      "nowPlaying": "Spelas nu",
+      "tapToOpen": "Tryck för att öppna"
     }
   },
   "splitView": {

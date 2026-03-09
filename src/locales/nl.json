@@ -1056,12 +1056,22 @@
     "unread_badge": "{{count}} nieuw",
     "switchModule": "Wissel van module",
     "switchModuleHint": "Opent het module keuzemenu",
+    "backToHome": "Terug naar startscherm",
     "sidebar": "Navigatiemenu",
     "sections": {
       "communication": "Communicatie",
       "media": "Media",
       "modules": "Extra",
       "system": "Systeem"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Klaar",
+    "tapToSelect": "Tik op een icoon om te verplaatsen",
+    "tapToSwap": "Tik op een ander icoon om te wisselen",
+    "miniPlayer": {
+      "nowPlaying": "Nu aan het spelen",
+      "tapToOpen": "Tik om te openen"
     }
   },
   "splitView": {

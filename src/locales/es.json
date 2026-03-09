@@ -1032,12 +1032,22 @@
     "unread_badge": "{{count}} nuevo",
     "switchModule": "Cambiar módulo",
     "switchModuleHint": "Abre el menú de selección de módulo",
+    "backToHome": "Volver a la pantalla de inicio",
     "sidebar": "Menú de navegación",
     "sections": {
       "communication": "Comunicación",
       "media": "Medios",
       "modules": "Extras",
       "system": "Sistema"
+    }
+  },
+  "homeScreen": {
+    "editModeDone": "Listo",
+    "tapToSelect": "Toca un icono para moverlo",
+    "tapToSwap": "Toca otro icono para intercambiar",
+    "miniPlayer": {
+      "nowPlaying": "Reproduciendo ahora",
+      "tapToOpen": "Toca para abrir"
     }
   },
   "splitView": {
