@@ -1538,7 +1538,7 @@ export function AppleMusicScreen() {
     return favorites.filter(f => songIdSet.has(f.catalogId)).map(toSong);
   }, [musicFavorites.favorites, selectedChipId, musicCollections.collections]);
 
-  // Handle playlist import started (set up result callback in context)
+  // Handle playlist import started (single — legacy, kept for backwards compatibility)
   const handleImportStarted = useCallback((playlistId: string, playlistName: string) => {
     playlistImportCtx.setImporting(true);
 
@@ -1571,6 +1571,74 @@ export function AppleMusicScreen() {
       });
   }, [musicCollections, musicFavorites, getPlaylistDetails, playlistImportCtx, setActiveTab]);
 
+  // Handle batch import of multiple playlists (processed sequentially)
+  const handleImportBatch = useCallback(async (batch: Array<{ id: string; name: string }>) => {
+    if (batch.length === 0) return;
+
+    playlistImportCtx.setImporting(true);
+
+    let totalSongsAdded = 0;
+    let totalFailures = 0;
+    let lastCollectionId: string | undefined;
+
+    for (let i = 0; i < batch.length; i++) {
+      const { id: playlistId, name: playlistName } = batch[i];
+
+      // Update floating indicator with batch progress
+      playlistImportCtx.updateProgress({
+        current: i + 1,
+        total: batch.length,
+        currentName: playlistName,
+      });
+
+      try {
+        const result = await musicCollections.startSingleImport(
+          playlistId,
+          playlistName,
+          getPlaylistDetails,
+        );
+        totalSongsAdded += result.songsAdded;
+        totalFailures += result.failures;
+
+        // Track last created collection for navigation
+        const newCollection = musicCollections.collections.find(c => c.sourcePlaylistId === playlistId);
+        if (newCollection) {
+          lastCollectionId = newCollection.id;
+        }
+      } catch (error) {
+        console.error('[AppleMusicScreen] Batch import failed for', playlistName);
+        totalFailures += 1;
+      }
+    }
+
+    // Reload favorites after all imports
+    await musicFavorites.reload();
+
+    // Set up "View playlist" to navigate to last imported collection
+    if (lastCollectionId) {
+      playlistImportCtx.setOnViewPlaylist(() => {
+        setSelectedChipId(`collection:${lastCollectionId}` as MusicChipId);
+        setActiveTab('favorites');
+      });
+    }
+
+    // Show final result
+    playlistImportCtx.setImportResult({
+      result: {
+        collectionsCreated: batch.length,
+        songsAdded: totalSongsAdded,
+        failures: totalFailures,
+      },
+      playlistName: batch.length === 1
+        ? batch[0].name
+        : `${batch.length} afspeellijsten`,
+      collectionId: lastCollectionId,
+    });
+
+    playlistImportCtx.setImporting(false);
+    playlistImportCtx.updateProgress(null);
+  }, [musicCollections, musicFavorites, getPlaylistDetails, playlistImportCtx, setActiveTab]);
+
   // Handle long-press on collection chip (open edit modal)
   const handleLongPressCollection = useCallback((collectionId: string) => {
     const collection = musicCollections.collections.find(c => c.id === collectionId);
@@ -1596,6 +1664,7 @@ export function AppleMusicScreen() {
 
   const renderFavoritesTab = () => {
     const hasCollections = musicCollections.collections.length > 0;
+    const hasImportedPlaylists = musicCollections.collections.some(c => !!c.sourcePlaylistId);
     const hasAlbumFavorites = albumFavorites.albums.length > 0;
     const hasArtistFavorites = artistFavorites.artists.length > 0;
 
@@ -1768,18 +1837,20 @@ export function AppleMusicScreen() {
                     }
                   })}
 
-                  {/* Import playlists button */}
-                  <HapticTouchable
-                    style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
-                    onPress={() => setShowPlaylistBrowser(true)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.appleMusic.import.importButton')}
-                  >
-                    <Icon name="download" size={20} color={appleMusicColor} />
-                    <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
-                      {t('modules.appleMusic.import.importButton')}
-                    </Text>
-                  </HapticTouchable>
+                  {/* Import playlists button — hidden after first import (manage via Settings) */}
+                  {!hasImportedPlaylists && (
+                    <HapticTouchable
+                      style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
+                      onPress={() => setShowPlaylistBrowser(true)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('modules.appleMusic.import.importButton')}
+                    >
+                      <Icon name="download" size={20} color={appleMusicColor} />
+                      <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
+                        {t('modules.appleMusic.import.importButton')}
+                      </Text>
+                    </HapticTouchable>
+                  )}
                 </View>
 
                 {/* Scrollable collection list */}
@@ -2421,7 +2492,7 @@ export function AppleMusicScreen() {
         collections={musicCollections.collections}
         isImporting={musicCollections.isImporting}
         accentColor={appleMusicColor}
-        onImportStarted={handleImportStarted}
+        onImportBatch={handleImportBatch}
       />
 
     </View>

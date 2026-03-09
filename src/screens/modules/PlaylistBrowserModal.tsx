@@ -2,15 +2,17 @@
  * PlaylistBrowserModal — Browse and import Apple Music playlists
  *
  * Shows a list of playlists from the user's Apple Music library.
- * User taps a playlist to import it as a MusicCollection (one-time snapshot).
+ * User selects one or more playlists via checkboxes, then taps "Importeer"
+ * to import them sequentially as MusicCollections (one-time snapshot).
  *
- * Already imported playlists show "✓ Geïmporteerd" badge.
+ * Already imported playlists show "✓ Geïmporteerd" badge and are not selectable.
  * Track count shown per playlist.
  *
  * Senior-inclusive design:
  * - 60pt minimum touch targets
  * - Large text and artwork
  * - Clear import status indicators
+ * - Counter shows "X van Y geselecteerd"
  * - Haptic feedback on all interactions
  * - Loading and error states with human-friendly messages
  */
@@ -48,7 +50,9 @@ export interface PlaylistBrowserModalProps {
   isImporting: boolean;
   /** Accent color for the module */
   accentColor: string;
-  /** Called when user taps a playlist to import (parent handles actual import) */
+  /** Called with array of selected playlists to import (parent handles actual import) */
+  onImportBatch?: (playlists: Array<{ id: string; name: string }>) => void;
+  /** @deprecated Use onImportBatch instead. Called when user taps a single playlist. */
   onImportStarted?: (playlistId: string, playlistName: string) => void;
 }
 
@@ -63,6 +67,7 @@ export function PlaylistBrowserModal({
   collections,
   isImporting,
   accentColor,
+  onImportBatch,
   onImportStarted,
 }: PlaylistBrowserModalProps) {
   const { t } = useTranslation();
@@ -74,6 +79,7 @@ export function PlaylistBrowserModal({
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Set of already-imported playlist IDs
   const importedPlaylistIds = useMemo(() => {
@@ -83,6 +89,11 @@ export function PlaylistBrowserModal({
         .map(c => c.sourcePlaylistId!),
     );
   }, [collections]);
+
+  // Count of importable (not yet imported) playlists
+  const importableCount = useMemo(() => {
+    return playlists.filter(p => !importedPlaylistIds.has(p.id)).length;
+  }, [playlists, importedPlaylistIds]);
 
   // Fetch playlists when modal opens
   useEffect(() => {
@@ -113,22 +124,68 @@ export function PlaylistBrowserModal({
       setHasLoaded(false);
       setPlaylists([]);
       setError(null);
+      setSelectedIds(new Set());
     }
   }, [visible]);
 
-  // Handle import tap
-  const handleImport = useCallback((playlist: AppleMusicPlaylist) => {
-    if (isImporting) return; // Block concurrent imports
-    if (importedPlaylistIds.has(playlist.id)) return; // Already imported
+  // Toggle selection of a playlist
+  const handleToggleSelect = useCallback((playlistId: string) => {
+    if (isImporting) return;
+    if (importedPlaylistIds.has(playlistId)) return;
+
+    void triggerFeedback('tap');
+
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(playlistId)) {
+        next.delete(playlistId);
+      } else {
+        next.add(playlistId);
+      }
+      return next;
+    });
+  }, [isImporting, importedPlaylistIds, triggerFeedback]);
+
+  // Select all importable playlists
+  const handleSelectAll = useCallback(() => {
+    if (isImporting) return;
+    void triggerFeedback('tap');
+
+    if (selectedIds.size === importableCount) {
+      // Deselect all
+      setSelectedIds(new Set());
+    } else {
+      // Select all importable
+      const allImportable = new Set(
+        playlists
+          .filter(p => !importedPlaylistIds.has(p.id))
+          .map(p => p.id),
+      );
+      setSelectedIds(allImportable);
+    }
+  }, [isImporting, triggerFeedback, selectedIds.size, importableCount, playlists, importedPlaylistIds]);
+
+  // Handle import of selected playlists
+  const handleImportSelected = useCallback(() => {
+    if (selectedIds.size === 0 || isImporting) return;
 
     void triggerFeedback('success');
+
+    // Build ordered list of selected playlists
+    const batch = playlists
+      .filter(p => selectedIds.has(p.id))
+      .map(p => ({ id: p.id, name: p.name }));
 
     // Close modal — floating indicator tracks progress
     onClose();
 
-    // Notify parent to start the import (parent handles the actual import flow)
-    onImportStarted?.(playlist.id, playlist.name);
-  }, [isImporting, importedPlaylistIds, triggerFeedback, onClose, onImportStarted]);
+    if (onImportBatch) {
+      onImportBatch(batch);
+    } else if (onImportStarted && batch.length > 0) {
+      // Fallback: import first one via legacy prop
+      onImportStarted(batch[0].id, batch[0].name);
+    }
+  }, [selectedIds, isImporting, triggerFeedback, playlists, onClose, onImportBatch, onImportStarted]);
 
   // Handle retry
   const handleRetry = useCallback(() => {
@@ -161,7 +218,7 @@ export function PlaylistBrowserModal({
 
           {/* Description */}
           <Text style={[styles.description, { color: themeColors.textSecondary }]}>
-            {t('appleMusic.import.browserDescription', 'Tik op een afspeellijst om deze te importeren. Je nummers worden opgeslagen als favorieten.')}
+            {t('appleMusic.import.browserDescription', 'Selecteer de afspeellijsten die je wilt importeren. Je nummers worden opgeslagen als favorieten.')}
           </Text>
 
           {/* Content */}
@@ -198,89 +255,177 @@ export function PlaylistBrowserModal({
           )}
 
           {!isLoading && !error && playlists.length > 0 && (
-            <ScrollView
-              style={styles.playlistList}
-              contentContainerStyle={styles.playlistListContent}
-            >
-              {playlists.map((playlist) => {
-                const isImported = importedPlaylistIds.has(playlist.id);
-
-                return (
+            <>
+              {/* Select all + counter bar */}
+              <View style={[styles.selectionBar, { borderBottomColor: themeColors.border }]}>
+                {importableCount > 0 && (
                   <HapticTouchable
-                    key={playlist.id}
-                    style={[
-                      styles.playlistRow,
-                      {
-                        backgroundColor: themeColors.surface,
-                        borderColor: themeColors.border,
-                        opacity: isImporting && !isImported ? 0.5 : 1,
-                      },
-                    ]}
-                    onPress={() => handleImport(playlist)}
-                    hapticDisabled={isImported || isImporting}
-                    accessibilityRole="button"
+                    style={styles.selectAllButton}
+                    onPress={handleSelectAll}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: selectedIds.size === importableCount }}
                     accessibilityLabel={
-                      isImported
-                        ? t('appleMusic.import.alreadyImported', '{{name}} — al geïmporteerd', { name: playlist.name })
-                        : t('appleMusic.import.tapToImport', '{{name}} — tik om te importeren', { name: playlist.name })
+                      selectedIds.size === importableCount
+                        ? t('appleMusic.import.deselectAll', 'Alles deselecteren')
+                        : t('appleMusic.import.selectAll', 'Alles selecteren')
                     }
-                    accessibilityState={{ disabled: isImported || isImporting }}
                   >
-                    {/* Artwork */}
-                    <View style={[styles.playlistArtwork, { backgroundColor: accentColor + '20' }]}>
-                      {playlist.artworkUrl ? (
-                        <Image
-                          source={{ uri: playlist.artworkUrl.replace('{w}', '120').replace('{h}', '120') }}
-                          style={styles.playlistArtworkImage}
-                        />
-                      ) : (
-                        <Icon name="musical-notes" size={28} color={accentColor} />
+                    <View style={[
+                      styles.checkbox,
+                      {
+                        borderColor: selectedIds.size === importableCount ? accentColor : themeColors.border,
+                        backgroundColor: selectedIds.size === importableCount ? accentColor : 'transparent',
+                      },
+                    ]}>
+                      {selectedIds.size === importableCount && (
+                        <Icon name="checkmark" size={16} color="#FFFFFF" />
                       )}
                     </View>
-
-                    {/* Name + info */}
-                    <View style={styles.playlistInfo}>
-                      <Text
-                        style={[styles.playlistName, { color: themeColors.textPrimary }]}
-                        numberOfLines={2}
-                      >
-                        {playlist.name}
-                      </Text>
-                      {playlist.curatorName ? (
-                        <Text
-                          style={[styles.playlistCurator, { color: themeColors.textSecondary }]}
-                          numberOfLines={1}
-                        >
-                          {playlist.curatorName}
-                        </Text>
-                      ) : null}
-                      {playlist.trackCount != null && playlist.trackCount > 0 ? (
-                        <Text
-                          style={[styles.playlistTrackCount, { color: themeColors.textSecondary }]}
-                          numberOfLines={1}
-                        >
-                          {t('appleMusic.import.trackCount', '{{count}} nummers', { count: playlist.trackCount })}
-                        </Text>
-                      ) : null}
-                    </View>
-
-                    {/* Import status */}
-                    {isImported ? (
-                      <View style={[styles.importedBadge, { backgroundColor: '#1B5E20' }]}>
-                        <Icon name="checkmark" size={16} color="#FFFFFF" />
-                        <Text style={styles.importedBadgeText}>
-                          {t('appleMusic.import.imported', 'Geïmporteerd')}
-                        </Text>
-                      </View>
-                    ) : (
-                      <View style={styles.importArrow}>
-                        <Icon name="download" size={22} color={accentColor} />
-                      </View>
-                    )}
+                    <Text style={[styles.selectAllText, { color: themeColors.textPrimary }]}>
+                      {selectedIds.size === importableCount
+                        ? t('appleMusic.import.deselectAll', 'Alles deselecteren')
+                        : t('appleMusic.import.selectAll', 'Alles selecteren')
+                      }
+                    </Text>
                   </HapticTouchable>
-                );
-              })}
-            </ScrollView>
+                )}
+                {selectedIds.size > 0 && (
+                  <Text style={[styles.selectionCounter, { color: themeColors.textSecondary }]}>
+                    {t('appleMusic.import.selectedCount', '{{selected}} van {{total}} geselecteerd', {
+                      selected: selectedIds.size,
+                      total: importableCount,
+                    })}
+                  </Text>
+                )}
+              </View>
+
+              <ScrollView
+                style={styles.playlistList}
+                contentContainerStyle={styles.playlistListContent}
+              >
+                {playlists.map((playlist) => {
+                  const isImported = importedPlaylistIds.has(playlist.id);
+                  const isSelected = selectedIds.has(playlist.id);
+
+                  return (
+                    <HapticTouchable
+                      key={playlist.id}
+                      style={[
+                        styles.playlistRow,
+                        {
+                          backgroundColor: isSelected
+                            ? accentColor + '15'
+                            : themeColors.surface,
+                          borderColor: isSelected ? accentColor : themeColors.border,
+                          opacity: isImporting && !isImported ? 0.5 : 1,
+                        },
+                      ]}
+                      onPress={() => handleToggleSelect(playlist.id)}
+                      hapticDisabled={isImported || isImporting}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{
+                        checked: isImported || isSelected,
+                        disabled: isImported || isImporting,
+                      }}
+                      accessibilityLabel={
+                        isImported
+                          ? t('appleMusic.import.alreadyImported', '{{name}} — al geïmporteerd', { name: playlist.name })
+                          : isSelected
+                            ? t('appleMusic.import.selectedPlaylist', '{{name}} — geselecteerd', { name: playlist.name })
+                            : t('appleMusic.import.tapToSelect', '{{name}} — tik om te selecteren', { name: playlist.name })
+                      }
+                    >
+                      {/* Checkbox or imported badge */}
+                      {isImported ? (
+                        <View style={[styles.importedCheckbox, { backgroundColor: '#1B5E20' }]}>
+                          <Icon name="checkmark" size={16} color="#FFFFFF" />
+                        </View>
+                      ) : (
+                        <View style={[
+                          styles.checkbox,
+                          {
+                            borderColor: isSelected ? accentColor : themeColors.border,
+                            backgroundColor: isSelected ? accentColor : 'transparent',
+                          },
+                        ]}>
+                          {isSelected && (
+                            <Icon name="checkmark" size={16} color="#FFFFFF" />
+                          )}
+                        </View>
+                      )}
+
+                      {/* Artwork */}
+                      <View style={[styles.playlistArtwork, { backgroundColor: accentColor + '20' }]}>
+                        {playlist.artworkUrl ? (
+                          <Image
+                            source={{ uri: playlist.artworkUrl.replace('{w}', '120').replace('{h}', '120') }}
+                            style={styles.playlistArtworkImage}
+                          />
+                        ) : (
+                          <Icon name="musical-notes" size={28} color={accentColor} />
+                        )}
+                      </View>
+
+                      {/* Name + info */}
+                      <View style={styles.playlistInfo}>
+                        <Text
+                          style={[styles.playlistName, { color: themeColors.textPrimary }]}
+                          numberOfLines={2}
+                        >
+                          {playlist.name}
+                        </Text>
+                        {playlist.curatorName ? (
+                          <Text
+                            style={[styles.playlistCurator, { color: themeColors.textSecondary }]}
+                            numberOfLines={1}
+                          >
+                            {playlist.curatorName}
+                          </Text>
+                        ) : null}
+                        {playlist.trackCount != null && playlist.trackCount > 0 ? (
+                          <Text
+                            style={[styles.playlistTrackCount, { color: themeColors.textSecondary }]}
+                            numberOfLines={1}
+                          >
+                            {t('appleMusic.import.trackCount', '{{count}} nummers', { count: playlist.trackCount })}
+                          </Text>
+                        ) : null}
+                      </View>
+
+                      {/* Imported badge text */}
+                      {isImported && (
+                        <View style={[styles.importedBadge, { backgroundColor: '#1B5E20' }]}>
+                          <Text style={styles.importedBadgeText}>
+                            {t('appleMusic.import.imported', 'Geïmporteerd')}
+                          </Text>
+                        </View>
+                      )}
+                    </HapticTouchable>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Import button — fixed at bottom */}
+              {selectedIds.size > 0 && (
+                <View style={[styles.importButtonContainer, { borderTopColor: themeColors.border }]}>
+                  <HapticTouchable
+                    style={[styles.importButton, { backgroundColor: accentColor }]}
+                    onPress={handleImportSelected}
+                    hapticDisabled={isImporting}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('appleMusic.import.importSelected', 'Importeer {{count}} afspeellijsten', { count: selectedIds.size })}
+                  >
+                    <Icon name="download" size={22} color="#FFFFFF" />
+                    <Text style={styles.importButtonText}>
+                      {selectedIds.size === 1
+                        ? t('appleMusic.import.importOne', 'Importeer 1 afspeellijst')
+                        : t('appleMusic.import.importMultiple', 'Importeer {{count}} afspeellijsten', { count: selectedIds.size })
+                      }
+                    </Text>
+                  </HapticTouchable>
+                </View>
+              )}
+            </>
           )}
         </View>
       </View>
@@ -330,11 +475,48 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     lineHeight: 24,
   },
+  selectionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  selectAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: touchTargets.minimum,
+    gap: spacing.sm,
+  },
+  selectAllText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  selectionCounter: {
+    ...typography.small,
+  },
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  importedCheckbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   playlistList: {
     flex: 1,
   },
   playlistListContent: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,
   },
   playlistRow: {
@@ -387,11 +569,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  importArrow: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
+  importButtonContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+  },
+  importButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
+  },
+  importButtonText: {
+    ...typography.button,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   errorContainer: {
     alignItems: 'center',
