@@ -53,6 +53,7 @@ import {
 } from '@/contexts/BooksContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useModuleBrowsingContextSafe, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
 
 // ============================================================
 // Types
@@ -93,6 +94,7 @@ export function BookPlayerScreen() {
   const { triggerFeedback } = useFeedback();
   const holdGesture = useHoldGestureContextSafe();
   const themeColors = useColors();
+  const browsingCtx = useModuleBrowsingContextSafe();
 
   // User-customizable module color for Liquid Glass
   const booksModuleColor = useModuleColor('books');
@@ -186,6 +188,18 @@ export function BookPlayerScreen() {
   // ============================================================
   // Handlers
   // ============================================================
+
+  // Back navigation — reset activeView so MediaIndicator returns to book list
+  const handleBack = useCallback(() => {
+    // Reset activeView to 'list' so MediaIndicator doesn't auto-navigate back here
+    if (browsingCtx) {
+      const saved = browsingCtx.getBrowsingState<BooksBrowsingState>('books');
+      if (saved) {
+        browsingCtx.saveBrowsingState('books', { ...saved, activeView: 'list' });
+      }
+    }
+    navigation.goBack();
+  }, [browsingCtx, navigation]);
 
   const handleChapterPress = useCallback(async (chapter: BookChapter, index: number) => {
     // Check if hold gesture was just consumed
@@ -417,7 +431,7 @@ export function BookPlayerScreen() {
           currentSource="books"
           showAdMob={true}
           showBackButton={true}
-          onBackPress={() => navigation.goBack()}
+          onBackPress={handleBack}
           backButtonLabel={t('common.back')}
           style={styles.absoluteHeader}
         />

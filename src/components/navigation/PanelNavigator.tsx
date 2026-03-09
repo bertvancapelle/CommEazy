@@ -28,6 +28,7 @@ import { colors, typography } from '@/theme';
 import type { NavigationDestination } from '@/types/navigation';
 import { usePanelId, type PaneId } from '@/contexts/PanelIdContext';
 import { usePaneContextSafe } from '@/contexts/PaneContext';
+import { useModuleBrowsingContextSafe, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
 
 // Chat screens
 import { ChatListScreen, ChatScreen } from '@/screens/chat';
@@ -126,6 +127,12 @@ type GroupPanelParams = {
   CreateGroup: undefined;
 };
 
+type BooksPanelParams = {
+  BooksList: undefined;
+  BookReader: undefined;
+  BookPlayer: undefined;
+};
+
 type SettingsPanelParams = {
   SettingsMain: undefined;
   ProfileSettings: undefined;
@@ -153,6 +160,7 @@ type SettingsPanelParams = {
 const ChatPanelStack = createNativeStackNavigator<ChatPanelParams>();
 const ContactPanelStack = createNativeStackNavigator<ContactPanelParams>();
 const GroupPanelStack = createNativeStackNavigator<GroupPanelParams>();
+const BooksPanelStack = createNativeStackNavigator<BooksPanelParams>();
 const SettingsPanelStack = createNativeStackNavigator<SettingsPanelParams>();
 
 // ============================================================
@@ -342,6 +350,63 @@ function GroupPanelNavigator() {
           options={{ title: t('group.create') }}
         />
       </GroupPanelStack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+/**
+ * BooksPanelNavigator — Stack navigation for Books module
+ *
+ * Enables sub-navigation from BooksScreen → BookReaderScreen / BookPlayerScreen.
+ * When user returns via MediaIndicator, the saved activeView in BrowsingContext
+ * determines whether to auto-navigate to the reader or player screen.
+ */
+function BooksPanelNavigator() {
+  const panelId = usePanelId();
+  const navRef = useRef<NavigationContainerRef<BooksPanelParams>>(null);
+  const isReadyRef = useRef(false);
+  const browsingCtx = useModuleBrowsingContextSafe();
+
+  usePaneGoBack(navRef, panelId);
+
+  // On mount (when module becomes active), check if we should auto-navigate
+  // to BookReader or BookPlayer based on saved browsing state
+  const restoreActiveView = useCallback(() => {
+    if (!browsingCtx || !navRef.current) return;
+
+    const saved = browsingCtx.getBrowsingState<BooksBrowsingState>('books');
+    if (!saved?.activeView || saved.activeView === 'list') return;
+
+    const targetScreen = saved.activeView === 'reader' ? 'BookReader' : 'BookPlayer';
+    console.info('[BooksPanelNav] Restoring activeView:', targetScreen);
+    navRef.current.navigate(targetScreen);
+  }, [browsingCtx]);
+
+  const handleReady = useCallback(() => {
+    isReadyRef.current = true;
+    restoreActiveView();
+  }, [restoreActiveView]);
+
+  return (
+    <NavigationContainer independent={true} ref={navRef} onReady={handleReady}>
+      <BooksPanelStack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <BooksPanelStack.Screen
+          name="BooksList"
+          component={BooksScreen}
+        />
+        <BooksPanelStack.Screen
+          name="BookReader"
+          component={BookReaderScreen}
+        />
+        <BooksPanelStack.Screen
+          name="BookPlayer"
+          component={BookPlayerScreen}
+        />
+      </BooksPanelStack.Navigator>
     </NavigationContainer>
   );
 }
@@ -541,6 +606,8 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <ContactPanelNavigator />;
     case 'groups':
       return <GroupPanelNavigator />;
+    case 'books':
+      return <BooksPanelNavigator />;
     case 'settings':
       return <SettingsPanelNavigator />;
 
@@ -555,8 +622,6 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <RadioScreen />;
     case 'podcast':
       return <PodcastScreen />;
-    case 'books':
-      return <BooksScreen />;
     case 'weather':
       return <WeatherScreen />;
     case 'appleMusic':

@@ -44,6 +44,7 @@ import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useModuleBrowsingContextSafe, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
 
 // ============================================================
 // Constants
@@ -98,6 +99,7 @@ export function BookReaderScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+  const browsingCtx = useModuleBrowsingContextSafe();
 
   // User-customizable module color for Liquid Glass
   const booksModuleColor = useModuleColor('books');
@@ -161,12 +163,19 @@ export function BookReaderScreen() {
     });
   }, [nextPage, previousPage, triggerFeedback]);
 
-  // Handle back navigation
+  // Handle back navigation — reset activeView so MediaIndicator returns to list
   const handleClose = useCallback(() => {
     triggerFeedback('tap');
     closeBook();
+    // Reset activeView to 'list' so MediaIndicator doesn't auto-navigate back here
+    if (browsingCtx) {
+      const saved = browsingCtx.getBrowsingState<BooksBrowsingState>('books');
+      if (saved) {
+        browsingCtx.saveBrowsingState('books', { ...saved, activeView: 'list' });
+      }
+    }
     navigation.goBack();
-  }, [closeBook, navigation, triggerFeedback]);
+  }, [closeBook, navigation, triggerFeedback, browsingCtx]);
 
   // Handle TTS play/pause
   const handlePlayPause = useCallback(async () => {

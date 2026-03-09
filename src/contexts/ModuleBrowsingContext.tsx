@@ -66,6 +66,8 @@ export interface BooksBrowsingState {
   selectedLanguage: string;
   /** Cached search results */
   searchResults: unknown[];
+  /** Which sub-screen was last active (for MediaIndicator return navigation) */
+  activeView?: 'list' | 'reader' | 'player';
 }
 
 /** Apple Music browsing state */

@@ -152,6 +152,7 @@ export function BooksScreen() {
       searchQuery,
       selectedLanguage,
       searchResults,
+      activeView: 'list',
     });
   }, [showLibrary, searchQuery, selectedLanguage, searchResults, saveBrowsing]);
 
@@ -320,14 +321,32 @@ export function BooksScreen() {
 
     if (mode === 'read') {
       await openBook(selectedBookForMode);
+      // Save activeView BEFORE navigating so MediaIndicator can restore it
+      saveBrowsing({
+        module: 'books',
+        showLibrary,
+        searchQuery,
+        selectedLanguage,
+        searchResults,
+        activeView: 'reader',
+      });
       navigation.navigate('BookReader' as never);
     } else {
       await openBookForListening(selectedBookForMode);
+      // Save activeView BEFORE navigating so MediaIndicator can restore it
+      saveBrowsing({
+        module: 'books',
+        showLibrary,
+        searchQuery,
+        selectedLanguage,
+        searchResults,
+        activeView: 'player',
+      });
       navigation.navigate('BookPlayer' as never);
     }
 
     setSelectedBookForMode(null);
-  }, [selectedBookForMode, openBook, openBookForListening, navigation, triggerFeedback]);
+  }, [selectedBookForMode, openBook, openBookForListening, navigation, triggerFeedback, saveBrowsing, showLibrary, searchQuery, selectedLanguage, searchResults]);
 
   // Handle delete confirmation
   const handleDeleteBook = useCallback((book: DownloadedBook) => {
