@@ -791,8 +791,8 @@ export function AppleMusicScreen() {
         const collection = musicCollections.collections.find(c => c.id === collectionId);
         if (collection) {
           Alert.alert(
-            t('appleMusic.collections.removeFromList', { name: collection.name }),
-            t('appleMusic.collections.removeFromListConfirm', { song: song.title, list: collection.name }),
+            t('modules.appleMusic.collections.removeFromList', { name: collection.name }),
+            t('modules.appleMusic.collections.removeFromListConfirm', { song: song.title, list: collection.name }),
             [
               { text: t('common.cancel'), style: 'cancel' },
               {
@@ -809,10 +809,10 @@ export function AppleMusicScreen() {
     // In favorites context: always filled. In search: always empty.
     const heartIcon = context === 'favorites' ? 'heart-filled' : 'heart';
     const heartLabel = context === 'search'
-      ? t('appleMusic.collections.addToCollection')
+      ? t('modules.appleMusic.collections.addToCollection')
       : selectedChipId === 'all'
-        ? t('appleMusic.favorites.removeFromFavorites')
-        : t('appleMusic.collections.removeFromList', {
+        ? t('modules.appleMusic.favorites.removeFromFavorites')
+        : t('modules.appleMusic.collections.removeFromList', {
             name: musicCollections.collections.find(c => `collection:${c.id}` === selectedChipId)?.name ?? '',
           });
 
@@ -1489,8 +1489,8 @@ export function AppleMusicScreen() {
             onSelectChip={setSelectedChipId}
             onCreateCollection={() => {
               Alert.prompt(
-                t('appleMusic.collections.createCollection', 'Nieuwe lijst'),
-                t('appleMusic.collections.newListName', 'Naam van nieuwe lijst'),
+                t('modules.appleMusic.collections.createCollection', 'Nieuwe lijst'),
+                t('modules.appleMusic.collections.newListName', 'Naam van nieuwe lijst'),
                 [
                   { text: t('common.cancel'), style: 'cancel' },
                   {
@@ -1518,11 +1518,11 @@ export function AppleMusicScreen() {
           ]}
           onPress={() => setShowPlaylistBrowser(true)}
           accessibilityRole="button"
-          accessibilityLabel={t('appleMusic.import.importButton', 'Importeer afspeellijsten')}
+          accessibilityLabel={t('modules.appleMusic.import.importButton', 'Importeer afspeellijsten')}
         >
           <Icon name="download" size={20} color={appleMusicColor} />
           <Text style={[styles.importPlaylistsText, { color: appleMusicColor }]}>
-            {t('appleMusic.import.importButton', 'Importeer afspeellijsten')}
+            {t('modules.appleMusic.import.importButton', 'Importeer afspeellijsten')}
           </Text>
         </HapticTouchable>
 
@@ -1617,7 +1617,7 @@ export function AppleMusicScreen() {
             <View style={styles.favoritesSection}>
               <Text style={[styles.discoverySectionTitle, { color: themeColors.textPrimary }]}>
                 {selectedChipId === 'all'
-                  ? `${t('appleMusic.favorites.title')} (${musicFavorites.count})`
+                  ? `${t('modules.appleMusic.favorites.title')} (${musicFavorites.count})`
                   : `${musicCollections.collections.find(c => `collection:${c.id}` === selectedChipId)?.name ?? ''} (${filteredFavoriteSongs.length})`
                 }
               </Text>
@@ -1626,7 +1626,7 @@ export function AppleMusicScreen() {
               ) : (
                 <View style={styles.collectionEmptyState}>
                   <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-                    {t('appleMusic.collections.collectionEmpty')}
+                    {t('modules.appleMusic.collections.collectionEmpty')}
                   </Text>
                 </View>
               )}
@@ -1639,22 +1639,11 @@ export function AppleMusicScreen() {
           <View style={styles.emptyState}>
             <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
             <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
-              {t('appleMusic.favorites.emptyTitle')}
+              {t('modules.appleMusic.favorites.emptyTitle')}
             </Text>
             <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-              {t('appleMusic.favorites.emptyDescription')}
+              {t('modules.appleMusic.favorites.emptyDescription')}
             </Text>
-            <TouchableOpacity
-              style={[styles.emptyStateButton, { backgroundColor: appleMusicColor }]}
-              onPress={() => setActiveTab('search')}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.appleMusic.myMusic.searchMusic')}
-            >
-              <Icon name="search" size={24} color="#FFFFFF" />
-              <Text style={[styles.emptyStateButtonText, { color: '#FFFFFF' }]}>
-                {t('modules.appleMusic.myMusic.searchMusic')}
-              </Text>
-            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -2255,22 +2244,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.md,
   },
-  emptyStateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    borderRadius: borderRadius.lg,
-    marginTop: spacing.xl,
-    minHeight: touchTargets.comfortable,
-  },
-  emptyStateButtonText: {
-    ...typography.body,
-    fontWeight: '600',
-  },
-
   // Import playlists button
   importPlaylistsButton: {
     flexDirection: 'row',
