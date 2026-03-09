@@ -255,9 +255,11 @@ export function AppleMusicScreen() {
 
   const openCollectionSongs: AppleMusicSong[] = useMemo(() => {
     if (!openCollection) return [];
+    // Build a Map for O(1) lookup instead of find() per song
+    const favMap = new Map(musicFavorites.favorites.map(f => [f.catalogId, f]));
     return openCollection.songCatalogIds
       .map(catalogId => {
-        const fav = musicFavorites.favorites.find(f => f.catalogId === catalogId);
+        const fav = favMap.get(catalogId);
         if (!fav) return null;
         return {
           id: fav.catalogId,
@@ -1642,17 +1644,19 @@ export function AppleMusicScreen() {
               <>
                 {/* Back button + collection name + Play All */}
                 <View style={styles.favStickyHeader}>
-                  <HapticTouchable
-                    style={[styles.collectionBackRow, { borderColor: themeColors.border }]}
-                    onPress={() => setOpenCollectionId(null)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.appleMusic.favorites.playlists')}
-                  >
-                    <Icon name="chevron-left" size={22} color={appleMusicColor} />
-                    <Text style={[styles.collectionBackText, { color: appleMusicColor }]} numberOfLines={1}>
+                  <View style={styles.collectionBackRow}>
+                    <HapticTouchable
+                      style={styles.collectionBackButton}
+                      onPress={() => setOpenCollectionId(null)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('modules.appleMusic.favorites.playlists')}
+                    >
+                      <Icon name="chevron-left" size={28} color={appleMusicColor} />
+                    </HapticTouchable>
+                    <Text style={[styles.collectionBackText, { color: themeColors.textPrimary }]} numberOfLines={1}>
                       {t('modules.appleMusic.favorites.playlists')}
                     </Text>
-                  </HapticTouchable>
+                  </View>
 
                   <View style={styles.collectionDetailHeader}>
                     <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: appleMusicColor + '20' }]}>
@@ -1667,12 +1671,12 @@ export function AppleMusicScreen() {
                       </Text>
                     </View>
                     <HapticTouchable
-                      style={[styles.collectionEditButton]}
+                      style={styles.collectionEditButton}
                       onPress={() => setEditCollectionModal({ visible: true, collection: openCollection })}
                       accessibilityRole="button"
                       accessibilityLabel={t('common.edit')}
                     >
-                      <Icon name="settings" size={20} color={themeColors.textSecondary} />
+                      <Icon name="settings" size={22} color={themeColors.textSecondary} />
                     </HapticTouchable>
                   </View>
 
@@ -2756,13 +2760,20 @@ const styles = StyleSheet.create({
   collectionBackRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
-    minHeight: 44,
+    gap: spacing.sm,
+  },
+  collectionBackButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   collectionBackText: {
     ...typography.body,
-    fontWeight: '600',
+    fontWeight: '700',
+    flex: 1,
   },
   collectionDetailHeader: {
     flexDirection: 'row',
@@ -2771,8 +2782,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   collectionEditButton: {
-    width: 44,
-    height: 44,
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
