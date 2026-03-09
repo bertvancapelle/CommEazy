@@ -26,14 +26,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Platform,
   AccessibilityInfo,
   KeyboardAvoidingView,
-  Keyboard,
-  Modal,
-  Image,
-  Animated,
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
@@ -42,7 +37,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, MiniPlayer, ModuleHeader, SearchBar, ChipSelector, PanelAwareModal, LoadingView, ErrorView, type SearchBarRef, type FilterMode } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -50,7 +45,6 @@ import { useRadioContext, type RadioStation as RadioContextStation } from '@/con
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import { useModuleBrowsingState, type RadioBrowsingState } from '@/contexts/ModuleBrowsingContext';
@@ -272,7 +266,6 @@ export function RadioScreen() {
   const panelId = usePanelId(); // null on iPhone, 'left'|'right' on iPad Split View
   const { isVoiceSessionActive } = useVoiceFocusContext();
   const holdGesture = useHoldGestureContextSafe();
-  const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
   const searchInputRef = useRef<SearchBarRef>(null);
@@ -380,32 +373,6 @@ export function RadioScreen() {
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   // Playback error state — shown when a stream fails to play
   const [playbackError, setPlaybackError] = useState<string | null>(null);
-
-  // Pulse animation for player artwork (when buffering)
-  const [pulseAnim] = useState(new Animated.Value(1));
-
-  useEffect(() => {
-    if (isBuffering && !isReducedMotion) {
-      const pulse = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 0.85,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      pulse.start();
-      return () => pulse.stop();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [isBuffering, isReducedMotion, pulseAnim]);
 
   // Save browsing state on every change — restored on return navigation
   useEffect(() => {
@@ -1283,12 +1250,12 @@ export function RadioScreen() {
             On iOS 26+, the native GlassPlayerWindow handles this
             IMPORTANT: Wait for availability check to complete before rendering */}
         {shouldShowRNMiniPlayer && (
-          <MiniPlayer
+          <UnifiedMiniPlayer
             moduleId="radio"
             artwork={metadata.artwork || contextStation.favicon || null}
             title={contextStation.name}
             subtitle={isBuffering ? t('modules.radio.buffering') : metadata.title}
-            accentColor={accentColor.primary}
+            placeholderIcon="radio"
             isPlaying={isPlaying}
             isLoading={isPlaybackLoading}
             onPress={() => setIsPlayerExpanded(true)}
@@ -1299,12 +1266,13 @@ export function RadioScreen() {
                 await play();
               }
             }}
+            onStop={stop}
             progressType="duration"
             listenDuration={position}
-            showStopButton={true}
-            onStop={stop}
-            expandAccessibilityLabel={t('modules.radio.expandPlayer')}
-            expandAccessibilityHint={t('modules.radio.expandPlayerHint')}
+            onDismiss={() => {
+              // Swipe-to-dismiss: hide mini player, audio continues
+              // User can restore via MediaIndicator
+            }}
             style={styles.absolutePlayer}
           />
         )}
@@ -1315,155 +1283,42 @@ export function RadioScreen() {
           On iOS 26+, the native GlassPlayerWindow handles this
           IMPORTANT: Wait for availability check to complete before rendering */}
       {!isCheckingGlassPlayerAvailability && !isGlassPlayerAvailable && (
-      <PanelAwareModal
-        visible={isPlayerExpanded && !!contextStation}
-        animationType={isReducedMotion ? 'none' : 'slide'}
-        onRequestClose={() => setIsPlayerExpanded(false)}
-      >
-        <View style={[styles.expandedPlayerOverlay, { backgroundColor: themeColors.background }]}>
-          <View style={[styles.expandedPlayerContent, { paddingTop: insets.top + spacing.md }]}>
-            {/* Large artwork with buffering pulse animation */}
-            <Animated.View
-              style={[
-                styles.expandedPlayerArtwork,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            >
-              {metadata.artwork || contextStation?.favicon ? (
-                <Image
-                  source={{ uri: metadata.artwork || contextStation?.favicon }}
-                  style={styles.expandedPlayerArtworkImage}
-                  resizeMode="cover"
-                  accessibilityLabel={t('modules.radio.stationArtwork', { station: contextStation?.name })}
-                />
-              ) : (
-                <View style={[styles.expandedPlayerArtworkImage, styles.expandedPlayerArtworkPlaceholder, { backgroundColor: radioModuleColor }]}>
-                  <Icon name="radio" size={100} color={colors.textOnPrimary} strokeWidth={1.5} />
-                </View>
-              )}
-              {/* Loading/buffering overlay */}
-              {(isPlaybackLoading || isBuffering) && (
-                <View style={styles.expandedPlayerArtworkOverlay}>
-                  <ActivityIndicator size="large" color={colors.textOnPrimary} />
-                </View>
-              )}
-            </Animated.View>
-
-            {/* Station info */}
-            <View style={styles.expandedPlayerInfo}>
-              <Text
-                style={[styles.expandedPlayerStationName, { color: themeColors.textPrimary }]}
-                numberOfLines={1}
-                accessibilityRole="header"
-              >
-                {contextStation?.name}
-              </Text>
-
-              {/* Now playing metadata or country */}
-              {metadata.title || metadata.artist ? (
-                <View style={styles.expandedPlayerNowPlaying}>
-                  <Text style={[styles.expandedPlayerNowPlayingLabel, { color: themeColors.textTertiary }]}>
-                    {t('modules.radio.nowPlayingLabel')}
-                  </Text>
-                  <Text style={[styles.expandedPlayerSongTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
-                    {metadata.title || contextStation?.name}
-                  </Text>
-                  {metadata.artist && (
-                    <Text style={[styles.expandedPlayerArtistName, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                      {metadata.artist}
-                    </Text>
-                  )}
-                </View>
-              ) : (
-                <Text style={[styles.expandedPlayerCountryText, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                  {contextStation?.country}
-                </Text>
-              )}
-            </View>
-
-            {/* Large playback controls */}
-            <View style={styles.expandedPlayerControls}>
-              {/* Favorite button */}
-              <IconButton
-                icon="heart"
-                iconActive="heart-filled"
-                isActive={contextStation ? favorites.some(f => f.id === contextStation.id) : false}
-                onPress={() => {
-                  if (contextStation) {
-                    const station = favorites.find(f => f.id === contextStation.id) ||
-                      stations.find(s => s.stationuuid === contextStation.id);
-                    if (station) {
-                      handleToggleFavorite(station);
-                    }
-                  }
-                }}
-                accessibilityLabel={
-                  contextStation && favorites.some(f => f.id === contextStation.id)
-                    ? t('modules.radio.removeFromFavorites', { name: contextStation.name })
-                    : t('modules.radio.addToFavorites', { name: contextStation?.name })
-                }
-                size={32}
-              />
-
-              {/* Play/Pause button (large, primary) */}
-              <TouchableOpacity
-                style={[styles.expandedPlayerPlayButton, { backgroundColor: accentColor.primary }]}
-                onPress={async () => {
-                  await triggerFeedback('tap');
-                  if (isPlaying) {
-                    await pause();
-                  } else {
-                    await play();
-                  }
-                }}
-                disabled={isPlaybackLoading}
-                accessibilityRole="button"
-                accessibilityLabel={isPlaying ? t('modules.radio.pause') : t('modules.radio.play')}
-                accessibilityState={{ disabled: isPlaybackLoading }}
-              >
-                {isPlaybackLoading ? (
-                  <ActivityIndicator size="large" color={colors.textOnPrimary} />
-                ) : (
-                  <Icon
-                    name={isPlaying ? 'pause' : 'play'}
-                    size={48}
-                    color={colors.textOnPrimary}
-                  />
-                )}
-              </TouchableOpacity>
-
-              {/* Stop button */}
-              <IconButton
-                icon="stop"
-                onPress={async () => {
-                  await stop();
-                  setIsPlayerExpanded(false);
-                }}
-                accessibilityLabel={t('modules.radio.stop')}
-                size={32}
-              />
-            </View>
-
-            {/* Buffering indicator text */}
-            {isBuffering && (
-              <Text style={styles.expandedPlayerBufferingText}>
-                {t('modules.radio.buffering')}
-              </Text>
-            )}
-
-            {/* Close button / collapse — centered below controls */}
-            <View style={styles.expandedPlayerCloseContainer}>
-              <IconButton
-                icon="chevron-down"
-                onPress={() => setIsPlayerExpanded(false)}
-                accessibilityLabel={t('modules.radio.collapsePlayer')}
-                accessibilityHint={t('modules.radio.collapsePlayerHint')}
-                size={28}
-              />
-            </View>
-          </View>
-        </View>
-      </PanelAwareModal>
+        <UnifiedFullPlayer
+          visible={isPlayerExpanded && !!contextStation}
+          moduleId="radio"
+          artwork={metadata.artwork || contextStation?.favicon || null}
+          title={contextStation?.name || ''}
+          subtitle={metadata.title || metadata.artist || contextStation?.country}
+          placeholderIcon="radio"
+          isPlaying={isPlaying}
+          isLoading={isPlaybackLoading}
+          isBuffering={isBuffering}
+          onPlayPause={async () => {
+            if (isPlaying) {
+              await pause();
+            } else {
+              await play();
+            }
+          }}
+          onStop={async () => {
+            await stop();
+            setIsPlayerExpanded(false);
+          }}
+          onClose={() => setIsPlayerExpanded(false)}
+          listenDuration={position}
+          isFavorite={contextStation ? favorites.some(f => f.id === contextStation.id) : false}
+          onFavoritePress={() => {
+            if (contextStation) {
+              const station = favorites.find(f => f.id === contextStation.id) ||
+                stations.find(s => s.stationuuid === contextStation.id);
+              if (station) {
+                handleToggleFavorite(station);
+              }
+            }
+          }}
+          sleepTimerMinutes={undefined}
+          onSleepTimerPress={() => setSleepTimer(null)}
+        />
       )}
 
       {/* Voice hint */}
@@ -1579,119 +1434,6 @@ const styles = StyleSheet.create({
   absolutePlayer: {
     // MiniPlayer positioned at bottom of overlay
     // No explicit positioning needed — it's the last child in flex column
-  },
-  // ============================================================
-  // Expanded Player Modal styles
-  expandedPlayerOverlay: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  expandedPlayerContent: {
-    flex: 1,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  expandedPlayerCloseContainer: {
-    alignItems: 'center',
-    marginTop: spacing.lg,
-  },
-  expandedPlayerArtwork: {
-    width: 240,
-    height: 240,
-    borderRadius: borderRadius.lg,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-    marginBottom: spacing.xl,
-    // Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  expandedPlayerArtworkImage: {
-    width: '100%',
-    height: '100%',
-  },
-  expandedPlayerArtworkPlaceholder: {
-    // backgroundColor is set inline with dynamic radioModuleColor
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  expandedPlayerArtworkOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  expandedPlayerInfo: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-    paddingHorizontal: spacing.md,
-    width: '100%',
-  },
-  expandedPlayerStationName: {
-    ...typography.h2,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    fontWeight: '700',
-    marginBottom: spacing.sm,
-  },
-  expandedPlayerCountryText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  expandedPlayerNowPlaying: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  expandedPlayerNowPlayingLabel: {
-    ...typography.small,
-    color: colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: spacing.xs,
-  },
-  expandedPlayerSongTitle: {
-    ...typography.body,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  expandedPlayerArtistName: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-  },
-  expandedPlayerControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.lg,
-  },
-  expandedPlayerPlayButton: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  expandedPlayerBufferingText: {
-    ...typography.small,
-    color: colors.textTertiary,
-    marginTop: spacing.md,
-    textAlign: 'center',
   },
   // 3-way toggle row: [❤️ Favorieten] | [Land] [Taal]
   toggleRow: {

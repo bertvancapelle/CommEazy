@@ -21,17 +21,14 @@
  * @see .claude/skills/accessibility-specialist/SKILL.md
  */
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Modal,
-  Image,
-  Animated,
   AccessibilityInfo,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +37,7 @@ import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, MiniPlayer, ModuleHeader, LoadingView } from '@/components';
+import { Icon, VoiceFocusable, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, LoadingView } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -51,7 +48,6 @@ import {
   formatTime,
   type BookChapter,
 } from '@/contexts/BooksContext';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingContextSafe, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
 
@@ -90,7 +86,6 @@ export function BookPlayerScreen() {
   const isFocused = useIsFocused();
   const navigation = useNavigation<BookPlayerScreenNavigationProp>();
   const route = useRoute<BookPlayerScreenRouteProp>();
-  const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const holdGesture = useHoldGestureContextSafe();
   const themeColors = useColors();
@@ -138,12 +133,6 @@ export function BookPlayerScreen() {
   const [showSpeedPicker, setShowSpeedPicker] = useState(false);
   const [showSleepTimerPicker, setShowSleepTimerPicker] = useState(false);
   const [sleepTimerMinutes, setSleepTimerMinutesLocal] = useState<number | null>(null);
-  const [isSeeking, setIsSeeking] = useState(false);
-  const [seekPosition, setSeekPosition] = useState(0);
-
-  // Animation for artwork pulse (when playing)
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
   // VoiceFocus for chapter list
   const voiceFocusItems = useMemo(() => {
     if (!isFocused) return [];
@@ -160,30 +149,6 @@ export function BookPlayerScreen() {
   // ============================================================
   // Effects
   // ============================================================
-
-  // Pulse animation when playing
-  useEffect(() => {
-    if (isAudioPlaying && !isReducedMotion) {
-      const animation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.02,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      animation.start();
-      return () => animation.stop();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [isAudioPlaying, isReducedMotion, pulseAnim]);
 
   // ============================================================
   // Handlers
@@ -231,11 +196,6 @@ export function BookPlayerScreen() {
     await triggerFeedback('tap');
     await stopAudio();
   }, [stopAudio]);
-
-  const handleSeek = useCallback(async (position: number) => {
-    // Position is in characters, convert to actual seek
-    await seekAudioTo(position);
-  }, [seekAudioTo]);
 
   const handleSpeedChange = useCallback(async (rate: number) => {
     await triggerFeedback('tap');
@@ -439,269 +399,62 @@ export function BookPlayerScreen() {
         {/* Spacer pushes MiniPlayer to bottom */}
         <View style={styles.overlaySpacer} pointerEvents="none" />
 
-        {/* Mini Player — using standardized component */}
+        {/* Mini Player */}
         {currentChapter && (
-          <MiniPlayer
+          <UnifiedMiniPlayer
             moduleId="books"
-            artwork={currentBook?.coverImage || null}
+            artwork={currentBook?.coverUrl || null}
             title={currentChapter.title}
             subtitle={currentBook?.title}
-            accentColor={booksModuleColor}
+            placeholderIcon="book"
             isPlaying={isAudioPlaying}
             isLoading={isAudioLoading}
             onPress={() => setIsPlayerExpanded(true)}
             onPlayPause={handlePlayPause}
+            onStop={handleStop}
             progressType="bar"
             progress={audioProgress.percentage / 100}
-            showStopButton={true}
-            onStop={handleStop}
-            expandAccessibilityLabel={t('modules.books.audio.expandPlayer')}
+            onDismiss={() => {}}
             style={styles.absolutePlayer}
           />
         )}
       </View>
 
-      {/* Expanded Player Modal */}
-      <Modal
+      {/* Expanded Player */}
+      <UnifiedFullPlayer
         visible={isPlayerExpanded && !!currentChapter}
-        transparent={true}
-        animationType={isReducedMotion ? 'none' : 'slide'}
-        onRequestClose={() => setIsPlayerExpanded(false)}
-        accessibilityViewIsModal={true}
-      >
-        <View style={styles.expandedPlayerOverlay}>
-          <View style={[styles.expandedPlayerContent, { paddingTop: insets.top + spacing.md }]}>
-            {currentChapter && currentBook && (
-              <>
-                {/* Top section: Artwork + Info */}
-                <View style={styles.expandedTopSection}>
-                  {/* Book artwork / placeholder */}
-                  <Animated.View
-                    style={[
-                      styles.expandedArtworkContainer,
-                      { transform: [{ scale: pulseAnim }] },
-                    ]}
-                  >
-                    {currentBook.coverUrl ? (
-                      <Image
-                        source={{ uri: currentBook.coverUrl }}
-                        style={styles.expandedArtworkImage}
-                        resizeMode="cover"
-                        accessibilityLabel={t('modules.books.audio.coverArt', { title: currentBook.title })}
-                      />
-                    ) : (
-                      <View style={[styles.expandedArtwork, { backgroundColor: accentColor.primary }]}>
-                        <Icon name="book" size={80} color={colors.textOnPrimary} />
-                      </View>
-                    )}
-                    {isAudioLoading && (
-                      <View style={styles.expandedArtworkOverlay}>
-                        <ActivityIndicator size="large" color={colors.textOnPrimary} />
-                      </View>
-                    )}
-                  </Animated.View>
-
-                  {/* Chapter info */}
-                  <View style={styles.expandedInfo}>
-                    <Text style={styles.expandedBookTitle} numberOfLines={1}>
-                      {currentBook.title}
-                    </Text>
-                    <Text style={styles.expandedChapterTitle} numberOfLines={2}>
-                      {currentChapter.title}
-                    </Text>
-                    <Text style={styles.expandedChapterNumber}>
-                      {t('modules.books.audio.chapterOf', {
-                        current: currentChapterIndex + 1,
-                        total: chapters.length,
-                      })}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Middle section: Progress + Controls */}
-                <View style={styles.expandedMiddleSection}>
-                  {/* Progress bar — smooth draggable slider */}
-                  <View style={styles.progressSection}>
-                  <SeekSlider
-                    value={isSeeking ? seekPosition : audioProgress.position}
-                    duration={audioProgress.duration || 1}
-                    onSeekStart={() => setIsSeeking(true)}
-                    onSeeking={(position) => setSeekPosition(position)}
-                    onSeekEnd={(position) => {
-                      handleSeek(position);
-                      setIsSeeking(false);
-                    }}
-                    accentColor={accentColor.primary}
-                    accessibilityLabel={`${formatTime(charsToSeconds(isSeeking ? seekPosition : audioProgress.position))} ${t('common.of')} ${formatTime(charsToSeconds(audioProgress.duration))}`}
-                    accessibilityStep={TTS_CHARS_PER_SECOND * 10}
-                    testID="book-seek-slider"
-                  />
-                  <View style={styles.progressLabels}>
-                    <Text style={styles.progressTime}>
-                      {formatTime(charsToSeconds(isSeeking ? seekPosition : audioProgress.position))}
-                    </Text>
-                    <Text style={styles.progressTime}>
-                      -{formatTime(charsToSeconds(audioProgress.duration - (isSeeking ? seekPosition : audioProgress.position)))}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Controls */}
-                <View style={styles.expandedControls}>
-                  {/* Left side controls */}
-                  <View style={styles.controlsSide}>
-                    {/* Speed */}
-                    <TouchableOpacity
-                      style={styles.secondaryButton}
-                      onPress={() => {
-                        triggerFeedback('tap');
-                        setIsPlayerExpanded(false);
-                        setTimeout(() => setShowSpeedPicker(true), 100);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.audio.playbackSpeed', { rate: `${playbackRate}x` })}
-                    >
-                      <Text style={styles.secondaryButtonText}>{playbackRate}x</Text>
-                    </TouchableOpacity>
-
-                    {/* Previous chapter */}
-                    <TouchableOpacity
-                      style={[styles.skipButton, currentChapterIndex === 0 && styles.skipButtonDisabled]}
-                      onPress={async () => {
-                        await triggerFeedback('tap');
-                        await previousChapter();
-                      }}
-                      disabled={currentChapterIndex === 0}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.audio.previousChapter')}
-                    >
-                      <Icon
-                        name="chevron-left"
-                        size={24}
-                        color={currentChapterIndex === 0 ? colors.textDisabled : colors.textPrimary}
-                      />
-                      <Icon
-                        name="chevron-left"
-                        size={24}
-                        color={currentChapterIndex === 0 ? colors.textDisabled : colors.textPrimary}
-                        style={{ marginLeft: -12 }}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Center: Play/Pause */}
-                  <TouchableOpacity
-                    style={[styles.mainPlayButton, { backgroundColor: accentColor.primary }]}
-                    onPress={handlePlayPause}
-                    disabled={isAudioLoading}
-                    accessibilityRole="button"
-                    accessibilityLabel={isAudioPlaying ? t('modules.books.audio.pause') : t('modules.books.audio.play')}
-                  >
-                    {isAudioLoading ? (
-                      <ActivityIndicator size="large" color={colors.textOnPrimary} />
-                    ) : (
-                      <Icon
-                        name={isAudioPlaying ? 'pause' : 'play'}
-                        size={40}
-                        color={colors.textOnPrimary}
-                      />
-                    )}
-                  </TouchableOpacity>
-
-                  {/* Right side controls */}
-                  <View style={styles.controlsSide}>
-                    {/* Next chapter */}
-                    <TouchableOpacity
-                      style={[styles.skipButton, currentChapterIndex === chapters.length - 1 && styles.skipButtonDisabled]}
-                      onPress={async () => {
-                        await triggerFeedback('tap');
-                        await nextChapter();
-                      }}
-                      disabled={currentChapterIndex === chapters.length - 1}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.audio.nextChapter')}
-                    >
-                      <Icon
-                        name="chevron-right"
-                        size={24}
-                        color={currentChapterIndex === chapters.length - 1 ? colors.textDisabled : colors.textPrimary}
-                      />
-                      <Icon
-                        name="chevron-right"
-                        size={24}
-                        color={currentChapterIndex === chapters.length - 1 ? colors.textDisabled : colors.textPrimary}
-                        style={{ marginLeft: -12 }}
-                      />
-                    </TouchableOpacity>
-
-                    {/* Sleep timer */}
-                    <TouchableOpacity
-                      style={styles.secondaryButton}
-                      onPress={() => {
-                        triggerFeedback('tap');
-                        setIsPlayerExpanded(false);
-                        setTimeout(() => setShowSleepTimerPicker(true), 100);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        sleepTimerMinutes
-                          ? t('modules.books.audio.sleepTimerActive', { minutes: sleepTimerMinutes })
-                          : t('modules.books.audio.sleepTimer')
-                      }
-                    >
-                      <Icon
-                        name="time"
-                        size={20}
-                        color={sleepTimerMinutes ? accentColor.primary : colors.textSecondary}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                  {/* Skip controls row */}
-                  <View style={styles.skipControlsRow}>
-                    <TouchableOpacity
-                      style={styles.skipTimeButton}
-                      onPress={() => skipAudioBackward(10)}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.audio.skipBackward', { seconds: 10 })}
-                    >
-                      <Icon name="chevron-left" size={20} color={colors.textSecondary} />
-                      <Text style={styles.skipTimeText}>10s</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.skipTimeButton}
-                      onPress={() => skipAudioForward(30)}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.audio.skipForward', { seconds: 30 })}
-                    >
-                      <Text style={styles.skipTimeText}>30s</Text>
-                      <Icon name="chevron-right" size={20} color={colors.textSecondary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {/* Bottom section: Minimize button */}
-                <View style={[styles.expandedBottomSection, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-                  <TouchableOpacity
-                    style={styles.minimizeButton}
-                    onPress={() => {
-                      triggerFeedback('tap');
-                      setIsPlayerExpanded(false);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.books.audio.collapsePlayer')}
-                  >
-                    <Icon name="chevron-down" size={28} color={colors.textSecondary} />
-                    <Text style={styles.minimizeButtonText}>{t('modules.books.audio.collapsePlayer')}</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
+        moduleId="books"
+        artwork={currentBook?.coverUrl || null}
+        title={currentChapter?.title || ''}
+        subtitle={currentBook?.title || ''}
+        placeholderIcon="book"
+        isPlaying={isAudioPlaying}
+        isLoading={isAudioLoading}
+        isBuffering={false}
+        onPlayPause={handlePlayPause}
+        onStop={async () => {
+          await handleStop();
+          setIsPlayerExpanded(false);
+        }}
+        onClose={() => setIsPlayerExpanded(false)}
+        position={charsToSeconds(audioProgress.position)}
+        duration={charsToSeconds(audioProgress.duration)}
+        onSeek={(seconds) => seekAudioTo(seconds * TTS_CHARS_PER_SECOND)}
+        onSkipBackward={() => skipAudioBackward(10)}
+        onSkipForward={() => skipAudioForward(30)}
+        skipBackwardLabel="10"
+        skipForwardLabel="30"
+        playbackRate={playbackRate}
+        onSpeedPress={() => {
+          setIsPlayerExpanded(false);
+          setTimeout(() => setShowSpeedPicker(true), 100);
+        }}
+        sleepTimerMinutes={sleepTimerMinutes ?? undefined}
+        onSleepTimerPress={() => {
+          setIsPlayerExpanded(false);
+          setTimeout(() => setShowSleepTimerPicker(true), 100);
+        }}
+      />
 
       {/* Speed Picker Modal */}
       <Modal
@@ -939,165 +692,6 @@ const styles = StyleSheet.create({
     borderRadius: touchTargets.minimum / 2,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  // Mini Player styles removed — using standardized MiniPlayer component
-
-  // Expanded Player
-  expandedPlayerOverlay: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  expandedPlayerContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-  },
-  expandedTopSection: {
-    alignItems: 'center',
-  },
-  expandedMiddleSection: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  expandedBottomSection: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  expandedArtworkContainer: {
-    marginVertical: spacing.lg,
-  },
-  expandedArtwork: {
-    width: 200,
-    height: 200,
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  expandedArtworkImage: {
-    width: 200,
-    height: 280,
-    borderRadius: borderRadius.lg,
-  },
-  expandedArtworkOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  expandedInfo: {
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  expandedBookTitle: {
-    ...typography.label,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  expandedChapterTitle: {
-    ...typography.h2,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  expandedChapterNumber: {
-    ...typography.label,
-    color: colors.textSecondary,
-  },
-
-  // Progress Section
-  progressSection: {
-    width: '100%',
-    marginBottom: spacing.lg,
-  },
-  progressLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-  },
-  progressTime: {
-    ...typography.label,
-    color: colors.textSecondary,
-  },
-
-  // Controls
-  expandedControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    marginBottom: spacing.md,
-  },
-  controlsSide: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-  },
-  secondaryButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    borderRadius: touchTargets.minimum / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-  },
-  secondaryButtonText: {
-    ...typography.label,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  skipButton: {
-    width: touchTargets.comfortable,
-    height: touchTargets.comfortable,
-    borderRadius: touchTargets.comfortable / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  skipButtonDisabled: {
-    opacity: 0.5,
-  },
-  mainPlayButton: {
-    width: touchTargets.large,
-    height: touchTargets.large,
-    borderRadius: touchTargets.large / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: spacing.md,
-  },
-
-  // Skip controls row
-  skipControlsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.xl * 2,
-    marginBottom: spacing.lg,
-  },
-  skipTimeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.sm,
-  },
-  skipTimeText: {
-    ...typography.label,
-    color: colors.textSecondary,
-  },
-
-  // Minimize button
-  minimizeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
-  minimizeButtonText: {
-    ...typography.body,
-    color: colors.textSecondary,
   },
 
   // Picker modals

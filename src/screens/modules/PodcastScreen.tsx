@@ -27,15 +27,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
-  TextInput,
+  Modal,
+  Image,
   Platform,
   AccessibilityInfo,
   KeyboardAvoidingView,
-  Keyboard,
-  Modal,
-  Image,
-  Animated,
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
@@ -44,7 +40,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, SeekSlider, PlayingWaveIcon, MiniPlayer, ExpandedAudioPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, PanelAwareModal, LoadingView, ErrorView, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -236,36 +232,7 @@ export function PodcastScreen() {
     show: PodcastShow;
   } | null>(null);
 
-  // Pulse animation for artwork (when buffering)
-  const [pulseAnim] = useState(new Animated.Value(1));
 
-  // Seek slider state — for smooth dragging
-  const [seekState, setSeekState] = useState({ active: false, position: 0 });
-  const isSeeking = seekState.active;
-  const seekPosition = seekState.position;
-
-  useEffect(() => {
-    if (isBuffering && !isReducedMotion) {
-      const pulse = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 0.85,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      pulse.start();
-      return () => pulse.stop();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [isBuffering, isReducedMotion, pulseAnim]);
 
   // Save browsing state on every change — restored on return navigation
   useEffect(() => {
@@ -912,12 +879,12 @@ export function PodcastScreen() {
 
         {/* Mini-player — React Native fallback when Glass Player not available */}
         {currentEpisode && currentShow && !isPlayerExpanded && !showSpeedPicker && !showSleepTimerPicker && !isGlassPlayerAvailable && (
-          <MiniPlayer
+          <UnifiedMiniPlayer
             moduleId="podcast"
             artwork={currentEpisode.artwork || currentShow.artwork || null}
             title={currentEpisode.title}
             subtitle={currentShow.title}
-            accentColor={accentColor.primary}
+            placeholderIcon="podcast"
             isPlaying={isPlaying}
             isLoading={isPlaybackLoading}
             onPress={() => {
@@ -932,14 +899,14 @@ export function PodcastScreen() {
                 await play();
               }
             }}
-            progressType="bar"
-            progress={progress.duration > 0 ? progress.position / progress.duration : 0}
-            showStopButton={true}
             onStop={async () => {
               await stop();
             }}
-            expandAccessibilityLabel={t('modules.podcast.expandPlayer')}
-            expandAccessibilityHint={t('modules.podcast.expandPlayerHint')}
+            progressType="bar"
+            progress={progress.duration > 0 ? progress.position / progress.duration : 0}
+            onDismiss={() => {
+              // Swipe-to-dismiss: hide mini player, audio continues
+            }}
             style={styles.absolutePlayer}
           />
         )}
@@ -1113,200 +1080,57 @@ export function PodcastScreen() {
           </View>
         </Modal>
 
-        {/* Expanded Player — React Native fallback when Glass Player not available
-            iPad Split View: renders as panel-scoped overlay (stays in panel)
-            iPhone: renders inside a Modal (full-screen) */}
-        <PanelAwareModal
+        {/* Expanded Player — React Native fallback when Glass Player not available */}
+        <UnifiedFullPlayer
           visible={isPlayerExpanded && !!currentEpisode && !isGlassPlayerAvailable}
-          animationType={isReducedMotion ? 'none' : 'slide'}
-          onRequestClose={() => setIsPlayerExpanded(false)}
-        >
-          <View style={styles.expandedPlayerOverlay}>
-            <View style={[styles.expandedPlayerContent, { paddingTop: insets.top + spacing.md }]}>
-              {currentEpisode && currentShow && (
-                <>
-                  {/* Artwork */}
-                  <Animated.View
-                    style={[
-                      styles.expandedArtworkContainer,
-                      { transform: [{ scale: pulseAnim }] },
-                    ]}
-                  >
-                    {(currentEpisode.artwork || currentShow.artwork) ? (
-                      <Image
-                        source={{ uri: currentEpisode.artwork || currentShow.artwork }}
-                        style={styles.expandedArtwork}
-                      />
-                    ) : (
-                      <View style={[styles.expandedArtwork, styles.expandedArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
-                        <Icon name="podcast" size={80} color={colors.textOnPrimary} />
-                      </View>
-                    )}
-                    {(isPlaybackLoading || isBuffering) && (
-                      <View style={styles.expandedArtworkOverlay}>
-                        <ActivityIndicator size="large" color={colors.textOnPrimary} />
-                      </View>
-                    )}
-                  </Animated.View>
-
-                  {/* Episode info */}
-                  <View style={styles.expandedInfo}>
-                    <Text style={styles.expandedShowTitle} numberOfLines={1}>
-                      {currentShow.title}
-                    </Text>
-                    <Text style={styles.expandedEpisodeTitle} numberOfLines={2}>
-                      {currentEpisode.title}
-                    </Text>
-                  </View>
-
-                  {/* Progress bar — smooth draggable slider */}
-                  <View style={styles.progressSection}>
-                    <SeekSlider
-                      value={progress.position}
-                      duration={progress.duration || currentEpisode.duration || 1}
-                      onSeekStart={() => setSeekState(s => ({ ...s, active: true }))}
-                      onSeeking={(position) => setSeekState(s => ({ ...s, position }))}
-                      onSeekEnd={(position) => {
-                        seekTo(position);
-                        setSeekState({ active: false, position: 0 });
-                      }}
-                      accentColor={accentColor.primary}
-                      accessibilityLabel={`${formatTime(isSeeking ? seekPosition : progress.position)} van ${formatTime(progress.duration || currentEpisode.duration)}`}
-                      accessibilityStep={10}
-                      testID="podcast-seek-slider"
-                    />
-                    <View style={styles.progressLabels}>
-                      <Text style={styles.progressTime}>
-                        {formatTime(isSeeking ? seekPosition : progress.position)}
-                      </Text>
-                      <Text style={styles.progressTime}>
-                        -{formatTime((progress.duration || currentEpisode.duration) - (isSeeking ? seekPosition : progress.position))}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Controls */}
-                  <View style={styles.expandedControls}>
-                    {/* Speed */}
-                    <TouchableOpacity
-                      style={styles.secondaryButton}
-                      onPress={() => {
-                        console.log('[PodcastScreen] Speed button pressed');
-                        triggerFeedback('tap');
-                        // Close expanded player first, then open speed picker
-                        setIsPlayerExpanded(false);
-                        // Small delay to let modal close animation complete
-                        setTimeout(() => {
-                          setShowSpeedPicker(true);
-                        }, 100);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.podcast.playbackSpeed', { rate: `${playbackRate}x` })}
-                    >
-                      <Text style={styles.secondaryButtonText}>{playbackRate}x</Text>
-                    </TouchableOpacity>
-
-                    {/* Skip backward */}
-                    <TouchableOpacity
-                      style={styles.skipButton}
-                      onPress={() => skipBackward()}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.podcast.skipBackward', { seconds: 10 })}
-                    >
-                      <Icon name="chevron-left" size={24} color={colors.textPrimary} />
-                      <Text style={styles.skipButtonText}>10</Text>
-                    </TouchableOpacity>
-
-                    {/* Play/Pause */}
-                    <TouchableOpacity
-                      style={[styles.mainPlayButton, { backgroundColor: accentColor.primary }]}
-                      onPress={async () => {
-                        await triggerFeedback('tap');
-                        if (isPlaying) {
-                          await pause();
-                        } else {
-                          await play();
-                        }
-                      }}
-                      disabled={isPlaybackLoading}
-                      accessibilityRole="button"
-                      accessibilityLabel={isPlaying ? t('modules.podcast.pause') : t('modules.podcast.play')}
-                    >
-                      {isPlaybackLoading ? (
-                        <ActivityIndicator size="large" color={colors.textOnPrimary} />
-                      ) : (
-                        <Icon
-                          name={isPlaying ? 'pause' : 'play'}
-                          size={40}
-                          color={colors.textOnPrimary}
-                        />
-                      )}
-                    </TouchableOpacity>
-
-                    {/* Skip forward */}
-                    <TouchableOpacity
-                      style={styles.skipButton}
-                      onPress={() => skipForward()}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.podcast.skipForward', { seconds: 30 })}
-                    >
-                      <Text style={styles.skipButtonText}>30</Text>
-                      <Icon name="chevron-right" size={24} color={colors.textPrimary} />
-                    </TouchableOpacity>
-
-                    {/* Sleep timer */}
-                    <TouchableOpacity
-                      style={styles.secondaryButton}
-                      onPress={() => {
-                        console.log('[PodcastScreen] Sleep timer button pressed');
-                        triggerFeedback('tap');
-                        // Close expanded player first, then open sleep timer picker
-                        setIsPlayerExpanded(false);
-                        // Small delay to let modal close animation complete
-                        setTimeout(() => {
-                          setShowSleepTimerPicker(true);
-                        }, 100);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        sleepTimerMinutes
-                          ? t('modules.podcast.sleepTimerActive', { minutes: sleepTimerMinutes })
-                          : t('modules.podcast.sleepTimer')
-                      }
-                    >
-                      <Icon
-                        name="time"
-                        size={20}
-                        color={sleepTimerMinutes ? accentColor.primary : colors.textSecondary}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Buffering text */}
-                  {isBuffering && (
-                    <Text style={styles.bufferingText}>{t('modules.podcast.buffering')}</Text>
-                  )}
-
-                  {/* Minimize button — positioned below controls with proper spacing */}
-                  <View style={styles.expandedCloseContainer}>
-                    <TouchableOpacity
-                      style={styles.minimizeButton}
-                      onPress={() => {
-                        triggerFeedback('tap');
-                        setIsPlayerExpanded(false);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.podcast.collapsePlayer')}
-                    >
-                      <Icon name="chevron-down" size={28} color={colors.textSecondary} />
-                      <Text style={styles.minimizeButtonText}>{t('modules.podcast.collapsePlayer')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-        </PanelAwareModal>
+          moduleId="podcast"
+          artwork={currentEpisode?.artwork || currentShow?.artwork || null}
+          title={currentEpisode?.title || ''}
+          subtitle={currentShow?.title || ''}
+          placeholderIcon="podcast"
+          isPlaying={isPlaying}
+          isLoading={isPlaybackLoading}
+          isBuffering={isBuffering}
+          onPlayPause={async () => {
+            if (isPlaying) {
+              await pause();
+            } else {
+              await play();
+            }
+          }}
+          onStop={async () => {
+            await stop();
+            setIsPlayerExpanded(false);
+          }}
+          onClose={() => setIsPlayerExpanded(false)}
+          position={progress.position}
+          duration={progress.duration || currentEpisode?.duration || 0}
+          onSeek={(pos) => seekTo(pos)}
+          onSkipBackward={() => skipBackward()}
+          onSkipForward={() => skipForward()}
+          skipBackwardLabel="10"
+          skipForwardLabel="30"
+          playbackRate={playbackRate}
+          onSpeedPress={() => {
+            setIsPlayerExpanded(false);
+            setTimeout(() => setShowSpeedPicker(true), 100);
+          }}
+          isFavorite={currentShow ? isSubscribed(currentShow.id) : false}
+          onFavoritePress={() => {
+            if (currentShow) {
+              if (isSubscribed(currentShow.id)) {
+                unsubscribe(currentShow.id);
+              } else {
+                subscribe(currentShow);
+              }
+            }
+          }}
+          sleepTimerMinutes={sleepTimerMinutes}
+          onSleepTimerPress={() => {
+            setIsPlayerExpanded(false);
+            setTimeout(() => setShowSleepTimerPicker(true), 100);
+          }}
+        />
 
         {/* Speed Picker Modal */}
         <Modal
@@ -2028,142 +1852,6 @@ const styles = StyleSheet.create({
   closeButtonText: {
     ...typography.body,
     color: colors.textOnPrimary,
-    fontWeight: '600',
-  },
-  // Expanded Player
-  expandedPlayerOverlay: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  expandedPlayerContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  expandedArtworkContainer: {
-    marginBottom: spacing.xl,
-    // Shadow properties on container (elevation not valid on Image)
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  expandedArtwork: {
-    width: 240,
-    height: 240,
-    borderRadius: borderRadius.lg,
-  },
-  expandedArtworkPlaceholder: {
-    // backgroundColor uses dynamic podcastModuleColor inline
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  expandedArtworkOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: borderRadius.lg,
-  },
-  expandedInfo: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    width: '100%',
-  },
-  expandedShowTitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  expandedEpisodeTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    fontWeight: '700',
-    marginTop: spacing.xs,
-  },
-  progressSection: {
-    width: '100%',
-    marginBottom: spacing.lg,
-  },
-  progressLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: -spacing.sm,
-  },
-  progressTime: {
-    ...typography.small,
-    color: colors.textSecondary,
-  },
-  expandedControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.md,
-  },
-  secondaryButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-  },
-  secondaryButtonText: {
-    ...typography.small,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  skipButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-  },
-  skipButtonText: {
-    ...typography.small,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  mainPlayButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  bufferingText: {
-    ...typography.small,
-    color: colors.textTertiary,
-    marginTop: spacing.md,
-    textAlign: 'center',
-  },
-  expandedCloseContainer: {
-    marginTop: spacing.xl,
-    alignItems: 'center',
-    width: '100%',
-  },
-  minimizeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    minHeight: touchTargets.minimum,
-    minWidth: 160,
-  },
-  minimizeButtonText: {
-    ...typography.body,
-    color: colors.textSecondary,
     fontWeight: '600',
   },
   // Picker Modals

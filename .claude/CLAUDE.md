@@ -356,8 +356,8 @@ Deze safeguards voorkomen inconsistenties in de codebase. Claude MOET deze raadp
 | Wanneer je WIJZIGT... | MOET je ook AANPASSEN... |
 |----------------------|-------------------------|
 | `ModuleHeader` props | ALLE screens die ModuleHeader gebruiken |
-| `MiniPlayer` props | Radio, Podcast, Books screens |
-| `ExpandedAudioPlayer` props | Alle audio modules |
+| `UnifiedMiniPlayer` props | Radio, Podcast, Books, AppleMusic, HomeScreen |
+| `UnifiedFullPlayer` props | Radio, Podcast, Books, AppleMusic screens |
 | `SearchBar` props | Radio, Podcast, Books, Contacts screens |
 | `ChipSelector` props | Radio, Podcast, Books screens |
 | `Icon` props | ALLE componenten die Icon gebruiken |
@@ -2289,8 +2289,8 @@ Bij ELKE nieuwe media module:
 
 - [ ] **ModuleHeader component** met `moduleId`, `icon`, `title`, `currentSource`
 - [ ] **AdMob in ModuleHeader** — `showAdMob={true}` (default)
-- [ ] Mini-player + expandable modal pattern (gestandaardiseerde componenten)
-- [ ] **AdMob in ExpandedAudioPlayer** — `showAdMob={true}` (default)
+- [ ] `UnifiedMiniPlayer` + `UnifiedFullPlayer` pattern (gestandaardiseerde componenten)
+- [ ] `moduleId` prop correct op beide componenten
 - [ ] Welcome modal voor first-time users (AsyncStorage)
 - [ ] Error banner met TEKST dismiss button
 - [ ] Module-specific color consistent met WheelNavigationMenu
@@ -2313,116 +2313,108 @@ Alle audio modules (Radio, Podcast, Books/TTS) MOETEN dezelfde gedeelde AudioPla
 
 **Niet-gebruikte controls:** Volledig verborgen (niet greyed-out) — dit is eenvoudiger en minder verwarrend voor senioren.
 
-#### 13.2 MiniPlayer Component
+#### 13.2 UnifiedMiniPlayer Component
 
 ```typescript
-interface MiniPlayerProps {
-  // Verplichte props
+interface UnifiedMiniPlayerProps {
+  moduleId: ModuleColorId;    // Module identifier for Liquid Glass tint
   artwork: string | null;
   title: string;
-  accentColor: string;
+  subtitle?: string;
+  placeholderIcon?: IconName; // Shown when no artwork
+
   isPlaying: boolean;
   isLoading: boolean;
+
   onPress: () => void;        // Expand naar full-screen
   onPlayPause: () => void;
+  onStop: () => void;         // Stop + clear (altijd aanwezig)
 
-  // Optionele props
-  subtitle?: string;          // Show naam, artiest, auteur
-
-  // Progress indicator variant
   progressType: 'bar' | 'duration';
-  // bar = percentage balk (Podcast, Books)
-  // duration = "🎧 45:32" luistertijd (Radio)
-
   progress?: number;          // 0-1, alleen voor "bar" type
   listenDuration?: number;    // Seconden, alleen voor "duration" type
 
-  // Stop button (altijd zichtbaar voor consistente senior UX)
-  showStopButton?: boolean;   // Default: true — altijd tonen in alle modules
-  onStop?: () => void;        // Stop playback, wis state, sluit MiniPlayer
+  onDismiss?: () => void;     // Swipe-to-dismiss (audio speelt door)
+  style?: StyleProp<ViewStyle>;
 }
 ```
 
 **Per Module:**
-| Module | progressType | showStopButton | Wat wordt getoond |
-|--------|--------------|----------------|-------------------|
-| Radio | `duration` | `true` | "🎧 45:32" + Stop button |
-| Podcast | `bar` | `true` | Progress bar + Stop button |
-| Books | `bar` | `true` | Progress bar + Stop button (TTS engine) |
-| Apple Music | `bar` | `true` | Progress bar + Stop button (stop + wis queue) |
+| Module | progressType | placeholderIcon | Wat wordt getoond |
+|--------|--------------|-----------------|-------------------|
+| Radio | `duration` | `"radio"` | "🎧 45:32" + Stop button |
+| Podcast | `bar` | `"podcast"` | Progress bar + Stop button |
+| Books | `bar` | `"book"` | Progress bar + Stop button |
+| Apple Music | `bar` | — | Progress bar + Stop button |
+| HomeScreen | varies | — | Via `useActivePlayback()` hook |
 
-#### 13.3 ExpandedAudioPlayer Component
+#### 13.3 UnifiedFullPlayer Component
 
 ```typescript
-interface ExpandedAudioPlayerProps {
-  // Content
+interface UnifiedFullPlayerProps {
+  visible: boolean;
+  moduleId: ModuleColorId;
   artwork: string | null;
   title: string;
   subtitle?: string;
-  accentColor: string;
+  placeholderIcon?: IconName;
 
-  // Playback state
   isPlaying: boolean;
   isLoading: boolean;
   isBuffering: boolean;
 
-  // Progress (voor seekable content)
+  onPlayPause: () => void;
+  onStop: () => void;
+  onClose: () => void;
+
+  // Seek (podcast, books, apple music — omit for radio)
   position?: number;
   duration?: number;
   onSeek?: (position: number) => void;
 
-  // Luistertijd (voor live content)
-  listenDuration?: number;
-
-  // Callbacks
-  onPlayPause: () => void;
-  onClose: () => void;
-
-  // AdMob (VERPLICHT)
-  showAdMob?: boolean;        // Default: true
-  adMobUnitId?: string;       // Optioneel, gebruikt default indien niet opgegeven
-
-  // Configureerbare controls (verborgen indien false/undefined)
-  controls: {
-    seekSlider?: boolean;      // Podcast/Books: aan, Radio: uit
-    skipButtons?: boolean;     // Podcast/Books: aan, Radio: uit
-    speedControl?: boolean;    // Podcast/Books: aan, Radio: uit
-    sleepTimer?: boolean;      // Alle modules: aan
-    favorite?: boolean;        // Radio/Podcast: aan, Books: uit
-    listenDuration?: boolean;  // Radio: aan (toont "🎧 45:32")
-  };
-
-  // Control callbacks
+  // Skip (omit for radio)
   onSkipBackward?: () => void;
   onSkipForward?: () => void;
-  onSpeedChange?: (rate: number) => void;
-  onSleepTimerSet?: (minutes: number | null) => void;
-  onFavoriteToggle?: () => void;
+  skipBackwardLabel?: string;   // "10" (seconds)
+  skipForwardLabel?: string;    // "30" (seconds)
 
-  // Current values
+  // Speed (podcast, books — omit for radio/apple music)
   playbackRate?: number;
-  sleepTimerMinutes?: number | null;
+  onSpeedPress?: () => void;
+
+  // Shuffle/Repeat (apple music only)
+  shuffleMode?: ShuffleMode;    // 'off' | 'songs'
+  onShufflePress?: () => void;
+  repeatMode?: RepeatMode;      // 'off' | 'one' | 'all'
+  onRepeatPress?: () => void;
+
+  // Favorite
   isFavorite?: boolean;
+  onFavoritePress?: () => void;
+
+  // Sleep timer
+  sleepTimerMinutes?: number;
+  onSleepTimerPress?: () => void;
+
+  // Listen duration (radio only)
+  listenDuration?: number;
+
+  // Apple Music specific
+  isInLibrary?: boolean;
+  isAddingToLibrary?: boolean;
+  onAddToLibraryPress?: () => void;
+  queueCount?: number;
+  onQueuePress?: () => void;
+  showAirPlay?: boolean;
 }
 ```
 
-**AdMob Layout in ExpandedAudioPlayer:**
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Safe Area (notch/Dynamic Island)                             │
-├──────────────────────────────────────────────────────────────┤
-│  [˅] Close button                                             │
-├──────────────────────────────────────────────────────────────┤
-│  [═══════════ AdMob Banner ═══════════════════]              │
-├──────────────────────────────────────────────────────────────┤
-│              ┌──────────────────┐                             │
-│              │     Artwork      │                             │
-│              └──────────────────┘                             │
-│              Title / Subtitle                                 │
-│         ════ SeekSlider ════                                  │
-│              ⏪    ▶    ⏩                                     │
-└──────────────────────────────────────────────────────────────┘
-```
+**Design beslissingen:**
+- Geen AdMob in FullPlayer (design decision — geen ads in immersive view)
+- Geen `controls` object — controls zijn conditioneel: niet opgegeven = verborgen
+- `moduleId` vervangt `accentColor` — kleur komt via `useModuleColor()` hook
+- Liquid Glass op play/pause button (iOS 26+)
+- Senior-inclusive: 72pt play button, 60pt control buttons
 
 #### 13.4 Per Module Configuratie
 
@@ -2448,78 +2440,70 @@ Dit verschil is bedoeld: terug-skippen is vaak om iets opnieuw te horen (korte s
 #### 13.5 Implementatie Voorbeeld
 
 ```typescript
-// Radio: Live stream player
-<ExpandedAudioPlayer
-  artwork={station.artwork}
-  title={station.name}
-  subtitle={streamMetadata?.title} // "Artiest - Nummer"
-  accentColor={RADIO_COLOR}
+// Radio: Live stream player (geen seek, geen skip)
+<UnifiedFullPlayer
+  visible={isPlayerExpanded}
+  moduleId="radio"
+  artwork={metadata?.artwork || station.favicon || null}
+  title={metadata?.title || station.name}
+  subtitle={metadata?.artist || station.name}
+  placeholderIcon="radio"
   isPlaying={isPlaying}
   isLoading={isLoading}
   isBuffering={isBuffering}
-  listenDuration={listenDuration}
   onPlayPause={handlePlayPause}
-  onClose={() => setIsExpanded(false)}
-  showAdMob={true}  // AdMob banner bovenaan
-  controls={{
-    sleepTimer: true,
-    favorite: true,
-    listenDuration: true,
-    // Alle andere controls zijn verborgen
-  }}
-  sleepTimerMinutes={sleepTimer}
-  onSleepTimerSet={setSleepTimer}
-  isFavorite={isFavorite}
-  onFavoriteToggle={handleFavoriteToggle}
+  onStop={() => { stop(); setIsPlayerExpanded(false); }}
+  onClose={() => setIsPlayerExpanded(false)}
+  listenDuration={position}
+  isFavorite={isFavorite(station)}
+  onFavoritePress={() => toggleFavorite(station)}
+  sleepTimerMinutes={sleepTimerMinutes}
+  onSleepTimerPress={handleSleepTimerToggle}
 />
 
-// Podcast: On-demand player
-<ExpandedAudioPlayer
-  artwork={episode.artwork}
+// Podcast: On-demand player (seek + skip + speed)
+<UnifiedFullPlayer
+  visible={isPlayerExpanded}
+  moduleId="podcast"
+  artwork={episode.artwork || show.artwork || null}
   title={episode.title}
   subtitle={show.title}
-  accentColor={PODCAST_COLOR}
+  placeholderIcon="podcast"
   isPlaying={isPlaying}
   isLoading={isLoading}
   isBuffering={isBuffering}
-  position={position}
-  duration={duration}
-  onSeek={seekTo}
   onPlayPause={handlePlayPause}
-  onClose={() => setIsExpanded(false)}
-  showAdMob={true}  // AdMob banner bovenaan
-  controls={{
-    seekSlider: true,
-    skipButtons: true,
-    speedControl: true,
-    sleepTimer: true,
-    favorite: true,
-  }}
-  onSkipBackward={() => skip(-10)}
-  onSkipForward={() => skip(30)}
+  onStop={() => { stop(); setIsPlayerExpanded(false); }}
+  onClose={() => setIsPlayerExpanded(false)}
+  position={progress.position}
+  duration={progress.duration}
+  onSeek={seekTo}
+  onSkipBackward={() => skipBackward()}
+  onSkipForward={() => skipForward()}
+  skipBackwardLabel="10"
+  skipForwardLabel="30"
   playbackRate={playbackRate}
-  onSpeedChange={setPlaybackRate}
-  sleepTimerMinutes={sleepTimer}
-  onSleepTimerSet={setSleepTimer}
-  isFavorite={isSubscribed}
-  onFavoriteToggle={handleToggleSubscribe}
+  onSpeedPress={handleSpeedPress}
+  isFavorite={isSubscribed(show.id)}
+  onFavoritePress={() => toggleSubscribe(show)}
+  sleepTimerMinutes={sleepTimerMinutes}
+  onSleepTimerPress={handleSleepTimerToggle}
 />
 ```
 
 #### 13.6 AudioPlayer Implementatie Checklist
 
-Bij het gebruik van AudioPlayer componenten:
+Bij het gebruik van Unified AudioPlayer componenten:
 
-- [ ] Gebruik `MiniPlayer` voor compacte weergave onderaan scherm
-- [ ] Gebruik `ExpandedAudioPlayer` voor full-screen modal
-- [ ] **`showAdMob={true}`** in ExpandedAudioPlayer (default)
-- [ ] Configureer `controls` object correct per module type
+- [ ] Gebruik `UnifiedMiniPlayer` voor compacte weergave onderaan scherm
+- [ ] Gebruik `UnifiedFullPlayer` voor full-screen modal
+- [ ] `moduleId` prop correct ingesteld (voor Liquid Glass tint)
 - [ ] Radio: `progressType="duration"` met `listenDuration`
 - [ ] Podcast/Books: `progressType="bar"` met `progress`
-- [ ] Alle callbacks geïmplementeerd voor actieve controls
-- [ ] `accentColor` consistent met module kleur
-- [ ] Accessibility labels voor alle controls
-- [ ] Voice commands geregistreerd voor actieve controls
+- [ ] Optionele controls: alleen meegeven als prop aanwezig (niet verborgen = niet gerenderd)
+- [ ] `onStop` sluit ook de expanded player (`setIsPlayerExpanded(false)`)
+- [ ] Accessibility labels automatisch via i18n in de componenten
+- [ ] HomeScreen: gebruik `useActivePlayback()` hook voor UnifiedMiniPlayer data
 
 ---
 
@@ -2648,13 +2632,22 @@ Deze registry documenteert welke **standaard componenten** verplicht zijn voor s
 
 ### Audio Player Screens
 
-**Verplichte componenten:** `MiniPlayer`, `ExpandedAudioPlayer`
+**Verplichte componenten:** `UnifiedMiniPlayer`, `UnifiedFullPlayer`
 
-| Screen | MiniPlayer | ExpandedAudioPlayer | progressType |
-|--------|------------|---------------------|--------------|
+| Screen | UnifiedMiniPlayer | UnifiedFullPlayer | progressType |
+|--------|-------------------|-------------------|--------------|
 | RadioScreen | ✅ | ✅ | `"duration"` |
 | PodcastScreen | ✅ | ✅ | `"bar"` |
-| BooksScreen | ✅ | ✅ | `"bar"` |
+| BookPlayerScreen | ✅ | ✅ | `"bar"` |
+| AppleMusicScreen | ✅ | ✅ | `"bar"` |
+| HomeScreen | ✅ (via useActivePlayback) | ❌ | varies |
+
+**Verwijderde componenten (niet meer gebruiken):**
+- ~~`MiniPlayer`~~ → vervangen door `UnifiedMiniPlayer`
+- ~~`ExpandedAudioPlayer`~~ → vervangen door `UnifiedFullPlayer`
+- ~~`HomeMiniPlayer`~~ → vervangen door `UnifiedMiniPlayer` + `useActivePlayback()`
+- ~~`RadioPlayerOverlay`~~ → verwijderd
+- ~~`BooksPlayerOverlay`~~ → verwijderd
 
 ### Favorite/Search Tab Buttons
 

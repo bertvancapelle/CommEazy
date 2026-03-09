@@ -30,6 +30,10 @@ export { useGlassPlayer } from './useGlassPlayer';
 
 // Audio playback utilities
 export { useSleepTimer } from './useSleepTimer';
+export {
+  useActivePlayback,
+  type ActivePlaybackInfo,
+} from './useActivePlayback';
 
 // Module management
 export { useModuleUsage } from './useModuleUsage';

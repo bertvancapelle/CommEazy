@@ -43,8 +43,8 @@ import {
   IconButton,
   VoiceFocusable,
   PlayingWaveIcon,
-  MiniPlayer,
-  ExpandedAudioPlayer,
+  UnifiedMiniPlayer,
+  UnifiedFullPlayer,
   ModuleHeader,
   SearchBar,
   LoadingView,
@@ -2282,19 +2282,17 @@ export function AppleMusicScreen() {
       {/* Mini Player (iOS <26 / Android fallback)
           On iOS 26+, the native GlassPlayerWindow handles this */}
       {shouldShowRNMiniPlayer && (
-        <MiniPlayer
+        <UnifiedMiniPlayer
           moduleId="appleMusic"
           artwork={currentSong.artworkUrl || null}
           title={currentSong.title}
           subtitle={currentSong.artistName}
-          accentColor={appleMusicColor}
           isPlaying={isPlaying}
           isLoading={isPlaybackLoading}
           progressType="bar"
           progress={(playbackState?.currentTime ?? 0) / (playbackState?.duration || 1)}
           onPress={() => setIsPlayerExpanded(true)}
           onPlayPause={handlePlayPause}
-          showStopButton={true}
           onStop={stop}
           style={styles.miniPlayer}
         />
@@ -2305,49 +2303,39 @@ export function AppleMusicScreen() {
           We should NOT render the RN player at all when Glass Player is available.
           Also don't render while checking availability to prevent flash. */}
       {!isAndroid && !isCheckingGlassPlayerAvailability && !isGlassPlayerAvailable && (
-        <ExpandedAudioPlayer
+        <UnifiedFullPlayer
           visible={isPlayerExpanded}
           moduleId="appleMusic"
           artwork={currentSong?.artworkUrl || null}
           title={currentSong?.title || ''}
           subtitle={currentSong?.artistName}
-          accentColor={appleMusicColor}
           isPlaying={isPlaying}
           isLoading={isPlaybackLoading}
           isBuffering={false}
+          onPlayPause={handlePlayPause}
+          onStop={async () => { await stop(); setIsPlayerExpanded(false); }}
+          onClose={() => setIsPlayerExpanded(false)}
           position={playbackState?.currentTime ?? 0}
           duration={playbackState?.duration ?? 0}
-          onSeek={() => {}}
-          onPlayPause={handlePlayPause}
-          onClose={() => setIsPlayerExpanded(false)}
-          showAdMob={true}
-          controls={{
-            seekSlider: true,
-            skipButtons: true,
-            speedControl: false,
-            sleepTimer: true,
-            favorite: true,
-            shuffle: true,
-            repeat: true,
-            addToLibrary: true,
-            queue: true,
-            airplay: true,
-          }}
+          onSeek={seekTo}
           onSkipBackward={skipToPrevious}
           onSkipForward={skipToNext}
           shuffleMode={shuffleMode}
           onShufflePress={() => setShuffleMode(shuffleMode === 'off' ? 'songs' : 'off')}
           repeatMode={repeatMode}
           onRepeatPress={() => {
-            // Cycle through: off -> all -> one -> off
             const nextMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
             setRepeatMode(nextMode);
           }}
+          isFavorite={false}
+          sleepTimerMinutes={undefined}
+          onSleepTimerPress={() => setSleepTimer(30)}
           isInLibrary={currentSongInLibrary}
           isAddingToLibrary={isAddingToLibrary}
           onAddToLibraryPress={handleAddToLibrary}
           queueCount={queue.length}
           onQueuePress={() => setIsQueueVisible(true)}
+          showAirPlay={true}
         />
       )}
 

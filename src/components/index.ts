@@ -41,8 +41,6 @@ export { HoldToNavigateWrapper } from './HoldToNavigateWrapper';
 // HomeScreen Grid
 export { HomeGridItem } from './HomeGridItem';
 export type { HomeGridItemProps } from './HomeGridItem';
-export { HomeMiniPlayer } from './HomeMiniPlayer';
-
 // Voice Focus components
 export { VoiceFocusable } from './VoiceFocusable';
 
@@ -62,12 +60,6 @@ export type { VoiceStepperProps } from './VoiceStepper';
 export { ContactSelectionModal } from './ContactSelectionModal';
 export type { ContactMatch, ContactSelectionMode, ContactSelectionModalProps } from './ContactSelectionModal';
 
-// Radio Player Overlay
-export { RadioPlayerOverlay } from './RadioPlayerOverlay';
-
-// Books Player Overlay (TTS read-aloud)
-export { BooksPlayerOverlay } from './BooksPlayerOverlay';
-
 // Media Indicator (small animated icon in headers for active audio/video)
 export { MediaIndicator } from './MediaIndicator';
 
@@ -78,11 +70,11 @@ export { PlayingWaveIcon } from './PlayingWaveIcon';
 export { SeekSlider } from './SeekSlider';
 export type { default as SeekSliderProps } from './SeekSlider';
 
-// Standardized Audio Player Components
-export { MiniPlayer } from './MiniPlayer';
-export type { MiniPlayerProps } from './MiniPlayer';
-export { ExpandedAudioPlayer } from './ExpandedAudioPlayer';
-export type { ExpandedAudioPlayerProps, AudioPlayerControls } from './ExpandedAudioPlayer';
+// Unified Audio Player Components
+export { UnifiedMiniPlayer } from './UnifiedMiniPlayer';
+export type { UnifiedMiniPlayerProps } from './UnifiedMiniPlayer';
+export { UnifiedFullPlayer } from './UnifiedFullPlayer';
+export type { UnifiedFullPlayerProps } from './UnifiedFullPlayer';
 
 // Panel-aware Modal (stays within panel on iPad Split View)
 export { PanelAwareModal } from './PanelAwareModal';

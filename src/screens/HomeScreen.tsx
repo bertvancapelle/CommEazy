@@ -49,7 +49,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { HomeGridItem, GRID_CELL_WIDTH } from '@/components/HomeGridItem';
-import { HomeMiniPlayer } from '@/components/HomeMiniPlayer';
+import { UnifiedMiniPlayer } from '@/components/UnifiedMiniPlayer';
+import { useActivePlayback } from '@/hooks/useActivePlayback';
 import {
   STATIC_MODULE_DEFINITIONS,
   mapModuleIconToIconName,
@@ -62,10 +63,6 @@ import { LoadingView } from '@/components/LoadingView';
 import { useModuleOrder } from '@/hooks/useModuleOrder';
 import { useModuleColorsContextSafe } from '@/contexts/ModuleColorsContext';
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
-import { useRadioContext } from '@/contexts/RadioContext';
-import { usePodcastContextSafe } from '@/contexts/PodcastContext';
-import { useBooksContextSafe } from '@/contexts/BooksContext';
-import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBadges } from '@/hooks/useModuleBadges';
 import {
@@ -83,7 +80,7 @@ import {
 export type HomeScreenVariant = 'fullscreen' | 'pane';
 
 interface HomeScreenProps {
-  /** Called when a module grid item is tapped (also used by HomeMiniPlayer) */
+  /** Called when a module grid item is tapped (also used by mini-player) */
   onModulePress: (moduleId: NavigationDestination) => void;
   /** Display variant — fullscreen (iPhone) or pane (iPad split view) */
   variant?: HomeScreenVariant;
@@ -152,29 +149,9 @@ export function HomeScreen({
 
   const gridRef = useRef<View>(null);
 
-  // Active audio detection
-  const radioCtx = useRadioContext();
-  const podcastCtx = usePodcastContextSafe();
-  const booksCtx = useBooksContextSafe();
-  const appleMusicCtx = useAppleMusicContextSafe();
-
-  // Determine which module is currently playing audio
-  const activeAudioModule = useMemo((): NavigationDestination | null => {
-    if (appleMusicCtx?.isPlaying && appleMusicCtx?.nowPlaying) return 'appleMusic';
-    if (radioCtx?.isPlaying && radioCtx?.currentStation) return 'radio';
-    if (podcastCtx?.isPlaying && podcastCtx?.currentEpisode) return 'podcast';
-    if (booksCtx?.isReading && booksCtx?.currentBook) return 'books';
-    return null;
-  }, [
-    appleMusicCtx?.isPlaying,
-    appleMusicCtx?.nowPlaying,
-    radioCtx?.isPlaying,
-    radioCtx?.currentStation,
-    podcastCtx?.isPlaying,
-    podcastCtx?.currentEpisode,
-    booksCtx?.isReading,
-    booksCtx?.currentBook,
-  ]);
+  // Active audio detection via unified hook
+  const activePlayback = useActivePlayback();
+  const activeAudioModule = activePlayback?.moduleId as NavigationDestination | null ?? null;
 
   // The modules to display — local order during wiggle, stored order otherwise
   const displayModules = isWiggleMode ? localOrder : orderedModules;
@@ -588,8 +565,21 @@ export function HomeScreen({
       )}
 
       {/* Mini-player — shown when audio is playing (fullscreen variant only) */}
-      {!isPaneVariant && !isWiggleMode && (
-        <HomeMiniPlayer onPress={onModulePress} />
+      {!isPaneVariant && !isWiggleMode && activePlayback && (
+        <UnifiedMiniPlayer
+          moduleId={activePlayback.moduleId}
+          artwork={activePlayback.artwork}
+          title={activePlayback.title}
+          subtitle={activePlayback.subtitle}
+          isPlaying={activePlayback.isPlaying}
+          isLoading={activePlayback.isLoading}
+          progressType={activePlayback.progressType}
+          progress={activePlayback.progress}
+          listenDuration={activePlayback.listenDuration}
+          onPress={() => onModulePress(activePlayback.moduleId as NavigationDestination)}
+          onPlayPause={activePlayback.onPlayPause}
+          onStop={activePlayback.onStop}
+        />
       )}
     </Wrapper>
   );
