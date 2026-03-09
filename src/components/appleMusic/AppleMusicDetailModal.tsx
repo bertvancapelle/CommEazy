@@ -60,6 +60,10 @@ interface AppleMusicDetailModalProps {
   initialData?: AppleMusicArtist | AppleMusicAlbum | AppleMusicPlaylist;
   /** Callback when user taps heart on a song — opens "add to list" flow */
   onAddToList?: (song: AppleMusicSong) => void;
+  /** Whether the album/artist is a favorite (for heart icon state) */
+  isAlbumOrArtistFavorite?: boolean;
+  /** Toggle album/artist favorite status */
+  onToggleAlbumOrArtistFavorite?: () => void;
 }
 
 // ============================================================
@@ -73,6 +77,8 @@ export function AppleMusicDetailModal({
   onClose,
   initialData,
   onAddToList,
+  isAlbumOrArtistFavorite,
+  onToggleAlbumOrArtistFavorite,
 }: AppleMusicDetailModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -284,6 +290,20 @@ export function AppleMusicDetailModal({
           <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
             {artistDetails.name}
           </Text>
+          {onToggleAlbumOrArtistFavorite && (
+            <IconButton
+              icon={isAlbumOrArtistFavorite ? 'heart-filled' : 'heart'}
+              isActive={isAlbumOrArtistFavorite}
+              size={28}
+              onPress={onToggleAlbumOrArtistFavorite}
+              accessibilityLabel={
+                isAlbumOrArtistFavorite
+                  ? t('modules.appleMusic.favorites.removeFromFavorites')
+                  : t('modules.appleMusic.favorites.addToFavorites')
+              }
+              style={styles.headerFavoriteButton}
+            />
+          )}
         </View>
 
         {/* Top Songs */}
@@ -340,6 +360,20 @@ export function AppleMusicDetailModal({
           <Text style={[styles.headerMeta, { color: themeColors.textSecondary }]}>
             {albumDetails.trackCount} {t('modules.appleMusic.search.tracks')}
           </Text>
+          {onToggleAlbumOrArtistFavorite && (
+            <IconButton
+              icon={isAlbumOrArtistFavorite ? 'heart-filled' : 'heart'}
+              isActive={isAlbumOrArtistFavorite}
+              size={28}
+              onPress={onToggleAlbumOrArtistFavorite}
+              accessibilityLabel={
+                isAlbumOrArtistFavorite
+                  ? t('modules.appleMusic.favorites.removeFromFavorites')
+                  : t('modules.appleMusic.favorites.addToFavorites')
+              }
+              style={styles.headerFavoriteButton}
+            />
+          )}
         </View>
 
         {/* Play All Button */}
@@ -574,6 +608,9 @@ const styles = StyleSheet.create({
   headerDescription: {
     ...typography.body,
     textAlign: 'center',
+    marginTop: spacing.sm,
+  },
+  headerFavoriteButton: {
     marginTop: spacing.sm,
   },
 

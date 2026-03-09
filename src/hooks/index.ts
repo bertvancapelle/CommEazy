@@ -47,6 +47,8 @@ export { useContactGroups, type UseContactGroupsReturn } from './useContactGroup
 // Music Favorites & Collections
 export { useMusicFavorites, type UseMusicFavoritesReturn } from './useMusicFavorites';
 export { useMusicCollections, type UseMusicCollectionsReturn } from './useMusicCollections';
+export { useAlbumFavorites, type UseAlbumFavoritesReturn } from './useAlbumFavorites';
+export { useArtistFavorites, type UseArtistFavoritesReturn } from './useArtistFavorites';
 
 // Siri integration
 export {

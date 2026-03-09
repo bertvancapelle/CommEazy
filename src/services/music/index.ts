@@ -35,6 +35,28 @@ export {
 } from './musicCollectionService';
 export type { MusicCollection } from './musicCollectionService';
 
+// Album Favorites CRUD
+export {
+  getFavoriteAlbums,
+  isFavoriteAlbum,
+  addFavoriteAlbum,
+  removeFavoriteAlbum,
+  toggleFavoriteAlbum,
+  getFavoriteAlbumIds,
+} from './musicAlbumFavoritesService';
+export type { MusicFavoriteAlbum } from './musicAlbumFavoritesService';
+
+// Artist Favorites CRUD
+export {
+  getFavoriteArtists,
+  isFavoriteArtist,
+  addFavoriteArtist,
+  removeFavoriteArtist,
+  toggleFavoriteArtist,
+  getFavoriteArtistIds,
+} from './musicArtistFavoritesService';
+export type { MusicFavoriteArtist } from './musicArtistFavoritesService';
+
 // Playlist Import
 export {
   importSinglePlaylist,
