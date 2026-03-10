@@ -2107,7 +2107,8 @@
         "postalCodePlaceholder": "00-001",
         "cityLabel": "Miasto",
         "cityPlaceholder": "Np. Warszawa",
-        "addressAutoFilled": "Adres pobrany z kontaktu"
+        "addressAutoFilled": "Adres pobrany z kontaktu",
+        "done": "Gotowe"
       },
       "search": {
         "tabOverview": "Przegląd",

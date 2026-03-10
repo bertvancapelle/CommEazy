@@ -2116,7 +2116,8 @@
         "postalCodePlaceholder": "0150",
         "cityLabel": "By",
         "cityPlaceholder": "F.eks. Oslo",
-        "addressAutoFilled": "Adresse hentet fra kontakt"
+        "addressAutoFilled": "Adresse hentet fra kontakt",
+        "done": "Ferdig"
       },
       "search": {
         "tabOverview": "Oversikt",

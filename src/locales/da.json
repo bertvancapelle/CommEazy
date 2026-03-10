@@ -2086,7 +2086,8 @@
         "postalCodePlaceholder": "1000",
         "cityLabel": "By",
         "cityPlaceholder": "F.eks. København",
-        "addressAutoFilled": "Adresse hentet fra kontakt"
+        "addressAutoFilled": "Adresse hentet fra kontakt",
+        "done": "Færdig"
       },
       "search": {
         "tabOverview": "Overblik",

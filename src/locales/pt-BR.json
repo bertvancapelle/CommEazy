@@ -2261,7 +2261,8 @@
         "postalCodePlaceholder": "01001-000",
         "cityLabel": "Cidade",
         "cityPlaceholder": "Ex. São Paulo",
-        "addressAutoFilled": "Endereço preenchido a partir do contato"
+        "addressAutoFilled": "Endereço preenchido a partir do contato",
+        "done": "Concluído"
       },
       "search": {
         "tabOverview": "Visão geral",

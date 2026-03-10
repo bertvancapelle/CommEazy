@@ -31,6 +31,7 @@ import {
   Platform,
   Alert,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -249,6 +250,97 @@ const formPickerStyles = StyleSheet.create({
 });
 
 // ============================================================
+// DateTimePickerModal — wraps DateTimePicker in a pageSheet modal
+// ============================================================
+
+interface DateTimePickerModalProps {
+  visible: boolean;
+  title: string;
+  value: Date;
+  mode: 'date' | 'time';
+  onChange: (event: DateTimePickerEvent, date?: Date) => void;
+  onClose: () => void;
+  minimumDate?: Date;
+  is24Hour?: boolean;
+  locale?: string;
+}
+
+function DateTimePickerModal({
+  visible,
+  title,
+  value,
+  mode,
+  onChange,
+  onClose,
+  minimumDate,
+  is24Hour,
+  locale: pickerLocale,
+}: DateTimePickerModalProps) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
+        {/* Header */}
+        <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
+            {title}
+          </Text>
+          <HapticTouchable
+            style={dateTimePickerModalStyles.doneButton}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.agenda.form.done')}
+          >
+            <Text style={[dateTimePickerModalStyles.doneButtonText, { color: themeColors.textPrimary }]}>
+              {t('modules.agenda.form.done')}
+            </Text>
+          </HapticTouchable>
+        </View>
+
+        {/* Picker */}
+        <View style={dateTimePickerModalStyles.pickerContainer}>
+          <DateTimePicker
+            value={value}
+            mode={mode}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onChange}
+            minimumDate={minimumDate}
+            is24Hour={is24Hour}
+            locale={pickerLocale}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const dateTimePickerModalStyles = StyleSheet.create({
+  doneButton: {
+    minWidth: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  doneButtonText: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+  pickerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+});
+
+// ============================================================
 // AgendaItemFormScreen
 // ============================================================
 
@@ -403,7 +495,6 @@ export function AgendaItemFormScreen({
 
   const handleDateChange = useCallback(
     (_event: DateTimePickerEvent, date?: Date) => {
-      if (Platform.OS === 'android') setShowDatePicker(false);
       if (date) setSelectedDate(date);
     },
     [],
@@ -411,7 +502,6 @@ export function AgendaItemFormScreen({
 
   const handleTimeChange = useCallback(
     (_event: DateTimePickerEvent, date?: Date) => {
-      if (Platform.OS === 'android') setShowTimePicker(false);
       if (date) setSelectedTime(date);
     },
     [],
@@ -419,7 +509,6 @@ export function AgendaItemFormScreen({
 
   const handleEndDateChange = useCallback(
     (_event: DateTimePickerEvent, date?: Date) => {
-      if (Platform.OS === 'android') setShowEndDatePicker(false);
       if (date) setEndDate(date);
     },
     [],
@@ -427,7 +516,6 @@ export function AgendaItemFormScreen({
 
   const handleMedTimeChange = useCallback(
     (_event: DateTimePickerEvent, date?: Date) => {
-      if (Platform.OS === 'android') setEditingMedTimeIndex(null);
       if (date && editingMedTimeIndex != null) {
         setMedicationTimes((prev) => {
           const next = [...prev];
@@ -616,6 +704,8 @@ export function AgendaItemFormScreen({
             placeholderTextColor={themeColors.disabled}
             autoCapitalize="sentences"
             returnKeyType="done"
+            blurOnSubmit={true}
+            onSubmitEditing={() => Keyboard.dismiss()}
             accessibilityLabel={t('modules.agenda.form.titleLabel')}
           />
         </View>
@@ -627,7 +717,7 @@ export function AgendaItemFormScreen({
           </Text>
           <HapticTouchable
             style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-            onPress={() => setShowDatePicker(true)}
+            onPress={() => { Keyboard.dismiss(); setShowDatePicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.dateLabel')}: ${formatDate(selectedDate, locale)}`}
           >
@@ -638,16 +728,7 @@ export function AgendaItemFormScreen({
           </HapticTouchable>
         </View>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleDateChange}
-            minimumDate={new Date(new Date().setHours(0, 0, 0, 0))}
-            locale={locale}
-          />
-        )}
+        {/* Date picker modal is rendered outside ScrollView */}
 
         {/* ====== Time (single) ====== */}
         {categoryDef.showTimeField && !categoryDef.showMultipleTimes && (
@@ -658,7 +739,7 @@ export function AgendaItemFormScreen({
               </Text>
               <HapticTouchable
                 style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-                onPress={() => setShowTimePicker(true)}
+                onPress={() => { Keyboard.dismiss(); setShowTimePicker(true); }}
                 accessibilityRole="button"
                 accessibilityLabel={`${t('modules.agenda.form.timeLabel')}: ${formatTime(selectedTime)}`}
               >
@@ -669,16 +750,7 @@ export function AgendaItemFormScreen({
               </HapticTouchable>
             </View>
 
-            {showTimePicker && (
-              <DateTimePicker
-                value={selectedTime}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleTimeChange}
-                is24Hour={true}
-                locale={locale}
-              />
-            )}
+            {/* Time picker modal is rendered outside ScrollView */}
           </>
         )}
 
@@ -695,7 +767,7 @@ export function AgendaItemFormScreen({
                     styles.pickerRow,
                     { borderColor: themeColors.border, backgroundColor: themeColors.surface, flex: 1 },
                   ]}
-                  onPress={() => setEditingMedTimeIndex(index)}
+                  onPress={() => { Keyboard.dismiss(); setEditingMedTimeIndex(index); }}
                   accessibilityRole="button"
                   accessibilityLabel={`${t('modules.agenda.form.timeLabel')} ${index + 1}: ${formatTime(medTime)}`}
                 >
@@ -717,16 +789,7 @@ export function AgendaItemFormScreen({
               </View>
             ))}
 
-            {editingMedTimeIndex != null && (
-              <DateTimePicker
-                value={medicationTimes[editingMedTimeIndex] ?? new Date()}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleMedTimeChange}
-                is24Hour={true}
-                locale={locale}
-              />
-            )}
+            {/* Medication time picker modal is rendered outside ScrollView */}
 
             <HapticTouchable
               style={[styles.addTimeButton, { borderColor: accentColor.primary }]}
@@ -749,7 +812,7 @@ export function AgendaItemFormScreen({
           </Text>
           <HapticTouchable
             style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-            onPress={() => setShowRepeatPicker(true)}
+            onPress={() => { Keyboard.dismiss(); setShowRepeatPicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.repeatLabel')}: ${t(REPEAT_OPTIONS.find(o => o.value === repeatType)?.labelKey ?? 'modules.agenda.repeat.none')}`}
           >
@@ -768,7 +831,7 @@ export function AgendaItemFormScreen({
             </Text>
             <HapticTouchable
               style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-              onPress={() => setShowEndDatePicker(true)}
+              onPress={() => { Keyboard.dismiss(); setShowEndDatePicker(true); }}
               accessibilityRole="button"
               accessibilityLabel={`${t('modules.agenda.form.endDateLabel')}: ${endDate ? formatDate(endDate, locale) : t('modules.agenda.form.noEndDate')}`}
             >
@@ -797,16 +860,7 @@ export function AgendaItemFormScreen({
           </View>
         )}
 
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={endDate ?? new Date(selectedDate.getTime() + 30 * 24 * 60 * 60 * 1000)}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleEndDateChange}
-            minimumDate={selectedDate}
-            locale={locale}
-          />
-        )}
+        {/* End date picker modal is rendered outside ScrollView */}
 
         {/* ====== Reminder ====== */}
         <View style={styles.fieldContainer}>
@@ -815,7 +869,7 @@ export function AgendaItemFormScreen({
           </Text>
           <HapticTouchable
             style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-            onPress={() => setShowReminderPicker(true)}
+            onPress={() => { Keyboard.dismiss(); setShowReminderPicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.reminderLabel')}: ${t(REMINDER_OPTIONS.find(o => o.value === reminderOffset)?.labelKey ?? '')}`}
           >
@@ -862,7 +916,7 @@ export function AgendaItemFormScreen({
             {/* Add contact button */}
             <HapticTouchable
               style={[styles.addContactButton, { borderColor: accentColor.primary }]}
-              onPress={() => setShowContactPicker(true)}
+              onPress={() => { Keyboard.dismiss(); setShowContactPicker(true); }}
               accessibilityRole="button"
               accessibilityLabel={t('modules.agenda.form.addContact')}
             >
@@ -900,6 +954,8 @@ export function AgendaItemFormScreen({
               placeholderTextColor={themeColors.disabled}
               autoCapitalize="sentences"
               returnKeyType="next"
+              blurOnSubmit={true}
+              onSubmitEditing={() => Keyboard.dismiss()}
               accessibilityLabel={t('modules.agenda.form.locationNameLabel')}
             />
 
@@ -923,6 +979,8 @@ export function AgendaItemFormScreen({
                 placeholderTextColor={themeColors.disabled}
                 autoCapitalize="words"
                 returnKeyType="next"
+                blurOnSubmit={true}
+                onSubmitEditing={() => Keyboard.dismiss()}
                 accessibilityLabel={t('modules.agenda.form.streetLabel')}
               />
             </View>
@@ -949,6 +1007,8 @@ export function AgendaItemFormScreen({
                     placeholderTextColor={themeColors.disabled}
                     autoCapitalize="characters"
                     returnKeyType="next"
+                    blurOnSubmit={true}
+                    onSubmitEditing={() => Keyboard.dismiss()}
                     accessibilityLabel={t('modules.agenda.form.postalCodeLabel')}
                   />
                 </View>
@@ -971,6 +1031,8 @@ export function AgendaItemFormScreen({
                     placeholderTextColor={themeColors.disabled}
                     autoCapitalize="words"
                     returnKeyType="done"
+                    blurOnSubmit={true}
+                    onSubmitEditing={() => Keyboard.dismiss()}
                     accessibilityLabel={t('modules.agenda.form.cityLabel')}
                   />
                 </View>
@@ -998,6 +1060,51 @@ export function AgendaItemFormScreen({
           </Text>
         </HapticTouchable>
       </ScrollView>
+
+      {/* DateTime Picker Modals */}
+      <DateTimePickerModal
+        visible={showDatePicker}
+        title={t('modules.agenda.form.dateLabel')}
+        value={selectedDate}
+        mode="date"
+        onChange={handleDateChange}
+        onClose={() => setShowDatePicker(false)}
+        minimumDate={new Date(new Date().setHours(0, 0, 0, 0))}
+        locale={locale}
+      />
+
+      <DateTimePickerModal
+        visible={showTimePicker}
+        title={t('modules.agenda.form.timeLabel')}
+        value={selectedTime}
+        mode="time"
+        onChange={handleTimeChange}
+        onClose={() => setShowTimePicker(false)}
+        is24Hour={true}
+        locale={locale}
+      />
+
+      <DateTimePickerModal
+        visible={editingMedTimeIndex != null}
+        title={`${t('modules.agenda.form.timeLabel')} ${(editingMedTimeIndex ?? 0) + 1}`}
+        value={editingMedTimeIndex != null ? (medicationTimes[editingMedTimeIndex] ?? new Date()) : new Date()}
+        mode="time"
+        onChange={handleMedTimeChange}
+        onClose={() => setEditingMedTimeIndex(null)}
+        is24Hour={true}
+        locale={locale}
+      />
+
+      <DateTimePickerModal
+        visible={showEndDatePicker}
+        title={t('modules.agenda.form.endDateLabel')}
+        value={endDate ?? new Date(selectedDate.getTime() + 30 * 24 * 60 * 60 * 1000)}
+        mode="date"
+        onChange={handleEndDateChange}
+        onClose={() => setShowEndDatePicker(false)}
+        minimumDate={selectedDate}
+        locale={locale}
+      />
 
       {/* Picker Modals */}
       <FormPickerModal

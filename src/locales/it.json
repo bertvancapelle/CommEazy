@@ -2190,7 +2190,8 @@
         "postalCodePlaceholder": "00100",
         "cityLabel": "Città",
         "cityPlaceholder": "Es. Roma",
-        "addressAutoFilled": "Indirizzo preso dal contatto"
+        "addressAutoFilled": "Indirizzo preso dal contatto",
+        "done": "Fatto"
       },
       "search": {
         "tabOverview": "Panoramica",

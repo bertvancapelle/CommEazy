@@ -2259,7 +2259,8 @@
         "postalCodePlaceholder": "1000-001",
         "cityLabel": "Cidade",
         "cityPlaceholder": "Ex. Lisboa",
-        "addressAutoFilled": "Morada preenchida a partir do contacto"
+        "addressAutoFilled": "Morada preenchida a partir do contacto",
+        "done": "Concluído"
       },
       "search": {
         "tabOverview": "Visão geral",

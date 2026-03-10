@@ -2252,7 +2252,8 @@
         "postalCodePlaceholder": "1234 AB",
         "cityLabel": "Plaats",
         "cityPlaceholder": "Bijv. Amsterdam",
-        "addressAutoFilled": "Adres overgenomen van contact"
+        "addressAutoFilled": "Adres overgenomen van contact",
+        "done": "Klaar"
       },
       "search": {
         "tabOverview": "Overzicht",

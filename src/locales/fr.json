@@ -2242,7 +2242,8 @@
         "postalCodePlaceholder": "75001",
         "cityLabel": "Ville",
         "cityPlaceholder": "Ex. Paris",
-        "addressAutoFilled": "Adresse reprise du contact"
+        "addressAutoFilled": "Adresse reprise du contact",
+        "done": "Terminé"
       },
       "search": {
         "tabOverview": "Aperçu",

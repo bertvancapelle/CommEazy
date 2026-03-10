@@ -2257,7 +2257,8 @@
         "postalCodePlaceholder": "12345",
         "cityLabel": "City",
         "cityPlaceholder": "E.g. London",
-        "addressAutoFilled": "Address filled from contact"
+        "addressAutoFilled": "Address filled from contact",
+        "done": "Done"
       },
       "search": {
         "tabOverview": "Overview",

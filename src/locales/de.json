@@ -2242,7 +2242,8 @@
         "postalCodePlaceholder": "10115",
         "cityLabel": "Stadt",
         "cityPlaceholder": "Z.B. Berlin",
-        "addressAutoFilled": "Adresse vom Kontakt übernommen"
+        "addressAutoFilled": "Adresse vom Kontakt übernommen",
+        "done": "Fertig"
       },
       "search": {
         "tabOverview": "Übersicht",

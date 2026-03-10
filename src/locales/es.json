@@ -2242,7 +2242,8 @@
         "postalCodePlaceholder": "28001",
         "cityLabel": "Ciudad",
         "cityPlaceholder": "Ej. Madrid",
-        "addressAutoFilled": "Dirección tomada del contacto"
+        "addressAutoFilled": "Dirección tomada del contacto",
+        "done": "Listo"
       },
       "search": {
         "tabOverview": "Resumen",

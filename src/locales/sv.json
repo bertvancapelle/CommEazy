@@ -2086,7 +2086,8 @@
         "postalCodePlaceholder": "111 22",
         "cityLabel": "Stad",
         "cityPlaceholder": "T.ex. Stockholm",
-        "addressAutoFilled": "Adress hämtad från kontakt"
+        "addressAutoFilled": "Adress hämtad från kontakt",
+        "done": "Klar"
       },
       "search": {
         "tabOverview": "Översikt",
