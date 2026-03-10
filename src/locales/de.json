@@ -2174,7 +2174,7 @@
       "emptySubtitle": "Fügen Sie einen Termin, eine Erinnerung oder ein Medikament hinzu.",
       "emptyDay": "Tag ohne Termine",
       "viewPast": "Vergangene anzeigen",
-      "addItem": "+ Neuer Termin",
+      "addItem": "Neuer Termin",
       "years": "Jahre",
       "moreItems": "Und {{count}} weitere...",
       "categories": {
@@ -2230,7 +2230,7 @@
         "removeTime": "Entfernen",
         "titleRequired": "Bitte Terminname eingeben",
         "contactsLabel": "Kontakte",
-        "addContact": "+ Kontakt hinzufügen",
+        "addContact": "Kontakt hinzufügen",
         "removeContact": "{{name}} entfernen",
         "selectContacts": "Kontakte auswählen",
         "noContacts": "Keine Kontakte gefunden",

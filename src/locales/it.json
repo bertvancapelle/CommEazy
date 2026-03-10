@@ -2122,7 +2122,7 @@
       "emptySubtitle": "Aggiungi un appuntamento, promemoria o farmaco per iniziare.",
       "emptyDay": "Giornata senza appuntamenti",
       "viewPast": "Visualizza passati",
-      "addItem": "+ Nuovo appuntamento",
+      "addItem": "Nuovo appuntamento",
       "years": "anni",
       "moreItems": "E altri {{count}}...",
       "categories": {
@@ -2178,7 +2178,7 @@
         "removeTime": "Rimuovi",
         "titleRequired": "Inserisci un nome per l'appuntamento",
         "contactsLabel": "Contatti",
-        "addContact": "+ Aggiungi contatto",
+        "addContact": "Aggiungi contatto",
         "removeContact": "Rimuovi {{name}}",
         "selectContacts": "Seleziona contatti",
         "noContacts": "Nessun contatto trovato",

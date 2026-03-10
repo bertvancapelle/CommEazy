@@ -2174,7 +2174,7 @@
       "emptySubtitle": "Añade una cita, recordatorio o medicamento para empezar.",
       "emptyDay": "Día sin citas",
       "viewPast": "Ver pasados",
-      "addItem": "+ Nueva cita",
+      "addItem": "Nueva cita",
       "years": "años",
       "moreItems": "Y {{count}} más...",
       "categories": {
@@ -2230,7 +2230,7 @@
         "removeTime": "Eliminar",
         "titleRequired": "Introduzca un nombre de cita",
         "contactsLabel": "Contactos",
-        "addContact": "+ Añadir contacto",
+        "addContact": "Añadir contacto",
         "removeContact": "Eliminar {{name}}",
         "selectContacts": "Seleccionar contactos",
         "noContacts": "No se encontraron contactos",

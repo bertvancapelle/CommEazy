@@ -959,7 +959,9 @@ export function AgendaItemFormScreen({
                         style={styles.contactChipAvatar}
                       />
                     ) : (
-                      <View style={[styles.contactChipAvatarFallback, { backgroundColor: accentColor.primary }]} />
+                      <View style={[styles.contactChipAvatarFallback, { backgroundColor: accentColor.primary }]}>
+                        <Icon name="person" size={16} color={colors.textOnPrimary} />
+                      </View>
                     )}
                     <Text style={[styles.contactChipText, { color: accentColor.primary }]}>
                       {contact.displayName}
@@ -1271,19 +1273,16 @@ export function AgendaItemFormScreen({
                     accessibilityLabel={contact.displayName}
                   >
                     <View style={styles.contactPickerRow}>
-                      <Icon
-                        name={isSelected ? 'check-square' : 'square'}
-                        size={22}
-                        color={isSelected ? accentColor.primary : themeColors.textTertiary}
-                      />
-                      {/* Contact photo or empty circle fallback */}
+                      {/* Contact photo or person icon fallback */}
                       {contact.photoPath ? (
                         <Image
                           source={{ uri: contact.photoPath }}
                           style={styles.contactPickerAvatar}
                         />
                       ) : (
-                        <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]} />
+                        <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
+                          <Icon name="person" size={20} color={accentColor.primary} />
+                        </View>
                       )}
                       <View style={styles.contactPickerInfo}>
                         <Text
@@ -1301,6 +1300,11 @@ export function AgendaItemFormScreen({
                           </Text>
                         )}
                       </View>
+                      <Icon
+                        name={isSelected ? 'check-square' : 'square'}
+                        size={24}
+                        color={isSelected ? accentColor.primary : themeColors.textTertiary}
+                      />
                     </View>
                   </HapticTouchable>
                 );

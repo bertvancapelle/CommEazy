@@ -2039,7 +2039,7 @@
       "emptySubtitle": "Dodaj spotkanie, przypomnienie lub lek, aby zacząć.",
       "emptyDay": "Dzień bez spotkań",
       "viewPast": "Pokaż minione",
-      "addItem": "+ Nowe spotkanie",
+      "addItem": "Nowe spotkanie",
       "years": "lat",
       "moreItems": "I jeszcze {{count}} więcej...",
       "categories": {
@@ -2095,7 +2095,7 @@
         "removeTime": "Usuń",
         "titleRequired": "Wpisz nazwę spotkania",
         "contactsLabel": "Kontakty",
-        "addContact": "+ Dodaj kontakt",
+        "addContact": "Dodaj kontakt",
         "removeContact": "Usuń {{name}}",
         "selectContacts": "Wybierz kontakty",
         "noContacts": "Nie znaleziono kontaktów",

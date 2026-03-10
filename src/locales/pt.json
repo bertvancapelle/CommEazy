@@ -2191,7 +2191,7 @@
       "emptySubtitle": "Adicione um compromisso, lembrete ou medicamento para começar.",
       "emptyDay": "Dia sem compromissos",
       "viewPast": "Ver anteriores",
-      "addItem": "+ Novo compromisso",
+      "addItem": "Novo compromisso",
       "years": "anos",
       "moreItems": "E mais {{count}}...",
       "categories": {
@@ -2247,7 +2247,7 @@
         "removeTime": "Remover",
         "titleRequired": "Introduza um nome de compromisso",
         "contactsLabel": "Contactos",
-        "addContact": "+ Adicionar contacto",
+        "addContact": "Adicionar contacto",
         "removeContact": "Remover {{name}}",
         "selectContacts": "Selecionar contactos",
         "noContacts": "Nenhum contacto encontrado",

@@ -2018,7 +2018,7 @@
       "emptySubtitle": "Lägg till ett möte, påminnelse eller medicin för att komma igång.",
       "emptyDay": "Dag utan möten",
       "viewPast": "Visa tidigare",
-      "addItem": "+ Nytt möte",
+      "addItem": "Nytt möte",
       "years": "år",
       "moreItems": "Och {{count}} till...",
       "categories": {
@@ -2074,7 +2074,7 @@
         "removeTime": "Ta bort",
         "titleRequired": "Ange ett mötesnamn",
         "contactsLabel": "Kontakter",
-        "addContact": "+ Lägg till kontakt",
+        "addContact": "Lägg till kontakt",
         "removeContact": "Ta bort {{name}}",
         "selectContacts": "Välj kontakter",
         "noContacts": "Inga kontakter hittades",

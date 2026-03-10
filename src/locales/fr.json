@@ -2174,7 +2174,7 @@
       "emptySubtitle": "Ajoutez un rendez-vous, un rappel ou un médicament pour commencer.",
       "emptyDay": "Journée sans rendez-vous",
       "viewPast": "Voir le passé",
-      "addItem": "+ Nouveau rendez-vous",
+      "addItem": "Nouveau rendez-vous",
       "years": "ans",
       "moreItems": "Et {{count}} de plus...",
       "categories": {
@@ -2230,7 +2230,7 @@
         "removeTime": "Supprimer",
         "titleRequired": "Veuillez saisir un nom de rendez-vous",
         "contactsLabel": "Contacts",
-        "addContact": "+ Ajouter un contact",
+        "addContact": "Ajouter un contact",
         "removeContact": "Supprimer {{name}}",
         "selectContacts": "Sélectionner des contacts",
         "noContacts": "Aucun contact trouvé",

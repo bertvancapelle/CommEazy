@@ -2184,7 +2184,7 @@
       "emptySubtitle": "Voeg een afspraak, herinnering of medicijn toe om te beginnen.",
       "emptyDay": "Dag zonder afspraken",
       "viewPast": "Afgelopen bekijken",
-      "addItem": "+ Nieuwe afspraak",
+      "addItem": "Nieuwe afspraak",
       "years": "jaar",
       "moreItems": "En nog {{count}} meer...",
       "categories": {
@@ -2240,7 +2240,7 @@
         "removeTime": "Verwijder",
         "titleRequired": "Vul naam afspraak in",
         "contactsLabel": "Contacten",
-        "addContact": "+ Contact toevoegen",
+        "addContact": "Contact toevoegen",
         "removeContact": "{{name}} verwijderen",
         "selectContacts": "Kies contacten",
         "noContacts": "Geen contacten gevonden",

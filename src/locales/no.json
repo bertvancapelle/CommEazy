@@ -2048,7 +2048,7 @@
       "emptySubtitle": "Legg til en avtale, påminnelse eller medisin for å komme i gang.",
       "emptyDay": "Dag uten avtaler",
       "viewPast": "Vis tidligere",
-      "addItem": "+ Ny avtale",
+      "addItem": "Ny avtale",
       "years": "år",
       "moreItems": "Og {{count}} til...",
       "categories": {
@@ -2104,7 +2104,7 @@
         "removeTime": "Fjern",
         "titleRequired": "Vennligst skriv inn et avtalenavn",
         "contactsLabel": "Kontakter",
-        "addContact": "+ Legg til kontakt",
+        "addContact": "Legg til kontakt",
         "removeContact": "Fjern {{name}}",
         "selectContacts": "Velg kontakter",
         "noContacts": "Ingen kontakter funnet",

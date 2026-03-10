@@ -2189,7 +2189,7 @@
       "emptySubtitle": "Add an appointment, reminder or medication to get started.",
       "emptyDay": "No appointments today",
       "viewPast": "View past",
-      "addItem": "+ New appointment",
+      "addItem": "New appointment",
       "years": "years",
       "moreItems": "And {{count}} more...",
       "categories": {
@@ -2245,7 +2245,7 @@
         "removeTime": "Remove",
         "titleRequired": "Please enter an appointment name",
         "contactsLabel": "Contacts",
-        "addContact": "+ Add contact",
+        "addContact": "Add contact",
         "removeContact": "Remove {{name}}",
         "selectContacts": "Select contacts",
         "noContacts": "No contacts found",

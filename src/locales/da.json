@@ -2018,7 +2018,7 @@
       "emptySubtitle": "Tilføj en aftale, påmindelse eller medicin for at komme i gang.",
       "emptyDay": "Dag uden aftaler",
       "viewPast": "Vis tidligere",
-      "addItem": "+ Ny aftale",
+      "addItem": "Ny aftale",
       "years": "år",
       "moreItems": "Og {{count}} mere...",
       "categories": {
@@ -2074,7 +2074,7 @@
         "removeTime": "Fjern",
         "titleRequired": "Indtast venligst et aftalenavn",
         "contactsLabel": "Kontakter",
-        "addContact": "+ Tilføj kontakt",
+        "addContact": "Tilføj kontakt",
         "removeContact": "Fjern {{name}}",
         "selectContacts": "Vælg kontakter",
         "noContacts": "Ingen kontakter fundet",
