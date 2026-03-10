@@ -2092,7 +2092,22 @@
         "clearEndDate": "Usuń datę końcową",
         "addTime": "+ Dodaj godzinę",
         "removeTime": "Usuń",
-        "titleRequired": "Wpisz tytuł"
+        "titleRequired": "Wpisz tytuł",
+        "contactsLabel": "Kontakty",
+        "addContact": "+ Dodaj kontakt",
+        "removeContact": "Usuń {{name}}",
+        "selectContacts": "Wybierz kontakty",
+        "noContacts": "Nie znaleziono kontaktów",
+        "addressSectionTitle": "Miejsce / Adres",
+        "locationNameLabel": "Nazwa miejsca",
+        "locationNamePlaceholder": "Np. Gabinet Dr. Kowalski",
+        "streetLabel": "Ulica i numer",
+        "streetPlaceholder": "Np. ul. Marszałkowska 12",
+        "postalCodeLabel": "Kod pocztowy",
+        "postalCodePlaceholder": "00-001",
+        "cityLabel": "Miasto",
+        "cityPlaceholder": "Np. Warszawa",
+        "addressAutoFilled": "Adres pobrany z kontaktu"
       },
       "search": {
         "tabOverview": "Przegląd",

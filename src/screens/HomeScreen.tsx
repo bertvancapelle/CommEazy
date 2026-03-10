@@ -105,6 +105,11 @@ const CELL_CONTENT_HEIGHT = 96 + spacing.sm * 2; // 112pt — touchable minHeigh
 const CELL_MARGIN_BOTTOM = spacing.md; // 16pt
 const ROW_HEIGHT = CELL_CONTENT_HEIGHT + CELL_MARGIN_BOTTOM; // 128pt
 
+// Auto-scroll edge zones when dragging near top/bottom of visible ScrollView
+const AUTO_SCROLL_EDGE_ZONE = 80; // 80pt from top/bottom edge triggers auto-scroll
+const AUTO_SCROLL_MAX_SPEED = 8; // Max pixels per frame (~480pt/sec at 60fps)
+const AUTO_SCROLL_MIN_SPEED = 2; // Min pixels per frame when barely in zone
+
 // ============================================================
 // Component
 // ============================================================
@@ -136,9 +141,14 @@ export function HomeScreen({
   const dragOrderRef = useRef<NavigationDestination[]>([]); // Live order during drag
   const dropTargetIndexRef = useRef<number>(-1); // Current drop target slot
   const dragStartGridPosRef = useRef({ x: 0, y: 0 }); // Grid position at drag start
+  const lastGestureRef = useRef({ dx: 0, dy: 0, moveX: 0, moveY: 0 }); // Last gesture for auto-scroll overlay updates
 
   // Track the grid container's position on screen
   const gridLayoutRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  // Scroll offset that was active when gridLayoutRef was measured
+  const gridMeasuredAtScrollRef = useRef(0);
+  // ScrollView's layout Y within Wrapper (header + hint row height) — scroll-independent
+  const svLayoutYRef = useRef(0);
   // Track scroll offset
   const scrollOffsetRef = useRef(0);
   // Track wiggle mode in a ref for PanResponder (avoids recreation)
@@ -148,6 +158,15 @@ export function HomeScreen({
   triggerFeedbackRef.current = triggerFeedback;
 
   const gridRef = useRef<View>(null);
+  const containerRef = useRef<View>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  // Auto-scroll state — all refs to avoid PanResponder recreation
+  const autoScrollTimerRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
+  const autoScrollSpeedRef = useRef(0); // +speed = scroll down, -speed = scroll up
+  // Track ScrollView visible bounds (measured via onLayout)
+  const scrollViewLayoutRef = useRef({ y: 0, height: 0 });
+  // Track total content height for scroll bounds clamping
+  const scrollContentHeightRef = useRef(0);
 
   // Active audio detection via unified hook
   const activePlayback = useActivePlayback();
@@ -201,7 +220,9 @@ export function HomeScreen({
   /** Determine which grid slot a screen-space touch position maps to */
   const getIndexFromPosition = useCallback((pageX: number, pageY: number, itemCount: number): number => {
     const gridX = pageX - gridLayoutRef.current.x;
-    const gridY = pageY - gridLayoutRef.current.y + scrollOffsetRef.current;
+    // gridLayoutRef.y was measured at scroll offset gridMeasuredAtScrollRef.
+    // Content Y = fingerScreenY - gridLayoutRef.y + (currentScroll - measureScroll)
+    const gridY = pageY - gridLayoutRef.current.y + (scrollOffsetRef.current - gridMeasuredAtScrollRef.current);
 
     // Use floor to get the cell the finger is inside (not nearest center)
     const col = Math.floor((gridX - GRID_PADDING_H + GRID_GAP / 2) / (GRID_CELL_WIDTH + GRID_GAP));
@@ -218,6 +239,116 @@ export function HomeScreen({
   // Wiggle mode enter/exit
   // ============================================================
 
+  /** Re-measure grid layout after layout changes (e.g., hint row appears) */
+  const remeasureGridOffset = useCallback(() => {
+    requestAnimationFrame(() => {
+      gridRef.current?.measureInWindow((gx, gy, width, height) => {
+        gridLayoutRef.current = { x: gx, y: gy, width, height };
+        gridMeasuredAtScrollRef.current = scrollOffsetRef.current;
+      });
+    });
+  }, []);
+
+  // ============================================================
+  // Auto-scroll during drag
+  // ============================================================
+
+  /** Stop the auto-scroll animation loop */
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollTimerRef.current !== null) {
+      cancelAnimationFrame(autoScrollTimerRef.current);
+      autoScrollTimerRef.current = null;
+    }
+    autoScrollSpeedRef.current = 0;
+  }, []);
+
+  /** Start the auto-scroll animation loop (runs every frame via rAF) */
+  const startAutoScroll = useCallback(() => {
+    // Already running
+    if (autoScrollTimerRef.current !== null) return;
+
+    const tick = () => {
+      const speed = autoScrollSpeedRef.current;
+      if (speed === 0) {
+        autoScrollTimerRef.current = null;
+        return;
+      }
+
+      const currentOffset = scrollOffsetRef.current;
+      const maxOffset = Math.max(0, scrollContentHeightRef.current - scrollViewLayoutRef.current.height);
+      const newOffset = Math.max(0, Math.min(maxOffset, currentOffset + speed));
+
+      if (newOffset !== currentOffset) {
+        scrollViewRef.current?.scrollTo({ y: newOffset, animated: false });
+        // Note: scrollOffsetRef won't be updated until the onScroll fires.
+        // We update it here manually so the overlay position calc is accurate this frame.
+        scrollOffsetRef.current = newOffset;
+
+        // Re-position overlay to compensate for scroll change (finger hasn't moved)
+        if (isDraggingRef.current) {
+          const { dx, dy, moveX, moveY } = lastGestureRef.current;
+          const newX = dragStartGridPosRef.current.x + dx;
+          const newY = svLayoutYRef.current + dragStartGridPosRef.current.y - newOffset + dy;
+          dragPosition.setValue({ x: newX, y: newY });
+
+          // Update drop target as grid scrolls under the finger
+          const currentOrder = dragOrderRef.current;
+          const targetIndex = getIndexFromPosition(moveX, moveY, currentOrder.length);
+          const draggedId = draggedModuleIdRef.current;
+          const currentIndex = draggedId ? currentOrder.indexOf(draggedId) : -1;
+
+          if (targetIndex !== currentIndex && targetIndex >= 0 && draggedId) {
+            const reordered = [...currentOrder];
+            reordered.splice(currentIndex, 1);
+            reordered.splice(targetIndex, 0, draggedId);
+            dragOrderRef.current = reordered;
+            void triggerFeedbackRef.current('tap');
+          }
+
+          if (targetIndex !== dropTargetIndexRef.current) {
+            dropTargetIndexRef.current = targetIndex;
+            setDragRenderTick(prev => prev + 1);
+          }
+        }
+      }
+
+      autoScrollTimerRef.current = requestAnimationFrame(tick);
+    };
+
+    autoScrollTimerRef.current = requestAnimationFrame(tick);
+  }, [dragPosition, getIndexFromPosition]);
+
+  /**
+   * Check if finger is in an auto-scroll edge zone and set speed accordingly.
+   * Called from onPanResponderMove with the finger's screen-space Y.
+   */
+  const updateAutoScroll = useCallback((fingerScreenY: number) => {
+    const svTop = scrollViewLayoutRef.current.y;
+    const svHeight = scrollViewLayoutRef.current.height;
+    const svBottom = svTop + svHeight;
+
+    // Distance into the top edge zone (positive = inside zone)
+    const topZoneDepth = AUTO_SCROLL_EDGE_ZONE - (fingerScreenY - svTop);
+    // Distance into the bottom edge zone (positive = inside zone)
+    const bottomZoneDepth = AUTO_SCROLL_EDGE_ZONE - (svBottom - fingerScreenY);
+
+    if (topZoneDepth > 0) {
+      // Finger is in top edge zone → scroll UP (negative speed)
+      const ratio = Math.min(1, topZoneDepth / AUTO_SCROLL_EDGE_ZONE);
+      autoScrollSpeedRef.current = -(AUTO_SCROLL_MIN_SPEED + ratio * (AUTO_SCROLL_MAX_SPEED - AUTO_SCROLL_MIN_SPEED));
+      startAutoScroll();
+    } else if (bottomZoneDepth > 0) {
+      // Finger is in bottom edge zone → scroll DOWN (positive speed)
+      const ratio = Math.min(1, bottomZoneDepth / AUTO_SCROLL_EDGE_ZONE);
+      autoScrollSpeedRef.current = AUTO_SCROLL_MIN_SPEED + ratio * (AUTO_SCROLL_MAX_SPEED - AUTO_SCROLL_MIN_SPEED);
+      startAutoScroll();
+    } else {
+      // Finger is in the safe middle zone → stop auto-scroll
+      autoScrollSpeedRef.current = 0;
+      // Timer will self-stop on next tick when speed === 0
+    }
+  }, [startAutoScroll]);
+
   const handleEnterWiggleMode = useCallback(() => {
     void triggerFeedback('warning');
     const order = [...orderedModules];
@@ -225,10 +356,13 @@ export function HomeScreen({
     dragOrderRef.current = order;
     isWiggleModeRef.current = true;
     setIsWiggleMode(true);
-  }, [orderedModules, triggerFeedback]);
+    // Re-measure after hint row appears (layout shift)
+    remeasureGridOffset();
+  }, [orderedModules, triggerFeedback, remeasureGridOffset]);
 
   const handleExitWiggleMode = useCallback(async () => {
     void triggerFeedback('success');
+    stopAutoScroll();
     isWiggleModeRef.current = false;
     setIsWiggleMode(false);
     isDraggingRef.current = false;
@@ -236,7 +370,7 @@ export function HomeScreen({
     dropTargetIndexRef.current = -1;
     setDragRenderTick(0);
     await updateOrder(localOrder);
-  }, [localOrder, updateOrder, triggerFeedback]);
+  }, [localOrder, updateOrder, triggerFeedback, stopAutoScroll]);
 
   const handleModulePress = useCallback((moduleId: NavigationDestination) => {
     if (!isWiggleMode) {
@@ -277,10 +411,11 @@ export function HomeScreen({
         const gridPos = getGridPosition(touchedIndex);
         dragStartGridPosRef.current = gridPos;
 
-        // Set overlay position (grid-relative, adjusted for scroll)
+        // Set overlay position: svLayoutY + gridContentY - scrollOffset
+        // svLayoutYRef = ScrollView's layout Y in Wrapper (scroll-independent)
         dragPosition.setValue({
           x: gridPos.x,
-          y: gridPos.y - scrollOffsetRef.current,
+          y: svLayoutYRef.current + gridPos.y - scrollOffsetRef.current,
         });
 
         // Scale up
@@ -296,10 +431,16 @@ export function HomeScreen({
       onPanResponderMove: (_evt, gs) => {
         if (!isDraggingRef.current || !draggedModuleIdRef.current) return;
 
-        // Update overlay position
+        // Save gesture state for auto-scroll overlay updates
+        lastGestureRef.current = { dx: gs.dx, dy: gs.dy, moveX: gs.moveX, moveY: gs.moveY };
+
+        // Update overlay position (svLayoutY + grid content Y - scroll + gesture delta)
         const newX = dragStartGridPosRef.current.x + gs.dx;
-        const newY = dragStartGridPosRef.current.y - scrollOffsetRef.current + gs.dy;
+        const newY = svLayoutYRef.current + dragStartGridPosRef.current.y - scrollOffsetRef.current + gs.dy;
         dragPosition.setValue({ x: newX, y: newY });
+
+        // Auto-scroll when finger is near top/bottom edge of ScrollView
+        updateAutoScroll(gs.moveY);
 
         // Determine target slot from finger position
         const currentOrder = dragOrderRef.current;
@@ -327,6 +468,9 @@ export function HomeScreen({
       },
       onPanResponderRelease: (_evt, gs) => {
         if (!isDraggingRef.current) return;
+
+        // Stop auto-scroll immediately
+        stopAutoScroll();
 
         // Detect tap-without-drag: finger barely moved
         const wasTap = Math.abs(gs.dx) < 5 && Math.abs(gs.dy) < 5;
@@ -369,7 +513,7 @@ export function HomeScreen({
         // Animate overlay to final position, then clear drag state
         Animated.parallel([
           Animated.spring(dragPosition, {
-            toValue: { x: finalPos.x, y: finalPos.y - scrollOffsetRef.current },
+            toValue: { x: finalPos.x, y: svLayoutYRef.current + finalPos.y - scrollOffsetRef.current },
             useNativeDriver: true,
             friction: 8,
           }),
@@ -389,6 +533,8 @@ export function HomeScreen({
         // Same as release — commit whatever order we have
         if (!isDraggingRef.current) return;
 
+        stopAutoScroll();
+
         const finalOrder = [...dragOrderRef.current];
         setLocalOrder(finalOrder);
 
@@ -400,15 +546,16 @@ export function HomeScreen({
         setDragRenderTick(prev => prev + 1);
       },
     });
-  }, [getGridPosition, getIndexFromPosition, dragPosition, dragScale]);
+  }, [getGridPosition, getIndexFromPosition, dragPosition, dragScale, updateAutoScroll, stopAutoScroll]);
 
   // ============================================================
   // Grid layout measurement
   // ============================================================
 
   const handleGridLayout = useCallback((_event: LayoutChangeEvent) => {
-    gridRef.current?.measureInWindow((wx, wy, width, height) => {
-      gridLayoutRef.current = { x: wx, y: wy, width, height };
+    gridRef.current?.measureInWindow((gx, gy, width, height) => {
+      gridLayoutRef.current = { x: gx, y: gy, width, height };
+      gridMeasuredAtScrollRef.current = scrollOffsetRef.current;
     });
   }, []);
 
@@ -430,7 +577,7 @@ export function HomeScreen({
   const currentDropTarget = dropTargetIndexRef.current;
 
   return (
-    <Wrapper style={[styles.container, isPaneVariant && styles.paneContainer]}>
+    <Wrapper ref={containerRef} style={[styles.container, isPaneVariant && styles.paneContainer]}>
       {/* Header: branding or wiggle mode "Klaar" button */}
       {!isPaneVariant && (
         <View style={styles.header}>
@@ -476,6 +623,7 @@ export function HomeScreen({
       )}
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -484,6 +632,20 @@ export function HomeScreen({
           scrollOffsetRef.current = e.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
+        onLayout={(e) => {
+          // Track ScrollView's position for overlay calculations and auto-scroll edge detection.
+          const { y: layoutY, height } = e.nativeEvent.layout;
+          // svLayoutYRef = ScrollView's Y within Wrapper (scroll-independent, for overlay math)
+          svLayoutYRef.current = layoutY;
+          // scrollViewLayoutRef = screen-space bounds (for auto-scroll edge zone detection)
+          scrollViewLayoutRef.current.height = height;
+          containerRef.current?.measureInWindow((_cx, cy) => {
+            scrollViewLayoutRef.current.y = cy + layoutY;
+          });
+        }}
+        onContentSizeChange={(_w, h) => {
+          scrollContentHeightRef.current = h;
+        }}
       >
         <View
           ref={gridRef}

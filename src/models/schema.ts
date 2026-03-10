@@ -25,6 +25,7 @@
  * - v15: Added is_emergency_contact to contacts (ICE — In Case of Emergency)
  * - v16: Added trust_level to contacts (0=Unknown, 1=Invited, 2=Connected, 3=Verified)
  * - v17: Added agenda_items table for appointments, reminders, medication
+ * - v18: Added address fields to agenda_items (location_name, address_street, address_postal_code, address_city, address_country)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -51,10 +52,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 17;
+export const SCHEMA_VERSION = 18;
 
 export const schema = appSchema({
-  version: 17,
+  version: 18,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -241,6 +242,12 @@ export const schema = appSchema({
         { name: 'reminder_offset', type: 'string' },                 // ReminderOffset
         // Contacts (family appointments)
         { name: 'contact_ids', type: 'string', isOptional: true },   // JSON array of Contact record IDs
+        // Location / Address (v18)
+        { name: 'location_name', type: 'string', isOptional: true },    // e.g. "Huisartsenpraktijk De Linde"
+        { name: 'address_street', type: 'string', isOptional: true },
+        { name: 'address_postal_code', type: 'string', isOptional: true },
+        { name: 'address_city', type: 'string', isOptional: true },
+        { name: 'address_country', type: 'string', isOptional: true },
         // Medication log
         { name: 'medication_log', type: 'string', isOptional: true }, // JSON: MedicationLogEntry[]
         // Sharing

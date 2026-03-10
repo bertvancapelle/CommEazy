@@ -2175,7 +2175,22 @@
         "clearEndDate": "Rimuovi data di fine",
         "addTime": "+ Aggiungi orario",
         "removeTime": "Rimuovi",
-        "titleRequired": "Inserisci un titolo"
+        "titleRequired": "Inserisci un titolo",
+        "contactsLabel": "Contatti",
+        "addContact": "+ Aggiungi contatto",
+        "removeContact": "Rimuovi {{name}}",
+        "selectContacts": "Seleziona contatti",
+        "noContacts": "Nessun contatto trovato",
+        "addressSectionTitle": "Luogo / Indirizzo",
+        "locationNameLabel": "Nome del luogo",
+        "locationNamePlaceholder": "Es. Studio Dr. Rossi",
+        "streetLabel": "Via e numero",
+        "streetPlaceholder": "Es. Via Roma 12",
+        "postalCodeLabel": "Codice postale",
+        "postalCodePlaceholder": "00100",
+        "cityLabel": "Città",
+        "cityPlaceholder": "Es. Roma",
+        "addressAutoFilled": "Indirizzo preso dal contatto"
       },
       "search": {
         "tabOverview": "Panoramica",

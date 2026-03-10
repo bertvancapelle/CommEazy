@@ -93,8 +93,19 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
     }
   }
 
+  // Build address display line
+  let addressLine = '';
+  if (item.locationName) {
+    addressLine = item.locationName;
+  }
+  if (item.addressStreet || item.addressCity) {
+    const addrParts = [item.addressStreet, item.addressPostalCode, item.addressCity].filter(Boolean);
+    const addrStr = addrParts.join(', ');
+    addressLine = addressLine ? `${addressLine} — ${addrStr}` : addrStr;
+  }
+
   // Accessibility label
-  const a11yParts = [item.icon, timeDisplay, item.title, subtitle].filter(Boolean);
+  const a11yParts = [item.icon, timeDisplay, item.title, subtitle, addressLine].filter(Boolean);
   const a11yLabel = a11yParts.join(', ');
 
   return (
@@ -112,7 +123,7 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
         {item.icon}
       </Text>
 
-      {/* Time + Title + Subtitle */}
+      {/* Time + Title + Subtitle + Address */}
       <View style={styles.itemContent}>
         <View style={styles.itemTitleRow}>
           {timeDisplay ? (
@@ -147,6 +158,18 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
             numberOfLines={1}
           >
             {subtitle}
+          </Text>
+        ) : null}
+        {addressLine ? (
+          <Text
+            style={[
+              styles.itemAddress,
+              { color: secondaryTextColor },
+              isExpired && styles.textExpired,
+            ]}
+            numberOfLines={1}
+          >
+            📍 {addressLine}
           </Text>
         ) : null}
       </View>
@@ -395,6 +418,11 @@ function AgendaScreenInner() {
           endDate: currentView.editItem.endDate ?? undefined,
           reminderOffset: currentView.editItem.reminderOffset,
           contactIds: currentView.editItem.contactIds,
+          locationName: currentView.editItem.locationName ?? undefined,
+          addressStreet: currentView.editItem.addressStreet ?? undefined,
+          addressPostalCode: currentView.editItem.addressPostalCode ?? undefined,
+          addressCity: currentView.editItem.addressCity ?? undefined,
+          addressCountry: currentView.editItem.addressCountry ?? undefined,
         }
       : undefined;
     return (
@@ -834,6 +862,10 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontStyle: 'italic',
     marginLeft: 50 + spacing.sm, // Align with title (past the time column)
+  },
+  itemAddress: {
+    ...typography.label,
+    marginTop: 2,
   },
   textExpired: {
     textDecorationLine: 'line-through',

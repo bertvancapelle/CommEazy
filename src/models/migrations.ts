@@ -19,6 +19,7 @@
  * - v15: Added is_emergency_contact to contacts (ICE — In Case of Emergency)
  * - v16: Added trust_level to contacts (0=Unknown, 1=Invited, 2=Connected, 3=Verified)
  * - v17: Added agenda_items table for appointments, reminders, medication
+ * - v18: Added address fields to agenda_items (location_name, address_street, etc.)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -304,6 +305,22 @@ export const migrations = schemaMigrations({
             { name: 'exception_date', type: 'number', isOptional: true },
             { name: 'created_at', type: 'number' },
             { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
+    // Migration from v17 to v18: Add address fields to agenda_items
+    {
+      toVersion: 18,
+      steps: [
+        addColumns({
+          table: 'agenda_items',
+          columns: [
+            { name: 'location_name', type: 'string', isOptional: true },
+            { name: 'address_street', type: 'string', isOptional: true },
+            { name: 'address_postal_code', type: 'string', isOptional: true },
+            { name: 'address_city', type: 'string', isOptional: true },
+            { name: 'address_country', type: 'string', isOptional: true },
           ],
         }),
       ],

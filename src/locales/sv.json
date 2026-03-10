@@ -2071,7 +2071,22 @@
         "clearEndDate": "Ta bort slutdatum",
         "addTime": "+ Lägg till tid",
         "removeTime": "Ta bort",
-        "titleRequired": "Ange en titel"
+        "titleRequired": "Ange en titel",
+        "contactsLabel": "Kontakter",
+        "addContact": "+ Lägg till kontakt",
+        "removeContact": "Ta bort {{name}}",
+        "selectContacts": "Välj kontakter",
+        "noContacts": "Inga kontakter hittades",
+        "addressSectionTitle": "Plats / Adress",
+        "locationNameLabel": "Platsens namn",
+        "locationNamePlaceholder": "T.ex. Vårdcentralen Dr. Andersson",
+        "streetLabel": "Gata och nummer",
+        "streetPlaceholder": "T.ex. Storgatan 12",
+        "postalCodeLabel": "Postnummer",
+        "postalCodePlaceholder": "111 22",
+        "cityLabel": "Stad",
+        "cityPlaceholder": "T.ex. Stockholm",
+        "addressAutoFilled": "Adress hämtad från kontakt"
       },
       "search": {
         "tabOverview": "Översikt",

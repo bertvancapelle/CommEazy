@@ -2101,7 +2101,22 @@
         "clearEndDate": "Fjern sluttdato",
         "addTime": "+ Legg til tid",
         "removeTime": "Fjern",
-        "titleRequired": "Vennligst skriv inn en tittel"
+        "titleRequired": "Vennligst skriv inn en tittel",
+        "contactsLabel": "Kontakter",
+        "addContact": "+ Legg til kontakt",
+        "removeContact": "Fjern {{name}}",
+        "selectContacts": "Velg kontakter",
+        "noContacts": "Ingen kontakter funnet",
+        "addressSectionTitle": "Sted / Adresse",
+        "locationNameLabel": "Navn på stedet",
+        "locationNamePlaceholder": "F.eks. Legekontoret Dr. Hansen",
+        "streetLabel": "Gate og nummer",
+        "streetPlaceholder": "F.eks. Storgata 12",
+        "postalCodeLabel": "Postnummer",
+        "postalCodePlaceholder": "0150",
+        "cityLabel": "By",
+        "cityPlaceholder": "F.eks. Oslo",
+        "addressAutoFilled": "Adresse hentet fra kontakt"
       },
       "search": {
         "tabOverview": "Oversikt",

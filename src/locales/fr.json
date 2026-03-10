@@ -2227,7 +2227,22 @@
         "clearEndDate": "Supprimer la date de fin",
         "addTime": "+ Ajouter une heure",
         "removeTime": "Supprimer",
-        "titleRequired": "Veuillez saisir un titre"
+        "titleRequired": "Veuillez saisir un titre",
+        "contactsLabel": "Contacts",
+        "addContact": "+ Ajouter un contact",
+        "removeContact": "Supprimer {{name}}",
+        "selectContacts": "Sélectionner des contacts",
+        "noContacts": "Aucun contact trouvé",
+        "addressSectionTitle": "Lieu / Adresse",
+        "locationNameLabel": "Nom du lieu",
+        "locationNamePlaceholder": "Ex. Cabinet Dr. Dupont",
+        "streetLabel": "Rue et numéro",
+        "streetPlaceholder": "Ex. 12 Rue de la Paix",
+        "postalCodeLabel": "Code postal",
+        "postalCodePlaceholder": "75001",
+        "cityLabel": "Ville",
+        "cityPlaceholder": "Ex. Paris",
+        "addressAutoFilled": "Adresse reprise du contact"
       },
       "search": {
         "tabOverview": "Aperçu",

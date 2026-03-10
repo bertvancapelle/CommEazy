@@ -2244,7 +2244,22 @@
         "clearEndDate": "Remover data de fim",
         "addTime": "+ Adicionar hora",
         "removeTime": "Remover",
-        "titleRequired": "Introduza um título"
+        "titleRequired": "Introduza um título",
+        "contactsLabel": "Contactos",
+        "addContact": "+ Adicionar contacto",
+        "removeContact": "Remover {{name}}",
+        "selectContacts": "Selecionar contactos",
+        "noContacts": "Nenhum contacto encontrado",
+        "addressSectionTitle": "Local / Morada",
+        "locationNameLabel": "Nome do local",
+        "locationNamePlaceholder": "Ex. Clínica Dr. Silva",
+        "streetLabel": "Rua e número",
+        "streetPlaceholder": "Ex. Rua Augusta 12",
+        "postalCodeLabel": "Código postal",
+        "postalCodePlaceholder": "1000-001",
+        "cityLabel": "Cidade",
+        "cityPlaceholder": "Ex. Lisboa",
+        "addressAutoFilled": "Morada preenchida a partir do contacto"
       },
       "search": {
         "tabOverview": "Visão geral",

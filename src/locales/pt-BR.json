@@ -2246,7 +2246,22 @@
         "clearEndDate": "Remover data final",
         "addTime": "+ Adicionar horário",
         "removeTime": "Remover",
-        "titleRequired": "Digite um título"
+        "titleRequired": "Digite um título",
+        "contactsLabel": "Contatos",
+        "addContact": "+ Adicionar contato",
+        "removeContact": "Remover {{name}}",
+        "selectContacts": "Selecionar contatos",
+        "noContacts": "Nenhum contato encontrado",
+        "addressSectionTitle": "Local / Endereço",
+        "locationNameLabel": "Nome do local",
+        "locationNamePlaceholder": "Ex. Clínica Dr. Silva",
+        "streetLabel": "Rua e número",
+        "streetPlaceholder": "Ex. Rua Augusta 12",
+        "postalCodeLabel": "CEP",
+        "postalCodePlaceholder": "01001-000",
+        "cityLabel": "Cidade",
+        "cityPlaceholder": "Ex. São Paulo",
+        "addressAutoFilled": "Endereço preenchido a partir do contato"
       },
       "search": {
         "tabOverview": "Visão geral",

@@ -2227,7 +2227,22 @@
         "clearEndDate": "Eliminar fecha de fin",
         "addTime": "+ Añadir hora",
         "removeTime": "Eliminar",
-        "titleRequired": "Introduzca un título"
+        "titleRequired": "Introduzca un título",
+        "contactsLabel": "Contactos",
+        "addContact": "+ Añadir contacto",
+        "removeContact": "Eliminar {{name}}",
+        "selectContacts": "Seleccionar contactos",
+        "noContacts": "No se encontraron contactos",
+        "addressSectionTitle": "Ubicación / Dirección",
+        "locationNameLabel": "Nombre del lugar",
+        "locationNamePlaceholder": "Ej. Consultorio Dr. García",
+        "streetLabel": "Calle y número",
+        "streetPlaceholder": "Ej. Calle Mayor 12",
+        "postalCodeLabel": "Código postal",
+        "postalCodePlaceholder": "28001",
+        "cityLabel": "Ciudad",
+        "cityPlaceholder": "Ej. Madrid",
+        "addressAutoFilled": "Dirección tomada del contacto"
       },
       "search": {
         "tabOverview": "Resumen",

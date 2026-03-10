@@ -2242,7 +2242,22 @@
         "clearEndDate": "Remove end date",
         "addTime": "+ Add time",
         "removeTime": "Remove",
-        "titleRequired": "Please enter a title"
+        "titleRequired": "Please enter a title",
+        "contactsLabel": "Contacts",
+        "addContact": "+ Add contact",
+        "removeContact": "Remove {{name}}",
+        "selectContacts": "Select contacts",
+        "noContacts": "No contacts found",
+        "addressSectionTitle": "Location / Address",
+        "locationNameLabel": "Location name",
+        "locationNamePlaceholder": "E.g. Dr. Smith's Practice",
+        "streetLabel": "Street and number",
+        "streetPlaceholder": "E.g. 123 Main Street",
+        "postalCodeLabel": "Postal code",
+        "postalCodePlaceholder": "12345",
+        "cityLabel": "City",
+        "cityPlaceholder": "E.g. London",
+        "addressAutoFilled": "Address filled from contact"
       },
       "search": {
         "tabOverview": "Overview",

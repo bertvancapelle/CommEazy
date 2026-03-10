@@ -2071,7 +2071,22 @@
         "clearEndDate": "Fjern slutdato",
         "addTime": "+ Tilføj tid",
         "removeTime": "Fjern",
-        "titleRequired": "Indtast venligst en titel"
+        "titleRequired": "Indtast venligst en titel",
+        "contactsLabel": "Kontakter",
+        "addContact": "+ Tilføj kontakt",
+        "removeContact": "Fjern {{name}}",
+        "selectContacts": "Vælg kontakter",
+        "noContacts": "Ingen kontakter fundet",
+        "addressSectionTitle": "Sted / Adresse",
+        "locationNameLabel": "Stedets navn",
+        "locationNamePlaceholder": "F.eks. Lægeklinikken Dr. Jensen",
+        "streetLabel": "Gade og nummer",
+        "streetPlaceholder": "F.eks. Hovedgaden 12",
+        "postalCodeLabel": "Postnummer",
+        "postalCodePlaceholder": "1000",
+        "cityLabel": "By",
+        "cityPlaceholder": "F.eks. København",
+        "addressAutoFilled": "Adresse hentet fra kontakt"
       },
       "search": {
         "tabOverview": "Overblik",

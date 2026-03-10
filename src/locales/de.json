@@ -2227,7 +2227,22 @@
         "clearEndDate": "Enddatum entfernen",
         "addTime": "+ Uhrzeit hinzufügen",
         "removeTime": "Entfernen",
-        "titleRequired": "Bitte geben Sie einen Titel ein"
+        "titleRequired": "Bitte geben Sie einen Titel ein",
+        "contactsLabel": "Kontakte",
+        "addContact": "+ Kontakt hinzufügen",
+        "removeContact": "{{name}} entfernen",
+        "selectContacts": "Kontakte auswählen",
+        "noContacts": "Keine Kontakte gefunden",
+        "addressSectionTitle": "Ort / Adresse",
+        "locationNameLabel": "Name des Ortes",
+        "locationNamePlaceholder": "Z.B. Arztpraxis Dr. Müller",
+        "streetLabel": "Straße und Hausnummer",
+        "streetPlaceholder": "Z.B. Hauptstraße 12",
+        "postalCodeLabel": "Postleitzahl",
+        "postalCodePlaceholder": "10115",
+        "cityLabel": "Stadt",
+        "cityPlaceholder": "Z.B. Berlin",
+        "addressAutoFilled": "Adresse vom Kontakt übernommen"
       },
       "search": {
         "tabOverview": "Übersicht",

@@ -2237,7 +2237,22 @@
         "clearEndDate": "Einddatum verwijderen",
         "addTime": "+ Tijd toevoegen",
         "removeTime": "Verwijder",
-        "titleRequired": "Vul een titel in"
+        "titleRequired": "Vul een titel in",
+        "contactsLabel": "Contacten",
+        "addContact": "+ Contact toevoegen",
+        "removeContact": "{{name}} verwijderen",
+        "selectContacts": "Kies contacten",
+        "noContacts": "Geen contacten gevonden",
+        "addressSectionTitle": "Locatie / Adres",
+        "locationNameLabel": "Naam locatie",
+        "locationNamePlaceholder": "Bijv. Huisartsenpraktijk De Linde",
+        "streetLabel": "Straat en huisnummer",
+        "streetPlaceholder": "Bijv. Kerkstraat 12",
+        "postalCodeLabel": "Postcode",
+        "postalCodePlaceholder": "1234 AB",
+        "cityLabel": "Plaats",
+        "cityPlaceholder": "Bijv. Amsterdam",
+        "addressAutoFilled": "Adres overgenomen van contact"
       },
       "search": {
         "tabOverview": "Overzicht",

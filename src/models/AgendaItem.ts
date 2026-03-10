@@ -33,6 +33,13 @@ export class AgendaItemModel extends Model {
   // Contacts (family appointments)
   @field('contact_ids') contactIds?: string;       // JSON array of Contact record IDs
 
+  // Location / Address (v18)
+  @field('location_name') locationName?: string;    // e.g. "Huisartsenpraktijk De Linde"
+  @field('address_street') addressStreet?: string;
+  @field('address_postal_code') addressPostalCode?: string;
+  @field('address_city') addressCity?: string;
+  @field('address_country') addressCountry?: string;
+
   // Medication log
   @field('medication_log') medicationLog?: string; // JSON: MedicationLogEntry[]
 
@@ -124,6 +131,11 @@ export class AgendaItemModel extends Model {
     endDate?: number | null;
     reminderOffset?: ReminderOffset;
     contactIds?: string[];
+    locationName?: string | null;
+    addressStreet?: string | null;
+    addressPostalCode?: string | null;
+    addressCity?: string | null;
+    addressCountry?: string | null;
   }): Promise<void> {
     await this.update(record => {
       if (updates.title !== undefined) record.title = updates.title;
@@ -140,6 +152,11 @@ export class AgendaItemModel extends Model {
       if (updates.contactIds !== undefined) {
         record.contactIds = JSON.stringify(updates.contactIds);
       }
+      if (updates.locationName !== undefined) record.locationName = updates.locationName ?? undefined;
+      if (updates.addressStreet !== undefined) record.addressStreet = updates.addressStreet ?? undefined;
+      if (updates.addressPostalCode !== undefined) record.addressPostalCode = updates.addressPostalCode ?? undefined;
+      if (updates.addressCity !== undefined) record.addressCity = updates.addressCity ?? undefined;
+      if (updates.addressCountry !== undefined) record.addressCountry = updates.addressCountry ?? undefined;
     });
   }
 

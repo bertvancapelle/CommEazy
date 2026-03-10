@@ -70,6 +70,16 @@ export interface TimelineItem {
   contactIds: string[];
   /** Contact names (resolved) */
   contactNames: string[];
+  /** Location name (e.g. "Huisartsenpraktijk De Linde") */
+  locationName: string | null;
+  /** Address street */
+  addressStreet: string | null;
+  /** Address postal code */
+  addressPostalCode: string | null;
+  /** Address city */
+  addressCity: string | null;
+  /** Address country */
+  addressCountry: string | null;
   /** Is medication with confirmation */
   isMedication: boolean;
   /** Medication log entries (if medication) */
@@ -108,6 +118,9 @@ export interface AgendaContextValue {
   pastItems: TimelineItem[];
   isLoading: boolean;
 
+  // Contacts (for contact picker in form)
+  contacts: ContactModel[];
+
   // Actions
   refresh: () => Promise<void>;
   createItem: (data: CreateAgendaItemData) => Promise<string>;
@@ -132,6 +145,12 @@ export interface CreateAgendaItemData {
   endDate?: number;
   reminderOffset: ReminderOffset;
   contactIds?: string[];
+  // Location / Address (v18)
+  locationName?: string;
+  addressStreet?: string;
+  addressPostalCode?: string;
+  addressCity?: string;
+  addressCountry?: string;
   sharedFrom?: string;
 }
 
@@ -323,6 +342,11 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             reminderOffset: '1_day_before',
             contactIds: [contact.id],
             contactNames: [contact.displayName],
+            locationName: null,
+            addressStreet: null,
+            addressPostalCode: null,
+            addressCity: null,
+            addressCountry: null,
             isMedication: false,
             medicationLog: [],
             sharedWith: [],
@@ -355,6 +379,11 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             reminderOffset: '1_day_before',
             contactIds: [contact.id],
             contactNames: [contact.displayName],
+            locationName: null,
+            addressStreet: null,
+            addressPostalCode: null,
+            addressCity: null,
+            addressCountry: null,
             isMedication: false,
             medicationLog: [],
             sharedWith: [],
@@ -386,6 +415,11 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             reminderOffset: '1_day_before',
             contactIds: [contact.id],
             contactNames: [contact.displayName],
+            locationName: null,
+            addressStreet: null,
+            addressPostalCode: null,
+            addressCity: null,
+            addressCountry: null,
             isMedication: false,
             medicationLog: [],
             sharedWith: [],
@@ -433,6 +467,11 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
           isMedication: item.isMedication,
           medicationLog: item.parsedMedicationLog,
           sharedWith: item.parsedSharedWith,
+          locationName: item.locationName ?? null,
+          addressStreet: item.addressStreet ?? null,
+          addressPostalCode: item.addressPostalCode ?? null,
+          addressCity: item.addressCity ?? null,
+          addressCountry: item.addressCountry ?? null,
           sharedFrom: item.sharedFrom ?? null,
           isHidden: item.isHidden,
           modelId: item.id,
@@ -525,6 +564,11 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
         r.endDate = data.endDate;
         r.reminderOffset = data.reminderOffset;
         r.contactIds = data.contactIds ? JSON.stringify(data.contactIds) : undefined;
+        r.locationName = data.locationName;
+        r.addressStreet = data.addressStreet;
+        r.addressPostalCode = data.addressPostalCode;
+        r.addressCity = data.addressCity;
+        r.addressCountry = data.addressCountry;
         r.isHidden = false;
         r.sharedFrom = data.sharedFrom;
       });
@@ -550,6 +594,11 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
       endDate: data.endDate ?? null,
       reminderOffset: data.reminderOffset,
       contactIds: data.contactIds,
+      locationName: data.locationName,
+      addressStreet: data.addressStreet,
+      addressPostalCode: data.addressPostalCode,
+      addressCity: data.addressCity,
+      addressCountry: data.addressCountry,
     });
 
     await loadData();
@@ -656,6 +705,11 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
         r.times = data.times ? JSON.stringify(data.times) : parent.times;
         r.reminderOffset = data.reminderOffset ?? parent.reminderOffset;
         r.contactIds = data.contactIds ? JSON.stringify(data.contactIds) : parent.contactIds;
+        r.locationName = data.locationName ?? parent.locationName;
+        r.addressStreet = data.addressStreet ?? parent.addressStreet;
+        r.addressPostalCode = data.addressPostalCode ?? parent.addressPostalCode;
+        r.addressCity = data.addressCity ?? parent.addressCity;
+        r.addressCountry = data.addressCountry ?? parent.addressCountry;
         r.isHidden = false;
         r.parentId = parentId;
         r.exceptionDate = date;
@@ -695,6 +749,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     timelineDays,
     pastItems,
     isLoading,
+    contacts,
     refresh,
     createItem,
     updateItem,
@@ -708,6 +763,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     timelineDays,
     pastItems,
     isLoading,
+    contacts,
     refresh,
     createItem,
     updateItem,
