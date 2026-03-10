@@ -33,6 +33,7 @@ import {
   Alert,
   Modal,
   Keyboard,
+  Switch,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -279,6 +280,7 @@ function DateTimePickerModal({
 }: DateTimePickerModalProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const moduleColor = useModuleColor('agenda');
 
   return (
     <Modal
@@ -294,12 +296,12 @@ function DateTimePickerModal({
             {title}
           </Text>
           <HapticTouchable
-            style={dateTimePickerModalStyles.doneButton}
+            style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel={t('modules.agenda.form.done')}
           >
-            <Text style={[dateTimePickerModalStyles.doneButtonText, { color: themeColors.textPrimary }]}>
+            <Text style={dateTimePickerModalStyles.doneButtonText}>
               {t('modules.agenda.form.done')}
             </Text>
           </HapticTouchable>
@@ -328,11 +330,13 @@ const dateTimePickerModalStyles = StyleSheet.create({
     height: touchTargets.minimum,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
   },
   doneButtonText: {
     ...typography.body,
     fontWeight: '700',
+    color: colors.textOnPrimary,
   },
   pickerContainer: {
     flex: 1,
@@ -361,6 +365,8 @@ export function AgendaItemFormScreen({
     () => getCategoryById(category)!,
     [category],
   );
+
+  const isEditing = !!initialData;
 
   // Form state
   const [title, setTitle] = useState(initialData?.title ?? '');
@@ -416,38 +422,81 @@ export function AgendaItemFormScreen({
   const [addressPostalCode, setAddressPostalCode] = useState(initialData?.addressPostalCode ?? '');
   const [addressCity, setAddressCity] = useState(initialData?.addressCity ?? '');
   const [addressCountry, setAddressCountry] = useState(initialData?.addressCountry ?? '');
-  const [addressAutoFilled, setAddressAutoFilled] = useState(false);
+  const [useCustomAddress, setUseCustomAddress] = useState(
+    // Default AAN als het een edit is met adresdata die niet van contact komt
+    !!(initialData?.addressStreet || initialData?.addressCity),
+  );
 
-  // Auto-fill address from first selected contact (only if address is currently empty)
-  useEffect(() => {
-    if (selectedContactIds.length === 0 || addressAutoFilled) return;
-    // Only auto-fill if all address fields are empty
-    if (locationName || addressStreet || addressPostalCode || addressCity) return;
-
+  // Determine if the first selected contact has an address
+  const firstContactAddress = useMemo(() => {
+    if (selectedContactIds.length === 0) return null;
     const firstContact = allContacts.find(c => c.id === selectedContactIds[0]);
-    if (!firstContact) return;
+    if (!firstContact) return null;
+    const hasAddr = firstContact.addressStreet || firstContact.addressCity;
+    if (!hasAddr) return null;
+    return {
+      street: firstContact.addressStreet ?? '',
+      postalCode: firstContact.addressPostalCode ?? '',
+      city: firstContact.addressCity ?? '',
+      country: firstContact.addressCountry ?? '',
+    };
+  }, [selectedContactIds, allContacts]);
 
-    const hasAddress = firstContact.addressStreet || firstContact.addressCity;
-    if (!hasAddress) return;
+  // Auto-fill address from first contact when toggle is OFF and contact has address
+  useEffect(() => {
+    if (useCustomAddress) return;
+    if (!firstContactAddress) {
+      // No contact address — clear fields
+      setLocationName('');
+      setAddressStreet('');
+      setAddressPostalCode('');
+      setAddressCity('');
+      setAddressCountry('');
+      return;
+    }
+    // Fill from contact
+    setLocationName('');
+    setAddressStreet(firstContactAddress.street);
+    setAddressPostalCode(firstContactAddress.postalCode);
+    setAddressCity(firstContactAddress.city);
+    setAddressCountry(firstContactAddress.country);
+  }, [firstContactAddress, useCustomAddress]);
 
-    setAddressStreet(firstContact.addressStreet ?? '');
-    setAddressPostalCode(firstContact.addressPostalCode ?? '');
-    setAddressCity(firstContact.addressCity ?? '');
-    setAddressCountry(firstContact.addressCountry ?? '');
-    setAddressAutoFilled(true);
-  }, [selectedContactIds]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Handle toggle change
+  const handleCustomAddressToggle = useCallback((enabled: boolean) => {
+    setUseCustomAddress(enabled);
+    if (enabled) {
+      // Switching to custom: clear fields and load category-memory
+      setLocationName('');
+      setAddressStreet('');
+      setAddressPostalCode('');
+      setAddressCity('');
+      setAddressCountry('');
+      // Load category-memory as pre-fill
+      loadCategoryAddress(category).then(cached => {
+        if (!cached) return;
+        setLocationName(cached.locationName ?? '');
+        setAddressStreet(cached.addressStreet ?? '');
+        setAddressPostalCode(cached.addressPostalCode ?? '');
+        setAddressCity(cached.addressCity ?? '');
+        setAddressCountry(cached.addressCountry ?? '');
+      });
+    }
+    // When switching OFF, the useEffect above will auto-fill from contact
+  }, [category]);
 
-  // Load category-memory address (only for new items, not edits)
+  // Load category-memory address on mount (only for new items without contact address)
   useEffect(() => {
     if (isEditing) return;
     if (!categoryDef.showAddressField) return;
-    // Skip if address already has data (e.g., from initialData)
     if (initialData?.addressStreet || initialData?.addressCity) return;
+    // Only load category-memory if there's no contact address to auto-fill
+    if (firstContactAddress) return;
 
     loadCategoryAddress(category).then(cached => {
       if (!cached) return;
-      // Only apply if fields are still empty (user hasn't typed yet)
       if (locationName || addressStreet || addressCity) return;
+      setUseCustomAddress(true);
       setLocationName(cached.locationName ?? '');
       setAddressStreet(cached.addressStreet ?? '');
       setAddressPostalCode(cached.addressPostalCode ?? '');
@@ -455,8 +504,6 @@ export function AgendaItemFormScreen({
       setAddressCountry(cached.addressCountry ?? '');
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const isEditing = !!initialData;
 
   // Selected contact models (for display)
   const selectedContacts = useMemo(
@@ -905,18 +952,14 @@ export function AgendaItemFormScreen({
                     accessibilityRole="button"
                     accessibilityLabel={t('modules.agenda.form.removeContact', { name: contact.displayName })}
                   >
-                    {/* Contact photo or initials avatar */}
+                    {/* Contact photo or empty circle fallback */}
                     {contact.photoPath ? (
                       <Image
                         source={{ uri: contact.photoPath }}
                         style={styles.contactChipAvatar}
                       />
                     ) : (
-                      <View style={[styles.contactChipAvatarFallback, { backgroundColor: accentColor.primary }]}>
-                        <Text style={styles.contactChipAvatarText}>
-                          {(contact.firstName?.[0] ?? '').toUpperCase()}
-                        </Text>
-                      </View>
+                      <View style={[styles.contactChipAvatarFallback, { backgroundColor: accentColor.primary }]} />
                     )}
                     <Text style={[styles.contactChipText, { color: accentColor.primary }]}>
                       {contact.displayName}
@@ -949,116 +992,155 @@ export function AgendaItemFormScreen({
               {t('modules.agenda.form.addressSectionTitle')}
             </Text>
 
-            {/* Location name */}
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-              {t('modules.agenda.form.locationNameLabel')}
-            </Text>
-            <RNTextInput
-              style={[
-                styles.textInput,
-                {
-                  color: themeColors.textPrimary,
-                  borderColor: themeColors.border,
-                  backgroundColor: themeColors.surface,
-                },
-              ]}
-              value={locationName}
-              onChangeText={setLocationName}
-              placeholder={t('modules.agenda.form.locationNamePlaceholder')}
-              placeholderTextColor={themeColors.disabled}
-              autoCapitalize="sentences"
-              returnKeyType="next"
-              blurOnSubmit={true}
-              onSubmitEditing={() => Keyboard.dismiss()}
-              accessibilityLabel={t('modules.agenda.form.locationNameLabel')}
-            />
-
-            {/* Street */}
-            <View style={styles.addressFieldGap}>
-              <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-                {t('modules.agenda.form.streetLabel')}
+            {/* "Ander adres" toggle */}
+            <View style={[
+              styles.toggleRow,
+              !firstContactAddress && styles.toggleRowDisabled,
+            ]}>
+              <Text style={[
+                styles.fieldLabel,
+                { color: firstContactAddress ? themeColors.textPrimary : themeColors.disabled, marginBottom: 0 },
+              ]}>
+                {t('modules.agenda.form.customAddressLabel')}
               </Text>
-              <RNTextInput
-                style={[
-                  styles.textInput,
-                  {
-                    color: themeColors.textPrimary,
-                    borderColor: themeColors.border,
-                    backgroundColor: themeColors.surface,
-                  },
-                ]}
-                value={addressStreet}
-                onChangeText={setAddressStreet}
-                placeholder={t('modules.agenda.form.streetPlaceholder')}
-                placeholderTextColor={themeColors.disabled}
-                autoCapitalize="words"
-                returnKeyType="next"
-                blurOnSubmit={true}
-                onSubmitEditing={() => Keyboard.dismiss()}
-                accessibilityLabel={t('modules.agenda.form.streetLabel')}
+              <Switch
+                value={useCustomAddress}
+                onValueChange={handleCustomAddressToggle}
+                disabled={!firstContactAddress}
+                trackColor={{ false: themeColors.border, true: accentColor.primary }}
+                thumbColor={colors.textOnPrimary}
+                accessibilityLabel={t('modules.agenda.form.customAddressLabel')}
               />
             </View>
 
-            {/* Postal code + City row */}
-            <View style={styles.addressFieldGap}>
-              <View style={styles.addressRow}>
-                <View style={styles.postalCodeField}>
-                  <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-                    {t('modules.agenda.form.postalCodeLabel')}
-                  </Text>
-                  <RNTextInput
-                    style={[
-                      styles.textInput,
-                      {
-                        color: themeColors.textPrimary,
-                        borderColor: themeColors.border,
-                        backgroundColor: themeColors.surface,
-                      },
-                    ]}
-                    value={addressPostalCode}
-                    onChangeText={setAddressPostalCode}
-                    placeholder={t('modules.agenda.form.postalCodePlaceholder')}
-                    placeholderTextColor={themeColors.disabled}
-                    autoCapitalize="characters"
-                    returnKeyType="next"
-                    blurOnSubmit={true}
-                    onSubmitEditing={() => Keyboard.dismiss()}
-                    accessibilityLabel={t('modules.agenda.form.postalCodeLabel')}
-                  />
-                </View>
-                <View style={styles.cityField}>
-                  <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-                    {t('modules.agenda.form.cityLabel')}
-                  </Text>
-                  <RNTextInput
-                    style={[
-                      styles.textInput,
-                      {
-                        color: themeColors.textPrimary,
-                        borderColor: themeColors.border,
-                        backgroundColor: themeColors.surface,
-                      },
-                    ]}
-                    value={addressCity}
-                    onChangeText={setAddressCity}
-                    placeholder={t('modules.agenda.form.cityPlaceholder')}
-                    placeholderTextColor={themeColors.disabled}
-                    autoCapitalize="words"
-                    returnKeyType="done"
-                    blurOnSubmit={true}
-                    onSubmitEditing={() => Keyboard.dismiss()}
-                    accessibilityLabel={t('modules.agenda.form.cityLabel')}
-                  />
-                </View>
-              </View>
-            </View>
+            {/* Address fields — read-only when showing contact address */}
+            {(() => {
+              const isReadOnly = !useCustomAddress && !!firstContactAddress;
+              const fieldTextColor = isReadOnly ? themeColors.disabled : themeColors.textPrimary;
+              const fieldBgColor = isReadOnly ? themeColors.background : themeColors.surface;
 
-            {/* Auto-fill indicator */}
-            {addressAutoFilled && (
-              <Text style={[styles.autoFillHint, { color: themeColors.textTertiary }]}>
-                {t('modules.agenda.form.addressAutoFilled')}
-              </Text>
-            )}
+              return (
+                <>
+                  {/* Location name — only shown when custom address is active */}
+                  {useCustomAddress && (
+                    <>
+                      <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+                        {t('modules.agenda.form.locationNameLabel')}
+                      </Text>
+                      <RNTextInput
+                        style={[
+                          styles.textInput,
+                          {
+                            color: themeColors.textPrimary,
+                            borderColor: themeColors.border,
+                            backgroundColor: themeColors.surface,
+                          },
+                        ]}
+                        value={locationName}
+                        onChangeText={setLocationName}
+                        placeholder={t('modules.agenda.form.locationNamePlaceholder')}
+                        placeholderTextColor={themeColors.disabled}
+                        autoCapitalize="sentences"
+                        returnKeyType="next"
+                        blurOnSubmit={true}
+                        onSubmitEditing={() => Keyboard.dismiss()}
+                        accessibilityLabel={t('modules.agenda.form.locationNameLabel')}
+                      />
+                    </>
+                  )}
+
+                  {/* Street */}
+                  <View style={styles.addressFieldGap}>
+                    <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
+                      {t('modules.agenda.form.streetLabel')}
+                    </Text>
+                    <RNTextInput
+                      style={[
+                        styles.textInput,
+                        {
+                          color: fieldTextColor,
+                          borderColor: themeColors.border,
+                          backgroundColor: fieldBgColor,
+                        },
+                      ]}
+                      value={addressStreet}
+                      onChangeText={setAddressStreet}
+                      placeholder={isReadOnly ? '' : t('modules.agenda.form.streetPlaceholder')}
+                      placeholderTextColor={themeColors.disabled}
+                      editable={!isReadOnly}
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                      blurOnSubmit={true}
+                      onSubmitEditing={() => Keyboard.dismiss()}
+                      accessibilityLabel={t('modules.agenda.form.streetLabel')}
+                    />
+                  </View>
+
+                  {/* Postal code + City row */}
+                  <View style={styles.addressFieldGap}>
+                    <View style={styles.addressRow}>
+                      <View style={styles.postalCodeField}>
+                        <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
+                          {t('modules.agenda.form.postalCodeLabel')}
+                        </Text>
+                        <RNTextInput
+                          style={[
+                            styles.textInput,
+                            {
+                              color: fieldTextColor,
+                              borderColor: themeColors.border,
+                              backgroundColor: fieldBgColor,
+                            },
+                          ]}
+                          value={addressPostalCode}
+                          onChangeText={setAddressPostalCode}
+                          placeholder={isReadOnly ? '' : t('modules.agenda.form.postalCodePlaceholder')}
+                          placeholderTextColor={themeColors.disabled}
+                          editable={!isReadOnly}
+                          autoCapitalize="characters"
+                          returnKeyType="next"
+                          blurOnSubmit={true}
+                          onSubmitEditing={() => Keyboard.dismiss()}
+                          accessibilityLabel={t('modules.agenda.form.postalCodeLabel')}
+                        />
+                      </View>
+                      <View style={styles.cityField}>
+                        <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
+                          {t('modules.agenda.form.cityLabel')}
+                        </Text>
+                        <RNTextInput
+                          style={[
+                            styles.textInput,
+                            {
+                              color: fieldTextColor,
+                              borderColor: themeColors.border,
+                              backgroundColor: fieldBgColor,
+                            },
+                          ]}
+                          value={addressCity}
+                          onChangeText={setAddressCity}
+                          placeholder={isReadOnly ? '' : t('modules.agenda.form.cityPlaceholder')}
+                          placeholderTextColor={themeColors.disabled}
+                          editable={!isReadOnly}
+                          autoCapitalize="words"
+                          returnKeyType="done"
+                          blurOnSubmit={true}
+                          onSubmitEditing={() => Keyboard.dismiss()}
+                          accessibilityLabel={t('modules.agenda.form.cityLabel')}
+                        />
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Contact address hint when read-only */}
+                  {isReadOnly && (
+                    <Text style={[styles.autoFillHint, { color: themeColors.textTertiary }]}>
+                      {t('modules.agenda.form.addressFromContact')}
+                    </Text>
+                  )}
+                </>
+              );
+            })()}
           </View>
         )}
 
@@ -1194,18 +1276,14 @@ export function AgendaItemFormScreen({
                         size={22}
                         color={isSelected ? accentColor.primary : themeColors.textTertiary}
                       />
-                      {/* Contact photo or initials avatar */}
+                      {/* Contact photo or empty circle fallback */}
                       {contact.photoPath ? (
                         <Image
                           source={{ uri: contact.photoPath }}
                           style={styles.contactPickerAvatar}
                         />
                       ) : (
-                        <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
-                          <Text style={[styles.contactPickerAvatarText, { color: accentColor.primary }]}>
-                            {(contact.firstName?.[0] ?? '').toUpperCase()}{(contact.lastName?.[0] ?? '').toUpperCase()}
-                          </Text>
-                        </View>
+                        <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]} />
                       )}
                       <View style={styles.contactPickerInfo}>
                         <Text
@@ -1385,11 +1463,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  contactChipAvatarText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textOnPrimary,
-  },
   contactChipText: {
     ...typography.body,
     fontWeight: '600',
@@ -1423,10 +1496,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  contactPickerAvatarText: {
-    ...typography.label,
-    fontWeight: '700',
   },
   contactPickerInfo: {
     flex: 1,
@@ -1467,6 +1536,16 @@ const styles = StyleSheet.create({
     ...typography.label,
     fontStyle: 'italic',
     marginTop: spacing.xs,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: touchTargets.minimum,
+    marginBottom: spacing.sm,
+  },
+  toggleRowDisabled: {
+    opacity: 0.4,
   },
 
   // Save button

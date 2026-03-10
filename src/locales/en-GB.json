@@ -2247,6 +2247,8 @@
         "cityLabel": "City",
         "cityPlaceholder": "E.g. London",
         "addressAutoFilled": "Address filled from contact",
+        "customAddressLabel": "Different address",
+        "addressFromContact": "Address from contact",
         "done": "Done"
       },
       "search": {

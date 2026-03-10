@@ -2262,6 +2262,8 @@
         "cityLabel": "Cidade",
         "cityPlaceholder": "Ex. São Paulo",
         "addressAutoFilled": "Endereço preenchido a partir do contato",
+        "customAddressLabel": "Outro endereço",
+        "addressFromContact": "Endereço obtido do contato",
         "done": "Concluído"
       },
       "search": {

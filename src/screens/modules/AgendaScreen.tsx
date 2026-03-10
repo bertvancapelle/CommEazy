@@ -177,11 +177,7 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
                         { backgroundColor: moduleColor },
                         isExpired && styles.itemRowExpired,
                       ]}
-                    >
-                      <Text style={styles.miniAvatarText}>
-                        {(item.contactNames[idx]?.[0] ?? '?').toUpperCase()}
-                      </Text>
-                    </View>
+                    />
                   )
                 ))}
               </View>
@@ -924,11 +920,6 @@ const styles = StyleSheet.create({
   },
   miniAvatarOverlap: {
     marginLeft: -8,
-  },
-  miniAvatarText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.textOnPrimary,
   },
   itemSubtitle: {
     ...typography.body,

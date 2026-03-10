@@ -2108,6 +2108,8 @@
         "cityLabel": "Miasto",
         "cityPlaceholder": "Np. Warszawa",
         "addressAutoFilled": "Adres pobrany z kontaktu",
+        "customAddressLabel": "Inny adres",
+        "addressFromContact": "Adres pobrany z kontaktu",
         "done": "Gotowe"
       },
       "search": {

@@ -2117,6 +2117,8 @@
         "cityLabel": "By",
         "cityPlaceholder": "F.eks. Oslo",
         "addressAutoFilled": "Adresse hentet fra kontakt",
+        "customAddressLabel": "Annen adresse",
+        "addressFromContact": "Adresse hentet fra kontakt",
         "done": "Ferdig"
       },
       "search": {

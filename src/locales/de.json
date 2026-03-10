@@ -2243,6 +2243,8 @@
         "cityLabel": "Stadt",
         "cityPlaceholder": "Z.B. Berlin",
         "addressAutoFilled": "Adresse vom Kontakt übernommen",
+        "customAddressLabel": "Andere Adresse",
+        "addressFromContact": "Adresse vom Kontakt übernommen",
         "done": "Fertig"
       },
       "search": {

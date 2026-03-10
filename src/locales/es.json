@@ -2243,6 +2243,8 @@
         "cityLabel": "Ciudad",
         "cityPlaceholder": "Ej. Madrid",
         "addressAutoFilled": "Dirección tomada del contacto",
+        "customAddressLabel": "Otra dirección",
+        "addressFromContact": "Dirección tomada del contacto",
         "done": "Listo"
       },
       "search": {

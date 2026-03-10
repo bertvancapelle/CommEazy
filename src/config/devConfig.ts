@@ -12,9 +12,9 @@
  * 1. Prosody XMPP server must be running: sudo prosodyctl start
  * 2. Both devices must be on the same network
  * 3. Test accounts must exist in Prosody:
- *    - ik@commeazy.local (iPhone 17 Pro simulator)
+ *    - ik@commeazy.local (iPhone 14 physical, Bert)
  *    - oma@commeazy.local (iPhone 16e simulator)
- *    - test@commeazy.local (iPhone 14 physical)
+ *    - test@commeazy.local (iPhone 17 Pro simulator)
  *    - ipadphys@commeazy.local (physical iPad)
  */
 
@@ -69,7 +69,7 @@ export const MUC_DOMAIN = `muc.${XMPP_HOST}`;
 // ============================================================
 
 export const TEST_ACCOUNTS = {
-  // Large simulator (iPhone 17 Pro)
+  // Physical device (iPhone 14, Bert)
   ik: {
     jid: 'ik@commeazy.local',
     password: 'test123',
@@ -81,7 +81,7 @@ export const TEST_ACCOUNTS = {
     password: 'test123',
     name: 'Oma',
   },
-  // Physical device (iPhone 14, Bert)
+  // Large simulator (iPhone 17 Pro)
   test: {
     jid: 'test@commeazy.local',
     password: 'test123',

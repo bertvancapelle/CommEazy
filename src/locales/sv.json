@@ -2087,6 +2087,8 @@
         "cityLabel": "Stad",
         "cityPlaceholder": "T.ex. Stockholm",
         "addressAutoFilled": "Adress hämtad från kontakt",
+        "customAddressLabel": "Annan adress",
+        "addressFromContact": "Adress hämtad från kontakt",
         "done": "Klar"
       },
       "search": {

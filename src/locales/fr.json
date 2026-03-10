@@ -2243,6 +2243,8 @@
         "cityLabel": "Ville",
         "cityPlaceholder": "Ex. Paris",
         "addressAutoFilled": "Adresse reprise du contact",
+        "customAddressLabel": "Autre adresse",
+        "addressFromContact": "Adresse reprise du contact",
         "done": "Terminé"
       },
       "search": {

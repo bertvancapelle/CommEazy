@@ -5,9 +5,9 @@
  * Only loaded in __DEV__ mode.
  *
  * Test devices:
- * - ik@commeazy.local: iPhone 17 Pro (simulator)
+ * - ik@commeazy.local: iPhone 14 (physical, Bert)
  * - oma@commeazy.local: iPhone 16e (simulator)
- * - test@commeazy.local: iPhone 14 (physical, Bert)
+ * - test@commeazy.local: iPhone 17 Pro (simulator)
  * - jeanine@commeazy.local: iPhone 12 (physical, Jeanine)
  * - ipad@commeazy.local: iPad (simulator)
  * - ipadphys@commeazy.local: iPad (physical)
@@ -32,12 +32,18 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     userUuid: MOCK_UUIDS.ik,
     jid: 'ik@commeazy.local',
     firstName: 'Ik',
-    lastName: '(simulator)',
+    lastName: '',
     phoneNumber: '+31600000001',
     email: 'ik@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
+    address: {
+      street: 'Kerkstraat 42',
+      postalCode: '1012 AB',
+      city: 'Amsterdam',
+      country: 'Nederland',
+    },
   },
   'oma@commeazy.local': {
     userUuid: MOCK_UUIDS.oma,
@@ -54,7 +60,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     userUuid: MOCK_UUIDS.test,
     jid: 'test@commeazy.local',
     firstName: 'Test',
-    lastName: '(iPhone 14)',
+    lastName: '(simulator)',
     phoneNumber: '+31600000003',
     email: 'test@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
@@ -71,6 +77,12 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
+    address: {
+      street: 'Hoofdstraat 17',
+      postalCode: '3511 KN',
+      city: 'Utrecht',
+      country: 'Nederland',
+    },
   },
   'ipad@commeazy.local': {
     userUuid: MOCK_UUIDS.ipad,

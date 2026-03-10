@@ -2087,6 +2087,8 @@
         "cityLabel": "By",
         "cityPlaceholder": "F.eks. København",
         "addressAutoFilled": "Adresse hentet fra kontakt",
+        "customAddressLabel": "Anden adresse",
+        "addressFromContact": "Adresse hentet fra kontakt",
         "done": "Færdig"
       },
       "search": {

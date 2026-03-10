@@ -2260,6 +2260,8 @@
         "cityLabel": "Cidade",
         "cityPlaceholder": "Ex. Lisboa",
         "addressAutoFilled": "Morada preenchida a partir do contacto",
+        "customAddressLabel": "Outro endereço",
+        "addressFromContact": "Endereço obtido do contacto",
         "done": "Concluído"
       },
       "search": {
