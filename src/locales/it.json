@@ -2120,8 +2120,9 @@
       "title": "Agenda",
       "emptyTitle": "Nessun appuntamento",
       "emptySubtitle": "Aggiungi un appuntamento, promemoria o farmaco per iniziare.",
+      "emptyDay": "Giornata senza appuntamenti",
       "viewPast": "Visualizza passati",
-      "addItem": "+ Aggiungi nuovo elemento",
+      "addItem": "+ Nuovo appuntamento",
       "years": "anni",
       "moreItems": "E altri {{count}}...",
       "categories": {
@@ -2199,9 +2200,19 @@
         "tabOverview": "Panoramica",
         "tabSearch": "Cerca",
         "placeholder": "Cerca per titolo, nome o categoria",
+        "universalPlaceholder": "Cerca per nome, contatto o indirizzo",
+        "includePast": "Cerca anche nel passato",
         "sectionUpcoming": "In arrivo",
         "sectionPast": "Passato",
         "noResults": "Nessun risultato trovato"
+      },
+      "dayNav": {
+        "today": "Oggi",
+        "tomorrow": "Domani",
+        "yesterday": "Ieri",
+        "previousDay": "Giorno precedente",
+        "nextDay": "Giorno successivo",
+        "routeA11y": "Naviga verso {{address}}"
       },
       "detail": {
         "allDay": "Tutto il giorno",

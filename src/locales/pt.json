@@ -2189,8 +2189,9 @@
       "title": "Agenda",
       "emptyTitle": "Ainda sem compromissos",
       "emptySubtitle": "Adicione um compromisso, lembrete ou medicamento para começar.",
+      "emptyDay": "Dia sem compromissos",
       "viewPast": "Ver anteriores",
-      "addItem": "+ Adicionar novo item",
+      "addItem": "+ Novo compromisso",
       "years": "anos",
       "moreItems": "E mais {{count}}...",
       "categories": {
@@ -2268,9 +2269,19 @@
         "tabOverview": "Visão geral",
         "tabSearch": "Pesquisar",
         "placeholder": "Pesquisar por título, nome ou categoria",
+        "universalPlaceholder": "Pesquisar por nome, contacto ou morada",
+        "includePast": "Pesquisar também no passado",
         "sectionUpcoming": "Próximos",
         "sectionPast": "Passados",
         "noResults": "Nenhum resultado encontrado"
+      },
+      "dayNav": {
+        "today": "Hoje",
+        "tomorrow": "Amanhã",
+        "yesterday": "Ontem",
+        "previousDay": "Dia anterior",
+        "nextDay": "Dia seguinte",
+        "routeA11y": "Navegar para {{address}}"
       },
       "detail": {
         "allDay": "Dia inteiro",

@@ -2172,8 +2172,9 @@
       "title": "Agenda",
       "emptyTitle": "Aún no hay citas",
       "emptySubtitle": "Añade una cita, recordatorio o medicamento para empezar.",
+      "emptyDay": "Día sin citas",
       "viewPast": "Ver pasados",
-      "addItem": "+ Añadir nuevo elemento",
+      "addItem": "+ Nueva cita",
       "years": "años",
       "moreItems": "Y {{count}} más...",
       "categories": {
@@ -2251,9 +2252,19 @@
         "tabOverview": "Resumen",
         "tabSearch": "Buscar",
         "placeholder": "Buscar por título, nombre o categoría",
+        "universalPlaceholder": "Buscar por nombre, contacto o dirección",
+        "includePast": "Buscar también en el pasado",
         "sectionUpcoming": "Próximamente",
         "sectionPast": "Pasado",
         "noResults": "No se encontraron resultados"
+      },
+      "dayNav": {
+        "today": "Hoy",
+        "tomorrow": "Mañana",
+        "yesterday": "Ayer",
+        "previousDay": "Día anterior",
+        "nextDay": "Día siguiente",
+        "routeA11y": "Navegar a {{address}}"
       },
       "detail": {
         "allDay": "Todo el día",

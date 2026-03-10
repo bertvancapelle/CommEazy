@@ -123,6 +123,12 @@ export interface AgendaContextValue {
   // Contacts (for contact picker in form)
   contacts: ContactModel[];
 
+  // Day-by-day navigation
+  getItemsForDate: (date: Date) => TimelineItem[];
+
+  // Universal search
+  searchItems: (query: string, includePast: boolean) => TimelineItem[];
+
   // Actions
   refresh: () => Promise<void>;
   createItem: (data: CreateAgendaItemData) => Promise<string>;
@@ -314,7 +320,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
   }, [loadData]);
 
   // Build timeline from merged data sources
-  const { timelineDays, pastItems } = useMemo(() => {
+  const { timelineDays, pastItems, allSortedItems } = useMemo(() => {
     const now = new Date();
     const todayStart = startOfDay(now.getTime());
     // Look ahead 90 days for timeline
@@ -544,8 +550,46 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
       a.dateKey.localeCompare(b.dateKey),
     );
 
-    return { timelineDays: days, pastItems: past };
+    return { timelineDays: days, pastItems: past, allSortedItems: allItems };
   }, [agendaItems, contacts]);
+
+  // ============================================================
+  // Day-by-day navigation — get items for a specific date
+  // ============================================================
+
+  const getItemsForDate = useCallback((date: Date): TimelineItem[] => {
+    const targetKey = toDateKey(date.getTime());
+    return allSortedItems.filter(item => toDateKey(item.date) === targetKey);
+  }, [allSortedItems]);
+
+  // ============================================================
+  // Universal search — fuzzy/contains match across all fields
+  // ============================================================
+
+  const searchItems = useCallback((query: string, includePast: boolean): TimelineItem[] => {
+    if (!query.trim()) return [];
+
+    const q = query.toLowerCase().trim();
+    const now = Date.now();
+
+    return allSortedItems.filter(item => {
+      // Filter by time: only include past if toggle is on
+      if (!includePast && item.date < startOfDay(now)) return false;
+
+      // Contains-match against title
+      if (item.title.toLowerCase().includes(q)) return true;
+      // Contains-match against contact names
+      if (item.contactNames.some(n => n.toLowerCase().includes(q))) return true;
+      // Contains-match against location name
+      if (item.locationName?.toLowerCase().includes(q)) return true;
+      // Contains-match against address parts
+      if (item.addressStreet?.toLowerCase().includes(q)) return true;
+      if (item.addressCity?.toLowerCase().includes(q)) return true;
+      if (item.addressPostalCode?.toLowerCase().includes(q)) return true;
+
+      return false;
+    });
+  }, [allSortedItems]);
 
   // ============================================================
   // Actions
@@ -759,6 +803,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     pastItems,
     isLoading,
     contacts,
+    getItemsForDate,
+    searchItems,
     refresh,
     createItem,
     updateItem,
@@ -773,6 +819,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     pastItems,
     isLoading,
     contacts,
+    getItemsForDate,
+    searchItems,
     refresh,
     createItem,
     updateItem,

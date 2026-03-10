@@ -2016,8 +2016,9 @@
       "title": "Kalender",
       "emptyTitle": "Ingen aftaler endnu",
       "emptySubtitle": "Tilføj en aftale, påmindelse eller medicin for at komme i gang.",
+      "emptyDay": "Dag uden aftaler",
       "viewPast": "Vis tidligere",
-      "addItem": "+ Tilføj nyt element",
+      "addItem": "+ Ny aftale",
       "years": "år",
       "moreItems": "Og {{count}} mere...",
       "categories": {
@@ -2095,9 +2096,19 @@
         "tabOverview": "Overblik",
         "tabSearch": "Søg",
         "placeholder": "Søg efter titel, navn eller kategori",
+        "universalPlaceholder": "Søg efter navn, kontakt eller adresse",
+        "includePast": "Søg også i fortiden",
         "sectionUpcoming": "Kommende",
         "sectionPast": "Tidligere",
         "noResults": "Ingen resultater fundet"
+      },
+      "dayNav": {
+        "today": "I dag",
+        "tomorrow": "I morgen",
+        "yesterday": "I går",
+        "previousDay": "Forrige dag",
+        "nextDay": "Næste dag",
+        "routeA11y": "Naviger til {{address}}"
       },
       "detail": {
         "allDay": "Hele dagen",

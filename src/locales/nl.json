@@ -2182,8 +2182,9 @@
       "title": "Agenda",
       "emptyTitle": "Nog geen afspraken",
       "emptySubtitle": "Voeg een afspraak, herinnering of medicijn toe om te beginnen.",
+      "emptyDay": "Dag zonder afspraken",
       "viewPast": "Afgelopen bekijken",
-      "addItem": "+ Nieuw item toevoegen",
+      "addItem": "+ Nieuwe afspraak",
       "years": "jaar",
       "moreItems": "En nog {{count}} meer...",
       "categories": {
@@ -2261,9 +2262,19 @@
         "tabOverview": "Overzicht",
         "tabSearch": "Zoeken",
         "placeholder": "Zoek op titel, naam of categorie",
+        "universalPlaceholder": "Zoek op naam, contactpersoon of adres",
+        "includePast": "Ook in het verleden zoeken",
         "sectionUpcoming": "Binnenkort",
         "sectionPast": "Afgelopen",
         "noResults": "Geen resultaten gevonden"
+      },
+      "dayNav": {
+        "today": "Vandaag",
+        "tomorrow": "Morgen",
+        "yesterday": "Gisteren",
+        "previousDay": "Vorige dag",
+        "nextDay": "Volgende dag",
+        "routeA11y": "Navigeer naar {{address}}"
       },
       "detail": {
         "allDay": "Hele dag",

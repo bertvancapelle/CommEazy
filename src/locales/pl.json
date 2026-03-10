@@ -2037,8 +2037,9 @@
       "title": "Kalendarz",
       "emptyTitle": "Brak spotkań",
       "emptySubtitle": "Dodaj spotkanie, przypomnienie lub lek, aby zacząć.",
+      "emptyDay": "Dzień bez spotkań",
       "viewPast": "Pokaż minione",
-      "addItem": "+ Dodaj nowy element",
+      "addItem": "+ Nowe spotkanie",
       "years": "lat",
       "moreItems": "I jeszcze {{count}} więcej...",
       "categories": {
@@ -2116,9 +2117,19 @@
         "tabOverview": "Przegląd",
         "tabSearch": "Szukaj",
         "placeholder": "Szukaj po tytule, nazwie lub kategorii",
+        "universalPlaceholder": "Szukaj po nazwie, kontakcie lub adresie",
+        "includePast": "Szukaj również w przeszłości",
         "sectionUpcoming": "Nadchodzące",
         "sectionPast": "Minione",
         "noResults": "Nie znaleziono wyników"
+      },
+      "dayNav": {
+        "today": "Dzisiaj",
+        "tomorrow": "Jutro",
+        "yesterday": "Wczoraj",
+        "previousDay": "Poprzedni dzień",
+        "nextDay": "Następny dzień",
+        "routeA11y": "Nawiguj do {{address}}"
       },
       "detail": {
         "allDay": "Cały dzień",

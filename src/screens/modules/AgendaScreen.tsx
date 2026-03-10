@@ -1,13 +1,15 @@
 /**
- * AgendaScreen — Timeline overview for appointments, reminders & medication
+ * AgendaScreen — Day-by-day agenda with action bar + search
  *
- * Senior-inclusive timeline with:
- * - Day-grouped items (Vandaag, Morgen, weekdays, Volgende week)
- * - Category icons + time + title + contact names
- * - Medication inline checkbox (visual only, Fase 4 for interaction)
- * - Expired items (today, past time) shown greyed out
- * - "Afgelopen bekijken" for past items
- * - "+ Nieuw item toevoegen" opens category picker (Fase 3)
+ * Senior-inclusive agenda redesign with:
+ * - Action bar: [+ Nieuwe afspraak] left, [🔍] right (always visible)
+ * - Date navigation: [◀] Vandaag, 10 mrt 2026 [▶] (day-by-day)
+ * - Single day view with items for the selected date
+ * - Contact display: first contact full name + "+N" indicator
+ * - Route icon (🧭) on items with address → opens maps
+ * - Search view: universal search across title, contacts, location, address
+ *   with toggle for past items and fuzzy/contains matching
+ * - Empty day state: "Dag zonder afspraken"
  * - Large touch targets (60pt+), 18pt+ text
  *
  * @see contexts/AgendaContext.tsx for data source
@@ -25,6 +27,9 @@ import {
   RefreshControl,
   Modal,
   TouchableOpacity,
+  Linking,
+  Platform,
+  Switch,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
@@ -37,10 +42,9 @@ import {
   AgendaProvider,
   useAgendaContext,
   type TimelineItem,
-  type TimelineDay,
   type CreateAgendaItemData,
 } from '@/contexts/AgendaContext';
-import { getCategoryById, type AgendaCategory } from '@/constants/agendaCategories';
+import { type AgendaCategory } from '@/constants/agendaCategories';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useAgendaNotifications } from '@/hooks/useAgendaNotifications';
@@ -56,7 +60,67 @@ const MODULE_ID = 'agenda';
 const WELCOME_SHOWN_KEY = 'agenda_welcome_shown';
 
 // ============================================================
-// TimelineItemRow — Individual agenda item
+// Helpers
+// ============================================================
+
+/** Format a Date to a localized day label, e.g. "Vandaag, 10 mrt 2026" */
+function formatDateLabel(date: Date, t: (key: string) => string): string {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((targetStart.getTime() - todayStart.getTime()) / (24 * 60 * 60 * 1000));
+
+  const dateStr = date.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  if (diffDays === 0) return `${t('modules.agenda.dayNav.today')}, ${dateStr}`;
+  if (diffDays === 1) return `${t('modules.agenda.dayNav.tomorrow')}, ${dateStr}`;
+  if (diffDays === -1) return `${t('modules.agenda.dayNav.yesterday')}, ${dateStr}`;
+
+  const weekday = date.toLocaleDateString(undefined, { weekday: 'long' });
+  // Capitalize first letter
+  const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  return `${capitalizedWeekday}, ${dateStr}`;
+}
+
+/** Format a date for search result display */
+function formatSearchResultDate(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+/** Open address in maps app */
+function openInMaps(item: TimelineItem): void {
+  const parts = [item.addressStreet, item.addressPostalCode, item.addressCity, item.addressCountry].filter(Boolean);
+  if (parts.length === 0) return;
+
+  const address = parts.join(', ');
+  const encoded = encodeURIComponent(address);
+
+  // Use Apple Maps on iOS (maps: scheme), Google Maps on Android
+  const url = Platform.OS === 'ios'
+    ? `maps:?q=${encoded}`
+    : `geo:0,0?q=${encoded}`;
+
+  Linking.openURL(url).catch(err =>
+    console.warn('[AgendaScreen] Failed to open maps:', err),
+  );
+}
+
+/** Check if an item has a navigable address */
+function hasAddress(item: TimelineItem): boolean {
+  return !!(item.addressStreet || item.addressCity);
+}
+
+// ============================================================
+// TimelineItemRow — Individual agenda item (redesigned)
 // ============================================================
 
 interface TimelineItemRowProps {
@@ -64,9 +128,10 @@ interface TimelineItemRowProps {
   isExpired: boolean;
   onPress: (item: TimelineItem) => void;
   moduleColor: string;
+  showDate?: boolean;
 }
 
-function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItemRowProps) {
+function TimelineItemRow({ item, isExpired, onPress, moduleColor, showDate }: TimelineItemRowProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
 
@@ -76,40 +141,32 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
   // Build time display
   const timeDisplay = item.time ?? '';
 
-  // Build subtitle (contact names or years-since info)
-  let subtitle = '';
-  if (item.contactNames.length > 0) {
-    subtitle = item.contactNames.join(', ');
+  // Build contact subtitle: first contact full name + "+N" for additional
+  let contactSubtitle = '';
+  if (item.contactNames.length === 1) {
+    contactSubtitle = item.contactNames[0];
+  } else if (item.contactNames.length > 1) {
+    contactSubtitle = `${item.contactNames[0]} +${item.contactNames.length - 1}`;
   }
+
+  // Years-since info
   if (item.yearsSince != null && item.yearsSince > 0) {
-    // e.g. "(78)" for birthday or "(45 jaar)" for wedding anniversary
-    if (item.category === 'birthday') {
-      subtitle = subtitle
-        ? `${subtitle} (${item.yearsSince})`
-        : `(${item.yearsSince})`;
-    } else {
-      subtitle = subtitle
-        ? `${subtitle} (${item.yearsSince} ${t('modules.agenda.years')})`
-        : `(${item.yearsSince} ${t('modules.agenda.years')})`;
-    }
-  }
-
-  // Contact photos for mini-avatars
-  const hasContactPhotos = item.contactPhotoPaths.some(p => p != null);
-
-  // Build address display line
-  let addressLine = '';
-  if (item.locationName) {
-    addressLine = item.locationName;
-  }
-  if (item.addressStreet || item.addressCity) {
-    const addrParts = [item.addressStreet, item.addressPostalCode, item.addressCity].filter(Boolean);
-    const addrStr = addrParts.join(', ');
-    addressLine = addressLine ? `${addressLine} — ${addrStr}` : addrStr;
+    const yearsSuffix = item.category === 'birthday'
+      ? `(${item.yearsSince})`
+      : `(${item.yearsSince} ${t('modules.agenda.years')})`;
+    contactSubtitle = contactSubtitle
+      ? `${contactSubtitle} ${yearsSuffix}`
+      : yearsSuffix;
   }
 
   // Accessibility label
-  const a11yParts = [item.icon, timeDisplay, item.title, subtitle, addressLine].filter(Boolean);
+  const a11yParts = [
+    item.icon,
+    timeDisplay,
+    item.title,
+    contactSubtitle,
+    hasAddress(item) ? t('modules.agenda.dayNav.routeA11y', { address: [item.addressStreet, item.addressCity].filter(Boolean).join(', ') }) : null,
+  ].filter(Boolean);
   const a11yLabel = a11yParts.join(', ');
 
   return (
@@ -127,8 +184,16 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
         {item.icon}
       </Text>
 
-      {/* Time + Title + Subtitle + Address */}
+      {/* Time + Title + Contact + Date (for search results) */}
       <View style={styles.itemContent}>
+        {showDate && (
+          <Text
+            style={[styles.itemDate, { color: secondaryTextColor }]}
+            numberOfLines={1}
+          >
+            {formatSearchResultDate(item.date)}
+          </Text>
+        )}
         <View style={styles.itemTitleRow}>
           {timeDisplay ? (
             <Text
@@ -152,7 +217,7 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
             {item.title}
           </Text>
         </View>
-        {subtitle ? (
+        {contactSubtitle ? (
           <View style={styles.itemSubtitleRow}>
             {/* Mini contact avatars */}
             {item.contactPhotoPaths.length > 0 && (
@@ -190,30 +255,30 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
               ]}
               numberOfLines={1}
             >
-              {subtitle}
+              {contactSubtitle}
             </Text>
           </View>
         ) : null}
-        {addressLine ? (
-          <Text
-            style={[
-              styles.itemAddress,
-              { color: secondaryTextColor },
-              isExpired && styles.textExpired,
-            ]}
-            numberOfLines={1}
-          >
-            📍 {addressLine}
-          </Text>
-        ) : null}
       </View>
 
-      {/* Medication checkbox placeholder (visual only in Fase 2) */}
+      {/* Route icon for items with address */}
+      {hasAddress(item) && (
+        <HapticTouchable
+          style={styles.routeButton}
+          onPress={() => openInMaps(item)}
+          accessibilityRole="button"
+          accessibilityLabel={t('modules.agenda.dayNav.routeA11y', {
+            address: [item.addressStreet, item.addressCity].filter(Boolean).join(', '),
+          })}
+        >
+          <Text style={styles.routeIcon}>🧭</Text>
+        </HapticTouchable>
+      )}
+
+      {/* Medication checkbox placeholder (visual only) */}
       {item.isMedication && (
         <View style={styles.checkboxContainer}>
-          <View style={[styles.checkbox, { borderColor: isExpired ? themeColors.disabled : moduleColor }]}>
-            {/* Empty for now — Fase 4 adds toggle functionality */}
-          </View>
+          <View style={[styles.checkbox, { borderColor: isExpired ? themeColors.disabled : moduleColor }]} />
         </View>
       )}
     </HapticTouchable>
@@ -221,68 +286,12 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
 }
 
 // ============================================================
-// TimelineSectionView — Day header + items
-// ============================================================
-
-interface TimelineSectionProps {
-  day: TimelineDay;
-  onItemPress: (item: TimelineItem) => void;
-  moduleColor: string;
-}
-
-function TimelineSectionView({ day, onItemPress, moduleColor }: TimelineSectionProps) {
-  const themeColors = useColors();
-
-  // Determine which items are expired (today, past their time)
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-
-  const isItemExpired = useCallback(
-    (item: TimelineItem): boolean => {
-      if (!day.isToday) return day.isPast;
-      if (!item.time) return false; // All-day items are never "expired" during the day
-      const [h, m] = item.time.split(':').map(Number);
-      return h < currentHour || (h === currentHour && m <= currentMinute);
-    },
-    [day.isToday, day.isPast, currentHour, currentMinute],
-  );
-
-  return (
-    <View style={styles.section}>
-      {/* Day header */}
-      <View style={styles.sectionHeader}>
-        <View style={[styles.sectionLine, { backgroundColor: themeColors.divider }]} />
-        <Text style={[styles.sectionLabel, { color: themeColors.textSecondary }]}>
-          {day.label}
-        </Text>
-        <View style={[styles.sectionLine, { backgroundColor: themeColors.divider }]} />
-      </View>
-
-      {/* Items */}
-      {day.items.map((item) => (
-        <TimelineItemRow
-          key={item.id}
-          item={item}
-          isExpired={isItemExpired(item)}
-          onPress={onItemPress}
-          moduleColor={moduleColor}
-        />
-      ))}
-    </View>
-  );
-}
-
-// ============================================================
 // AgendaScreenInner — Main content (inside provider)
 // ============================================================
 
-// ============================================================
-// Internal navigation state
-// ============================================================
-
 type AgendaView =
-  | { screen: 'timeline' }
+  | { screen: 'dayView' }
+  | { screen: 'search' }
   | { screen: 'categoryPicker' }
   | { screen: 'form'; category: AgendaCategory; editItem?: TimelineItem }
   | { screen: 'detail'; item: TimelineItem };
@@ -293,16 +302,25 @@ function AgendaScreenInner() {
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor(MODULE_ID);
-  const { timelineDays, pastItems, isLoading, refresh, createItem, updateItem } = useAgendaContext();
+  const {
+    timelineDays,
+    pastItems,
+    isLoading,
+    refresh,
+    createItem,
+    updateItem,
+    getItemsForDate,
+    searchItems,
+  } = useAgendaContext();
 
-  // Activate notification scheduling — auto-reschedules on timeline changes
+  // Activate notification scheduling
   useAgendaNotifications();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showPastItems, setShowPastItems] = useState(false);
-  const [currentView, setCurrentView] = useState<AgendaView>({ screen: 'timeline' });
-  const [activeTab, setActiveTab] = useState<'overview' | 'search'>('overview');
+  const [currentView, setCurrentView] = useState<AgendaView>({ screen: 'dayView' });
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchIncludePast, setSearchIncludePast] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 
   // Welcome modal for first-time users
@@ -324,14 +342,9 @@ function AgendaScreenInner() {
     setIsRefreshing(false);
   }, [refresh]);
 
-  // Item tap — open detail screen
+  // Item tap → open detail screen
   const handleItemPress = useCallback((item: TimelineItem) => {
     setCurrentView({ screen: 'detail', item });
-  }, []);
-
-  // Past items toggle
-  const handleTogglePastItems = useCallback(() => {
-    setShowPastItems((prev) => !prev);
   }, []);
 
   // Add new item → open category picker
@@ -339,12 +352,25 @@ function AgendaScreenInner() {
     setCurrentView({ screen: 'categoryPicker' });
   }, []);
 
+  // Open search view
+  const handleOpenSearch = useCallback(() => {
+    setSearchQuery('');
+    setSearchIncludePast(false);
+    setCurrentView({ screen: 'search' });
+  }, []);
+
+  // Back from search to day view
+  const handleBackFromSearch = useCallback(() => {
+    setSearchQuery('');
+    setCurrentView({ screen: 'dayView' });
+  }, []);
+
   // Category selected → open form
   const handleCategorySelected = useCallback((category: AgendaCategory) => {
     setCurrentView({ screen: 'form', category });
   }, []);
 
-  // Edit from detail — open form pre-filled
+  // Edit from detail
   const handleEditItem = useCallback((item: TimelineItem) => {
     setCurrentView({
       screen: 'form',
@@ -353,17 +379,16 @@ function AgendaScreenInner() {
     });
   }, []);
 
-  // Form saved → create or update item and return to timeline
+  // Form saved
   const handleFormSave = useCallback(async (data: CreateAgendaItemData) => {
     try {
-      // Check if we are editing an existing item
       const cv = currentView;
       if (cv.screen === 'form' && cv.editItem?.modelId) {
         await updateItem(cv.editItem.modelId, data);
       } else {
         await createItem(data);
       }
-      setCurrentView({ screen: 'timeline' });
+      setCurrentView({ screen: 'dayView' });
     } catch (error) {
       console.error('[AgendaScreen] Failed to save item:', error);
     }
@@ -371,52 +396,57 @@ function AgendaScreenInner() {
 
   // Back navigation
   const handleBackToTimeline = useCallback(() => {
-    setCurrentView({ screen: 'timeline' });
+    setCurrentView({ screen: 'dayView' });
   }, []);
 
   const handleBackToCategoryPicker = useCallback(() => {
     setCurrentView({ screen: 'categoryPicker' });
   }, []);
 
-  // Filter days with items
-  const visibleDays = useMemo(
-    () => timelineDays.filter((day) => day.items.length > 0),
-    [timelineDays],
+  // Date navigation
+  const handlePreviousDay = useCallback(() => {
+    setSelectedDate(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() - 1);
+      return d;
+    });
+  }, []);
+
+  const handleNextDay = useCallback(() => {
+    setSelectedDate(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + 1);
+      return d;
+    });
+  }, []);
+
+  // Items for the selected date
+  const dayItems = useMemo(
+    () => getItemsForDate(selectedDate),
+    [getItemsForDate, selectedDate],
   );
 
-  // Search: filter all items by query (local filtering)
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return { upcoming: [], past: [] };
+  // Determine expired state for items on the selected day
+  const now = new Date();
+  const isSelectedDateToday = selectedDate.toDateString() === now.toDateString();
+  const isSelectedDatePast = selectedDate < new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const query = searchQuery.toLowerCase().trim();
-    const now = Date.now();
+  const isItemExpired = useCallback(
+    (item: TimelineItem): boolean => {
+      if (isSelectedDatePast) return true;
+      if (!isSelectedDateToday) return false;
+      if (!item.time) return false;
+      const [h, m] = item.time.split(':').map(Number);
+      return h < now.getHours() || (h === now.getHours() && m <= now.getMinutes());
+    },
+    [isSelectedDatePast, isSelectedDateToday, now],
+  );
 
-    // Collect all items from timeline + past
-    const allItems: TimelineItem[] = [];
-    for (const day of timelineDays) {
-      allItems.push(...day.items);
-    }
-    allItems.push(...pastItems);
-
-    // Filter by title, contact names, or category label
-    const filtered = allItems.filter((item) => {
-      if (item.title.toLowerCase().includes(query)) return true;
-      if (item.contactNames.some(n => n.toLowerCase().includes(query))) return true;
-      // Match category label
-      const catDef = getCategoryById(item.category);
-      if (catDef) {
-        const catLabel = t(catDef.labelKey).toLowerCase();
-        if (catLabel.includes(query)) return true;
-      }
-      return false;
-    });
-
-    // Split into upcoming and past
-    const upcoming = filtered.filter(item => item.date >= now).sort((a, b) => a.date - b.date);
-    const past = filtered.filter(item => item.date < now).sort((a, b) => b.date - a.date);
-
-    return { upcoming, past };
-  }, [searchQuery, timelineDays, pastItems, t]);
+  // Search results
+  const searchResults = useMemo(
+    () => searchItems(searchQuery, searchIncludePast),
+    [searchItems, searchQuery, searchIncludePast],
+  );
 
   // ============================================================
   // Sub-screen rendering
@@ -470,7 +500,7 @@ function AgendaScreenInner() {
   }
 
   // ============================================================
-  // Timeline view (default)
+  // Loading state
   // ============================================================
 
   if (isLoading) {
@@ -487,6 +517,107 @@ function AgendaScreenInner() {
     );
   }
 
+  // ============================================================
+  // Search view
+  // ============================================================
+
+  if (currentView.screen === 'search') {
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ModuleHeader
+          moduleId={MODULE_ID}
+          icon="calendar"
+          title={t('modules.agenda.title')}
+          showAdMob={false}
+        />
+
+        {/* Back button */}
+        <View style={styles.searchHeader}>
+          <HapticTouchable
+            style={[styles.backButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}
+            onPress={handleBackFromSearch}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
+            <Icon name="chevron-left" size={24} color={themeColors.textPrimary} />
+            <Text style={[styles.backButtonText, { color: themeColors.textPrimary }]}>
+              {t('common.back')}
+            </Text>
+          </HapticTouchable>
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + spacing.xl },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Search bar */}
+          <View style={styles.searchBarContainer}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={() => {}}
+              placeholder={t('modules.agenda.search.universalPlaceholder')}
+              searchButtonLabel={t('common.search')}
+            />
+          </View>
+
+          {/* Past toggle */}
+          <View style={styles.pastToggleRow}>
+            <Text style={[styles.pastToggleLabel, { color: themeColors.textPrimary }]}>
+              {t('modules.agenda.search.includePast')}
+            </Text>
+            <Switch
+              value={searchIncludePast}
+              onValueChange={setSearchIncludePast}
+              trackColor={{ false: themeColors.border, true: moduleColor }}
+              accessibilityLabel={t('modules.agenda.search.includePast')}
+            />
+          </View>
+
+          {/* Search results */}
+          {searchQuery.trim() ? (
+            searchResults.length > 0 ? (
+              <View style={styles.searchResultsContainer}>
+                {searchResults.map((item) => (
+                  <TimelineItemRow
+                    key={item.id}
+                    item={item}
+                    isExpired={item.date < Date.now()}
+                    onPress={handleItemPress}
+                    moduleColor={moduleColor}
+                    showDate
+                  />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyIcon}>🔍</Text>
+                <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+                  {t('modules.agenda.search.noResults')}
+                </Text>
+              </View>
+            )
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>🔍</Text>
+              <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
+                {t('modules.agenda.search.universalPlaceholder')}
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ============================================================
+  // Day view (default)
+  // ============================================================
+
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleHeader
@@ -496,213 +627,96 @@ function AgendaScreenInner() {
         showAdMob={false}
       />
 
-      {/* Tab bar: Overzicht / Zoeken */}
-      <View style={[styles.tabBar, { borderBottomColor: themeColors.divider }]}>
+      {/* Action bar: [+ Nieuwe afspraak] ... [🔍] */}
+      <View style={styles.actionBar}>
         <HapticTouchable
-          style={[
-            styles.tab,
-            activeTab === 'overview' && [styles.tabActive, { borderBottomColor: moduleColor }],
-          ]}
-          onPress={() => { setActiveTab('overview'); setSearchQuery(''); }}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'overview' }}
-          accessibilityLabel={t('modules.agenda.search.tabOverview')}
+          style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
+          onPress={handleAddItem}
+          accessibilityRole="button"
+          accessibilityLabel={t('modules.agenda.addItem')}
         >
-          <Text style={[
-            styles.tabText,
-            { color: activeTab === 'overview' ? moduleColor : themeColors.textSecondary },
-          ]}>
-            📋 {t('modules.agenda.search.tabOverview')}
+          <Icon name="plus" size={22} color={colors.textOnPrimary} />
+          <Text style={[styles.actionButtonText, { color: colors.textOnPrimary }]}>
+            {t('modules.agenda.addItem')}
           </Text>
         </HapticTouchable>
+
         <HapticTouchable
-          style={[
-            styles.tab,
-            activeTab === 'search' && [styles.tabActive, { borderBottomColor: moduleColor }],
-          ]}
-          onPress={() => setActiveTab('search')}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'search' }}
-          accessibilityLabel={t('modules.agenda.search.tabSearch')}
+          style={[styles.searchButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border, borderWidth: 1 }]}
+          onPress={handleOpenSearch}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.search')}
         >
-          <Text style={[
-            styles.tabText,
-            { color: activeTab === 'search' ? moduleColor : themeColors.textSecondary },
-          ]}>
-            🔍 {t('modules.agenda.search.tabSearch')}
-          </Text>
+          <Icon name="search" size={24} color={themeColors.textPrimary} />
         </HapticTouchable>
       </View>
 
-      {/* Search tab content */}
-      {activeTab === 'search' ? (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + spacing.xl },
-          ]}
-          keyboardShouldPersistTaps="handled"
+      {/* Date navigation bar: [◀] Label [▶] */}
+      <View style={[styles.dateNavBar, { borderBottomColor: themeColors.divider }]}>
+        <HapticTouchable
+          style={styles.dateNavArrow}
+          onPress={handlePreviousDay}
+          accessibilityRole="button"
+          accessibilityLabel={t('modules.agenda.dayNav.previousDay')}
         >
-          <View style={styles.searchBarContainer}>
-            <SearchBar
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmit={() => {}}
-              placeholder={t('modules.agenda.search.placeholder')}
-              searchButtonLabel={t('modules.agenda.search.tabSearch')}
-            />
+          <Icon name="chevron-left" size={28} color={themeColors.textPrimary} />
+        </HapticTouchable>
+
+        <Text
+          style={[styles.dateNavLabel, { color: themeColors.textPrimary }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
+          {formatDateLabel(selectedDate, t)}
+        </Text>
+
+        <HapticTouchable
+          style={styles.dateNavArrow}
+          onPress={handleNextDay}
+          accessibilityRole="button"
+          accessibilityLabel={t('modules.agenda.dayNav.nextDay')}
+        >
+          <Icon name="chevron-right" size={28} color={themeColors.textPrimary} />
+        </HapticTouchable>
+      </View>
+
+      {/* Day items */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + spacing.xl },
+        ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={moduleColor}
+          />
+        }
+      >
+        {dayItems.length === 0 ? (
+          /* Empty day state */
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>📅</Text>
+            <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.agenda.emptyDay')}
+            </Text>
           </View>
-
-          {/* Search results */}
-          {searchQuery.trim() ? (
-            <>
-              {/* Upcoming section */}
-              {searchResults.upcoming.length > 0 && (
-                <View style={styles.searchSection}>
-                  <Text style={[styles.searchSectionLabel, { color: themeColors.textSecondary }]}>
-                    {t('modules.agenda.search.sectionUpcoming')}
-                  </Text>
-                  {searchResults.upcoming.map((item) => (
-                    <TimelineItemRow
-                      key={item.id}
-                      item={item}
-                      isExpired={false}
-                      onPress={handleItemPress}
-                      moduleColor={moduleColor}
-                    />
-                  ))}
-                </View>
-              )}
-
-              {/* Past section */}
-              {searchResults.past.length > 0 && (
-                <View style={styles.searchSection}>
-                  <Text style={[styles.searchSectionLabel, { color: themeColors.textSecondary }]}>
-                    {t('modules.agenda.search.sectionPast')}
-                  </Text>
-                  {searchResults.past.map((item) => (
-                    <TimelineItemRow
-                      key={item.id}
-                      item={item}
-                      isExpired={true}
-                      onPress={handleItemPress}
-                      moduleColor={moduleColor}
-                    />
-                  ))}
-                </View>
-              )}
-
-              {/* No results */}
-              {searchResults.upcoming.length === 0 && searchResults.past.length === 0 && (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>🔍</Text>
-                  <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-                    {t('modules.agenda.search.noResults')}
-                  </Text>
-                </View>
-              )}
-            </>
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>🔍</Text>
-              <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
-                {t('modules.agenda.search.placeholder')}
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      ) : (
-        /* Overview tab content */
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + spacing.xl },
-          ]}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              tintColor={moduleColor}
-            />
-          }
-        >
-          {/* Empty state */}
-          {visibleDays.length === 0 && pastItems.length === 0 && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📅</Text>
-              <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-                {t('modules.agenda.emptyTitle')}
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
-                {t('modules.agenda.emptySubtitle')}
-              </Text>
-            </View>
-          )}
-
-          {/* Timeline sections */}
-          {visibleDays.map((day) => (
-            <TimelineSectionView
-              key={day.dateKey}
-              day={day}
-              onItemPress={handleItemPress}
+        ) : (
+          /* Day items list */
+          dayItems.map((item) => (
+            <TimelineItemRow
+              key={item.id}
+              item={item}
+              isExpired={isItemExpired(item)}
+              onPress={handleItemPress}
               moduleColor={moduleColor}
             />
-          ))}
-
-          {/* Bottom buttons */}
-          <View style={styles.bottomButtons}>
-            {/* Past items button */}
-            {pastItems.length > 0 && (
-              <HapticTouchable
-                style={[styles.secondaryButton, { borderColor: themeColors.border }]}
-                onPress={handleTogglePastItems}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.agenda.viewPast')}
-              >
-                <Icon name="chevron-down" size={20} color={themeColors.textSecondary} />
-                <Text style={[styles.secondaryButtonText, { color: themeColors.textSecondary }]}>
-                  {t('modules.agenda.viewPast')} ({pastItems.length})
-                </Text>
-              </HapticTouchable>
-            )}
-
-            {/* Past items list (expandable) */}
-            {showPastItems && pastItems.length > 0 && (
-              <View style={styles.pastItemsContainer}>
-                {pastItems.slice(0, 20).map((item) => (
-                  <TimelineItemRow
-                    key={item.id}
-                    item={item}
-                    isExpired={true}
-                    onPress={handleItemPress}
-                    moduleColor={moduleColor}
-                  />
-                ))}
-                {pastItems.length > 20 && (
-                  <Text style={[styles.moreItemsText, { color: themeColors.textSecondary }]}>
-                    {t('modules.agenda.moreItems', { count: pastItems.length - 20 })}
-                  </Text>
-                )}
-              </View>
-            )}
-
-            {/* Add new item button */}
-            <HapticTouchable
-              style={[styles.addButton, { backgroundColor: accentColor.primary }]}
-              onPress={handleAddItem}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.agenda.addItem')}
-            >
-              <Icon name="plus" size={24} color={colors.textOnPrimary} />
-              <Text style={[styles.addButtonText, { color: colors.textOnPrimary }]}>
-                {t('modules.agenda.addItem')}
-              </Text>
-            </HapticTouchable>
-          </View>
-        </ScrollView>
-      )}
+          ))
+        )}
+      </ScrollView>
 
       {/* Welcome Modal */}
       <Modal
@@ -790,25 +804,95 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Tab bar
-  tabBar: {
+
+  // Action bar
+  actionBar: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
   },
-  tab: {
-    flex: 1,
+  actionButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: touchTargets.minimum,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
+    height: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    flex: 1,
   },
-  tabActive: {
-    // borderBottomColor set dynamically
+  actionButtonText: {
+    ...typography.button,
   },
-  tabText: {
+  searchButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Date navigation bar
+  dateNavBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xs,
+    borderBottomWidth: 1,
+  },
+  dateNavArrow: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateNavLabel: {
     ...typography.body,
-    fontWeight: '700',
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+
+  // Search header
+  searchHeader: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    ...typography.button,
+  },
+
+  // Search
+  searchBarContainer: {
+    paddingTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  pastToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    minHeight: touchTargets.minimum,
+  },
+  pastToggleLabel: {
+    ...typography.body,
+    flex: 1,
+  },
+  searchResultsContainer: {
+    marginTop: spacing.sm,
   },
 
   scrollView: {
@@ -816,40 +900,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.md,
-  },
-
-  // Search
-  searchBarContainer: {
-    paddingTop: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  searchSection: {
-    marginTop: spacing.md,
-  },
-  searchSectionLabel: {
-    ...typography.label,
-    fontWeight: '700',
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.sm,
-  },
-
-  // Section (day group)
-  section: {
-    marginTop: spacing.md,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
-  },
-  sectionLine: {
-    flex: 1,
-    height: 1,
-  },
-  sectionLabel: {
-    ...typography.label,
-    fontWeight: '700',
   },
 
   // Timeline item row
@@ -875,6 +925,11 @@ const styles = StyleSheet.create({
   itemContent: {
     flex: 1,
   },
+  itemDate: {
+    ...typography.label,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
   itemTitleRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -895,7 +950,7 @@ const styles = StyleSheet.create({
   itemSubtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 50 + spacing.sm, // Align with title (past the time column)
+    marginLeft: 50 + spacing.sm,
     gap: spacing.xs,
   },
   miniAvatarsRow: {
@@ -926,12 +981,19 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     flexShrink: 1,
   },
-  itemAddress: {
-    ...typography.label,
-    marginTop: 2,
-  },
   textExpired: {
     textDecorationLine: 'line-through',
+  },
+
+  // Route button
+  routeButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routeIcon: {
+    fontSize: 24,
   },
 
   // Medication checkbox
@@ -966,50 +1028,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
-  },
-
-  // Bottom buttons
-  bottomButtons: {
-    marginTop: spacing.xl,
-    gap: spacing.md,
-    paddingBottom: spacing.lg,
-  },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: touchTargets.comfortable,
-    borderWidth: 1,
-    borderRadius: borderRadius.md,
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  secondaryButtonText: {
-    ...typography.button,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: touchTargets.comfortable,
-    borderRadius: borderRadius.md,
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  addButtonText: {
-    ...typography.button,
-  },
-
-  // Past items
-  pastItemsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    paddingTop: spacing.sm,
-  },
-  moreItemsText: {
-    ...typography.body,
-    textAlign: 'center',
-    paddingVertical: spacing.md,
   },
 
   // Welcome modal

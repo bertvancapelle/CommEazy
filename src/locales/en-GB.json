@@ -2176,8 +2176,9 @@
       "title": "Diary",
       "emptyTitle": "No appointments yet",
       "emptySubtitle": "Add an appointment, reminder or medication to get started.",
+      "emptyDay": "No appointments today",
       "viewPast": "View past",
-      "addItem": "+ Add new item",
+      "addItem": "+ New appointment",
       "years": "years",
       "moreItems": "And {{count}} more...",
       "categories": {
@@ -2255,9 +2256,19 @@
         "tabOverview": "Overview",
         "tabSearch": "Search",
         "placeholder": "Search by title, name or category",
+        "universalPlaceholder": "Search by name, contact or address",
+        "includePast": "Also search in the past",
         "sectionUpcoming": "Upcoming",
         "sectionPast": "Past",
         "noResults": "No results found"
+      },
+      "dayNav": {
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "yesterday": "Yesterday",
+        "previousDay": "Previous day",
+        "nextDay": "Next day",
+        "routeA11y": "Navigate to {{address}}"
       },
       "detail": {
         "allDay": "All day",

@@ -2172,8 +2172,9 @@
       "title": "Kalender",
       "emptyTitle": "Noch keine Termine",
       "emptySubtitle": "Fügen Sie einen Termin, eine Erinnerung oder ein Medikament hinzu.",
+      "emptyDay": "Tag ohne Termine",
       "viewPast": "Vergangene anzeigen",
-      "addItem": "+ Neuen Eintrag hinzufügen",
+      "addItem": "+ Neuer Termin",
       "years": "Jahre",
       "moreItems": "Und {{count}} weitere...",
       "categories": {
@@ -2251,9 +2252,19 @@
         "tabOverview": "Übersicht",
         "tabSearch": "Suchen",
         "placeholder": "Suche nach Titel, Name oder Kategorie",
+        "universalPlaceholder": "Nach Name, Kontakt oder Adresse suchen",
+        "includePast": "Auch in der Vergangenheit suchen",
         "sectionUpcoming": "Bevorstehend",
         "sectionPast": "Vergangen",
         "noResults": "Keine Ergebnisse gefunden"
+      },
+      "dayNav": {
+        "today": "Heute",
+        "tomorrow": "Morgen",
+        "yesterday": "Gestern",
+        "previousDay": "Vorheriger Tag",
+        "nextDay": "Nächster Tag",
+        "routeA11y": "Navigiere zu {{address}}"
       },
       "detail": {
         "allDay": "Ganztägig",

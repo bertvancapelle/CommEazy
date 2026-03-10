@@ -2172,8 +2172,9 @@
       "title": "Agenda",
       "emptyTitle": "Pas encore de rendez-vous",
       "emptySubtitle": "Ajoutez un rendez-vous, un rappel ou un médicament pour commencer.",
+      "emptyDay": "Journée sans rendez-vous",
       "viewPast": "Voir le passé",
-      "addItem": "+ Ajouter un élément",
+      "addItem": "+ Nouveau rendez-vous",
       "years": "ans",
       "moreItems": "Et {{count}} de plus...",
       "categories": {
@@ -2251,9 +2252,19 @@
         "tabOverview": "Aperçu",
         "tabSearch": "Rechercher",
         "placeholder": "Rechercher par titre, nom ou catégorie",
+        "universalPlaceholder": "Rechercher par nom, contact ou adresse",
+        "includePast": "Rechercher aussi dans le passé",
         "sectionUpcoming": "À venir",
         "sectionPast": "Passé",
         "noResults": "Aucun résultat trouvé"
+      },
+      "dayNav": {
+        "today": "Aujourd'hui",
+        "tomorrow": "Demain",
+        "yesterday": "Hier",
+        "previousDay": "Jour précédent",
+        "nextDay": "Jour suivant",
+        "routeA11y": "Naviguer vers {{address}}"
       },
       "detail": {
         "allDay": "Toute la journée",

@@ -2046,8 +2046,9 @@
       "title": "Kalender",
       "emptyTitle": "Ingen avtaler ennå",
       "emptySubtitle": "Legg til en avtale, påminnelse eller medisin for å komme i gang.",
+      "emptyDay": "Dag uten avtaler",
       "viewPast": "Vis tidligere",
-      "addItem": "+ Legg til nytt element",
+      "addItem": "+ Ny avtale",
       "years": "år",
       "moreItems": "Og {{count}} til...",
       "categories": {
@@ -2125,9 +2126,19 @@
         "tabOverview": "Oversikt",
         "tabSearch": "Søk",
         "placeholder": "Søk etter tittel, navn eller kategori",
+        "universalPlaceholder": "Søk etter navn, kontakt eller adresse",
+        "includePast": "Søk også i fortiden",
         "sectionUpcoming": "Kommende",
         "sectionPast": "Tidligere",
         "noResults": "Ingen resultater funnet"
+      },
+      "dayNav": {
+        "today": "I dag",
+        "tomorrow": "I morgen",
+        "yesterday": "I går",
+        "previousDay": "Forrige dag",
+        "nextDay": "Neste dag",
+        "routeA11y": "Naviger til {{address}}"
       },
       "detail": {
         "allDay": "Hele dagen",

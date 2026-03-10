@@ -2016,8 +2016,9 @@
       "title": "Kalender",
       "emptyTitle": "Inga möten ännu",
       "emptySubtitle": "Lägg till ett möte, påminnelse eller medicin för att komma igång.",
+      "emptyDay": "Dag utan möten",
       "viewPast": "Visa tidigare",
-      "addItem": "+ Lägg till nytt",
+      "addItem": "+ Nytt möte",
       "years": "år",
       "moreItems": "Och {{count}} till...",
       "categories": {
@@ -2095,9 +2096,19 @@
         "tabOverview": "Översikt",
         "tabSearch": "Sök",
         "placeholder": "Sök efter titel, namn eller kategori",
+        "universalPlaceholder": "Sök på namn, kontakt eller adress",
+        "includePast": "Sök även i det förflutna",
         "sectionUpcoming": "Kommande",
         "sectionPast": "Tidigare",
         "noResults": "Inga resultat hittades"
+      },
+      "dayNav": {
+        "today": "Idag",
+        "tomorrow": "Imorgon",
+        "yesterday": "Igår",
+        "previousDay": "Föregående dag",
+        "nextDay": "Nästa dag",
+        "routeA11y": "Navigera till {{address}}"
       },
       "detail": {
         "allDay": "Hela dagen",
