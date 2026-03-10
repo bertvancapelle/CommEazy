@@ -1301,7 +1301,7 @@ export function AgendaItemFormScreen({
                         )}
                       </View>
                       <Icon
-                        name={isSelected ? 'check-square' : 'square'}
+                        name={isSelected ? 'checkbox-checked' : 'checkbox-unchecked'}
                         size={24}
                         color={isSelected ? accentColor.primary : themeColors.textTertiary}
                       />

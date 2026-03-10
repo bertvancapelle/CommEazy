@@ -120,7 +120,9 @@ export type IconName =
   | 'document'
   | 'download'
   | 'lock'
-  | 'calendar';
+  | 'calendar'
+  | 'checkbox-checked'
+  | 'checkbox-unchecked';
 
 interface IconProps {
   name: IconName;
@@ -2107,6 +2109,38 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
           <Rect x="8" y="14" width="2" height="2" rx="0.5" fill={color} />
           <Rect x="14" y="14" width="2" height="2" rx="0.5" fill={color} />
           <Rect x="8" y="18" width="2" height="2" rx="0.5" fill={color} />
+        </Svg>
+      );
+
+    case 'checkbox-checked':
+      // Filled rounded square with white checkmark
+      return (
+        <Svg {...iconProps}>
+          <Rect
+            x="3" y="3" width="18" height="18" rx="4"
+            fill={color}
+          />
+          <Path
+            d="M7.5 12L10.5 15L16.5 9"
+            stroke="white"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </Svg>
+      );
+
+    case 'checkbox-unchecked':
+      // Outline-only rounded square (empty)
+      return (
+        <Svg {...iconProps}>
+          <Rect
+            x="3" y="3" width="18" height="18" rx="4"
+            stroke={color}
+            strokeWidth={sw}
+            fill="none"
+          />
         </Svg>
       );
 
