@@ -887,7 +887,13 @@
     "search": "Søk",
     "items": "elementer",
     "toggleFavorite": "Slå favoritt av/på for {{name}}",
-    "dismiss": "Lukk"
+    "dismiss": "Lukk",
+    "formActions": {
+      "discardTitle": "Forkaste endringer?",
+      "discardMessage": "Du har ulagrede endringer. Vil du forkaste dem?",
+      "keepEditing": "Fortsett redigering",
+      "discard": "Forkast"
+    }
   },
   "validation": {
     "profileIncomplete": "Fyll ut alle felt",

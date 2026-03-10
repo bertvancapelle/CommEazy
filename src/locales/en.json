@@ -978,7 +978,13 @@
     "search": "Search",
     "items": "items",
     "toggleFavorite": "Toggle favorite for {{name}}",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "formActions": {
+      "discardTitle": "Discard changes?",
+      "discardMessage": "You have unsaved changes. Do you want to discard them?",
+      "keepEditing": "Keep editing",
+      "discard": "Discard"
+    }
   },
   "validation": {
     "profileIncomplete": "Complete all fields",

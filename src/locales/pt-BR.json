@@ -991,7 +991,13 @@
     "search": "Pesquisar",
     "items": "itens",
     "toggleFavorite": "Alternar favorito para {{name}}",
-    "dismiss": "Fechar"
+    "dismiss": "Fechar",
+    "formActions": {
+      "discardTitle": "Descartar alterações?",
+      "discardMessage": "Você tem alterações não salvas. Deseja descartá-las?",
+      "keepEditing": "Continuar editando",
+      "discard": "Descartar"
+    }
   },
   "validation": {
     "profileIncomplete": "Preencha todos os campos",

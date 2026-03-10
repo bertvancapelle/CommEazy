@@ -2602,6 +2602,85 @@ sectionTitle: {
 },
 ```
 
+### Form Header Action Bar (VERPLICHT voor formulier-schermen)
+
+**UI PRINCIPE: Bij formulierschermen vervangt de ModuleHeader zijn normale inhoud (icoon + titel) door [Annuleer] en [Opslaan] knoppen.**
+
+Dit is het standaard iOS edit-mode pattern (vergelijkbaar met Contacten, Agenda, Notities apps).
+
+**Waarom?**
+- Save button onderaan een ScrollView scrolt off-screen — senioren vinden deze niet terug
+- Header-positie is ALTIJD zichtbaar (0pt extra schermruimte gebruikt)
+- Consistent met iOS platform conventies
+
+**Layout:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Safe Area (notch/Dynamic Island)                             │
+├──────────────────────────────────────────────────────────────┤
+│  [Annuleer]                              [✅ Opslaan]        │
+│  ↑ Links, tekst-knop                    ↑ Rechts, accent kleur│
+├──────────────────────────────────────────────────────────────┤
+│  ─ ─ ─ ─ ─ ─ ─  Separator line (1pt) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Regels:**
+
+1. **Altijd zichtbaar** — Beide knoppen verschijnen direct bij openen formulier
+2. **Altijd "Annuleer" + "Opslaan" tekst** — Labels wijzigen niet
+3. **Annuleer bij dirty form** → bevestigingsdialoog ("Wijzigingen weggooien?")
+4. **Annuleer bij leeg/ongewijzigd formulier** → direct sluiten (geen dialoog)
+5. **Opslaan** → validatie → opslaan → sluiten
+6. **Van toepassing op:** Agenda form, Contact form, Mail compose, Group creation
+7. **NIET van toepassing op:** Settings (auto-save per veld), Chat (live send)
+
+**ModuleHeader formMode API:**
+
+```typescript
+<ModuleHeader
+  moduleId="agenda"
+  icon="calendar"
+  title={t('modules.agenda.title')}
+  // Form mode props — wanneer formMode=true, worden icon/title vervangen door action buttons
+  formMode={true}
+  onCancel={handleCancel}
+  onSave={handleSave}
+  saveDisabled={!isValid}  // Optioneel: disable save knop
+/>
+```
+
+**Cancel gedrag implementatie:**
+
+```typescript
+const handleCancel = useCallback(() => {
+  if (isDirty) {
+    Alert.alert(
+      t('common.formActions.discardTitle'),
+      t('common.formActions.discardMessage'),
+      [
+        { text: t('common.formActions.keepEditing'), style: 'cancel' },
+        { text: t('common.formActions.discard'), style: 'destructive', onPress: onBack },
+      ],
+    );
+  } else {
+    onBack();
+  }
+}, [isDirty, onBack, t]);
+```
+
+**Dirty state tracking:**
+
+```typescript
+// Vergelijk huidige waarden met initial waarden
+const isDirty = useMemo(() => {
+  return title.trim() !== (initialData?.title ?? '')
+    || selectedDate.getTime() !== (initialData?.date ?? defaultDate)
+    // ... andere velden
+    ;
+}, [title, selectedDate, /* ... */]);
+```
+
 ---
 
 ## 14. Component Registry (VERPLICHT)

@@ -857,7 +857,13 @@
     "search": "Sök",
     "items": "objekt",
     "toggleFavorite": "Växla favorit för {{name}}",
-    "dismiss": "Stäng"
+    "dismiss": "Stäng",
+    "formActions": {
+      "discardTitle": "Ignorera ändringar?",
+      "discardMessage": "Du har osparade ändringar. Vill du ignorera dem?",
+      "keepEditing": "Fortsätt redigera",
+      "discard": "Ignorera"
+    }
   },
   "validation": {
     "profileIncomplete": "Fyll i alla fält",

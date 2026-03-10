@@ -857,7 +857,13 @@
     "search": "Søg",
     "items": "elementer",
     "toggleFavorite": "Skift favorit for {{name}}",
-    "dismiss": "Luk"
+    "dismiss": "Luk",
+    "formActions": {
+      "discardTitle": "Kassér ændringer?",
+      "discardMessage": "Du har ændringer, der ikke er gemt. Vil du kassere dem?",
+      "keepEditing": "Fortsæt redigering",
+      "discard": "Kassér"
+    }
   },
   "validation": {
     "profileIncomplete": "Udfyld alle felter",

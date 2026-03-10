@@ -42,7 +42,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -358,7 +358,6 @@ export function AgendaItemFormScreen({
   const { t, i18n } = useTranslation();
   const themeColors = useColors();
   const insets = useSafeAreaInsets();
-  const moduleColor = useModuleColor('agenda');
   const { accentColor } = useAccentColor();
 
   const categoryDef = useMemo(
@@ -690,38 +689,63 @@ export function AgendaItemFormScreen({
   );
 
   // ============================================================
+  // Dirty state — determines Cancel behavior
+  // ============================================================
+
+  const isDirty = useMemo(() => {
+    // For new items: dirty = any field has content
+    if (!isEditing) {
+      return title.trim().length > 0
+        || locationName.trim().length > 0
+        || addressStreet.trim().length > 0
+        || addressCity.trim().length > 0
+        || selectedContactIds.length > 0;
+    }
+    // For editing: dirty = any field differs from initial
+    return title.trim() !== (initialData?.title ?? '')
+      || locationName.trim() !== (initialData?.locationName ?? '')
+      || addressStreet.trim() !== (initialData?.addressStreet ?? '')
+      || addressPostalCode.trim() !== (initialData?.addressPostalCode ?? '')
+      || addressCity.trim() !== (initialData?.addressCity ?? '')
+      || addressCountry.trim() !== (initialData?.addressCountry ?? '');
+  }, [
+    isEditing, title, locationName, addressStreet, addressPostalCode,
+    addressCity, addressCountry, selectedContactIds, initialData,
+  ]);
+
+  // Cancel with unsaved changes guard
+  const handleCancel = useCallback(() => {
+    if (isDirty) {
+      Alert.alert(
+        t('common.formActions.discardTitle'),
+        t('common.formActions.discardMessage'),
+        [
+          { text: t('common.formActions.keepEditing'), style: 'cancel' },
+          { text: t('common.formActions.discard'), style: 'destructive', onPress: onBack },
+        ],
+      );
+    } else {
+      onBack();
+    }
+  }, [isDirty, onBack, t]);
+
+  // ============================================================
   // Render
   // ============================================================
 
-  const headerTitle = isEditing
-    ? t('modules.agenda.form.editTitle')
-    : `${categoryDef.icon} ${t('modules.agenda.form.newTitle')}`;
-
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Header */}
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: moduleColor,
-            paddingTop: insets.top + spacing.sm,
-          },
-        ]}
-      >
-        <HapticTouchable
-          style={styles.backButton}
-          onPress={onBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.goBack')}
-        >
-          <Icon name="chevron-left" size={24} color={colors.textOnPrimary} />
-        </HapticTouchable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {headerTitle}
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      {/* Header — Form mode: Cancel/Save buttons replace icon+title */}
+      <ModuleHeader
+        moduleId="agenda"
+        icon="calendar"
+        title={t('modules.agenda.title')}
+        showAdMob={false}
+        showGridButton={false}
+        formMode={true}
+        onCancel={handleCancel}
+        onSave={handleSave}
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -1146,17 +1170,7 @@ export function AgendaItemFormScreen({
           </View>
         )}
 
-        {/* ====== Save Button ====== */}
-        <HapticTouchable
-          style={[styles.saveButton, { backgroundColor: accentColor.primary }]}
-          onPress={handleSave}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.save')}
-        >
-          <Text style={[styles.saveButtonText, { color: colors.textOnPrimary }]}>
-            {t('common.save')}
-          </Text>
-        </HapticTouchable>
+        {/* Save button removed — now in ModuleHeader form action bar */}
       </ScrollView>
 
       {/* DateTime Picker Modals */}
@@ -1324,32 +1338,6 @@ export function AgendaItemFormScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingBottom: spacing.md,
-    paddingHorizontal: spacing.md,
-  },
-  backButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: borderRadius.md,
-  },
-  headerTitle: {
-    ...typography.h3,
-    color: colors.textOnPrimary,
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: spacing.sm,
-  },
-  headerSpacer: {
-    width: touchTargets.minimum,
   },
 
   // Scroll
@@ -1552,17 +1540,4 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
 
-  // Save button
-  saveButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: touchTargets.comfortable,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.md,
-  },
-  saveButtonText: {
-    ...typography.button,
-    fontWeight: '700',
-  },
 });

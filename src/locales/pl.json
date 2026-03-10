@@ -878,7 +878,13 @@
     "search": "Szukaj",
     "items": "elementy",
     "toggleFavorite": "Przełącz ulubione dla {{name}}",
-    "dismiss": "Zamknij"
+    "dismiss": "Zamknij",
+    "formActions": {
+      "discardTitle": "Odrzucić zmiany?",
+      "discardMessage": "Masz niezapisane zmiany. Czy chcesz je odrzucić?",
+      "keepEditing": "Kontynuuj edycję",
+      "discard": "Odrzuć"
+    }
   },
   "validation": {
     "profileIncomplete": "Wypełnij wszystkie pola",

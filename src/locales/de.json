@@ -964,7 +964,13 @@
     "search": "Suchen",
     "items": "Einträge",
     "toggleFavorite": "Favorit umschalten für {{name}}",
-    "dismiss": "Schließen"
+    "dismiss": "Schließen",
+    "formActions": {
+      "discardTitle": "Änderungen verwerfen?",
+      "discardMessage": "Du hast ungespeicherte Änderungen. Möchtest du diese verwerfen?",
+      "keepEditing": "Weiter bearbeiten",
+      "discard": "Verwerfen"
+    }
   },
   "validation": {
     "profileIncomplete": "Alle Felder ausfüllen",

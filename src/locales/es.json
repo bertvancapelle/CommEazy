@@ -964,7 +964,13 @@
     "search": "Buscar",
     "items": "elementos",
     "toggleFavorite": "Alternar favorito para {{name}}",
-    "dismiss": "Cerrar"
+    "dismiss": "Cerrar",
+    "formActions": {
+      "discardTitle": "¿Descartar cambios?",
+      "discardMessage": "Tienes cambios sin guardar. ¿Quieres descartarlos?",
+      "keepEditing": "Seguir editando",
+      "discard": "Descartar"
+    }
   },
   "validation": {
     "profileIncomplete": "Completa todos los campos",

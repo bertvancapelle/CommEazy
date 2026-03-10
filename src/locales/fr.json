@@ -964,7 +964,13 @@
     "search": "Rechercher",
     "items": "éléments",
     "toggleFavorite": "Basculer le favori pour {{name}}",
-    "dismiss": "Fermer"
+    "dismiss": "Fermer",
+    "formActions": {
+      "discardTitle": "Annuler les modifications ?",
+      "discardMessage": "Vous avez des modifications non enregistrées. Voulez-vous les annuler ?",
+      "keepEditing": "Continuer",
+      "discard": "Annuler"
+    }
   },
   "validation": {
     "profileIncomplete": "Remplissez tous les champs",

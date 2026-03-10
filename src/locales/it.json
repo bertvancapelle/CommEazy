@@ -961,7 +961,13 @@
     "search": "Cerca",
     "items": "elementi",
     "toggleFavorite": "Attiva/disattiva preferito per {{name}}",
-    "dismiss": "Chiudi"
+    "dismiss": "Chiudi",
+    "formActions": {
+      "discardTitle": "Annullare le modifiche?",
+      "discardMessage": "Hai delle modifiche non salvate. Vuoi annullarle?",
+      "keepEditing": "Continua a modificare",
+      "discard": "Annulla"
+    }
   },
   "validation": {
     "profileIncomplete": "Completa tutti i campi",

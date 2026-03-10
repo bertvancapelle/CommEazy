@@ -801,7 +801,13 @@
     "search": "Zoeken",
     "items": "items",
     "toggleFavorite": "Favoriet aan/uit voor {{name}}",
-    "dismiss": "Sluiten"
+    "dismiss": "Sluiten",
+    "formActions": {
+      "discardTitle": "Wijzigingen weggooien?",
+      "discardMessage": "Je hebt onopgeslagen wijzigingen. Wil je deze weggooien?",
+      "keepEditing": "Verder bewerken",
+      "discard": "Weggooien"
+    }
   },
   "validation": {
     "profileIncomplete": "Vul alle velden in",

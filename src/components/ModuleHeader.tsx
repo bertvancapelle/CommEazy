@@ -47,6 +47,7 @@ import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { useAccentColor } from '@/hooks/useAccentColor';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
 import { usePaneContextSafe } from '@/contexts/PaneContext';
@@ -90,6 +91,20 @@ export interface ModuleHeaderProps {
    * Hidden when showBackButton is true (detail screens show back instead)
    */
   showGridButton?: boolean;
+
+  // ── Form Mode (Header Action Bar) ──────────────────────────
+  // When formMode is true, the header replaces icon+title with
+  // [Annuleer] (left) and [Opslaan] (right) action buttons.
+  // Follows iOS edit-mode pattern (Contacts, Calendar, Notes).
+
+  /** Enable form mode — replaces icon+title with Cancel/Save buttons */
+  formMode?: boolean;
+  /** Callback when Cancel button is pressed */
+  onCancel?: () => void;
+  /** Callback when Save button is pressed */
+  onSave?: () => void;
+  /** Disable the Save button (e.g. form not valid) */
+  saveDisabled?: boolean;
 }
 
 // ============================================================
@@ -109,11 +124,17 @@ export function ModuleHeader({
   customLogo,
   style,
   showGridButton = true,
+  formMode = false,
+  onCancel,
+  onSave,
+  saveDisabled = false,
 }: ModuleHeaderProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   // Use module color from context (respects user customization)
   const moduleColor = useModuleColor(moduleId as ModuleColorId);
+  // Accent color for Save button
+  const { accentColor } = useAccentColor();
 
   // Check if Liquid Glass is available (safe to call outside provider)
   const liquidGlassContext = useLiquidGlassContextSafe();
@@ -160,62 +181,113 @@ export function ModuleHeader({
         </View>
       )}
 
-      {/* Title Row */}
-      <View style={styles.titleRow}>
-        {/* Left: Back button (optional) + Icon (decorative) + Title */}
-        <View style={styles.titleContent}>
-          {showBackButton && onBackPress && (
-            <TouchableOpacity
-              style={[
-                styles.backButton,
-                buttonStyle?.settings.borderEnabled && {
-                  borderWidth: 2,
-                  borderColor: buttonStyle.getBorderColorHex(),
-                },
-              ]}
-              onPress={onBackPress}
-              accessibilityRole="button"
-              accessibilityLabel={backButtonLabel}
-            >
-              <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
-            </TouchableOpacity>
-          )}
-          {customLogo ? (
-            // Custom logo — purely decorative
-            customLogo
-          ) : (
-            // Default icon — purely decorative
-            <Icon name={icon} size={32} color={colors.textOnPrimary} />
-          )}
-          <Text style={styles.title}>{title}</Text>
-        </View>
+      {/* Title Row — switches between normal mode and form mode */}
+      {formMode ? (
+        // ── Form Mode: [Annuleer] ... [Opslaan] ──
+        <View style={styles.titleRow}>
+          {/* Left: Cancel button */}
+          <TouchableOpacity
+            style={[
+              styles.formCancelButton,
+              buttonStyle?.settings.borderEnabled && {
+                borderWidth: 2,
+                borderColor: buttonStyle.getBorderColorHex(),
+              },
+            ]}
+            onPress={() => {
+              void triggerFeedback('tap');
+              onCancel?.();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cancel')}
+          >
+            <Text style={styles.formCancelText}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
 
-        {/* Right: MediaIndicator + Grid button */}
-        <View style={styles.rightControls}>
-          <View style={styles.mediaIndicatorWrapper}>
-            <MediaIndicator
-              moduleColor={moduleColor}
-              currentSource={currentSource}
-            />
-          </View>
-          {shouldShowGridButton && (
-            <TouchableOpacity
-              style={[
-                styles.gridButton,
-                buttonStyle?.settings.borderEnabled && {
-                  borderWidth: 2,
-                  borderColor: buttonStyle.getBorderColorHex(),
-                },
-              ]}
-              onPress={handleGridPress}
-              accessibilityRole="button"
-              accessibilityLabel={t('navigation.backToHome', 'Terug naar startscherm')}
-            >
-              <Icon name="grid" size={24} color={colors.textOnPrimary} />
-            </TouchableOpacity>
-          )}
+          {/* Right: Save button */}
+          <TouchableOpacity
+            style={[
+              styles.formSaveButton,
+              { backgroundColor: accentColor.primary },
+              saveDisabled && styles.formSaveButtonDisabled,
+              buttonStyle?.settings.borderEnabled && {
+                borderWidth: 2,
+                borderColor: buttonStyle.getBorderColorHex(),
+              },
+            ]}
+            onPress={() => {
+              if (!saveDisabled) {
+                void triggerFeedback('success');
+                onSave?.();
+              }
+            }}
+            disabled={saveDisabled}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.save')}
+            accessibilityState={{ disabled: saveDisabled }}
+          >
+            <Icon name="checkbox-checked" size={20} color={colors.textOnPrimary} />
+            <Text style={styles.formSaveText}>{t('common.save')}</Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      ) : (
+        // ── Normal Mode: Icon + Title + MediaIndicator + Grid ──
+        <View style={styles.titleRow}>
+          {/* Left: Back button (optional) + Icon (decorative) + Title */}
+          <View style={styles.titleContent}>
+            {showBackButton && onBackPress && (
+              <TouchableOpacity
+                style={[
+                  styles.backButton,
+                  buttonStyle?.settings.borderEnabled && {
+                    borderWidth: 2,
+                    borderColor: buttonStyle.getBorderColorHex(),
+                  },
+                ]}
+                onPress={onBackPress}
+                accessibilityRole="button"
+                accessibilityLabel={backButtonLabel}
+              >
+                <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
+              </TouchableOpacity>
+            )}
+            {customLogo ? (
+              // Custom logo — purely decorative
+              customLogo
+            ) : (
+              // Default icon — purely decorative
+              <Icon name={icon} size={32} color={colors.textOnPrimary} />
+            )}
+            <Text style={styles.title}>{title}</Text>
+          </View>
+
+          {/* Right: MediaIndicator + Grid button */}
+          <View style={styles.rightControls}>
+            <View style={styles.mediaIndicatorWrapper}>
+              <MediaIndicator
+                moduleColor={moduleColor}
+                currentSource={currentSource}
+              />
+            </View>
+            {shouldShowGridButton && (
+              <TouchableOpacity
+                style={[
+                  styles.gridButton,
+                  buttonStyle?.settings.borderEnabled && {
+                    borderWidth: 2,
+                    borderColor: buttonStyle.getBorderColorHex(),
+                  },
+                ]}
+                onPress={handleGridPress}
+                accessibilityRole="button"
+                accessibilityLabel={t('navigation.backToHome', 'Terug naar startscherm')}
+              >
+                <Icon name="grid" size={24} color={colors.textOnPrimary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* Separator Line */}
       <View style={styles.separator} />
@@ -297,6 +369,38 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',  // Subtle white line
+  },
+
+  // ── Form Mode Styles ──────────────────────────────────────
+  formCancelButton: {
+    height: touchTargets.minimum,          // 60pt
+    paddingHorizontal: spacing.md,         // 16pt
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,         // 12pt
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  formCancelText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '600',
+  },
+  formSaveButton: {
+    height: touchTargets.minimum,          // 60pt
+    paddingHorizontal: spacing.lg,         // 24pt
+    borderRadius: borderRadius.md,         // 12pt
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,                       // 4pt between icon and text
+  },
+  formSaveButtonDisabled: {
+    opacity: 0.4,
+  },
+  formSaveText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
   },
 });
 
