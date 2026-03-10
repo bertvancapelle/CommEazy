@@ -15,7 +15,7 @@
  * @see TRUST_AND_ATTESTATION_PLAN.md section 4.2
  */
 
-import React, { useCallback, useReducer, useState } from 'react';
+import React, { useCallback, useReducer, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -37,6 +37,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { SeniorDatePicker } from '@/components/SeniorDatePicker';
+import { ModuleHeader } from '@/components';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ManualAddContact'>;
 
@@ -125,6 +126,39 @@ export function ManualAddContactScreen() {
 
   const canSave = isValidFirstName(firstName) && isValidPhone(phoneNumber);
 
+  // ── Dirty state — determines Cancel behavior ──
+  const isDirty = useMemo(() => {
+    return (
+      firstName.trim().length > 0 ||
+      lastName.trim().length > 0 ||
+      phoneNumber.trim().length > 0 ||
+      email.trim().length > 0 ||
+      street.trim().length > 0 ||
+      postalCode.trim().length > 0 ||
+      city.trim().length > 0 ||
+      country.trim().length > 0 ||
+      birthDate !== undefined ||
+      weddingDate !== undefined ||
+      deathDate !== undefined
+    );
+  }, [firstName, lastName, phoneNumber, email, street, postalCode, city, country, birthDate, weddingDate, deathDate]);
+
+  // Cancel with unsaved changes guard
+  const handleCancel = useCallback(() => {
+    if (isDirty) {
+      Alert.alert(
+        t('common.formActions.discardTitle'),
+        t('common.formActions.discardMessage'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('common.formActions.discard'), style: 'destructive', onPress: () => navigation.goBack() },
+        ],
+      );
+    } else {
+      navigation.goBack();
+    }
+  }, [isDirty, navigation, t]);
+
   const handleSave = useCallback(async () => {
     if (!canSave || saving) return;
 
@@ -197,6 +231,19 @@ export function ManualAddContactScreen() {
       style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      {/* Form Header Action Bar — Cancel/Save in ModuleHeader */}
+      <ModuleHeader
+        moduleId="contacts"
+        icon="contacts"
+        title={t('contacts.add.manualTitle', 'Bekende toevoegen')}
+        showAdMob={false}
+        showGridButton={false}
+        formMode={true}
+        onCancel={handleCancel}
+        onSave={() => void handleSave()}
+        saveDisabled={!canSave || saving}
+      />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -400,29 +447,6 @@ export function ManualAddContactScreen() {
         {/* Hint text */}
         <Text style={[styles.hintText, { color: themeColors.textSecondary }]}>{t('contacts.addHint')}</Text>
 
-        {/* Save button */}
-        <TouchableOpacity
-          style={[
-            styles.saveButton,
-            { backgroundColor: canSave ? themeColors.primary : themeColors.disabled },
-          ]}
-          onPress={() => void handleSave()}
-          disabled={!canSave || saving}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={t('contacts.save')}
-          accessibilityState={{ disabled: !canSave }}
-        >
-          <Text
-            style={[
-              styles.saveButtonText,
-              { color: canSave ? themeColors.textOnPrimary : themeColors.textTertiary },
-            ]}
-          >
-            {saving ? t('common.saving') : t('contacts.save')}
-          </Text>
-        </TouchableOpacity>
-
         {/* Hint about trust level */}
         <Text style={[styles.hintNote, { color: themeColors.textTertiary }]}>
           {t('contacts.add.manualHint', 'Dit contact wordt opgeslagen zonder versleuteling. Nodig iemand uit voor beveiligde berichten.')}
@@ -542,18 +566,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    minHeight: touchTargets.minimum,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
   },
   hintNote: {
     ...typography.label,

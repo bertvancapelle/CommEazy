@@ -292,7 +292,7 @@ function ContactPanelNavigator() {
         <ContactPanelStack.Screen
           name="ManualAddContact"
           component={ManualAddContactScreen}
-          options={{ title: t('contacts.add.manualTitle', 'Bekende toevoegen') }}
+          options={{ headerShown: false }}
         />
         <ContactPanelStack.Screen
           name="InviteContact"
