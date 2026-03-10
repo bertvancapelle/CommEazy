@@ -2199,6 +2199,20 @@
         "wedding": "Aniversario de boda",
         "memorial": "Conmemoración"
       },
+      "formTypes": {
+        "appointment": "Cita",
+        "reminder": "Recordatorio",
+        "medication": "Medicación"
+      },
+      "emojiGroups": {
+        "health": "Salud",
+        "financial": "Finanzas",
+        "sports": "Deporte y Ejercicio",
+        "social": "Social",
+        "transport": "Transporte",
+        "home": "Hogar y Jardín",
+        "other": "Otros"
+      },
       "groups": {
         "appointments": "Citas",
         "family": "Familia",
@@ -2223,6 +2237,15 @@
         "pickCategory": "¿Qué desea añadir?",
         "newTitle": "Nuevo elemento",
         "editTitle": "Editar elemento",
+        "typeLabel": "Tipo",
+        "categoryLabel": "Categoría",
+        "standardCategories": "Categorías estándar",
+        "customCategories": "Categorías personalizadas",
+        "createCategory": "Crear nueva categoría",
+        "newCategory": "Nueva categoría",
+        "categoryNameLabel": "Nombre",
+        "categoryNamePlaceholder": "Nombre de la categoría",
+        "categoryNameRequired": "Introduce un nombre para la categoría",
         "titleLabel": "Cita",
         "titlePlaceholder": "Introduzca el nombre de la cita",
         "dateLabel": "Fecha",

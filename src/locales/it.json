@@ -2147,6 +2147,20 @@
         "wedding": "Anniversario di matrimonio",
         "memorial": "Commemorazione"
       },
+      "formTypes": {
+        "appointment": "Appuntamento",
+        "reminder": "Promemoria",
+        "medication": "Farmaco"
+      },
+      "emojiGroups": {
+        "health": "Salute",
+        "financial": "Finanze",
+        "sports": "Sport & Esercizio",
+        "social": "Sociale",
+        "transport": "Trasporti",
+        "home": "Casa & Giardino",
+        "other": "Altro"
+      },
       "groups": {
         "appointments": "Appuntamenti",
         "family": "Famiglia",
@@ -2171,6 +2185,15 @@
         "pickCategory": "Cosa vuoi aggiungere?",
         "newTitle": "Nuovo elemento",
         "editTitle": "Modifica elemento",
+        "typeLabel": "Tipo",
+        "categoryLabel": "Categoria",
+        "standardCategories": "Categorie standard",
+        "customCategories": "Categorie personalizzate",
+        "createCategory": "Crea nuova categoria",
+        "newCategory": "Nuova categoria",
+        "categoryNameLabel": "Nome",
+        "categoryNamePlaceholder": "Nome della categoria",
+        "categoryNameRequired": "Inserisci un nome per la categoria",
         "titleLabel": "Appuntamento",
         "titlePlaceholder": "Inserisci il nome dell'appuntamento",
         "dateLabel": "Data",

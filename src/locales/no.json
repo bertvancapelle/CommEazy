@@ -2073,6 +2073,20 @@
         "wedding": "Bryllupsdag",
         "memorial": "Minnedag"
       },
+      "formTypes": {
+        "appointment": "Avtale",
+        "reminder": "Påminnelse",
+        "medication": "Medisin"
+      },
+      "emojiGroups": {
+        "health": "Helse",
+        "financial": "Økonomi",
+        "sports": "Sport og trening",
+        "social": "Sosialt",
+        "transport": "Transport",
+        "home": "Hjem og hage",
+        "other": "Annet"
+      },
       "groups": {
         "appointments": "Avtaler",
         "family": "Familie",
@@ -2097,6 +2111,15 @@
         "pickCategory": "Hva vil du legge til?",
         "newTitle": "Nytt element",
         "editTitle": "Rediger element",
+        "typeLabel": "Type",
+        "categoryLabel": "Kategori",
+        "standardCategories": "Standardkategorier",
+        "customCategories": "Egne kategorier",
+        "createCategory": "Opprett ny kategori",
+        "newCategory": "Ny kategori",
+        "categoryNameLabel": "Navn",
+        "categoryNamePlaceholder": "Navn på kategorien",
+        "categoryNameRequired": "Skriv inn et navn for kategorien",
         "titleLabel": "Avtale",
         "titlePlaceholder": "Skriv inn avtalenavn",
         "dateLabel": "Dato",

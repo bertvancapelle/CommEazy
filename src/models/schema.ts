@@ -26,6 +26,7 @@
  * - v16: Added trust_level to contacts (0=Unknown, 1=Invited, 2=Connected, 3=Verified)
  * - v17: Added agenda_items table for appointments, reminders, medication
  * - v18: Added address fields to agenda_items (location_name, address_street, address_postal_code, address_city, address_country)
+ * - v19: Added category snapshot fields to agenda_items (category_icon, category_name, form_type)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -52,10 +53,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 18;
+export const SCHEMA_VERSION = 19;
 
 export const schema = appSchema({
-  version: 18,
+  version: 19,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -232,6 +233,10 @@ export const schema = appSchema({
       columns: [
         { name: 'category', type: 'string', isIndexed: true },       // AgendaCategory
         { name: 'title', type: 'string' },
+        // Category snapshot fields (v19) — stored per-item, not referential
+        { name: 'category_icon', type: 'string', isOptional: true },  // Emoji snapshot
+        { name: 'category_name', type: 'string', isOptional: true },  // Display name snapshot
+        { name: 'form_type', type: 'string', isOptional: true },      // AgendaFormType
         { name: 'item_date', type: 'number', isIndexed: true },      // Start date timestamp
         { name: 'time', type: 'string', isOptional: true },          // "11:00" (null for all-day)
         { name: 'times', type: 'string', isOptional: true },         // JSON: ["09:00", "21:00"]

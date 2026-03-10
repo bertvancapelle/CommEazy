@@ -2199,6 +2199,20 @@
         "wedding": "Anniversaire de mariage",
         "memorial": "Commémoration"
       },
+      "formTypes": {
+        "appointment": "Rendez-vous",
+        "reminder": "Rappel",
+        "medication": "Médicament"
+      },
+      "emojiGroups": {
+        "health": "Santé",
+        "financial": "Finances",
+        "sports": "Sports & Exercice",
+        "social": "Social",
+        "transport": "Transport",
+        "home": "Maison & Jardin",
+        "other": "Autre"
+      },
       "groups": {
         "appointments": "Rendez-vous",
         "family": "Famille",
@@ -2223,6 +2237,15 @@
         "pickCategory": "Que souhaitez-vous ajouter ?",
         "newTitle": "Nouvel élément",
         "editTitle": "Modifier l'élément",
+        "typeLabel": "Type",
+        "categoryLabel": "Catégorie",
+        "standardCategories": "Catégories standard",
+        "customCategories": "Catégories personnalisées",
+        "createCategory": "Créer une catégorie",
+        "newCategory": "Nouvelle catégorie",
+        "categoryNameLabel": "Nom",
+        "categoryNamePlaceholder": "Nom de la catégorie",
+        "categoryNameRequired": "Entrez un nom pour la catégorie",
         "titleLabel": "Rendez-vous",
         "titlePlaceholder": "Saisissez le nom du rendez-vous",
         "dateLabel": "Date",

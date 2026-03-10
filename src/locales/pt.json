@@ -2216,6 +2216,20 @@
         "wedding": "Aniversário de casamento",
         "memorial": "Memorial"
       },
+      "formTypes": {
+        "appointment": "Consulta",
+        "reminder": "Lembrete",
+        "medication": "Medicamento"
+      },
+      "emojiGroups": {
+        "health": "Saúde",
+        "financial": "Finanças",
+        "sports": "Desporto e Exercício",
+        "social": "Social",
+        "transport": "Transportes",
+        "home": "Casa e Jardim",
+        "other": "Outros"
+      },
       "groups": {
         "appointments": "Compromissos",
         "family": "Família",
@@ -2240,6 +2254,15 @@
         "pickCategory": "O que pretende adicionar?",
         "newTitle": "Novo item",
         "editTitle": "Editar item",
+        "typeLabel": "Tipo",
+        "categoryLabel": "Categoria",
+        "standardCategories": "Categorias padrão",
+        "customCategories": "Categorias personalizadas",
+        "createCategory": "Criar nova categoria",
+        "newCategory": "Nova categoria",
+        "categoryNameLabel": "Nome",
+        "categoryNamePlaceholder": "Nome da categoria",
+        "categoryNameRequired": "Introduza um nome para a categoria",
         "titleLabel": "Compromisso",
         "titlePlaceholder": "Introduza o nome do compromisso",
         "dateLabel": "Data",

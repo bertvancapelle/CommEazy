@@ -2199,6 +2199,20 @@
         "wedding": "Hochzeitstag",
         "memorial": "Gedenktag"
       },
+      "formTypes": {
+        "appointment": "Termin",
+        "reminder": "Erinnerung",
+        "medication": "Medikation"
+      },
+      "emojiGroups": {
+        "health": "Gesundheit",
+        "financial": "Finanzen",
+        "sports": "Sport & Bewegung",
+        "social": "Sozial",
+        "transport": "Transport",
+        "home": "Haus & Garten",
+        "other": "Sonstiges"
+      },
       "groups": {
         "appointments": "Termine",
         "family": "Familie",
@@ -2223,6 +2237,15 @@
         "pickCategory": "Was möchten Sie hinzufügen?",
         "newTitle": "Neuer Eintrag",
         "editTitle": "Eintrag bearbeiten",
+        "typeLabel": "Typ",
+        "categoryLabel": "Kategorie",
+        "standardCategories": "Standardkategorien",
+        "customCategories": "Eigene Kategorien",
+        "createCategory": "Neue Kategorie erstellen",
+        "newCategory": "Neue Kategorie",
+        "categoryNameLabel": "Name",
+        "categoryNamePlaceholder": "Name der Kategorie",
+        "categoryNameRequired": "Geben Sie einen Namen für die Kategorie ein",
         "titleLabel": "Termin",
         "titlePlaceholder": "Terminname eingeben",
         "dateLabel": "Datum",

@@ -11,7 +11,7 @@
 
 import { Model, Q } from '@nozbe/watermelondb';
 import { field, date, readonly, writer } from '@nozbe/watermelondb/decorators';
-import type { AgendaCategory, RepeatType, ReminderOffset } from '../constants/agendaCategories';
+import type { AgendaCategory, AgendaFormType, RepeatType, ReminderOffset } from '../constants/agendaCategories';
 
 export class AgendaItemModel extends Model {
   static table = 'agenda_items';
@@ -19,6 +19,11 @@ export class AgendaItemModel extends Model {
   // Core fields
   @field('category') category!: AgendaCategory;
   @field('title') title!: string;
+
+  // Category snapshot fields (v19) — stored per-item, not referential
+  @field('category_icon') categoryIcon?: string;      // Emoji snapshot
+  @field('category_name') categoryName?: string;      // Display name snapshot
+  @field('form_type') formType?: string;              // AgendaFormType
   @field('item_date') itemDate!: number;          // Timestamp (start date)
   @field('time') time?: string;                    // "11:00" (null for all-day)
   @field('times') times?: string;                  // JSON: ["09:00", "21:00"] (medication multiple times)
@@ -136,6 +141,10 @@ export class AgendaItemModel extends Model {
     addressPostalCode?: string | null;
     addressCity?: string | null;
     addressCountry?: string | null;
+    categoryIcon?: string;
+    categoryName?: string;
+    formType?: AgendaFormType;
+    category?: AgendaCategory;
   }): Promise<void> {
     await this.update(record => {
       if (updates.title !== undefined) record.title = updates.title;
@@ -157,6 +166,10 @@ export class AgendaItemModel extends Model {
       if (updates.addressPostalCode !== undefined) record.addressPostalCode = updates.addressPostalCode ?? undefined;
       if (updates.addressCity !== undefined) record.addressCity = updates.addressCity ?? undefined;
       if (updates.addressCountry !== undefined) record.addressCountry = updates.addressCountry ?? undefined;
+      if (updates.categoryIcon !== undefined) record.categoryIcon = updates.categoryIcon;
+      if (updates.categoryName !== undefined) record.categoryName = updates.categoryName;
+      if (updates.formType !== undefined) record.formType = updates.formType;
+      if (updates.category !== undefined) record.category = updates.category;
     });
   }
 

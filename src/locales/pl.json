@@ -2064,6 +2064,20 @@
         "wedding": "Rocznica ślubu",
         "memorial": "Rocznica pamięci"
       },
+      "formTypes": {
+        "appointment": "Wizyta",
+        "reminder": "Przypomnienie",
+        "medication": "Lek"
+      },
+      "emojiGroups": {
+        "health": "Zdrowie",
+        "financial": "Finanse",
+        "sports": "Sport i Ćwiczenia",
+        "social": "Społeczne",
+        "transport": "Transport",
+        "home": "Dom i Ogród",
+        "other": "Inne"
+      },
       "groups": {
         "appointments": "Spotkania",
         "family": "Rodzina",
@@ -2088,6 +2102,15 @@
         "pickCategory": "Co chcesz dodać?",
         "newTitle": "Nowy element",
         "editTitle": "Edytuj element",
+        "typeLabel": "Typ",
+        "categoryLabel": "Kategoria",
+        "standardCategories": "Standardowe kategorie",
+        "customCategories": "Własne kategorie",
+        "createCategory": "Utwórz nową kategorię",
+        "newCategory": "Nowa kategoria",
+        "categoryNameLabel": "Nazwa",
+        "categoryNamePlaceholder": "Nazwa kategorii",
+        "categoryNameRequired": "Wprowadź nazwę kategorii",
         "titleLabel": "Spotkanie",
         "titlePlaceholder": "Wpisz nazwę spotkania",
         "dateLabel": "Data",

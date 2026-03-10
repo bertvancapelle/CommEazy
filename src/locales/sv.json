@@ -2043,6 +2043,20 @@
         "wedding": "Bröllopsdag",
         "memorial": "Minnesdag"
       },
+      "formTypes": {
+        "appointment": "Möte",
+        "reminder": "Påminnelse",
+        "medication": "Medicin"
+      },
+      "emojiGroups": {
+        "health": "Hälsa",
+        "financial": "Ekonomi",
+        "sports": "Sport & Träning",
+        "social": "Socialt",
+        "transport": "Transport",
+        "home": "Hem & Trädgård",
+        "other": "Övrigt"
+      },
       "groups": {
         "appointments": "Möten",
         "family": "Familj",
@@ -2067,6 +2081,15 @@
         "pickCategory": "Vad vill du lägga till?",
         "newTitle": "Nytt objekt",
         "editTitle": "Redigera objekt",
+        "typeLabel": "Typ",
+        "categoryLabel": "Kategori",
+        "standardCategories": "Standardkategorier",
+        "customCategories": "Egna kategorier",
+        "createCategory": "Skapa ny kategori",
+        "newCategory": "Ny kategori",
+        "categoryNameLabel": "Namn",
+        "categoryNamePlaceholder": "Namn på kategorin",
+        "categoryNameRequired": "Ange ett namn för kategorin",
         "titleLabel": "Avtalning",
         "titlePlaceholder": "Ange mötesnamn",
         "dateLabel": "Datum",

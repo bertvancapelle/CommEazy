@@ -2203,6 +2203,20 @@
         "wedding": "Wedding anniversary",
         "memorial": "Memorial"
       },
+      "formTypes": {
+        "appointment": "Appointment",
+        "reminder": "Reminder",
+        "medication": "Medication"
+      },
+      "emojiGroups": {
+        "health": "Health",
+        "financial": "Financial",
+        "sports": "Sports & Exercise",
+        "social": "Social",
+        "transport": "Transport",
+        "home": "Home & Garden",
+        "other": "Other"
+      },
       "groups": {
         "appointments": "Appointments",
         "family": "Family",
@@ -2227,6 +2241,15 @@
         "pickCategory": "What would you like to add?",
         "newTitle": "New item",
         "editTitle": "Edit item",
+        "typeLabel": "Type",
+        "categoryLabel": "Category",
+        "standardCategories": "Standard categories",
+        "customCategories": "Custom categories",
+        "createCategory": "Create new category",
+        "newCategory": "New category",
+        "categoryNameLabel": "Name",
+        "categoryNamePlaceholder": "Category name",
+        "categoryNameRequired": "Enter a name for the category",
         "titleLabel": "Appointment",
         "titlePlaceholder": "Enter appointment name",
         "dateLabel": "Date",

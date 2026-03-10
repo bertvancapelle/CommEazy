@@ -1,23 +1,29 @@
 /**
  * AgendaItemFormScreen — Universal form for creating/editing agenda items
  *
- * The selected category determines:
- * - Which fields are visible
+ * Simplified 2-step flow:
+ * 1. Type picker (Afspraak/Herinnering/Medicatie) — determines visible fields
+ * 2. Category picker (emoji + name) — purely visual, stored as snapshot
+ *
+ * The selected form type determines:
+ * - Which fields are visible (time, contacts, address, medication)
  * - Default values for repeat and reminder
- * - Whether multiple times are supported (medication)
  *
  * Fields:
+ * - Type (always) — 3-option picker
+ * - Category (always) — emoji + name picker with standard + custom categories
  * - Title (always) — text input
  * - Date (always) — date picker
- * - Time (category-dependent) — time picker
- * - Multiple times (medication only) — add/remove times
+ * - Time (type-dependent) — time picker or multiple times (medication)
  * - Repeat (always) — picker modal
  * - End date (when repeat selected) — date picker
  * - Reminder (always) — picker modal
+ * - Contacts (appointment only) — contact picker
+ * - Address (appointment only) — address fields with category-memory
  *
  * Senior-inclusive: 60pt+ touch targets, 18pt+ text, labels above fields
  *
- * @see constants/agendaCategories.ts for field visibility per category
+ * @see constants/agendaCategories.ts for form type & category definitions
  * @see contexts/AgendaContext.tsx for createItem/updateItem
  */
 
@@ -47,10 +53,19 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import {
-  getCategoryById,
+  FORM_TYPES,
+  getFormType,
+  STANDARD_CATEGORIES,
+  CURATED_EMOJI_GROUPS,
+  CUSTOM_CATEGORIES_STORAGE_KEY,
   REPEAT_OPTIONS,
   REMINDER_OPTIONS,
+  getFormTypeForCategory,
   type AgendaCategory,
+  type AgendaFormType,
+  type AgendaCategoryDef,
+  type CustomCategory,
+  type FormTypeDefinition,
   type RepeatType,
   type ReminderOffset,
 } from '@/constants/agendaCategories';
@@ -93,13 +108,42 @@ async function saveCategoryAddress(categoryId: string, address: CategoryAddress)
 }
 
 // ============================================================
+// Custom Category Persistence
+// ============================================================
+
+async function loadCustomCategories(): Promise<CustomCategory[]> {
+  try {
+    const json = await AsyncStorage.getItem(CUSTOM_CATEGORIES_STORAGE_KEY);
+    return json ? JSON.parse(json) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveCustomCategories(categories: CustomCategory[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(CUSTOM_CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+  } catch {
+    // Silently fail
+  }
+}
+
+// ============================================================
 // Props
 // ============================================================
 
 interface AgendaItemFormScreenProps {
-  category: AgendaCategory;
   /** Pre-filled data for editing (optional) */
-  initialData?: Partial<CreateAgendaItemData>;
+  initialData?: Partial<CreateAgendaItemData> & {
+    /** Existing category id for editing */
+    category?: AgendaCategory;
+    /** Existing form type for editing */
+    formType?: AgendaFormType;
+    /** Existing category icon for editing */
+    categoryIcon?: string;
+    /** Existing category name for editing */
+    categoryName?: string;
+  };
   onSave: (data: CreateAgendaItemData) => void;
   onBack: () => void;
 }
@@ -123,6 +167,11 @@ function formatTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+/** Generate a simple unique ID */
+function generateId(): string {
+  return `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 // ============================================================
 // PickerModal — Reusable option picker
 // ============================================================
@@ -130,7 +179,7 @@ function formatTime(date: Date): string {
 interface FormPickerModalProps {
   visible: boolean;
   title: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; icon?: string }[];
   selectedValue: string;
   onSelect: (value: string) => void;
   onClose: () => void;
@@ -194,6 +243,9 @@ function FormPickerModal({
                 accessibilityState={{ selected: isSelected }}
                 accessibilityLabel={option.label}
               >
+                {option.icon && (
+                  <Text style={formPickerStyles.optionIcon}>{option.icon}</Text>
+                )}
                 <Text
                   style={[
                     formPickerStyles.optionLabel,
@@ -234,7 +286,6 @@ const formPickerStyles = StyleSheet.create({
     ...typography.h3,
     flex: 1,
   },
-  // closeButton removed — replaced by dateTimePickerModalStyles.doneButton text button
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -243,6 +294,10 @@ const formPickerStyles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
+  },
+  optionIcon: {
+    fontSize: 24,
+    marginRight: spacing.md,
   },
   optionLabel: {
     ...typography.body,
@@ -345,11 +400,392 @@ const dateTimePickerModalStyles = StyleSheet.create({
 });
 
 // ============================================================
+// CategoryPickerModal — Standard + Custom categories + Create new
+// ============================================================
+
+interface CategoryPickerModalProps {
+  visible: boolean;
+  selectedCategoryId: string;
+  selectedFormType: AgendaFormType;
+  customCategories: CustomCategory[];
+  onSelect: (category: { id: string; icon: string; name: string }) => void;
+  onCreateCustom: () => void;
+  onClose: () => void;
+}
+
+function CategoryPickerModal({
+  visible,
+  selectedCategoryId,
+  selectedFormType,
+  customCategories,
+  onSelect,
+  onCreateCustom,
+  onClose,
+}: CategoryPickerModalProps) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+  const { accentColor } = useAccentColor();
+  const moduleColor = useModuleColor('agenda');
+
+  // Filter standard categories: only show non-automatic ones
+  const standardCats = STANDARD_CATEGORIES;
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
+        {/* Header */}
+        <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
+            {t('modules.agenda.form.categoryLabel')}
+          </Text>
+          <HapticTouchable
+            style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          >
+            <Text style={dateTimePickerModalStyles.doneButtonText}>
+              {t('common.close')}
+            </Text>
+          </HapticTouchable>
+        </View>
+
+        <ScrollView>
+          {/* Standard categories */}
+          <View style={categoryPickerStyles.sectionHeader}>
+            <Text style={[categoryPickerStyles.sectionTitle, { color: themeColors.textSecondary }]}>
+              {t('modules.agenda.form.standardCategories')}
+            </Text>
+          </View>
+          {standardCats.map((cat) => {
+            const isSelected = cat.id === selectedCategoryId;
+            return (
+              <HapticTouchable
+                key={cat.id}
+                style={[
+                  formPickerStyles.option,
+                  { borderBottomColor: themeColors.border },
+                  isSelected && { backgroundColor: accentColor.light },
+                ]}
+                onPress={() => {
+                  onSelect({ id: cat.id, icon: cat.icon, name: t(cat.name) });
+                  onClose();
+                }}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`${cat.icon} ${t(cat.name)}`}
+              >
+                <Text style={formPickerStyles.optionIcon}>{cat.icon}</Text>
+                <Text
+                  style={[
+                    formPickerStyles.optionLabel,
+                    { color: themeColors.textPrimary },
+                    isSelected && { fontWeight: '600', color: accentColor.primary },
+                  ]}
+                >
+                  {t(cat.name)}
+                </Text>
+                {isSelected && (
+                  <Icon name="check" size={20} color={accentColor.primary} />
+                )}
+              </HapticTouchable>
+            );
+          })}
+
+          {/* Custom categories */}
+          {customCategories.length > 0 && (
+            <>
+              <View style={categoryPickerStyles.sectionHeader}>
+                <Text style={[categoryPickerStyles.sectionTitle, { color: themeColors.textSecondary }]}>
+                  {t('modules.agenda.form.customCategories')}
+                </Text>
+              </View>
+              {customCategories.map((cat) => {
+                const isSelected = cat.id === selectedCategoryId;
+                return (
+                  <HapticTouchable
+                    key={cat.id}
+                    style={[
+                      formPickerStyles.option,
+                      { borderBottomColor: themeColors.border },
+                      isSelected && { backgroundColor: accentColor.light },
+                    ]}
+                    onPress={() => {
+                      onSelect({ id: cat.id, icon: cat.icon, name: cat.name });
+                      onClose();
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={`${cat.icon} ${cat.name}`}
+                  >
+                    <Text style={formPickerStyles.optionIcon}>{cat.icon}</Text>
+                    <Text
+                      style={[
+                        formPickerStyles.optionLabel,
+                        { color: themeColors.textPrimary },
+                        isSelected && { fontWeight: '600', color: accentColor.primary },
+                      ]}
+                    >
+                      {cat.name}
+                    </Text>
+                    {isSelected && (
+                      <Icon name="check" size={20} color={accentColor.primary} />
+                    )}
+                  </HapticTouchable>
+                );
+              })}
+            </>
+          )}
+
+          {/* Create new category button */}
+          <HapticTouchable
+            style={[categoryPickerStyles.createButton, { borderColor: accentColor.primary }]}
+            onPress={() => {
+              onClose();
+              // Small delay to let the modal close before opening the next
+              setTimeout(onCreateCustom, 300);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.agenda.form.createCategory')}
+          >
+            <Icon name="plus" size={18} color={accentColor.primary} />
+            <Text style={[categoryPickerStyles.createButtonText, { color: accentColor.primary }]}>
+              {t('modules.agenda.form.createCategory')}
+            </Text>
+          </HapticTouchable>
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+const categoryPickerStyles = StyleSheet.create({
+  sectionHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+  },
+  sectionTitle: {
+    ...typography.label,
+    fontWeight: '700',
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.minimum,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: borderRadius.md,
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.lg,
+  },
+  createButtonText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+});
+
+// ============================================================
+// CreateCategoryModal — Emoji picker + name input
+// ============================================================
+
+interface CreateCategoryModalProps {
+  visible: boolean;
+  onSave: (category: CustomCategory) => void;
+  onClose: () => void;
+}
+
+function CreateCategoryModal({
+  visible,
+  onSave,
+  onClose,
+}: CreateCategoryModalProps) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+  const { accentColor } = useAccentColor();
+  const moduleColor = useModuleColor('agenda');
+
+  const [selectedEmoji, setSelectedEmoji] = useState('📋');
+  const [categoryName, setCategoryName] = useState('');
+
+  const handleSave = useCallback(() => {
+    const trimmedName = categoryName.trim();
+    if (!trimmedName) {
+      Alert.alert(
+        t('status.warning'),
+        t('modules.agenda.form.categoryNameRequired'),
+      );
+      return;
+    }
+
+    const newCategory: CustomCategory = {
+      id: generateId(),
+      icon: selectedEmoji,
+      name: trimmedName,
+      formType: 'appointment', // Default — user can change form type separately
+      createdAt: Date.now(),
+    };
+
+    onSave(newCategory);
+    // Reset state
+    setSelectedEmoji('📋');
+    setCategoryName('');
+  }, [selectedEmoji, categoryName, onSave, t]);
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
+        {/* Header */}
+        <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
+            {t('modules.agenda.form.newCategory')}
+          </Text>
+          <HapticTouchable
+            style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
+            onPress={handleSave}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.confirm')}
+          >
+            <Text style={dateTimePickerModalStyles.doneButtonText}>
+              {t('common.confirm')}
+            </Text>
+          </HapticTouchable>
+        </View>
+
+        <ScrollView contentContainerStyle={createCategoryStyles.content}>
+          {/* Preview */}
+          <View style={createCategoryStyles.preview}>
+            <Text style={createCategoryStyles.previewEmoji}>{selectedEmoji}</Text>
+            <Text style={[createCategoryStyles.previewName, { color: themeColors.textPrimary }]}>
+              {categoryName || t('modules.agenda.form.categoryNamePlaceholder')}
+            </Text>
+          </View>
+
+          {/* Name input */}
+          <View style={styles.fieldContainer}>
+            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+              {t('modules.agenda.form.categoryNameLabel')}
+            </Text>
+            <RNTextInput
+              style={[
+                styles.textInput,
+                {
+                  color: themeColors.textPrimary,
+                  borderColor: themeColors.border,
+                  backgroundColor: themeColors.surface,
+                },
+              ]}
+              value={categoryName}
+              onChangeText={setCategoryName}
+              placeholder={t('modules.agenda.form.categoryNamePlaceholder')}
+              placeholderTextColor={themeColors.disabled}
+              autoCapitalize="sentences"
+              maxLength={30}
+              returnKeyType="done"
+              blurOnSubmit={true}
+              onSubmitEditing={() => Keyboard.dismiss()}
+              accessibilityLabel={t('modules.agenda.form.categoryNameLabel')}
+            />
+          </View>
+
+          {/* Emoji groups */}
+          {CURATED_EMOJI_GROUPS.map((group) => (
+            <View key={group.id} style={createCategoryStyles.emojiGroup}>
+              <Text style={[createCategoryStyles.emojiGroupLabel, { color: themeColors.textSecondary }]}>
+                {t(group.labelKey)}
+              </Text>
+              <View style={createCategoryStyles.emojiGrid}>
+                {group.emojis.map((emoji) => (
+                  <HapticTouchable
+                    key={emoji}
+                    style={[
+                      createCategoryStyles.emojiButton,
+                      selectedEmoji === emoji && {
+                        backgroundColor: accentColor.light,
+                        borderColor: accentColor.primary,
+                        borderWidth: 2,
+                      },
+                    ]}
+                    onPress={() => setSelectedEmoji(emoji)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: selectedEmoji === emoji }}
+                    accessibilityLabel={emoji}
+                  >
+                    <Text style={createCategoryStyles.emojiText}>{emoji}</Text>
+                  </HapticTouchable>
+                ))}
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+const createCategoryStyles = StyleSheet.create({
+  content: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  preview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  previewEmoji: {
+    fontSize: 40,
+  },
+  previewName: {
+    ...typography.h3,
+    flex: 1,
+  },
+  emojiGroup: {
+    marginTop: spacing.lg,
+  },
+  emojiGroupLabel: {
+    ...typography.label,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+  },
+  emojiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  emojiButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  emojiText: {
+    fontSize: 28,
+  },
+});
+
+// ============================================================
 // AgendaItemFormScreen
 // ============================================================
 
 export function AgendaItemFormScreen({
-  category,
   initialData,
   onSave,
   onBack,
@@ -359,12 +795,37 @@ export function AgendaItemFormScreen({
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
 
-  const categoryDef = useMemo(
-    () => getCategoryById(category)!,
-    [category],
-  );
-
   const isEditing = !!initialData;
+
+  // ============================================================
+  // Form Type & Category State
+  // ============================================================
+
+  const [selectedFormType, setSelectedFormType] = useState<AgendaFormType>(
+    initialData?.formType
+      ?? (initialData?.category ? getFormTypeForCategory(initialData.category) : 'appointment'),
+  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
+    initialData?.category ?? 'other',
+  );
+  const [selectedCategoryIcon, setSelectedCategoryIcon] = useState<string>(
+    initialData?.categoryIcon ?? '📋',
+  );
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string>(
+    initialData?.categoryName ?? t('modules.agenda.categories.other'),
+  );
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+
+  // Load custom categories on mount
+  useEffect(() => {
+    loadCustomCategories().then(setCustomCategories);
+  }, []);
+
+  // Get active form type definition
+  const formTypeDef = useMemo(
+    () => getFormType(selectedFormType),
+    [selectedFormType],
+  );
 
   // Form state
   const [title, setTitle] = useState(initialData?.title ?? '');
@@ -398,16 +859,23 @@ export function AgendaItemFormScreen({
     return [d];
   });
   const [repeatType, setRepeatType] = useState<RepeatType | null>(
-    initialData?.repeatType ?? categoryDef.defaultRepeat,
+    initialData?.repeatType ?? formTypeDef.defaultRepeat,
   );
   const [endDate, setEndDate] = useState<Date | null>(
     initialData?.endDate ? new Date(initialData.endDate) : null,
   );
   const [reminderOffset, setReminderOffset] = useState<ReminderOffset>(
-    initialData?.reminderOffset ?? categoryDef.defaultReminder,
+    initialData?.reminderOffset ?? formTypeDef.defaultReminder,
   );
 
-  // Contact selection state (only for categories with showContactsField)
+  // Update defaults when form type changes (only for new items)
+  useEffect(() => {
+    if (isEditing) return;
+    setRepeatType(formTypeDef.defaultRepeat);
+    setReminderOffset(formTypeDef.defaultReminder);
+  }, [formTypeDef, isEditing]);
+
+  // Contact selection state (only for form types with showContactsField)
   const { contacts: allContacts } = useAgendaContext();
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>(
     initialData?.contactIds ?? [],
@@ -421,7 +889,6 @@ export function AgendaItemFormScreen({
   const [addressCity, setAddressCity] = useState(initialData?.addressCity ?? '');
   const [addressCountry, setAddressCountry] = useState(initialData?.addressCountry ?? '');
   const [useCustomAddress, setUseCustomAddress] = useState(
-    // Default AAN als het een edit is met adresdata die niet van contact komt
     !!(initialData?.addressStreet || initialData?.addressCity),
   );
 
@@ -444,7 +911,6 @@ export function AgendaItemFormScreen({
   useEffect(() => {
     if (useCustomAddress) return;
     if (!firstContactAddress) {
-      // No contact address — clear fields
       setLocationName('');
       setAddressStreet('');
       setAddressPostalCode('');
@@ -452,7 +918,6 @@ export function AgendaItemFormScreen({
       setAddressCountry('');
       return;
     }
-    // Fill from contact
     setLocationName('');
     setAddressStreet(firstContactAddress.street);
     setAddressPostalCode(firstContactAddress.postalCode);
@@ -464,14 +929,12 @@ export function AgendaItemFormScreen({
   const handleCustomAddressToggle = useCallback((enabled: boolean) => {
     setUseCustomAddress(enabled);
     if (enabled) {
-      // Switching to custom: clear fields and load category-memory
       setLocationName('');
       setAddressStreet('');
       setAddressPostalCode('');
       setAddressCity('');
       setAddressCountry('');
-      // Load category-memory as pre-fill
-      loadCategoryAddress(category).then(cached => {
+      loadCategoryAddress(selectedCategoryId).then(cached => {
         if (!cached) return;
         setLocationName(cached.locationName ?? '');
         setAddressStreet(cached.addressStreet ?? '');
@@ -480,18 +943,16 @@ export function AgendaItemFormScreen({
         setAddressCountry(cached.addressCountry ?? '');
       });
     }
-    // When switching OFF, the useEffect above will auto-fill from contact
-  }, [category]);
+  }, [selectedCategoryId]);
 
   // Load category-memory address on mount (only for new items without contact address)
   useEffect(() => {
     if (isEditing) return;
-    if (!categoryDef.showAddressField) return;
+    if (!formTypeDef.showAddressField) return;
     if (initialData?.addressStreet || initialData?.addressCity) return;
-    // Only load category-memory if there's no contact address to auto-fill
     if (firstContactAddress) return;
 
-    loadCategoryAddress(category).then(cached => {
+    loadCategoryAddress(selectedCategoryId).then(cached => {
       if (!cached) return;
       if (locationName || addressStreet || addressCity) return;
       setUseCustomAddress(true);
@@ -512,6 +973,9 @@ export function AgendaItemFormScreen({
   );
 
   // Picker visibility state
+  const [showFormTypePicker, setShowFormTypePicker] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -538,6 +1002,29 @@ export function AgendaItemFormScreen({
   // ============================================================
   // Handlers
   // ============================================================
+
+  const handleFormTypeChange = useCallback((typeId: string) => {
+    setSelectedFormType(typeId as AgendaFormType);
+  }, []);
+
+  const handleCategorySelect = useCallback((cat: { id: string; icon: string; name: string }) => {
+    setSelectedCategoryId(cat.id);
+    setSelectedCategoryIcon(cat.icon);
+    setSelectedCategoryName(cat.name);
+  }, []);
+
+  const handleCreateCategory = useCallback((newCategory: CustomCategory) => {
+    setCustomCategories(prev => {
+      const updated = [...prev, newCategory];
+      saveCustomCategories(updated);
+      return updated;
+    });
+    // Auto-select the new category
+    setSelectedCategoryId(newCategory.id);
+    setSelectedCategoryIcon(newCategory.icon);
+    setSelectedCategoryName(newCategory.name);
+    setShowCreateCategory(false);
+  }, []);
 
   const handleDateChange = useCallback(
     (_event: DateTimePickerEvent, date?: Date) => {
@@ -603,22 +1090,25 @@ export function AgendaItemFormScreen({
       return;
     }
 
-    // Build time data
+    // Build time data based on form type
     let timeStr: string | undefined;
     let timesArr: string[] | undefined;
 
-    if (categoryDef.showMultipleTimes) {
+    if (formTypeDef.showMultipleTimes) {
       // Medication: multiple times
       timesArr = medicationTimes
         .map(formatTime)
         .sort();
       timeStr = timesArr[0]; // Primary time for sorting
-    } else if (categoryDef.showTimeField) {
+    } else if (formTypeDef.showTimeField) {
       timeStr = formatTime(selectedTime);
     }
 
     const data: CreateAgendaItemData = {
-      category,
+      category: selectedCategoryId as AgendaCategory,
+      categoryIcon: selectedCategoryIcon,
+      categoryName: selectedCategoryName,
+      formType: selectedFormType,
       title: trimmedTitle,
       date: selectedDate.getTime(),
       time: timeStr,
@@ -626,19 +1116,19 @@ export function AgendaItemFormScreen({
       repeatType: repeatType ?? undefined,
       endDate: endDate?.getTime(),
       reminderOffset,
-      // Contacts (only for categories that support it)
-      contactIds: categoryDef.showContactsField ? selectedContactIds : undefined,
-      // Address (v18)
-      locationName: locationName.trim() || undefined,
-      addressStreet: addressStreet.trim() || undefined,
-      addressPostalCode: addressPostalCode.trim() || undefined,
-      addressCity: addressCity.trim() || undefined,
-      addressCountry: addressCountry.trim() || undefined,
+      // Contacts (only for form types that support it)
+      contactIds: formTypeDef.showContactsField ? selectedContactIds : undefined,
+      // Address (only for form types that support it)
+      locationName: formTypeDef.showAddressField ? (locationName.trim() || undefined) : undefined,
+      addressStreet: formTypeDef.showAddressField ? (addressStreet.trim() || undefined) : undefined,
+      addressPostalCode: formTypeDef.showAddressField ? (addressPostalCode.trim() || undefined) : undefined,
+      addressCity: formTypeDef.showAddressField ? (addressCity.trim() || undefined) : undefined,
+      addressCountry: formTypeDef.showAddressField ? (addressCountry.trim() || undefined) : undefined,
     };
 
     // Save category-memory for address (async, fire-and-forget)
-    if (categoryDef.showAddressField) {
-      saveCategoryAddress(category, {
+    if (formTypeDef.showAddressField) {
+      saveCategoryAddress(selectedCategoryId, {
         locationName: locationName.trim() || undefined,
         addressStreet: addressStreet.trim() || undefined,
         addressPostalCode: addressPostalCode.trim() || undefined,
@@ -650,8 +1140,11 @@ export function AgendaItemFormScreen({
     onSave(data);
   }, [
     title,
-    category,
-    categoryDef,
+    selectedCategoryId,
+    selectedCategoryIcon,
+    selectedCategoryName,
+    selectedFormType,
+    formTypeDef,
     selectedDate,
     selectedTime,
     medicationTimes,
@@ -669,6 +1162,15 @@ export function AgendaItemFormScreen({
   ]);
 
   // Build picker options
+  const formTypeOptions = useMemo(
+    () => FORM_TYPES.map((ft) => ({
+      value: ft.id,
+      label: t(ft.labelKey),
+      icon: ft.icon,
+    })),
+    [t],
+  );
+
   const repeatOptions = useMemo(
     () =>
       REPEAT_OPTIONS.map((opt) => ({
@@ -692,7 +1194,6 @@ export function AgendaItemFormScreen({
   // ============================================================
 
   const isDirty = useMemo(() => {
-    // For new items: dirty = any field has content
     if (!isEditing) {
       return title.trim().length > 0
         || locationName.trim().length > 0
@@ -700,7 +1201,6 @@ export function AgendaItemFormScreen({
         || addressCity.trim().length > 0
         || selectedContactIds.length > 0;
     }
-    // For editing: dirty = any field differs from initial
     return title.trim() !== (initialData?.title ?? '')
       || locationName.trim() !== (initialData?.locationName ?? '')
       || addressStreet.trim() !== (initialData?.addressStreet ?? '')
@@ -734,7 +1234,7 @@ export function AgendaItemFormScreen({
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Header — Form mode: Cancel/Save buttons replace icon+title */}
+      {/* Header — Form mode: Cancel/Save buttons */}
       <ModuleHeader
         moduleId="agenda"
         icon="calendar"
@@ -754,6 +1254,44 @@ export function AgendaItemFormScreen({
         ]}
         keyboardShouldPersistTaps="handled"
       >
+        {/* ====== Form Type ====== */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            {t('modules.agenda.form.typeLabel')}
+          </Text>
+          <HapticTouchable
+            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
+            onPress={() => { Keyboard.dismiss(); setShowFormTypePicker(true); }}
+            accessibilityRole="button"
+            accessibilityLabel={`${t('modules.agenda.form.typeLabel')}: ${t(formTypeDef.labelKey)}`}
+          >
+            <Text style={styles.pickerIcon}>{formTypeDef.icon}</Text>
+            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+              {t(formTypeDef.labelKey)}
+            </Text>
+            <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
+          </HapticTouchable>
+        </View>
+
+        {/* ====== Category ====== */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            {t('modules.agenda.form.categoryLabel')}
+          </Text>
+          <HapticTouchable
+            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
+            onPress={() => { Keyboard.dismiss(); setShowCategoryPicker(true); }}
+            accessibilityRole="button"
+            accessibilityLabel={`${t('modules.agenda.form.categoryLabel')}: ${selectedCategoryIcon} ${selectedCategoryName}`}
+          >
+            <Text style={styles.pickerIcon}>{selectedCategoryIcon}</Text>
+            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+              {selectedCategoryName}
+            </Text>
+            <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
+          </HapticTouchable>
+        </View>
+
         {/* ====== Title ====== */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
@@ -799,34 +1337,28 @@ export function AgendaItemFormScreen({
           </HapticTouchable>
         </View>
 
-        {/* Date picker modal is rendered outside ScrollView */}
-
         {/* ====== Time (single) ====== */}
-        {categoryDef.showTimeField && !categoryDef.showMultipleTimes && (
-          <>
-            <View style={styles.fieldContainer}>
-              <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-                {t('modules.agenda.form.timeLabel')}
+        {formTypeDef.showTimeField && !formTypeDef.showMultipleTimes && (
+          <View style={styles.fieldContainer}>
+            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+              {t('modules.agenda.form.timeLabel')}
+            </Text>
+            <HapticTouchable
+              style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
+              onPress={() => { Keyboard.dismiss(); setShowTimePicker(true); }}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('modules.agenda.form.timeLabel')}: ${formatTime(selectedTime)}`}
+            >
+              <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+                {formatTime(selectedTime)}
               </Text>
-              <HapticTouchable
-                style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-                onPress={() => { Keyboard.dismiss(); setShowTimePicker(true); }}
-                accessibilityRole="button"
-                accessibilityLabel={`${t('modules.agenda.form.timeLabel')}: ${formatTime(selectedTime)}`}
-              >
-                <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
-                  {formatTime(selectedTime)}
-                </Text>
-                <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
-              </HapticTouchable>
-            </View>
-
-            {/* Time picker modal is rendered outside ScrollView */}
-          </>
+              <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
+            </HapticTouchable>
+          </View>
         )}
 
         {/* ====== Multiple Times (medication) ====== */}
-        {categoryDef.showMultipleTimes && (
+        {formTypeDef.showMultipleTimes && (
           <View style={styles.fieldContainer}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('modules.agenda.form.timesLabel')}
@@ -859,8 +1391,6 @@ export function AgendaItemFormScreen({
                 )}
               </View>
             ))}
-
-            {/* Medication time picker modal is rendered outside ScrollView */}
 
             <HapticTouchable
               style={[styles.addTimeButton, { borderColor: accentColor.primary }]}
@@ -931,8 +1461,6 @@ export function AgendaItemFormScreen({
           </View>
         )}
 
-        {/* End date picker modal is rendered outside ScrollView */}
-
         {/* ====== Reminder ====== */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
@@ -951,8 +1479,8 @@ export function AgendaItemFormScreen({
           </HapticTouchable>
         </View>
 
-        {/* ====== Contacts (when category supports it) ====== */}
-        {categoryDef.showContactsField && (
+        {/* ====== Contacts (when form type supports it) ====== */}
+        {formTypeDef.showContactsField && (
           <View style={styles.fieldContainer}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('modules.agenda.form.contactsLabel')}
@@ -975,7 +1503,6 @@ export function AgendaItemFormScreen({
                     accessibilityRole="button"
                     accessibilityLabel={t('modules.agenda.form.removeContact', { name: contact.displayName })}
                   >
-                    {/* Contact photo or empty circle fallback */}
                     {contact.photoPath ? (
                       <Image
                         source={{ uri: contact.photoPath }}
@@ -1010,8 +1537,8 @@ export function AgendaItemFormScreen({
           </View>
         )}
 
-        {/* ====== Location / Address (v18) ====== */}
-        {categoryDef.showAddressField && (
+        {/* ====== Location / Address ====== */}
+        {formTypeDef.showAddressField && (
           <View style={styles.fieldContainer}>
             <Text style={[styles.sectionLabel, { color: themeColors.textSecondary }]}>
               {t('modules.agenda.form.addressSectionTitle')}
@@ -1168,9 +1695,35 @@ export function AgendaItemFormScreen({
             })()}
           </View>
         )}
-
-        {/* Save button removed — now in ModuleHeader form action bar */}
       </ScrollView>
+
+      {/* Form Type Picker Modal */}
+      <FormPickerModal
+        visible={showFormTypePicker}
+        title={t('modules.agenda.form.typeLabel')}
+        options={formTypeOptions}
+        selectedValue={selectedFormType}
+        onSelect={handleFormTypeChange}
+        onClose={() => setShowFormTypePicker(false)}
+      />
+
+      {/* Category Picker Modal */}
+      <CategoryPickerModal
+        visible={showCategoryPicker}
+        selectedCategoryId={selectedCategoryId}
+        selectedFormType={selectedFormType}
+        customCategories={customCategories}
+        onSelect={handleCategorySelect}
+        onCreateCustom={() => setShowCreateCategory(true)}
+        onClose={() => setShowCategoryPicker(false)}
+      />
+
+      {/* Create Category Modal */}
+      <CreateCategoryModal
+        visible={showCreateCategory}
+        onSave={handleCreateCategory}
+        onClose={() => setShowCreateCategory(false)}
+      />
 
       {/* DateTime Picker Modals */}
       <DateTimePickerModal
@@ -1252,7 +1805,7 @@ export function AgendaItemFormScreen({
               {t('modules.agenda.form.selectContacts')}
             </Text>
             <HapticTouchable
-              style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
+              style={[dateTimePickerModalStyles.doneButton, { backgroundColor: useModuleColor('agenda') }]}
               onPress={() => setShowContactPicker(false)}
               accessibilityRole="button"
               accessibilityLabel={t('common.confirm')}
@@ -1288,7 +1841,6 @@ export function AgendaItemFormScreen({
                     accessibilityLabel={contact.displayName}
                   >
                     <View style={styles.contactPickerRow}>
-                      {/* Contact photo or person icon fallback */}
                       {contact.photoPath ? (
                         <Image
                           source={{ uri: contact.photoPath }}
@@ -1380,6 +1932,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
     minHeight: touchTargets.minimum,
+  },
+  pickerIcon: {
+    fontSize: 24,
+    marginRight: spacing.md,
   },
   pickerValue: {
     ...typography.body,
@@ -1540,5 +2096,4 @@ const styles = StyleSheet.create({
   toggleRowDisabled: {
     opacity: 0.4,
   },
-
 });

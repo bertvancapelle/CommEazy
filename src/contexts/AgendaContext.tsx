@@ -31,10 +31,11 @@ import { AgendaItemModel, type MedicationLogEntry } from '@/models/AgendaItem';
 import { ContactModel } from '@/models/Contact';
 import type {
   AgendaCategory,
+  AgendaFormType,
   RepeatType,
   ReminderOffset,
 } from '@/constants/agendaCategories';
-import { getCategoryIcon } from '@/constants/agendaCategories';
+import { getCategoryIcon, getFormTypeForCategory } from '@/constants/agendaCategories';
 
 // ============================================================
 // Types
@@ -50,6 +51,10 @@ export interface TimelineItem {
   category: AgendaCategory;
   /** Category icon emoji */
   icon: string;
+  /** Category display name (snapshot — may be i18n key or plain text) */
+  categoryName: string | null;
+  /** Form type (appointment/reminder/medication) */
+  formType: AgendaFormType;
   /** Display title */
   title: string;
   /** Date timestamp (for the specific occurrence) */
@@ -145,6 +150,12 @@ export interface AgendaContextValue {
 
 export interface CreateAgendaItemData {
   category: AgendaCategory;
+  /** Category icon snapshot (emoji) */
+  categoryIcon?: string;
+  /** Category name snapshot (display name) */
+  categoryName?: string;
+  /** Form type (appointment/reminder/medication) */
+  formType?: AgendaFormType;
   title: string;
   date: number;
   time?: string;
@@ -340,6 +351,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             source: 'contact',
             category: 'birthday',
             icon: getCategoryIcon('birthday'),
+            categoryName: 'modules.agenda.categories.birthday',
+            formType: 'reminder' as AgendaFormType,
             title: contact.displayName,
             date: nextOccurrence.getTime(),
             time: null,
@@ -378,6 +391,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             source: 'contact',
             category: 'wedding',
             icon: getCategoryIcon('wedding'),
+            categoryName: 'modules.agenda.categories.wedding',
+            formType: 'reminder' as AgendaFormType,
             title: contact.displayName,
             date: nextOccurrence.getTime(),
             time: null,
@@ -415,6 +430,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             source: 'contact',
             category: 'memorial',
             icon: getCategoryIcon('memorial'),
+            categoryName: 'modules.agenda.categories.memorial',
+            formType: 'reminder' as AgendaFormType,
             title: contact.displayName,
             date: nextOccurrence.getTime(),
             time: null,
@@ -467,7 +484,9 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
           id: `${item.id}-${dateKey}`,
           source: 'manual',
           category: item.category as AgendaCategory,
-          icon: getCategoryIcon(item.category as AgendaCategory),
+          icon: item.categoryIcon ?? getCategoryIcon(item.category as AgendaCategory),
+          categoryName: item.categoryName ?? null,
+          formType: (item.formType as AgendaFormType) ?? getFormTypeForCategory(item.category as AgendaCategory),
           title: item.title,
           date: occ.date,
           time: occ.time,
@@ -609,6 +628,9 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     await db.write(async () => {
       const record = await collection.create(r => {
         r.category = data.category;
+        r.categoryIcon = data.categoryIcon;
+        r.categoryName = data.categoryName;
+        r.formType = data.formType;
         r.title = data.title;
         r.itemDate = data.date;
         r.time = data.time;
@@ -652,6 +674,10 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
       addressPostalCode: data.addressPostalCode,
       addressCity: data.addressCity,
       addressCountry: data.addressCountry,
+      category: data.category,
+      categoryIcon: data.categoryIcon,
+      categoryName: data.categoryName,
+      formType: data.formType,
     });
 
     await loadData();
@@ -703,9 +729,12 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     const agendaPayload = JSON.stringify({
       type: 'agenda_item',
       category: record.category,
-      icon: getCategoryIcon(record.category as AgendaCategory),
+      categoryIcon: record.categoryIcon ?? getCategoryIcon(record.category as AgendaCategory),
+      categoryName: record.categoryName,
+      formType: record.formType,
+      icon: record.categoryIcon ?? getCategoryIcon(record.category as AgendaCategory),
       title: record.title,
-      date: new Date(record.date).toISOString().split('T')[0], // "YYYY-MM-DD"
+      date: new Date(record.itemDate).toISOString().split('T')[0], // "YYYY-MM-DD"
       time: record.parsedTimes.length > 0
         ? record.parsedTimes[0]
         : null,
@@ -748,10 +777,13 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     // Get parent item for defaults
     const parent = await collection.find(parentId);
 
-    // Create exception record
+    // Create exception record (inherits snapshot fields from parent)
     await db.write(async () => {
       await collection.create(r => {
         r.category = data.category ?? parent.category;
+        r.categoryIcon = data.categoryIcon ?? parent.categoryIcon;
+        r.categoryName = data.categoryName ?? parent.categoryName;
+        r.formType = data.formType ?? parent.formType;
         r.title = data.title ?? parent.title;
         r.itemDate = date;
         r.time = data.time ?? parent.time;

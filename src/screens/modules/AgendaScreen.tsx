@@ -44,11 +44,9 @@ import {
   type TimelineItem,
   type CreateAgendaItemData,
 } from '@/contexts/AgendaContext';
-import { type AgendaCategory } from '@/constants/agendaCategories';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useAgendaNotifications } from '@/hooks/useAgendaNotifications';
-import { AgendaCategoryPickerScreen } from './AgendaCategoryPickerScreen';
 import { AgendaItemFormScreen } from './AgendaItemFormScreen';
 import { AgendaItemDetailScreen } from './AgendaItemDetailScreen';
 
@@ -292,8 +290,7 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor, showDate }: Ti
 type AgendaView =
   | { screen: 'dayView' }
   | { screen: 'search' }
-  | { screen: 'categoryPicker' }
-  | { screen: 'form'; category: AgendaCategory; editItem?: TimelineItem }
+  | { screen: 'form'; editItem?: TimelineItem }
   | { screen: 'detail'; item: TimelineItem };
 
 function AgendaScreenInner() {
@@ -347,9 +344,9 @@ function AgendaScreenInner() {
     setCurrentView({ screen: 'detail', item });
   }, []);
 
-  // Add new item → open category picker
+  // Add new item → open form directly (type + category are picker fields in the form)
   const handleAddItem = useCallback(() => {
-    setCurrentView({ screen: 'categoryPicker' });
+    setCurrentView({ screen: 'form' });
   }, []);
 
   // Open search view
@@ -365,16 +362,10 @@ function AgendaScreenInner() {
     setCurrentView({ screen: 'dayView' });
   }, []);
 
-  // Category selected → open form
-  const handleCategorySelected = useCallback((category: AgendaCategory) => {
-    setCurrentView({ screen: 'form', category });
-  }, []);
-
   // Edit from detail
   const handleEditItem = useCallback((item: TimelineItem) => {
     setCurrentView({
       screen: 'form',
-      category: item.category,
       editItem: item,
     });
   }, []);
@@ -397,10 +388,6 @@ function AgendaScreenInner() {
   // Back navigation
   const handleBackToTimeline = useCallback(() => {
     setCurrentView({ screen: 'dayView' });
-  }, []);
-
-  const handleBackToCategoryPicker = useCallback(() => {
-    setCurrentView({ screen: 'categoryPicker' });
   }, []);
 
   // Date navigation
@@ -452,15 +439,6 @@ function AgendaScreenInner() {
   // Sub-screen rendering
   // ============================================================
 
-  if (currentView.screen === 'categoryPicker') {
-    return (
-      <AgendaCategoryPickerScreen
-        onSelectCategory={handleCategorySelected}
-        onBack={handleBackToTimeline}
-      />
-    );
-  }
-
   if (currentView.screen === 'detail') {
     return (
       <AgendaItemDetailScreen
@@ -474,6 +452,10 @@ function AgendaScreenInner() {
   if (currentView.screen === 'form') {
     const editData = currentView.editItem
       ? {
+          category: currentView.editItem.category,
+          formType: currentView.editItem.formType ?? undefined,
+          categoryIcon: currentView.editItem.icon,
+          categoryName: currentView.editItem.categoryName ?? undefined,
           title: currentView.editItem.title,
           date: currentView.editItem.date,
           time: currentView.editItem.time ?? undefined,
@@ -491,10 +473,9 @@ function AgendaScreenInner() {
       : undefined;
     return (
       <AgendaItemFormScreen
-        category={currentView.category}
         initialData={editData}
         onSave={handleFormSave}
-        onBack={currentView.editItem ? handleBackToTimeline : handleBackToCategoryPicker}
+        onBack={handleBackToTimeline}
       />
     );
   }

@@ -2209,6 +2209,20 @@
         "wedding": "Trouwdag",
         "memorial": "Herdenking"
       },
+      "formTypes": {
+        "appointment": "Afspraak",
+        "reminder": "Herinnering",
+        "medication": "Medicatie"
+      },
+      "emojiGroups": {
+        "health": "Gezondheid",
+        "financial": "Financieel",
+        "sports": "Sport & Beweging",
+        "social": "Sociaal",
+        "transport": "Vervoer",
+        "home": "Huis & Tuin",
+        "other": "Overig"
+      },
       "groups": {
         "appointments": "Afspraken",
         "family": "Familie",
@@ -2233,6 +2247,15 @@
         "pickCategory": "Wat wil je toevoegen?",
         "newTitle": "Nieuw item",
         "editTitle": "Item bewerken",
+        "typeLabel": "Type",
+        "categoryLabel": "Categorie",
+        "standardCategories": "Standaard categorieën",
+        "customCategories": "Eigen categorieën",
+        "createCategory": "Nieuwe categorie aanmaken",
+        "newCategory": "Nieuwe categorie",
+        "categoryNameLabel": "Naam",
+        "categoryNamePlaceholder": "Naam van categorie",
+        "categoryNameRequired": "Voer een naam in voor de categorie",
         "titleLabel": "Afspraak",
         "titlePlaceholder": "Voer naam afspraak in",
         "dateLabel": "Datum",
