@@ -19,6 +19,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   RefreshControl,
@@ -93,6 +94,9 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
     }
   }
 
+  // Contact photos for mini-avatars
+  const hasContactPhotos = item.contactPhotoPaths.some(p => p != null);
+
   // Build address display line
   let addressLine = '';
   if (item.locationName) {
@@ -149,16 +153,50 @@ function TimelineItemRow({ item, isExpired, onPress, moduleColor }: TimelineItem
           </Text>
         </View>
         {subtitle ? (
-          <Text
-            style={[
-              styles.itemSubtitle,
-              { color: secondaryTextColor },
-              isExpired && styles.textExpired,
-            ]}
-            numberOfLines={1}
-          >
-            {subtitle}
-          </Text>
+          <View style={styles.itemSubtitleRow}>
+            {/* Mini contact avatars */}
+            {item.contactPhotoPaths.length > 0 && (
+              <View style={styles.miniAvatarsRow}>
+                {item.contactPhotoPaths.slice(0, 3).map((photoPath, idx) => (
+                  photoPath ? (
+                    <Image
+                      key={idx}
+                      source={{ uri: photoPath }}
+                      style={[
+                        styles.miniAvatar,
+                        idx > 0 && styles.miniAvatarOverlap,
+                        isExpired && styles.itemRowExpired,
+                      ]}
+                    />
+                  ) : (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.miniAvatarFallback,
+                        idx > 0 && styles.miniAvatarOverlap,
+                        { backgroundColor: moduleColor },
+                        isExpired && styles.itemRowExpired,
+                      ]}
+                    >
+                      <Text style={styles.miniAvatarText}>
+                        {(item.contactNames[idx]?.[0] ?? '?').toUpperCase()}
+                      </Text>
+                    </View>
+                  )
+                ))}
+              </View>
+            )}
+            <Text
+              style={[
+                styles.itemSubtitle,
+                { color: secondaryTextColor },
+                isExpired && styles.textExpired,
+              ]}
+              numberOfLines={1}
+            >
+              {subtitle}
+            </Text>
+          </View>
         ) : null}
         {addressLine ? (
           <Text
@@ -858,10 +896,44 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
   },
+  itemSubtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 50 + spacing.sm, // Align with title (past the time column)
+    gap: spacing.xs,
+  },
+  miniAvatarsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  miniAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: 'white',
+  },
+  miniAvatarFallback: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  miniAvatarOverlap: {
+    marginLeft: -8,
+  },
+  miniAvatarText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+  },
   itemSubtitle: {
     ...typography.body,
     fontStyle: 'italic',
-    marginLeft: 50 + spacing.sm, // Align with title (past the time column)
+    flexShrink: 1,
   },
   itemAddress: {
     ...typography.label,

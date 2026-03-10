@@ -26,6 +26,7 @@ import {
   View,
   Text,
   TextInput as RNTextInput,
+  Image,
   StyleSheet,
   ScrollView,
   Platform,
@@ -439,7 +440,7 @@ export function AgendaItemFormScreen({
   // Load category-memory address (only for new items, not edits)
   useEffect(() => {
     if (isEditing) return;
-    if (!categoryDef.showContactsField) return;
+    if (!categoryDef.showAddressField) return;
     // Skip if address already has data (e.g., from initialData)
     if (initialData?.addressStreet || initialData?.addressCity) return;
 
@@ -591,7 +592,7 @@ export function AgendaItemFormScreen({
     };
 
     // Save category-memory for address (async, fire-and-forget)
-    if (categoryDef.showContactsField) {
+    if (categoryDef.showAddressField) {
       saveCategoryAddress(category, {
         locationName: locationName.trim() || undefined,
         addressStreet: addressStreet.trim() || undefined,
@@ -904,6 +905,19 @@ export function AgendaItemFormScreen({
                     accessibilityRole="button"
                     accessibilityLabel={t('modules.agenda.form.removeContact', { name: contact.displayName })}
                   >
+                    {/* Contact photo or initials avatar */}
+                    {contact.photoPath ? (
+                      <Image
+                        source={{ uri: contact.photoPath }}
+                        style={styles.contactChipAvatar}
+                      />
+                    ) : (
+                      <View style={[styles.contactChipAvatarFallback, { backgroundColor: accentColor.primary }]}>
+                        <Text style={styles.contactChipAvatarText}>
+                          {(contact.firstName?.[0] ?? '').toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
                     <Text style={[styles.contactChipText, { color: accentColor.primary }]}>
                       {contact.displayName}
                     </Text>
@@ -929,7 +943,7 @@ export function AgendaItemFormScreen({
         )}
 
         {/* ====== Location / Address (v18) ====== */}
-        {categoryDef.showContactsField && (
+        {categoryDef.showAddressField && (
           <View style={styles.fieldContainer}>
             <Text style={[styles.sectionLabel, { color: themeColors.textSecondary }]}>
               {t('modules.agenda.form.addressSectionTitle')}
@@ -1180,6 +1194,19 @@ export function AgendaItemFormScreen({
                         size={22}
                         color={isSelected ? accentColor.primary : themeColors.textTertiary}
                       />
+                      {/* Contact photo or initials avatar */}
+                      {contact.photoPath ? (
+                        <Image
+                          source={{ uri: contact.photoPath }}
+                          style={styles.contactPickerAvatar}
+                        />
+                      ) : (
+                        <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
+                          <Text style={[styles.contactPickerAvatarText, { color: accentColor.primary }]}>
+                            {(contact.firstName?.[0] ?? '').toUpperCase()}{(contact.lastName?.[0] ?? '').toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
                       <View style={styles.contactPickerInfo}>
                         <Text
                           style={[
@@ -1346,6 +1373,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minHeight: touchTargets.minimum,
   },
+  contactChipAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  contactChipAvatarFallback: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contactChipAvatarText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+  },
   contactChipText: {
     ...typography.body,
     fontWeight: '600',
@@ -1367,6 +1411,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     flex: 1,
+  },
+  contactPickerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  contactPickerAvatarFallback: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contactPickerAvatarText: {
+    ...typography.label,
+    fontWeight: '700',
   },
   contactPickerInfo: {
     flex: 1,

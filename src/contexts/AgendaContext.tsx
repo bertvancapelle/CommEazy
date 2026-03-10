@@ -70,6 +70,8 @@ export interface TimelineItem {
   contactIds: string[];
   /** Contact names (resolved) */
   contactNames: string[];
+  /** Contact photo paths (resolved, null for contacts without photo) */
+  contactPhotoPaths: (string | null)[];
   /** Location name (e.g. "Huisartsenpraktijk De Linde") */
   locationName: string | null;
   /** Address street */
@@ -342,6 +344,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             reminderOffset: '1_day_before',
             contactIds: [contact.id],
             contactNames: [contact.displayName],
+            contactPhotoPaths: [contact.photoPath ?? null],
             locationName: null,
             addressStreet: null,
             addressPostalCode: null,
@@ -379,6 +382,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             reminderOffset: '1_day_before',
             contactIds: [contact.id],
             contactNames: [contact.displayName],
+            contactPhotoPaths: [contact.photoPath ?? null],
             locationName: null,
             addressStreet: null,
             addressPostalCode: null,
@@ -415,6 +419,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             reminderOffset: '1_day_before',
             contactIds: [contact.id],
             contactNames: [contact.displayName],
+            contactPhotoPaths: [contact.photoPath ?? null],
             locationName: null,
             addressStreet: null,
             addressPostalCode: null,
@@ -433,14 +438,17 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
     }
 
     // 2. Manual agenda items (with recurring expansion)
-    // Build contact name lookup
-    const contactMap = new Map(contacts.map(c => [c.id, c.displayName]));
+    // Build contact name + photo lookup
+    const contactMap = new Map(contacts.map(c => [c.id, { name: c.displayName, photoPath: c.photoPath ?? null }]));
 
     for (const item of agendaItems) {
       const occurrences = generateOccurrences(item, todayStart - 24 * 60 * 60 * 1000, rangeEnd);
       const linkedContactIds = item.parsedContactIds;
       const linkedContactNames = linkedContactIds.map(
-        id => contactMap.get(id) ?? '?',
+        id => contactMap.get(id)?.name ?? '?',
+      );
+      const linkedContactPhotoPaths = linkedContactIds.map(
+        id => contactMap.get(id)?.photoPath ?? null,
       );
 
       // Deduplicate occurrences by dateKey to prevent duplicate React keys
@@ -464,6 +472,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
           reminderOffset: item.reminderOffset as ReminderOffset,
           contactIds: linkedContactIds,
           contactNames: linkedContactNames,
+          contactPhotoPaths: linkedContactPhotoPaths,
           isMedication: item.isMedication,
           medicationLog: item.parsedMedicationLog,
           sharedWith: item.parsedSharedWith,
