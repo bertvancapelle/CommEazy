@@ -362,7 +362,7 @@ export function SlideshowViewer({
                 accessibilityRole="button"
                 accessibilityLabel={t('modules.photoAlbum.slideshowStop', 'Stop')}
               >
-                <Icon name="x" size={28} color="#FFFFFF" />
+                <Text style={styles.closeButtonText}>{t('common.close')}</Text>
               </HapticTouchable>
             </View>
 
@@ -491,12 +491,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   closeButton: {
-    width: touchTargets.comfortable,
     height: touchTargets.comfortable,
-    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  closeButtonText: {
+    ...typography.body,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   bottomBar: {
     flexDirection: 'row',

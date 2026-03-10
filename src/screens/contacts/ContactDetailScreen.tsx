@@ -635,7 +635,6 @@ export function ContactDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('common.cancel')}
           >
-            <Icon name="x" size={22} color={themeColors.textPrimary} />
             <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>

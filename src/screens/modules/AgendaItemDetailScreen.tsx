@@ -651,9 +651,9 @@ export function AgendaItemDetailScreen({
               style={shareStyles.closeButton}
               onPress={handleShareClose}
               accessibilityRole="button"
-              accessibilityLabel={t('common.cancel')}
+              accessibilityLabel={t('common.close')}
             >
-              <Icon name="x" size={24} color={colors.textOnPrimary} />
+              <Text style={shareStyles.closeButtonText}>{t('common.close')}</Text>
             </HapticTouchable>
             <Text style={shareStyles.headerTitle}>
               {t('modules.agenda.share.title')}
@@ -941,12 +941,17 @@ const shareStyles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   closeButton: {
-    width: touchTargets.minimum,
     height: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: borderRadius.md,
+  },
+  closeButtonText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '600',
   },
   headerTitle: {
     ...typography.h3,

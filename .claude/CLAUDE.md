@@ -162,6 +162,13 @@ Claude: "**🔒 PNA ACTIEF** — **Conclusie:** [...] **Wil je PNA beëindigen?*
    - Vraag jezelf af: "Zou mijn oma/opa dit begrijpen en kunnen gebruiken?"
    - Vermijd technisch jargon in UX beslissingen
 
+5. **Vraag ALTIJD bevestiging bij conclusies en aanbevelingen**
+   - Wanneer je een conclusie trekt of een aanbeveling doet, neem NOOIT aan dat de gebruiker het eens is
+   - Presenteer je conclusie/aanbeveling en vraag EXPLICIET: "Ben je het eens met deze conclusie?"
+   - Ga pas door met de volgende stap NA bevestiging van de gebruiker
+   - Dit geldt voor: UX keuzes, design beslissingen, verwijder-suggesties, en elke andere inhoudelijke conclusie
+   - Reden: De gebruiker kent de doelgroep (senioren) beter dan Claude en kan nuances zien die Claude mist
+
 ### Wanneer WEL toepassen
 
 - Nieuwe features of functionaliteit
@@ -204,9 +211,18 @@ Wat moet er gebeuren als een senior op deze knop tikt?"
 
 Klopt dit? Dan ga ik nu implementeren."
 
-Claude (FOUT):
+Claude (FOUT — geen bevestiging gevraagd):
 "Ik voeg een knop toe met een plus-icoon rechtsboven die een modal opent
 voor nieuwe contacten. Hier is de code..."
+
+Claude (FOUT — conclusie zonder bevestiging):
+"De auto-close modal heeft geen sluitknop nodig, die kan weg."
+→ FOUT: Claude trekt een conclusie en gaat ervan uit dat de gebruiker het eens is.
+
+Claude (GOED — conclusie MET bevestiging):
+"Mijn analyse: de modal sluit automatisch na selectie, dus de sluitknop
+lijkt overbodig. Maar voor senioren kan consistentie juist belangrijk zijn.
+Ben je het eens met mijn conclusie, of wil je de knop behouden?"
 ```
 
 ## What is CommEazy?

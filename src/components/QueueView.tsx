@@ -126,7 +126,7 @@ export function QueueView({
               accessibilityRole="button"
               accessibilityLabel={t('common.close')}
             >
-              <Icon name="x" size={24} color={colors.textPrimary} />
+              <Text style={styles.closeButtonText}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -272,10 +272,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   closeButton: {
-    width: touchTargets.minimum,
     height: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: borderRadius.md,
+  },
+  closeButtonText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   queueCount: {
     ...typography.body,

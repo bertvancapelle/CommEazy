@@ -1136,9 +1136,9 @@ export function PhotoAlbumScreen() {
             style={styles.cancelButton}
             onPress={handleToggleSelectionMode}
             accessibilityRole="button"
-            accessibilityLabel={t('common.cancel', 'Cancel')}
+            accessibilityLabel={t('common.cancel')}
           >
-            <Icon name="x" size={24} color={themeColors.textOnPrimary} />
+            <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
           </HapticTouchable>
         </View>
       )}
@@ -1375,12 +1375,12 @@ export function PhotoAlbumScreen() {
           {/* Modal header */}
           <View style={[styles.modalHeader, { borderBottomColor: themeColors.border }]}>
             <HapticTouchable
-              style={styles.modalCloseButton}
+              style={[styles.modalCloseButton, { backgroundColor: moduleColor }]}
               onPress={() => setIsCreateAlbumModalVisible(false)}
               accessibilityRole="button"
-              accessibilityLabel={t('common.cancel', 'Cancel')}
+              accessibilityLabel={t('common.close')}
             >
-              <Icon name="x" size={24} color={themeColors.textPrimary} />
+              <Text style={styles.modalCloseButtonText}>{t('common.close')}</Text>
             </HapticTouchable>
             <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
               {t('modules.photoAlbum.newAlbum', 'New album')}
@@ -1446,12 +1446,12 @@ export function PhotoAlbumScreen() {
           {/* Modal header */}
           <View style={[styles.modalHeader, { borderBottomColor: themeColors.border }]}>
             <HapticTouchable
-              style={styles.modalCloseButton}
+              style={[styles.modalCloseButton, { backgroundColor: moduleColor }]}
               onPress={() => setIsAddToAlbumModalVisible(false)}
               accessibilityRole="button"
-              accessibilityLabel={t('common.cancel', 'Cancel')}
+              accessibilityLabel={t('common.close')}
             >
-              <Icon name="x" size={24} color={themeColors.textPrimary} />
+              <Text style={styles.modalCloseButtonText}>{t('common.close')}</Text>
             </HapticTouchable>
             <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
               {t('modules.photoAlbum.addToAlbum', 'Add to album')}
@@ -1554,7 +1554,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   cancelButton: {
-    padding: spacing.sm,
+    height: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+  },
+  cancelButtonText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '600',
   },
   storageBar: {
     flexDirection: 'row',
@@ -1811,10 +1821,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   modalCloseButton: {
-    width: touchTargets.minimum,
     height: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: borderRadius.md,
+  },
+  modalCloseButtonText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
   },
   modalTitle: {
     ...typography.h3,

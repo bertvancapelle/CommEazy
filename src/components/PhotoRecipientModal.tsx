@@ -129,9 +129,9 @@ export function PhotoRecipientModal({
             style={styles.closeButton}
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel={t('common.cancel', 'Cancel')}
+            accessibilityLabel={t('common.close')}
           >
-            <Icon name="x" size={24} color={themeColors.textPrimary} />
+            <Text style={[styles.closeButtonText, { color: themeColors.textPrimary }]}>{t('common.close')}</Text>
           </HapticTouchable>
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>{getTitle()}</Text>
           <View style={styles.headerSpacer} />
@@ -252,10 +252,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   closeButton: {
-    width: touchTargets.minimum,
     height: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: borderRadius.md,
+  },
+  closeButtonText: {
+    ...typography.body,
+    fontWeight: '600',
   },
   title: {
     ...typography.h3,

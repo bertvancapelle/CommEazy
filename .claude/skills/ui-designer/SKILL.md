@@ -2536,6 +2536,7 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 - [ ] Navigatie buttons: 60×60pt container met 2px accent rand
 - [ ] Navigatie buttons: positionering consistent (links-boven voor close/back)
 - [ ] Navigatie buttons: accessibilityLabel EN accessibilityHint aanwezig
+- [ ] **Conclusie-bevestiging:** Bij ELKE UX conclusie of aanbeveling EERST aan gebruiker vragen "Ben je het eens?" — NOOIT aannemen dat gebruiker akkoord is
 - [ ] Tested with 5 senior users (65-80) on working prototype
 
 ### Voice Interaction Checklist (VERPLICHT voor alle modules)
@@ -4081,6 +4082,32 @@ useEffect(() => {
 Dit zorgt ervoor dat wanneer de gebruiker de instelling wijzigt, ALLE buttons (RN + Native) direct updaten.
 
 ---
+
+## Communication Protocol
+
+### Conclusie-bevestiging (VERPLICHT)
+
+**Wanneer Claude een UX conclusie trekt of een design aanbeveling doet:**
+
+1. Presenteer de conclusie/aanbeveling met rationale
+2. Vraag EXPLICIET: "Ben je het eens met deze conclusie?"
+3. Ga NIET verder totdat de gebruiker bevestigt of corrigeert
+4. Bij correctie: pas de aanpak aan op basis van feedback
+
+**Waarom?**
+De gebruiker kent de doelgroep (senioren 65+) uit eerste hand. Claude kan technisch correcte maar UX-verkeerde conclusies trekken. Voorbeeld: "een auto-close modal heeft geen sluitknop nodig" is technisch waar maar voor senioren is een zichtbare sluitknop essentieel voor consistentie en vertrouwen.
+
+**❌ FOUT:**
+```
+"De sluitknop is overbodig want de modal sluit automatisch. Ik verwijder hem."
+```
+
+**✅ GOED:**
+```
+"Mijn analyse: de modal sluit automatisch na selectie. De sluitknop lijkt
+overbodig. Maar consistentie kan belangrijk zijn voor senioren.
+Ben je het eens met deze conclusie?"
+```
 
 ## Collaboration
 

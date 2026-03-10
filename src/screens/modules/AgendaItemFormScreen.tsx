@@ -144,8 +144,10 @@ function FormPickerModal({
   onSelect,
   onClose,
 }: FormPickerModalProps) {
+  const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const moduleColor = useModuleColor('agenda');
 
   return (
     <Modal
@@ -161,12 +163,14 @@ function FormPickerModal({
             {title}
           </Text>
           <HapticTouchable
-            style={formPickerStyles.closeButton}
+            style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Close"
+            accessibilityLabel={t('common.close')}
           >
-            <Icon name="x" size={24} color={themeColors.textPrimary} />
+            <Text style={dateTimePickerModalStyles.doneButtonText}>
+              {t('common.close')}
+            </Text>
           </HapticTouchable>
         </View>
 
@@ -230,12 +234,7 @@ const formPickerStyles = StyleSheet.create({
     ...typography.h3,
     flex: 1,
   },
-  closeButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // closeButton removed — replaced by dateTimePickerModalStyles.doneButton text button
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1253,12 +1252,14 @@ export function AgendaItemFormScreen({
               {t('modules.agenda.form.selectContacts')}
             </Text>
             <HapticTouchable
-              style={formPickerStyles.closeButton}
+              style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
               onPress={() => setShowContactPicker(false)}
               accessibilityRole="button"
-              accessibilityLabel={t('common.close')}
+              accessibilityLabel={t('common.confirm')}
             >
-              <Icon name="x" size={24} color={themeColors.textPrimary} />
+              <Text style={dateTimePickerModalStyles.doneButtonText}>
+                {t('common.confirm')}
+              </Text>
             </HapticTouchable>
           </View>
 

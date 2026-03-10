@@ -197,7 +197,7 @@ export function FullscreenImageViewer({
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
-            <Icon name="x" size={28} color={colors.textOnPrimary} />
+            <Text style={styles.closeButtonText}>{t('common.close')}</Text>
           </TouchableOpacity>
 
           {/* Counter */}
@@ -333,12 +333,17 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   closeButton: {
-    width: touchTargets.comfortable,
     height: touchTargets.comfortable,
+    paddingHorizontal: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.md,
+  },
+  closeButtonText: {
+    ...typography.body,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   counterPill: {
     paddingHorizontal: spacing.md,

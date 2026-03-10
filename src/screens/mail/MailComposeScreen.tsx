@@ -1080,7 +1080,7 @@ export function MailComposeScreen({
           accessibilityRole="button"
           accessibilityLabel={t('common.cancel')}
         >
-          <Icon name="x" size={24} color={themeColors.textPrimary} />
+          <Text style={[styles.topBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
         </TouchableOpacity>
 
         <Text style={[styles.title, { color: themeColors.textPrimary }]}>
@@ -1088,7 +1088,7 @@ export function MailComposeScreen({
         </Text>
 
         {/* Spacer to balance layout */}
-        <View style={styles.topBarButton} />
+        <View style={styles.topBarSpacer} />
       </View>
 
       <ScrollView
@@ -1319,10 +1319,19 @@ const styles = StyleSheet.create({
     minHeight: touchTargets.minimum,
   },
   topBarButton: {
-    width: touchTargets.minimum,
     height: touchTargets.minimum,
+    paddingHorizontal: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: borderRadius.md,
+  },
+  topBarButtonText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  topBarSpacer: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
   },
   title: {
     ...typography.body,
