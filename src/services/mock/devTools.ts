@@ -153,21 +153,10 @@ export const seedMockData = async (
     console.log(`[seedMockData] MOCK_MESSAGES keys:`, Object.keys(MOCK_MESSAGES));
     console.log(`  Contacts to seed: ${contactsToSeed.length}`);
 
-    // Seed contacts (skip if already exists)
+    // Seed contacts (always upsert to pick up mock data changes)
     for (const contact of contactsToSeed) {
-      try {
-        const existing = await db.getContact(contact.jid);
-        if (!existing) {
-          await db.saveContact(contact);
-          console.log(`  + Contact: ${getContactDisplayName(contact)}`);
-        } else {
-          console.log(`  = Contact: ${getContactDisplayName(contact)} (exists)`);
-        }
-      } catch {
-        // Contact doesn't exist, save it
-        await db.saveContact(contact);
-        console.log(`  + Contact: ${getContactDisplayName(contact)}`);
-      }
+      await db.saveContact(contact);
+      console.log(`  ↻ Contact: ${getContactDisplayName(contact)} (upserted)`);
     }
 
     // Seed messages for each chat (skip if already exists)
