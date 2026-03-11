@@ -569,7 +569,9 @@
     "categories": {
       "title": "Agenda-Kategorien",
       "hint": "Kategorien für diesen Kontakt auswählen",
-      "none": "Keine Kategorien"
+      "none": "Keine Kategorien",
+      "required": "Wähle mindestens eine Kategorie",
+      "filterAll": "Alle"
     }
   },
   "settings": {
@@ -2287,7 +2289,8 @@
         "newCategoryShort": "Neu",
         "suggestedContacts": "Vorgeschlagene Kontakte",
         "otherContacts": "Andere Kontakte",
-        "done": "Fertig"
+        "done": "Fertig",
+        "pastDateWarning": "Dieses Datum liegt in der Vergangenheit"
       },
       "search": {
         "tabOverview": "Übersicht",

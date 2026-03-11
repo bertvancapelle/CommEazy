@@ -484,7 +484,9 @@
     "categories": {
       "title": "Kategorie kalendarza",
       "hint": "Wybierz kategorie dla tego kontaktu",
-      "none": "Brak kategorii"
+      "none": "Brak kategorii",
+      "required": "Wybierz co najmniej jedną kategorię",
+      "filterAll": "Wszystkie"
     }
   },
   "settings": {
@@ -2152,7 +2154,8 @@
         "newCategoryShort": "Nowa",
         "suggestedContacts": "Sugerowane kontakty",
         "otherContacts": "Inne kontakty",
-        "done": "Gotowe"
+        "done": "Gotowe",
+        "pastDateWarning": "Ta data jest w przeszłości"
       },
       "search": {
         "tabOverview": "Przegląd",

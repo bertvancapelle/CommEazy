@@ -1427,6 +1427,16 @@ export function AgendaItemFormScreen({
             </Text>
             <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
           </HapticTouchable>
+
+          {/* Past-date warning (soft — informational, not blocking) */}
+          {selectedDate < new Date(new Date().setHours(0, 0, 0, 0)) && selectedFormType !== 'medication' && (
+            <View style={[styles.pastDateBanner, { backgroundColor: '#FFF3E0', borderColor: '#FFB74D' }]}>
+              <Icon name="warning" size={18} color="#E65100" />
+              <Text style={[styles.pastDateText, { color: '#E65100' }]}>
+                {t('modules.agenda.form.pastDateWarning', 'Deze datum ligt in het verleden')}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* ====== Time (single) ====== */}
@@ -1816,7 +1826,6 @@ export function AgendaItemFormScreen({
         mode="date"
         onChange={handleDateChange}
         onClose={() => setShowDatePicker(false)}
-        minimumDate={new Date(new Date().setHours(0, 0, 0, 0))}
         locale={locale}
       />
 
@@ -2286,5 +2295,21 @@ const styles = StyleSheet.create({
   },
   toggleRowDisabled: {
     opacity: 0.4,
+  },
+
+  // Past-date warning banner
+  pastDateBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    marginTop: spacing.sm,
+  },
+  pastDateText: {
+    ...typography.label,
+    fontWeight: '600',
+    flex: 1,
   },
 });

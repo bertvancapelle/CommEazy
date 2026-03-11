@@ -567,7 +567,9 @@
     "categories": {
       "title": "Categorie agenda",
       "hint": "Scegli le categorie per questo contatto",
-      "none": "Nessuna categoria"
+      "none": "Nessuna categoria",
+      "required": "Scegli almeno una categoria",
+      "filterAll": "Tutti"
     }
   },
   "settings": {
@@ -2235,7 +2237,8 @@
         "newCategoryShort": "Nuovo",
         "suggestedContacts": "Contatti suggeriti",
         "otherContacts": "Altri contatti",
-        "done": "Fatto"
+        "done": "Fatto",
+        "pastDateWarning": "Questa data è nel passato"
       },
       "search": {
         "tabOverview": "Panoramica",

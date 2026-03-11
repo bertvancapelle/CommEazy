@@ -121,6 +121,8 @@ export interface Contact {
   isDeceased?: boolean;      // Overleden toggle
   // Emergency contact (ICE)
   isEmergencyContact?: boolean; // Noodcontact toggle
+  // Agenda categories (JSON array of AgendaCategoryId strings)
+  categories?: string;
 }
 
 /** Get full display name for a contact (e.g., "Oma Jansen") */

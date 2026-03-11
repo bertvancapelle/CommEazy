@@ -34,7 +34,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar, ContactGroupActionsBar } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar, ContactGroupActionsBar, HapticTouchable } from '@/components';
 import type { ChipId } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
@@ -45,6 +45,7 @@ import { type Contact, getContactDisplayName } from '@/services/interfaces';
 import { getSmartSections, getCallFrequency } from '@/services/contacts';
 import type { SmartSection, ContactGroup } from '@/services/contacts';
 import type { ContactStackParams } from '@/navigation';
+import { STANDARD_CATEGORIES, type AgendaCategoryDef } from '@/constants/agendaCategories';
 import { CreateGroupModal } from './CreateGroupModal';
 import { EditGroupModal } from './EditGroupModal';
 
@@ -125,6 +126,9 @@ export function ContactListScreen() {
   const [callFrequency, setCallFrequency] = useState<Record<string, number>>({});
   const { groups, create, rename, updateEmoji, addContacts, removeContacts, remove: deleteGroup } = useContactGroups();
 
+  // Category filter state
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+
   // Group CRUD modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -163,6 +167,27 @@ export function ContactListScreen() {
     'contact-list',
     voiceFocusItems
   );
+
+  /** Parse category IDs from a contact's categories JSON string */
+  const getContactCategoryIds = useCallback((contact: Contact): string[] => {
+    if (!contact.categories) return [];
+    try {
+      return JSON.parse(contact.categories);
+    } catch {
+      return [];
+    }
+  }, []);
+
+  /** Categories that are actually used by at least one contact */
+  const usedCategories: AgendaCategoryDef[] = useMemo(() => {
+    const usedIds = new Set<string>();
+    for (const contact of contacts) {
+      for (const catId of getContactCategoryIds(contact)) {
+        usedIds.add(catId);
+      }
+    }
+    return STANDARD_CATEGORIES.filter(cat => usedIds.has(cat.id));
+  }, [contacts, getContactCategoryIds]);
 
   // Load contacts (mock data in dev mode)
   useEffect(() => {
@@ -213,7 +238,7 @@ export function ContactListScreen() {
     getCallFrequency().then(setCallFrequency).catch(() => {});
   }, []);
 
-  // Filter contacts by chip selection + search query
+  // Filter contacts by chip selection + category + search query
   useEffect(() => {
     let base = contacts;
 
@@ -236,6 +261,11 @@ export function ContactListScreen() {
       }
     }
 
+    // Apply category filter
+    if (selectedCategoryId) {
+      base = base.filter(c => getContactCategoryIds(c).includes(selectedCategoryId));
+    }
+
     // Apply search filter on top
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
@@ -249,7 +279,7 @@ export function ContactListScreen() {
     }
 
     setFilteredContacts(base);
-  }, [searchQuery, contacts, selectedChipId, smartSections, groups]);
+  }, [searchQuery, contacts, selectedChipId, smartSections, groups, selectedCategoryId, getContactCategoryIds]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -421,6 +451,72 @@ export function ContactListScreen() {
         />
       </View>
 
+      {/* Category filter chips — horizontal scroll */}
+      {usedCategories.length > 0 && (
+        <View style={[styles.categoryFilterContainer, { borderBottomColor: themeColors.divider }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryFilterContent}
+          >
+            {/* "Alle" chip */}
+            <HapticTouchable
+              style={[
+                styles.categoryChip,
+                {
+                  backgroundColor: selectedCategoryId === null ? themeColors.primary : themeColors.surface,
+                  borderColor: selectedCategoryId === null ? themeColors.primary : themeColors.border,
+                },
+              ]}
+              onPress={() => setSelectedCategoryId(null)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: selectedCategoryId === null }}
+              accessibilityLabel={t('contacts.categories.filterAll', 'Alle')}
+            >
+              <Text
+                style={[
+                  styles.categoryChipText,
+                  { color: selectedCategoryId === null ? themeColors.textOnPrimary : themeColors.textPrimary },
+                ]}
+              >
+                {t('contacts.categories.filterAll', 'Alle')}
+              </Text>
+            </HapticTouchable>
+
+            {/* Category chips */}
+            {usedCategories.map(cat => {
+              const isActive = selectedCategoryId === cat.id;
+              return (
+                <HapticTouchable
+                  key={cat.id}
+                  style={[
+                    styles.categoryChip,
+                    {
+                      backgroundColor: isActive ? themeColors.primary : themeColors.surface,
+                      borderColor: isActive ? themeColors.primary : themeColors.border,
+                    },
+                  ]}
+                  onPress={() => setSelectedCategoryId(isActive ? null : cat.id)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isActive }}
+                  accessibilityLabel={t(cat.name)}
+                >
+                  <Text style={styles.categoryChipEmoji}>{cat.icon}</Text>
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      { color: isActive ? themeColors.textOnPrimary : themeColors.textPrimary },
+                    ]}
+                  >
+                    {t(cat.name)}
+                  </Text>
+                </HapticTouchable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Contact list with voice focus navigation */}
       <ScrollView
         ref={scrollRef}
@@ -500,6 +596,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
+  },
+  categoryFilterContainer: {
+    borderBottomWidth: 1,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    minHeight: touchTargets.minimum,
+    gap: spacing.xs,
+  },
+  categoryChipEmoji: {
+    fontSize: 18,
+  },
+  categoryChipText: {
+    ...typography.label,
+    fontWeight: '600',
   },
   contactItem: {
     flexDirection: 'row',

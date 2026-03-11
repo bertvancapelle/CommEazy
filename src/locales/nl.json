@@ -406,7 +406,9 @@
     "categories": {
       "title": "Agenda categorieën",
       "hint": "Kies categorieën voor dit contact",
-      "none": "Geen categorieën"
+      "none": "Geen categorieën",
+      "required": "Kies minimaal één categorie",
+      "filterAll": "Alle"
     }
   },
   "settings": {
@@ -2297,7 +2299,8 @@
         "longPressToDelete": "Houd ingedrukt om te verwijderen",
         "newCategoryShort": "Nieuw",
         "suggestedContacts": "Voorgestelde contacten",
-        "otherContacts": "Andere contacten"
+        "otherContacts": "Andere contacten",
+        "pastDateWarning": "Deze datum ligt in het verleden"
       },
       "search": {
         "tabOverview": "Overzicht",

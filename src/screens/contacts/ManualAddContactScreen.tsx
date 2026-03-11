@@ -158,7 +158,7 @@ export function ManualAddContactScreen() {
     return n.trim().length >= 1;
   }, []);
 
-  const canSave = isValidFirstName(firstName) && isValidPhone(phoneNumber);
+  const canSave = isValidFirstName(firstName) && isValidPhone(phoneNumber) && selectedCategories.length > 0;
 
   // ── Dirty state — determines Cancel behavior ──
   const isDirty = useMemo(() => {
@@ -480,12 +480,12 @@ export function ManualAddContactScreen() {
           />
         </View>
 
-        {/* Agenda categories section */}
+        {/* Agenda categories section (required — min 1) */}
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
-          {t('contacts.categories.title', 'Agenda categorieën')}
+          {t('contacts.categories.title', 'Agenda categorieën')} *
         </Text>
-        <Text style={[styles.categoriesHint, { color: themeColors.textSecondary }]}>
-          {t('contacts.categories.hint', 'Kies categorieën voor dit contact')}
+        <Text style={[styles.categoriesHint, { color: selectedCategories.length === 0 ? themeColors.error ?? '#D32F2F' : themeColors.textSecondary }]}>
+          {t('contacts.categories.required', 'Kies minimaal één categorie')}
         </Text>
         <View style={styles.categoryGrid}>
           {allCategories.map(cat => {

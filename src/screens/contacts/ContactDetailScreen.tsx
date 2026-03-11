@@ -667,16 +667,16 @@ export function ContactDetailScreen() {
         )}
       </View>
 
-      {/* Agenda categories section */}
+      {/* Agenda categories section (required — min 1) */}
       <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
-          {t('contacts.categories.title', 'Agenda categorieën')}
+          {t('contacts.categories.title', 'Agenda categorieën')} {isEditing ? '*' : ''}
         </Text>
 
         {isEditing ? (
           <>
-            <Text style={[styles.categoriesHint, { color: themeColors.textSecondary }]}>
-              {t('contacts.categories.hint', 'Kies categorieën voor dit contact')}
+            <Text style={[styles.categoriesHint, { color: editCategories.length === 0 ? themeColors.error ?? '#D32F2F' : themeColors.textSecondary }]}>
+              {t('contacts.categories.required', 'Kies minimaal één categorie')}
             </Text>
             <View style={styles.categoryGrid}>
               {allCategories.map(cat => {
@@ -744,11 +744,13 @@ export function ContactDetailScreen() {
       {isEditing && (
         <View style={styles.editBar}>
           <TouchableOpacity
-            style={[styles.editBarButton, { backgroundColor: themeColors.primary }]}
+            style={[styles.editBarButton, { backgroundColor: themeColors.primary, opacity: editCategories.length === 0 ? 0.4 : 1 }]}
             onPress={handleSave}
             activeOpacity={0.7}
+            disabled={editCategories.length === 0}
             accessibilityRole="button"
             accessibilityLabel={t('contacts.save')}
+            accessibilityState={{ disabled: editCategories.length === 0 }}
           >
             <Icon name="checkmark" size={22} color={themeColors.textOnPrimary} />
             <Text style={[styles.editBarButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.save')}</Text>

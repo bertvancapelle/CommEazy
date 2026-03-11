@@ -464,7 +464,9 @@
     "categories": {
       "title": "Kalenderkategorier",
       "hint": "Vælg kategorier for denne kontakt",
-      "none": "Ingen kategorier"
+      "none": "Ingen kategorier",
+      "required": "Vælg mindst én kategori",
+      "filterAll": "Alle"
     }
   },
   "settings": {
@@ -2131,7 +2133,8 @@
         "newCategoryShort": "Ny",
         "suggestedContacts": "Foreslåede kontakter",
         "otherContacts": "Andre kontakter",
-        "done": "Færdig"
+        "done": "Færdig",
+        "pastDateWarning": "Denne dato er i fortiden"
       },
       "search": {
         "tabOverview": "Overblik",

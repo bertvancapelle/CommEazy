@@ -44,6 +44,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
       city: 'Amsterdam',
       country: 'Nederland',
     },
+    categories: JSON.stringify(['family', 'doctor']),
   },
   'oma@commeazy.local': {
     userUuid: MOCK_UUIDS.oma,
@@ -55,6 +56,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
+    categories: JSON.stringify(['family']),
   },
   'test@commeazy.local': {
     userUuid: MOCK_UUIDS.test,
@@ -66,6 +68,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
+    categories: JSON.stringify(['other']),
   },
   'jeanine@commeazy.local': {
     userUuid: MOCK_UUIDS.jeanine,
@@ -83,6 +86,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
       city: 'Utrecht',
       country: 'Nederland',
     },
+    categories: JSON.stringify(['family', 'hairdresser']),
   },
   'ipad@commeazy.local': {
     userUuid: MOCK_UUIDS.ipad,
@@ -94,6 +98,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
+    categories: JSON.stringify(['other']),
   },
   'ipadphys@commeazy.local': {
     userUuid: MOCK_UUIDS.ipadphys,
@@ -105,6 +110,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     lastSeen: 0, // Unknown - presence comes from XMPP
+    categories: JSON.stringify(['family']),
   },
 };
 

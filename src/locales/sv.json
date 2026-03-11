@@ -464,7 +464,9 @@
     "categories": {
       "title": "Kalenderkategorier",
       "hint": "Välj kategorier för denna kontakt",
-      "none": "Inga kategorier"
+      "none": "Inga kategorier",
+      "required": "Välj minst en kategori",
+      "filterAll": "Alla"
     }
   },
   "settings": {
@@ -2131,7 +2133,8 @@
         "newCategoryShort": "Ny",
         "suggestedContacts": "Föreslagna kontakter",
         "otherContacts": "Andra kontakter",
-        "done": "Klar"
+        "done": "Klar",
+        "pastDateWarning": "Detta datum ligger i det förflutna"
       },
       "search": {
         "tabOverview": "Översikt",
