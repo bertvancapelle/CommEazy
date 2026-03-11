@@ -20,6 +20,7 @@
  * - v16: Added trust_level to contacts (0=Unknown, 1=Invited, 2=Connected, 3=Verified)
  * - v17: Added agenda_items table for appointments, reminders, medication
  * - v18: Added address fields to agenda_items (location_name, address_street, etc.)
+ * - v19: Added category snapshot fields to agenda_items (category_icon, category_name, form_type)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -321,6 +322,20 @@ export const migrations = schemaMigrations({
             { name: 'address_postal_code', type: 'string', isOptional: true },
             { name: 'address_city', type: 'string', isOptional: true },
             { name: 'address_country', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v18 to v19: Add category snapshot fields to agenda_items
+    {
+      toVersion: 19,
+      steps: [
+        addColumns({
+          table: 'agenda_items',
+          columns: [
+            { name: 'category_icon', type: 'string', isOptional: true },
+            { name: 'category_name', type: 'string', isOptional: true },
+            { name: 'form_type', type: 'string', isOptional: true },
           ],
         }),
       ],
