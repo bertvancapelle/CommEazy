@@ -314,6 +314,12 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
   // Load data from database
   const loadData = useCallback(async () => {
     try {
+      // Guard: skip if ServiceContainer not yet initialized (startup race condition)
+      if (!ServiceContainer.isInitialized) {
+        console.debug('[AgendaContext] ServiceContainer not ready, retrying in 500ms');
+        setTimeout(() => loadData(), 500);
+        return;
+      }
       const dbService = ServiceContainer.database as WatermelonDBService;
       const db = dbService.getDb();
 
