@@ -45,6 +45,7 @@ import { ModuleHeader,
 import type { ViewerImage, SlideshowPhoto } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
+  colors,
   typography,
   spacing,
   touchTargets,
