@@ -26,7 +26,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Modal,
   AccessibilityInfo,
@@ -37,7 +36,7 @@ import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, VoiceFocusable, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, LoadingView } from '@/components';
+import { Icon, VoiceFocusable, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, LoadingView , ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -274,7 +273,7 @@ export function BookPlayerScreen() {
         </View>
 
         {/* Chapter List */}
-        <ScrollView
+        <ScrollViewWithIndicator
           ref={scrollRef}
           style={styles.chapterList}
           contentContainerStyle={[
@@ -374,7 +373,7 @@ export function BookPlayerScreen() {
             </VoiceFocusable>
           );
         })}
-      </ScrollView>
+      </ScrollViewWithIndicator>
       </View>
 
       {/* ============================================================

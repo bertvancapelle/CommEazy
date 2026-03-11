@@ -21,11 +21,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Modal,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { ScrollViewWithIndicator } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -194,7 +194,7 @@ export function CitySearchInline({ visible, onSelect, onClose, language, country
       )}
 
       {/* Search results (max height to stay inline) */}
-      <ScrollView style={styles.inlineResultsList} nestedScrollEnabled>
+      <ScrollViewWithIndicator style={styles.inlineResultsList} nestedScrollEnabled>
         {searchResults.map((location) => (
           <TouchableOpacity
             key={location.id}
@@ -212,7 +212,7 @@ export function CitySearchInline({ visible, onSelect, onClose, language, country
             <Text style={[styles.selectIcon, { color: themeColors.textTertiary }]}>›</Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </View>
   );
 }

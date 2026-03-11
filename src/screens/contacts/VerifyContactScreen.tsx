@@ -19,7 +19,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  ScrollView,
   Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +31,7 @@ import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ErrorView } from '@/components';
+import { ErrorView , ScrollViewWithIndicator } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import type { ContactStackParams } from '@/navigation';
 
@@ -216,7 +215,7 @@ export function VerifyContactScreen() {
   }, [verified, scanning, jid, name, navigation, t]);
 
   const renderShowTab = () => (
-    <ScrollView
+    <ScrollViewWithIndicator
       style={styles.tabContent}
       contentContainerStyle={styles.tabContentContainer}
     >
@@ -245,7 +244,7 @@ export function VerifyContactScreen() {
       <Text style={[styles.helpText, { color: themeColors.textSecondary }]}>
         {t('contacts.verifyInstructions')}
       </Text>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 
   const renderScanTab = () => (

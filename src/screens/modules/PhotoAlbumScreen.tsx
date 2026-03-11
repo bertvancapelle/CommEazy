@@ -21,7 +21,6 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
-  ScrollView,
   Image,
   RefreshControl,
   useWindowDimensions,
@@ -38,13 +37,11 @@ import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchImageLibrary } from 'react-native-image-picker';
 
-import {
-  ModuleHeader,
+import { ModuleHeader,
   PhotoRecipientModal,
   HapticTouchable,
   FullscreenImageViewer,
-  SlideshowViewer,
-} from '@/components';
+  SlideshowViewer, ScrollViewWithIndicator } from '@/components';
 import type { ViewerImage, SlideshowPhoto } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
@@ -1157,7 +1154,7 @@ export function PhotoAlbumScreen() {
       )}
 
       {/* Content area */}
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.gridContainer}
         contentContainerStyle={[
           styles.gridContent,
@@ -1204,7 +1201,7 @@ export function PhotoAlbumScreen() {
             </View>
           ))
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Bottom Action Bar */}
       {isShowingPhotos && (
@@ -1460,7 +1457,7 @@ export function PhotoAlbumScreen() {
           </View>
 
           {/* Album list */}
-          <ScrollView style={styles.modalContent}>
+          <ScrollViewWithIndicator style={styles.modalContent}>
             {/* New album option */}
             <HapticTouchable
               style={[styles.addToAlbumRow, { borderColor: themeColors.border }]}
@@ -1517,7 +1514,7 @@ export function PhotoAlbumScreen() {
                 </HapticTouchable>
               );
             })}
-          </ScrollView>
+          </ScrollViewWithIndicator>
         </View>
       </Modal>
 

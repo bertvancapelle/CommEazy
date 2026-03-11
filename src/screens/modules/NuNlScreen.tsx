@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView , ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -451,7 +451,7 @@ export function NuNlScreen() {
 
       {/* Article List */}
       {articles.length > 0 && (
-        <ScrollView
+        <ScrollViewWithIndicator
           ref={scrollRef}
           style={styles.articleList}
           contentContainerStyle={[
@@ -476,7 +476,7 @@ export function NuNlScreen() {
               themeColors={themeColors}
             />
           ))}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       )}
 
       {/* Welcome Modal */}

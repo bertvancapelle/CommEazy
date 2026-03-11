@@ -31,7 +31,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon, SearchBar, LoadingView, ErrorView } from '@/components';
+import { Icon, SearchBar, LoadingView, ErrorView , ScrollViewWithIndicator } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import type { CachedMailHeader, MailAccount, MailboxInfo } from '@/types/mail';
@@ -680,7 +680,7 @@ export function MailInboxScreen({
             </Text>
           </View>
         ) : (
-          <ScrollView
+          <ScrollViewWithIndicator
             ref={scrollRef}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
@@ -700,7 +700,7 @@ export function MailInboxScreen({
                 />
               </VoiceFocusable>
             ))}
-          </ScrollView>
+          </ScrollViewWithIndicator>
         )
       ) : headers.length === 0 ? (
         <View style={styles.emptyContainer}>

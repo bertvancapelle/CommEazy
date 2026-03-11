@@ -38,7 +38,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, ProgressIndicator } from '@/components';
+import { Button, ProgressIndicator, ScrollViewWithIndicator } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
 import type { AgeBracket } from '@/services/interfaces';
@@ -113,7 +113,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
             <Text style={[pickerStyles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView style={pickerStyles.optionsList}>
+        <ScrollViewWithIndicator style={pickerStyles.optionsList}>
           {options.map((option) => (
             <TouchableOpacity
               key={option.value}
@@ -144,7 +144,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
               )}
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     </Modal>
   );
@@ -552,7 +552,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ProgressIndicator currentStep={5} totalSteps={6} />
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <ScrollViewWithIndicator style={styles.content} contentContainerStyle={styles.contentContainer}>
         <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('demographics.title')}</Text>
         <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('demographics.subtitle')}</Text>
         <Text style={[styles.required, { color: themeColors.warning }]}>{t('demographics.required')}</Text>
@@ -636,7 +636,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
           <Text style={styles.privacyIcon}>🔒</Text>
           <Text style={[styles.privacyText, { color: themeColors.textSecondary }]}>{t('onboarding.privacyIntro')}</Text>
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       <View style={styles.footer}>
         <Button

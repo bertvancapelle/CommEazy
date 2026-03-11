@@ -23,7 +23,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TextInput,
   StyleSheet,
   ActivityIndicator,
@@ -32,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, Icon } from '@/components';
+import { PanelAwareModal, HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { MusicCollection } from '@/services/music';
 
@@ -219,7 +218,7 @@ export function SongCollectionModal({
             <View style={styles.closeButton} />
           </View>
 
-          <ScrollView
+          <ScrollViewWithIndicator
             style={styles.content}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -354,7 +353,7 @@ export function SongCollectionModal({
 
             {/* Bottom spacing */}
             <View style={{ height: spacing.md }} />
-          </ScrollView>
+          </ScrollViewWithIndicator>
 
           {/* Save/Close button */}
           <View style={[styles.footer, { borderTopColor: themeColors.divider }]}>

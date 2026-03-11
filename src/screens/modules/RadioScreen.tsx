@@ -24,7 +24,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Modal,
   Platform,
@@ -38,7 +37,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode , ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -1132,7 +1131,7 @@ export function RadioScreen() {
           )}
         </View>
       ) : (
-        <ScrollView
+        <ScrollViewWithIndicator
           ref={scrollRef}
           style={styles.stationList}
           contentContainerStyle={[
@@ -1225,7 +1224,7 @@ export function RadioScreen() {
               </VoiceFocusable>
             );
           })}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       )}
       </View>
 

@@ -20,7 +20,6 @@ import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
@@ -31,7 +30,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar , ScrollViewWithIndicator } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
@@ -328,7 +327,7 @@ export function CallsScreen() {
       </View>
 
       {/* Contact list */}
-      <ScrollView
+      <ScrollViewWithIndicator
         ref={scrollRef}
         contentContainerStyle={
           filteredContacts.length === 0 ? styles.emptyListContent : undefined
@@ -348,7 +347,7 @@ export function CallsScreen() {
         ) : (
           filteredContacts.map((contact, index) => renderContactItem(contact, index))
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </View>
   );
 }

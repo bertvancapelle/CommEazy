@@ -19,7 +19,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   AccessibilityInfo,
   KeyboardAvoidingView,
   Platform,
@@ -30,7 +29,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, TextInput, LoadingView } from '@/components';
+import { Button, TextInput, LoadingView, ScrollViewWithIndicator } from '@/components';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { groupChatService } from '@/services/groupChat';
@@ -182,7 +181,7 @@ export function CreateGroupScreen() {
           <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>{t('contacts.noContacts')}</Text>
         </View>
       ) : (
-        <ScrollView style={styles.contactList} showsVerticalScrollIndicator={false}>
+        <ScrollViewWithIndicator style={styles.contactList} showsVerticalScrollIndicator={false}>
           {contacts.map(contact => {
             const isSelected = selectedMembers.some(c => c.jid === contact.jid);
             return (
@@ -211,7 +210,7 @@ export function CreateGroupScreen() {
               </TouchableOpacity>
             );
           })}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       )}
 
       <View style={styles.buttonRow}>

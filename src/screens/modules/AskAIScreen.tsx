@@ -28,7 +28,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ModuleHeader, Icon } from '@/components';
+import { ModuleHeader, Icon, ScrollViewWithIndicator } from '@/components';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { AskAIProvider, useAskAI } from '@/contexts/AskAIContext';
 
@@ -159,7 +159,7 @@ function AskAIScreenInner() {
         )}
 
         {/* Chat messages */}
-        <ScrollView
+        <ScrollViewWithIndicator
           ref={scrollViewRef}
           style={styles.chatArea}
           contentContainerStyle={styles.chatContent}
@@ -187,7 +187,7 @@ function AskAIScreenInner() {
 
           {/* Typing indicator */}
           {isLoading && <AskAITypingIndicator />}
-        </ScrollView>
+        </ScrollViewWithIndicator>
 
         {/* Input bar */}
         <AskAIInputBar

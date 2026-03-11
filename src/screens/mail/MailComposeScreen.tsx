@@ -25,7 +25,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   Alert,
@@ -41,7 +40,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon } from '@/components';
+import { Icon , ScrollViewWithIndicator } from '@/components';
 import type { MailAccount, CachedMailHeader, MailBody, MailAttachment, MailRecipient } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { AttachmentPreviewBar } from '@/components/mail/AttachmentPreviewBar';
@@ -1091,7 +1090,7 @@ export function MailComposeScreen({
         <View style={styles.topBarSpacer} />
       </View>
 
-      <ScrollView
+      <ScrollViewWithIndicator
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
@@ -1223,7 +1222,7 @@ export function MailComposeScreen({
             </View>
           </View>
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Bottom action bar — attach + send */}
       <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>

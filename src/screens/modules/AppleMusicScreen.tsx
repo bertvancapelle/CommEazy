@@ -38,8 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import {
-  Icon,
+import { Icon,
   IconButton,
   VoiceFocusable,
   PlayingWaveIcon,
@@ -52,8 +51,7 @@ import {
   AppleMusicDetailModal,
   QueueView,
   HapticTouchable,
-  type SearchBarRef,
-} from '@/components';
+  type SearchBarRef, ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -1371,7 +1369,7 @@ export function AppleMusicScreen() {
 
   // Render discovery sections (shown before user searches)
   const renderDiscoverySections = () => (
-    <ScrollView
+    <ScrollViewWithIndicator
       style={styles.resultsList}
       contentContainerStyle={[
         styles.resultsContent,
@@ -1504,7 +1502,7 @@ export function AppleMusicScreen() {
           </Text>
         </View>
       )}
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 
   const renderSearchTab = () => (
@@ -1538,7 +1536,7 @@ export function AppleMusicScreen() {
 
       {/* Results */}
       {hasAnyResults && (
-        <ScrollView
+        <ScrollViewWithIndicator
           ref={scrollRef}
           style={styles.resultsList}
           contentContainerStyle={[
@@ -1547,7 +1545,7 @@ export function AppleMusicScreen() {
           ]}
         >
           {searchFilter === 'all' ? renderAllResults() : renderFilteredResults()}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       )}
 
       {/* No results state */}

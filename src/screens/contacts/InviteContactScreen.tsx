@@ -26,7 +26,6 @@ import {
   StyleSheet,
   Share,
   ActivityIndicator,
-  ScrollView,
   Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -37,7 +36,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import { HapticTouchable, Icon } from '@/components';
+import { HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
 import type { ContactStackParams } from '@/navigation';
 import {
   generateInvitationCode,
@@ -158,7 +157,7 @@ export function InviteContactScreen() {
   }, []);
 
   return (
-    <ScrollView
+    <ScrollViewWithIndicator
       style={[styles.container, { backgroundColor: themeColors.background }]}
       contentContainerStyle={styles.contentContainer}
     >
@@ -280,7 +279,7 @@ export function InviteContactScreen() {
           </HapticTouchable>
         </View>
       )}
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

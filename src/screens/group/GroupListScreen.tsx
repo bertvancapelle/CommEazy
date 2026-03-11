@@ -18,7 +18,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   AccessibilityInfo,
-  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
@@ -26,7 +25,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
+import { Button, LoadingView, VoiceFocusable, Icon, ModuleHeader , ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
@@ -313,7 +312,7 @@ export function GroupListScreen() {
         showAdMob={true}
       />
 
-      <ScrollView
+      <ScrollViewWithIndicator
         ref={scrollRef}
         contentContainerStyle={groups.length === 0 ? styles.emptyListContent : undefined}
         refreshControl={
@@ -331,7 +330,7 @@ export function GroupListScreen() {
         ) : (
           groups.map((item, index) => renderGroupItem(item, index))
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Floating action button for new group */}
       {groups.length > 0 && (

@@ -15,7 +15,6 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
@@ -26,7 +25,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Button, TextInput, Icon, ProgressIndicator } from '@/components';
+import { Button, TextInput, Icon, ProgressIndicator , ScrollViewWithIndicator } from '@/components';
 import type { MailProvider, SecurityMethod, ServerConfig } from '@/services/mail/mailConstants';
 
 // ============================================================
@@ -371,7 +370,7 @@ export function MailOnboardingStep2({
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView
+        <ScrollViewWithIndicator
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -415,7 +414,7 @@ export function MailOnboardingStep2({
               {provider.id === 'custom' && renderServerConfig()}
             </>
           )}
-        </ScrollView>
+        </ScrollViewWithIndicator>
 
         {/* Submit button for password forms (OAuth2 has its own button) */}
         {!isOAuth2 && (

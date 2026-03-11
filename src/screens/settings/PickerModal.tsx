@@ -16,9 +16,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Modal,
 } from 'react-native';
+import { ScrollViewWithIndicator } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -64,7 +64,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
             <Text style={[styles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView style={styles.optionsList}>
+        <ScrollViewWithIndicator style={styles.optionsList}>
           {options.map((option) => (
             <TouchableOpacity
               key={option.value}
@@ -95,7 +95,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
               )}
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     </Modal>
   );

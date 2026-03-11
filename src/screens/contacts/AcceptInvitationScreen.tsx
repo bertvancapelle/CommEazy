@@ -26,7 +26,6 @@ import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -38,7 +37,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import { HapticTouchable, Icon } from '@/components';
+import { HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
 import type { ContactStackParams } from '@/navigation';
 import {
   isValidInvitationCode,
@@ -182,7 +181,7 @@ export function AcceptInvitationScreen() {
       style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
@@ -382,7 +381,7 @@ export function AcceptInvitationScreen() {
             </HapticTouchable>
           </View>
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </KeyboardAvoidingView>
   );
 }

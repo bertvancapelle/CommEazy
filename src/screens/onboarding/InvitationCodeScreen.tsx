@@ -31,7 +31,6 @@ import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -42,7 +41,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import { HapticTouchable, Icon, ProgressIndicator } from '@/components';
+import { HapticTouchable, Icon, ProgressIndicator , ScrollViewWithIndicator } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
 import {
   isValidInvitationCode,
@@ -186,7 +185,7 @@ export function InvitationCodeScreen({ navigation }: Props) {
       style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
@@ -385,7 +384,7 @@ export function InvitationCodeScreen({ navigation }: Props) {
             </HapticTouchable>
           </View>
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </KeyboardAvoidingView>
   );
 }

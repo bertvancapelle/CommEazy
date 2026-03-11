@@ -40,7 +40,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -761,7 +761,7 @@ export function PodcastScreen() {
             )}
           </View>
         ) : (
-          <ScrollView
+          <ScrollViewWithIndicator
             ref={scrollRef}
             style={styles.showList}
             contentContainerStyle={[
@@ -854,7 +854,7 @@ export function PodcastScreen() {
                 </VoiceFocusable>
               );
             })}
-          </ScrollView>
+          </ScrollViewWithIndicator>
         )}
       </View>
 

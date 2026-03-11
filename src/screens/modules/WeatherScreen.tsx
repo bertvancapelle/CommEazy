@@ -22,7 +22,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
@@ -35,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView } from '@/components';
+import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView, ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -517,7 +516,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDet
           <View style={styles.dayDetailCloseButton} />
         </View>
 
-        <ScrollView
+        <ScrollViewWithIndicator
           style={styles.dayDetailContent}
           contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
         >
@@ -570,7 +569,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDet
               <Text style={styles.dayDetailGridValue}>{formatTime(day.sunset)}</Text>
             </View>
           </View>
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     </Modal>
   );
@@ -697,7 +696,7 @@ function LocationPickerModal({
         </View>
 
         {/* Scrollable Content */}
-        <ScrollView
+        <ScrollViewWithIndicator
           style={styles.locationPickerContent}
           contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
         >
@@ -805,7 +804,7 @@ function LocationPickerModal({
               );
             })
           )}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     </Modal>
   );
@@ -1176,7 +1175,7 @@ export function WeatherScreen() {
 
           {/* Search Results (when in search mode) */}
           {showSearchMode && (
-            <ScrollView style={styles.searchResults}>
+            <ScrollViewWithIndicator style={styles.searchResults}>
               {searchResults.map((result) => {
                 const isFavorite = savedLocations.some((loc) => loc.id === result.id);
                 return (
@@ -1204,7 +1203,7 @@ export function WeatherScreen() {
               {searchQuery.length < 2 && searchResults.length === 0 && (
                 <Text style={styles.searchHintText}>{t('modules.weather.searchHint')}</Text>
               )}
-            </ScrollView>
+            </ScrollViewWithIndicator>
           )}
 
           {/* Error Banner */}
@@ -1238,7 +1237,7 @@ export function WeatherScreen() {
 
           {/* Weather Content (when not in search mode and weather data available) */}
           {!showSearchMode && weather && (
-            <ScrollView
+            <ScrollViewWithIndicator
               ref={scrollRef}
               style={styles.content}
               contentContainerStyle={[
@@ -1360,7 +1359,7 @@ export function WeatherScreen() {
                   </View>
                 </View>
               </VoiceFocusable>
-            </ScrollView>
+            </ScrollViewWithIndicator>
           )}
         </>
       )}

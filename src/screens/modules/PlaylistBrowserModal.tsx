@@ -22,14 +22,13 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, Icon, LoadingView } from '@/components';
+import { PanelAwareModal, HapticTouchable, Icon, LoadingView , ScrollViewWithIndicator } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { AppleMusicPlaylist } from '@/contexts/AppleMusicContext';
 import type { MusicCollection } from '@/services/music';
@@ -299,7 +298,7 @@ export function PlaylistBrowserModal({
                 )}
               </View>
 
-              <ScrollView
+              <ScrollViewWithIndicator
                 style={styles.playlistList}
                 contentContainerStyle={styles.playlistListContent}
               >
@@ -403,7 +402,7 @@ export function PlaylistBrowserModal({
                     </HapticTouchable>
                   );
                 })}
-              </ScrollView>
+              </ScrollViewWithIndicator>
 
               {/* Import button — fixed at bottom */}
               {selectedIds.size > 0 && (

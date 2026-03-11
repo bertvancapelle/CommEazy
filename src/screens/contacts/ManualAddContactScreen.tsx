@@ -22,7 +22,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -37,7 +36,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { SeniorDatePicker } from '@/components/SeniorDatePicker';
-import { ModuleHeader, HapticTouchable } from '@/components';
+import { ModuleHeader, HapticTouchable , ScrollViewWithIndicator } from '@/components';
 import {
   STANDARD_CATEGORIES,
   CUSTOM_CATEGORIES_STORAGE_KEY,
@@ -273,7 +272,7 @@ export function ManualAddContactScreen() {
         saveDisabled={!canSave || saving}
       />
 
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
@@ -524,7 +523,7 @@ export function ManualAddContactScreen() {
         <Text style={[styles.hintNote, { color: themeColors.textTertiary }]}>
           {t('contacts.add.manualHint', 'Dit contact wordt opgeslagen zonder versleuteling. Nodig iemand uit voor beveiligde berichten.')}
         </Text>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </KeyboardAvoidingView>
   );
 }

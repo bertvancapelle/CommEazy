@@ -14,14 +14,13 @@ import {
   TextInput as RNTextInput,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { typography, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, TextInput, ProgressIndicator, PinInput } from '@/components';
+import { Button, TextInput, ProgressIndicator, PinInput , ScrollViewWithIndicator } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
 
@@ -128,7 +127,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={100}
       >
-        <ScrollView
+        <ScrollViewWithIndicator
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -195,7 +194,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
               </View>
             </View>
           )}
-        </ScrollView>
+        </ScrollViewWithIndicator>
 
         <View style={styles.footer}>
           <Button

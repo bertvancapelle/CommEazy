@@ -22,7 +22,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   Alert,
@@ -31,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon } from '@/components';
+import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon , ScrollViewWithIndicator } from '@/components';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
@@ -238,7 +237,7 @@ export function EditGroupModal({
             </HapticTouchable>
           </View>
 
-          <ScrollView
+          <ScrollViewWithIndicator
             style={styles.content}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -357,7 +356,7 @@ export function EditGroupModal({
 
             {/* Bottom spacing */}
             <View style={{ height: spacing.xl }} />
-          </ScrollView>
+          </ScrollViewWithIndicator>
         </View>
       </View>
     </PanelAwareModal>

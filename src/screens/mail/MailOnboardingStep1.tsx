@@ -14,7 +14,6 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +21,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon } from '@/components';
+import { Icon , ScrollViewWithIndicator } from '@/components';
 import { ProgressIndicator } from '@/components';
 import { getSelectableProviders, type MailProvider } from '@/services/mail/mailConstants';
 
@@ -104,7 +103,7 @@ export function MailOnboardingStep1({
         )}
       </View>
 
-      <ScrollView
+      <ScrollViewWithIndicator
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -161,7 +160,7 @@ export function MailOnboardingStep1({
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </SafeAreaView>
   );
 }

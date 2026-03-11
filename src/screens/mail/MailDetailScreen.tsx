@@ -37,7 +37,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon, FullscreenImageViewer, LoadingView, ErrorView, CalendarInvitationCard } from '@/components';
+import { Icon, FullscreenImageViewer, LoadingView, ErrorView, CalendarInvitationCard , ScrollViewWithIndicator } from '@/components';
 import type { ViewerImage } from '@/components';
 import type {
   CachedMailHeader,
@@ -800,7 +800,7 @@ export function MailDetailScreen({
       </View>
 
       {/* Body content */}
-      <ScrollView
+      <ScrollViewWithIndicator
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -1034,7 +1034,7 @@ export function MailDetailScreen({
               ))}
           </View>
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Fullscreen Image Viewer */}
       <FullscreenImageViewer

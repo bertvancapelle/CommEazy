@@ -41,7 +41,7 @@ import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { ContactAvatar, LoadingView , ScrollViewWithIndicator} from '@/components';
+import { ContactAvatar, LoadingView, ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import {
   pickImageFromCamera,

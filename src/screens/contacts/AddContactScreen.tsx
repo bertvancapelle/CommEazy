@@ -20,7 +20,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -28,7 +27,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { HapticTouchable, Icon } from '@/components';
+import { HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'AddContact'>;
@@ -79,7 +78,7 @@ export function AddContactScreen() {
   ];
 
   return (
-    <ScrollView
+    <ScrollViewWithIndicator
       style={[styles.container, { backgroundColor: themeColors.background }]}
       contentContainerStyle={styles.contentContainer}
     >
@@ -141,7 +140,7 @@ export function AddContactScreen() {
           </Text>
         </HapticTouchable>
       </View>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

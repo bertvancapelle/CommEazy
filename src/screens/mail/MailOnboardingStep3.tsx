@@ -14,7 +14,6 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +21,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Button, Icon, ProgressIndicator } from '@/components';
+import { Button, Icon, ProgressIndicator , ScrollViewWithIndicator } from '@/components';
 import type { MailProvider } from '@/services/mail/mailConstants';
 
 // ============================================================
@@ -253,7 +252,7 @@ export function MailOnboardingStep3({
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
-      <ScrollView
+      <ScrollViewWithIndicator
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -278,7 +277,7 @@ export function MailOnboardingStep3({
         {/* Result */}
         {testResult === 'success' && renderSuccess()}
         {testResult === 'error' && renderError()}
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </SafeAreaView>
   );
 }

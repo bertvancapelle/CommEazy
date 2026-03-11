@@ -14,11 +14,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
   SafeAreaView,
   Alert,
 } from 'react-native';
+import { ScrollViewWithIndicator } from '@/components';
 import { piperTtsService } from '@/services/piperTtsService';
 
 const SAMPLE_TEXTS = [
@@ -116,7 +116,7 @@ export function PiperTtsTestScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollViewWithIndicator contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>🔊 Piper TTS Test</Text>
         <Text style={styles.subtitle}>100% Offline Spraaksynthese</Text>
 
@@ -231,7 +231,7 @@ export function PiperTtsTestScreen() {
             Er wordt geen data verzonden naar externe servers.
           </Text>
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </SafeAreaView>
   );
 }

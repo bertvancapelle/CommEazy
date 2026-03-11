@@ -14,9 +14,9 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  ScrollView,
   Platform,
 } from 'react-native';
+import { ScrollViewWithIndicator } from '@/components';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -85,7 +85,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <ScrollView
+      <ScrollViewWithIndicator
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
@@ -142,7 +142,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
             {AUTO_DETECTED_TEXTS[currentLanguage]}: {SUPPORTED_LANGUAGES[currentLanguage]}
           </Text>
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </SafeAreaView>
   );
 }
