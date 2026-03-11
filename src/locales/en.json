@@ -486,6 +486,7 @@
     "noContactsHint": "Add your first contact",
     "searchPlaceholder": "Search contacts...",
     "searchButton": "Search",
+    "noResults": "No contacts found",
     "nameLabel": "Name",
     "namePlaceholder": "Enter name",
     "firstNameLabel": "First name",
@@ -2302,7 +2303,7 @@
         "deleteCategoryMessage": "Do you want to delete '{{name}}'? Existing items will not be affected.",
         "longPressToDelete": "Long press to delete",
         "newCategoryShort": "New",
-        "suggestedContacts": "Suggested contacts",
+        "suggestedContacts": "Suggested contacts: {{category}}",
         "otherContacts": "Other contacts",
         "done": "Done",
         "pastDateWarning": "This date is in the past"

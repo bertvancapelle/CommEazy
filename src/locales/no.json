@@ -399,6 +399,7 @@
     "noContactsHint": "Legg til din første kontakt",
     "searchPlaceholder": "Søk kontakter...",
     "searchButton": "Søk",
+    "noResults": "Ingen kontakter funnet",
     "nameLabel": "Navn",
     "namePlaceholder": "Skriv inn navn",
     "firstNameLabel": "Fornavn",
@@ -2161,7 +2162,7 @@
         "deleteCategoryMessage": "Vil du slette '{{name}}'? Eksisterende oppføringer vil ikke bli endret.",
         "longPressToDelete": "Hold nede for å slette",
         "newCategoryShort": "Ny",
-        "suggestedContacts": "Foreslåtte kontakter",
+        "suggestedContacts": "Foreslåtte kontakter: {{category}}",
         "otherContacts": "Andre kontakter",
         "done": "Ferdig",
         "pastDateWarning": "Denne datoen er i fortiden"

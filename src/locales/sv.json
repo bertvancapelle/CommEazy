@@ -369,6 +369,7 @@
     "noContactsHint": "Lägg till din första kontakt",
     "searchPlaceholder": "Sök kontakter...",
     "searchButton": "Sök",
+    "noResults": "Inga kontakter hittades",
     "nameLabel": "Namn",
     "namePlaceholder": "Ange namn",
     "firstNameLabel": "Förnamn",
@@ -2131,7 +2132,7 @@
         "deleteCategoryMessage": "Vill du ta bort '{{name}}'? Befintliga poster kommer inte att ändras.",
         "longPressToDelete": "Håll nedtryckt för att ta bort",
         "newCategoryShort": "Ny",
-        "suggestedContacts": "Föreslagna kontakter",
+        "suggestedContacts": "Föreslagna kontakter: {{category}}",
         "otherContacts": "Andra kontakter",
         "done": "Klar",
         "pastDateWarning": "Detta datum ligger i det förflutna"

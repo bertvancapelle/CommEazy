@@ -311,6 +311,7 @@
     "noContactsHint": "Voeg je eerste contact toe",
     "searchPlaceholder": "Zoek contacten...",
     "searchButton": "Zoeken",
+    "noResults": "Geen contacten gevonden",
     "nameLabel": "Naam",
     "namePlaceholder": "Voer naam in",
     "firstNameLabel": "Voornaam",
@@ -2298,7 +2299,7 @@
         "deleteCategoryMessage": "Wil je '{{name}}' verwijderen? Bestaande items worden niet aangepast.",
         "longPressToDelete": "Houd ingedrukt om te verwijderen",
         "newCategoryShort": "Nieuw",
-        "suggestedContacts": "Voorgestelde contacten",
+        "suggestedContacts": "Voorgestelde contacten: {{category}}",
         "otherContacts": "Andere contacten",
         "pastDateWarning": "Deze datum ligt in het verleden"
       },

@@ -472,6 +472,7 @@
     "noContactsHint": "Aggiungi il tuo primo contatto",
     "searchPlaceholder": "Cerca contatti...",
     "searchButton": "Cerca",
+    "noResults": "Nessun contatto trovato",
     "nameLabel": "Nome",
     "namePlaceholder": "Inserisci il nome",
     "firstNameLabel": "Nome",
@@ -2235,7 +2236,7 @@
         "deleteCategoryMessage": "Vuoi eliminare '{{name}}'? Gli elementi esistenti non verranno modificati.",
         "longPressToDelete": "Tieni premuto per eliminare",
         "newCategoryShort": "Nuovo",
-        "suggestedContacts": "Contatti suggeriti",
+        "suggestedContacts": "Contatti suggeriti: {{category}}",
         "otherContacts": "Altri contatti",
         "done": "Fatto",
         "pastDateWarning": "Questa data è nel passato"

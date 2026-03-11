@@ -48,7 +48,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, SearchBar } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -924,6 +924,7 @@ export function AgendaItemFormScreen({
     initialData?.contactIds ?? [],
   );
   const [showContactPicker, setShowContactPicker] = useState(false);
+  const [contactSearchQuery, setContactSearchQuery] = useState('');
 
   // Address state (v18)
   const [locationName, setLocationName] = useState(initialData?.locationName ?? '');
@@ -1029,6 +1030,22 @@ export function AgendaItemFormScreen({
     }
     return { suggestedContacts: suggested, otherContacts: other };
   }, [allContacts, selectedCategoryId]);
+
+  // Filter contacts by search query (for contact picker modal)
+  const { filteredSuggested, filteredOther } = useMemo(() => {
+    const query = contactSearchQuery.toLowerCase().trim();
+    if (query === '') {
+      return { filteredSuggested: suggestedContacts, filteredOther: otherContacts };
+    }
+    return {
+      filteredSuggested: suggestedContacts.filter(c =>
+        c.displayName.toLowerCase().includes(query),
+      ),
+      filteredOther: otherContacts.filter(c =>
+        c.displayName.toLowerCase().includes(query),
+      ),
+    };
+  }, [suggestedContacts, otherContacts, contactSearchQuery]);
 
   // Picker visibility state
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
@@ -1888,7 +1905,7 @@ export function AgendaItemFormScreen({
         visible={showContactPicker}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setShowContactPicker(false)}
+        onRequestClose={() => { setShowContactPicker(false); setContactSearchQuery(''); }}
       >
         <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
           {/* Header */}
@@ -1898,7 +1915,7 @@ export function AgendaItemFormScreen({
             </Text>
             <HapticTouchable
               style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
-              onPress={() => setShowContactPicker(false)}
+              onPress={() => { setShowContactPicker(false); setContactSearchQuery(''); }}
               accessibilityRole="button"
               accessibilityLabel={t('common.confirm')}
             >
@@ -1906,6 +1923,17 @@ export function AgendaItemFormScreen({
                 {t('common.confirm')}
               </Text>
             </HapticTouchable>
+          </View>
+
+          {/* Search bar for filtering contacts */}
+          <View style={styles.contactSearchContainer}>
+            <SearchBar
+              value={contactSearchQuery}
+              onChangeText={setContactSearchQuery}
+              onSubmit={() => {}}
+              placeholder={t('contacts.searchPlaceholder')}
+              searchButtonLabel={t('contacts.searchButton')}
+            />
           </View>
 
           {/* Contact list — suggested first, then others */}
@@ -1916,17 +1944,23 @@ export function AgendaItemFormScreen({
                   {t('modules.agenda.form.noContacts')}
                 </Text>
               </View>
+            ) : filteredSuggested.length === 0 && filteredOther.length === 0 ? (
+              <View style={styles.emptyContactList}>
+                <Text style={[styles.emptyContactText, { color: themeColors.textTertiary }]}>
+                  {t('contacts.noResults')}
+                </Text>
+              </View>
             ) : (
               <>
                 {/* Suggested contacts (matching category) */}
-                {suggestedContacts.length > 0 && (
+                {filteredSuggested.length > 0 && (
                   <>
                     <View style={styles.contactSectionHeader}>
                       <Text style={[styles.contactSectionTitle, { color: themeColors.textSecondary }]}>
-                        {t('modules.agenda.form.suggestedContacts')}
+                        {t('modules.agenda.form.suggestedContacts', { category: selectedCategoryName })}
                       </Text>
                     </View>
-                    {suggestedContacts.map(contact => {
+                    {filteredSuggested.map(contact => {
                       const isSelected = selectedContactIds.includes(contact.id);
                       return (
                         <HapticTouchable
@@ -1981,16 +2015,16 @@ export function AgendaItemFormScreen({
                 )}
 
                 {/* Other contacts */}
-                {otherContacts.length > 0 && (
+                {filteredOther.length > 0 && (
                   <>
-                    {suggestedContacts.length > 0 && (
+                    {filteredSuggested.length > 0 && (
                       <View style={styles.contactSectionHeader}>
                         <Text style={[styles.contactSectionTitle, { color: themeColors.textSecondary }]}>
                           {t('modules.agenda.form.otherContacts')}
                         </Text>
                       </View>
                     )}
-                    {otherContacts.map(contact => {
+                    {filteredOther.map(contact => {
                       const isSelected = selectedContactIds.includes(contact.id);
                       return (
                         <HapticTouchable
@@ -2252,6 +2286,10 @@ const styles = StyleSheet.create({
   contactSectionTitle: {
     ...typography.label,
     fontWeight: '700',
+  },
+  contactSearchContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   emptyContactList: {
     padding: spacing.xl,
