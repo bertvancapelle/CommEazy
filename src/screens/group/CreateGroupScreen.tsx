@@ -33,7 +33,6 @@ import { useColors } from '@/contexts/ThemeContext';
 import { Button, TextInput, LoadingView } from '@/components';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
-import { chatService } from '@/services/chat';
 import { groupChatService } from '@/services/groupChat';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
@@ -64,22 +63,8 @@ export function CreateGroupScreen() {
 
     const loadContacts = async () => {
       try {
-        if (ServiceContainer.isInitialized) {
-          const contactList = await ServiceContainer.database.getContactsOnce();
-          if (!cancelled) setContacts(contactList);
-        } else if (__DEV__) {
-          // Mock contacts for dev mode — detect current user dynamically
-          const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
-          const { getMockContactsForDevice } = await import('@/services/mock');
-          let publicKeyMap: Record<string, string> | undefined;
-          try {
-            const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-            publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid);
-          } catch (keyError) {
-            console.warn('[CreateGroupScreen] Could not load test keys, loading contacts without keys');
-          }
-          if (!cancelled) setContacts(getMockContactsForDevice(currentUserJid, publicKeyMap));
-        }
+        const contactList = await ServiceContainer.database.getContactsOnce();
+        if (!cancelled) setContacts(contactList);
       } catch (error) {
         console.error('Failed to load contacts:', error);
       } finally {

@@ -233,14 +233,7 @@ export function ManualAddContactScreen() {
         lastSeen: Date.now(),
       };
 
-      if (__DEV__) {
-        // In dev mode, just log and navigate back (mock data is in memory)
-        console.log('[DEV] Would save contact:', contactData);
-      } else {
-        // Production: use real database service
-        const db = ServiceContainer.database;
-        await db.saveContact(contactData);
-      }
+      await ServiceContainer.database.saveContact(contactData);
 
       navigation.goBack();
     } catch (error) {

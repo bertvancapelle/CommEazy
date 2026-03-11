@@ -41,6 +41,7 @@ import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocu
 import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useContactGroups } from '@/hooks/useContactGroups';
+import { ServiceContainer } from '@/services/container';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
 import { getSmartSections, getCallFrequency } from '@/services/contacts';
 import type { SmartSection, ContactGroup } from '@/services/contacts';
@@ -189,35 +190,16 @@ export function ContactListScreen() {
     return STANDARD_CATEGORIES.filter(cat => usedIds.has(cat.id));
   }, [contacts, getContactCategoryIds]);
 
-  // Load contacts (mock data in dev mode)
+  // Load contacts from WatermelonDB (single source of truth for all modes)
   useEffect(() => {
     const loadContacts = async () => {
       try {
-        if (__DEV__) {
-          // Dynamic import to avoid module loading at bundle time
-          const { getMockContactsForDevice } = await import('@/services/mock');
-          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-          const { chatService } = await import('@/services/chat');
-
-          // Get current user JID to show appropriate contacts (other test devices)
-          const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
-
-          // Get public keys for other test devices
-          const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'ik@commeazy.local');
-
-          const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
-
-          const sorted = [...deviceContacts].sort((a, b) =>
-            getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, { sensitivity: 'base' })
-          );
-          setContacts(sorted);
-          setLoading(false);
-        } else {
-          // Production: use real database service
-          // This would use ServiceContainer.database.getContacts()
-          setContacts([]);
-          setLoading(false);
-        }
+        const contactList = await ServiceContainer.database.getContactsOnce();
+        const sorted = [...contactList].sort((a, b) =>
+          getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, { sensitivity: 'base' })
+        );
+        setContacts(sorted);
+        setLoading(false);
       } catch (error) {
         console.error('Failed to load contacts:', error);
         setContacts([]);

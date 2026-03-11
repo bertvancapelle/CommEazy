@@ -45,6 +45,7 @@ import {
   hasNavigableAddress,
 } from '@/services/interfaces';
 import type { Contact, ContactAddress } from '@/services/interfaces';
+import { ServiceContainer } from '@/services/container';
 import type { ContactStackParams } from '@/navigation';
 import {
   STANDARD_CATEGORIES,
@@ -158,18 +159,9 @@ export function ContactDetailScreen() {
   useEffect(() => {
     const loadContact = async () => {
       try {
-        if (__DEV__) {
-          // Dynamic import to avoid module loading at bundle time
-          const { getMockContactByJid } = await import('@/services/mock');
-          const mockContact = getMockContactByJid(jid);
-          setContact(mockContact ?? null);
-        } else {
-          // Production: use real database service
-          // const db = ServiceContainer.database;
-          // const contactData = await db.getContact(jid);
-          // setContact(contactData);
-          setContact(null);
-        }
+        const db = ServiceContainer.database;
+        const contactData = await db.getContact(jid);
+        setContact(contactData ?? null);
       } catch (error) {
         console.error('Failed to load contact:', error);
       } finally {
@@ -214,7 +206,7 @@ export function ContactDetailScreen() {
   );
 
   // Toggle ICE (In Case of Emergency) status
-  const handleToggleICE = useCallback(() => {
+  const handleToggleICE = useCallback(async () => {
     void triggerFeedback('tap');
     if (!contact) return;
 
@@ -223,8 +215,12 @@ export function ContactDetailScreen() {
       isEmergencyContact: !contact.isEmergencyContact,
     };
     setContact(updatedContact);
-    console.info('[ContactDetail] ICE toggled:', !contact.isEmergencyContact);
-    // TODO: Persist to database in production
+    try {
+      await ServiceContainer.database.saveContact(updatedContact);
+      console.info('[ContactDetail] ICE toggled:', !contact.isEmergencyContact);
+    } catch (error) {
+      console.error('[ContactDetail] Failed to persist ICE toggle:', error);
+    }
   }, [contact, triggerFeedback]);
 
   // Toggle group membership for this contact
@@ -265,7 +261,7 @@ export function ContactDetailScreen() {
     setIsEditing(true);
   }, [triggerFeedback]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     void triggerFeedback('tap');
     if (!contact) return;
 
@@ -288,10 +284,15 @@ export function ContactDetailScreen() {
       categories: editCategories.length > 0 ? JSON.stringify(editCategories) : undefined,
     };
 
-    // In dev mode, update local state; in production, persist to database
-    setContact(updatedContact);
-    setIsEditing(false);
-    console.info('[ContactDetail] Contact saved:', displayName);
+    // Persist to database and update local state
+    try {
+      await ServiceContainer.database.saveContact(updatedContact);
+      setContact(updatedContact);
+      setIsEditing(false);
+      console.info('[ContactDetail] Contact saved:', displayName);
+    } catch (error) {
+      console.error('[ContactDetail] Failed to save contact:', error);
+    }
   }, [contact, displayName, editPhone, editEmail, editStreet, editPostalCode, editCity, editCountry, editBirthDate, editWeddingDate, editDeathDate, editCategories, triggerFeedback]);
 
   const handleCancelEdit = useCallback(() => {
@@ -422,13 +423,7 @@ export function ContactDetailScreen() {
                 // Remove contact from all groups (referential integrity)
                 await removeContactFromAllGroups(jid);
 
-                if (__DEV__) {
-                  console.log('[DEV] Would delete contact:', jid);
-                } else {
-                  // Production: use real database service
-                  // const db = ServiceContainer.database;
-                  // await db.deleteContact(jid);
-                }
+                await ServiceContainer.database.deleteContact(jid);
                 navigation.goBack();
               } catch (error) {
                 console.error('Failed to delete contact:', error);
@@ -745,7 +740,7 @@ export function ContactDetailScreen() {
         <View style={styles.editBar}>
           <TouchableOpacity
             style={[styles.editBarButton, { backgroundColor: themeColors.primary, opacity: editCategories.length === 0 ? 0.4 : 1 }]}
-            onPress={handleSave}
+            onPress={() => void handleSave()}
             activeOpacity={0.7}
             disabled={editCategories.length === 0}
             accessibilityRole="button"
