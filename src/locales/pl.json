@@ -480,6 +480,11 @@
         "sendMail": "E-mail",
         "callMember": "Zadzwoń"
       }
+    },
+    "categories": {
+      "title": "Kategorie kalendarza",
+      "hint": "Wybierz kategorie dla tego kontaktu",
+      "none": "Brak kategorii"
     }
   },
   "settings": {
@@ -2141,6 +2146,12 @@
         "addressAutoFilled": "Adres pobrany z kontaktu",
         "customAddressLabel": "Inny adres",
         "addressFromContact": "Adres pobrany z kontaktu",
+        "deleteCategoryTitle": "Usuń kategorię",
+        "deleteCategoryMessage": "Czy chcesz usunąć '{{name}}'? Istniejące wpisy nie zostaną zmienione.",
+        "longPressToDelete": "Przytrzymaj, aby usunąć",
+        "newCategoryShort": "Nowa",
+        "suggestedContacts": "Sugerowane kontakty",
+        "otherContacts": "Inne kontakty",
         "done": "Gotowe"
       },
       "search": {

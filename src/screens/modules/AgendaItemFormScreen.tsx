@@ -400,7 +400,7 @@ const dateTimePickerModalStyles = StyleSheet.create({
 });
 
 // ============================================================
-// CategoryPickerModal — Standard + Custom categories + Create new
+// CategoryPickerModal — 3-wide grid with circular icon backgrounds
 // ============================================================
 
 interface CategoryPickerModalProps {
@@ -409,6 +409,7 @@ interface CategoryPickerModalProps {
   selectedFormType: AgendaFormType;
   customCategories: CustomCategory[];
   onSelect: (category: { id: string; icon: string; name: string }) => void;
+  onDeleteCustom: (categoryId: string) => void;
   onCreateCustom: () => void;
   onClose: () => void;
 }
@@ -419,6 +420,7 @@ function CategoryPickerModal({
   selectedFormType,
   customCategories,
   onSelect,
+  onDeleteCustom,
   onCreateCustom,
   onClose,
 }: CategoryPickerModalProps) {
@@ -427,8 +429,67 @@ function CategoryPickerModal({
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
 
-  // Filter standard categories: only show non-automatic ones
-  const standardCats = STANDARD_CATEGORIES;
+  const handleLongPressCustom = useCallback((cat: CustomCategory) => {
+    Alert.alert(
+      t('modules.agenda.form.deleteCategoryTitle'),
+      t('modules.agenda.form.deleteCategoryMessage', { name: cat.name }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: () => onDeleteCustom(cat.id),
+        },
+      ],
+    );
+  }, [onDeleteCustom, t]);
+
+  const renderCategoryItem = useCallback((
+    id: string,
+    icon: string,
+    label: string,
+    isCustom: boolean,
+    customCat?: CustomCategory,
+  ) => {
+    const isSelected = id === selectedCategoryId;
+    return (
+      <HapticTouchable
+        key={id}
+        style={categoryPickerStyles.gridItem}
+        onPress={() => {
+          onSelect({ id, icon, name: label });
+          onClose();
+        }}
+        onLongPress={isCustom && customCat ? () => handleLongPressCustom(customCat) : undefined}
+        delayLongPress={500}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: isSelected }}
+        accessibilityLabel={`${icon} ${label}`}
+        accessibilityHint={isCustom ? t('modules.agenda.form.longPressToDelete') : undefined}
+      >
+        <View
+          style={[
+            categoryPickerStyles.gridCircle,
+            {
+              backgroundColor: isSelected ? accentColor.light : themeColors.surface,
+              borderColor: isSelected ? accentColor.primary : themeColors.border,
+            },
+          ]}
+        >
+          <Text style={categoryPickerStyles.gridEmoji}>{icon}</Text>
+        </View>
+        <Text
+          style={[
+            categoryPickerStyles.gridLabel,
+            { color: isSelected ? accentColor.primary : themeColors.textPrimary },
+          ]}
+          numberOfLines={2}
+        >
+          {label}
+        </Text>
+      </HapticTouchable>
+    );
+  }, [selectedCategoryId, accentColor, themeColors, onSelect, onClose, handleLongPressCustom, t]);
 
   return (
     <Modal
@@ -455,49 +516,20 @@ function CategoryPickerModal({
           </HapticTouchable>
         </View>
 
-        <ScrollView>
-          {/* Standard categories */}
+        <ScrollView contentContainerStyle={categoryPickerStyles.scrollContent}>
+          {/* Standard categories — 3-wide grid */}
           <View style={categoryPickerStyles.sectionHeader}>
             <Text style={[categoryPickerStyles.sectionTitle, { color: themeColors.textSecondary }]}>
               {t('modules.agenda.form.standardCategories')}
             </Text>
           </View>
-          {standardCats.map((cat) => {
-            const isSelected = cat.id === selectedCategoryId;
-            return (
-              <HapticTouchable
-                key={cat.id}
-                style={[
-                  formPickerStyles.option,
-                  { borderBottomColor: themeColors.border },
-                  isSelected && { backgroundColor: accentColor.light },
-                ]}
-                onPress={() => {
-                  onSelect({ id: cat.id, icon: cat.icon, name: t(cat.name) });
-                  onClose();
-                }}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-                accessibilityLabel={`${cat.icon} ${t(cat.name)}`}
-              >
-                <Text style={formPickerStyles.optionIcon}>{cat.icon}</Text>
-                <Text
-                  style={[
-                    formPickerStyles.optionLabel,
-                    { color: themeColors.textPrimary },
-                    isSelected && { fontWeight: '600', color: accentColor.primary },
-                  ]}
-                >
-                  {t(cat.name)}
-                </Text>
-                {isSelected && (
-                  <Icon name="check" size={20} color={accentColor.primary} />
-                )}
-              </HapticTouchable>
-            );
-          })}
+          <View style={categoryPickerStyles.grid}>
+            {STANDARD_CATEGORIES.map((cat) =>
+              renderCategoryItem(cat.id, cat.icon, t(cat.name), false),
+            )}
+          </View>
 
-          {/* Custom categories */}
+          {/* Custom categories — 3-wide grid */}
           {customCategories.length > 0 && (
             <>
               <View style={categoryPickerStyles.sectionHeader}>
@@ -505,59 +537,31 @@ function CategoryPickerModal({
                   {t('modules.agenda.form.customCategories')}
                 </Text>
               </View>
-              {customCategories.map((cat) => {
-                const isSelected = cat.id === selectedCategoryId;
-                return (
-                  <HapticTouchable
-                    key={cat.id}
-                    style={[
-                      formPickerStyles.option,
-                      { borderBottomColor: themeColors.border },
-                      isSelected && { backgroundColor: accentColor.light },
-                    ]}
-                    onPress={() => {
-                      onSelect({ id: cat.id, icon: cat.icon, name: cat.name });
-                      onClose();
-                    }}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: isSelected }}
-                    accessibilityLabel={`${cat.icon} ${cat.name}`}
-                  >
-                    <Text style={formPickerStyles.optionIcon}>{cat.icon}</Text>
-                    <Text
-                      style={[
-                        formPickerStyles.optionLabel,
-                        { color: themeColors.textPrimary },
-                        isSelected && { fontWeight: '600', color: accentColor.primary },
-                      ]}
-                    >
-                      {cat.name}
-                    </Text>
-                    {isSelected && (
-                      <Icon name="check" size={20} color={accentColor.primary} />
-                    )}
-                  </HapticTouchable>
-                );
-              })}
+              <View style={categoryPickerStyles.grid}>
+                {customCategories.map((cat) =>
+                  renderCategoryItem(cat.id, cat.icon, cat.name, true, cat),
+                )}
+              </View>
             </>
           )}
 
-          {/* Create new category button */}
-          <HapticTouchable
-            style={[categoryPickerStyles.createButton, { borderColor: accentColor.primary }]}
-            onPress={() => {
-              onClose();
-              // Small delay to let the modal close before opening the next
-              setTimeout(onCreateCustom, 300);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.agenda.form.createCategory')}
-          >
-            <Icon name="plus" size={18} color={accentColor.primary} />
-            <Text style={[categoryPickerStyles.createButtonText, { color: accentColor.primary }]}>
-              {t('modules.agenda.form.createCategory')}
-            </Text>
-          </HapticTouchable>
+          {/* Action buttons row: New + Edit */}
+          <View style={categoryPickerStyles.actionRow}>
+            <HapticTouchable
+              style={[categoryPickerStyles.actionButton, { borderColor: accentColor.primary }]}
+              onPress={() => {
+                onClose();
+                setTimeout(onCreateCustom, 300);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.agenda.form.newCategory')}
+            >
+              <Icon name="plus" size={18} color={accentColor.primary} />
+              <Text style={[categoryPickerStyles.actionButtonText, { color: accentColor.primary }]}>
+                {t('modules.agenda.form.newCategoryShort')}
+              </Text>
+            </HapticTouchable>
+          </View>
         </ScrollView>
       </View>
     </Modal>
@@ -565,6 +569,9 @@ function CategoryPickerModal({
 }
 
 const categoryPickerStyles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: spacing.xl,
+  },
   sectionHeader: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -574,7 +581,42 @@ const categoryPickerStyles = StyleSheet.create({
     ...typography.label,
     fontWeight: '700',
   },
-  createButton: {
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+  },
+  gridItem: {
+    flexBasis: '30%',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  gridCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  gridEmoji: {
+    fontSize: 24,
+  },
+  gridLabel: {
+    ...typography.label,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -583,10 +625,10 @@ const categoryPickerStyles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: borderRadius.md,
     gap: spacing.sm,
-    marginHorizontal: spacing.lg,
-    marginVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    flex: 1,
   },
-  createButtonText: {
+  actionButtonText: {
     ...typography.body,
     fontWeight: '600',
   },
@@ -794,6 +836,7 @@ export function AgendaItemFormScreen({
   const themeColors = useColors();
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
+  const moduleColor = useModuleColor('agenda');
 
   const isEditing = !!initialData;
 
@@ -972,8 +1015,22 @@ export function AgendaItemFormScreen({
     [selectedContactIds, allContacts],
   );
 
+  // Contacts split by category match (for picker suggestions)
+  const { suggestedContacts, otherContacts } = useMemo(() => {
+    const suggested: ContactModel[] = [];
+    const other: ContactModel[] = [];
+    for (const contact of allContacts) {
+      const catIds = contact.categoryIds;
+      if (catIds.includes(selectedCategoryId)) {
+        suggested.push(contact);
+      } else {
+        other.push(contact);
+      }
+    }
+    return { suggestedContacts: suggested, otherContacts: other };
+  }, [allContacts, selectedCategoryId]);
+
   // Picker visibility state
-  const [showFormTypePicker, setShowFormTypePicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -1008,10 +1065,16 @@ export function AgendaItemFormScreen({
   }, []);
 
   const handleCategorySelect = useCallback((cat: { id: string; icon: string; name: string }) => {
+    // Auto-fill title: only when title is empty or matches the previous category name
+    setTitle(prev => {
+      const prevIsEmpty = prev.trim().length === 0;
+      const prevMatchesCategory = prev.trim() === selectedCategoryName;
+      return (prevIsEmpty || prevMatchesCategory) ? cat.name : prev;
+    });
     setSelectedCategoryId(cat.id);
     setSelectedCategoryIcon(cat.icon);
     setSelectedCategoryName(cat.name);
-  }, []);
+  }, [selectedCategoryName]);
 
   const handleCreateCategory = useCallback((newCategory: CustomCategory) => {
     setCustomCategories(prev => {
@@ -1025,6 +1088,21 @@ export function AgendaItemFormScreen({
     setSelectedCategoryName(newCategory.name);
     setShowCreateCategory(false);
   }, []);
+
+  const handleDeleteCategory = useCallback((categoryId: string) => {
+    setCustomCategories(prev => {
+      const updated = prev.filter(c => c.id !== categoryId);
+      saveCustomCategories(updated);
+      return updated;
+    });
+    // If the deleted category was selected, reset to 'other'
+    if (selectedCategoryId === categoryId) {
+      const otherCat = STANDARD_CATEGORIES.find(c => c.id === 'other');
+      setSelectedCategoryId('other');
+      setSelectedCategoryIcon(otherCat?.icon ?? '📋');
+      setSelectedCategoryName(t(otherCat?.name ?? 'modules.agenda.categories.other'));
+    }
+  }, [selectedCategoryId, t]);
 
   const handleDateChange = useCallback(
     (_event: DateTimePickerEvent, date?: Date) => {
@@ -1162,15 +1240,6 @@ export function AgendaItemFormScreen({
   ]);
 
   // Build picker options
-  const formTypeOptions = useMemo(
-    () => FORM_TYPES.map((ft) => ({
-      value: ft.id,
-      label: t(ft.labelKey),
-      icon: ft.icon,
-    })),
-    [t],
-  );
-
   const repeatOptions = useMemo(
     () =>
       REPEAT_OPTIONS.map((opt) => ({
@@ -1254,23 +1323,46 @@ export function AgendaItemFormScreen({
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ====== Form Type ====== */}
+        {/* ====== Form Type — 3 inline buttons ====== */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
             {t('modules.agenda.form.typeLabel')}
           </Text>
-          <HapticTouchable
-            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-            onPress={() => { Keyboard.dismiss(); setShowFormTypePicker(true); }}
-            accessibilityRole="button"
-            accessibilityLabel={`${t('modules.agenda.form.typeLabel')}: ${t(formTypeDef.labelKey)}`}
-          >
-            <Text style={styles.pickerIcon}>{formTypeDef.icon}</Text>
-            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
-              {t(formTypeDef.labelKey)}
-            </Text>
-            <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
-          </HapticTouchable>
+          <View style={styles.formTypeRow}>
+            {FORM_TYPES.map((ft) => {
+              const isActive = selectedFormType === ft.id;
+              return (
+                <HapticTouchable
+                  key={ft.id}
+                  style={[
+                    styles.formTypeButton,
+                    {
+                      borderColor: isActive ? accentColor.primary : themeColors.border,
+                      backgroundColor: isActive ? accentColor.light : themeColors.surface,
+                    },
+                  ]}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    handleFormTypeChange(ft.id);
+                  }}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: isActive }}
+                  accessibilityLabel={t(ft.labelKey)}
+                >
+                  <Text style={styles.formTypeIcon}>{ft.icon}</Text>
+                  <Text
+                    style={[
+                      styles.formTypeLabel,
+                      { color: isActive ? accentColor.primary : themeColors.textPrimary },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t(ft.labelKey)}
+                  </Text>
+                </HapticTouchable>
+              );
+            })}
+          </View>
         </View>
 
         {/* ====== Category ====== */}
@@ -1697,16 +1789,6 @@ export function AgendaItemFormScreen({
         )}
       </ScrollView>
 
-      {/* Form Type Picker Modal */}
-      <FormPickerModal
-        visible={showFormTypePicker}
-        title={t('modules.agenda.form.typeLabel')}
-        options={formTypeOptions}
-        selectedValue={selectedFormType}
-        onSelect={handleFormTypeChange}
-        onClose={() => setShowFormTypePicker(false)}
-      />
-
       {/* Category Picker Modal */}
       <CategoryPickerModal
         visible={showCategoryPicker}
@@ -1714,6 +1796,7 @@ export function AgendaItemFormScreen({
         selectedFormType={selectedFormType}
         customCategories={customCategories}
         onSelect={handleCategorySelect}
+        onDeleteCustom={handleDeleteCategory}
         onCreateCustom={() => setShowCreateCategory(true)}
         onClose={() => setShowCategoryPicker(false)}
       />
@@ -1805,7 +1888,7 @@ export function AgendaItemFormScreen({
               {t('modules.agenda.form.selectContacts')}
             </Text>
             <HapticTouchable
-              style={[dateTimePickerModalStyles.doneButton, { backgroundColor: useModuleColor('agenda') }]}
+              style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
               onPress={() => setShowContactPicker(false)}
               accessibilityRole="button"
               accessibilityLabel={t('common.confirm')}
@@ -1816,7 +1899,7 @@ export function AgendaItemFormScreen({
             </HapticTouchable>
           </View>
 
-          {/* Contact list */}
+          {/* Contact list — suggested first, then others */}
           <ScrollView>
             {allContacts.length === 0 ? (
               <View style={styles.emptyContactList}>
@@ -1825,57 +1908,133 @@ export function AgendaItemFormScreen({
                 </Text>
               </View>
             ) : (
-              allContacts.map(contact => {
-                const isSelected = selectedContactIds.includes(contact.id);
-                return (
-                  <HapticTouchable
-                    key={contact.id}
-                    style={[
-                      formPickerStyles.option,
-                      { borderBottomColor: themeColors.border },
-                      isSelected && { backgroundColor: accentColor.light },
-                    ]}
-                    onPress={() => handleToggleContact(contact.id)}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: isSelected }}
-                    accessibilityLabel={contact.displayName}
-                  >
-                    <View style={styles.contactPickerRow}>
-                      {contact.photoPath ? (
-                        <Image
-                          source={{ uri: contact.photoPath }}
-                          style={styles.contactPickerAvatar}
-                        />
-                      ) : (
-                        <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
-                          <Icon name="person" size={20} color={accentColor.primary} />
-                        </View>
-                      )}
-                      <View style={styles.contactPickerInfo}>
-                        <Text
-                          style={[
-                            formPickerStyles.optionLabel,
-                            { color: themeColors.textPrimary },
-                            isSelected && { fontWeight: '600', color: accentColor.primary },
-                          ]}
-                        >
-                          {contact.displayName}
-                        </Text>
-                        {(contact.addressCity || contact.addressStreet) && (
-                          <Text style={[styles.contactAddressHint, { color: themeColors.textTertiary }]}>
-                            {[contact.addressStreet, contact.addressCity].filter(Boolean).join(', ')}
-                          </Text>
-                        )}
-                      </View>
-                      <Icon
-                        name={isSelected ? 'checkbox-checked' : 'checkbox-unchecked'}
-                        size={24}
-                        color={isSelected ? accentColor.primary : themeColors.textTertiary}
-                      />
+              <>
+                {/* Suggested contacts (matching category) */}
+                {suggestedContacts.length > 0 && (
+                  <>
+                    <View style={styles.contactSectionHeader}>
+                      <Text style={[styles.contactSectionTitle, { color: themeColors.textSecondary }]}>
+                        {t('modules.agenda.form.suggestedContacts')}
+                      </Text>
                     </View>
-                  </HapticTouchable>
-                );
-              })
+                    {suggestedContacts.map(contact => {
+                      const isSelected = selectedContactIds.includes(contact.id);
+                      return (
+                        <HapticTouchable
+                          key={contact.id}
+                          style={[
+                            formPickerStyles.option,
+                            { borderBottomColor: themeColors.border },
+                            isSelected && { backgroundColor: accentColor.light },
+                          ]}
+                          onPress={() => handleToggleContact(contact.id)}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: isSelected }}
+                          accessibilityLabel={contact.displayName}
+                        >
+                          <View style={styles.contactPickerRow}>
+                            {contact.photoPath ? (
+                              <Image
+                                source={{ uri: contact.photoPath }}
+                                style={styles.contactPickerAvatar}
+                              />
+                            ) : (
+                              <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
+                                <Icon name="person" size={20} color={accentColor.primary} />
+                              </View>
+                            )}
+                            <View style={styles.contactPickerInfo}>
+                              <Text
+                                style={[
+                                  formPickerStyles.optionLabel,
+                                  { color: themeColors.textPrimary },
+                                  isSelected && { fontWeight: '600', color: accentColor.primary },
+                                ]}
+                              >
+                                {contact.displayName}
+                              </Text>
+                              {(contact.addressCity || contact.addressStreet) && (
+                                <Text style={[styles.contactAddressHint, { color: themeColors.textTertiary }]}>
+                                  {[contact.addressStreet, contact.addressCity].filter(Boolean).join(', ')}
+                                </Text>
+                              )}
+                            </View>
+                            <Icon
+                              name={isSelected ? 'checkbox-checked' : 'checkbox-unchecked'}
+                              size={24}
+                              color={isSelected ? accentColor.primary : themeColors.textTertiary}
+                            />
+                          </View>
+                        </HapticTouchable>
+                      );
+                    })}
+                  </>
+                )}
+
+                {/* Other contacts */}
+                {otherContacts.length > 0 && (
+                  <>
+                    {suggestedContacts.length > 0 && (
+                      <View style={styles.contactSectionHeader}>
+                        <Text style={[styles.contactSectionTitle, { color: themeColors.textSecondary }]}>
+                          {t('modules.agenda.form.otherContacts')}
+                        </Text>
+                      </View>
+                    )}
+                    {otherContacts.map(contact => {
+                      const isSelected = selectedContactIds.includes(contact.id);
+                      return (
+                        <HapticTouchable
+                          key={contact.id}
+                          style={[
+                            formPickerStyles.option,
+                            { borderBottomColor: themeColors.border },
+                            isSelected && { backgroundColor: accentColor.light },
+                          ]}
+                          onPress={() => handleToggleContact(contact.id)}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: isSelected }}
+                          accessibilityLabel={contact.displayName}
+                        >
+                          <View style={styles.contactPickerRow}>
+                            {contact.photoPath ? (
+                              <Image
+                                source={{ uri: contact.photoPath }}
+                                style={styles.contactPickerAvatar}
+                              />
+                            ) : (
+                              <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
+                                <Icon name="person" size={20} color={accentColor.primary} />
+                              </View>
+                            )}
+                            <View style={styles.contactPickerInfo}>
+                              <Text
+                                style={[
+                                  formPickerStyles.optionLabel,
+                                  { color: themeColors.textPrimary },
+                                  isSelected && { fontWeight: '600', color: accentColor.primary },
+                                ]}
+                              >
+                                {contact.displayName}
+                              </Text>
+                              {(contact.addressCity || contact.addressStreet) && (
+                                <Text style={[styles.contactAddressHint, { color: themeColors.textTertiary }]}>
+                                  {[contact.addressStreet, contact.addressCity].filter(Boolean).join(', ')}
+                                </Text>
+                              )}
+                            </View>
+                            <Icon
+                              name={isSelected ? 'checkbox-checked' : 'checkbox-unchecked'}
+                              size={24}
+                              color={isSelected ? accentColor.primary : themeColors.textTertiary}
+                            />
+                          </View>
+                        </HapticTouchable>
+                      );
+                    })}
+                  </>
+                )}
+              </>
             )}
           </ScrollView>
         </View>
@@ -1911,6 +2070,29 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '700',
     marginBottom: spacing.xs,
+  },
+
+  // Form type inline buttons
+  formTypeRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  formTypeButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    minHeight: touchTargets.comfortable,
+    gap: spacing.xs,
+  },
+  formTypeIcon: {
+    fontSize: 24,
+  },
+  formTypeLabel: {
+    ...typography.label,
+    fontWeight: '700',
   },
 
   // Text input
@@ -2052,6 +2234,15 @@ const styles = StyleSheet.create({
   contactAddressHint: {
     ...typography.label,
     marginTop: 2,
+  },
+  contactSectionHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+  },
+  contactSectionTitle: {
+    ...typography.label,
+    fontWeight: '700',
   },
   emptyContactList: {
     padding: spacing.xl,

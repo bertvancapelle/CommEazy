@@ -565,6 +565,11 @@
         "sendMail": "Correo",
         "callMember": "Llamar"
       }
+    },
+    "categories": {
+      "title": "Categorías de agenda",
+      "hint": "Elegir categorías para este contacto",
+      "none": "Sin categorías"
     }
   },
   "settings": {
@@ -2276,6 +2281,12 @@
         "addressAutoFilled": "Dirección tomada del contacto",
         "customAddressLabel": "Otra dirección",
         "addressFromContact": "Dirección tomada del contacto",
+        "deleteCategoryTitle": "Eliminar categoría",
+        "deleteCategoryMessage": "¿Quieres eliminar '{{name}}'? Los elementos existentes no se modificarán.",
+        "longPressToDelete": "Mantener pulsado para eliminar",
+        "newCategoryShort": "Nuevo",
+        "suggestedContacts": "Contactos sugeridos",
+        "otherContacts": "Otros contactos",
         "done": "Listo"
       },
       "search": {

@@ -589,6 +589,11 @@
         "sendMail": "E-mail",
         "callMember": "Ligar"
       }
+    },
+    "categories": {
+      "title": "Categorias da agenda",
+      "hint": "Escolher categorias para este contacto",
+      "none": "Sem categorias"
     }
   },
   "settings": {
@@ -2293,6 +2298,12 @@
         "addressAutoFilled": "Morada preenchida a partir do contacto",
         "customAddressLabel": "Outro endereço",
         "addressFromContact": "Endereço obtido do contacto",
+        "deleteCategoryTitle": "Eliminar categoria",
+        "deleteCategoryMessage": "Deseja eliminar '{{name}}'? Os itens existentes não serão alterados.",
+        "longPressToDelete": "Manter premido para eliminar",
+        "newCategoryShort": "Novo",
+        "suggestedContacts": "Contactos sugeridos",
+        "otherContacts": "Outros contactos",
         "done": "Concluído"
       },
       "search": {

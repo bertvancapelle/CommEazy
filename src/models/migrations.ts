@@ -21,6 +21,7 @@
  * - v17: Added agenda_items table for appointments, reminders, medication
  * - v18: Added address fields to agenda_items (location_name, address_street, etc.)
  * - v19: Added category snapshot fields to agenda_items (category_icon, category_name, form_type)
+ * - v20: Added categories to contacts (JSON array of agenda category IDs)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -336,6 +337,18 @@ export const migrations = schemaMigrations({
             { name: 'category_icon', type: 'string', isOptional: true },
             { name: 'category_name', type: 'string', isOptional: true },
             { name: 'form_type', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v19 to v20: Add categories to contacts (agenda category IDs)
+    {
+      toVersion: 20,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'categories', type: 'string', isOptional: true },
           ],
         }),
       ],

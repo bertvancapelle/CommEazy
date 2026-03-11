@@ -490,6 +490,11 @@
         "sendMail": "E-post",
         "callMember": "Ring"
       }
+    },
+    "categories": {
+      "title": "Kalenderkategorier",
+      "hint": "Velg kategorier for denne kontakten",
+      "none": "Ingen kategorier"
     }
   },
   "settings": {
@@ -2150,6 +2155,12 @@
         "addressAutoFilled": "Adresse hentet fra kontakt",
         "customAddressLabel": "Annen adresse",
         "addressFromContact": "Adresse hentet fra kontakt",
+        "deleteCategoryTitle": "Slett kategori",
+        "deleteCategoryMessage": "Vil du slette '{{name}}'? Eksisterende oppføringer vil ikke bli endret.",
+        "longPressToDelete": "Hold nede for å slette",
+        "newCategoryShort": "Ny",
+        "suggestedContacts": "Foreslåtte kontakter",
+        "otherContacts": "Andre kontakter",
         "done": "Ferdig"
       },
       "search": {

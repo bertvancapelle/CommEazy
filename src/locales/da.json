@@ -460,6 +460,11 @@
         "sendMail": "Mail",
         "callMember": "Ring"
       }
+    },
+    "categories": {
+      "title": "Kalenderkategorier",
+      "hint": "Vælg kategorier for denne kontakt",
+      "none": "Ingen kategorier"
     }
   },
   "settings": {
@@ -2120,6 +2125,12 @@
         "addressAutoFilled": "Adresse hentet fra kontakt",
         "customAddressLabel": "Anden adresse",
         "addressFromContact": "Adresse hentet fra kontakt",
+        "deleteCategoryTitle": "Slet kategori",
+        "deleteCategoryMessage": "Vil du slette '{{name}}'? Eksisterende poster vil ikke blive ændret.",
+        "longPressToDelete": "Hold nede for at slette",
+        "newCategoryShort": "Ny",
+        "suggestedContacts": "Foreslåede kontakter",
+        "otherContacts": "Andre kontakter",
         "done": "Færdig"
       },
       "search": {

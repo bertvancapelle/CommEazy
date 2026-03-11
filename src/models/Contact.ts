@@ -34,12 +34,33 @@ export class ContactModel extends Model {
   @field('is_emergency_contact') isEmergencyContact?: boolean;
   // Trust level (v16): 0=Unknown, 1=Invited, 2=Connected, 3=Verified
   @field('trust_level') trustLevel!: number;
+  // Agenda categories (v20): JSON array of AgendaCategoryId strings
+  @field('categories') categories?: string;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 
   /** Get full display name */
   get displayName(): string {
     return `${this.firstName} ${this.lastName}`.trim();
+  }
+
+  /** Get agenda category IDs as array */
+  get categoryIds(): string[] {
+    if (!this.categories) return [];
+    try {
+      return JSON.parse(this.categories);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Update agenda categories for this contact
+   */
+  @writer async updateCategories(categoryIds: string[]): Promise<void> {
+    await this.update(record => {
+      record.categories = categoryIds.length > 0 ? JSON.stringify(categoryIds) : undefined;
+    });
   }
 
   /**

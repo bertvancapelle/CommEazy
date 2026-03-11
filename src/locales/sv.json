@@ -460,6 +460,11 @@
         "sendMail": "E-post",
         "callMember": "Ring"
       }
+    },
+    "categories": {
+      "title": "Kalenderkategorier",
+      "hint": "Välj kategorier för denna kontakt",
+      "none": "Inga kategorier"
     }
   },
   "settings": {
@@ -2120,6 +2125,12 @@
         "addressAutoFilled": "Adress hämtad från kontakt",
         "customAddressLabel": "Annan adress",
         "addressFromContact": "Adress hämtad från kontakt",
+        "deleteCategoryTitle": "Ta bort kategori",
+        "deleteCategoryMessage": "Vill du ta bort '{{name}}'? Befintliga poster kommer inte att ändras.",
+        "longPressToDelete": "Håll nedtryckt för att ta bort",
+        "newCategoryShort": "Ny",
+        "suggestedContacts": "Föreslagna kontakter",
+        "otherContacts": "Andra kontakter",
         "done": "Klar"
       },
       "search": {

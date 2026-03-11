@@ -565,6 +565,11 @@
         "sendMail": "E-mail",
         "callMember": "Appeler"
       }
+    },
+    "categories": {
+      "title": "Catégories d'agenda",
+      "hint": "Choisir des catégories pour ce contact",
+      "none": "Aucune catégorie"
     }
   },
   "settings": {
@@ -2276,6 +2281,12 @@
         "addressAutoFilled": "Adresse reprise du contact",
         "customAddressLabel": "Autre adresse",
         "addressFromContact": "Adresse reprise du contact",
+        "deleteCategoryTitle": "Supprimer la catégorie",
+        "deleteCategoryMessage": "Voulez-vous supprimer '{{name}}' ? Les éléments existants ne seront pas modifiés.",
+        "longPressToDelete": "Appuyer longuement pour supprimer",
+        "newCategoryShort": "Nouveau",
+        "suggestedContacts": "Contacts suggérés",
+        "otherContacts": "Autres contacts",
         "done": "Terminé"
       },
       "search": {

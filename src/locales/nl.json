@@ -402,6 +402,11 @@
         "sendMail": "Mail",
         "callMember": "Bellen"
       }
+    },
+    "categories": {
+      "title": "Agenda categorieën",
+      "hint": "Kies categorieën voor dit contact",
+      "none": "Geen categorieën"
     }
   },
   "settings": {
@@ -2286,7 +2291,13 @@
         "addressAutoFilled": "Adres overgenomen van contact",
         "customAddressLabel": "Ander adres",
         "addressFromContact": "Adres overgenomen van contact",
-        "done": "Klaar"
+        "done": "Klaar",
+        "deleteCategoryTitle": "Categorie verwijderen",
+        "deleteCategoryMessage": "Wil je '{{name}}' verwijderen? Bestaande items worden niet aangepast.",
+        "longPressToDelete": "Houd ingedrukt om te verwijderen",
+        "newCategoryShort": "Nieuw",
+        "suggestedContacts": "Voorgestelde contacten",
+        "otherContacts": "Andere contacten"
       },
       "search": {
         "tabOverview": "Overzicht",

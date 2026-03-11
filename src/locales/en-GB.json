@@ -565,6 +565,11 @@
         "sendMail": "Mail",
         "callMember": "Call"
       }
+    },
+    "categories": {
+      "title": "Agenda categories",
+      "hint": "Choose categories for this contact",
+      "none": "No categories"
     }
   },
   "settings": {
@@ -2280,6 +2285,12 @@
         "addressAutoFilled": "Address filled from contact",
         "customAddressLabel": "Different address",
         "addressFromContact": "Address from contact",
+        "deleteCategoryTitle": "Delete category",
+        "deleteCategoryMessage": "Do you want to delete '{{name}}'? Existing items will not be affected.",
+        "longPressToDelete": "Long press to delete",
+        "newCategoryShort": "New",
+        "suggestedContacts": "Suggested contacts",
+        "otherContacts": "Other contacts",
         "done": "Done"
       },
       "search": {

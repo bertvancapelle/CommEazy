@@ -46,6 +46,13 @@ import {
 } from '@/services/interfaces';
 import type { Contact, ContactAddress } from '@/services/interfaces';
 import type { ContactStackParams } from '@/navigation';
+import {
+  STANDARD_CATEGORIES,
+  CUSTOM_CATEGORIES_STORAGE_KEY,
+  type AgendaCategoryDef,
+  type CustomCategory,
+} from '@/constants/agendaCategories';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactDetail'>;
 type ContactDetailRouteProp = RouteProp<ContactStackParams, 'ContactDetail'>;
@@ -124,6 +131,18 @@ export function ContactDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showGroupPicker, setShowGroupPicker] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+  const [editCategories, setEditCategories] = useState<string[]>([]);
+
+  // Load custom categories on mount
+  useEffect(() => {
+    AsyncStorage.getItem(CUSTOM_CATEGORIES_STORAGE_KEY).then(json => {
+      if (json) {
+        try { setCustomCategories(JSON.parse(json)); } catch { /* ignore */ }
+      }
+    });
+  }, []);
 
   // Edit state for all editable fields
   const [editPhone, setEditPhone] = useState('');
@@ -173,6 +192,13 @@ export function ContactDetailScreen() {
       setEditBirthDate(contact.birthDate);
       setEditWeddingDate(contact.weddingDate);
       setEditDeathDate(contact.deathDate);
+      // Parse categories from contact (JSON array string)
+      try {
+        const cats = contact.categories ? JSON.parse(contact.categories as string) : [];
+        setEditCategories(Array.isArray(cats) ? cats : []);
+      } catch {
+        setEditCategories([]);
+      }
     }
   }, [contact]);
 
@@ -215,6 +241,25 @@ export function ContactDetailScreen() {
     }
   }, [groups, jid, addContacts, removeContacts, triggerFeedback]);
 
+  // All available categories (standard + custom) for the picker
+  const allCategories = useMemo((): (AgendaCategoryDef | CustomCategory)[] => {
+    return [
+      ...STANDARD_CATEGORIES,
+      ...customCategories,
+    ];
+  }, [customCategories]);
+
+  // Toggle a category for this contact
+  const handleToggleCategory = useCallback((categoryId: string) => {
+    void triggerFeedback('tap');
+    setEditCategories(prev => {
+      if (prev.includes(categoryId)) {
+        return prev.filter(id => id !== categoryId);
+      }
+      return [...prev, categoryId];
+    });
+  }, [triggerFeedback]);
+
   const handleStartEdit = useCallback(() => {
     void triggerFeedback('tap');
     setIsEditing(true);
@@ -240,13 +285,14 @@ export function ContactDetailScreen() {
       birthDate: editBirthDate,
       weddingDate: editWeddingDate,
       deathDate: editDeathDate,
+      categories: editCategories.length > 0 ? JSON.stringify(editCategories) : undefined,
     };
 
     // In dev mode, update local state; in production, persist to database
     setContact(updatedContact);
     setIsEditing(false);
     console.info('[ContactDetail] Contact saved:', displayName);
-  }, [contact, displayName, editPhone, editEmail, editStreet, editPostalCode, editCity, editCountry, editBirthDate, editWeddingDate, editDeathDate, triggerFeedback]);
+  }, [contact, displayName, editPhone, editEmail, editStreet, editPostalCode, editCity, editCountry, editBirthDate, editWeddingDate, editDeathDate, editCategories, triggerFeedback]);
 
   const handleCancelEdit = useCallback(() => {
     void triggerFeedback('tap');
@@ -261,6 +307,12 @@ export function ContactDetailScreen() {
       setEditBirthDate(contact.birthDate);
       setEditWeddingDate(contact.weddingDate);
       setEditDeathDate(contact.deathDate);
+      try {
+        const cats = contact.categories ? JSON.parse(contact.categories as string) : [];
+        setEditCategories(Array.isArray(cats) ? cats : []);
+      } catch {
+        setEditCategories([]);
+      }
     }
     setIsEditing(false);
   }, [contact, triggerFeedback]);
@@ -612,6 +664,79 @@ export function ContactDetailScreen() {
               </Text>
             )}
           </View>
+        )}
+      </View>
+
+      {/* Agenda categories section */}
+      <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
+          {t('contacts.categories.title', 'Agenda categorieën')}
+        </Text>
+
+        {isEditing ? (
+          <>
+            <Text style={[styles.categoriesHint, { color: themeColors.textSecondary }]}>
+              {t('contacts.categories.hint', 'Kies categorieën voor dit contact')}
+            </Text>
+            <View style={styles.categoryGrid}>
+              {allCategories.map(cat => {
+                const isSelected = editCategories.includes(cat.id);
+                return (
+                  <HapticTouchable
+                    key={cat.id}
+                    style={styles.categoryGridItem}
+                    onPress={() => handleToggleCategory(cat.id)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isSelected }}
+                    accessibilityLabel={cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+                  >
+                    <View
+                      style={[
+                        styles.categoryCircle,
+                        {
+                          backgroundColor: isSelected ? themeColors.primary : themeColors.background,
+                          borderColor: isSelected ? themeColors.primary : themeColors.border,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.categoryEmoji}>{cat.icon}</Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.categoryLabel,
+                        { color: isSelected ? themeColors.primary : themeColors.textPrimary },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+                    </Text>
+                  </HapticTouchable>
+                );
+              })}
+            </View>
+          </>
+        ) : (
+          <>
+            {editCategories.length > 0 ? (
+              <View style={styles.categoryChipsRow}>
+                {editCategories.map(catId => {
+                  const cat = allCategories.find(c => c.id === catId);
+                  if (!cat) return null;
+                  const label = cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id);
+                  return (
+                    <View key={catId} style={[styles.categoryChip, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}>
+                      <Text style={styles.categoryChipEmoji}>{cat.icon}</Text>
+                      <Text style={[styles.categoryChipText, { color: themeColors.textPrimary }]}>{label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
+                {t('contacts.categories.none', 'Geen categorieën')}
+              </Text>
+            )}
+          </>
         )}
       </View>
 
@@ -1287,5 +1412,59 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
     minHeight: touchTargets.minimum,
+  },
+  // Category grid (edit mode — 3-wide grid with circular emoji backgrounds)
+  categoriesHint: {
+    ...typography.label,
+    marginBottom: spacing.md,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  categoryGridItem: {
+    flexBasis: '30%',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  categoryCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  categoryEmoji: {
+    fontSize: 24,
+  },
+  categoryLabel: {
+    ...typography.label,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  // Category chips (view mode)
+  categoryChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  categoryChipEmoji: {
+    fontSize: 16,
+  },
+  categoryChipText: {
+    ...typography.label,
+    fontWeight: '600',
   },
 });

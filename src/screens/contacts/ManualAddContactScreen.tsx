@@ -15,7 +15,7 @@
  * @see TRUST_AND_ATTESTATION_PLAN.md section 4.2
  */
 
-import React, { useCallback, useReducer, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useReducer, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -37,7 +37,14 @@ import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { SeniorDatePicker } from '@/components/SeniorDatePicker';
-import { ModuleHeader } from '@/components';
+import { ModuleHeader, HapticTouchable } from '@/components';
+import {
+  STANDARD_CATEGORIES,
+  CUSTOM_CATEGORIES_STORAGE_KEY,
+  type AgendaCategoryDef,
+  type CustomCategory,
+} from '@/constants/agendaCategories';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ManualAddContact'>;
 
@@ -113,6 +120,33 @@ export function ManualAddContactScreen() {
 
   const [showCountryCodes, setShowCountryCodes] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+
+  // Load custom categories on mount
+  useEffect(() => {
+    AsyncStorage.getItem(CUSTOM_CATEGORIES_STORAGE_KEY).then(json => {
+      if (json) {
+        try { setCustomCategories(JSON.parse(json)); } catch { /* ignore */ }
+      }
+    });
+  }, []);
+
+  // All available categories (standard + custom)
+  const allCategories = useMemo((): (AgendaCategoryDef | CustomCategory)[] => {
+    return [...STANDARD_CATEGORIES, ...customCategories];
+  }, [customCategories]);
+
+  // Toggle a category
+  const handleToggleCategory = useCallback((categoryId: string) => {
+    void triggerFeedback('tap');
+    setSelectedCategories(prev => {
+      if (prev.includes(categoryId)) {
+        return prev.filter(id => id !== categoryId);
+      }
+      return [...prev, categoryId];
+    });
+  }, [triggerFeedback]);
 
   const isValidPhone = useCallback((phone: string): boolean => {
     // Basic validation: at least 6 digits
@@ -139,9 +173,10 @@ export function ManualAddContactScreen() {
       country.trim().length > 0 ||
       birthDate !== undefined ||
       weddingDate !== undefined ||
-      deathDate !== undefined
+      deathDate !== undefined ||
+      selectedCategories.length > 0
     );
-  }, [firstName, lastName, phoneNumber, email, street, postalCode, city, country, birthDate, weddingDate, deathDate]);
+  }, [firstName, lastName, phoneNumber, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories]);
 
   // Cancel with unsaved changes guard
   const handleCancel = useCallback(() => {
@@ -192,6 +227,7 @@ export function ManualAddContactScreen() {
         birthDate,
         weddingDate,
         deathDate,
+        categories: selectedCategories.length > 0 ? JSON.stringify(selectedCategories) : undefined,
         publicKey: '', // Will be set when contact shares their key
         verified: false,
         lastSeen: Date.now(),
@@ -213,7 +249,7 @@ export function ManualAddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [canSave, saving, countryCode, phoneNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, navigation, t, triggerFeedback]);
+  }, [canSave, saving, countryCode, phoneNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories, navigation, t, triggerFeedback]);
 
   const toggleCountryCodes = useCallback(() => {
     void triggerFeedback('tap');
@@ -444,6 +480,50 @@ export function ManualAddContactScreen() {
           />
         </View>
 
+        {/* Agenda categories section */}
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
+          {t('contacts.categories.title', 'Agenda categorieën')}
+        </Text>
+        <Text style={[styles.categoriesHint, { color: themeColors.textSecondary }]}>
+          {t('contacts.categories.hint', 'Kies categorieën voor dit contact')}
+        </Text>
+        <View style={styles.categoryGrid}>
+          {allCategories.map(cat => {
+            const isSelected = selectedCategories.includes(cat.id);
+            return (
+              <HapticTouchable
+                key={cat.id}
+                style={styles.categoryGridItem}
+                onPress={() => handleToggleCategory(cat.id)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: isSelected }}
+                accessibilityLabel={cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+              >
+                <View
+                  style={[
+                    styles.categoryCircle,
+                    {
+                      backgroundColor: isSelected ? themeColors.primary : themeColors.background,
+                      borderColor: isSelected ? themeColors.primary : themeColors.border,
+                    },
+                  ]}
+                >
+                  <Text style={styles.categoryEmoji}>{cat.icon}</Text>
+                </View>
+                <Text
+                  style={[
+                    styles.categoryLabel,
+                    { color: isSelected ? themeColors.primary : themeColors.textPrimary },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+                </Text>
+              </HapticTouchable>
+            );
+          })}
+        </View>
+
         {/* Hint text */}
         <Text style={[styles.hintText, { color: themeColors.textSecondary }]}>{t('contacts.addHint')}</Text>
 
@@ -572,5 +652,38 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.lg,
     fontStyle: 'italic',
+  },
+  // Category grid
+  categoriesHint: {
+    ...typography.label,
+    marginBottom: spacing.md,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  categoryGridItem: {
+    flexBasis: '30%',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  categoryCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  categoryEmoji: {
+    fontSize: 24,
+  },
+  categoryLabel: {
+    ...typography.label,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
