@@ -368,5 +368,17 @@ export const migrations = schemaMigrations({
         }),
       ],
     },
+    // Migration from v21 to v22: Add email to contacts (ICS calendar invitation via mail)
+    {
+      toVersion: 22,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'email', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

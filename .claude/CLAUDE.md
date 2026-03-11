@@ -321,6 +321,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | Voice control, spraak | accessibility-specialist, react-native-expert |
 | Encryptie, keys, tokens | security-expert |
 | Database, storage | architecture-lead, security-expert |
+| **Schema kolom toevoegen/wijzigen** | **BLOKKEERDER** — schema.ts EN migrations.ts MOETEN ALTIJD SAMEN worden gewijzigd, zie "Database Schema Wijziging Protocol" |
 | XMPP, messaging | xmpp-specialist, security-expert |
 | Navigatie | architecture-lead, ui-designer |
 | i18n, vertalingen | ui-designer, documentation-writer |
@@ -708,6 +709,61 @@ grep -l "$MODULE" src/hooks/useModuleUsage.ts && \
 grep -l "$MODULE" src/components/WheelNavigationMenu.tsx && \
 for f in src/locales/*.json; do grep -l "\"$MODULE\"" "$f" || echo "MISSING: $f"; done
 ```
+
+### Database Schema Wijziging Protocol (BLOKKEERDER)
+
+**⚠️ KRITIEK — 3x GEFAALD:** Dit protocol bestaat omdat Claude herhaaldelijk schema wijzigingen heeft gemaakt ZONDER de bijbehorende migratie toe te voegen, wat resulteerde in data verlies (contacten verdwijnen).
+
+**Kernregel:** `schema.ts` en `migrations.ts` zijn een ONSCHEIDBAAR PAAR. Een wijziging aan het één ZONDER het ander is een **BLOKKEERDER** en mag NOOIT worden gecommit.
+
+**Bij ELKE schema wijziging MOET Claude:**
+
+| Stap | Bestand | Actie | VERPLICHT |
+|------|---------|-------|-----------|
+| 1 | `src/models/schema.ts` | Versienummer verhogen + kolom toevoegen | ✅ |
+| 2 | `src/models/migrations.ts` | Migratiestap toevoegen met `addColumns` | ✅ |
+| 3 | `src/models/[Model].ts` | `@field` decorator toevoegen | ✅ |
+| 4 | Verify | Controleer dat migrations.ts eindigt op DEZELFDE versie als schema.ts | ✅ |
+
+**Stap 4 — Versie Verificatie (VERPLICHT vóór commit):**
+
+```bash
+# MOET gelijk zijn — anders is er een ontbrekende migratie!
+echo "Schema version:" && grep "SCHEMA_VERSION" src/models/schema.ts
+echo "Highest migration:" && grep "toVersion:" src/models/migrations.ts | tail -1
+```
+
+**Voorbeeld — CORRECT:**
+```typescript
+// schema.ts
+export const SCHEMA_VERSION = 22;
+
+// migrations.ts — MOET eindigen op v22
+{
+  toVersion: 22,
+  steps: [
+    addColumns({
+      table: 'contacts',
+      columns: [
+        { name: 'email', type: 'string', isOptional: true },
+      ],
+    }),
+  ],
+},
+```
+
+**Anti-pattern (3x GEBEURD — VERBODEN):**
+```
+❌ schema.ts: version 22 (met email kolom)
+❌ migrations.ts: eindigt op version 21 (GEEN v22 migratie)
+❌ Resultaat: Database inconsistent, contacten verdwijnen
+```
+
+**Waarom dit catastrofaal is:**
+- WatermelonDB ziet schema v22 maar kan niet upgraden van v21 → v22
+- Bestaande database raakt corrupt
+- Contacten, agenda items en andere data verdwijnen
+- Gebruiker verliest data — onacceptabel voor senioren
 
 ### Conflict Resolutie Hiërarchie
 
