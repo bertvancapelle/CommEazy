@@ -18,7 +18,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +28,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useMusicCollections } from '@/hooks/useMusicCollections';
 import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
 import { usePlaylistImportContext } from '@/contexts/PlaylistImportContext';
-import { Icon, HapticTouchable, LoadingView } from '@/components';
+import { Icon, HapticTouchable, LoadingView , ScrollViewWithIndicator} from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { AppleMusicPlaylist } from '@/contexts/AppleMusicContext';
 
@@ -198,7 +197,7 @@ export function AppleMusicSettingsScreen() {
   }, []);
 
   return (
-    <ScrollView
+    <ScrollViewWithIndicator
       style={[styles.container, { backgroundColor: themeColors.background }]}
       contentContainerStyle={styles.contentContainer}
     >
@@ -412,7 +411,7 @@ export function AppleMusicSettingsScreen() {
       <Text style={[styles.footerNote, { color: themeColors.textTertiary }]}>
         {t('appleMusicSettings.importFooterNote')}
       </Text>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

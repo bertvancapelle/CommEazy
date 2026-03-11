@@ -979,7 +979,8 @@
       "discardMessage": "Tienes cambios sin guardar. ¿Quieres descartarlos?",
       "keepEditing": "Seguir editando",
       "discard": "Descartar"
-    }
+    },
+    "scrollForMore": "Desplácese hacia abajo para ver más"
   },
   "validation": {
     "profileIncomplete": "Completa todos los campos",

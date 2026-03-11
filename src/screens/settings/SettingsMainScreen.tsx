@@ -26,7 +26,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   ActionSheetIOS,
   Platform,
@@ -37,7 +36,7 @@ import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/n
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, type IconName } from '@/components';
+import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, ScrollViewWithIndicator, type IconName } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -237,7 +236,7 @@ export function SettingsMainScreen() {
         showAdMob={true}
       />
 
-      <ScrollView ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+      <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {/* Profile header - tappable to edit */}
         <TouchableOpacity
         style={[styles.profileHeader, { backgroundColor: themeColors.surface }]}
@@ -546,7 +545,7 @@ export function SettingsMainScreen() {
             {t('settings.version', { version: '1.0.0' })}
           </Text>
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </View>
   );
 }

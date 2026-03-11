@@ -976,7 +976,8 @@
       "discardMessage": "Hai delle modifiche non salvate. Vuoi annullarle?",
       "keepEditing": "Continua a modificare",
       "discard": "Annulla"
-    }
+    },
+    "scrollForMore": "Scorri verso il basso per ulteriori"
   },
   "validation": {
     "profileIncomplete": "Completa tutti i campi",

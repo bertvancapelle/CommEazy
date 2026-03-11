@@ -23,7 +23,6 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  ScrollView,
   Linking,
   Platform,
 } from 'react-native';
@@ -34,7 +33,7 @@ import type { RouteProp } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, Icon, SeniorDatePicker, HapticTouchable } from '@/components';
+import { ContactAvatar, Icon, SeniorDatePicker, HapticTouchable , ScrollViewWithIndicator} from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
@@ -471,7 +470,7 @@ export function ContactDetailScreen() {
   const showNavigationButton = hasNavigableAddress(contact.address);
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
+    <ScrollViewWithIndicator style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Profile header with large photo */}
       <View style={styles.profileHeader}>
         <ContactAvatar
@@ -1048,7 +1047,7 @@ export function ContactDetailScreen() {
           <Text style={[styles.dangerButtonText, { color: themeColors.error }]}>{t('contacts.delete')}</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

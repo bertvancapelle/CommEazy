@@ -75,3 +75,6 @@ export {
 
 // HomeScreen Badges
 export { useModuleBadges, type UseModuleBadgesReturn } from './useModuleBadges';
+
+// Scroll Overflow Detection
+export { useScrollOverflow, type UseScrollOverflowReturn } from './useScrollOverflow';

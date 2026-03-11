@@ -187,6 +187,11 @@ export type { MusicCollectionChipBarProps, MusicChipId } from './MusicCollection
 export { ContactGroupActionsBar } from './ContactGroupActionsBar';
 export type { ContactGroupActionsBarProps } from './ContactGroupActionsBar';
 
+// Scroll More Indicator (bouncing arrow for overflowing scroll content)
+export { ScrollMoreIndicator } from './ScrollMoreIndicator';
+export { ScrollViewWithIndicator } from './ScrollViewWithIndicator';
+export type { ScrollViewWithIndicatorProps } from './ScrollViewWithIndicator';
+
 // Adaptive Navigation Components (iPad/iPhone hybrid menu)
 export {
   ModuleItem,

@@ -872,7 +872,8 @@
       "discardMessage": "Du har ændringer, der ikke er gemt. Vil du kassere dem?",
       "keepEditing": "Fortsæt redigering",
       "discard": "Kassér"
-    }
+    },
+    "scrollForMore": "Rul ned for mere"
   },
   "validation": {
     "profileIncomplete": "Udfyld alle felter",

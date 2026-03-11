@@ -20,7 +20,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Switch,
   Alert,
@@ -34,7 +33,7 @@ import type { SettingsStackParams } from '@/navigation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, VoiceFocusable } from '@/components';
+import { Icon, VoiceFocusable , ScrollViewWithIndicator} from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -237,7 +236,7 @@ export function MailSettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <ScrollView
+      <ScrollViewWithIndicator
         ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -561,7 +560,7 @@ export function MailSettingsScreen() {
             )}
           </View>
         </VoiceFocusable>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </View>
   );
 }

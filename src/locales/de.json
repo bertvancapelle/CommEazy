@@ -979,7 +979,8 @@
       "discardMessage": "Du hast ungespeicherte Änderungen. Möchtest du diese verwerfen?",
       "keepEditing": "Weiter bearbeiten",
       "discard": "Verwerfen"
-    }
+    },
+    "scrollForMore": "Scrollen Sie nach unten für mehr"
   },
   "validation": {
     "profileIncomplete": "Alle Felder ausfüllen",

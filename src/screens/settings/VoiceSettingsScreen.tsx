@@ -24,7 +24,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Switch,
   TextInput,
@@ -42,7 +41,7 @@ import {
   borderRadius,
 } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Icon, VoiceFocusable, VoiceToggle } from '@/components';
+import { Icon, VoiceFocusable, VoiceToggle , ScrollViewWithIndicator} from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useVoiceSettingsContext } from '@/contexts/VoiceSettingsContext';
@@ -376,7 +375,7 @@ export function VoiceSettingsScreen() {
   );
 
   return (
-    <ScrollView
+    <ScrollViewWithIndicator
       ref={scrollRef}
       style={[styles.container, { backgroundColor: themeColors.background }]}
       contentContainerStyle={styles.contentContainer}
@@ -504,7 +503,7 @@ export function VoiceSettingsScreen() {
 
       {/* Spacer for bottom padding */}
       <View style={styles.bottomSpacer} />
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

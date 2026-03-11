@@ -1004,7 +1004,8 @@
       "discardMessage": "Tem alterações não guardadas. Pretende descartá-las?",
       "keepEditing": "Continuar a editar",
       "discard": "Descartar"
-    }
+    },
+    "scrollForMore": "Deslize para baixo para mais"
   },
   "validation": {
     "profileIncomplete": "Preencha todos os campos",

@@ -18,9 +18,9 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Switch,
 } from 'react-native';
+import { ScrollViewWithIndicator } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -147,7 +147,7 @@ export function PrivacySettingsScreen() {
   }
 
   return (
-    <ScrollView
+    <ScrollViewWithIndicator
       ref={scrollRef}
       style={[styles.container, { backgroundColor: themeColors.background }]}
       contentContainerStyle={styles.contentContainer}
@@ -175,7 +175,7 @@ export function PrivacySettingsScreen() {
       <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
         {t('privacySettings.info')}
       </Text>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

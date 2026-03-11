@@ -34,7 +34,6 @@ import {
   TextInput as RNTextInput,
   Image,
   StyleSheet,
-  ScrollView,
   Platform,
   Alert,
   Modal,
@@ -48,7 +47,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, SearchBar } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, SearchBar , ScrollViewWithIndicator} from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -224,7 +223,7 @@ function FormPickerModal({
         </View>
 
         {/* Options */}
-        <ScrollView>
+        <ScrollViewWithIndicator>
           {options.map((option) => {
             const isSelected = option.value === selectedValue;
             return (
@@ -264,7 +263,7 @@ function FormPickerModal({
               </HapticTouchable>
             );
           })}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     </Modal>
   );
@@ -516,7 +515,7 @@ function CategoryPickerModal({
           </HapticTouchable>
         </View>
 
-        <ScrollView contentContainerStyle={categoryPickerStyles.scrollContent}>
+        <ScrollViewWithIndicator contentContainerStyle={categoryPickerStyles.scrollContent}>
           {/* Standard categories — 3-wide grid */}
           <View style={categoryPickerStyles.sectionHeader}>
             <Text style={[categoryPickerStyles.sectionTitle, { color: themeColors.textSecondary }]}>
@@ -562,7 +561,7 @@ function CategoryPickerModal({
               </Text>
             </HapticTouchable>
           </View>
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     </Modal>
   );
@@ -706,7 +705,7 @@ function CreateCategoryModal({
           </HapticTouchable>
         </View>
 
-        <ScrollView contentContainerStyle={createCategoryStyles.content}>
+        <ScrollViewWithIndicator contentContainerStyle={createCategoryStyles.content}>
           {/* Preview */}
           <View style={createCategoryStyles.preview}>
             <Text style={createCategoryStyles.previewEmoji}>{selectedEmoji}</Text>
@@ -771,7 +770,7 @@ function CreateCategoryModal({
               </View>
             </View>
           ))}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     </Modal>
   );
@@ -1361,7 +1360,7 @@ export function AgendaItemFormScreen({
         onSave={handleSave}
       />
 
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -1925,7 +1924,7 @@ export function AgendaItemFormScreen({
             })()}
           </View>
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Category Picker Modal */}
       <CategoryPickerModal
@@ -2062,7 +2061,7 @@ export function AgendaItemFormScreen({
           </View>
 
           {/* Contact list — suggested first, then others */}
-          <ScrollView>
+          <ScrollViewWithIndicator>
             {allContacts.length === 0 ? (
               <View style={styles.emptyContactList}>
                 <Text style={[styles.emptyContactText, { color: themeColors.textTertiary }]}>
@@ -2204,7 +2203,7 @@ export function AgendaItemFormScreen({
                 )}
               </>
             )}
-          </ScrollView>
+          </ScrollViewWithIndicator>
         </View>
       </Modal>
     </View>

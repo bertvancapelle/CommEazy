@@ -893,7 +893,8 @@
       "discardMessage": "Masz niezapisane zmiany. Czy chcesz je odrzucić?",
       "keepEditing": "Kontynuuj edycję",
       "discard": "Odrzuć"
-    }
+    },
+    "scrollForMore": "Przewiń w dół, aby zobaczyć więcej"
   },
   "validation": {
     "profileIncomplete": "Wypełnij wszystkie pola",

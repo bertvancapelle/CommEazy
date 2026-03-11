@@ -21,7 +21,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Switch,
   TouchableOpacity,
 } from 'react-native';
@@ -32,7 +31,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Icon, VoiceFocusable, IconButton, type IconName } from '@/components';
+import { Icon, VoiceFocusable, IconButton, type IconName , ScrollViewWithIndicator} from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -353,7 +352,7 @@ export function ModulesSettingsScreen() {
       </View>
 
       {/* Module list */}
-      <ScrollView
+      <ScrollViewWithIndicator
         ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -382,7 +381,7 @@ export function ModulesSettingsScreen() {
             {t('settings.modules.moreComingSoonHint')}
           </Text>
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </View>
   );
 }

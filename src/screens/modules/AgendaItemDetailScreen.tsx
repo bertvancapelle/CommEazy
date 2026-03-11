@@ -17,7 +17,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Alert,
   Modal,
   ActivityIndicator,
@@ -26,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ContactAvatar, Button } from '@/components';
+import { Icon, HapticTouchable, ContactAvatar, Button , ScrollViewWithIndicator} from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -474,7 +473,7 @@ export function AgendaItemDetailScreen({
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -615,7 +614,7 @@ export function AgendaItemDetailScreen({
             </Text>
           </HapticTouchable>
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Recurring action modal */}
       <RecurringActionModal
@@ -703,7 +702,7 @@ export function AgendaItemDetailScreen({
               </Text>
             </View>
           ) : (
-            <ScrollView style={shareStyles.contactList}>
+            <ScrollViewWithIndicator style={shareStyles.contactList}>
               {shareContacts.map(contact => {
                 const isSelected = selectedShareContacts.has(contact.jid);
                 const displayName = getContactDisplayName(contact);
@@ -750,7 +749,7 @@ export function AgendaItemDetailScreen({
                   </HapticTouchable>
                 );
               })}
-            </ScrollView>
+            </ScrollViewWithIndicator>
           )}
 
           {/* Bottom bar with send button */}

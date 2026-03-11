@@ -24,9 +24,9 @@ import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Alert,
-  ScrollView,
   ActivityIndicator,
   TextInput,
   Platform,
@@ -41,7 +41,7 @@ import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { ContactAvatar, LoadingView } from '@/components';
+import { ContactAvatar, LoadingView , ScrollViewWithIndicator} from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import {
   pickImageFromCamera,
@@ -570,7 +570,7 @@ export function ProfileSettingsScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <ScrollView
+      <ScrollViewWithIndicator
         ref={(ref) => {
           // Combine both refs for scroll functionality
           scrollViewRef.current = ref;
@@ -880,7 +880,7 @@ export function ProfileSettingsScreen() {
       />
 
       {/* CitySearchInline is now rendered inline below the city field — no modal needed */}
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </KeyboardAvoidingView>
   );
 }

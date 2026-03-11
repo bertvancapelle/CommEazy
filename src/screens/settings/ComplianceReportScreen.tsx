@@ -11,7 +11,6 @@ import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
@@ -19,7 +18,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { useColors } from '@/contexts/ThemeContext';
-import { Icon } from '@/components';
+import { Icon , ScrollViewWithIndicator} from '@/components';
 import {
   colors,
   typography,
@@ -254,7 +253,7 @@ export function ComplianceReportScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
@@ -283,7 +282,7 @@ export function ComplianceReportScreen() {
           <Text style={[styles.footerText, { color: themeColors.textTertiary }]}>Report generated: {reportDate}</Text>
           <Text style={[styles.footerText, { color: themeColors.textTertiary }]}>App version: 1.0.0</Text>
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
     </SafeAreaView>
   );
 }

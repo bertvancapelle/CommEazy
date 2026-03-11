@@ -25,7 +25,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Platform,
   Modal,
@@ -38,7 +37,7 @@ import Slider from '@react-native-community/slider';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, DEFAULT_ACCENT_COLOR, type AccentColorKey } from '@/theme';
 import { darkColors } from '@/theme/darkColors';
-import { Icon, LiquidGlassView, type IconName } from '@/components';
+import { Icon, LiquidGlassView, type IconName , ScrollViewWithIndicator} from '@/components';
 import { useTheme, useColors, type ThemeMode } from '@/contexts/ThemeContext';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import {
@@ -412,7 +411,7 @@ export function AppearanceSettingsScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
+    <ScrollViewWithIndicator style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Theme Mode Section */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.theme.title')}</Text>
@@ -758,7 +757,7 @@ export function AppearanceSettingsScreen() {
           {t('appearance.info')}
         </Text>
       </View>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

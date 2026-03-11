@@ -872,7 +872,8 @@
       "discardMessage": "Du har osparade ändringar. Vill du ignorera dem?",
       "keepEditing": "Fortsätt redigera",
       "discard": "Ignorera"
-    }
+    },
+    "scrollForMore": "Scrolla ner för mer"
   },
   "validation": {
     "profileIncomplete": "Fyll i alla fält",

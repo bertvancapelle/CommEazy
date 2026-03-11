@@ -23,7 +23,6 @@ import {
   Text,
   Image,
   StyleSheet,
-  ScrollView,
   RefreshControl,
   Modal,
   TouchableOpacity,
@@ -36,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, ModuleHeader, HapticTouchable, LoadingView, SearchBar } from '@/components';
+import { Icon, ModuleHeader, HapticTouchable, LoadingView, SearchBar , ScrollViewWithIndicator} from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import {
   AgendaProvider,
@@ -527,7 +526,7 @@ function AgendaScreenInner() {
           </HapticTouchable>
         </View>
 
-        <ScrollView
+        <ScrollViewWithIndicator
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollContent,
@@ -590,7 +589,7 @@ function AgendaScreenInner() {
               </Text>
             </View>
           )}
-        </ScrollView>
+        </ScrollViewWithIndicator>
       </View>
     );
   }
@@ -663,7 +662,7 @@ function AgendaScreenInner() {
       </View>
 
       {/* Day items */}
-      <ScrollView
+      <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -697,7 +696,7 @@ function AgendaScreenInner() {
             />
           ))
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Welcome Modal */}
       <Modal

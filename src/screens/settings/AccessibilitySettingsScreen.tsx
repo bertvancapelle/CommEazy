@@ -21,7 +21,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Switch,
 } from 'react-native';
@@ -48,7 +47,7 @@ import {
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useVoiceCommands } from '@/hooks/useVoiceCommands';
 import { useTtsSettings, TTS_SPEED_OPTIONS, type TtsSpeechRate } from '@/hooks/useTtsSettings';
-import { Icon, VoiceToggle, VoiceStepper, VoiceFocusable } from '@/components';
+import { Icon, VoiceToggle, VoiceStepper, VoiceFocusable , ScrollViewWithIndicator} from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 
@@ -552,7 +551,7 @@ export function AccessibilitySettingsScreen() {
   );
 
   return (
-    <ScrollView ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
+    <ScrollViewWithIndicator ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Feedback section */}
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('accessibilitySettings.feedbackTitle')}</Text>
@@ -713,7 +712,7 @@ export function AccessibilitySettingsScreen() {
         </View>
         <Icon name="chevron-right" size={24} color={themeColors.textTertiary} />
       </TouchableOpacity>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

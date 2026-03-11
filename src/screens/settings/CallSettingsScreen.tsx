@@ -21,7 +21,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Switch,
 } from 'react-native';
@@ -44,7 +43,7 @@ import {
   type RingtoneSound,
   DEFAULT_CALL_SOUND_SETTINGS,
 } from '@/services/call';
-import { Icon } from '@/components';
+import { Icon , ScrollViewWithIndicator} from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 
 // ============================================================
@@ -306,7 +305,7 @@ export function CallSettingsScreen() {
   const { scrollRef } = useVoiceFocusList('call-settings-list', voiceFocusItems);
 
   return (
-    <ScrollView ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
+    <ScrollViewWithIndicator ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Incoming calls section */}
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('callSettings.ringtoneSection')}</Text>
@@ -376,7 +375,7 @@ export function CallSettingsScreen() {
           themeColors={themeColors}
         />
       </View>
-    </ScrollView>
+    </ScrollViewWithIndicator>
   );
 }
 

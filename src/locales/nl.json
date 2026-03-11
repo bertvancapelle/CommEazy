@@ -816,7 +816,8 @@
       "discardMessage": "Je hebt onopgeslagen wijzigingen. Wil je deze weggooien?",
       "keepEditing": "Verder bewerken",
       "discard": "Weggooien"
-    }
+    },
+    "scrollForMore": "Scroll omlaag voor meer"
   },
   "validation": {
     "profileIncomplete": "Vul alle velden in",

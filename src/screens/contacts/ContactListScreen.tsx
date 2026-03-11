@@ -23,8 +23,8 @@ import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
@@ -34,7 +34,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar, ContactGroupActionsBar, HapticTouchable } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar, ContactGroupActionsBar, HapticTouchable , ScrollViewWithIndicator} from '@/components';
 import type { ChipId } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
@@ -500,7 +500,7 @@ export function ContactListScreen() {
       )}
 
       {/* Contact list with voice focus navigation */}
-      <ScrollView
+      <ScrollViewWithIndicator
         ref={scrollRef}
         contentContainerStyle={
           filteredContacts.length === 0 ? styles.emptyListContent : undefined
@@ -520,7 +520,7 @@ export function ContactListScreen() {
         ) : (
           filteredContacts.map((contact, index) => renderContactItem(contact, index))
         )}
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Group actions bar — visible when a group/smart section is selected */}
       {selectedChipId !== 'all' && filteredContacts.length > 0 && (

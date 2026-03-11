@@ -45,6 +45,7 @@ import {
   PanResponder,
   type LayoutChangeEvent,
 } from 'react-native';
+import { ScrollViewWithIndicator } from '@/components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -622,7 +623,7 @@ export function HomeScreen({
         </View>
       )}
 
-      <ScrollView
+      <ScrollViewWithIndicator
         ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -693,7 +694,7 @@ export function HomeScreen({
             );
           })}
         </View>
-      </ScrollView>
+      </ScrollViewWithIndicator>
 
       {/* Dragged item overlay — follows the finger */}
       {isDraggingRef.current && currentDraggedId && (
