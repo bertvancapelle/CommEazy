@@ -315,6 +315,7 @@ export class WatermelonDBService implements DatabaseService {
           record.firstName = contact.firstName;
           record.lastName = contact.lastName;
           record.phoneNumber = contact.phoneNumber;
+          record.email = contact.email;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
           record.lastSeen = contact.lastSeen;
@@ -330,6 +331,9 @@ export class WatermelonDBService implements DatabaseService {
           record.deathDate = contact.deathDate;
           record.isDeceased = contact.isDeceased;
           record.isEmergencyContact = contact.isEmergencyContact;
+          if (contact.trustLevel !== undefined) {
+            record.trustLevel = contact.trustLevel;
+          }
           record.categories = contact.categories;
         });
       } else {
@@ -340,6 +344,7 @@ export class WatermelonDBService implements DatabaseService {
           record.firstName = contact.firstName;
           record.lastName = contact.lastName;
           record.phoneNumber = contact.phoneNumber;
+          record.email = contact.email;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
           record.lastSeen = contact.lastSeen;
@@ -355,6 +360,7 @@ export class WatermelonDBService implements DatabaseService {
           record.deathDate = contact.deathDate;
           record.isDeceased = contact.isDeceased;
           record.isEmergencyContact = contact.isEmergencyContact;
+          record.trustLevel = contact.trustLevel ?? 0;
           record.categories = contact.categories;
         });
       }
@@ -659,6 +665,7 @@ export class WatermelonDBService implements DatabaseService {
       firstName: c.firstName,
       lastName: c.lastName,
       phoneNumber: c.phoneNumber,
+      email: c.email,
       publicKey: c.publicKey,
       verified: c.verified,
       lastSeen: c.lastSeen,
@@ -676,6 +683,7 @@ export class WatermelonDBService implements DatabaseService {
       deathDate: c.deathDate,
       isDeceased: c.isDeceased,
       isEmergencyContact: c.isEmergencyContact,
+      trustLevel: c.trustLevel,
       categories: c.categories,
     };
   }

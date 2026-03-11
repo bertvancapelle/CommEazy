@@ -29,6 +29,7 @@
  * - v19: Added category snapshot fields to agenda_items (category_icon, category_name, form_type)
  * - v20: Added categories to contacts (JSON array of agenda category IDs)
  * - v21: Added end_time, notes, source to agenda_items (ICS calendar import)
+ * - v22: Added email to contacts (enables ICS calendar invitation via mail)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -55,10 +56,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 21;
+export const SCHEMA_VERSION = 22;
 
 export const schema = appSchema({
-  version: 21,
+  version: 22,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -135,6 +136,7 @@ export const schema = appSchema({
         { name: 'first_name', type: 'string' },                   // Voornaam (v14, replaces name)
         { name: 'last_name', type: 'string' },                    // Achternaam (v14)
         { name: 'phone_number', type: 'string', isOptional: true }, // Now optional (v4)
+        { name: 'email', type: 'string', isOptional: true },      // Email address (v22)
         { name: 'public_key', type: 'string' }, // Base64
         { name: 'verified', type: 'boolean' }, // QR verified
         { name: 'last_seen', type: 'number' },

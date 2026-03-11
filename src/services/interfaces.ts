@@ -121,6 +121,8 @@ export interface Contact {
   isDeceased?: boolean;      // Overleden toggle
   // Emergency contact (ICE)
   isEmergencyContact?: boolean; // Noodcontact toggle
+  // Trust level: 0=Unknown, 1=Invited, 2=Connected, 3=Verified
+  trustLevel?: number;
   // Agenda categories (JSON array of AgendaCategoryId strings)
   categories?: string;
 }
