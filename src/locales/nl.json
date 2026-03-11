@@ -2096,6 +2096,21 @@
         "markedRead": "Gemarkeerd als gelezen",
         "markedUnread": "Gemarkeerd als ongelezen"
       },
+      "ics": {
+        "calendarInvitation": "Agenda-uitnodiging",
+        "allDay": "Hele dag",
+        "addToAgenda": "Toevoegen aan agenda",
+        "addedToAgenda": "Toegevoegd aan agenda",
+        "addFailed": "Kon niet aan agenda toevoegen. Probeer het opnieuw.",
+        "cardAccessibility": "Agenda-uitnodiging: {{title}}",
+        "recurring": {
+          "daily": "Dagelijks herhalend",
+          "weekly": "Wekelijks herhalend",
+          "biweekly": "Tweewekelijks herhalend",
+          "monthly": "Maandelijks herhalend",
+          "yearly": "Jaarlijks herhalend"
+        }
+      },
       "notifications": {
         "newMailTitle": "Nieuwe e-mail",
         "newMailBodySingular": "Je hebt {{count}} nieuw bericht",
@@ -2301,7 +2316,12 @@
         "newCategoryShort": "Nieuw",
         "suggestedContacts": "Voorgestelde contacten: {{category}}",
         "otherContacts": "Andere contacten",
-        "pastDateWarning": "Deze datum ligt in het verleden"
+        "pastDateWarning": "Deze datum ligt in het verleden",
+        "endTimeLabel": "Eindtijd",
+        "addEndTime": "Eindtijd toevoegen",
+        "clearEndTime": "Eindtijd wissen",
+        "notesLabel": "Notities",
+        "notesPlaceholder": "Voeg notities toe..."
       },
       "search": {
         "tabOverview": "Overzicht",

@@ -2142,6 +2142,21 @@
         "draftFoundMessage": "Vous avez un brouillon inachevé. Voulez-vous continuer à écrire ?",
         "draftRestore": "Continuer à écrire",
         "draftDiscard": "Recommencer"
+      },
+      "ics": {
+        "calendarInvitation": "Invitation calendrier",
+        "allDay": "Toute la journée",
+        "addToAgenda": "Ajouter à l'agenda",
+        "addedToAgenda": "Ajouté à l'agenda",
+        "addFailed": "Impossible d'ajouter à l'agenda. Veuillez réessayer.",
+        "cardAccessibility": "Invitation calendrier : {{title}}",
+        "recurring": {
+          "daily": "Répétition quotidienne",
+          "weekly": "Répétition hebdomadaire",
+          "biweekly": "Répétition bihebdomadaire",
+          "monthly": "Répétition mensuelle",
+          "yearly": "Répétition annuelle"
+        }
       }
     },
     "askAI": {
@@ -2291,7 +2306,12 @@
         "suggestedContacts": "Contacts suggérés: {{category}}",
         "otherContacts": "Autres contacts",
         "done": "Terminé",
-        "pastDateWarning": "Cette date est dans le passé"
+        "pastDateWarning": "Cette date est dans le passé",
+        "endTimeLabel": "Heure de fin",
+        "addEndTime": "Ajouter heure de fin",
+        "clearEndTime": "Effacer heure de fin",
+        "notesLabel": "Notes",
+        "notesPlaceholder": "Ajouter des notes..."
       },
       "search": {
         "tabOverview": "Aperçu",

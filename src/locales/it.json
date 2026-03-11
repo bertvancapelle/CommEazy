@@ -2090,6 +2090,21 @@
         "draftFoundMessage": "Hai una bozza incompleta. Vuoi continuare a scrivere?",
         "draftRestore": "Continua a scrivere",
         "draftDiscard": "Ricominciare"
+      },
+      "ics": {
+        "calendarInvitation": "Invito calendario",
+        "allDay": "Tutto il giorno",
+        "addToAgenda": "Aggiungi all'agenda",
+        "addedToAgenda": "Aggiunto all'agenda",
+        "addFailed": "Impossibile aggiungere all'agenda. Riprova.",
+        "cardAccessibility": "Invito calendario: {{title}}",
+        "recurring": {
+          "daily": "Si ripete ogni giorno",
+          "weekly": "Si ripete ogni settimana",
+          "biweekly": "Si ripete ogni due settimane",
+          "monthly": "Si ripete ogni mese",
+          "yearly": "Si ripete ogni anno"
+        }
       }
     },
     "askAI": {
@@ -2239,7 +2254,12 @@
         "suggestedContacts": "Contatti suggeriti: {{category}}",
         "otherContacts": "Altri contatti",
         "done": "Fatto",
-        "pastDateWarning": "Questa data è nel passato"
+        "pastDateWarning": "Questa data è nel passato",
+        "endTimeLabel": "Ora di fine",
+        "addEndTime": "Aggiungi ora di fine",
+        "clearEndTime": "Cancella ora di fine",
+        "notesLabel": "Note",
+        "notesPlaceholder": "Aggiungi note..."
       },
       "search": {
         "tabOverview": "Panoramica",

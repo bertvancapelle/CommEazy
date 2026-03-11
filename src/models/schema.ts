@@ -28,6 +28,7 @@
  * - v18: Added address fields to agenda_items (location_name, address_street, address_postal_code, address_city, address_country)
  * - v19: Added category snapshot fields to agenda_items (category_icon, category_name, form_type)
  * - v20: Added categories to contacts (JSON array of agenda category IDs)
+ * - v21: Added end_time, notes, source to agenda_items (ICS calendar import)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -54,10 +55,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 20;
+export const SCHEMA_VERSION = 21;
 
 export const schema = appSchema({
-  version: 20,
+  version: 21,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -256,6 +257,12 @@ export const schema = appSchema({
         { name: 'address_postal_code', type: 'string', isOptional: true },
         { name: 'address_city', type: 'string', isOptional: true },
         { name: 'address_country', type: 'string', isOptional: true },
+        // End time (v21 — ICS calendar import)
+        { name: 'end_time', type: 'string', isOptional: true },      // "14:30" (null for open-ended)
+        // Notes (v21 — ICS DESCRIPTION field)
+        { name: 'notes', type: 'string', isOptional: true },         // Free-text notes
+        // Source (v21 — tracks where item came from)
+        { name: 'source', type: 'string', isOptional: true },        // 'ics' | 'manual' | 'shared'
         // Medication log
         { name: 'medication_log', type: 'string', isOptional: true }, // JSON: MedicationLogEntry[]
         // Sharing

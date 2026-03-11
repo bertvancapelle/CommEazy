@@ -36,3 +36,6 @@ export * as contentRouter from './contentRouter';
 
 // Fase 19: Image whitelist (per-domain auto-load)
 export * as imageWhitelistService from './imageWhitelistService';
+
+// ICS calendar invitation parsing
+export * as icsParser from './icsParser';

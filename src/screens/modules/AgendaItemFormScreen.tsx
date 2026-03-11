@@ -926,6 +926,21 @@ export function AgendaItemFormScreen({
   const [showContactPicker, setShowContactPicker] = useState(false);
   const [contactSearchQuery, setContactSearchQuery] = useState('');
 
+  // End time state (v21 — ICS calendar import)
+  const [endTime, setEndTime] = useState<Date | null>(() => {
+    if (initialData?.endTime) {
+      const [h, m] = initialData.endTime.split(':').map(Number);
+      const d = new Date();
+      d.setHours(h, m, 0, 0);
+      return d;
+    }
+    return null;
+  });
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+
+  // Notes state (v21 — ICS DESCRIPTION)
+  const [notes, setNotes] = useState(initialData?.notes ?? '');
+
   // Address state (v18)
   const [locationName, setLocationName] = useState(initialData?.locationName ?? '');
   const [addressStreet, setAddressStreet] = useState(initialData?.addressStreet ?? '');
@@ -1219,6 +1234,10 @@ export function AgendaItemFormScreen({
       addressPostalCode: formTypeDef.showAddressField ? (addressPostalCode.trim() || undefined) : undefined,
       addressCity: formTypeDef.showAddressField ? (addressCity.trim() || undefined) : undefined,
       addressCountry: formTypeDef.showAddressField ? (addressCountry.trim() || undefined) : undefined,
+      // End time + notes (v21)
+      endTime: endTime ? formatTime(endTime) : undefined,
+      notes: notes.trim() || undefined,
+      source: initialData?.source,
     };
 
     // Save category-memory for address (async, fire-and-forget)
@@ -1252,6 +1271,9 @@ export function AgendaItemFormScreen({
     addressPostalCode,
     addressCity,
     addressCountry,
+    endTime,
+    notes,
+    initialData?.source,
     onSave,
     t,
   ]);
@@ -1285,17 +1307,24 @@ export function AgendaItemFormScreen({
         || locationName.trim().length > 0
         || addressStreet.trim().length > 0
         || addressCity.trim().length > 0
-        || selectedContactIds.length > 0;
+        || selectedContactIds.length > 0
+        || endTime !== null
+        || notes.trim().length > 0;
     }
+    const initialEndTime = initialData?.endTime ?? null;
+    const currentEndTime = endTime ? formatTime(endTime) : null;
     return title.trim() !== (initialData?.title ?? '')
       || locationName.trim() !== (initialData?.locationName ?? '')
       || addressStreet.trim() !== (initialData?.addressStreet ?? '')
       || addressPostalCode.trim() !== (initialData?.addressPostalCode ?? '')
       || addressCity.trim() !== (initialData?.addressCity ?? '')
-      || addressCountry.trim() !== (initialData?.addressCountry ?? '');
+      || addressCountry.trim() !== (initialData?.addressCountry ?? '')
+      || currentEndTime !== initialEndTime
+      || notes.trim() !== (initialData?.notes ?? '');
   }, [
     isEditing, title, locationName, addressStreet, addressPostalCode,
     addressCity, addressCountry, selectedContactIds, initialData,
+    endTime, notes,
   ]);
 
   // Cancel with unsaved changes guard
@@ -1524,6 +1553,88 @@ export function AgendaItemFormScreen({
             </HapticTouchable>
           </View>
         )}
+
+        {/* ====== End Time (optional — shown for appointment when start time is set) ====== */}
+        {formTypeDef.showTimeField && !formTypeDef.showMultipleTimes && (
+          <View style={styles.fieldContainer}>
+            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+              {t('modules.agenda.form.endTimeLabel')}
+            </Text>
+            {endTime ? (
+              <View style={styles.endTimeRow}>
+                <HapticTouchable
+                  style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface, flex: 1 }]}
+                  onPress={() => { Keyboard.dismiss(); setShowEndTimePicker(true); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('modules.agenda.form.endTimeLabel')}: ${formatTime(endTime)}`}
+                >
+                  <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+                    {formatTime(endTime)}
+                  </Text>
+                  <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
+                </HapticTouchable>
+                <HapticTouchable
+                  style={styles.clearEndDate}
+                  onPress={() => setEndTime(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.agenda.form.clearEndTime')}
+                >
+                  <Text style={[styles.clearEndDateText, { color: accentColor.primary }]}>
+                    {t('modules.agenda.form.clearEndTime')}
+                  </Text>
+                </HapticTouchable>
+              </View>
+            ) : (
+              <HapticTouchable
+                style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  // Default end time: 1 hour after start time
+                  const defaultEnd = new Date(selectedTime);
+                  defaultEnd.setHours(defaultEnd.getHours() + 1);
+                  setEndTime(defaultEnd);
+                  setShowEndTimePicker(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.agenda.form.addEndTime')}
+              >
+                <Text style={[styles.pickerValue, { color: themeColors.textTertiary }]}>
+                  {t('modules.agenda.form.addEndTime')}
+                </Text>
+                <Icon name="add" size={20} color={themeColors.textSecondary} />
+              </HapticTouchable>
+            )}
+          </View>
+        )}
+
+        {/* ====== Notes (optional) ====== */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            {t('modules.agenda.form.notesLabel')}
+          </Text>
+          <RNTextInput
+            style={[
+              styles.textInput,
+              styles.notesInput,
+              {
+                color: themeColors.textPrimary,
+                borderColor: themeColors.border,
+                backgroundColor: themeColors.surface,
+              },
+            ]}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder={t('modules.agenda.form.notesPlaceholder')}
+            placeholderTextColor={themeColors.disabled}
+            autoCapitalize="sentences"
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+            blurOnSubmit={true}
+            onSubmitEditing={() => Keyboard.dismiss()}
+            accessibilityLabel={t('modules.agenda.form.notesLabel')}
+          />
+        </View>
 
         {/* ====== Repeat ====== */}
         <View style={styles.fieldContainer}>
@@ -1869,6 +1980,20 @@ export function AgendaItemFormScreen({
       />
 
       <DateTimePickerModal
+        visible={showEndTimePicker}
+        title={t('modules.agenda.form.endTimeLabel')}
+        value={endTime ?? new Date()}
+        mode="time"
+        onChange={(event, date) => {
+          if (date) setEndTime(date);
+          if (Platform.OS === 'android') setShowEndTimePicker(false);
+        }}
+        onClose={() => setShowEndTimePicker(false)}
+        is24Hour={true}
+        locale={locale}
+      />
+
+      <DateTimePickerModal
         visible={showEndDatePicker}
         title={t('modules.agenda.form.endDateLabel')}
         value={endDate ?? new Date(selectedDate.getTime() + 30 * 24 * 60 * 60 * 1000)}
@@ -2196,6 +2321,19 @@ const styles = StyleSheet.create({
   addTimeText: {
     ...typography.body,
     fontWeight: '600',
+  },
+
+  // End time
+  endTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  // Notes
+  notesInput: {
+    minHeight: 100,
+    textAlignVertical: 'top',
   },
 
   // End date

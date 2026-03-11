@@ -38,6 +38,13 @@ export class AgendaItemModel extends Model {
   // Contacts (family appointments)
   @field('contact_ids') contactIds?: string;       // JSON array of Contact record IDs
 
+  // End time (v21 — ICS calendar import)
+  @field('end_time') endTime?: string;              // "14:30" (null for open-ended)
+  // Notes (v21 — ICS DESCRIPTION field)
+  @field('notes') notes?: string;                   // Free-text notes
+  // Source (v21 — tracks where item came from)
+  @field('source') source?: string;                 // 'ics' | 'manual' | 'shared'
+
   // Location / Address (v18)
   @field('location_name') locationName?: string;    // e.g. "Huisartsenpraktijk De Linde"
   @field('address_street') addressStreet?: string;
@@ -145,6 +152,9 @@ export class AgendaItemModel extends Model {
     categoryName?: string;
     formType?: AgendaFormType;
     category?: AgendaCategory;
+    endTime?: string | null;
+    notes?: string | null;
+    source?: string;
   }): Promise<void> {
     await this.update(record => {
       if (updates.title !== undefined) record.title = updates.title;
@@ -170,6 +180,9 @@ export class AgendaItemModel extends Model {
       if (updates.categoryName !== undefined) record.categoryName = updates.categoryName;
       if (updates.formType !== undefined) record.formType = updates.formType;
       if (updates.category !== undefined) record.category = updates.category;
+      if (updates.endTime !== undefined) record.endTime = updates.endTime ?? undefined;
+      if (updates.notes !== undefined) record.notes = updates.notes ?? undefined;
+      if (updates.source !== undefined) record.source = updates.source;
     });
   }
 

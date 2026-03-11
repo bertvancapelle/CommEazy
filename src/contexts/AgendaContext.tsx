@@ -77,6 +77,10 @@ export interface TimelineItem {
   contactNames: string[];
   /** Contact photo paths (resolved, null for contacts without photo) */
   contactPhotoPaths: (string | null)[];
+  /** End time "HH:MM" or null */
+  endTime: string | null;
+  /** Free-text notes */
+  notes: string | null;
   /** Location name (e.g. "Huisartsenpraktijk De Linde") */
   locationName: string | null;
   /** Address street */
@@ -171,6 +175,10 @@ export interface CreateAgendaItemData {
   addressCity?: string;
   addressCountry?: string;
   sharedFrom?: string;
+  // End time + notes + source (v21 — ICS calendar import)
+  endTime?: string;
+  notes?: string;
+  source?: string;
 }
 
 // ============================================================
@@ -364,6 +372,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             contactIds: [contact.id],
             contactNames: [contact.displayName],
             contactPhotoPaths: [contact.photoPath ?? null],
+            endTime: null,
+            notes: null,
             locationName: null,
             addressStreet: null,
             addressPostalCode: null,
@@ -404,6 +414,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             contactIds: [contact.id],
             contactNames: [contact.displayName],
             contactPhotoPaths: [contact.photoPath ?? null],
+            endTime: null,
+            notes: null,
             locationName: null,
             addressStreet: null,
             addressPostalCode: null,
@@ -443,6 +455,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             contactIds: [contact.id],
             contactNames: [contact.displayName],
             contactPhotoPaths: [contact.photoPath ?? null],
+            endTime: null,
+            notes: null,
             locationName: null,
             addressStreet: null,
             addressPostalCode: null,
@@ -501,6 +515,8 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
           isMedication: item.isMedication,
           medicationLog: item.parsedMedicationLog,
           sharedWith: item.parsedSharedWith,
+          endTime: item.endTime ?? null,
+          notes: item.notes ?? null,
           locationName: item.locationName ?? null,
           addressStreet: item.addressStreet ?? null,
           addressPostalCode: item.addressPostalCode ?? null,
@@ -646,6 +662,9 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
         r.addressCountry = data.addressCountry;
         r.isHidden = false;
         r.sharedFrom = data.sharedFrom;
+        r.endTime = data.endTime;
+        r.notes = data.notes;
+        r.source = data.source;
       });
       newId = record.id;
     });
@@ -678,6 +697,9 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
       categoryIcon: data.categoryIcon,
       categoryName: data.categoryName,
       formType: data.formType,
+      endTime: data.endTime,
+      notes: data.notes,
+      source: data.source,
     });
 
     await loadData();

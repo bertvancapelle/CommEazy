@@ -1986,6 +1986,21 @@
         "draftFoundMessage": "Du har ett ofärdigt utkast. Vill du fortsätta skriva?",
         "draftRestore": "Fortsätt skriva",
         "draftDiscard": "Börja om"
+      },
+      "ics": {
+        "calendarInvitation": "Kalenderinbjudan",
+        "allDay": "Hela dagen",
+        "addToAgenda": "Lägg till i kalendern",
+        "addedToAgenda": "Tillagd i kalendern",
+        "addFailed": "Kunde inte lägga till i kalendern. Försök igen.",
+        "cardAccessibility": "Kalenderinbjudan: {{title}}",
+        "recurring": {
+          "daily": "Upprepas dagligen",
+          "weekly": "Upprepas veckovis",
+          "biweekly": "Upprepas varannan vecka",
+          "monthly": "Upprepas månadsvis",
+          "yearly": "Upprepas årligen"
+        }
       }
     },
     "askAI": {
@@ -2135,7 +2150,12 @@
         "suggestedContacts": "Föreslagna kontakter: {{category}}",
         "otherContacts": "Andra kontakter",
         "done": "Klar",
-        "pastDateWarning": "Detta datum ligger i det förflutna"
+        "pastDateWarning": "Detta datum ligger i det förflutna",
+        "endTimeLabel": "Sluttid",
+        "addEndTime": "Lägg till sluttid",
+        "clearEndTime": "Rensa sluttid",
+        "notesLabel": "Anteckningar",
+        "notesPlaceholder": "Lägg till anteckningar..."
       },
       "search": {
         "tabOverview": "Översikt",

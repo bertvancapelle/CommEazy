@@ -2142,6 +2142,21 @@
         "draftFoundMessage": "Tienes un borrador sin terminar. ¿Quieres seguir escribiendo?",
         "draftRestore": "Seguir escribiendo",
         "draftDiscard": "Empezar de nuevo"
+      },
+      "ics": {
+        "calendarInvitation": "Invitación de calendario",
+        "allDay": "Todo el día",
+        "addToAgenda": "Añadir a la agenda",
+        "addedToAgenda": "Añadido a la agenda",
+        "addFailed": "No se pudo añadir a la agenda. Inténtelo de nuevo.",
+        "cardAccessibility": "Invitación de calendario: {{title}}",
+        "recurring": {
+          "daily": "Se repite diariamente",
+          "weekly": "Se repite semanalmente",
+          "biweekly": "Se repite cada dos semanas",
+          "monthly": "Se repite mensualmente",
+          "yearly": "Se repite anualmente"
+        }
       }
     },
     "askAI": {
@@ -2291,7 +2306,12 @@
         "suggestedContacts": "Contactos sugeridos: {{category}}",
         "otherContacts": "Otros contactos",
         "done": "Listo",
-        "pastDateWarning": "Esta fecha está en el pasado"
+        "pastDateWarning": "Esta fecha está en el pasado",
+        "endTimeLabel": "Hora de fin",
+        "addEndTime": "Añadir hora de fin",
+        "clearEndTime": "Borrar hora de fin",
+        "notesLabel": "Notas",
+        "notesPlaceholder": "Añadir notas..."
       },
       "search": {
         "tabOverview": "Resumen",

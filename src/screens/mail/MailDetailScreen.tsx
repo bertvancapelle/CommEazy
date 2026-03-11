@@ -37,13 +37,14 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon, FullscreenImageViewer, LoadingView, ErrorView } from '@/components';
+import { Icon, FullscreenImageViewer, LoadingView, ErrorView, CalendarInvitationCard } from '@/components';
 import type { ViewerImage } from '@/components';
 import type {
   CachedMailHeader,
   MailBody,
   MailAccount,
 } from '@/types/mail';
+import type { ParsedCalendarEvent } from '@/services/mail/icsParser';
 import { parseEmailAddress } from '@/types/mail';
 import { isImageType } from '@/services/mail/mediaAttachmentService';
 import { getSaveableAttachments, isAlreadySaved } from '@/services/mail/saveToAlbumService';
@@ -126,6 +127,10 @@ export function MailDetailScreen({
   const [savedToAlbumIndices, setSavedToAlbumIndices] = useState<Set<number>>(new Set());
   /** Map of contentId → data URI for CID inline image resolution */
   const [cidDataUris, setCidDataUris] = useState<Map<string, string>>(new Map());
+
+  // ICS calendar invitation state
+  const [icsEvents, setIcsEvents] = useState<ParsedCalendarEvent[]>([]);
+  const [icsAdded, setIcsAdded] = useState(false);
 
   const mountedRef = useRef(true);
 
@@ -310,6 +315,101 @@ export function MailDetailScreen({
 
     loadBody();
   }, [header.uid, header.folder, account.id]);
+
+  // ============================================================
+  // Detect and parse ICS calendar invitations
+  // ============================================================
+
+  useEffect(() => {
+    if (!body?.attachments) return;
+
+    const parseIcsAttachments = async () => {
+      const { isICSAttachment, parseICS } = await import('@/services/mail/icsParser');
+      const imapBridge = await import('@/services/mail/imapBridge');
+
+      const icsAttachments = body.attachments.filter(a =>
+        isICSAttachment(a.mimeType, a.name),
+      );
+      if (icsAttachments.length === 0) return;
+
+      const allEvents: ParsedCalendarEvent[] = [];
+      for (const att of icsAttachments) {
+        try {
+          const data = await imapBridge.fetchAttachmentData(
+            header.uid,
+            header.folder,
+            att.index,
+          );
+          // Decode ICS content to text
+          let icsText = '';
+          if (data.base64) {
+            // Write base64 to temp file, read back as UTF-8 (Hermes lacks Buffer)
+            const tmpPath = `${RNFS.CachesDirectoryPath}/mail_ics_${header.uid}_${att.index}.ics`;
+            await RNFS.writeFile(tmpPath, data.base64, 'base64');
+            icsText = await RNFS.readFile(tmpPath, 'utf8');
+            RNFS.unlink(tmpPath).catch(() => {});
+          } else if (data.filePath) {
+            icsText = await RNFS.readFile(data.filePath, 'utf8');
+          }
+          if (icsText) {
+            const events = parseICS(icsText);
+            allEvents.push(...events);
+          }
+        } catch (err) {
+          console.debug('[MailDetail] Failed to parse ICS attachment:', att.name, err);
+        }
+      }
+
+      if (mountedRef.current && allEvents.length > 0) {
+        setIcsEvents(allEvents);
+      }
+    };
+
+    parseIcsAttachments();
+  }, [body?.attachments, header.uid, header.folder]);
+
+  // Handle adding ICS event to agenda
+  const handleAddIcsToAgenda = useCallback(async (event: ParsedCalendarEvent) => {
+    try {
+      const { mapToAgendaData } = await import('@/services/mail/icsParser');
+      const { ServiceContainer } = await import('@/services/container');
+      const { WatermelonDBService } = await import('@/services/database');
+      const { AgendaItemModel } = await import('@/models/AgendaItem');
+
+      const agendaData = mapToAgendaData(event);
+      const dbService = ServiceContainer.database as InstanceType<typeof WatermelonDBService>;
+      const db = dbService.getDb();
+      const collection = db.get<InstanceType<typeof AgendaItemModel>>('agenda_items');
+
+      await db.write(async () => {
+        await collection.create(r => {
+          r.category = (agendaData.category ?? 'other') as any;
+          r.title = agendaData.title ?? '';
+          r.categoryIcon = agendaData.categoryIcon;
+          r.categoryName = agendaData.categoryName;
+          r.formType = agendaData.formType;
+          r.itemDate = agendaData.date ?? Date.now();
+          r.time = agendaData.time;
+          r.repeatType = agendaData.repeatType;
+          r.reminderOffset = agendaData.reminderOffset ?? '1_hour_before';
+          r.locationName = agendaData.locationName;
+          r.endTime = agendaData.endTime;
+          r.notes = agendaData.notes;
+          r.source = 'ics';
+          r.isHidden = false;
+        });
+      });
+
+      setIcsAdded(true);
+      showToast(t('modules.mail.ics.addedToAgenda'));
+    } catch (err) {
+      console.error('[MailDetail] Failed to add ICS event to agenda:', err);
+      Alert.alert(
+        t('status.error'),
+        t('modules.mail.ics.addFailed'),
+      );
+    }
+  }, [t, showToast]);
 
   // ============================================================
   // Auto-download image thumbnails
@@ -835,6 +935,19 @@ export function MailDetailScreen({
           </View>
         )}
 
+        {/* Calendar invitation cards (ICS) */}
+        {icsEvents.length > 0 && (
+          <View style={styles.icsSection}>
+            {icsEvents.map((event, idx) => (
+              <CalendarInvitationCard
+                key={`ics_${idx}_${event.summary}`}
+                event={event}
+                onAddToAgenda={handleAddIcsToAgenda}
+              />
+            ))}
+          </View>
+        )}
+
         {/* Inline image thumbnails */}
         {imageAttachments.length > 0 && (
           <View style={styles.inlineImagesSection}>
@@ -1111,6 +1224,10 @@ const styles = StyleSheet.create({
   bodyText: {
     ...typography.body,
     lineHeight: 28,
+  },
+  icsSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
   inlineImagesSection: {
     paddingHorizontal: spacing.lg,

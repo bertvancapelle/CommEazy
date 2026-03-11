@@ -2142,6 +2142,21 @@
         "draftFoundMessage": "Du hast einen unvollständigen Entwurf. Möchtest du weiterschreiben?",
         "draftRestore": "Weiterschreiben",
         "draftDiscard": "Neu beginnen"
+      },
+      "ics": {
+        "calendarInvitation": "Kalendereinladung",
+        "allDay": "Ganztägig",
+        "addToAgenda": "Zum Kalender hinzufügen",
+        "addedToAgenda": "Zum Kalender hinzugefügt",
+        "addFailed": "Konnte nicht zum Kalender hinzugefügt werden. Bitte versuchen Sie es erneut.",
+        "cardAccessibility": "Kalendereinladung: {{title}}",
+        "recurring": {
+          "daily": "Täglich wiederkehrend",
+          "weekly": "Wöchentlich wiederkehrend",
+          "biweekly": "Zweiwöchentlich wiederkehrend",
+          "monthly": "Monatlich wiederkehrend",
+          "yearly": "Jährlich wiederkehrend"
+        }
       }
     },
     "askAI": {
@@ -2291,7 +2306,12 @@
         "suggestedContacts": "Vorgeschlagene Kontakte: {{category}}",
         "otherContacts": "Andere Kontakte",
         "done": "Fertig",
-        "pastDateWarning": "Dieses Datum liegt in der Vergangenheit"
+        "pastDateWarning": "Dieses Datum liegt in der Vergangenheit",
+        "endTimeLabel": "Endzeit",
+        "addEndTime": "Endzeit hinzufügen",
+        "clearEndTime": "Endzeit löschen",
+        "notesLabel": "Notizen",
+        "notesPlaceholder": "Notizen hinzufügen..."
       },
       "search": {
         "tabOverview": "Übersicht",

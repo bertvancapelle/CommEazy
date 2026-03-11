@@ -1986,6 +1986,21 @@
         "draftFoundMessage": "Du har en ufærdig kladde. Vil du fortsætte med at skrive?",
         "draftRestore": "Fortsæt med at skrive",
         "draftDiscard": "Start forfra"
+      },
+      "ics": {
+        "calendarInvitation": "Kalenderinvitation",
+        "allDay": "Hele dagen",
+        "addToAgenda": "Tilføj til kalenderen",
+        "addedToAgenda": "Tilføjet til kalenderen",
+        "addFailed": "Kunne ikke tilføje til kalenderen. Prøv igen.",
+        "cardAccessibility": "Kalenderinvitation: {{title}}",
+        "recurring": {
+          "daily": "Gentages dagligt",
+          "weekly": "Gentages ugentligt",
+          "biweekly": "Gentages hver anden uge",
+          "monthly": "Gentages månedligt",
+          "yearly": "Gentages årligt"
+        }
       }
     },
     "askAI": {
@@ -2135,7 +2150,12 @@
         "suggestedContacts": "Foreslåede kontakter: {{category}}",
         "otherContacts": "Andre kontakter",
         "done": "Færdig",
-        "pastDateWarning": "Denne dato er i fortiden"
+        "pastDateWarning": "Denne dato er i fortiden",
+        "endTimeLabel": "Sluttid",
+        "addEndTime": "Tilføj sluttid",
+        "clearEndTime": "Ryd sluttid",
+        "notesLabel": "Noter",
+        "notesPlaceholder": "Tilføj noter..."
       },
       "search": {
         "tabOverview": "Overblik",

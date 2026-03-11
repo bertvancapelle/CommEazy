@@ -2146,6 +2146,21 @@
         "draftFoundMessage": "You have an unfinished draft. Do you want to continue writing?",
         "draftRestore": "Continue writing",
         "draftDiscard": "Start new"
+      },
+      "ics": {
+        "calendarInvitation": "Calendar invitation",
+        "allDay": "All day",
+        "addToAgenda": "Add to diary",
+        "addedToAgenda": "Added to diary",
+        "addFailed": "Could not add to diary. Please try again.",
+        "cardAccessibility": "Calendar invitation: {{title}}",
+        "recurring": {
+          "daily": "Repeats daily",
+          "weekly": "Repeats weekly",
+          "biweekly": "Repeats fortnightly",
+          "monthly": "Repeats monthly",
+          "yearly": "Repeats yearly"
+        }
       }
     },
     "askAI": {
@@ -2295,7 +2310,12 @@
         "suggestedContacts": "Suggested contacts: {{category}}",
         "otherContacts": "Other contacts",
         "done": "Done",
-        "pastDateWarning": "This date is in the past"
+        "pastDateWarning": "This date is in the past",
+        "endTimeLabel": "End time",
+        "addEndTime": "Add end time",
+        "clearEndTime": "Clear end time",
+        "notesLabel": "Notes",
+        "notesPlaceholder": "Add notes..."
       },
       "search": {
         "tabOverview": "Overview",

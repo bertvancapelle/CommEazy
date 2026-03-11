@@ -1948,6 +1948,21 @@
         "draftFoundMessage": "Masz niedokończony szkic. Czy chcesz kontynuować pisanie?",
         "draftRestore": "Kontynuuj pisanie",
         "draftDiscard": "Zacznij od nowa"
+      },
+      "ics": {
+        "calendarInvitation": "Zaproszenie do kalendarza",
+        "allDay": "Cały dzień",
+        "addToAgenda": "Dodaj do kalendarza",
+        "addedToAgenda": "Dodano do kalendarza",
+        "addFailed": "Nie udało się dodać do kalendarza. Spróbuj ponownie.",
+        "cardAccessibility": "Zaproszenie do kalendarza: {{title}}",
+        "recurring": {
+          "daily": "Powtarza się codziennie",
+          "weekly": "Powtarza się co tydzień",
+          "biweekly": "Powtarza się co dwa tygodnie",
+          "monthly": "Powtarza się co miesiąc",
+          "yearly": "Powtarza się co rok"
+        }
       }
     },
     "weather": {
@@ -2156,7 +2171,12 @@
         "suggestedContacts": "Sugerowane kontakty: {{category}}",
         "otherContacts": "Inne kontakty",
         "done": "Gotowe",
-        "pastDateWarning": "Ta data jest w przeszłości"
+        "pastDateWarning": "Ta data jest w przeszłości",
+        "endTimeLabel": "Czas zakończenia",
+        "addEndTime": "Dodaj czas zakończenia",
+        "clearEndTime": "Wyczyść czas zakończenia",
+        "notesLabel": "Notatki",
+        "notesPlaceholder": "Dodaj notatki..."
       },
       "search": {
         "tabOverview": "Przegląd",

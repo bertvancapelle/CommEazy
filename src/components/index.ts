@@ -139,6 +139,10 @@ export type { PhotoMessageBubbleProps } from './PhotoMessageBubble';
 export { AgendaItemBubble } from './AgendaItemBubble';
 export type { AgendaItemBubbleProps, AgendaItemPayload } from './AgendaItemBubble';
 
+// Calendar Invitation Card (ICS event display in mail)
+export { CalendarInvitationCard } from './CalendarInvitationCard';
+export type { CalendarInvitationCardProps } from './CalendarInvitationCard';
+
 // Photo Recipient Modal (for selecting photo send recipients)
 export { PhotoRecipientModal } from './PhotoRecipientModal';
 export type { PhotoRecipientModalProps } from './PhotoRecipientModal';

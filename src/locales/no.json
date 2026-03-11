@@ -2016,6 +2016,21 @@
         "draftFoundMessage": "Du har et uferdig utkast. Vil du fortsette å skrive?",
         "draftRestore": "Fortsett å skrive",
         "draftDiscard": "Start på nytt"
+      },
+      "ics": {
+        "calendarInvitation": "Kalenderinvitasjon",
+        "allDay": "Hele dagen",
+        "addToAgenda": "Legg til i kalenderen",
+        "addedToAgenda": "Lagt til i kalenderen",
+        "addFailed": "Kunne ikke legge til i kalenderen. Prøv igjen.",
+        "cardAccessibility": "Kalenderinvitasjon: {{title}}",
+        "recurring": {
+          "daily": "Gjentas daglig",
+          "weekly": "Gjentas ukentlig",
+          "biweekly": "Gjentas annenhver uke",
+          "monthly": "Gjentas månedlig",
+          "yearly": "Gjentas årlig"
+        }
       }
     },
     "askAI": {
@@ -2165,7 +2180,12 @@
         "suggestedContacts": "Foreslåtte kontakter: {{category}}",
         "otherContacts": "Andre kontakter",
         "done": "Ferdig",
-        "pastDateWarning": "Denne datoen er i fortiden"
+        "pastDateWarning": "Denne datoen er i fortiden",
+        "endTimeLabel": "Sluttid",
+        "addEndTime": "Legg til sluttid",
+        "clearEndTime": "Fjern sluttid",
+        "notesLabel": "Notater",
+        "notesPlaceholder": "Legg til notater..."
       },
       "search": {
         "tabOverview": "Oversikt",
