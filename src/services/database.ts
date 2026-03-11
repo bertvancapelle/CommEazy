@@ -330,6 +330,7 @@ export class WatermelonDBService implements DatabaseService {
           record.deathDate = contact.deathDate;
           record.isDeceased = contact.isDeceased;
           record.isEmergencyContact = contact.isEmergencyContact;
+          record.categories = contact.categories;
         });
       } else {
         await db.get<ContactModel>('contacts').create(record => {
@@ -354,6 +355,7 @@ export class WatermelonDBService implements DatabaseService {
           record.deathDate = contact.deathDate;
           record.isDeceased = contact.isDeceased;
           record.isEmergencyContact = contact.isEmergencyContact;
+          record.categories = contact.categories;
         });
       }
     });
@@ -674,6 +676,7 @@ export class WatermelonDBService implements DatabaseService {
       deathDate: c.deathDate,
       isDeceased: c.isDeceased,
       isEmergencyContact: c.isEmergencyContact,
+      categories: c.categories,
     };
   }
 
