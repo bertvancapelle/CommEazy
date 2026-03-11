@@ -46,7 +46,13 @@ import { type Contact, getContactDisplayName } from '@/services/interfaces';
 import { getSmartSections, getCallFrequency } from '@/services/contacts';
 import type { SmartSection, ContactGroup } from '@/services/contacts';
 import type { ContactStackParams } from '@/navigation';
-import { STANDARD_CATEGORIES, type AgendaCategoryDef } from '@/constants/agendaCategories';
+import {
+  STANDARD_CATEGORIES,
+  CUSTOM_CATEGORIES_STORAGE_KEY,
+  type AgendaCategoryDef,
+  type CustomCategory,
+} from '@/constants/agendaCategories';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CreateGroupModal } from './CreateGroupModal';
 import { EditGroupModal } from './EditGroupModal';
 
@@ -129,6 +135,7 @@ export function ContactListScreen() {
 
   // Category filter state
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
 
   // Group CRUD modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -179,7 +186,7 @@ export function ContactListScreen() {
     }
   }, []);
 
-  /** Categories that are actually used by at least one contact */
+  /** Categories that are actually used by at least one contact (standard + custom) */
   const usedCategories: AgendaCategoryDef[] = useMemo(() => {
     const usedIds = new Set<string>();
     for (const contact of contacts) {
@@ -187,8 +194,19 @@ export function ContactListScreen() {
         usedIds.add(catId);
       }
     }
-    return STANDARD_CATEGORIES.filter(cat => usedIds.has(cat.id));
-  }, [contacts, getContactCategoryIds]);
+    const standardUsed = STANDARD_CATEGORIES.filter(cat => usedIds.has(cat.id));
+    const customUsed: AgendaCategoryDef[] = customCategories
+      .filter(cat => usedIds.has(cat.id))
+      .map(cat => ({
+        id: cat.id,
+        icon: cat.icon,
+        name: cat.name,
+        isStandard: false,
+        defaultFormType: cat.formType,
+        isAutomatic: false,
+      }));
+    return [...standardUsed, ...customUsed];
+  }, [contacts, getContactCategoryIds, customCategories]);
 
   // Load contacts from WatermelonDB (single source of truth for all modes)
   useEffect(() => {
@@ -207,6 +225,15 @@ export function ContactListScreen() {
       }
     };
     void loadContacts();
+  }, []);
+
+  // Load custom categories from AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem(CUSTOM_CATEGORIES_STORAGE_KEY).then(json => {
+      if (json) {
+        try { setCustomCategories(JSON.parse(json)); } catch { /* ignore */ }
+      }
+    });
   }, []);
 
   // Compute smart sections from contacts (memoized for performance)
