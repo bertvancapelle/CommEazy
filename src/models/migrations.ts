@@ -22,6 +22,7 @@
  * - v18: Added address fields to agenda_items (location_name, address_street, etc.)
  * - v19: Added category snapshot fields to agenda_items (category_icon, category_name, form_type)
  * - v20: Added categories to contacts (JSON array of agenda category IDs)
+ * - v21: Added end_time, notes, source to agenda_items (ICS calendar import)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -349,6 +350,20 @@ export const migrations = schemaMigrations({
           table: 'contacts',
           columns: [
             { name: 'categories', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v20 to v21: Add end_time, notes, source to agenda_items (ICS import)
+    {
+      toVersion: 21,
+      steps: [
+        addColumns({
+          table: 'agenda_items',
+          columns: [
+            { name: 'end_time', type: 'string', isOptional: true },
+            { name: 'notes', type: 'string', isOptional: true },
+            { name: 'source', type: 'string', isOptional: true },
           ],
         }),
       ],
