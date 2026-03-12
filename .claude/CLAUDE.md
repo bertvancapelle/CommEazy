@@ -22,11 +22,14 @@
 2. **Overleg modus** — Gebruiker wil discussiëren, nadenken, afwegen — NIET implementeren
 3. **PNA BLIJFT ACTIEF** — Bij ELKE vraag/antwoord cyclus blijft PNA actief
 4. **ELKE response begint met PNA-status** — Begin ALTIJD met "**🔒 PNA ACTIEF**" zolang PNA niet beëindigd is
-5. **Pas ALLE skills toe** — Analyseer vanuit alle relevante perspectieven
-6. **Wees kritisch** — Benoem risico's, edge cases, en mogelijke problemen
+5. **Skills als analytisch kader** — Raadpleeg de relevante SKILL.md bestanden daadwerkelijk. Citeer specifieke regels en pas ze toe op het vraagstuk. Niet alleen opsommen met bullets, maar de inhoud van elke skill toepassen op de concrete situatie.
+6. **Devil's advocate doordenken** — Wantrouw de eerste oplossing. Bedenk actief waarom het voorstel NIET de beste keuze is. Overweeg minimaal één alternatief. Benoem zwakke punten in het eigen voorstel. Pas stoppen met doordenken wanneer de oplossing zowel functioneel als technisch de beste is — of wanneer eerlijk is vastgesteld dat er trade-offs zijn die de gebruiker moet afwegen.
 7. **Stel vragen ÉÉN VOOR ÉÉN** — Eén vraag, wacht op antwoord, dan volgende vraag
 8. **NA antwoord op vraag:** Evalueer antwoord, stel eventueel volgende vraag, MAAR IMPLEMENTEER NIET
 9. **NOOIT naar implementatie zonder EXIT-bevestiging** — Gebruiker MOET expliciet zeggen "exit PNA", "PNA uit", "ga door met implementatie", of vergelijkbaar
+10. **Valideer duidelijkheid** — Controleer of de vraagstelling eenduidig is. Als er meerdere interpretaties mogelijk zijn, benoem deze en vraag verduidelijking vóór analyse. Voorkom dat de verkeerde vraag wordt beantwoord.
+11. **Conclusie met goedkeuring** — Sluit altijd af met een gestructureerde conclusie: wat is het voorstel, waarom, welke trade-offs. Deze conclusie MOET expliciet goedgekeurd worden voordat naar PNA-stop wordt gegaan.
+12. **Senior-perspectief toets** — Bij ELKE analyse, toets het voorstel vanuit het perspectief van een senior gebruiker (65+). Drie criteria zijn leidend: **eenvoud** (begrijpt een senior dit zonder uitleg?), **consistentie** (werkt dit hetzelfde als vergelijkbare functies in de app?), **herkenbaarheid** (herkent een senior de patronen uit eerdere interacties?). Als een voorstel op één van deze drie criteria faalt, benoem dit als bezwaar.
 
 ### PNA Modus Beëindigen — STRIKTE REGELS
 
@@ -40,6 +43,38 @@
 - Gebruiker alleen een vraag beantwoordt → PNA BLIJFT ACTIEF, stel volgende vraag of geef conclusie
 - Gebruiker zegt "begrepen" of "goed" → Dit is GEEN exit-bevestiging
 - Gebruiker geen expliciete exit geeft → PNA BLIJFT ACTIEF
+
+### PNA-stop Transitie Protocol (VERPLICHT)
+
+Wanneer PNA wordt beëindigd ("pna stop", "ga door", etc.) activeert Claude automatisch een twee-fasen protocol dat de overgang van overleg naar implementatie bewaakt.
+
+**Fase 1: Pre-development (VERPLICHT vóór eerste regel code)**
+
+Voer de Verplichte Skill Validatie uit (zie "Stappen (VERPLICHT)" in dit document):
+1. **Classificeer** de wijziging (Tier 1/2/3)
+2. **Identificeer** welke skills moeten valideren (via `CHANGE_VALIDATION_MATRIX.md`)
+3. **Valideer** tegen elke skill's checklist en regels
+4. **Rapporteer** resultaten aan gebruiker (✅ / ⚠️ / ❌)
+
+> Dit is geen duplicatie van de bestaande stappen — het is de expliciete koppeling aan het PNA-stop moment, zodat deze stappen NOOIT worden overgeslagen na een overleg.
+
+**Fase 2: Post-development (VERPLICHT na voltooiing, vóór commit)**
+
+Na implementatie, reflecteer op wat er is ontwikkeld:
+1. **Nieuw patroon?** — Is er een herbruikbaar patroon ontstaan dat gestandaardiseerd moet worden in een SKILL.md?
+2. **Nieuw component?** — Hoort er een nieuw standaard component in de Component Registry (CLAUDE.md sectie 14)?
+3. **Skill aanscherping?** — Moeten bestaande skills worden uitgebreid of aangescherpt n.a.v. wat er geleerd is?
+4. **Rapporteer** bevindingen aan gebruiker vóór commit:
+
+```
+🔄 **Post-development Reflectie**
+
+- Nieuw patroon: [ja/nee — beschrijving]
+- Nieuw component: [ja/nee — beschrijving]
+- Skill aanscherping: [ja/nee — welke skill, welke regel]
+
+[Bij "ja": Wil je dat ik dit nu toevoeg aan de skills?]
+```
 
 ### Vragen Stellen in PNA Modus
 
@@ -65,11 +100,13 @@ Gebruiker: "PNA ik denk eraan om de login flow te wijzigen"
 Claude:
 "**🔒 PNA ACTIEF** — Ik pas niets aan, we overleggen.
 
-**Analyse vanuit skills:**
-- 🔒 Security: [overwegingen]
-- ♿ Accessibility: [overwegingen]
-- 👴 Senior UX: [overwegingen]
-- 🏗️ Architecture: [overwegingen]
+**Skill analyse:**
+- 🔒 security-expert (SKILL.md §Auth flow): [specifieke regel + toepassing]
+- ♿ accessibility-specialist (SKILL.md §Onboarding): [specifieke regel + toepassing]
+- 👴 Senior-toets: Eenvoud — begrijpt een senior dit zonder uitleg?
+  Consistentie — werkt dit hetzelfde als andere flows in de app?
+  Herkenbaarheid — herkent een senior de patronen?
+- 🏗️ architecture-lead (SKILL.md §Navigation): [specifieke regel + toepassing]
 
 **Eerste vraag:**
 Wat is het doel van de wijziging?"
@@ -82,6 +119,9 @@ Claude:
 "**🔒 PNA ACTIEF**
 
 Begrepen — het doel is om de login flow korter te maken.
+
+**Devil's advocate:** Korter is niet altijd beter voor senioren. Minder stappen
+betekent meer informatie per stap, wat overweldigend kan zijn. [concrete afweging]
 
 **Volgende vraag:**
 Moet de bestaande login methode behouden blijven als alternatief?"
@@ -96,9 +136,11 @@ Claude:
 Duidelijk — de oude methode mag verwijderd worden.
 
 **Conclusie:**
-- Doel: Login flow verkorten
-- Oude methode: Mag verwijderd worden
-- Voorstel: [concrete aanpak met opties]
+- Voorstel: [concrete aanpak]
+- Waarom dit de beste keuze is: [argumenten]
+- Overwogen alternatief: [alternatief + waarom afgewezen]
+- Senior-toets: ✅ eenvoud / ✅ consistentie / ⚠️ herkenbaarheid — [toelichting]
+- Trade-offs: [eerlijke afweging]
 
 **Wil je PNA modus beëindigen zodat ik aanpassingen kan maken?**"
 ```
@@ -109,7 +151,12 @@ Gebruiker: "ja, ga door"
 Claude:
 "**✅ PNA BEËINDIGD**
 
-Ik ga nu de wijzigingen doorvoeren:
+**Pre-development validatie** (PNA-stop Transitie Protocol Fase 1):
+- Classificatie: Tier 2 — Auth flow wijziging
+- Skills: security-expert ✅, onboarding-recovery-specialist ✅, ui-designer ✅
+- Geen blokkeerders gevonden.
+
+Ik ga nu de wijzigingen doorvoeren.
 [implementatie start]"
 ```
 
