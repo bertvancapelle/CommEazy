@@ -18,12 +18,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -158,13 +158,13 @@ export function GroupDetailScreen() {
     navigation.setOptions({
       title: name,
       headerRight: () => (
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           onPress={() => setShowMembers(!showMembers)}
           style={styles.headerButton}
           accessibilityLabel={t('group.members')}
         >
           <Text style={styles.headerButtonText}>👥</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       ),
     });
   }, [navigation, name, showMembers, t]);
@@ -259,13 +259,13 @@ export function GroupDetailScreen() {
           <Text style={[styles.membersPanelTitle, { color: themeColors.textPrimary }]}>
             {t('group.memberCount', { count: group.members.length })}
           </Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             onPress={() => setShowMembers(false)}
             style={styles.closeButton}
             accessibilityLabel={t('common.close')}
           >
             <Text style={[styles.closeButtonText, { color: themeColors.textSecondary }]}>✕</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
         <ScrollView style={styles.membersList}>
           {group.members.map(memberJid => (
@@ -330,7 +330,7 @@ export function GroupDetailScreen() {
           style={styles.textInput}
           accessibilityLabel={t('chat.typeMessage')}
         />
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.sendButton,
             { backgroundColor: themeColors.primary },
@@ -343,7 +343,7 @@ export function GroupDetailScreen() {
           accessibilityLabel={t('accessibility.sendButton')}
         >
           <Text style={[styles.sendButtonText, { color: themeColors.textOnPrimary }]}>↑</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </KeyboardAvoidingView>
   );

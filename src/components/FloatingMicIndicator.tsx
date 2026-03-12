@@ -17,13 +17,13 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Animated,
   Easing,
   AccessibilityInfo,
   Platform,
   type ViewStyle,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, touchTargets, borderRadius, shadows } from '@/theme';
@@ -190,7 +190,7 @@ export function FloatingMicIndicator({
       ]}
       pointerEvents="box-none"
     >
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         onPress={onPress}
         activeOpacity={0.8}
         accessibilityRole="button"
@@ -219,7 +219,7 @@ export function FloatingMicIndicator({
             <View style={[styles.listeningDot, { borderColor: accentColor.primary }]} />
           )}
         </Animated.View>
-      </TouchableOpacity>
+      </HapticTouchable>
     </Animated.View>
   );
 }

@@ -11,10 +11,10 @@ import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useNavigation } from '@react-navigation/native';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -72,7 +72,7 @@ function ComplianceAccordion({ title, summary, items, themeColors }: ComplianceA
 
   return (
     <View style={[styles.accordion, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={styles.accordionHeader}
         onPress={handleToggle}
         accessibilityRole="button"
@@ -87,7 +87,7 @@ function ComplianceAccordion({ title, summary, items, themeColors }: ComplianceA
             color={themeColors.textSecondary}
           />
         </View>
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {/* Summary Row */}
       <View style={styles.summaryRow}>
@@ -160,7 +160,7 @@ function DeviationsAccordion({ deviations, themeColors }: DeviationsAccordionPro
 
   return (
     <View style={[styles.accordion, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={styles.accordionHeader}
         onPress={handleToggle}
         accessibilityRole="button"
@@ -175,7 +175,7 @@ function DeviationsAccordion({ deviations, themeColors }: DeviationsAccordionPro
             color={themeColors.textSecondary}
           />
         </View>
-      </TouchableOpacity>
+      </HapticTouchable>
 
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
@@ -241,14 +241,14 @@ export function ComplianceReportScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: accentColor.primary }]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.backButton}
           onPress={handleBack}
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
           <Icon name="chevron-left" size={28} color={themeColors.textOnPrimary} />
-        </TouchableOpacity>
+        </HapticTouchable>
         <Text style={[styles.headerTitle, { color: themeColors.textOnPrimary }]}>Accessibility Compliance</Text>
         <View style={styles.headerSpacer} />
       </View>

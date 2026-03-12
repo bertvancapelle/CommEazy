@@ -22,11 +22,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Animated,
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -157,11 +157,9 @@ export function IncomingCallScreen({ navigation, route }: Props) {
       {/* Action buttons */}
       <View style={styles.buttonContainer}>
         {/* Decline button (left, red) */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.actionButton, styles.declineButton]}
           onPress={handleDecline}
-          onLongPress={() => {}} // Prevent hold gesture double-action
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('call.decline')}
@@ -169,14 +167,12 @@ export function IncomingCallScreen({ navigation, route }: Props) {
         >
           <Icon name="call" size={36} color={themeColors.textOnPrimary} />
           <Text style={[styles.buttonLabel, { color: themeColors.textOnPrimary }]}>{t('call.decline')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Answer button (right, green) */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.actionButton, styles.answerButton]}
           onPress={handleAnswer}
-          onLongPress={() => {}} // Prevent hold gesture double-action
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('call.answer')}
@@ -188,7 +184,7 @@ export function IncomingCallScreen({ navigation, route }: Props) {
             color={themeColors.textOnPrimary}
           />
           <Text style={[styles.buttonLabel, { color: themeColors.textOnPrimary }]}>{t('call.answer')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </SafeAreaView>
   );

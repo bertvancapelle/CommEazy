@@ -25,11 +25,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   SafeAreaView,
   StatusBar,
   Dimensions,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RTCView } from 'react-native-webrtc';
@@ -198,16 +198,14 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           mirror={activeCall?.isFrontCamera ?? true}
         />
         {/* Camera switch button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.cameraSwitchButton}
           onPress={handleSwitchCamera}
-          onLongPress={() => {}}
-          delayLongPress={300}
           accessibilityRole="button"
           accessibilityLabel={t('call.switchCamera')}
         >
           <Icon name="camera-reverse" size={20} color={themeColors.textOnPrimary} />
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     );
   };
@@ -262,14 +260,12 @@ export function ActiveCallScreen({ navigation, route }: Props) {
       {/* Control buttons */}
       <View style={styles.controlsContainer}>
         {/* Mute button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.controlButton,
             activeCall?.isMuted && { backgroundColor: themeColors.textOnPrimary },
           ]}
           onPress={handleToggleMute}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={activeCall?.isMuted ? t('call.unmute') : t('call.mute')}
@@ -287,17 +283,15 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           ]}>
             {t('call.mute')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Speaker button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.controlButton,
             activeCall?.isSpeakerOn && { backgroundColor: themeColors.textOnPrimary },
           ]}
           onPress={handleToggleSpeaker}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={activeCall?.isSpeakerOn ? t('call.speakerOff') : t('call.speakerOn')}
@@ -315,18 +309,16 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           ]}>
             {t('call.speaker')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Video button (only for video calls) */}
         {isVideoCall && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.controlButton,
               !activeCall?.isVideoEnabled && { backgroundColor: themeColors.textOnPrimary },
             ]}
             onPress={handleToggleVideo}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={activeCall?.isVideoEnabled ? t('call.videoOff') : t('call.videoOn')}
@@ -344,15 +336,13 @@ export function ActiveCallScreen({ navigation, route }: Props) {
             ]}>
               {t('call.video')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
 
         {/* Hangup button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.controlButton, styles.hangupButton]}
           onPress={handleHangup}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('call.hangup')}
@@ -361,7 +351,7 @@ export function ActiveCallScreen({ navigation, route }: Props) {
           <Text style={[styles.controlLabel, { color: themeColors.textOnPrimary }]}>
             {t('call.hangup')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </SafeAreaView>
   );

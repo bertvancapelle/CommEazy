@@ -23,7 +23,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -257,7 +256,7 @@ export function EditGroupModal({
             </Text>
             <View style={styles.emojiGrid}>
               {GROUP_EMOJIS.map((emoji) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={emoji}
                   style={[
                     styles.emojiButton,
@@ -268,14 +267,12 @@ export function EditGroupModal({
                     },
                   ]}
                   onPress={() => handleEmojiSelect(emoji)}
-                  onLongPress={() => {}}
-                  delayLongPress={300}
                   accessibilityRole="button"
                   accessibilityState={{ selected: selectedEmoji === emoji }}
                   accessibilityLabel={emoji}
                 >
                   <Text style={styles.emojiText}>{emoji}</Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </View>
 
@@ -292,7 +289,7 @@ export function EditGroupModal({
               const isMember = memberJids.has(contact.jid);
 
               return (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={contact.jid}
                   style={[
                     styles.contactRow,
@@ -304,8 +301,6 @@ export function EditGroupModal({
                     },
                   ]}
                   onPress={() => toggleContact(contact.jid)}
-                  onLongPress={() => {}}
-                  delayLongPress={300}
                   activeOpacity={0.7}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: isMember }}
@@ -335,7 +330,7 @@ export function EditGroupModal({
                       <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
                     )}
                   </View>
-                </TouchableOpacity>
+                </HapticTouchable>
               );
             })}
 

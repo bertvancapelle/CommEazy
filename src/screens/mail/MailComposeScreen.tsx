@@ -26,13 +26,13 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   AppState,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
@@ -305,20 +305,18 @@ function RecipientChip({
       >
         {displayName}
       </Text>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={styles.chipRemove}
         onPress={() => {
           triggerHaptic('tap');
           onRemove();
         }}
-        onLongPress={() => {}}
-        delayLongPress={300}
         hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
         accessibilityRole="button"
         accessibilityLabel={t('modules.mail.compose.removeRecipient')}
       >
         <Icon name="x" size={16} color={themeColors.textSecondary} />
-      </TouchableOpacity>
+      </HapticTouchable>
     </View>
   );
 }
@@ -343,14 +341,12 @@ function ContactSuggestionRow({
   const initial = (contact.firstName[0] || '').toUpperCase();
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[styles.suggestionRow, { borderBottomColor: themeColors.border }]}
       onPress={() => {
         triggerHaptic('tap');
         onSelect();
       }}
-      onLongPress={() => {}}
-      delayLongPress={300}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={`${fullName}, ${contact.email}`}
@@ -374,7 +370,7 @@ function ContactSuggestionRow({
           {contact.email}
         </Text>
       </View>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -397,14 +393,12 @@ function SelfSuggestionRow({
 }) {
   const { triggerHaptic } = useFeedback();
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[styles.suggestionRow, { borderBottomColor: themeColors.border }]}
       onPress={() => {
         triggerHaptic('tap');
         onSelect();
       }}
-      onLongPress={() => {}}
-      delayLongPress={300}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={`${label}, ${email}`}
@@ -426,7 +420,7 @@ function SelfSuggestionRow({
           {email}
         </Text>
       </View>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -1070,17 +1064,15 @@ export function MailComposeScreen({
     >
       {/* Top bar — cancel + title */}
       <View style={[styles.topBar, { borderBottomColor: themeColors.border }]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.topBarButton}
           onPress={handleClose}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('common.cancel')}
         >
           <Text style={[styles.topBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         <Text style={[styles.title, { color: themeColors.textPrimary }]}>
           {title}
@@ -1110,14 +1102,12 @@ export function MailComposeScreen({
 
         {/* CC/BCC toggle */}
         {!showCcBcc && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.ccBccToggle, { borderBottomColor: themeColors.border }]}
             onPress={() => {
               triggerHaptic('tap');
               setShowCcBcc(true);
             }}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.compose.addCcBcc')}
@@ -1125,7 +1115,7 @@ export function MailComposeScreen({
             <Text style={[styles.ccBccToggleText, { color: accentColor.primary }]}>
               {t('modules.mail.compose.addCcBcc')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
 
         {/* CC field */}
@@ -1228,7 +1218,7 @@ export function MailComposeScreen({
       <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
         {/* Attach photo button — hidden when CameraRoll not available */}
         {isCameraRollAvailable && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.bottomAction,
               { backgroundColor: themeColors.surface, borderColor: themeColors.border },
@@ -1237,8 +1227,6 @@ export function MailComposeScreen({
               triggerHaptic('tap');
               setShowAlbumPicker(true);
             }}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.compose.attachPhoto')}
@@ -1247,11 +1235,11 @@ export function MailComposeScreen({
             <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
               {t('modules.mail.compose.attachPhoto')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
 
         {/* Send button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.bottomAction,
             {
@@ -1260,8 +1248,6 @@ export function MailComposeScreen({
             },
           ]}
           onPress={handleSend}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           disabled={!isValid || isSending}
           accessibilityRole="button"
@@ -1277,7 +1263,7 @@ export function MailComposeScreen({
               </Text>
             </>
           )}
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
 
       {/* Album Picker Modal */}

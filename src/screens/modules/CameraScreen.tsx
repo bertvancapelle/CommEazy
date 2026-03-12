@@ -18,7 +18,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   SafeAreaView,
   Alert,
   Image,
@@ -29,6 +28,7 @@ import {
   useWindowDimensions,
   Modal,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
@@ -251,14 +251,14 @@ export function CameraScreen() {
         <View style={styles.errorContainer}>
           <Icon name="warning" size={60} color={colors.error} />
           <Text style={styles.errorText}>{cameraError}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.retryButton, { backgroundColor: moduleColor }]}
             onPress={() => setCameraError(null)}
           >
             <Text style={styles.retryButtonText}>
               {t('common.tryAgain', 'Try Again')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       ) : (
         <Camera
@@ -274,7 +274,7 @@ export function CameraScreen() {
 
       {/* Top overlay: Flash + Full-screen toggle */}
       <View style={[styles.topOverlay, isLandscape && styles.topOverlayLandscape]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.overlayButton}
           onPress={handleToggleFlash}
           accessibilityRole="button"
@@ -284,9 +284,9 @@ export function CameraScreen() {
           {flashMode === 'auto' && (
             <Text style={styles.flashAutoLabel}>A</Text>
           )}
-        </TouchableOpacity>
+        </HapticTouchable>
 
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.overlayButton}
           onPress={handleToggleFullScreen}
           accessibilityRole="button"
@@ -301,7 +301,7 @@ export function CameraScreen() {
             size={24}
             color={colors.textOnPrimary}
           />
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
 
       {/* Bottom overlay: Controls (only in full-screen) */}
@@ -315,7 +315,7 @@ export function CameraScreen() {
             isLandscape && styles.controlRowLandscape,
           ]}>
             {/* Album thumbnail / last photo */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.albumButton}
               onPress={handleOpenLastPhoto}
               accessibilityRole="button"
@@ -329,10 +329,10 @@ export function CameraScreen() {
               ) : (
                 <Icon name="image" size={28} color={colors.textSecondary} />
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Photo capture button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.captureButton, { borderColor: moduleColor }]}
               onPress={handleCapturePhoto}
               disabled={isCapturing || !cameraReady}
@@ -344,17 +344,17 @@ export function CameraScreen() {
               ) : (
                 <View style={[styles.captureInner, { backgroundColor: moduleColor }]} />
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Switch camera */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.switchButton}
               onPress={handleSwitchCamera}
               accessibilityRole="button"
               accessibilityLabel={t('modules.camera.switchCamera', 'Switch camera')}
             >
               <Icon name="camera-reverse" size={28} color={colors.textPrimary} />
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       )}
@@ -397,7 +397,7 @@ export function CameraScreen() {
         {/* Control row */}
         <View style={styles.controlRow}>
           {/* Album thumbnail / last photo */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.albumButton}
             onPress={handleOpenLastPhoto}
             accessibilityRole="button"
@@ -411,10 +411,10 @@ export function CameraScreen() {
             ) : (
               <Icon name="image" size={28} color={colors.textSecondary} />
             )}
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Photo capture button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.captureButton, { borderColor: moduleColor }]}
             onPress={handleCapturePhoto}
             disabled={isCapturing || !cameraReady}
@@ -426,17 +426,17 @@ export function CameraScreen() {
             ) : (
               <View style={[styles.captureInner, { backgroundColor: moduleColor }]} />
             )}
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Switch camera */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.switchButton}
             onPress={handleSwitchCamera}
             accessibilityRole="button"
             accessibilityLabel={t('modules.camera.switchCamera', 'Switch camera')}
           >
             <Icon name="camera-reverse" size={28} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Capture hint */}

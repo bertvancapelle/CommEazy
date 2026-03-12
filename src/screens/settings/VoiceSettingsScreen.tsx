@@ -24,12 +24,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Switch,
   TextInput,
   Alert,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
 
@@ -125,7 +125,7 @@ function CommandRow({
 
   return (
     <View style={[styles.commandContainer, { borderTopColor: themeColors.border }]}>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={styles.commandHeader}
         onPress={() => setExpanded(!expanded)}
         accessibilityRole="button"
@@ -160,7 +160,7 @@ function CommandRow({
             color={themeColors.textTertiary}
           />
         </View>
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {expanded && (
         <View style={[styles.commandExpanded, { backgroundColor: themeColors.background }]}>
@@ -180,7 +180,7 @@ function CommandRow({
             ))}
 
             {/* Add pattern button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.addPatternButton, { borderColor: accentColor }]}
               onPress={onAddPattern}
               accessibilityRole="button"
@@ -190,7 +190,7 @@ function CommandRow({
               <Text style={[styles.addPatternText, { color: accentColor }]}>
                 {t('voiceSettings.addPattern')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       )}
@@ -476,7 +476,7 @@ export function VoiceSettingsScreen() {
         index={1}
         onSelect={handleResetToDefaults}
       >
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.resetButton,
             isItemFocused('reset-defaults') && {
@@ -498,7 +498,7 @@ export function VoiceSettingsScreen() {
           <Text style={[styles.resetButtonText, { color: themeColors.error }]}>
             {t('voiceSettings.resetToDefaults')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </VoiceFocusable>
 
       {/* Spacer for bottom padding */}

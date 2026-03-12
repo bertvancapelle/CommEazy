@@ -16,12 +16,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Alert,
   Modal,
   Switch,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
@@ -215,11 +215,9 @@ export function MailBodyWebView({
               {t('modules.mail.detail.imagesBlocked')}
             </Text>
           </View>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.loadImagesButton, { backgroundColor: bannerButtonColor }]}
             onPress={handleLoadImages}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.detail.loadImages')}
@@ -227,7 +225,7 @@ export function MailBodyWebView({
             <Text style={styles.loadImagesButtonText}>
               {t('modules.mail.detail.loadImages')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       )}
 
@@ -290,11 +288,9 @@ export function MailBodyWebView({
             </Text>
 
             {/* Dismiss button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.modalDismissButton, { backgroundColor: accentColor.primary }]}
               onPress={handleDismissWarningModal}
-              onLongPress={() => {}}
-              delayLongPress={300}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={t('modules.mail.detail.warningModalDismiss')}
@@ -302,7 +298,7 @@ export function MailBodyWebView({
               <Text style={styles.modalDismissButtonText}>
                 {t('modules.mail.detail.warningModalDismiss')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>

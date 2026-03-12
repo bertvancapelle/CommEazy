@@ -21,9 +21,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Switch,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -80,7 +80,7 @@ function Stepper({
         <Text style={[styles.stepperValue, { color: accentColor }]}>{value}</Text>
       </View>
       <View style={styles.stepperButtons}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.stepperButton,
             { backgroundColor: accentColor },
@@ -92,8 +92,8 @@ function Stepper({
           accessibilityRole="button"
         >
           <Text style={styles.stepperButtonText}>−</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </HapticTouchable>
+        <HapticTouchable hapticDisabled
           style={[
             styles.stepperButton,
             { backgroundColor: accentColor },
@@ -105,7 +105,7 @@ function Stepper({
           accessibilityRole="button"
         >
           <Text style={styles.stepperButtonText}>+</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </View>
   );
@@ -213,7 +213,7 @@ function HapticIntensitySelector({ value, onValueChange, onDemoIntensity, accent
         {intensities.map(({ key, dots }) => {
           const isSelected = displayValue === key;
           return (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={key}
               style={[
                 styles.intensityOption,
@@ -225,7 +225,7 @@ function HapticIntensitySelector({ value, onValueChange, onDemoIntensity, accent
               accessibilityLabel={getIntensityLabel(key)}
             >
               <IntensityDots level={dots} isSelected={isSelected} accentColor={accentColor} />
-            </TouchableOpacity>
+            </HapticTouchable>
           );
         })}
       </View>
@@ -251,7 +251,7 @@ function TtsSpeechRateSelector({ value, onValueChange, accentColor }: TtsSpeechR
         {TTS_SPEED_OPTIONS.map(({ value: optionValue, label }) => {
           const isSelected = value === optionValue;
           return (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={optionValue}
               style={[
                 styles.ttsSpeedOption,
@@ -270,7 +270,7 @@ function TtsSpeechRateSelector({ value, onValueChange, accentColor }: TtsSpeechR
               >
                 {label}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           );
         })}
       </View>
@@ -682,17 +682,17 @@ export function AccessibilitySettingsScreen() {
       </View>
 
       {/* Test feedback button */}
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.testButton, { backgroundColor: accentColor.primary }]}
         onPress={() => void triggerFeedback('tap')}
         accessibilityRole="button"
         accessibilityLabel={t('accessibilitySettings.testFeedback')}
       >
         <Text style={[styles.testButtonText, { color: themeColors.textOnPrimary }]}>{t('accessibilitySettings.testFeedback')}</Text>
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {/* Compliance Report link */}
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.complianceLink, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
         onPress={() => navigation.navigate('ComplianceReport')}
         accessibilityRole="button"
@@ -711,7 +711,7 @@ export function AccessibilitySettingsScreen() {
           </View>
         </View>
         <Icon name="chevron-right" size={24} color={themeColors.textTertiary} />
-      </TouchableOpacity>
+      </HapticTouchable>
     </ScrollViewWithIndicator>
   );
 }

@@ -16,12 +16,12 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
   AccessibilityInfo,
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -359,7 +359,7 @@ export function ChatListScreen() {
           index={index}
           onSelect={() => handleChatPress(item)}
         >
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.chatItem,
               { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider },
@@ -371,8 +371,6 @@ export function ChatListScreen() {
               },
             ]}
             onPress={() => handleChatPress(item)}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('accessibility.messageFrom', {
@@ -447,7 +445,7 @@ export function ChatListScreen() {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </HapticTouchable>
         </VoiceFocusable>
       );
     },
@@ -527,7 +525,7 @@ export function ChatListScreen() {
 
       {/* Floating action button for new chat */}
       {chats.length > 0 && (
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.fab, { backgroundColor: themeColors.primary }]}
           onPress={handleNewChat}
           activeOpacity={0.8}
@@ -535,7 +533,7 @@ export function ChatListScreen() {
           accessibilityLabel={t('chat.newChat')}
         >
           <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       )}
 
     </View>

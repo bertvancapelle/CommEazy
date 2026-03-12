@@ -17,9 +17,9 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
   Switch,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -237,7 +237,7 @@ export function MailOnboardingStep2({
 
   const renderServerConfig = () => (
     <View style={styles.serverConfigContainer}>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.serverConfigToggle, { borderColor: themeColors.border }]}
         onPress={() => {
           triggerHaptic('tap');
@@ -256,7 +256,7 @@ export function MailOnboardingStep2({
           size={20}
           color={themeColors.textSecondary}
         />
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {showServerConfig && (
         <View style={styles.serverConfigFields}>
@@ -376,7 +376,7 @@ export function MailOnboardingStep2({
           showsVerticalScrollIndicator={false}
         >
           {/* Back button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.backButton}
             onPress={onBack}
             accessibilityRole="button"
@@ -386,7 +386,7 @@ export function MailOnboardingStep2({
             <Text style={[styles.backText, { color: accentColor.primary }]}>
               {t('common.back')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           <View style={styles.header}>
             <Text
@@ -450,7 +450,7 @@ function SecuritySelector({ value, onChange, themeColors, accentColor }: Securit
   return (
     <View style={secStyles.container}>
       {SECURITY_OPTIONS.map((option) => (
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           key={option}
           style={[
             secStyles.option,
@@ -478,7 +478,7 @@ function SecuritySelector({ value, onChange, themeColors, accentColor }: Securit
           >
             {option}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       ))}
     </View>
   );

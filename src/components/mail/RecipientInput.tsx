@@ -22,8 +22,8 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -175,17 +175,15 @@ export function RecipientInput({
               >
                 {recipient.name || recipient.email}
               </Text>
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.chipRemove}
                 onPress={() => removeRecipient(recipient.email)}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityRole="button"
                 accessibilityLabel={t('modules.mail.compose.removeRecipient')}
               >
                 <Icon name="close" size={16} color={themeColors.textSecondary} />
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           ))}
 
@@ -211,12 +209,10 @@ export function RecipientInput({
       {showSuggestions && suggestions.length > 0 && (
         <View style={[styles.suggestionsContainer, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
           {suggestions.map(suggestion => (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={suggestion.email}
               style={styles.suggestionItem}
               onPress={() => handleSuggestionPress(suggestion)}
-              onLongPress={() => {}}
-              delayLongPress={300}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={`${suggestion.name}, ${suggestion.email}`}
@@ -229,7 +225,7 @@ export function RecipientInput({
                   {suggestion.email}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </HapticTouchable>
           ))}
         </View>
       )}

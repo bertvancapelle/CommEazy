@@ -15,10 +15,10 @@ import {
   View,
   StyleSheet,
   Text,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -117,11 +117,9 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
 
   return (
     <View style={[styles.attachmentRow, { borderColor: themeColors.border }]}>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={styles.attachmentMainArea}
         onPress={handleDownload}
-        onLongPress={() => {}}
-        delayLongPress={300}
         activeOpacity={0.7}
         disabled={isDownloading}
         accessibilityRole="button"
@@ -144,18 +142,16 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
         ) : (
           <Icon name="download" size={20} color={accentColor.primary} />
         )}
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {/* Save to album button for images/videos */}
       {isSaveable && (
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.saveToAlbumButton,
             saveResult === 'success' && { backgroundColor: '#E8F5E9' },
           ]}
           onPress={handleSaveToAlbum}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           disabled={isSaving || saveResult === 'success'}
           accessibilityRole="button"
@@ -168,7 +164,7 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
           ) : (
             <Icon name="image" size={18} color={accentColor.primary} />
           )}
-        </TouchableOpacity>
+        </HapticTouchable>
       )}
     </View>
   );

@@ -22,10 +22,10 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
-  TouchableOpacity,
   Platform,
   NativeModules,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -518,11 +518,9 @@ export function MailInboxScreen({
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Folder bar */}
       <View style={[styles.folderBar, { borderBottomColor: themeColors.border }]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.folderButton, { backgroundColor: themeColors.surface }]}
           onPress={handleFolderToggle}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('modules.mail.inbox.selectFolder')}
@@ -541,18 +539,16 @@ export function MailInboxScreen({
             size={20}
             color={themeColors.textSecondary}
           />
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Compose button */}
         <View>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.composeButton, { backgroundColor: accentColor.primary }]}
             onPress={() => {
               triggerHaptic('tap');
               onCompose();
             }}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={
@@ -562,7 +558,7 @@ export function MailInboxScreen({
             }
           >
             <Icon name="pencil" size={24} color="white" />
-          </TouchableOpacity>
+          </HapticTouchable>
           {/* Draft badge */}
           {hasDraftProp && (
             <View style={styles.draftBadge}>
@@ -576,7 +572,7 @@ export function MailInboxScreen({
       {showFolders && folders.length > 0 && (
         <View style={[styles.folderDropdown, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
           {folders.map((folder) => (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={folder.name}
               style={[
                 styles.folderDropdownItem,
@@ -585,8 +581,6 @@ export function MailInboxScreen({
                 },
               ]}
               onPress={() => handleFolderSelect(folder.name)}
-              onLongPress={() => {}}
-              delayLongPress={300}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={getFolderDisplayName(folder.name, t)}
@@ -605,7 +599,7 @@ export function MailInboxScreen({
               >
                 {getFolderDisplayName(folder.name, t)}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           ))}
         </View>
       )}
@@ -635,11 +629,9 @@ export function MailInboxScreen({
               ? t('modules.mail.inbox.search.noResults')
               : t('modules.mail.inbox.search.resultsCount', { count: String(searchResults.length) })}
           </Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.searchClearPill, { backgroundColor: themeColors.surface }]}
             onPress={handleClearSearch}
-            onLongPress={() => {}}
-            delayLongPress={300}
             hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.inbox.search.clear')}
@@ -648,7 +640,7 @@ export function MailInboxScreen({
             <Text style={[styles.searchClearButtonText, { color: accentColor.primary }]}>
               {t('modules.mail.inbox.search.clear')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       )}
 

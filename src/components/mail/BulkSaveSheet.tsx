@@ -20,9 +20,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -178,16 +178,14 @@ export function BulkSaveSheet({
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>
             {t('modules.mail.detail.saveAllPhotos', { count: attachments.length })}
           </Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.closeButton}
             onPress={handleClose}
-            onLongPress={() => {}}
-            delayLongPress={300}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Icon name="close" size={24} color={themeColors.textPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Items list */}
@@ -240,34 +238,28 @@ export function BulkSaveSheet({
               <Text style={[styles.resultText, { color: themeColors.textPrimary }]}>
                 {t('modules.mail.detail.saveComplete', { saved: savedCount, failed: failedCount })}
               </Text>
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
                 onPress={handleClose}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 accessibilityRole="button"
                 accessibilityLabel={t('common.close')}
               >
                 <Text style={styles.actionButtonText}>{t('common.close')}</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           ) : isSaving ? (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.actionButton, { backgroundColor: '#F44336' }]}
               onPress={handleCancel}
-              onLongPress={() => {}}
-              delayLongPress={300}
               accessibilityRole="button"
               accessibilityLabel={t('common.cancel')}
             >
               <Text style={styles.actionButtonText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           ) : (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
               onPress={handleSaveAll}
-              onLongPress={() => {}}
-              delayLongPress={300}
               accessibilityRole="button"
               accessibilityLabel={t('modules.mail.detail.saveAllButton')}
             >
@@ -275,7 +267,7 @@ export function BulkSaveSheet({
               <Text style={styles.actionButtonText}>
                 {t('modules.mail.detail.saveAllButton')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           )}
         </View>
       </View>

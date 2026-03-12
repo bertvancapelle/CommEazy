@@ -27,7 +27,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   TextInput,
   Platform,
@@ -39,6 +38,7 @@ import {
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -507,7 +507,7 @@ export function BooksScreen() {
                 })}
               </Text>
             </View>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.cleanupButton, { borderColor: accentColor.primary }]}
               onPress={() => {
                 triggerFeedback('tap');
@@ -520,7 +520,7 @@ export function BooksScreen() {
               <Text style={[styles.cleanupButtonText, { color: accentColor.primary }]}>
                 {t('modules.books.cleanup')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 
@@ -587,7 +587,7 @@ export function BooksScreen() {
                 <Text style={styles.emptyHint}>
                   {t('modules.books.emptyLibraryHint')}
                 </Text>
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
                   onPress={() => {
                     triggerFeedback('tap');
@@ -600,7 +600,7 @@ export function BooksScreen() {
                   <Text style={styles.emptyActionButtonText}>
                     {t('modules.books.goToSearch')}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               </>
             )}
           </View>
@@ -668,11 +668,9 @@ export function BooksScreen() {
                     </View>
 
                     {/* Book info - tappable */}
-                    <TouchableOpacity
+                    <HapticTouchable hapticDisabled
                       style={styles.bookInfoTouchable}
                       onPress={() => handleBookPress(book)}
-                      onLongPress={() => {}}
-                      delayLongPress={300}
                       activeOpacity={0.7}
                       accessibilityRole="button"
                       accessibilityLabel={`${book.title} ${t('common.by')} ${book.author}`}
@@ -714,7 +712,7 @@ export function BooksScreen() {
                           )}
                         </View>
                       </View>
-                    </TouchableOpacity>
+                    </HapticTouchable>
 
                     {/* Action buttons */}
                     {showLibrary && isDownloaded && (
@@ -801,7 +799,7 @@ export function BooksScreen() {
                 </Text>
               </View>
 
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
                 onPress={() => {
                   triggerFeedback('tap');
@@ -815,7 +813,7 @@ export function BooksScreen() {
                 <Text style={styles.modalButtonText}>
                   {t('modules.books.welcomeButton')}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           </View>
         </Modal>
@@ -866,7 +864,7 @@ export function BooksScreen() {
 
               {/* Select all / deselect all */}
               <View style={styles.cleanupSelectAll}>
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={styles.cleanupSelectButton}
                   onPress={() => {
                     if (selectedForDelete.size === library.length) {
@@ -887,13 +885,13 @@ export function BooksScreen() {
                       ? t('modules.books.deselectAll')
                       : t('modules.books.selectAll')}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               </View>
 
               {/* Book list for selection */}
               <ScrollView style={styles.cleanupBookList}>
                 {library.map(book => (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     key={book.id}
                     style={[
                       styles.cleanupBookItem,
@@ -920,12 +918,12 @@ export function BooksScreen() {
                         {formatSize(book.fileSize)}
                       </Text>
                     </View>
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 ))}
               </ScrollView>
 
               {/* Delete button */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[
                   styles.cleanupDeleteButton,
                   selectedForDelete.size === 0
@@ -942,7 +940,7 @@ export function BooksScreen() {
                 <Text style={styles.cleanupDeleteButtonText}>
                   {t('modules.books.deleteSelected', { count: selectedForDelete.size })}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           </View>
         </Modal>
@@ -978,7 +976,7 @@ export function BooksScreen() {
               </Text>
 
               {/* Read option */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.modeOption}
                 onPress={() => handleModeSelect('read')}
                 accessibilityRole="button"
@@ -992,10 +990,10 @@ export function BooksScreen() {
                   <Text style={styles.modeOptionTitle}>{t('modules.books.read')}</Text>
                   <Text style={styles.modeOptionDescription}>{t('modules.books.readDescription')}</Text>
                 </View>
-              </TouchableOpacity>
+              </HapticTouchable>
 
               {/* Listen option */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.modeOption}
                 onPress={() => handleModeSelect('listen')}
                 accessibilityRole="button"
@@ -1009,10 +1007,10 @@ export function BooksScreen() {
                   <Text style={styles.modeOptionTitle}>{t('modules.books.listen')}</Text>
                   <Text style={styles.modeOptionDescription}>{t('modules.books.listenDescription')}</Text>
                 </View>
-              </TouchableOpacity>
+              </HapticTouchable>
 
               {/* Cancel button */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.modeModalCancel}
                 onPress={() => {
                   setShowModeModal(false);
@@ -1022,7 +1020,7 @@ export function BooksScreen() {
                 accessibilityLabel={t('common.cancel')}
               >
                 <Text style={styles.modeModalCancelText}>{t('common.cancel')}</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           </View>
         </Modal>

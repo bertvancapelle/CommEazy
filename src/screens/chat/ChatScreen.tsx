@@ -19,7 +19,6 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   AccessibilityInfo,
@@ -27,6 +26,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -466,12 +466,12 @@ export function ChatScreen() {
 
       if (isFailed && isOwn) {
         return (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             onPress={() => chatService.retrySendMessage(item.id)}
             activeOpacity={0.7}
           >
             {bubbleContent}
-          </TouchableOpacity>
+          </HapticTouchable>
         );
       }
 
@@ -528,7 +528,7 @@ export function ChatScreen() {
       {/* Input area */}
       <View style={[styles.inputContainer, { backgroundColor: themeColors.surface, borderTopColor: themeColors.divider }]}>
         {/* Photo button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.photoButton, { backgroundColor: themeColors.backgroundSecondary }]}
           onPress={handlePhotoPress}
           disabled={sendingPhoto}
@@ -542,7 +542,7 @@ export function ChatScreen() {
           ) : (
             <Icon name="image" size={24} color={themeColors.primary} />
           )}
-        </TouchableOpacity>
+        </HapticTouchable>
 
         <TextInput
           style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary }]}
@@ -557,7 +557,7 @@ export function ChatScreen() {
           blurOnSubmit={false}
         />
 
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.sendButton,
             { backgroundColor: themeColors.primary },
@@ -573,7 +573,7 @@ export function ChatScreen() {
           <Text style={[styles.sendButtonText, { color: themeColors.textOnPrimary }]}>
             {sending ? '...' : '→'}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </KeyboardAvoidingView>
   );

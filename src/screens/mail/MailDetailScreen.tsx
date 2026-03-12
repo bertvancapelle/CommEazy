@@ -24,11 +24,11 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
   Alert,
   Animated,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -688,14 +688,12 @@ export function MailDetailScreen({
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={['top']}>
       {/* Top bar */}
       <View style={[styles.topBar, { borderBottomColor: themeColors.border }]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.backButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={() => {
             triggerHaptic('tap');
             onBack();
           }}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
@@ -704,15 +702,13 @@ export function MailDetailScreen({
           <Text style={[styles.backText, { color: accentColor.primary }]}>
             {t('common.back')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         <View style={styles.topBarRight}>
           {/* Text size toggle */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={handleToggleFontSize}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.detail.textSize', {
@@ -722,10 +718,10 @@ export function MailDetailScreen({
             <Text style={[styles.fontSizeLabel, { color: accentColor.primary }]}>
               Aa
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* TTS Read-Aloud toggle */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.actionButton,
               {
@@ -737,7 +733,6 @@ export function MailDetailScreen({
             ]}
             onPress={handleTtsToggle}
             onLongPress={isTtsPlaying || isTtsPaused ? handleTtsStop : undefined}
-            delayLongPress={300}
             activeOpacity={0.7}
             disabled={!body || isTtsLoading}
             accessibilityRole="button"
@@ -758,10 +753,10 @@ export function MailDetailScreen({
                 color={isTtsPlaying || isTtsPaused ? 'white' : accentColor.primary}
               />
             )}
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Read/Unread toggle — filled blue = unread state, outline blue = read state */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.actionButton,
               !isRead
@@ -769,8 +764,6 @@ export function MailDetailScreen({
                 : { backgroundColor: themeColors.surface, borderColor: themeColors.border },
             ]}
             onPress={handleToggleRead}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={isRead
@@ -782,20 +775,18 @@ export function MailDetailScreen({
               size={22}
               color={!isRead ? 'white' : accentColor.primary}
             />
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Delete button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.actionButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={handleDelete}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('common.delete')}
           >
             <Icon name="trash" size={22} color={themeColors.error} />
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
 
@@ -863,11 +854,9 @@ export function MailDetailScreen({
               />
             </View>
             <View style={styles.ttsControls}>
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.ttsControlButton}
                 onPress={handleTtsToggle}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 accessibilityRole="button"
                 accessibilityLabel={isTtsPaused
                   ? t('modules.mail.detail.resumeReading')
@@ -879,23 +868,21 @@ export function MailDetailScreen({
                   size={20}
                   color={accentColor.primary}
                 />
-              </TouchableOpacity>
+              </HapticTouchable>
               <Text style={[styles.ttsLabel, { color: themeColors.textSecondary }]}>
                 {isTtsPaused
                   ? t('modules.mail.detail.readingPaused')
                   : t('modules.mail.detail.readingAloud')
                 }
               </Text>
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.ttsControlButton}
                 onPress={handleTtsStop}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 accessibilityRole="button"
                 accessibilityLabel={t('modules.mail.detail.stopReading')}
               >
                 <Icon name="stop" size={20} color={themeColors.error} />
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           </View>
         )}
@@ -965,7 +952,7 @@ export function MailDetailScreen({
                 const isSavedAlready = savedToAlbumIndices.has(attachment.index);
 
                 return (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     key={attachment.index}
                     style={[styles.inlineThumbnailContainer, { borderColor: themeColors.border }]}
                     onPress={() => {
@@ -979,8 +966,6 @@ export function MailDetailScreen({
                         setViewerVisible(true);
                       }
                     }}
-                    onLongPress={() => {}}
-                    delayLongPress={300}
                     activeOpacity={0.7}
                     disabled={!localUri}
                     accessibilityRole="button"
@@ -1008,7 +993,7 @@ export function MailDetailScreen({
                         <Icon name="check" size={12} color="white" />
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 );
               })}
             </ScrollView>
@@ -1062,11 +1047,9 @@ export function MailDetailScreen({
 
       {/* Bottom action bar */}
       <View style={[styles.bottomBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.bottomAction, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={handleReply}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('modules.mail.detail.reply')}
@@ -1075,15 +1058,13 @@ export function MailDetailScreen({
           <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
             {t('modules.mail.detail.reply')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Reply All — only when multiple recipients */}
         {header.to && header.to.length > 1 && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.bottomAction, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={handleReplyAll}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.detail.replyAll')}
@@ -1092,14 +1073,12 @@ export function MailDetailScreen({
             <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
               {t('modules.mail.detail.replyAll')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
 
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.bottomAction, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={handleForward}
-          onLongPress={() => {}}
-          delayLongPress={300}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={t('modules.mail.detail.forward')}
@@ -1108,7 +1087,7 @@ export function MailDetailScreen({
           <Text style={[styles.bottomActionText, { color: accentColor.primary }]}>
             {t('modules.mail.detail.forward')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </SafeAreaView>
   );

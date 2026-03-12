@@ -18,8 +18,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -109,17 +109,15 @@ export function ContactPickerModal({
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>
             {t('modules.mail.compose.selectContact')}
           </Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.closeButton}
             onPress={handleClose}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Icon name="close" size={24} color={themeColors.textPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Search */}
@@ -145,12 +143,10 @@ export function ContactPickerModal({
             </View>
           ) : (
             filteredContacts.map(contact => (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 key={contact.id}
                 style={[styles.contactItem, { borderBottomColor: themeColors.border }]}
                 onPress={() => handleSelect(contact)}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel={`${contact.firstName} ${contact.lastName}, ${contact.email}`}
@@ -170,7 +166,7 @@ export function ContactPickerModal({
                     {contact.email}
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </HapticTouchable>
             ))
           )}
         </ScrollView>

@@ -25,7 +25,6 @@ import {
   StyleSheet,
   RefreshControl,
   Modal,
-  TouchableOpacity,
   Linking,
   Platform,
   Switch,
@@ -746,7 +745,7 @@ function AgendaScreenInner() {
             </View>
 
             {/* Button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
               onPress={handleWelcomeDismiss}
               activeOpacity={0.8}
@@ -756,7 +755,7 @@ function AgendaScreenInner() {
               <Text style={[styles.welcomeButtonText, { color: colors.textOnPrimary }]}>
                 {t('modules.agenda.welcome.understood')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>

@@ -26,11 +26,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ActionSheetIOS,
   Platform,
   Alert,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -75,7 +75,7 @@ interface SubsectionButtonProps {
 
 function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, focused, focusStyle, themeColors }: SubsectionButtonProps) {
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.subsectionButton,
         { borderBottomColor: themeColors.border },
@@ -96,7 +96,7 @@ function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, 
       </View>
       <Text style={[styles.subsectionLabel, { color: themeColors.textPrimary }]}>{label}</Text>
       <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -238,7 +238,7 @@ export function SettingsMainScreen() {
 
       <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {/* Profile header - tappable to edit */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
         style={[styles.profileHeader, { backgroundColor: themeColors.surface }]}
         onPress={() => navigation.navigate('ProfileSettings')}
         activeOpacity={0.8}
@@ -262,10 +262,10 @@ export function SettingsMainScreen() {
           <Text style={[styles.profileHint, { color: themeColors.textSecondary }]}>{t('profile.tapToChange')}</Text>
         </View>
         <Icon name="chevron-right" size={24} color={themeColors.textTertiary} />
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {/* Language selector - below profile */}
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.languageSelector, { backgroundColor: themeColors.surface }]}
         onPress={handleLanguagePress}
         activeOpacity={0.7}
@@ -278,7 +278,7 @@ export function SettingsMainScreen() {
           <Text style={[styles.languageValue, { color: accentColor.primary }]}>{languageDisplay}</Text>
           <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
         </View>
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {/* Subsection buttons */}
       <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
@@ -523,7 +523,7 @@ export function SettingsMainScreen() {
         {__DEV__ && (
           <View style={styles.devSection}>
             <Text style={styles.devSectionTitle}>🛠 Development</Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.devButton, { backgroundColor: themeColors.surface }]}
               onPress={() => navigation.navigate('PiperTtsTest')}
               accessibilityRole="button"
@@ -535,7 +535,7 @@ export function SettingsMainScreen() {
                 <Text style={[styles.devButtonSubtitle, { color: themeColors.textSecondary }]}>Test offline spraaksynthese</Text>
               </View>
               <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 

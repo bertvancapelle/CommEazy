@@ -13,11 +13,11 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   Alert,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator } from '@/components';
 import { piperTtsService } from '@/services/piperTtsService';
 
@@ -132,7 +132,7 @@ export function PiperTtsTestScreen() {
         </View>
 
         {/* Initialize button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.button,
             styles.initButton,
@@ -144,7 +144,7 @@ export function PiperTtsTestScreen() {
           <Text style={styles.buttonText}>
             {isLoading ? 'Laden...' : 'Initialiseer Piper TTS'}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Text input */}
         <Text style={styles.label}>Test tekst:</Text>
@@ -160,12 +160,12 @@ export function PiperTtsTestScreen() {
         {/* Speed control */}
         <Text style={styles.label}>Snelheid: {speed.toFixed(1)}x</Text>
         <View style={styles.speedControls}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.speedButton}
             onPress={() => handleSpeedChange(-0.1)}
           >
             <Text style={styles.speedButtonText}>−</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
           <View style={styles.speedBar}>
             <View
               style={[
@@ -174,17 +174,17 @@ export function PiperTtsTestScreen() {
               ]}
             />
           </View>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.speedButton}
             onPress={() => handleSpeedChange(0.1)}
           >
             <Text style={styles.speedButtonText}>+</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Playback controls */}
         <View style={styles.controlsRow}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.button,
               styles.playButton,
@@ -196,9 +196,9 @@ export function PiperTtsTestScreen() {
             <Text style={styles.buttonText}>
               {isPlaying ? '⏸ Pauze' : '▶ Afspelen'}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.button,
               styles.stopButton,
@@ -208,19 +208,19 @@ export function PiperTtsTestScreen() {
             disabled={!isInitialized}
           >
             <Text style={styles.buttonText}>⏹ Stop</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Sample texts */}
         <Text style={styles.label}>Voorbeeldteksten:</Text>
         {SAMPLE_TEXTS.map((sample, index) => (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             key={index}
             style={styles.sampleButton}
             onPress={() => setTestText(sample)}
           >
             <Text style={styles.sampleText}>{sample}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         ))}
 
         {/* Privacy notice */}

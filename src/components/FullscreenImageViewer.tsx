@@ -30,11 +30,11 @@ import {
   Modal,
   Image,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   StatusBar,
   useWindowDimensions,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
@@ -189,16 +189,14 @@ export function FullscreenImageViewer({
         {/* Top overlay bar — close button + counter */}
         <View style={styles.topOverlay}>
           {/* Close button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.closeButton}
             onPress={handleClose}
-            onLongPress={() => {}}
-            delayLongPress={300}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Text style={styles.closeButtonText}>{t('common.close')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Counter */}
           {images.length > 1 && (
@@ -217,11 +215,9 @@ export function FullscreenImageViewer({
         {images.length > 1 && (
           <View style={styles.navigation} pointerEvents="box-none">
             {/* Previous button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.navButton, isFirst && styles.navButtonDisabled]}
               onPress={handlePrevious}
-              onLongPress={() => {}}
-              delayLongPress={300}
               disabled={isFirst}
               accessibilityRole="button"
               accessibilityLabel={t('components.imageViewer.previous')}
@@ -231,14 +227,12 @@ export function FullscreenImageViewer({
                 size={32}
                 color={isFirst ? 'rgba(255,255,255,0.3)' : colors.textOnPrimary}
               />
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Next button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.navButton, isLast && styles.navButtonDisabled]}
               onPress={handleNext}
-              onLongPress={() => {}}
-              delayLongPress={300}
               disabled={isLast}
               accessibilityRole="button"
               accessibilityLabel={t('components.imageViewer.next')}
@@ -248,21 +242,19 @@ export function FullscreenImageViewer({
                 size={32}
                 color={isLast ? 'rgba(255,255,255,0.3)' : colors.textOnPrimary}
               />
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 
         {/* Bottom overlay — save button */}
         {onSave && (
           <View style={styles.bottomOverlay}>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[
                 styles.saveButton,
                 { backgroundColor: isSaved ? 'rgba(76, 175, 80, 0.7)' : accentColor },
               ]}
               onPress={handleSave}
-              onLongPress={() => {}}
-              delayLongPress={300}
               disabled={isSaving || isSaved}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -289,7 +281,7 @@ export function FullscreenImageViewer({
                   </Text>
                 </>
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
       </View>

@@ -21,9 +21,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Switch,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
 
@@ -117,7 +117,7 @@ function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight,
         {RINGTONE_OPTIONS.map((ringtone) => {
           const isSelected = value === ringtone;
           return (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={ringtone}
               style={[
                 styles.ringtoneOption,
@@ -139,7 +139,7 @@ function RingtoneSelector({ value, onValueChange, accentColor, accentColorLight,
               {isSelected && (
                 <Icon name="check" size={20} color={accentColor} />
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
           );
         })}
       </View>

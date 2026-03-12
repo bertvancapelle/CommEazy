@@ -12,11 +12,11 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Text,
   Animated,
   Dimensions,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -233,15 +233,13 @@ function SidebarItem({
   const { t } = useTranslation();
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.item,
         isCollapsed && styles.itemCollapsed,
         isActive && [styles.itemActive, { backgroundColor: accentColor + '15' }],
       ]}
       onPress={onPress}
-      onLongPress={() => {}} // Block double-action from hold gesture
-      delayLongPress={300}
       accessibilityRole="button"
       accessibilityLabel={t(module.labelKey)}
       accessibilityState={{ selected: isActive }}
@@ -282,7 +280,7 @@ function SidebarItem({
           ]}
         />
       )}
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

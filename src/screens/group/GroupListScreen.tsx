@@ -15,10 +15,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -207,7 +207,7 @@ export function GroupListScreen() {
           index={index}
           onSelect={() => handleGroupPress(item)}
         >
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.groupItem,
               { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider },
@@ -276,7 +276,7 @@ export function GroupListScreen() {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </HapticTouchable>
         </VoiceFocusable>
       );
     },
@@ -334,7 +334,7 @@ export function GroupListScreen() {
 
       {/* Floating action button for new group */}
       {groups.length > 0 && (
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.fab, { backgroundColor: themeColors.primary }]}
           onPress={handleCreateGroup}
           activeOpacity={0.8}
@@ -342,7 +342,7 @@ export function GroupListScreen() {
           accessibilityLabel={t('group.create')}
         >
           <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       )}
     </View>
   );

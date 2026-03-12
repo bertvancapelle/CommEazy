@@ -23,11 +23,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   RefreshControl,
   Image,
   Modal,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -77,15 +77,13 @@ function CategoryChip({ category, isSelected, onPress, themeColors, moduleColor 
   }, [onPress, holdGesture]);
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.categoryChip,
         { backgroundColor: themeColors.background, borderColor: themeColors.border },
         isSelected && [styles.categoryChipSelected, { backgroundColor: moduleColor, borderColor: moduleColor }],
       ]}
       onPress={handlePress}
-      onLongPress={() => {}} // Prevent onPress after long press
-      delayLongPress={300}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={t(category.labelKey)}
@@ -103,7 +101,7 @@ function CategoryChip({ category, isSelected, onPress, themeColors, moduleColor 
       >
         {t(category.labelKey)}
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -151,11 +149,9 @@ function ArticleCard({ article, index, onPress, themeColors }: ArticleCardProps)
       index={index}
       onSelect={onPress}
     >
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.articleCard, { backgroundColor: themeColors.surface }]}
         onPress={handlePress}
-        onLongPress={() => {}}
-        delayLongPress={300}
         activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel={`${article.title}. ${timeAgo} geleden`}
@@ -186,7 +182,7 @@ function ArticleCard({ article, index, onPress, themeColors }: ArticleCardProps)
           </Text>
           <Text style={[styles.articleTime, { color: themeColors.textTertiary }]}>{timeAgo}</Text>
         </View>
-      </TouchableOpacity>
+      </HapticTouchable>
     </VoiceFocusable>
   );
 }
@@ -253,7 +249,7 @@ function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeM
           </View>
 
           {/* Button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
             onPress={onDismiss}
             activeOpacity={0.8}
@@ -261,7 +257,7 @@ function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeM
             accessibilityLabel={t('modules.nunl.welcome.understood')}
           >
             <Text style={[styles.welcomeButtonText, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.welcome.understood')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
     </Modal>

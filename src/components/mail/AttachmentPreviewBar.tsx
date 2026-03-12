@@ -21,9 +21,9 @@ import {
   Image,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -121,11 +121,9 @@ export function AttachmentPreviewBar({
             </View>
 
             {/* Remove button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.removeButton}
               onPress={() => handleRemove(attachment.id)}
-              onLongPress={() => {}}
-              delayLongPress={300}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
               accessibilityLabel={t('modules.mail.compose.removeAttachment', { name: attachment.fileName })}
@@ -133,7 +131,7 @@ export function AttachmentPreviewBar({
               <View style={styles.removeIcon}>
                 <Icon name="close" size={12} color="#FFFFFF" />
               </View>
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* File info */}
             <Text

@@ -20,11 +20,11 @@ import {
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   ScrollView,
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -86,7 +86,7 @@ function ChoiceButton({
   customLogo,
 }: ChoiceButtonProps) {
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.choiceButton,
         isPrimary && { backgroundColor: accentColor },
@@ -96,8 +96,6 @@ function ChoiceButton({
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityHint={subtitle}
-      onLongPress={() => {}} // Prevent double-action with hold gesture
-      delayLongPress={300}
     >
       <View style={[
         styles.choiceIconContainer,
@@ -135,7 +133,7 @@ function ChoiceButton({
         size={24}
         color={isPrimary ? colors.textOnPrimary : colors.textSecondary}
       />
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -255,7 +253,7 @@ export function ArticlePreviewModal({
 
           {/* TTS Playing State - Show stop button */}
           {(isTTSPlaying || isTTSLoading) ? (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.ttsPlayingButton, { backgroundColor: accentColor }]}
               onPress={handleStopTTS}
               activeOpacity={0.8}
@@ -279,7 +277,7 @@ export function ArticlePreviewModal({
                 </View>
               </View>
               <Text style={styles.ttsStopText}>{t('articleViewer.stop')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           ) : (
             /* Choice: Read Abstract (TTS) */
             <ChoiceButton

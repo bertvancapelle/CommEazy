@@ -13,9 +13,9 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator } from '@/components';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -107,7 +107,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
         <View style={styles.languages}>
           {(Object.entries(SUPPORTED_LANGUAGES) as [SupportedLanguage, string][]).map(
             ([code, name]) => (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 key={code}
                 style={[
                   styles.languageButton,
@@ -132,7 +132,7 @@ export function LanguageSelectScreen({ navigation }: Props) {
                 {currentLanguage === code && (
                   <Text style={[styles.checkmark, { color: themeColors.primary }]}>✓</Text>
                 )}
-              </TouchableOpacity>
+              </HapticTouchable>
             )
           )}
         </View>

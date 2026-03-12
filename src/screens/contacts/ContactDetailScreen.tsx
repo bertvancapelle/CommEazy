@@ -20,7 +20,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   TextInput,
   Alert,
   Linking,
@@ -454,14 +453,14 @@ export function ContactDetailScreen() {
     return (
       <View style={[styles.errorContainer, { backgroundColor: themeColors.background }]}>
         <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>{t('contacts.notFound')}</Text>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.backButton, { backgroundColor: themeColors.primary }]}
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
           accessibilityLabel={t('accessibility.backButton')}
         >
           <Text style={[styles.backButtonText, { color: themeColors.textOnPrimary }]}>{t('common.goBack')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     );
   }
@@ -502,7 +501,7 @@ export function ContactDetailScreen() {
       {/* Action buttons — RIGHT AFTER profile header for quick access */}
       <View style={styles.actionsContainer}>
         {/* Primary: Chat button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.actionButton, styles.primaryButton, { backgroundColor: themeColors.primary }]}
           onPress={handleStartChat}
           activeOpacity={0.7}
@@ -512,12 +511,12 @@ export function ContactDetailScreen() {
         >
           <Icon name="chatbubble" size={24} color={themeColors.textOnPrimary} />
           <Text style={[styles.primaryButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.startChat')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Call buttons row: Voice + Video side by side */}
         <View style={styles.callButtonsRow}>
           {/* Voice call button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.callButton, styles.voiceCallButton]}
             onPress={handleVoiceCall}
             activeOpacity={0.7}
@@ -529,10 +528,10 @@ export function ContactDetailScreen() {
           >
             <Icon name="call" size={28} color={themeColors.textOnPrimary} />
             <Text style={[styles.callButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.voiceCall')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Video call button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.callButton, styles.videoCallButton]}
             onPress={handleVideoCall}
             activeOpacity={0.7}
@@ -544,7 +543,7 @@ export function ContactDetailScreen() {
           >
             <Icon name="videocam" size={28} color={themeColors.textOnPrimary} />
             <Text style={[styles.callButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.videoCall')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
 
@@ -737,7 +736,7 @@ export function ContactDetailScreen() {
       {/* Save / Cancel bar (only visible when editing) */}
       {isEditing && (
         <View style={styles.editBar}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.editBarButton, { backgroundColor: themeColors.primary, opacity: editCategories.length === 0 ? 0.4 : 1 }]}
             onPress={() => void handleSave()}
             activeOpacity={0.7}
@@ -748,8 +747,8 @@ export function ContactDetailScreen() {
           >
             <Icon name="checkmark" size={22} color={themeColors.textOnPrimary} />
             <Text style={[styles.editBarButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.save')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </HapticTouchable>
+          <HapticTouchable hapticDisabled
             style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
             onPress={handleCancelEdit}
             activeOpacity={0.7}
@@ -757,7 +756,7 @@ export function ContactDetailScreen() {
             accessibilityLabel={t('common.cancel')}
           >
             <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       )}
 
@@ -880,7 +879,7 @@ export function ContactDetailScreen() {
 
                 {/* Navigation button */}
                 {showNavigationButton && (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     style={[styles.navigationButton, { backgroundColor: themeColors.primary }]}
                     onPress={handleNavigateToMaps}
                     activeOpacity={0.7}
@@ -892,7 +891,7 @@ export function ContactDetailScreen() {
                     <Text style={[styles.navigationButtonText, { color: themeColors.textOnPrimary }]}>
                       {t('contacts.address.navigate')}
                     </Text>
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 )}
               </>
             ) : (
@@ -1010,7 +1009,7 @@ export function ContactDetailScreen() {
       <View style={styles.bottomActionsContainer}>
         {/* Edit button (only when not editing) */}
         {!isEditing && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
             onPress={handleStartEdit}
             activeOpacity={0.7}
@@ -1019,12 +1018,12 @@ export function ContactDetailScreen() {
           >
             <Icon name="pencil" size={22} color={themeColors.textPrimary} />
             <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('contacts.edit')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
 
         {/* Verify/Reverify button */}
         {!contact.verified && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.actionButton, styles.warningButton]}
             onPress={handleVerify}
             activeOpacity={0.7}
@@ -1032,11 +1031,11 @@ export function ContactDetailScreen() {
             accessibilityLabel={t('contacts.verify')}
           >
             <Text style={[styles.warningButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.verify')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
 
         {/* Delete button - at bottom, less prominent */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.actionButton, styles.dangerButton, { backgroundColor: themeColors.background, borderColor: themeColors.error }]}
           onPress={handleDelete}
           activeOpacity={0.7}
@@ -1045,7 +1044,7 @@ export function ContactDetailScreen() {
           accessibilityHint={t('accessibility.deleteContactHint', { name: displayName })}
         >
           <Text style={[styles.dangerButtonText, { color: themeColors.error }]}>{t('contacts.delete')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </ScrollViewWithIndicator>
   );

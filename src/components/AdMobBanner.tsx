@@ -13,10 +13,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Linking,
   Image,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { colors, typography, spacing } from '@/theme';
 
 // ============================================================
@@ -101,7 +101,7 @@ export function AdMobBanner({
   const bannerHeight = size === 'banner' ? 50 : size === 'largeBanner' ? 100 : 250;
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.container,
         { height: bannerHeight, backgroundColor: ad.backgroundColor },
@@ -125,7 +125,7 @@ export function AdMobBanner({
           <Text style={styles.badgeText}>Ad</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

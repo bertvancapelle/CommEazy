@@ -12,8 +12,8 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -78,19 +78,17 @@ export function DownloadProgressIndicator({
         </View>
 
         {onCancel && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.cancelButton}
             onPress={() => {
               triggerHaptic('tap');
               onCancel();
             }}
-            onLongPress={() => {}}
-            delayLongPress={300}
             accessibilityRole="button"
             accessibilityLabel={t('common.cancel')}
           >
             <Icon name="close" size={20} color={themeColors.textSecondary} />
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
       </View>
 

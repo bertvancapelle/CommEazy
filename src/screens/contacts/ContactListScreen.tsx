@@ -25,7 +25,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -82,11 +81,9 @@ function ContactListItem({
       index={index}
       onSelect={() => onPress(contact)}
     >
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}
         onPress={() => onPress(contact)}
-        onLongPress={() => {}}
-        delayLongPress={300}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={displayName}
@@ -111,7 +108,7 @@ function ContactListItem({
 
         {/* Chevron indicator */}
         <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
-      </TouchableOpacity>
+      </HapticTouchable>
     </VoiceFocusable>
   );
 }
@@ -412,14 +409,14 @@ export function ContactListScreen() {
       <View style={styles.emptyContainer}>
         <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('contacts.noContacts')}</Text>
         <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>{t('contacts.noContactsHint')}</Text>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.addButton, { backgroundColor: themeColors.primary }]}
           onPress={handleAddContact}
           accessibilityRole="button"
           accessibilityLabel={t('contacts.addButton')}
         >
           <Text style={[styles.addButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.addButton')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     ),
     [t, handleAddContact, themeColors]
@@ -563,7 +560,7 @@ export function ContactListScreen() {
 
       {/* FAB for adding contacts */}
       {contacts.length > 0 && (
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.fab, { backgroundColor: themeColors.primary }]}
           onPress={handleAddContact}
           activeOpacity={0.8}
@@ -571,7 +568,7 @@ export function ContactListScreen() {
           accessibilityLabel={t('contacts.addButton')}
         >
           <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       )}
 
       {/* Create Group Modal */}

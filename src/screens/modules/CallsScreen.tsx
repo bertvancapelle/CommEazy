@@ -21,10 +21,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
   Alert,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -96,32 +96,28 @@ function CallContactItem({
         {/* Call buttons */}
         <View style={styles.callButtons}>
           {/* Voice call button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.callButton, { backgroundColor: themeColors.success }]}
             onPress={() => onVoiceCall(contact)}
-            onLongPress={() => {}} // Prevent double-action
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.calls.voiceCallLabel', { name: getContactDisplayName(contact) })}
             accessibilityHint={t('modules.calls.voiceCallHint')}
           >
             <Icon name="call" size={24} color={themeColors.textOnPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Video call button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.callButton, { backgroundColor: callsModuleColor }]}
             onPress={() => onVideoCall(contact)}
-            onLongPress={() => {}} // Prevent double-action
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.calls.videoCallLabel', { name: getContactDisplayName(contact) })}
             accessibilityHint={t('modules.calls.videoCallHint')}
           >
             <Icon name="videocam" size={24} color={themeColors.textOnPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
     </VoiceFocusable>

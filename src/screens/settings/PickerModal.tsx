@@ -15,9 +15,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Modal,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets } from '@/theme';
@@ -55,18 +55,18 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>{title}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             onPress={onClose}
             style={styles.closeButton}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Text style={[styles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
         <ScrollViewWithIndicator style={styles.optionsList}>
           {options.map((option) => (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={option.value}
               style={[
                 styles.option,
@@ -93,7 +93,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
               {selectedValue === option.value && (
                 <Text style={[styles.checkmark, { color: accentColor.primary }]}>✓</Text>
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
           ))}
         </ScrollViewWithIndicator>
       </View>

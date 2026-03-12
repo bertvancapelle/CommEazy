@@ -23,8 +23,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  TouchableOpacity,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
@@ -113,7 +113,7 @@ function AskAIScreenInner() {
 
       {/* Action bar below header */}
       <View style={styles.actionBar}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.actionButton}
           onPress={() => setShowHistory(true)}
           accessibilityRole="button"
@@ -123,8 +123,8 @@ function AskAIScreenInner() {
           <Text style={[styles.actionButtonText, { color: moduleColor }]}>
             {t('modules.askAI.chat.history')}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </HapticTouchable>
+        <HapticTouchable hapticDisabled
           style={styles.actionButton}
           onPress={handleNewConversation}
           accessibilityRole="button"
@@ -134,7 +134,7 @@ function AskAIScreenInner() {
           <Text style={[styles.actionButtonText, { color: moduleColor }]}>
             {t('modules.askAI.chat.newConversation')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
 
       <KeyboardAvoidingView
@@ -147,14 +147,14 @@ function AskAIScreenInner() {
           <View style={styles.errorBanner}>
             <Icon name="warning" size={20} color={colors.error} />
             <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               onPress={dismissError}
               style={styles.errorDismiss}
             >
               <Text style={styles.errorDismissText}>
                 {t('common.dismiss')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 

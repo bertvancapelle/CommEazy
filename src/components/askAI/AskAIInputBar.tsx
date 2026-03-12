@@ -13,10 +13,10 @@ import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -65,7 +65,7 @@ export function AskAIInputBar({ onSend, isLoading, moduleColor }: AskAIInputBarP
         accessibilityLabel={t('modules.askAI.chat.inputPlaceholder')}
         editable={!isLoading}
       />
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[
           styles.sendButton,
           canSend
@@ -83,7 +83,7 @@ export function AskAIInputBar({ onSend, isLoading, moduleColor }: AskAIInputBarP
           size={28}
           color={canSend ? '#FFFFFF' : colors.textTertiary}
         />
-      </TouchableOpacity>
+      </HapticTouchable>
     </View>
   );
 }

@@ -22,10 +22,10 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -192,11 +192,9 @@ export function AppleMusicDetailModal({
       index={index}
       onSelect={() => handlePlaySong(song)}
     >
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.songItem, { backgroundColor: themeColors.surface }]}
         onPress={() => handlePlaySong(song)}
-        onLongPress={() => {}}
-        delayLongPress={300}
         accessibilityRole="button"
         accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
       >
@@ -232,12 +230,12 @@ export function AppleMusicDetailModal({
           onPress={() => onAddToList?.(song)}
           accessibilityLabel={t('appleMusic.collections.addToList', { title: song.title })}
         />
-      </TouchableOpacity>
+      </HapticTouchable>
     </VoiceFocusable>
   );
 
   const renderAlbumItem = (album: AppleMusicAlbum, index: number) => (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       key={album.id}
       style={[styles.albumGridItem, { backgroundColor: themeColors.surface }]}
       onPress={() => handleAlbumPress(album)}
@@ -260,7 +258,7 @@ export function AppleMusicDetailModal({
       <Text style={[styles.albumGridYear, { color: themeColors.textSecondary }]} numberOfLines={1}>
         {album.releaseDate?.substring(0, 4) || ''}
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 
   // ============================================================
@@ -377,7 +375,7 @@ export function AppleMusicDetailModal({
         </View>
 
         {/* Play All Button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.playAllButton, { backgroundColor: appleMusicColor }]}
           onPress={() => handlePlayAll(0)}
           accessibilityRole="button"
@@ -387,7 +385,7 @@ export function AppleMusicDetailModal({
           <Text style={[styles.playAllText, { color: themeColors.white }]}>
             {t('modules.appleMusic.detail.playAll')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Tracks */}
         <View style={styles.section}>
@@ -433,7 +431,7 @@ export function AppleMusicDetailModal({
         </View>
 
         {/* Play All Button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.playAllButton, { backgroundColor: appleMusicColor }]}
           onPress={() => handlePlayAll(0)}
           accessibilityRole="button"
@@ -443,7 +441,7 @@ export function AppleMusicDetailModal({
           <Text style={[styles.playAllText, { color: themeColors.white }]}>
             {t('modules.appleMusic.detail.playAll')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Tracks */}
         <View style={styles.section}>
@@ -480,14 +478,14 @@ export function AppleMusicDetailModal({
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         {/* Header with close button */}
         <View style={[styles.modalHeader, { paddingTop: insets.top + spacing.sm, borderBottomColor: themeColors.border }]}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.closeButton}
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Icon name="chevron-down" size={28} color={themeColors.textPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
           <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
             {getTitle()}
           </Text>
@@ -511,7 +509,7 @@ export function AppleMusicDetailModal({
             <Text style={[styles.errorText, { color: themeColors.error }]}>
               {t('modules.appleMusic.detail.error')}
             </Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.retryButton, { borderColor: appleMusicColor }]}
               onPress={() => {
                 // Trigger reload by toggling visible
@@ -522,7 +520,7 @@ export function AppleMusicDetailModal({
               <Text style={[styles.retryText, { color: appleMusicColor }]}>
                 {t('common.tryAgain')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 

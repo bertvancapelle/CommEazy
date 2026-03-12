@@ -19,9 +19,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import { usePaneContext } from '@/contexts/PaneContext';
@@ -81,7 +81,7 @@ export function CollapsedPaneIndicator({ side, moduleId }: CollapsedPaneIndicato
   const arrowChar = side === 'left' ? '▶' : '◀';
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.container,
         side === 'left' ? styles.containerLeft : styles.containerRight,
@@ -100,7 +100,7 @@ export function CollapsedPaneIndicator({ side, moduleId }: CollapsedPaneIndicato
       <View style={styles.arrowContainer}>
         <Text style={styles.arrowText}>{arrowChar}</Text>
       </View>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

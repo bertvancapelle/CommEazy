@@ -14,11 +14,11 @@ import React, { useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Platform,
   Vibration,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -163,7 +163,7 @@ function WheelVariant({
   label,
 }: WheelVariantProps) {
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.wheelButton,
         { backgroundColor: module.color },
@@ -184,7 +184,7 @@ function WheelVariant({
         <ModuleIcon type={module.icon} size={iconSize} color={colors.textOnPrimary} />
       )}
       <Text style={styles.wheelLabel}>{label}</Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -210,7 +210,7 @@ function SidebarVariant({
   label,
 }: SidebarVariantProps) {
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.sidebarButton,
         isActive && [styles.sidebarButtonActive, { backgroundColor: activeColor + '15' }],
@@ -246,7 +246,7 @@ function SidebarVariant({
       {isActive && (
         <View style={[styles.activeIndicator, { backgroundColor: activeColor }]} />
       )}
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -272,7 +272,7 @@ function SidebarCompactVariant({
   label,
 }: SidebarCompactVariantProps) {
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.compactButton,
         isActive && [styles.compactButtonActive, { borderColor: activeColor }],
@@ -296,7 +296,7 @@ function SidebarCompactVariant({
           <ModuleIcon type={module.icon} size={iconSize} color={colors.textOnPrimary} />
         )}
       </View>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

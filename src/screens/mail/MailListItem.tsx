@@ -13,8 +13,8 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -96,7 +96,7 @@ export function MailListItem({ header, onPress, onToggleFlag }: MailListItemProp
   }, [header, onToggleFlag]);
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.container,
         {
@@ -106,8 +106,6 @@ export function MailListItem({ header, onPress, onToggleFlag }: MailListItemProp
         },
       ]}
       onPress={handlePress}
-      onLongPress={() => {}}
-      delayLongPress={300}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={`${header.isRead ? '' : t('modules.mail.inbox.unread') + ', '}${senderDisplay}, ${header.subject || t('modules.mail.inbox.noSubject')}`}
@@ -158,16 +156,14 @@ export function MailListItem({ header, onPress, onToggleFlag }: MailListItemProp
               <Icon name="attach" size={16} color={themeColors.textSecondary} />
             )}
             {header.isFlagged && (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 onPress={handleFlagToggle}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 hitSlop={{ top: 18, bottom: 18, left: 18, right: 18 }}
                 accessibilityRole="button"
                 accessibilityLabel={t('modules.mail.inbox.unflag')}
               >
                 <Icon name="star" size={24} color={accentColor.primary} />
-              </TouchableOpacity>
+              </HapticTouchable>
             )}
           </View>
         </View>
@@ -175,7 +171,7 @@ export function MailListItem({ header, onPress, onToggleFlag }: MailListItemProp
 
       {/* Chevron */}
       <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

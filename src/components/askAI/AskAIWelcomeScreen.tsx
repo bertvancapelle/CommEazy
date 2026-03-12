@@ -11,10 +11,10 @@ import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -52,7 +52,7 @@ export function AskAIWelcomeScreen() {
         </Text>
 
         {/* Google Sign-In button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.loginButton, isLinking && styles.loginButtonDisabled]}
           onPress={linkGoogleAccount}
           disabled={isLinking}
@@ -70,7 +70,7 @@ export function AskAIWelcomeScreen() {
               </Text>
             </>
           )}
-        </TouchableOpacity>
+        </HapticTouchable>
 
         {/* Error message */}
         {error && (

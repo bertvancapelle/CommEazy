@@ -25,7 +25,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
   TextInput,
@@ -34,6 +33,7 @@ import {
   NativeSyntheticEvent,
   TextInputFocusEventData,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 
@@ -585,7 +585,7 @@ export function ProfileSettingsScreen() {
       >
       {/* Profile photo section */}
       <View style={styles.profileSection}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           onPress={handleChangePhoto}
           activeOpacity={0.8}
           disabled={savingPhoto}
@@ -607,7 +607,7 @@ export function ProfileSettingsScreen() {
               )}
             </View>
           </View>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
 
       {/* Name section */}
@@ -630,7 +630,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('onboarding.nameLabel')}
               accessibilityHint={t('profile.enterYourName')}
             />
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.saveButton, { backgroundColor: accentColor.primary }]}
               onPress={handleSaveName}
               disabled={saving}
@@ -641,10 +641,10 @@ export function ProfileSettingsScreen() {
               <Text style={[styles.saveButtonText, { color: themeColors.textOnPrimary }]}>
                 {saving ? t('common.saving') : t('common.done')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         ) : (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.fieldRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isNameEmpty && styles.fieldRowError]}
             onPress={handleEditName}
             accessibilityRole="button"
@@ -652,14 +652,14 @@ export function ProfileSettingsScreen() {
           >
             <Text style={[styles.fieldValue, { color: accentColor.primary }]}>{displayName}</Text>
             <Text style={styles.editIcon}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
       </View>
 
       {/* Language section - changes UI immediately */}
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('settings.language')}</Text>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.fieldRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={() => setActivePicker('language')}
           accessibilityRole="button"
@@ -669,7 +669,7 @@ export function ProfileSettingsScreen() {
             {t(`profile.language.${i18n.language as SupportedLanguage}`)}
           </Text>
           <Text style={styles.editIcon}>✏️</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
         <Text style={[styles.fieldHint, { color: themeColors.textTertiary }]}>{t('profile.languageHint')}</Text>
       </View>
 
@@ -703,7 +703,7 @@ export function ProfileSettingsScreen() {
           onLayout={(e) => { fieldPositions.current.country = e.nativeEvent.layout.y; }}
         >
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.countryLabel')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isCountryEmpty && styles.pickerRowError]}
             onPress={() => setActivePicker('country')}
             accessibilityRole="button"
@@ -715,7 +715,7 @@ export function ProfileSettingsScreen() {
                 : t('demographics.selectCountry')}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Region (only if country selected) */}
@@ -725,7 +725,7 @@ export function ProfileSettingsScreen() {
             onLayout={(e) => { fieldPositions.current.region = e.nativeEvent.layout.y; }}
           >
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.regionLabel')}</Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isRegionEmpty && styles.pickerRowError]}
               onPress={() => setActivePicker('region')}
               accessibilityRole="button"
@@ -737,7 +737,7 @@ export function ProfileSettingsScreen() {
                   : t('demographics.selectRegion')}
               </Text>
               <Text style={styles.editIcon}>✏️</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 
@@ -747,7 +747,7 @@ export function ProfileSettingsScreen() {
           onLayout={(e) => { fieldPositions.current.city = e.nativeEvent.layout.y; }}
         >
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.cityLabel')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isCityEmpty && styles.pickerRowError]}
             onPress={() => setActivePicker(activePicker === 'city' ? null : 'city')}
             accessibilityRole="button"
@@ -757,7 +757,7 @@ export function ProfileSettingsScreen() {
               {cityInput || t('demographics.selectCity')}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Inline city search — rendered below the field, not in a modal */}
           <CitySearchInline
@@ -775,7 +775,7 @@ export function ProfileSettingsScreen() {
           onLayout={(e) => { fieldPositions.current.age = e.nativeEvent.layout.y; }}
         >
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.ageLabel')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isAgeEmpty && styles.pickerRowError]}
             onPress={() => setActivePicker('age')}
             accessibilityRole="button"
@@ -787,7 +787,7 @@ export function ProfileSettingsScreen() {
                 : t('demographics.selectAge')}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Gender */}
@@ -796,7 +796,7 @@ export function ProfileSettingsScreen() {
           onLayout={(e) => { fieldPositions.current.gender = e.nativeEvent.layout.y; }}
         >
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.genderLabel')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isGenderEmpty && styles.pickerRowError]}
             onPress={() => setActivePicker('gender')}
             accessibilityRole="button"
@@ -808,7 +808,7 @@ export function ProfileSettingsScreen() {
                 : t('demographics.selectGender')}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {missingDemographics && (

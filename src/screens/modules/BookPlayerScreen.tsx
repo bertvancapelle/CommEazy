@@ -26,10 +26,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Modal,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -296,14 +296,12 @@ export function BookPlayerScreen() {
               index={index}
               onSelect={() => handleChapterPress(chapter, index)}
             >
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[
                   styles.chapterItem,
                   isCurrentChapter && { backgroundColor: accentColor.primaryLight },
                 ]}
                 onPress={() => handleChapterPress(chapter, index)}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 accessibilityRole="button"
                 accessibilityLabel={`${chapter.title}, ${formatChapterDuration(chapter)}${completed ? `, ${t('modules.books.audio.completed')}` : ''}`}
                 accessibilityState={{ selected: isCurrentChapter }}
@@ -369,7 +367,7 @@ export function BookPlayerScreen() {
                     color={colors.textOnPrimary}
                   />
                 </View>
-              </TouchableOpacity>
+              </HapticTouchable>
             </VoiceFocusable>
           );
         })}
@@ -465,7 +463,7 @@ export function BookPlayerScreen() {
           setTimeout(() => setIsPlayerExpanded(true), 100);
         }}
       >
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.pickerOverlay}
           onPress={() => {
             setShowSpeedPicker(false);
@@ -476,7 +474,7 @@ export function BookPlayerScreen() {
           <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
             <Text style={styles.pickerTitle}>{t('modules.books.audio.playbackSpeedTitle')}</Text>
             {PLAYBACK_RATES.map((rate) => (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 key={rate}
                 style={[
                   styles.pickerOption,
@@ -492,10 +490,10 @@ export function BookPlayerScreen() {
                 >
                   {rate}x
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             ))}
           </View>
-        </TouchableOpacity>
+        </HapticTouchable>
       </Modal>
 
       {/* Sleep Timer Picker Modal */}
@@ -508,7 +506,7 @@ export function BookPlayerScreen() {
           setTimeout(() => setIsPlayerExpanded(true), 100);
         }}
       >
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.pickerOverlay}
           onPress={() => {
             setShowSleepTimerPicker(false);
@@ -519,17 +517,17 @@ export function BookPlayerScreen() {
           <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
             <Text style={styles.pickerTitle}>{t('modules.books.audio.sleepTimerTitle')}</Text>
             {sleepTimerMinutes && (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.pickerOption}
                 onPress={() => handleSleepTimer(null)}
               >
                 <Text style={[styles.pickerOptionText, { color: colors.error }]}>
                   {t('modules.books.audio.sleepTimerCancel')}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             )}
             {SLEEP_TIMER_OPTIONS.map((minutes) => (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 key={minutes}
                 style={[
                   styles.pickerOption,
@@ -545,10 +543,10 @@ export function BookPlayerScreen() {
                 >
                   {t('modules.books.audio.sleepTimerMinutes', { minutes })}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             ))}
           </View>
-        </TouchableOpacity>
+        </HapticTouchable>
       </Modal>
     </View>
   );

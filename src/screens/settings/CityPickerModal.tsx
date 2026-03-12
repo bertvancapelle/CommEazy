@@ -20,11 +20,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Modal,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
@@ -145,14 +145,14 @@ export function CitySearchInline({ visible, onSelect, onClose, language, country
       {/* Header with close button */}
       <View style={[styles.inlineHeader, { borderBottomColor: themeColors.border }]}>
         <Text style={[styles.inlineTitle, { color: themeColors.textPrimary }]}>{t('demographics.selectCity')}</Text>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           onPress={onClose}
           style={styles.closeButton}
           accessibilityRole="button"
           accessibilityLabel={t('common.close')}
         >
           <Text style={[styles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
 
       {/* Search input */}
@@ -196,7 +196,7 @@ export function CitySearchInline({ visible, onSelect, onClose, language, country
       {/* Search results (max height to stay inline) */}
       <ScrollViewWithIndicator style={styles.inlineResultsList} nestedScrollEnabled>
         {searchResults.map((location) => (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             key={location.id}
             style={[styles.resultItem, { borderBottomColor: themeColors.border }]}
             onPress={() => handleSelectCity(location)}
@@ -210,7 +210,7 @@ export function CitySearchInline({ visible, onSelect, onClose, language, country
               </Text>
             </View>
             <Text style={[styles.selectIcon, { color: themeColors.textTertiary }]}>›</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         ))}
       </ScrollViewWithIndicator>
     </View>

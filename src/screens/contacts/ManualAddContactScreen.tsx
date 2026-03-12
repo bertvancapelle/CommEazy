@@ -21,7 +21,6 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -316,7 +315,7 @@ export function ManualAddContactScreen() {
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.phoneLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.countryCodeButton, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}
               onPress={toggleCountryCodes}
               accessibilityRole="button"
@@ -325,7 +324,7 @@ export function ManualAddContactScreen() {
             >
               <Text style={[styles.countryCodeText, { color: themeColors.textPrimary }]}>{countryCode}</Text>
               <Text style={[styles.dropdownIcon, { color: themeColors.textSecondary }]}>▼</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Phone number */}
             <TextInput
@@ -345,7 +344,7 @@ export function ManualAddContactScreen() {
           {showCountryCodes && (
             <View style={[styles.countryCodeDropdown, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
               {COUNTRY_CODES.map((item) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={item.code}
                   style={[styles.countryCodeOption, { borderBottomColor: themeColors.divider }]}
                   onPress={() => selectCountryCode(item.code)}
@@ -355,7 +354,7 @@ export function ManualAddContactScreen() {
                   <Text style={[styles.countryCodeOptionText, { color: themeColors.textPrimary }]}>
                     {item.country} {item.code}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </View>
           )}

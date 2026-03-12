@@ -24,7 +24,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Modal,
   Platform,
   AccessibilityInfo,
@@ -32,6 +31,7 @@ import {
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -950,7 +950,7 @@ export function RadioScreen() {
         {/* 3-way toggle: [❤️ Favorieten]  <space>  [Land] [Taal] */}
         <View style={[styles.toggleRow, { marginTop: contentPaddingTop + spacing.md }]}>
           {/* Favorites button — links */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.filterToggleButton,
               styles.favoritesToggleButton,
@@ -985,13 +985,13 @@ export function RadioScreen() {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Spacer — duwt Land/Taal naar rechts */}
           <View style={styles.toggleSpacer} />
 
           {/* Land/Taal toggle buttons — rechts */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.filterToggleButton,
               !showFavorites && filterMode === 'country' && { backgroundColor: accentColor.primary },
@@ -1011,8 +1011,8 @@ export function RadioScreen() {
             ]}>
               {t('components.chipSelector.country')}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </HapticTouchable>
+          <HapticTouchable hapticDisabled
             style={[
               styles.filterToggleButton,
               !showFavorites && filterMode === 'language' && { backgroundColor: accentColor.primary },
@@ -1032,7 +1032,7 @@ export function RadioScreen() {
             ]}>
               {t('components.chipSelector.language')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Search/Filter section — alleen zichtbaar wanneer NIET favorieten */}
@@ -1078,7 +1078,7 @@ export function RadioScreen() {
               </Text>
             </View>
             {/* Senior-inclusive: Text button instead of icon-only button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.playbackErrorDismiss, { backgroundColor: accentColor.primary }]}
               onPress={() => {
                 triggerFeedback('tap');
@@ -1088,7 +1088,7 @@ export function RadioScreen() {
               accessibilityLabel={t('common.close')}
             >
               <Text style={styles.playbackErrorDismissText}>{t('common.close')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 
@@ -1115,7 +1115,7 @@ export function RadioScreen() {
             <>
               <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>{t('modules.radio.noFavoritesHintExtended')}</Text>
               {/* Clear call-to-action button for seniors */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
                 onPress={() => {
                   triggerFeedback('tap');
@@ -1126,7 +1126,7 @@ export function RadioScreen() {
               >
                 <Icon name="search" size={24} color={colors.textOnPrimary} />
                 <Text style={styles.emptyActionButtonText}>{t('modules.radio.goToSearch')}</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </>
           )}
         </View>
@@ -1177,7 +1177,7 @@ export function RadioScreen() {
                   )}
 
                   {/* Station info - tappable area for playing */}
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     style={styles.stationInfoTouchable}
                     onPress={() => {
                       console.debug('[RadioScreen] Station pressed');
@@ -1187,7 +1187,6 @@ export function RadioScreen() {
                       // Empty handler prevents onPress from firing after long press
                       // The HoldToNavigateWrapper handles the actual long-press action
                     }}
-                    delayLongPress={300}
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={station.name}
@@ -1202,7 +1201,7 @@ export function RadioScreen() {
                         {station.country}
                       </Text>
                     </View>
-                  </TouchableOpacity>
+                  </HapticTouchable>
 
                   {/* Favorite button — uses IconButton for senior-inclusive design */}
                   <IconButton
@@ -1384,7 +1383,7 @@ export function RadioScreen() {
             </View>
 
             {/* OK Button — goes to Search */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
               onPress={() => {
                 triggerFeedback('tap');
@@ -1397,7 +1396,7 @@ export function RadioScreen() {
             >
               <Icon name="search" size={24} color={colors.textOnPrimary} />
               <Text style={styles.modalButtonText}>{t('modules.radio.welcomeButton')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>

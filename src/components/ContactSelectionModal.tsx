@@ -19,10 +19,10 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  TouchableOpacity,
   Animated,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, borderRadius, touchTargets, animation } from '@/theme';
@@ -249,7 +249,7 @@ export function ContactSelectionModal({
           { opacity: fadeAnim },
         ]}
       >
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.overlayTouchable}
           activeOpacity={1}
           onPress={onClose}
@@ -295,7 +295,7 @@ export function ContactSelectionModal({
               showsVerticalScrollIndicator={false}
             >
               {matches.map((match, index) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={match.contact.jid}
                   style={[
                     styles.contactRow,
@@ -319,7 +319,7 @@ export function ContactSelectionModal({
                       <Text style={styles.scoreText}>{Math.round(match.score * 100)}%</Text>
                     </View>
                   )}
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </ScrollView>
           ) : (

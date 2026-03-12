@@ -20,7 +20,6 @@ import {
   StyleSheet,
   TextInputProps as RNTextInputProps,
   ViewStyle,
-  TouchableOpacity,
   type NativeSyntheticEvent,
   type TextInputFocusEventData,
 } from 'react-native';

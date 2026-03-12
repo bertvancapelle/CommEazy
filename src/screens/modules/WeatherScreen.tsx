@@ -22,12 +22,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Modal,
   Linking,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -77,7 +77,7 @@ interface TabButtonProps {
 
 function TabButton({ label, isActive, onPress, icon, accentColor }: TabButtonProps) {
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.tabButton,
         { borderColor: accentColor },
@@ -97,7 +97,7 @@ function TabButton({ label, isActive, onPress, icon, accentColor }: TabButtonPro
       <Text style={[styles.tabButtonText, { color: accentColor }, isActive && styles.tabButtonTextActive]}>
         {label}
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -310,7 +310,7 @@ function RadarTab({ latitude, longitude, locationName, accentColor }: RadarTabPr
         </View>
 
         {/* Attribution link */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.radarAttribution}
           onPress={() => {
             const url = radarData?.provider === 'knmi'
@@ -326,7 +326,7 @@ function RadarTab({ latitude, longitude, locationName, accentColor }: RadarTabPr
               ? t('modules.weather.radar.attributionKnmi')
               : t('modules.weather.radar.attributionRainViewer')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     </View>
   );
@@ -357,15 +357,13 @@ function TTSButton({ isPlaying, isActive, onPress, label, compact, accentColor }
   }, [onPress, holdGesture]);
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         compact ? styles.ttsButtonCompact : styles.ttsButton,
         { borderColor: accentColor },
         isActive && [styles.ttsButtonActive, { backgroundColor: accentColor }],
       ]}
       onPress={handlePress}
-      onLongPress={() => {}}
-      delayLongPress={300}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={isActive ? t('tts.stop') : label}
@@ -380,7 +378,7 @@ function TTSButton({ isPlaying, isActive, onPress, label, compact, accentColor }
           {isActive ? t('tts.stop') : label}
         </Text>
       )}
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -418,11 +416,9 @@ function ForecastDay({ day, index, onPress, accentColor }: ForecastDayProps) {
   }, [onPress, holdGesture]);
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={styles.forecastRow}
       onPress={handlePress}
-      onLongPress={() => {}}
-      delayLongPress={300}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={`${dayName}, ${weatherDesc}, ${Math.round(day.temperatureMax)}° tot ${Math.round(day.temperatureMin)}°`}
@@ -451,7 +447,7 @@ function ForecastDay({ day, index, onPress, accentColor }: ForecastDayProps) {
         <Text style={styles.forecastTempLow}>{Math.round(day.temperatureMin)}°</Text>
         <Icon name="chevron-right" size={20} color={colors.textTertiary} />
       </View>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -504,14 +500,14 @@ function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDet
       <View style={[styles.dayDetailModal, { paddingTop: insets.top }]}>
         {/* Header */}
         <View style={styles.dayDetailHeader}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.dayDetailCloseButton}
             onPress={handleClose}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Icon name="chevron-down" size={28} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
           <Text style={styles.dayDetailTitle}>{dayName}</Text>
           <View style={styles.dayDetailCloseButton} />
         </View>
@@ -592,7 +588,7 @@ function SearchResultItem({ location, onPress, isFavorite, onToggleFavorite, acc
 
   return (
     <View style={styles.searchResultItem}>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={styles.searchResultContent}
         onPress={onPress}
         activeOpacity={0.7}
@@ -606,7 +602,7 @@ function SearchResultItem({ location, onPress, isFavorite, onToggleFavorite, acc
             {[location.admin2, location.admin1, location.country].filter(Boolean).join(', ')}
           </Text>
         </View>
-      </TouchableOpacity>
+      </HapticTouchable>
       <FavoriteButton
         isFavorite={isFavorite}
         onToggle={onToggleFavorite}
@@ -683,14 +679,14 @@ function LocationPickerModal({
       <View style={[styles.locationPickerModal, { paddingTop: insets.top }]}>
         {/* Fixed Header */}
         <View style={styles.locationPickerHeader}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.locationPickerCloseButton}
             onPress={handleClose}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Icon name="chevron-down" size={28} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
           <Text style={styles.locationPickerTitle}>{t('modules.weather.myLocations')}</Text>
           <View style={styles.locationPickerCloseButton} />
         </View>
@@ -701,7 +697,7 @@ function LocationPickerModal({
           contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
         >
           {/* GPS Location Option - Always at top */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.locationPickerItemContent,
               styles.gpsLocationItem,
@@ -741,7 +737,7 @@ function LocationPickerModal({
             {isGpsSelected && !isLoadingGps && (
               <Icon name="check" size={24} color={accentColor} />
             )}
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Divider */}
           {locations.length > 0 && <View style={styles.locationPickerDivider} />}
@@ -759,7 +755,7 @@ function LocationPickerModal({
               const isSelected = location.id === currentLocationId;
               return (
                 <View key={location.id} style={styles.locationPickerItem}>
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     style={[
                       styles.locationPickerItemContent,
                       isSelected && [styles.locationPickerItemSelected, { borderColor: accentColor, backgroundColor: `${accentColor}10` }],
@@ -792,7 +788,7 @@ function LocationPickerModal({
                     {isSelected && (
                       <Icon name="check" size={24} color={accentColor} />
                     )}
-                  </TouchableOpacity>
+                  </HapticTouchable>
                   {/* Heart icon to unfavorite - consistent with search results */}
                   <FavoriteButton
                     isFavorite={true}
@@ -864,7 +860,7 @@ function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
           </View>
 
           {/* Button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.welcomeButton, { backgroundColor: accentColor }]}
             onPress={onDismiss}
             activeOpacity={0.8}
@@ -872,7 +868,7 @@ function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
             accessibilityLabel={t('modules.weather.welcome.understood')}
           >
             <Text style={styles.welcomeButtonText}>{t('modules.weather.welcome.understood')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
     </Modal>
@@ -1124,7 +1120,7 @@ export function WeatherScreen() {
         <>
           {/* Location Bar with Search Toggle */}
           <View style={styles.locationBar}>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.locationBarContent}
               onPress={handleOpenLocationPicker}
               activeOpacity={0.7}
@@ -1136,8 +1132,8 @@ export function WeatherScreen() {
                 {weather?.location.name ?? t('modules.weather.noLocation')}
               </Text>
               <Icon name="chevron-down" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
+            </HapticTouchable>
+            <HapticTouchable hapticDisabled
               style={[
                 styles.searchToggleButton,
                 { borderColor: accentColor.primary },
@@ -1153,7 +1149,7 @@ export function WeatherScreen() {
                 size={24}
                 color={showSearchMode ? colors.textOnPrimary : accentColor.primary}
               />
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
 
           {/* Search Section (when search mode active) */}
@@ -1225,13 +1221,13 @@ export function WeatherScreen() {
               <Icon name="weather-partly-cloudy" size={64} color={colors.textSecondary} />
               <Text style={styles.emptyTitle}>{t('modules.weather.noLocation')}</Text>
               <Text style={styles.emptyHint}>{t('modules.weather.noLocationHint')}</Text>
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.emptyButton, { backgroundColor: accentColor.primary }]}
                 onPress={toggleSearchMode}
               >
                 <Icon name="magnify" size={24} color={colors.textOnPrimary} />
                 <Text style={styles.emptyButtonText}>{t('modules.weather.searchLocation')}</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           )}
 

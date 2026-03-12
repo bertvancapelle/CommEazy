@@ -26,12 +26,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   AccessibilityInfo,
   Animated,
   Easing,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, spacing } from '@/theme';
@@ -318,7 +318,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
         </View>
       )}
 
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[
           styles.container,
           {
@@ -389,7 +389,7 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
           </>
         )}
       </View>
-      </TouchableOpacity>
+      </HapticTouchable>
     </View>
   );
 }

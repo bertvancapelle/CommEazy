@@ -11,12 +11,12 @@ import React, { useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Modal,
   ScrollView,
   Alert,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -131,26 +131,26 @@ export function AskAIHistoryModal({
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.closeButton}
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Icon name="chevron-down" size={28} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
           <Text style={styles.headerTitle}>
             {t('modules.askAI.chat.history')}
           </Text>
           {conversations.length > 0 && (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.clearButton}
               onPress={handleClearAll}
               accessibilityRole="button"
               accessibilityLabel={t('modules.askAI.chat.clearAll')}
             >
               <Icon name="trash" size={22} color={colors.error} />
-            </TouchableOpacity>
+            </HapticTouchable>
           )}
         </View>
 
@@ -167,7 +167,7 @@ export function AskAIHistoryModal({
               <View key={dateLabel}>
                 <Text style={styles.dateHeader}>{dateLabel}</Text>
                 {items.map((item) => (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     key={item.id}
                     style={styles.conversationItem}
                     onPress={() => handleLoad(item.id)}
@@ -191,7 +191,7 @@ export function AskAIHistoryModal({
                       size={20}
                       color={colors.textTertiary}
                     />
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 ))}
               </View>
             ))}

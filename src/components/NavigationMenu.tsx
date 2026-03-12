@@ -17,13 +17,13 @@ import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Animated,
   Dimensions,
   Platform,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
@@ -180,7 +180,7 @@ export function NavigationMenu({
       <Animated.View
         style={[styles.overlay, { opacity: overlayOpacity }]}
       >
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={StyleSheet.absoluteFill}
           onPress={handleClose}
           activeOpacity={1}
@@ -222,7 +222,7 @@ export function NavigationMenu({
         </View>
 
         {/* Close button */}
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.closeButton}
           onPress={handleClose}
           activeOpacity={0.7}
@@ -235,7 +235,7 @@ export function NavigationMenu({
             <View style={styles.closeIconLine2} />
           </View>
           <Text style={styles.closeButtonText}>{t('common.close')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </Animated.View>
     </View>
   );
@@ -258,7 +258,7 @@ function NavigationTileButton({
   const { t } = useTranslation();
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.tile,
         {
@@ -287,7 +287,7 @@ function NavigationTileButton({
 
       {/* Active indicator */}
       {isActive && <View style={styles.activeIndicator} />}
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

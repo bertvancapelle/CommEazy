@@ -26,13 +26,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Platform,
   Image,
   Alert,
   Modal,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -809,7 +809,7 @@ export function AppleMusicScreen() {
       <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.authRequired.description')}
       </Text>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.authButton, { backgroundColor: appleMusicColor }]}
         onPress={handleAuthorize}
         accessibilityRole="button"
@@ -818,7 +818,7 @@ export function AppleMusicScreen() {
         <Text style={[styles.authButtonText, { color: themeColors.white }]}>
           {t('modules.appleMusic.authRequired.button')}
         </Text>
-      </TouchableOpacity>
+      </HapticTouchable>
     </View>
   );
 
@@ -833,7 +833,7 @@ export function AppleMusicScreen() {
       <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.android.notInstalled.description')}
       </Text>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.authButton, { backgroundColor: appleMusicColor }]}
         onPress={handleOpenPlayStore}
         accessibilityRole="button"
@@ -843,7 +843,7 @@ export function AppleMusicScreen() {
         <Text style={[styles.authButtonText, { color: themeColors.white }]}>
           {t('modules.appleMusic.android.notInstalled.downloadButton')}
         </Text>
-      </TouchableOpacity>
+      </HapticTouchable>
     </View>
   );
 
@@ -858,7 +858,7 @@ export function AppleMusicScreen() {
       <Text style={[styles.authDescription, { color: themeColors.textSecondary }]}>
         {t('modules.appleMusic.android.installed.description')}
       </Text>
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.authButton, { backgroundColor: appleMusicColor }]}
         onPress={handleOpenAppleMusicApp}
         accessibilityRole="button"
@@ -868,7 +868,7 @@ export function AppleMusicScreen() {
         <Text style={[styles.authButtonText, { color: themeColors.white }]}>
           {t('modules.appleMusic.android.installed.openButton')}
         </Text>
-      </TouchableOpacity>
+      </HapticTouchable>
     </View>
   );
 
@@ -971,11 +971,9 @@ export function AppleMusicScreen() {
               />
             </View>
           )}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.songTappableArea}
             onPress={() => handlePlaySong(song)}
-            onLongPress={() => {}}
-            delayLongPress={300}
             accessibilityRole="button"
             accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
             accessibilityState={{ selected: isCurrentSong ?? false }}
@@ -998,7 +996,7 @@ export function AppleMusicScreen() {
                 {song.artistName}
               </Text>
             </View>
-          </TouchableOpacity>
+          </HapticTouchable>
           <View style={styles.songItemActions}>
             <IconButton
               icon={heartIcon}
@@ -1026,11 +1024,9 @@ export function AppleMusicScreen() {
         index={index}
         onSelect={() => handleAlbumPress(album)}
       >
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.songItem, { backgroundColor: themeColors.surface }]}
           onPress={() => handleAlbumPress(album)}
-          onLongPress={() => {}}
-          delayLongPress={300}
           accessibilityRole="button"
           accessibilityLabel={`${t('modules.appleMusic.search.albumsTitle')}: ${album.title} ${t('common.by')} ${album.artistName}`}
         >
@@ -1076,7 +1072,7 @@ export function AppleMusicScreen() {
             />
             <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
           </View>
-        </TouchableOpacity>
+        </HapticTouchable>
       </VoiceFocusable>
     );
   };
@@ -1092,11 +1088,9 @@ export function AppleMusicScreen() {
         index={index}
         onSelect={() => handleArtistPress(artist)}
       >
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.songItem, { backgroundColor: themeColors.surface }]}
           onPress={() => handleArtistPress(artist)}
-          onLongPress={() => {}}
-          delayLongPress={300}
           accessibilityRole="button"
           accessibilityLabel={`${t('modules.appleMusic.search.artistsTitle')}: ${artist.name}`}
         >
@@ -1140,7 +1134,7 @@ export function AppleMusicScreen() {
             />
             <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
           </View>
-        </TouchableOpacity>
+        </HapticTouchable>
       </VoiceFocusable>
     );
   };
@@ -1154,11 +1148,9 @@ export function AppleMusicScreen() {
       index={index}
       onSelect={() => handlePlaylistPress(playlist)}
     >
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={[styles.songItem, { backgroundColor: themeColors.surface }]}
         onPress={() => handlePlaylistPress(playlist)}
-        onLongPress={() => {}}
-        delayLongPress={300}
         accessibilityRole="button"
         accessibilityLabel={`${t('modules.appleMusic.search.playlistsTitle')}: ${playlist.name}`}
       >
@@ -1181,13 +1173,13 @@ export function AppleMusicScreen() {
           </Text>
         </View>
         <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
-      </TouchableOpacity>
+      </HapticTouchable>
     </VoiceFocusable>
   );
 
   // Render "Show all X →" button for a section
   const renderShowAllButton = (filterType: SearchFilterType, count: number) => (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={styles.showAllButton}
       onPress={() => setSearchFilter(filterType)}
       accessibilityRole="button"
@@ -1196,7 +1188,7 @@ export function AppleMusicScreen() {
       <Text style={[styles.showAllText, { color: appleMusicColor }]}>
         {t('modules.appleMusic.search.showAll', { count })} →
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 
   // Handle album tap - open album detail modal
@@ -1260,7 +1252,7 @@ export function AppleMusicScreen() {
         {filters.map(({ type, labelKey, icon, count }) => {
           const isActive = searchFilter === type;
           return (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={type}
               style={[
                 styles.filterTab,
@@ -1284,7 +1276,7 @@ export function AppleMusicScreen() {
               >
                 {count}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           );
         })}
       </ScrollView>
@@ -1387,12 +1379,10 @@ export function AppleMusicScreen() {
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.discoveryRow}>
               {recentlyPlayed.slice(0, 10).map((item) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={`${item.type}-${item.id}`}
                   style={[styles.discoveryCard, { backgroundColor: themeColors.surface }]}
                   onPress={() => handleRecentlyPlayedTap(item)}
-                  onLongPress={() => {}}
-                  delayLongPress={300}
                   accessibilityRole="button"
                   accessibilityLabel={`${item.title}${item.subtitle ? `, ${item.subtitle}` : ''}`}
                   accessibilityHint={
@@ -1419,18 +1409,16 @@ export function AppleMusicScreen() {
                       {item.subtitle}
                     </Text>
                   ) : null}
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
               {/* "Toon alles" card at the end */}
               {recentlyPlayed.length > 10 && (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.discoveryCard, styles.showAllCard, { backgroundColor: themeColors.surface }]}
                   onPress={() => {
                     triggerFeedback('tap');
                     setShowAllRecentlyPlayed(true);
                   }}
-                  onLongPress={() => {}}
-                  delayLongPress={300}
                   accessibilityRole="button"
                   accessibilityLabel={t('modules.appleMusic.discovery.showAll')}
                 >
@@ -1440,7 +1428,7 @@ export function AppleMusicScreen() {
                   <Text style={[styles.discoveryCardTitle, { color: appleMusicColor }]} numberOfLines={2}>
                     {t('modules.appleMusic.discovery.showAll')}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               )}
             </ScrollView>
           )}
@@ -1458,15 +1446,13 @@ export function AppleMusicScreen() {
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.discoveryRow}>
               {topChartsData?.songs?.slice(0, 10).map((song) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={song.id}
                   style={[styles.discoveryCard, { backgroundColor: themeColors.surface }]}
                   onPress={() => {
                     triggerFeedback('tap');
                     void playSong(song.id, song.artworkUrl);
                   }}
-                  onLongPress={() => {}}
-                  delayLongPress={300}
                   accessibilityRole="button"
                   accessibilityLabel={`${song.title} ${t('common.by')} ${song.artistName}`}
                 >
@@ -1486,7 +1472,7 @@ export function AppleMusicScreen() {
                   <Text style={[styles.discoveryCardSubtitle, { color: themeColors.textSecondary }]} numberOfLines={1}>
                     {song.artistName}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </ScrollView>
           )}
@@ -2093,7 +2079,7 @@ export function AppleMusicScreen() {
         <View style={[styles.twoTabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
           {/* Favorites tab — dropdown trigger */}
           <View style={{ flex: 1, position: 'relative', zIndex: 10 }}>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[
                 styles.twoTab,
                 {
@@ -2111,8 +2097,6 @@ export function AppleMusicScreen() {
                   setShowFavoritesDropdown(false);
                 }
               }}
-              onLongPress={() => {}}
-              delayLongPress={300}
               accessibilityRole="tab"
               accessibilityState={{ selected: activeTab === 'favorites' }}
               accessibilityLabel={`${subTabLabels[favoritesSubTab]}, ${t('modules.appleMusic.favorites.changeCategory')}`}
@@ -2139,12 +2123,12 @@ export function AppleMusicScreen() {
                   color="#FFFFFF"
                 />
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Dropdown popup menu */}
             {showFavoritesDropdown && activeTab === 'favorites' && (
               <>
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={styles.favDropdownOverlay}
                   activeOpacity={1}
                   onPress={() => setShowFavoritesDropdown(false)}
@@ -2165,7 +2149,7 @@ export function AppleMusicScreen() {
                         ? albumFavorites.count
                         : artistFavorites.count;
                     return (
-                      <TouchableOpacity
+                      <HapticTouchable hapticDisabled
                         key={key}
                         style={[
                           styles.favDropdownItem,
@@ -2176,8 +2160,6 @@ export function AppleMusicScreen() {
                           setShowFavoritesDropdown(false);
                           setOpenCollectionId(null);
                         }}
-                        onLongPress={() => {}}
-                        delayLongPress={300}
                         accessibilityRole="menuitem"
                         accessibilityState={{ selected: isActive }}
                         accessibilityLabel={`${subTabLabels[key]} (${count})`}
@@ -2198,7 +2180,7 @@ export function AppleMusicScreen() {
                         {isActive && (
                           <Icon name="checkmark" size={18} color="#FFFFFF" />
                         )}
-                      </TouchableOpacity>
+                      </HapticTouchable>
                     );
                   })}
                 </View>
@@ -2207,7 +2189,7 @@ export function AppleMusicScreen() {
           </View>
 
           {/* Search tab */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.twoTab,
               { flex: 1 },
@@ -2237,7 +2219,7 @@ export function AppleMusicScreen() {
             >
               {t('modules.appleMusic.tabs.search')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Tab Content */}
@@ -2432,7 +2414,7 @@ export function AppleMusicScreen() {
             contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
           >
             {recentlyPlayed.map((item) => (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 key={`${item.type}-${item.id}`}
                 style={[styles.showAllItem, { backgroundColor: themeColors.surface }]}
                 onPress={() => {
@@ -2440,8 +2422,6 @@ export function AppleMusicScreen() {
                   // Small delay to allow modal close animation
                   setTimeout(() => handleRecentlyPlayedTap(item), 300);
                 }}
-                onLongPress={() => {}}
-                delayLongPress={300}
                 accessibilityRole="button"
                 accessibilityLabel={`${item.title}${item.subtitle ? `, ${item.subtitle}` : ''}`}
               >
@@ -2470,7 +2450,7 @@ export function AppleMusicScreen() {
                   size={24}
                   color={appleMusicColor}
                 />
-              </TouchableOpacity>
+              </HapticTouchable>
             ))}
           </ScrollView>
         </View>

@@ -20,12 +20,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Switch,
   Alert,
   Platform,
   ActionSheetIOS,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -292,7 +292,7 @@ export function MailSettingsScreen() {
             )}
 
             {/* Add account button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.addAccountButton, { borderColor: accentColor.primary }]}
               onPress={handleAddAccount}
               activeOpacity={0.7}
@@ -304,7 +304,7 @@ export function MailSettingsScreen() {
               <Text style={[styles.addAccountText, { color: accentColor.primary }]}>
                 {t('mailSettings.accounts.addAccount')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </VoiceFocusable>
 
@@ -332,7 +332,7 @@ export function MailSettingsScreen() {
                 {t('mailSettings.sync.messageCount')}
               </Text>
             </View>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.pickerRow, { borderColor: themeColors.border }]}
               onPress={handleMessageCountPress}
               activeOpacity={0.7}
@@ -344,7 +344,7 @@ export function MailSettingsScreen() {
                 {t('mailSettings.sync.messageCountOption', { count: messageCount })}
               </Text>
               <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Auto-sync toggle */}
             <View style={[styles.toggleRow, { borderBottomColor: themeColors.border }]}>
@@ -385,7 +385,7 @@ export function MailSettingsScreen() {
             </View>
 
             {/* Sync now button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
               onPress={handleSyncNow}
               activeOpacity={0.7}
@@ -395,7 +395,7 @@ export function MailSettingsScreen() {
               <Text style={[styles.actionButtonText, { color: colors.textOnPrimary }]}>
                 {t('mailSettings.sync.syncNow')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </VoiceFocusable>
 
@@ -428,7 +428,7 @@ export function MailSettingsScreen() {
             </View>
 
             {/* Clear cache button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.destructiveButton, { borderColor: colors.error }]}
               onPress={handleClearCache}
               activeOpacity={0.7}
@@ -440,7 +440,7 @@ export function MailSettingsScreen() {
               <Text style={[styles.destructiveButtonText, { color: colors.error }]}>
                 {t('mailSettings.storage.clearCache')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </VoiceFocusable>
 
@@ -543,7 +543,7 @@ export function MailSettingsScreen() {
                   <Text style={[styles.domainText, { color: themeColors.textPrimary }]}>
                     {domain}
                   </Text>
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     style={[styles.removeDomainButton, { borderColor: colors.error }]}
                     onPress={() => handleRemoveDomain(domain)}
                     activeOpacity={0.7}
@@ -554,7 +554,7 @@ export function MailSettingsScreen() {
                     <Text style={[styles.removeDomainText, { color: colors.error }]}>
                       {t('mailSettings.whitelist.removeDomain')}
                     </Text>
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 </View>
               ))
             )}

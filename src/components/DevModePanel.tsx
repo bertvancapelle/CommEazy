@@ -12,12 +12,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Modal,
   ScrollView,
   AccessibilityRole,
   Alert,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { colors, typography, spacing, borderRadius } from '@/theme';
 import {
   simulateQRScan,
@@ -47,14 +47,14 @@ export function DevModeButton({ onPress }: { onPress: () => void }) {
   if (!__DEV__ || !isDevUIEnabled()) return null;
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={styles.floatingButton}
       onPress={onPress}
       accessibilityRole={'button' as AccessibilityRole}
       accessibilityLabel="Open developer tools"
     >
       <Text style={styles.floatingButtonText}>DEV</Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -193,14 +193,14 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
         <View style={styles.modalContainer}>
           <View style={styles.header}>
             <Text style={styles.title}>Developer Tools</Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               onPress={() => setVisible(false)}
               style={styles.closeButton}
               accessibilityRole={'button' as AccessibilityRole}
               accessibilityLabel="Close developer tools"
             >
               <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
 
           <ScrollView style={styles.content}>
@@ -208,7 +208,7 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Network Simulation</Text>
 
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.option, offline && styles.optionActive]}
                 onPress={toggleOffline}
               >
@@ -216,9 +216,9 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
                   {offline ? 'Disable' : 'Enable'} Offline Mode
                 </Text>
                 {offline && <Text style={styles.optionStatus}>ACTIVE</Text>}
-              </TouchableOpacity>
+              </HapticTouchable>
 
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.option, slowNetwork && styles.optionActive]}
                 onPress={toggleSlowNetwork}
               >
@@ -226,7 +226,7 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
                   {slowNetwork ? 'Disable' : 'Enable'} Slow Network
                 </Text>
                 {slowNetwork && <Text style={styles.optionStatus}>ACTIVE</Text>}
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
 
             {/* Push Notification Testing */}
@@ -238,26 +238,26 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
                   : '⚠️ Niet beschikbaar (vereist betaald Apple Developer account)'}
               </Text>
 
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.option}
                 onPress={showFCMToken}
               >
                 <Text style={styles.optionText}>Show FCM Token</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
 
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.option}
                 onPress={testPushPermission}
               >
                 <Text style={styles.optionText}>Check Permission Status</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
 
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.option, styles.optionSuccess]}
                 onPress={testLocalNotification}
               >
                 <Text style={styles.optionText}>Send Test Notification</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
 
             {/* QR Code Simulation */}
@@ -268,40 +268,40 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
                   Test QR scanning without a camera
                 </Text>
 
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={styles.option}
                   onPress={() => handleSimulateQR('success')}
                 >
                   <Text style={styles.optionText}>Scan: Verified Contact (Test Device)</Text>
-                </TouchableOpacity>
+                </HapticTouchable>
 
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={styles.option}
                   onPress={() => handleSimulateQR('unverified')}
                 >
                   <Text style={styles.optionText}>Scan: Unverified Contact</Text>
-                </TouchableOpacity>
+                </HapticTouchable>
 
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={styles.option}
                   onPress={() => handleSimulateQR('device_link')}
                 >
                   <Text style={styles.optionText}>Scan: Device Link QR</Text>
-                </TouchableOpacity>
+                </HapticTouchable>
 
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.option, styles.optionWarning]}
                   onPress={() => handleSimulateQR('expired')}
                 >
                   <Text style={styles.optionText}>Scan: Expired QR (Error)</Text>
-                </TouchableOpacity>
+                </HapticTouchable>
 
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.option, styles.optionWarning]}
                   onPress={() => handleSimulateQR('invalid')}
                 >
                   <Text style={styles.optionText}>Scan: Invalid QR (Error)</Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               </View>
             )}
 

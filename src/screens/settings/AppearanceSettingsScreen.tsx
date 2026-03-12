@@ -25,13 +25,13 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Platform,
   Modal,
   Pressable,
   Dimensions,
   Switch,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import Slider from '@react-native-community/slider';
 
@@ -100,7 +100,7 @@ function ThemeOptionButton({ option, isSelected, onSelect, accentColor, themeCol
   const { t } = useTranslation();
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.themeOption,
         { backgroundColor: themeColors.surface, borderColor: themeColors.border },
@@ -134,7 +134,7 @@ function ThemeOptionButton({ option, isSelected, onSelect, accentColor, themeCol
       >
         {t(option.labelKey)}
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -152,7 +152,7 @@ function ColorSwatch({ colorKey, isSelected, onSelect }: ColorSwatchProps) {
   const color = ACCENT_COLORS[colorKey];
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.colorSwatch,
         { backgroundColor: color.primary },
@@ -166,7 +166,7 @@ function ColorSwatch({ colorKey, isSelected, onSelect }: ColorSwatchProps) {
       {isSelected && (
         <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
       )}
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -210,7 +210,7 @@ function ColorPickerOverlay<T extends string>({
           <Text style={[styles.overlayTitle, { color: themeColors.textPrimary }]}>{title}</Text>
           <View style={styles.overlayColorGrid}>
             {colorOptions.map((option) => (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 key={option.value}
                 style={[
                   styles.overlayColorSwatch,
@@ -225,7 +225,7 @@ function ColorPickerOverlay<T extends string>({
                 {selectedValue === option.value && (
                   <Icon name="checkmark" size={20} color={colors.textOnPrimary} />
                 )}
-              </TouchableOpacity>
+              </HapticTouchable>
             ))}
           </View>
         </View>
@@ -248,7 +248,7 @@ interface ColorSelectorRowProps {
 
 function ColorSelectorRow({ label, currentColorHex, currentColorLabel, onPress, themeColors }: ColorSelectorRowProps) {
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[styles.colorSelectorRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
       onPress={onPress}
       accessibilityRole="button"
@@ -260,7 +260,7 @@ function ColorSelectorRow({ label, currentColorHex, currentColorLabel, onPress, 
         <View style={[styles.colorSelectorPreview, { backgroundColor: currentColorHex }]} />
         <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
       </View>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -462,7 +462,7 @@ export function AppearanceSettingsScreen() {
 
         {/* Reset accent color button (only show if not default) */}
         {isAccentColorCustom && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.resetInlineButton, { borderColor: themeColors.border }]}
             onPress={() => void handleResetAccentColor()}
             accessibilityRole="button"
@@ -472,7 +472,7 @@ export function AppearanceSettingsScreen() {
             <Text style={[styles.resetInlineButtonText, { color: themeColors.textSecondary }]}>
               {t('appearance.accentColor.reset')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
 
         {/* Accent Color Picker Overlay */}
@@ -510,7 +510,7 @@ export function AppearanceSettingsScreen() {
               />
               {/* Inline reset button for individual module */}
               {isCustomized && (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.resetInlineButton, { borderColor: themeColors.border, marginTop: -spacing.xs }]}
                   onPress={() => void handleResetModuleColor(moduleId)}
                   accessibilityRole="button"
@@ -520,7 +520,7 @@ export function AppearanceSettingsScreen() {
                   <Text style={[styles.resetInlineButtonText, { color: themeColors.textSecondary }]}>
                     {t('appearance.moduleColors.resetSingle', { module: t(MODULE_LABELS[moduleId]) })}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               )}
             </View>
           );
@@ -543,7 +543,7 @@ export function AppearanceSettingsScreen() {
 
         {/* Reset button */}
         {hasCustomColors && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.resetButton, { borderColor: themeColors.border }]}
             onPress={() => void handleResetModuleColors()}
             accessibilityRole="button"
@@ -553,7 +553,7 @@ export function AppearanceSettingsScreen() {
             <Text style={[styles.resetButtonText, { color: themeColors.textSecondary }]}>
               {t('appearance.moduleColors.reset')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
       </View>
 

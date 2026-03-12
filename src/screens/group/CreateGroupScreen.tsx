@@ -18,11 +18,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   AccessibilityInfo,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -185,7 +185,7 @@ export function CreateGroupScreen() {
           {contacts.map(contact => {
             const isSelected = selectedMembers.some(c => c.jid === contact.jid);
             return (
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 key={contact.jid}
                 style={[
                   styles.contactItem,
@@ -207,7 +207,7 @@ export function CreateGroupScreen() {
                 <View style={[styles.checkbox, { borderColor: themeColors.border }, isSelected && { backgroundColor: themeColors.primary, borderColor: themeColors.primary }]}>
                   {isSelected && <Text style={[styles.checkmark, { color: themeColors.textOnPrimary }]}>✓</Text>}
                 </View>
-              </TouchableOpacity>
+              </HapticTouchable>
             );
           })}
         </ScrollViewWithIndicator>

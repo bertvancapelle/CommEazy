@@ -17,10 +17,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Alert,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -283,14 +283,14 @@ export function VerifyContactScreen() {
         <Text style={[styles.successMessage, { color: themeColors.textSecondary }]}>
           {t('contacts.verificationSuccessMessage', { name })}
         </Text>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[styles.doneButton, { backgroundColor: themeColors.primary }]}
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
           accessibilityLabel={t('common.done')}
         >
           <Text style={[styles.doneButtonText, { color: themeColors.textOnPrimary }]}>{t('common.done')}</Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
     );
   }
@@ -299,7 +299,7 @@ export function VerifyContactScreen() {
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Tab bar */}
       <View style={[styles.tabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.tabButton,
             activeTab === 'show' && [styles.tabButtonActive, { borderBottomColor: themeColors.primary }],
@@ -318,9 +318,9 @@ export function VerifyContactScreen() {
           >
             {t('contacts.showMyQR')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
 
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={[
             styles.tabButton,
             activeTab === 'scan' && [styles.tabButtonActive, { borderBottomColor: themeColors.primary }],
@@ -339,7 +339,7 @@ export function VerifyContactScreen() {
           >
             {t('contacts.scanTheirQR')}
           </Text>
-        </TouchableOpacity>
+        </HapticTouchable>
       </View>
 
       {/* Tab content */}

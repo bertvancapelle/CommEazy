@@ -19,11 +19,11 @@ import {
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   Animated,
   Easing,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -154,7 +154,7 @@ export function VoiceCommandOverlay({
       accessibilityViewIsModal
     >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        <TouchableOpacity
+        <HapticTouchable hapticDisabled
           style={styles.backdrop}
           onPress={onClose}
           activeOpacity={1}
@@ -228,7 +228,7 @@ export function VoiceCommandOverlay({
           )}
 
           {/* Close button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.closeButton, { backgroundColor: accentColor.primary }]}
             onPress={onClose}
             accessibilityRole="button"
@@ -238,7 +238,7 @@ export function VoiceCommandOverlay({
             <Text style={styles.closeButtonText}>
               {t('common.close', 'Close')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </Animated.View>
     </Modal>

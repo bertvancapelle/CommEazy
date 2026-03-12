@@ -32,11 +32,11 @@ import {
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   ActivityIndicator,
   Platform,
   Linking,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { WebView, WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -1014,14 +1014,14 @@ export function ArticleWebViewer({
             <View style={styles.errorContainer}>
               <Icon name="warning" size={48} color={colors.error} />
               <Text style={styles.errorTitle}>{t('modules.nunl.errors.network')}</Text>
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.retryButton, { backgroundColor: accentColor }]}
                 onPress={handleRetry}
                 accessibilityRole="button"
                 accessibilityLabel={t('common.try_again')}
               >
                 <Text style={styles.retryButtonText}>{t('common.try_again')}</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           )}
 
@@ -1154,7 +1154,7 @@ export function ArticleWebViewer({
         <View style={[styles.bottomControls, { paddingBottom: insets.bottom + spacing.md }]}>
           <View style={styles.bottomButtonsRow}>
             {/* Back Button - always visible, RED when user has navigated within WebView */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[
                 styles.bottomButton,
                 {
@@ -1179,10 +1179,10 @@ export function ArticleWebViewer({
               <Text style={styles.bottomButtonText}>
                 {t('articleViewer.goBack')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* TTS Button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[
                 styles.bottomButton,
                 { backgroundColor: accentColor },
@@ -1216,7 +1216,7 @@ export function ArticleWebViewer({
                     : t('articleViewer.readAloud')
                 }
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
 
@@ -1259,7 +1259,7 @@ export function ArticleWebViewer({
               {/* Buttons */}
               <View style={styles.externalLinkButtons}>
                 {/* Cancel */}
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={styles.externalLinkButtonSecondary}
                   onPress={handleExternalLinkCancel}
                   accessibilityRole="button"
@@ -1268,10 +1268,10 @@ export function ArticleWebViewer({
                   <Text style={styles.externalLinkButtonSecondaryText}>
                     {t('common.cancel')}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
 
                 {/* Open Once */}
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.externalLinkButton, { backgroundColor: accentColor }]}
                   onPress={handleExternalLinkOpen}
                   accessibilityRole="button"
@@ -1280,11 +1280,11 @@ export function ArticleWebViewer({
                   <Text style={styles.externalLinkButtonText}>
                     {t('articleViewer.externalLink.open')}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               </View>
 
               {/* Always Open Button */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={styles.externalLinkAlwaysButton}
                 onPress={handleExternalLinkAlways}
                 accessibilityRole="button"
@@ -1293,7 +1293,7 @@ export function ArticleWebViewer({
                 <Text style={[styles.externalLinkAlwaysText, { color: accentColor }]}>
                   {t('articleViewer.externalLink.always')}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           </View>
         </Modal>

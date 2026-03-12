@@ -24,13 +24,13 @@ import {
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   ActivityIndicator,
   Linking,
   Platform,
   AccessibilityInfo,
   ScrollView,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -122,7 +122,7 @@ function TTSControlButton({ state, onPress, accentColor }: TTSControlButtonProps
   const isDisabled = state === 'loading';
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.ttsButton,
         { backgroundColor: accentColor },
@@ -149,7 +149,7 @@ function TTSControlButton({ state, onPress, accentColor }: TTSControlButtonProps
         />
       )}
       <Text style={styles.ttsButtonText}>{getLabel()}</Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -167,7 +167,7 @@ function FullTextOption({ useFullText, onToggle, accentColor }: FullTextOptionPr
   const { t } = useTranslation();
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={styles.fullTextOption}
       onPress={onToggle}
       activeOpacity={0.7}
@@ -189,7 +189,7 @@ function FullTextOption({ useFullText, onToggle, accentColor }: FullTextOptionPr
           : t('articleViewer.readSummary')
         }
       </Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 
@@ -358,7 +358,7 @@ export function ArticleViewer({
             <Text style={styles.infoText}>
               {t('articleViewer.fullArticleHint')}
             </Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               onPress={handleOpenInBrowser}
               style={styles.infoLink}
               accessibilityRole="link"
@@ -367,7 +367,7 @@ export function ArticleViewer({
                 {t('articleViewer.openInBrowser')}
               </Text>
               <Icon name="external-link" size={16} color={accentColor} />
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </ScrollView>
 

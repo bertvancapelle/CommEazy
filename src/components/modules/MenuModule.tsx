@@ -20,10 +20,10 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Text,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -186,11 +186,9 @@ function MenuListItem({ module, onPress }: MenuListItemProps) {
   const { t } = useTranslation();
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={styles.listItem}
       onPress={onPress}
-      onLongPress={() => {}} // Block double-action from hold gesture
-      delayLongPress={300}
       accessibilityRole="button"
       accessibilityLabel={t(module.labelKey)}
     >
@@ -204,7 +202,7 @@ function MenuListItem({ module, onPress }: MenuListItemProps) {
       </View>
       <Text style={styles.itemLabel}>{t(module.labelKey)}</Text>
       <Text style={styles.chevron}>›</Text>
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

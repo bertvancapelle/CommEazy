@@ -39,12 +39,12 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
   Animated,
   PanResponder,
   type LayoutChangeEvent,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator } from '@/components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -584,7 +584,7 @@ export function HomeScreen({
         <View style={styles.header}>
           <Text style={styles.headerTitle}>CommEazy</Text>
           {isWiggleMode && (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.doneButton}
               onPress={handleExitWiggleMode}
               accessibilityRole="button"
@@ -593,7 +593,7 @@ export function HomeScreen({
               <Text style={styles.doneButtonText}>
                 {t('homeScreen.editModeDone', 'Klaar')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           )}
         </View>
       )}
@@ -610,7 +610,7 @@ export function HomeScreen({
       {/* iPad pane: show done button at top when in wiggle mode */}
       {isPaneVariant && isWiggleMode && (
         <View style={styles.paneDoneRow}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.doneButton}
             onPress={handleExitWiggleMode}
             accessibilityRole="button"
@@ -619,7 +619,7 @@ export function HomeScreen({
             <Text style={styles.doneButtonText}>
               {t('homeScreen.editModeDone', 'Klaar')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       )}
 

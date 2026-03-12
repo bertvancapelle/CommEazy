@@ -23,12 +23,12 @@ import {
   Image,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Dimensions,
   Platform,
   Linking,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
@@ -203,28 +203,24 @@ export function AlbumPickerModal({
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.headerButton}
             onPress={handleClose}
-            onLongPress={() => {}}
-            delayLongPress={300}
             accessibilityRole="button"
             accessibilityLabel={t('common.cancel')}
           >
             <Text style={[styles.headerButtonText, { color: accentColor.primary }]}>
               {t('common.cancel')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>
             {t('modules.mail.compose.selectPhotos')}
           </Text>
 
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.headerButton}
             onPress={handleConfirm}
-            onLongPress={() => {}}
-            delayLongPress={300}
             disabled={isOverLimit || selectedPhotos.size === 0}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.compose.attachSelected')}
@@ -243,7 +239,7 @@ export function AlbumPickerModal({
                 : t('modules.mail.compose.attach')
               }
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Size warning */}
@@ -269,18 +265,16 @@ export function AlbumPickerModal({
             <Text style={[styles.errorHint, { color: themeColors.textSecondary }]}>
               {t('modules.mail.compose.photoAccessHint')}
             </Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.settingsButton, { backgroundColor: accentColor.primary }]}
               onPress={() => Linking.openSettings()}
-              onLongPress={() => {}}
-              delayLongPress={300}
               accessibilityRole="button"
               accessibilityLabel={t('modules.mail.compose.openSettings')}
             >
               <Text style={styles.settingsButtonText}>
                 {t('modules.mail.compose.openSettings')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         ) : isLoading ? (
           <View style={styles.loadingContainer}>
@@ -292,7 +286,7 @@ export function AlbumPickerModal({
               {photos.map(photo => {
                 const isSelected = selectedPhotos.has(photo.uri);
                 return (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     key={photo.uri}
                     style={[
                       styles.gridItem,
@@ -300,8 +294,6 @@ export function AlbumPickerModal({
                       isSelected && { borderColor: accentColor.primary, borderWidth: 3 },
                     ]}
                     onPress={() => handleToggle(photo.uri)}
-                    onLongPress={() => {}}
-                    delayLongPress={300}
                     activeOpacity={0.7}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: isSelected }}
@@ -317,7 +309,7 @@ export function AlbumPickerModal({
                         <Icon name="check" size={16} color="#FFFFFF" />
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 );
               })}
             </View>

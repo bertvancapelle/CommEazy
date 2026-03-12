@@ -17,9 +17,9 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { typography, spacing, touchTargets } from '@/theme';
@@ -57,7 +57,7 @@ export function DeviceChoiceScreen({ navigation }: Props) {
 
         <View style={styles.options}>
           {/* New Account Option */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.optionCard, { backgroundColor: themeColors.surface, shadowColor: themeColors.textPrimary }]}
             onPress={handleNewAccount}
             accessibilityRole="button"
@@ -74,10 +74,10 @@ export function DeviceChoiceScreen({ navigation }: Props) {
               </Text>
             </View>
             <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Link Device Option */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.optionCard, { backgroundColor: themeColors.surface, shadowColor: themeColors.textPrimary }]}
             onPress={handleLinkDevice}
             accessibilityRole="button"
@@ -94,10 +94,10 @@ export function DeviceChoiceScreen({ navigation }: Props) {
               </Text>
             </View>
             <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Invitation Code Option (iPad standalone) */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.optionCard, { backgroundColor: themeColors.surface, shadowColor: themeColors.textPrimary }]}
             onPress={handleInvitationCode}
             accessibilityRole="button"
@@ -114,7 +114,7 @@ export function DeviceChoiceScreen({ navigation }: Props) {
               </Text>
             </View>
             <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         <View style={styles.footer}>

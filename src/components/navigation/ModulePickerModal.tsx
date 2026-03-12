@@ -18,11 +18,11 @@ import {
   View,
   Modal,
   StyleSheet,
-  TouchableOpacity,
   Text,
   ScrollView,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -112,7 +112,7 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
       statusBarTranslucent
     >
       {/* Backdrop */}
-      <TouchableOpacity
+      <HapticTouchable hapticDisabled
         style={styles.backdrop}
         activeOpacity={1}
         onPress={handleBackdropPress}
@@ -180,16 +180,16 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
           </ScrollView>
 
           {/* Cancel Button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.cancelButton}
             onPress={handleBackdropPress}
             accessibilityRole="button"
             accessibilityLabel={t('common.cancel')}
           >
             <Text style={styles.cancelText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
-      </TouchableOpacity>
+      </HapticTouchable>
     </Modal>
   );
 }
@@ -246,7 +246,7 @@ function ModuleButton({ module, isSelected, onPress }: ModuleButtonProps) {
   const { t } = useTranslation();
 
   return (
-    <TouchableOpacity
+    <HapticTouchable hapticDisabled
       style={[
         styles.moduleButton,
         isSelected && styles.moduleButtonSelected,
@@ -279,7 +279,7 @@ function ModuleButton({ module, isSelected, onPress }: ModuleButtonProps) {
           style={[styles.selectedIndicator, { backgroundColor: module.color }]}
         />
       )}
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

@@ -16,10 +16,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Image,
   Modal,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -120,14 +120,14 @@ export function QueueView({
             <Text style={styles.headerTitle}>
               {t('modules.appleMusic.queue.title')}
             </Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.closeButton}
               onPress={handleClose}
               accessibilityRole="button"
               accessibilityLabel={t('common.close')}
             >
               <Text style={styles.closeButtonText}>{t('common.close')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
 
           {/* Queue count */}
@@ -200,7 +200,7 @@ export function QueueView({
                     {upNextSongs.map((song, index) => {
                       const actualIndex = nowPlayingIndex >= 0 ? nowPlayingIndex + 1 + index : index;
                       return (
-                        <TouchableOpacity
+                        <HapticTouchable hapticDisabled
                           key={`${song.id}-${index}`}
                           style={styles.queueItem}
                           onPress={() => handleSongPress(song, actualIndex)}
@@ -231,7 +231,7 @@ export function QueueView({
                           <Text style={styles.queueItemDuration}>
                             {formatDuration(song.duration)}
                           </Text>
-                        </TouchableOpacity>
+                        </HapticTouchable>
                       );
                     })}
                   </View>

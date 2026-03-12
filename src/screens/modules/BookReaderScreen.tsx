@@ -26,12 +26,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Modal,
   PanResponder,
   Linking,
   Platform,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -308,14 +308,14 @@ export function BookReaderScreen() {
         <View style={styles.emptyContainer}>
           <Icon name="book" size={64} color={colors.textTertiary} />
           <Text style={styles.emptyText}>{t('modules.books.reading.noBook')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.backButton, { backgroundColor: accentColor.primary }]}
             onPress={() => navigation.goBack()}
             accessibilityRole="button"
             accessibilityLabel={t('common.back')}
           >
             <Text style={styles.backButtonText}>{t('common.back')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
     );
@@ -430,7 +430,7 @@ export function BookReaderScreen() {
         {/* Page navigation */}
         <View style={styles.navigationRow}>
           {/* Previous page */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.pageButton,
               currentPageNumber <= 1 && styles.pageButtonDisabled,
@@ -449,7 +449,7 @@ export function BookReaderScreen() {
               size={32}
               color={currentPageNumber <= 1 ? colors.textTertiary : theme.text}
             />
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* TTS controls */}
           <View style={styles.ttsControls}>
@@ -472,7 +472,7 @@ export function BookReaderScreen() {
             {/* Play/Pause with Voice Quality Warning and Voice Label */}
             <View style={styles.playButtonWrapper}>
               <View style={styles.playButtonContainer}>
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.playButton, { backgroundColor: accentColor.primary }]}
                   onPress={handlePlayPause}
                   accessibilityRole="button"
@@ -496,7 +496,7 @@ export function BookReaderScreen() {
                     size={32}
                     color={colors.textOnPrimary}
                   />
-                </TouchableOpacity>
+                </HapticTouchable>
                 {/* Warning badge when no Enhanced/Premium voice */}
                 {!voiceQualityStatus?.hasHighQualityVoice && (
                   <View style={styles.warningBadge}>
@@ -507,7 +507,7 @@ export function BookReaderScreen() {
 
               {/* Voice label under play button */}
               {voiceQualityStatus?.selectedVoice && (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={styles.voiceLabelContainer}
                   onPress={handleOpenVoiceSelection}
                   accessibilityRole="button"
@@ -524,7 +524,7 @@ export function BookReaderScreen() {
                       : t('modules.books.tts.enhancedShort')})
                   </Text>
                   <Icon name="settings" size={14} color={theme.secondary} />
-                </TouchableOpacity>
+                </HapticTouchable>
               )}
             </View>
 
@@ -539,7 +539,7 @@ export function BookReaderScreen() {
           </View>
 
           {/* Next page */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.pageButton,
               currentPageNumber >= totalPages && styles.pageButtonDisabled,
@@ -558,7 +558,7 @@ export function BookReaderScreen() {
               size={32}
               color={currentPageNumber >= totalPages ? colors.textTertiary : theme.text}
             />
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* TTS progress indicator */}
@@ -611,7 +611,7 @@ export function BookReaderScreen() {
               </Text>
               <View style={styles.settingOptions}>
                 {(['small', 'medium', 'large', 'xlarge'] as const).map((size) => (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     key={size}
                     style={[
                       styles.settingOption,
@@ -637,7 +637,7 @@ export function BookReaderScreen() {
                     >
                       A
                     </Text>
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 ))}
               </View>
             </View>
@@ -649,7 +649,7 @@ export function BookReaderScreen() {
               </Text>
               <View style={styles.settingOptions}>
                 {(['normal', 'relaxed', 'loose'] as const).map((height) => (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     key={height}
                     style={[
                       styles.settingOption,
@@ -675,7 +675,7 @@ export function BookReaderScreen() {
                     >
                       {t(`modules.books.settings.lineHeights.${height}`)}
                     </Text>
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 ))}
               </View>
             </View>
@@ -687,7 +687,7 @@ export function BookReaderScreen() {
               </Text>
               <View style={styles.settingOptions}>
                 {(['light', 'sepia', 'dark'] as const).map((themeKey) => (
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     key={themeKey}
                     style={[
                       styles.themeOption,
@@ -721,20 +721,20 @@ export function BookReaderScreen() {
                     >
                       {t(`modules.books.settings.themes.${themeKey}`)}
                     </Text>
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 ))}
               </View>
             </View>
 
             {/* Close button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.closeSettingsButton, { backgroundColor: accentColor.primary }]}
               onPress={() => setShowSettingsModal(false)}
               accessibilityRole="button"
               accessibilityLabel={t('common.done')}
             >
               <Text style={styles.closeSettingsButtonText}>{t('common.done')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>
@@ -763,7 +763,7 @@ export function BookReaderScreen() {
             {/* Timer options */}
             <View style={styles.sleepTimerOptions}>
               {SLEEP_TIMER_OPTIONS.map((minutes) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={minutes ?? 'off'}
                   style={[
                     styles.sleepTimerOption,
@@ -791,19 +791,19 @@ export function BookReaderScreen() {
                       ? t('modules.books.tts.sleepTimerOff')
                       : `${minutes} min`}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </View>
 
             {/* Cancel button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.sleepTimerCancelButton}
               onPress={() => setShowSleepTimerModal(false)}
               accessibilityRole="button"
               accessibilityLabel={t('common.cancel')}
             >
               <Text style={styles.sleepTimerCancelText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>
@@ -855,7 +855,7 @@ export function BookReaderScreen() {
             </View>
 
             {/* Open Settings button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.openSettingsButton, { backgroundColor: accentColor.primary }]}
               onPress={handleOpenSettings}
               accessibilityRole="button"
@@ -865,17 +865,17 @@ export function BookReaderScreen() {
               <Text style={styles.openSettingsButtonText}>
                 {t('modules.books.tts.openSettings')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Close button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.noVoiceCancelButton}
               onPress={() => setShowNoHighQualityVoiceModal(false)}
               accessibilityRole="button"
               accessibilityLabel={t('common.close')}
             >
               <Text style={styles.noVoiceCancelText}>{t('common.close')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>
@@ -905,7 +905,7 @@ export function BookReaderScreen() {
             {/* Voice list - shows Enhanced + Premium voices */}
             <ScrollView style={styles.voiceList}>
               {voiceQualityStatus?.highQualityVoices.map((voice) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={voice.id}
                   style={[
                     styles.voiceOption,
@@ -982,19 +982,19 @@ export function BookReaderScreen() {
                   {voiceQualityStatus.selectedVoice?.id === voice.id && (
                     <Icon name="check" size={24} color={colors.textOnPrimary} />
                   )}
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </ScrollView>
 
             {/* Cancel button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.voiceSelectionCancelButton}
               onPress={() => setShowVoiceSelectionModal(false)}
               accessibilityRole="button"
               accessibilityLabel={t('common.cancel')}
             >
               <Text style={styles.voiceSelectionCancelText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>
@@ -1027,7 +1027,7 @@ export function BookReaderScreen() {
             {/* Buttons */}
             <View style={styles.voiceUnavailableButtons}>
               {/* Choose new voice button */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.voiceUnavailableButton, { backgroundColor: accentColor.primary }]}
                 onPress={handleChooseNewVoice}
                 accessibilityRole="button"
@@ -1037,10 +1037,10 @@ export function BookReaderScreen() {
                 <Text style={styles.voiceUnavailableButtonText}>
                   {t('modules.books.tts.chooseNewVoice')}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
 
               {/* Auto-select best button */}
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.voiceUnavailableButtonSecondary, { borderColor: accentColor.primary }]}
                 onPress={handleAutoSelectBestVoice}
                 accessibilityRole="button"
@@ -1050,18 +1050,18 @@ export function BookReaderScreen() {
                 <Text style={[styles.voiceUnavailableButtonTextSecondary, { color: accentColor.primary }]}>
                   {t('modules.books.tts.autoSelectBest')}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
 
             {/* Cancel button */}
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={styles.voiceUnavailableCancelButton}
               onPress={() => setShowVoiceUnavailableModal(false)}
               accessibilityRole="button"
               accessibilityLabel={t('common.cancel')}
             >
               <Text style={styles.voiceUnavailableCancelText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         </View>
       </Modal>

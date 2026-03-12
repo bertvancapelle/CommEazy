@@ -25,12 +25,12 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  TouchableOpacity,
   Modal,
   Alert,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { weatherService } from '@/services/weatherService';
 import type { WeatherLocation } from '@/types/weather';
@@ -104,18 +104,18 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
       <View style={[pickerStyles.container, { backgroundColor: themeColors.background }]}>
         <View style={[pickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[pickerStyles.title, { color: themeColors.textPrimary }]}>{title}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             onPress={onClose}
             style={pickerStyles.closeButton}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Text style={[pickerStyles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
         <ScrollViewWithIndicator style={pickerStyles.optionsList}>
           {options.map((option) => (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={option.value}
               style={[
                 pickerStyles.option,
@@ -142,7 +142,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
               {selectedValue === option.value && (
                 <Text style={[pickerStyles.checkmark, { color: themeColors.primary }]}>✓</Text>
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
           ))}
         </ScrollViewWithIndicator>
       </View>
@@ -247,14 +247,14 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
       <View style={[cityPickerStyles.container, { backgroundColor: themeColors.background }]}>
         <View style={[cityPickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[cityPickerStyles.title, { color: themeColors.textPrimary }]}>{t('demographics.selectCity')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             onPress={onClose}
             style={cityPickerStyles.closeButton}
             accessibilityRole="button"
             accessibilityLabel={t('common.close')}
           >
             <Text style={[cityPickerStyles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Search input */}
@@ -298,7 +298,7 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
         {/* Search results */}
         <ScrollView style={cityPickerStyles.resultsList}>
           {searchResults.map((location) => (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={location.id}
               style={[cityPickerStyles.resultItem, { borderBottomColor: themeColors.border }]}
               onPress={() => handleSelectCity(location)}
@@ -312,7 +312,7 @@ function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: 
                 </Text>
               </View>
               <Text style={[cityPickerStyles.selectIcon, { color: themeColors.textTertiary }]}>›</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           ))}
         </ScrollView>
       </View>
@@ -560,7 +560,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
         {/* Country picker */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.countryLabel')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => setCountryPickerVisible(true)}
             accessibilityRole="button"
@@ -572,14 +572,14 @@ export function DemographicsScreen({ route, navigation }: Props) {
                 : t('demographics.selectCountry')}
             </Text>
             <Text style={[styles.editIcon, { color: themeColors.textSecondary }]}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Region picker (only if country has regions) */}
         {countryCode && hasRegions && (
           <View style={styles.fieldContainer}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.regionLabel')}</Text>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
               onPress={() => setRegionPickerVisible(true)}
               accessibilityRole="button"
@@ -591,14 +591,14 @@ export function DemographicsScreen({ route, navigation }: Props) {
                   : t('demographics.selectRegion')}
               </Text>
               <Text style={[styles.editIcon, { color: themeColors.textSecondary }]}>✏️</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 
         {/* City picker (via weather API geocoding) */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.cityLabel')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => setCityPickerVisible(true)}
             accessibilityRole="button"
@@ -610,13 +610,13 @@ export function DemographicsScreen({ route, navigation }: Props) {
                 : t('demographics.selectCity')}
             </Text>
             <Text style={[styles.editIcon, { color: themeColors.textSecondary }]}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Age bracket picker */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('demographics.ageLabel')}</Text>
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => setAgePickerVisible(true)}
             accessibilityRole="button"
@@ -628,7 +628,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
                 : t('demographics.selectAge')}
             </Text>
             <Text style={[styles.editIcon, { color: themeColors.textSecondary }]}>✏️</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
 
         {/* Privacy note */}

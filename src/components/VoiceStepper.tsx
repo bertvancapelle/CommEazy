@@ -37,10 +37,10 @@ import React, { useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   AccessibilityInfo,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { VoiceFocusable } from './VoiceFocusable';
@@ -208,7 +208,7 @@ export function VoiceStepper({
         {/* Stepper buttons (right side) */}
         <View style={styles.buttonsContainer}>
           {/* Decrease button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.button,
               { backgroundColor: accentColor.primary },
@@ -222,10 +222,10 @@ export function VoiceStepper({
             accessibilityHint={t('a11y.decreaseHint', { setting: label })}
           >
             <Text style={styles.buttonText}>−</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Increase button */}
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={[
               styles.button,
               { backgroundColor: accentColor.primary },
@@ -239,7 +239,7 @@ export function VoiceStepper({
             accessibilityHint={t('a11y.increaseHint', { setting: label })}
           >
             <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       </View>
     </VoiceFocusable>

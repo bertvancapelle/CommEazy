@@ -14,8 +14,8 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -84,14 +84,12 @@ export function MailOnboardingStep1({
       <View style={styles.topBar}>
         <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
         {onClose && (
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.skipButton}
             onPress={() => {
               triggerHaptic('tap');
               onClose();
             }}
-            onLongPress={() => {}}
-            delayLongPress={300}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('modules.mail.onboarding.skipSetup')}
@@ -99,7 +97,7 @@ export function MailOnboardingStep1({
             <Text style={[styles.skipButtonText, { color: accentColor.primary }]}>
               {t('modules.mail.onboarding.skipSetup')}
             </Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
       </View>
 
@@ -121,7 +119,7 @@ export function MailOnboardingStep1({
 
         <View style={styles.providerList}>
           {providers.map((provider) => (
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               key={provider.id}
               style={[
                 styles.providerCard,
@@ -131,8 +129,6 @@ export function MailOnboardingStep1({
                 },
               ]}
               onPress={() => handleProviderPress(provider)}
-              onLongPress={() => {}}
-              delayLongPress={300}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={provider.name}
@@ -157,7 +153,7 @@ export function MailOnboardingStep1({
                 )}
               </View>
               <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
-            </TouchableOpacity>
+            </HapticTouchable>
           ))}
         </View>
       </ScrollViewWithIndicator>

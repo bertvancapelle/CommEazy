@@ -26,7 +26,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Modal,
   Image,
   Platform,
@@ -35,6 +34,7 @@ import {
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
+import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -709,7 +709,7 @@ export function PodcastScreen() {
                 {t('modules.podcast.playbackErrorMessage')}
               </Text>
             </View>
-            <TouchableOpacity
+            <HapticTouchable hapticDisabled
               style={[styles.errorBannerDismiss, { backgroundColor: accentColor.primary }]}
               onPress={() => {
                 triggerFeedback('tap');
@@ -719,7 +719,7 @@ export function PodcastScreen() {
               accessibilityLabel={t('common.close')}
             >
               <Text style={styles.errorBannerDismissText}>{t('common.close')}</Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
         )}
 
@@ -745,7 +745,7 @@ export function PodcastScreen() {
             {showSubscriptions && (
               <>
                 <Text style={styles.emptyHint}>{t('modules.podcast.noFavoritesHint')}</Text>
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
                   onPress={() => {
                     triggerFeedback('tap');
@@ -756,7 +756,7 @@ export function PodcastScreen() {
                 >
                   <Icon name="search" size={24} color={colors.textOnPrimary} />
                   <Text style={styles.emptyActionButtonText}>{t('modules.podcast.goToDiscover')}</Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               </>
             )}
           </View>
@@ -781,7 +781,7 @@ export function PodcastScreen() {
                   index={index}
                   onSelect={() => handleShowPress(show)}
                 >
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     style={[
                       styles.showItem,
                       // Playing show: thin accent border
@@ -796,7 +796,6 @@ export function PodcastScreen() {
                       // Empty handler prevents onPress from firing after long press
                       // The HoldToNavigateWrapper handles the actual long-press action
                     }}
-                    delayLongPress={300}
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={show.title}
@@ -850,7 +849,7 @@ export function PodcastScreen() {
                     }
                     size={24}
                   />
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 </VoiceFocusable>
               );
             })}
@@ -943,7 +942,7 @@ export function PodcastScreen() {
                       <Text style={styles.showDetailAuthor} numberOfLines={1}>
                         {selectedShow.author}
                       </Text>
-                      <TouchableOpacity
+                      <HapticTouchable hapticDisabled
                         style={[
                           styles.subscribeButton,
                           isSubscribed(selectedShow.id)
@@ -975,7 +974,7 @@ export function PodcastScreen() {
                             ? t('modules.podcast.isFavorite')
                             : t('modules.podcast.addToFavorites')}
                         </Text>
-                      </TouchableOpacity>
+                      </HapticTouchable>
                     </View>
                   </View>
 
@@ -994,7 +993,7 @@ export function PodcastScreen() {
                         const isCurrentEpisode = currentEpisode && currentEpisode.id === episode.id;
 
                         return (
-                          <TouchableOpacity
+                          <HapticTouchable hapticDisabled
                             key={episode.id}
                             style={[
                               styles.episodeItem,
@@ -1008,7 +1007,6 @@ export function PodcastScreen() {
                             onLongPress={() => {
                               // Empty handler prevents onPress from firing after long press
                             }}
-                            delayLongPress={300}
                             accessibilityRole="button"
                             accessibilityLabel={episode.title}
                             accessibilityState={{ selected: isCurrentEpisode ?? false }}
@@ -1059,21 +1057,21 @@ export function PodcastScreen() {
                             <View style={[styles.playButton, { backgroundColor: accentColor.primary }]}>
                               <Icon name={isCurrentEpisode && isPlaying ? 'pause' : 'play'} size={20} color={colors.textOnPrimary} />
                             </View>
-                          </TouchableOpacity>
+                          </HapticTouchable>
                         );
                       })}
                     </ScrollView>
                   )}
 
                   {/* Close button */}
-                  <TouchableOpacity
+                  <HapticTouchable hapticDisabled
                     style={[styles.closeButton, { backgroundColor: accentColor.primary }]}
                     onPress={() => setSelectedShow(null)}
                     accessibilityRole="button"
                     accessibilityLabel={t('common.close')}
                   >
                     <Text style={styles.closeButtonText}>{t('common.close')}</Text>
-                  </TouchableOpacity>
+                  </HapticTouchable>
                 </>
               )}
             </View>
@@ -1143,7 +1141,7 @@ export function PodcastScreen() {
             setTimeout(() => setIsPlayerExpanded(true), 100);
           }}
         >
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.pickerOverlay}
             onPress={() => {
               setShowSpeedPicker(false);
@@ -1155,7 +1153,7 @@ export function PodcastScreen() {
             <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
               <Text style={styles.pickerTitle}>{t('modules.podcast.playbackSpeedTitle')}</Text>
               {PLAYBACK_RATES.map((rate) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={rate}
                   style={[
                     styles.pickerOption,
@@ -1177,10 +1175,10 @@ export function PodcastScreen() {
                   >
                     {rate}x
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </View>
-          </TouchableOpacity>
+          </HapticTouchable>
         </Modal>
 
         {/* Sleep Timer Picker Modal */}
@@ -1194,7 +1192,7 @@ export function PodcastScreen() {
             setTimeout(() => setIsPlayerExpanded(true), 100);
           }}
         >
-          <TouchableOpacity
+          <HapticTouchable hapticDisabled
             style={styles.pickerOverlay}
             onPress={() => {
               setShowSleepTimerPicker(false);
@@ -1206,7 +1204,7 @@ export function PodcastScreen() {
             <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
               <Text style={styles.pickerTitle}>{t('modules.podcast.sleepTimerTitle')}</Text>
               {sleepTimerMinutes && (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   style={[styles.pickerOption, { backgroundColor: colors.errorBackground }]}
                   onPress={() => {
                     triggerFeedback('tap');
@@ -1219,10 +1217,10 @@ export function PodcastScreen() {
                   <Text style={[styles.pickerOptionText, { color: colors.error }]}>
                     {t('modules.podcast.sleepTimerCancel')}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               )}
               {SLEEP_TIMER_OPTIONS.map((minutes) => (
-                <TouchableOpacity
+                <HapticTouchable hapticDisabled
                   key={minutes}
                   style={[
                     styles.pickerOption,
@@ -1244,10 +1242,10 @@ export function PodcastScreen() {
                   >
                     {t('modules.podcast.sleepTimerMinutes', { minutes })}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               ))}
             </View>
-          </TouchableOpacity>
+          </HapticTouchable>
         </Modal>
 
         {/* Welcome Modal */}
@@ -1287,7 +1285,7 @@ export function PodcastScreen() {
                 </View>
               </View>
 
-              <TouchableOpacity
+              <HapticTouchable hapticDisabled
                 style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
                 onPress={() => {
                   triggerFeedback('tap');
@@ -1299,7 +1297,7 @@ export function PodcastScreen() {
               >
                 <Icon name="search" size={24} color={colors.textOnPrimary} />
                 <Text style={styles.welcomeButtonText}>{t('modules.podcast.welcomeButton')}</Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             </View>
           </View>
         </Modal>
@@ -1371,7 +1369,7 @@ export function PodcastScreen() {
                   {/* Buttons */}
                   <View style={styles.continueListeningButtons}>
                     {/* Yes - Continue */}
-                    <TouchableOpacity
+                    <HapticTouchable hapticDisabled
                       style={[styles.continueListeningButton, { backgroundColor: accentColor.primary }]}
                       onPress={async () => {
                         triggerFeedback('tap');
@@ -1390,10 +1388,10 @@ export function PodcastScreen() {
                       <Text style={styles.continueListeningButtonText}>
                         {t('modules.podcast.continueYes')}
                       </Text>
-                    </TouchableOpacity>
+                    </HapticTouchable>
 
                     {/* No - Show episodes */}
-                    <TouchableOpacity
+                    <HapticTouchable hapticDisabled
                       style={[styles.continueListeningButton, styles.continueListeningButtonSecondary]}
                       onPress={() => {
                         triggerFeedback('tap');
@@ -1412,7 +1410,7 @@ export function PodcastScreen() {
                       <Text style={styles.continueListeningButtonTextSecondary}>
                         {t('modules.podcast.continueNo')}
                       </Text>
-                    </TouchableOpacity>
+                    </HapticTouchable>
                   </View>
                 </>
               )}
@@ -1475,7 +1473,7 @@ export function PodcastScreen() {
                   {/* Buttons */}
                   <View style={styles.nextEpisodeButtons}>
                     {/* Yes - Play next */}
-                    <TouchableOpacity
+                    <HapticTouchable hapticDisabled
                       style={[styles.nextEpisodeButton, { backgroundColor: accentColor.primary }]}
                       onPress={async () => {
                         triggerFeedback('tap');
@@ -1491,10 +1489,10 @@ export function PodcastScreen() {
                       <Text style={styles.nextEpisodeButtonText}>
                         {t('modules.podcast.playNextYes')}
                       </Text>
-                    </TouchableOpacity>
+                    </HapticTouchable>
 
                     {/* No - Stop and go to main menu */}
-                    <TouchableOpacity
+                    <HapticTouchable hapticDisabled
                       style={[styles.nextEpisodeButton, styles.nextEpisodeButtonSecondary]}
                       onPress={() => {
                         triggerFeedback('tap');
@@ -1510,7 +1508,7 @@ export function PodcastScreen() {
                       <Text style={styles.nextEpisodeButtonTextSecondary}>
                         {t('modules.podcast.playNextNo')}
                       </Text>
-                    </TouchableOpacity>
+                    </HapticTouchable>
                   </View>
                 </>
               )}
