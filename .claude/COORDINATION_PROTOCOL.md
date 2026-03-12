@@ -191,14 +191,14 @@ Na introductie van een standaard component MOET de adoptiegraad worden bijgehoud
 | `ModuleHeader` | Custom header styling | 15 | 2 | ~88% |
 | `SearchBar` | Custom search TextInput | 11 | 0 | ✅ 100% |
 | `LoadingView` | Bare `ActivityIndicator` (large) | 23 | ~20 | ~53% |
-| `ErrorView` | `Alert.alert()` (fouten) | 9 | ~10 | ~47% |
+| `ErrorView` | `Alert.alert()` (fout/succes/info) | 9 | ~56 | ~14% |
 | `useModuleColor()` | Hardcoded hex | ~15 | ~17 | ~47% |
 
 **Laatste update:** 12 maart 2026 — na Phase 1+2 bulk migratie (commits `046b47f`, `3bd63a4`)
 
 **Notities bij deferred items:**
 - `LoadingView`: 20 bare `ActivityIndicator size="large"` — vereist per-screen state management refactoring
-- `ErrorView`: 10 `Alert.alert` in catch blocks — vereist per-screen error state toevoeging
+- `ErrorView`: Scope uitgebreid — nu ALLE `Alert.alert()` voor fout/succes/info meldingen (niet alleen errors). ~56 instances te migreren. `Alert.alert()` is ALLEEN nog toegestaan voor bevestigingsdialogen (2+ knoppen). Zie ui-designer SKILL.md sectie 16.
 - Beide zijn technische schuld, geen blokkeerders voor nieuwe code
 
 ### Meetcommando's
@@ -208,9 +208,9 @@ Na introductie van een standaard component MOET de adoptiegraad worden bijgehoud
 echo "HapticTouchable:" && grep -rl "HapticTouchable" src/screens/ --include="*.tsx" | wc -l
 echo "TouchableOpacity (nog te migreren):" && grep -rl "TouchableOpacity" src/screens/ --include="*.tsx" | grep -v node_modules | wc -l
 
-# ErrorView adoptie
+# ErrorView adoptie (scope: fout + succes + info meldingen)
 echo "ErrorView:" && grep -rl "ErrorView" src/screens/ --include="*.tsx" | wc -l
-echo "Alert.alert (fouten, te migreren):" && grep -rn "Alert.alert" src/screens/ --include="*.tsx" | grep -vi "confirm\|delete\|discard\|verwijder" | wc -l
+echo "Alert.alert (ALLE niet-bevestiging, te migreren):" && grep -rn "Alert.alert" src/screens/ src/components/ --include="*.tsx" | grep -v "style: 'destructive'" | grep -v "style: 'cancel'" | wc -l
 
 # LoadingView adoptie
 echo "LoadingView:" && grep -rl "LoadingView" src/screens/ --include="*.tsx" | wc -l

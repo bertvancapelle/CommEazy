@@ -4143,6 +4143,178 @@ overbodig. Maar consistentie kan belangrijk zijn voor senioren.
 Ben je het eens met deze conclusie?"
 ```
 
+---
+
+## 16. Unified Notification Pattern (VERPLICHT)
+
+### 16.1 Principe
+
+**ALLE gebruikersgerichte meldingen** (fouten, successen, informatief) MOETEN via het `ErrorView` component worden getoond. `Alert.alert()` is ALLEEN toegestaan voor bevestigingsdialogen met meerdere acties.
+
+**Waarom?**
+- **Consistentie:** Senioren zien dezelfde visuele taal voor alle meldingen
+- **Toegankelijkheid:** Inline meldingen zijn beter voor VoiceOver/TalkBack dan system alerts
+- **CLAUDE.md Sectie 3 compliance:** Kleur mag NOOIT de enige indicator zijn — icoon is verplicht
+
+### 16.2 Drie Meldingstypen
+
+| Type | Icoon | Kleur | Gedrag | Wanneer |
+|------|-------|-------|--------|---------|
+| **error** | ⚠️ | `colors.error` (rood) | Blijft zichtbaar tot dismiss/retry | Foutmeldingen, mislukte acties, validatie fouten |
+| **success** | ✅ | `colors.success` (groen) | Auto-dismiss na 3 seconden | Geslaagde acties (opgeslagen, verzonden, verwijderd) |
+| **info** | ℹ️ | `accentColor.primary` (blauw) | Auto-dismiss na 3 seconden | Status updates, tips, neutrale informatie |
+
+**Iconen zijn VERPLICHT** — niet optioneel. Dit is een directe eis uit CLAUDE.md UI Principle #3:
+> "NOOIT kleur als enige indicator — altijd icoon/tekst toevoegen"
+
+### 16.3 ErrorView Component API
+
+```typescript
+import { ErrorView } from '@/components';
+
+// Error: blijft zichtbaar, retry knop
+<ErrorView
+  type="error"
+  title={t('errors.network.title')}
+  message={t('errors.network.help')}
+  onRetry={handleRetry}
+/>
+
+// Success: auto-dismiss na 3 seconden
+<ErrorView
+  type="success"
+  title={t('common.saved')}
+  message={t('settings.savedSuccessfully')}
+  autoDismiss={3000}
+  onDismiss={() => setShowSuccess(false)}
+/>
+
+// Info: auto-dismiss na 3 seconden
+<ErrorView
+  type="info"
+  title={t('modules.radio.bufferingTitle')}
+  message={t('modules.radio.bufferingMessage')}
+  autoDismiss={3000}
+  onDismiss={() => setShowInfo(false)}
+/>
+```
+
+### 16.4 Wanneer WEL Alert.alert() Gebruiken
+
+`Alert.alert()` is ALLEEN toegestaan voor **bevestigingsdialogen** — meldingen waar de gebruiker een keuze MOET maken met meerdere knoppen:
+
+```typescript
+// ✅ TOEGESTAAN — Bevestigingsdialoog (destructieve actie)
+Alert.alert(
+  t('common.formActions.discardTitle'),
+  t('common.formActions.discardMessage'),
+  [
+    { text: t('common.formActions.keepEditing'), style: 'cancel' },
+    { text: t('common.formActions.discard'), style: 'destructive', onPress: onDiscard },
+  ],
+);
+
+// ✅ TOEGESTAAN — Bevestigingsdialoog (verwijderen)
+Alert.alert(
+  t('contacts.deleteTitle'),
+  t('contacts.deleteMessage', { name }),
+  [
+    { text: t('common.cancel'), style: 'cancel' },
+    { text: t('common.delete'), style: 'destructive', onPress: onDelete },
+  ],
+);
+```
+
+### 16.5 Wanneer NOOIT Alert.alert() Gebruiken (BLOKKEERDER)
+
+```typescript
+// ❌ VERBODEN — Foutmelding via Alert.alert
+Alert.alert(t('errors.title'), t('errors.networkFailed'));
+// → Gebruik ErrorView type="error"
+
+// ❌ VERBODEN — Succesmelding via Alert.alert
+Alert.alert(t('common.success'), t('settings.saved'));
+// → Gebruik ErrorView type="success"
+
+// ❌ VERBODEN — Informatieve melding via Alert.alert
+Alert.alert(t('common.info'), t('modules.radio.noResults'));
+// → Gebruik ErrorView type="info"
+
+// ❌ VERBODEN — Bevestiging met slechts één knop (= geen echte keuze)
+Alert.alert(t('common.success'), t('contacts.added'), [{ text: 'OK' }]);
+// → Gebruik ErrorView type="success" met autoDismiss
+```
+
+**Vuistregel:** Heeft de Alert slechts één knop of geen knoppen? → Gebruik `ErrorView`.
+Heeft de Alert twee of meer knoppen met verschillende acties? → `Alert.alert()` is OK.
+
+### 16.6 Implementatie in Screens
+
+**Pattern voor error state:**
+```typescript
+const [error, setError] = useState<{ title: string; message: string } | null>(null);
+
+// In catch block:
+catch (err) {
+  setError({
+    title: t('errors.network.title'),
+    message: t('errors.network.help'),
+  });
+}
+
+// In render:
+{error && (
+  <ErrorView
+    type="error"
+    title={error.title}
+    message={error.message}
+    onRetry={() => { setError(null); handleRetry(); }}
+  />
+)}
+```
+
+**Pattern voor success/info state:**
+```typescript
+const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+// Na geslaagde actie:
+setSuccessMessage(t('settings.savedSuccessfully'));
+
+// In render:
+{successMessage && (
+  <ErrorView
+    type="success"
+    title={t('common.saved')}
+    message={successMessage}
+    autoDismiss={3000}
+    onDismiss={() => setSuccessMessage(null)}
+  />
+)}
+```
+
+### 16.7 Checklist bij Nieuwe Meldingen
+
+Bij ELKE melding naar de gebruiker:
+
+- [ ] **Type bepaald:** error, success, of info?
+- [ ] **ErrorView gebruikt:** GEEN `Alert.alert()` (tenzij bevestigingsdialoog)
+- [ ] **Icoon aanwezig:** Automatisch via ErrorView (⚠️, ✅, of ℹ️)
+- [ ] **Tekst via i18n:** Title en message via `t()`, NOOIT hardcoded
+- [ ] **Herstelactie:** Error type heeft `onRetry`, success/info hebben `autoDismiss`
+- [ ] **Kleur NIET enige indicator:** Icoon + tekst altijd aanwezig (CLAUDE.md Sectie 3)
+
+### 16.8 Validatie Commando
+
+```bash
+# Vind alle Alert.alert instances die GEEN bevestigingsdialoog zijn
+# (Heuristiek: Alert.alert met 0 of 1 button = moet ErrorView zijn)
+grep -rn "Alert\.alert" src/screens/ src/components/ --include="*.tsx" | \
+  grep -v "style: 'destructive'" | \
+  grep -v "style: 'cancel'"
+```
+
+---
+
 ## Collaboration
 
 - **With accessibility-specialist**: Validate all components for a11y compliance

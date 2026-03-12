@@ -406,6 +406,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **App Attestation / JWT tokens** | **security-expert, ios-specialist, android-specialist** — App Attest (iOS) / Play Integrity (Android), JWT token systeem. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
 | **Invitation Relay / Contact exchange** | **security-expert, architecture-lead, onboarding-recovery-specialist** — Encrypted invitation codes, relay server, key exchange. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
 | **Contact verificatie flow** | **security-expert, ui-designer, onboarding-recovery-specialist** — QR-code exchange, trust levels, invitation flow. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
+| **`Alert.alert()` voor fout/succes/info** | **BLOKKEERDER** — ui-designer, accessibility-specialist — MOET `ErrorView` gebruiken. `Alert.alert()` ALLEEN voor bevestigingsdialogen (2+ knoppen). Zie ui-designer SKILL.md sectie 16 |
 
 ### Consistency Safeguards (VERPLICHT)
 
@@ -916,7 +917,7 @@ CommEazy heeft een validatie-script dat component-adoptie en touch target compli
 2. **PanelAwareModal** adoptie (geen raw Modal)
 3. **LoadingView** adoptie (geen bare ActivityIndicator)
 4. **HapticTouchable** adoptie (geen raw TouchableOpacity)
-5. **ErrorView** adoptie (geen Alert.alert voor errors)
+5. **ErrorView** adoptie (geen Alert.alert voor errors/success/info — alleen bevestigingsdialogen)
 6. **Touch target linting** (geen sub-60pt waarden)
 
 **Gebruik:**
@@ -1615,21 +1616,41 @@ const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'medium') => {
 }}>
 ```
 
-### 5. Error Display Pattern
-Errors moeten menselijk zijn en een herstelactie bieden:
+### 5. Unified Notification Pattern (Error/Success/Info)
+ALLE gebruikersgerichte meldingen MOETEN via het `ErrorView` component worden getoond.
+`Alert.alert()` is ALLEEN voor bevestigingsdialogen (2+ knoppen met verschillende acties).
+
+Drie meldingstypen met **verplichte iconen** (kleur mag NOOIT enige indicator zijn):
+- **error** (⚠️ rood) — blijft zichtbaar tot dismiss/retry
+- **success** (✅ groen) — auto-dismiss na 3 seconden
+- **info** (ℹ️ accent) — auto-dismiss na 3 seconden
 
 ```typescript
-// FOUT: Technische error
+// FOUT: Alert.alert voor foutmelding
+Alert.alert(t('errors.title'), t('errors.networkFailed'));
+
+// FOUT: Technische error in Text
 <Text>Error: ETIMEDOUT port 5281</Text>
 
-// GOED: Menselijke error met herstel
-<View style={styles.errorContainer}>
-  <Text style={styles.errorIcon}>⚠️</Text>
-  <Text style={styles.errorTitle}>{t('errors.network.title')}</Text>
-  <Text style={styles.errorHelp}>{t('errors.network.help')}</Text>
-  <Button title={t('common.try_again')} onPress={retry} />
-</View>
+// GOED: ErrorView met type, i18n tekst en herstelactie
+<ErrorView
+  type="error"
+  title={t('errors.network.title')}
+  message={t('errors.network.help')}
+  onRetry={handleRetry}
+/>
+
+// GOED: Succesmelding met auto-dismiss
+<ErrorView
+  type="success"
+  title={t('common.saved')}
+  message={t('settings.savedSuccessfully')}
+  autoDismiss={3000}
+  onDismiss={() => setShowSuccess(false)}
+/>
 ```
+
+Zie ui-designer SKILL.md sectie 16 voor volledige documentatie.
 
 ### 6. Loading States
 Altijd spinner + tekst combineren:

@@ -186,7 +186,7 @@ CommEazy gebruikt een **dual-engine TTS architectuur** waarbij Nederlands ALTIJD
 | Wijzigingstype | Verplichte Skills | Optionele Skills |
 |----------------|-------------------|------------------|
 | **Nieuwe `TouchableOpacity` in screen** | **BLOKKEERDER** — ui-designer, accessibility-specialist | react-native-expert |
-| **`Alert.alert()` voor foutmelding** | **BLOKKEERDER** — ui-designer, accessibility-specialist | - |
+| **`Alert.alert()` voor fout/succes/info melding** | **BLOKKEERDER** — ui-designer, accessibility-specialist | - |
 | **Bare `ActivityIndicator` zonder tekst** | ui-designer, accessibility-specialist | - |
 | **Hardcoded hex kleur voor module** | ui-designer | architecture-lead |
 | **Database model property wijziging** | **BLOKKEERDER** — architecture-lead | testing-qa |
@@ -196,7 +196,7 @@ CommEazy gebruikt een **dual-engine TTS architectuur** waarbij Nederlands ALTIJD
 **Toelichting BLOKKEERDER regels:**
 
 - **TouchableOpacity:** MOET `HapticTouchable` gebruiken (bundelt haptic feedback + hold gesture guard). Uitzondering: `TouchableWithoutFeedback` voor achtergrond-dismiss.
-- **Alert.alert() voor fouten:** MOET `ErrorView` component gebruiken (menselijke tekst + herstelactie). Uitzondering: `Alert.alert()` is WEL toegestaan voor bevestigingsdialogen (verwijderen, annuleren).
+- **Alert.alert() voor fout/succes/info:** MOET `ErrorView` component gebruiken met correct `type` prop ('error', 'success', 'info'). Uitzondering: `Alert.alert()` is WEL toegestaan voor bevestigingsdialogen met meerdere knoppen (verwijderen, annuleren). Vuistregel: 0-1 knoppen → ErrorView, 2+ knoppen met verschillende acties → Alert.alert. Zie ui-designer SKILL.md sectie 16.
 - **Database model property:** MOET `schema.ts` + `migrations.ts` in DEZELFDE commit wijzigen. Zie architecture-lead SKILL.md "Database Schema Wijziging Protocol".
 - **Player feature:** MOET React Native player EN native Glass Player in DEZELFDE commit wijzigen. Zie ios-specialist SKILL.md "Liquid Glass Feature Parity".
 
