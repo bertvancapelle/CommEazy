@@ -1240,6 +1240,64 @@ Ik ga nu door met Fase 3."
 ❌ Wachten tot de gebruiker vraagt "waarom is Fase 3 niet uitgevoerd?"
 ```
 
+### ⚠️ Documentation-Code Parity (VERPLICHT)
+
+**KRITIEK:** Wanneer Claude documentatie schrijft (SKILL.md, CLAUDE.md, COORDINATION_PROTOCOL.md) die een API, component, of gedrag beschrijft dat **nog niet in code bestaat**, MOET Claude dit ALTIJD als openstaande taak markeren met een expliciete vraag aan de gebruiker.
+
+**Waarom dit essentieel is:**
+- Documentatie die code beschrijft die niet bestaat, creëert een **Documentation-Code Gap**
+- Bij sessiewissel (context loss) leest een nieuwe Claude-instantie de documentatie en neemt aan dat de code al bestaat
+- Dit leidt tot **Technical Function Depth** — code die verwijst naar niet-bestaande functies of props
+- De gebruiker merkt dit pas wanneer de build faalt of features ontbreken
+
+**Claude's Gedrag (VERPLICHT — GEEN UITZONDERINGEN):**
+
+Na het vastleggen van documentatie die nieuwe code vereist, MOET Claude:
+
+1. **Inventariseer** — Maak een expliciete lijst van alles wat in documentatie staat maar nog niet in code bestaat
+2. **Rapporteer** — Toon deze lijst aan de gebruiker met ⚠️ markering
+3. **Vraag** — Stel ALTIJD de vraag: **"Wil je dit nu of later oplossen?"**
+4. **Bij "nu"** — Direct implementeren in dezelfde sessie
+5. **Bij "later"** — Markeer als TODO in de documentatie zelf (zodat het niet verloren gaat bij sessiewissel)
+
+**Verplicht Format:**
+
+```
+⚠️ **Openstaande Documentation-Code Gaps:**
+
+De volgende items zijn vastgelegd in documentatie maar bestaan nog NIET in code:
+
+1. `ErrorView.tsx` — `type="success"` (gedocumenteerd in SKILL.md sectie 16.3)
+2. `ErrorView.tsx` — `autoDismiss` prop (gedocumenteerd in SKILL.md sectie 16.3)
+3. `ErrorView.tsx` — `onDismiss` prop (gedocumenteerd in SKILL.md sectie 16.3)
+
+**Wil je deze nu implementeren of later als aparte taak?**
+```
+
+**Anti-patterns (VERBODEN):**
+
+```
+❌ FOUT — Documentatie schrijven en NIET melden dat code ontbreekt:
+"Ik heb de SKILL.md bijgewerkt met het nieuwe ErrorView API."
+→ Gebruiker neemt aan dat code ook is aangepast
+
+❌ FOUT — Alleen terloops benoemen zonder vraag:
+"De daadwerkelijke migratie staat nog open als implementatietaak."
+→ Geen expliciete vraag, geen actie-item, vergeten bij sessiewissel
+
+✅ GOED — Expliciet melden met vraag:
+"⚠️ De SKILL.md beschrijft nu `autoDismiss` en `onDismiss` props, maar ErrorView.tsx
+ondersteunt deze nog niet. Wil je dat ik dit nu implementeer of later?"
+```
+
+**Scope:**
+
+Dit geldt voor ALLE documentatie-code relaties:
+- SKILL.md beschrijft API → component moet API ondersteunen
+- CLAUDE.md beschrijft pattern → code moet pattern volgen
+- CHANGE_VALIDATION_MATRIX.md beschrijft validatie → validatie moet werken
+- Interface definities → implementatie moet bestaan
+
 ### ⚠️ Code Hygiene Check (VERPLICHT vóór commit)
 
 **Dit is onderdeel van de commit flow.** Claude MOET deze checks uitvoeren voordat een commit wordt voorgesteld.

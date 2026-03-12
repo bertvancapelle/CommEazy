@@ -1,18 +1,27 @@
 /**
- * ErrorView Component
+ * ErrorView Component — Unified Notification Pattern
  *
- * Senior-inclusive error display that ALWAYS shows:
+ * Senior-inclusive display for ALL in-app notifications:
+ * - Error (⚠️) — failures with optional retry
+ * - Warning (⚡) — recoverable issues
+ * - Info (ℹ️) — neutral information
+ * - Success (✅) — confirmations of completed actions
+ *
+ * ALWAYS shows:
  * - Icon (visual indicator, not just color)
  * - Human-friendly title
  * - Helpful explanation
- * - Recovery action button
+ * - Optional action button (retry, dismiss, etc.)
  *
- * This enforces UI Principle #5: Error Display Pattern.
+ * This enforces UI Principle #5: Unified Notification Pattern.
  *
- * NEVER use Alert.alert for errors - always use this component.
+ * NEVER use Alert.alert for errors/success/info — always use this component.
+ * Alert.alert is ONLY allowed for confirmation dialogs (2+ buttons).
+ *
+ * @see .claude/skills/ui-designer/SKILL.md Section 16
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -23,18 +32,22 @@ import { colors, typography, spacing, borderRadius } from '@/theme';
 import { Button } from './Button';
 
 interface ErrorViewProps {
-  /** Error title - defaults to generic error */
+  /** Notification title - defaults to generic error */
   title?: string;
-  /** Helpful message explaining what to do */
+  /** Helpful message explaining what happened or what to do */
   message?: string;
   /** Retry button handler - if not provided, no retry button shown */
   onRetry?: () => void;
   /** Custom retry button text */
   retryText?: string;
-  /** Error type for styling */
-  type?: 'error' | 'warning' | 'info';
+  /** Notification type for icon and styling */
+  type?: 'error' | 'warning' | 'info' | 'success';
   /** Whether to show fullscreen centered */
   fullscreen?: boolean;
+  /** Auto-dismiss after N milliseconds (recommended: 3000 for success/info) */
+  autoDismiss?: number;
+  /** Callback when notification is dismissed (auto or manual) */
+  onDismiss?: () => void;
 }
 
 export function ErrorView({
@@ -44,10 +57,35 @@ export function ErrorView({
   retryText,
   type = 'error',
   fullscreen = false,
+  autoDismiss,
+  onDismiss,
 }: ErrorViewProps) {
   const { t } = useTranslation();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const icon = type === 'error' ? '⚠️' : type === 'warning' ? '⚡' : 'ℹ️';
+  // Auto-dismiss timer
+  useEffect(() => {
+    if (autoDismiss && autoDismiss > 0 && onDismiss) {
+      timerRef.current = setTimeout(() => {
+        onDismiss();
+      }, autoDismiss);
+
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+      };
+    }
+  }, [autoDismiss, onDismiss]);
+
+  const icon = type === 'error'
+    ? '⚠️'
+    : type === 'warning'
+    ? '⚡'
+    : type === 'success'
+    ? '✅'
+    : 'ℹ️';
+
   const displayTitle = title ?? t('errors.genericTitle');
   const displayMessage = message ?? t('errors.genericMessage');
   const displayRetry = retryText ?? t('common.tryAgain');
@@ -56,6 +94,8 @@ export function ErrorView({
     ? colors.error
     : type === 'warning'
     ? colors.warning
+    : type === 'success'
+    ? colors.success
     : colors.info;
 
   return (

@@ -243,6 +243,30 @@ Volgende migratie prioriteit: HapticTouchable (hoogste impact)
 
 ---
 
+## Documentation-Code Parity (VERPLICHT)
+
+**KRITIEK:** Wanneer documentatie (SKILL.md, CLAUDE.md, etc.) een API of gedrag beschrijft dat nog niet in code bestaat, is dit een **Documentation-Code Gap** die ALTIJD expliciet moet worden gemeld.
+
+**Workflow:**
+
+```
+1. Claude schrijft/wijzigt documentatie
+2. Claude inventariseert: beschrijft dit iets dat nog niet in code bestaat?
+3. Zo ja: EXPLICIET melden aan gebruiker met ⚠️ markering
+4. Vraag: "Wil je dit nu of later implementeren?"
+5. Bij "nu": direct implementeren
+6. Bij "later": TODO markering in documentatie toevoegen
+```
+
+**Waarom:**
+- Bij sessiewissel leest nieuwe Claude de documentatie en neemt aan dat code bestaat
+- Dit veroorzaakt Technical Function Depth (verwijzingen naar niet-bestaande code)
+- Preventie is beter dan debugging achteraf
+
+**Zie:** CLAUDE.md sectie "Documentation-Code Parity" voor volledige regels en voorbeelden.
+
+---
+
 ## Plan Adherence
 
 Als een feature een plan heeft in `.claude/plans/`:
