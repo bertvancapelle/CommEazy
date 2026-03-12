@@ -15,7 +15,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { Icon, type IconName } from './Icon';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -112,12 +113,11 @@ export function IconButton({
   const iconColor = showFilled ? colors.textOnPrimary : accentColor.primary;
 
   return (
-    <TouchableOpacity
+    <HapticTouchable
+      hapticDisabled
       onPress={guardedPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      onLongPress={() => {}}
-      delayLongPress={300}
       disabled={disabled}
       style={[
         styles.container,
@@ -135,7 +135,7 @@ export function IconButton({
       }}
     >
       <Icon name={currentIcon} size={size} color={iconColor} />
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

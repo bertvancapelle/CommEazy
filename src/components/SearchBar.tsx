@@ -22,7 +22,6 @@ import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Keyboard,
   Platform,
@@ -31,6 +30,7 @@ import {
 } from 'react-native';
 
 import { Icon } from './Icon';
+import { HapticTouchable } from './HapticTouchable';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
@@ -156,14 +156,15 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
           )}
         </View>
         {showButton && (
-          <TouchableOpacity
+          <HapticTouchable
+            hapticDisabled
             style={[styles.button, { backgroundColor: accentColor.primary }]}
             onPress={handleButtonPress}
             accessibilityRole="button"
             accessibilityLabel={searchButtonLabel}
           >
             <Icon name="search" size={24} color={colors.textOnPrimary} />
-          </TouchableOpacity>
+          </HapticTouchable>
         )}
       </View>
     );

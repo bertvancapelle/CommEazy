@@ -11,7 +11,6 @@
 
 import React from 'react';
 import {
-  TouchableOpacity,
   Text,
   StyleSheet,
   ViewStyle,
@@ -21,6 +20,7 @@ import {
   Platform,
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { HapticTouchable } from './HapticTouchable';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useAccentColor } from '@/hooks/useAccentColor';
 
@@ -95,7 +95,8 @@ export function Button({
   };
 
   return (
-    <TouchableOpacity
+    <HapticTouchable
+      hapticDisabled
       style={buttonStyle}
       onPress={handlePress}
       disabled={isDisabled}
@@ -114,7 +115,7 @@ export function Button({
       ) : (
         <Text style={textStyle}>{title}</Text>
       )}
-    </TouchableOpacity>
+    </HapticTouchable>
   );
 }
 

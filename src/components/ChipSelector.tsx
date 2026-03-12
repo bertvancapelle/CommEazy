@@ -27,15 +27,15 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
-  Modal,
   type LayoutChangeEvent,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from './Icon';
+import { HapticTouchable } from './HapticTouchable';
+import { PanelAwareModal } from './PanelAwareModal';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
@@ -206,7 +206,8 @@ export function ChipSelector({
   return (
     <View style={styles.container}>
       {/* Label — ABOVE chips, bold, tappable if toggle enabled */}
-      <TouchableOpacity
+      <HapticTouchable
+        hapticDisabled
         onPress={handleLabelPress}
         disabled={!allowModeToggle}
         style={[
@@ -232,7 +233,7 @@ export function ChipSelector({
         {allowModeToggle && (
           <Icon name="chevron-down" size={18} color={accentColor.primary} />
         )}
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {/* Horizontal scrolling chips */}
       <ScrollView
@@ -247,7 +248,8 @@ export function ChipSelector({
           const chipIcon = getChipIcon(option);
 
           return (
-            <TouchableOpacity
+            <HapticTouchable
+              hapticDisabled
               key={option.code}
               style={[
                 styles.chip,
@@ -257,11 +259,6 @@ export function ChipSelector({
                 },
               ]}
               onPress={() => handleSelect(option.code)}
-              onLongPress={() => {
-                // Empty handler prevents onPress from firing after long press
-                // Required for HoldToNavigateWrapper compatibility
-              }}
-              delayLongPress={300}
               onLayout={(event) => handleChipLayout(option.code, event)}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
@@ -275,19 +272,21 @@ export function ChipSelector({
               >
                 {chipIcon} {option.nativeName}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           );
         })}
       </ScrollView>
 
       {/* Mode Selection Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showModeModal}
         transparent
         animationType="fade"
         onRequestClose={() => setShowModeModal(false)}
       >
-        <TouchableOpacity
+        <HapticTouchable
+          hapticDisabled
+          longPressGuardDisabled
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setShowModeModal(false)}
@@ -303,7 +302,8 @@ export function ChipSelector({
             </Text>
 
             {/* Country option */}
-            <TouchableOpacity
+            <HapticTouchable
+              hapticDisabled
               style={[
                 styles.modalOption,
                 mode === 'country' && {
@@ -327,10 +327,11 @@ export function ChipSelector({
               {mode === 'country' && (
                 <Icon name="check" size={24} color={colors.textOnPrimary} />
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Language option */}
-            <TouchableOpacity
+            <HapticTouchable
+              hapticDisabled
               style={[
                 styles.modalOption,
                 mode === 'language' && {
@@ -354,20 +355,21 @@ export function ChipSelector({
               {mode === 'language' && (
                 <Icon name="check" size={24} color={colors.textOnPrimary} />
               )}
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Cancel button */}
-            <TouchableOpacity
+            <HapticTouchable
+              hapticDisabled
               style={styles.modalCancel}
               onPress={() => setShowModeModal(false)}
             >
               <Text style={styles.modalCancelText}>
                 {t('common.cancel')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
-        </TouchableOpacity>
-      </Modal>
+        </HapticTouchable>
+      </PanelAwareModal>
     </View>
   );
 }

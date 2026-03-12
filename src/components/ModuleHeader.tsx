@@ -33,10 +33,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -186,7 +186,8 @@ export function ModuleHeader({
         // ── Form Mode: [Annuleer] ... [Opslaan] ──
         <View style={styles.titleRow}>
           {/* Left: Cancel button */}
-          <TouchableOpacity
+          <HapticTouchable
+            hapticDisabled
             style={[
               styles.formCancelButton,
               buttonStyle?.settings.borderEnabled && {
@@ -202,10 +203,11 @@ export function ModuleHeader({
             accessibilityLabel={t('common.cancel')}
           >
             <Text style={styles.formCancelText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
 
           {/* Right: Save button */}
-          <TouchableOpacity
+          <HapticTouchable
+            hapticDisabled
             style={[
               styles.formSaveButton,
               { backgroundColor: accentColor.primary },
@@ -228,7 +230,7 @@ export function ModuleHeader({
           >
             <Icon name="checkbox-checked" size={20} color={colors.textOnPrimary} />
             <Text style={styles.formSaveText}>{t('common.save')}</Text>
-          </TouchableOpacity>
+          </HapticTouchable>
         </View>
       ) : (
         // ── Normal Mode: Icon + Title + MediaIndicator + Grid ──
@@ -236,7 +238,8 @@ export function ModuleHeader({
           {/* Left: Back button (optional) + Icon (decorative) + Title */}
           <View style={styles.titleContent}>
             {showBackButton && onBackPress && (
-              <TouchableOpacity
+              <HapticTouchable
+                hapticDisabled
                 style={[
                   styles.backButton,
                   buttonStyle?.settings.borderEnabled && {
@@ -249,7 +252,7 @@ export function ModuleHeader({
                 accessibilityLabel={backButtonLabel}
               >
                 <Icon name="chevron-left" size={28} color={colors.textOnPrimary} />
-              </TouchableOpacity>
+              </HapticTouchable>
             )}
             {customLogo ? (
               // Custom logo — purely decorative
@@ -270,7 +273,8 @@ export function ModuleHeader({
               />
             </View>
             {shouldShowGridButton && (
-              <TouchableOpacity
+              <HapticTouchable
+                hapticDisabled
                 style={[
                   styles.gridButton,
                   buttonStyle?.settings.borderEnabled && {
@@ -283,7 +287,7 @@ export function ModuleHeader({
                 accessibilityLabel={t('navigation.backToHome', 'Terug naar startscherm')}
               >
                 <Icon name="grid" size={24} color={colors.textOnPrimary} />
-              </TouchableOpacity>
+              </HapticTouchable>
             )}
           </View>
         </View>

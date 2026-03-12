@@ -23,12 +23,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Modal,
   ScrollView,
   SafeAreaView,
   Dimensions,
 } from 'react-native';
+import { HapticTouchable } from './HapticTouchable';
+import { PanelAwareModal } from './PanelAwareModal';
 import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
@@ -371,7 +371,8 @@ export function SeniorDatePicker({
       accessibilityRole="none"
     >
       {/* Main touchable field — shows full date or placeholder */}
-      <TouchableOpacity
+      <HapticTouchable
+        hapticDisabled
         style={[
           styles.dateButton,
           {
@@ -393,12 +394,13 @@ export function SeniorDatePicker({
           {displayText ?? t('contacts.datePicker.chooseDate')}
         </Text>
         <Text style={[styles.dateButtonChevron, { color: themeColors.textTertiary }]}>▼</Text>
-      </TouchableOpacity>
+      </HapticTouchable>
 
       {/* ========= MODAL 1: Full-screen date picker ========= */}
-      <Modal
+      <PanelAwareModal
         visible={isModalOpen}
         animationType="slide"
+        transparent={false}
         onRequestClose={handleCloseModal}
       >
         <SafeAreaView style={[styles.modalContainer, { backgroundColor: themeColors.background }]}>
@@ -407,7 +409,8 @@ export function SeniorDatePicker({
             <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
               {t('contacts.datePicker.chooseDate')}
             </Text>
-            <TouchableOpacity
+            <HapticTouchable
+              hapticDisabled
               onPress={handleCloseModal}
               style={styles.modalCancelButton}
               accessibilityRole="button"
@@ -416,7 +419,7 @@ export function SeniorDatePicker({
               <Text style={[styles.modalCancelText, { color: themeColors.primary }]}>
                 {t('common.cancel')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
           </View>
 
           {/* 3 large field buttons centered on screen */}
@@ -427,7 +430,8 @@ export function SeniorDatePicker({
               const hasValue = fieldDisplay !== '—';
 
               return (
-                <TouchableOpacity
+                <HapticTouchable
+                  hapticDisabled
                   key={field}
                   style={[
                     styles.fieldButton,
@@ -454,7 +458,7 @@ export function SeniorDatePicker({
                   >
                     {fieldDisplay}
                   </Text>
-                </TouchableOpacity>
+                </HapticTouchable>
               );
             })}
           </View>
@@ -462,7 +466,8 @@ export function SeniorDatePicker({
           {/* Bottom area: Save + Clear */}
           <View style={styles.bottomArea}>
             {/* Save button */}
-            <TouchableOpacity
+            <HapticTouchable
+              hapticDisabled
               style={[
                 styles.saveButton,
                 {
@@ -485,11 +490,12 @@ export function SeniorDatePicker({
               >
                 {t('contacts.save')}
               </Text>
-            </TouchableOpacity>
+            </HapticTouchable>
 
             {/* Clear link */}
             {allowClear && (modalDay !== undefined || modalMonth !== undefined || modalYear !== undefined || value) && (
-              <TouchableOpacity
+              <HapticTouchable
+                hapticDisabled
                 style={styles.clearButton}
                 onPress={handleClear}
                 accessibilityRole="button"
@@ -498,25 +504,29 @@ export function SeniorDatePicker({
                 <Text style={[styles.clearText, { color: themeColors.error }]}>
                   {t('contacts.datePicker.clear')}
                 </Text>
-              </TouchableOpacity>
+              </HapticTouchable>
             )}
           </View>
         </SafeAreaView>
 
         {/* ========= MODAL 2: Centered sub-popup for selections ========= */}
         {activeSubPopup !== null && (
-          <Modal
+          <PanelAwareModal
             visible={true}
             transparent
             animationType="fade"
             onRequestClose={handleCloseSubPopup}
           >
-            <TouchableOpacity
+            <HapticTouchable
+              hapticDisabled
+              longPressGuardDisabled
               style={styles.subPopupOverlay}
               activeOpacity={1}
               onPress={handleCloseSubPopup}
             >
-              <TouchableOpacity
+              <HapticTouchable
+                hapticDisabled
+                longPressGuardDisabled
                 activeOpacity={1}
                 style={[styles.subPopupCard, { backgroundColor: themeColors.background }]}
               >
@@ -538,7 +548,8 @@ export function SeniorDatePicker({
                   {getSubPopupOptions(activeSubPopup).map((option) => {
                     const isSelected = option.value === getFieldSelected(activeSubPopup);
                     return (
-                      <TouchableOpacity
+                      <HapticTouchable
+                        hapticDisabled
                         key={option.value}
                         style={[
                           styles.subPopupItem,
@@ -570,15 +581,15 @@ export function SeniorDatePicker({
                             ✓
                           </Text>
                         )}
-                      </TouchableOpacity>
+                      </HapticTouchable>
                     );
                   })}
                 </ScrollView>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          </Modal>
+              </HapticTouchable>
+            </HapticTouchable>
+          </PanelAwareModal>
         )}
-      </Modal>
+      </PanelAwareModal>
     </View>
   );
 }
