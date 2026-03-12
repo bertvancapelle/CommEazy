@@ -181,6 +181,25 @@ CommEazy gebruikt een **dual-engine TTS architectuur** waarbij Nederlands ALTIJD
 | Prosody config | devops-specialist, xmpp-specialist | - |
 | Coturn config | devops-specialist | - |
 
+### Component & Code Quality (BLOKKEERDER regels)
+
+| Wijzigingstype | Verplichte Skills | Optionele Skills |
+|----------------|-------------------|------------------|
+| **Nieuwe `TouchableOpacity` in screen** | **BLOKKEERDER** — ui-designer, accessibility-specialist | react-native-expert |
+| **`Alert.alert()` voor foutmelding** | **BLOKKEERDER** — ui-designer, accessibility-specialist | - |
+| **Bare `ActivityIndicator` zonder tekst** | ui-designer, accessibility-specialist | - |
+| **Hardcoded hex kleur voor module** | ui-designer | architecture-lead |
+| **Database model property wijziging** | **BLOKKEERDER** — architecture-lead | testing-qa |
+| **Nieuw standaard component introductie** | **Tier 3** — architecture-lead, ui-designer, react-native-expert | accessibility-specialist |
+| **Player feature wijziging (RN of Native)** | **BLOKKEERDER** — ios-specialist, react-native-expert | ui-designer |
+
+**Toelichting BLOKKEERDER regels:**
+
+- **TouchableOpacity:** MOET `HapticTouchable` gebruiken (bundelt haptic feedback + hold gesture guard). Uitzondering: `TouchableWithoutFeedback` voor achtergrond-dismiss.
+- **Alert.alert() voor fouten:** MOET `ErrorView` component gebruiken (menselijke tekst + herstelactie). Uitzondering: `Alert.alert()` is WEL toegestaan voor bevestigingsdialogen (verwijderen, annuleren).
+- **Database model property:** MOET `schema.ts` + `migrations.ts` in DEZELFDE commit wijzigen. Zie architecture-lead SKILL.md "Database Schema Wijziging Protocol".
+- **Player feature:** MOET React Native player EN native Glass Player in DEZELFDE commit wijzigen. Zie ios-specialist SKILL.md "Liquid Glass Feature Parity".
+
 ---
 
 ## Skill Checklist Referenties

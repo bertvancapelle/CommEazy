@@ -172,6 +172,65 @@ Bij introductie van nieuwe standaard component:
 3. **Todo lijst:** Alle screens die moeten migreren
 4. **Recursieve migratie:** Pas ALLE screens aan
 5. **Update Component Registry** in CLAUDE.md sectie 14
+6. **Update SKILL.md bestanden** — Voeg BLOKKEERDER regel toe aan relevante skills
+7. **Update CHANGE_VALIDATION_MATRIX.md** — Voeg trigger regel toe
+
+---
+
+## Component Adoptie Metriek (VERPLICHT)
+
+Na introductie van een standaard component MOET de adoptiegraad worden bijgehouden. Dit voorkomt dat migraties halverwege worden verlaten.
+
+### Huidige Adoptie Status (maart 2026)
+
+| Standaard Component | Vervangt | Screens migrated | Screens remaining | Adoptie % |
+|---------------------|----------|-------------------|-------------------|-----------|
+| `HapticTouchable` | `TouchableOpacity` | 19 | ~49 | ~28% |
+| `ErrorView` | `Alert.alert()` (fouten) | ~5 | ~25 | ~17% |
+| `LoadingView` | Bare `ActivityIndicator` | ~8 | ~11 | ~42% |
+| `ScrollViewWithIndicator` | Raw `ScrollView` | ✅ 100% | 0 | 100% |
+| `PanelAwareModal` | Raw `Modal` | ✅ 100% | 0 | 100% |
+| `useModuleColor()` | Hardcoded hex | ~15 | ~17 | ~47% |
+
+### Meetcommando's
+
+```bash
+# HapticTouchable adoptie
+echo "HapticTouchable:" && grep -rl "HapticTouchable" src/screens/ --include="*.tsx" | wc -l
+echo "TouchableOpacity (nog te migreren):" && grep -rl "TouchableOpacity" src/screens/ --include="*.tsx" | grep -v node_modules | wc -l
+
+# ErrorView adoptie
+echo "ErrorView:" && grep -rl "ErrorView" src/screens/ --include="*.tsx" | wc -l
+echo "Alert.alert (fouten, te migreren):" && grep -rn "Alert.alert" src/screens/ --include="*.tsx" | grep -vi "confirm\|delete\|discard\|verwijder" | wc -l
+
+# LoadingView adoptie
+echo "LoadingView:" && grep -rl "LoadingView" src/screens/ --include="*.tsx" | wc -l
+echo "ActivityIndicator (bare):" && grep -rl "ActivityIndicator" src/screens/ --include="*.tsx" | wc -l
+```
+
+### Doel
+
+- **Nieuwe code (BLOKKEERDER):** 100% — standaard component is verplicht
+- **Bestaande code (technische schuld):** Geleidelijke migratie per sprint
+- **Target:** Alle componenten op 100% adoptie vóór v1.0 release
+
+### Claude's Verantwoordelijkheid
+
+Na ELKE refactoring of component migratie taak:
+1. **Meet** de huidige adoptie percentages
+2. **Update** deze tabel met actuele cijfers
+3. **Rapporteer** aan gebruiker:
+
+```
+📊 **Component Adoptie Update**
+
+| Component | Was | Nu | Delta |
+|-----------|-----|-----|-------|
+| HapticTouchable | 28% | 35% | +7% |
+| ErrorView | 17% | 22% | +5% |
+
+Volgende migratie prioriteit: HapticTouchable (hoogste impact)
+```
 
 ---
 

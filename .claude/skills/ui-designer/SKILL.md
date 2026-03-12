@@ -2539,6 +2539,40 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 - [ ] **Conclusie-bevestiging:** Bij ELKE UX conclusie of aanbeveling EERST aan gebruiker vragen "Ben je het eens?" — NOOIT aannemen dat gebruiker akkoord is
 - [ ] Tested with 5 senior users (65-80) on working prototype
 
+### Verplichte Component Standaarden (BLOKKEERDER)
+
+Bij ELKE nieuwe screen of component MOETEN deze standaard componenten worden gebruikt. Gebruik van een verboden alternatief is een **BLOKKEERDER**.
+
+| Standaard Component | Verboden Alternatief | Reden |
+|---------------------|---------------------|-------|
+| `HapticTouchable` | Raw `TouchableOpacity` | Bundelt haptic feedback + hold gesture guard + long-press protection |
+| `ErrorView` | `Alert.alert()` voor foutmeldingen | Senior-inclusive: menselijke tekst + herstelactie + altijd zichtbaar |
+| `LoadingView` | Bare `ActivityIndicator` | Senior-inclusive: spinner + tekst ("Laden...") combinatie |
+| `ScrollViewWithIndicator` | Raw `ScrollView` | Visuele scroll-indicatie voor senioren |
+| `useModuleColor()` hook | Hardcoded hex kleuren voor modules | User-customizable kleuren via ModuleColorsContext |
+| `PanelAwareModal` | Raw `Modal` | iPad Split View compatibiliteit |
+| `SearchBar` | Custom TextInput voor zoeken | Consistente zoek-UX met senior touch targets |
+
+**Uitzonderingen op HapticTouchable:**
+- Decoratieve elementen zonder gebruikersactie
+- Platform-specifieke componenten (bijv. native SwiftUI buttons)
+- `TouchableWithoutFeedback` voor achtergrond-dismiss (geen visuele feedback nodig)
+
+### Alert.alert() Classificatie
+
+`Alert.alert()` is NIET altijd verboden — het hangt af van het type melding:
+
+| Situatie | Alert.alert() toegestaan? | Wat gebruiken? |
+|----------|---------------------------|----------------|
+| **Foutmelding aan gebruiker** | ❌ VERBODEN | `ErrorView` component (menselijk + herstelactie) |
+| **Bevestigingsdialoog** (verwijderen, annuleren) | ✅ TOEGESTAAN | `Alert.alert()` met duidelijke opties |
+| **Destructieve actie bevestiging** | ✅ TOEGESTAAN | `Alert.alert()` met `style: 'destructive'` |
+| **Netwerk/server fout** | ❌ VERBODEN | `ErrorView` met retry button |
+| **Validatie fout** (formulier) | ❌ VERBODEN | Inline error tekst onder het veld |
+| **Informatie/succes melding** | ⚠️ ONTMOEDIGD | Toast of inline feedback (verdwijnt automatisch) |
+
+**Vuistregel:** `Alert.alert()` is OK voor **actieve keuze-momenten** (ja/nee, verwijderen/annuleren). Het is VERBODEN voor **passieve meldingen** (fouten, status updates, informatie).
+
 ### Voice Interaction Checklist (VERPLICHT voor alle modules)
 - [ ] **Lijsten >3 items:** VoiceFocusable wrappers aanwezig
 - [ ] **Voice Focus styling:** 4px accent border + 10% tint + pulserende animatie

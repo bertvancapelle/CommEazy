@@ -283,7 +283,7 @@ function FadeInView({ children }: PropsWithChildren) {
 2. **Audio feedback** staat standaard UIT (`audioFeedbackEnabled: false`)
 3. **NOOIT** lokale feedback state opslaan — altijd via `useFeedback()` hook
 4. **NOOIT** eigen `useState` voor haptic/audio instellingen — de context IS de single source of truth
-5. **HapticTouchable** component gebruikt `useFeedback()` intern — dit is de aanbevolen wrapper
+5. **HapticTouchable** component gebruikt `useFeedback()` intern — dit is de **VERPLICHTE** wrapper voor alle interactieve elementen (BLOKKEERDER: raw `TouchableOpacity` is VERBODEN in nieuwe code)
 
 **Gebruik in componenten:**
 ```typescript
@@ -1122,6 +1122,7 @@ Het hoofdmenu van Instellingen volgt dit patroon:
 - [ ] **Haptic feedback: all interactions have haptic feedback via `triggerFeedback()`**
 - [ ] **Audio feedback: all interactions have audio feedback via `triggerFeedback()`**
 - [ ] **Feedback settings: haptic intensity (5 levels) + audio boost configureerbaar**
+- [ ] **HapticTouchable (BLOKKEERDER):** ALLE interactieve elementen gebruiken `HapticTouchable` — raw `TouchableOpacity` is VERBODEN in nieuwe code (zie ui-designer SKILL.md "Verplichte Component Standaarden")
 - [ ] **Monochrome icons: GEEN emoji's, alleen `<Icon />` component**
 - [ ] **Accent colors: gebruikerswaarden gebruiken `accentColor.primary`, niet hardcoded `colors.primary`**
 - [ ] **Settings values: waarden in accent color**

@@ -1150,6 +1150,46 @@ useEffect(() => {
 - [ ] **Unified Retry:** Alle retries gebruiken `RetryConfig` met `maxAttempts` en `maxDelayMs` (zie architecture-lead SKILL.md)
 - [ ] **Connection Recovery:** State machine pattern voor WebRTC/XMPP/WebSocket (zie architecture-lead SKILL.md)
 - [ ] **Component Registry:** Module screens gebruiken `ModuleHeader`, `SearchBar`, `ChipSelector` (zie CLAUDE.md sectie 14)
+- [ ] **Verplichte Componenten (BLOKKEERDER):** `HapticTouchable` i.p.v. raw `TouchableOpacity`, `ErrorView` i.p.v. `Alert.alert()` voor fouten, `LoadingView` i.p.v. bare `ActivityIndicator`, `ScrollViewWithIndicator` i.p.v. raw `ScrollView` — zie ui-designer SKILL.md "Verplichte Component Standaarden"
+- [ ] **Database Schema (BLOKKEERDER):** Bij ELKE wijziging aan WatermelonDB modellen: `schema.ts` + `migrations.ts` + model in DEZELFDE commit — zie architecture-lead SKILL.md "Database Schema Wijziging Protocol"
+
+## Standard Component Introduction Protocol (VERPLICHT)
+
+Wanneer een nieuw **standaard component** wordt geïntroduceerd dat bestaande patterns vervangt (bijv. `HapticTouchable` vervangt `TouchableOpacity`):
+
+### Workflow
+
+```
+1. Component implementeren en exporteren via components/index.ts
+   ↓
+2. Impact scan: grep voor het vervangen pattern in ALLE screens
+   ↓
+3. Todo lijst: Alle bestanden die moeten migreren
+   ↓
+4. Migratie uitvoeren: ALLE screens aanpassen (niet "later")
+   ↓
+5. SKILL.md updaten: Component als BLOKKEERDER vastleggen
+   ↓
+6. CLAUDE.md Component Registry (sectie 14) bijwerken
+```
+
+### Regels
+
+1. **Geen gedeeltelijke migratie** — Een standaard component wordt pas standaard wanneer ALLE bestaande screens zijn gemigreerd. Partieel = technische schuld.
+2. **BLOKKEERDER in skills** — Na migratie moet het oude pattern als VERBODEN worden gedocumenteerd in de relevante SKILL.md bestanden.
+3. **Validatie script** — Voeg een check toe aan `scripts/validate-components.sh` voor het nieuwe component.
+
+### Voorbeeld
+
+```bash
+# Impact scan voor HapticTouchable migratie
+grep -rn "TouchableOpacity" src/screens/ --include="*.tsx" | \
+  grep -v "HapticTouchable\|TouchableWithoutFeedback" | \
+  cut -d: -f1 | sort -u | wc -l
+# → 49 bestanden nog te migreren
+```
+
+---
 
 ## Lessons Learned — Radio Module (februari 2026)
 

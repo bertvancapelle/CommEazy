@@ -283,6 +283,44 @@ describe('Senior Flow: Send Message', () => {
 - [ ] **Audio Ducking:** ⏳ TODO — Voice commands met actieve audio: ducking naar 15%, restore na session
 - [ ] **Accessibility Compliance:** Valideer tegen `.claude/plans/ACCESSIBILITY_COMPLIANCE.md` rapport
 
+### Pre-Commit Validatie Gates (BLOKKEERDER)
+
+De volgende checks MOETEN slagen voordat een commit wordt uitgevoerd. Bij falen is de commit een **BLOKKEERDER**.
+
+| Gate | Wat controleren | Commando/Actie |
+|------|-----------------|----------------|
+| **Database Schema Parity** | `schema.ts` versie === `migrations.ts` laatste `toVersion` | Vergelijk versienummers (zie architecture-lead SKILL.md) |
+| **i18n Completeness** | Alle 13 locale bestanden bevatten dezelfde keys | Validatie script uit CLAUDE.md |
+| **Liquid Glass Feature Parity** | Player wijziging in RN → ook in native Swift (en vice versa) | Check of commit beide lagen bevat (zie ios-specialist SKILL.md) |
+| **Verplichte Componenten** | Geen nieuwe `TouchableOpacity` in screens, geen `Alert.alert()` voor fouten | Grep check (zie ui-designer SKILL.md) |
+| **Module Registratie** | Nieuwe module → 20+ checks doorlopen | Checklist uit CLAUDE.md (navigatie, i18n, kleuren, etc.) |
+
+**Claude's Verantwoordelijkheid:**
+
+Bij ELKE commit van Tier 2 of Tier 3 wijzigingen MOET Claude deze gates controleren en rapporteren:
+
+```
+🚦 **Pre-Commit Gates**
+
+✅ Database Schema Parity: v22 === v22
+✅ i18n Completeness: 13/13 locales
+✅ Liquid Glass Parity: N/A (geen player wijziging)
+✅ Verplichte Componenten: geen violations
+✅ Module Registratie: N/A (geen nieuwe module)
+
+📦 Klaar voor commit.
+```
+
+Bij falen:
+```
+🚦 **Pre-Commit Gates**
+
+❌ Database Schema Parity: schema v23, migration v22 — BLOKKEERDER
+   → Voeg migration toe voor v23 in migrations.ts
+
+⛔ Commit GEBLOKKEERD tot bovenstaande is opgelost.
+```
+
 ## Collaboration
 
 - **With ALL skills**: Receives testable code, provides test results

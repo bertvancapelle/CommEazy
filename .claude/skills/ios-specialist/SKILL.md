@@ -790,23 +790,43 @@ let value = config["key"] as! String  // CRASH als nil
 - [ ] **Module Colors:** `useModuleColor()` hook gebruikt, GEEN hardcoded hex kleuren
 - [ ] **Audio Ducking:** ⏳ TODO — `AudioDuckingModule` native Swift module nog te bouwen (AVAudioSession ducking voor voice commands)
 
-## Liquid Glass Feature Parity (iOS 26+)
+## Liquid Glass Feature Parity (iOS 26+) — BLOKKEERDER
 
 **KRITIEK:** De React Native player en native Liquid Glass player MOETEN 100% functioneel identiek zijn.
 
+### Commit Regel (BLOKKEERDER)
+
+Een commit die player functionaliteit wijzigt in de React Native player ZONDER de equivalente wijziging in de native Glass Player (of vice versa) is een **BLOKKEERDER**. Beide implementaties MOETEN in DEZELFDE commit worden bijgewerkt.
+
+### Verplichte Workflow
+
 Bij ELKE wijziging aan player functionaliteit:
-1. Implementeer in React Native (`MiniPlayer.tsx` / `ExpandedAudioPlayer.tsx`)
+1. Implementeer in React Native (`UnifiedMiniPlayer.tsx` / `UnifiedFullPlayer.tsx`)
 2. Update bridge layer (`glassPlayer.ts` types + `updatePlaybackState()`)
 3. Update native Swift (`MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`)
 4. Test op BEIDE iOS <26 (RN player) en iOS 26+ (Glass player)
+5. **Commit bevat ALLE 4 lagen** (RN + bridge + Swift + tests)
 
-**Referentie bestanden:**
-- `ios/CommEazyTemp/GlassPlayerWindow/MiniPlayerNativeView.swift`
-- `ios/CommEazyTemp/GlassPlayerWindow/FullPlayerNativeView.swift`
-- `ios/CommEazyTemp/GlassPlayerWindow/GlassPlayerWindowModule.swift`
-- `src/services/glassPlayer.ts`
+### Referentie bestanden
 
-Zie CLAUDE.md sectie 16 "100% Feature Parity Regel" voor volledige checklist.
+| Laag | Bestanden |
+|------|-----------|
+| React Native | `src/components/UnifiedMiniPlayer.tsx`, `src/components/UnifiedFullPlayer.tsx` |
+| Bridge | `src/services/glassPlayer.ts` |
+| Native Swift | `ios/CommEazyTemp/GlassPlayerWindow/MiniPlayerNativeView.swift` |
+| | `ios/CommEazyTemp/GlassPlayerWindow/FullPlayerNativeView.swift` |
+| | `ios/CommEazyTemp/GlassPlayerWindow/GlassPlayerWindowModule.swift` |
+
+### Validatie
+
+```bash
+# Check of een commit RN player wijzigt ZONDER native equivalent
+git diff --name-only HEAD~1 | grep -E "UnifiedMiniPlayer|UnifiedFullPlayer|glassPlayer" && \
+git diff --name-only HEAD~1 | grep -E "MiniPlayerNativeView|FullPlayerNativeView" || \
+echo "⚠️ WAARSCHUWING: RN player gewijzigd maar native player niet!"
+```
+
+Zie CLAUDE.md sectie 16 "100% Feature Parity Regel" voor volledige feature checklist.
 
 ## Test Devices (Referentie)
 

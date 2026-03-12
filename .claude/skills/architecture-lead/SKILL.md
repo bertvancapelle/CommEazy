@@ -860,6 +860,59 @@ const contacts = await readOnce(
 
 ---
 
+## Database Schema Wijziging Protocol (BLOKKEERDER)
+
+**⚠️ KRITIEK:** WatermelonDB vereist dat schema EN migrations ALTIJD samen worden bijgewerkt. Dit protocol is ingevoerd na 3× productie-regressies waarbij migrations.ts werd vergeten.
+
+### Twee-Bestanden Regel
+
+| Bestand | Doel | Wanneer aanpassen |
+|---------|------|-------------------|
+| `src/models/schema.ts` | Definieert structuur voor **verse installaties** | Bij ELKE tabel/kolom wijziging |
+| `src/models/migrations.ts` | Definieert stappen voor **bestaande installaties** | Bij ELKE tabel/kolom wijziging |
+
+**BLOKKEERDER:** Een wijziging aan `schema.ts` ZONDER bijbehorende wijziging aan `migrations.ts` (of vice versa) is een **BLOKKEERDER**. De commit MAG NIET worden uitgevoerd.
+
+### Verplichte Workflow
+
+```
+1. Model wijzigen (src/models/Foo.ts)
+   ↓
+2. Schema bijwerken (src/models/schema.ts) — versienummer +1
+   ↓
+3. Migration toevoegen (src/models/migrations.ts) — ZELFDE versienummer
+   ↓
+4. VALIDATIE: Controleer dat schema versie === laatste migration versie
+   ↓
+5. Commit (alle 3 bestanden in DEZELFDE commit)
+```
+
+### Validatie Commando
+
+```bash
+# Controleer dat schema versie overeenkomt met laatste migration
+SCHEMA_V=$(grep -o 'version: [0-9]*' src/models/schema.ts | head -1 | grep -o '[0-9]*')
+MIGRATION_V=$(grep -o 'toVersion: [0-9]*' src/models/migrations.ts | tail -1 | grep -o '[0-9]*')
+echo "Schema: v$SCHEMA_V, Migration: v$MIGRATION_V"
+[ "$SCHEMA_V" = "$MIGRATION_V" ] && echo "✅ Consistent" || echo "❌ BLOKKEERDER: versies komen niet overeen!"
+```
+
+### Gevolgen van Vergeten
+
+- **Schema vergeten:** Verse installaties missen de kolom → crash bij eerste gebruik
+- **Migration vergeten:** Bestaande gebruikers missen de kolom → data verlies, crashes
+- **Beide vergeten:** Model property verwijst naar niet-bestaande kolom → app crash
+
+### Quality Checklist Item
+
+Bij ELKE database wijziging MOET de reviewer checken:
+- [ ] Schema versie verhoogd
+- [ ] Migration met zelfde versie toegevoegd
+- [ ] Model property heeft correcte `@field` decorator
+- [ ] Alle 3 bestanden (model + schema + migration) in dezelfde commit
+
+---
+
 ## Connection Recovery Pattern (VERPLICHT)
 
 Voor alle persistent verbindingen (WebRTC, XMPP, WebSocket) die automatisch hersteld moeten worden na network failures.
@@ -1057,6 +1110,8 @@ PeerConnection state → 'connected'/'completed'
 - [ ] **Call ICE Restart:** Reset `reconnectAttempts = 0` bij succesvolle reconnect
 - [ ] **Module Colors:** Alle module kleuren via `useModuleColor()` hook, GEEN hardcoded hex
 - [ ] **Component Registry:** Nieuwe screens gebruiken verplichte componenten (ModuleHeader, SearchBar, ChipSelector)
+- [ ] **Database Schema Protocol (BLOKKEERDER):** Bij ELKE database wijziging: schema.ts + migrations.ts + model in DEZELFDE commit, versienummers gelijk
+- [ ] **Module Registratie (BLOKKEERDER):** Nieuwe module doorloopt volledige checklist uit CLAUDE.md sectie "Nieuwe Module Validatie Checklist" (20+ checks incl. i18n, navigation, kleuren)
 
 ## Collaboration
 
