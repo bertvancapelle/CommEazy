@@ -183,14 +183,23 @@ Na introductie van een standaard component MOET de adoptiegraad worden bijgehoud
 
 ### Huidige Adoptie Status (maart 2026)
 
-| Standaard Component | Vervangt | Screens migrated | Screens remaining | Adoptie % |
-|---------------------|----------|-------------------|-------------------|-----------|
-| `HapticTouchable` | `TouchableOpacity` | 19 | ~49 | ~28% |
-| `ErrorView` | `Alert.alert()` (fouten) | ~5 | ~25 | ~17% |
-| `LoadingView` | Bare `ActivityIndicator` | ~8 | ~11 | ~42% |
-| `ScrollViewWithIndicator` | Raw `ScrollView` | ✅ 100% | 0 | 100% |
-| `PanelAwareModal` | Raw `Modal` | ✅ 100% | 0 | 100% |
+| Standaard Component | Vervangt | Files adopted | Violations remaining | Adoptie % |
+|---------------------|----------|---------------|----------------------|-----------|
+| `HapticTouchable` | `TouchableOpacity` | 113 | 0 | ✅ 100% |
+| `PanelAwareModal` | Raw `Modal` | 12 | 0 | ✅ 100% |
+| `ScrollViewWithIndicator` | Raw `ScrollView` | ✅ 100% | 0 | ✅ 100% |
+| `ModuleHeader` | Custom header styling | 15 | 2 | ~88% |
+| `SearchBar` | Custom search TextInput | 11 | 0 | ✅ 100% |
+| `LoadingView` | Bare `ActivityIndicator` (large) | 23 | ~20 | ~53% |
+| `ErrorView` | `Alert.alert()` (fouten) | 9 | ~10 | ~47% |
 | `useModuleColor()` | Hardcoded hex | ~15 | ~17 | ~47% |
+
+**Laatste update:** 12 maart 2026 — na Phase 1+2 bulk migratie (commits `046b47f`, `3bd63a4`)
+
+**Notities bij deferred items:**
+- `LoadingView`: 20 bare `ActivityIndicator size="large"` — vereist per-screen state management refactoring
+- `ErrorView`: 10 `Alert.alert` in catch blocks — vereist per-screen error state toevoeging
+- Beide zijn technische schuld, geen blokkeerders voor nieuwe code
 
 ### Meetcommando's
 
