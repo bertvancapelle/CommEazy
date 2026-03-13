@@ -8,32 +8,42 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, '15.1'
 prepare_react_native_project!
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# Firebase 11.x: use_frameworks! with static linkage is REQUIRED.
+# Firebase Auth is now written in Swift and generates a -Swift.h compatibility
+# header at build time. Without framework-style builds, this header isn't
+# generated in the right location for ObjC consumers (RNFBAuth, RNFBMessaging).
+use_frameworks! :linkage => :static
+
+# Firebase 11.x static framework support (required by @react-native-firebase v21+)
+$RNFirebaseAsStaticFramework = true
 
 pod 'simdjson', path: '../node_modules/@nozbe/simdjson'
+
+# Force certain pods to build as static libraries (not frameworks) to avoid
+# header resolution issues when use_frameworks! is active.
+# - op-sqlite: bundles SQLite from source; framework packaging duplicates public headers
+# - simdjson + WatermelonDB: WatermelonDB uses #import "simdjson.h" (quoted include)
+#   which requires flat header namespace (static library mode)
+pre_install do |installer|
+  static_lib_pods = ['op-sqlite', 'simdjson', 'WatermelonDB']
+  installer.pod_targets.each do |pod|
+    if static_lib_pods.include?(pod.name)
+      def pod.build_type
+        Pod::BuildType.static_library
+      end
+    end
+  end
+end
+
 target 'CommEazyTemp' do
   config = use_native_modules!
-
-  # Enable modular headers for Firebase and its dependencies (required by Swift pods)
-  pod 'GoogleUtilities', :modular_headers => true
-  pod 'FirebaseCore', :modular_headers => true
-  pod 'FirebaseCoreInternal', :modular_headers => true
-  pod 'FirebaseAuth', :modular_headers => true
-  pod 'FirebaseMessaging', :modular_headers => true
-  pod 'FirebaseCoreExtension', :modular_headers => true
-  pod 'GTMSessionFetcher', :modular_headers => true
-  pod 'GoogleDataTransport', :modular_headers => true
-  pod 'nanopb', :modular_headers => true
-  pod 'RecaptchaInterop', :modular_headers => true
 
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    # Keep New Architecture disabled — WatermelonDB JSI incompatible with New Arch
+    :new_arch_enabled => false
   )
 
   target 'CommEazyTempTests' do
@@ -62,6 +72,40 @@ target 'CommEazyTemp' do
         # Enable C++20 (required by React Native 0.76+, also compatible with sherpa-onnx)
         config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++20'
 
+      end
+    end
+
+    # Firebase 11.x: Add explicit build dependency so RNFBAuth compiles AFTER FirebaseAuth.
+    # FirebaseAuth (Swift) generates FirebaseAuth-Swift.h during compilation, which RNFBAuth
+    # needs at compile time. Without this dependency, they may compile in parallel.
+    firebase_auth_target = installer.pods_project.targets.find { |t| t.name == 'FirebaseAuth' }
+    rnfb_targets = installer.pods_project.targets.select { |t|
+      ['RNFBAuth', 'RNFBMessaging', 'RNFBApp'].include?(t.name)
+    }
+    if firebase_auth_target
+      rnfb_targets.each do |rnfb_target|
+        unless rnfb_target.dependencies.any? { |d| d.target == firebase_auth_target }
+          rnfb_target.add_dependency(firebase_auth_target)
+          Pod::UI.puts "[Firebase] Added build dependency: #{rnfb_target.name} → FirebaseAuth"
+        end
+      end
+    end
+
+    # Firebase 11.x: Patch Firebase.h umbrella header — wrap FirebaseAuth-Swift.h
+    # import with __has_include guard as a safety net. With use_frameworks! the
+    # header should be found via framework search paths, but we guard it anyway
+    # to avoid build failures if compilation order is unexpected.
+    firebase_h = File.join(installer.sandbox.root, 'Headers', 'Private', 'Firebase', 'Firebase.h')
+    if File.exist?(firebase_h)
+      content = File.read(firebase_h)
+      old_import = '#import <FirebaseAuth/FirebaseAuth-Swift.h>'
+      new_import = '#if __has_include(<FirebaseAuth/FirebaseAuth-Swift.h>)
+      #import <FirebaseAuth/FirebaseAuth-Swift.h>
+    #endif'
+      if content.include?(old_import) && !content.include?('__has_include(<FirebaseAuth/FirebaseAuth-Swift.h>)')
+        content.gsub!(old_import, new_import)
+        File.write(firebase_h, content)
+        Pod::UI.puts "[Firebase] Patched Firebase.h: wrapped FirebaseAuth-Swift.h import with __has_include guard"
       end
     end
 

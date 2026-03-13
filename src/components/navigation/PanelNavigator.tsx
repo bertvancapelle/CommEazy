@@ -7,9 +7,10 @@
  * Each module that needs sub-navigation gets its own Stack Navigator
  * wrapped in an independent NavigationContainer.
  *
- * IMPORTANT: We use NavigationContainer with independent={true} to create
- * isolated navigation contexts for each pane. This allows multiple
- * navigators to coexist without conflicting with the root navigator.
+ * IMPORTANT: We wrap each NavigationContainer in NavigationIndependentTree
+ * (React Navigation 7) to create isolated navigation contexts for each pane.
+ * This allows multiple navigators to coexist without conflicting with the
+ * root navigator.
  *
  * Used by both iPhone (1 pane) and iPad (2 panes).
  *
@@ -18,7 +19,7 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
-import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, NavigationIndependentTree, type NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator, type NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -228,29 +229,31 @@ function ChatPanelNavigator() {
   }, [paneState?.pendingNavigation, consumePending]);
 
   return (
-    <NavigationContainer independent={true} ref={navRef} onReady={handleReady}>
-      <ChatPanelStack.Navigator
-        screenOptions={{
-          headerTitleStyle: typography.h3,
-          headerBackTitleVisible: false,
-          headerTintColor: accentColor.primary,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      >
-        <ChatPanelStack.Screen
-          name="ChatList"
-          component={ChatListScreen}
-          options={{ headerShown: false }}
-        />
-        <ChatPanelStack.Screen
-          name="ChatDetail"
-          component={ChatScreen}
-          options={({ route }) => ({ title: route.params.name })}
-        />
-      </ChatPanelStack.Navigator>
-    </NavigationContainer>
+    <NavigationIndependentTree>
+      <NavigationContainer ref={navRef} onReady={handleReady}>
+        <ChatPanelStack.Navigator
+          screenOptions={{
+            headerTitleStyle: typography.h3,
+            headerBackTitleVisible: false,
+            headerTintColor: accentColor.primary,
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+          }}
+        >
+          <ChatPanelStack.Screen
+            name="ChatList"
+            component={ChatListScreen}
+            options={{ headerShown: false }}
+          />
+          <ChatPanelStack.Screen
+            name="ChatDetail"
+            component={ChatScreen}
+            options={({ route }) => ({ title: route.params.name })}
+          />
+        </ChatPanelStack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 }
 
@@ -263,54 +266,56 @@ function ContactPanelNavigator() {
   usePaneGoBack(navRef, panelId);
 
   return (
-    <NavigationContainer independent={true} ref={navRef}>
-      <ContactPanelStack.Navigator
-        screenOptions={{
-          headerTitleStyle: typography.h3,
-          headerBackTitleVisible: false,
-          headerTintColor: accentColor.primary,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      >
-        <ContactPanelStack.Screen
-          name="ContactList"
-          component={ContactListScreen}
-          options={{ headerShown: false }}
-        />
-        <ContactPanelStack.Screen
-          name="ContactDetail"
-          component={ContactDetailScreen}
-          options={{ title: t('contacts.details') }}
-        />
-        <ContactPanelStack.Screen
-          name="AddContact"
-          component={AddContactScreen}
-          options={{ title: t('contacts.addButton') }}
-        />
-        <ContactPanelStack.Screen
-          name="ManualAddContact"
-          component={ManualAddContactScreen}
-          options={{ headerShown: false }}
-        />
-        <ContactPanelStack.Screen
-          name="InviteContact"
-          component={InviteContactScreen}
-          options={{ title: t('contacts.invite.title', 'Iemand uitnodigen') }}
-        />
-        <ContactPanelStack.Screen
-          name="AcceptInvitation"
-          component={AcceptInvitationScreen}
-          options={{ title: t('contacts.accept.title', 'Code invoeren') }}
-        />
-        <ContactPanelStack.Screen
-          name="VerifyContact"
-          component={VerifyContactScreen}
-          options={{ title: t('contacts.verify') }}
-        />
-      </ContactPanelStack.Navigator>
-    </NavigationContainer>
+    <NavigationIndependentTree>
+      <NavigationContainer ref={navRef}>
+        <ContactPanelStack.Navigator
+          screenOptions={{
+            headerTitleStyle: typography.h3,
+            headerBackTitleVisible: false,
+            headerTintColor: accentColor.primary,
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+          }}
+        >
+          <ContactPanelStack.Screen
+            name="ContactList"
+            component={ContactListScreen}
+            options={{ headerShown: false }}
+          />
+          <ContactPanelStack.Screen
+            name="ContactDetail"
+            component={ContactDetailScreen}
+            options={{ title: t('contacts.details') }}
+          />
+          <ContactPanelStack.Screen
+            name="AddContact"
+            component={AddContactScreen}
+            options={{ title: t('contacts.addButton') }}
+          />
+          <ContactPanelStack.Screen
+            name="ManualAddContact"
+            component={ManualAddContactScreen}
+            options={{ headerShown: false }}
+          />
+          <ContactPanelStack.Screen
+            name="InviteContact"
+            component={InviteContactScreen}
+            options={{ title: t('contacts.invite.title', 'Iemand uitnodigen') }}
+          />
+          <ContactPanelStack.Screen
+            name="AcceptInvitation"
+            component={AcceptInvitationScreen}
+            options={{ title: t('contacts.accept.title', 'Code invoeren') }}
+          />
+          <ContactPanelStack.Screen
+            name="VerifyContact"
+            component={VerifyContactScreen}
+            options={{ title: t('contacts.verify') }}
+          />
+        </ContactPanelStack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 }
 
@@ -323,34 +328,36 @@ function GroupPanelNavigator() {
   usePaneGoBack(navRef, panelId);
 
   return (
-    <NavigationContainer independent={true} ref={navRef}>
-      <GroupPanelStack.Navigator
-        screenOptions={{
-          headerTitleStyle: typography.h3,
-          headerBackTitleVisible: false,
-          headerTintColor: accentColor.primary,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      >
-        <GroupPanelStack.Screen
-          name="GroupList"
-          component={GroupListScreen}
-          options={{ headerShown: false }}
-        />
-        <GroupPanelStack.Screen
-          name="GroupDetail"
-          component={GroupDetailScreen}
-          options={({ route }) => ({ title: route.params.name })}
-        />
-        <GroupPanelStack.Screen
-          name="CreateGroup"
-          component={CreateGroupScreen}
-          options={{ title: t('group.create') }}
-        />
-      </GroupPanelStack.Navigator>
-    </NavigationContainer>
+    <NavigationIndependentTree>
+      <NavigationContainer ref={navRef}>
+        <GroupPanelStack.Navigator
+          screenOptions={{
+            headerTitleStyle: typography.h3,
+            headerBackTitleVisible: false,
+            headerTintColor: accentColor.primary,
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+          }}
+        >
+          <GroupPanelStack.Screen
+            name="GroupList"
+            component={GroupListScreen}
+            options={{ headerShown: false }}
+          />
+          <GroupPanelStack.Screen
+            name="GroupDetail"
+            component={GroupDetailScreen}
+            options={({ route }) => ({ title: route.params.name })}
+          />
+          <GroupPanelStack.Screen
+            name="CreateGroup"
+            component={CreateGroupScreen}
+            options={{ title: t('group.create') }}
+          />
+        </GroupPanelStack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 }
 
@@ -388,26 +395,28 @@ function BooksPanelNavigator() {
   }, [restoreActiveView]);
 
   return (
-    <NavigationContainer independent={true} ref={navRef} onReady={handleReady}>
-      <BooksPanelStack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <BooksPanelStack.Screen
-          name="BooksList"
-          component={BooksScreen}
-        />
-        <BooksPanelStack.Screen
-          name="BookReader"
-          component={BookReaderScreen}
-        />
-        <BooksPanelStack.Screen
-          name="BookPlayer"
-          component={BookPlayerScreen}
-        />
-      </BooksPanelStack.Navigator>
-    </NavigationContainer>
+    <NavigationIndependentTree>
+      <NavigationContainer ref={navRef} onReady={handleReady}>
+        <BooksPanelStack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <BooksPanelStack.Screen
+            name="BooksList"
+            component={BooksScreen}
+          />
+          <BooksPanelStack.Screen
+            name="BookReader"
+            component={BookReaderScreen}
+          />
+          <BooksPanelStack.Screen
+            name="BookPlayer"
+            component={BookPlayerScreen}
+          />
+        </BooksPanelStack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 }
 
@@ -445,106 +454,108 @@ function SettingsPanelNavigator() {
   usePaneGoBack(navRef, panelId);
 
   return (
-    <NavigationContainer independent={true} ref={navRef}>
-      <SettingsPanelStack.Navigator
-        screenOptions={{
-          headerTitleStyle: typography.h3,
-          headerBackTitleVisible: false,
-          headerTintColor: accentColor.primary,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      >
-        <SettingsPanelStack.Screen
-          name="SettingsMain"
-          component={SettingsMainScreen}
-          options={{ headerShown: false }}
-        />
-        <SettingsPanelStack.Screen
-          name="ProfileSettings"
-          component={ProfileSettingsScreen}
-          options={{ title: t('profile.changePhoto') }}
-        />
-        <SettingsPanelStack.Screen
-          name="PrivacySettings"
-          component={PrivacySettingsScreen}
-          options={{ title: t('privacySettings.title') }}
-        />
-        <SettingsPanelStack.Screen
-          name="AccessibilitySettings"
-          component={AccessibilitySettingsScreen}
-          options={{ title: t('settings.accessibility') }}
-        />
-        <SettingsPanelStack.Screen
-          name="ComplianceReport"
-          component={ComplianceReportScreen}
-          options={{ headerShown: false }}
-        />
-        <SettingsPanelStack.Screen
-          name="VoiceSettings"
-          component={VoiceSettingsScreen}
-          options={{ title: t('voiceSettings.title') }}
-        />
-        <SettingsPanelStack.Screen
-          name="ModulesSettings"
-          component={ModulesSettingsScreen}
-          options={{ title: t('modulesSettings.title'), headerShown: false }}
-        />
-        <SettingsPanelStack.Screen
-          name="CallSettings"
-          component={CallSettingsScreen}
-          options={{ title: t('callSettings.title') }}
-        />
-        <SettingsPanelStack.Screen
-          name="AppearanceSettings"
-          component={AppearanceSettingsScreen}
-          options={{ title: t('appearance.title') }}
-        />
-        <SettingsPanelStack.Screen
-          name="LanguageSettings"
-          component={PlaceholderScreen}
-          options={{ title: t('settings.language') }}
-        />
-        <SettingsPanelStack.Screen
-          name="BackupSettings"
-          component={PlaceholderScreen}
-          options={{ title: t('settings.backup') }}
-        />
-        <SettingsPanelStack.Screen
-          name="DeviceTransfer"
-          component={PlaceholderScreen}
-        />
-        <SettingsPanelStack.Screen
-          name="DeviceLinkShowQR"
-          component={DeviceLinkShowQRScreen}
-          options={{ title: t('settings.deviceLink') }}
-        />
-        <SettingsPanelStack.Screen
-          name="MailSettings"
-          component={MailSettingsScreen}
-          options={{ title: t('mailSettings.title') }}
-        />
-        <SettingsPanelStack.Screen
-          name="MailOnboarding"
-          component={MailOnboardingWrapper}
-          options={{ headerShown: false }}
-        />
-        <SettingsPanelStack.Screen
-          name="AppleMusicSettings"
-          component={AppleMusicSettingsScreen}
-          options={{ title: t('appleMusicSettings.title') }}
-        />
-        {/* DEV: Piper TTS Test Screen */}
-        {__DEV__ && (
+    <NavigationIndependentTree>
+      <NavigationContainer ref={navRef}>
+        <SettingsPanelStack.Navigator
+          screenOptions={{
+            headerTitleStyle: typography.h3,
+            headerBackTitleVisible: false,
+            headerTintColor: accentColor.primary,
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+          }}
+        >
           <SettingsPanelStack.Screen
-            name="PiperTtsTest"
-            component={PiperTtsTestScreen}
-            options={{ title: '🔊 Piper TTS Test' }}
+            name="SettingsMain"
+            component={SettingsMainScreen}
+            options={{ headerShown: false }}
           />
-        )}
-      </SettingsPanelStack.Navigator>
-    </NavigationContainer>
+          <SettingsPanelStack.Screen
+            name="ProfileSettings"
+            component={ProfileSettingsScreen}
+            options={{ title: t('profile.changePhoto') }}
+          />
+          <SettingsPanelStack.Screen
+            name="PrivacySettings"
+            component={PrivacySettingsScreen}
+            options={{ title: t('privacySettings.title') }}
+          />
+          <SettingsPanelStack.Screen
+            name="AccessibilitySettings"
+            component={AccessibilitySettingsScreen}
+            options={{ title: t('settings.accessibility') }}
+          />
+          <SettingsPanelStack.Screen
+            name="ComplianceReport"
+            component={ComplianceReportScreen}
+            options={{ headerShown: false }}
+          />
+          <SettingsPanelStack.Screen
+            name="VoiceSettings"
+            component={VoiceSettingsScreen}
+            options={{ title: t('voiceSettings.title') }}
+          />
+          <SettingsPanelStack.Screen
+            name="ModulesSettings"
+            component={ModulesSettingsScreen}
+            options={{ title: t('modulesSettings.title'), headerShown: false }}
+          />
+          <SettingsPanelStack.Screen
+            name="CallSettings"
+            component={CallSettingsScreen}
+            options={{ title: t('callSettings.title') }}
+          />
+          <SettingsPanelStack.Screen
+            name="AppearanceSettings"
+            component={AppearanceSettingsScreen}
+            options={{ title: t('appearance.title') }}
+          />
+          <SettingsPanelStack.Screen
+            name="LanguageSettings"
+            component={PlaceholderScreen}
+            options={{ title: t('settings.language') }}
+          />
+          <SettingsPanelStack.Screen
+            name="BackupSettings"
+            component={PlaceholderScreen}
+            options={{ title: t('settings.backup') }}
+          />
+          <SettingsPanelStack.Screen
+            name="DeviceTransfer"
+            component={PlaceholderScreen}
+          />
+          <SettingsPanelStack.Screen
+            name="DeviceLinkShowQR"
+            component={DeviceLinkShowQRScreen}
+            options={{ title: t('settings.deviceLink') }}
+          />
+          <SettingsPanelStack.Screen
+            name="MailSettings"
+            component={MailSettingsScreen}
+            options={{ title: t('mailSettings.title') }}
+          />
+          <SettingsPanelStack.Screen
+            name="MailOnboarding"
+            component={MailOnboardingWrapper}
+            options={{ headerShown: false }}
+          />
+          <SettingsPanelStack.Screen
+            name="AppleMusicSettings"
+            component={AppleMusicSettingsScreen}
+            options={{ title: t('appleMusicSettings.title') }}
+          />
+          {/* DEV: Piper TTS Test Screen */}
+          {__DEV__ && (
+            <SettingsPanelStack.Screen
+              name="PiperTtsTest"
+              component={PiperTtsTestScreen}
+              options={{ title: '🔊 Piper TTS Test' }}
+            />
+          )}
+        </SettingsPanelStack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 }
 
