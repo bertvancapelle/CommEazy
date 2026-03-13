@@ -8,6 +8,13 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, '15.1'
 prepare_react_native_project!
 
+# RN 0.84: Build React-Core from source instead of using the prebuilt xcframework.
+# The prebuilt React.xcframework is dynamically linked to ReactNativeDependencies.framework,
+# but since we build third-party deps from source (RCT_USE_RN_DEP=0), that framework
+# isn't bundled → dyld crash: "Library not loaded: ReactNativeDependencies.framework".
+# Building both from source eliminates the prebuilt/source mismatch.
+ENV['RCT_USE_PREBUILT_RNCORE'] = '0'
+
 # RN 0.84: Build third-party deps (Folly, boost, glog, etc.) from source instead
 # of using the prebuilt ReactNativeDependencies xcframework. Required because
 # 8+ third-party pods depend on `RCT-Folly` by name, which only exists as a
