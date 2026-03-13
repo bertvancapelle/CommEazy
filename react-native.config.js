@@ -8,8 +8,9 @@ module.exports = {
         android: null,
       },
     },
-    // Temporarily disable react-native-maps due to folly_config conflict with RN 0.73
-    // TODO: Update to react-native-maps 1.14+ when ready
+    // Disable react-native-maps — was disabled due to folly_config conflict (RN 0.73).
+    // RN 0.84 builds Folly from source (RCT_USE_RN_DEP=0), so conflict may be resolved.
+    // TODO: Test re-enabling with react-native-maps 1.14+ when maps feature is needed.
     'react-native-maps': {
       platforms: {
         ios: null,

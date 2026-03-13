@@ -5,40 +5,66 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, '15.0'
-use_modular_headers!
+platform :ios, '15.1'
 prepare_react_native_project!
 
-# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-#
-# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-# ```js
-# module.exports = {
-#   dependencies: {
-#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-# ```
-flipper_config = FlipperConfiguration.disabled
+# RN 0.84: Build React-Core from source instead of using the prebuilt xcframework.
+# The prebuilt React.xcframework is dynamically linked to ReactNativeDependencies.framework,
+# but since we build third-party deps from source (RCT_USE_RN_DEP=0), that framework
+# isn't bundled → dyld crash: "Library not loaded: ReactNativeDependencies.framework".
+# Building both from source eliminates the prebuilt/source mismatch.
+ENV['RCT_USE_PREBUILT_RNCORE'] = '0'
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# RN 0.84: Build third-party deps (Folly, boost, glog, etc.) from source instead
+# of using the prebuilt ReactNativeDependencies xcframework. Required because
+# 8+ third-party pods depend on `RCT-Folly` by name, which only exists as a
+# separate pod when building from source.
+ENV['RCT_USE_RN_DEP'] = '0'
+
+# RN 0.84: Keep legacy architecture runtime code in the binary.
+# WatermelonDB v0.25.5 uses custom JSI bindings (not TurboModules) that depend
+# on bridge-era infrastructure. The interop layer handles module loading, but
+# the underlying JSI installation path needs legacy arch code present.
+ENV['RCT_REMOVE_LEGACY_ARCH'] = '0'
+
+# Firebase 11.x: use_frameworks! with static linkage is REQUIRED.
+# Firebase Auth is now written in Swift and generates a -Swift.h compatibility
+# header at build time. Without framework-style builds, this header isn't
+# generated in the right location for ObjC consumers (RNFBAuth, RNFBMessaging).
+use_frameworks! :linkage => :static
+
+# Firebase 11.x static framework support (required by @react-native-firebase v21+)
+$RNFirebaseAsStaticFramework = true
 
 pod 'simdjson', path: '../node_modules/@nozbe/simdjson'
+
+pre_install do |installer|
+  # Force these pods to build as static libraries (not frameworks) to avoid
+  # module system issues when use_frameworks! is active:
+  # - op-sqlite: bundles SQLite from source; framework packaging duplicates public headers
+  # - simdjson + WatermelonDB: WatermelonDB uses #import "simdjson.h" (quoted include)
+  # - RNFB*: Firebase bridge pods use React-Core macros (RCT_EXPORT_MODULE, etc.) that
+  #   aren't visible across framework module boundaries in RN 0.84
+  static_lib_pods = ['op-sqlite', 'simdjson', 'WatermelonDB',
+                     'RNFBApp', 'RNFBAuth', 'RNFBMessaging']
+  installer.pod_targets.each do |pod|
+    if static_lib_pods.include?(pod.name)
+      def pod.build_type
+        Pod::BuildType.static_library
+      end
+    end
+  end
+end
+
 target 'CommEazyTemp' do
   config = use_native_modules!
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
+    # Note: New Architecture is mandatory in RN 0.84 (:new_arch_enabled is ignored).
+    # Legacy module support is maintained via the interop layer + RCT_REMOVE_LEGACY_ARCH=0.
   )
 
   target 'CommEazyTempTests' do
@@ -57,15 +83,71 @@ target 'CommEazyTemp' do
     # Configure sherpa-onnx framework and headers for PiperTtsModule
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
-        # Fix deployment target warnings - set minimum to 15.0
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+        # Fix deployment target warnings - set minimum to 15.1
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
 
         # Add header search path for sherpa-onnx C API
         config.build_settings['HEADER_SEARCH_PATHS'] ||= ['$(inherited)']
         config.build_settings['HEADER_SEARCH_PATHS'] << '"$(PODS_ROOT)/../Frameworks/sherpa-onnx-include"'
 
-        # Enable C++17 for sherpa-onnx compatibility
-        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        # Enable C++20 (required by React Native 0.76+, also compatible with sherpa-onnx)
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++20'
+
+        # RN 0.84 + use_frameworks! + Firebase: Allow non-modular includes
+        # React-Core headers (RCTBridgeModule.h, etc.) are non-modular when built
+        # as frameworks. Firebase's ObjC files import them directly, causing
+        # -Wnon-modular-include-in-framework-module errors.
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+
+      end
+    end
+
+    # Firebase 11.x: Add explicit build dependency so RNFBAuth compiles AFTER FirebaseAuth.
+    # FirebaseAuth (Swift) generates FirebaseAuth-Swift.h during compilation, which RNFBAuth
+    # needs at compile time. Without this dependency, they may compile in parallel.
+    firebase_auth_target = installer.pods_project.targets.find { |t| t.name == 'FirebaseAuth' }
+    rnfb_targets = installer.pods_project.targets.select { |t|
+      ['RNFBAuth', 'RNFBMessaging', 'RNFBApp'].include?(t.name)
+    }
+    if firebase_auth_target
+      rnfb_targets.each do |rnfb_target|
+        unless rnfb_target.dependencies.any? { |d| d.target == firebase_auth_target }
+          rnfb_target.add_dependency(firebase_auth_target)
+          Pod::UI.puts "[Firebase] Added build dependency: #{rnfb_target.name} → FirebaseAuth"
+        end
+      end
+    end
+
+    # Firebase 11.x: Patch Firebase.h umbrella header — wrap FirebaseAuth-Swift.h
+    # import with __has_include guard as a safety net. With use_frameworks! the
+    # header should be found via framework search paths, but we guard it anyway
+    # to avoid build failures if compilation order is unexpected.
+    firebase_h = File.join(installer.sandbox.root, 'Headers', 'Private', 'Firebase', 'Firebase.h')
+    if File.exist?(firebase_h)
+      content = File.read(firebase_h)
+      old_import = '#import <FirebaseAuth/FirebaseAuth-Swift.h>'
+      new_import = '#if __has_include(<FirebaseAuth/FirebaseAuth-Swift.h>)
+      #import <FirebaseAuth/FirebaseAuth-Swift.h>
+    #endif'
+      if content.include?(old_import) && !content.include?('__has_include(<FirebaseAuth/FirebaseAuth-Swift.h>)')
+        content.gsub!(old_import, new_import)
+        File.write(firebase_h, content)
+        Pod::UI.puts "[Firebase] Patched Firebase.h: wrapped FirebaseAuth-Swift.h import with __has_include guard"
+      end
+    end
+
+    # Patch fmt header: disable consteval for Apple Clang 17+ (Xcode 26)
+    # fmtlib 11.0.2 only guards against Apple Clang < 14, but Xcode 26 (Clang 17) also has consteval bugs
+    fmt_base = File.join(installer.sandbox.root, 'fmt', 'include', 'fmt', 'base.h')
+    if File.exist?(fmt_base)
+      content = File.read(fmt_base)
+      # Extend the Apple Clang guard to cover version 17+ as well
+      old_guard = '#elif defined(__apple_build_version__) && __apple_build_version__ < 14000029L'
+      new_guard = '#elif defined(__apple_build_version__)'
+      if content.include?(old_guard)
+        content.gsub!(old_guard, new_guard)
+        File.write(fmt_base, content)
+        Pod::UI.puts "[fmt] Patched base.h: disabled consteval for all Apple Clang versions"
       end
     end
   end

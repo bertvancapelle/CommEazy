@@ -2,6 +2,7 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 #import <Firebase.h>
 #import <FirebaseMessaging/FirebaseMessaging.h>
 #import <UserNotifications/UserNotifications.h>
@@ -59,6 +60,7 @@
   [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:900]; // 15 minutes
 
   self.moduleName = @"CommEazyTemp";
+  self.dependencyProvider = [RCTAppDependencyProvider new];
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
@@ -68,10 +70,10 @@
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
-  return [self getBundleURL];
+  return [self bundleURL];
 }
 
-- (NSURL *)getBundleURL
+- (NSURL *)bundleURL
 {
 #if DEBUG
   // For physical devices, use Mac's LAN IP instead of localhost

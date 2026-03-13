@@ -276,7 +276,7 @@ Ben je het eens met mijn conclusie, of wil je de knop behouden?"
 Privacy-first family communication app. End-to-end encrypted messaging, photos, and video calls for families — designed specifically for seniors (65+) while being enjoyable for all ages.
 
 ## Architecture Overview
-- **Frontend:** React Native 0.73+ (iOS, iPadOS, Android)
+- **Frontend:** React Native 0.84.1 (iOS, iPadOS, Android) — New Architecture + Hermes V1
 - **Protocol:** XMPP (xmpp.js) via Prosody server — routing only, zero message storage
 - **Database:** WatermelonDB (local, encrypted with SQLCipher)
 - **Encryption:** libsodium, dual-path (encrypt-to-all ≤8 members, shared-key >8)
@@ -3403,20 +3403,29 @@ npm run typecheck  # TypeScript strict
 npm test           # Jest with coverage
 ```
 
-## Known Issues: React Native 0.73 + Hermes
+## Known Issues & Workarounds
 
 > **BELANGRIJK:** Lees `.claude/MOCK_MODE_CHANGES.md` voor volledige details
 
-### FlatList Bug
-FlatList/VirtualizedList crasht met `getItem undefined` error. **Workaround:** Gebruik ScrollView + `.map()` voor lijsten <100 items.
+### FlatList Workaround — ✅ OPGELOST in RN 0.84 (Hermes V1)
 
-### Native Module Race Conditions
-Top-level imports van native-afhankelijke modules falen. **Oplossing:** Gebruik dynamische imports (`await import()`) + 50-100ms delay bij startup.
+**Status:** Bug is opgelost. FlatList crasht niet meer met `getItem undefined` op Hermes V1.
 
-### uuid/libsodium Incompatibiliteit
-`uuid` en `libsodium-wrappers` werken niet correct met Hermes JS engine.
-- **uuid:** Vervang door `react-native-uuid`
-- **libsodium:** Vereist native module of correcte WASM polyfills
+**Huidige situatie:** 68 bestanden gebruiken nog de ScrollView + `.map()` workaround. Deze kunnen veilig terug worden gemigreerd naar FlatList. Zie `.claude/plans/FLATLIST_REHABILITATION.md` voor het projectplan.
+
+**Risico bij FlatList rehabilitatie:** Laag — getest op fysiek device (iPhone 14, iOS 26.4 beta) zonder crashes.
+
+### Native Module Race Conditions — Te valideren
+
+Top-level imports van native-afhankelijke modules faalden op RN 0.73. **Huidige workaround:** Dynamische imports (`await import()`) + 50-100ms delay bij startup.
+
+**Status RN 0.84:** New Architecture + TurboModules interop layer zou dit moeten oplossen. De 100ms delay in `App.tsx` kan mogelijk verwijderd worden, maar vereist grondige test van alle 19 native modules bij cold start.
+
+### uuid/libsodium — ✅ OPGELOST
+
+Beide vervangen door native modules die correct werken met Hermes:
+- `uuid` → `react-native-uuid` (native RNG)
+- `libsodium-wrappers` → `react-native-libsodium` (native module)
 
 ### Mock Mode
 App draait momenteel in mock mode voor development. Zie `MOCK_MODE_CHANGES.md` voor:
@@ -3797,7 +3806,8 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 38 | **Prosody HA Production** | ⏳ TODO | ⏳ TBD | High-availability Prosody deployment handleiding |
 | 39 | **Widget (iOS)** | ⏳ TODO | ⏳ TBD | WidgetKit recent contacts widget |
 | 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | iOS/iPadOS: iCloud Backup is afdoende — minimale implementatie: iCloud detectie + waarschuwingsbanner + mail re-login na restore. Android: uitgesteld (Keystore device-bound, 25MB limiet). Zie `BACKUP_RESTORE_PLAN.md` |
-| 41 | **React Native Upgrade** | ⏳ TODO | 🎯 MVP | Upgrade van RN 0.73.6 naar 0.79+. Vereist: New Architecture migratie (18 native modules → TurboModules), AppDelegate Obj-C++ → Swift, React 18 → 19, 49 dependencies compatibiliteit check. op-sqlite v15 vereist RN 0.74+. Groot standalone project — NIET mengen met feature development. Zie impactanalyse in sessie 2026-03-04. |
+| 41 | **React Native Upgrade** | ✅ DONE | 🎯 MVP | Geüpgraded van RN 0.73.6 → 0.84.1 via 3-stop strategie (0.76→0.78→0.84). New Architecture actief, Hermes V1, React 19.2.3, React Navigation 7. FlatList bug opgelost. Zie branch `upgrade/rn-0.84`. |
+| 43 | **FlatList Rehabilitatie** | ⏳ TODO | ⏳ TBD | 68 bestanden migreren van ScrollView + .map() terug naar FlatList (bug opgelost in RN 0.84). Zie `.claude/plans/FLATLIST_REHABILITATION.md`. |
 | 42 | **Trust & Attestation** | ⏳ TODO | 🎯 MVP | User-to-User Trust (QR-code + Invitation Relay) + App-to-Server Trust (App Attest/Play Integrity + API Gateway + JWT). Contact flow refactor (3 opties: in de buurt/uitnodigen/bekende). iPad standalone onboarding via invitation code. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
 
 **📊 Cross-Platform Samenvatting:** 24 items | ✅ 0 DONE | 🔶 4 PARTIAL | ⏳ 20 TODO

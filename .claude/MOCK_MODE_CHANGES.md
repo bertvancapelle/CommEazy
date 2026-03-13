@@ -7,13 +7,15 @@
 
 ## Samenvatting Kernproblemen
 
-### Probleem 1: FlatList/VirtualizedList Bug (React Native 0.73 + Hermes)
+### Probleem 1: FlatList/VirtualizedList Bug (React Native 0.73 + Hermes) — ✅ OPGELOST
 
 **Symptoom:** `TypeError: Cannot read property 'getItem' of undefined`
 
 **Oorzaak:** Bug in VirtualizedList regel 497 waarbij props destructuring faalt wanneer native modules nog niet volledig geïnitialiseerd zijn.
 
-**Oplossing:** FlatList vervangen door ScrollView + handmatige `.map()`
+**Oplossing destijds:** FlatList vervangen door ScrollView + handmatige `.map()`
+
+**Status RN 0.84 (Hermes V1):** Bug is opgelost. FlatList werkt correct. Getest op fysiek device (iPhone 14, iOS 26.4 beta, 2026-03-13). 68 bestanden gebruiken nog de ScrollView workaround en kunnen terug gemigreerd worden. Zie `.claude/plans/FLATLIST_REHABILITATION.md` voor het projectplan.
 
 ### Probleem 2: Module Loading Race Conditions
 
@@ -125,9 +127,9 @@ const loadService = async () => {
 };
 ```
 
-### Regel 2: FlatList Workaround (tot RN 0.74+)
+### Regel 2: FlatList Workaround — ✅ NIET MEER NODIG (RN 0.84+)
 
-Gebruik ScrollView + `.map()` voor lijsten tot ~100 items. Voor langere lijsten: upgrade React Native of gebruik `@shopify/flash-list`.
+~~Gebruik ScrollView + `.map()` voor lijsten tot ~100 items.~~ FlatList bug is opgelost in RN 0.84 (Hermes V1). FlatList kan weer veilig gebruikt worden. Zie `.claude/plans/FLATLIST_REHABILITATION.md` voor het migratieplan van 68 bestanden terug naar FlatList.
 
 ### Regel 3: uuid en libsodium Alternatieven ✅ GEÏMPLEMENTEERD
 
@@ -164,7 +166,7 @@ Alle mock code MOET binnen `if (__DEV__)` staan - wordt automatisch verwijderd i
 - [x] `App.tsx`: ServiceContainer initialisatie geïmplementeerd ✅
 - [x] Test uuid library met Hermes (vervangen door `react-native-uuid`) ✅
 - [x] Test libsodium initialisatie met Hermes (vervangen door `react-native-libsodium`) ✅
-- [ ] Overweeg upgrade naar React Native 0.74+ voor FlatList fix
+- [x] React Native geüpgraded naar 0.84.1 — FlatList bug opgelost ✅ (2026-03-13)
 - [ ] Test XMPP verbinding met Prosody server
 - [ ] Test end-to-end encryptie flow
 
