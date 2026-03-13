@@ -779,6 +779,10 @@
       "selectTitle": "Elegir color de acento",
       "reset": "Restablecer color de acento"
     },
+    "globalDefaultColor": "Color predeterminado de módulos",
+    "globalDefaultColorHint": "Cambia el color de todos los módulos",
+    "usingDefault": "predeterminado",
+    "resetToDefault": "Restablecer predeterminado",
     "moduleColors": {
       "title": "Colores de módulos",
       "hint": "Personaliza el color de cada módulo",

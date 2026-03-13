@@ -274,7 +274,7 @@ export function AppearanceSettingsScreen() {
   const { themeMode, resolvedTheme, isDarkMode, setThemeMode } = useTheme();
   const themeColors = useColors(); // Dynamic colors based on theme
   const { accentColorKey, accentColor, updateAccentColor } = useAccentColorContext();
-  const { getModuleHex, setModuleColor, resetModuleColor, resetAllColors, hasCustomColor, overrides: customColors } = useModuleColorsContext();
+  const { getModuleHex, setModuleColor, resetModuleColor, resetAllColors, hasCustomColor, overrides: customColors, globalDefaultColor, setGlobalDefaultColor, resetGlobalDefault } = useModuleColorsContext();
 
   // Liquid Glass context for integrated settings
   const {
@@ -304,6 +304,9 @@ export function AppearanceSettingsScreen() {
 
   // Overlay state for accent color picker
   const [showAccentColorPicker, setShowAccentColorPicker] = useState(false);
+
+  // Overlay state for global default module color picker
+  const [showGlobalColorPicker, setShowGlobalColorPicker] = useState(false);
 
   // Overlay state for module color picker (which module is being edited)
   const [editingModuleId, setEditingModuleId] = useState<ModuleColorId | null>(null);
@@ -370,6 +373,22 @@ export function AppearanceSettingsScreen() {
     await triggerFeedback('tap');
     resetAllColors();
   }, [resetAllColors, triggerFeedback]);
+
+  // Handle global default module color selection
+  const handleGlobalDefaultColorSelect = useCallback(
+    async (colorKey: AccentColorKey) => {
+      await triggerFeedback('tap');
+      const colorHex = ACCENT_COLORS[colorKey].primary;
+      setGlobalDefaultColor(colorHex);
+    },
+    [setGlobalDefaultColor, triggerFeedback]
+  );
+
+  // Handle reset global default module color
+  const handleResetGlobalDefault = useCallback(async () => {
+    await triggerFeedback('tap');
+    resetGlobalDefault();
+  }, [resetGlobalDefault, triggerFeedback]);
 
   // Check if accent color is not default
   const isAccentColorCustom = accentColorKey !== DEFAULT_ACCENT_COLOR;
@@ -487,6 +506,46 @@ export function AppearanceSettingsScreen() {
         />
       </View>
 
+      {/* Global Default Module Color Section */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.globalDefaultColor')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.globalDefaultColorHint')}</Text>
+
+        <ColorSelectorRow
+          label={t('appearance.globalDefaultColor')}
+          currentColorHex={globalDefaultColor || MODULE_TINT_COLORS.chats?.tintColor || '#0D47A1'}
+          currentColorLabel={globalDefaultColor ? t(ACCENT_COLORS[getColorKeyFromHex(globalDefaultColor)].label) : t('appearance.usingDefault')}
+          onPress={() => setShowGlobalColorPicker(true)}
+          themeColors={themeColors}
+        />
+
+        {/* Reset global default button (only show if custom global color is set) */}
+        {globalDefaultColor && (
+          <HapticTouchable hapticDisabled
+            style={[styles.resetInlineButton, { borderColor: themeColors.border }]}
+            onPress={() => void handleResetGlobalDefault()}
+            accessibilityRole="button"
+            accessibilityLabel={t('appearance.resetToDefault')}
+          >
+            <Icon name="refresh" size={16} color={themeColors.textSecondary} />
+            <Text style={[styles.resetInlineButtonText, { color: themeColors.textSecondary }]}>
+              {t('appearance.resetToDefault')}
+            </Text>
+          </HapticTouchable>
+        )}
+
+        {/* Global Color Picker Overlay */}
+        <ColorPickerOverlay
+          visible={showGlobalColorPicker}
+          onClose={() => setShowGlobalColorPicker(false)}
+          onSelect={(key) => void handleGlobalDefaultColorSelect(key)}
+          colors={colorOptions}
+          selectedValue={globalDefaultColor ? getColorKeyFromHex(globalDefaultColor) : 'blue'}
+          title={t('appearance.globalDefaultColor')}
+          themeColors={themeColors}
+        />
+      </View>
+
       {/* Module Colors Section */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.moduleColors.title')}</Text>
@@ -496,7 +555,9 @@ export function AppearanceSettingsScreen() {
         {CUSTOMIZABLE_MODULES.map((moduleId) => {
           const currentHex = getModuleHex(moduleId);
           const currentColorKey = getColorKeyFromHex(currentHex);
-          const colorLabel = t(ACCENT_COLORS[currentColorKey].label);
+          const colorLabel = hasCustomColor(moduleId)
+            ? t(ACCENT_COLORS[currentColorKey].label)
+            : `${t(ACCENT_COLORS[currentColorKey].label)} (${t('appearance.usingDefault')})`;
           const isCustomized = hasCustomColor(moduleId);
 
           return (

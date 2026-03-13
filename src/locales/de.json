@@ -779,6 +779,10 @@
       "selectTitle": "Akzentfarbe wählen",
       "reset": "Standard-Akzentfarbe wiederherstellen"
     },
+    "globalDefaultColor": "Standard-Modulfarbe",
+    "globalDefaultColorHint": "Ändert die Farbe aller Module",
+    "usingDefault": "Standard",
+    "resetToDefault": "Standard wiederherstellen",
     "moduleColors": {
       "title": "Modulfarben",
       "hint": "Passen Sie die Farbe jedes Moduls an",

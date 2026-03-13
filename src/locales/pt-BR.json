@@ -803,6 +803,10 @@
       "selectTitle": "Escolher cor de destaque",
       "reset": "Redefinir cor de destaque padrão"
     },
+    "globalDefaultColor": "Cor padrão dos módulos",
+    "globalDefaultColorHint": "Altera a cor de todos os módulos",
+    "usingDefault": "padrão",
+    "resetToDefault": "Restaurar padrão",
     "moduleColors": {
       "title": "Cores dos módulos",
       "hint": "Personalize a cor de cada módulo",

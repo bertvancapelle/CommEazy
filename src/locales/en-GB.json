@@ -779,6 +779,10 @@
       "selectTitle": "Choose Accent Colour",
       "reset": "Reset to default accent colour"
     },
+    "globalDefaultColor": "Default module colour",
+    "globalDefaultColorHint": "Changes the colour of all modules",
+    "usingDefault": "default",
+    "resetToDefault": "Reset to default",
     "moduleColors": {
       "title": "Module Colours",
       "hint": "Customise the colour of each module",

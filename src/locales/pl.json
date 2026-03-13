@@ -695,6 +695,10 @@
       "selectTitle": "Wybierz kolor akcentu",
       "reset": "Przywróć domyślny kolor akcentu"
     },
+    "globalDefaultColor": "Domyślny kolor modułów",
+    "globalDefaultColorHint": "Zmienia kolor wszystkich modułów",
+    "usingDefault": "domyślny",
+    "resetToDefault": "Przywróć domyślny",
     "moduleColors": {
       "title": "Kolory modułów",
       "hint": "Dostosuj kolor każdego modułu",

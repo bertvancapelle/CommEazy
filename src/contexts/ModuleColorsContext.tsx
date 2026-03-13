@@ -40,6 +40,7 @@ export type { AccentColorKey } from '@/theme/accentColors';
 // ============================================================
 
 const MODULE_COLORS_STORAGE_KEY = 'module_colors_custom';
+const GLOBAL_DEFAULT_COLOR_STORAGE_KEY = '@commeazy/globalDefaultColor';
 
 /**
  * Color options for module customization
@@ -121,6 +122,7 @@ export interface ModuleColorsContextValue {
 
   /**
    * Get the raw hex color for a module
+   * Resolution: per-module override → global default → hardcoded default
    */
   getModuleHex: (moduleId: ModuleColorId) => string;
 
@@ -150,6 +152,21 @@ export interface ModuleColorsContextValue {
   overrides: ModuleColorOverrides;
 
   /**
+   * Global default color (null = use hardcoded default)
+   */
+  globalDefaultColor: string | null;
+
+  /**
+   * Set global default color for all modules without per-module override
+   */
+  setGlobalDefaultColor: (hex: string | null) => void;
+
+  /**
+   * Reset global default color to hardcoded default
+   */
+  resetGlobalDefault: () => void;
+
+  /**
    * Loading state
    */
   isLoading: boolean;
@@ -170,6 +187,7 @@ interface ModuleColorsProviderProps {
  */
 export function ModuleColorsProvider({ children }: ModuleColorsProviderProps) {
   const [overrides, setOverrides] = useState<ModuleColorOverrides>({});
+  const [globalDefaultColor, setGlobalDefaultColorState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // ============================================================
@@ -177,21 +195,27 @@ export function ModuleColorsProvider({ children }: ModuleColorsProviderProps) {
   // ============================================================
 
   useEffect(() => {
-    async function loadOverrides() {
+    async function loadData() {
       try {
-        const stored = await AsyncStorage.getItem(MODULE_COLORS_STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored) as ModuleColorOverrides;
+        const [storedOverrides, storedGlobal] = await Promise.all([
+          AsyncStorage.getItem(MODULE_COLORS_STORAGE_KEY),
+          AsyncStorage.getItem(GLOBAL_DEFAULT_COLOR_STORAGE_KEY),
+        ]);
+        if (storedOverrides) {
+          const parsed = JSON.parse(storedOverrides) as ModuleColorOverrides;
           setOverrides(parsed);
         }
+        if (storedGlobal) {
+          setGlobalDefaultColorState(storedGlobal);
+        }
       } catch (error) {
-        console.error('[ModuleColorsContext] Failed to load overrides:', error);
+        console.error('[ModuleColorsContext] Failed to load color data:', error);
       } finally {
         setIsLoading(false);
       }
     }
 
-    void loadOverrides();
+    void loadData();
   }, []);
 
   // ============================================================
@@ -209,6 +233,18 @@ export function ModuleColorsProvider({ children }: ModuleColorsProviderProps) {
     }
   }, []);
 
+  const persistGlobalDefault = useCallback(async (hex: string | null) => {
+    try {
+      if (hex) {
+        await AsyncStorage.setItem(GLOBAL_DEFAULT_COLOR_STORAGE_KEY, hex);
+      } else {
+        await AsyncStorage.removeItem(GLOBAL_DEFAULT_COLOR_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error('[ModuleColorsContext] Failed to persist global default:', error);
+    }
+  }, []);
+
   // ============================================================
   // Methods
   // ============================================================
@@ -220,32 +256,36 @@ export function ModuleColorsProvider({ children }: ModuleColorsProviderProps) {
 
       if (!defaultColor) {
         console.warn(`[ModuleColorsContext] Unknown moduleId: ${moduleId}`);
+        const fallback = globalDefaultColor || '#607D8B';
         return {
           moduleId,
-          tintColor: '#607D8B',
-          fallbackColor: '#607D8B',
+          tintColor: fallback,
+          fallbackColor: fallback,
           lightColor: '#FFFFFF',
         };
       }
 
-      if (customHex) {
+      // 3-layer resolution: per-module → global default → hardcoded default
+      const effectiveHex = customHex || globalDefaultColor;
+      if (effectiveHex) {
         return {
           ...defaultColor,
-          tintColor: customHex,
-          fallbackColor: customHex,
+          tintColor: effectiveHex,
+          fallbackColor: effectiveHex,
         };
       }
 
       return defaultColor;
     },
-    [overrides]
+    [overrides, globalDefaultColor]
   );
 
   const getModuleHex = useCallback(
     (moduleId: ModuleColorId): string => {
-      return overrides[moduleId] || MODULE_TINT_COLORS[moduleId]?.tintColor || '#607D8B';
+      // 3-layer resolution: per-module → global default → hardcoded default
+      return overrides[moduleId] || globalDefaultColor || MODULE_TINT_COLORS[moduleId]?.tintColor || '#607D8B';
     },
-    [overrides]
+    [overrides, globalDefaultColor]
   );
 
   const setModuleColor = useCallback(
@@ -275,6 +315,19 @@ export function ModuleColorsProvider({ children }: ModuleColorsProviderProps) {
     void persistOverrides({});
   }, [persistOverrides]);
 
+  const setGlobalDefaultColor = useCallback(
+    (hex: string | null) => {
+      setGlobalDefaultColorState(hex);
+      void persistGlobalDefault(hex);
+    },
+    [persistGlobalDefault]
+  );
+
+  const resetGlobalDefault = useCallback(() => {
+    setGlobalDefaultColorState(null);
+    void persistGlobalDefault(null);
+  }, [persistGlobalDefault]);
+
   const hasCustomColor = useCallback(
     (moduleId: ModuleColorId): boolean => {
       return moduleId in overrides;
@@ -295,6 +348,9 @@ export function ModuleColorsProvider({ children }: ModuleColorsProviderProps) {
       resetAllColors,
       hasCustomColor,
       overrides,
+      globalDefaultColor,
+      setGlobalDefaultColor,
+      resetGlobalDefault,
       isLoading,
     }),
     [
@@ -305,6 +361,9 @@ export function ModuleColorsProvider({ children }: ModuleColorsProviderProps) {
       resetAllColors,
       hasCustomColor,
       overrides,
+      globalDefaultColor,
+      setGlobalDefaultColor,
+      resetGlobalDefault,
       isLoading,
     ]
   );

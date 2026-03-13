@@ -616,6 +616,10 @@
       "selectTitle": "Kies accentkleur",
       "reset": "Standaard accentkleur herstellen"
     },
+    "globalDefaultColor": "Standaard modulekleur",
+    "globalDefaultColorHint": "Wijzigt de kleur van alle modules",
+    "usingDefault": "standaard",
+    "resetToDefault": "Herstel standaard",
     "moduleColors": {
       "title": "Module kleuren",
       "hint": "Pas de kleur van elke module aan",

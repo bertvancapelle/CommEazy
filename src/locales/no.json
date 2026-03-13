@@ -704,6 +704,10 @@
       "selectTitle": "Velg aksentfarge",
       "reset": "Tilbakestill til standard aksentfarge"
     },
+    "globalDefaultColor": "Standard modulfarge",
+    "globalDefaultColorHint": "Endrer fargen på alle moduler",
+    "usingDefault": "standard",
+    "resetToDefault": "Tilbakestill standard",
     "moduleColors": {
       "title": "Modulfarger",
       "hint": "Tilpass fargen på hver modul",

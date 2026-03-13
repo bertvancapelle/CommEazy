@@ -674,6 +674,10 @@
       "selectTitle": "Välj accentfärg",
       "reset": "Återställ till standardaccentfärg"
     },
+    "globalDefaultColor": "Standardmodulfärg",
+    "globalDefaultColorHint": "Ändrar färgen på alla moduler",
+    "usingDefault": "standard",
+    "resetToDefault": "Återställ standard",
     "moduleColors": {
       "title": "Modulfärger",
       "hint": "Anpassa färgen för varje modul",

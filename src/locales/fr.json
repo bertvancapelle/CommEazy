@@ -779,6 +779,10 @@
       "selectTitle": "Choisir la couleur d'accent",
       "reset": "Réinitialiser la couleur d'accent"
     },
+    "globalDefaultColor": "Couleur par défaut des modules",
+    "globalDefaultColorHint": "Change la couleur de tous les modules",
+    "usingDefault": "par défaut",
+    "resetToDefault": "Rétablir par défaut",
     "moduleColors": {
       "title": "Couleurs des modules",
       "hint": "Personnalisez la couleur de chaque module",

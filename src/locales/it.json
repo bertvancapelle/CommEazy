@@ -778,6 +778,10 @@
       "selectTitle": "Scegli colore accento",
       "reset": "Ripristina colore accento predefinito"
     },
+    "globalDefaultColor": "Colore predefinito dei moduli",
+    "globalDefaultColorHint": "Cambia il colore di tutti i moduli",
+    "usingDefault": "predefinito",
+    "resetToDefault": "Ripristina predefinito",
     "moduleColors": {
       "title": "Colori moduli",
       "hint": "Personalizza il colore di ogni modulo",
