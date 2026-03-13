@@ -981,7 +981,8 @@
       "keepEditing": "Continua a modificare",
       "discard": "Annulla"
     },
-    "scrollForMore": "Scorri verso il basso per ulteriori"
+    "scrollForMore": "Scorri verso il basso per ulteriori",
+    "comingSoon": "Prossimamente"
   },
   "validation": {
     "profileIncomplete": "Completa tutti i campi",
@@ -1036,6 +1037,11 @@
     "askAI": "Chiedi all'IA",
     "mail": "E-mail",
     "agenda": "Agenda",
+    "woordraad": "Gioco di parole",
+    "sudoku": "Sudoku",
+    "solitaire": "Solitario",
+    "memory": "Memory",
+    "trivia": "Quiz",
     "menu_button": "Pulsante menu",
     "menu_button_hint": "Tocca per aprire il menu di navigazione. Tieni premuto per spostare.",
     "drag_mode_enabled": "Modalità trascinamento attiva. Trascina il pulsante in una nuova posizione.",

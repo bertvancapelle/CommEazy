@@ -877,7 +877,8 @@
       "keepEditing": "Fortsæt redigering",
       "discard": "Kassér"
     },
-    "scrollForMore": "Rul ned for mere"
+    "scrollForMore": "Rul ned for mere",
+    "comingSoon": "Kommer snart"
   },
   "validation": {
     "profileIncomplete": "Udfyld alle felter",
@@ -932,6 +933,11 @@
     "askAI": "Spørg AI",
     "mail": "E-mail",
     "agenda": "Kalender",
+    "woordraad": "Ordspil",
+    "sudoku": "Sudoku",
+    "solitaire": "Kabale",
+    "memory": "Memory",
+    "trivia": "Quiz",
     "menu_button": "Menuknap",
     "menu_button_hint": "Tryk for at åbne navigationsmenuen.",
     "drag_mode_enabled": "Træk-tilstand aktiv.",

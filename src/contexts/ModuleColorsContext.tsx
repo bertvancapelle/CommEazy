@@ -73,6 +73,12 @@ export const CUSTOMIZABLE_MODULES: ModuleColorId[] = [
   'mail',
   'agenda',
   'settings',
+  // Game modules
+  'woordraad',
+  'sudoku',
+  'solitaire',
+  'memory',
+  'trivia',
 ];
 
 /**
@@ -101,6 +107,12 @@ export const MODULE_LABELS: Record<ModuleColorId, string> = {
   settings: 'navigation.settings',
   help: 'navigation.help',
   menu: 'navigation.menu',
+  // Game modules
+  woordraad: 'navigation.woordraad',
+  sudoku: 'navigation.sudoku',
+  solitaire: 'navigation.solitaire',
+  memory: 'navigation.memory',
+  trivia: 'navigation.trivia',
 };
 
 // ============================================================

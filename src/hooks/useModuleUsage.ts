@@ -66,6 +66,12 @@ export const ALL_MODULES: NavigationDestination[] = [
   'agenda',      // Agenda (appointments, reminders, medication)
   'settings',
   'help',
+  // Game modules (grouped in "Spellen" collection, not in default grid order)
+  'woordraad',   // Word guessing game
+  'sudoku',      // Sudoku puzzle
+  'solitaire',   // Card solitaire
+  'memory',      // Memory matching game
+  'trivia',      // Trivia quiz
 ];
 
 // Default ordering when no usage data exists

@@ -984,7 +984,8 @@
       "keepEditing": "Weiter bearbeiten",
       "discard": "Verwerfen"
     },
-    "scrollForMore": "Scrollen Sie nach unten für mehr"
+    "scrollForMore": "Scrollen Sie nach unten für mehr",
+    "comingSoon": "Demnächst verfügbar"
   },
   "validation": {
     "profileIncomplete": "Alle Felder ausfüllen",
@@ -1039,6 +1040,11 @@
     "askAI": "Frag die KI",
     "mail": "E-Mail",
     "agenda": "Kalender",
+    "woordraad": "Wortspiel",
+    "sudoku": "Sudoku",
+    "solitaire": "Solitaire",
+    "memory": "Memory",
+    "trivia": "Quizspiel",
     "menu_button": "Menü-Taste",
     "menu_button_hint": "Tippen zum Öffnen des Navigationsmenüs. Lang drücken zum Verschieben.",
     "drag_mode_enabled": "Verschiebemodus aktiv. Ziehe die Taste an eine neue Position.",

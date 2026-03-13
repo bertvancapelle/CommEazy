@@ -32,5 +32,8 @@ export { AskAIScreen } from './AskAIScreen';
 // Agenda module
 export { AgendaScreen } from './AgendaScreen';
 
+// Game placeholder (used for all 5 game modules)
+export { GamePlaceholderScreen } from './GamePlaceholderScreen';
+
 // Communication modules
 export { MailScreen } from '../mail/MailScreen';

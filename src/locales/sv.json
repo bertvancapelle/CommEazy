@@ -877,7 +877,8 @@
       "keepEditing": "Fortsätt redigera",
       "discard": "Ignorera"
     },
-    "scrollForMore": "Scrolla ner för mer"
+    "scrollForMore": "Scrolla ner för mer",
+    "comingSoon": "Kommer snart"
   },
   "validation": {
     "profileIncomplete": "Fyll i alla fält",
@@ -932,6 +933,11 @@
     "askAI": "Fråga AI",
     "mail": "E-post",
     "agenda": "Kalender",
+    "woordraad": "Ordspel",
+    "sudoku": "Sudoku",
+    "solitaire": "Patiens",
+    "memory": "Memory",
+    "trivia": "Frågesport",
     "menu_button": "Menyknapp",
     "menu_button_hint": "Tryck för att öppna navigeringsmenyn.",
     "drag_mode_enabled": "Dra-läge aktivt.",

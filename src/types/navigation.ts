@@ -36,7 +36,13 @@ export type StaticNavigationDestination =
   | 'photoAlbum'   // Photo Album (view, send, delete photos)
   | 'askAI'        // Ask AI assistant module
   | 'mail'         // E-mail module
-  | 'agenda';      // Agenda module (appointments, reminders, medication)
+  | 'agenda'       // Agenda module (appointments, reminders, medication)
+  // Game modules (placeholder screens)
+  | 'woordraad'    // Word guessing game
+  | 'sudoku'       // Sudoku puzzle
+  | 'solitaire'    // Card solitaire
+  | 'memory'       // Memory matching game
+  | 'trivia';      // Trivia quiz
 
 /**
  * Dynamic navigation destinations for country-specific modules
@@ -100,7 +106,13 @@ export type ModuleIconType =
   | 'image'        // Photo Album module
   | 'chatbubble'   // Ask AI module
   | 'mail'         // E-mail module
-  | 'calendar';    // Agenda module
+  | 'calendar'     // Agenda module
+  // Game module icons
+  | 'gameWord'     // Woordraad (word game)
+  | 'gameSudoku'   // Sudoku (grid puzzle)
+  | 'gameCards'    // Solitaire (card game)
+  | 'gameMemory'   // Memory (matching game)
+  | 'gameTrivia';  // Trivia (quiz)
 
 /**
  * Map ModuleIconType to IconName for unified SVG icons
@@ -147,6 +159,16 @@ export function mapModuleIconToIconName(type: ModuleIconType): IconName {
       return 'mail';
     case 'calendar':
       return 'calendar';
+    case 'gameWord':
+      return 'chatbubble';
+    case 'gameSudoku':
+      return 'grid';
+    case 'gameCards':
+      return 'list';
+    case 'gameMemory':
+      return 'eye';
+    case 'gameTrivia':
+      return 'star';
     default:
       return 'info'; // fallback
   }
@@ -192,6 +214,12 @@ export const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit
   agenda: { labelKey: 'navigation.agenda', icon: 'calendar' },
   settings: { labelKey: 'navigation.settings', icon: 'settings' },
   help: { labelKey: 'navigation.help', icon: 'help' },
+  // Game modules
+  woordraad: { labelKey: 'navigation.woordraad', icon: 'gameWord' },
+  sudoku: { labelKey: 'navigation.sudoku', icon: 'gameSudoku' },
+  solitaire: { labelKey: 'navigation.solitaire', icon: 'gameCards' },
+  memory: { labelKey: 'navigation.memory', icon: 'gameMemory' },
+  trivia: { labelKey: 'navigation.trivia', icon: 'gameTrivia' },
 };
 
 // ============================================================

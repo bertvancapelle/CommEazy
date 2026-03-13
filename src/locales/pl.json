@@ -898,7 +898,8 @@
       "keepEditing": "Kontynuuj edycję",
       "discard": "Odrzuć"
     },
-    "scrollForMore": "Przewiń w dół, aby zobaczyć więcej"
+    "scrollForMore": "Przewiń w dół, aby zobaczyć więcej",
+    "comingSoon": "Wkrótce dostępne"
   },
   "validation": {
     "profileIncomplete": "Wypełnij wszystkie pola",
@@ -953,6 +954,11 @@
     "askAI": "Zapytaj AI",
     "mail": "E-mail",
     "agenda": "Kalendarz",
+    "woordraad": "Gra słowna",
+    "sudoku": "Sudoku",
+    "solitaire": "Pasjans",
+    "memory": "Memory",
+    "trivia": "Quiz",
     "menu_button": "Przycisk menu",
     "menu_button_hint": "Dotknij, aby otworzyć menu nawigacji. Przytrzymaj, aby przenieść.",
     "drag_mode_enabled": "Tryb przeciągania aktywny. Przeciągnij przycisk w nowe miejsce.",

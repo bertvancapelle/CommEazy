@@ -821,7 +821,8 @@
       "keepEditing": "Verder bewerken",
       "discard": "Weggooien"
     },
-    "scrollForMore": "Scroll omlaag voor meer"
+    "scrollForMore": "Scroll omlaag voor meer",
+    "comingSoon": "Binnenkort beschikbaar"
   },
   "validation": {
     "profileIncomplete": "Vul alle velden in",
@@ -1063,6 +1064,11 @@
     "askAI": "Vraag het AI",
     "mail": "E-mail",
     "agenda": "Agenda",
+    "woordraad": "Woordraad",
+    "sudoku": "Sudoku",
+    "solitaire": "Solitaire",
+    "memory": "Memory",
+    "trivia": "Trivia",
     "menu_button": "Menu knop",
     "menu_button_hint": "Tik om het navigatiemenu te openen. Houd lang ingedrukt om te verplaatsen.",
     "drag_mode_enabled": "Sleepstand actief. Sleep de knop naar een nieuwe positie.",

@@ -105,7 +105,13 @@ export type ModuleColorId =
   | 'mail'         // E-mail module
   | 'agenda'       // Agenda module (appointments, reminders, medication)
   | 'help'
-  | 'menu';
+  | 'menu'
+  // Game modules
+  | 'woordraad'
+  | 'sudoku'
+  | 'solitaire'
+  | 'memory'
+  | 'trivia';
 
 /**
  * Tint color definition for a module
@@ -264,6 +270,37 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   },
   agenda: {
     moduleId: 'agenda',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  // Game modules
+  woordraad: {
+    moduleId: 'woordraad',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  sudoku: {
+    moduleId: 'sudoku',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  solitaire: {
+    moduleId: 'solitaire',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  memory: {
+    moduleId: 'memory',
+    tintColor: DEFAULT_MODULE_BLUE,
+    fallbackColor: DEFAULT_MODULE_BLUE,
+    lightColor: '#FFFFFF',
+  },
+  trivia: {
+    moduleId: 'trivia',
     tintColor: DEFAULT_MODULE_BLUE,
     fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',

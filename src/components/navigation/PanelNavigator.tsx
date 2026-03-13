@@ -87,6 +87,7 @@ import {
   PhotoAlbumScreen,
   AskAIScreen,
   AgendaScreen,
+  GamePlaceholderScreen,
 } from '@/screens/modules';
 
 // Mail screens
@@ -649,6 +650,18 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <AgendaScreen />;
     case 'help':
       return <PlaceholderScreen />;
+
+    // Game modules — placeholder screens
+    case 'woordraad':
+      return <GamePlaceholderScreen moduleId="woordraad" />;
+    case 'sudoku':
+      return <GamePlaceholderScreen moduleId="sudoku" />;
+    case 'solitaire':
+      return <GamePlaceholderScreen moduleId="solitaire" />;
+    case 'memory':
+      return <GamePlaceholderScreen moduleId="memory" />;
+    case 'trivia':
+      return <GamePlaceholderScreen moduleId="trivia" />;
 
     default:
       // Handle dynamic modules (module:xyz)
