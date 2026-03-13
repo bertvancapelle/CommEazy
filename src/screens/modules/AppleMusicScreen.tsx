@@ -32,7 +32,6 @@ import {
   Alert,
   Modal,
 } from 'react-native';
-import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
