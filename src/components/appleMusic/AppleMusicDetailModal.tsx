@@ -22,7 +22,6 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  ActivityIndicator,
   Image,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
@@ -30,7 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable } from '@/components';
+import { Icon, IconButton, LoadingView, VoiceFocusable } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -495,10 +494,7 @@ export function AppleMusicDetailModal({
         {/* Loading State */}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={appleMusicColor} />
-            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-              {t('common.loading')}
-            </Text>
+            <LoadingView message={t('common.loading')} />
           </View>
         )}
 
@@ -708,11 +704,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.xl,
   },
-  loadingText: {
-    ...typography.body,
-    marginTop: spacing.md,
-  },
-
   // Error
   errorContainer: {
     flex: 1,

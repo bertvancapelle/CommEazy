@@ -23,7 +23,6 @@ import {
   Image,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   Dimensions,
   Platform,
   Linking,
@@ -36,7 +35,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon, PanelAwareModal } from '@/components';
+import { Icon, LoadingView, PanelAwareModal } from '@/components';
 
 // ============================================================
 // Types
@@ -277,9 +276,7 @@ export function AlbumPickerModal({
             </HapticTouchable>
           </View>
         ) : isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={accentColor.primary} />
-          </View>
+          <LoadingView message={t('common.loading')} />
         ) : (
           <ScrollView contentContainerStyle={styles.gridContent}>
             <View style={styles.grid}>

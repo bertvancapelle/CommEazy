@@ -190,14 +190,14 @@ Na introductie van een standaard component MOET de adoptiegraad worden bijgehoud
 | `ScrollViewWithIndicator` | Raw `ScrollView` | ✅ 100% | 0 | ✅ 100% |
 | `ModuleHeader` | Custom header styling | 15 | 2 | ~88% |
 | `SearchBar` | Custom search TextInput | 11 | 0 | ✅ 100% |
-| `LoadingView` | Bare `ActivityIndicator` (large) | 23 | ~20 | ~53% |
+| `LoadingView` | Bare `ActivityIndicator` (large) | 33 | ~10 | ~77% |
 | `ErrorView` | `Alert.alert()` (fout/succes/info) | 9 | ~56 | ~14% |
 | `useModuleColor()` | Hardcoded hex | ~15 | ~17 | ~47% |
 
-**Laatste update:** 12 maart 2026 — na Phase 1+2 bulk migratie (commits `046b47f`, `3bd63a4`)
+**Laatste update:** 13 maart 2026 — na LoadingView migratie (10 bestanden: AlbumPickerModal, InvitationCodeScreen, InviteContactScreen, AcceptInvitationScreen, AppleMusicDetailModal, PhotoAlbumScreen, ArticleWebViewer, AgendaItemDetailScreen, WeatherScreen, FullscreenImageViewer)
 
 **Notities bij deferred items:**
-- `LoadingView`: 20 bare `ActivityIndicator size="large"` — vereist per-screen state management refactoring
+- `LoadingView`: ~10 resterende `ActivityIndicator` — meeste zijn intentionele `size="small"` inline spinners (button states, lijst indicators) die NIET gemigreerd hoeven worden. Alleen `size="large"` fullscreen/modal loading states zijn relevant.
 - `ErrorView`: Scope uitgebreid — nu ALLE `Alert.alert()` voor fout/succes/info meldingen (niet alleen errors). ~56 instances te migreren. `Alert.alert()` is ALLEEN nog toegestaan voor bevestigingsdialogen (2+ knoppen). Zie ui-designer SKILL.md sectie 16.
 - Beide zijn technische schuld, geen blokkeerders voor nieuwe code
 

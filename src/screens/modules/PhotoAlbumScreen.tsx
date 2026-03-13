@@ -24,7 +24,6 @@ import {
   Image,
   RefreshControl,
   useWindowDimensions,
-  ActivityIndicator,
   InteractionManager,
   Linking,
   Modal,
@@ -42,6 +41,7 @@ import { ModuleHeader,
   PhotoRecipientModal,
   HapticTouchable,
   FullscreenImageViewer,
+  LoadingView,
   SlideshowViewer, ScrollViewWithIndicator } from '@/components';
 import type { ViewerImage, SlideshowPhoto } from '@/components';
 import { Icon } from '@/components/Icon';
@@ -1523,10 +1523,7 @@ export function PhotoAlbumScreen() {
       {/* Sending overlay */}
       {isSending && (
         <View style={styles.sendingOverlay}>
-          <ActivityIndicator size="large" color={moduleColor} />
-          <Text style={styles.sendingText}>
-            {t('modules.photoAlbum.sending', 'Sending photos...')}
-          </Text>
+          <LoadingView message={t('modules.photoAlbum.sending', 'Sending photos...')} />
         </View>
       )}
     </SafeAreaView>
@@ -1907,10 +1904,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.lg,
-  },
-  sendingText: {
-    ...typography.h3,
-    color: '#FFFFFF',
   },
 });
 

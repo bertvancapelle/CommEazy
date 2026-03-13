@@ -30,7 +30,6 @@ import {
   Modal,
   Image,
   StyleSheet,
-  ActivityIndicator,
   StatusBar,
   useWindowDimensions,
 } from 'react-native';
@@ -40,6 +39,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { Icon } from './Icon';
+import { LoadingView } from './LoadingView';
 
 // ============================================================
 // Types
@@ -182,7 +182,7 @@ export function FullscreenImageViewer({
         {/* Loading indicator */}
         {isImageLoading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={accentColor} />
+            <LoadingView message={t('common.loading')} />
           </View>
         )}
 

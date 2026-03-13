@@ -226,10 +226,7 @@ function RadarTab({ latitude, longitude, locationName, accentColor }: RadarTabPr
             📍 {locationName}
           </Text>
         )}
-        <Text style={styles.radarPlaceholderHint}>
-          {t('modules.weather.radar.loading')}
-        </Text>
-        <ActivityIndicator size="large" color={accentColor} style={{ marginTop: spacing.lg }} />
+        <LoadingView message={t('modules.weather.radar.loading')} />
       </View>
     );
   }

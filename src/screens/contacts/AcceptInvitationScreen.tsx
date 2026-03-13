@@ -25,7 +25,6 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -37,7 +36,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import { HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
+import { HapticTouchable, Icon, LoadingView, ScrollViewWithIndicator } from '@/components';
 import type { ContactStackParams } from '@/navigation';
 import {
   isValidInvitationCode,
@@ -263,10 +262,7 @@ export function AcceptInvitationScreen() {
         {/* Loading state */}
         {state === 'loading' && (
           <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color={themeColors.primary} />
-            <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>
-              {t('contacts.accept.looking', 'Uitnodiging ophalen...')}
-            </Text>
+            <LoadingView message={t('contacts.accept.looking', 'Uitnodiging ophalen...')} />
           </View>
         )}
 
@@ -322,10 +318,7 @@ export function AcceptInvitationScreen() {
         {/* Saving state */}
         {state === 'saving' && (
           <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color={themeColors.primary} />
-            <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>
-              {t('contacts.accept.saving', 'Contact toevoegen...')}
-            </Text>
+            <LoadingView message={t('contacts.accept.saving', 'Contact toevoegen...')} />
           </View>
         )}
 
@@ -425,10 +418,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
-  },
-  statusText: {
-    ...typography.body,
-    marginTop: spacing.md,
   },
   codeInputContainer: {
     width: '100%',

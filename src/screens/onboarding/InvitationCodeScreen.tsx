@@ -30,7 +30,6 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -41,7 +40,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import { HapticTouchable, Icon, ProgressIndicator , ScrollViewWithIndicator } from '@/components';
+import { HapticTouchable, Icon, LoadingView, ProgressIndicator , ScrollViewWithIndicator } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
 import {
   isValidInvitationCode,
@@ -268,10 +267,7 @@ export function InvitationCodeScreen({ navigation }: Props) {
         {/* Loading state */}
         {state === 'loading' && (
           <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color={themeColors.primary} />
-            <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>
-              {t('onboarding.invitationCode.looking', 'Uitnodiging ophalen...')}
-            </Text>
+            <LoadingView message={t('onboarding.invitationCode.looking', 'Uitnodiging ophalen...')} />
           </View>
         )}
 
@@ -325,10 +321,7 @@ export function InvitationCodeScreen({ navigation }: Props) {
         {/* Setting up state */}
         {state === 'setting-up' && (
           <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color={themeColors.primary} />
-            <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>
-              {t('onboarding.invitationCode.settingUp', 'Account aanmaken...')}
-            </Text>
+            <LoadingView message={t('onboarding.invitationCode.settingUp', 'Account aanmaken...')} />
           </View>
         )}
 
@@ -428,10 +421,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
-  },
-  statusText: {
-    ...typography.body,
-    marginTop: spacing.md,
   },
   codeInputContainer: {
     width: '100%',

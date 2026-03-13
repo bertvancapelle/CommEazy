@@ -19,13 +19,12 @@ import {
   StyleSheet,
   Alert,
   Modal,
-  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ContactAvatar, Button , ScrollViewWithIndicator} from '@/components';
+import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator} from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -689,12 +688,7 @@ export function AgendaItemDetailScreen({
 
           {/* Contact list */}
           {shareContactsLoading ? (
-            <View style={shareStyles.loadingContainer}>
-              <ActivityIndicator size="large" />
-              <Text style={[shareStyles.loadingText, { color: themeColors.textSecondary }]}>
-                {t('common.loading')}
-              </Text>
-            </View>
+            <LoadingView message={t('common.loading')} />
           ) : shareContacts.length === 0 ? (
             <View style={shareStyles.emptyContainer}>
               <Text style={[shareStyles.emptyText, { color: themeColors.textSecondary }]}>
@@ -1036,16 +1030,7 @@ const shareStyles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Loading / Empty
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  loadingText: {
-    ...typography.body,
-  },
+  // Empty
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',

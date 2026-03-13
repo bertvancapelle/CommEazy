@@ -43,7 +43,7 @@ import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, AdMobBanner } from '@/components';
+import { Icon, IconButton, AdMobBanner, LoadingView } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { orientationService } from '@/services/orientationService';
@@ -1004,8 +1004,7 @@ export function ArticleWebViewer({
           {/* Loading Indicator */}
           {isLoading && (
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color={accentColor} />
-              <Text style={styles.loadingText}>{t('articleViewer.loading')}</Text>
+              <LoadingView message={t('articleViewer.loading')} />
             </View>
           )}
 
@@ -1356,11 +1355,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
     gap: spacing.md,
   },
-  loadingText: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-
   // Error
   errorContainer: {
     flex: 1,

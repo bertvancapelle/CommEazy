@@ -25,7 +25,6 @@ import {
   Text,
   StyleSheet,
   Share,
-  ActivityIndicator,
   Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +35,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
-import { HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
+import { HapticTouchable, Icon, LoadingView, ScrollViewWithIndicator } from '@/components';
 import type { ContactStackParams } from '@/navigation';
 import {
   generateInvitationCode,
@@ -164,10 +163,7 @@ export function InviteContactScreen() {
       {/* Generating state */}
       {state === 'generating' && (
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
-          <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>
-            {t('contacts.invite.generating', 'Code aanmaken...')}
-          </Text>
+          <LoadingView message={t('contacts.invite.generating', 'Code aanmaken...')} />
         </View>
       )}
 
@@ -212,10 +208,7 @@ export function InviteContactScreen() {
       {/* Waiting state — polling for response */}
       {state === 'waiting' && (
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
-          <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-            {t('contacts.invite.waitingTitle', 'Wachten op reactie')}
-          </Text>
+          <LoadingView message={t('contacts.invite.waitingTitle', 'Wachten op reactie')} />
           <Text style={[styles.instruction, { color: themeColors.textSecondary }]}>
             {t('contacts.invite.waitingSubtitle', {
               defaultValue: 'Zodra de ander de code invult, worden jullie verbonden',
@@ -312,10 +305,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     textAlign: 'center',
     marginTop: spacing.sm,
-  },
-  statusText: {
-    ...typography.body,
-    marginTop: spacing.md,
   },
   codeContainer: {
     paddingHorizontal: spacing.xl,
