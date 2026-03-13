@@ -2569,5 +2569,8 @@
       "1hourBefore": "Om 1 time",
       "1dayBefore": "I morgen"
     }
+  },
+  "collections": {
+    "games": "Spil"
   }
 }

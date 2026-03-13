@@ -2593,5 +2593,8 @@
       "1hourBefore": "Za 1 godzinę",
       "1dayBefore": "Jutro"
     }
+  },
+  "collections": {
+    "games": "Gry"
   }
 }

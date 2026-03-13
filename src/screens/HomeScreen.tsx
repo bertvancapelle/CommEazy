@@ -55,13 +55,18 @@ import { useActivePlayback } from '@/hooks/useActivePlayback';
 import {
   STATIC_MODULE_DEFINITIONS,
   mapModuleIconToIconName,
+  isCollectionReference,
+  getCollectionId,
 } from '@/types/navigation';
 import type {
   NavigationDestination,
   StaticNavigationDestination,
+  GridItem,
+  CollectionReference,
 } from '@/types/navigation';
 import { LoadingView } from '@/components/LoadingView';
 import { useModuleOrder } from '@/hooks/useModuleOrder';
+import { useModuleCollections } from '@/hooks/useModuleCollections';
 import { useModuleColorsContextSafe } from '@/contexts/ModuleColorsContext';
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -120,7 +125,8 @@ export function HomeScreen({
   variant = 'fullscreen',
 }: HomeScreenProps) {
   const { t } = useTranslation();
-  const { orderedModules, isLoaded, updateOrder } = useModuleOrder();
+  const { collections, isLoaded: collectionsLoaded } = useModuleCollections();
+  const { orderedModules, isLoaded, updateOrder } = useModuleOrder(collections);
   const moduleColors = useModuleColorsContextSafe();
   const { triggerFeedback } = useFeedback();
   const { getBadgeCount } = useModuleBadges();
@@ -128,7 +134,7 @@ export function HomeScreen({
   // Wiggle mode state
   const [isWiggleMode, setIsWiggleMode] = useState(false);
   // Local order for reordering (committed on drag end, NOT during drag)
-  const [localOrder, setLocalOrder] = useState<NavigationDestination[]>([]);
+  const [localOrder, setLocalOrder] = useState<GridItem[]>([]);
 
   // Drag state — all in refs to avoid re-renders during drag
   const [_dragRenderTick, setDragRenderTick] = useState(0); // Force render for overlay + drop target
@@ -138,8 +144,8 @@ export function HomeScreen({
   const dragPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const dragScale = useRef(new Animated.Value(1)).current;
   const isDraggingRef = useRef(false);
-  const draggedModuleIdRef = useRef<NavigationDestination | null>(null);
-  const dragOrderRef = useRef<NavigationDestination[]>([]); // Live order during drag
+  const draggedModuleIdRef = useRef<GridItem | null>(null);
+  const dragOrderRef = useRef<GridItem[]>([]); // Live order during drag
   const dropTargetIndexRef = useRef<number>(-1); // Current drop target slot
   const dragStartGridPosRef = useRef({ x: 0, y: 0 }); // Grid position at drag start
   const lastGestureRef = useRef({ dx: 0, dy: 0, moveX: 0, moveY: 0 }); // Last gesture for auto-scroll overlay updates
@@ -564,7 +570,7 @@ export function HomeScreen({
   // Render
   // ============================================================
 
-  if (!isLoaded) {
+  if (!isLoaded || !collectionsLoaded) {
     return <LoadingView fullscreen />;
   }
 
@@ -654,12 +660,60 @@ export function HomeScreen({
           onLayout={handleGridLayout}
           {...(isWiggleMode ? gridPanResponder.panHandlers : {})}
         >
-          {renderOrder.map((moduleId, index) => {
-            const isDraggedItem = isDraggingRef.current && currentDraggedId === moduleId;
+          {renderOrder.map((gridItem, index) => {
+            const isDraggedItem = isDraggingRef.current && currentDraggedId === gridItem;
             const isDropTargetItem = isDraggingRef.current &&
               currentDropTarget === index &&
-              currentDraggedId !== moduleId;
+              currentDraggedId !== gridItem;
             const isHighlighted = highlightedIndex === index;
+
+            // Collection reference — render as folder-style grid item
+            if (isCollectionReference(gridItem)) {
+              const colId = getCollectionId(gridItem);
+              const collection = collections.find((c) => c.id === colId);
+              if (!collection) return null;
+
+              const colLabel = collection.name.startsWith('collections.')
+                ? t(collection.name)
+                : collection.name;
+
+              return (
+                <View
+                  key={gridItem}
+                  style={[
+                    styles.gridCell,
+                    index >= GRID_COLUMNS && styles.gridCellRowGap,
+                    index % GRID_COLUMNS !== 0 && styles.gridCellColGap,
+                    isDraggedItem && styles.placeholderItem,
+                    isHighlighted && styles.highlightedItem,
+                  ]}
+                >
+                  <HomeGridItem
+                    moduleId={gridItem}
+                    icon="grid"
+                    label={colLabel}
+                    color={getModuleColor('woordraad')}
+                    badgeCount={0}
+                    isAudioActive={false}
+                    isWiggling={isWiggleMode}
+                    isSelected={false}
+                    isDragging={isDraggedItem}
+                    isDropTarget={isDropTargetItem}
+                    onPress={() => {
+                      // TODO Fase 4: Open CollectionOverlay
+                      // For now, navigate to first module in collection
+                      if (collection.moduleIds.length > 0) {
+                        onModulePress(collection.moduleIds[0]);
+                      }
+                    }}
+                    onLongPress={isWiggleMode ? undefined : handleEnterWiggleMode}
+                  />
+                </View>
+              );
+            }
+
+            // Regular module — render as before
+            const moduleId = gridItem as NavigationDestination;
 
             return (
               <View
@@ -697,35 +751,46 @@ export function HomeScreen({
       </ScrollViewWithIndicator>
 
       {/* Dragged item overlay — follows the finger */}
-      {isDraggingRef.current && currentDraggedId && (
-        <Animated.View
-          style={[
-            styles.dragOverlay,
-            {
-              transform: [
-                { translateX: dragPosition.x },
-                { translateY: dragPosition.y },
-                { scale: dragScale },
-              ],
-            },
-          ]}
-          pointerEvents="none"
-        >
-          <HomeGridItem
-            moduleId={currentDraggedId}
-            icon={getIconName(currentDraggedId)}
-            label={getLabel(currentDraggedId)}
-            color={getModuleColor(currentDraggedId)}
-            badgeCount={getBadgeCount(currentDraggedId)}
-            isAudioActive={false}
-            isWiggling={false}
-            isSelected={false}
-            isDragging={false}
-            isDropTarget={false}
-            onPress={() => {}}
-          />
-        </Animated.View>
-      )}
+      {isDraggingRef.current && currentDraggedId && (() => {
+        const isCol = isCollectionReference(currentDraggedId);
+        const dragModuleId = isCol ? null : currentDraggedId as NavigationDestination;
+        const dragCollection = isCol
+          ? collections.find((c) => c.id === getCollectionId(currentDraggedId as CollectionReference))
+          : null;
+        const dragLabel = isCol && dragCollection
+          ? (dragCollection.name.startsWith('collections.') ? t(dragCollection.name) : dragCollection.name)
+          : dragModuleId ? getLabel(dragModuleId) : '';
+
+        return (
+          <Animated.View
+            style={[
+              styles.dragOverlay,
+              {
+                transform: [
+                  { translateX: dragPosition.x },
+                  { translateY: dragPosition.y },
+                  { scale: dragScale },
+                ],
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <HomeGridItem
+              moduleId={currentDraggedId}
+              icon={isCol ? 'grid' : getIconName(dragModuleId!)}
+              label={dragLabel}
+              color={isCol ? getModuleColor('woordraad') : getModuleColor(dragModuleId!)}
+              badgeCount={isCol ? 0 : getBadgeCount(dragModuleId!)}
+              isAudioActive={false}
+              isWiggling={false}
+              isSelected={false}
+              isDragging={false}
+              isDropTarget={false}
+              onPress={() => {}}
+            />
+          </Animated.View>
+        );
+      })()}
 
       {/* Mini-player — shown when audio is playing (fullscreen variant only) */}
       {!isPaneVariant && !isWiggleMode && activePlayback && (

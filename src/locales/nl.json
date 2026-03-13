@@ -2738,5 +2738,8 @@
       "1hourBefore": "Over 1 uur",
       "1dayBefore": "Morgen"
     }
+  },
+  "collections": {
+    "games": "Spellen"
   }
 }

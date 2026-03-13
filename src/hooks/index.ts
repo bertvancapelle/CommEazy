@@ -38,6 +38,7 @@ export {
 // Module management
 export { useModuleUsage } from './useModuleUsage';
 export { useModuleOrder, type UseModuleOrderReturn } from './useModuleOrder';
+export { useModuleCollections, type UseModuleCollectionsReturn } from './useModuleCollections';
 
 // Content
 export { useNewsArticles } from './useNewsArticles';

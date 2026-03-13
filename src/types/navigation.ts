@@ -58,6 +58,59 @@ export type NavigationDestination =
   | DynamicNavigationDestination;
 
 // ============================================================
+// Collection Types
+// ============================================================
+
+/**
+ * Reference to a collection in the grid order
+ * Format: 'collection:{id}' (e.g., 'collection:default_games')
+ */
+export type CollectionReference = `collection:${string}`;
+
+/**
+ * Grid item — either a module or a collection reference
+ * Used by useModuleOrder to represent the HomeScreen grid
+ */
+export type GridItem = NavigationDestination | CollectionReference;
+
+/**
+ * Module collection definition (iOS folder-style grouping)
+ */
+export interface ModuleCollection {
+  /** Unique identifier (UUID or sentinel like 'default_games') */
+  id: string;
+  /** Display name or i18n key (e.g., 'collections.games') */
+  name: string;
+  /** Modules in this collection (max 9) */
+  moduleIds: NavigationDestination[];
+  /** Default collections cannot be deleted */
+  isDefault: boolean;
+  /** Creation timestamp (0 = sentinel for defaults) */
+  createdAt: number;
+  /** Last update timestamp */
+  updatedAt: number;
+}
+
+/**
+ * Maximum modules per collection (3×3 grid, no scroll)
+ */
+export const MAX_MODULES_PER_COLLECTION = 9;
+
+/**
+ * Check if a grid item is a collection reference
+ */
+export function isCollectionReference(item: GridItem): item is CollectionReference {
+  return typeof item === 'string' && item.startsWith('collection:');
+}
+
+/**
+ * Extract collection ID from a collection reference
+ */
+export function getCollectionId(ref: CollectionReference): string {
+  return ref.replace('collection:', '');
+}
+
+// ============================================================
 // Helpers
 // ============================================================
 
