@@ -8,6 +8,18 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, '15.1'
 prepare_react_native_project!
 
+# RN 0.84: Build third-party deps (Folly, boost, glog, etc.) from source instead
+# of using the prebuilt ReactNativeDependencies xcframework. Required because
+# 8+ third-party pods depend on `RCT-Folly` by name, which only exists as a
+# separate pod when building from source.
+ENV['RCT_USE_RN_DEP'] = '0'
+
+# RN 0.84: Keep legacy architecture runtime code in the binary.
+# WatermelonDB v0.25.5 uses custom JSI bindings (not TurboModules) that depend
+# on bridge-era infrastructure. The interop layer handles module loading, but
+# the underlying JSI installation path needs legacy arch code present.
+ENV['RCT_REMOVE_LEGACY_ARCH'] = '0'
+
 # Firebase 11.x: use_frameworks! with static linkage is REQUIRED.
 # Firebase Auth is now written in Swift and generates a -Swift.h compatibility
 # header at build time. Without framework-style builds, this header isn't
@@ -19,13 +31,15 @@ $RNFirebaseAsStaticFramework = true
 
 pod 'simdjson', path: '../node_modules/@nozbe/simdjson'
 
-# Force certain pods to build as static libraries (not frameworks) to avoid
-# header resolution issues when use_frameworks! is active.
-# - op-sqlite: bundles SQLite from source; framework packaging duplicates public headers
-# - simdjson + WatermelonDB: WatermelonDB uses #import "simdjson.h" (quoted include)
-#   which requires flat header namespace (static library mode)
 pre_install do |installer|
-  static_lib_pods = ['op-sqlite', 'simdjson', 'WatermelonDB']
+  # Force these pods to build as static libraries (not frameworks) to avoid
+  # module system issues when use_frameworks! is active:
+  # - op-sqlite: bundles SQLite from source; framework packaging duplicates public headers
+  # - simdjson + WatermelonDB: WatermelonDB uses #import "simdjson.h" (quoted include)
+  # - RNFB*: Firebase bridge pods use React-Core macros (RCT_EXPORT_MODULE, etc.) that
+  #   aren't visible across framework module boundaries in RN 0.84
+  static_lib_pods = ['op-sqlite', 'simdjson', 'WatermelonDB',
+                     'RNFBApp', 'RNFBAuth', 'RNFBMessaging']
   installer.pod_targets.each do |pod|
     if static_lib_pods.include?(pod.name)
       def pod.build_type
@@ -41,9 +55,9 @@ target 'CommEazyTemp' do
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/..",
-    # Keep New Architecture disabled — WatermelonDB JSI incompatible with New Arch
-    :new_arch_enabled => false
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    # Note: New Architecture is mandatory in RN 0.84 (:new_arch_enabled is ignored).
+    # Legacy module support is maintained via the interop layer + RCT_REMOVE_LEGACY_ARCH=0.
   )
 
   target 'CommEazyTempTests' do
@@ -71,6 +85,12 @@ target 'CommEazyTemp' do
 
         # Enable C++20 (required by React Native 0.76+, also compatible with sherpa-onnx)
         config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++20'
+
+        # RN 0.84 + use_frameworks! + Firebase: Allow non-modular includes
+        # React-Core headers (RCTBridgeModule.h, etc.) are non-modular when built
+        # as frameworks. Firebase's ObjC files import them directly, causing
+        # -Wnon-modular-include-in-framework-module errors.
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
 
       end
     end

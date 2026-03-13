@@ -59,25 +59,49 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
 		<key>NSAllowsArbitraryLoadsForMedia</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>gutenberg.org</key>
 			<dict>
-				<key>NSIncludesSubdomains</key>
-				<true/>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 				<key>NSExceptionMinimumTLSVersion</key>
 				<string>TLSv1.2</string>
+				<key>NSIncludesSubdomains</key>
+				<true/>
 			</dict>
 		</dict>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>CommEazy gebruikt Apple Music om je favoriete muziek af te spelen en te doorzoeken.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>CommEazy gebruikt de camera om profielfoto's te maken.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>CommEazy gebruikt Face ID om je berichten en sleutels veilig te bewaren.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>CommEazy gebruikt uw locatie om het weer en de buienradar voor uw huidige positie te tonen.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CommEazy gebruikt de microfoon voor spraak- en videogesprekken.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CommEazy kan foto's opslaan in je fotobibliotheek.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CommEazy heeft toegang tot je foto's nodig om een profielfoto te kiezen.</string>
+	<key>NSSiriUsageDescription</key>
+	<string>CommEazy gebruikt Siri om contacten te bellen met je stem. Zeg "Hey Siri, bel Oma met CommEazy".</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>CommEazy gebruikt spraakherkenning om je stemcommando's te begrijpen voor handsfree navigatie.</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>INStartCallIntent</string>
+		<string>INStartAudioCallIntent</string>
+		<string>INStartVideoCallIntent</string>
+	</array>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
@@ -99,27 +123,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSFaceIDUsageDescription</key>
-	<string>CommEazy gebruikt Face ID om je berichten en sleutels veilig te bewaren.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>CommEazy gebruikt de camera om profielfoto's te maken.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>CommEazy heeft toegang tot je foto's nodig om een profielfoto te kiezen.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>CommEazy kan foto's opslaan in je fotobibliotheek.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>CommEazy gebruikt de microfoon voor spraak- en videogesprekken.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>CommEazy gebruikt spraakherkenning om je stemcommando's te begrijpen voor handsfree navigatie.</string>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>CommEazy gebruikt Apple Music om je favoriete muziek af te spelen en te doorzoeken.</string>
-	<key>NSSiriUsageDescription</key>
-	<string>CommEazy gebruikt Siri om contacten te bellen met je stem. Zeg "Hey Siri, bel Oma met CommEazy".</string>
-	<key>NSUserActivityTypes</key>
-	<array>
-		<string>INStartCallIntent</string>
-		<string>INStartAudioCallIntent</string>
-		<string>INStartVideoCallIntent</string>
-	</array>
 </dict>
 </plist>
