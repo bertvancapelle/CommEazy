@@ -41,7 +41,7 @@ import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { ContactAvatar, LoadingView, ScrollViewWithIndicator } from '@/components';
+import { ContactAvatar, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import {
   pickImageFromCamera,
@@ -86,6 +86,12 @@ export function ProfileSettingsScreen() {
   const [loading, setLoading] = useState(true);
   const [hasShownValidationAlert, setHasShownValidationAlert] = useState(false);
   const [cityInput, setCityInput] = useState(''); // Local state for city input
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+    onRetry?: () => void;
+  } | null>(null);
 
   // ScrollView ref for scrolling to fields
   const scrollViewRef = useRef<ScrollView>(null);
@@ -212,23 +218,17 @@ export function ProfileSettingsScreen() {
 
       // Small delay to ensure layout is complete
       setTimeout(() => {
-        Alert.alert(
-          t('validation.profileIncomplete'),
-          t('validation.profileIncompleteMessage'),
-          [
-            {
-              text: t('validation.stayOnPage'),
-              onPress: () => {
-                // Scroll to the first missing field and open its picker
-                scrollToField(firstMissing);
-                // Small delay before opening picker to allow scroll to complete
-                setTimeout(() => {
-                  openPickerForField(firstMissing);
-                }, 300);
-              },
-            },
-          ]
-        );
+        setNotification({
+          type: 'warning',
+          title: t('validation.profileIncomplete'),
+          message: t('validation.profileIncompleteMessage'),
+        });
+        // Scroll to the first missing field and open its picker
+        scrollToField(firstMissing);
+        // Small delay before opening picker to allow scroll to complete
+        setTimeout(() => {
+          openPickerForField(firstMissing);
+        }, 300);
       }, 500);
     }
   }, [loading, hasShownValidationAlert, profile, displayName, cityInput, getFirstMissingField, scrollToField, openPickerForField, t]);
@@ -290,7 +290,7 @@ export function ProfileSettingsScreen() {
       return true;
     } catch (error) {
       console.error('Failed to save profile:', error);
-      Alert.alert(t('errors.genericError'));
+      setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
       return false;
     } finally {
       setSaving(false);
@@ -313,11 +313,11 @@ export function ProfileSettingsScreen() {
                 const savedPath = await saveAvatar(image, 'my_profile');
                 setPhotoUrl(`file://${savedPath}`);
                 await saveProfile({ photoPath: savedPath });
-                Alert.alert(t('profile.photoSaved'));
+                setNotification({ type: 'success', title: t('profile.photoSaved'), message: '' });
               }
             } catch (error) {
               console.error('Failed to save photo:', error);
-              Alert.alert(t('errors.genericError'));
+              setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
             } finally {
               setSavingPhoto(false);
             }
@@ -333,11 +333,11 @@ export function ProfileSettingsScreen() {
                 const savedPath = await saveAvatar(image, 'my_profile');
                 setPhotoUrl(`file://${savedPath}`);
                 await saveProfile({ photoPath: savedPath });
-                Alert.alert(t('profile.photoSaved'));
+                setNotification({ type: 'success', title: t('profile.photoSaved'), message: '' });
               }
             } catch (error) {
               console.error('Failed to save photo:', error);
-              Alert.alert(t('errors.genericError'));
+              setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
             } finally {
               setSavingPhoto(false);
             }
@@ -361,7 +361,7 @@ export function ProfileSettingsScreen() {
     void triggerFeedback('tap');
     const trimmedName = tempName.trim();
     if (trimmedName.length < 2) {
-      Alert.alert(t('errors.genericError'), t('onboarding.nameMinLength'));
+      setNotification({ type: 'warning', title: t('errors.genericTitle'), message: t('onboarding.nameMinLength') });
       return;
     }
     setDisplayName(trimmedName);
@@ -570,6 +570,16 @@ export function ProfileSettingsScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onRetry={notification.onRetry}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
       <ScrollViewWithIndicator
         ref={(ref) => {
           // Combine both refs for scroll functionality

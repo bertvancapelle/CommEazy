@@ -32,7 +32,7 @@ import type { RouteProp } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, Icon, SeniorDatePicker, HapticTouchable , ScrollViewWithIndicator} from '@/components';
+import { ContactAvatar, Icon, SeniorDatePicker, HapticTouchable, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
@@ -126,6 +126,12 @@ export function ContactDetailScreen() {
 
   const { groups, addContacts, removeContacts } = useContactGroups();
 
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+    onRetry?: () => void;
+  } | null>(null);
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -347,11 +353,7 @@ export function ContactDetailScreen() {
     if (!contact) return;
 
     if (isInCall) {
-      Alert.alert(
-        t('calls.alreadyInCall'),
-        t('calls.alreadyInCallMessage'),
-        [{ text: t('common.ok'), style: 'default' }]
-      );
+      setNotification({ type: 'warning', title: t('calls.alreadyInCall'), message: t('calls.alreadyInCallMessage') });
       return;
     }
 
@@ -359,11 +361,7 @@ export function ContactDetailScreen() {
       await initiateCall(contact.jid, 'voice');
     } catch (error) {
       console.error('[ContactDetail] Failed to start voice call:', error);
-      Alert.alert(
-        t('calls.callFailed'),
-        t('calls.callFailedMessage'),
-        [{ text: t('common.ok'), style: 'default' }]
-      );
+      setNotification({ type: 'error', title: t('calls.callFailed'), message: t('calls.callFailedMessage') });
     }
   }, [contact, isInCall, initiateCall, t, triggerFeedback]);
 
@@ -373,11 +371,7 @@ export function ContactDetailScreen() {
     if (!contact) return;
 
     if (isInCall) {
-      Alert.alert(
-        t('calls.alreadyInCall'),
-        t('calls.alreadyInCallMessage'),
-        [{ text: t('common.ok'), style: 'default' }]
-      );
+      setNotification({ type: 'warning', title: t('calls.alreadyInCall'), message: t('calls.alreadyInCallMessage') });
       return;
     }
 
@@ -385,11 +379,7 @@ export function ContactDetailScreen() {
       await initiateCall(contact.jid, 'video');
     } catch (error) {
       console.error('[ContactDetail] Failed to start video call:', error);
-      Alert.alert(
-        t('calls.callFailed'),
-        t('calls.callFailedMessage'),
-        [{ text: t('common.ok'), style: 'default' }]
-      );
+      setNotification({ type: 'error', title: t('calls.callFailed'), message: t('calls.callFailedMessage') });
     }
   }, [contact, isInCall, initiateCall, t, triggerFeedback]);
 
@@ -425,7 +415,7 @@ export function ContactDetailScreen() {
                 navigation.goBack();
               } catch (error) {
                 console.error('Failed to delete contact:', error);
-                Alert.alert(t('errors.genericError'));
+                setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
               }
             })();
           },
@@ -470,6 +460,17 @@ export function ContactDetailScreen() {
 
   return (
     <ScrollViewWithIndicator style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onRetry={notification.onRetry}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Profile header with large photo */}
       <View style={styles.profileHeader}>
         <ContactAvatar
@@ -668,7 +669,7 @@ export function ContactDetailScreen() {
 
         {isEditing ? (
           <>
-            <Text style={[styles.categoriesHint, { color: editCategories.length === 0 ? themeColors.error ?? '#D32F2F' : themeColors.textSecondary }]}>
+            <Text style={[styles.categoriesHint, { color: editCategories.length === 0 ? themeColors.error : themeColors.textSecondary }]}>
               {t('contacts.categories.required', 'Kies minimaal één categorie')}
             </Text>
             <View style={styles.categoryGrid}>
@@ -1169,7 +1170,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
   },
   videoCallButton: {
-    backgroundColor: '#7B1FA2', // Purple for video (consistent with moduleColors.podcast)
+    backgroundColor: colors.info, // Blue for video calls
   },
   callButtonText: {
     ...typography.button,

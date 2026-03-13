@@ -132,6 +132,13 @@ export function MailDetailScreen({
   const [icsEvents, setIcsEvents] = useState<ParsedCalendarEvent[]>([]);
   const [icsAdded, setIcsAdded] = useState(false);
 
+  // Inline notification state (replaces Alert.alert for single-button notifications)
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
+
   const mountedRef = useRef(true);
 
   // Toast feedback for read/unread toggle
@@ -404,10 +411,11 @@ export function MailDetailScreen({
       showToast(t('modules.mail.ics.addedToAgenda'));
     } catch (err) {
       console.error('[MailDetail] Failed to add ICS event to agenda:', err);
-      Alert.alert(
-        t('status.error'),
-        t('modules.mail.ics.addFailed'),
-      );
+      setNotification({
+        type: 'error',
+        title: t('status.error'),
+        message: t('modules.mail.ics.addFailed'),
+      });
     }
   }, [t, showToast]);
 
@@ -579,10 +587,11 @@ export function MailDetailScreen({
               onDeleted?.(header.uid);
               onBack();
             } catch {
-              Alert.alert(
-                t('modules.mail.detail.deleteFailedTitle'),
-                t('modules.mail.detail.deleteFailedMessage'),
-              );
+              setNotification({
+                type: 'error',
+                title: t('modules.mail.detail.deleteFailedTitle'),
+                message: t('modules.mail.detail.deleteFailedMessage'),
+              });
             }
           },
         },
@@ -686,6 +695,15 @@ export function MailDetailScreen({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={['top']}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Top bar */}
       <View style={[styles.topBar, { borderBottomColor: themeColors.border }]}>
         <HapticTouchable hapticDisabled

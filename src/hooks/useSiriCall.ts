@@ -17,8 +17,8 @@
  * @see services/siriService.ts for native module bridge
  */
 
-import { useEffect, useCallback, useRef } from 'react';
-import { Alert, Platform } from 'react-native';
+import { useEffect, useCallback, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { siriService, type SiriCallIntent, type SiriAuthorizationStatus } from '@/services/siriService';
@@ -47,6 +47,12 @@ export interface UseSiriCallOptions {
   showContactNotFoundAlert?: boolean;
 }
 
+export interface SiriNotification {
+  type: 'error' | 'warning' | 'info' | 'success';
+  title: string;
+  message: string;
+}
+
 export interface UseSiriCallReturn {
   /**
    * Whether Siri integration is available on this device
@@ -62,6 +68,17 @@ export interface UseSiriCallReturn {
    * Donate a call shortcut to Siri
    */
   donateCallShortcut: (contactName: string, contactId: string, callType?: 'audio' | 'video') => Promise<boolean>;
+
+  /**
+   * Notification to display (null when none)
+   * Consuming component should render ErrorView with these props
+   */
+  siriNotification: SiriNotification | null;
+
+  /**
+   * Dismiss the current notification
+   */
+  dismissSiriNotification: () => void;
 }
 
 // ============================================================
@@ -71,6 +88,7 @@ export interface UseSiriCallReturn {
 export function useSiriCall(options: UseSiriCallOptions = {}): UseSiriCallReturn {
   const { t } = useTranslation();
   const callContext = useCallContext();
+  const [siriNotification, setSiriNotification] = useState<SiriNotification | null>(null);
 
   const {
     resolveContactToJid,
@@ -118,14 +136,14 @@ export function useSiriCall(options: UseSiriCallOptions = {}): UseSiriCallReturn
         console.warn('[useSiriCall] Could not resolve contact:', intent.contactName);
 
         if (optionsRef.current.showContactNotFoundAlert !== false) {
-          Alert.alert(
-            t('siri.contactNotFound.title', 'Contact niet gevonden'),
-            t('siri.contactNotFound.message', {
+          setSiriNotification({
+            type: 'error',
+            title: t('siri.contactNotFound.title', 'Contact niet gevonden'),
+            message: t('siri.contactNotFound.message', {
               defaultValue: '{{name}} is niet gevonden in je contacten.',
               name: intent.contactName,
             }),
-            [{ text: t('common.ok', 'OK') }]
-          );
+          });
         }
         return;
       }
@@ -145,11 +163,11 @@ export function useSiriCall(options: UseSiriCallOptions = {}): UseSiriCallReturn
       } catch (error) {
         console.error('[useSiriCall] Failed to initiate call:', error);
 
-        Alert.alert(
-          t('call.error.title', 'Bellen niet mogelijk'),
-          t('call.error.message', 'Er is een probleem opgetreden bij het starten van het gesprek.'),
-          [{ text: t('common.ok', 'OK') }]
-        );
+        setSiriNotification({
+          type: 'error',
+          title: t('call.error.title', 'Bellen niet mogelijk'),
+          message: t('call.error.message', 'Er is een probleem opgetreden bij het starten van het gesprek.'),
+        });
       }
     },
     [callContext, t]
@@ -189,10 +207,16 @@ export function useSiriCall(options: UseSiriCallOptions = {}): UseSiriCallReturn
     []
   );
 
+  const dismissSiriNotification = useCallback(() => {
+    setSiriNotification(null);
+  }, []);
+
   return {
     isAvailable: Platform.OS === 'ios' && siriService.isAvailable(),
     requestAuthorization,
     donateCallShortcut,
+    siriNotification,
+    dismissSiriNotification,
   };
 }
 

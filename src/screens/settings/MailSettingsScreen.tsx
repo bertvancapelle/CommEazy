@@ -33,7 +33,7 @@ import type { SettingsStackParams } from '@/navigation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, VoiceFocusable , ScrollViewWithIndicator} from '@/components';
+import { Icon, VoiceFocusable, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -73,6 +73,11 @@ export function MailSettingsScreen() {
   const [biometricLock, setBiometricLock] = useState(false);
   const [linkedAccounts, setLinkedAccounts] = useState<MailAccount[]>([]);
   const [whitelistedDomains, setWhitelistedDomains] = useState<string[]>([]);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Load accounts and whitelist on mount and when screen regains focus
   useEffect(() => {
@@ -183,11 +188,7 @@ export function MailSettingsScreen() {
   // Handle sync now — placeholder
   const handleSyncNow = useCallback(() => {
     void triggerFeedback('tap');
-    Alert.alert(
-      t('mailSettings.sync.syncNow'),
-      t('mailSettings.sync.syncNowPlaceholder'),
-      [{ text: t('common.ok') }]
-    );
+    setNotification({ type: 'info', title: t('mailSettings.sync.syncNow'), message: t('mailSettings.sync.syncNowPlaceholder') });
   }, [t, triggerFeedback]);
 
   // Handle clear cache
@@ -203,7 +204,7 @@ export function MailSettingsScreen() {
           style: 'destructive',
           onPress: () => {
             // Placeholder — will clear SQLite cache in later phases
-            Alert.alert(t('mailSettings.storage.cacheCleared'));
+            setNotification({ type: 'success', title: t('mailSettings.storage.cacheCleared'), message: '' });
           },
         },
       ]
@@ -236,6 +237,15 @@ export function MailSettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
       <ScrollViewWithIndicator
         ref={scrollRef}
         style={styles.scrollView}
@@ -631,11 +641,11 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#2E7D32',
+    backgroundColor: colors.success,
   },
   statusText: {
     ...typography.small,
-    color: '#2E7D32',
+    color: colors.success,
     fontWeight: '700',
   },
   // Add account button

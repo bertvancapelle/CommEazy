@@ -22,7 +22,6 @@ import {
   Text,
   StyleSheet,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +29,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar , ScrollViewWithIndicator } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
@@ -141,6 +140,11 @@ export function CallsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isInitiatingCall, setIsInitiatingCall] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Load contacts
   useEffect(() => {
@@ -222,11 +226,11 @@ export function CallsScreen() {
       } catch (error) {
         console.error('[CallsScreen] Failed to start call:', error);
         // Show error to user
-        Alert.alert(
-          t('modules.calls.callFailed'),
-          t('modules.calls.callFailedMessage'),
-          [{ text: t('common.ok') }]
-        );
+        setNotification({
+          type: 'error',
+          title: t('modules.calls.callFailed'),
+          message: t('modules.calls.callFailedMessage'),
+        });
       } finally {
         setIsInitiatingCall(false);
       }
@@ -303,6 +307,15 @@ export function CallsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Module Header */}
       <ModuleHeader
         moduleId="calls"

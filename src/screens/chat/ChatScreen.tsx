@@ -23,7 +23,6 @@ import {
   Platform,
   AccessibilityInfo,
   DeviceEventEmitter,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
@@ -42,7 +41,7 @@ import {
 } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
-import { MessageStatus, PhotoMessageBubble, AgendaItemBubble, Icon } from '@/components';
+import { MessageStatus, PhotoMessageBubble, AgendaItemBubble, Icon, ErrorView } from '@/components';
 import type { AgendaItemPayload } from '@/components';
 import type { Message } from '@/services/interfaces';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -67,6 +66,11 @@ export function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [sendingPhoto, setSendingPhoto] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Set header with name + presence status
@@ -279,11 +283,7 @@ export function ChatScreen() {
 
       // Check if service is ready
       if (!ServiceContainer.isInitialized || !chatService.isInitialized) {
-        Alert.alert(
-          t('common.error'),
-          t('chat.serviceNotReady'),
-          [{ text: t('common.ok') }],
-        );
+        setNotification({ type: 'error', title: t('common.error'), message: t('chat.serviceNotReady') });
         return;
       }
 
@@ -313,19 +313,11 @@ export function ChatScreen() {
         });
       } else {
         console.error('[ChatScreen] Failed to send photo');
-        Alert.alert(
-          t('common.error'),
-          t('chat.sendPhotoFailed'),
-          [{ text: t('common.ok') }],
-        );
+        setNotification({ type: 'error', title: t('common.error'), message: t('chat.sendPhotoFailed') });
       }
     } catch (error) {
       console.error('[ChatScreen] Photo send error:', error);
-      Alert.alert(
-        t('common.error'),
-        t('chat.sendPhotoFailed'),
-        [{ text: t('common.ok') }],
-      );
+      setNotification({ type: 'error', title: t('common.error'), message: t('chat.sendPhotoFailed') });
     } finally {
       setSendingPhoto(false);
     }
@@ -510,6 +502,16 @@ export function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Messages list - sorted oldest to newest, auto-scroll to bottom */}
       <ScrollView
         ref={scrollViewRef}

@@ -244,8 +244,8 @@ export function AlbumPickerModal({
         {/* Size warning */}
         {isOverWarning && (
           <View style={[styles.warningBanner, { backgroundColor: isOverLimit ? '#FFEBEE' : '#FFF3E0' }]}>
-            <Icon name="warning" size={20} color={isOverLimit ? '#D32F2F' : '#F57C00'} />
-            <Text style={[styles.warningText, { color: isOverLimit ? '#D32F2F' : '#F57C00' }]}>
+            <Icon name="warning" size={20} color={isOverLimit ? themeColors.error : themeColors.warning} />
+            <Text style={[styles.warningText, { color: isOverLimit ? themeColors.error : themeColors.warning }]}>
               {isOverLimit
                 ? t('modules.mail.compose.totalSizeExceeded')
                 : t('modules.mail.compose.totalSizeWarning')

@@ -47,7 +47,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, SearchBar , ScrollViewWithIndicator} from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, SearchBar, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -659,10 +659,11 @@ function CreateCategoryModal({
   const handleSave = useCallback(() => {
     const trimmedName = categoryName.trim();
     if (!trimmedName) {
-      Alert.alert(
-        t('status.warning'),
-        t('modules.agenda.form.categoryNameRequired'),
-      );
+      setNotification({
+        type: 'warning',
+        title: t('status.warning'),
+        message: t('modules.agenda.form.categoryNameRequired'),
+      });
       return;
     }
 
@@ -857,6 +858,13 @@ export function AgendaItemFormScreen({
     initialData?.categoryName ?? t('modules.agenda.categories.other'),
   );
   const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+
+  // Inline notification state (replaces Alert.alert for single-button notifications)
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Load custom categories on mount
   useEffect(() => {
@@ -1191,10 +1199,11 @@ export function AgendaItemFormScreen({
   const handleSave = useCallback(() => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
-      Alert.alert(
-        t('status.warning'),
-        t('modules.agenda.form.titleRequired'),
-      );
+      setNotification({
+        type: 'warning',
+        title: t('status.warning'),
+        message: t('modules.agenda.form.titleRequired'),
+      });
       titleInputRef.current?.focus();
       return;
     }
@@ -1348,6 +1357,15 @@ export function AgendaItemFormScreen({
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Header — Form mode: Cancel/Save buttons */}
       <ModuleHeader
         moduleId="agenda"

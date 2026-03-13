@@ -36,7 +36,7 @@ import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/n
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, ScrollViewWithIndicator, type IconName } from '@/components';
+import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, ScrollViewWithIndicator, ErrorView, type IconName } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -109,6 +109,11 @@ export function SettingsMainScreen() {
   const themeColors = useColors(); // Dynamic colors based on theme
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Settings menu items for voice navigation
   const settingsItems = useMemo(() => [
@@ -123,7 +128,7 @@ export function SettingsMainScreen() {
     { id: 'apple-music-settings', label: t('appleMusicSettings.title'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('AppleMusicSettings'); } },
     { id: 'notifications', label: t('settings.notifications'), onSelect: () => {
       void triggerFeedback('tap');
-      Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
+      setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') });
     }},
     { id: 'backup', label: t('settings.backup'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('BackupSettings'); } },
     { id: 'device-link', label: t('settings.deviceLink'), onSelect: () => { void triggerFeedback('tap'); navigation.navigate('DeviceLinkShowQR'); } },
@@ -235,6 +240,16 @@ export function SettingsMainScreen() {
         title={t('tabs.settings')}
         showAdMob={true}
       />
+
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
 
       <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {/* Profile header - tappable to edit */}
@@ -459,18 +474,14 @@ export function SettingsMainScreen() {
           label={t('settings.notifications')}
           index={9}
           onSelect={() => {
-            Alert.alert(t('common.comingSoon'), t('settings.notificationsComingSoon'), [{ text: t('common.ok') }]);
+            setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') });
           }}
         >
           <SubsectionButton
             icon="notifications"
             label={t('settings.notifications')}
             onPress={() => {
-              Alert.alert(
-                t('common.comingSoon'),
-                t('settings.notificationsComingSoon'),
-                [{ text: t('common.ok') }]
-              );
+              setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') });
             }}
             accessibilityHint={t('settings.notificationsHint')}
             iconColor={accentColor.primary}

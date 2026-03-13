@@ -42,6 +42,7 @@ import { ModuleHeader,
   HapticTouchable,
   FullscreenImageViewer,
   LoadingView,
+  ErrorView,
   SlideshowViewer, ScrollViewWithIndicator } from '@/components';
 import type { ViewerImage, SlideshowPhoto } from '@/components';
 import { Icon } from '@/components/Icon';
@@ -244,6 +245,13 @@ export function PhotoAlbumScreen() {
 
   // Slideshow state
   const [isSlideshowVisible, setIsSlideshowVisible] = useState(false);
+
+  // Inline notification state (replaces Alert.alert for single-button notifications)
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Map photos to FullscreenImageViewer format (exclude videos — viewer is image-only)
   const photoOnlyItems = useMemo(
@@ -453,11 +461,11 @@ export function PhotoAlbumScreen() {
   // Handle send photos action — opens recipient modal
   const handleSendPhotos = useCallback(() => {
     if (selectedPhotos.size === 0) {
-      Alert.alert(
-        t('modules.photoAlbum.noSelection', 'No photos selected'),
-        t('modules.photoAlbum.selectFirst', 'Please select one or more photos to send.'),
-        [{ text: t('common.ok', 'OK') }]
-      );
+      setNotification({
+        type: 'info',
+        title: t('modules.photoAlbum.noSelection', 'No photos selected'),
+        message: t('modules.photoAlbum.selectFirst', 'Please select one or more photos to send.'),
+      });
       return;
     }
 
@@ -512,41 +520,41 @@ export function PhotoAlbumScreen() {
 
       // Show result
       if (failCount === 0) {
-        Alert.alert(
-          t('modules.photoAlbum.sendSuccess', 'Photos Sent'),
-          t('modules.photoAlbum.sendSuccessMessage', 'Successfully sent {{count}} photo(s) to {{recipients}} contact(s).', {
+        setNotification({
+          type: 'success',
+          title: t('modules.photoAlbum.sendSuccess', 'Photos Sent'),
+          message: t('modules.photoAlbum.sendSuccessMessage', 'Successfully sent {{count}} photo(s) to {{recipients}} contact(s).', {
             count: photoItems.length,
             recipients: recipients.length,
           }),
-          [{ text: t('common.ok', 'OK') }]
-        );
+        });
 
         // Exit selection mode
         setSelectedPhotos(new Set());
         setIsSelectionMode(false);
       } else if (successCount > 0) {
-        Alert.alert(
-          t('modules.photoAlbum.sendPartial', 'Partially Sent'),
-          t('modules.photoAlbum.sendPartialMessage', 'Sent {{success}} photo(s), but {{fail}} failed.', {
+        setNotification({
+          type: 'warning',
+          title: t('modules.photoAlbum.sendPartial', 'Partially Sent'),
+          message: t('modules.photoAlbum.sendPartialMessage', 'Sent {{success}} photo(s), but {{fail}} failed.', {
             success: successCount,
             fail: failCount,
           }),
-          [{ text: t('common.ok', 'OK') }]
-        );
+        });
       } else {
-        Alert.alert(
-          t('common.error', 'Error'),
-          t('modules.photoAlbum.sendFailed', 'Failed to send photos. Please try again.'),
-          [{ text: t('common.ok', 'OK') }]
-        );
+        setNotification({
+          type: 'error',
+          title: t('common.error', 'Error'),
+          message: t('modules.photoAlbum.sendFailed', 'Failed to send photos. Please try again.'),
+        });
       }
     } catch (error) {
       console.error(LOG_PREFIX, 'Send photos error');
-      Alert.alert(
-        t('common.error', 'Error'),
-        t('modules.photoAlbum.sendFailed', 'Failed to send photos. Please try again.'),
-        [{ text: t('common.ok', 'OK') }]
-      );
+      setNotification({
+        type: 'error',
+        title: t('common.error', 'Error'),
+        message: t('modules.photoAlbum.sendFailed', 'Failed to send photos. Please try again.'),
+      });
     } finally {
       setIsSending(false);
     }
@@ -581,11 +589,11 @@ export function PhotoAlbumScreen() {
               setIsSelectionMode(false);
             } catch (error) {
               console.error(LOG_PREFIX, 'Failed to delete photos');
-              Alert.alert(
-                t('common.error', 'Error'),
-                t('modules.photoAlbum.deleteError', 'Could not delete photos. Please try again.'),
-                [{ text: t('common.ok', 'OK') }]
-              );
+              setNotification({
+                type: 'error',
+                title: t('common.error', 'Error'),
+                message: t('modules.photoAlbum.deleteError', 'Could not delete photos. Please try again.'),
+              });
             }
           },
         },
@@ -620,11 +628,11 @@ export function PhotoAlbumScreen() {
       }
     } catch (error) {
       console.error(LOG_PREFIX, 'Gallery import failed');
-      Alert.alert(
-        t('common.error', 'Error'),
-        t('modules.photoAlbum.importError', 'Could not import photos. Please try again.'),
-        [{ text: t('common.ok', 'OK') }],
-      );
+      setNotification({
+        type: 'error',
+        title: t('common.error', 'Error'),
+        message: t('modules.photoAlbum.importError', 'Could not import photos. Please try again.'),
+      });
     }
   }, [loadPhotos, t]);
 
@@ -745,11 +753,11 @@ export function PhotoAlbumScreen() {
       setIsAddToAlbumModalVisible(false);
       setIsSelectionMode(false);
       setSelectedPhotos(new Set());
-      Alert.alert(
-        t('modules.photoAlbum.addedToAlbum', 'Added to album'),
-        t('modules.photoAlbum.addedToAlbumMessage', '{{count}} photo(s) added to album.', { count: ids.length }),
-        [{ text: t('common.ok', 'OK') }],
-      );
+      setNotification({
+        type: 'success',
+        title: t('modules.photoAlbum.addedToAlbum', 'Added to album'),
+        message: t('modules.photoAlbum.addedToAlbumMessage', '{{count}} photo(s) added to album.', { count: ids.length }),
+      });
     }
   }, [selectedPhotos, albumHook, t]);
 
@@ -1008,6 +1016,15 @@ export function PhotoAlbumScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
       <ModuleHeader
         moduleId="photoAlbum"
         icon="image"
@@ -1708,7 +1725,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   deleteButton: {
-    backgroundColor: '#D32F2F',
+    backgroundColor: colors.error,
   },
   actionText: {
     ...typography.button,

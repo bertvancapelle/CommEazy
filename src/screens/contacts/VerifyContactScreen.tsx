@@ -53,6 +53,12 @@ export function VerifyContactScreen() {
   const [cameraPermission, setCameraPermission] = useState<boolean>(false);
   const [scanning, setScanning] = useState(false);
   const [verified, setVerified] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+    onRetry?: () => void;
+  } | null>(null);
 
   // Generate QR data on mount
   useEffect(() => {
@@ -72,7 +78,7 @@ export function VerifyContactScreen() {
         }
       } catch (error) {
         console.error('Failed to generate QR data:', error);
-        Alert.alert(t('errors.genericError'));
+        setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
       } finally {
         setLoading(false);
       }
@@ -104,11 +110,7 @@ export function VerifyContactScreen() {
 
     // Permission denied or blocked
     setCameraPermission(false);
-    Alert.alert(
-      t('errors.E401'),
-      t('contacts.cameraPermissionDenied'),
-      [{ text: t('common.ok'), style: 'default' }]
-    );
+    setNotification({ type: 'error', title: t('errors.E401'), message: t('contacts.cameraPermissionDenied') });
     return false;
   }, [t]);
 
@@ -152,7 +154,7 @@ export function VerifyContactScreen() {
       }
 
       if (!contact) {
-        Alert.alert(t('errors.genericError'));
+        setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
         setScanning(true);
         return;
       }
@@ -174,16 +176,11 @@ export function VerifyContactScreen() {
 
         setVerified(true);
 
-        Alert.alert(
-          t('contacts.verificationSuccess'),
-          t('contacts.verificationSuccessMessage', { name }),
-          [
-            {
-              text: t('common.ok'),
-              onPress: () => navigation.goBack(),
-            },
-          ]
-        );
+        setNotification({
+          type: 'success',
+          title: t('contacts.verificationSuccess'),
+          message: t('contacts.verificationSuccessMessage', { name }),
+        });
       } else {
         // Haptic feedback for failure
         ReactNativeHapticFeedback.trigger('notificationError', {
@@ -209,7 +206,7 @@ export function VerifyContactScreen() {
       }
     } catch (error) {
       console.error('Failed to verify QR code:', error);
-      Alert.alert(t('errors.genericError'));
+      setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
       setScanning(true);
     }
   }, [verified, scanning, jid, name, navigation, t]);
@@ -297,6 +294,17 @@ export function VerifyContactScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onRetry={notification.onRetry}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Tab bar */}
       <View style={[styles.tabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
         <HapticTouchable hapticDisabled

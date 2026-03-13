@@ -140,6 +140,12 @@ export function BooksScreen() {
   const [selectedForDelete, setSelectedForDelete] = useState<Set<string>>(new Set());
   // Track if we've shown the welcome modal this session
   const hasShownWelcomeRef = useRef(false);
+  // Inline notification state (replaces Alert.alert for single-button notifications)
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
   // Mode selection modal (Read vs Listen)
   const [showModeModal, setShowModeModal] = useState(false);
   const [selectedBookForMode, setSelectedBookForMode] = useState<DownloadedBook | null>(null);
@@ -205,16 +211,11 @@ export function BooksScreen() {
     const subscription = DeviceEventEmitter.addListener(
       'booksFormatError',
       ({ book, message }) => {
-        Alert.alert(
-          t('modules.books.errors.formatNotSupportedTitle'),
-          t('modules.books.errors.formatNotSupported'),
-          [
-            {
-              text: t('common.ok'),
-              style: 'default',
-            },
-          ]
-        );
+        setNotification({
+          type: 'warning',
+          title: t('modules.books.errors.formatNotSupportedTitle'),
+          message: t('modules.books.errors.formatNotSupported'),
+        });
         // Refresh library to reflect the deleted book
         refreshLibrary();
       }
@@ -446,6 +447,15 @@ export function BooksScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <View style={styles.innerContainer}>
+        {notification && (
+          <ErrorView
+            type={notification.type}
+            title={notification.title}
+            message={notification.message}
+            onDismiss={() => setNotification(null)}
+          />
+        )}
+
         {/* Module Header — standardized component with AdMob placeholder */}
         <ModuleHeader
           moduleId="books"

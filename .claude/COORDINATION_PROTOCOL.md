@@ -188,18 +188,18 @@ Na introductie van een standaard component MOET de adoptiegraad worden bijgehoud
 | `HapticTouchable` | `TouchableOpacity` | 113 | 0 | ✅ 100% |
 | `PanelAwareModal` | Raw `Modal` | 12 | 0 | ✅ 100% |
 | `ScrollViewWithIndicator` | Raw `ScrollView` | ✅ 100% | 0 | ✅ 100% |
-| `ModuleHeader` | Custom header styling | 15 | 2 | ~88% |
+| `ModuleHeader` | Custom header styling | 15 | 0 | ✅ 100% |
 | `SearchBar` | Custom search TextInput | 11 | 0 | ✅ 100% |
 | `LoadingView` | Bare `ActivityIndicator` (large) | 33 | ~10 | ~77% |
-| `ErrorView` | `Alert.alert()` (fout/succes/info) | 9 | ~56 | ~14% |
-| `useModuleColor()` | Hardcoded hex | ~15 | ~17 | ~47% |
+| `ErrorView` | `Alert.alert()` (fout/succes/info) | 24 | 0 | ✅ 100% |
+| `useModuleColor()` | Hardcoded hex | ~20 | 0 | ✅ 100% |
 
-**Laatste update:** 13 maart 2026 — na LoadingView migratie (10 bestanden: AlbumPickerModal, InvitationCodeScreen, InviteContactScreen, AcceptInvitationScreen, AppleMusicDetailModal, PhotoAlbumScreen, ArticleWebViewer, AgendaItemDetailScreen, WeatherScreen, FullscreenImageViewer)
+**Laatste update:** 13 maart 2026 — na volledige component standaardisatie (Phase 8-10). ErrorView migratie: 24 bestanden, alle single-button `Alert.alert()` vervangen door inline ErrorView. useModuleColor: alle hardcoded hex vervangen door theme colors of `useModuleColor()`. ModuleHeader: alle module screens gedekt (AgendaItemDetailScreen + BookReaderScreen uitgezonderd — detail screens met content-specifieke headers).
 
 **Notities bij deferred items:**
 - `LoadingView`: ~10 resterende `ActivityIndicator` — meeste zijn intentionele `size="small"` inline spinners (button states, lijst indicators) die NIET gemigreerd hoeven worden. Alleen `size="large"` fullscreen/modal loading states zijn relevant.
-- `ErrorView`: Scope uitgebreid — nu ALLE `Alert.alert()` voor fout/succes/info meldingen (niet alleen errors). ~56 instances te migreren. `Alert.alert()` is ALLEEN nog toegestaan voor bevestigingsdialogen (2+ knoppen). Zie ui-designer SKILL.md sectie 16.
-- Beide zijn technische schuld, geen blokkeerders voor nieuwe code
+- `ErrorView`: ✅ VOLTOOID — Alle single-button `Alert.alert()` gemigreerd naar inline ErrorView. Resterende `Alert.alert()` zijn bevestigingsdialogen (2+ knoppen, KEEP). Dev screens (DevModePanel, PiperTtsTestScreen) niet gemigreerd — niet user-facing.
+- `LoadingView` is technische schuld, geen blokkeerder voor nieuwe code
 
 ### Meetcommando's
 
@@ -235,10 +235,11 @@ Na ELKE refactoring of component migratie taak:
 
 | Component | Was | Nu | Delta |
 |-----------|-----|-----|-------|
-| HapticTouchable | 28% | 35% | +7% |
-| ErrorView | 17% | 22% | +5% |
+| HapticTouchable | 100% | 100% | — |
+| ErrorView | ~14% | 100% | +86% |
+| useModuleColor() | ~47% | ~47% | — |
 
-Volgende migratie prioriteit: HapticTouchable (hoogste impact)
+Volgende migratie prioriteit: useModuleColor() (Phase 9)
 ```
 
 ---

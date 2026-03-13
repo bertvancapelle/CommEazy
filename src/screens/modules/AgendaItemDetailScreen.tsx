@@ -24,7 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator} from '@/components';
+import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -248,6 +248,13 @@ export function AgendaItemDetailScreen({
   const [selectedShareContacts, setSelectedShareContacts] = useState<Set<string>>(new Set());
   const [isSharing, setIsSharing] = useState(false);
 
+  // Inline notification state (replaces Alert.alert for single-button notifications)
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
+
   // ============================================================
   // Info display values
   // ============================================================
@@ -413,16 +420,18 @@ export function AgendaItemDetailScreen({
       setShowShareModal(false);
 
       // Show success feedback
-      Alert.alert(
-        t('modules.agenda.share.successTitle'),
-        t('modules.agenda.share.successMessage', { count: jids.length }),
-      );
+      setNotification({
+        type: 'success',
+        title: t('modules.agenda.share.successTitle'),
+        message: t('modules.agenda.share.successMessage', { count: jids.length }),
+      });
     } catch (error) {
       console.warn('[AgendaDetail] Share failed:', error);
-      Alert.alert(
-        t('modules.agenda.share.errorTitle'),
-        t('modules.agenda.share.errorMessage'),
-      );
+      setNotification({
+        type: 'error',
+        title: t('modules.agenda.share.errorTitle'),
+        message: t('modules.agenda.share.errorMessage'),
+      });
     } finally {
       setIsSharing(false);
     }
@@ -448,6 +457,16 @@ export function AgendaItemDetailScreen({
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Header */}
       <View
         style={[

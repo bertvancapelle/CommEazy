@@ -35,7 +35,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { SeniorDatePicker } from '@/components/SeniorDatePicker';
-import { ModuleHeader, HapticTouchable , ScrollViewWithIndicator } from '@/components';
+import { ModuleHeader, HapticTouchable, ScrollViewWithIndicator, ErrorView } from '@/components';
 import {
   STANDARD_CATEGORIES,
   CUSTOM_CATEGORIES_STORAGE_KEY,
@@ -118,6 +118,11 @@ export function ManualAddContactScreen() {
 
   const [showCountryCodes, setShowCountryCodes] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
 
@@ -236,7 +241,7 @@ export function ManualAddContactScreen() {
       navigation.goBack();
     } catch (error) {
       console.error('Failed to save contact:', error);
-      Alert.alert(t('errors.genericError'));
+      setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
     } finally {
       setSaving(false);
     }
@@ -270,6 +275,16 @@ export function ManualAddContactScreen() {
         onSave={() => void handleSave()}
         saveDisabled={!canSave || saving}
       />
+
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
 
       <ScrollViewWithIndicator
         style={styles.scrollView}
@@ -475,7 +490,7 @@ export function ManualAddContactScreen() {
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
           {t('contacts.categories.title', 'Agenda categorieën')} *
         </Text>
-        <Text style={[styles.categoriesHint, { color: selectedCategories.length === 0 ? themeColors.error ?? '#D32F2F' : themeColors.textSecondary }]}>
+        <Text style={[styles.categoriesHint, { color: selectedCategories.length === 0 ? themeColors.error : themeColors.textSecondary }]}>
           {t('contacts.categories.required', 'Kies minimaal één categorie')}
         </Text>
         <View style={styles.categoryGrid}>

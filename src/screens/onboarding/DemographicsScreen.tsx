@@ -26,7 +26,6 @@ import {
   SafeAreaView,
   ScrollView,
   Modal,
-  Alert,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
@@ -38,7 +37,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, ProgressIndicator, ScrollViewWithIndicator } from '@/components';
+import { Button, ProgressIndicator, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { OnboardingStackParams } from '@/navigation';
 import type { AgeBracket } from '@/services/interfaces';
@@ -464,6 +463,11 @@ export function DemographicsScreen({ route, navigation }: Props) {
   const [ageBracket, setAgeBracket] = useState<AgeBracket | undefined>();
 
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
   const [regionPickerVisible, setRegionPickerVisible] = useState(false);
   const [cityPickerVisible, setCityPickerVisible] = useState(false);
   const [agePickerVisible, setAgePickerVisible] = useState(false);
@@ -479,24 +483,24 @@ export function DemographicsScreen({ route, navigation }: Props) {
     void triggerFeedback('tap');
     // Validate all fields are filled
     if (!countryCode) {
-      Alert.alert(t('demographics.required'), t('demographics.selectCountry'));
+      setNotification({ type: 'warning', title: t('demographics.required'), message: t('demographics.selectCountry') });
       return;
     }
 
     // Check if country has regions and region is required
     const hasRegions = countryCode && REGIONS_BY_COUNTRY[countryCode] && REGIONS_BY_COUNTRY[countryCode].length > 1;
     if (hasRegions && !regionCode) {
-      Alert.alert(t('demographics.required'), t('demographics.selectRegion'));
+      setNotification({ type: 'warning', title: t('demographics.required'), message: t('demographics.selectRegion') });
       return;
     }
 
     if (!selectedCity) {
-      Alert.alert(t('demographics.required'), t('demographics.selectCity'));
+      setNotification({ type: 'warning', title: t('demographics.required'), message: t('demographics.selectCity') });
       return;
     }
 
     if (!ageBracket) {
-      Alert.alert(t('demographics.required'), t('demographics.selectAge'));
+      setNotification({ type: 'warning', title: t('demographics.required'), message: t('demographics.selectAge') });
       return;
     }
 
@@ -522,7 +526,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
       navigation.navigate('NavigationTutorial', { name });
     } catch (error) {
       console.error('Failed to save demographics:', error);
-      Alert.alert(t('errors.genericError'));
+      setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
     }
   }, [countryCode, regionCode, selectedCity, ageBracket, name, navigation, t, triggerFeedback]);
 
@@ -551,6 +555,16 @@ export function DemographicsScreen({ route, navigation }: Props) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ProgressIndicator currentStep={5} totalSteps={6} />
+
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
 
       <ScrollViewWithIndicator style={styles.content} contentContainerStyle={styles.contentContainer}>
         <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('demographics.title')}</Text>

@@ -19,7 +19,6 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  Alert,
   Image,
   Platform,
   ActivityIndicator,
@@ -32,7 +31,7 @@ import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
-import { ModuleHeader } from '@/components';
+import { ModuleHeader, ErrorView } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
   colors,
@@ -86,6 +85,13 @@ export function CameraScreen() {
 
   // Error state
   const [cameraError, setCameraError] = useState<string | null>(null);
+
+  // Inline notification state (replaces Alert.alert for single-button notifications)
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Orientation detection
   const isLandscape = width > height;
@@ -186,11 +192,11 @@ export function CameraScreen() {
       }
     } catch (error) {
       console.error(LOG_PREFIX, 'Capture failed:', error);
-      Alert.alert(
-        t('modules.camera.error', 'Error'),
-        t('modules.camera.captureError', 'Could not capture photo. Please try again.'),
-        [{ text: t('common.ok', 'OK') }]
-      );
+      setNotification({
+        type: 'error',
+        title: t('modules.camera.error', 'Error'),
+        message: t('modules.camera.captureError', 'Could not capture photo. Please try again.'),
+      });
     } finally {
       setIsCapturing(false);
     }
@@ -210,11 +216,11 @@ export function CameraScreen() {
       paneContext.setPaneModule(panelId as PaneId, 'photoAlbum', pendingNav);
     } else {
       // Fallback: show hint
-      Alert.alert(
-        t('navigation.photoAlbum', 'Photo Album'),
-        t('modules.camera.albumHint', 'Use the menu to open Photo Album and view your photos.'),
-        [{ text: t('common.ok', 'OK') }]
-      );
+      setNotification({
+        type: 'info',
+        title: t('navigation.photoAlbum', 'Photo Album'),
+        message: t('modules.camera.albumHint', 'Use the menu to open Photo Album and view your photos.'),
+      });
     }
   }, [paneContext, panelId, t]);
 
@@ -380,6 +386,16 @@ export function CameraScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       <ModuleHeader
         moduleId="camera"
         icon="camera"

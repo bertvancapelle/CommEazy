@@ -40,7 +40,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon , ScrollViewWithIndicator } from '@/components';
+import { Icon, ScrollViewWithIndicator, ErrorView } from '@/components';
 import type { MailAccount, CachedMailHeader, MailBody, MailAttachment, MailRecipient } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { AttachmentPreviewBar } from '@/components/mail/AttachmentPreviewBar';
@@ -648,6 +648,11 @@ export function MailComposeScreen({
   const [showSentConfirmation, setShowSentConfirmation] = useState(false);
   const [attachments, setAttachments] = useState<MailAttachment[]>([]);
   const [showAlbumPicker, setShowAlbumPicker] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   // Original message HTML for forward/reply preview
   const originalHtml = useMemo(
@@ -904,10 +909,11 @@ export function MailComposeScreen({
       setShowSentConfirmation(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      Alert.alert(
-        t('modules.mail.compose.sendFailed'),
-        t('modules.mail.compose.sendFailedMessage'),
-      );
+      setNotification({
+        type: 'error',
+        title: t('modules.mail.compose.sendFailed'),
+        message: t('modules.mail.compose.sendFailedMessage'),
+      });
     } finally {
       setIsSending(false);
     }
@@ -987,10 +993,11 @@ export function MailComposeScreen({
     async (photos: Array<{ uri: string; fileName: string; fileSize: number; mimeType: string }>) => {
       for (const photo of photos) {
         if (wouldExceedTotalSize(attachments, photo.fileSize)) {
-          Alert.alert(
-            t('modules.mail.compose.totalSizeExceeded'),
-            t('modules.mail.compose.totalSizeWarning'),
-          );
+          setNotification({
+            type: 'warning',
+            title: t('modules.mail.compose.totalSizeExceeded'),
+            message: t('modules.mail.compose.totalSizeWarning'),
+          });
           break;
         }
 
@@ -1062,6 +1069,16 @@ export function MailComposeScreen({
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       {/* Top bar — cancel + title */}
       <View style={[styles.topBar, { borderBottomColor: themeColors.border }]}>
         <HapticTouchable hapticDisabled

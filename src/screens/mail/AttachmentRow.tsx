@@ -16,7 +16,6 @@ import {
   StyleSheet,
   Text,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +23,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon } from '@/components';
+import { Icon, ErrorView } from '@/components';
 import type { MailAttachmentMeta } from '@/types/mail';
 import { canSaveToAlbum } from '@/services/mail/mediaAttachmentService';
 import { downloadAndPreview } from '@/services/mail/contentRouter';
@@ -53,6 +52,11 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
 
   const isSaveable = canSaveToAlbum(attachment.mimeType);
 
@@ -68,16 +72,18 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
         attachment.mimeType,
       );
       if (!result.handled) {
-        Alert.alert(
-          t('modules.mail.detail.downloadFailed'),
-          result.error || t('modules.mail.detail.downloadFailedMessage'),
-        );
+        setNotification({
+          type: 'error',
+          title: t('modules.mail.detail.downloadFailed'),
+          message: result.error || t('modules.mail.detail.downloadFailedMessage'),
+        });
       }
     } catch {
-      Alert.alert(
-        t('modules.mail.detail.downloadFailed'),
-        t('modules.mail.detail.downloadFailedMessage'),
-      );
+      setNotification({
+        type: 'error',
+        title: t('modules.mail.detail.downloadFailed'),
+        message: t('modules.mail.detail.downloadFailedMessage'),
+      });
     } finally {
       setIsDownloading(false);
     }
@@ -92,22 +98,25 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
       const result = await saveAttachmentToAlbum(uid, folder, attachment, accountId);
       setSaveResult(result.success ? 'success' : 'error');
       if (result.success) {
-        Alert.alert(
-          t('modules.mail.detail.savedToAlbum'),
-          attachment.name,
-        );
+        setNotification({
+          type: 'success',
+          title: t('modules.mail.detail.savedToAlbum'),
+          message: attachment.name,
+        });
       } else {
-        Alert.alert(
-          t('modules.mail.detail.saveToAlbumFailed'),
-          t('modules.mail.detail.saveToAlbumFailedMessage'),
-        );
+        setNotification({
+          type: 'error',
+          title: t('modules.mail.detail.saveToAlbumFailed'),
+          message: t('modules.mail.detail.saveToAlbumFailedMessage'),
+        });
       }
     } catch {
       setSaveResult('error');
-      Alert.alert(
-        t('modules.mail.detail.saveToAlbumFailed'),
-        t('modules.mail.detail.saveToAlbumFailedMessage'),
-      );
+      setNotification({
+        type: 'error',
+        title: t('modules.mail.detail.saveToAlbumFailed'),
+        message: t('modules.mail.detail.saveToAlbumFailedMessage'),
+      });
     } finally {
       setIsSaving(false);
     }
@@ -116,6 +125,16 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
   const iconName = getAttachmentIconName(attachment.mimeType);
 
   return (
+    <View>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
     <View style={[styles.attachmentRow, { borderColor: themeColors.border }]}>
       <HapticTouchable hapticDisabled
         style={styles.attachmentMainArea}
@@ -166,6 +185,7 @@ export function AttachmentRow({ attachment, uid, folder, accountId }: Attachment
           )}
         </HapticTouchable>
       )}
+    </View>
     </View>
   );
 }

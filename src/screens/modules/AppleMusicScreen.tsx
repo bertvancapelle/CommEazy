@@ -203,6 +203,13 @@ export function AppleMusicScreen() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAllRecentlyPlayed, setShowAllRecentlyPlayed] = useState(false);
 
+  // Inline notification state (replaces Alert.alert for single-button notifications)
+  const [notification, setNotification] = useState<{
+    type: 'error' | 'warning' | 'info' | 'success';
+    title: string;
+    message: string;
+  } | null>(null);
+
   // Playlist browser state
   const [showPlaylistBrowser, setShowPlaylistBrowser] = useState(false);
 
@@ -606,10 +613,11 @@ export function AppleMusicScreen() {
       triggerFeedback('success');
     } catch (error: any) {
       console.error('[AppleMusicScreen] Failed to add to library:', error);
-      Alert.alert(
-        t('modules.appleMusic.library.addError'),
-        getLibraryErrorMessage(error),
-      );
+      setNotification({
+        type: 'error',
+        title: t('modules.appleMusic.library.addError'),
+        message: getLibraryErrorMessage(error),
+      });
     } finally {
       setIsAddingToLibrary(false);
     }
@@ -621,11 +629,12 @@ export function AppleMusicScreen() {
 
     if (isCurrentlyInLibrary) {
       // Song is already in library - Apple Music API doesn't support removal
-      // Show info alert
-      Alert.alert(
-        t('modules.appleMusic.inLibrary'),
-        t('modules.appleMusic.library.alreadyInLibraryMessage', { title: song.title })
-      );
+      // Show info notification
+      setNotification({
+        type: 'info',
+        title: t('modules.appleMusic.inLibrary'),
+        message: t('modules.appleMusic.library.alreadyInLibraryMessage', { title: song.title }),
+      });
     } else {
       // Add to library
       try {
@@ -640,10 +649,11 @@ export function AppleMusicScreen() {
         triggerFeedback('success');
       } catch (error: any) {
         console.error('[AppleMusicScreen] Failed to add to library:', error);
-        Alert.alert(
-          t('modules.appleMusic.library.addError'),
-          getLibraryErrorMessage(error),
-        );
+        setNotification({
+          type: 'error',
+          title: t('modules.appleMusic.library.addError'),
+          message: getLibraryErrorMessage(error),
+        });
       }
     }
   }, [searchResultsInLibrary, addToLibrary, triggerFeedback, t, getLibraryErrorMessage]);
@@ -739,10 +749,11 @@ export function AppleMusicScreen() {
       await playSong(song.id, song.artworkUrl);
     } catch (error) {
       console.error('[AppleMusicScreen] Play song error:', error);
-      Alert.alert(
-        t('modules.appleMusic.playError.title'),
-        t('modules.appleMusic.playError.message')
-      );
+      setNotification({
+        type: 'error',
+        title: t('modules.appleMusic.playError.title'),
+        message: t('modules.appleMusic.playError.message'),
+      });
     } finally {
       playInProgressRef.current = null;
     }
@@ -2256,6 +2267,16 @@ export function AppleMusicScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {notification && (
+        <ErrorView
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
+
       <ModuleHeader
         moduleId="appleMusic"
         icon="appleMusic"

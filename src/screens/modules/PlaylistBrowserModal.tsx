@@ -227,7 +227,7 @@ export function PlaylistBrowserModal({
 
           {error && (
             <View style={styles.errorContainer}>
-              <Icon name="warning" size={32} color={themeColors.error || '#D32F2F'} />
+              <Icon name="warning" size={32} color={themeColors.error} />
               <Text style={[styles.errorText, { color: themeColors.textPrimary }]}>
                 {error}
               </Text>
