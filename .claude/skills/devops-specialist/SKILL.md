@@ -176,6 +176,48 @@ jobs:
 - **Accessibility tests in CI**: No a11y regression reaches production
 - **Gradual rollout**: Use staged rollout (Google Play) and phased release (App Store) to catch issues early
 
+## Interface Contract
+
+**PROVIDES:**
+- CI/CD pipeline configuration
+- Build automation (Fastlane)
+- Store deployment automation (TestFlight, Play Console)
+- Automated screenshot generation (13 languages × 3 platforms)
+- Infrastructure monitoring (Prosody, Coturn)
+- SSL certificate management
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| ios-specialist | Fastlane iOS lane config, signing | Fastfile | Before iOS CI setup |
+| android-specialist | Fastlane Android lane config, signing | Fastfile | Before Android CI setup |
+| testing-qa | Test suite for CI integration | Jest/Detox config | Before pipeline setup |
+| security-expert | Prosody security config requirements | Config spec | Before monitoring setup |
+| architecture-lead | Build/deploy architecture decisions | ADR | Before pipeline design |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `.github/workflows/` (CI/CD pipelines)
+- `fastlane/` (build automation)
+- Infrastructure configuration scripts
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ devops-specialist BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] CI pipeline runs successfully on every PR
+- [ ] Store deployments automated and tested
+- [ ] Monitoring alerts configured for all services
+- [ ] Relevant skills have been notified: ios-specialist, android-specialist, testing-qa
+
 ## Quality Checklist
 
 - [ ] CI runs on every PR (lint, typecheck, unit tests)
@@ -192,8 +234,11 @@ jobs:
 
 ## Collaboration
 
+- **With architecture-lead**: Build/deploy architecture
+- **With react-native-expert**: Metro bundler, build configuration
 - **With ios-specialist**: Fastlane iOS lane, signing
 - **With android-specialist**: Fastlane Android lane, signing
 - **With testing-qa**: Test suite integration in CI
+- **With performance-optimizer**: Performance regression tests in CI
 - **With accessibility-specialist**: Automated a11y tests
 - **With security-expert**: Prosody config monitoring

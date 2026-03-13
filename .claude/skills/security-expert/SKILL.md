@@ -236,6 +236,47 @@ tail -1000 /var/log/prosody/prosody.log | grep -i "body\|content\|message" | hea
 find /var/lib/prosody/ -name "*.dat" -newer /var/lib/prosody/ -exec ls -la {} \;
 ```
 
+## Interface Contract
+
+**PROVIDES:**
+- Encryption API implementation (libsodium dual-path)
+- Security review verdicts on all PRs touching encryption/storage
+- Privacy Manifest entries and Data Safety declarations
+- US BIS Self-Classification Report guidance
+- Zero-server-storage verification reports
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| architecture-lead | Service interface definitions | TypeScript interfaces | Before encryption implementation |
+| ios-specialist | Keychain usage patterns | Swift code | Before key storage design |
+| android-specialist | Keystore usage patterns | Kotlin code | Before key storage design |
+| react-native-expert | Native module bridge specs | TypeScript types | Before bridge implementation |
+| All skills | Code changes touching encryption/storage | PR diff | Before merge |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `src/services/encryption.ts`
+- `src/services/keyManagement.ts`
+- `ios/CommEazyTemp/PrivacyInfo.xcprivacy` (security entries)
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ security-expert BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] No plaintext path exists for any encrypted data
+- [ ] Private keys never appear in logs or error messages
+- [ ] Sensitive data cleared from memory (sodium.memzero)
+- [ ] Relevant skills have been notified: architecture-lead, ios-specialist, android-specialist
+
 ## Quality Checklist
 
 - [ ] All messages encrypted before leaving device (no plaintext path exists)
@@ -256,6 +297,9 @@ find /var/lib/prosody/ -name "*.dat" -newer /var/lib/prosody/ -exec ls -la {} \;
 
 - **Validates ALL skills**: No code ships without security review
 - **With architecture-lead**: Validate encryption placement in service layer
+- **With react-native-expert**: Native module bridge security, secure storage patterns
 - **With ios-specialist**: Privacy Manifest, Keychain usage
 - **With android-specialist**: Data Safety, Keystore usage
+- **With xmpp-specialist**: TLS config, E2E encryption over XMPP
+- **With testing-qa**: Security test cases, penetration test plan
 - **With onboarding-recovery**: Key backup encryption (PBKDF2 + user PIN)

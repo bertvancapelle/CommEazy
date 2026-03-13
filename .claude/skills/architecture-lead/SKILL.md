@@ -157,10 +157,25 @@ i18n.use(initReactI18next).init({
 - Navigation structure
 
 **EXPECTS FROM:**
-- security-expert: Encryption API requirements
-- ui-designer: Screen flow requirements
-- performance-optimizer: Bottleneck reports
-- All skills: Implementation feedback for architecture refinement
+
+| From | What | Format | When |
+|------|------|--------|------|
+| security-expert | Encryption API requirements | TypeScript interfaces | Before service design |
+| ui-designer | Screen flow requirements | Screen diagrams / wireframes | Before navigation design |
+| performance-optimizer | Bottleneck reports | Profiling data + recommendations | After implementation |
+| All skills | Implementation feedback | Issues / suggestions | Ongoing |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `src/services/interfaces.ts`
+- `src/services/container.ts`
+- `src/models/schema.ts` (schema structure)
+- `src/navigation/index.tsx` (navigation structure)
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ architecture-lead BLOCKS [task]: [reason]
+Decision required from: [user / other skill]
 
 ## Error Architecture
 
@@ -1077,6 +1092,16 @@ PeerConnection state → 'connected'/'completed'
 
 ---
 
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Service interfaces are technology-agnostic and testable
+- [ ] Database schema + migration are in sync (see Database Schema Wijziging Protocol)
+- [ ] Relevant skills have been notified: security-expert, ui-designer, react-native-expert
+
 ## Quality Checklist
 
 - [ ] All service interfaces defined before implementation starts
@@ -1118,6 +1143,12 @@ PeerConnection state → 'connected'/'completed'
 - **With security-expert**: Design system → security validates encryption placement
 - **With ui-designer**: Design data flow → UI designs the screens
 - **With accessibility-specialist**: Ensure architecture supports a11y features
+- **With react-native-expert**: Define component architecture, state management patterns
+- **With ios-specialist**: Native module architecture, AppDelegate structure
+- **With android-specialist**: Native module architecture, Android lifecycle
+- **With xmpp-specialist**: XMPP service abstraction layer, connection state machine
+- **With performance-optimizer**: Architecture decisions that impact performance
+- **With testing-qa**: Testable architecture, dependency injection patterns
 - **With devops-specialist**: Define build/deploy architecture
 - **With onboarding-recovery**: Design key backup/restore flow architecture
 

@@ -262,6 +262,48 @@ describe('Senior Flow: Send Message', () => {
 });
 ```
 
+## Interface Contract
+
+**PROVIDES:**
+- Unit test implementations (Jest)
+- Integration test implementations
+- E2E test implementations (Detox)
+- Accessibility audit test scripts
+- Senior user testing protocols
+- Pre-commit validation gates
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| All skills | Testable code with clear interfaces | TypeScript | Before test writing |
+| accessibility-specialist | a11y test criteria | Checklist | Before audit tests |
+| devops-specialist | CI pipeline for test execution | Pipeline config | Before CI integration |
+| security-expert | Security test scenarios | Test cases | Before security tests |
+| onboarding-recovery | Senior testing scenarios | User stories | Before user testing |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `__tests__/` (all test files)
+- `e2e/` (Detox E2E tests)
+- Jest configuration files
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ testing-qa BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Unit test coverage > 80%
+- [ ] No flaky tests (all deterministic)
+- [ ] E2E core flows pass on iOS and Android
+- [ ] Relevant skills have been notified: devops-specialist, architecture-lead
+
 ## Quality Checklist
 
 - [ ] Unit test coverage > 80%
@@ -324,6 +366,10 @@ Bij falen:
 ## Collaboration
 
 - **With ALL skills**: Receives testable code, provides test results
+- **With architecture-lead**: Testable architecture, dependency injection patterns
+- **With security-expert**: Security test cases, penetration test plan
+- **With react-native-expert**: Component test coverage
+- **With performance-optimizer**: Performance regression tests
 - **With accessibility-specialist**: Joint a11y test plan
 - **With devops-specialist**: Tests run in CI/CD pipeline
 - **With onboarding-recovery**: Test onboarding flow with senioren

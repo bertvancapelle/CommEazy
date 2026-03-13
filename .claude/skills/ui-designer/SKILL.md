@@ -2469,6 +2469,51 @@ const MessageBubble = ({ message, isOwn }: Props) => (
 </View>
 ```
 
+## Interface Contract
+
+**PROVIDES:**
+- Component design specs (wireframes, visual specs)
+- Typography, spacing, colour palette definitions
+- Form field styling standards
+- Senior-inclusive design validation
+- Liquid Glass visual specs and tint colors
+- Error/success/info notification patterns
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| react-native-expert | Component implementation feasibility | Feedback | During design |
+| accessibility-specialist | WCAG AAA compliance review | Audit report | Before finalization |
+| ios-specialist | Liquid Glass native capabilities | API constraints | Before Glass design |
+| architecture-lead | Navigation structure, data flow | Diagrams | Before screen design |
+| documentation-writer | User guide screenshot requirements | Screenshot list | Before guide creation |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `src/theme/colors.ts`
+- `src/theme/darkColors.ts`
+- `src/theme/typography.ts`
+- `src/theme/spacing.ts`
+- `src/theme/touchTargets.ts`
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ ui-designer BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] All text ≥18pt body, ≥24pt headings
+- [ ] All touch targets ≥60×60pt
+- [ ] Contrast ≥7:1 (WCAG AAA) for body text
+- [ ] German text expansion (+30%) tested
+- [ ] Relevant skills have been notified: accessibility-specialist, react-native-expert, ios-specialist
+
 ## Quality Checklist
 
 - [ ] All text ≥ 18pt (body), ≥ 24pt (headings)
@@ -4319,6 +4364,10 @@ grep -rn "Alert\.alert" src/screens/ src/components/ --include="*.tsx" | \
 
 - **With accessibility-specialist**: Validate all components for a11y compliance
 - **With react-native-expert**: Component implementation, performance
+- **With architecture-lead**: Navigation structure, screen flow design
+- **With android-specialist**: Material Design accessibility, tablet layouts
+- **With testing-qa**: Visual regression testing, senior user testing
+- **With performance-optimizer**: Render performance, animation optimization
 - **With documentation-writer**: User guides with UI screenshots in 13 languages (see CONSTANTS.md)
 - **With onboarding-recovery**: First-use flow design
 - **With ios-specialist**: Liquid Glass native implementation on iOS 26+, button styling in Swift

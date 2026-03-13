@@ -184,6 +184,47 @@ if (shouldAnimate) {
 }
 ```
 
+## Interface Contract
+
+**PROVIDES:**
+- Performance profiling reports (Instruments, Flipper)
+- Optimization recommendations (memoization, batching, threading)
+- Bundle size analysis
+- Memory leak detection
+- FPS and cold start benchmarks
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| react-native-expert | Component implementations for profiling | Running app | After implementation |
+| xmpp-specialist | Stanza volume metrics | Logs | During optimization |
+| security-expert | Encryption performance constraints | Benchmark data | Before threading decisions |
+| devops-specialist | CI performance test infrastructure | Pipeline config | Before regression tests |
+| ios-specialist | Native profiling data (Instruments) | Reports | During optimization |
+| android-specialist | Native profiling data (Android Profiler) | Reports | During optimization |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- Performance benchmark scripts
+- Performance-related CI configuration
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ performance-optimizer BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Cold start < 3s on iPhone SE
+- [ ] 60fps scroll maintained with 1000+ items
+- [ ] Memory < 200MB after 1hr use
+- [ ] Relevant skills have been notified: react-native-expert, devops-specialist, architecture-lead
+
 ## Quality Checklist
 
 - [ ] Cold start < 3 sec on iPhone SE
@@ -202,6 +243,12 @@ if (shouldAnimate) {
 ## Collaboration
 
 - **With react-native-expert**: FlatList optimization, memoization
+- **With architecture-lead**: Architecture decisions that impact performance
+- **With ios-specialist**: Native performance profiling, Instruments
+- **With android-specialist**: Android performance profiling
+- **With ui-designer**: Render performance, animation optimization
+- **With accessibility-specialist**: a11y impact on render performance
 - **With xmpp-specialist**: Stanza batching, connection efficiency
 - **With security-expert**: Encryption threading, memory clearing
+- **With testing-qa**: Performance regression tests
 - **With devops-specialist**: Performance regression tests in CI

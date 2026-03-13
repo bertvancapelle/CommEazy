@@ -3724,6 +3724,19 @@ Zie `.claude/plans/LIQUID_GLASS_IMPLEMENTATION.md` voor het volledige implementa
 
 ---
 
+## Monetisation — AdMob Strategy
+
+AdMob is enabled by default in:
+- **ExpandedAudioPlayer:** banner at top (below close button, above artwork)
+- **ModuleHeader:** banner row below title (`showAdMob={true}` default)
+
+**Premium users:** `showAdMob={false}`
+**Disable only when:** premium subscription active OR screen is onboarding flow
+
+All skills must respect this. No screen removes AdMob without explicit instruction.
+
+---
+
 ## Feature Backlog (Per Platform)
 
 Alle features en taken voor CommEazy, georganiseerd per platform. Dit geeft overzicht welke keuzes er zijn voor iOS/iPadOS, Android, en Pre-Production/Cross-Platform ontwikkeling.

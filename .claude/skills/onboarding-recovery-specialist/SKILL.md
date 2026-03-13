@@ -247,6 +247,50 @@ function BackupPinSetup() {
 | No backup found | "Geen backup gevonden. Start als nieuwe gebruiker." | Fresh start |
 | Phone number changed | "Dit nummer is anders. Neem contact op met hulp@commeazy.nl" | Support contact |
 
+## Interface Contract
+
+**PROVIDES:**
+- First-use experience flow design and implementation
+- Language selection screen
+- Phone verification flow
+- Key generation UX (invisible to user)
+- Device migration flow
+- Account recovery flow
+- Backup PIN setup
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| security-expert | Key backup encryption specs (PBKDF2) | Security spec | Before backup flow design |
+| ui-designer | Onboarding screen layouts, PIN input design | Wireframes | Before implementation |
+| accessibility-specialist | Full onboarding flow a11y audit | Audit report | Before finalization |
+| ios-specialist | SMS auto-fill, biometrics APIs | API docs | Before implementation |
+| android-specialist | SMS auto-fill, biometrics APIs | API docs | Before implementation |
+| xmpp-specialist | Account creation XMPP flow | Protocol spec | Before registration flow |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `src/screens/onboarding/` (all onboarding screens)
+- `src/services/accountRecovery.ts`
+- `src/services/deviceMigration.ts`
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ onboarding-recovery-specialist BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Senior testing: ≥90% complete onboarding in <10 minutes
+- [ ] All onboarding text translated in 13 languages
+- [ ] VoiceOver/TalkBack full onboarding flow accessible
+- [ ] Relevant skills have been notified: security-expert, ui-designer, testing-qa
+
 ## Quality Checklist
 
 - [ ] Language selection works (13 languages (see CONSTANTS.md) switch entire app)
@@ -266,8 +310,10 @@ function BackupPinSetup() {
 ## Collaboration
 
 - **With security-expert**: Key backup encryption, PBKDF2 parameters
+- **With architecture-lead**: Key backup/restore flow architecture
 - **With ui-designer**: Onboarding screen layouts, PIN input design
 - **With accessibility-specialist**: Full onboarding flow a11y audit
+- **With xmpp-specialist**: Account creation, device migration XMPP flow
 - **With ios-specialist + android-specialist**: SMS auto-fill, biometrics
 - **With testing-qa**: Senior testing of onboarding flow
 - **With documentation-writer**: "Getting started" guide in 13 languages (see CONSTANTS.md)

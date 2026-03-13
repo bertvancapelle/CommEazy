@@ -206,6 +206,50 @@ Beschrijving waarom deze module wordt toegevoegd.
 Accepted / Proposed / Deprecated
 ```
 
+## Interface Contract
+
+**PROVIDES:**
+- TSDoc API documentation
+- Architecture Decision Records (ADRs)
+- User guides in 13 languages
+- Privacy policies and store listings
+- Senior-friendly help content
+- Welcome modal texts for new modules
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| All skills | Code with clear APIs and comments | TypeScript | Ongoing |
+| architecture-lead | Architecture decisions for ADRs | Decision records | After decisions |
+| ui-designer | Screenshots for user guides | PNG/JPEG | After UI finalization |
+| testing-qa | Test procedures to document | Test plans | After test design |
+| ios-specialist | App Store description requirements | Store guidelines | Before submission |
+| android-specialist | Play Store description requirements | Store guidelines | Before submission |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `docs/` (all documentation)
+- ADR files
+- Store listing texts
+- Privacy policy documents
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ documentation-writer BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Documentation in all 13 languages
+- [ ] Screenshots match current UI
+- [ ] No outdated API references
+- [ ] Relevant skills have been notified: architecture-lead, ui-designer
+
 ## Quality Checklist
 
 - [ ] All public APIs have TSDoc with examples
@@ -224,5 +268,9 @@ Accepted / Proposed / Deprecated
 
 - **With ALL skills**: Ensure code is documented
 - **With architecture-lead**: Document ADRs
+- **With security-expert**: Security documentation, privacy policies
 - **With ui-designer**: Screenshots for guides
+- **With accessibility-specialist**: Accessibility statement for stores
+- **With ios-specialist**: App Store listing, iOS-specific docs
+- **With android-specialist**: Play Store listing, Android-specific docs
 - **With testing-qa**: Document test procedures

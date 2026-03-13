@@ -1107,6 +1107,51 @@ useEffect(() => {
 
 ---
 
+## Interface Contract
+
+**PROVIDES:**
+- Cross-platform component implementations
+- React Navigation setup and configuration
+- State management patterns (Context + hooks)
+- i18n integration (react-i18next)
+- Native module bridge TypeScript types
+- Platform-specific code patterns
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| ui-designer | Component specs, wireframes | Design specs | Before component implementation |
+| security-expert | Encryption API signatures | TypeScript interfaces | Before integration |
+| architecture-lead | Service interfaces, navigation structure | TypeScript interfaces | Before implementation |
+| ios-specialist | Native module ObjC/Swift interfaces | Header files | Before bridge typing |
+| android-specialist | Native module Java/Kotlin interfaces | Class definitions | Before bridge typing |
+| accessibility-specialist | Screen reader flow requirements | Checklist | Before component finalization |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `src/components/` (shared components)
+- `src/hooks/` (custom hooks)
+- `src/contexts/` (React contexts)
+- `metro.config.js`
+- `babel.config.js`
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ react-native-expert BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Component works on both iOS and Android
+- [ ] i18n keys present in all 13 locale files
+- [ ] Accessibility labels and roles set on all interactive elements
+- [ ] Relevant skills have been notified: ui-designer, accessibility-specialist, performance-optimizer
+
 ## Quality Checklist
 
 - [ ] TypeScript strict mode, zero `any`
@@ -2045,6 +2090,9 @@ Bij ELKE nieuwe nieuws/content module:
 
 - **With ui-designer**: Implement component specs
 - **With security-expert**: Integrate encryption service correctly
+- **With architecture-lead**: Component architecture, state management patterns
 - **With ios-specialist + android-specialist**: Native module bridges
+- **With xmpp-specialist**: XMPP service integration in React components
 - **With performance-optimizer**: FlatList tuning, memoization
+- **With testing-qa**: Component test coverage
 - **With accessibility-specialist**: Screen reader flow validation

@@ -199,6 +199,48 @@ All connection and delivery status messages must be translated:
 }
 ```
 
+## Interface Contract
+
+**PROVIDES:**
+- XMPP client implementation (xmpp.js)
+- Prosody server configuration
+- MUC (group chat) setup
+- Delivery receipts (XEP-0184)
+- Offline sync protocol (7-day outbox)
+- Connection state machine
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| architecture-lead | XMPP service interface | TypeScript interface | Before implementation |
+| security-expert | TLS config, E2E encryption stanza format | Security spec | Before messaging implementation |
+| react-native-expert | React hook integration patterns | Code examples | Before context creation |
+| performance-optimizer | Stanza batching requirements | Profiling data | After initial implementation |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `src/services/xmpp.ts`
+- `src/services/xmppConnection.ts`
+- Prosody configuration files (`/etc/prosody/`)
+- `server/push-gateway/` (push notification relay)
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ xmpp-specialist BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Prosody zero-storage verified
+- [ ] Connection state machine covers all transitions
+- [ ] Offline sync tested with 7-day outbox
+- [ ] Relevant skills have been notified: security-expert, architecture-lead, react-native-expert
+
 ## Quality Checklist
 
 - [ ] Prosody max_history_messages = 0 verified
@@ -222,5 +264,9 @@ All connection and delivery status messages must be translated:
 
 - **With security-expert**: E2E encryption integration, TLS config
 - **With architecture-lead**: XMPP service abstraction layer
+- **With react-native-expert**: XMPP service integration in React components
+- **With ios-specialist**: PushKit/APNs for XMPP push wake
+- **With android-specialist**: FCM for XMPP push wake
 - **With performance-optimizer**: Stanza batching, compression
+- **With onboarding-recovery**: Account creation, device migration XMPP flow
 - **With testing-qa**: XMPP connection tests, offline sync tests

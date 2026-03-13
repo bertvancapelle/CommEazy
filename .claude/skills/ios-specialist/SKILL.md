@@ -755,6 +755,48 @@ let value = config["key"] as! String  // CRASH als nil
 
 ---
 
+## Interface Contract
+
+**PROVIDES:**
+- Native iOS modules (ObjC/Swift implementations)
+- Xcode project configuration and build settings
+- Privacy Manifest (PrivacyInfo.xcprivacy) maintenance
+- App Store submission guidance
+- Liquid Glass native implementations (iOS 26+)
+- Push notification (APNs/PushKit) configuration
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| react-native-expert | Bridge TypeScript types | `.ts` type definitions | Before native module implementation |
+| security-expert | Keychain access requirements | Security spec | Before Keychain implementation |
+| architecture-lead | Native module architecture decisions | ADR | Before new module creation |
+| ui-designer | Liquid Glass design specs | Visual specs + tint colors | Before native UI implementation |
+| accessibility-specialist | VoiceOver requirements | Checklist | Before UI finalization |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `ios/CommEazyTemp/` (all native iOS files)
+- `ios/Podfile`
+- `ios/CommEazyTemp.xcodeproj/` (project configuration)
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ ios-specialist BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Native module compiles without warnings
+- [ ] Privacy Manifest updated if Required Reason APIs used
+- [ ] Liquid Glass fallback works on iOS <26
+- [ ] Relevant skills have been notified: react-native-expert, android-specialist, security-expert
+
 ## Quality Checklist
 
 - [ ] Privacy Manifest complete and accurate
@@ -841,6 +883,9 @@ Zie CLAUDE.md sectie 16 "100% Feature Parity Regel" voor volledige feature check
 ## Collaboration
 
 - **With security-expert**: Privacy Manifest, Keychain, encryption export
+- **With architecture-lead**: Native module architecture, AppDelegate structure
+- **With react-native-expert**: Native module bridges, TypeScript types
 - **With android-specialist**: Feature parity, shared test plans
+- **With performance-optimizer**: Native performance profiling, Instruments
 - **With devops-specialist**: Fastlane iOS lane, TestFlight deployment
 - **With accessibility-specialist**: VoiceOver audit

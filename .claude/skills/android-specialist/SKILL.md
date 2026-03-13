@@ -191,6 +191,46 @@ WorkManager.getInstance(context).enqueueUniquePeriodicWork("offline_sync", KEEP,
 - Localize permission rationale dialogs
 - Play Store listing in 13 languages (see CONSTANTS.md)
 
+## Interface Contract
+
+**PROVIDES:**
+- Native Android modules (Java/Kotlin implementations)
+- Android project configuration and build settings
+- Data Safety Section declarations
+- Play Store submission guidance
+- Firebase Cloud Messaging configuration
+- WorkManager background task setup
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| react-native-expert | Bridge TypeScript types | `.ts` type definitions | Before native module implementation |
+| security-expert | Keystore access requirements | Security spec | Before Keystore implementation |
+| architecture-lead | Native module architecture decisions | ADR | Before new module creation |
+| ios-specialist | Feature parity requirements | Feature list | During implementation |
+| accessibility-specialist | TalkBack requirements | Checklist | Before UI finalization |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- `android/` (all native Android files)
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ android-specialist BLOCKS [task]: [reason]
+Decision required from: [user / architecture-lead]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Quality Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] Native module compiles without warnings
+- [ ] Data Safety Section updated if data collection changes
+- [ ] Feature parity with iOS verified
+- [ ] Relevant skills have been notified: react-native-expert, ios-specialist, security-expert
+
 ## Quality Checklist
 
 - [ ] Data Safety Section complete
@@ -213,6 +253,12 @@ WorkManager.getInstance(context).enqueueUniquePeriodicWork("offline_sync", KEEP,
 ## Collaboration
 
 - **With security-expert**: Data Safety, Keystore, encryption
+- **With architecture-lead**: Native module architecture, Android lifecycle
+- **With react-native-expert**: Native module bridges, TypeScript types
 - **With ios-specialist**: Feature parity, shared test plans
+- **With ui-designer**: Material Design accessibility, tablet layouts
+- **With performance-optimizer**: Android performance profiling
+- **With testing-qa**: Android-specific test cases
+- **With onboarding-recovery**: SMS auto-fill, biometrics
 - **With devops-specialist**: Fastlane Android lane, Play Console deployment
 - **With accessibility-specialist**: TalkBack audit

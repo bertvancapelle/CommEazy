@@ -1741,6 +1741,48 @@ AccessibilityInfo.announceForAccessibility(
 
 ---
 
+## Interface Contract
+
+**PROVIDES:**
+- WCAG AAA + EN 301 549 compliance audits
+- VoiceOver/TalkBack flow validation
+- Accessibility label and role specifications
+- Reduced motion and Dynamic Type testing
+- Senior-inclusive UX validation
+- Audio conflict handling requirements
+
+**EXPECTS FROM:**
+
+| From | What | Format | When |
+|------|------|--------|------|
+| ui-designer | Component specs with a11y annotations | Design specs | Before audit |
+| react-native-expert | Implemented components for testing | Running app | Before release |
+| ios-specialist | VoiceOver-specific native implementations | Swift code | Before audit |
+| android-specialist | TalkBack-specific native implementations | Kotlin code | Before audit |
+| testing-qa | Automated a11y test results | Test report | During CI |
+
+**FILE OWNERSHIP — I am the sole writer of:**
+- Accessibility audit reports
+- `src/utils/accessibility.ts` (a11y helpers)
+
+**Other skills may READ but not WRITE these files without my approval.**
+
+**ESCALATION format:**
+⛔ accessibility-specialist BLOCKS [task]: [reason]
+Decision required from: [user / ui-designer]
+
+## Definition of Done
+
+My contribution to a task is complete when:
+- [ ] All items in my Accessibility Audit Checklist pass
+- [ ] FILE OWNERSHIP boundaries have been respected
+- [ ] Interface Contract outputs have been delivered
+- [ ] VoiceOver full-flow tested (iOS)
+- [ ] TalkBack full-flow tested (Android)
+- [ ] Dynamic Type at 200% does not break layout
+- [ ] Reduced motion setting respected
+- [ ] Relevant skills have been notified: ui-designer, react-native-expert, testing-qa
+
 ## Accessibility Audit Checklist — Aanvullingen
 
 ### Per Screen (aanvulling op bestaande checklist)
@@ -1765,8 +1807,10 @@ AccessibilityInfo.announceForAccessibility(
 
 - **Validates ALL UI skills**: No screen ships without a11y audit
 - **With ui-designer**: Component accessibility specs
+- **With architecture-lead**: Ensure architecture supports a11y features
 - **With react-native-expert**: Accessibility API integration
 - **With ios-specialist**: VoiceOver specifics, Dynamic Type
 - **With android-specialist**: TalkBack specifics, font scaling
+- **With performance-optimizer**: a11y impact on render performance
 - **With testing-qa**: Accessibility test plan, automated a11y tests
 - **With documentation-writer**: Accessibility statement for stores
