@@ -24,7 +24,7 @@ import MediaPlayer  // For MPMediaLibrary change notifications
 // ============================================================
 
 @objc(AppleMusicModule)
-class AppleMusicModule: RCTEventEmitter {
+class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
 
     // MusicKit player instance
     private let player = ApplicationMusicPlayer.shared
@@ -1055,7 +1055,7 @@ class AppleMusicModule: RCTEventEmitter {
         case "all":
             player.state.repeatMode = .all
         default:
-            player.state.repeatMode = .none
+            player.state.repeatMode = MusicPlayer.RepeatMode.none
         }
         resolve(["success": true, "mode": mode])
     }
