@@ -49,7 +49,8 @@ import { ScrollViewWithIndicator } from '@/components';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { HomeGridItem, GRID_CELL_WIDTH } from '@/components/HomeGridItem';
+import { HomeGridItem, GRID_CELL_WIDTH, type CollectionMiniIcon } from '@/components/HomeGridItem';
+import { CollectionOverlay } from '@/components/CollectionOverlay';
 import { UnifiedMiniPlayer } from '@/components/UnifiedMiniPlayer';
 import { useActivePlayback } from '@/hooks/useActivePlayback';
 import {
@@ -63,6 +64,7 @@ import type {
   StaticNavigationDestination,
   GridItem,
   CollectionReference,
+  ModuleCollection,
 } from '@/types/navigation';
 import { LoadingView } from '@/components/LoadingView';
 import { useModuleOrder } from '@/hooks/useModuleOrder';
@@ -130,6 +132,9 @@ export function HomeScreen({
   const moduleColors = useModuleColorsContextSafe();
   const { triggerFeedback } = useFeedback();
   const { getBadgeCount } = useModuleBadges();
+
+  // Collection overlay state
+  const [openCollection, setOpenCollection] = useState<ModuleCollection | null>(null);
 
   // Wiggle mode state
   const [isWiggleMode, setIsWiggleMode] = useState(false);
@@ -677,6 +682,14 @@ export function HomeScreen({
                 ? t(collection.name)
                 : collection.name;
 
+              // Build 2×2 mini-icon preview from collection modules
+              const miniIcons: CollectionMiniIcon[] = collection.moduleIds
+                .slice(0, 4)
+                .map((mid) => ({
+                  icon: getIconName(mid as NavigationDestination),
+                  color: getModuleColor(mid),
+                }));
+
               return (
                 <View
                   key={gridItem}
@@ -692,19 +705,17 @@ export function HomeScreen({
                     moduleId={gridItem}
                     icon="grid"
                     label={colLabel}
-                    color={getModuleColor('woordraad')}
+                    color={getModuleColor(collection.moduleIds[0] || 'woordraad')}
                     badgeCount={0}
                     isAudioActive={false}
                     isWiggling={isWiggleMode}
                     isSelected={false}
                     isDragging={isDraggedItem}
                     isDropTarget={isDropTargetItem}
+                    isCollection={true}
+                    collectionMiniIcons={miniIcons}
                     onPress={() => {
-                      // TODO Fase 4: Open CollectionOverlay
-                      // For now, navigate to first module in collection
-                      if (collection.moduleIds.length > 0) {
-                        onModulePress(collection.moduleIds[0]);
-                      }
+                      setOpenCollection(collection);
                     }}
                     onLongPress={isWiggleMode ? undefined : handleEnterWiggleMode}
                   />
@@ -779,13 +790,22 @@ export function HomeScreen({
               moduleId={currentDraggedId}
               icon={isCol ? 'grid' : getIconName(dragModuleId!)}
               label={dragLabel}
-              color={isCol ? getModuleColor('woordraad') : getModuleColor(dragModuleId!)}
+              color={isCol
+                ? getModuleColor(dragCollection?.moduleIds[0] || 'woordraad')
+                : getModuleColor(dragModuleId!)}
               badgeCount={isCol ? 0 : getBadgeCount(dragModuleId!)}
               isAudioActive={false}
               isWiggling={false}
               isSelected={false}
               isDragging={false}
               isDropTarget={false}
+              isCollection={isCol}
+              collectionMiniIcons={isCol && dragCollection
+                ? dragCollection.moduleIds.slice(0, 4).map((mid) => ({
+                    icon: getIconName(mid as NavigationDestination),
+                    color: getModuleColor(mid),
+                  }))
+                : undefined}
               onPress={() => {}}
             />
           </Animated.View>
@@ -809,6 +829,14 @@ export function HomeScreen({
           onStop={activePlayback.onStop}
         />
       )}
+
+      {/* Collection overlay — iOS folder-style modal */}
+      <CollectionOverlay
+        visible={openCollection !== null}
+        collection={openCollection}
+        onClose={() => setOpenCollection(null)}
+        onModulePress={onModulePress}
+      />
     </Wrapper>
   );
 }

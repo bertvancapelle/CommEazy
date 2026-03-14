@@ -37,6 +37,12 @@ import {
 // Types
 // ============================================================
 
+/** Mini-icon definition for collection 2×2 preview */
+export interface CollectionMiniIcon {
+  icon: IconName;
+  color: string;
+}
+
 export interface HomeGridItemProps {
   /** Module identifier */
   moduleId: string;
@@ -58,6 +64,10 @@ export interface HomeGridItemProps {
   isDragging?: boolean;
   /** Whether this cell is the current drop target during drag */
   isDropTarget?: boolean;
+  /** Collection variant — shows 2×2 mini-icon preview instead of single icon */
+  isCollection?: boolean;
+  /** Mini-icons for collection preview (max 4 shown) */
+  collectionMiniIcons?: CollectionMiniIcon[];
   /** Tap handler */
   onPress: () => void;
   /** Long press handler (activates wiggle mode) */
@@ -84,6 +94,11 @@ const BADGE_FONT_SIZE = 12;
 const LABEL_FONT_SIZE = 14;
 const AUDIO_RING_SIZE = ICON_CIRCLE_SIZE + 8; // 80pt
 
+// Collection 2×2 preview constants
+const MINI_CIRCLE_SIZE = 28;
+const MINI_ICON_SIZE = 16;
+const MINI_GRID_GAP = 4;
+
 // ============================================================
 // Component
 // ============================================================
@@ -99,6 +114,8 @@ export function HomeGridItem({
   isSelected = false,
   isDragging = false,
   isDropTarget = false,
+  isCollection = false,
+  collectionMiniIcons,
   onPress,
   onLongPress,
 }: HomeGridItemProps) {
@@ -169,6 +186,34 @@ export function HomeGridItem({
   const showBadge = badgeCount !== undefined && badgeCount > 0;
   const badgeText = badgeCount !== undefined && badgeCount > 99 ? '99+' : String(badgeCount ?? 0);
 
+  // Render the icon circle — either single icon or 2×2 collection preview
+  const renderIconCircle = () => {
+    if (isCollection && collectionMiniIcons && collectionMiniIcons.length > 0) {
+      // 2×2 collection preview
+      const icons = collectionMiniIcons.slice(0, 4);
+      return (
+        <View style={[styles.iconCircle, styles.collectionCircle, { backgroundColor: `${color}26` }]}>
+          <View style={styles.miniGrid}>
+            {icons.map((mini, i) => (
+              <View
+                key={i}
+                style={[styles.miniCircle, { backgroundColor: mini.color }]}
+              >
+                <Icon name={mini.icon} size={MINI_ICON_SIZE} color="#FFFFFF" />
+              </View>
+            ))}
+          </View>
+        </View>
+      );
+    }
+    // Single icon (default)
+    return (
+      <View style={[styles.iconCircle, { backgroundColor: color }]}>
+        <Icon name={icon} size={ICON_SIZE} color="#FFFFFF" />
+      </View>
+    );
+  };
+
   return (
     <Animated.View
       style={[
@@ -188,9 +233,7 @@ export function HomeGridItem({
       {isWiggling ? (
         <View style={styles.touchable} pointerEvents="none">
           <View style={styles.iconWrapper}>
-            <View style={[styles.iconCircle, { backgroundColor: color }]}>
-              <Icon name={icon} size={ICON_SIZE} color="#FFFFFF" />
-            </View>
+            {renderIconCircle()}
             {showBadge && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{badgeText}</Text>
@@ -233,9 +276,7 @@ export function HomeGridItem({
                 ]}
               />
             )}
-            <View style={[styles.iconCircle, { backgroundColor: color }]}>
-              <Icon name={icon} size={ICON_SIZE} color="#FFFFFF" />
-            </View>
+            {renderIconCircle()}
             {showBadge && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{badgeText}</Text>
@@ -338,5 +379,24 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     borderRadius: borderRadius.md,
     borderStyle: 'dashed',
+  },
+  // Collection 2×2 preview styles
+  collectionCircle: {
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  miniGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: MINI_GRID_GAP,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniCircle: {
+    width: MINI_CIRCLE_SIZE,
+    height: MINI_CIRCLE_SIZE,
+    borderRadius: MINI_CIRCLE_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -2736,6 +2736,14 @@
     }
   },
   "collections": {
-    "games": "Spiele"
+    "games": "Spiele",
+    "create": "Neue Sammlung",
+    "rename": "Sammlung umbenennen",
+    "renamePrompt": "Gib einen Namen ein",
+    "delete": "Sammlung löschen",
+    "deleteConfirm": "Bist du sicher?",
+    "cannotDelete": "Entferne zuerst alle Module",
+    "maxModules": "Maximal 9 Module pro Sammlung",
+    "dragHint": "Ziehe ein Modul auf ein anderes, um eine Sammlung zu erstellen"
   }
 }

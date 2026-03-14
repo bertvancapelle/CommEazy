@@ -2678,6 +2678,14 @@
     }
   },
   "collections": {
-    "games": "Giochi"
+    "games": "Giochi",
+    "create": "Nuova raccolta",
+    "rename": "Rinomina raccolta",
+    "renamePrompt": "Inserisci un nome",
+    "delete": "Elimina raccolta",
+    "deleteConfirm": "Sei sicuro?",
+    "cannotDelete": "Rimuovi prima tutti i moduli",
+    "maxModules": "Massimo 9 moduli per raccolta",
+    "dragHint": "Trascina un modulo su un altro per creare una raccolta"
   }
 }

@@ -2740,6 +2740,14 @@
     }
   },
   "collections": {
-    "games": "Spellen"
+    "games": "Spellen",
+    "create": "Nieuwe verzameling",
+    "rename": "Hernoem verzameling",
+    "renamePrompt": "Geef een naam",
+    "delete": "Verwijder verzameling",
+    "deleteConfirm": "Weet je het zeker?",
+    "cannotDelete": "Verwijder eerst alle modules",
+    "maxModules": "Maximaal 9 modules per verzameling",
+    "dragHint": "Sleep een module op een andere om een verzameling te maken"
   }
 }

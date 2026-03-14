@@ -2571,6 +2571,14 @@
     }
   },
   "collections": {
-    "games": "Spel"
+    "games": "Spel",
+    "create": "Ny samling",
+    "rename": "Byt namn på samling",
+    "renamePrompt": "Ange ett namn",
+    "delete": "Ta bort samling",
+    "deleteConfirm": "Är du säker?",
+    "cannotDelete": "Ta bort alla moduler först",
+    "maxModules": "Maximalt 9 moduler per samling",
+    "dragHint": "Dra en modul över en annan för att skapa en samling"
   }
 }

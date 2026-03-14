@@ -2571,6 +2571,14 @@
     }
   },
   "collections": {
-    "games": "Spil"
+    "games": "Spil",
+    "create": "Ny samling",
+    "rename": "Omdøb samling",
+    "renamePrompt": "Indtast et navn",
+    "delete": "Slet samling",
+    "deleteConfirm": "Er du sikker?",
+    "cannotDelete": "Fjern alle moduler først",
+    "maxModules": "Maksimalt 9 moduler per samling",
+    "dragHint": "Træk et modul over et andet for at oprette en samling"
   }
 }

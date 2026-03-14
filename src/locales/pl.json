@@ -2595,6 +2595,14 @@
     }
   },
   "collections": {
-    "games": "Gry"
+    "games": "Gry",
+    "create": "Nowa kolekcja",
+    "rename": "Zmień nazwę kolekcji",
+    "renamePrompt": "Podaj nazwę",
+    "delete": "Usuń kolekcję",
+    "deleteConfirm": "Czy na pewno?",
+    "cannotDelete": "Najpierw usuń wszystkie moduły",
+    "maxModules": "Maksymalnie 9 modułów na kolekcję",
+    "dragHint": "Przeciągnij moduł na inny, aby utworzyć kolekcję"
   }
 }

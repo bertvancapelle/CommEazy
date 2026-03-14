@@ -2746,6 +2746,14 @@
     }
   },
   "collections": {
-    "games": "Jogos"
+    "games": "Jogos",
+    "create": "Nova coleção",
+    "rename": "Renomear coleção",
+    "renamePrompt": "Digite um nome",
+    "delete": "Excluir coleção",
+    "deleteConfirm": "Tem certeza?",
+    "cannotDelete": "Remova todos os módulos primeiro",
+    "maxModules": "Máximo de 9 módulos por coleção",
+    "dragHint": "Arraste um módulo sobre outro para criar uma coleção"
   }
 }

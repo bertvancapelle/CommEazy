@@ -2601,6 +2601,14 @@
     }
   },
   "collections": {
-    "games": "Spill"
+    "games": "Spill",
+    "create": "Ny samling",
+    "rename": "Gi samlingen nytt navn",
+    "renamePrompt": "Skriv inn et navn",
+    "delete": "Slett samling",
+    "deleteConfirm": "Er du sikker?",
+    "cannotDelete": "Fjern alle moduler først",
+    "maxModules": "Maksimalt 9 moduler per samling",
+    "dragHint": "Dra en modul over en annen for å opprette en samling"
   }
 }
