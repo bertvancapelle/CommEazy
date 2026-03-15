@@ -698,6 +698,15 @@
       "hint": "Så här ser appen ut nu",
       "sampleMessage": "Hej! Hur mår du?"
     },
+    "moduleLayout": {
+      "title": "Skärmlayout",
+      "hint": "Ändra ordningen på sektioner på modulskärmar",
+      "module": "Modulnamn",
+      "controls": "Knappar och filter",
+      "content": "Innehåll",
+      "reset": "Återställ standard",
+      "customize": "Anpassa layout"
+    },
     "info": "Ändringar tillämpas omedelbart i hela appen."
   },
   "theme": {

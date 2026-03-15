@@ -201,6 +201,15 @@ export {
 } from './AgendaContext';
 
 export {
+  ModuleLayoutProvider,
+  useModuleLayout,
+  useModuleLayoutSafe,
+  DEFAULT_LAYOUT_ORDER,
+  type LayoutBlock,
+  type ModuleLayoutContextValue,
+} from './ModuleLayoutContext';
+
+export {
   ModuleBrowsingProvider,
   useModuleBrowsingContext,
   useModuleBrowsingContextSafe,

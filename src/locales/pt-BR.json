@@ -827,6 +827,15 @@
       "hint": "É assim que o app aparece agora",
       "sampleMessage": "Olá! Como você está?"
     },
+    "moduleLayout": {
+      "title": "Disposição da tela",
+      "hint": "Altere a ordem das seções nas telas de módulo",
+      "module": "Nome do módulo",
+      "controls": "Botões e filtros",
+      "content": "Conteúdo",
+      "reset": "Restaurar padrão",
+      "customize": "Personalizar disposição"
+    },
     "info": "As alterações são aplicadas imediatamente em todo o app."
   },
   "callSettings": {

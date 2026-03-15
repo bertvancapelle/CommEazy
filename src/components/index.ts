@@ -84,6 +84,9 @@ export type { PanelAwareModalProps } from './PanelAwareModal';
 export { ModuleHeader } from './ModuleHeader';
 export type { ModuleHeaderProps } from './ModuleHeader';
 
+// Module Screen Layout (configurable block order for module screens)
+export { ModuleScreenLayout } from './ModuleScreenLayout';
+
 // AdMob Banner Component (placeholder until real SDK is installed)
 export { AdMobBanner } from './AdMobBanner';
 export type { AdMobBannerProps } from './AdMobBanner';

@@ -40,7 +40,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, type SearchBarRef } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -657,8 +657,11 @@ export function PodcastScreen() {
           Content scrolls UNDER the ModuleHeader and MiniPlayer
           ============================================================ */}
       <View style={styles.contentLayer}>
+        <ModuleScreenLayout
+          headerPadding={contentPaddingTop + spacing.md}
+          controlsBlock={<>
         {/* Tab selector — uses standardized FavoriteTabButton/SearchTabButton */}
-        <View style={[styles.tabBar, { marginTop: contentPaddingTop + spacing.md }]}>
+        <View style={styles.tabBar}>
           <FavoriteTabButton
             isActive={showSubscriptions}
             onPress={() => setShowSubscriptions(true)}
@@ -722,7 +725,8 @@ export function PodcastScreen() {
             </HapticTouchable>
           </View>
         )}
-
+        </>}
+        contentBlock={<>
         {/* Show list */}
         {isLoading ? (
           <LoadingView message={t('modules.podcast.loading')} fullscreen />
@@ -855,6 +859,8 @@ export function PodcastScreen() {
             })}
           </ScrollViewWithIndicator>
         )}
+        </>}
+        />
       </View>
 
       {/* ============================================================

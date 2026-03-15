@@ -640,6 +640,15 @@
       "hint": "Zo ziet de app er nu uit",
       "sampleMessage": "Hallo! Hoe gaat het met je?"
     },
+    "moduleLayout": {
+      "title": "Schermindeling",
+      "hint": "Verander de volgorde van onderdelen op moduleschermen",
+      "module": "Module naam",
+      "controls": "Knoppen en filters",
+      "content": "Inhoud",
+      "reset": "Standaard herstellen",
+      "customize": "Indeling aanpassen"
+    },
     "info": "Wijzigingen worden direct toegepast op de hele app."
   },
   "callSettings": {

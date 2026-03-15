@@ -36,7 +36,7 @@ import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, VoiceFocusable, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, LoadingView , ScrollViewWithIndicator } from '@/components';
+import { Icon, VoiceFocusable, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, LoadingView, ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -259,8 +259,11 @@ export function BookPlayerScreen() {
           Content scrolls UNDER the ModuleHeader and MiniPlayer
           ============================================================ */}
       <View style={styles.contentLayer}>
+        <ModuleScreenLayout
+          headerPadding={contentPaddingTop + spacing.md}
+          controlsBlock={<>
         {/* Book Info */}
-        <View style={[styles.bookInfoContainer, { marginTop: contentPaddingTop + spacing.md }]}>
+        <View style={styles.bookInfoContainer}>
           <Text style={styles.bookTitle} numberOfLines={2}>
             {currentBook.title}
           </Text>
@@ -271,7 +274,8 @@ export function BookPlayerScreen() {
             {t('modules.books.audio.chapterCount', { count: chapters.length })}
           </Text>
         </View>
-
+        </>}
+        contentBlock={<>
         {/* Chapter List */}
         <ScrollViewWithIndicator
           ref={scrollRef}
@@ -372,6 +376,8 @@ export function BookPlayerScreen() {
           );
         })}
       </ScrollViewWithIndicator>
+        </>}
+        />
       </View>
 
       {/* ============================================================

@@ -7,6 +7,7 @@
  * - LiquidGlassProvider (iOS 26+ glass effects)
  * - ButtonStyleProvider (unified button styling)
  * - ModuleColorsProvider (per-module color customization)
+ * - ModuleLayoutProvider (configurable module screen layout order)
  */
 
 import React, { type ReactNode } from 'react';
@@ -17,6 +18,7 @@ import { AccentColorProvider } from './AccentColorContext';
 import { LiquidGlassProvider } from './LiquidGlassContext';
 import { ButtonStyleProvider } from './ButtonStyleContext';
 import { ModuleColorsProvider } from './ModuleColorsContext';
+import { ModuleLayoutProvider } from './ModuleLayoutContext';
 
 /**
  * ThemedStatusBar — Dynamically updates StatusBar based on theme
@@ -45,7 +47,9 @@ export function ThemeSystemProvider({ children }: ThemeSystemProviderProps) {
         <LiquidGlassProvider>
           <ButtonStyleProvider>
             <ModuleColorsProvider>
-              {children}
+              <ModuleLayoutProvider>
+                {children}
+              </ModuleLayoutProvider>
             </ModuleColorsProvider>
           </ButtonStyleProvider>
         </LiquidGlassProvider>

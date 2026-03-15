@@ -803,6 +803,15 @@
       "hint": "Así se ve la aplicación ahora",
       "sampleMessage": "¡Hola! ¿Cómo estás?"
     },
+    "moduleLayout": {
+      "title": "Disposición de pantalla",
+      "hint": "Cambia el orden de las secciones en las pantallas de módulo",
+      "module": "Nombre del módulo",
+      "controls": "Botones y filtros",
+      "content": "Contenido",
+      "reset": "Restablecer predeterminado",
+      "customize": "Personalizar disposición"
+    },
     "info": "Los cambios se aplican inmediatamente en toda la aplicación."
   },
   "callSettings": {

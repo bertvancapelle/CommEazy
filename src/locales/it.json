@@ -802,6 +802,15 @@
       "hint": "Ecco come appare l'app ora",
       "sampleMessage": "Ciao! Come stai?"
     },
+    "moduleLayout": {
+      "title": "Disposizione schermo",
+      "hint": "Cambia l'ordine delle sezioni nelle schermate dei moduli",
+      "module": "Nome del modulo",
+      "controls": "Pulsanti e filtri",
+      "content": "Contenuto",
+      "reset": "Ripristina predefinito",
+      "customize": "Personalizza disposizione"
+    },
     "info": "Le modifiche vengono applicate immediatamente in tutta l'app."
   },
   "theme": {

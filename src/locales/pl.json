@@ -719,6 +719,15 @@
       "hint": "Tak wygląda aplikacja teraz",
       "sampleMessage": "Cześć! Jak się masz?"
     },
+    "moduleLayout": {
+      "title": "Układ ekranu",
+      "hint": "Zmień kolejność sekcji na ekranach modułów",
+      "module": "Nazwa modułu",
+      "controls": "Przyciski i filtry",
+      "content": "Treść",
+      "reset": "Przywróć domyślne",
+      "customize": "Dostosuj układ"
+    },
     "info": "Zmiany są stosowane natychmiast w całej aplikacji."
   },
   "theme": {

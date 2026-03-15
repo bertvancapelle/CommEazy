@@ -827,6 +827,15 @@
       "hint": "É assim que a aplicação aparece agora",
       "sampleMessage": "Olá! Como estás?"
     },
+    "moduleLayout": {
+      "title": "Disposição do ecrã",
+      "hint": "Altere a ordem das secções nos ecrãs de módulo",
+      "module": "Nome do módulo",
+      "controls": "Botões e filtros",
+      "content": "Conteúdo",
+      "reset": "Repor predefinição",
+      "customize": "Personalizar disposição"
+    },
     "info": "As alterações são aplicadas imediatamente em toda a aplicação."
   },
   "callSettings": {

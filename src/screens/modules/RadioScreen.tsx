@@ -37,7 +37,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode , ScrollViewWithIndicator } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode , ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -947,8 +947,11 @@ export function RadioScreen() {
           Content scrolls UNDER the ModuleHeader and MiniPlayer
           ============================================================ */}
       <View style={styles.contentLayer}>
+        <ModuleScreenLayout
+          headerPadding={contentPaddingTop + spacing.md}
+          controlsBlock={<>
         {/* 3-way toggle: [❤️ Favorieten]  <space>  [Land] [Taal] */}
-        <View style={[styles.toggleRow, { marginTop: contentPaddingTop + spacing.md }]}>
+        <View style={styles.toggleRow}>
           {/* Favorites button — links */}
           <HapticTouchable hapticDisabled
             style={[
@@ -1091,7 +1094,8 @@ export function RadioScreen() {
             </HapticTouchable>
           </View>
         )}
-
+        </>}
+        contentBlock={<>
       {/* Station list — ALWAYS visible, with bottom padding for mini-player */}
       {isLoading ? (
         <LoadingView message={t('modules.radio.loading')} fullscreen />
@@ -1225,6 +1229,8 @@ export function RadioScreen() {
           })}
         </ScrollViewWithIndicator>
       )}
+        </>}
+        />
       </View>
 
       {/* ============================================================

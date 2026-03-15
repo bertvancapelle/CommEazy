@@ -803,6 +803,15 @@
       "hint": "So sieht die App jetzt aus",
       "sampleMessage": "Hallo! Wie geht es dir?"
     },
+    "moduleLayout": {
+      "title": "Bildschirmlayout",
+      "hint": "Ändere die Reihenfolge der Abschnitte auf Modulbildschirmen",
+      "module": "Modulname",
+      "controls": "Schaltflächen und Filter",
+      "content": "Inhalt",
+      "reset": "Standard wiederherstellen",
+      "customize": "Layout anpassen"
+    },
     "info": "Änderungen werden sofort in der gesamten App angewendet."
   },
   "callSettings": {

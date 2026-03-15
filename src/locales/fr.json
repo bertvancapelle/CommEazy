@@ -803,6 +803,15 @@
       "hint": "Voici à quoi ressemble l'application maintenant",
       "sampleMessage": "Bonjour ! Comment allez-vous ?"
     },
+    "moduleLayout": {
+      "title": "Disposition de l'écran",
+      "hint": "Modifiez l'ordre des sections sur les écrans de module",
+      "module": "Nom du module",
+      "controls": "Boutons et filtres",
+      "content": "Contenu",
+      "reset": "Rétablir par défaut",
+      "customize": "Personnaliser la disposition"
+    },
     "info": "Les modifications sont appliquées immédiatement dans toute l'application."
   },
   "callSettings": {

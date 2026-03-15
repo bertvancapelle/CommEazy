@@ -728,6 +728,15 @@
       "hint": "Slik ser appen ut nå",
       "sampleMessage": "Hei! Hvordan har du det?"
     },
+    "moduleLayout": {
+      "title": "Skjermoppsett",
+      "hint": "Endre rekkefølgen på delene på modulskjermer",
+      "module": "Modulnavn",
+      "controls": "Knapper og filtre",
+      "content": "Innhold",
+      "reset": "Gjenopprett standard",
+      "customize": "Tilpass oppsett"
+    },
     "info": "Endringer anvendes umiddelbart i hele appen."
   },
   "theme": {

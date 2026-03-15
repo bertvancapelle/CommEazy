@@ -698,6 +698,15 @@
       "hint": "Sådan ser appen ud nu",
       "sampleMessage": "Hej! Hvordan har du det?"
     },
+    "moduleLayout": {
+      "title": "Skærmlayout",
+      "hint": "Ændr rækkefølgen af sektioner på modulskærme",
+      "module": "Modulnavn",
+      "controls": "Knapper og filtre",
+      "content": "Indhold",
+      "reset": "Gendan standard",
+      "customize": "Tilpas layout"
+    },
     "info": "Ændringer anvendes øjeblikkeligt i hele appen."
   },
   "theme": {

@@ -817,6 +817,15 @@
       "hint": "This is how the app looks now",
       "sampleMessage": "Hello! How are you doing?"
     },
+    "moduleLayout": {
+      "title": "Screen Layout",
+      "hint": "Change the order of sections on module screens",
+      "module": "Module name",
+      "controls": "Buttons and filters",
+      "content": "Content",
+      "reset": "Reset to default",
+      "customize": "Customize layout"
+    },
     "info": "Changes are applied immediately throughout the app."
   },
   "callSettings": {
