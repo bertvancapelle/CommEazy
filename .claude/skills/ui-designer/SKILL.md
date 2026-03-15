@@ -2169,6 +2169,259 @@ modalContent: {
 }
 ```
 
+### 11b. MODAL DESIGN STANDAARD (VERPLICHT)
+
+Alle modals in CommEazy MOETEN één van twee categorieën volgen. Er zijn GEEN uitzonderingen.
+
+#### Categorie 1: PageSheet Modal (STANDAARD)
+
+Dit is het primaire modal pattern voor settings, pickers, formulieren, lijsten en content-browsing.
+
+**Modal props (VERPLICHT):**
+```typescript
+<Modal
+  visible={visible}
+  animationType="slide"
+  presentationStyle="pageSheet"
+  onRequestClose={onClose}
+>
+```
+
+**Structuur (VERPLICHT — Header / Content / Footer):**
+```
+┌──────────────────────────────────────────────────────────────┐
+│  LiquidGlassView (moduleId, cornerRadius={0}, flex: 1)       │
+├──────────────────────────────────────────────────────────────┤
+│  HEADER                                                       │
+│  - padding: spacing.lg                                        │
+│  - borderBottomWidth: 1, borderBottomColor: themeColors.border│
+│  - alignItems: 'center'                                       │
+│  - Titel: typography.h3, color: themeColors.textPrimary       │
+│  - GEEN close button in header                                │
+├──────────────────────────────────────────────────────────────┤
+│  CONTENT (flex: 1)                                            │
+│  - ScrollViewWithIndicator of View                            │
+│  - padding: spacing.lg                                        │
+├──────────────────────────────────────────────────────────────┤
+│  FOOTER                                                       │
+│  - padding: spacing.lg                                        │
+│  - borderTopWidth: 1, borderTopColor: themeColors.border      │
+│  - Knop: minHeight touchTargets.comfortable                   │
+│  -   borderRadius: borderRadius.md                            │
+│  -   Tekst: typography.bodyBold, color: colors.textOnPrimary  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Footer Variant A — Sluiten (geen actie nodig):**
+```typescript
+// Sluiten-knop: accent kleur achtergrond, tekst "Sluiten"
+<View style={[styles.footer, { borderTopColor: themeColors.border }]}>
+  <HapticTouchable hapticDisabled
+    style={[styles.closeButton, { backgroundColor: accentColor.primary }]}
+    onPress={onClose}
+    accessibilityRole="button"
+    accessibilityLabel={t('common.close')}
+  >
+    <Text style={[styles.closeButtonText, { color: colors.textOnPrimary }]}>
+      {t('common.close')}
+    </Text>
+  </HapticTouchable>
+</View>
+```
+
+**Footer Variant B — Actie-knop (expliciete bevestiging):**
+```typescript
+// Primaire actie-knop + optioneel secundaire annuleerknop
+<View style={[styles.footer, { borderTopColor: themeColors.border }]}>
+  <HapticTouchable hapticDisabled
+    style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
+    onPress={handleAction}
+    accessibilityRole="button"
+    accessibilityLabel={actionLabel}
+  >
+    <Text style={[styles.actionButtonText, { color: colors.textOnPrimary }]}>
+      {actionLabel}
+    </Text>
+  </HapticTouchable>
+  {/* Optioneel: secundaire annuleerknop */}
+  <HapticTouchable hapticDisabled
+    style={styles.cancelButton}
+    onPress={onClose}
+    accessibilityRole="button"
+    accessibilityLabel={t('common.cancel')}
+  >
+    <Text style={[styles.cancelButtonText, { color: themeColors.textSecondary }]}>
+      {t('common.cancel')}
+    </Text>
+  </HapticTouchable>
+</View>
+```
+
+**Gedeelde modalStyles (VERPLICHT — kopieer naar elke modal):**
+```typescript
+const modalStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    alignItems: 'center',
+  },
+  title: {
+    ...typography.h3,
+  },
+  content: {
+    flex: 1,
+    padding: spacing.lg,
+  },
+  footer: {
+    padding: spacing.lg,
+    borderTopWidth: 1,
+  },
+  closeButton: {
+    minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    ...typography.bodyBold,
+  },
+});
+```
+
+**Voorbeelden (bestaande modals):**
+- ColorPickerModal (AppearanceSettingsScreen) — Footer Variant A
+- ModuleColorsScreen — Footer Variant A
+- Layout Editor (AppearanceSettingsScreen) — Footer Variant A
+- PickerModal — Footer Variant A (auto-close bij selectie)
+- PhotoRecipientModal — Footer Variant B (actie "Verstuur naar X contacten")
+
+**Wanneer PageSheet gebruiken:**
+- Settings modals, kleur pickers, layout editors
+- Lijsten met selectie (contacten kiezen, opties kiezen)
+- Content browsing (chat history, Apple Music details)
+- Formulieren en wizards
+- Welcome/onboarding modals
+
+#### Categorie 2: FullScreen Modal (UITZONDERING — immersive content)
+
+Alleen voor immersive content waar het hele scherm nodig is. Er zijn slechts drie use-cases.
+
+**Modal props:**
+```typescript
+<Modal
+  visible={visible}
+  animationType="slide"   // of "fade" voor foto viewers
+  presentationStyle="fullScreen"
+  onRequestClose={onClose}
+>
+```
+
+**Verplicht — Close knop:**
+- Chevron-down icoon (`"chevron-down"`)
+- Positie: **linksboven** (binnen safe area)
+- Touch target: **60pt minimum**
+- Altijd zichtbaar (of via tap-to-show bij auto-hide)
+
+```typescript
+// FullScreen close button — ALTIJD linksboven
+<HapticTouchable hapticDisabled
+  style={styles.fullScreenCloseButton}
+  onPress={onClose}
+  accessibilityRole="button"
+  accessibilityLabel={t('common.close')}
+>
+  <Icon name="chevron-down" size={28} color={colors.textOnPrimary} />
+</HapticTouchable>
+
+// Style:
+fullScreenCloseButton: {
+  position: 'absolute',
+  top: insets.top + spacing.sm,
+  left: spacing.md,
+  width: touchTargets.minimum,      // 60pt
+  height: touchTargets.minimum,     // 60pt
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  borderRadius: borderRadius.md,
+  zIndex: 10,
+},
+```
+
+**Toegestane FullScreen modals (ALLEEN deze drie):**
+| Modal | Gebruik | Close |
+|-------|---------|-------|
+| UnifiedFullPlayer | Audio player (radio, podcast, books, Apple Music) | Chevron-down linksboven |
+| FullscreenImageViewer | Foto viewer (mail bijlagen, chat foto's) | Chevron-down linksboven + navigatie |
+| SlideshowViewer | Fotolijst slideshow | Chevron-down linksboven (auto-hide) |
+
+**Geen vaste header/footer border structuur** — layout is content-afhankelijk.
+**Geen LiquidGlassView wrapper** — FullScreen modals gebruiken eigen achtergrond.
+
+#### Verboden Patterns (BLOKKEERDER)
+
+```typescript
+// ❌ VERBODEN — Fade + centered overlay
+<Modal animationType="fade" transparent>
+  <Pressable style={styles.backdrop} onPress={onClose}>
+    <View style={styles.centeredCard}>
+      ...
+    </View>
+  </Pressable>
+</Modal>
+
+// ❌ VERBODEN — Close X in header van PageSheet modal
+<View style={styles.header}>
+  <Text>Titel</Text>
+  <TouchableOpacity onPress={onClose}>  {/* FOUT */}
+    <Text>✕</Text>
+  </TouchableOpacity>
+</View>
+
+// ❌ VERBODEN — Modal zonder footer close/actie knop
+<Modal presentationStyle="pageSheet">
+  <View style={styles.header}>...</View>
+  <View style={styles.content}>...</View>
+  {/* FOUT: geen footer! */}
+</Modal>
+
+// ❌ VERBODEN — Backdrop tap-to-dismiss
+<Pressable onPress={onClose} style={styles.dimmedBackdrop}>
+  ...
+</Pressable>
+```
+
+#### Validatie Checklist
+
+Bij ELKE nieuwe of gewijzigde modal:
+
+- [ ] **Categorie bepaald:** PageSheet of FullScreen?
+- [ ] **PageSheet:** `animationType="slide"` + `presentationStyle="pageSheet"`
+- [ ] **PageSheet:** LiquidGlassView wrapper met `moduleId` en `cornerRadius={0}`
+- [ ] **PageSheet:** Header met centered title, GEEN close button in header
+- [ ] **PageSheet:** Footer met close-knop (Variant A) of actie-knop (Variant B)
+- [ ] **PageSheet:** Footer knop `minHeight: touchTargets.comfortable`
+- [ ] **FullScreen:** Chevron-down close knop linksboven, 60pt touch target
+- [ ] **Beide:** `onRequestClose={onClose}` aanwezig (Android back button)
+- [ ] **Beide:** Accessibility labels op alle interactieve elementen
+- [ ] **Geen:** Fade + centered overlay, backdrop tap-to-dismiss, close X in header
+
+#### Validatie Commando
+
+```bash
+# Vind modals die NIET pageSheet of fullScreen gebruiken
+grep -rn "<Modal" src/ --include="*.tsx" | grep -v "pageSheet\|fullScreen\|PanelAwareModal"
+
+# Vind modals met fade animatie (potentieel verboden pattern)
+grep -rn "animationType=\"fade\"" src/ --include="*.tsx" | grep -v "FullscreenImageViewer\|SlideshowViewer"
+
+# Vind close X in modal headers (verboden in PageSheet)
+grep -rn "✕\|×\|closeText" src/ --include="*.tsx"
+```
+
 ### 12. MODULE HEADERS (VERPLICHT)
 
 Elk module scherm MOET een consistente header hebben die:
