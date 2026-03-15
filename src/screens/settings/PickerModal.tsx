@@ -19,10 +19,12 @@ import {
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
 // Props
@@ -35,13 +37,15 @@ export interface PickerModalProps {
   selectedValue?: string;
   onSelect: (value: string) => void;
   onClose: () => void;
+  /** Module color ID for Liquid Glass tint (iOS 26+) */
+  moduleId?: ModuleColorId;
 }
 
 // ============================================================
 // Component
 // ============================================================
 
-export function PickerModal({ visible, title, options, selectedValue, onSelect, onClose }: PickerModalProps) {
+export function PickerModal({ visible, title, options, selectedValue, onSelect, onClose, moduleId }: PickerModalProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
@@ -52,7 +56,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId={moduleId ?? 'settings'} style={styles.container} cornerRadius={0}>
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>{title}</Text>
           <HapticTouchable hapticDisabled
@@ -96,7 +100,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
             </HapticTouchable>
           ))}
         </ScrollViewWithIndicator>
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -108,7 +112,6 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',

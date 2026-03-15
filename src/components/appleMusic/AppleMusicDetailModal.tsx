@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, IconButton, LoadingView, VoiceFocusable } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -474,7 +475,7 @@ export function AppleMusicDetailModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="appleMusic" style={styles.container} cornerRadius={0}>
         {/* Header with close button */}
         <View style={[styles.modalHeader, { paddingTop: insets.top + spacing.sm, borderBottomColor: themeColors.border }]}>
           <HapticTouchable hapticDisabled
@@ -528,7 +529,7 @@ export function AppleMusicDetailModal({
             {type === 'playlist' && renderPlaylistContent()}
           </>
         )}
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }

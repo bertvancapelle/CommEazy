@@ -73,9 +73,9 @@ const OVERLAY_CORNER_RADIUS = 24;
 const GRID_COLUMNS = 3;
 const GRID_GAP = 12;
 const GRID_PADDING = spacing.md; // 16pt
-const ITEM_ICON_SIZE = 40;
-const ITEM_CIRCLE_SIZE = 56;
-const ITEM_LABEL_FONT_SIZE = 13;
+const ITEM_ICON_SIZE = 48;
+const ITEM_CIRCLE_SIZE = 72;
+const ITEM_LABEL_FONT_SIZE = 14;
 const TITLE_FONT_SIZE = 24;
 
 // ============================================================
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   overlayContainer: {
     width: OVERLAY_WIDTH,
-    maxHeight: 480,
+    maxHeight: 540,
   },
   glassContainer: {
     paddingHorizontal: GRID_PADDING,
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 17,
+    lineHeight: 18,
     maxWidth: ITEM_CELL_WIDTH - 4,
   },
 });

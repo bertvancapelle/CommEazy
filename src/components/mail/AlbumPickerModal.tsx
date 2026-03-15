@@ -36,6 +36,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, LoadingView, PanelAwareModal } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 
 // ============================================================
 // Types
@@ -199,7 +200,7 @@ export function AlbumPickerModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="mail" style={styles.container} cornerRadius={0}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
           <HapticTouchable hapticDisabled
@@ -312,7 +313,7 @@ export function AlbumPickerModal({
             </View>
           </ScrollView>
         )}
-      </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }

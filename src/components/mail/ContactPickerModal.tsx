@@ -26,6 +26,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, SearchBar, PanelAwareModal } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import type { MailRecipient } from '@/types/mail';
 
 // ============================================================
@@ -103,7 +104,7 @@ export function ContactPickerModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="mail" style={styles.container} cornerRadius={0}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>
@@ -170,7 +171,7 @@ export function ContactPickerModal({
             ))
           )}
         </ScrollView>
-      </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }

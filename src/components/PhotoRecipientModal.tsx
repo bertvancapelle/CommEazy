@@ -31,6 +31,7 @@ import { HapticTouchable } from './HapticTouchable';
 import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
 import { Icon } from './Icon';
+import { LiquidGlassView } from './LiquidGlassView';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
 
@@ -122,7 +123,7 @@ export function PhotoRecipientModal({
       onRequestClose={onClose}
       accessibilityViewIsModal
     >
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="photoAlbum" style={styles.container} cornerRadius={0}>
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
           <HapticTouchable
@@ -230,7 +231,7 @@ export function PhotoRecipientModal({
             ]}
           />
         </View>
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }

@@ -26,12 +26,14 @@ import {
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { weatherService } from '@/services/weatherService';
 import type { WeatherLocation } from '@/types/weather';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
 // Helpers
@@ -227,6 +229,8 @@ export interface CityPickerModalProps {
   onClose: () => void;
   language: string;
   countryCode?: string;
+  /** Module color ID for Liquid Glass tint (iOS 26+) */
+  moduleId?: ModuleColorId;
 }
 
 /**
@@ -234,7 +238,7 @@ export interface CityPickerModalProps {
  * This modal wrapper is kept for the onboarding flow where
  * the city picker appears as a step within a multi-step wizard.
  */
-export function CityPickerModal({ visible, onSelect, onClose, language, countryCode }: CityPickerModalProps) {
+export function CityPickerModal({ visible, onSelect, onClose, language, countryCode, moduleId }: CityPickerModalProps) {
   const themeColors = useColors();
 
   return (
@@ -244,7 +248,7 @@ export function CityPickerModal({ visible, onSelect, onClose, language, countryC
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[styles.modalContainer, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId={moduleId ?? 'settings'} style={styles.modalContainer} cornerRadius={0}>
         <CitySearchInline
           visible={true}
           onSelect={onSelect}
@@ -252,7 +256,7 @@ export function CityPickerModal({ visible, onSelect, onClose, language, countryC
           language={language}
           countryCode={countryCode}
         />
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -265,7 +269,6 @@ const styles = StyleSheet.create({
   // Modal container (legacy)
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   // Inline container — rendered within parent screen
   inlineContainer: {

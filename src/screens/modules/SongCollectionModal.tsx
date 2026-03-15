@@ -32,6 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { PanelAwareModal, HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { MusicCollection } from '@/services/music';
 
@@ -187,7 +188,7 @@ export function SongCollectionModal({
       onRequestClose={onClose}
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-        <View style={[styles.modal, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="appleMusic" style={styles.modal} cornerRadius={borderRadius.lg}>
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
             <HapticTouchable
@@ -368,7 +369,7 @@ export function SongCollectionModal({
               </Text>
             </HapticTouchable>
           </View>
-        </View>
+        </LiquidGlassView>
       </View>
     </PanelAwareModal>
   );

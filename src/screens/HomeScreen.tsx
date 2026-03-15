@@ -153,6 +153,8 @@ export function HomeScreen({
   const dragOrderRef = useRef<GridItem[]>([]); // Live order during drag
   const dropTargetIndexRef = useRef<number>(-1); // Current drop target slot
   const dragStartGridPosRef = useRef({ x: 0, y: 0 }); // Grid position at drag start
+  const dragFingerOffsetRef = useRef({ x: 0, y: 0 }); // Finger offset within cell at drag start
+  const containerScreenYRef = useRef(0); // Container's screen-space Y (for overlay math)
   const lastGestureRef = useRef({ dx: 0, dy: 0, moveX: 0, moveY: 0 }); // Last gesture for auto-scroll overlay updates
 
   // Track the grid container's position on screen
@@ -168,6 +170,9 @@ export function HomeScreen({
   // Track feedback trigger in a ref for PanResponder
   const triggerFeedbackRef = useRef(triggerFeedback);
   triggerFeedbackRef.current = triggerFeedback;
+  // Throttle haptic feedback during drag to prevent rapid-fire triggers
+  const lastHapticTimeRef = useRef(0);
+  const HAPTIC_THROTTLE_MS = 200; // Min 200ms between haptic triggers during drag
 
   const gridRef = useRef<View>(null);
   const containerRef = useRef<View>(null);
@@ -253,10 +258,20 @@ export function HomeScreen({
 
   /** Re-measure grid layout after layout changes (e.g., hint row appears) */
   const remeasureGridOffset = useCallback(() => {
+    // Double rAF: first frame lets React commit the layout (hint row appears),
+    // second frame lets native onLayout fire and update svLayoutYRef, then we measure.
     requestAnimationFrame(() => {
-      gridRef.current?.measureInWindow((gx, gy, width, height) => {
-        gridLayoutRef.current = { x: gx, y: gy, width, height };
-        gridMeasuredAtScrollRef.current = scrollOffsetRef.current;
+      requestAnimationFrame(() => {
+        gridRef.current?.measureInWindow((gx, gy, width, height) => {
+          gridLayoutRef.current = { x: gx, y: gy, width, height };
+          gridMeasuredAtScrollRef.current = scrollOffsetRef.current;
+        });
+        containerRef.current?.measureInWindow((_cx, cy) => {
+          containerScreenYRef.current = cy;
+          // Re-measure ScrollView screen-space Y for auto-scroll edge zones.
+          // svLayoutYRef holds the ScrollView's Y within the container (set by onLayout).
+          scrollViewLayoutRef.current.y = cy + svLayoutYRef.current;
+        });
       });
     });
   }, []);
@@ -298,9 +313,10 @@ export function HomeScreen({
 
         // Re-position overlay to compensate for scroll change (finger hasn't moved)
         if (isDraggingRef.current) {
-          const { dx, dy, moveX, moveY } = lastGestureRef.current;
-          const newX = dragStartGridPosRef.current.x + dx;
-          const newY = svLayoutYRef.current + dragStartGridPosRef.current.y - newOffset + dy;
+          const { moveX, moveY } = lastGestureRef.current;
+          // Overlay follows finger screen position → container-relative
+          const newX = moveX - dragFingerOffsetRef.current.x;
+          const newY = moveY - dragFingerOffsetRef.current.y - containerScreenYRef.current;
           dragPosition.setValue({ x: newX, y: newY });
 
           // Update drop target as grid scrolls under the finger
@@ -314,7 +330,11 @@ export function HomeScreen({
             reordered.splice(currentIndex, 1);
             reordered.splice(targetIndex, 0, draggedId);
             dragOrderRef.current = reordered;
-            void triggerFeedbackRef.current('tap');
+            const now = Date.now();
+            if (now - lastHapticTimeRef.current >= HAPTIC_THROTTLE_MS) {
+              lastHapticTimeRef.current = now;
+              void triggerFeedbackRef.current('tap');
+            }
           }
 
           if (targetIndex !== dropTargetIndexRef.current) {
@@ -423,11 +443,25 @@ export function HomeScreen({
         const gridPos = getGridPosition(touchedIndex);
         dragStartGridPosRef.current = gridPos;
 
-        // Set overlay position: svLayoutY + gridContentY - scrollOffset
-        // svLayoutYRef = ScrollView's layout Y in Wrapper (scroll-independent)
+        // Position overlay at the cell's screen position, relative to the container.
+        // Use finger's screen position (pageY) minus finger's offset within the cell.
+        // The cell's top-left in screen-space = gridLayoutRef.y - scrollDelta + gridPos.y
+        // Convert to container-relative by subtracting containerScreenY.
+        const scrollDelta = scrollOffsetRef.current - gridMeasuredAtScrollRef.current;
+        const cellScreenY = gridLayoutRef.current.y - scrollDelta + gridPos.y;
+        const cellScreenX = gridLayoutRef.current.x + gridPos.x - GRID_PADDING_H;
+        // Store the offset between finger and cell top-left for use during move
+        dragFingerOffsetRef.current = {
+          x: pageX - cellScreenX,
+          y: pageY - cellScreenY,
+        };
+        // Position overlay synchronously using pre-measured containerScreenYRef
+        // (measured when entering wiggle mode in remeasureGridOffset)
+        const overlayY = cellScreenY - containerScreenYRef.current;
+
         dragPosition.setValue({
           x: gridPos.x,
-          y: svLayoutYRef.current + gridPos.y - scrollOffsetRef.current,
+          y: overlayY,
         });
 
         // Scale up
@@ -446,9 +480,11 @@ export function HomeScreen({
         // Save gesture state for auto-scroll overlay updates
         lastGestureRef.current = { dx: gs.dx, dy: gs.dy, moveX: gs.moveX, moveY: gs.moveY };
 
-        // Update overlay position (svLayoutY + grid content Y - scroll + gesture delta)
-        const newX = dragStartGridPosRef.current.x + gs.dx;
-        const newY = svLayoutYRef.current + dragStartGridPosRef.current.y - scrollOffsetRef.current + gs.dy;
+        // Update overlay position: finger screen position → container-relative
+        // moveX/moveY = finger's current screen-space position
+        // Subtract finger offset within cell + container's screen Y
+        const newX = gs.moveX - dragFingerOffsetRef.current.x;
+        const newY = gs.moveY - dragFingerOffsetRef.current.y - containerScreenYRef.current;
         dragPosition.setValue({ x: newX, y: newY });
 
         // Auto-scroll when finger is near top/bottom edge of ScrollView
@@ -469,7 +505,11 @@ export function HomeScreen({
           newOrder.splice(targetIndex, 0, draggedId);
           dragOrderRef.current = newOrder;
 
-          void triggerFeedbackRef.current('tap');
+          const now = Date.now();
+          if (now - lastHapticTimeRef.current >= HAPTIC_THROTTLE_MS) {
+            lastHapticTimeRef.current = now;
+            void triggerFeedbackRef.current('tap');
+          }
         }
 
         // Update drop target indicator (triggers re-render only when target changes)
@@ -522,10 +562,14 @@ export function HomeScreen({
         const finalIndex = draggedId ? finalOrder.indexOf(draggedId) : 0;
         const finalPos = getGridPosition(finalIndex);
 
-        // Animate overlay to final position, then clear drag state
+        // Animate overlay to final position using the same screen-space math
+        // as onPanResponderGrant (cell screen Y → Wrapper-relative)
+        const scrollDelta = scrollOffsetRef.current - gridMeasuredAtScrollRef.current;
+        const finalCellScreenY = gridLayoutRef.current.y - scrollDelta + finalPos.y;
+        const finalOverlayY = finalCellScreenY - containerScreenYRef.current;
         Animated.parallel([
           Animated.spring(dragPosition, {
-            toValue: { x: finalPos.x, y: svLayoutYRef.current + finalPos.y - scrollOffsetRef.current },
+            toValue: { x: finalPos.x, y: finalOverlayY },
             useNativeDriver: true,
             friction: 8,
           }),
@@ -540,6 +584,10 @@ export function HomeScreen({
           dropTargetIndexRef.current = -1;
           setDragRenderTick(prev => prev + 1);
         });
+      },
+      onPanResponderTerminationRequest: () => {
+        // Never let ScrollView or other responders steal the drag
+        return !isDraggingRef.current;
       },
       onPanResponderTerminate: () => {
         // Same as release — commit whatever order we have
@@ -639,7 +687,7 @@ export function HomeScreen({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={!isWiggleMode}
+        scrollEnabled={!isWiggleMode}  // Disable touch-scrolling in wiggle mode so ScrollView doesn't steal vertical drags; programmatic scrollTo() works regardless
         onScroll={(e) => {
           scrollOffsetRef.current = e.nativeEvent.contentOffset.y;
         }}
@@ -923,6 +971,8 @@ const styles = StyleSheet.create({
   },
   dragOverlay: {
     position: 'absolute',
+    top: 0,
+    left: 0,
     width: GRID_CELL_WIDTH,
     zIndex: 999,
     // Shadow for elevated look

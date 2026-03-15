@@ -27,6 +27,8 @@ import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { LiquidGlassView } from './LiquidGlassView';
+import type { ModuleColorId } from '@/types/liquidGlass';
 import type { VoiceCommandState, VoiceCommandResult } from '@/hooks/useVoiceCommands';
 
 interface VoiceCommandOverlayProps {
@@ -35,6 +37,8 @@ interface VoiceCommandOverlayProps {
   onClose: () => void;
   onResult: (result: VoiceCommandResult | null) => void;
   processTranscript: (transcript: string) => VoiceCommandResult | null;
+  /** Module color ID for Liquid Glass tint (iOS 26+) */
+  moduleId?: ModuleColorId;
 }
 
 export function VoiceCommandOverlay({
@@ -43,6 +47,7 @@ export function VoiceCommandOverlay({
   onClose,
   onResult,
   processTranscript,
+  moduleId,
 }: VoiceCommandOverlayProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -154,15 +159,16 @@ export function VoiceCommandOverlay({
       accessibilityViewIsModal
     >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        <HapticTouchable hapticDisabled
-          style={styles.backdrop}
-          onPress={onClose}
-          activeOpacity={1}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.close', 'Close')}
-        />
+        <LiquidGlassView moduleId={moduleId ?? 'settings'} style={styles.glassBackground} cornerRadius={0}>
+          <HapticTouchable hapticDisabled
+            style={styles.backdrop}
+            onPress={onClose}
+            activeOpacity={1}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close', 'Close')}
+          />
 
-        <View style={styles.content}>
+          <View style={styles.content}>
           {/* Microphone icon with pulse animation */}
           <Animated.View
             style={[
@@ -240,6 +246,7 @@ export function VoiceCommandOverlay({
             </Text>
           </HapticTouchable>
         </View>
+        </LiquidGlassView>
       </Animated.View>
     </Modal>
   );
@@ -248,7 +255,9 @@ export function VoiceCommandOverlay({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: colors.white,
+  },
+  glassBackground: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },

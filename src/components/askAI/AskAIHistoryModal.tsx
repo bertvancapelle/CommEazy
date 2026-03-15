@@ -28,6 +28,7 @@ import {
   touchTargets,
 } from '@/theme';
 import { Icon } from '@/components/Icon';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useAskAI } from '@/contexts/AskAIContext';
 import type { AskAIConversationSummary } from '@/types/askAI';
 
@@ -128,7 +129,7 @@ export function AskAIHistoryModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <LiquidGlassView moduleId="askAI" style={[styles.container, { paddingTop: insets.top }]} cornerRadius={0}>
         {/* Header */}
         <View style={styles.header}>
           <HapticTouchable hapticDisabled
@@ -197,7 +198,7 @@ export function AskAIHistoryModal({
             ))}
           </ScrollView>
         )}
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -205,7 +206,6 @@ export function AskAIHistoryModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',

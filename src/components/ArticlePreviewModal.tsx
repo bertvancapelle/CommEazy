@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, IconButton, NunlLogo } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { NewsArticle } from '@/types/modules';
@@ -199,7 +200,7 @@ export function ArticlePreviewModal({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <LiquidGlassView moduleId="nunl" style={[styles.container, { paddingTop: insets.top }]} cornerRadius={0}>
         {/* Header */}
         <View style={styles.header}>
           <IconButton
@@ -304,7 +305,7 @@ export function ArticlePreviewModal({
 
         {/* Bottom safe area */}
         <View style={{ height: insets.bottom + spacing.md }} />
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -316,7 +317,6 @@ export function ArticlePreviewModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
 
   // Header

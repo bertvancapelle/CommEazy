@@ -44,6 +44,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, IconButton, AdMobBanner, LoadingView } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { orientationService } from '@/services/orientationService';
@@ -972,7 +973,7 @@ export function ArticleWebViewer({
       presentationStyle="fullScreen"
       onRequestClose={handleClose}
     >
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <LiquidGlassView moduleId="nunl" style={[styles.container, { paddingTop: insets.top }]} cornerRadius={0}>
         {/* Header */}
         <View style={[styles.header, { backgroundColor: accentColor }]}>
           {/* Spacer for symmetry */}
@@ -1227,7 +1228,7 @@ export function ArticleWebViewer({
           onRequestClose={handleExternalLinkCancel}
         >
           <View style={styles.externalLinkOverlay}>
-            <View style={styles.externalLinkModal}>
+            <LiquidGlassView moduleId="nunl" style={styles.externalLinkModal} cornerRadius={borderRadius.lg}>
               {/* Icon */}
               <View style={[styles.externalLinkIconContainer, { backgroundColor: accentColor }]}>
                 <Icon name="external-link" size={32} color={colors.textOnPrimary} />
@@ -1293,10 +1294,10 @@ export function ArticleWebViewer({
                   {t('articleViewer.externalLink.always')}
                 </Text>
               </HapticTouchable>
-            </View>
+            </LiquidGlassView>
           </View>
         </Modal>
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -1308,7 +1309,6 @@ export function ArticleWebViewer({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
 
   // Header
@@ -1421,7 +1421,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   externalLinkModal: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     width: '100%',
     maxWidth: 400,

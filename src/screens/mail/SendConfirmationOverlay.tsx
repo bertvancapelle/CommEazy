@@ -22,6 +22,7 @@ import { typography, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { HapticTouchable, Icon } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 
 interface SendConfirmationOverlayProps {
   /** Called when the overlay should be dismissed (tap or auto-timeout) */
@@ -45,16 +46,17 @@ export function SendConfirmationOverlay({ onDismiss }: SendConfirmationOverlayPr
   }, [onDismiss]);
 
   return (
-    <HapticTouchable
-      style={[styles.overlay, { backgroundColor: themeColors.background }]}
-      onPress={onDismiss}
-      activeOpacity={1}
-      hapticDisabled
-      accessibilityRole="button"
-      accessibilityLabel={t('modules.mail.compose.sentSuccess')}
-      accessibilityHint={t('modules.mail.compose.sentSuccessHint')}
-    >
-      <View style={styles.content}>
+    <LiquidGlassView moduleId="mail" style={styles.overlay} cornerRadius={0}>
+      <HapticTouchable
+        style={styles.overlayTouchable}
+        onPress={onDismiss}
+        activeOpacity={1}
+        hapticDisabled
+        accessibilityRole="button"
+        accessibilityLabel={t('modules.mail.compose.sentSuccess')}
+        accessibilityHint={t('modules.mail.compose.sentSuccessHint')}
+      >
+        <View style={styles.content}>
         <View style={[styles.checkCircle, { backgroundColor: themeColors.success }]}>
           <Icon name="check" size={36} color="white" />
         </View>
@@ -64,17 +66,21 @@ export function SendConfirmationOverlay({ onDismiss }: SendConfirmationOverlayPr
         <Text style={[styles.hint, { color: themeColors.textSecondary }]}>
           {t('modules.mail.compose.sentSuccessHint')}
         </Text>
-      </View>
-    </HapticTouchable>
+        </View>
+      </HapticTouchable>
+    </LiquidGlassView>
   );
 }
 
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 100,
+  },
+  overlayTouchable: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100,
   },
   content: {
     alignItems: 'center',

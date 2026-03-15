@@ -22,6 +22,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Button, Icon } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 
 // ============================================================
 // Constants
@@ -119,14 +120,15 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
       onRequestClose={handleDismiss}
     >
       <View style={styles.overlay}>
-        <View
+        <LiquidGlassView
+          moduleId="mail"
           style={[
             styles.card,
             {
-              backgroundColor: themeColors.surface,
               shadowColor: '#000',
             },
           ]}
+          cornerRadius={borderRadius.lg}
         >
           {/* Header */}
           <View style={styles.header}>
@@ -170,7 +172,7 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
             onPress={handleDismiss}
             accessibilityLabel={t('modules.mail.welcome.understood')}
           />
-        </View>
+        </LiquidGlassView>
       </View>
     </Modal>
   );

@@ -32,6 +32,7 @@ import type { PaneId as PanelId } from '@/contexts/PanelIdContext';
 import { useNavigationContext } from '@/contexts/NavigationContext';
 import { ModuleIcon } from './ModuleIcon';
 import type { ModuleDefinition, NavigationDestination } from '@/types/navigation';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import {
   colors,
   typography,
@@ -118,7 +119,8 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
         onPress={handleBackdropPress}
       >
         {/* Modal Content */}
-        <View
+        <LiquidGlassView
+          moduleId="settings"
           style={[
             styles.modalContent,
             {
@@ -126,6 +128,7 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
               marginBottom: insets.bottom + spacing.xl,
             },
           ]}
+          cornerRadius={borderRadius.lg}
           onStartShouldSetResponder={() => true}
         >
           {/* Header */}
@@ -188,7 +191,7 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
           >
             <Text style={styles.cancelText}>{t('common.cancel')}</Text>
           </HapticTouchable>
-        </View>
+        </LiquidGlassView>
       </HapticTouchable>
     </Modal>
   );
@@ -295,7 +298,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     width: '80%',
     maxWidth: 500,

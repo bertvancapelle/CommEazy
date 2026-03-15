@@ -26,6 +26,7 @@ import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, borderRadius, touchTargets, animation } from '@/theme';
+import { LiquidGlassView } from './LiquidGlassView';
 import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
 import { FloatingMicIndicator } from './FloatingMicIndicator';
@@ -259,7 +260,7 @@ export function ContactSelectionModal({
 
         <Animated.View
           style={[
-            styles.modal,
+            styles.modalAnimated,
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
@@ -269,6 +270,7 @@ export function ContactSelectionModal({
           accessibilityRole="dialog"
           accessibilityLabel={getTitle()}
         >
+          <LiquidGlassView moduleId="contacts" style={styles.modal} cornerRadius={borderRadius.lg}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>{getTitle()}</Text>
@@ -349,6 +351,7 @@ export function ContactSelectionModal({
               style={styles.cancelButton}
             />
           </View>
+          </LiquidGlassView>
         </Animated.View>
 
         {/* Floating mic indicator - rendered INSIDE modal so it appears above the modal */}
@@ -382,12 +385,13 @@ const styles = StyleSheet.create({
   overlayTouchable: {
     ...StyleSheet.absoluteFillObject,
   },
-  modal: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+  modalAnimated: {
     width: '100%',
     maxWidth: 400,
     maxHeight: '80%',
+  },
+  modal: {
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
   },
   header: {

@@ -14,6 +14,7 @@ import React, { type ReactNode } from 'react';
 import { View, Modal, StyleSheet } from 'react-native';
 
 import { usePanelId } from '@/contexts/PanelIdContext';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 // ============================================================
 // Types
@@ -28,6 +29,8 @@ export interface PanelAwareModalProps {
   transparent?: boolean;
   /** Called when Android back button or iOS swipe-down is pressed */
   onRequestClose?: () => void;
+  /** Module color ID for Liquid Glass tint (passed through to children) */
+  moduleId?: ModuleColorId;
   /** Children to render inside the modal */
   children: ReactNode;
 }
@@ -41,6 +44,7 @@ export function PanelAwareModal({
   animationType = 'slide',
   transparent = true,
   onRequestClose,
+  moduleId: _moduleId,
   children,
 }: PanelAwareModalProps) {
   const panelId = usePanelId();

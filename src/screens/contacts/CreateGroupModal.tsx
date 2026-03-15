@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon , ScrollViewWithIndicator } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
@@ -124,7 +125,7 @@ export function CreateGroupModal({
       onRequestClose={handleClose}
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-        <View style={[styles.modal, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="groups" style={styles.modal} cornerRadius={borderRadius.lg}>
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
             <HapticTouchable
@@ -269,7 +270,7 @@ export function CreateGroupModal({
             {/* Bottom spacing */}
             <View style={{ height: spacing.xl }} />
           </ScrollViewWithIndicator>
-        </View>
+        </LiquidGlassView>
       </View>
     </PanelAwareModal>
   );

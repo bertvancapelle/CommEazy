@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { PanelAwareModal, HapticTouchable, Icon } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { MusicCollection } from '@/services/music';
@@ -122,7 +123,7 @@ export function EditMusicCollectionModal({
       onRequestClose={onClose}
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-        <View style={[styles.modal, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="appleMusic" style={styles.modal} cornerRadius={borderRadius.lg}>
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
             <HapticTouchable
@@ -204,7 +205,7 @@ export function EditMusicCollectionModal({
             {/* Bottom spacing */}
             <View style={{ height: spacing.xl }} />
           </View>
-        </View>
+        </LiquidGlassView>
       </View>
     </PanelAwareModal>
   );

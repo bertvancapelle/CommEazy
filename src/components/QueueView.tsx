@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon } from './Icon';
+import { LiquidGlassView } from './LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { AppleMusicSong } from '@/contexts/AppleMusicContext';
 
@@ -113,7 +114,7 @@ export function QueueView({
       onRequestClose={onClose}
       accessibilityViewIsModal={true}
     >
-      <View style={styles.overlay}>
+      <LiquidGlassView moduleId="appleMusic" style={styles.overlay} cornerRadius={0}>
         <View style={[styles.container, { paddingTop: insets.top }]}>
           {/* Header */}
           <View style={styles.header}>
@@ -240,7 +241,7 @@ export function QueueView({
             )}
           </ScrollView>
         </View>
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
