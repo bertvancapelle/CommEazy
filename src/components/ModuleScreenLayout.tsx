@@ -1,30 +1,26 @@
 /**
- * ModuleScreenLayout — Renders module screen blocks in configurable order
+ * ModuleScreenLayout — Renders module screen blocks with configurable toolbar position
  *
- * Fixed-at-top elements (not reorderable):
+ * Fixed-at-top elements (not affected by position setting):
  * - Safe Area spacer (notch/Dynamic Island)
  * - AdMob banner (optional)
  *
- * Reorderable blocks (user's "Schermindeling" setting):
- * 1. "module" — ModuleHeader (icon + title + separator)
- * 2. "controls" — Tabs, ChipSelector, SearchBar
- * 3. "content" — Main scrollable content (list, grid, etc.)
+ * Toolbar (coupled pair):
+ * - ModuleHeader (icon + title + separator)
+ * - Controls (tabs, ChipSelector, SearchBar)
+ *
+ * Content:
+ * - Main scrollable content (list, grid, etc.)
+ *
+ * Toolbar position (user's "Schermindeling" setting):
+ * - "top" (default): ModuleHeader → Controls → Content
+ * - "bottom": Content → Controls (reversed rows) → ModuleHeader
+ *
+ * When toolbar is at bottom, the controls children are rendered in
+ * reverse order so that rows closest to the header stay adjacent.
  *
  * When using ModuleScreenLayout, pass `skipSafeArea` to ModuleHeader
  * to avoid double Safe Area spacing.
- *
- * Usage:
- * ```tsx
- * <ModuleScreenLayout
- *   moduleId="radio"
- *   showAdMob={true}
- *   moduleBlock={
- *     <ModuleHeader moduleId="radio" icon="radio" title={t('...')} skipSafeArea />
- *   }
- *   controlsBlock={<View>tabs + chips + search</View>}
- *   contentBlock={<ScrollView>station list</ScrollView>}
- * />
- * ```
  *
  * @see src/contexts/ModuleLayoutContext.tsx
  * @see src/screens/settings/AppearanceSettingsScreen.tsx
@@ -35,7 +31,7 @@ import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdMobBanner } from './AdMobBanner';
 import { spacing } from '@/theme';
-import { useModuleLayoutSafe, type LayoutBlock } from '@/contexts/ModuleLayoutContext';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
@@ -55,10 +51,26 @@ interface ModuleScreenLayoutProps {
 }
 
 /**
- * Renders module screen blocks in the user's configured order.
+ * Reverses the top-level children of a ReactNode fragment.
+ *
+ * When controlsBlock is a fragment like:
+ *   <>{row1}{row2}{row3}</>
+ * this returns the children in reverse order: row3, row2, row1.
+ *
+ * This ensures that when the toolbar is at the bottom, controls rows
+ * closest to the header stay closest to the header.
+ */
+function reverseChildren(node: ReactNode): ReactNode {
+  const children = React.Children.toArray(node);
+  if (children.length <= 1) return node;
+  return <>{children.reverse()}</>;
+}
+
+/**
+ * Renders module screen blocks with toolbar positioned above or below content.
  *
  * Fixed at top: Safe Area spacer + AdMob banner.
- * The three blocks (module, controls, content) are reorderable
+ * Toolbar (module header + controls) sits above or below the content
  * based on the user's "Schermindeling" setting.
  *
  * Uses useModuleLayoutSafe (graceful fallback) so it works
@@ -72,15 +84,11 @@ export function ModuleScreenLayout({
   showAdMob = true,
   adMobUnitId,
 }: ModuleScreenLayoutProps) {
-  const { layoutOrder } = useModuleLayoutSafe();
+  const { toolbarPosition } = useModuleLayoutSafe();
   const insets = useSafeAreaInsets();
   const moduleColor = useModuleColor(moduleId as ModuleColorId);
 
-  const blockMap: Record<LayoutBlock, ReactNode> = {
-    module: moduleBlock,
-    controls: controlsBlock,
-    content: contentBlock,
-  };
+  const isBottom = toolbarPosition === 'bottom';
 
   return (
     <>
@@ -94,12 +102,21 @@ export function ModuleScreenLayout({
         </View>
       )}
 
-      {/* Reorderable blocks */}
-      {layoutOrder.map((block) => (
-        <React.Fragment key={block}>
-          {blockMap[block]}
-        </React.Fragment>
-      ))}
+      {isBottom ? (
+        <>
+          {/* Bottom layout: Content → Controls (reversed) → ModuleHeader */}
+          {contentBlock}
+          {reverseChildren(controlsBlock)}
+          {moduleBlock}
+        </>
+      ) : (
+        <>
+          {/* Top layout (default): ModuleHeader → Controls → Content */}
+          {moduleBlock}
+          {controlsBlock}
+          {contentBlock}
+        </>
+      )}
     </>
   );
 }

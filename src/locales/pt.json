@@ -829,12 +829,10 @@
     },
     "moduleLayout": {
       "title": "Disposição do ecrã",
-      "hint": "Altere a ordem das secções nos ecrãs de módulo",
-      "module": "Nome do módulo",
-      "controls": "Botões e filtros",
-      "content": "Conteúdo",
-      "reset": "Repor predefinição",
-      "customize": "Personalizar disposição"
+      "hint": "Escolha onde a barra de ferramentas aparece nos ecrãs de módulo",
+      "bottomToggle": "Barra de ferramentas em baixo",
+      "bottomToggleHint": "Nome do módulo e controlos em baixo, conteúdo em cima",
+      "reset": "Repor predefinição"
     },
     "info": "As alterações são aplicadas imediatamente em toda a aplicação."
   },

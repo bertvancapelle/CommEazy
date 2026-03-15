@@ -721,12 +721,10 @@
     },
     "moduleLayout": {
       "title": "Układ ekranu",
-      "hint": "Zmień kolejność sekcji na ekranach modułów",
-      "module": "Nazwa modułu",
-      "controls": "Przyciski i filtry",
-      "content": "Treść",
-      "reset": "Przywróć domyślne",
-      "customize": "Dostosuj układ"
+      "hint": "Wybierz, gdzie pasek narzędzi pojawia się na ekranach modułów",
+      "bottomToggle": "Pasek narzędzi na dole",
+      "bottomToggleHint": "Nazwa modułu i przyciski na dole, treść na górze",
+      "reset": "Przywróć domyślne"
     },
     "info": "Zmiany są stosowane natychmiast w całej aplikacji."
   },

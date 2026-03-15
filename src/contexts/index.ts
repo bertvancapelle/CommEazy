@@ -204,8 +204,7 @@ export {
   ModuleLayoutProvider,
   useModuleLayout,
   useModuleLayoutSafe,
-  DEFAULT_LAYOUT_ORDER,
-  type LayoutBlock,
+  type ToolbarPosition,
   type ModuleLayoutContextValue,
 } from './ModuleLayoutContext';
 

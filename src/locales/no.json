@@ -730,12 +730,10 @@
     },
     "moduleLayout": {
       "title": "Skjermoppsett",
-      "hint": "Endre rekkefølgen på delene på modulskjermer",
-      "module": "Modulnavn",
-      "controls": "Knapper og filtre",
-      "content": "Innhold",
-      "reset": "Gjenopprett standard",
-      "customize": "Tilpass oppsett"
+      "hint": "Velg hvor verktøylinjen vises på modulskjermer",
+      "bottomToggle": "Verktøylinje nederst",
+      "bottomToggleHint": "Modulnavn og kontroller nederst, innhold øverst",
+      "reset": "Gjenopprett standard"
     },
     "info": "Endringer anvendes umiddelbart i hele appen."
   },

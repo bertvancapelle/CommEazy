@@ -642,12 +642,10 @@
     },
     "moduleLayout": {
       "title": "Schermindeling",
-      "hint": "Verander de volgorde van onderdelen op moduleschermen",
-      "module": "Module naam",
-      "controls": "Knoppen en filters",
-      "content": "Inhoud",
-      "reset": "Standaard herstellen",
-      "customize": "Indeling aanpassen"
+      "hint": "Kies waar de bediening staat op moduleschermen",
+      "bottomToggle": "Bediening onderaan",
+      "bottomToggleHint": "Modulenaam en knoppen onderaan het scherm, content bovenaan",
+      "reset": "Standaard herstellen"
     },
     "info": "Wijzigingen worden direct toegepast op de hele app."
   },

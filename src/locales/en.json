@@ -819,12 +819,10 @@
     },
     "moduleLayout": {
       "title": "Screen Layout",
-      "hint": "Change the order of sections on module screens",
-      "module": "Module name",
-      "controls": "Buttons and filters",
-      "content": "Content",
-      "reset": "Reset to default",
-      "customize": "Customize layout"
+      "hint": "Choose where the toolbar appears on module screens",
+      "bottomToggle": "Toolbar at bottom",
+      "bottomToggleHint": "Module name and controls at the bottom, content on top",
+      "reset": "Reset to default"
     },
     "info": "Changes are applied immediately throughout the app."
   },

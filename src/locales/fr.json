@@ -805,12 +805,10 @@
     },
     "moduleLayout": {
       "title": "Disposition de l'écran",
-      "hint": "Modifiez l'ordre des sections sur les écrans de module",
-      "module": "Nom du module",
-      "controls": "Boutons et filtres",
-      "content": "Contenu",
-      "reset": "Rétablir par défaut",
-      "customize": "Personnaliser la disposition"
+      "hint": "Choisissez où la barre d'outils apparaît sur les écrans de module",
+      "bottomToggle": "Barre d'outils en bas",
+      "bottomToggleHint": "Nom du module et commandes en bas, contenu en haut",
+      "reset": "Rétablir par défaut"
     },
     "info": "Les modifications sont appliquées immédiatement dans toute l'application."
   },

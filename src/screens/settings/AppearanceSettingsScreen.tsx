@@ -7,7 +7,7 @@
  * - Set global default module color (via pageSheet modal)
  * - Open separate Module Colors screen (pageSheet)
  * - Configure button border style
- * - Configure module layout order (via pageSheet modal)
+ * - Configure toolbar position (top/bottom toggle)
  * - Liquid Glass settings (iOS only)
  *
  * Senior-inclusive design:
@@ -46,7 +46,7 @@ import {
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
 import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
 import { useButtonStyle, type ButtonBorderColor } from '@/contexts/ButtonStyleContext';
-import { useModuleLayout, type LayoutBlock } from '@/contexts/ModuleLayoutContext';
+import { useModuleLayout } from '@/contexts/ModuleLayoutContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ModuleColorsScreen } from './ModuleColorsScreen';
 
@@ -252,68 +252,6 @@ function ColorSelectorRow({ label, currentColorHex, currentColorLabel, onPress, 
 }
 
 // ============================================================
-// Layout Order Block Row Component
-// ============================================================
-
-interface LayoutBlockRowProps {
-  block: LayoutBlock;
-  label: string;
-  icon: IconName;
-  index: number;
-  total: number;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  themeColors: typeof colors;
-  accentColor: string;
-}
-
-function LayoutBlockRow({ block, label, icon, index, total, onMoveUp, onMoveDown, themeColors, accentColor }: LayoutBlockRowProps) {
-  return (
-    <View style={[styles.layoutBlockRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-      <View style={styles.layoutBlockLabel}>
-        <Icon name={icon} size={24} color={accentColor} />
-        <Text style={[styles.layoutBlockText, { color: themeColors.textPrimary }]}>{label}</Text>
-      </View>
-      <View style={styles.layoutBlockArrows}>
-        <HapticTouchable hapticDisabled
-          style={[
-            styles.layoutArrowButton,
-            { backgroundColor: index > 0 ? accentColor : themeColors.backgroundSecondary },
-          ]}
-          onPress={onMoveUp}
-          disabled={index === 0}
-          accessibilityRole="button"
-          accessibilityLabel={`Move ${label} up`}
-          accessibilityState={{ disabled: index === 0 }}
-        >
-          <Icon name="chevron-up" size={20} color={index > 0 ? themeColors.textOnPrimary : themeColors.textTertiary} />
-        </HapticTouchable>
-        <HapticTouchable hapticDisabled
-          style={[
-            styles.layoutArrowButton,
-            { backgroundColor: index < total - 1 ? accentColor : themeColors.backgroundSecondary },
-          ]}
-          onPress={onMoveDown}
-          disabled={index === total - 1}
-          accessibilityRole="button"
-          accessibilityLabel={`Move ${label} down`}
-          accessibilityState={{ disabled: index === total - 1 }}
-        >
-          <Icon name="chevron-down" size={20} color={index < total - 1 ? themeColors.textOnPrimary : themeColors.textTertiary} />
-        </HapticTouchable>
-      </View>
-    </View>
-  );
-}
-
-// Block icons mapping
-const LAYOUT_BLOCK_ICONS: Record<LayoutBlock, IconName> = {
-  module: 'grid',
-  controls: 'options',
-  content: 'list',
-};
-
-// ============================================================
 // Main Screen
 // ============================================================
 
@@ -344,13 +282,12 @@ export function AppearanceSettingsScreen() {
   } = useButtonStyle();
 
   // Module layout context
-  const { layoutOrder, moveUp, moveDown, resetToDefault, isCustomized } = useModuleLayout();
+  const { toolbarPosition, toggleToolbarPosition, resetToDefault, isCustomized } = useModuleLayout();
 
   // Modal states
   const [showAccentColorPicker, setShowAccentColorPicker] = useState(false);
   const [showGlobalColorPicker, setShowGlobalColorPicker] = useState(false);
   const [showButtonBorderColorPicker, setShowButtonBorderColorPicker] = useState(false);
-  const [showLayoutEditor, setShowLayoutEditor] = useState(false);
   const [showModuleColors, setShowModuleColors] = useState(false);
 
   // Prepare color options for modals (unified palette)
@@ -427,32 +364,19 @@ export function AppearanceSettingsScreen() {
     [setBorderColor, triggerFeedback]
   );
 
-  // Handle module layout move
-  const handleLayoutMoveUp = useCallback(
-    async (block: LayoutBlock) => {
+  // Handle toolbar position toggle
+  const handleToolbarToggle = useCallback(
+    async (enabled: boolean) => {
       await triggerFeedback('tap');
-      moveUp(block);
+      toggleToolbarPosition();
     },
-    [moveUp, triggerFeedback]
-  );
-
-  const handleLayoutMoveDown = useCallback(
-    async (block: LayoutBlock) => {
-      await triggerFeedback('tap');
-      moveDown(block);
-    },
-    [moveDown, triggerFeedback]
+    [toggleToolbarPosition, triggerFeedback]
   );
 
   const handleLayoutReset = useCallback(async () => {
     await triggerFeedback('tap');
     resetToDefault();
   }, [resetToDefault, triggerFeedback]);
-
-  // Layout block label mapping
-  const getLayoutBlockLabel = useCallback((block: LayoutBlock): string => {
-    return t(`appearance.moduleLayout.${block}`);
-  }, [t]);
 
   // Button border color options (16 accent colors + white + black)
   const buttonBorderColorOptions: Array<{ value: ButtonBorderColor; hex: string; label: string }> = [
@@ -651,22 +575,29 @@ export function AppearanceSettingsScreen() {
         />
       </View>
 
-      {/* Module Layout Section */}
+      {/* Module Layout Section — Toolbar Position */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.moduleLayout.title')}</Text>
         <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.moduleLayout.hint')}</Text>
 
-        <HapticTouchable hapticDisabled
-          style={[styles.colorSelectorRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-          onPress={() => setShowLayoutEditor(true)}
-          accessibilityRole="button"
-          accessibilityLabel={t('appearance.moduleLayout.customize')}
-        >
-          <Text style={[styles.colorSelectorLabel, { color: themeColors.textPrimary }]}>{t('appearance.moduleLayout.customize')}</Text>
-          <View style={styles.colorSelectorRight}>
-            <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
+        {/* Toggle: toolbar at bottom */}
+        <View style={[styles.settingRow, { backgroundColor: themeColors.surface }]}>
+          <View style={styles.settingLabelContainer}>
+            <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              {t('appearance.moduleLayout.bottomToggle')}
+            </Text>
+            <Text style={[styles.settingHint, { color: themeColors.textSecondary }]}>
+              {t('appearance.moduleLayout.bottomToggleHint')}
+            </Text>
           </View>
-        </HapticTouchable>
+          <Switch
+            value={toolbarPosition === 'bottom'}
+            onValueChange={handleToolbarToggle}
+            trackColor={{ false: themeColors.border, true: accentColor.primary }}
+            thumbColor={Platform.OS === 'android' ? themeColors.surface : undefined}
+            accessibilityLabel={t('appearance.moduleLayout.bottomToggle')}
+          />
+        </View>
 
         {/* Reset button (only if customized) */}
         {isCustomized && (
@@ -682,72 +613,6 @@ export function AppearanceSettingsScreen() {
             </Text>
           </HapticTouchable>
         )}
-
-        {/* Layout Editor Modal (pageSheet pattern) */}
-        <Modal
-          visible={showLayoutEditor}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setShowLayoutEditor(false)}
-        >
-          <LiquidGlassView moduleId="settings" style={modalStyles.container} cornerRadius={0}>
-            {/* Header */}
-            <View style={[modalStyles.header, { borderBottomColor: themeColors.border }]}>
-              <Text style={[modalStyles.title, { color: themeColors.textPrimary }]}>
-                {t('appearance.moduleLayout.title')}
-              </Text>
-            </View>
-
-            {/* Content */}
-            <View style={modalStyles.content}>
-              <View style={styles.layoutBlockList}>
-                {layoutOrder.map((block, index) => (
-                  <LayoutBlockRow
-                    key={block}
-                    block={block}
-                    label={getLayoutBlockLabel(block)}
-                    icon={LAYOUT_BLOCK_ICONS[block]}
-                    index={index}
-                    total={layoutOrder.length}
-                    onMoveUp={() => void handleLayoutMoveUp(block)}
-                    onMoveDown={() => void handleLayoutMoveDown(block)}
-                    themeColors={themeColors}
-                    accentColor={accentColor.primary}
-                  />
-                ))}
-              </View>
-
-              {/* Reset button inside modal */}
-              {isCustomized && (
-                <HapticTouchable hapticDisabled
-                  style={[styles.resetButton, { borderColor: themeColors.border }]}
-                  onPress={() => void handleLayoutReset()}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('appearance.moduleLayout.reset')}
-                >
-                  <Icon name="refresh" size={18} color={themeColors.textSecondary} />
-                  <Text style={[styles.resetButtonText, { color: themeColors.textSecondary }]}>
-                    {t('appearance.moduleLayout.reset')}
-                  </Text>
-                </HapticTouchable>
-              )}
-            </View>
-
-            {/* Close button at bottom */}
-            <View style={[modalStyles.footer, { borderTopColor: themeColors.border }]}>
-              <HapticTouchable hapticDisabled
-                style={[modalStyles.closeButton, { backgroundColor: accentColor.primary }]}
-                onPress={() => setShowLayoutEditor(false)}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-              >
-                <Text style={[modalStyles.closeButtonText, { color: colors.textOnPrimary }]}>
-                  {t('common.close')}
-                </Text>
-              </HapticTouchable>
-            </View>
-          </LiquidGlassView>
-        </Modal>
       </View>
 
       {/* Liquid Glass Section (iOS only) */}
@@ -1034,19 +899,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   // Reset buttons
-  resetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.lg,
-    paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderRadius: borderRadius.md,
-  },
-  resetButtonText: {
-    ...typography.body,
-    marginLeft: spacing.sm,
-  },
   resetInlineButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1186,42 +1038,5 @@ const styles = StyleSheet.create({
   // Disabled state
   disabledSection: {
     opacity: 0.5,
-  },
-  // Module Layout Editor
-  layoutBlockList: {
-    gap: spacing.sm,
-  },
-  layoutBlockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    minHeight: touchTargets.comfortable,
-  },
-  layoutBlockLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: spacing.md,
-  },
-  layoutBlockText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  layoutBlockArrows: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  layoutArrowButton: {
-    width: touchTargets.minimum,
-    height: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

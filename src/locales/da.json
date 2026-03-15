@@ -700,12 +700,10 @@
     },
     "moduleLayout": {
       "title": "Skærmlayout",
-      "hint": "Ændr rækkefølgen af sektioner på modulskærme",
-      "module": "Modulnavn",
-      "controls": "Knapper og filtre",
-      "content": "Indhold",
-      "reset": "Gendan standard",
-      "customize": "Tilpas layout"
+      "hint": "Vælg hvor værktøjslinjen vises på modulskærme",
+      "bottomToggle": "Værktøjslinje nederst",
+      "bottomToggleHint": "Modulnavn og kontroller nederst, indhold øverst",
+      "reset": "Gendan standard"
     },
     "info": "Ændringer anvendes øjeblikkeligt i hele appen."
   },

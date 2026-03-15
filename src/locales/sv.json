@@ -700,12 +700,10 @@
     },
     "moduleLayout": {
       "title": "Skärmlayout",
-      "hint": "Ändra ordningen på sektioner på modulskärmar",
-      "module": "Modulnamn",
-      "controls": "Knappar och filter",
-      "content": "Innehåll",
-      "reset": "Återställ standard",
-      "customize": "Anpassa layout"
+      "hint": "Välj var verktygsfältet visas på modulskärmar",
+      "bottomToggle": "Verktygsfält längst ner",
+      "bottomToggleHint": "Modulnamn och kontroller längst ner, innehåll överst",
+      "reset": "Återställ standard"
     },
     "info": "Ändringar tillämpas omedelbart i hela appen."
   },

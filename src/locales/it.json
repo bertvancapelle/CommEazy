@@ -804,12 +804,10 @@
     },
     "moduleLayout": {
       "title": "Disposizione schermo",
-      "hint": "Cambia l'ordine delle sezioni nelle schermate dei moduli",
-      "module": "Nome del modulo",
-      "controls": "Pulsanti e filtri",
-      "content": "Contenuto",
-      "reset": "Ripristina predefinito",
-      "customize": "Personalizza disposizione"
+      "hint": "Scegli dove appare la barra degli strumenti nelle schermate dei moduli",
+      "bottomToggle": "Barra degli strumenti in basso",
+      "bottomToggleHint": "Nome del modulo e controlli in basso, contenuto in alto",
+      "reset": "Ripristina predefinito"
     },
     "info": "Le modifiche vengono applicate immediatamente in tutta l'app."
   },

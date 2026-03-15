@@ -805,12 +805,10 @@
     },
     "moduleLayout": {
       "title": "Bildschirmlayout",
-      "hint": "Ändere die Reihenfolge der Abschnitte auf Modulbildschirmen",
-      "module": "Modulname",
-      "controls": "Schaltflächen und Filter",
-      "content": "Inhalt",
-      "reset": "Standard wiederherstellen",
-      "customize": "Layout anpassen"
+      "hint": "Wählen Sie, wo die Symbolleiste auf Modulbildschirmen erscheint",
+      "bottomToggle": "Symbolleiste unten",
+      "bottomToggleHint": "Modulname und Steuerung unten, Inhalt oben",
+      "reset": "Standard wiederherstellen"
     },
     "info": "Änderungen werden sofort in der gesamten App angewendet."
   },

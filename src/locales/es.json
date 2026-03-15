@@ -805,12 +805,10 @@
     },
     "moduleLayout": {
       "title": "Disposición de pantalla",
-      "hint": "Cambia el orden de las secciones en las pantallas de módulo",
-      "module": "Nombre del módulo",
-      "controls": "Botones y filtros",
-      "content": "Contenido",
-      "reset": "Restablecer predeterminado",
-      "customize": "Personalizar disposición"
+      "hint": "Elige dónde aparece la barra de herramientas en las pantallas de módulo",
+      "bottomToggle": "Barra de herramientas abajo",
+      "bottomToggleHint": "Nombre del módulo y controles abajo, contenido arriba",
+      "reset": "Restablecer predeterminado"
     },
     "info": "Los cambios se aplican inmediatamente en toda la aplicación."
   },

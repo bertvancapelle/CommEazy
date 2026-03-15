@@ -2912,24 +2912,34 @@ Deze registry documenteert welke **standaard componenten** verplicht zijn voor s
 
 **Verplichte component:** `ModuleScreenLayout`
 
-ALLE module screens MOETEN `ModuleScreenLayout` gebruiken om de "Schermindeling" instelling (Instellingen → Weergave & Kleuren) te respecteren. Dit component rendert 3 blocks in user-configureerbare volgorde via `ModuleLayoutContext`.
+ALLE module screens MOETEN `ModuleScreenLayout` gebruiken om de "Schermindeling" instelling (Instellingen → Weergave & Kleuren) te respecteren. Dit component positioneert de toolbar (ModuleHeader + controls) boven of onder de content, gebaseerd op de gebruikersinstelling via `ModuleLayoutContext`.
+
+**Toolbar positie:**
+- **"top" (standaard):** Safe Area → AdMob → ModuleHeader → Controls → Content
+- **"bottom":** Safe Area → AdMob → Content → Controls (omgekeerde rij-volgorde) → ModuleHeader
+
+Wanneer toolbar onderaan staat, worden de controls children in omgekeerde volgorde gerenderd zodat rijen die het dichtst bij de header staan, dichtbij de header blijven.
 
 **Props:**
 ```typescript
 interface ModuleScreenLayoutProps {
-  headerPadding: number;      // Altijd 0 voor lineaire headers
+  moduleId: string;           // Module identifier voor Safe Area + AdMob achtergrondkleur
+  moduleBlock: ReactNode;     // Typisch de ModuleHeader component
   controlsBlock: ReactNode;   // Knoppen, tabs, filters, zoekbalk
   contentBlock: ReactNode;    // ScrollViews, lijsten, modals, content
+  showAdMob?: boolean;        // Default: true
+  adMobUnitId?: string;       // Optioneel, gebruikt default als niet opgegeven
 }
 ```
 
 **Patroon:**
 ```typescript
 <View style={styles.container}>
-  <ModuleHeader moduleId="..." icon="..." title={t('...')} />
-
   <ModuleScreenLayout
-    headerPadding={0}
+    moduleId="radio"
+    moduleBlock={
+      <ModuleHeader moduleId="radio" icon="radio" title={t('...')} skipSafeArea />
+    }
     controlsBlock={
       <View style={styles.tabBar}>
         {/* Tabs, filters, actieknoppen */}
@@ -2945,8 +2955,8 @@ interface ModuleScreenLayoutProps {
 ```
 
 **Regels:**
-- `ModuleHeader` staat ALTIJD BUITEN `ModuleScreenLayout`
-- `headerPadding={0}` voor alle lineaire (niet-overlay) headers
+- `ModuleHeader` wordt meegegeven als `moduleBlock` prop (met `skipSafeArea`)
+- Safe Area spacer en AdMob zijn FIXED bovenaan (niet beïnvloed door positie-instelling)
 - Lege controlsBlock: `controlsBlock={<></>}`
 - Meerdere elementen in een block: gebruik `<>...</>` fragments
 - Modals gaan in `contentBlock` (renderen als portals ongeacht positie)

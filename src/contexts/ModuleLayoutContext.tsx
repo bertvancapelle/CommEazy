@@ -1,12 +1,15 @@
 /**
- * ModuleLayoutContext — Configurable module screen layout order
+ * ModuleLayoutContext — Configurable toolbar position for module screens
  *
- * Allows users to reorder the three visual blocks in module screens:
- * 1. "module" — Module icon + title (in ModuleHeader)
- * 2. "controls" — Tabs, ChipSelector, SearchBar
- * 3. "content" — Main scrollable content (list, grid, etc.)
+ * Controls where the toolbar (ModuleHeader + controls) appears relative
+ * to content:
+ * - "top" (default): Header → Controls → Content
+ * - "bottom": Content → Controls (reversed) → Header
  *
- * AdMob stays fixed at the top (not reorderable).
+ * When toolbar is at bottom, the controls rows are rendered in reverse
+ * order so that rows closest to the header stay closest to the header.
+ *
+ * AdMob stays fixed at the very top (not affected by this setting).
  *
  * ONE global setting applies to ALL module screens.
  *
@@ -27,24 +30,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Types
 // ============================================================
 
-/** The three reorderable layout blocks */
-export type LayoutBlock = 'module' | 'controls' | 'content';
+/** Toolbar position relative to content */
+export type ToolbarPosition = 'top' | 'bottom';
 
-/** Default order — matches current layout */
-export const DEFAULT_LAYOUT_ORDER: LayoutBlock[] = ['module', 'controls', 'content'];
+const DEFAULT_TOOLBAR_POSITION: ToolbarPosition = 'top';
 
-const STORAGE_KEY = '@commeazy/moduleLayoutOrder';
+const STORAGE_KEY = '@commeazy/toolbarPosition';
 
 export interface ModuleLayoutContextValue {
-  /** Current block order (always 3 elements) */
-  layoutOrder: LayoutBlock[];
-  /** Move a block up in the order (swap with previous) */
-  moveUp: (block: LayoutBlock) => void;
-  /** Move a block down in the order (swap with next) */
-  moveDown: (block: LayoutBlock) => void;
-  /** Reset to default order */
+  /** Where the toolbar (header + controls) sits relative to content */
+  toolbarPosition: ToolbarPosition;
+  /** Toggle between top and bottom */
+  toggleToolbarPosition: () => void;
+  /** Set a specific position */
+  setToolbarPosition: (position: ToolbarPosition) => void;
+  /** Reset to default (top) */
   resetToDefault: () => void;
-  /** Whether the order differs from default */
+  /** Whether the position differs from default */
   isCustomized: boolean;
 }
 
@@ -63,73 +65,47 @@ interface ModuleLayoutProviderProps {
 }
 
 export function ModuleLayoutProvider({ children }: ModuleLayoutProviderProps) {
-  const [layoutOrder, setLayoutOrder] = useState<LayoutBlock[]>(DEFAULT_LAYOUT_ORDER);
+  const [toolbarPosition, setToolbarPositionState] = useState<ToolbarPosition>(DEFAULT_TOOLBAR_POSITION);
 
-  // Load persisted order on mount
+  // Load persisted position on mount
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((json) => {
-      if (!json) return;
-      try {
-        const parsed = JSON.parse(json);
-        // Validate: must be array of exactly 3 known blocks
-        if (
-          Array.isArray(parsed) &&
-          parsed.length === 3 &&
-          parsed.includes('module') &&
-          parsed.includes('controls') &&
-          parsed.includes('content')
-        ) {
-          setLayoutOrder(parsed as LayoutBlock[]);
-        }
-      } catch {
-        // Invalid JSON — ignore, use default
+    AsyncStorage.getItem(STORAGE_KEY).then((value) => {
+      if (value === 'top' || value === 'bottom') {
+        setToolbarPositionState(value);
       }
     });
   }, []);
 
-  const persistToStorage = useCallback((order: LayoutBlock[]) => {
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(order));
+  const persistToStorage = useCallback((position: ToolbarPosition) => {
+    AsyncStorage.setItem(STORAGE_KEY, position);
   }, []);
 
-  const moveUp = useCallback((block: LayoutBlock) => {
-    setLayoutOrder((prev) => {
-      const idx = prev.indexOf(block);
-      if (idx <= 0) return prev; // Already at top
-      const next = [...prev];
-      [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+  const toggleToolbarPosition = useCallback(() => {
+    setToolbarPositionState((prev) => {
+      const next = prev === 'top' ? 'bottom' : 'top';
       persistToStorage(next);
       return next;
     });
   }, [persistToStorage]);
 
-  const moveDown = useCallback((block: LayoutBlock) => {
-    setLayoutOrder((prev) => {
-      const idx = prev.indexOf(block);
-      if (idx < 0 || idx >= prev.length - 1) return prev; // Already at bottom
-      const next = [...prev];
-      [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-      persistToStorage(next);
-      return next;
-    });
+  const setToolbarPosition = useCallback((position: ToolbarPosition) => {
+    setToolbarPositionState(position);
+    persistToStorage(position);
   }, [persistToStorage]);
 
   const resetToDefault = useCallback(() => {
-    const defaultOrder = [...DEFAULT_LAYOUT_ORDER];
-    setLayoutOrder(defaultOrder);
-    persistToStorage(defaultOrder);
+    setToolbarPositionState(DEFAULT_TOOLBAR_POSITION);
+    persistToStorage(DEFAULT_TOOLBAR_POSITION);
   }, [persistToStorage]);
 
-  const isCustomized =
-    layoutOrder[0] !== DEFAULT_LAYOUT_ORDER[0] ||
-    layoutOrder[1] !== DEFAULT_LAYOUT_ORDER[1] ||
-    layoutOrder[2] !== DEFAULT_LAYOUT_ORDER[2];
+  const isCustomized = toolbarPosition !== DEFAULT_TOOLBAR_POSITION;
 
   return (
     <ModuleLayoutContext.Provider
       value={{
-        layoutOrder,
-        moveUp,
-        moveDown,
+        toolbarPosition,
+        toggleToolbarPosition,
+        setToolbarPosition,
         resetToDefault,
         isCustomized,
       }}
@@ -151,14 +127,14 @@ export function useModuleLayout(): ModuleLayoutContextValue {
   return ctx;
 }
 
-/** Safe hook that returns default order when outside provider */
+/** Safe hook that returns default position when outside provider */
 export function useModuleLayoutSafe(): ModuleLayoutContextValue {
   const ctx = useContext(ModuleLayoutContext);
   if (!ctx) {
     return {
-      layoutOrder: DEFAULT_LAYOUT_ORDER,
-      moveUp: () => {},
-      moveDown: () => {},
+      toolbarPosition: DEFAULT_TOOLBAR_POSITION,
+      toggleToolbarPosition: () => {},
+      setToolbarPosition: () => {},
       resetToDefault: () => {},
       isCustomized: false,
     };

@@ -829,12 +829,10 @@
     },
     "moduleLayout": {
       "title": "Disposição da tela",
-      "hint": "Altere a ordem das seções nas telas de módulo",
-      "module": "Nome do módulo",
-      "controls": "Botões e filtros",
-      "content": "Conteúdo",
-      "reset": "Restaurar padrão",
-      "customize": "Personalizar disposição"
+      "hint": "Escolha onde a barra de ferramentas aparece nas telas de módulo",
+      "bottomToggle": "Barra de ferramentas embaixo",
+      "bottomToggleHint": "Nome do módulo e controles embaixo, conteúdo em cima",
+      "reset": "Restaurar padrão"
     },
     "info": "As alterações são aplicadas imediatamente em todo o app."
   },
