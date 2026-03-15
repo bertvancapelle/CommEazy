@@ -60,7 +60,6 @@ export const MODULE_COLOR_OPTIONS = ACCENT_COLOR_KEYS.map((key) => ({
 export const CUSTOMIZABLE_MODULES: ModuleColorId[] = [
   'chats',
   'contacts',
-  'groups',
   'calls',
   'radio',
   'podcast',
@@ -88,7 +87,6 @@ export const MODULE_LABELS: Record<ModuleColorId, string> = {
   chats: 'navigation.chats',
   messages: 'navigation.chats',
   contacts: 'navigation.contacts',
-  groups: 'navigation.groups',
   calls: 'navigation.calls',
   videocall: 'navigation.calls',
   radio: 'navigation.radio',

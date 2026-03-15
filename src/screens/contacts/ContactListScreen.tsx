@@ -24,7 +24,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -45,13 +44,6 @@ import { type Contact, getContactDisplayName } from '@/services/interfaces';
 import { getSmartSections, getCallFrequency } from '@/services/contacts';
 import type { SmartSection, ContactGroup } from '@/services/contacts';
 import type { ContactStackParams } from '@/navigation';
-import {
-  STANDARD_CATEGORIES,
-  CUSTOM_CATEGORIES_STORAGE_KEY,
-  type AgendaCategoryDef,
-  type CustomCategory,
-} from '@/constants/agendaCategories';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CreateGroupModal } from './CreateGroupModal';
 import { EditGroupModal } from './EditGroupModal';
 
@@ -130,9 +122,6 @@ export function ContactListScreen() {
   const [callFrequency, setCallFrequency] = useState<Record<string, number>>({});
   const { groups, create, rename, updateEmoji, addContacts, removeContacts, remove: deleteGroup } = useContactGroups();
 
-  // Category filter state
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
 
   // Group CRUD modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -173,38 +162,6 @@ export function ContactListScreen() {
     voiceFocusItems
   );
 
-  /** Parse category IDs from a contact's categories JSON string */
-  const getContactCategoryIds = useCallback((contact: Contact): string[] => {
-    if (!contact.categories) return [];
-    try {
-      return JSON.parse(contact.categories);
-    } catch {
-      return [];
-    }
-  }, []);
-
-  /** Categories that are actually used by at least one contact (standard + custom) */
-  const usedCategories: AgendaCategoryDef[] = useMemo(() => {
-    const usedIds = new Set<string>();
-    for (const contact of contacts) {
-      for (const catId of getContactCategoryIds(contact)) {
-        usedIds.add(catId);
-      }
-    }
-    const standardUsed = STANDARD_CATEGORIES.filter(cat => usedIds.has(cat.id));
-    const customUsed: AgendaCategoryDef[] = customCategories
-      .filter(cat => usedIds.has(cat.id))
-      .map(cat => ({
-        id: cat.id,
-        icon: cat.icon,
-        name: cat.name,
-        isStandard: false,
-        defaultFormType: cat.formType,
-        isAutomatic: false,
-      }));
-    return [...standardUsed, ...customUsed];
-  }, [contacts, getContactCategoryIds, customCategories]);
-
   // Load contacts from WatermelonDB (single source of truth for all modes)
   useEffect(() => {
     const loadContacts = async () => {
@@ -224,15 +181,6 @@ export function ContactListScreen() {
     void loadContacts();
   }, []);
 
-  // Load custom categories from AsyncStorage
-  useEffect(() => {
-    AsyncStorage.getItem(CUSTOM_CATEGORIES_STORAGE_KEY).then(json => {
-      if (json) {
-        try { setCustomCategories(JSON.parse(json)); } catch { /* ignore */ }
-      }
-    });
-  }, []);
-
   // Compute smart sections from contacts (memoized for performance)
   const smartSections: SmartSection[] = useMemo(() => {
     if (contacts.length === 0) return [];
@@ -244,7 +192,7 @@ export function ContactListScreen() {
     getCallFrequency().then(setCallFrequency).catch(() => {});
   }, []);
 
-  // Filter contacts by chip selection + category + search query
+  // Filter contacts by chip selection + search query
   useEffect(() => {
     let base = contacts;
 
@@ -267,11 +215,6 @@ export function ContactListScreen() {
       }
     }
 
-    // Apply category filter
-    if (selectedCategoryId) {
-      base = base.filter(c => getContactCategoryIds(c).includes(selectedCategoryId));
-    }
-
     // Apply search filter on top
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
@@ -285,7 +228,7 @@ export function ContactListScreen() {
     }
 
     setFilteredContacts(base);
-  }, [searchQuery, contacts, selectedChipId, smartSections, groups, selectedCategoryId, getContactCategoryIds]);
+  }, [searchQuery, contacts, selectedChipId, smartSections, groups]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -461,71 +404,6 @@ export function ContactListScreen() {
               />
             </View>
 
-            {/* Category filter chips — horizontal scroll */}
-            {usedCategories.length > 0 && (
-              <View style={[styles.categoryFilterContainer, { borderBottomColor: themeColors.divider }]}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.categoryFilterContent}
-                >
-                  {/* "Alle" chip */}
-                  <HapticTouchable
-                    style={[
-                      styles.categoryChip,
-                      {
-                        backgroundColor: selectedCategoryId === null ? themeColors.primary : themeColors.surface,
-                        borderColor: selectedCategoryId === null ? themeColors.primary : themeColors.border,
-                      },
-                    ]}
-                    onPress={() => setSelectedCategoryId(null)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: selectedCategoryId === null }}
-                    accessibilityLabel={t('contacts.categories.filterAll', 'Alle')}
-                  >
-                    <Text
-                      style={[
-                        styles.categoryChipText,
-                        { color: selectedCategoryId === null ? themeColors.textOnPrimary : themeColors.textPrimary },
-                      ]}
-                    >
-                      {t('contacts.categories.filterAll', 'Alle')}
-                    </Text>
-                  </HapticTouchable>
-
-                  {/* Category chips */}
-                  {usedCategories.map(cat => {
-                    const isActive = selectedCategoryId === cat.id;
-                    return (
-                      <HapticTouchable
-                        key={cat.id}
-                        style={[
-                          styles.categoryChip,
-                          {
-                            backgroundColor: isActive ? themeColors.primary : themeColors.surface,
-                            borderColor: isActive ? themeColors.primary : themeColors.border,
-                          },
-                        ]}
-                        onPress={() => setSelectedCategoryId(isActive ? null : cat.id)}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: isActive }}
-                        accessibilityLabel={t(cat.name)}
-                      >
-                        <Text style={styles.categoryChipEmoji}>{cat.icon}</Text>
-                        <Text
-                          style={[
-                            styles.categoryChipText,
-                            { color: isActive ? themeColors.textOnPrimary : themeColors.textPrimary },
-                          ]}
-                        >
-                          {t(cat.name)}
-                        </Text>
-                      </HapticTouchable>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            )}
           </>
         }
         contentBlock={
@@ -565,10 +443,14 @@ export function ContactListScreen() {
               />
             )}
 
-            {/* FAB for adding contacts */}
+            {/* FAB for adding contacts — extra bottom offset when group actions bar visible */}
             {contacts.length > 0 && (
               <HapticTouchable hapticDisabled
-                style={[styles.fab, { backgroundColor: themeColors.primary }]}
+                style={[
+                  styles.fab,
+                  { backgroundColor: themeColors.primary },
+                  selectedChipId !== 'all' && filteredContacts.length > 0 && styles.fabWithActionsBar,
+                ]}
                 onPress={handleAddContact}
                 activeOpacity={0.8}
                 accessibilityRole="button"
@@ -611,31 +493,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-  },
-  categoryFilterContainer: {
-    borderBottomWidth: 1,
-  },
-  categoryFilterContent: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
-  },
-  categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    minHeight: touchTargets.minimum,
-    gap: spacing.xs,
-  },
-  categoryChipEmoji: {
-    fontSize: 18,
-  },
-  categoryChipText: {
-    ...typography.label,
-    fontWeight: '600',
   },
   contactItem: {
     flexDirection: 'row',
@@ -699,6 +556,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+  },
+  fabWithActionsBar: {
+    // Shift FAB up to avoid overlap with ContactGroupActionsBar (~110pt tall)
+    bottom: spacing.xl + 110,
   },
   fabIcon: {
     fontSize: 32,

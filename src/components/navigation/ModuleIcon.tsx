@@ -133,84 +133,6 @@ export function ModuleIcon({
         </View>
       );
 
-    case 'groups':
-      return (
-        <View style={[styles.iconContainer, { width: size, height: size }]}>
-          <View style={styles.groupsContainer}>
-            <View style={[styles.groupPersonSmall, { left: size * 0.05 }]}>
-              <View
-                style={[
-                  styles.personHead,
-                  {
-                    width: size * 0.25,
-                    height: size * 0.25,
-                    backgroundColor: color,
-                    opacity: 0.7,
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.personBody,
-                  {
-                    width: size * 0.35,
-                    height: size * 0.18,
-                    backgroundColor: color,
-                    opacity: 0.7,
-                  },
-                ]}
-              />
-            </View>
-            <View style={[styles.groupPersonSmall, { right: size * 0.05 }]}>
-              <View
-                style={[
-                  styles.personHead,
-                  {
-                    width: size * 0.25,
-                    height: size * 0.25,
-                    backgroundColor: color,
-                    opacity: 0.7,
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.personBody,
-                  {
-                    width: size * 0.35,
-                    height: size * 0.18,
-                    backgroundColor: color,
-                    opacity: 0.7,
-                  },
-                ]}
-              />
-            </View>
-            <View style={styles.groupPersonCenter}>
-              <View
-                style={[
-                  styles.personHead,
-                  {
-                    width: size * 0.35,
-                    height: size * 0.35,
-                    backgroundColor: color,
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.personBody,
-                  {
-                    width: size * 0.5,
-                    height: size * 0.25,
-                    backgroundColor: color,
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        </View>
-      );
-
     case 'settings':
       return (
         <View style={[styles.iconContainer, { width: size, height: size }]}>
@@ -728,23 +650,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 100,
     borderTopRightRadius: 100,
   },
-  groupsContainer: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  groupPersonSmall: {
-    position: 'absolute',
-    alignItems: 'center',
-    top: '15%',
-  },
-  groupPersonCenter: {
-    alignItems: 'center',
-    zIndex: 1,
-  },
-
   // Settings icon
   gear: {
     borderRadius: 100,

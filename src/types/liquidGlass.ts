@@ -87,7 +87,6 @@ export type ModuleColorId =
   | 'chats'
   | 'messages'     // Alias for chats
   | 'contacts'
-  | 'groups'
   | 'calls'
   | 'videocall'    // Video calling variant
   | 'settings'
@@ -149,12 +148,6 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   },
   contacts: {
     moduleId: 'contacts',
-    tintColor: DEFAULT_MODULE_BLUE,
-    fallbackColor: DEFAULT_MODULE_BLUE,
-    lightColor: '#FFFFFF',
-  },
-  groups: {
-    moduleId: 'groups',
     tintColor: DEFAULT_MODULE_BLUE,
     fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',

@@ -45,12 +45,6 @@ import {
   VerifyContactScreen,
 } from '@/screens/contacts';
 
-// Group screens
-import {
-  GroupListScreen,
-  GroupDetailScreen,
-  CreateGroupScreen,
-} from '@/screens/group';
 
 // Settings screens
 import {
@@ -123,12 +117,6 @@ type ContactPanelParams = {
   VerifyContact: { jid: string; name: string };
 };
 
-type GroupPanelParams = {
-  GroupList: undefined;
-  GroupDetail: { groupId: string; name: string };
-  CreateGroup: undefined;
-};
-
 type BooksPanelParams = {
   BooksList: undefined;
   BookReader: undefined;
@@ -161,7 +149,6 @@ type SettingsPanelParams = {
 
 const ChatPanelStack = createNativeStackNavigator<ChatPanelParams>();
 const ContactPanelStack = createNativeStackNavigator<ContactPanelParams>();
-const GroupPanelStack = createNativeStackNavigator<GroupPanelParams>();
 const BooksPanelStack = createNativeStackNavigator<BooksPanelParams>();
 const SettingsPanelStack = createNativeStackNavigator<SettingsPanelParams>();
 
@@ -315,48 +302,6 @@ function ContactPanelNavigator() {
             options={{ title: t('contacts.verify') }}
           />
         </ContactPanelStack.Navigator>
-      </NavigationContainer>
-    </NavigationIndependentTree>
-  );
-}
-
-function GroupPanelNavigator() {
-  const { t } = useTranslation();
-  const { accentColor } = useAccentColor();
-  const panelId = usePanelId();
-  const navRef = useRef<NavigationContainerRef<GroupPanelParams>>(null);
-
-  usePaneGoBack(navRef, panelId);
-
-  return (
-    <NavigationIndependentTree>
-      <NavigationContainer ref={navRef}>
-        <GroupPanelStack.Navigator
-          screenOptions={{
-            headerTitleStyle: typography.h3,
-            headerBackTitleVisible: false,
-            headerTintColor: accentColor.primary,
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-          }}
-        >
-          <GroupPanelStack.Screen
-            name="GroupList"
-            component={GroupListScreen}
-            options={{ headerShown: false }}
-          />
-          <GroupPanelStack.Screen
-            name="GroupDetail"
-            component={GroupDetailScreen}
-            options={({ route }) => ({ title: route.params.name })}
-          />
-          <GroupPanelStack.Screen
-            name="CreateGroup"
-            component={CreateGroupScreen}
-            options={{ title: t('group.create') }}
-          />
-        </GroupPanelStack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
   );
@@ -616,8 +561,6 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
       return <ChatPanelNavigator />;
     case 'contacts':
       return <ContactPanelNavigator />;
-    case 'groups':
-      return <GroupPanelNavigator />;
     case 'books':
       return <BooksPanelNavigator />;
     case 'settings':

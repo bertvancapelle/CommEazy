@@ -81,12 +81,6 @@ export type ContactStackParams = {
   QRDisplay: undefined;
 };
 
-export type GroupStackParams = {
-  GroupList: undefined;
-  GroupDetail: { groupId: string; name: string };
-  CreateGroup: undefined;
-};
-
 export type SettingsStackParams = {
   SettingsMain: undefined;
   LanguageSettings: undefined;

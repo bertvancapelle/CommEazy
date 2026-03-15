@@ -52,7 +52,6 @@ interface UseModuleUsageOptions {
 export const ALL_MODULES: NavigationDestination[] = [
   'chats',
   'contacts',
-  'groups',
   'calls',       // Combined voice + video calling
   'podcast',
   'radio',
@@ -82,7 +81,6 @@ const DEFAULT_MODULE_ORDER: NavigationDestination[] = [
   'contacts',    // Second most common
   'radio',       // Radio - key media feature, visible on first page
   'calls',       // Phone + video calls (combined)
-  'groups',      // Groups
   'camera',      // Camera - taking photos/videos
   'photoAlbum',  // Photo Album - viewing and sending photos
   'weather',     // Weather - useful utility for seniors

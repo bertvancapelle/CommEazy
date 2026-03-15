@@ -58,13 +58,6 @@ const STATIC_MODULES: ModuleDefinition[] = [
     sidebarGroup: 'primary',
   },
   {
-    id: 'groups',
-    labelKey: 'navigation.groups',
-    icon: 'groups',
-    color: '#9C27B0',
-    sidebarGroup: 'primary',
-  },
-  {
     id: 'calls',
     labelKey: 'navigation.calls',
     icon: 'phone',
@@ -286,7 +279,6 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
         const screenMap: Record<string, string> = {
           chats: 'ChatsTab',
           contacts: 'ContactsTab',
-          groups: 'GroupsTab',
           calls: 'CallsTab',
           settings: 'SettingsTab',
           help: 'Help',

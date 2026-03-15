@@ -181,7 +181,6 @@
   "tabs": {
     "chats": "Meldinger",
     "contacts": "Kontakter",
-    "groups": "Grupper",
     "settings": "Innstillinger"
   },
   "chat": {
@@ -954,7 +953,6 @@
     "tap_to_select": "Trykk for å velge",
     "chats": "Meldinger",
     "contacts": "Kontakter",
-    "groups": "Grupper",
     "settings": "Innstillinger",
     "help": "Hjelp",
     "calls": "Ring",
@@ -2342,7 +2340,6 @@
       "messages": "Meldinger",
       "contacts": "Kontakter",
       "settings": "Innstillinger",
-      "groups": "Grupper",
       "call": "Ring [navn]",
       "message": "Send melding til [navn]"
     },

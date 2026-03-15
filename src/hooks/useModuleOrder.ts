@@ -66,7 +66,6 @@ const DEFAULT_GRID_ORDER: GridItem[] = [
   'contacts',
   'radio',
   'calls',
-  'groups',
   'camera',
   'photoAlbum',
   'weather',

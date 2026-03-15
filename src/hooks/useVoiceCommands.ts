@@ -66,8 +66,6 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
     { patterns: ['berichten', 'chats', 'gesprekken', 'chat', 'bericht'], destination: 'chats' },
     // Contacts
     { patterns: ['contacten', 'contact', 'personen', 'adresboek'], destination: 'contacts' },
-    // Groups
-    { patterns: ['groepen', 'groep', 'groepsgesprek'], destination: 'groups' },
     // Settings - many variations including "open instellingen menu"
     { patterns: ['instellingen', 'instelling', 'settings', 'opties', 'configuratie', 'voorkeuren'], destination: 'settings' },
     // Calls (voice + video combined)
@@ -84,7 +82,6 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
   en: [
     { patterns: ['messages', 'chats', 'conversations', 'chat'], destination: 'chats' },
     { patterns: ['contacts', 'contact', 'people'], destination: 'contacts' },
-    { patterns: ['groups', 'group'], destination: 'groups' },
     { patterns: ['settings', 'options', 'preferences'], destination: 'settings' },
     { patterns: ['call', 'phone', 'calling', 'video', 'video call', 'facetime'], destination: 'calls' },
     { patterns: ['book', 'read', 'e-book', 'ebook'], destination: 'ebook' },
@@ -95,7 +92,6 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
   de: [
     { patterns: ['nachrichten', 'chats', 'gespräche', 'chat'], destination: 'chats' },
     { patterns: ['kontakte', 'kontakt', 'personen'], destination: 'contacts' },
-    { patterns: ['gruppen', 'gruppe'], destination: 'groups' },
     { patterns: ['einstellungen', 'optionen'], destination: 'settings' },
     { patterns: ['anrufen', 'telefon', 'telefonieren', 'video', 'videoanruf', 'videogespräch'], destination: 'calls' },
     { patterns: ['buch', 'lesen', 'e-book', 'ebook'], destination: 'ebook' },
@@ -106,7 +102,6 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
   fr: [
     { patterns: ['messages', 'chats', 'conversations', 'chat'], destination: 'chats' },
     { patterns: ['contacts', 'contact', 'personnes'], destination: 'contacts' },
-    { patterns: ['groupes', 'groupe'], destination: 'groups' },
     { patterns: ['paramètres', 'réglages', 'options'], destination: 'settings' },
     { patterns: ['appeler', 'téléphone', 'appel', 'vidéo', 'appel vidéo', 'visio'], destination: 'calls' },
     { patterns: ['livre', 'lire', 'e-book', 'ebook'], destination: 'ebook' },
@@ -117,7 +112,6 @@ const NAVIGATION_COMMANDS: Record<string, Array<{ patterns: string[]; destinatio
   es: [
     { patterns: ['mensajes', 'chats', 'conversaciones', 'chat'], destination: 'chats' },
     { patterns: ['contactos', 'contacto', 'personas'], destination: 'contacts' },
-    { patterns: ['grupos', 'grupo'], destination: 'groups' },
     { patterns: ['ajustes', 'configuración', 'opciones'], destination: 'settings' },
     { patterns: ['llamar', 'teléfono', 'llamada', 'video', 'videollamada'], destination: 'calls' },
     { patterns: ['libro', 'leer', 'e-book', 'ebook'], destination: 'ebook' },

@@ -80,7 +80,6 @@
   "tabs": {
     "chats": "Berichten",
     "contacts": "Contacten",
-    "groups": "Groepen",
     "settings": "Instellingen"
   },
   "chat": {
@@ -1055,7 +1054,6 @@
     "tap_to_select": "Tik om te kiezen",
     "chats": "Berichten",
     "contacts": "Contacten",
-    "groups": "Groepen",
     "settings": "Instellingen",
     "help": "Hulp",
     "calls": "Bellen",
@@ -2478,7 +2476,6 @@
       "messages": "Berichten",
       "contacts": "Contacten",
       "settings": "Instellingen",
-      "groups": "Groepen",
       "call": "Bel [naam]",
       "message": "Stuur bericht naar [naam]"
     },

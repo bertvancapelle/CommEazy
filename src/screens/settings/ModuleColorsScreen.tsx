@@ -42,7 +42,6 @@ const MODULE_ICONS: Record<ModuleColorId, IconName> = {
   chats: 'chat',
   messages: 'chat',
   contacts: 'contacts',
-  groups: 'groups',
   calls: 'phone',
   videocall: 'videocam',
   radio: 'radio',

@@ -23,7 +23,6 @@ export type StaticNavigationDestination =
   | 'menu'         // iPad Split View: Menu module (initial left panel)
   | 'chats'
   | 'contacts'
-  | 'groups'
   | 'settings'
   | 'help'
   | 'calls'        // Combined voice + video calling
@@ -143,7 +142,6 @@ export type ModuleIconType =
   | 'menu'         // iPad Split View: Menu icon
   | 'chat'
   | 'contacts'
-  | 'groups'
   | 'settings'
   | 'help'
   | 'phone'
@@ -178,8 +176,6 @@ export function mapModuleIconToIconName(type: ModuleIconType): IconName {
       return 'chat';
     case 'contacts':
       return 'contacts';
-    case 'groups':
-      return 'groups';
     case 'settings':
       return 'settings';
     case 'help':
@@ -253,7 +249,6 @@ export const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit
   menu: { labelKey: 'navigation.menu', icon: 'menu' },
   chats: { labelKey: 'navigation.chats', icon: 'chat' },
   contacts: { labelKey: 'navigation.contacts', icon: 'contacts' },
-  groups: { labelKey: 'navigation.groups', icon: 'groups' },
   calls: { labelKey: 'navigation.calls', icon: 'phone' },
   podcast: { labelKey: 'navigation.podcast', icon: 'podcast' },
   radio: { labelKey: 'navigation.radio', icon: 'radio' },
@@ -283,7 +278,7 @@ export const STATIC_MODULE_DEFINITIONS: Record<StaticNavigationDestination, Omit
  * Module groups for sidebar organization
  */
 export const MODULE_SIDEBAR_GROUPS = {
-  primary: ['chats', 'contacts', 'groups', 'calls'] as const,
+  primary: ['chats', 'contacts', 'calls'] as const,
   secondary: ['radio', 'podcast', 'books', 'weather', 'agenda'] as const,
   footer: ['menu', 'settings', 'help'] as const,
 } as const;

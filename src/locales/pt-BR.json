@@ -281,7 +281,6 @@
   "tabs": {
     "chats": "Mensagens",
     "contacts": "Contatos",
-    "groups": "Grupos",
     "settings": "Configurações"
   },
   "chat": {
@@ -1058,7 +1057,6 @@
     "tap_to_select": "Toque para escolher",
     "chats": "Mensagens",
     "contacts": "Contatos",
-    "groups": "Grupos",
     "settings": "Configurações",
     "help": "Ajuda",
     "calls": "Chamadas",
@@ -2487,7 +2485,6 @@
       "messages": "Mensagens",
       "contacts": "Contatos",
       "settings": "Configurações",
-      "groups": "Grupos",
       "call": "Ligar [nome]",
       "message": "Enviar mensagem para [nome]"
     },
