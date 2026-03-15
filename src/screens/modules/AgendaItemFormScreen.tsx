@@ -47,7 +47,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, SearchBar, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -204,7 +204,7 @@ function FormPickerModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
         {/* Header */}
         <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
@@ -264,7 +264,7 @@ function FormPickerModal({
             );
           })}
         </ScrollViewWithIndicator>
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -338,46 +338,66 @@ function DateTimePickerModal({
   return (
     <Modal
       visible={visible}
+      transparent={true}
       animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
-        {/* Header */}
-        <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
-            {title}
-          </Text>
-          <HapticTouchable
-            style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.agenda.form.done')}
-          >
-            <Text style={dateTimePickerModalStyles.doneButtonText}>
-              {t('modules.agenda.form.done')}
+      <View style={dateTimePickerModalStyles.overlay}>
+        <LiquidGlassView moduleId="agenda" style={dateTimePickerModalStyles.container} cornerRadius={borderRadius.lg}>
+          {/* Header */}
+          <View style={[dateTimePickerModalStyles.header, { borderBottomColor: themeColors.border }]}>
+            <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
+              {title}
             </Text>
-          </HapticTouchable>
-        </View>
+            <HapticTouchable
+              style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.agenda.form.done')}
+            >
+              <Text style={dateTimePickerModalStyles.doneButtonText}>
+                {t('modules.agenda.form.done')}
+              </Text>
+            </HapticTouchable>
+          </View>
 
-        {/* Picker */}
-        <View style={dateTimePickerModalStyles.pickerContainer}>
-          <DateTimePicker
-            value={value}
-            mode={mode}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={onChange}
-            minimumDate={minimumDate}
-            is24Hour={is24Hour}
-            locale={pickerLocale}
-          />
-        </View>
+          {/* Picker */}
+          <View style={dateTimePickerModalStyles.pickerContainer}>
+            <DateTimePicker
+              value={value}
+              mode={mode}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onChange}
+              minimumDate={minimumDate}
+              is24Hour={is24Hour}
+              locale={pickerLocale}
+            />
+          </View>
+        </LiquidGlassView>
       </View>
     </Modal>
   );
 }
 
 const dateTimePickerModalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  container: {
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
   doneButton: {
     minWidth: touchTargets.minimum,
     height: touchTargets.minimum,
@@ -392,9 +412,9 @@ const dateTimePickerModalStyles = StyleSheet.create({
     color: colors.textOnPrimary,
   },
   pickerContainer: {
-    flex: 1,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
   },
 });
 
@@ -497,7 +517,7 @@ function CategoryPickerModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
         {/* Header */}
         <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
@@ -562,7 +582,7 @@ function CategoryPickerModal({
             </HapticTouchable>
           </View>
         </ScrollViewWithIndicator>
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -688,7 +708,7 @@ function CreateCategoryModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
         {/* Header */}
         <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
@@ -772,7 +792,7 @@ function CreateCategoryModal({
             </View>
           ))}
         </ScrollViewWithIndicator>
-      </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
@@ -2049,7 +2069,7 @@ export function AgendaItemFormScreen({
         presentationStyle="pageSheet"
         onRequestClose={() => { setShowContactPicker(false); setContactSearchQuery(''); }}
       >
-        <View style={[formPickerStyles.container, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
           {/* Header */}
           <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
             <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
@@ -2222,7 +2242,7 @@ export function AgendaItemFormScreen({
               </>
             )}
           </ScrollViewWithIndicator>
-        </View>
+        </LiquidGlassView>
       </Modal>
     </View>
   );

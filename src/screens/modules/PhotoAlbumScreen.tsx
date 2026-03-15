@@ -42,7 +42,7 @@ import { ModuleHeader,
   FullscreenImageViewer,
   LoadingView,
   ErrorView,
-  SlideshowViewer, ScrollViewWithIndicator } from '@/components';
+  SlideshowViewer, ScrollViewWithIndicator, LiquidGlassView } from '@/components';
 import type { ViewerImage, SlideshowPhoto } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
@@ -1384,9 +1384,10 @@ export function PhotoAlbumScreen() {
         accessibilityViewIsModal
       >
         <KeyboardAvoidingView
-          style={[styles.modalContainer, { backgroundColor: themeColors.background }]}
+          style={[styles.modalContainer]}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
+          <LiquidGlassView moduleId="photoAlbum" style={{ flex: 1 }} cornerRadius={0}>
           {/* Modal header */}
           <View style={[styles.modalHeader, { borderBottomColor: themeColors.border }]}>
             <HapticTouchable
@@ -1446,6 +1447,7 @@ export function PhotoAlbumScreen() {
               </Text>
             </HapticTouchable>
           </View>
+          </LiquidGlassView>
         </KeyboardAvoidingView>
       </Modal>
 
@@ -1457,7 +1459,7 @@ export function PhotoAlbumScreen() {
         onRequestClose={() => setIsAddToAlbumModalVisible(false)}
         accessibilityViewIsModal
       >
-        <View style={[styles.modalContainer, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="photoAlbum" style={[styles.modalContainer]} cornerRadius={0}>
           {/* Modal header */}
           <View style={[styles.modalHeader, { borderBottomColor: themeColors.border }]}>
             <HapticTouchable
@@ -1533,7 +1535,7 @@ export function PhotoAlbumScreen() {
               );
             })}
           </ScrollViewWithIndicator>
-        </View>
+        </LiquidGlassView>
       </Modal>
 
       {/* Sending overlay */}

@@ -163,7 +163,7 @@ export function CallsScreen() {
           const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
 
           const sorted = [...deviceContacts].sort((a, b) =>
-            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, { sensitivity: 'base' })
           );
           setContacts(sorted);
           setLoading(false);

@@ -91,7 +91,7 @@ const seedUserProfile = async (
         phoneNumber: '+31612345678', // Dev phone number
         publicKey: '', // Will be set by encryption service
         language: 'nl',
-        audioFeedbackEnabled: true,
+        audioFeedbackEnabled: false,
         hapticFeedbackEnabled: true,
         subscriptionTier: 'free',
       };

@@ -206,7 +206,7 @@ function ColorPickerOverlay<T extends string>({
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlayBackdrop} onPress={onClose}>
-        <View style={[styles.overlayContainer, { backgroundColor: themeColors.surface }]}>
+        <LiquidGlassView moduleId="settings" style={[styles.overlayContainer]} cornerRadius={borderRadius.lg}>
           <Text style={[styles.overlayTitle, { color: themeColors.textPrimary }]}>{title}</Text>
           <View style={styles.overlayColorGrid}>
             {colorOptions.map((option) => (
@@ -228,7 +228,7 @@ function ColorPickerOverlay<T extends string>({
               </HapticTouchable>
             ))}
           </View>
-        </View>
+        </LiquidGlassView>
       </Pressable>
     </Modal>
   );

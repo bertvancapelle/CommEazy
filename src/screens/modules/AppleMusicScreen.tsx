@@ -50,6 +50,7 @@ import { Icon,
   AppleMusicDetailModal,
   QueueView,
   HapticTouchable,
+  LiquidGlassView,
   type SearchBarRef, ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -2414,7 +2415,7 @@ export function AppleMusicScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowAllRecentlyPlayed(false)}
       >
-        <View style={[styles.showAllModal, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
+        <LiquidGlassView moduleId="appleMusic" style={[styles.showAllModal, { paddingTop: insets.top }]} cornerRadius={0}>
           {/* Header */}
           <View style={[styles.showAllHeader, { borderBottomColor: themeColors.border }]}>
             <Text style={[styles.showAllTitle, { color: themeColors.textPrimary }]}>
@@ -2473,7 +2474,7 @@ export function AppleMusicScreen() {
               </HapticTouchable>
             ))}
           </ScrollView>
-        </View>
+        </LiquidGlassView>
       </Modal>
 
       {/* Queue View Modal */}

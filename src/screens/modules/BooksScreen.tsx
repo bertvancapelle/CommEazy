@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, type SearchBarRef } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -772,7 +772,7 @@ export function BooksScreen() {
           accessibilityViewIsModal={true}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
+            <LiquidGlassView moduleId="books" style={styles.modalContent} cornerRadius={borderRadius.lg}>
               <View style={styles.modalHeader}>
                 <Icon name="book" size={48} color={booksModuleColor} />
                 <Text style={styles.modalTitle}>{t('modules.books.welcomeTitle')}</Text>
@@ -824,7 +824,7 @@ export function BooksScreen() {
                   {t('modules.books.welcomeButton')}
                 </Text>
               </HapticTouchable>
-            </View>
+            </LiquidGlassView>
           </View>
         </Modal>
 
@@ -840,7 +840,7 @@ export function BooksScreen() {
           accessibilityViewIsModal={true}
         >
           <View style={styles.cleanupModalOverlay}>
-            <View style={[styles.cleanupModalContent, { paddingTop: insets.top + spacing.md }]}>
+            <LiquidGlassView moduleId="books" style={[styles.cleanupModalContent, { paddingTop: insets.top + spacing.md }]} cornerRadius={0}>
               {/* Header */}
               <View style={styles.cleanupModalHeader}>
                 <Text style={styles.cleanupModalTitle}>
@@ -951,7 +951,7 @@ export function BooksScreen() {
                   {t('modules.books.deleteSelected', { count: selectedForDelete.size })}
                 </Text>
               </HapticTouchable>
-            </View>
+            </LiquidGlassView>
           </View>
         </Modal>
 
@@ -967,7 +967,7 @@ export function BooksScreen() {
           accessibilityViewIsModal={true}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modeModalContent}>
+            <LiquidGlassView moduleId="books" style={styles.modeModalContent} cornerRadius={borderRadius.lg}>
               {/* Book title */}
               {selectedBookForMode && (
                 <View style={styles.modeModalHeader}>
@@ -1031,7 +1031,7 @@ export function BooksScreen() {
               >
                 <Text style={styles.modeModalCancelText}>{t('common.cancel')}</Text>
               </HapticTouchable>
-            </View>
+            </LiquidGlassView>
           </View>
         </Modal>
       </View>
