@@ -2078,7 +2078,22 @@ export function AppleMusicScreen() {
       return renderAuthRequired();
     }
 
-    // Sub-tab labels for dropdown
+    return (
+      <View style={styles.mainContent}>
+        {/* Tab Content */}
+        {activeTab === 'favorites' && renderFavoritesTab()}
+        {activeTab === 'search' && renderSearchTab()}
+      </View>
+    );
+  };
+
+  // ============================================================
+  // Tab Bar (extracted for controlsBlock)
+  // ============================================================
+
+  const renderTabBar = () => {
+    if (isAndroid || authStatus !== 'authorized') return <></>;
+
     const subTabLabels: Record<FavoritesSubTab, string> = {
       playlists: t('modules.appleMusic.favorites.playlists'),
       albums: t('modules.appleMusic.favorites.albums'),
@@ -2086,157 +2101,150 @@ export function AppleMusicScreen() {
     };
 
     return (
-      <View style={styles.mainContent}>
-        {/* Simple 2-tab bar — left button is dropdown trigger for favorites */}
-        <View style={[styles.twoTabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
-          {/* Favorites tab — dropdown trigger */}
-          <View style={{ flex: 1, position: 'relative', zIndex: 10 }}>
-            <HapticTouchable hapticDisabled
-              style={[
-                styles.twoTab,
-                {
-                  backgroundColor: activeTab === 'favorites'
-                    ? appleMusicColor
-                    : themeColors.background,
-                  borderColor: appleMusicColor,
-                },
-              ]}
-              onPress={() => {
-                if (activeTab === 'favorites') {
-                  setShowFavoritesDropdown(!showFavoritesDropdown);
-                } else {
-                  setActiveTab('favorites');
-                  setShowFavoritesDropdown(false);
-                }
-              }}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeTab === 'favorites' }}
-              accessibilityLabel={`${subTabLabels[favoritesSubTab]}, ${t('modules.appleMusic.favorites.changeCategory')}`}
-              accessibilityHint={t('modules.appleMusic.favorites.changeCategoryHint')}
-            >
-              <Icon
-                name="heart-filled"
-                size={22}
-                color={activeTab === 'favorites' ? '#FFFFFF' : appleMusicColor}
-              />
-              <Text
-                style={[
-                  styles.twoTabText,
-                  { color: activeTab === 'favorites' ? '#FFFFFF' : themeColors.textPrimary },
-                ]}
-                numberOfLines={1}
-              >
-                {subTabLabels[favoritesSubTab]}
-              </Text>
-              {activeTab === 'favorites' && (
-                <Icon
-                  name="chevron-down"
-                  size={16}
-                  color="#FFFFFF"
-                />
-              )}
-            </HapticTouchable>
-
-            {/* Dropdown popup menu */}
-            {showFavoritesDropdown && activeTab === 'favorites' && (
-              <>
-                <HapticTouchable hapticDisabled
-                  style={styles.favDropdownOverlay}
-                  activeOpacity={1}
-                  onPress={() => setShowFavoritesDropdown(false)}
-                  accessibilityLabel={t('common.close')}
-                />
-                <View style={[styles.favDropdownMenu, {
-                  backgroundColor: themeColors.surface,
-                  borderColor: themeColors.border,
-                  top: touchTargets.minimum + spacing.xs,
-                  left: 0,
-                  right: 0,
-                }]}>
-                  {(['playlists', 'albums', 'artists'] as FavoritesSubTab[]).map((key) => {
-                    const isActive = favoritesSubTab === key;
-                    const count = key === 'playlists'
-                      ? musicCollections.collections.length
-                      : key === 'albums'
-                        ? albumFavorites.count
-                        : artistFavorites.count;
-                    return (
-                      <HapticTouchable hapticDisabled
-                        key={key}
-                        style={[
-                          styles.favDropdownItem,
-                          isActive && { backgroundColor: appleMusicColor },
-                        ]}
-                        onPress={() => {
-                          setFavoritesSubTab(key);
-                          setShowFavoritesDropdown(false);
-                          setOpenCollectionId(null);
-                        }}
-                        accessibilityRole="menuitem"
-                        accessibilityState={{ selected: isActive }}
-                        accessibilityLabel={`${subTabLabels[key]} (${count})`}
-                      >
-                        <Icon
-                          name="heart-filled"
-                          size={18}
-                          color={isActive ? '#FFFFFF' : appleMusicColor}
-                        />
-                        <Text
-                          style={[
-                            styles.favDropdownItemText,
-                            { color: isActive ? '#FFFFFF' : themeColors.textPrimary },
-                          ]}
-                        >
-                          {subTabLabels[key]} ({count})
-                        </Text>
-                        {isActive && (
-                          <Icon name="checkmark" size={18} color="#FFFFFF" />
-                        )}
-                      </HapticTouchable>
-                    );
-                  })}
-                </View>
-              </>
-            )}
-          </View>
-
-          {/* Search tab */}
+      <View style={[styles.twoTabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
+        {/* Favorites tab — dropdown trigger */}
+        <View style={{ flex: 1, position: 'relative', zIndex: 10 }}>
           <HapticTouchable hapticDisabled
             style={[
               styles.twoTab,
-              { flex: 1 },
               {
-                backgroundColor: activeTab === 'search'
+                backgroundColor: activeTab === 'favorites'
                   ? appleMusicColor
                   : themeColors.background,
                 borderColor: appleMusicColor,
               },
             ]}
-            onPress={() => { setActiveTab('search'); setShowFavoritesDropdown(false); }}
+            onPress={() => {
+              if (activeTab === 'favorites') {
+                setShowFavoritesDropdown(!showFavoritesDropdown);
+              } else {
+                setActiveTab('favorites');
+                setShowFavoritesDropdown(false);
+              }
+            }}
             accessibilityRole="tab"
-            accessibilityState={{ selected: activeTab === 'search' }}
-            accessibilityLabel={t('modules.appleMusic.tabs.search')}
+            accessibilityState={{ selected: activeTab === 'favorites' }}
+            accessibilityLabel={`${subTabLabels[favoritesSubTab]}, ${t('modules.appleMusic.favorites.changeCategory')}`}
+            accessibilityHint={t('modules.appleMusic.favorites.changeCategoryHint')}
           >
             <Icon
-              name="search"
+              name="heart-filled"
               size={22}
-              color={activeTab === 'search' ? '#FFFFFF' : appleMusicColor}
+              color={activeTab === 'favorites' ? '#FFFFFF' : appleMusicColor}
             />
             <Text
               style={[
                 styles.twoTabText,
-                { color: activeTab === 'search' ? '#FFFFFF' : themeColors.textPrimary },
+                { color: activeTab === 'favorites' ? '#FFFFFF' : themeColors.textPrimary },
               ]}
               numberOfLines={1}
             >
-              {t('modules.appleMusic.tabs.search')}
+              {subTabLabels[favoritesSubTab]}
             </Text>
+            {activeTab === 'favorites' && (
+              <Icon
+                name="chevron-down"
+                size={16}
+                color="#FFFFFF"
+              />
+            )}
           </HapticTouchable>
+
+          {/* Dropdown popup menu */}
+          {showFavoritesDropdown && activeTab === 'favorites' && (
+            <>
+              <HapticTouchable hapticDisabled
+                style={styles.favDropdownOverlay}
+                activeOpacity={1}
+                onPress={() => setShowFavoritesDropdown(false)}
+                accessibilityLabel={t('common.close')}
+              />
+              <View style={[styles.favDropdownMenu, {
+                backgroundColor: themeColors.surface,
+                borderColor: themeColors.border,
+                top: touchTargets.minimum + spacing.xs,
+                left: 0,
+                right: 0,
+              }]}>
+                {(['playlists', 'albums', 'artists'] as FavoritesSubTab[]).map((key) => {
+                  const isActive = favoritesSubTab === key;
+                  const count = key === 'playlists'
+                    ? musicCollections.collections.length
+                    : key === 'albums'
+                      ? albumFavorites.count
+                      : artistFavorites.count;
+                  return (
+                    <HapticTouchable hapticDisabled
+                      key={key}
+                      style={[
+                        styles.favDropdownItem,
+                        isActive && { backgroundColor: appleMusicColor },
+                      ]}
+                      onPress={() => {
+                        setFavoritesSubTab(key);
+                        setShowFavoritesDropdown(false);
+                        setOpenCollectionId(null);
+                      }}
+                      accessibilityRole="menuitem"
+                      accessibilityState={{ selected: isActive }}
+                      accessibilityLabel={`${subTabLabels[key]} (${count})`}
+                    >
+                      <Icon
+                        name="heart-filled"
+                        size={18}
+                        color={isActive ? '#FFFFFF' : appleMusicColor}
+                      />
+                      <Text
+                        style={[
+                          styles.favDropdownItemText,
+                          { color: isActive ? '#FFFFFF' : themeColors.textPrimary },
+                        ]}
+                      >
+                        {subTabLabels[key]} ({count})
+                      </Text>
+                      {isActive && (
+                        <Icon name="checkmark" size={18} color="#FFFFFF" />
+                      )}
+                    </HapticTouchable>
+                  );
+                })}
+              </View>
+            </>
+          )}
         </View>
 
-        {/* Tab Content */}
-        {activeTab === 'favorites' && renderFavoritesTab()}
-        {activeTab === 'search' && renderSearchTab()}
+        {/* Search tab */}
+        <HapticTouchable hapticDisabled
+          style={[
+            styles.twoTab,
+            { flex: 1 },
+            {
+              backgroundColor: activeTab === 'search'
+                ? appleMusicColor
+                : themeColors.background,
+              borderColor: appleMusicColor,
+            },
+          ]}
+          onPress={() => { setActiveTab('search'); setShowFavoritesDropdown(false); }}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: activeTab === 'search' }}
+          accessibilityLabel={t('modules.appleMusic.tabs.search')}
+        >
+          <Icon
+            name="search"
+            size={22}
+            color={activeTab === 'search' ? '#FFFFFF' : appleMusicColor}
+          />
+          <Text
+            style={[
+              styles.twoTabText,
+              { color: activeTab === 'search' ? '#FFFFFF' : themeColors.textPrimary },
+            ]}
+            numberOfLines={1}
+          >
+            {t('modules.appleMusic.tabs.search')}
+          </Text>
+        </HapticTouchable>
       </View>
     );
   };
@@ -2289,7 +2297,7 @@ export function AppleMusicScreen() {
             skipSafeArea
           />
         }
-        controlsBlock={<></>}
+        controlsBlock={renderTabBar()}
         contentBlock={
           <View style={styles.content}>
             {/* Android: Show app detection UI */}

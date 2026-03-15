@@ -12,9 +12,12 @@
  * Content:
  * - Main scrollable content (list, grid, etc.)
  *
+ * Separator:
+ * - Colored line (2pt, module color) between toolbar and content
+ *
  * Toolbar position (user's "Schermindeling" setting):
- * - "top" (default): ModuleHeader → Controls → Content
- * - "bottom": Content → Controls (reversed rows) → ModuleHeader
+ * - "top" (default): ModuleHeader → Controls → [separator] → Content
+ * - "bottom": Content → [separator] → Controls (reversed rows) → ModuleHeader
  *
  * When toolbar is at bottom, the controls children are rendered in
  * reverse order so that rows closest to the header stay adjacent.
@@ -102,18 +105,23 @@ export function ModuleScreenLayout({
         </View>
       )}
 
+      {/* Separator below AdMob / Safe Area — always visible */}
+      <View style={[styles.separator, { backgroundColor: moduleColor }]} />
+
       {isBottom ? (
         <>
-          {/* Bottom layout: Content → Controls (reversed) → ModuleHeader */}
+          {/* Bottom layout: Content → Separator → Controls (reversed) → ModuleHeader */}
           {contentBlock}
+          <View style={[styles.separator, { backgroundColor: moduleColor }]} />
           {reverseChildren(controlsBlock)}
           {moduleBlock}
         </>
       ) : (
         <>
-          {/* Top layout (default): ModuleHeader → Controls → Content */}
+          {/* Top layout (default): ModuleHeader → Controls → Separator → Content */}
           {moduleBlock}
           {controlsBlock}
+          <View style={[styles.separator, { backgroundColor: moduleColor }]} />
           {contentBlock}
         </>
       )}
@@ -126,5 +134,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingTop: 0,
     paddingBottom: 0,
+  },
+  separator: {
+    height: 2,
   },
 });

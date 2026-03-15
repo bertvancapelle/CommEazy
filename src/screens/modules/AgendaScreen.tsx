@@ -479,135 +479,268 @@ function AgendaScreenInner() {
   }
 
   // ============================================================
-  // Loading state
+  // Consolidated layout — single ModuleScreenLayout
   // ============================================================
 
-  if (isLoading) {
+  const isSearchView = currentView.screen === 'search';
+
+  const renderControlsBlock = () => {
+    if (isLoading) return <></>;
+
+    if (isSearchView) {
+      return (
+        <View style={styles.searchHeader}>
+          <HapticTouchable
+            style={[styles.backButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}
+            onPress={handleBackFromSearch}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+          >
+            <Icon name="chevron-left" size={24} color={themeColors.textPrimary} />
+            <Text style={[styles.backButtonText, { color: themeColors.textPrimary }]}>
+              {t('common.back')}
+            </Text>
+          </HapticTouchable>
+        </View>
+      );
+    }
+
+    // Day view controls
     return (
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-        <ModuleScreenLayout
-          moduleId={MODULE_ID}
-          moduleBlock={
-            <ModuleHeader
-              moduleId={MODULE_ID}
-              icon="calendar"
-              title={t('modules.agenda.title')}
-              skipSafeArea
-            />
-          }
-          controlsBlock={<></>}
-          contentBlock={<LoadingView message={t('common.loading')} />}
-        />
-      </View>
+      <>
+        {/* Action bar: [+ Nieuwe afspraak] ... [🔍] */}
+        <View style={styles.actionBar}>
+          <HapticTouchable
+            style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
+            onPress={handleAddItem}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.agenda.addItem')}
+          >
+            <Icon name="plus" size={22} color={colors.textOnPrimary} />
+            <Text style={[styles.actionButtonText, { color: colors.textOnPrimary }]}>
+              {t('modules.agenda.addItem')}
+            </Text>
+          </HapticTouchable>
+
+          <HapticTouchable
+            style={[styles.searchButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border, borderWidth: 1 }]}
+            onPress={handleOpenSearch}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.search')}
+          >
+            <Icon name="search" size={24} color={themeColors.textPrimary} />
+          </HapticTouchable>
+        </View>
+
+        {/* Date navigation bar: [◀] Label [▶] */}
+        <View style={[styles.dateNavBar, { borderBottomColor: themeColors.divider }]}>
+          <HapticTouchable
+            style={styles.dateNavArrow}
+            onPress={handlePreviousDay}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.agenda.dayNav.previousDay')}
+          >
+            <Icon name="chevron-left" size={28} color={themeColors.textPrimary} />
+          </HapticTouchable>
+
+          <Text
+            style={[styles.dateNavLabel, { color: themeColors.textPrimary }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {formatDateLabel(selectedDate, t)}
+          </Text>
+
+          <HapticTouchable
+            style={styles.dateNavArrow}
+            onPress={handleNextDay}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.agenda.dayNav.nextDay')}
+          >
+            <Icon name="chevron-right" size={28} color={themeColors.textPrimary} />
+          </HapticTouchable>
+        </View>
+      </>
     );
-  }
+  };
 
-  // ============================================================
-  // Search view
-  // ============================================================
+  const renderContentBlock = () => {
+    if (isLoading) {
+      return <LoadingView message={t('common.loading')} />;
+    }
 
-  if (currentView.screen === 'search') {
+    if (isSearchView) {
+      return (
+        <ScrollViewWithIndicator
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + spacing.xl },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Search bar */}
+          <View style={styles.searchBarContainer}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={() => {}}
+              placeholder={t('modules.agenda.search.universalPlaceholder')}
+              searchButtonLabel={t('common.search')}
+            />
+          </View>
+
+          {/* Past toggle */}
+          <View style={styles.pastToggleRow}>
+            <Text style={[styles.pastToggleLabel, { color: themeColors.textPrimary }]}>
+              {t('modules.agenda.search.includePast')}
+            </Text>
+            <Switch
+              value={searchIncludePast}
+              onValueChange={setSearchIncludePast}
+              trackColor={{ false: themeColors.border, true: moduleColor }}
+              accessibilityLabel={t('modules.agenda.search.includePast')}
+            />
+          </View>
+
+          {/* Search results */}
+          {searchQuery.trim() ? (
+            searchResults.length > 0 ? (
+              <View style={styles.searchResultsContainer}>
+                {searchResults.map((item) => (
+                  <TimelineItemRow
+                    key={item.id}
+                    item={item}
+                    isExpired={item.date < Date.now()}
+                    onPress={handleItemPress}
+                    moduleColor={moduleColor}
+                    showDate
+                  />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyIcon}>🔍</Text>
+                <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+                  {t('modules.agenda.search.noResults')}
+                </Text>
+              </View>
+            )
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>🔍</Text>
+              <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
+                {t('modules.agenda.search.universalPlaceholder')}
+              </Text>
+            </View>
+          )}
+        </ScrollViewWithIndicator>
+      );
+    }
+
+    // Day view content
     return (
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-        <ModuleScreenLayout
-          moduleId={MODULE_ID}
-          moduleBlock={
-            <ModuleHeader
-              moduleId={MODULE_ID}
-              icon="calendar"
-              title={t('modules.agenda.title')}
-              skipSafeArea
+      <>
+        <ScrollViewWithIndicator
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + spacing.xl },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={moduleColor}
             />
           }
-          controlsBlock={
-            <View style={styles.searchHeader}>
-              <HapticTouchable
-                style={[styles.backButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}
-                onPress={handleBackFromSearch}
+        >
+          {dayItems.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📅</Text>
+              <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+                {t('modules.agenda.emptyDay')}
+              </Text>
+            </View>
+          ) : (
+            dayItems.map((item) => (
+              <TimelineItemRow
+                key={item.id}
+                item={item}
+                isExpired={isItemExpired(item)}
+                onPress={handleItemPress}
+                moduleColor={moduleColor}
+              />
+            ))
+          )}
+        </ScrollViewWithIndicator>
+
+        {/* Welcome Modal */}
+        <Modal
+          visible={showWelcome}
+          animationType="fade"
+          transparent
+          onRequestClose={handleWelcomeDismiss}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
+              {/* Header */}
+              <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
+                <Icon name="calendar" size={48} color={colors.textOnPrimary} />
+                <Text style={[styles.welcomeTitle, { color: colors.textOnPrimary }]}>
+                  {t('modules.agenda.title')}
+                </Text>
+              </View>
+
+              {/* Steps */}
+              <View style={styles.welcomeContent}>
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                    <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>1</Text>
+                  </View>
+                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                    {t('modules.agenda.welcome.step1')}
+                  </Text>
+                </View>
+
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                    <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>2</Text>
+                  </View>
+                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                    {t('modules.agenda.welcome.step2')}
+                  </Text>
+                </View>
+
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                    <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>3</Text>
+                  </View>
+                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                    {t('modules.agenda.welcome.step3')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Button */}
+              <HapticTouchable hapticDisabled
+                style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
+                onPress={handleWelcomeDismiss}
+                activeOpacity={0.8}
                 accessibilityRole="button"
-                accessibilityLabel={t('common.back')}
+                accessibilityLabel={t('modules.agenda.welcome.understood')}
               >
-                <Icon name="chevron-left" size={24} color={themeColors.textPrimary} />
-                <Text style={[styles.backButtonText, { color: themeColors.textPrimary }]}>
-                  {t('common.back')}
+                <Text style={[styles.welcomeButtonText, { color: colors.textOnPrimary }]}>
+                  {t('modules.agenda.welcome.understood')}
                 </Text>
               </HapticTouchable>
             </View>
-          }
-          contentBlock={
-            <ScrollViewWithIndicator
-              style={styles.scrollView}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { paddingBottom: insets.bottom + spacing.xl },
-              ]}
-              keyboardShouldPersistTaps="handled"
-            >
-              {/* Search bar */}
-              <View style={styles.searchBarContainer}>
-                <SearchBar
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  onSubmit={() => {}}
-                  placeholder={t('modules.agenda.search.universalPlaceholder')}
-                  searchButtonLabel={t('common.search')}
-                />
-              </View>
-
-              {/* Past toggle */}
-              <View style={styles.pastToggleRow}>
-                <Text style={[styles.pastToggleLabel, { color: themeColors.textPrimary }]}>
-                  {t('modules.agenda.search.includePast')}
-                </Text>
-                <Switch
-                  value={searchIncludePast}
-                  onValueChange={setSearchIncludePast}
-                  trackColor={{ false: themeColors.border, true: moduleColor }}
-                  accessibilityLabel={t('modules.agenda.search.includePast')}
-                />
-              </View>
-
-              {/* Search results */}
-              {searchQuery.trim() ? (
-                searchResults.length > 0 ? (
-                  <View style={styles.searchResultsContainer}>
-                    {searchResults.map((item) => (
-                      <TimelineItemRow
-                        key={item.id}
-                        item={item}
-                        isExpired={item.date < Date.now()}
-                        onPress={handleItemPress}
-                        moduleColor={moduleColor}
-                        showDate
-                      />
-                    ))}
-                  </View>
-                ) : (
-                  <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>🔍</Text>
-                    <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-                      {t('modules.agenda.search.noResults')}
-                    </Text>
-                  </View>
-                )
-              ) : (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>🔍</Text>
-                  <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
-                    {t('modules.agenda.search.universalPlaceholder')}
-                  </Text>
-                </View>
-              )}
-            </ScrollViewWithIndicator>
-          }
-        />
-      </View>
+          </View>
+        </Modal>
+      </>
     );
-  }
-
-  // ============================================================
-  // Day view (default)
-  // ============================================================
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -621,166 +754,8 @@ function AgendaScreenInner() {
             skipSafeArea
           />
         }
-        controlsBlock={
-          <>
-            {/* Action bar: [+ Nieuwe afspraak] ... [🔍] */}
-            <View style={styles.actionBar}>
-              <HapticTouchable
-                style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
-                onPress={handleAddItem}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.agenda.addItem')}
-              >
-                <Icon name="plus" size={22} color={colors.textOnPrimary} />
-                <Text style={[styles.actionButtonText, { color: colors.textOnPrimary }]}>
-                  {t('modules.agenda.addItem')}
-                </Text>
-              </HapticTouchable>
-
-              <HapticTouchable
-                style={[styles.searchButton, { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: themeColors.border, borderWidth: 1 }]}
-                onPress={handleOpenSearch}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.search')}
-              >
-                <Icon name="search" size={24} color={themeColors.textPrimary} />
-              </HapticTouchable>
-            </View>
-
-            {/* Date navigation bar: [◀] Label [▶] */}
-            <View style={[styles.dateNavBar, { borderBottomColor: themeColors.divider }]}>
-              <HapticTouchable
-                style={styles.dateNavArrow}
-                onPress={handlePreviousDay}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.agenda.dayNav.previousDay')}
-              >
-                <Icon name="chevron-left" size={28} color={themeColors.textPrimary} />
-              </HapticTouchable>
-
-              <Text
-                style={[styles.dateNavLabel, { color: themeColors.textPrimary }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-              >
-                {formatDateLabel(selectedDate, t)}
-              </Text>
-
-              <HapticTouchable
-                style={styles.dateNavArrow}
-                onPress={handleNextDay}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.agenda.dayNav.nextDay')}
-              >
-                <Icon name="chevron-right" size={28} color={themeColors.textPrimary} />
-              </HapticTouchable>
-            </View>
-          </>
-        }
-        contentBlock={
-          <>
-            {/* Day items */}
-            <ScrollViewWithIndicator
-              style={styles.scrollView}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { paddingBottom: insets.bottom + spacing.xl },
-              ]}
-              refreshControl={
-                <RefreshControl
-                  refreshing={isRefreshing}
-                  onRefresh={handleRefresh}
-                  tintColor={moduleColor}
-                />
-              }
-            >
-              {dayItems.length === 0 ? (
-                /* Empty day state */
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>📅</Text>
-                  <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-                    {t('modules.agenda.emptyDay')}
-                  </Text>
-                </View>
-              ) : (
-                /* Day items list */
-                dayItems.map((item) => (
-                  <TimelineItemRow
-                    key={item.id}
-                    item={item}
-                    isExpired={isItemExpired(item)}
-                    onPress={handleItemPress}
-                    moduleColor={moduleColor}
-                  />
-                ))
-              )}
-            </ScrollViewWithIndicator>
-
-            {/* Welcome Modal */}
-            <Modal
-              visible={showWelcome}
-              animationType="fade"
-              transparent
-              onRequestClose={handleWelcomeDismiss}
-            >
-              <View style={styles.modalOverlay}>
-                <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
-                  {/* Header */}
-                  <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
-                    <Icon name="calendar" size={48} color={colors.textOnPrimary} />
-                    <Text style={[styles.welcomeTitle, { color: colors.textOnPrimary }]}>
-                      {t('modules.agenda.title')}
-                    </Text>
-                  </View>
-
-                  {/* Steps */}
-                  <View style={styles.welcomeContent}>
-                    <View style={styles.welcomeStep}>
-                      <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                        <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>1</Text>
-                      </View>
-                      <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                        {t('modules.agenda.welcome.step1')}
-                      </Text>
-                    </View>
-
-                    <View style={styles.welcomeStep}>
-                      <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                        <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>2</Text>
-                      </View>
-                      <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                        {t('modules.agenda.welcome.step2')}
-                      </Text>
-                    </View>
-
-                    <View style={styles.welcomeStep}>
-                      <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                        <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>3</Text>
-                      </View>
-                      <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                        {t('modules.agenda.welcome.step3')}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Button */}
-                  <HapticTouchable hapticDisabled
-                    style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
-                    onPress={handleWelcomeDismiss}
-                    activeOpacity={0.8}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.agenda.welcome.understood')}
-                  >
-                    <Text style={[styles.welcomeButtonText, { color: colors.textOnPrimary }]}>
-                      {t('modules.agenda.welcome.understood')}
-                    </Text>
-                  </HapticTouchable>
-                </View>
-              </View>
-            </Modal>
-          </>
-        }
+        controlsBlock={renderControlsBlock()}
+        contentBlock={renderContentBlock()}
       />
     </View>
   );
