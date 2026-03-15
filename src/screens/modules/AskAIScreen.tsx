@@ -106,6 +106,7 @@ function AskAIScreenInner() {
   return (
     <View style={styles.container}>
       <ModuleScreenLayout
+        moduleId="askAI"
         moduleBlock={
           <ModuleHeader
             moduleId="askAI"

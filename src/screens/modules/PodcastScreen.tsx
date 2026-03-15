@@ -657,6 +657,7 @@ export function PodcastScreen() {
           ============================================================ */}
       <View style={styles.contentLayer}>
         <ModuleScreenLayout
+          moduleId="podcast"
           moduleBlock={
             <ModuleHeader
               moduleId="podcast"

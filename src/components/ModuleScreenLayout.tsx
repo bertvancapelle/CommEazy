@@ -16,6 +16,7 @@
  * Usage:
  * ```tsx
  * <ModuleScreenLayout
+ *   moduleId="radio"
  *   showAdMob={true}
  *   moduleBlock={
  *     <ModuleHeader moduleId="radio" icon="radio" title={t('...')} skipSafeArea />
@@ -35,8 +36,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdMobBanner } from './AdMobBanner';
 import { spacing } from '@/theme';
 import { useModuleLayoutSafe, type LayoutBlock } from '@/contexts/ModuleLayoutContext';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import type { ModuleColorId } from '@/types/liquidGlass';
 
 interface ModuleScreenLayoutProps {
+  /** Module identifier for Safe Area + AdMob background color */
+  moduleId: string;
   /** Module block — typically the ModuleHeader component */
   moduleBlock: ReactNode;
   /** Controls block (tabs, chips, search) */
@@ -60,6 +65,7 @@ interface ModuleScreenLayoutProps {
  * even if rendered outside of ModuleLayoutProvider.
  */
 export function ModuleScreenLayout({
+  moduleId,
   moduleBlock,
   controlsBlock,
   contentBlock,
@@ -68,6 +74,7 @@ export function ModuleScreenLayout({
 }: ModuleScreenLayoutProps) {
   const { layoutOrder } = useModuleLayoutSafe();
   const insets = useSafeAreaInsets();
+  const moduleColor = useModuleColor(moduleId as ModuleColorId);
 
   const blockMap: Record<LayoutBlock, ReactNode> = {
     module: moduleBlock,
@@ -77,12 +84,12 @@ export function ModuleScreenLayout({
 
   return (
     <>
-      {/* Safe Area Spacer — FIXED at top, not reorderable */}
-      <View style={{ height: insets.top }} />
+      {/* Safe Area Spacer — FIXED at top, module color background */}
+      <View style={{ height: insets.top, backgroundColor: moduleColor }} />
 
-      {/* AdMob — FIXED below safe area, not reorderable */}
+      {/* AdMob — FIXED below safe area, module color background */}
       {showAdMob && (
-        <View style={styles.adMobRow}>
+        <View style={[styles.adMobRow, { backgroundColor: moduleColor }]}>
           <AdMobBanner unitId={adMobUnitId} size="banner" />
         </View>
       )}

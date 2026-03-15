@@ -2279,6 +2279,7 @@ export function AppleMusicScreen() {
       )}
 
       <ModuleScreenLayout
+        moduleId="appleMusic"
         moduleBlock={
           <ModuleHeader
             moduleId="appleMusic"

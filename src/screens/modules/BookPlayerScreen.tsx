@@ -259,6 +259,7 @@ export function BookPlayerScreen() {
           ============================================================ */}
       <View style={styles.contentLayer}>
         <ModuleScreenLayout
+          moduleId="books"
           moduleBlock={
             <ModuleHeader
               moduleId="books"

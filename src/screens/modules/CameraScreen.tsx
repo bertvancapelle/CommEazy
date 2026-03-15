@@ -397,7 +397,7 @@ export function CameraScreen() {
       )}
 
       <ModuleScreenLayout
-        showAdMob={false}
+        moduleId="camera"
         moduleBlock={
           <ModuleHeader
             moduleId="camera"

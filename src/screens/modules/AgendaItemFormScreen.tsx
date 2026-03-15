@@ -1387,7 +1387,7 @@ export function AgendaItemFormScreen({
       )}
 
       <ModuleScreenLayout
-        showAdMob={false}
+        moduleId="agenda"
         moduleBlock={
           <ModuleHeader
             moduleId="agenda"

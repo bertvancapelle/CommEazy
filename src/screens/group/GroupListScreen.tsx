@@ -305,6 +305,7 @@ export function GroupListScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId="groups"
         moduleBlock={
           <ModuleHeader
             moduleId="groups"

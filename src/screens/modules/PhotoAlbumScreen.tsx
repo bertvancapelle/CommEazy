@@ -1026,7 +1026,7 @@ export function PhotoAlbumScreen() {
         />
       )}
       <ModuleScreenLayout
-        showAdMob={false}
+        moduleId="photoAlbum"
         moduleBlock={
           <ModuleHeader
             moduleId="photoAlbum"

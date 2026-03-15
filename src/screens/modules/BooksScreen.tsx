@@ -457,6 +457,7 @@ export function BooksScreen() {
         )}
 
         <ModuleScreenLayout
+          moduleId="books"
           moduleBlock={
             <ModuleHeader
               moduleId="books"

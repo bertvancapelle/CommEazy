@@ -492,6 +492,7 @@ export function ChatListScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId="chats"
         moduleBlock={
           <ModuleHeader
             moduleId="chats"

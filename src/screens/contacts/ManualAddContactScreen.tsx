@@ -264,7 +264,7 @@ export function ManualAddContactScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ModuleScreenLayout
-        showAdMob={false}
+        moduleId="contacts"
         moduleBlock={
           <ModuleHeader
             moduleId="contacts"

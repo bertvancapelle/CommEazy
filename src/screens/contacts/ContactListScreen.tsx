@@ -429,6 +429,7 @@ export function ContactListScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId="contacts"
         moduleBlock={
           <ModuleHeader
             moduleId="contacts"

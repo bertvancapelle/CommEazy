@@ -20,6 +20,7 @@ export function AudioBookScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId="audiobook"
         moduleBlock={
           <ModuleHeader
             moduleId="audiobook"

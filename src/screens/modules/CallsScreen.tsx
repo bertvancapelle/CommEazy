@@ -317,6 +317,7 @@ export function CallsScreen() {
       )}
 
       <ModuleScreenLayout
+        moduleId="calls"
         moduleBlock={
           <ModuleHeader
             moduleId="calls"

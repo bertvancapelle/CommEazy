@@ -486,7 +486,7 @@ function AgendaScreenInner() {
     return (
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         <ModuleScreenLayout
-          showAdMob={false}
+          moduleId={MODULE_ID}
           moduleBlock={
             <ModuleHeader
               moduleId={MODULE_ID}
@@ -510,7 +510,7 @@ function AgendaScreenInner() {
     return (
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         <ModuleScreenLayout
-          showAdMob={false}
+          moduleId={MODULE_ID}
           moduleBlock={
             <ModuleHeader
               moduleId={MODULE_ID}
@@ -612,7 +612,7 @@ function AgendaScreenInner() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
-        showAdMob={false}
+        moduleId={MODULE_ID}
         moduleBlock={
           <ModuleHeader
             moduleId={MODULE_ID}

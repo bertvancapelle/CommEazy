@@ -20,6 +20,7 @@ export function EBookScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId="ebook"
         moduleBlock={
           <ModuleHeader
             moduleId="ebook"

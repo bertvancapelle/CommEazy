@@ -46,6 +46,7 @@ export function GamePlaceholderScreen({ moduleId }: GamePlaceholderScreenProps) 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId={moduleId as ModuleColorId}
         moduleBlock={
           <ModuleHeader
             moduleId={moduleId as ModuleColorId}

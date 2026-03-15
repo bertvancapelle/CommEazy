@@ -234,6 +234,7 @@ export function SettingsMainScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId="settings"
         moduleBlock={
           <ModuleHeader
             moduleId="settings"

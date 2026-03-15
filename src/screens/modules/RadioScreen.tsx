@@ -947,6 +947,7 @@ export function RadioScreen() {
           ============================================================ */}
       <View style={styles.contentLayer}>
         <ModuleScreenLayout
+          moduleId="radio"
           moduleBlock={
             <ModuleHeader
               moduleId="radio"

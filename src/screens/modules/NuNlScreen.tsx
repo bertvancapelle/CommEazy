@@ -395,6 +395,7 @@ export function NuNlScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
+        moduleId={MODULE_ID}
         moduleBlock={
           <ModuleHeader
             moduleId={MODULE_ID}
