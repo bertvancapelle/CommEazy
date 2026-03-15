@@ -451,7 +451,7 @@ export function ContactListScreen() {
             />
 
             {/* Search bar — standardized SearchBar component */}
-            <View style={[styles.searchContainer, { backgroundColor: themeColors.background, borderBottomColor: themeColors.divider }]}>
+            <View style={styles.searchContainer}>
               <SearchBar
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -611,7 +611,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
   },
   categoryFilterContainer: {
     borderBottomWidth: 1,
