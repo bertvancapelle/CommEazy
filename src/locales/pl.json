@@ -457,7 +457,8 @@
     "groups": {
       "all": "Wszystkie",
       "title": "Grupy",
-      "createGroup": "Nowa",
+      "createGroup": "Grupa",
+      "newGroup": "Nowa grupa",
       "groupName": "Nazwa grupy",
       "groupNamePlaceholder": "np. Rodzina, Przyjaciele...",
       "chooseEmoji": "Wybierz ikonę",

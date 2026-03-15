@@ -379,7 +379,8 @@
     "groups": {
       "all": "Alle",
       "title": "Groepen",
-      "createGroup": "Nieuw",
+      "createGroup": "Groep",
+      "newGroup": "Nieuwe groep",
       "groupName": "Groepsnaam",
       "groupNamePlaceholder": "bijv. Familie, Vrienden...",
       "chooseEmoji": "Kies een icoon",

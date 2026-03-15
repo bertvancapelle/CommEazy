@@ -193,10 +193,10 @@ export function ContactGroupChipBar({
           ]}
           onPress={onCreateGroup}
           accessibilityRole="button"
-          accessibilityLabel={t('contacts.groups.createGroup', 'Nieuwe groep')}
+          accessibilityLabel={t('contacts.groups.newGroup', 'Nieuwe groep')}
         >
           <Text style={[styles.chipText, { color: themeColors.textSecondary }]}>
-            {`\u2795 ${t('contacts.groups.createGroup', 'Nieuw')}`}
+            {`\u2795 ${t('contacts.groups.createGroup', 'Groep')}`}
           </Text>
         </HapticTouchable>
       </ScrollView>

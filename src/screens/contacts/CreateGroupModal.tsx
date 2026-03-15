@@ -23,6 +23,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -68,6 +69,7 @@ export function CreateGroupModal({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
+  const insets = useSafeAreaInsets();
 
   const [groupName, setGroupName] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState<string | undefined>(undefined);
@@ -124,154 +126,151 @@ export function CreateGroupModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-        <LiquidGlassView moduleId="groups" style={styles.modal} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
-            <HapticTouchable
-              style={styles.closeButton}
-              onPress={handleClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.cancel')}
-            >
-              <Icon name="close" size={24} color={themeColors.textSecondary} />
-            </HapticTouchable>
+      <LiquidGlassView moduleId="contacts" style={[styles.fullScreen, { backgroundColor: themeColors.background }]}>
+        {/* Header */}
+        <View style={[styles.header, { borderBottomColor: themeColors.divider, paddingTop: insets.top }]}>
+          <HapticTouchable
+            style={styles.closeButton}
+            onPress={handleClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cancel')}
+          >
+            <Icon name="close" size={24} color={themeColors.textSecondary} />
+          </HapticTouchable>
 
-            <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
-              {t('contacts.groups.createGroup', 'Nieuwe groep')}
-            </Text>
+          <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
+            {t('contacts.groups.newGroup', 'Nieuwe groep')}
+          </Text>
 
-            <HapticTouchable
+          <HapticTouchable
+            style={[
+              styles.createButton,
+              {
+                backgroundColor: isValid ? themeColors.primary : themeColors.border,
+              },
+            ]}
+            onPress={handleCreate}
+            disabled={!isValid}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.create', 'Aanmaken')}
+            accessibilityState={{ disabled: !isValid }}
+          >
+            <Text
               style={[
-                styles.createButton,
-                {
-                  backgroundColor: isValid ? themeColors.primary : themeColors.border,
-                },
+                styles.createButtonText,
+                { color: isValid ? themeColors.textOnPrimary : themeColors.textTertiary },
               ]}
-              onPress={handleCreate}
-              disabled={!isValid}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.create', 'Aanmaken')}
-              accessibilityState={{ disabled: !isValid }}
             >
-              <Text
+              {t('common.create', 'Aanmaken')}
+            </Text>
+          </HapticTouchable>
+        </View>
+
+        <ScrollViewWithIndicator
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Group name input */}
+          <VoiceTextInput
+            voiceId="group-name"
+            label={t('contacts.groups.groupName', 'Groepsnaam')}
+            value={groupName}
+            onChangeText={setGroupName}
+            placeholder={t('contacts.groups.groupNamePlaceholder', 'bijv. Familie, Vrienden...')}
+            maxLength={50}
+          />
+
+          {/* Emoji selector */}
+          <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
+            {t('contacts.groups.chooseEmoji', 'Kies een icoon')}
+          </Text>
+          <View style={styles.emojiGrid}>
+            {GROUP_EMOJIS.map((emoji) => (
+              <HapticTouchable hapticDisabled
+                key={emoji}
                 style={[
-                  styles.createButtonText,
-                  { color: isValid ? themeColors.textOnPrimary : themeColors.textTertiary },
+                  styles.emojiButton,
+                  selectedEmoji === emoji && {
+                    backgroundColor: `${themeColors.primary}20`,
+                    borderColor: themeColors.primary,
+                    borderWidth: 2,
+                  },
                 ]}
+                onPress={() => handleEmojiSelect(emoji)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedEmoji === emoji }}
+                accessibilityLabel={emoji}
               >
-                {t('common.create', 'Aanmaken')}
-              </Text>
-            </HapticTouchable>
+                <Text style={styles.emojiText}>{emoji}</Text>
+              </HapticTouchable>
+            ))}
           </View>
 
-          <ScrollViewWithIndicator
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Group name input */}
-            <VoiceTextInput
-              voiceId="group-name"
-              label={t('contacts.groups.groupName', 'Groepsnaam')}
-              value={groupName}
-              onChangeText={setGroupName}
-              placeholder={t('contacts.groups.groupNamePlaceholder', 'bijv. Familie, Vrienden...')}
-              maxLength={50}
-              autoFocus
-            />
+          {/* Contact selector */}
+          <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
+            {t('contacts.groups.selectContacts', 'Selecteer contacten')}
+            {selectedJids.size > 0 && (
+              <Text style={{ color: themeColors.textSecondary }}>
+                {` (${selectedJids.size})`}
+              </Text>
+            )}
+          </Text>
 
-            {/* Emoji selector */}
-            <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
-              {t('contacts.groups.chooseEmoji', 'Kies een icoon')}
-            </Text>
-            <View style={styles.emojiGrid}>
-              {GROUP_EMOJIS.map((emoji) => (
-                <HapticTouchable hapticDisabled
-                  key={emoji}
-                  style={[
-                    styles.emojiButton,
-                    selectedEmoji === emoji && {
-                      backgroundColor: `${themeColors.primary}20`,
-                      borderColor: themeColors.primary,
-                      borderWidth: 2,
-                    },
-                  ]}
-                  onPress={() => handleEmojiSelect(emoji)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selectedEmoji === emoji }}
-                  accessibilityLabel={emoji}
+          {sortedContacts.map((contact) => {
+            const displayName = getContactDisplayName(contact);
+            const isSelected = selectedJids.has(contact.jid);
+
+            return (
+              <HapticTouchable hapticDisabled
+                key={contact.jid}
+                style={[
+                  styles.contactRow,
+                  {
+                    backgroundColor: isSelected
+                      ? `${themeColors.primary}10`
+                      : themeColors.surface,
+                    borderBottomColor: themeColors.divider,
+                  },
+                ]}
+                onPress={() => toggleContact(contact.jid)}
+                activeOpacity={0.7}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: isSelected }}
+                accessibilityLabel={displayName}
+              >
+                <ContactAvatar
+                  name={displayName}
+                  photoUrl={contact.photoUrl}
+                  size={48}
+                />
+                <Text
+                  style={[styles.contactName, { color: themeColors.textPrimary }]}
+                  numberOfLines={1}
                 >
-                  <Text style={styles.emojiText}>{emoji}</Text>
-                </HapticTouchable>
-              ))}
-            </View>
-
-            {/* Contact selector */}
-            <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
-              {t('contacts.groups.selectContacts', 'Selecteer contacten')}
-              {selectedJids.size > 0 && (
-                <Text style={{ color: themeColors.textSecondary }}>
-                  {` (${selectedJids.size})`}
+                  {displayName}
                 </Text>
-              )}
-            </Text>
-
-            {sortedContacts.map((contact) => {
-              const displayName = getContactDisplayName(contact);
-              const isSelected = selectedJids.has(contact.jid);
-
-              return (
-                <HapticTouchable hapticDisabled
-                  key={contact.jid}
+                <View
                   style={[
-                    styles.contactRow,
+                    styles.checkbox,
                     {
-                      backgroundColor: isSelected
-                        ? `${themeColors.primary}10`
-                        : themeColors.surface,
-                      borderBottomColor: themeColors.divider,
+                      backgroundColor: isSelected ? themeColors.primary : 'transparent',
+                      borderColor: isSelected ? themeColors.primary : themeColors.border,
                     },
                   ]}
-                  onPress={() => toggleContact(contact.jid)}
-                  activeOpacity={0.7}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: isSelected }}
-                  accessibilityLabel={displayName}
                 >
-                  <ContactAvatar
-                    name={displayName}
-                    photoUrl={contact.photoUrl}
-                    size={48}
-                  />
-                  <Text
-                    style={[styles.contactName, { color: themeColors.textPrimary }]}
-                    numberOfLines={1}
-                  >
-                    {displayName}
-                  </Text>
-                  <View
-                    style={[
-                      styles.checkbox,
-                      {
-                        backgroundColor: isSelected ? themeColors.primary : 'transparent',
-                        borderColor: isSelected ? themeColors.primary : themeColors.border,
-                      },
-                    ]}
-                  >
-                    {isSelected && (
-                      <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
-                    )}
-                  </View>
-                </HapticTouchable>
-              );
-            })}
+                  {isSelected && (
+                    <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
+                  )}
+                </View>
+              </HapticTouchable>
+            );
+          })}
 
-            {/* Bottom spacing */}
-            <View style={{ height: spacing.xl }} />
-          </ScrollViewWithIndicator>
-        </LiquidGlassView>
-      </View>
+          {/* Bottom spacing */}
+          <View style={{ height: insets.bottom + spacing.xl }} />
+        </ScrollViewWithIndicator>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }
@@ -281,15 +280,8 @@ export function CreateGroupModal({
 // ============================================================
 
 const styles = StyleSheet.create({
-  overlay: {
+  fullScreen: {
     flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    maxHeight: '90%',
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',

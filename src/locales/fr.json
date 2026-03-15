@@ -542,7 +542,8 @@
     "groups": {
       "all": "Tous",
       "title": "Groupes",
-      "createGroup": "Nouveau",
+      "createGroup": "Groupe",
+      "newGroup": "Nouveau groupe",
       "groupName": "Nom du groupe",
       "groupNamePlaceholder": "ex. Famille, Amis...",
       "chooseEmoji": "Choisir une icône",

@@ -467,7 +467,8 @@
     "groups": {
       "all": "Alle",
       "title": "Grupper",
-      "createGroup": "Ny",
+      "createGroup": "Gruppe",
+      "newGroup": "Ny gruppe",
       "groupName": "Gruppenavn",
       "groupNamePlaceholder": "f.eks. Familie, Venner...",
       "chooseEmoji": "Velg et ikon",

@@ -437,7 +437,8 @@
     "groups": {
       "all": "Alla",
       "title": "Grupper",
-      "createGroup": "Ny",
+      "createGroup": "Grupp",
+      "newGroup": "Ny grupp",
       "groupName": "Gruppnamn",
       "groupNamePlaceholder": "t.ex. Familj, Vänner...",
       "chooseEmoji": "Välj en ikon",
