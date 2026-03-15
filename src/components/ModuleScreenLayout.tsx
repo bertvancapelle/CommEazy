@@ -13,7 +13,7 @@
  * - Main scrollable content (list, grid, etc.)
  *
  * Separator:
- * - Colored line (2pt, module color) between toolbar and content
+ * - Colored line (4pt, module color) between toolbar and content
  *
  * Controls background tint:
  * - When controlsBlock has content: 10% opacity module color background
@@ -26,6 +26,11 @@
  * When toolbar is at bottom, the controls children are rendered in
  * reverse order so that rows closest to the header stay adjacent.
  *
+ * Keyboard avoidance (bottom layout only):
+ * - When toolbar is at bottom, the entire bottom section (controls +
+ *   header) is wrapped in KeyboardAvoidingView so the toolbar slides
+ *   above the keyboard when a SearchBar in controlsBlock is focused.
+ *
  * When using ModuleScreenLayout, pass `skipSafeArea` to ModuleHeader
  * to avoid double Safe Area spacing.
  *
@@ -34,7 +39,7 @@
  */
 
 import React, { type ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdMobBanner } from './AdMobBanner';
 import { spacing } from '@/theme';
@@ -141,7 +146,10 @@ export function ModuleScreenLayout({
       <View style={[styles.separator, { backgroundColor: moduleColor }]} />
 
       {isBottom ? (
-        <>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           {/* Bottom layout: Content → Separator → Controls (reversed) → ModuleHeader */}
           {contentBlock}
           <View style={[styles.separator, { backgroundColor: moduleColor }]} />
@@ -153,7 +161,7 @@ export function ModuleScreenLayout({
             reverseChildren(controlsBlock)
           )}
           {moduleBlock}
-        </>
+        </KeyboardAvoidingView>
       ) : (
         <>
           {/* Top layout (default): ModuleHeader → Controls → Separator → Content */}
@@ -174,12 +182,16 @@ export function ModuleScreenLayout({
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   adMobRow: {
     paddingHorizontal: spacing.sm,
     paddingTop: 0,
     paddingBottom: 0,
+    marginTop: -2,
   },
   separator: {
-    height: 2,
+    height: 4,
   },
 });
