@@ -33,7 +33,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ContactGroupChipBar, ContactGroupActionsBar, HapticTouchable , ScrollViewWithIndicator} from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, ModuleScreenLayout, SearchBar, ContactGroupChipBar, ContactGroupActionsBar, HapticTouchable , ScrollViewWithIndicator} from '@/components';
 import type { ChipId } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
@@ -428,167 +428,176 @@ export function ContactListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Module Header — standardized component */}
-      <ModuleHeader
-        moduleId="contacts"
-        icon="contacts"
-        title={t('tabs.contacts')}
-        showAdMob={true}
-      />
-
-      {/* Contact group chip bar — smart sections + manual groups */}
-      <ContactGroupChipBar
-        selectedChipId={selectedChipId}
-        smartSections={smartSections}
-        groups={groups}
-        onSelectChip={setSelectedChipId}
-        onCreateGroup={handleCreateGroup}
-        onLongPressGroup={handleLongPressGroup}
-      />
-
-      {/* Search bar — standardized SearchBar component */}
-      <View style={[styles.searchContainer, { backgroundColor: themeColors.background, borderBottomColor: themeColors.divider }]}>
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onSubmit={() => {}} // Live filter — no explicit submit needed
-          placeholder={t('contacts.searchPlaceholder')}
-          searchButtonLabel={t('contacts.searchButton')}
-        />
-      </View>
-
-      {/* Category filter chips — horizontal scroll */}
-      {usedCategories.length > 0 && (
-        <View style={[styles.categoryFilterContainer, { borderBottomColor: themeColors.divider }]}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryFilterContent}
-          >
-            {/* "Alle" chip */}
-            <HapticTouchable
-              style={[
-                styles.categoryChip,
-                {
-                  backgroundColor: selectedCategoryId === null ? themeColors.primary : themeColors.surface,
-                  borderColor: selectedCategoryId === null ? themeColors.primary : themeColors.border,
-                },
-              ]}
-              onPress={() => setSelectedCategoryId(null)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: selectedCategoryId === null }}
-              accessibilityLabel={t('contacts.categories.filterAll', 'Alle')}
-            >
-              <Text
-                style={[
-                  styles.categoryChipText,
-                  { color: selectedCategoryId === null ? themeColors.textOnPrimary : themeColors.textPrimary },
-                ]}
-              >
-                {t('contacts.categories.filterAll', 'Alle')}
-              </Text>
-            </HapticTouchable>
-
-            {/* Category chips */}
-            {usedCategories.map(cat => {
-              const isActive = selectedCategoryId === cat.id;
-              return (
-                <HapticTouchable
-                  key={cat.id}
-                  style={[
-                    styles.categoryChip,
-                    {
-                      backgroundColor: isActive ? themeColors.primary : themeColors.surface,
-                      borderColor: isActive ? themeColors.primary : themeColors.border,
-                    },
-                  ]}
-                  onPress={() => setSelectedCategoryId(isActive ? null : cat.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isActive }}
-                  accessibilityLabel={t(cat.name)}
-                >
-                  <Text style={styles.categoryChipEmoji}>{cat.icon}</Text>
-                  <Text
-                    style={[
-                      styles.categoryChipText,
-                      { color: isActive ? themeColors.textOnPrimary : themeColors.textPrimary },
-                    ]}
-                  >
-                    {t(cat.name)}
-                  </Text>
-                </HapticTouchable>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Contact list with voice focus navigation */}
-      <ScrollViewWithIndicator
-        ref={scrollRef}
-        contentContainerStyle={
-          filteredContacts.length === 0 ? styles.emptyListContent : undefined
-        }
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={themeColors.primary}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId="contacts"
+            icon="contacts"
+            title={t('tabs.contacts')}
+            skipSafeArea
           />
         }
-        showsVerticalScrollIndicator={false}
-        accessibilityLabel={t('accessibility.contactList', { count: filteredContacts.length })}
-      >
-        {filteredContacts.length === 0 ? (
-          renderEmptyList()
-        ) : (
-          filteredContacts.map((contact, index) => renderContactItem(contact, index))
-        )}
-      </ScrollViewWithIndicator>
+        controlsBlock={
+          <>
+            {/* Contact group chip bar — smart sections + manual groups */}
+            <ContactGroupChipBar
+              selectedChipId={selectedChipId}
+              smartSections={smartSections}
+              groups={groups}
+              onSelectChip={setSelectedChipId}
+              onCreateGroup={handleCreateGroup}
+              onLongPressGroup={handleLongPressGroup}
+            />
 
-      {/* Group actions bar — visible when a group/smart section is selected */}
-      {selectedChipId !== 'all' && filteredContacts.length > 0 && (
-        <ContactGroupActionsBar
-          memberCount={filteredContacts.length}
-          groupLabel={selectedGroupLabel}
-          onSendPhoto={handleGroupSendPhoto}
-          onSendMessage={handleGroupSendMessage}
-          onSendMail={handleGroupSendMail}
-          onCallMember={handleGroupCallMember}
-        />
-      )}
+            {/* Search bar — standardized SearchBar component */}
+            <View style={[styles.searchContainer, { backgroundColor: themeColors.background, borderBottomColor: themeColors.divider }]}>
+              <SearchBar
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmit={() => {}} // Live filter — no explicit submit needed
+                placeholder={t('contacts.searchPlaceholder')}
+                searchButtonLabel={t('contacts.searchButton')}
+              />
+            </View>
 
-      {/* FAB for adding contacts */}
-      {contacts.length > 0 && (
-        <HapticTouchable hapticDisabled
-          style={[styles.fab, { backgroundColor: themeColors.primary }]}
-          onPress={handleAddContact}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('contacts.addButton')}
-        >
-          <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-        </HapticTouchable>
-      )}
+            {/* Category filter chips — horizontal scroll */}
+            {usedCategories.length > 0 && (
+              <View style={[styles.categoryFilterContainer, { borderBottomColor: themeColors.divider }]}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoryFilterContent}
+                >
+                  {/* "Alle" chip */}
+                  <HapticTouchable
+                    style={[
+                      styles.categoryChip,
+                      {
+                        backgroundColor: selectedCategoryId === null ? themeColors.primary : themeColors.surface,
+                        borderColor: selectedCategoryId === null ? themeColors.primary : themeColors.border,
+                      },
+                    ]}
+                    onPress={() => setSelectedCategoryId(null)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: selectedCategoryId === null }}
+                    accessibilityLabel={t('contacts.categories.filterAll', 'Alle')}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        { color: selectedCategoryId === null ? themeColors.textOnPrimary : themeColors.textPrimary },
+                      ]}
+                    >
+                      {t('contacts.categories.filterAll', 'Alle')}
+                    </Text>
+                  </HapticTouchable>
 
-      {/* Create Group Modal */}
-      <CreateGroupModal
-        visible={showCreateModal}
-        contacts={contacts}
-        onClose={() => setShowCreateModal(false)}
-        onCreate={handleGroupCreated}
-      />
+                  {/* Category chips */}
+                  {usedCategories.map(cat => {
+                    const isActive = selectedCategoryId === cat.id;
+                    return (
+                      <HapticTouchable
+                        key={cat.id}
+                        style={[
+                          styles.categoryChip,
+                          {
+                            backgroundColor: isActive ? themeColors.primary : themeColors.surface,
+                            borderColor: isActive ? themeColors.primary : themeColors.border,
+                          },
+                        ]}
+                        onPress={() => setSelectedCategoryId(isActive ? null : cat.id)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isActive }}
+                        accessibilityLabel={t(cat.name)}
+                      >
+                        <Text style={styles.categoryChipEmoji}>{cat.icon}</Text>
+                        <Text
+                          style={[
+                            styles.categoryChipText,
+                            { color: isActive ? themeColors.textOnPrimary : themeColors.textPrimary },
+                          ]}
+                        >
+                          {t(cat.name)}
+                        </Text>
+                      </HapticTouchable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+          </>
+        }
+        contentBlock={
+          <>
+            {/* Contact list with voice focus navigation */}
+            <ScrollViewWithIndicator
+              ref={scrollRef}
+              contentContainerStyle={
+                filteredContacts.length === 0 ? styles.emptyListContent : undefined
+              }
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor={themeColors.primary}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              accessibilityLabel={t('accessibility.contactList', { count: filteredContacts.length })}
+            >
+              {filteredContacts.length === 0 ? (
+                renderEmptyList()
+              ) : (
+                filteredContacts.map((contact, index) => renderContactItem(contact, index))
+              )}
+            </ScrollViewWithIndicator>
 
-      {/* Edit Group Modal (long-press on group chip) */}
-      <EditGroupModal
-        visible={showEditModal}
-        group={editingGroup}
-        contacts={contacts}
-        onClose={handleCloseEditModal}
-        onRename={handleEditRename}
-        onChangeEmoji={handleEditChangeEmoji}
-        onUpdateMembers={handleEditUpdateMembers}
-        onDelete={handleEditDelete}
+            {/* Group actions bar — visible when a group/smart section is selected */}
+            {selectedChipId !== 'all' && filteredContacts.length > 0 && (
+              <ContactGroupActionsBar
+                memberCount={filteredContacts.length}
+                groupLabel={selectedGroupLabel}
+                onSendPhoto={handleGroupSendPhoto}
+                onSendMessage={handleGroupSendMessage}
+                onSendMail={handleGroupSendMail}
+                onCallMember={handleGroupCallMember}
+              />
+            )}
+
+            {/* FAB for adding contacts */}
+            {contacts.length > 0 && (
+              <HapticTouchable hapticDisabled
+                style={[styles.fab, { backgroundColor: themeColors.primary }]}
+                onPress={handleAddContact}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t('contacts.addButton')}
+              >
+                <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
+              </HapticTouchable>
+            )}
+
+            {/* Create Group Modal */}
+            <CreateGroupModal
+              visible={showCreateModal}
+              contacts={contacts}
+              onClose={() => setShowCreateModal(false)}
+              onCreate={handleGroupCreated}
+            />
+
+            {/* Edit Group Modal (long-press on group chip) */}
+            <EditGroupModal
+              visible={showEditModal}
+              group={editingGroup}
+              contacts={contacts}
+              onClose={handleCloseEditModal}
+              onRename={handleEditRename}
+              onChangeEmoji={handleEditChangeEmoji}
+              onUpdateMembers={handleEditUpdateMembers}
+              onDelete={handleEditDelete}
+            />
+          </>
+        }
       />
     </View>
   );

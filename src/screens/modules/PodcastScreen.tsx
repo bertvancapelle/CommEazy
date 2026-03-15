@@ -653,12 +653,19 @@ export function PodcastScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       {/* ============================================================
-          CONTENT LAYER — Extends full height under overlays
-          Content scrolls UNDER the ModuleHeader and MiniPlayer
+          CONTENT LAYER — Full height, ModuleHeader participates in layout
           ============================================================ */}
       <View style={styles.contentLayer}>
         <ModuleScreenLayout
-          headerPadding={contentPaddingTop + spacing.md}
+          moduleBlock={
+            <ModuleHeader
+              moduleId="podcast"
+              icon="podcast"
+              title={t('modules.podcast.title')}
+              currentSource="podcast"
+              skipSafeArea
+            />
+          }
           controlsBlock={<>
         {/* Tab selector — uses standardized FavoriteTabButton/SearchTabButton */}
         <View style={styles.tabBar}>
@@ -864,21 +871,10 @@ export function PodcastScreen() {
       </View>
 
       {/* ============================================================
-          OVERLAY LAYER — Absolute positioned over content
-          Contains ModuleHeader (top) and MiniPlayer (bottom)
+          OVERLAY LAYER — Floating MiniPlayer at bottom
           pointerEvents="box-none" allows touches to pass through
           ============================================================ */}
       <View style={styles.overlayLayer} pointerEvents="box-none">
-        {/* Module Header — absolute positioned at top */}
-        <ModuleHeader
-          moduleId="podcast"
-          icon="podcast"
-          title={t('modules.podcast.title')}
-          currentSource="podcast"
-          showAdMob={true}
-          style={styles.absoluteHeader}
-        />
-
         {/* Spacer pushes MiniPlayer to bottom */}
         <View style={styles.overlaySpacer} pointerEvents="none" />
 

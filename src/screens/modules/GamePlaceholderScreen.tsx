@@ -12,7 +12,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing } from '@/theme';
-import { Icon, ModuleHeader } from '@/components';
+import { Icon, ModuleHeader, ModuleScreenLayout } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import {
@@ -45,22 +45,30 @@ export function GamePlaceholderScreen({ moduleId }: GamePlaceholderScreenProps) 
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <ModuleHeader
-        moduleId={moduleId as ModuleColorId}
-        icon={iconName}
-        title={title}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId={moduleId as ModuleColorId}
+            icon={iconName}
+            title={title}
+            skipSafeArea
+          />
+        }
+        controlsBlock={<></>}
+        contentBlock={
+          <View style={styles.content}>
+            <View style={[styles.iconContainer, { backgroundColor: moduleColor + '20' }]}>
+              <Icon name={iconName} size={96} color={moduleColor} />
+            </View>
+            <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+              {title}
+            </Text>
+            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
+              {t('common.comingSoon')}
+            </Text>
+          </View>
+        }
       />
-      <View style={styles.content}>
-        <View style={[styles.iconContainer, { backgroundColor: moduleColor + '20' }]}>
-          <Icon name={iconName} size={96} color={moduleColor} />
-        </View>
-        <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-          {title}
-        </Text>
-        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
-          {t('common.comingSoon')}
-        </Text>
-      </View>
     </View>
   );
 }

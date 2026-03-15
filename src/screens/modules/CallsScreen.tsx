@@ -29,7 +29,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, SearchBar, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
@@ -316,47 +316,51 @@ export function CallsScreen() {
         />
       )}
 
-      {/* Module Header */}
-      <ModuleHeader
-        moduleId="calls"
-        icon="call"
-        title={t('navigation.calls')}
-        showAdMob={true}
-      />
-
-      {/* Search bar */}
-      <View style={[styles.searchContainer, { backgroundColor: themeColors.background, borderBottomColor: themeColors.divider }]}>
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onSubmit={() => {}} // Live filter
-          placeholder={t('modules.calls.searchPlaceholder')}
-          searchButtonLabel={t('modules.calls.searchButton')}
-        />
-      </View>
-
-      {/* Contact list */}
-      <ScrollViewWithIndicator
-        ref={scrollRef}
-        contentContainerStyle={
-          filteredContacts.length === 0 ? styles.emptyListContent : undefined
-        }
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={callsModuleColor}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId="calls"
+            icon="call"
+            title={t('navigation.calls')}
+            skipSafeArea
           />
         }
-        showsVerticalScrollIndicator={false}
-        accessibilityLabel={t('modules.calls.contactList', { count: filteredContacts.length })}
-      >
-        {filteredContacts.length === 0 ? (
-          renderEmptyList()
-        ) : (
-          filteredContacts.map((contact, index) => renderContactItem(contact, index))
-        )}
-      </ScrollViewWithIndicator>
+        controlsBlock={
+          <View style={[styles.searchContainer, { backgroundColor: themeColors.background, borderBottomColor: themeColors.divider }]}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={() => {}} // Live filter
+              placeholder={t('modules.calls.searchPlaceholder')}
+              searchButtonLabel={t('modules.calls.searchButton')}
+            />
+          </View>
+        }
+        contentBlock={
+          <ScrollViewWithIndicator
+            ref={scrollRef}
+            style={styles.contentFlex}
+            contentContainerStyle={
+              filteredContacts.length === 0 ? styles.emptyListContent : undefined
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={callsModuleColor}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+            accessibilityLabel={t('modules.calls.contactList', { count: filteredContacts.length })}
+          >
+            {filteredContacts.length === 0 ? (
+              renderEmptyList()
+            ) : (
+              filteredContacts.map((contact, index) => renderContactItem(contact, index))
+            )}
+          </ScrollViewWithIndicator>
+        }
+      />
     </View>
   );
 }
@@ -365,6 +369,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  contentFlex: {
+    flex: 1,
   },
   searchContainer: {
     paddingHorizontal: spacing.md,

@@ -36,7 +36,7 @@ import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/n
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, ScrollViewWithIndicator, ErrorView, type IconName } from '@/components';
+import { ContactAvatar, Icon, VoiceFocusable, ModuleHeader, ModuleScreenLayout, ScrollViewWithIndicator, ErrorView, type IconName } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -233,25 +233,29 @@ export function SettingsMainScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Module Header — standardized component */}
-      <ModuleHeader
-        moduleId="settings"
-        icon="settings"
-        title={t('tabs.settings')}
-        showAdMob={true}
-      />
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId="settings"
+            icon="settings"
+            title={t('tabs.settings')}
+            skipSafeArea
+          />
+        }
+        controlsBlock={<></>}
+        contentBlock={
+          <>
+            {notification && (
+              <ErrorView
+                type={notification.type}
+                title={notification.title}
+                message={notification.message}
+                autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
+                onDismiss={() => setNotification(null)}
+              />
+            )}
 
-      {notification && (
-        <ErrorView
-          type={notification.type}
-          title={notification.title}
-          message={notification.message}
-          autoDismiss={notification.type === 'success' || notification.type === 'info' ? 3000 : undefined}
-          onDismiss={() => setNotification(null)}
-        />
-      )}
-
-      <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+            <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
         {/* Profile header - tappable to edit */}
         <HapticTouchable hapticDisabled
         style={[styles.profileHeader, { backgroundColor: themeColors.surface }]}
@@ -557,6 +561,9 @@ export function SettingsMainScreen() {
           </Text>
         </View>
       </ScrollViewWithIndicator>
+          </>
+        }
+      />
     </View>
   );
 }

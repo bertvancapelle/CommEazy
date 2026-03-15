@@ -255,12 +255,22 @@ export function BookPlayerScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* ============================================================
-          CONTENT LAYER — Extends full height under overlays
-          Content scrolls UNDER the ModuleHeader and MiniPlayer
+          CONTENT LAYER — Full height, ModuleHeader participates in layout
           ============================================================ */}
       <View style={styles.contentLayer}>
         <ModuleScreenLayout
-          headerPadding={contentPaddingTop + spacing.md}
+          moduleBlock={
+            <ModuleHeader
+              moduleId="books"
+              icon="book"
+              title={t('modules.books.listen')}
+              currentSource="books"
+              showBackButton={true}
+              onBackPress={handleBack}
+              backButtonLabel={t('common.back')}
+              skipSafeArea
+            />
+          }
           controlsBlock={<>
         {/* Book Info */}
         <View style={styles.bookInfoContainer}>
@@ -381,24 +391,10 @@ export function BookPlayerScreen() {
       </View>
 
       {/* ============================================================
-          OVERLAY LAYER — Absolute positioned over content
-          Contains ModuleHeader (top) and MiniPlayer (bottom)
+          OVERLAY LAYER — Floating MiniPlayer at bottom
           pointerEvents="box-none" allows touches to pass through
           ============================================================ */}
       <View style={styles.overlayLayer} pointerEvents="box-none">
-        {/* Module Header — absolute positioned at top */}
-        <ModuleHeader
-          moduleId="books"
-          icon="book"
-          title={t('modules.books.listen')}
-          currentSource="books"
-          showAdMob={true}
-          showBackButton={true}
-          onBackPress={handleBack}
-          backButtonLabel={t('common.back')}
-          style={styles.absoluteHeader}
-        />
-
         {/* Spacer pushes MiniPlayer to bottom */}
         <View style={styles.overlaySpacer} pointerEvents="none" />
 

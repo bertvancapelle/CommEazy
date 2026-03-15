@@ -943,12 +943,19 @@ export function RadioScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       {/* ============================================================
-          CONTENT LAYER — Extends full height under overlays
-          Content scrolls UNDER the ModuleHeader and MiniPlayer
+          CONTENT LAYER — Full height, ModuleHeader participates in layout
           ============================================================ */}
       <View style={styles.contentLayer}>
         <ModuleScreenLayout
-          headerPadding={contentPaddingTop + spacing.md}
+          moduleBlock={
+            <ModuleHeader
+              moduleId="radio"
+              icon="radio"
+              title={t('modules.radio.title')}
+              currentSource="radio"
+              skipSafeArea
+            />
+          }
           controlsBlock={<>
         {/* 3-way toggle: [❤️ Favorieten]  <space>  [Land] [Taal] */}
         <View style={styles.toggleRow}>
@@ -1234,21 +1241,10 @@ export function RadioScreen() {
       </View>
 
       {/* ============================================================
-          OVERLAY LAYER — Absolute positioned over content
-          Contains ModuleHeader (top) and MiniPlayer (bottom)
+          OVERLAY LAYER — Floating MiniPlayer at bottom
           pointerEvents="box-none" allows touches to pass through
           ============================================================ */}
       <View style={styles.overlayLayer} pointerEvents="box-none">
-        {/* Module Header — absolute positioned at top */}
-        <ModuleHeader
-          moduleId="radio"
-          icon="radio"
-          title={t('modules.radio.title')}
-          currentSource="radio"
-          showAdMob={true}
-          style={styles.absoluteHeader}
-        />
-
         {/* Spacer pushes MiniPlayer to bottom */}
         <View style={styles.overlaySpacer} pointerEvents="none" />
 

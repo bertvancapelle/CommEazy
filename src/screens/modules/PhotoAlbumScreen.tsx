@@ -37,6 +37,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import { ModuleHeader,
+  ModuleScreenLayout,
   PhotoRecipientModal,
   HapticTouchable,
   FullscreenImageViewer,
@@ -1024,155 +1025,163 @@ export function PhotoAlbumScreen() {
           onDismiss={() => setNotification(null)}
         />
       )}
-      <ModuleHeader
-        moduleId="photoAlbum"
-        icon="image"
-        title={t('navigation.photoAlbum', 'Photo Album')}
+      <ModuleScreenLayout
         showAdMob={false}
-      />
+        moduleBlock={
+          <ModuleHeader
+            moduleId="photoAlbum"
+            icon="image"
+            title={t('navigation.photoAlbum', 'Photo Album')}
+            skipSafeArea
+          />
+        }
+        controlsBlock={
+          <>
+            {/* Album detail header (back button + album name) */}
+            {activeTab === 'albums' && activeAlbum && !isSelectionMode && (
+              <View style={[styles.albumDetailHeader, { borderBottomColor: themeColors.border }]}>
+                <HapticTouchable
+                  style={styles.backButton}
+                  onPress={handleBackToAlbums}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.back', 'Back')}
+                >
+                  <Icon name="chevron-left" size={24} color={themeColors.textPrimary} />
+                </HapticTouchable>
+                <Text style={[styles.albumDetailTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                  {activeAlbum.name}
+                </Text>
+                <HapticTouchable
+                  style={styles.albumDetailAction}
+                  onPress={() => {
+                    Alert.alert(
+                      activeAlbum.name,
+                      '',
+                      [
+                        {
+                          text: t('modules.photoAlbum.renameAlbum', 'Rename'),
+                          onPress: () => handleRenameAlbum(activeAlbum.id, activeAlbum.name),
+                        },
+                        {
+                          text: t('modules.photoAlbum.deleteAlbum', 'Delete album'),
+                          style: 'destructive',
+                          onPress: () => handleDeleteAlbum(activeAlbum.id),
+                        },
+                        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+                      ],
+                    );
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.options', 'Options')}
+                >
+                  <Icon name="settings" size={24} color={themeColors.textSecondary} />
+                </HapticTouchable>
+              </View>
+            )}
 
-      {/* Album detail header (back button + album name) */}
-      {activeTab === 'albums' && activeAlbum && !isSelectionMode && (
-        <View style={[styles.albumDetailHeader, { borderBottomColor: themeColors.border }]}>
-          <HapticTouchable
-            style={styles.backButton}
-            onPress={handleBackToAlbums}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.back', 'Back')}
-          >
-            <Icon name="chevron-left" size={24} color={themeColors.textPrimary} />
-          </HapticTouchable>
-          <Text style={[styles.albumDetailTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
-            {activeAlbum.name}
-          </Text>
-          <HapticTouchable
-            style={styles.albumDetailAction}
-            onPress={() => {
-              Alert.alert(
-                activeAlbum.name,
-                '',
-                [
-                  {
-                    text: t('modules.photoAlbum.renameAlbum', 'Rename'),
-                    onPress: () => handleRenameAlbum(activeAlbum.id, activeAlbum.name),
-                  },
-                  {
-                    text: t('modules.photoAlbum.deleteAlbum', 'Delete album'),
-                    style: 'destructive',
-                    onPress: () => handleDeleteAlbum(activeAlbum.id),
-                  },
-                  { text: t('common.cancel', 'Cancel'), style: 'cancel' },
-                ],
-              );
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.options', 'Options')}
-          >
-            <Icon name="settings" size={24} color={themeColors.textSecondary} />
-          </HapticTouchable>
-        </View>
-      )}
+            {/* Tab Bar — only when not in album detail or selection mode */}
+            {!activeAlbumId && !isSelectionMode && (
+              <View style={[styles.tabBar, { borderBottomColor: themeColors.border }]}>
+                <HapticTouchable
+                  style={[
+                    styles.tab,
+                    activeTab === 'albums' && [styles.tabActive, { borderBottomColor: moduleColor }],
+                  ]}
+                  onPress={() => handleTabChange('albums')}
+                  accessibilityRole="tab"
+                  accessibilityLabel={t('modules.photoAlbum.albums', 'Albums')}
+                  accessibilityState={{ selected: activeTab === 'albums' }}
+                >
+                  <Icon name="folder" size={20} color={activeTab === 'albums' ? moduleColor : themeColors.textSecondary} />
+                  <Text style={[
+                    styles.tabText,
+                    { color: activeTab === 'albums' ? moduleColor : themeColors.textSecondary },
+                    activeTab === 'albums' && styles.tabTextActive,
+                  ]}>
+                    {t('modules.photoAlbum.albums', 'Albums')}
+                  </Text>
+                </HapticTouchable>
 
-      {/* Tab Bar — only when not in album detail or selection mode */}
-      {!activeAlbumId && !isSelectionMode && (
-        <View style={[styles.tabBar, { borderBottomColor: themeColors.border }]}>
-          <HapticTouchable
-            style={[
-              styles.tab,
-              activeTab === 'albums' && [styles.tabActive, { borderBottomColor: moduleColor }],
-            ]}
-            onPress={() => handleTabChange('albums')}
-            accessibilityRole="tab"
-            accessibilityLabel={t('modules.photoAlbum.albums', 'Albums')}
-            accessibilityState={{ selected: activeTab === 'albums' }}
-          >
-            <Icon name="folder" size={20} color={activeTab === 'albums' ? moduleColor : themeColors.textSecondary} />
-            <Text style={[
-              styles.tabText,
-              { color: activeTab === 'albums' ? moduleColor : themeColors.textSecondary },
-              activeTab === 'albums' && styles.tabTextActive,
-            ]}>
-              {t('modules.photoAlbum.albums', 'Albums')}
-            </Text>
-          </HapticTouchable>
+                <HapticTouchable
+                  style={[
+                    styles.tab,
+                    activeTab === 'allPhotos' && [styles.tabActive, { borderBottomColor: moduleColor }],
+                  ]}
+                  onPress={() => handleTabChange('allPhotos')}
+                  accessibilityRole="tab"
+                  accessibilityLabel={t('modules.photoAlbum.allPhotos', 'All photos')}
+                  accessibilityState={{ selected: activeTab === 'allPhotos' }}
+                >
+                  <Icon name="image" size={20} color={activeTab === 'allPhotos' ? moduleColor : themeColors.textSecondary} />
+                  <Text style={[
+                    styles.tabText,
+                    { color: activeTab === 'allPhotos' ? moduleColor : themeColors.textSecondary },
+                    activeTab === 'allPhotos' && styles.tabTextActive,
+                  ]}>
+                    {t('modules.photoAlbum.allPhotos', 'All photos')}
+                  </Text>
+                </HapticTouchable>
 
-          <HapticTouchable
-            style={[
-              styles.tab,
-              activeTab === 'allPhotos' && [styles.tabActive, { borderBottomColor: moduleColor }],
-            ]}
-            onPress={() => handleTabChange('allPhotos')}
-            accessibilityRole="tab"
-            accessibilityLabel={t('modules.photoAlbum.allPhotos', 'All photos')}
-            accessibilityState={{ selected: activeTab === 'allPhotos' }}
-          >
-            <Icon name="image" size={20} color={activeTab === 'allPhotos' ? moduleColor : themeColors.textSecondary} />
-            <Text style={[
-              styles.tabText,
-              { color: activeTab === 'allPhotos' ? moduleColor : themeColors.textSecondary },
-              activeTab === 'allPhotos' && styles.tabTextActive,
-            ]}>
-              {t('modules.photoAlbum.allPhotos', 'All photos')}
-            </Text>
-          </HapticTouchable>
+                <HapticTouchable
+                  style={[
+                    styles.tab,
+                    activeTab === 'received' && [styles.tabActive, { borderBottomColor: moduleColor }],
+                  ]}
+                  onPress={() => handleTabChange('received')}
+                  accessibilityRole="tab"
+                  accessibilityLabel={t('modules.photoAlbum.received', 'Received')}
+                  accessibilityState={{ selected: activeTab === 'received' }}
+                >
+                  <Icon name="download" size={20} color={activeTab === 'received' ? moduleColor : themeColors.textSecondary} />
+                  <Text style={[
+                    styles.tabText,
+                    { color: activeTab === 'received' ? moduleColor : themeColors.textSecondary },
+                    activeTab === 'received' && styles.tabTextActive,
+                  ]}>
+                    {t('modules.photoAlbum.received', 'Received')}
+                    {receivedCount > 0 ? ` (${receivedCount})` : ''}
+                  </Text>
+                </HapticTouchable>
+              </View>
+            )}
 
-          <HapticTouchable
-            style={[
-              styles.tab,
-              activeTab === 'received' && [styles.tabActive, { borderBottomColor: moduleColor }],
-            ]}
-            onPress={() => handleTabChange('received')}
-            accessibilityRole="tab"
-            accessibilityLabel={t('modules.photoAlbum.received', 'Received')}
-            accessibilityState={{ selected: activeTab === 'received' }}
-          >
-            <Icon name="download" size={20} color={activeTab === 'received' ? moduleColor : themeColors.textSecondary} />
-            <Text style={[
-              styles.tabText,
-              { color: activeTab === 'received' ? moduleColor : themeColors.textSecondary },
-              activeTab === 'received' && styles.tabTextActive,
-            ]}>
-              {t('modules.photoAlbum.received', 'Received')}
-              {receivedCount > 0 ? ` (${receivedCount})` : ''}
-            </Text>
-          </HapticTouchable>
-        </View>
-      )}
+            {/* Selection Mode Header */}
+            {isSelectionMode && (
+              <View style={[styles.selectionHeader, { backgroundColor: moduleColor }]}>
+                <Text style={styles.selectionText}>
+                  {selectedPhotos.size > 0
+                    ? t('modules.photoAlbum.selectedCount', '{{count}} selected', { count: selectedPhotos.size })
+                    : t('modules.photoAlbum.selectPhotos', 'Select photos')}
+                </Text>
+                <HapticTouchable
+                  style={styles.cancelButton}
+                  onPress={handleToggleSelectionMode}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                </HapticTouchable>
+              </View>
+            )}
 
-      {/* Selection Mode Header */}
-      {isSelectionMode && (
-        <View style={[styles.selectionHeader, { backgroundColor: moduleColor }]}>
-          <Text style={styles.selectionText}>
-            {selectedPhotos.size > 0
-              ? t('modules.photoAlbum.selectedCount', '{{count}} selected', { count: selectedPhotos.size })
-              : t('modules.photoAlbum.selectPhotos', 'Select photos')}
-          </Text>
-          <HapticTouchable
-            style={styles.cancelButton}
-            onPress={handleToggleSelectionMode}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.cancel')}
-          >
-            <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
-          </HapticTouchable>
-        </View>
-      )}
-
-      {/* Storage info bar — only in all photos view */}
-      {!isSelectionMode && activeTab === 'allPhotos' && photoCount > 0 && (
-        <View style={styles.storageBar}>
-          <Icon name="image" size={16} color={themeColors.textSecondary} />
-          <Text style={[styles.storageText, { color: themeColors.textSecondary }]}>
-            {t('modules.photoAlbum.storageInfo', '{{count}} photos • {{size}}', {
-              count: photoCount,
-              size: formatStorageSize(storageUsed),
-            })}
-          </Text>
-        </View>
-      )}
-
-      {/* Content area */}
-      <ScrollViewWithIndicator
+            {/* Storage info bar — only in all photos view */}
+            {!isSelectionMode && activeTab === 'allPhotos' && photoCount > 0 && (
+              <View style={styles.storageBar}>
+                <Icon name="image" size={16} color={themeColors.textSecondary} />
+                <Text style={[styles.storageText, { color: themeColors.textSecondary }]}>
+                  {t('modules.photoAlbum.storageInfo', '{{count}} photos • {{size}}', {
+                    count: photoCount,
+                    size: formatStorageSize(storageUsed),
+                  })}
+                </Text>
+              </View>
+            )}
+          </>
+        }
+        contentBlock={
+          <>
+            {/* Content area */}
+            <ScrollViewWithIndicator
         style={styles.gridContainer}
         contentContainerStyle={[
           styles.gridContent,
@@ -1538,12 +1547,15 @@ export function PhotoAlbumScreen() {
         </LiquidGlassView>
       </Modal>
 
-      {/* Sending overlay */}
-      {isSending && (
-        <View style={styles.sendingOverlay}>
-          <LoadingView message={t('modules.photoAlbum.sending', 'Sending photos...')} />
-        </View>
-      )}
+            {/* Sending overlay */}
+            {isSending && (
+              <View style={styles.sendingOverlay}>
+                <LoadingView message={t('modules.photoAlbum.sending', 'Sending photos...')} />
+              </View>
+            )}
+          </>
+        }
+      />
     </SafeAreaView>
   );
 }

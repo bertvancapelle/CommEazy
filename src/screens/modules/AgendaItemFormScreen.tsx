@@ -47,7 +47,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -1386,18 +1386,23 @@ export function AgendaItemFormScreen({
         />
       )}
 
-      {/* Header — Form mode: Cancel/Save buttons */}
-      <ModuleHeader
-        moduleId="agenda"
-        icon="calendar"
-        title={t('modules.agenda.title')}
+      <ModuleScreenLayout
         showAdMob={false}
-        showGridButton={false}
-        formMode={true}
-        onCancel={handleCancel}
-        onSave={handleSave}
-      />
-
+        moduleBlock={
+          <ModuleHeader
+            moduleId="agenda"
+            icon="calendar"
+            title={t('modules.agenda.title')}
+            showGridButton={false}
+            formMode={true}
+            onCancel={handleCancel}
+            onSave={handleSave}
+            skipSafeArea
+          />
+        }
+        controlsBlock={<></>}
+        contentBlock={
+          <>
       <ScrollViewWithIndicator
         style={styles.scrollView}
         contentContainerStyle={[
@@ -2244,6 +2249,9 @@ export function AgendaItemFormScreen({
           </ScrollViewWithIndicator>
         </LiquidGlassView>
       </Modal>
+          </>
+        }
+      />
     </View>
   );
 }

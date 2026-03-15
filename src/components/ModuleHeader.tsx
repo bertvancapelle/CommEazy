@@ -5,13 +5,15 @@
  * ┌──────────────────────────────────────────────────────────────┐
  * │  Safe Area (notch/Dynamic Island)                             │
  * ├──────────────────────────────────────────────────────────────┤
- * │  [═══════════ AdMob Banner ═══════════════════]              │
- * ├──────────────────────────────────────────────────────────────┤
  * │  📻 Radio                    🔊 [MediaIndicator] [🏠 Grid]    │
  * │  ↑ Icon (decoratief) + Title          ↑ Rechts (spacing.md)  │
  * ├──────────────────────────────────────────────────────────────┤
  * │  ─ ─ ─ ─ ─ ─ ─  Separator line (1pt) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
  * └──────────────────────────────────────────────────────────────┘
+ *
+ * AdMob is NOT part of ModuleHeader — it is rendered as a fixed
+ * element above the reorderable blocks in ModuleScreenLayout.
+ * This ensures AdMob stays at the top regardless of layout order.
  *
  * Liquid Glass Support (iOS 26+):
  * - Uses LiquidGlassView wrapper when available
@@ -42,7 +44,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
 import { MediaIndicator } from './MediaIndicator';
-import { AdMobBanner } from './AdMobBanner';
 import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
@@ -68,10 +69,6 @@ export interface ModuleHeaderProps {
   title: string;
   /** Current module source for MediaIndicator filtering */
   currentSource?: 'radio' | 'podcast' | 'books' | 'appleMusic';
-  /** Show AdMob banner in header (default: true) */
-  showAdMob?: boolean;
-  /** AdMob unit ID (optional, uses default if not provided) */
-  adMobUnitId?: string;
   /** Show back button (for detail screens) */
   showBackButton?: boolean;
   /** Callback when back button is pressed */
@@ -91,6 +88,12 @@ export interface ModuleHeaderProps {
    * Hidden when showBackButton is true (detail screens show back instead)
    */
   showGridButton?: boolean;
+  /**
+   * Skip the internal Safe Area spacer (default: false).
+   * Set to true when ModuleHeader is used inside ModuleScreenLayout,
+   * which renders its own Safe Area spacer above the reorderable blocks.
+   */
+  skipSafeArea?: boolean;
 
   // ── Form Mode (Header Action Bar) ──────────────────────────
   // When formMode is true, the header replaces icon+title with
@@ -116,14 +119,13 @@ export function ModuleHeader({
   icon,
   title,
   currentSource,
-  showAdMob = true,
-  adMobUnitId,
   showBackButton = false,
   onBackPress,
   backButtonLabel = 'Terug',
   customLogo,
   style,
   showGridButton = true,
+  skipSafeArea = false,
   formMode = false,
   onCancel,
   onSave,
@@ -171,15 +173,8 @@ export function ModuleHeader({
   // Common header content
   const headerContent = (
     <>
-      {/* Safe Area Spacer */}
-      <View style={{ height: insets.top }} />
-
-      {/* AdMob Row (optional) — BOVEN de module naam */}
-      {showAdMob && (
-        <View style={styles.adMobRow}>
-          <AdMobBanner unitId={adMobUnitId} size="banner" />
-        </View>
-      )}
+      {/* Safe Area Spacer — skipped when inside ModuleScreenLayout */}
+      {!skipSafeArea && <View style={{ height: insets.top }} />}
 
       {/* Title Row — switches between normal mode and form mode */}
       {formMode ? (
@@ -364,11 +359,6 @@ const styles = StyleSheet.create({
     minHeight: touchTargets.minimum,   // 60pt
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  adMobRow: {
-    paddingHorizontal: spacing.sm,
-    paddingTop: 0,                     // Geen extra afstand boven AdMob
-    paddingBottom: 0,                  // Geen extra afstand onder AdMob
   },
   separator: {
     height: 1,

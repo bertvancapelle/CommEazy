@@ -31,7 +31,7 @@ import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
-import { ModuleHeader, ErrorView } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, ErrorView } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
   colors,
@@ -396,70 +396,75 @@ export function CameraScreen() {
         />
       )}
 
-      <ModuleHeader
-        moduleId="camera"
-        icon="camera"
-        title={t('navigation.camera', 'Camera')}
+      <ModuleScreenLayout
         showAdMob={false}
+        moduleBlock={
+          <ModuleHeader
+            moduleId="camera"
+            icon="camera"
+            title={t('navigation.camera', 'Camera')}
+            skipSafeArea
+          />
+        }
+        controlsBlock={
+          <View style={styles.controlsContainer}>
+            {/* Control row */}
+            <View style={styles.controlRow}>
+              {/* Album thumbnail / last photo */}
+              <HapticTouchable hapticDisabled
+                style={styles.albumButton}
+                onPress={handleOpenLastPhoto}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.camera.viewAlbum', 'View photo album')}
+              >
+                {lastPhotoThumbnail || lastPhotoUri ? (
+                  <Image
+                    source={{ uri: lastPhotoThumbnail || lastPhotoUri || undefined }}
+                    style={styles.albumThumbnail}
+                  />
+                ) : (
+                  <Icon name="image" size={28} color={colors.textSecondary} />
+                )}
+              </HapticTouchable>
+
+              {/* Photo capture button */}
+              <HapticTouchable hapticDisabled
+                style={[styles.captureButton, { borderColor: moduleColor }]}
+                onPress={handleCapturePhoto}
+                disabled={isCapturing || !cameraReady}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.camera.takePhoto', 'Take photo')}
+              >
+                {isCapturing ? (
+                  <ActivityIndicator size="large" color={moduleColor} />
+                ) : (
+                  <View style={[styles.captureInner, { backgroundColor: moduleColor }]} />
+                )}
+              </HapticTouchable>
+
+              {/* Switch camera */}
+              <HapticTouchable hapticDisabled
+                style={styles.switchButton}
+                onPress={handleSwitchCamera}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.camera.switchCamera', 'Switch camera')}
+              >
+                <Icon name="camera-reverse" size={28} color={colors.textPrimary} />
+              </HapticTouchable>
+            </View>
+
+            {/* Capture hint */}
+            <Text style={styles.captureHint}>
+              {t('modules.camera.captureHint', 'Tap to take a photo')}
+            </Text>
+          </View>
+        }
+        contentBlock={
+          <View style={styles.cameraContainer}>
+            {renderCameraView()}
+          </View>
+        }
       />
-
-      {/* Camera Preview */}
-      <View style={styles.cameraContainer}>
-        {renderCameraView()}
-      </View>
-
-      {/* Camera Controls (normal mode only — full-screen has overlay controls) */}
-      <View style={styles.controlsContainer}>
-        {/* Control row */}
-        <View style={styles.controlRow}>
-          {/* Album thumbnail / last photo */}
-          <HapticTouchable hapticDisabled
-            style={styles.albumButton}
-            onPress={handleOpenLastPhoto}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.camera.viewAlbum', 'View photo album')}
-          >
-            {lastPhotoThumbnail || lastPhotoUri ? (
-              <Image
-                source={{ uri: lastPhotoThumbnail || lastPhotoUri || undefined }}
-                style={styles.albumThumbnail}
-              />
-            ) : (
-              <Icon name="image" size={28} color={colors.textSecondary} />
-            )}
-          </HapticTouchable>
-
-          {/* Photo capture button */}
-          <HapticTouchable hapticDisabled
-            style={[styles.captureButton, { borderColor: moduleColor }]}
-            onPress={handleCapturePhoto}
-            disabled={isCapturing || !cameraReady}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.camera.takePhoto', 'Take photo')}
-          >
-            {isCapturing ? (
-              <ActivityIndicator size="large" color={moduleColor} />
-            ) : (
-              <View style={[styles.captureInner, { backgroundColor: moduleColor }]} />
-            )}
-          </HapticTouchable>
-
-          {/* Switch camera */}
-          <HapticTouchable hapticDisabled
-            style={styles.switchButton}
-            onPress={handleSwitchCamera}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.camera.switchCamera', 'Switch camera')}
-          >
-            <Icon name="camera-reverse" size={28} color={colors.textPrimary} />
-          </HapticTouchable>
-        </View>
-
-        {/* Capture hint */}
-        <Text style={styles.captureHint}>
-          {t('modules.camera.captureHint', 'Tap to take a photo')}
-        </Text>
-      </View>
     </SafeAreaView>
   );
 }

@@ -44,6 +44,7 @@ import { Icon,
   UnifiedMiniPlayer,
   UnifiedFullPlayer,
   ModuleHeader,
+  ModuleScreenLayout,
   SearchBar,
   LoadingView,
   ErrorView,
@@ -2277,25 +2278,31 @@ export function AppleMusicScreen() {
         />
       )}
 
-      <ModuleHeader
-        moduleId="appleMusic"
-        icon="appleMusic"
-        title={t('modules.appleMusic.title')}
-        currentSource="appleMusic"
-        showAdMob={true}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId="appleMusic"
+            icon="appleMusic"
+            title={t('modules.appleMusic.title')}
+            currentSource="appleMusic"
+            skipSafeArea
+          />
+        }
+        controlsBlock={<></>}
+        contentBlock={
+          <View style={styles.content}>
+            {/* Android: Show app detection UI */}
+            {isAndroid && (
+              authStatus === 'app_installed'
+                ? renderAndroidInstalled()
+                : renderAndroidNotInstalled()
+            )}
+
+            {/* iOS: Show full functionality */}
+            {!isAndroid && renderIOSContent()}
+          </View>
+        }
       />
-
-      <View style={styles.content}>
-        {/* Android: Show app detection UI */}
-        {isAndroid && (
-          authStatus === 'app_installed'
-            ? renderAndroidInstalled()
-            : renderAndroidNotInstalled()
-        )}
-
-        {/* iOS: Show full functionality */}
-        {!isAndroid && renderIOSContent()}
-      </View>
 
       {/* Mini Player (iOS <26 / Android fallback)
           On iOS 26+, the native GlassPlayerWindow handles this */}

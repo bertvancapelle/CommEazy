@@ -395,7 +395,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Audio module toevoegen/wijzigen** | **Zie Module Dependency Matrix hieronder** — MediaIndicator, GlassPlayer, contexts |
 | **Playback feature wijzigen** | **Zie Module Dependency Matrix hieronder** — 100% Feature Parity vereist |
 | **Shared component props wijzigen** | **VERPLICHT** — ALLE gebruikers van component MOETEN worden bijgewerkt, zie "Component Props Uniformiteit" |
-| **Nieuw screen toevoegen** | **BLOKKEERDER** — Screen MOET route hebben in `navigation/index.tsx`, zie "Navigation Route Completeness" |
+| **Nieuw screen toevoegen** | **BLOKKEERDER** — Screen MOET route hebben in `navigation/index.tsx`, zie "Navigation Route Completeness". Screen MOET `ModuleScreenLayout` gebruiken, zie Component Registry sectie "ModuleScreenLayout" |
 | **Nieuwe theme kleur toevoegen** | **BLOKKEERDER** — Kleur MOET bestaan in BEIDE `colors.ts` EN `darkColors.ts`, zie "Theme Color Consistency" |
 | **Type export toevoegen** | **VERPLICHT** — Type MOET geëxporteerd worden in relevante `index.ts` bestanden, zie "Type Export Consistency" |
 | **Nieuwe button/knop toevoegen** | **ui-designer, ios-specialist** — Button Standaardisatie (ui-designer SKILL.md sectie 15) MOET worden gevolgd: 60pt, 12pt cornerRadius, rgba background, border support |
@@ -2907,6 +2907,73 @@ Deze registry documenteert welke **standaard componenten** verplicht zijn voor s
 | **SettingsMainScreen** | ✅ | `false` | - |
 
 **Uitgezonderd:** `BookReaderScreen` heeft een eigen thema-systeem (light/sepia/dark) en daarom een aangepaste header.
+
+### ModuleScreenLayout (VERPLICHT voor ALLE module screens)
+
+**Verplichte component:** `ModuleScreenLayout`
+
+ALLE module screens MOETEN `ModuleScreenLayout` gebruiken om de "Schermindeling" instelling (Instellingen → Weergave & Kleuren) te respecteren. Dit component rendert 3 blocks in user-configureerbare volgorde via `ModuleLayoutContext`.
+
+**Props:**
+```typescript
+interface ModuleScreenLayoutProps {
+  headerPadding: number;      // Altijd 0 voor lineaire headers
+  controlsBlock: ReactNode;   // Knoppen, tabs, filters, zoekbalk
+  contentBlock: ReactNode;    // ScrollViews, lijsten, modals, content
+}
+```
+
+**Patroon:**
+```typescript
+<View style={styles.container}>
+  <ModuleHeader moduleId="..." icon="..." title={t('...')} />
+
+  <ModuleScreenLayout
+    headerPadding={0}
+    controlsBlock={
+      <View style={styles.tabBar}>
+        {/* Tabs, filters, actieknoppen */}
+      </View>
+    }
+    contentBlock={
+      <ScrollViewWithIndicator style={{ flex: 1 }}>
+        {/* Inhoud */}
+      </ScrollViewWithIndicator>
+    }
+  />
+</View>
+```
+
+**Regels:**
+- `ModuleHeader` staat ALTIJD BUITEN `ModuleScreenLayout`
+- `headerPadding={0}` voor alle lineaire (niet-overlay) headers
+- Lege controlsBlock: `controlsBlock={<></>}`
+- Meerdere elementen in een block: gebruik `<>...</>` fragments
+- Modals gaan in `contentBlock` (renderen als portals ongeacht positie)
+- Form screens (formMode): `controlsBlock={<></>}`, alles in contentBlock
+
+**Adoptie status (100%):**
+
+| Screen | ModuleScreenLayout | controlsBlock bevat |
+|--------|-------------------|---------------------|
+| RadioScreen | ✅ | Tabs, ChipSelector, SearchBar |
+| PodcastScreen | ✅ | Tabs, ChipSelector, SearchBar |
+| BooksScreen | ✅ | Tabs, SearchBar |
+| CallsScreen | ✅ | Sorteerknop |
+| AskAIScreen | ✅ | Actieknoppen (history, new) |
+| NuNlScreen | ✅ | Categorie-tabs |
+| ChatListScreen | ✅ | SearchBar |
+| AgendaScreen | ✅ | Actieknoppen, datum-nav |
+| ContactListScreen | ✅ | ChipBar, SearchBar, filters |
+| PhotoAlbumScreen | ✅ | Album header, tabs, selectie |
+| WeatherScreen | ✅ | Tab bar (weer/radar) |
+| AppleMusicScreen | ✅ | Leeg (tabs in renderIOSContent) |
+| CameraScreen | ✅ | Camera controls |
+| EBookScreen | ✅ | Leeg (placeholder) |
+| AudioBookScreen | ✅ | Leeg (placeholder) |
+| GamePlaceholderScreen | ✅ | Leeg (placeholder) |
+| AgendaItemFormScreen | ✅ | Leeg (form) |
+| ManualAddContactScreen | ✅ | Leeg (form) |
 
 ### Audio Player Screens
 

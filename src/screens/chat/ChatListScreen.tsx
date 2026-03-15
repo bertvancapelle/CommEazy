@@ -27,7 +27,7 @@ import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/n
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Button, ContactAvatar, LoadingView, VoiceFocusable, Icon, ModuleHeader } from '@/components';
+import { Button, ContactAvatar, LoadingView, VoiceFocusable, Icon, ModuleHeader, ModuleScreenLayout } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
@@ -491,50 +491,58 @@ export function ChatListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Module Header — standardized component */}
-      <ModuleHeader
-        moduleId="chats"
-        icon="chat"
-        title={t('tabs.chats')}
-        showAdMob={true}
-      />
-
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={chats.length === 0 ? styles.emptyListContent : undefined}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => void onRefresh()}
-            tintColor={themeColors.primary}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId="chats"
+            icon="chat"
+            title={t('tabs.chats')}
+            skipSafeArea
           />
         }
-        showsVerticalScrollIndicator={false}
-        accessibilityLabel={t('accessibility.unreadMessages', { count: chats.length })}
-      >
-        {chats.length === 0 ? (
-          renderEmptyList()
-        ) : (
-          chats.map((item, index) => (
-            <View key={keyExtractor(item)}>
-              {renderChatItem({ item, index })}
-            </View>
-          ))
-        )}
-      </ScrollView>
+        controlsBlock={<></>}
+        contentBlock={
+          <>
+            <ScrollView
+              ref={scrollRef}
+              style={styles.contentFlex}
+              contentContainerStyle={chats.length === 0 ? styles.emptyListContent : undefined}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={() => void onRefresh()}
+                  tintColor={themeColors.primary}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              accessibilityLabel={t('accessibility.unreadMessages', { count: chats.length })}
+            >
+              {chats.length === 0 ? (
+                renderEmptyList()
+              ) : (
+                chats.map((item, index) => (
+                  <View key={keyExtractor(item)}>
+                    {renderChatItem({ item, index })}
+                  </View>
+                ))
+              )}
+            </ScrollView>
 
-      {/* Floating action button for new chat */}
-      {chats.length > 0 && (
-        <HapticTouchable hapticDisabled
-          style={[styles.fab, { backgroundColor: themeColors.primary }]}
-          onPress={handleNewChat}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('chat.newChat')}
-        >
-          <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-        </HapticTouchable>
-      )}
+            {/* Floating action button for new chat */}
+            {chats.length > 0 && (
+              <HapticTouchable hapticDisabled
+                style={[styles.fab, { backgroundColor: themeColors.primary }]}
+                onPress={handleNewChat}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t('chat.newChat')}
+              >
+                <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
+              </HapticTouchable>
+            )}
+          </>
+        }
+      />
 
     </View>
   );
@@ -544,6 +552,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  contentFlex: {
+    flex: 1,
   },
   chatItem: {
     flexDirection: 'row',

@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView, ScrollViewWithIndicator } from '@/components';
+import { Icon, ModuleHeader, ModuleScreenLayout, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView, ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -1086,316 +1086,322 @@ export function WeatherScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Module Header */}
-      <ModuleHeader
-        moduleId={MODULE_ID}
-        icon="weather-partly-cloudy"
-        title={t('modules.weather.title')}
-        showAdMob
-      />
-
-      {/* Tab Bar: Weer | Radar */}
-      <View style={styles.tabBar}>
-        <TabButton
-          label={t('modules.weather.tabs.weather')}
-          isActive={activeTab === 'weather'}
-          onPress={() => handleTabChange('weather')}
-          icon="weather-partly-cloudy"
-          accentColor={accentColor.primary}
-        />
-        <TabButton
-          label={t('modules.weather.tabs.radar')}
-          isActive={activeTab === 'radar'}
-          onPress={() => handleTabChange('radar')}
-          icon="radar"
-          accentColor={accentColor.primary}
-        />
-      </View>
-
-      {/* WEATHER TAB CONTENT */}
-      {activeTab === 'weather' && (
-        <>
-          {/* Location Bar with Search Toggle */}
-          <View style={styles.locationBar}>
-            <HapticTouchable hapticDisabled
-              style={styles.locationBarContent}
-              onPress={handleOpenLocationPicker}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.weather.tapToChangeLocation')}
-            >
-              <Icon name="map-marker" size={24} color={accentColor.primary} />
-              <Text style={styles.currentLocationName} numberOfLines={1}>
-                {weather?.location.name ?? t('modules.weather.noLocation')}
-              </Text>
-              <Icon name="chevron-down" size={20} color={colors.textSecondary} />
-            </HapticTouchable>
-            <HapticTouchable hapticDisabled
-              style={[
-                styles.searchToggleButton,
-                { borderColor: accentColor.primary },
-                showSearchMode && [styles.searchToggleButtonActive, { backgroundColor: accentColor.primary }],
-              ]}
-              onPress={toggleSearchMode}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.weather.searchLocation')}
-            >
-              <Icon
-                name={showSearchMode ? 'close' : 'magnify'}
-                size={24}
-                color={showSearchMode ? colors.textOnPrimary : accentColor.primary}
-              />
-            </HapticTouchable>
-          </View>
-
-          {/* Search Section (when search mode active) */}
-          {showSearchMode && (
-            <View style={styles.searchSection}>
-              <SearchBar
-                value={searchQuery}
-                onChangeText={handleSearchQueryChange}
-                onSubmit={handleSearch}
-                placeholder={t('modules.weather.searchPlaceholder')}
-                searchButtonLabel={t('modules.weather.searchButton')}
-                maxLength={50}
-              />
-              {isSearching && (
-                <ActivityIndicator size="small" color={accentColor.primary} style={styles.searchSpinner} />
-              )}
-            </View>
-          )}
-
-          {/* Search Results (when in search mode) */}
-          {showSearchMode && (
-            <ScrollViewWithIndicator style={styles.searchResults}>
-              {searchResults.map((result) => {
-                const isFavorite = savedLocations.some((loc) => loc.id === result.id);
-                return (
-                  <SearchResultItem
-                    key={result.id}
-                    location={result}
-                    onPress={() => handleLocationSelect(result)}
-                    isFavorite={isFavorite}
-                    onToggleFavorite={() => {
-                      if (isFavorite) {
-                        void removeLocation(result.id);
-                      } else {
-                        void saveLocation(result);
-                      }
-                    }}
-                    accentColor={accentColor.primary}
-                  />
-                );
-              })}
-
-              {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-                <Text style={styles.noResultsText}>{t('modules.weather.noResults')}</Text>
-              )}
-
-              {searchQuery.length < 2 && searchResults.length === 0 && (
-                <Text style={styles.searchHintText}>{t('modules.weather.searchHint')}</Text>
-              )}
-            </ScrollViewWithIndicator>
-          )}
-
-          {/* Error Banner */}
-          {error && !isLoading && !showSearchMode && (
-            <ErrorView
-              message={errorMessage}
-              onRetry={handleRefresh}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId={MODULE_ID}
+            icon="weather-partly-cloudy"
+            title={t('modules.weather.title')}
+            skipSafeArea
+          />
+        }
+        controlsBlock={
+          <View style={styles.tabBar}>
+            <TabButton
+              label={t('modules.weather.tabs.weather')}
+              isActive={activeTab === 'weather'}
+              onPress={() => handleTabChange('weather')}
+              icon="weather-partly-cloudy"
+              accentColor={accentColor.primary}
             />
-          )}
-
-          {/* Loading State */}
-          {isLoading && !weather && !showSearchMode && (
-            <LoadingView message={t('modules.weather.loading')} fullscreen />
-          )}
-
-          {/* Empty State - No location selected */}
-          {!isLoading && !weather && !error && !showSearchMode && (
-            <View style={styles.emptyContainer}>
-              <Icon name="weather-partly-cloudy" size={64} color={colors.textSecondary} />
-              <Text style={styles.emptyTitle}>{t('modules.weather.noLocation')}</Text>
-              <Text style={styles.emptyHint}>{t('modules.weather.noLocationHint')}</Text>
-              <HapticTouchable hapticDisabled
-                style={[styles.emptyButton, { backgroundColor: accentColor.primary }]}
-                onPress={toggleSearchMode}
-              >
-                <Icon name="magnify" size={24} color={colors.textOnPrimary} />
-                <Text style={styles.emptyButtonText}>{t('modules.weather.searchLocation')}</Text>
-              </HapticTouchable>
-            </View>
-          )}
-
-          {/* Weather Content (when not in search mode and weather data available) */}
-          {!showSearchMode && weather && (
-            <ScrollViewWithIndicator
-              ref={scrollRef}
-              style={styles.content}
-              contentContainerStyle={[
-                styles.contentContainer,
-                { paddingBottom: insets.bottom + spacing.lg },
-              ]}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  tintColor={accentColor.primary}
-                  colors={[accentColor.primary]}
-                />
-              }
-            >
-              {/* Current Weather Card */}
-              <VoiceFocusable
-                id="current-weather"
-                label={t('modules.weather.currentWeather')}
-                index={0}
-                onSelect={() => handleTtsPress('current')}
-              >
-                <View style={styles.currentWeatherCard}>
-                  {/* Main weather display: icon + temp + TTS button centered on one row */}
-                  <View style={styles.currentWeatherMain}>
+            <TabButton
+              label={t('modules.weather.tabs.radar')}
+              isActive={activeTab === 'radar'}
+              onPress={() => handleTabChange('radar')}
+              icon="radar"
+              accentColor={accentColor.primary}
+            />
+          </View>
+        }
+        contentBlock={
+          <>
+            {/* WEATHER TAB CONTENT */}
+            {activeTab === 'weather' && (
+              <>
+                {/* Location Bar with Search Toggle */}
+                <View style={styles.locationBar}>
+                  <HapticTouchable hapticDisabled
+                    style={styles.locationBarContent}
+                    onPress={handleOpenLocationPicker}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.weather.tapToChangeLocation')}
+                  >
+                    <Icon name="map-marker" size={24} color={accentColor.primary} />
+                    <Text style={styles.currentLocationName} numberOfLines={1}>
+                      {weather?.location.name ?? t('modules.weather.noLocation')}
+                    </Text>
+                    <Icon name="chevron-down" size={20} color={colors.textSecondary} />
+                  </HapticTouchable>
+                  <HapticTouchable hapticDisabled
+                    style={[
+                      styles.searchToggleButton,
+                      { borderColor: accentColor.primary },
+                      showSearchMode && [styles.searchToggleButtonActive, { backgroundColor: accentColor.primary }],
+                    ]}
+                    onPress={toggleSearchMode}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.weather.searchLocation')}
+                  >
                     <Icon
-                      name={weatherService.getWeatherIcon(weather.current.weatherCode, weather.current.isDay)}
-                      size={80}
-                      color={accentColor.primary}
+                      name={showSearchMode ? 'close' : 'magnify'}
+                      size={24}
+                      color={showSearchMode ? colors.textOnPrimary : accentColor.primary}
                     />
-                    <View style={styles.currentWeatherTemp}>
-                      <Text style={styles.temperature}>
-                        {Math.round(weather.current.temperature)}°
-                      </Text>
-                      <Text style={styles.feelsLike}>
-                        {t('modules.weather.feelsLike')} {Math.round(weather.current.feelsLike)}°
-                      </Text>
-                    </View>
-                    <TTSButton
-                      isPlaying={isTtsPlaying}
-                      isActive={isTtsPlaying && ttsSection === 'current'}
-                      onPress={() => handleTtsPress('current')}
-                      label={t('modules.weather.readCurrentWeather')}
-                      compact
-                      accentColor={accentColor.primary}
-                    />
-                  </View>
-
-                  <Text style={styles.condition}>
-                    {weatherService.getWeatherDescription(weather.current.weatherCode, i18n.language)}
-                  </Text>
-
-                  <View style={styles.weatherDetails}>
-                    {/* Precipitation - mm and % */}
-                    <View style={styles.weatherDetail}>
-                      <Icon name="weather-rainy" size={20} color={colors.textSecondary} />
-                      <Text style={styles.weatherDetailText}>
-                        {weather.rain.precipitationMm !== undefined
-                          ? `${weather.rain.precipitationMm.toFixed(1)} mm`
-                          : '0.0 mm'}
-                        {weather.rain.precipitationProbability !== undefined &&
-                          ` · ${weather.rain.precipitationProbability}%`}
-                      </Text>
-                    </View>
-                    {/* Humidity */}
-                    <View style={styles.weatherDetail}>
-                      <Icon name="water-percent" size={20} color={colors.textSecondary} />
-                      <Text style={styles.weatherDetailText}>
-                        {weather.current.humidity}%
-                      </Text>
-                    </View>
-                    {/* Wind speed - locale-based units (en → mph, others → km/h) */}
-                    <View style={styles.weatherDetail}>
-                      <Icon name="weather-windy" size={20} color={colors.textSecondary} />
-                      <Text style={styles.weatherDetailText}>
-                        {i18n.language === 'en' || i18n.language === 'en-GB'
-                          ? `${Math.round(weather.current.windSpeed * 0.621371)} mph`
-                          : `${Math.round(weather.current.windSpeed)} km/h`}
-                      </Text>
-                    </View>
-                  </View>
+                  </HapticTouchable>
                 </View>
-              </VoiceFocusable>
 
-              {/* 7-Day Forecast Card */}
-              <VoiceFocusable
-                id="forecast"
-                label={t('modules.weather.forecast')}
-                index={1}
-                onSelect={() => handleTtsPress('forecast')}
-              >
-                <View style={styles.forecastCard}>
-                  {/* Title centered, then TTS button centered below */}
-                  <Text style={styles.forecastTitle}>{t('modules.weather.forecast')}</Text>
-                  <View style={styles.forecastTtsRow}>
-                    <TTSButton
-                      isPlaying={isTtsPlaying}
-                      isActive={isTtsPlaying && ttsSection === 'forecast'}
-                      onPress={() => handleTtsPress('forecast')}
-                      label={t('modules.weather.readForecast')}
-                      compact
-                      accentColor={accentColor.primary}
+                {/* Search Section (when search mode active) */}
+                {showSearchMode && (
+                  <View style={styles.searchSection}>
+                    <SearchBar
+                      value={searchQuery}
+                      onChangeText={handleSearchQueryChange}
+                      onSubmit={handleSearch}
+                      placeholder={t('modules.weather.searchPlaceholder')}
+                      searchButtonLabel={t('modules.weather.searchButton')}
+                      maxLength={50}
                     />
+                    {isSearching && (
+                      <ActivityIndicator size="small" color={accentColor.primary} style={styles.searchSpinner} />
+                    )}
                   </View>
+                )}
 
-                  <View style={styles.forecastList}>
-                    {weather.daily.map((day, index) => (
-                      <ForecastDay
-                        key={index}
-                        day={day}
-                        index={index}
-                        onPress={() => {
-                          void triggerFeedback('tap');
-                          setSelectedDayIndex(index);
-                        }}
-                        accentColor={accentColor.primary}
+                {/* Search Results (when in search mode) */}
+                {showSearchMode && (
+                  <ScrollViewWithIndicator style={styles.searchResults}>
+                    {searchResults.map((result) => {
+                      const isFavorite = savedLocations.some((loc) => loc.id === result.id);
+                      return (
+                        <SearchResultItem
+                          key={result.id}
+                          location={result}
+                          onPress={() => handleLocationSelect(result)}
+                          isFavorite={isFavorite}
+                          onToggleFavorite={() => {
+                            if (isFavorite) {
+                              void removeLocation(result.id);
+                            } else {
+                              void saveLocation(result);
+                            }
+                          }}
+                          accentColor={accentColor.primary}
+                        />
+                      );
+                    })}
+
+                    {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+                      <Text style={styles.noResultsText}>{t('modules.weather.noResults')}</Text>
+                    )}
+
+                    {searchQuery.length < 2 && searchResults.length === 0 && (
+                      <Text style={styles.searchHintText}>{t('modules.weather.searchHint')}</Text>
+                    )}
+                  </ScrollViewWithIndicator>
+                )}
+
+                {/* Error Banner */}
+                {error && !isLoading && !showSearchMode && (
+                  <ErrorView
+                    message={errorMessage}
+                    onRetry={handleRefresh}
+                  />
+                )}
+
+                {/* Loading State */}
+                {isLoading && !weather && !showSearchMode && (
+                  <LoadingView message={t('modules.weather.loading')} fullscreen />
+                )}
+
+                {/* Empty State - No location selected */}
+                {!isLoading && !weather && !error && !showSearchMode && (
+                  <View style={styles.emptyContainer}>
+                    <Icon name="weather-partly-cloudy" size={64} color={colors.textSecondary} />
+                    <Text style={styles.emptyTitle}>{t('modules.weather.noLocation')}</Text>
+                    <Text style={styles.emptyHint}>{t('modules.weather.noLocationHint')}</Text>
+                    <HapticTouchable hapticDisabled
+                      style={[styles.emptyButton, { backgroundColor: accentColor.primary }]}
+                      onPress={toggleSearchMode}
+                    >
+                      <Icon name="magnify" size={24} color={colors.textOnPrimary} />
+                      <Text style={styles.emptyButtonText}>{t('modules.weather.searchLocation')}</Text>
+                    </HapticTouchable>
+                  </View>
+                )}
+
+                {/* Weather Content (when not in search mode and weather data available) */}
+                {!showSearchMode && weather && (
+                  <ScrollViewWithIndicator
+                    ref={scrollRef}
+                    style={styles.content}
+                    contentContainerStyle={[
+                      styles.contentContainer,
+                      { paddingBottom: insets.bottom + spacing.lg },
+                    ]}
+                    refreshControl={
+                      <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={accentColor.primary}
+                        colors={[accentColor.primary]}
                       />
-                    ))}
-                  </View>
-                </View>
-              </VoiceFocusable>
-            </ScrollViewWithIndicator>
-          )}
-        </>
-      )}
+                    }
+                  >
+                    {/* Current Weather Card */}
+                    <VoiceFocusable
+                      id="current-weather"
+                      label={t('modules.weather.currentWeather')}
+                      index={0}
+                      onSelect={() => handleTtsPress('current')}
+                    >
+                      <View style={styles.currentWeatherCard}>
+                        {/* Main weather display: icon + temp + TTS button centered on one row */}
+                        <View style={styles.currentWeatherMain}>
+                          <Icon
+                            name={weatherService.getWeatherIcon(weather.current.weatherCode, weather.current.isDay)}
+                            size={80}
+                            color={accentColor.primary}
+                          />
+                          <View style={styles.currentWeatherTemp}>
+                            <Text style={styles.temperature}>
+                              {Math.round(weather.current.temperature)}°
+                            </Text>
+                            <Text style={styles.feelsLike}>
+                              {t('modules.weather.feelsLike')} {Math.round(weather.current.feelsLike)}°
+                            </Text>
+                          </View>
+                          <TTSButton
+                            isPlaying={isTtsPlaying}
+                            isActive={isTtsPlaying && ttsSection === 'current'}
+                            onPress={() => handleTtsPress('current')}
+                            label={t('modules.weather.readCurrentWeather')}
+                            compact
+                            accentColor={accentColor.primary}
+                          />
+                        </View>
 
-      {/* RADAR TAB CONTENT */}
-      {activeTab === 'radar' && (
-        <RadarTab
-          latitude={weather?.location.latitude ?? null}
-          longitude={weather?.location.longitude ?? null}
-          locationName={weather?.location.name ?? null}
-          accentColor={accentColor.primary}
-        />
-      )}
+                        <Text style={styles.condition}>
+                          {weatherService.getWeatherDescription(weather.current.weatherCode, i18n.language)}
+                        </Text>
 
-      {/* Day Detail Modal */}
-      <DayDetailModal
-        visible={selectedDayIndex !== null}
-        day={selectedDayIndex !== null && weather ? weather.daily[selectedDayIndex] : null}
-        dayIndex={selectedDayIndex ?? 0}
-        onClose={() => setSelectedDayIndex(null)}
-        accentColor={accentColor.primary}
-      />
+                        <View style={styles.weatherDetails}>
+                          {/* Precipitation - mm and % */}
+                          <View style={styles.weatherDetail}>
+                            <Icon name="weather-rainy" size={20} color={colors.textSecondary} />
+                            <Text style={styles.weatherDetailText}>
+                              {weather.rain.precipitationMm !== undefined
+                                ? `${weather.rain.precipitationMm.toFixed(1)} mm`
+                                : '0.0 mm'}
+                              {weather.rain.precipitationProbability !== undefined &&
+                                ` · ${weather.rain.precipitationProbability}%`}
+                            </Text>
+                          </View>
+                          {/* Humidity */}
+                          <View style={styles.weatherDetail}>
+                            <Icon name="water-percent" size={20} color={colors.textSecondary} />
+                            <Text style={styles.weatherDetailText}>
+                              {weather.current.humidity}%
+                            </Text>
+                          </View>
+                          {/* Wind speed - locale-based units (en → mph, others → km/h) */}
+                          <View style={styles.weatherDetail}>
+                            <Icon name="weather-windy" size={20} color={colors.textSecondary} />
+                            <Text style={styles.weatherDetailText}>
+                              {i18n.language === 'en' || i18n.language === 'en-GB'
+                                ? `${Math.round(weather.current.windSpeed * 0.621371)} mph`
+                                : `${Math.round(weather.current.windSpeed)} km/h`}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </VoiceFocusable>
 
-      {/* Location Picker Modal */}
-      <LocationPickerModal
-        visible={showLocationPicker}
-        locations={savedLocations}
-        currentLocationId={weather?.location.id ?? null}
-        onSelect={handleLocationPickerSelect}
-        onClose={() => setShowLocationPicker(false)}
-        onRemove={handleLocationPickerRemove}
-        onRequestGps={handleGpsRequest}
-        isLoadingGps={isLoadingGps}
-        gpsError={gpsError}
-        gpsLocationId={gpsLocation?.id ?? null}
-        accentColor={accentColor.primary}
-      />
+                    {/* 7-Day Forecast Card */}
+                    <VoiceFocusable
+                      id="forecast"
+                      label={t('modules.weather.forecast')}
+                      index={1}
+                      onSelect={() => handleTtsPress('forecast')}
+                    >
+                      <View style={styles.forecastCard}>
+                        {/* Title centered, then TTS button centered below */}
+                        <Text style={styles.forecastTitle}>{t('modules.weather.forecast')}</Text>
+                        <View style={styles.forecastTtsRow}>
+                          <TTSButton
+                            isPlaying={isTtsPlaying}
+                            isActive={isTtsPlaying && ttsSection === 'forecast'}
+                            onPress={() => handleTtsPress('forecast')}
+                            label={t('modules.weather.readForecast')}
+                            compact
+                            accentColor={accentColor.primary}
+                          />
+                        </View>
 
-      {/* Welcome Modal */}
-      <WelcomeModal
-        visible={showWelcome}
-        onDismiss={handleWelcomeDismiss}
-        accentColor={accentColor.primary}
+                        <View style={styles.forecastList}>
+                          {weather.daily.map((day, index) => (
+                            <ForecastDay
+                              key={index}
+                              day={day}
+                              index={index}
+                              onPress={() => {
+                                void triggerFeedback('tap');
+                                setSelectedDayIndex(index);
+                              }}
+                              accentColor={accentColor.primary}
+                            />
+                          ))}
+                        </View>
+                      </View>
+                    </VoiceFocusable>
+                  </ScrollViewWithIndicator>
+                )}
+              </>
+            )}
+
+            {/* RADAR TAB CONTENT */}
+            {activeTab === 'radar' && (
+              <RadarTab
+                latitude={weather?.location.latitude ?? null}
+                longitude={weather?.location.longitude ?? null}
+                locationName={weather?.location.name ?? null}
+                accentColor={accentColor.primary}
+              />
+            )}
+
+            {/* Day Detail Modal */}
+            <DayDetailModal
+              visible={selectedDayIndex !== null}
+              day={selectedDayIndex !== null && weather ? weather.daily[selectedDayIndex] : null}
+              dayIndex={selectedDayIndex ?? 0}
+              onClose={() => setSelectedDayIndex(null)}
+              accentColor={accentColor.primary}
+            />
+
+            {/* Location Picker Modal */}
+            <LocationPickerModal
+              visible={showLocationPicker}
+              locations={savedLocations}
+              currentLocationId={weather?.location.id ?? null}
+              onSelect={handleLocationPickerSelect}
+              onClose={() => setShowLocationPicker(false)}
+              onRemove={handleLocationPickerRemove}
+              onRequestGps={handleGpsRequest}
+              isLoadingGps={isLoadingGps}
+              gpsError={gpsError}
+              gpsLocationId={gpsLocation?.id ?? null}
+              accentColor={accentColor.primary}
+            />
+
+            {/* Welcome Modal */}
+            <WelcomeModal
+              visible={showWelcome}
+              onDismiss={handleWelcomeDismiss}
+              accentColor={accentColor.primary}
+            />
+          </>
+        }
       />
     </View>
   );

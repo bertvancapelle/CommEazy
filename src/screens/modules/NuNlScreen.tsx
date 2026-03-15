@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView , ScrollViewWithIndicator } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, ModuleScreenLayout, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView , ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -394,86 +394,95 @@ export function NuNlScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Module Header */}
-      <ModuleHeader
-        moduleId={MODULE_ID}
-        icon="news"
-        title={t('modules.nunl.title')}
-        showAdMob
-        customLogo={<NunlLogo size={32} />}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId={MODULE_ID}
+            icon="news"
+            title={t('modules.nunl.title')}
+            customLogo={<NunlLogo size={32} />}
+            skipSafeArea
+          />
+        }
+        controlsBlock={
+          <>
+            {/* Category Chips */}
+            <View style={[styles.categoryContainer, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryScroll}
+              >
+                {categories.map((category) => (
+                  <CategoryChip
+                    key={category.id}
+                    category={category}
+                    isSelected={selectedCategory === category.id}
+                    onPress={() => handleCategoryChange(category.id)}
+                    themeColors={themeColors}
+                    moduleColor={nunlModuleColor}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Error Banner */}
+            {error && !isLoading && (
+              <ErrorView
+                message={errorMessage}
+                onRetry={handleRefresh}
+              />
+            )}
+          </>
+        }
+        contentBlock={
+          <>
+            {/* Loading State */}
+            {isLoading && articles.length === 0 && (
+              <LoadingView message={t('modules.nunl.loading')} fullscreen />
+            )}
+
+            {/* Empty State */}
+            {!isLoading && articles.length === 0 && !error && (
+              <View style={styles.emptyContainer}>
+                <Icon name="news" size={64} color={themeColors.textSecondary} />
+                <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('modules.nunl.noArticles')}</Text>
+                <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>{t('modules.nunl.noArticlesHint')}</Text>
+              </View>
+            )}
+
+            {/* Article List */}
+            {articles.length > 0 && (
+              <ScrollViewWithIndicator
+                ref={scrollRef}
+                style={styles.articleList}
+                contentContainerStyle={[
+                  styles.articleListContent,
+                  { paddingBottom: insets.bottom + spacing.lg },
+                ]}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isLoading}
+                    onRefresh={handleRefresh}
+                    tintColor={nunlModuleColor}
+                    colors={[nunlModuleColor]}
+                  />
+                }
+              >
+                {articles.map((article, index) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    index={index}
+                    onPress={() => handleArticlePress(article)}
+                    themeColors={themeColors}
+                  />
+                ))}
+              </ScrollViewWithIndicator>
+            )}
+          </>
+        }
       />
-
-      {/* Category Chips */}
-      <View style={[styles.categoryContainer, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryScroll}
-        >
-          {categories.map((category) => (
-            <CategoryChip
-              key={category.id}
-              category={category}
-              isSelected={selectedCategory === category.id}
-              onPress={() => handleCategoryChange(category.id)}
-              themeColors={themeColors}
-              moduleColor={nunlModuleColor}
-            />
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Error Banner */}
-      {error && !isLoading && (
-        <ErrorView
-          message={errorMessage}
-          onRetry={handleRefresh}
-        />
-      )}
-
-      {/* Loading State */}
-      {isLoading && articles.length === 0 && (
-        <LoadingView message={t('modules.nunl.loading')} fullscreen />
-      )}
-
-      {/* Empty State */}
-      {!isLoading && articles.length === 0 && !error && (
-        <View style={styles.emptyContainer}>
-          <Icon name="news" size={64} color={themeColors.textSecondary} />
-          <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>{t('modules.nunl.noArticles')}</Text>
-          <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>{t('modules.nunl.noArticlesHint')}</Text>
-        </View>
-      )}
-
-      {/* Article List */}
-      {articles.length > 0 && (
-        <ScrollViewWithIndicator
-          ref={scrollRef}
-          style={styles.articleList}
-          contentContainerStyle={[
-            styles.articleListContent,
-            { paddingBottom: insets.bottom + spacing.lg },
-          ]}
-          refreshControl={
-            <RefreshControl
-              refreshing={isLoading}
-              onRefresh={handleRefresh}
-              tintColor={nunlModuleColor}
-              colors={[nunlModuleColor]}
-            />
-          }
-        >
-          {articles.map((article, index) => (
-            <ArticleCard
-              key={article.id}
-              article={article}
-              index={index}
-              onPress={() => handleArticlePress(article)}
-              themeColors={themeColors}
-            />
-          ))}
-        </ScrollViewWithIndicator>
-      )}
 
       {/* Welcome Modal */}
       <WelcomeModal

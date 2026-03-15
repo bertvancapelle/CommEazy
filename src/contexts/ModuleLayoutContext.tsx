@@ -87,8 +87,7 @@ export function ModuleLayoutProvider({ children }: ModuleLayoutProviderProps) {
     });
   }, []);
 
-  const persist = useCallback((order: LayoutBlock[]) => {
-    setLayoutOrder(order);
+  const persistToStorage = useCallback((order: LayoutBlock[]) => {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(order));
   }, []);
 
@@ -98,10 +97,10 @@ export function ModuleLayoutProvider({ children }: ModuleLayoutProviderProps) {
       if (idx <= 0) return prev; // Already at top
       const next = [...prev];
       [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-      persist(next);
+      persistToStorage(next);
       return next;
     });
-  }, [persist]);
+  }, [persistToStorage]);
 
   const moveDown = useCallback((block: LayoutBlock) => {
     setLayoutOrder((prev) => {
@@ -109,14 +108,16 @@ export function ModuleLayoutProvider({ children }: ModuleLayoutProviderProps) {
       if (idx < 0 || idx >= prev.length - 1) return prev; // Already at bottom
       const next = [...prev];
       [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-      persist(next);
+      persistToStorage(next);
       return next;
     });
-  }, [persist]);
+  }, [persistToStorage]);
 
   const resetToDefault = useCallback(() => {
-    persist([...DEFAULT_LAYOUT_ORDER]);
-  }, [persist]);
+    const defaultOrder = [...DEFAULT_LAYOUT_ORDER];
+    setLayoutOrder(defaultOrder);
+    persistToStorage(defaultOrder);
+  }, [persistToStorage]);
 
   const isCustomized =
     layoutOrder[0] !== DEFAULT_LAYOUT_ORDER[0] ||

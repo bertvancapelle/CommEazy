@@ -25,7 +25,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, LoadingView, VoiceFocusable, Icon, ModuleHeader , ScrollViewWithIndicator } from '@/components';
+import { Button, LoadingView, VoiceFocusable, Icon, ModuleHeader, ModuleScreenLayout, ScrollViewWithIndicator } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
@@ -304,46 +304,54 @@ export function GroupListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Module Header — standardized component */}
-      <ModuleHeader
-        moduleId="groups"
-        icon="groups"
-        title={t('tabs.groups')}
-        showAdMob={true}
-      />
-
-      <ScrollViewWithIndicator
-        ref={scrollRef}
-        contentContainerStyle={groups.length === 0 ? styles.emptyListContent : undefined}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => void onRefresh()}
-            tintColor={themeColors.primary}
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId="groups"
+            icon="groups"
+            title={t('tabs.groups')}
+            skipSafeArea
           />
         }
-        showsVerticalScrollIndicator={false}
-        accessibilityLabel={t('accessibility.groupList', { count: groups.length })}
-      >
-        {groups.length === 0 ? (
-          renderEmptyList()
-        ) : (
-          groups.map((item, index) => renderGroupItem(item, index))
-        )}
-      </ScrollViewWithIndicator>
+        controlsBlock={<></>}
+        contentBlock={
+          <>
+            <ScrollViewWithIndicator
+              ref={scrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={groups.length === 0 ? styles.emptyListContent : undefined}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={() => void onRefresh()}
+                  tintColor={themeColors.primary}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              accessibilityLabel={t('accessibility.groupList', { count: groups.length })}
+            >
+              {groups.length === 0 ? (
+                renderEmptyList()
+              ) : (
+                groups.map((item, index) => renderGroupItem(item, index))
+              )}
+            </ScrollViewWithIndicator>
 
-      {/* Floating action button for new group */}
-      {groups.length > 0 && (
-        <HapticTouchable hapticDisabled
-          style={[styles.fab, { backgroundColor: themeColors.primary }]}
-          onPress={handleCreateGroup}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('group.create')}
-        >
-          <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-        </HapticTouchable>
-      )}
+            {/* Floating action button for new group */}
+            {groups.length > 0 && (
+              <HapticTouchable hapticDisabled
+                style={[styles.fab, { backgroundColor: themeColors.primary }]}
+                onPress={handleCreateGroup}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t('group.create')}
+              >
+                <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
+              </HapticTouchable>
+            )}
+          </>
+        }
+      />
     </View>
   );
 }

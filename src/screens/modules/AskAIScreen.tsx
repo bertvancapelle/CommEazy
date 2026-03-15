@@ -28,7 +28,7 @@ import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ModuleHeader, Icon, ScrollViewWithIndicator } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, Icon, ScrollViewWithIndicator } from '@/components';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { AskAIProvider, useAskAI } from '@/contexts/AskAIContext';
 
@@ -105,97 +105,103 @@ function AskAIScreenInner() {
 
   return (
     <View style={styles.container}>
-      <ModuleHeader
-        moduleId="askAI"
-        icon="chatbubble"
-        title={t('modules.askAI.title')}
-      />
-
-      {/* Action bar below header */}
-      <View style={styles.actionBar}>
-        <HapticTouchable hapticDisabled
-          style={styles.actionButton}
-          onPress={() => setShowHistory(true)}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.askAI.a11y.viewHistory')}
-        >
-          <Icon name="list" size={22} color={moduleColor} />
-          <Text style={[styles.actionButtonText, { color: moduleColor }]}>
-            {t('modules.askAI.chat.history')}
-          </Text>
-        </HapticTouchable>
-        <HapticTouchable hapticDisabled
-          style={styles.actionButton}
-          onPress={handleNewConversation}
-          accessibilityRole="button"
-          accessibilityLabel={t('modules.askAI.a11y.newConversation')}
-        >
-          <Icon name="plus" size={22} color={moduleColor} />
-          <Text style={[styles.actionButtonText, { color: moduleColor }]}>
-            {t('modules.askAI.chat.newConversation')}
-          </Text>
-        </HapticTouchable>
-      </View>
-
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        {/* Error banner */}
-        {error && (
-          <View style={styles.errorBanner}>
-            <Icon name="warning" size={20} color={colors.error} />
-            <Text style={styles.errorText}>{error}</Text>
+      <ModuleScreenLayout
+        moduleBlock={
+          <ModuleHeader
+            moduleId="askAI"
+            icon="chatbubble"
+            title={t('modules.askAI.title')}
+            skipSafeArea
+          />
+        }
+        controlsBlock={
+          <View style={styles.actionBar}>
             <HapticTouchable hapticDisabled
-              onPress={dismissError}
-              style={styles.errorDismiss}
+              style={styles.actionButton}
+              onPress={() => setShowHistory(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.askAI.a11y.viewHistory')}
             >
-              <Text style={styles.errorDismissText}>
-                {t('common.dismiss')}
+              <Icon name="list" size={22} color={moduleColor} />
+              <Text style={[styles.actionButtonText, { color: moduleColor }]}>
+                {t('modules.askAI.chat.history')}
+              </Text>
+            </HapticTouchable>
+            <HapticTouchable hapticDisabled
+              style={styles.actionButton}
+              onPress={handleNewConversation}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.askAI.a11y.newConversation')}
+            >
+              <Icon name="plus" size={22} color={moduleColor} />
+              <Text style={[styles.actionButtonText, { color: moduleColor }]}>
+                {t('modules.askAI.chat.newConversation')}
               </Text>
             </HapticTouchable>
           </View>
-        )}
-
-        {/* Chat messages */}
-        <ScrollViewWithIndicator
-          ref={scrollViewRef}
-          style={styles.chatArea}
-          contentContainerStyle={styles.chatContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Welcome greeting */}
-          {messages.length === 0 && (
-            <View style={styles.greetingContainer}>
-              <View style={styles.greetingBubble}>
-                <Text style={styles.greetingText}>
-                  {t('modules.askAI.chat.greeting')}
-                </Text>
+        }
+        contentBlock={
+          <KeyboardAvoidingView
+            style={styles.keyboardAvoid}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={0}
+          >
+            {/* Error banner */}
+            {error && (
+              <View style={styles.errorBanner}>
+                <Icon name="warning" size={20} color={colors.error} />
+                <Text style={styles.errorText}>{error}</Text>
+                <HapticTouchable hapticDisabled
+                  onPress={dismissError}
+                  style={styles.errorDismiss}
+                >
+                  <Text style={styles.errorDismissText}>
+                    {t('common.dismiss')}
+                  </Text>
+                </HapticTouchable>
               </View>
-            </View>
-          )}
+            )}
 
-          {/* Messages */}
-          {messages.map((msg) => (
-            <AskAIChatBubble
-              key={msg.id}
-              message={msg}
+            {/* Chat messages */}
+            <ScrollViewWithIndicator
+              ref={scrollViewRef}
+              style={styles.chatArea}
+              contentContainerStyle={styles.chatContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Welcome greeting */}
+              {messages.length === 0 && (
+                <View style={styles.greetingContainer}>
+                  <View style={styles.greetingBubble}>
+                    <Text style={styles.greetingText}>
+                      {t('modules.askAI.chat.greeting')}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Messages */}
+              {messages.map((msg) => (
+                <AskAIChatBubble
+                  key={msg.id}
+                  message={msg}
+                  moduleColor={moduleColor}
+                />
+              ))}
+
+              {/* Typing indicator */}
+              {isLoading && <AskAITypingIndicator />}
+            </ScrollViewWithIndicator>
+
+            {/* Input bar */}
+            <AskAIInputBar
+              onSend={sendMessage}
+              isLoading={isLoading}
               moduleColor={moduleColor}
             />
-          ))}
-
-          {/* Typing indicator */}
-          {isLoading && <AskAITypingIndicator />}
-        </ScrollViewWithIndicator>
-
-        {/* Input bar */}
-        <AskAIInputBar
-          onSend={sendMessage}
-          isLoading={isLoading}
-          moduleColor={moduleColor}
-        />
-      </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        }
+      />
 
       {/* History modal */}
       <AskAIHistoryModal

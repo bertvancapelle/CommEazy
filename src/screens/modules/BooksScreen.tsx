@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, ModuleScreenLayout, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, type SearchBarRef } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -456,584 +456,593 @@ export function BooksScreen() {
           />
         )}
 
-        {/* Module Header — standardized component with AdMob placeholder */}
-        <ModuleHeader
-          moduleId="books"
-          icon="book"
-          title={t('modules.books.title')}
-          currentSource="books"
-          showAdMob={true}
-        />
-
-        {/* Tab selector — uses standardized LibraryTabButton/SearchTabButton */}
-        <View style={styles.tabBar}>
-          <LibraryTabButton
-            isActive={showLibrary}
-            onPress={() => setShowLibrary(true)}
-            count={library.length}
-            label={t('modules.books.library')}
-          />
-          <SearchTabButton
-            isActive={!showLibrary}
-            onPress={() => setShowLibrary(false)}
-            label={t('modules.books.search')}
-          />
-        </View>
-
-        {/* Search section */}
-        {!showLibrary && (
-          <View style={styles.searchSection}>
-            <SearchBar
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmit={handleSearch}
-              placeholder={t('modules.books.searchPlaceholder')}
-              searchButtonLabel={t('modules.books.searchButton')}
-              maxLength={SEARCH_MAX_LENGTH}
+        <ModuleScreenLayout
+          moduleBlock={
+            <ModuleHeader
+              moduleId="books"
+              icon="book"
+              title={t('modules.books.title')}
+              currentSource="books"
+              skipSafeArea
             />
-
-            {/* Language selector — standardized ChipSelector component */}
-            {/* Books only supports language filter (Gutenberg API is language-based) */}
-            <View style={styles.languageSelector}>
-              <ChipSelector
-                mode="language"
-                options={LANGUAGES}
-                selectedCode={selectedLanguage}
-                onSelect={handleLanguageChange}
-              />
-            </View>
-          </View>
-        )}
-
-        {/* Library header with cleanup button */}
-        {showLibrary && library.length > 0 && (
-          <View style={styles.libraryHeader}>
-            <View style={styles.storageInfo}>
-              <Text style={styles.storageInfoText}>
-                {t('modules.books.storageUsed', {
-                  size: storageInfo?.formattedUsed || '0 B',
-                  count: library.length,
-                })}
-              </Text>
-            </View>
-            <HapticTouchable hapticDisabled
-              style={[styles.cleanupButton, { borderColor: accentColor.primary }]}
-              onPress={() => {
-                triggerFeedback('tap');
-                setShowCleanupModal(true);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.books.cleanup')}
-            >
-              <Icon name="trash" size={20} color={accentColor.primary} />
-              <Text style={[styles.cleanupButtonText, { color: accentColor.primary }]}>
-                {t('modules.books.cleanup')}
-              </Text>
-            </HapticTouchable>
-          </View>
-        )}
-
-        {/* Download progress banner */}
-        {isDownloading && currentDownload && (
-          <View style={styles.downloadBanner}>
-            <ActivityIndicator size="small" color={accentColor.primary} />
-            <View style={styles.downloadInfo}>
-              <Text style={styles.downloadTitle} numberOfLines={1}>
-                {t('modules.books.downloading')}
-              </Text>
-              <Text style={styles.downloadBookTitle} numberOfLines={1}>
-                {currentDownload.title}
-              </Text>
-            </View>
-            <View style={styles.downloadProgressContainer}>
-              <View
-                style={[
-                  styles.downloadProgressBar,
-                  {
-                    width: `${Math.round(downloadProgress * 100)}%`,
-                    backgroundColor: accentColor.primary,
-                  },
-                ]}
-              />
-            </View>
-            <Text style={styles.downloadProgressText}>
-              {Math.round(downloadProgress * 100)}%
-            </Text>
-          </View>
-        )}
-
-        {/* Book list */}
-        {(showLibrary ? isLibraryLoading : isSearching) ? (
-          <LoadingView message={t('modules.books.loading')} fullscreen />
-        ) : apiError ? (
-          <ErrorView
-            title={t(`modules.books.errors.${apiError}Title`)}
-            message={t(`modules.books.errors.${apiError}`)}
-            onRetry={() => {
-              triggerFeedback('tap');
-              if (showLibrary) {
-                refreshLibrary();
-              } else {
-                handleSearch();
-              }
-            }}
-            fullscreen
-          />
-        ) : displayedBooks.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Icon
-              name={showLibrary ? 'book' : 'search'}
-              size={64}
-              color={colors.textTertiary}
-            />
-            <Text style={styles.emptyText}>
-              {showLibrary
-                ? t('modules.books.emptyLibrary')
-                : t('modules.books.noResults')}
-            </Text>
-            {showLibrary && (
-              <>
-                <Text style={styles.emptyHint}>
-                  {t('modules.books.emptyLibraryHint')}
-                </Text>
-                <HapticTouchable hapticDisabled
-                  style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
-                  onPress={() => {
-                    triggerFeedback('tap');
-                    setShowLibrary(false);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('modules.books.goToSearch')}
-                >
-                  <Icon name="search" size={24} color={colors.textOnPrimary} />
-                  <Text style={styles.emptyActionButtonText}>
-                    {t('modules.books.goToSearch')}
-                  </Text>
-                </HapticTouchable>
-              </>
-            )}
-          </View>
-        ) : (
-          <ScrollViewWithIndicator
-            ref={scrollRef}
-            style={styles.bookList}
-            contentContainerStyle={styles.bookListContent}
-          >
-            {/* Search results header */}
-            {!showLibrary && !searchQuery.trim() && (
-              <Text style={styles.sectionHeader}>
-                {t('modules.books.popularBooks')}
-              </Text>
-            )}
-
-            {displayedBooks.map((book, index) => {
-              const isDownloaded = 'localPath' in book || isBookDownloaded(book.id);
-              const isCurrentlyDownloading = currentDownload?.id === book.id;
-              const isCurrentlyPlaying = currentBook && currentBook.id === book.id && isSpeaking;
-
-              return (
-                <VoiceFocusable
-                  key={book.id}
-                  id={book.id}
-                  label={book.title}
-                  index={index}
-                  onSelect={() => handleBookPress(book)}
-                >
-                  <View
-                    style={[
-                      styles.bookItem,
-                      isCurrentlyPlaying && {
-                        borderWidth: 2,
-                        borderColor: accentColor.primary,
-                      },
-                      isItemFocused(book.id) && getFocusStyle(),
-                    ]}
-                  >
-                    {/* Playing wave icon — shown for currently playing book */}
-                    {isCurrentlyPlaying && (
-                      <View style={styles.bookPlayingWaveContainer}>
-                        <PlayingWaveIcon
-                          color={accentColor.primary}
-                          size={20}
-                          isPlaying={isSpeaking}
-                        />
-                      </View>
-                    )}
-
-                    {/* Book cover */}
-                    <View style={styles.bookCover}>
-                      {book.coverUrl ? (
-                        <Image
-                          source={{ uri: book.coverUrl }}
-                          style={styles.bookCoverImage}
-                          resizeMode="cover"
-                          accessibilityLabel={t('modules.books.coverAlt', { title: book.title })}
-                        />
-                      ) : (
-                        <View style={[styles.bookCoverImage, styles.bookCoverPlaceholder, { backgroundColor: booksModuleColor }]}>
-                          <Icon name="book" size={32} color={colors.textOnPrimary} />
-                        </View>
-                      )}
-                    </View>
-
-                    {/* Book info - tappable */}
-                    <HapticTouchable hapticDisabled
-                      style={styles.bookInfoTouchable}
-                      onPress={() => handleBookPress(book)}
-                      activeOpacity={0.7}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${book.title} ${t('common.by')} ${book.author}`}
-                      accessibilityHint={
-                        isDownloaded
-                          ? t('modules.books.tapToRead')
-                          : t('modules.books.tapToDownload')
-                      }
-                    >
-                      <View style={styles.bookInfo}>
-                        <Text style={styles.bookTitle} numberOfLines={2}>
-                          {book.title}
-                        </Text>
-                        <Text style={styles.bookAuthor} numberOfLines={1}>
-                          {book.author}
-                        </Text>
-                        {/* Status indicators */}
-                        <View style={styles.bookStatus}>
-                          {isDownloaded && (
-                            <View style={[styles.statusBadge, { backgroundColor: colors.success }]}>
-                              <Icon name="check" size={14} color={colors.textOnPrimary} />
-                              <Text style={styles.statusBadgeText}>
-                                {t('modules.books.downloaded')}
-                              </Text>
-                            </View>
-                          )}
-                          {isCurrentlyDownloading && (
-                            <View style={[styles.statusBadge, { backgroundColor: accentColor.primary }]}>
-                              <ActivityIndicator size="small" color={colors.textOnPrimary} />
-                              <Text style={styles.statusBadgeText}>
-                                {Math.round(downloadProgress * 100)}%
-                              </Text>
-                            </View>
-                          )}
-                          {!isDownloaded && !isCurrentlyDownloading && book.fileSize && (
-                            <Text style={styles.bookSize}>
-                              {formatSize(book.fileSize)}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    </HapticTouchable>
-
-                    {/* Action buttons */}
-                    {showLibrary && isDownloaded && (
-                      <IconButton
-                        icon="trash"
-                        onPress={() => handleDeleteBook(book as DownloadedBook)}
-                        accessibilityLabel={t('modules.books.deleteBook', { title: book.title })}
-                        size={24}
-                      />
-                    )}
-                    {!showLibrary && !isDownloaded && !isCurrentlyDownloading && (
-                      <IconButton
-                        icon="download"
-                        onPress={() => {
-                          triggerFeedback('tap');
-                          downloadBook(book);
-                        }}
-                        accessibilityLabel={t('modules.books.downloadBook', { title: book.title })}
-                        size={24}
-                      />
-                    )}
-                  </View>
-                </VoiceFocusable>
-              );
-            })}
-          </ScrollViewWithIndicator>
-        )}
-
-        {/* Voice hint */}
-        {isVoiceSessionActive && (
-          <View style={styles.voiceHint}>
-            <Text style={styles.voiceHintText}>
-              {t('modules.books.voiceHint')}
-            </Text>
-          </View>
-        )}
-
-        {/* Welcome Modal */}
-        <Modal
-          visible={showWelcomeModal}
-          transparent={true}
-          animationType={isReducedMotion ? 'none' : 'fade'}
-          onRequestClose={() => {
-            setShowWelcomeModal(false);
-            setShowLibrary(false);
-          }}
-          accessibilityViewIsModal={true}
-        >
-          <View style={styles.modalOverlay}>
-            <LiquidGlassView moduleId="books" style={styles.modalContent} cornerRadius={borderRadius.lg}>
-              <View style={styles.modalHeader}>
-                <Icon name="book" size={48} color={booksModuleColor} />
-                <Text style={styles.modalTitle}>{t('modules.books.welcomeTitle')}</Text>
-              </View>
-
-              <Text style={styles.modalText}>
-                {t('modules.books.welcomeText')}
-              </Text>
-
-              <View style={styles.modalStep}>
-                <View style={styles.modalStepNumber}>
-                  <Text style={styles.modalStepNumberText}>1</Text>
-                </View>
-                <Text style={styles.modalStepText}>
-                  {t('modules.books.welcomeStep1')}
-                </Text>
-              </View>
-
-              <View style={styles.modalStep}>
-                <View style={styles.modalStepNumber}>
-                  <Text style={styles.modalStepNumberText}>2</Text>
-                </View>
-                <Text style={styles.modalStepText}>
-                  {t('modules.books.welcomeStep2')}
-                </Text>
-              </View>
-
-              <View style={styles.modalStep}>
-                <View style={styles.modalStepNumber}>
-                  <Text style={styles.modalStepNumberText}>3</Text>
-                </View>
-                <Text style={styles.modalStepText}>
-                  {t('modules.books.welcomeStep3')}
-                </Text>
-              </View>
-
-              <HapticTouchable hapticDisabled
-                style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
-                onPress={() => {
-                  triggerFeedback('tap');
-                  setShowWelcomeModal(false);
-                  setShowLibrary(false);
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.books.welcomeButton')}
-              >
-                <Icon name="search" size={24} color={colors.textOnPrimary} />
-                <Text style={styles.modalButtonText}>
-                  {t('modules.books.welcomeButton')}
-                </Text>
-              </HapticTouchable>
-            </LiquidGlassView>
-          </View>
-        </Modal>
-
-        {/* Cleanup Modal */}
-        <Modal
-          visible={showCleanupModal}
-          transparent={true}
-          animationType={isReducedMotion ? 'none' : 'slide'}
-          onRequestClose={() => {
-            setShowCleanupModal(false);
-            setSelectedForDelete(new Set());
-          }}
-          accessibilityViewIsModal={true}
-        >
-          <View style={styles.cleanupModalOverlay}>
-            <LiquidGlassView moduleId="books" style={[styles.cleanupModalContent, { paddingTop: insets.top + spacing.md }]} cornerRadius={0}>
-              {/* Header */}
-              <View style={styles.cleanupModalHeader}>
-                <Text style={styles.cleanupModalTitle}>
-                  {t('modules.books.cleanupTitle')}
-                </Text>
-                <IconButton
-                  icon="close"
-                  onPress={() => {
-                    setShowCleanupModal(false);
-                    setSelectedForDelete(new Set());
-                  }}
-                  accessibilityLabel={t('common.close')}
-                  size={24}
+          }
+          controlsBlock={
+            <>
+              {/* Tab selector — uses standardized LibraryTabButton/SearchTabButton */}
+              <View style={styles.tabBar}>
+                <LibraryTabButton
+                  isActive={showLibrary}
+                  onPress={() => setShowLibrary(true)}
+                  count={library.length}
+                  label={t('modules.books.library')}
+                />
+                <SearchTabButton
+                  isActive={!showLibrary}
+                  onPress={() => setShowLibrary(false)}
+                  label={t('modules.books.search')}
                 />
               </View>
 
-              <Text style={styles.cleanupModalSubtitle}>
-                {t('modules.books.cleanupSubtitle')}
-              </Text>
+              {/* Search section */}
+              {!showLibrary && (
+                <View style={styles.searchSection}>
+                  <SearchBar
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    onSubmit={handleSearch}
+                    placeholder={t('modules.books.searchPlaceholder')}
+                    searchButtonLabel={t('modules.books.searchButton')}
+                    maxLength={SEARCH_MAX_LENGTH}
+                  />
 
-              {/* Storage info */}
-              <View style={styles.cleanupStorageInfo}>
-                <Icon name="folder" size={24} color={colors.textSecondary} />
-                <Text style={styles.cleanupStorageText}>
-                  {t('modules.books.storageUsed', {
-                    size: storageInfo?.formattedUsed || '0 B',
-                    count: library.length,
-                  })}
-                </Text>
-              </View>
+                  {/* Language selector — standardized ChipSelector component */}
+                  {/* Books only supports language filter (Gutenberg API is language-based) */}
+                  <View style={styles.languageSelector}>
+                    <ChipSelector
+                      mode="language"
+                      options={LANGUAGES}
+                      selectedCode={selectedLanguage}
+                      onSelect={handleLanguageChange}
+                    />
+                  </View>
+                </View>
+              )}
 
-              {/* Select all / deselect all */}
-              <View style={styles.cleanupSelectAll}>
-                <HapticTouchable hapticDisabled
-                  style={styles.cleanupSelectButton}
-                  onPress={() => {
-                    if (selectedForDelete.size === library.length) {
-                      setSelectedForDelete(new Set());
+              {/* Library header with cleanup button */}
+              {showLibrary && library.length > 0 && (
+                <View style={styles.libraryHeader}>
+                  <View style={styles.storageInfo}>
+                    <Text style={styles.storageInfoText}>
+                      {t('modules.books.storageUsed', {
+                        size: storageInfo?.formattedUsed || '0 B',
+                        count: library.length,
+                      })}
+                    </Text>
+                  </View>
+                  <HapticTouchable hapticDisabled
+                    style={[styles.cleanupButton, { borderColor: accentColor.primary }]}
+                    onPress={() => {
+                      triggerFeedback('tap');
+                      setShowCleanupModal(true);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.books.cleanup')}
+                  >
+                    <Icon name="trash" size={20} color={accentColor.primary} />
+                    <Text style={[styles.cleanupButtonText, { color: accentColor.primary }]}>
+                      {t('modules.books.cleanup')}
+                    </Text>
+                  </HapticTouchable>
+                </View>
+              )}
+
+              {/* Download progress banner */}
+              {isDownloading && currentDownload && (
+                <View style={styles.downloadBanner}>
+                  <ActivityIndicator size="small" color={accentColor.primary} />
+                  <View style={styles.downloadInfo}>
+                    <Text style={styles.downloadTitle} numberOfLines={1}>
+                      {t('modules.books.downloading')}
+                    </Text>
+                    <Text style={styles.downloadBookTitle} numberOfLines={1}>
+                      {currentDownload.title}
+                    </Text>
+                  </View>
+                  <View style={styles.downloadProgressContainer}>
+                    <View
+                      style={[
+                        styles.downloadProgressBar,
+                        {
+                          width: `${Math.round(downloadProgress * 100)}%`,
+                          backgroundColor: accentColor.primary,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.downloadProgressText}>
+                    {Math.round(downloadProgress * 100)}%
+                  </Text>
+                </View>
+              )}
+            </>
+          }
+          contentBlock={
+            <>
+              {/* Book list */}
+              {(showLibrary ? isLibraryLoading : isSearching) ? (
+                <LoadingView message={t('modules.books.loading')} fullscreen />
+              ) : apiError ? (
+                <ErrorView
+                  title={t(`modules.books.errors.${apiError}Title`)}
+                  message={t(`modules.books.errors.${apiError}`)}
+                  onRetry={() => {
+                    triggerFeedback('tap');
+                    if (showLibrary) {
+                      refreshLibrary();
                     } else {
-                      setSelectedForDelete(new Set(library.map(b => b.id)));
+                      handleSearch();
                     }
                   }}
-                  accessibilityRole="button"
-                >
+                  fullscreen
+                />
+              ) : displayedBooks.length === 0 ? (
+                <View style={styles.emptyContainer}>
                   <Icon
-                    name={selectedForDelete.size === library.length ? 'check-square' : 'square'}
-                    size={24}
-                    color={accentColor.primary}
+                    name={showLibrary ? 'book' : 'search'}
+                    size={64}
+                    color={colors.textTertiary}
                   />
-                  <Text style={[styles.cleanupSelectText, { color: accentColor.primary }]}>
-                    {selectedForDelete.size === library.length
-                      ? t('modules.books.deselectAll')
-                      : t('modules.books.selectAll')}
+                  <Text style={styles.emptyText}>
+                    {showLibrary
+                      ? t('modules.books.emptyLibrary')
+                      : t('modules.books.noResults')}
                   </Text>
-                </HapticTouchable>
-              </View>
-
-              {/* Book list for selection */}
-              <ScrollView style={styles.cleanupBookList}>
-                {library.map(book => (
-                  <HapticTouchable hapticDisabled
-                    key={book.id}
-                    style={[
-                      styles.cleanupBookItem,
-                      selectedForDelete.has(book.id) && {
-                        backgroundColor: colors.errorBackground,
-                        borderColor: colors.error,
-                      },
-                    ]}
-                    onPress={() => toggleSelectForDelete(book.id)}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: selectedForDelete.has(book.id) }}
-                    accessibilityLabel={book.title}
-                  >
-                    <Icon
-                      name={selectedForDelete.has(book.id) ? 'check-square' : 'square'}
-                      size={24}
-                      color={selectedForDelete.has(book.id) ? colors.error : colors.textSecondary}
-                    />
-                    <View style={styles.cleanupBookInfo}>
-                      <Text style={styles.cleanupBookTitle} numberOfLines={1}>
-                        {book.title}
+                  {showLibrary && (
+                    <>
+                      <Text style={styles.emptyHint}>
+                        {t('modules.books.emptyLibraryHint')}
                       </Text>
-                      <Text style={styles.cleanupBookSize}>
-                        {formatSize(book.fileSize)}
-                      </Text>
-                    </View>
-                  </HapticTouchable>
-                ))}
-              </ScrollView>
+                      <HapticTouchable hapticDisabled
+                        style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
+                        onPress={() => {
+                          triggerFeedback('tap');
+                          setShowLibrary(false);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('modules.books.goToSearch')}
+                      >
+                        <Icon name="search" size={24} color={colors.textOnPrimary} />
+                        <Text style={styles.emptyActionButtonText}>
+                          {t('modules.books.goToSearch')}
+                        </Text>
+                      </HapticTouchable>
+                    </>
+                  )}
+                </View>
+              ) : (
+                <ScrollViewWithIndicator
+                  ref={scrollRef}
+                  style={styles.bookList}
+                  contentContainerStyle={styles.bookListContent}
+                >
+                  {/* Search results header */}
+                  {!showLibrary && !searchQuery.trim() && (
+                    <Text style={styles.sectionHeader}>
+                      {t('modules.books.popularBooks')}
+                    </Text>
+                  )}
 
-              {/* Delete button */}
-              <HapticTouchable hapticDisabled
-                style={[
-                  styles.cleanupDeleteButton,
-                  selectedForDelete.size === 0
-                    ? { backgroundColor: colors.border }
-                    : { backgroundColor: colors.error },
-                ]}
-                onPress={handleBatchDelete}
-                disabled={selectedForDelete.size === 0}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.books.deleteSelected', { count: selectedForDelete.size })}
-                accessibilityState={{ disabled: selectedForDelete.size === 0 }}
-              >
-                <Icon name="trash" size={24} color={colors.textOnPrimary} />
-                <Text style={styles.cleanupDeleteButtonText}>
-                  {t('modules.books.deleteSelected', { count: selectedForDelete.size })}
-                </Text>
-              </HapticTouchable>
-            </LiquidGlassView>
-          </View>
-        </Modal>
+                  {displayedBooks.map((book, index) => {
+                    const isDownloaded = 'localPath' in book || isBookDownloaded(book.id);
+                    const isCurrentlyDownloading = currentDownload?.id === book.id;
+                    const isCurrentlyPlaying = currentBook && currentBook.id === book.id && isSpeaking;
 
-        {/* Mode Selection Modal (Read vs Listen) */}
-        <Modal
-          visible={showModeModal}
-          transparent={true}
-          animationType={isReducedMotion ? 'none' : 'fade'}
-          onRequestClose={() => {
-            setShowModeModal(false);
-            setSelectedBookForMode(null);
-          }}
-          accessibilityViewIsModal={true}
-        >
-          <View style={styles.modalOverlay}>
-            <LiquidGlassView moduleId="books" style={styles.modeModalContent} cornerRadius={borderRadius.lg}>
-              {/* Book title */}
-              {selectedBookForMode && (
-                <View style={styles.modeModalHeader}>
-                  <Text style={styles.modeModalTitle} numberOfLines={2}>
-                    {selectedBookForMode.title}
-                  </Text>
-                  <Text style={styles.modeModalAuthor} numberOfLines={1}>
-                    {selectedBookForMode.author}
+                    return (
+                      <VoiceFocusable
+                        key={book.id}
+                        id={book.id}
+                        label={book.title}
+                        index={index}
+                        onSelect={() => handleBookPress(book)}
+                      >
+                        <View
+                          style={[
+                            styles.bookItem,
+                            isCurrentlyPlaying && {
+                              borderWidth: 2,
+                              borderColor: accentColor.primary,
+                            },
+                            isItemFocused(book.id) && getFocusStyle(),
+                          ]}
+                        >
+                          {/* Playing wave icon — shown for currently playing book */}
+                          {isCurrentlyPlaying && (
+                            <View style={styles.bookPlayingWaveContainer}>
+                              <PlayingWaveIcon
+                                color={accentColor.primary}
+                                size={20}
+                                isPlaying={isSpeaking}
+                              />
+                            </View>
+                          )}
+
+                          {/* Book cover */}
+                          <View style={styles.bookCover}>
+                            {book.coverUrl ? (
+                              <Image
+                                source={{ uri: book.coverUrl }}
+                                style={styles.bookCoverImage}
+                                resizeMode="cover"
+                                accessibilityLabel={t('modules.books.coverAlt', { title: book.title })}
+                              />
+                            ) : (
+                              <View style={[styles.bookCoverImage, styles.bookCoverPlaceholder, { backgroundColor: booksModuleColor }]}>
+                                <Icon name="book" size={32} color={colors.textOnPrimary} />
+                              </View>
+                            )}
+                          </View>
+
+                          {/* Book info - tappable */}
+                          <HapticTouchable hapticDisabled
+                            style={styles.bookInfoTouchable}
+                            onPress={() => handleBookPress(book)}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={`${book.title} ${t('common.by')} ${book.author}`}
+                            accessibilityHint={
+                              isDownloaded
+                                ? t('modules.books.tapToRead')
+                                : t('modules.books.tapToDownload')
+                            }
+                          >
+                            <View style={styles.bookInfo}>
+                              <Text style={styles.bookTitle} numberOfLines={2}>
+                                {book.title}
+                              </Text>
+                              <Text style={styles.bookAuthor} numberOfLines={1}>
+                                {book.author}
+                              </Text>
+                              {/* Status indicators */}
+                              <View style={styles.bookStatus}>
+                                {isDownloaded && (
+                                  <View style={[styles.statusBadge, { backgroundColor: colors.success }]}>
+                                    <Icon name="check" size={14} color={colors.textOnPrimary} />
+                                    <Text style={styles.statusBadgeText}>
+                                      {t('modules.books.downloaded')}
+                                    </Text>
+                                  </View>
+                                )}
+                                {isCurrentlyDownloading && (
+                                  <View style={[styles.statusBadge, { backgroundColor: accentColor.primary }]}>
+                                    <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                                    <Text style={styles.statusBadgeText}>
+                                      {Math.round(downloadProgress * 100)}%
+                                    </Text>
+                                  </View>
+                                )}
+                                {!isDownloaded && !isCurrentlyDownloading && book.fileSize && (
+                                  <Text style={styles.bookSize}>
+                                    {formatSize(book.fileSize)}
+                                  </Text>
+                                )}
+                              </View>
+                            </View>
+                          </HapticTouchable>
+
+                          {/* Action buttons */}
+                          {showLibrary && isDownloaded && (
+                            <IconButton
+                              icon="trash"
+                              onPress={() => handleDeleteBook(book as DownloadedBook)}
+                              accessibilityLabel={t('modules.books.deleteBook', { title: book.title })}
+                              size={24}
+                            />
+                          )}
+                          {!showLibrary && !isDownloaded && !isCurrentlyDownloading && (
+                            <IconButton
+                              icon="download"
+                              onPress={() => {
+                                triggerFeedback('tap');
+                                downloadBook(book);
+                              }}
+                              accessibilityLabel={t('modules.books.downloadBook', { title: book.title })}
+                              size={24}
+                            />
+                          )}
+                        </View>
+                      </VoiceFocusable>
+                    );
+                  })}
+                </ScrollViewWithIndicator>
+              )}
+
+              {/* Voice hint */}
+              {isVoiceSessionActive && (
+                <View style={styles.voiceHint}>
+                  <Text style={styles.voiceHintText}>
+                    {t('modules.books.voiceHint')}
                   </Text>
                 </View>
               )}
 
-              {/* Mode options */}
-              <Text style={styles.modeModalQuestion}>
-                {t('modules.books.modeQuestion')}
-              </Text>
-
-              {/* Read option */}
-              <HapticTouchable hapticDisabled
-                style={styles.modeOption}
-                onPress={() => handleModeSelect('read')}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.books.read')}
-                accessibilityHint={t('modules.books.readHint')}
+              {/* Welcome Modal */}
+              <Modal
+                visible={showWelcomeModal}
+                transparent={true}
+                animationType={isReducedMotion ? 'none' : 'fade'}
+                onRequestClose={() => {
+                  setShowWelcomeModal(false);
+                  setShowLibrary(false);
+                }}
+                accessibilityViewIsModal={true}
               >
-                <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
-                  <Icon name="document-text" size={32} color={colors.textOnPrimary} />
-                </View>
-                <View style={styles.modeOptionText}>
-                  <Text style={styles.modeOptionTitle}>{t('modules.books.read')}</Text>
-                  <Text style={styles.modeOptionDescription}>{t('modules.books.readDescription')}</Text>
-                </View>
-              </HapticTouchable>
+                <View style={styles.modalOverlay}>
+                  <LiquidGlassView moduleId="books" style={styles.modalContent} cornerRadius={borderRadius.lg}>
+                    <View style={styles.modalHeader}>
+                      <Icon name="book" size={48} color={booksModuleColor} />
+                      <Text style={styles.modalTitle}>{t('modules.books.welcomeTitle')}</Text>
+                    </View>
 
-              {/* Listen option */}
-              <HapticTouchable hapticDisabled
-                style={styles.modeOption}
-                onPress={() => handleModeSelect('listen')}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.books.listen')}
-                accessibilityHint={t('modules.books.listenHint')}
+                    <Text style={styles.modalText}>
+                      {t('modules.books.welcomeText')}
+                    </Text>
+
+                    <View style={styles.modalStep}>
+                      <View style={styles.modalStepNumber}>
+                        <Text style={styles.modalStepNumberText}>1</Text>
+                      </View>
+                      <Text style={styles.modalStepText}>
+                        {t('modules.books.welcomeStep1')}
+                      </Text>
+                    </View>
+
+                    <View style={styles.modalStep}>
+                      <View style={styles.modalStepNumber}>
+                        <Text style={styles.modalStepNumberText}>2</Text>
+                      </View>
+                      <Text style={styles.modalStepText}>
+                        {t('modules.books.welcomeStep2')}
+                      </Text>
+                    </View>
+
+                    <View style={styles.modalStep}>
+                      <View style={styles.modalStepNumber}>
+                        <Text style={styles.modalStepNumberText}>3</Text>
+                      </View>
+                      <Text style={styles.modalStepText}>
+                        {t('modules.books.welcomeStep3')}
+                      </Text>
+                    </View>
+
+                    <HapticTouchable hapticDisabled
+                      style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
+                      onPress={() => {
+                        triggerFeedback('tap');
+                        setShowWelcomeModal(false);
+                        setShowLibrary(false);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('modules.books.welcomeButton')}
+                    >
+                      <Icon name="search" size={24} color={colors.textOnPrimary} />
+                      <Text style={styles.modalButtonText}>
+                        {t('modules.books.welcomeButton')}
+                      </Text>
+                    </HapticTouchable>
+                  </LiquidGlassView>
+                </View>
+              </Modal>
+
+              {/* Cleanup Modal */}
+              <Modal
+                visible={showCleanupModal}
+                transparent={true}
+                animationType={isReducedMotion ? 'none' : 'slide'}
+                onRequestClose={() => {
+                  setShowCleanupModal(false);
+                  setSelectedForDelete(new Set());
+                }}
+                accessibilityViewIsModal={true}
               >
-                <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
-                  <Icon name="headset" size={32} color={colors.textOnPrimary} />
-                </View>
-                <View style={styles.modeOptionText}>
-                  <Text style={styles.modeOptionTitle}>{t('modules.books.listen')}</Text>
-                  <Text style={styles.modeOptionDescription}>{t('modules.books.listenDescription')}</Text>
-                </View>
-              </HapticTouchable>
+                <View style={styles.cleanupModalOverlay}>
+                  <LiquidGlassView moduleId="books" style={[styles.cleanupModalContent, { paddingTop: insets.top + spacing.md }]} cornerRadius={0}>
+                    {/* Header */}
+                    <View style={styles.cleanupModalHeader}>
+                      <Text style={styles.cleanupModalTitle}>
+                        {t('modules.books.cleanupTitle')}
+                      </Text>
+                      <IconButton
+                        icon="close"
+                        onPress={() => {
+                          setShowCleanupModal(false);
+                          setSelectedForDelete(new Set());
+                        }}
+                        accessibilityLabel={t('common.close')}
+                        size={24}
+                      />
+                    </View>
 
-              {/* Cancel button */}
-              <HapticTouchable hapticDisabled
-                style={styles.modeModalCancel}
-                onPress={() => {
+                    <Text style={styles.cleanupModalSubtitle}>
+                      {t('modules.books.cleanupSubtitle')}
+                    </Text>
+
+                    {/* Storage info */}
+                    <View style={styles.cleanupStorageInfo}>
+                      <Icon name="folder" size={24} color={colors.textSecondary} />
+                      <Text style={styles.cleanupStorageText}>
+                        {t('modules.books.storageUsed', {
+                          size: storageInfo?.formattedUsed || '0 B',
+                          count: library.length,
+                        })}
+                      </Text>
+                    </View>
+
+                    {/* Select all / deselect all */}
+                    <View style={styles.cleanupSelectAll}>
+                      <HapticTouchable hapticDisabled
+                        style={styles.cleanupSelectButton}
+                        onPress={() => {
+                          if (selectedForDelete.size === library.length) {
+                            setSelectedForDelete(new Set());
+                          } else {
+                            setSelectedForDelete(new Set(library.map(b => b.id)));
+                          }
+                        }}
+                        accessibilityRole="button"
+                      >
+                        <Icon
+                          name={selectedForDelete.size === library.length ? 'check-square' : 'square'}
+                          size={24}
+                          color={accentColor.primary}
+                        />
+                        <Text style={[styles.cleanupSelectText, { color: accentColor.primary }]}>
+                          {selectedForDelete.size === library.length
+                            ? t('modules.books.deselectAll')
+                            : t('modules.books.selectAll')}
+                        </Text>
+                      </HapticTouchable>
+                    </View>
+
+                    {/* Book list for selection */}
+                    <ScrollView style={styles.cleanupBookList}>
+                      {library.map(book => (
+                        <HapticTouchable hapticDisabled
+                          key={book.id}
+                          style={[
+                            styles.cleanupBookItem,
+                            selectedForDelete.has(book.id) && {
+                              backgroundColor: colors.errorBackground,
+                              borderColor: colors.error,
+                            },
+                          ]}
+                          onPress={() => toggleSelectForDelete(book.id)}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: selectedForDelete.has(book.id) }}
+                          accessibilityLabel={book.title}
+                        >
+                          <Icon
+                            name={selectedForDelete.has(book.id) ? 'check-square' : 'square'}
+                            size={24}
+                            color={selectedForDelete.has(book.id) ? colors.error : colors.textSecondary}
+                          />
+                          <View style={styles.cleanupBookInfo}>
+                            <Text style={styles.cleanupBookTitle} numberOfLines={1}>
+                              {book.title}
+                            </Text>
+                            <Text style={styles.cleanupBookSize}>
+                              {formatSize(book.fileSize)}
+                            </Text>
+                          </View>
+                        </HapticTouchable>
+                      ))}
+                    </ScrollView>
+
+                    {/* Delete button */}
+                    <HapticTouchable hapticDisabled
+                      style={[
+                        styles.cleanupDeleteButton,
+                        selectedForDelete.size === 0
+                          ? { backgroundColor: colors.border }
+                          : { backgroundColor: colors.error },
+                      ]}
+                      onPress={handleBatchDelete}
+                      disabled={selectedForDelete.size === 0}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('modules.books.deleteSelected', { count: selectedForDelete.size })}
+                      accessibilityState={{ disabled: selectedForDelete.size === 0 }}
+                    >
+                      <Icon name="trash" size={24} color={colors.textOnPrimary} />
+                      <Text style={styles.cleanupDeleteButtonText}>
+                        {t('modules.books.deleteSelected', { count: selectedForDelete.size })}
+                      </Text>
+                    </HapticTouchable>
+                  </LiquidGlassView>
+                </View>
+              </Modal>
+
+              {/* Mode Selection Modal (Read vs Listen) */}
+              <Modal
+                visible={showModeModal}
+                transparent={true}
+                animationType={isReducedMotion ? 'none' : 'fade'}
+                onRequestClose={() => {
                   setShowModeModal(false);
                   setSelectedBookForMode(null);
                 }}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.cancel')}
+                accessibilityViewIsModal={true}
               >
-                <Text style={styles.modeModalCancelText}>{t('common.cancel')}</Text>
-              </HapticTouchable>
-            </LiquidGlassView>
-          </View>
-        </Modal>
+                <View style={styles.modalOverlay}>
+                  <LiquidGlassView moduleId="books" style={styles.modeModalContent} cornerRadius={borderRadius.lg}>
+                    {/* Book title */}
+                    {selectedBookForMode && (
+                      <View style={styles.modeModalHeader}>
+                        <Text style={styles.modeModalTitle} numberOfLines={2}>
+                          {selectedBookForMode.title}
+                        </Text>
+                        <Text style={styles.modeModalAuthor} numberOfLines={1}>
+                          {selectedBookForMode.author}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Mode options */}
+                    <Text style={styles.modeModalQuestion}>
+                      {t('modules.books.modeQuestion')}
+                    </Text>
+
+                    {/* Read option */}
+                    <HapticTouchable hapticDisabled
+                      style={styles.modeOption}
+                      onPress={() => handleModeSelect('read')}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('modules.books.read')}
+                      accessibilityHint={t('modules.books.readHint')}
+                    >
+                      <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
+                        <Icon name="document-text" size={32} color={colors.textOnPrimary} />
+                      </View>
+                      <View style={styles.modeOptionText}>
+                        <Text style={styles.modeOptionTitle}>{t('modules.books.read')}</Text>
+                        <Text style={styles.modeOptionDescription}>{t('modules.books.readDescription')}</Text>
+                      </View>
+                    </HapticTouchable>
+
+                    {/* Listen option */}
+                    <HapticTouchable hapticDisabled
+                      style={styles.modeOption}
+                      onPress={() => handleModeSelect('listen')}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('modules.books.listen')}
+                      accessibilityHint={t('modules.books.listenHint')}
+                    >
+                      <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
+                        <Icon name="headset" size={32} color={colors.textOnPrimary} />
+                      </View>
+                      <View style={styles.modeOptionText}>
+                        <Text style={styles.modeOptionTitle}>{t('modules.books.listen')}</Text>
+                        <Text style={styles.modeOptionDescription}>{t('modules.books.listenDescription')}</Text>
+                      </View>
+                    </HapticTouchable>
+
+                    {/* Cancel button */}
+                    <HapticTouchable hapticDisabled
+                      style={styles.modeModalCancel}
+                      onPress={() => {
+                        setShowModeModal(false);
+                        setSelectedBookForMode(null);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.cancel')}
+                    >
+                      <Text style={styles.modeModalCancelText}>{t('common.cancel')}</Text>
+                    </HapticTouchable>
+                  </LiquidGlassView>
+                </View>
+              </Modal>
+            </>
+          }
+        />
       </View>
     </KeyboardAvoidingView>
   );

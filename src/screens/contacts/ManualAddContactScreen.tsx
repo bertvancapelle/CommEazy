@@ -35,7 +35,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { SeniorDatePicker } from '@/components/SeniorDatePicker';
-import { ModuleHeader, HapticTouchable, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView } from '@/components';
 import {
   STANDARD_CATEGORIES,
   CUSTOM_CATEGORIES_STORAGE_KEY,
@@ -263,19 +263,24 @@ export function ManualAddContactScreen() {
       style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Form Header Action Bar — Cancel/Save in ModuleHeader */}
-      <ModuleHeader
-        moduleId="contacts"
-        icon="contacts"
-        title={t('contacts.add.manualTitle', 'Bekende toevoegen')}
+      <ModuleScreenLayout
         showAdMob={false}
-        showGridButton={false}
-        formMode={true}
-        onCancel={handleCancel}
-        onSave={() => void handleSave()}
-        saveDisabled={!canSave || saving}
-      />
-
+        moduleBlock={
+          <ModuleHeader
+            moduleId="contacts"
+            icon="contacts"
+            title={t('contacts.add.manualTitle', 'Bekende toevoegen')}
+            showGridButton={false}
+            formMode={true}
+            onCancel={handleCancel}
+            onSave={() => void handleSave()}
+            saveDisabled={!canSave || saving}
+            skipSafeArea
+          />
+        }
+        controlsBlock={<></>}
+        contentBlock={
+          <>
       {notification && (
         <ErrorView
           type={notification.type}
@@ -538,6 +543,9 @@ export function ManualAddContactScreen() {
           {t('contacts.add.manualHint', 'Dit contact wordt opgeslagen zonder versleuteling. Nodig iemand uit voor beveiligde berichten.')}
         </Text>
       </ScrollViewWithIndicator>
+          </>
+        }
+      />
     </KeyboardAvoidingView>
   );
 }
