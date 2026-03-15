@@ -3,16 +3,18 @@
  *
  * Allows users to:
  * - Select theme mode (Light / Dark / System)
- * - Choose accent color (16 options, 4x4 grid)
- * - Customize module colors (same 16-color palette)
- * - Preview the current appearance
+ * - Choose accent color (16 options via pageSheet modal)
+ * - Set global default module color (via pageSheet modal)
+ * - Open separate Module Colors screen (pageSheet)
+ * - Configure button border style
+ * - Configure module layout order (via pageSheet modal)
+ * - Liquid Glass settings (iOS only)
  *
  * Senior-inclusive design:
  * - Large touch targets (60pt+)
  * - Clear visual feedback
  * - Simple 3-option theme selector
- * - Color overlay with large, tappable swatches
- * - Unified color palette for accent and modules
+ * - All modals use consistent pageSheet/slide pattern with close button at bottom
  *
  * @see .claude/plans/COLOR_THEME_SYSTEM_FOR_SENIORS.md
  * @see src/contexts/ThemeContext.tsx
@@ -27,8 +29,6 @@ import {
   StyleSheet,
   Platform,
   Modal,
-  Pressable,
-  Dimensions,
   Switch,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
@@ -36,22 +36,19 @@ import { useTranslation } from 'react-i18next';
 import Slider from '@react-native-community/slider';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, DEFAULT_ACCENT_COLOR, type AccentColorKey } from '@/theme';
-import { darkColors } from '@/theme/darkColors';
-import { Icon, LiquidGlassView, type IconName , ScrollViewWithIndicator} from '@/components';
+import { Icon, LiquidGlassView, type IconName, ScrollViewWithIndicator } from '@/components';
 import { useTheme, useColors, type ThemeMode } from '@/contexts/ThemeContext';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
+import { useAccentColor } from '@/hooks/useAccentColor';
 import {
   useModuleColorsContext,
-  useModuleColor,
-  CUSTOMIZABLE_MODULES,
-  MODULE_LABELS,
-  type ModuleColorId,
 } from '@/contexts/ModuleColorsContext';
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
 import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
 import { useButtonStyle, type ButtonBorderColor } from '@/contexts/ButtonStyleContext';
 import { useModuleLayout, type LayoutBlock } from '@/contexts/ModuleLayoutContext';
 import { useFeedback } from '@/hooks/useFeedback';
+import { ModuleColorsScreen } from './ModuleColorsScreen';
 
 // ============================================================
 // Types
@@ -140,60 +137,30 @@ function ThemeOptionButton({ option, isSelected, onSelect, accentColor, themeCol
 }
 
 // ============================================================
-// Color Swatch Component
+// Color Picker Modal Component (pageSheet pattern)
 // ============================================================
 
-interface ColorSwatchProps {
-  colorKey: AccentColorKey;
-  isSelected: boolean;
-  onSelect: () => void;
-}
-
-function ColorSwatch({ colorKey, isSelected, onSelect }: ColorSwatchProps) {
-  const color = ACCENT_COLORS[colorKey];
-
-  return (
-    <HapticTouchable hapticDisabled
-      style={[
-        styles.colorSwatch,
-        { backgroundColor: color.primary },
-        isSelected && styles.colorSwatchSelected,
-      ]}
-      onPress={onSelect}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
-      accessibilityLabel={color.label}
-    >
-      {isSelected && (
-        <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
-      )}
-    </HapticTouchable>
-  );
-}
-
-// ============================================================
-// Color Picker Overlay Component
-// ============================================================
-
-interface ColorPickerOverlayProps<T extends string> {
+interface ColorPickerModalProps<T extends string> {
   visible: boolean;
   onClose: () => void;
   onSelect: (value: T) => void;
   colors: Array<{ value: T; hex: string; label: string }>;
   selectedValue: T;
   title: string;
-  themeColors: typeof colors;
 }
 
-function ColorPickerOverlay<T extends string>({
+function ColorPickerModal<T extends string>({
   visible,
   onClose,
   onSelect,
   colors: colorOptions,
   selectedValue,
   title,
-  themeColors,
-}: ColorPickerOverlayProps<T>) {
+}: ColorPickerModalProps<T>) {
+  const { t } = useTranslation();
+  const themeColors = useColors();
+  const { accentColor } = useAccentColor();
+
   const handleSelect = (value: T) => {
     onSelect(value);
     onClose();
@@ -202,21 +169,26 @@ function ColorPickerOverlay<T extends string>({
   return (
     <Modal
       visible={visible}
-      transparent
-      animationType="fade"
+      animationType="slide"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlayBackdrop} onPress={onClose}>
-        <LiquidGlassView moduleId="settings" style={[styles.overlayContainer]} cornerRadius={borderRadius.lg}>
-          <Text style={[styles.overlayTitle, { color: themeColors.textPrimary }]}>{title}</Text>
-          <View style={styles.overlayColorGrid}>
+      <LiquidGlassView moduleId="settings" style={modalStyles.container} cornerRadius={0}>
+        {/* Header */}
+        <View style={[modalStyles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[modalStyles.title, { color: themeColors.textPrimary }]}>{title}</Text>
+        </View>
+
+        {/* Color Grid */}
+        <View style={modalStyles.content}>
+          <View style={modalStyles.colorGrid}>
             {colorOptions.map((option) => (
               <HapticTouchable hapticDisabled
                 key={option.value}
                 style={[
-                  styles.overlayColorSwatch,
+                  modalStyles.colorSwatch,
                   { backgroundColor: option.hex },
-                  selectedValue === option.value && styles.overlayColorSwatchSelected,
+                  selectedValue === option.value && modalStyles.colorSwatchSelected,
                 ]}
                 onPress={() => handleSelect(option.value)}
                 accessibilityRole="button"
@@ -224,19 +196,33 @@ function ColorPickerOverlay<T extends string>({
                 accessibilityLabel={option.label}
               >
                 {selectedValue === option.value && (
-                  <Icon name="checkmark" size={20} color={colors.textOnPrimary} />
+                  <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
                 )}
               </HapticTouchable>
             ))}
           </View>
-        </LiquidGlassView>
-      </Pressable>
+        </View>
+
+        {/* Close button at bottom */}
+        <View style={[modalStyles.footer, { borderTopColor: themeColors.border }]}>
+          <HapticTouchable hapticDisabled
+            style={[modalStyles.closeButton, { backgroundColor: accentColor.primary }]}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          >
+            <Text style={[modalStyles.closeButtonText, { color: colors.textOnPrimary }]}>
+              {t('common.close')}
+            </Text>
+          </HapticTouchable>
+        </View>
+      </LiquidGlassView>
     </Modal>
   );
 }
 
 // ============================================================
-// Color Selector Row Component (for triggering overlay)
+// Color Selector Row Component (for triggering modal)
 // ============================================================
 
 interface ColorSelectorRowProps {
@@ -334,10 +320,10 @@ const LAYOUT_BLOCK_ICONS: Record<LayoutBlock, IconName> = {
 export function AppearanceSettingsScreen() {
   const { t } = useTranslation();
   const { triggerFeedback } = useFeedback();
-  const { themeMode, resolvedTheme, isDarkMode, setThemeMode } = useTheme();
-  const themeColors = useColors(); // Dynamic colors based on theme
+  const { themeMode, resolvedTheme, setThemeMode } = useTheme();
+  const themeColors = useColors();
   const { accentColorKey, accentColor, updateAccentColor } = useAccentColorContext();
-  const { getModuleHex, setModuleColor, resetModuleColor, resetAllColors, hasCustomColor, overrides: customColors, globalDefaultColor, setGlobalDefaultColor, resetGlobalDefault } = useModuleColorsContext();
+  const { globalDefaultColor, setGlobalDefaultColor, resetGlobalDefault } = useModuleColorsContext();
 
   // Liquid Glass context for integrated settings
   const {
@@ -357,34 +343,17 @@ export function AppearanceSettingsScreen() {
     getBorderColorHex,
   } = useButtonStyle();
 
-  // Get individual module colors for preview cards
-  const radioColor = useModuleColor('radio');
-  const podcastColor = useModuleColor('podcast');
-  const booksColor = useModuleColor('books');
-  const appleMusicColor = useModuleColor('appleMusic');
-  const weatherColor = useModuleColor('weather');
-  const chatsColor = useModuleColor('chats');
-
   // Module layout context
   const { layoutOrder, moveUp, moveDown, resetToDefault, isCustomized } = useModuleLayout();
 
-  // Overlay state for module layout editor
-  const [showLayoutEditor, setShowLayoutEditor] = useState(false);
-
-  // Overlay state for accent color picker
+  // Modal states
   const [showAccentColorPicker, setShowAccentColorPicker] = useState(false);
-
-  // Overlay state for global default module color picker
   const [showGlobalColorPicker, setShowGlobalColorPicker] = useState(false);
-
-  // Overlay state for module color picker (which module is being edited)
-  const [editingModuleId, setEditingModuleId] = useState<ModuleColorId | null>(null);
-
-  // Overlay state for button border color picker
   const [showButtonBorderColorPicker, setShowButtonBorderColorPicker] = useState(false);
+  const [showLayoutEditor, setShowLayoutEditor] = useState(false);
+  const [showModuleColors, setShowModuleColors] = useState(false);
 
-  // Prepare color options for overlay (unified palette for both accent and module colors)
-  // Uses ACCENT_COLORS which has 16 colors in 4x4 grid
+  // Prepare color options for modals (unified palette)
   const colorOptions = ACCENT_COLOR_KEYS.map((key) => ({
     value: key,
     hex: ACCENT_COLORS[key].primary,
@@ -409,20 +378,10 @@ export function AppearanceSettingsScreen() {
     [updateAccentColor, triggerFeedback]
   );
 
-  // Handle module color selection (accepts AccentColorKey, converts to hex for storage)
-  const handleModuleColorSelect = useCallback(
-    async (moduleId: ModuleColorId, colorKey: AccentColorKey) => {
-      await triggerFeedback('tap');
-      const colorHex = ACCENT_COLORS[colorKey].primary;
-      setModuleColor(moduleId, colorHex);
-    },
-    [setModuleColor, triggerFeedback]
-  );
-
-  // Helper: find AccentColorKey from hex (for showing selected state)
+  // Helper: find AccentColorKey from hex
   const getColorKeyFromHex = useCallback((hex: string): AccentColorKey => {
     const found = ACCENT_COLOR_KEYS.find((key) => ACCENT_COLORS[key].primary === hex);
-    return found || 'blue'; // Default to blue if not found
+    return found || 'blue';
   }, []);
 
   // Handle reset accent color to default
@@ -430,18 +389,6 @@ export function AppearanceSettingsScreen() {
     await triggerFeedback('tap');
     await updateAccentColor(DEFAULT_ACCENT_COLOR);
   }, [updateAccentColor, triggerFeedback]);
-
-  // Handle reset single module color to default
-  const handleResetModuleColor = useCallback(async (moduleId: ModuleColorId) => {
-    await triggerFeedback('tap');
-    resetModuleColor(moduleId);
-  }, [resetModuleColor, triggerFeedback]);
-
-  // Handle reset all module colors
-  const handleResetModuleColors = useCallback(async () => {
-    await triggerFeedback('tap');
-    resetAllColors();
-  }, [resetAllColors, triggerFeedback]);
 
   // Handle global default module color selection
   const handleGlobalDefaultColorSelect = useCallback(
@@ -461,9 +408,6 @@ export function AppearanceSettingsScreen() {
 
   // Check if accent color is not default
   const isAccentColorCustom = accentColorKey !== DEFAULT_ACCENT_COLOR;
-
-  // Check if any custom colors are set
-  const hasCustomColors = Object.keys(customColors).length > 0;
 
   // Handle button border toggle
   const handleButtonBorderToggle = useCallback(
@@ -590,15 +534,14 @@ export function AppearanceSettingsScreen() {
           </HapticTouchable>
         )}
 
-        {/* Accent Color Picker Overlay */}
-        <ColorPickerOverlay
+        {/* Accent Color Picker Modal */}
+        <ColorPickerModal
           visible={showAccentColorPicker}
           onClose={() => setShowAccentColorPicker(false)}
           onSelect={(key) => void handleColorSelect(key)}
           colors={colorOptions}
           selectedValue={accentColorKey}
           title={t('appearance.accentColor.selectTitle')}
-          themeColors={themeColors}
         />
       </View>
 
@@ -630,88 +573,39 @@ export function AppearanceSettingsScreen() {
           </HapticTouchable>
         )}
 
-        {/* Global Color Picker Overlay */}
-        <ColorPickerOverlay
+        {/* Global Color Picker Modal */}
+        <ColorPickerModal
           visible={showGlobalColorPicker}
           onClose={() => setShowGlobalColorPicker(false)}
           onSelect={(key) => void handleGlobalDefaultColorSelect(key)}
           colors={colorOptions}
           selectedValue={globalDefaultColor ? getColorKeyFromHex(globalDefaultColor) : 'blue'}
           title={t('appearance.globalDefaultColor')}
-          themeColors={themeColors}
         />
       </View>
 
-      {/* Module Colors Section */}
+      {/* Module Colors Navigation Row */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.moduleColors.title')}</Text>
         <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.moduleColors.hint')}</Text>
 
-        {/* Module color selectors */}
-        {CUSTOMIZABLE_MODULES.map((moduleId) => {
-          const currentHex = getModuleHex(moduleId);
-          const currentColorKey = getColorKeyFromHex(currentHex);
-          const colorLabel = hasCustomColor(moduleId)
-            ? t(ACCENT_COLORS[currentColorKey].label)
-            : `${t(ACCENT_COLORS[currentColorKey].label)} (${t('appearance.usingDefault')})`;
-          const isCustomized = hasCustomColor(moduleId);
+        <HapticTouchable hapticDisabled
+          style={[styles.colorSelectorRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+          onPress={() => setShowModuleColors(true)}
+          accessibilityRole="button"
+          accessibilityLabel={t('appearance.moduleColors.title')}
+        >
+          <Text style={[styles.colorSelectorLabel, { color: themeColors.textPrimary }]}>{t('appearance.moduleColors.title')}</Text>
+          <View style={styles.colorSelectorRight}>
+            <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
+          </View>
+        </HapticTouchable>
 
-          return (
-            <View key={moduleId}>
-              <ColorSelectorRow
-                label={t(MODULE_LABELS[moduleId])}
-                currentColorHex={currentHex}
-                currentColorLabel={colorLabel}
-                onPress={() => setEditingModuleId(moduleId)}
-                themeColors={themeColors}
-              />
-              {/* Inline reset button for individual module */}
-              {isCustomized && (
-                <HapticTouchable hapticDisabled
-                  style={[styles.resetInlineButton, { borderColor: themeColors.border, marginTop: -spacing.xs }]}
-                  onPress={() => void handleResetModuleColor(moduleId)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('appearance.moduleColors.resetSingle', { module: t(MODULE_LABELS[moduleId]) })}
-                >
-                  <Icon name="refresh" size={14} color={themeColors.textSecondary} />
-                  <Text style={[styles.resetInlineButtonText, { color: themeColors.textSecondary }]}>
-                    {t('appearance.moduleColors.resetSingle', { module: t(MODULE_LABELS[moduleId]) })}
-                  </Text>
-                </HapticTouchable>
-              )}
-            </View>
-          );
-        })}
-
-        {/* Module Color Picker Overlay */}
-        <ColorPickerOverlay
-          visible={editingModuleId !== null}
-          onClose={() => setEditingModuleId(null)}
-          onSelect={(colorKey) => {
-            if (editingModuleId) {
-              void handleModuleColorSelect(editingModuleId, colorKey);
-            }
-          }}
-          colors={colorOptions}
-          selectedValue={editingModuleId ? getColorKeyFromHex(getModuleHex(editingModuleId)) : 'blue'}
-          title={editingModuleId ? t('appearance.moduleColors.selectTitle', { module: t(MODULE_LABELS[editingModuleId]) }) : ''}
-          themeColors={themeColors}
+        {/* Module Colors Screen (separate pageSheet modal) */}
+        <ModuleColorsScreen
+          visible={showModuleColors}
+          onClose={() => setShowModuleColors(false)}
         />
-
-        {/* Reset button */}
-        {hasCustomColors && (
-          <HapticTouchable hapticDisabled
-            style={[styles.resetButton, { borderColor: themeColors.border }]}
-            onPress={() => void handleResetModuleColors()}
-            accessibilityRole="button"
-            accessibilityLabel={t('appearance.moduleColors.reset')}
-          >
-            <Icon name="refresh" size={18} color={themeColors.textSecondary} />
-            <Text style={[styles.resetButtonText, { color: themeColors.textSecondary }]}>
-              {t('appearance.moduleColors.reset')}
-            </Text>
-          </HapticTouchable>
-        )}
       </View>
 
       {/* Button Border Section */}
@@ -746,15 +640,14 @@ export function AppearanceSettingsScreen() {
           />
         </View>
 
-        {/* Button Border Color Picker Overlay */}
-        <ColorPickerOverlay
+        {/* Button Border Color Picker Modal */}
+        <ColorPickerModal
           visible={showButtonBorderColorPicker}
           onClose={() => setShowButtonBorderColorPicker(false)}
           onSelect={(color) => void handleButtonBorderColorSelect(color)}
           colors={buttonBorderColorOptions}
           selectedValue={buttonStyleSettings.borderColor}
           title={t('appearance.buttonBorder.selectTitle')}
-          themeColors={themeColors}
         />
       </View>
 
@@ -790,18 +683,23 @@ export function AppearanceSettingsScreen() {
           </HapticTouchable>
         )}
 
-        {/* Layout Editor Modal */}
+        {/* Layout Editor Modal (pageSheet pattern) */}
         <Modal
           visible={showLayoutEditor}
-          transparent
-          animationType="fade"
+          animationType="slide"
+          presentationStyle="pageSheet"
           onRequestClose={() => setShowLayoutEditor(false)}
         >
-          <Pressable style={styles.overlayBackdrop} onPress={() => setShowLayoutEditor(false)}>
-            <LiquidGlassView moduleId="settings" style={styles.overlayContainer} cornerRadius={borderRadius.lg}>
-              <Text style={[styles.overlayTitle, { color: themeColors.textPrimary }]}>
+          <LiquidGlassView moduleId="settings" style={modalStyles.container} cornerRadius={0}>
+            {/* Header */}
+            <View style={[modalStyles.header, { borderBottomColor: themeColors.border }]}>
+              <Text style={[modalStyles.title, { color: themeColors.textPrimary }]}>
                 {t('appearance.moduleLayout.title')}
               </Text>
+            </View>
+
+            {/* Content */}
+            <View style={modalStyles.content}>
               <View style={styles.layoutBlockList}>
                 {layoutOrder.map((block, index) => (
                   <LayoutBlockRow
@@ -833,48 +731,23 @@ export function AppearanceSettingsScreen() {
                   </Text>
                 </HapticTouchable>
               )}
-            </LiquidGlassView>
-          </Pressable>
+            </View>
+
+            {/* Close button at bottom */}
+            <View style={[modalStyles.footer, { borderTopColor: themeColors.border }]}>
+              <HapticTouchable hapticDisabled
+                style={[modalStyles.closeButton, { backgroundColor: accentColor.primary }]}
+                onPress={() => setShowLayoutEditor(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <Text style={[modalStyles.closeButtonText, { color: colors.textOnPrimary }]}>
+                  {t('common.close')}
+                </Text>
+              </HapticTouchable>
+            </View>
+          </LiquidGlassView>
         </Modal>
-      </View>
-
-      {/* Preview Section - Shows actual module colors */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.preview.title')}</Text>
-        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.preview.hint')}</Text>
-
-        {/* Module color preview cards */}
-        <View style={styles.previewCardsContainer}>
-          <View style={[styles.modulePreviewCard, { backgroundColor: radioColor }]}>
-            <Icon name="radio" size={32} color={themeColors.textOnPrimary} />
-            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.radio')}</Text>
-          </View>
-
-          <View style={[styles.modulePreviewCard, { backgroundColor: podcastColor }]}>
-            <Icon name="podcast" size={32} color={themeColors.textOnPrimary} />
-            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.podcast')}</Text>
-          </View>
-
-          <View style={[styles.modulePreviewCard, { backgroundColor: booksColor }]}>
-            <Icon name="book" size={32} color={themeColors.textOnPrimary} />
-            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.books')}</Text>
-          </View>
-
-          <View style={[styles.modulePreviewCard, { backgroundColor: appleMusicColor }]}>
-            <Icon name="musical-note" size={32} color={themeColors.textOnPrimary} />
-            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.appleMusic')}</Text>
-          </View>
-
-          <View style={[styles.modulePreviewCard, { backgroundColor: weatherColor }]}>
-            <Icon name="weather" size={32} color={themeColors.textOnPrimary} />
-            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('navigation.weather')}</Text>
-          </View>
-
-          <View style={[styles.modulePreviewCard, { backgroundColor: chatsColor }]}>
-            <Icon name="chat" size={32} color={themeColors.textOnPrimary} />
-            <Text style={[styles.modulePreviewLabel, { color: themeColors.textOnPrimary }]}>{t('tabs.chats')}</Text>
-          </View>
-        </View>
       </View>
 
       {/* Liquid Glass Section (iOS only) */}
@@ -999,7 +872,71 @@ export function AppearanceSettingsScreen() {
 }
 
 // ============================================================
-// Styles
+// Modal Styles (shared across all pageSheet modals)
+// ============================================================
+
+const modalStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    alignItems: 'center',
+  },
+  title: {
+    ...typography.h3,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  colorSwatch: {
+    width: 60,
+    height: 60,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  colorSwatchSelected: {
+    borderWidth: 3,
+    borderColor: colors.textOnPrimary,
+  },
+  footer: {
+    padding: spacing.lg,
+    borderTopWidth: 1,
+  },
+  closeButton: {
+    minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    ...typography.bodyBold,
+  },
+});
+
+// ============================================================
+// Screen Styles
 // ============================================================
 
 const styles = StyleSheet.create({
@@ -1066,175 +1003,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginLeft: spacing.sm,
   },
-  // Color Grid
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  colorSwatch: {
-    width: 60,
-    height: 60,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Shadow for depth
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  colorSwatchSelected: {
-    borderWidth: 3,
-    borderColor: colors.textOnPrimary,
-  },
-  selectedColorIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.lg,
-    padding: spacing.sm,
-  },
-  selectedColorDot: {
-    width: 16,
-    height: 16,
-    borderRadius: borderRadius.full,
-    marginRight: spacing.sm,
-  },
-  selectedColorText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  // Preview
-  previewCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-  },
-  previewHeaderText: {
-    ...typography.bodyBold,
-    color: colors.textOnPrimary,
-    marginLeft: spacing.sm,
-  },
-  previewContent: {
-    padding: spacing.md,
-  },
-  previewMessage: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  previewMessageText: {
-    ...typography.body,
-    color: colors.textPrimary,
-  },
-  previewButton: {
-    alignSelf: 'flex-end',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-  },
-  previewButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
-  },
-  // Info Section
-  infoSection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  infoText: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginLeft: spacing.sm,
-    flex: 1,
-  },
-  // Module Colors
-  moduleColorRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  moduleColorLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  moduleColorPreview: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.sm,
-    marginRight: spacing.md,
-  },
-  moduleColorText: {
-    ...typography.body,
-    color: colors.textPrimary,
-  },
-  moduleColorOptions: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  moduleColorSwatch: {
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  moduleColorSwatchSelected: {
-    borderWidth: 2,
-    borderColor: colors.textOnPrimary,
-  },
-  resetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.lg,
-    paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderRadius: borderRadius.md,
-  },
-  resetButtonText: {
-    ...typography.body,
-    marginLeft: spacing.sm,
-  },
-  // Inline reset button (smaller, for individual items)
-  resetInlineButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  resetInlineButtonText: {
-    ...typography.small,
-    marginLeft: spacing.xs,
-  },
-  // Color Selector Row (for triggering overlay)
+  // Color Selector Row
   colorSelectorRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1264,94 +1033,46 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  // Overlay styles
-  overlayBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  overlayContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    width: '100%',
-    maxWidth: 320,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  overlayTitle: {
-    ...typography.bodyBold,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  overlayColorGrid: {
+  // Reset buttons
+  resetButton: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
-  },
-  overlayColorSwatch: {
-    width: 60,
-    height: 60,
+    marginTop: spacing.lg,
+    paddingVertical: spacing.md,
+    borderWidth: 1,
     borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
   },
-  overlayColorSwatchSelected: {
-    borderWidth: 3,
-    borderColor: colors.textOnPrimary,
-  },
-  // Module Preview Cards (2x2 grid)
-  previewCardsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  modulePreviewCard: {
-    width: '47%',
-    aspectRatio: 1.2,
-    borderRadius: borderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  modulePreviewLabel: {
+  resetButtonText: {
     ...typography.body,
-    fontWeight: '600',
-    marginTop: spacing.sm,
+    marginLeft: spacing.sm,
+  },
+  resetInlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  resetInlineButtonText: {
+    ...typography.small,
+    marginLeft: spacing.xs,
+  },
+  // Info Section
+  infoSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  infoText: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
+    flex: 1,
   },
   // Liquid Glass Section Styles
   statusCard: {
@@ -1462,7 +1183,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     marginLeft: spacing.sm,
   },
-  // Disabled state for button border color selector
+  // Disabled state
   disabledSection: {
     opacity: 0.5,
   },
