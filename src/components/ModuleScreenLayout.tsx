@@ -15,6 +15,10 @@
  * Separator:
  * - Colored line (2pt, module color) between toolbar and content
  *
+ * Controls background tint:
+ * - When controlsBlock has content: 10% opacity module color background
+ * - When controlsBlock is empty (<></>): no background rendered
+ *
  * Toolbar position (user's "Schermindeling" setting):
  * - "top" (default): ModuleHeader → Controls → [separator] → Content
  * - "bottom": Content → [separator] → Controls (reversed rows) → ModuleHeader
@@ -51,6 +55,30 @@ interface ModuleScreenLayoutProps {
   showAdMob?: boolean;
   /** AdMob unit ID (optional, uses default if not provided) */
   adMobUnitId?: string;
+}
+
+/**
+ * Converts a hex color string to an rgba() string with given opacity.
+ * Handles both 3-digit (#RGB) and 6-digit (#RRGGBB) hex values.
+ */
+function hexToRgba(hex: string, opacity: number): string {
+  const cleaned = hex.replace('#', '');
+  const fullHex =
+    cleaned.length === 3
+      ? cleaned[0] + cleaned[0] + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2]
+      : cleaned;
+  const r = parseInt(fullHex.substring(0, 2), 16);
+  const g = parseInt(fullHex.substring(2, 4), 16);
+  const b = parseInt(fullHex.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+/**
+ * Returns true when a ReactNode has renderable children.
+ * Empty fragments (<></>) return 0 children.
+ */
+function hasChildren(node: ReactNode): boolean {
+  return React.Children.count(node) > 0;
 }
 
 /**
@@ -92,6 +120,10 @@ export function ModuleScreenLayout({
   const moduleColor = useModuleColor(moduleId as ModuleColorId);
 
   const isBottom = toolbarPosition === 'bottom';
+  const controlsHasContent = hasChildren(controlsBlock);
+  const controlsBg = controlsHasContent
+    ? { backgroundColor: hexToRgba(moduleColor, 0.10) }
+    : undefined;
 
   return (
     <>
@@ -113,14 +145,26 @@ export function ModuleScreenLayout({
           {/* Bottom layout: Content → Separator → Controls (reversed) → ModuleHeader */}
           {contentBlock}
           <View style={[styles.separator, { backgroundColor: moduleColor }]} />
-          {reverseChildren(controlsBlock)}
+          {controlsHasContent ? (
+            <View style={controlsBg}>
+              {reverseChildren(controlsBlock)}
+            </View>
+          ) : (
+            reverseChildren(controlsBlock)
+          )}
           {moduleBlock}
         </>
       ) : (
         <>
           {/* Top layout (default): ModuleHeader → Controls → Separator → Content */}
           {moduleBlock}
-          {controlsBlock}
+          {controlsHasContent ? (
+            <View style={controlsBg}>
+              {controlsBlock}
+            </View>
+          ) : (
+            controlsBlock
+          )}
           <View style={[styles.separator, { backgroundColor: moduleColor }]} />
           {contentBlock}
         </>
