@@ -2962,6 +2962,60 @@ interface ModuleScreenLayoutProps {
 - Modals gaan in `contentBlock` (renderen als portals ongeacht positie)
 - Form screens (formMode): `controlsBlock={<></>}`, alles in contentBlock
 
+**Voorbeeld — Complex controlsBlock (meerdere conditionele rijen):**
+```typescript
+<ModuleScreenLayout
+  moduleId="podcast"
+  moduleBlock={
+    <ModuleHeader moduleId="podcast" icon="podcast" title={t('...')} currentSource="podcast" skipSafeArea />
+  }
+  controlsBlock={
+    <>
+      <View style={styles.tabBar}>
+        <FavoriteTabButton isActive={showFavorites} onPress={() => setShowFavorites(true)} count={favorites.length} />
+        <SearchTabButton isActive={!showFavorites} onPress={() => setShowFavorites(false)} />
+      </View>
+      {!showFavorites && (
+        <>
+          <SearchBar value={searchQuery} onChangeText={setSearchQuery} onSubmit={handleSearch} />
+          <ChipSelector mode={filterMode} options={options} selectedCode={selectedCode} onSelect={setSelectedCode} />
+        </>
+      )}
+    </>
+  }
+  contentBlock={
+    <ScrollViewWithIndicator style={{ flex: 1 }}>
+      {/* Lijst items */}
+    </ScrollViewWithIndicator>
+  }
+/>
+```
+
+**Voorbeeld — Form screen (formMode met Cancel/Save):**
+```typescript
+<ModuleScreenLayout
+  moduleId="agenda"
+  moduleBlock={
+    <ModuleHeader
+      moduleId="agenda"
+      icon="calendar"
+      title={t('modules.agenda.title')}
+      formMode={true}
+      onCancel={handleCancel}
+      onSave={handleSave}
+      saveDisabled={!isValid}
+      skipSafeArea
+    />
+  }
+  controlsBlock={<></>}
+  contentBlock={
+    <ScrollViewWithIndicator style={{ flex: 1 }}>
+      {/* Formulier velden */}
+    </ScrollViewWithIndicator>
+  }
+/>
+```
+
 **Adoptie status (100%):**
 
 | Screen | ModuleScreenLayout | controlsBlock bevat |
