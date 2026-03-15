@@ -338,18 +338,6 @@ export function GroupListScreen() {
               )}
             </ScrollViewWithIndicator>
 
-            {/* Floating action button for new group */}
-            {groups.length > 0 && (
-              <HapticTouchable hapticDisabled
-                style={[styles.fab, { backgroundColor: themeColors.primary }]}
-                onPress={handleCreateGroup}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel={t('group.create')}
-              >
-                <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-              </HapticTouchable>
-            )}
           </>
         }
       />
@@ -441,24 +429,5 @@ const styles = StyleSheet.create({
   },
   createButton: {
     minWidth: 200,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: spacing.xl,
-    right: spacing.lg,
-    width: touchTargets.large,
-    height: touchTargets.large,
-    borderRadius: touchTargets.large / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  fabIcon: {
-    fontSize: 32,
-    fontWeight: '300',
   },
 });

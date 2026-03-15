@@ -393,15 +393,25 @@ export function ContactListScreen() {
               onLongPressGroup={handleLongPressGroup}
             />
 
-            {/* Search bar — standardized SearchBar component */}
-            <View style={styles.searchContainer}>
-              <SearchBar
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmit={() => {}} // Live filter — no explicit submit needed
-                placeholder={t('contacts.searchPlaceholder')}
-                searchButtonLabel={t('contacts.searchButton')}
-              />
+            {/* Search bar + add contact button */}
+            <View style={styles.searchRow}>
+              <View style={styles.searchBarFlex}>
+                <SearchBar
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onSubmit={() => {}} // Live filter — no explicit submit needed
+                  placeholder={t('contacts.searchPlaceholder')}
+                  searchButtonLabel={t('contacts.searchButton')}
+                />
+              </View>
+              <HapticTouchable
+                style={[styles.addContactButton, { backgroundColor: themeColors.primary }]}
+                onPress={handleAddContact}
+                accessibilityRole="button"
+                accessibilityLabel={t('contacts.addButton')}
+              >
+                <Icon name="plus" size={24} color={themeColors.textOnPrimary} />
+              </HapticTouchable>
             </View>
 
           </>
@@ -443,23 +453,6 @@ export function ContactListScreen() {
               />
             )}
 
-            {/* FAB for adding contacts — extra bottom offset when group actions bar visible */}
-            {contacts.length > 0 && (
-              <HapticTouchable hapticDisabled
-                style={[
-                  styles.fab,
-                  { backgroundColor: themeColors.primary },
-                  selectedChipId !== 'all' && filteredContacts.length > 0 && styles.fabWithActionsBar,
-                ]}
-                onPress={handleAddContact}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel={t('contacts.addButton')}
-              >
-                <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-              </HapticTouchable>
-            )}
-
             {/* Create Group Modal */}
             <CreateGroupModal
               visible={showCreateModal}
@@ -490,9 +483,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  searchContainer: {
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  searchBarFlex: {
+    flex: 1,
+  },
+  addContactButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   contactItem: {
     flexDirection: 'row',
@@ -541,28 +547,5 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     ...typography.button,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: spacing.xl,
-    right: spacing.lg,
-    width: touchTargets.large,
-    height: touchTargets.large,
-    borderRadius: touchTargets.large / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  fabWithActionsBar: {
-    // Shift FAB up to avoid overlap with ContactGroupActionsBar (~110pt tall)
-    bottom: spacing.xl + 110,
-  },
-  fabIcon: {
-    fontSize: 32,
-    fontWeight: '300',
   },
 });

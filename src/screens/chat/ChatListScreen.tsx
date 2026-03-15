@@ -501,7 +501,21 @@ export function ChatListScreen() {
             skipSafeArea
           />
         }
-        controlsBlock={<></>}
+        controlsBlock={
+          <View style={styles.controlsRow}>
+            <HapticTouchable
+              style={[styles.newChatButton, { backgroundColor: themeColors.primary }]}
+              onPress={handleNewChat}
+              accessibilityRole="button"
+              accessibilityLabel={t('chat.newChat')}
+            >
+              <Icon name="plus" size={24} color={themeColors.textOnPrimary} />
+              <Text style={[styles.newChatButtonText, { color: themeColors.textOnPrimary }]}>
+                {t('chat.newChat')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        }
         contentBlock={
           <>
             <ScrollView
@@ -529,18 +543,6 @@ export function ChatListScreen() {
               )}
             </ScrollView>
 
-            {/* Floating action button for new chat */}
-            {chats.length > 0 && (
-              <HapticTouchable hapticDisabled
-                style={[styles.fab, { backgroundColor: themeColors.primary }]}
-                onPress={handleNewChat}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel={t('chat.newChat')}
-              >
-                <Text style={[styles.fabIcon, { color: themeColors.textOnPrimary }]}>+</Text>
-              </HapticTouchable>
-            )}
           </>
         }
       />
@@ -646,26 +648,22 @@ const styles = StyleSheet.create({
   startChatButton: {
     minWidth: 200,
   },
-  fab: {
-    position: 'absolute',
-    bottom: spacing.xl,
-    right: spacing.lg,
-    width: touchTargets.large,
-    height: touchTargets.large,
-    borderRadius: touchTargets.large / 2,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+  controlsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  fabIcon: {
-    fontSize: 32,
-    color: colors.textOnPrimary,
-    fontWeight: '300',
+  newChatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    gap: spacing.xs,
+  },
+  newChatButtonText: {
+    ...typography.button,
   },
   debugContainer: {
     marginTop: spacing.xl,
