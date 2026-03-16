@@ -395,13 +395,40 @@ function SettingsPanelNavigator() {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
   const panelId = usePanelId();
+  const paneCtx = usePaneContextSafe();
   const navRef = useRef<NavigationContainerRef<SettingsPanelParams>>(null);
+  const isReadyRef = useRef(false);
 
   usePaneGoBack(navRef, panelId);
 
+  // Consume pending navigation — navigate to sub-screen after pane switch
+  const consumePending = useCallback(() => {
+    if (!panelId || !paneCtx || !navRef.current) return;
+    const pending = paneCtx.consumePendingNavigation(panelId);
+    if (pending && pending.screen) {
+      console.info('[SettingsPanelNav] Navigating to', pending.screen, 'via pending navigation');
+      navRef.current.navigate(pending.screen as keyof SettingsPanelParams, pending.params as undefined);
+    }
+  }, [panelId, paneCtx]);
+
+  const handleReady = useCallback(() => {
+    isReadyRef.current = true;
+    consumePending();
+  }, [consumePending]);
+
+  // When the pane already shows 'settings' and a new pendingNavigation arrives,
+  // the component is NOT remounted — we need an effect to catch it
+  const paneState = paneCtx && panelId ? paneCtx.panes[panelId] : null;
+
+  useEffect(() => {
+    if (isReadyRef.current && paneState?.pendingNavigation) {
+      consumePending();
+    }
+  }, [paneState?.pendingNavigation, consumePending]);
+
   return (
     <NavigationIndependentTree>
-      <NavigationContainer ref={navRef}>
+      <NavigationContainer ref={navRef} onReady={handleReady}>
         <SettingsPanelStack.Navigator
           screenOptions={{
             headerTitleStyle: typography.h3,

@@ -38,6 +38,7 @@ import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useNavigateToModule } from '@/hooks/useNavigateToModule';
 import { useContactGroups } from '@/hooks/useContactGroups';
 import { ServiceContainer } from '@/services/container';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
@@ -117,6 +118,7 @@ function ContactListItem({
 export function ContactListScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
+  const { navigateToModule } = useNavigateToModule();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
   const isFocused = useIsFocused(); // Track if this screen is focused
@@ -421,7 +423,7 @@ export function ContactListScreen() {
                 hapticDisabled
                 onPress={() => {
                   void triggerFeedback('tap');
-                  navigation.navigate('ProfileSettings' as never);
+                  navigateToModule('settings', { screen: 'ProfileSettings', params: {} });
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={t('settings.profile')}
