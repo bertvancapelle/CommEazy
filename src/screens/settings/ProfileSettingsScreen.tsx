@@ -340,6 +340,10 @@ export function ProfileSettingsScreen() {
       const { ServiceContainer } = await import('@/services/container');
       await ServiceContainer.database.saveUserProfile(updatedProfile);
       console.log('[ProfileSettings] Profile saved:', updates);
+
+      // Broadcast profile update to consented contacts (fire-and-forget)
+      void ServiceContainer.profileSync?.broadcastProfileUpdate();
+
       return true;
     } catch (error) {
       console.error('Failed to save profile:', error);

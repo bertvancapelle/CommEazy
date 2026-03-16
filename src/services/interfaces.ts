@@ -126,6 +126,8 @@ export interface Contact {
   trustLevel?: number;
   // Agenda categories (JSON array of AgendaCategoryId strings)
   categories?: string;
+  // Profile sync version — incremented on each profile change
+  profileVersion?: number;
 }
 
 /** Get full display name for a contact (e.g., "Oma Jansen") */
@@ -211,6 +213,9 @@ export interface UserProfile {
 
   // Module usage tracking (for smart navigation ordering)
   moduleUsageCounts?: { [moduleId: string]: number }; // Usage count per module
+
+  // Profile sync version — incremented on each profile change
+  profileVersion?: number;
 }
 
 /**

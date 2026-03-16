@@ -15,6 +15,7 @@ import type {
   Observable,
   Unsubscribe,
 } from './interfaces';
+import type { ProfileSyncMessage } from './profileSync';
 import { calculateRetryDelay, XMPP_RETRY_CONFIG } from './retry-utils';
 
 // Dev server configuration
@@ -35,6 +36,9 @@ const VOIP_PUSH_SERVICE = 'voip.push.commeazy.local';  // APNs VoIP (PushKit) fo
 // Call signaling namespace (custom for CommEazy)
 const NS_CALL = 'urn:commeazy:call:1';
 
+// Profile sync namespace (custom for CommEazy)
+const NS_PROFILE = 'urn:commeazy:profile:1';
+
 // Call signaling payload type (matches types in call/types.ts)
 interface CallSignalingPayload {
   type: 'offer' | 'answer' | 'ice-candidate' | 'hangup' | 'decline' | 'busy' | 'ringing' | 'invite';
@@ -50,6 +54,7 @@ export class XmppJsService implements XMPPService {
   private presenceHandlers: Set<(from: string, show: PresenceShow) => void> = new Set();
   private receiptHandlers: Set<(messageId: string, from: string) => void> = new Set();
   private callSignalingHandlers: Set<(from: string, payload: CallSignalingPayload) => void> = new Set();
+  private profileSyncHandlers: Set<(from: string, message: ProfileSyncMessage) => void> = new Set();
   private reconnectAttempts = 0;
   private pushEnabled = false;
 
@@ -383,6 +388,41 @@ export class XmppJsService implements XMPPService {
     return () => this.callSignalingHandlers.delete(handler);
   }
 
+  // ---- Profile Sync (urn:commeazy:profile:1) ----
+
+  /**
+   * Send a profile sync stanza to a specific user.
+   * Uses 'headline' message type — Prosody never stores these offline.
+   *
+   * @param to - The JID of the recipient
+   * @param message - The profile sync message (update, version-check, version-response)
+   */
+  async sendProfileStanza(to: string, message: ProfileSyncMessage): Promise<void> {
+    this.ensureConnected();
+
+    const stanza = xml('message', { to, type: 'headline', id: `profile-${Date.now()}` },
+      xml('profile', { xmlns: NS_PROFILE }, JSON.stringify(message)),
+    );
+
+    await this.xmpp!.send(stanza);
+
+    if (__DEV__) {
+      console.log(`[XMPP] Sent profile ${message.type} to ${to.split('@')[0]}`);
+    }
+  }
+
+  /**
+   * Register handler for incoming profile sync messages.
+   * Used by ProfileSyncService to handle profile updates and version checks.
+   *
+   * @param handler - Callback receiving (from, message)
+   * @returns Unsubscribe function
+   */
+  onProfileSync(handler: (from: string, message: ProfileSyncMessage) => void): Unsubscribe {
+    this.profileSyncHandlers.add(handler);
+    return () => this.profileSyncHandlers.delete(handler);
+  }
+
   // ---- Push Notifications (XEP-0357) ----
 
   /**
@@ -552,6 +592,13 @@ export class XmppJsService implements XMPPService {
       return;
     }
 
+    // Check for profile sync stanza
+    const profileElement = stanza.getChild('profile', NS_PROFILE);
+    if (profileElement) {
+      this.handleIncomingProfileSync(from, profileElement);
+      return;
+    }
+
     // Check for message body
     const body = stanza.getChildText('body');
     if (body) {
@@ -606,6 +653,37 @@ export class XmppJsService implements XMPPService {
       });
     } catch (parseError) {
       console.error('[XMPP] Failed to parse call signaling payload:', parseError);
+    }
+  }
+
+  /**
+   * Handle incoming profile sync stanzas.
+   * Parses the JSON payload and notifies registered handlers.
+   */
+  private handleIncomingProfileSync(from: string, profileElement: Element): void {
+    try {
+      const jsonPayload = profileElement.text();
+      if (!jsonPayload) {
+        console.warn('[XMPP] Empty profile sync payload');
+        return;
+      }
+
+      const message = JSON.parse(jsonPayload) as ProfileSyncMessage;
+
+      if (__DEV__) {
+        console.log(`[XMPP] Received profile ${message.type} from ${from.split('@')[0]}`);
+      }
+
+      // Notify all registered handlers
+      this.profileSyncHandlers.forEach((handler) => {
+        try {
+          handler(from, message);
+        } catch (handlerError) {
+          console.error('[XMPP] Profile sync handler error:', handlerError);
+        }
+      });
+    } catch (parseError) {
+      console.error('[XMPP] Failed to parse profile sync payload:', parseError);
     }
   }
 

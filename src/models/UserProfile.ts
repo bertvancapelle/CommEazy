@@ -71,6 +71,9 @@ export class UserProfileModel extends Model {
   @field('incoming_call_vibration') incomingCallVibration?: boolean; // Vibrate for incoming calls
   @field('outgoing_call_vibration') outgoingCallVibration?: boolean; // Vibrate when outgoing call connects
 
+  // Profile sync version (v26): incremented on each profile change
+  @field('profile_version') profileVersion?: number;
+
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

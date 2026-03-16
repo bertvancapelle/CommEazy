@@ -38,6 +38,8 @@ export class ContactModel extends Model {
   @field('trust_level') trustLevel!: number;
   // Agenda categories (v20): JSON array of AgendaCategoryId strings
   @field('categories') categories?: string;
+  // Profile sync version (v26): incremented on each profile change
+  @field('profile_version') profileVersion?: number;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

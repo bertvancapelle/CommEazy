@@ -40,6 +40,7 @@ import type {
   AgeBracket,
   Gender,
 } from './interfaces';
+import type { ProfileSyncPayload } from './profileSync';
 
 export class WatermelonDBService implements DatabaseService {
   private database: Database | null = null;
@@ -554,6 +555,9 @@ export class WatermelonDBService implements DatabaseService {
           record.addressCountry = profile.addressCountry;
           record.birthDate = profile.birthDate;
           record.weddingDate = profile.weddingDate;
+
+          // Profile sync version (v26) — auto-increment on every save
+          record.profileVersion = (record.profileVersion ?? 0) + 1;
         });
       } else {
         await db.get<UserProfileModel>('user_profile').create(record => {
@@ -615,6 +619,9 @@ export class WatermelonDBService implements DatabaseService {
           record.addressCountry = profile.addressCountry;
           record.birthDate = profile.birthDate;
           record.weddingDate = profile.weddingDate;
+
+          // Profile sync version (v26) — starts at 1 for new profiles
+          record.profileVersion = 1;
         });
       }
     });
@@ -704,6 +711,7 @@ export class WatermelonDBService implements DatabaseService {
       isEmergencyContact: c.isEmergencyContact,
       trustLevel: c.trustLevel,
       categories: c.categories,
+      profileVersion: c.profileVersion,
     };
   }
 
@@ -776,6 +784,9 @@ export class WatermelonDBService implements DatabaseService {
       addressCountry: p.addressCountry,
       birthDate: p.birthDate,
       weddingDate: p.weddingDate,
+
+      // Profile sync version (v26)
+      profileVersion: p.profileVersion,
     };
   }
 
@@ -855,5 +866,56 @@ export class WatermelonDBService implements DatabaseService {
       consentChangedAt: c.consentChangedAt,
       lastSyncedAt: c.lastSyncedAt,
     }));
+  }
+
+  // ============================================================
+  // Profile Sync
+  // ============================================================
+
+  /**
+   * Update a contact's profile from an incoming profile sync payload.
+   * Only updates fields that are present in the payload.
+   */
+  async updateContactProfile(jid: string, data: ProfileSyncPayload): Promise<void> {
+    if (!this.database) return;
+    const collection = this.database.get<ContactModel>('contacts');
+    const results = await collection.query(Q.where('jid', jid)).fetch();
+
+    if (results.length === 0) {
+      console.warn(`[Database] updateContactProfile: contact ${jid.split('@')[0]} not found`);
+      return;
+    }
+
+    await this.database.write(async () => {
+      await results[0].update(record => {
+        // Update name
+        if (data.firstName !== undefined) record.firstName = data.firstName;
+        if (data.lastName !== undefined) record.lastName = data.lastName;
+
+        // Update contact details
+        if (data.phoneNumber !== undefined) record.phoneNumber = data.phoneNumber;
+        if (data.mobileNumber !== undefined) record.mobileNumber = data.mobileNumber;
+        if (data.email !== undefined) record.email = data.email;
+
+        // Update address
+        if (data.address) {
+          record.addressStreet = data.address.street;
+          record.addressPostalCode = data.address.postalCode;
+          record.addressCity = data.address.city;
+          record.addressCountry = data.address.country;
+        }
+
+        // Update dates
+        if (data.birthDate !== undefined) record.birthDate = data.birthDate;
+        if (data.weddingDate !== undefined) record.weddingDate = data.weddingDate;
+
+        // Update profile version
+        record.profileVersion = data.version;
+      });
+    });
+
+    if (__DEV__) {
+      console.debug(`[Database] Updated contact ${jid.split('@')[0]} profile to v${data.version}`);
+    }
   }
 }

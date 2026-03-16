@@ -29,6 +29,7 @@ import { groupChatService } from './groupChat';
 import { callService } from './call';
 import { FCMNotificationService, onTokenRefresh } from './notifications';
 import { registerForVoIPPush, getVoIPToken, onVoIPPush } from './voipPushService';
+import { ProfileSyncService } from './profileSync';
 
 // Note: Mock data imports moved to dynamic import in initialize() to avoid
 // triggering module evaluation at startup
@@ -207,6 +208,8 @@ class ServiceContainerClass {
   private _xmpp: XMPPService | null = null;
   private _database: DatabaseService | null = null;
   private _notifications: NotificationService | null = null;
+  private _profileSync: ProfileSyncService | null = null;
+  private _profileSyncStatusUnsub: (() => void) | null = null;
   private _initialized = false;
   private _voipPushUnsubscribe: (() => void) | null = null;
 
@@ -386,6 +389,32 @@ class ServiceContainerClass {
             console.warn('[ServiceContainer] Failed to load contacts for presence subscription:', dbError);
           }
         }
+
+        // 6d. Initialize ProfileSync service (needs XMPP + DB + Encryption)
+        this._profileSync = new ProfileSyncService();
+        const xmppService = this._xmpp as XmppJsService;
+        const dbService = this._database as WatermelonDBService;
+        const encryptionImpl = this._encryption as SodiumEncryptionService;
+        this._profileSync.initialize({
+          getDatabase: () => dbService,
+          getEncryption: () => encryptionImpl,
+          getPrivateKey: () => (encryptionImpl as unknown as { privateKey: Uint8Array | null }).privateKey,
+          sendProfileStanza: (to, message) => xmppService.sendProfileStanza(to, message),
+          onProfileSync: (handler) => xmppService.onProfileSync(handler),
+          updateContactProfile: (jid, data) => dbService.updateContactProfile(jid, data),
+        });
+        // Subscribe to connection status for bulk profile checks on reconnect
+        const statusUnsub = xmppService.observeConnectionStatus().subscribe((status) => {
+          if (status === 'connected' && this._profileSync) {
+            console.info('[ProfileSync] XMPP connected — running bulk version check');
+            void this._profileSync.bulkCheckContacts();
+          }
+        });
+        // Store unsubscribe so it gets cleaned up on destroy
+        // (ProfileSync.destroy() handles its own XMPP handler; this is separate)
+        this._profileSyncStatusUnsub = statusUnsub;
+
+        console.log('[ServiceContainer] ProfileSyncService initialized');
       } catch (xmppError) {
         // XMPP connection is optional in dev
         console.warn('[ServiceContainer] XMPP connection failed:', xmppError);
@@ -548,6 +577,10 @@ class ServiceContainerClass {
     return this._notifications;
   }
 
+  get profileSync(): ProfileSyncService | null {
+    return this._profileSync;
+  }
+
   get isPushAvailable(): boolean {
     return this._notifications !== null;
   }
@@ -558,11 +591,15 @@ class ServiceContainerClass {
 
   /** Reset all services (for testing) */
   async reset(): Promise<void> {
+    if (this._profileSyncStatusUnsub) this._profileSyncStatusUnsub();
+    if (this._profileSync) this._profileSync.destroy();
     if (this._xmpp) await (this._xmpp as XmppJsService).disconnect();
     this._encryption = null;
     this._xmpp = null;
     this._database = null;
     this._notifications = null;
+    this._profileSync = null;
+    this._profileSyncStatusUnsub = null;
     this._initialized = false;
   }
 

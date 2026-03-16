@@ -27,6 +27,7 @@
  * - v23: Added mobile_number to contacts (landline/mobile distinction)
  * - v24: Added personal contact details to user_profile (email, mobile, landline, address, dates) for contact data sharing
  * - v25: Added shared_data_consents table for per-contact data sharing consent
+ * - v26: Added profile_version to contacts and user_profile for profile sync
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -429,6 +430,24 @@ export const migrations = schemaMigrations({
             { name: 'last_synced_at', type: 'number', isOptional: true },
             { name: 'created_at', type: 'number' },
             { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
+    // Migration from v25 to v26: Add profile_version for profile sync
+    {
+      toVersion: 26,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'profile_version', type: 'number', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'profile_version', type: 'number', isOptional: true },
           ],
         }),
       ],

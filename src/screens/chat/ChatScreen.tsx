@@ -97,7 +97,12 @@ export function ChatScreen() {
       }
     };
     void markAsRead();
-  }, [chatId]);
+
+    // Check if contact's profile is up-to-date (fire-and-forget)
+    if (contactJid && ServiceContainer.isInitialized) {
+      void ServiceContainer.profileSync?.checkContact(contactJid);
+    }
+  }, [chatId, contactJid]);
 
   // Load and observe messages
   useEffect(() => {

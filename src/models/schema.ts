@@ -33,6 +33,7 @@
  * - v23: Added mobile_number to contacts (landline/mobile distinction)
  * - v24: Added personal contact details to user_profile (email, mobile, landline, address, dates) for contact data sharing
  * - v25: Added shared_data_consents table for per-contact data sharing consent
+ * - v26: Added profile_version to contacts and user_profile for profile sync
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -59,10 +60,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 25;
+export const SCHEMA_VERSION = 26;
 
 export const schema = appSchema({
-  version: 25,
+  version: 26,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -161,6 +162,8 @@ export const schema = appSchema({
         { name: 'trust_level', type: 'number' },
         // Agenda categories (v20) — JSON array of AgendaCategoryId strings
         { name: 'categories', type: 'string', isOptional: true },
+        // Profile sync version (v26) — incremented on each profile change
+        { name: 'profile_version', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -242,6 +245,9 @@ export const schema = appSchema({
         { name: 'dial_tone_enabled', type: 'boolean', isOptional: true },      // Play dial tone when calling
         { name: 'incoming_call_vibration', type: 'boolean', isOptional: true }, // Vibrate on incoming call
         { name: 'outgoing_call_vibration', type: 'boolean', isOptional: true }, // Vibrate on outgoing call feedback
+
+        // Profile sync version (v26) — incremented on each profile change
+        { name: 'profile_version', type: 'number', isOptional: true },
 
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
