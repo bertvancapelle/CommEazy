@@ -514,6 +514,36 @@ class ServiceContainerClass {
       }
 
       console.log(`[ServiceContainer] Test device contacts: ${createdCount} created, ${updatedCount} updated`);
+
+      // Auto-create own UserProfile for test device (so ProfileSettings works without onboarding)
+      const existingProfile = await this._database.getUserProfile();
+      if (!existingProfile) {
+        const myAccount = jidToAccount.get(myJid);
+        const myUuid = myJid.split('@')[0] ?? myJid;
+        await this._database.saveUserProfile({
+          userUuid: myUuid,
+          jid: myJid,
+          firstName: myAccount?.firstName ?? 'Test',
+          lastName: myAccount?.lastName ?? 'User',
+          phoneNumber: '+31600000000',
+          publicKey: myKeypair.publicKey,
+          language: 'nl',
+          subscriptionTier: 'free',
+        });
+        console.log(`[ServiceContainer] Auto-created UserProfile for ${myAccount?.firstName ?? myJid}`);
+      } else {
+        console.log('[ServiceContainer] UserProfile already exists, skipping auto-create');
+      }
+
+      // Auto-create SharedDataConsent for all other test devices (enables profile sync testing)
+      for (const otherJid of Object.keys(otherDevicesKeys)) {
+        const existingConsent = await this._database.getConsentForContact(otherJid);
+        if (!existingConsent) {
+          await this._database.setConsentForContact(otherJid, true);
+          console.log(`[ServiceContainer] Auto-created consent for ${otherJid.split('@')[0]}`);
+        }
+      }
+      console.log('[ServiceContainer] Test device consent records created for profile sync');
     } catch (error) {
       console.error('[ServiceContainer] Failed to setup test device encryption:', error);
     }
