@@ -327,7 +327,7 @@ export function ContactDetailScreen() {
     if (!contact) return;
 
     // Generate proper chat ID (format: chat:jid1:jid2, sorted)
-    let myJid = 'ik@commeazy.local'; // Default fallback
+    let myJid = 'sim1@commeazy.local'; // Default fallback
     try {
       const { chatService } = await import('@/services/chat');
       if (chatService.isInitialized) {

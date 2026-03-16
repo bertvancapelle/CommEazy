@@ -438,7 +438,7 @@ export function PhotoAlbumScreen() {
         console.debug(LOG_PREFIX, 'Loaded contacts:', { count: contactList.length });
       } else if (__DEV__) {
         // Use mock contacts in dev mode — detect current user dynamically
-        const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
+        const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'sim1@commeazy.local';
         const { getMockContactsForDevice } = await import('@/services/mock');
         let publicKeyMap: Record<string, string> | undefined;
         try {

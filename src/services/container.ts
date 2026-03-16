@@ -95,12 +95,14 @@ const isPhysicalDevice = async (): Promise<boolean> => {
 
 // Dev mode credentials (matching Prosody accounts)
 // Device assignment:
-// - iPhone 17 Pro (simulator, large screen) → ik@commeazy.local
-// - iPhone 16e (simulator, small screen) → oma@commeazy.local
-// - iPad (simulator) → ipad@commeazy.local
-// - iPhone 14 (physical, Bert) → test@commeazy.local
-// - Other physical iPhone (Jeanine) → jeanine@commeazy.local
-// - Physical iPad → ipadphys@commeazy.local
+// Physical:
+// - iPhone 14 (Bert) → bert@commeazy.local
+// - iPhone 12 (Jeanine) → jeanine@commeazy.local
+// - iPad (Pipo) → pipo@commeazy.local
+// Simulator:
+// - iPhone 17 Pro (large screen) → sim1@commeazy.local
+// - iPhone 16e (small screen) → sim2@commeazy.local
+// - iPad → simipad@commeazy.local
 const getDevUserCredentials = async () => {
   // First check if this is a physical device
   const physical = await isPhysicalDevice();
@@ -112,24 +114,23 @@ const getDevUserCredentials = async () => {
       const model = await DeviceInfo.default.getModel();
       console.log(`[DEV] Physical device model: ${model}`);
 
-      // iPhone 14 (Bert's device) uses test account
-      // Physical iPad uses ipadphys account
-      // Other physical devices (Jeanine's iPhone) use jeanine account
+      // iPhone 14 (Bert's device)
       if (model.includes('iPhone 14')) {
-        console.log(`[DEV] iPhone 14 detected (Bert), using test account`);
+        console.log(`[DEV] iPhone 14 detected (Bert), using bert account`);
         return {
-          jid: 'test@commeazy.local',
+          jid: 'bert@commeazy.local',
           password: 'test123',
-          name: 'Test',
+          name: 'Bert',
         };
       } else if (model.includes('iPad')) {
-        console.log(`[DEV] Physical iPad detected, using ipadphys account`);
+        console.log(`[DEV] Physical iPad detected (Pipo), using pipo account`);
         return {
-          jid: 'ipadphys@commeazy.local',
+          jid: 'pipo@commeazy.local',
           password: 'test123',
-          name: 'iPad',
+          name: 'Pipo',
         };
       } else {
+        // Other physical iPhones (Jeanine's iPhone 12)
         console.log(`[DEV] Other physical device detected (Jeanine), using jeanine account`);
         return {
           jid: 'jeanine@commeazy.local',
@@ -138,12 +139,12 @@ const getDevUserCredentials = async () => {
         };
       }
     } catch {
-      // Fallback to test account if DeviceInfo fails
-      console.log(`[DEV] Could not detect device model, using test account`);
+      // Fallback to bert account if DeviceInfo fails
+      console.log(`[DEV] Could not detect device model, using bert account`);
       return {
-        jid: 'test@commeazy.local',
+        jid: 'bert@commeazy.local',
         password: 'test123',
-        name: 'Test',
+        name: 'Bert',
       };
     }
   }
@@ -173,25 +174,25 @@ const getDevUserCredentials = async () => {
   console.log(`[DEV] Using: ${width}x${height} = ${screenSize} (isIPad: ${isIPad}, isSmall: ${isSmallDevice})`);
 
   if (isIPad) {
-    console.log(`[DEV] iPad simulator detected, using ipad account`);
+    console.log(`[DEV] iPad simulator detected, using simipad account`);
     return {
-      jid: 'ipad@commeazy.local',
+      jid: 'simipad@commeazy.local',
       password: 'test123',
-      name: 'iPad',
+      name: 'SimiPad',
     };
   } else if (isSmallDevice) {
-    console.log(`[DEV] Small simulator detected, using oma account`);
+    console.log(`[DEV] Small simulator detected (iPhone 16e), using sim2 account`);
     return {
-      jid: 'oma@commeazy.local',
+      jid: 'sim2@commeazy.local',
       password: 'test123',
-      name: 'Oma',
+      name: 'Sim2',
     };
   } else {
-    console.log(`[DEV] Large simulator detected, using ik account`);
+    console.log(`[DEV] Large simulator detected (iPhone 17 Pro), using sim1 account`);
     return {
-      jid: 'ik@commeazy.local',
+      jid: 'sim1@commeazy.local',
       password: 'test123',
-      name: 'Ik',
+      name: 'Sim1',
     };
   }
 };
@@ -404,9 +405,8 @@ class ServiceContainerClass {
    * Setup deterministic test keys for E2E encryption between test devices.
    *
    * This enables encrypted messaging between all test devices:
-   * - iPhone 17 Pro (simulator) = ik@commeazy.local
-   * - iPhone 16e (simulator) = oma@commeazy.local
-   * - iPhone 14 (physical) = test@commeazy.local
+   * - Physical: bert@commeazy.local (iPhone 14), jeanine@commeazy.local (iPhone 12), pipo@commeazy.local (iPad)
+   * - Simulator: sim1@commeazy.local (iPhone 17 Pro), sim2@commeazy.local (iPhone 16e), simipad@commeazy.local (iPad)
    *
    * How it works:
    * 1. All devices use deterministic keypairs generated from fixed seeds

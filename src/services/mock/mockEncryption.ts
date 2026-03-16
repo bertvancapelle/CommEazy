@@ -237,7 +237,7 @@ export const verifyMockDeviceLinkQR = (qrData: string): MockDeviceLinkResult => 
 export const MOCK_TEST_QR_CODES = {
   // Valid QR code for test device contact
   get TEST_DEVICE() {
-    return generateMockContactQRData('test@commeazy.local');
+    return generateMockContactQRData('bert@commeazy.local');
   },
 
   // Device link QR code

@@ -9,27 +9,28 @@ import type { Message } from '../interfaces';
 import { getMockContactsForDevice } from './mockContacts';
 import { chatService } from '../chat';
 
-// Current user (you) - for message direction
+// Current user is determined dynamically — this constant is a fallback
+// for code that needs a static reference (e.g., unread count filtering).
 export const MOCK_CURRENT_USER = {
-  jid: 'ik@commeazy.local',
-  name: 'Ik',
+  jid: 'sim1@commeazy.local',
+  name: 'Sim1',
 };
 
 // Helper to create timestamps relative to now
 const minutesAgo = (minutes: number): number => Date.now() - minutes * 60 * 1000;
 
 // ============================================================
-// Conversation between test devices (ik@commeazy.local <-> oma@commeazy.local)
+// Conversation between test devices (sim1@commeazy.local <-> sim2@commeazy.local)
 // This chat ID is generated the same way as ChatService.getChatId()
 // ============================================================
-export const DEVICE_CHAT_ID = 'chat:ik@commeazy.local:oma@commeazy.local';
+export const DEVICE_CHAT_ID = 'chat:sim1@commeazy.local:sim2@commeazy.local';
 
 export const MOCK_MESSAGES_DEVICE_CHAT: Message[] = [
   {
     id: 'device_msg_1',
     chatId: DEVICE_CHAT_ID,
-    senderId: 'oma@commeazy.local',
-    senderName: 'Oma (andere device)',
+    senderId: 'sim2@commeazy.local',
+    senderName: 'Sim2 (iPhone 16e)',
     content: 'Hallo! Dit is een testbericht van de iPhone 16e.',
     contentType: 'text',
     timestamp: minutesAgo(30),
@@ -39,8 +40,8 @@ export const MOCK_MESSAGES_DEVICE_CHAT: Message[] = [
   {
     id: 'device_msg_2',
     chatId: DEVICE_CHAT_ID,
-    senderId: 'ik@commeazy.local',
-    senderName: 'Ik (andere device)',
+    senderId: 'sim1@commeazy.local',
+    senderName: 'Sim1 (iPhone 17 Pro)',
     content: 'Hoi! Bericht van de iPhone 17 Pro.',
     contentType: 'text',
     timestamp: minutesAgo(25),
@@ -50,8 +51,8 @@ export const MOCK_MESSAGES_DEVICE_CHAT: Message[] = [
   {
     id: 'device_msg_3',
     chatId: DEVICE_CHAT_ID,
-    senderId: 'oma@commeazy.local',
-    senderName: 'Oma (andere device)',
+    senderId: 'sim2@commeazy.local',
+    senderName: 'Sim2 (iPhone 16e)',
     content: 'Mooi! De messaging werkt! 🎉',
     contentType: 'text',
     timestamp: minutesAgo(20),

@@ -557,7 +557,7 @@ export interface IceServer {
  * @example
  * ```typescript
  * // Initiate a video call
- * const callId = await callService.initiateCall('oma@commeazy.local', 'video');
+ * const callId = await callService.initiateCall('sim2@commeazy.local', 'video');
  *
  * // Listen for incoming calls
  * callService.onIncomingCall((call) => {
@@ -570,7 +570,7 @@ export interface IceServer {
  *
  * // Add a third participant (mesh call)
  * if (callService.canAddParticipant(callId)) {
- *   await callService.addParticipant(callId, 'test@commeazy.local');
+ *   await callService.addParticipant(callId, 'bert@commeazy.local');
  * }
  * ```
  */

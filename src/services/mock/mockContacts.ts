@@ -4,38 +4,40 @@
  * Contacts for multi-device development testing.
  * Only loaded in __DEV__ mode.
  *
- * Test devices:
- * - ik@commeazy.local: iPhone 14 (physical, Bert)
- * - oma@commeazy.local: iPhone 16e (simulator)
- * - test@commeazy.local: iPhone 17 Pro (simulator)
+ * Test devices (physical):
+ * - bert@commeazy.local: iPhone 14 (physical, Bert)
  * - jeanine@commeazy.local: iPhone 12 (physical, Jeanine)
- * - ipad@commeazy.local: iPad (simulator)
- * - ipadphys@commeazy.local: iPad (physical)
+ * - pipo@commeazy.local: iPad (physical, Pipo)
+ *
+ * Test devices (simulator):
+ * - sim1@commeazy.local: iPhone 17 Pro (simulator)
+ * - sim2@commeazy.local: iPhone 16e (simulator)
+ * - simipad@commeazy.local: iPad (simulator)
  */
 
 import type { Contact, PresenceShow } from '../interfaces';
 
 // Stable UUIDs for test device contacts
 const MOCK_UUIDS = {
-  ik: 'e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b',
-  oma: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c',
-  test: 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d',
+  bert: 'e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b',
   jeanine: 'b8c9d0e1-f2a3-4b8c-5d9e-6f7a8b9c0d1e',
-  ipad: 'c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f',
-  ipadphys: 'd0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a',
+  pipo: 'd0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a',
+  sim1: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c',
+  sim2: 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d',
+  simipad: 'c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f',
 };
 
 // Test device contacts — each device sees all other test devices as contacts
 // lastSeen is set to 0 (unknown) — real presence comes from XMPP subscription
 const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
-  'ik@commeazy.local': {
-    userUuid: MOCK_UUIDS.ik,
-    jid: 'ik@commeazy.local',
-    firstName: 'Ik',
-    lastName: '(iPhone fysiek)',
+  'bert@commeazy.local': {
+    userUuid: MOCK_UUIDS.bert,
+    jid: 'bert@commeazy.local',
+    firstName: 'Bert',
+    lastName: '',
     phoneNumber: '+31201234567',
     mobileNumber: '+31600000001',
-    email: 'ik@commeazy.local',
+    email: 'bert@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     trustLevel: 2, // Connected (has CommEazy app)
@@ -48,31 +50,6 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     },
     categories: JSON.stringify(['family', 'doctor']),
   },
-  'oma@commeazy.local': {
-    userUuid: MOCK_UUIDS.oma,
-    jid: 'oma@commeazy.local',
-    firstName: 'Oma',
-    lastName: '(simulator)',
-    phoneNumber: '+31207654321',
-    mobileNumber: '+31600000002',
-    email: 'oma@commeazy.local',
-    publicKey: '', // Will be set dynamically with real key
-    verified: true,
-    lastSeen: 0, // Unknown - presence comes from XMPP
-    categories: JSON.stringify(['family']),
-  },
-  'test@commeazy.local': {
-    userUuid: MOCK_UUIDS.test,
-    jid: 'test@commeazy.local',
-    firstName: 'Test',
-    lastName: '(simulator)',
-    phoneNumber: '+31600000003',
-    email: 'test@commeazy.local',
-    publicKey: '', // Will be set dynamically with real key
-    verified: true,
-    lastSeen: 0, // Unknown - presence comes from XMPP
-    categories: JSON.stringify(['other']),
-  },
   'jeanine@commeazy.local': {
     userUuid: MOCK_UUIDS.jeanine,
     jid: 'jeanine@commeazy.local',
@@ -82,6 +59,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     email: 'jeanine@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
+    trustLevel: 2, // Connected (has CommEazy app)
     lastSeen: 0, // Unknown - presence comes from XMPP
     address: {
       street: 'Hoofdstraat 17',
@@ -91,36 +69,63 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     },
     categories: JSON.stringify(['family', 'hairdresser']),
   },
-  'ipad@commeazy.local': {
-    userUuid: MOCK_UUIDS.ipad,
-    jid: 'ipad@commeazy.local',
-    firstName: 'iPad',
-    lastName: '(simulator)',
-    mobileNumber: '+31600000005',
-    email: 'ipad@commeazy.local',
-    publicKey: '', // Will be set dynamically with real key
-    verified: true,
-    trustLevel: 2, // Connected (has CommEazy app)
-    lastSeen: 0, // Unknown - presence comes from XMPP
-    categories: JSON.stringify(['other']),
-  },
-  'ipadphys@commeazy.local': {
-    userUuid: MOCK_UUIDS.ipadphys,
-    jid: 'ipadphys@commeazy.local',
-    firstName: 'iPad',
-    lastName: '(fysiek)',
+  'pipo@commeazy.local': {
+    userUuid: MOCK_UUIDS.pipo,
+    jid: 'pipo@commeazy.local',
+    firstName: 'Pipo',
+    lastName: '',
     mobileNumber: '+31600000006',
-    email: 'ipadphys@commeazy.local',
+    email: 'pipo@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
     trustLevel: 2, // Connected (has CommEazy app)
     lastSeen: 0, // Unknown - presence comes from XMPP
     categories: JSON.stringify(['family']),
   },
+  'sim1@commeazy.local': {
+    userUuid: MOCK_UUIDS.sim1,
+    jid: 'sim1@commeazy.local',
+    firstName: 'Sim1',
+    lastName: '(iPhone 17 Pro)',
+    phoneNumber: '+31207654321',
+    mobileNumber: '+31600000002',
+    email: 'sim1@commeazy.local',
+    publicKey: '', // Will be set dynamically with real key
+    verified: true,
+    trustLevel: 2, // Connected (has CommEazy app)
+    lastSeen: 0, // Unknown - presence comes from XMPP
+    categories: JSON.stringify(['other']),
+  },
+  'sim2@commeazy.local': {
+    userUuid: MOCK_UUIDS.sim2,
+    jid: 'sim2@commeazy.local',
+    firstName: 'Sim2',
+    lastName: '(iPhone 16e)',
+    phoneNumber: '+31600000003',
+    email: 'sim2@commeazy.local',
+    publicKey: '', // Will be set dynamically with real key
+    verified: true,
+    trustLevel: 2, // Connected (has CommEazy app)
+    lastSeen: 0, // Unknown - presence comes from XMPP
+    categories: JSON.stringify(['other']),
+  },
+  'simipad@commeazy.local': {
+    userUuid: MOCK_UUIDS.simipad,
+    jid: 'simipad@commeazy.local',
+    firstName: 'SimiPad',
+    lastName: '',
+    mobileNumber: '+31600000005',
+    email: 'simipad@commeazy.local',
+    publicKey: '', // Will be set dynamically with real key
+    verified: true,
+    trustLevel: 2, // Connected (has CommEazy app)
+    lastSeen: 0, // Unknown - presence comes from XMPP
+    categories: JSON.stringify(['other']),
+  },
 };
 
 // All test device JIDs
-const TEST_DEVICE_JIDS = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local', 'ipadphys@commeazy.local'];
+const TEST_DEVICE_JIDS = ['bert@commeazy.local', 'jeanine@commeazy.local', 'pipo@commeazy.local', 'sim1@commeazy.local', 'sim2@commeazy.local', 'simipad@commeazy.local'];
 
 /**
  * Get test device contacts for the current user.

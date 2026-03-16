@@ -3623,13 +3623,14 @@ sudo prosodyctl status
 
 | Device | Account | Type | iOS Versie |
 |--------|---------|------|------------|
-| iPhone 17 Pro | ik@commeazy.local | Simulator | iOS 26 (Xcode sim) |
-| iPhone 16e | oma@commeazy.local | Simulator | iOS 26 (Xcode sim) |
-| iPad (any) | ipad@commeazy.local | Simulator | iOS 26 (Xcode sim) |
-| iPhone 14 (Bert) | test@commeazy.local | Fysiek | **iOS 26.4 BETA** |
-| iPhone (Jeanine) | jeanine@commeazy.local | Fysiek | **iOS 26.3 (officieel)** |
+| iPhone 14 (Bert) | bert@commeazy.local | Fysiek | **iOS 26.4 BETA** |
+| iPhone 12 (Jeanine) | jeanine@commeazy.local | Fysiek | **iOS 26.3 (officieel)** |
+| iPad (Pipo) | pipo@commeazy.local | Fysiek | iOS 26+ |
+| iPhone 17 Pro | sim1@commeazy.local | Simulator | iOS 26 (Xcode sim) |
+| iPhone 16e | sim2@commeazy.local | Simulator | iOS 26 (Xcode sim) |
+| iPad (any) | simipad@commeazy.local | Simulator | iOS 26 (Xcode sim) |
 
-**⚠️ BELANGRIJK:** Beide fysieke test devices draaien iOS 26+! UIGlassEffect en Liquid Glass zijn beschikbaar.
+**⚠️ BELANGRIJK:** Alle fysieke test devices draaien iOS 26+! UIGlassEffect en Liquid Glass zijn beschikbaar.
 
 ### Metro Bundler Configuratie
 
@@ -3732,11 +3733,12 @@ authentication = "internal_plain"   -- Vereist voor React Native
 
 **Test accounts aanmaken:**
 ```bash
-prosodyctl adduser ik@commeazy.local       # Password: test123
-prosodyctl adduser oma@commeazy.local      # Password: test123
-prosodyctl adduser test@commeazy.local     # Password: test123
-prosodyctl adduser jeanine@commeazy.local  # Password: test123
-prosodyctl adduser ipad@commeazy.local     # Password: test123
+prosodyctl adduser bert@commeazy.local      # Password: test123 (iPhone 14 physical, Bert)
+prosodyctl adduser jeanine@commeazy.local   # Password: test123 (iPhone 12 physical, Jeanine)
+prosodyctl adduser pipo@commeazy.local      # Password: test123 (iPad physical, Pipo)
+prosodyctl adduser sim1@commeazy.local      # Password: test123 (iPhone 17 Pro simulator)
+prosodyctl adduser sim2@commeazy.local      # Password: test123 (iPhone 16e simulator)
+prosodyctl adduser simipad@commeazy.local   # Password: test123 (iPad simulator)
 ```
 
 ---

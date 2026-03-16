@@ -86,8 +86,8 @@ export function GroupDetailScreen() {
           const mockGroup: Group = {
             id: groupId,
             name: name,
-            members: ['ik@commeazy.local', 'oma@commeazy.local', 'piet@commeazy.local'],
-            createdBy: 'ik@commeazy.local',
+            members: ['sim1@commeazy.local', 'sim2@commeazy.local', 'piet@commeazy.local'],
+            createdBy: 'sim1@commeazy.local',
             createdAt: Date.now() - 86400000,
             encryptionMode: 'encrypt-to-all',
           };
@@ -95,8 +95,8 @@ export function GroupDetailScreen() {
             {
               id: '1',
               chatId: groupId,
-              senderId: 'oma@commeazy.local',
-              senderName: 'Oma',
+              senderId: 'sim2@commeazy.local',
+              senderName: 'Sim2',
               content: 'Goedemorgen allemaal! 🌞',
               contentType: 'text',
               timestamp: Date.now() - 7200000,
@@ -115,8 +115,8 @@ export function GroupDetailScreen() {
             {
               id: '3',
               chatId: groupId,
-              senderId: 'ik@commeazy.local',
-              senderName: 'Ik',
+              senderId: 'sim1@commeazy.local',
+              senderName: 'Sim1',
               content: 'Prima hier! Wie komt er zondag?',
               contentType: 'text',
               timestamp: Date.now() - 1800000,

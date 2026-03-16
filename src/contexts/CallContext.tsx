@@ -9,7 +9,7 @@
  * const { activeCall, initiateCall, endCall } = useCall();
  *
  * // Start a call
- * await initiateCall('oma@commeazy.local', 'video');
+ * await initiateCall('sim2@commeazy.local', 'video');
  *
  * // End current call
  * endCall();

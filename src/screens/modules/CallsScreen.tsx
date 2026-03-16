@@ -155,12 +155,12 @@ export function CallsScreen() {
           const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
           const { chatService } = await import('@/services/chat');
 
-          const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'ik@commeazy.local';
+          const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'sim1@commeazy.local';
 
           // Get public keys for other test devices
-          const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'ik@commeazy.local');
+          const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'sim1@commeazy.local');
 
-          const deviceContacts = getMockContactsForDevice(currentUserJid || 'ik@commeazy.local', publicKeyMap);
+          const deviceContacts = getMockContactsForDevice(currentUserJid || 'sim1@commeazy.local', publicKeyMap);
 
           const sorted = [...deviceContacts].sort((a, b) =>
             getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, { sensitivity: 'base' })

@@ -12,10 +12,12 @@
  * 1. Prosody XMPP server must be running: sudo prosodyctl start
  * 2. Both devices must be on the same network
  * 3. Test accounts must exist in Prosody:
- *    - ik@commeazy.local (iPhone 14 physical, Bert)
- *    - oma@commeazy.local (iPhone 16e simulator)
- *    - test@commeazy.local (iPhone 17 Pro simulator)
- *    - ipadphys@commeazy.local (physical iPad)
+ *    - bert@commeazy.local (iPhone 14 physical, Bert)
+ *    - jeanine@commeazy.local (iPhone 12 physical, Jeanine)
+ *    - pipo@commeazy.local (iPad physical, Pipo)
+ *    - sim1@commeazy.local (iPhone 17 Pro simulator)
+ *    - sim2@commeazy.local (iPhone 16e simulator)
+ *    - simipad@commeazy.local (iPad simulator)
  */
 
 // ============================================================
@@ -70,34 +72,40 @@ export const MUC_DOMAIN = `muc.${XMPP_HOST}`;
 
 export const TEST_ACCOUNTS = {
   // Physical device (iPhone 14, Bert)
-  ik: {
-    jid: 'ik@commeazy.local',
+  bert: {
+    jid: 'bert@commeazy.local',
     password: 'test123',
-    name: 'Ik',
+    name: 'Bert',
   },
-  // Small simulator (iPhone 16e)
-  oma: {
-    jid: 'oma@commeazy.local',
-    password: 'test123',
-    name: 'Oma',
-  },
-  // Large simulator (iPhone 17 Pro)
-  test: {
-    jid: 'test@commeazy.local',
-    password: 'test123',
-    name: 'Test',
-  },
-  // Physical device (Jeanine's iPhone)
+  // Physical device (iPhone 12, Jeanine)
   jeanine: {
     jid: 'jeanine@commeazy.local',
     password: 'test123',
     name: 'Jeanine',
   },
-  // Physical iPad
-  ipadphys: {
-    jid: 'ipadphys@commeazy.local',
+  // Physical iPad (Pipo)
+  pipo: {
+    jid: 'pipo@commeazy.local',
     password: 'test123',
-    name: 'iPad',
+    name: 'Pipo',
+  },
+  // iPhone 17 Pro simulator
+  sim1: {
+    jid: 'sim1@commeazy.local',
+    password: 'test123',
+    name: 'Sim1',
+  },
+  // iPhone 16e simulator
+  sim2: {
+    jid: 'sim2@commeazy.local',
+    password: 'test123',
+    name: 'Sim2',
+  },
+  // iPad simulator
+  simipad: {
+    jid: 'simipad@commeazy.local',
+    password: 'test123',
+    name: 'SimiPad',
   },
 } as const;
 

@@ -679,14 +679,14 @@ export function MailComposeScreen({
 
           const currentUserJid = chatService.isInitialized
             ? chatService.getMyJid()
-            : 'ik@commeazy.local';
+            : 'sim1@commeazy.local';
 
           const publicKeyMap = await getOtherDevicesPublicKeys(
-            currentUserJid || 'ik@commeazy.local',
+            currentUserJid || 'sim1@commeazy.local',
           );
 
           const deviceContacts = getMockContactsForDevice(
-            currentUserJid || 'ik@commeazy.local',
+            currentUserJid || 'sim1@commeazy.local',
             publicKeyMap,
           );
 

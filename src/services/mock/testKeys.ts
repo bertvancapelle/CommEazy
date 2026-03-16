@@ -1,20 +1,27 @@
 /**
- * Test Keypairs for 2-Device Development Testing
+ * Test Keypairs for Multi-Device Development Testing
  *
  * These are DETERMINISTIC test keypairs used for E2E encryption testing
- * between the two development devices (iPhone 17 Pro and iPhone 16e).
+ * between development devices (physical + simulator).
  *
  * SECURITY WARNING: These keys are PUBLIC and should NEVER be used in production!
  * They are included in the source code intentionally for development testing only.
  *
- * How it works:
- * - iPhone 17 Pro runs as 'ik@commeazy.local' and uses IK_KEYPAIR
- * - iPhone 16e runs as 'oma@commeazy.local' and uses OMA_KEYPAIR
- * - When 'ik' sends to 'oma', it encrypts with OMA_KEYPAIR.publicKey
- * - When 'oma' receives from 'ik', it decrypts using OMA_KEYPAIR.privateKey
+ * Test devices (physical):
+ * - bert@commeazy.local: iPhone 14 (physical, Bert)
+ * - jeanine@commeazy.local: iPhone 12 (physical, Jeanine)
+ * - pipo@commeazy.local: iPad (physical, Pipo)
+ *
+ * Test devices (simulator):
+ * - sim1@commeazy.local: iPhone 17 Pro (simulator)
+ * - sim2@commeazy.local: iPhone 16e (simulator)
+ * - simipad@commeazy.local: iPad (simulator)
  *
  * The keys are generated from deterministic seeds using crypto_box_seed_keypair.
- * This ensures both devices generate identical keypairs.
+ * This ensures all devices generate identical keypairs.
+ *
+ * NOTE: Seeds are intentionally kept at their original values to preserve
+ * keypair continuity. The seed string does NOT need to match the JID.
  */
 
 import {
@@ -27,20 +34,21 @@ import {
 } from 'react-native-libsodium';
 
 // Seeds for deterministic key generation (32 bytes each, as UTF-8 hash)
-const IK_SEED = 'commeazy_dev_test_keypair_ik_v1';
-const OMA_SEED = 'commeazy_dev_test_keypair_oma_v1';
-const TEST_SEED = 'commeazy_dev_test_keypair_test_v1';
-const JEANINE_SEED = 'commeazy_dev_test_keypair_jeanine_v1';
-const IPAD_SEED = 'commeazy_dev_test_keypair_ipad_v1';
-const IPADPHYS_SEED = 'commeazy_dev_test_keypair_ipadphys_v1';
+// Seeds are kept at original values for keypair continuity across JID rename
+const BERT_SEED = 'commeazy_dev_test_keypair_test_v1';       // was TEST_SEED (bert = old test@)
+const JEANINE_SEED = 'commeazy_dev_test_keypair_jeanine_v1'; // unchanged
+const PIPO_SEED = 'commeazy_dev_test_keypair_ipadphys_v1';   // was IPADPHYS_SEED (pipo = old ipadphys@)
+const SIM1_SEED = 'commeazy_dev_test_keypair_ik_v1';         // was IK_SEED (sim1 = old ik@)
+const SIM2_SEED = 'commeazy_dev_test_keypair_oma_v1';        // was OMA_SEED (sim2 = old oma@)
+const SIMIPAD_SEED = 'commeazy_dev_test_keypair_ipad_v1';    // was IPAD_SEED (simipad = old ipad@)
 
 // Cached keypairs (generated once on first access)
-let ikKeypairCache: { publicKey: string; privateKey: string } | null = null;
-let omaKeypairCache: { publicKey: string; privateKey: string } | null = null;
-let testKeypairCache: { publicKey: string; privateKey: string } | null = null;
+let bertKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let jeanineKeypairCache: { publicKey: string; privateKey: string } | null = null;
-let ipadKeypairCache: { publicKey: string; privateKey: string } | null = null;
-let ipadphysKeypairCache: { publicKey: string; privateKey: string } | null = null;
+let pipoKeypairCache: { publicKey: string; privateKey: string } | null = null;
+let sim1KeypairCache: { publicKey: string; privateKey: string } | null = null;
+let sim2KeypairCache: { publicKey: string; privateKey: string } | null = null;
+let simipadKeypairCache: { publicKey: string; privateKey: string } | null = null;
 let sodiumReadyPromise: Promise<void> | null = null;
 
 /**
@@ -75,48 +83,22 @@ const generateKeypairFromSeed = async (seedString: string): Promise<{ publicKey:
 };
 
 /**
- * Get or generate the test keypair for 'ik@commeazy.local'.
+ * Get or generate the test keypair for 'bert@commeazy.local'.
+ * Physical iPhone 14 (Bert).
  */
-export const getIkKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+export const getBertKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
 
-  if (!ikKeypairCache) {
-    ikKeypairCache = await generateKeypairFromSeed(IK_SEED);
-    console.log('[TestKeys] Generated IK keypair:', ikKeypairCache.publicKey.substring(0, 20) + '...');
+  if (!bertKeypairCache) {
+    bertKeypairCache = await generateKeypairFromSeed(BERT_SEED);
+    console.log('[TestKeys] Generated BERT keypair:', bertKeypairCache.publicKey.substring(0, 20) + '...');
   }
-  return ikKeypairCache;
-};
-
-/**
- * Get or generate the test keypair for 'oma@commeazy.local'.
- */
-export const getOmaKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
-  if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
-
-  if (!omaKeypairCache) {
-    omaKeypairCache = await generateKeypairFromSeed(OMA_SEED);
-    console.log('[TestKeys] Generated OMA keypair:', omaKeypairCache.publicKey.substring(0, 20) + '...');
-  }
-  return omaKeypairCache;
-};
-
-/**
- * Get or generate the test keypair for 'test@commeazy.local'.
- * Used for physical test devices (e.g., iPhone 14, Bert).
- */
-export const getTestKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
-  if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
-
-  if (!testKeypairCache) {
-    testKeypairCache = await generateKeypairFromSeed(TEST_SEED);
-    console.log('[TestKeys] Generated TEST keypair:', testKeypairCache.publicKey.substring(0, 20) + '...');
-  }
-  return testKeypairCache;
+  return bertKeypairCache;
 };
 
 /**
  * Get or generate the test keypair for 'jeanine@commeazy.local'.
- * Used for Jeanine's physical iPhone.
+ * Physical iPhone 12 (Jeanine).
  */
 export const getJeanineKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
@@ -129,31 +111,59 @@ export const getJeanineKeypair = async (): Promise<{ publicKey: string; privateK
 };
 
 /**
- * Get or generate the test keypair for 'ipad@commeazy.local'.
- * Used for iPad simulator testing.
+ * Get or generate the test keypair for 'pipo@commeazy.local'.
+ * Physical iPad (Pipo).
  */
-export const getIpadKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+export const getPipoKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
 
-  if (!ipadKeypairCache) {
-    ipadKeypairCache = await generateKeypairFromSeed(IPAD_SEED);
-    console.log('[TestKeys] Generated IPAD keypair:', ipadKeypairCache.publicKey.substring(0, 20) + '...');
+  if (!pipoKeypairCache) {
+    pipoKeypairCache = await generateKeypairFromSeed(PIPO_SEED);
+    console.log('[TestKeys] Generated PIPO keypair:', pipoKeypairCache.publicKey.substring(0, 20) + '...');
   }
-  return ipadKeypairCache;
+  return pipoKeypairCache;
 };
 
 /**
- * Get or generate the test keypair for 'ipadphys@commeazy.local'.
- * Used for physical iPad testing.
+ * Get or generate the test keypair for 'sim1@commeazy.local'.
+ * iPhone 17 Pro simulator.
  */
-export const getIpadPhysKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+export const getSim1Keypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
 
-  if (!ipadphysKeypairCache) {
-    ipadphysKeypairCache = await generateKeypairFromSeed(IPADPHYS_SEED);
-    console.log('[TestKeys] Generated IPADPHYS keypair:', ipadphysKeypairCache.publicKey.substring(0, 20) + '...');
+  if (!sim1KeypairCache) {
+    sim1KeypairCache = await generateKeypairFromSeed(SIM1_SEED);
+    console.log('[TestKeys] Generated SIM1 keypair:', sim1KeypairCache.publicKey.substring(0, 20) + '...');
   }
-  return ipadphysKeypairCache;
+  return sim1KeypairCache;
+};
+
+/**
+ * Get or generate the test keypair for 'sim2@commeazy.local'.
+ * iPhone 16e simulator.
+ */
+export const getSim2Keypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+  if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
+
+  if (!sim2KeypairCache) {
+    sim2KeypairCache = await generateKeypairFromSeed(SIM2_SEED);
+    console.log('[TestKeys] Generated SIM2 keypair:', sim2KeypairCache.publicKey.substring(0, 20) + '...');
+  }
+  return sim2KeypairCache;
+};
+
+/**
+ * Get or generate the test keypair for 'simipad@commeazy.local'.
+ * iPad simulator.
+ */
+export const getSimipadKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
+  if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
+
+  if (!simipadKeypairCache) {
+    simipadKeypairCache = await generateKeypairFromSeed(SIMIPAD_SEED);
+    console.log('[TestKeys] Generated SIMIPAD keypair:', simipadKeypairCache.publicKey.substring(0, 20) + '...');
+  }
+  return simipadKeypairCache;
 };
 
 /**
@@ -164,18 +174,18 @@ export const getTestKeypairForJid = async (jid: string): Promise<{ publicKey: st
   if (!__DEV__) return null;
 
   switch (jid) {
-    case 'ik@commeazy.local':
-      return getIkKeypair();
-    case 'oma@commeazy.local':
-      return getOmaKeypair();
-    case 'test@commeazy.local':
-      return getTestKeypair();
+    case 'bert@commeazy.local':
+      return getBertKeypair();
     case 'jeanine@commeazy.local':
       return getJeanineKeypair();
-    case 'ipad@commeazy.local':
-      return getIpadKeypair();
-    case 'ipadphys@commeazy.local':
-      return getIpadPhysKeypair();
+    case 'pipo@commeazy.local':
+      return getPipoKeypair();
+    case 'sim1@commeazy.local':
+      return getSim1Keypair();
+    case 'sim2@commeazy.local':
+      return getSim2Keypair();
+    case 'simipad@commeazy.local':
+      return getSimipadKeypair();
     default:
       return null;
   }
@@ -197,7 +207,7 @@ export const getTestPublicKeyForJid = async (jid: string): Promise<string | null
 export const getOtherDevicesPublicKeys = async (myJid: string): Promise<Record<string, string>> => {
   if (!__DEV__) return {};
 
-  const allTestJids = ['ik@commeazy.local', 'oma@commeazy.local', 'test@commeazy.local', 'jeanine@commeazy.local', 'ipad@commeazy.local', 'ipadphys@commeazy.local'];
+  const allTestJids = ['bert@commeazy.local', 'jeanine@commeazy.local', 'pipo@commeazy.local', 'sim1@commeazy.local', 'sim2@commeazy.local', 'simipad@commeazy.local'];
   const otherJids = allTestJids.filter(jid => jid !== myJid);
 
   const result: Record<string, string> = {};
@@ -209,4 +219,3 @@ export const getOtherDevicesPublicKeys = async (myJid: string): Promise<Record<s
   }
   return result;
 };
-
