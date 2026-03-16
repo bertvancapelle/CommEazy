@@ -468,6 +468,17 @@
       "none": "Inga kategorier",
       "required": "Välj minst en kategori",
       "filterAll": "Alla"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, E-post: {{email}}, Telefon: {{phone}}",
+      "available": "tillgänglig",
+      "unavailable": "inte tillgänglig"
+    },
+    "emailReminder": {
+      "title": "Lägga till e-postadress?",
+      "subtitle": "Utan e-postadress kan denna kontakt inte ta emot gruppmeddelanden via e-post.",
+      "skip": "Hoppa över",
+      "save": "Spara"
     }
   },
   "settings": {

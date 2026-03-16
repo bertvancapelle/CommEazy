@@ -32,7 +32,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { ContactAvatar, LoadingView, Icon, ModuleHeader, ModuleScreenLayout, SearchBar, ContactGroupChipBar, ContactGroupActionsBar, HapticTouchable , ScrollViewWithIndicator} from '@/components';
+import { ContactAvatar, LoadingView, Icon, ModuleHeader, ModuleScreenLayout, SearchBar, ContactGroupChipBar, ContactGroupActionsBar, HapticTouchable, ScrollViewWithIndicator, ContactReachabilityIcons } from '@/components';
 import type { ChipId } from '@/components';
 import { VoiceFocusable } from '@/components/VoiceFocusable';
 import { useVoiceFocusList, type VoiceFocusableItem } from '@/contexts/VoiceFocusContext';
@@ -89,14 +89,21 @@ function ContactListItem({
           presence={presence}
         />
 
-        {/* Name - large and clear */}
-        <Text
-          style={[styles.contactName, { color: themeColors.textPrimary }]}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {displayName}
-        </Text>
+        {/* Name + reachability icons stacked vertically */}
+        <View style={styles.contactInfo}>
+          <Text
+            style={[styles.contactName, { color: themeColors.textPrimary }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {displayName}
+          </Text>
+          <ContactReachabilityIcons
+            hasApp={(contact.trustLevel ?? 0) >= 2}
+            hasEmail={!!contact.email}
+            hasPhone={!!contact.phoneNumber}
+          />
+        </View>
 
         {/* Chevron indicator */}
         <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
@@ -508,11 +515,14 @@ const styles = StyleSheet.create({
     minHeight: touchTargets.comfortable,
     borderBottomWidth: 1,
   },
-  contactName: {
-    ...typography.h3,
+  contactInfo: {
     flex: 1,
     marginLeft: spacing.md,
     marginRight: spacing.sm,
+  },
+  contactName: {
+    ...typography.h3,
+    marginBottom: spacing.xs,
   },
   chevron: {
     fontSize: 28,

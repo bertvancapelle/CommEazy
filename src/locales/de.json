@@ -573,6 +573,17 @@
       "none": "Keine Kategorien",
       "required": "Wähle mindestens eine Kategorie",
       "filterAll": "Alle"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, E-Mail: {{email}}, Telefon: {{phone}}",
+      "available": "verfügbar",
+      "unavailable": "nicht verfügbar"
+    },
+    "emailReminder": {
+      "title": "E-Mail-Adresse ergänzen?",
+      "subtitle": "Ohne E-Mail-Adresse kann dieser Kontakt keine Gruppennachrichten per E-Mail empfangen.",
+      "skip": "Überspringen",
+      "save": "Speichern"
     }
   },
   "settings": {

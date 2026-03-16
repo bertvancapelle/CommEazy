@@ -571,6 +571,17 @@
       "none": "Nessuna categoria",
       "required": "Scegli almeno una categoria",
       "filterAll": "Tutti"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, Email: {{email}}, Telefono: {{phone}}",
+      "available": "disponibile",
+      "unavailable": "non disponibile"
+    },
+    "emailReminder": {
+      "title": "Aggiungere indirizzo email?",
+      "subtitle": "Senza indirizzo email, questo contatto non potrà ricevere messaggi di gruppo via email.",
+      "skip": "Salta",
+      "save": "Salva"
     }
   },
   "settings": {

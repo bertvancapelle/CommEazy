@@ -468,6 +468,17 @@
       "none": "Ingen kategorier",
       "required": "Vælg mindst én kategori",
       "filterAll": "Alle"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Telefon: {{phone}}",
+      "available": "tilgængelig",
+      "unavailable": "ikke tilgængelig"
+    },
+    "emailReminder": {
+      "title": "Tilføje e-mailadresse?",
+      "subtitle": "Uden e-mailadresse kan denne kontakt ikke modtage gruppebeskeder via e-mail.",
+      "skip": "Spring over",
+      "save": "Gem"
     }
   },
   "settings": {

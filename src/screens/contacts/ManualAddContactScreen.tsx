@@ -35,7 +35,9 @@ import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { SeniorDatePicker } from '@/components/SeniorDatePicker';
-import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView, PanelAwareModal, Icon } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   STANDARD_CATEGORIES,
   CUSTOM_CATEGORIES_STORAGE_KEY,
@@ -62,6 +64,11 @@ export function ManualAddContactScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+  const insets = useSafeAreaInsets();
+
+  // Save-time reminder modal state (shown when email is missing)
+  const [showEmailReminder, setShowEmailReminder] = useState(false);
+  const [pendingReminderEmail, setPendingReminderEmail] = useState('');
 
   // Form state consolidated into a single reducer
   interface FormState {
@@ -197,10 +204,8 @@ export function ManualAddContactScreen() {
     }
   }, [isDirty, navigation, t]);
 
-  const handleSave = useCallback(async () => {
-    if (!canSave || saving) return;
-
-    void triggerFeedback('tap');
+  // Performs the actual save to database
+  const performSave = useCallback(async (emailOverride?: string) => {
     setSaving(true);
 
     try {
@@ -220,12 +225,15 @@ export function ManualAddContactScreen() {
           }
         : undefined;
 
+      // Use emailOverride from reminder modal if provided, otherwise form value
+      const finalEmail = emailOverride?.trim() || email.trim() || undefined;
+
       const contactData = {
         jid,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phoneNumber: fullPhoneNumber,
-        email: email.trim() || undefined,
+        email: finalEmail,
         address,
         birthDate,
         weddingDate,
@@ -245,7 +253,36 @@ export function ManualAddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [canSave, saving, countryCode, phoneNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories, navigation, t, triggerFeedback]);
+  }, [countryCode, phoneNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
+
+  // Save handler: shows reminder modal if email is missing
+  const handleSave = useCallback(async () => {
+    if (!canSave || saving) return;
+
+    void triggerFeedback('tap');
+
+    // If email is missing, show reminder modal
+    if (!email.trim()) {
+      setPendingReminderEmail('');
+      setShowEmailReminder(true);
+      return;
+    }
+
+    // Email present — save directly
+    await performSave();
+  }, [canSave, saving, email, triggerFeedback, performSave]);
+
+  // Reminder modal: save with email added from modal
+  const handleReminderSave = useCallback(async () => {
+    setShowEmailReminder(false);
+    await performSave(pendingReminderEmail);
+  }, [pendingReminderEmail, performSave]);
+
+  // Reminder modal: skip — save without email
+  const handleReminderSkip = useCallback(async () => {
+    setShowEmailReminder(false);
+    await performSave();
+  }, [performSave]);
 
   const toggleCountryCodes = useCallback(() => {
     void triggerFeedback('tap');
@@ -543,6 +580,70 @@ export function ManualAddContactScreen() {
           {t('contacts.add.manualHint', 'Dit contact wordt opgeslagen zonder versleuteling. Nodig iemand uit voor beveiligde berichten.')}
         </Text>
       </ScrollViewWithIndicator>
+
+            {/* Save-time reminder modal: prompts for missing email */}
+            <PanelAwareModal
+              visible={showEmailReminder}
+              animationType="slide"
+              presentationStyle="pageSheet"
+              onRequestClose={() => setShowEmailReminder(false)}
+            >
+              <LiquidGlassView moduleId="contacts" style={[styles.reminderModal, { backgroundColor: themeColors.background }]}>
+                <View style={[styles.reminderHeader, { paddingTop: insets.top + spacing.md }]}>
+                  <Icon name="mail" size={40} color={themeColors.primary} />
+                  <Text style={[styles.reminderTitle, { color: themeColors.textPrimary }]}>
+                    {t('contacts.emailReminder.title', 'E-mailadres aanvullen?')}
+                  </Text>
+                  <Text style={[styles.reminderSubtitle, { color: themeColors.textSecondary }]}>
+                    {t('contacts.emailReminder.subtitle', 'Zonder e-mailadres kan dit contact geen groepsberichten via e-mail ontvangen.')}
+                  </Text>
+                </View>
+
+                <View style={styles.reminderContent}>
+                  <Text style={[styles.reminderLabel, { color: themeColors.textPrimary }]}>
+                    {t('contacts.emailLabel')}
+                  </Text>
+                  <TextInput
+                    style={[styles.reminderInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+                    placeholder={t('contacts.emailPlaceholder')}
+                    placeholderTextColor={themeColors.textTertiary}
+                    value={pendingReminderEmail}
+                    onChangeText={setPendingReminderEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoFocus
+                    accessibilityLabel={t('contacts.emailLabel')}
+                  />
+                </View>
+
+                <View style={[styles.reminderActions, { paddingBottom: insets.bottom + spacing.md }]}>
+                  <HapticTouchable
+                    style={[styles.reminderButton, styles.reminderSkipButton, { borderColor: themeColors.border }]}
+                    onPress={() => void handleReminderSkip()}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('contacts.emailReminder.skip', 'Overslaan')}
+                  >
+                    <Text style={[styles.reminderButtonText, { color: themeColors.textSecondary }]}>
+                      {t('contacts.emailReminder.skip', 'Overslaan')}
+                    </Text>
+                  </HapticTouchable>
+
+                  <HapticTouchable
+                    style={[styles.reminderButton, { backgroundColor: pendingReminderEmail.trim() ? themeColors.primary : themeColors.border }]}
+                    onPress={() => void handleReminderSave()}
+                    disabled={!pendingReminderEmail.trim()}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('contacts.emailReminder.save', 'Opslaan')}
+                    accessibilityState={{ disabled: !pendingReminderEmail.trim() }}
+                  >
+                    <Text style={[styles.reminderButtonText, { color: pendingReminderEmail.trim() ? themeColors.textOnPrimary : themeColors.textTertiary }]}>
+                      {t('contacts.emailReminder.save', 'Opslaan')}
+                    </Text>
+                  </HapticTouchable>
+                </View>
+              </LiquidGlassView>
+            </PanelAwareModal>
           </>
         }
       />
@@ -699,5 +800,60 @@ const styles = StyleSheet.create({
     ...typography.label,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  // Email reminder modal
+  reminderModal: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  reminderHeader: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  reminderTitle: {
+    ...typography.h2,
+    textAlign: 'center',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  reminderSubtitle: {
+    ...typography.body,
+    textAlign: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  reminderContent: {
+    marginBottom: spacing.xl,
+  },
+  reminderLabel: {
+    ...typography.body,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+  },
+  reminderInput: {
+    ...typography.input,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    minHeight: touchTargets.minimum,
+    borderWidth: 1,
+  },
+  reminderActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  reminderButton: {
+    flex: 1,
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reminderSkipButton: {
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+  reminderButtonText: {
+    ...typography.button,
   },
 });

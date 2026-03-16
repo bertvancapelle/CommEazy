@@ -597,6 +597,17 @@
       "none": "Sem categorias",
       "required": "Escolha pelo menos uma categoria",
       "filterAll": "Todos"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Telefone: {{phone}}",
+      "available": "disponível",
+      "unavailable": "não disponível"
+    },
+    "emailReminder": {
+      "title": "Adicionar endereço de e-mail?",
+      "subtitle": "Sem endereço de e-mail, este contato não poderá receber mensagens de grupo por e-mail.",
+      "skip": "Pular",
+      "save": "Salvar"
     }
   },
   "settings": {

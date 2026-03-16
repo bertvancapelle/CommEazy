@@ -587,6 +587,17 @@
       "none": "No categories",
       "required": "Choose at least one category",
       "filterAll": "All"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, Email: {{email}}, Phone: {{phone}}",
+      "available": "available",
+      "unavailable": "not available"
+    },
+    "emailReminder": {
+      "title": "Add email address?",
+      "subtitle": "Without an email address, this contact cannot receive group messages via email.",
+      "skip": "Skip",
+      "save": "Save"
     }
   },
   "settings": {

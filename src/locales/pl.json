@@ -488,6 +488,17 @@
       "none": "Brak kategorii",
       "required": "Wybierz co najmniej jedną kategorię",
       "filterAll": "Wszystkie"
+    },
+    "reachability": {
+      "a11ySummary": "Aplikacja: {{app}}, E-mail: {{email}}, Telefon: {{phone}}",
+      "available": "dostępny",
+      "unavailable": "niedostępny"
+    },
+    "emailReminder": {
+      "title": "Dodać adres e-mail?",
+      "subtitle": "Bez adresu e-mail ten kontakt nie będzie mógł otrzymywać wiadomości grupowych przez e-mail.",
+      "skip": "Pomiń",
+      "save": "Zapisz"
     }
   },
   "settings": {

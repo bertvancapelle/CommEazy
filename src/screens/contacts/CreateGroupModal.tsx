@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon , ScrollViewWithIndicator } from '@/components';
+import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon, ScrollViewWithIndicator, ContactReachabilityIcons } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -244,12 +244,19 @@ export function CreateGroupModal({
                   photoUrl={contact.photoUrl}
                   size={48}
                 />
-                <Text
-                  style={[styles.contactName, { color: themeColors.textPrimary }]}
-                  numberOfLines={1}
-                >
-                  {displayName}
-                </Text>
+                <View style={styles.contactInfo}>
+                  <Text
+                    style={[styles.contactName, { color: themeColors.textPrimary }]}
+                    numberOfLines={1}
+                  >
+                    {displayName}
+                  </Text>
+                  <ContactReachabilityIcons
+                    hasApp={(contact.trustLevel ?? 0) >= 2}
+                    hasEmail={!!contact.email}
+                    hasPhone={!!contact.phoneNumber}
+                  />
+                </View>
                 <View
                   style={[
                     styles.checkbox,
@@ -350,9 +357,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     gap: spacing.sm,
   },
+  contactInfo: {
+    flex: 1,
+  },
   contactName: {
     ...typography.body,
-    flex: 1,
+    marginBottom: spacing.xs,
   },
   checkbox: {
     width: 28,

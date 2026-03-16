@@ -498,6 +498,17 @@
       "none": "Ingen kategorier",
       "required": "Velg minst én kategori",
       "filterAll": "Alle"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, E-post: {{email}}, Telefon: {{phone}}",
+      "available": "tilgjengelig",
+      "unavailable": "ikke tilgjengelig"
+    },
+    "emailReminder": {
+      "title": "Legge til e-postadresse?",
+      "subtitle": "Uten e-postadresse kan denne kontakten ikke motta gruppemeldinger via e-post.",
+      "skip": "Hopp over",
+      "save": "Lagre"
     }
   },
   "settings": {

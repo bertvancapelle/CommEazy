@@ -410,6 +410,17 @@
       "none": "Geen categorieën",
       "required": "Kies minimaal één categorie",
       "filterAll": "Alle"
+    },
+    "reachability": {
+      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Telefoon: {{phone}}",
+      "available": "beschikbaar",
+      "unavailable": "niet beschikbaar"
+    },
+    "emailReminder": {
+      "title": "E-mailadres aanvullen?",
+      "subtitle": "Zonder e-mailadres kan dit contact geen groepsberichten via e-mail ontvangen.",
+      "skip": "Overslaan",
+      "save": "Opslaan"
     }
   },
   "settings": {
