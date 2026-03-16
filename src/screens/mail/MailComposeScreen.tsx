@@ -672,36 +672,11 @@ export function MailComposeScreen({
 
     const loadContacts = async () => {
       try {
-        if (__DEV__) {
-          const { getMockContactsForDevice } = await import('@/services/mock');
-          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-          const { chatService } = await import('@/services/chat');
-
-          const currentUserJid = chatService.isInitialized
-            ? chatService.getMyJid()
-            : 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local';
-
-          const publicKeyMap = await getOtherDevicesPublicKeys(
-            currentUserJid || 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local',
-          );
-
-          const deviceContacts = getMockContactsForDevice(
-            currentUserJid || 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local',
-            publicKeyMap,
-          );
-
+        const { ServiceContainer } = await import('@/services/container');
+        if (ServiceContainer.isInitialized) {
+          const contactList = await ServiceContainer.database.getContactsOnce();
           if (!cancelled) {
-            // Only keep contacts with email addresses
-            setContacts(getMailableContacts(deviceContacts));
-          }
-        } else {
-          // Production: use ServiceContainer
-          const { ServiceContainer } = await import('@/services/container');
-          if (ServiceContainer.isInitialized) {
-            const contactList = await ServiceContainer.database.getContactsOnce();
-            if (!cancelled) {
-              setContacts(getMailableContacts(contactList));
-            }
+            setContacts(getMailableContacts(contactList));
           }
         }
       } catch (error) {

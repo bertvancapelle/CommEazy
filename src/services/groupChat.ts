@@ -20,7 +20,6 @@
 import uuid from 'react-native-uuid';
 
 import { ServiceContainer } from './container';
-import { isPlaintextMode } from './mock';
 import type {
   Message,
   OutboxMessage,
@@ -176,31 +175,13 @@ export class GroupChatService {
       // Get recipient info for all members (except self)
       const recipients = await this.getGroupRecipients(group);
 
-      let encryptedPayload: EncryptedPayload;
-
-      // DEV MODE: Plaintext mode bypasses encryption
-      if (__DEV__ && isPlaintextMode()) {
-        console.log('[GroupChatService] PLAINTEXT MODE: Sending unencrypted message');
-        encryptedPayload = {
-          mode: 'plaintext' as any,
-          data: JSON.stringify({
-            content,
-            senderJid: this.myJid,
-            senderName: this.myName,
-          }),
-          metadata: {
-            groupId,
-          },
-        };
-      } else {
-        // PRODUCTION: Real encryption (dual-path based on member count)
-        encryptedPayload = await ServiceContainer.encryption.encrypt(
-          content,
-          recipients,
-        );
-        // Add group metadata
-        encryptedPayload.metadata.groupId = groupId;
-      }
+      // Encrypt message (dual-path based on member count)
+      const encryptedPayload: EncryptedPayload = await ServiceContainer.encryption.encrypt(
+        content,
+        recipients,
+      );
+      // Add group metadata
+      encryptedPayload.metadata.groupId = groupId;
 
       // Save to local messages (decrypted for display)
       const message: Message = {
@@ -510,32 +491,18 @@ export class GroupChatService {
     }
 
     try {
-      let content: string;
-      let senderJid: string;
-      let senderName: string;
-
-      // DEV MODE: Check for plaintext mode
-      if (__DEV__ && (payload.mode as any) === 'plaintext') {
-        console.log(`[GroupChatService] PLAINTEXT MODE: Received unencrypted message`);
-        const parsed = JSON.parse(payload.data);
-        content = parsed.content;
-        senderJid = parsed.senderJid;
-        senderName = parsed.senderName;
-      } else {
-        // PRODUCTION: Real decryption
-        // Get sender's public key from contacts
-        const senderContact = await this.findSenderByNickname(group, senderNickname);
-        if (!senderContact) {
-          console.warn(`[GroupChatService] Unknown sender: ${senderNickname}`);
-          return;
-        }
-
-        const { from_base64, base64_variants } = await import('react-native-libsodium');
-        const senderPk = from_base64(senderContact.publicKey, base64_variants.ORIGINAL);
-        content = await ServiceContainer.encryption.decrypt(payload, senderPk);
-        senderJid = senderContact.jid;
-        senderName = senderContact.name;
+      // Get sender's public key from contacts
+      const senderContact = await this.findSenderByNickname(group, senderNickname);
+      if (!senderContact) {
+        console.warn(`[GroupChatService] Unknown sender: ${senderNickname}`);
+        return;
       }
+
+      const { from_base64, base64_variants } = await import('react-native-libsodium');
+      const senderPk = from_base64(senderContact.publicKey, base64_variants.ORIGINAL);
+      const content = await ServiceContainer.encryption.decrypt(payload, senderPk);
+      const senderJid = senderContact.jid;
+      const senderName = senderContact.name;
 
       // Save to database
       const message: Message = {

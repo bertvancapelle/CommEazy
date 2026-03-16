@@ -64,18 +64,11 @@ export function VerifyContactScreen() {
   useEffect(() => {
     const generateQR = async () => {
       try {
-        if (__DEV__) {
-          // Dynamic import to avoid module loading at bundle time
-          const { generateMockMyQRData } = await import('@/services/mock');
-          const data = generateMockMyQRData();
-          setQrData(data);
-        } else {
-          // Production: use real encryption service
-          // const encryption = ServiceContainer.encryption;
-          // const data = await encryption.generateQRData();
-          // setQrData(data);
-          setQrData('production_qr_not_implemented');
-        }
+        // TODO: Use real encryption service for QR data generation
+        // const encryption = ServiceContainer.encryption;
+        // const data = await encryption.generateQRData();
+        // setQrData(data);
+        setQrData('qr_not_implemented');
       } catch (error) {
         console.error('Failed to generate QR data:', error);
         setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
@@ -135,23 +128,13 @@ export function VerifyContactScreen() {
       let contact;
       let isValid = false;
 
-      if (__DEV__) {
-        // Dynamic import to avoid module loading at bundle time
-        const { getMockContactByJid, verifyMockQRData } = await import('@/services/mock');
-        contact = getMockContactByJid(jid);
-        if (contact) {
-          const result = verifyMockQRData(scannedData);
-          isValid = result.success;
-        }
-      } else {
-        // Production: use real services
-        // const db = ServiceContainer.database;
-        // contact = await db.getContact(jid);
-        // if (contact) {
-        //   const encryption = ServiceContainer.encryption;
-        //   isValid = encryption.verifyQRData(scannedData, contact.publicKey);
-        // }
-      }
+      // TODO: Use real services for QR verification
+      // const db = ServiceContainer.database;
+      // contact = await db.getContact(jid);
+      // if (contact) {
+      //   const encryption = ServiceContainer.encryption;
+      //   isValid = encryption.verifyQRData(scannedData, contact.publicKey);
+      // }
 
       if (!contact) {
         setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
@@ -166,13 +149,9 @@ export function VerifyContactScreen() {
           ignoreAndroidSystemSettings: false,
         });
 
-        if (__DEV__) {
-          // In dev mode, just log (mock data is in memory)
-          console.log('[DEV] Would mark contact as verified:', jid);
-        } else {
-          // Production: Mark contact as verified
-          // await db.saveContact({ ...contact, verified: true });
-        }
+        // TODO: Mark contact as verified in database
+        // await db.saveContact({ ...contact, verified: true });
+        console.log('[VerifyContact] Would mark contact as verified:', jid);
 
         setVerified(true);
 

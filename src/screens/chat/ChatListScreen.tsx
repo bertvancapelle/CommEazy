@@ -125,65 +125,16 @@ export function ChatListScreen() {
               setLoading(false);
             }
           });
-        } else if (__DEV__) {
-          // Fallback to mock data in dev mode if service not ready
-          const { getMockChatList, MOCK_CURRENT_USER } = await import('@/services/mock');
-          const mockChats = await getMockChatList();
-          const chatList: ChatListItem[] = mockChats
-            .filter(chat => chat.lastMessage) // Only show chats with messages
-            .map(chat => {
-              const lastMsg = chat.lastMessage;
-              const isFromMe = lastMsg ? lastMsg.senderId === MOCK_CURRENT_USER.jid : false;
-              return {
-                chatId: chat.chatId,
-                contactJid: chat.contact.jid,
-                contactName: getContactDisplayName(chat.contact),
-                lastMessage: lastMsg?.content ?? '',
-                lastMessageTime: lastMsg?.timestamp ?? 0,
-                unreadCount: chat.unreadCount,
-
-                lastMessageIsFromMe: isFromMe,
-                lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
-              };
-            });
-          if (!cancelled) setChats(chatList);
-          if (!cancelled) setLoading(false);
         } else {
           if (!cancelled) setChats([]);
           if (!cancelled) setLoading(false);
         }
       } catch (error) {
         console.error('Failed to load chats:', error);
-        // Fallback to mock data on error in dev mode
-        if (__DEV__ && !cancelled) {
-          try {
-            const { getMockChatList, MOCK_CURRENT_USER } = await import('@/services/mock');
-            const mockChats = await getMockChatList();
-            const chatList: ChatListItem[] = mockChats
-              .filter(chat => chat.lastMessage)
-              .map(chat => {
-                const lastMsg = chat.lastMessage;
-                const isFromMe = lastMsg ? lastMsg.senderId === MOCK_CURRENT_USER.jid : false;
-                return {
-                  chatId: chat.chatId,
-                  contactJid: chat.contact.jid,
-                  contactName: getContactDisplayName(chat.contact),
-                  lastMessage: lastMsg?.content ?? '',
-                  lastMessageTime: lastMsg?.timestamp ?? 0,
-                  unreadCount: chat.unreadCount,
-  
-                  lastMessageIsFromMe: isFromMe,
-                  lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
-                };
-              });
-            setChats(chatList);
-          } catch {
-            setChats([]);
-          }
-        } else if (!cancelled) {
+        if (!cancelled) {
           setChats([]);
+          setLoading(false);
         }
-        if (!cancelled) setLoading(false);
       }
     };
 
@@ -253,26 +204,6 @@ export function ChatListScreen() {
           };
         });
         setChats(items);
-      } else if (__DEV__) {
-        const { getMockChatList, MOCK_CURRENT_USER } = await import('@/services/mock');
-        const mockChats = await getMockChatList();
-        const chatList: ChatListItem[] = mockChats
-          .filter(chat => chat.lastMessage)
-          .map(chat => {
-            const lastMsg = chat.lastMessage;
-            const isFromMe = lastMsg ? lastMsg.senderId === MOCK_CURRENT_USER.jid : false;
-            return {
-              chatId: chat.chatId,
-              contactJid: chat.contact.jid,
-              contactName: getContactDisplayName(chat.contact),
-              lastMessage: lastMsg?.content ?? '',
-              lastMessageTime: lastMsg?.timestamp ?? 0,
-              unreadCount: chat.unreadCount,
-              lastMessageIsFromMe: isFromMe,
-              lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
-            };
-          });
-        setChats(chatList);
       } else {
         setChats([]);
       }

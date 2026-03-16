@@ -1,18 +1,11 @@
 /**
  * Development Configuration
  *
- * Central place to toggle between mock mode and production mode.
- * This makes it easy to switch for testing.
- *
  * PRIVACY ARCHITECTURE: JIDs are UUID-based (production-parity).
  * Names and emails are PROFILE DATA — no PII in JIDs.
  *
- * USAGE:
- * - Set USE_REAL_SERVICES = true for device-to-device testing
- * - Set USE_REAL_SERVICES = false for UI-only development
- *
- * REQUIREMENTS for USE_REAL_SERVICES = true:
- * 1. Prosody XMPP server must be running: sudo prosodyctl start
+ * REQUIREMENTS:
+ * 1. Prosody XMPP server must be running: prosodyctl start
  * 2. Both devices must be on the same network
  * 3. Test accounts must exist in Prosody (UUID-based):
  *    - e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b@commeazy.local (iPhone 14, Bert)
@@ -24,34 +17,8 @@
  */
 
 // ============================================================
-// MAIN TOGGLE - Change this to switch modes
+// Settings
 // ============================================================
-
-/**
- * When true:
- * - Uses real XMPP connection to Prosody
- * - Uses real E2E encryption (libsodium)
- * - Messages are sent between devices
- *
- * When false:
- * - Uses plaintext mode (no encryption)
- * - Mock data is used as fallback
- * - Good for UI development without server
- */
-export const USE_REAL_SERVICES = true;
-
-// ============================================================
-// Derived settings (don't change these directly)
-// ============================================================
-
-/** Use plaintext mode (bypass encryption) */
-export const USE_PLAINTEXT_MODE = !USE_REAL_SERVICES;
-
-/** Seed mock data even when using real services (useful for contacts) */
-export const SEED_MOCK_DATA = true;
-
-/** Connect to XMPP server */
-export const CONNECT_XMPP = USE_REAL_SERVICES;
 
 /** Enable verbose logging */
 export const VERBOSE_LOGGING = true;
@@ -157,10 +124,8 @@ export const logDevConfig = (): void => {
   if (!__DEV__) return;
 
   console.log('\n====== CommEazy Dev Config ======');
-  console.log(`  USE_REAL_SERVICES: ${USE_REAL_SERVICES}`);
-  console.log(`  USE_PLAINTEXT_MODE: ${USE_PLAINTEXT_MODE}`);
-  console.log(`  SEED_MOCK_DATA: ${SEED_MOCK_DATA}`);
-  console.log(`  CONNECT_XMPP: ${CONNECT_XMPP}`);
   console.log(`  XMPP_HOST: ${XMPP_HOST}`);
+  console.log(`  MUC_DOMAIN: ${MUC_DOMAIN}`);
+  console.log(`  VERBOSE_LOGGING: ${VERBOSE_LOGGING}`);
   console.log('==================================\n');
 };

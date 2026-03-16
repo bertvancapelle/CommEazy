@@ -19,15 +19,14 @@ import {
 } from 'react-native';
 import { HapticTouchable } from './HapticTouchable';
 import { colors, typography, spacing, borderRadius } from '@/theme';
-import {
-  simulateQRScan,
-  isDevUIEnabled,
-  setSimulateOffline,
-  setSimulateSlowNetwork,
-  isSimulatingOffline,
-  isSimulatingSlowNetwork,
-  DevMockData,
-} from '@/services/mock';
+// Dev state managed locally now that mock module is removed
+let _simulateOffline = false;
+let _simulateSlowNetwork = false;
+const isDevUIEnabled = () => __DEV__;
+const setSimulateOffline = (v: boolean) => { _simulateOffline = v; };
+const setSimulateSlowNetwork = (v: boolean) => { _simulateSlowNetwork = v; };
+const isSimulatingOffline = () => _simulateOffline;
+const isSimulatingSlowNetwork = () => _simulateSlowNetwork;
 import { ServiceContainer } from '@/services/container';
 
 interface DevModePanelProps {
@@ -67,18 +66,6 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
   const [slowNetwork, setSlowNetwork] = useState(isSimulatingSlowNetwork());
 
   if (!__DEV__ || !isDevUIEnabled()) return null;
-
-  const handleSimulateQR = (
-    scenario: 'success' | 'unverified' | 'expired' | 'invalid' | 'device_link'
-  ) => {
-    const { qrData, verification } = simulateQRScan(scenario);
-    console.log('[DevMode] Simulated QR scan:', scenario, verification);
-
-    if (onQRCodeScanned) {
-      onQRCodeScanned(qrData);
-    }
-    setVisible(false);
-  };
 
   const toggleOffline = () => {
     const newValue = !offline;
@@ -260,65 +247,15 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
               </HapticTouchable>
             </View>
 
-            {/* QR Code Simulation */}
-            {showQROptions && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Simulate QR Scan</Text>
-                <Text style={styles.sectionDescription}>
-                  Test QR scanning without a camera
-                </Text>
-
-                <HapticTouchable hapticDisabled
-                  style={styles.option}
-                  onPress={() => handleSimulateQR('success')}
-                >
-                  <Text style={styles.optionText}>Scan: Verified Contact (Test Device)</Text>
-                </HapticTouchable>
-
-                <HapticTouchable hapticDisabled
-                  style={styles.option}
-                  onPress={() => handleSimulateQR('unverified')}
-                >
-                  <Text style={styles.optionText}>Scan: Unverified Contact</Text>
-                </HapticTouchable>
-
-                <HapticTouchable hapticDisabled
-                  style={styles.option}
-                  onPress={() => handleSimulateQR('device_link')}
-                >
-                  <Text style={styles.optionText}>Scan: Device Link QR</Text>
-                </HapticTouchable>
-
-                <HapticTouchable hapticDisabled
-                  style={[styles.option, styles.optionWarning]}
-                  onPress={() => handleSimulateQR('expired')}
-                >
-                  <Text style={styles.optionText}>Scan: Expired QR (Error)</Text>
-                </HapticTouchable>
-
-                <HapticTouchable hapticDisabled
-                  style={[styles.option, styles.optionWarning]}
-                  onPress={() => handleSimulateQR('invalid')}
-                >
-                  <Text style={styles.optionText}>Scan: Invalid QR (Error)</Text>
-                </HapticTouchable>
-              </View>
-            )}
-
-            {/* Mock Data Info */}
+            {/* Service Status Info */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Mock Data</Text>
+              <Text style={styles.sectionTitle}>Service Status</Text>
               <Text style={styles.infoText}>
-                Contacts: {DevMockData?.contacts.length ?? 0}
+                ServiceContainer: {ServiceContainer.isInitialized ? 'Initialized' : 'Not initialized'}
               </Text>
               <Text style={styles.infoText}>
-                Chats: {Object.keys(DevMockData?.messages ?? {}).length}
+                Push: {ServiceContainer.isPushAvailable ? 'Available' : 'Not available'}
               </Text>
-              {DevMockData?.contacts.map(contact => (
-                <Text key={contact.jid} style={styles.contactInfo}>
-                  {contact.verified ? 'V' : '-'} {contact.firstName} {contact.lastName} ({contact.phoneNumber})
-                </Text>
-              ))}
             </View>
           </ScrollView>
         </View>

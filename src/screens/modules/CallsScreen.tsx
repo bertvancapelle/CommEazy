@@ -39,6 +39,8 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { Contact, CallType } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
+import { ServiceContainer } from '@/services/container';
+import { chatService } from '@/services/chat';
 import type { RootStackParams } from '@/navigation';
 
 type CallsNavigationProp = NativeStackNavigationProp<RootStackParams>;
@@ -150,27 +152,16 @@ export function CallsScreen() {
   useEffect(() => {
     const loadContacts = async () => {
       try {
-        if (__DEV__) {
-          const { getMockContactsForDevice } = await import('@/services/mock');
-          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-          const { chatService } = await import('@/services/chat');
-
-          const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local';
-
-          // Get public keys for other test devices
-          const publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid || 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local');
-
-          const deviceContacts = getMockContactsForDevice(currentUserJid || 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local', publicKeyMap);
-
-          const sorted = [...deviceContacts].sort((a, b) =>
+        if (ServiceContainer.isInitialized && chatService.isInitialized) {
+          const contactList = await chatService.getContacts();
+          const sorted = [...contactList].sort((a, b) =>
             getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, { sensitivity: 'base' })
           );
           setContacts(sorted);
-          setLoading(false);
         } else {
           setContacts([]);
-          setLoading(false);
         }
+        setLoading(false);
       } catch (error) {
         console.error('[CallsScreen] Failed to load contacts:', error);
         setContacts([]);

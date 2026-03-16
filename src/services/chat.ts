@@ -16,7 +16,6 @@ import RNFS from 'react-native-fs';
 
 import { ServiceContainer } from './container';
 import { compressPhoto, generatePhotoThumbnail } from './media';
-import { isPlaintextMode } from './mock';
 import type {
   Message,
   OutboxMessage,
@@ -197,21 +196,8 @@ export class ChatService {
     try {
       let encryptedPayload: EncryptedPayload;
 
-      // DEV MODE: Plaintext mode bypasses encryption for 2-device testing
-      if (__DEV__ && isPlaintextMode()) {
-        console.log('[ChatService] PLAINTEXT MODE: Sending unencrypted message');
-        // Create a "fake" encrypted payload that's actually plaintext
-        encryptedPayload = {
-          mode: 'plaintext' as any, // Special mode for dev testing
-          data: content, // Plain text content
-          metadata: {
-            nonce: 'dev-plaintext-mode',
-            to: contactJid,
-          },
-        };
-      } else {
-        // PRODUCTION: Real encryption
-        // Dynamically import libsodium only when needed (avoids Hermes issues in dev)
+      {
+        // Dynamically import libsodium only when needed
         const { from_base64, base64_variants } = await import('react-native-libsodium');
 
         // Get the recipient's public key
@@ -221,7 +207,7 @@ export class ChatService {
         if (__DEV__ && (!recipientPublicKey || recipientPublicKey.length === 0)) {
           console.warn(`[ChatService] Contact ${contactJid} has no public key, trying test keys...`);
           try {
-            const { getTestPublicKeyForJid } = await import('./mock/testKeys');
+            const { getTestPublicKeyForJid } = await import('./testKeys');
             const testKey = await getTestPublicKeyForJid(contactJid);
             if (testKey) {
               recipientPublicKey = testKey;
@@ -366,18 +352,7 @@ export class ChatService {
       // Step 4: Encrypt the payload
       let encryptedPayload: EncryptedPayload;
 
-      if (__DEV__ && isPlaintextMode()) {
-        console.log('[ChatService] PLAINTEXT MODE: Sending unencrypted photo');
-        encryptedPayload = {
-          mode: 'plaintext' as any,
-          data: payloadJson,
-          metadata: {
-            nonce: 'dev-plaintext-mode',
-            to: contactJid,
-            contentType: 'image',
-          },
-        };
-      } else {
+      {
         const { from_base64, base64_variants } = await import('react-native-libsodium');
 
         let recipientPublicKey = contact.publicKey;
@@ -385,7 +360,7 @@ export class ChatService {
         if (__DEV__ && (!recipientPublicKey || recipientPublicKey.length === 0)) {
           console.warn(`[ChatService] Contact ${contactJid} has no public key, trying test keys...`);
           try {
-            const { getTestPublicKeyForJid } = await import('./mock/testKeys');
+            const { getTestPublicKeyForJid } = await import('./testKeys');
             const testKey = await getTestPublicKeyForJid(contactJid);
             if (testKey) {
               recipientPublicKey = testKey;
@@ -744,24 +719,18 @@ export class ChatService {
 
       let content: string;
 
-      // DEV MODE: Check for plaintext mode messages
-      if (__DEV__ && (payload.mode as any) === 'plaintext') {
-        console.log(`[ChatService] PLAINTEXT MODE: Received unencrypted message`);
-        content = payload.data; // Data is plain text in this mode
-      } else {
-        // PRODUCTION: Real decryption
+      {
         // Get the sender's public key
         let senderPublicKey = contact.publicKey;
 
-        // DEV MODE: If public key is missing, try to load it from test keys
+        // DEV: If public key is missing, try to load it from test keys
         if (__DEV__ && (!senderPublicKey || senderPublicKey.length === 0)) {
           console.warn(`[ChatService] Sender ${bareFrom} has no public key, trying test keys...`);
           try {
-            const { getTestPublicKeyForJid } = await import('./mock/testKeys');
+            const { getTestPublicKeyForJid } = await import('./testKeys');
             const testKey = await getTestPublicKeyForJid(bareFrom);
             if (testKey) {
               senderPublicKey = testKey;
-              // Also update the database so future receives work
               await ServiceContainer.database.saveContact({
                 ...contact,
                 publicKey: testKey,
@@ -779,7 +748,7 @@ export class ChatService {
           return;
         }
 
-        // Dynamically import libsodium only when needed (avoids Hermes issues in dev)
+        // Dynamically import libsodium only when needed
         const { from_base64, base64_variants } = await import('react-native-libsodium');
 
         // Decrypt message

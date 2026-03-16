@@ -436,20 +436,8 @@ export function PhotoAlbumScreen() {
         const contactList = await chatService.getContacts();
         setContacts(contactList);
         console.debug(LOG_PREFIX, 'Loaded contacts:', { count: contactList.length });
-      } else if (__DEV__) {
-        // Use mock contacts in dev mode — detect current user dynamically
-        const currentUserJid = chatService.isInitialized ? chatService.getMyJid() : 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local';
-        const { getMockContactsForDevice } = await import('@/services/mock');
-        let publicKeyMap: Record<string, string> | undefined;
-        try {
-          const { getOtherDevicesPublicKeys } = await import('@/services/mock/testKeys');
-          publicKeyMap = await getOtherDevicesPublicKeys(currentUserJid);
-        } catch (keyError) {
-          console.warn(LOG_PREFIX, 'Could not load test keys (libsodium not ready?), loading contacts without keys');
-        }
-        const deviceContacts = getMockContactsForDevice(currentUserJid, publicKeyMap);
-        setContacts(deviceContacts);
-        console.debug(LOG_PREFIX, 'Using test device contacts:', { count: deviceContacts.length, currentUser: currentUserJid });
+      } else {
+        console.warn(LOG_PREFIX, 'Service not initialized, no contacts available');
       }
     } catch (error) {
       console.error(LOG_PREFIX, 'Failed to load contacts:', error instanceof Error ? error.message : String(error));
@@ -506,10 +494,9 @@ export function PhotoAlbumScreen() {
                 failCount++;
                 console.error(LOG_PREFIX, 'Failed to send photo');
               }
-            } else if (__DEV__) {
-              // In dev mode without service, simulate success
-              console.debug(LOG_PREFIX, '[DEV] Simulating photo send success');
-              successCount++;
+            } else {
+              console.warn(LOG_PREFIX, 'Service not initialized, cannot send photo');
+              failCount++;
             }
           } catch (error) {
             failCount++;

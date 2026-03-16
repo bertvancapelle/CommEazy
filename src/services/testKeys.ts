@@ -29,12 +29,21 @@ import {
   crypto_box_seed_keypair,
   crypto_generichash,
   to_base64,
-  from_base64,
   base64_variants,
   ready as sodiumReady,
 } from 'react-native-libsodium';
 
-import { MOCK_JIDS } from './mockContacts';
+import { TEST_ACCOUNTS } from '@/config/devConfig';
+
+// Test device JIDs — derived from TEST_ACCOUNTS (single source of truth)
+const TEST_JIDS = {
+  bert: TEST_ACCOUNTS.bert.jid,
+  jeanine: TEST_ACCOUNTS.jeanine.jid,
+  pipo: TEST_ACCOUNTS.pipo.jid,
+  sim1: TEST_ACCOUNTS.sim1.jid,
+  sim2: TEST_ACCOUNTS.sim2.jid,
+  simipad: TEST_ACCOUNTS.simipad.jid,
+};
 
 // Seeds for deterministic key generation (32 bytes each, as UTF-8 hash)
 // Seeds are kept at original values for keypair continuity across JID rename
@@ -177,17 +186,17 @@ export const getTestKeypairForJid = async (jid: string): Promise<{ publicKey: st
   if (!__DEV__) return null;
 
   switch (jid) {
-    case MOCK_JIDS.bert:
+    case TEST_JIDS.bert:
       return getBertKeypair();
-    case MOCK_JIDS.jeanine:
+    case TEST_JIDS.jeanine:
       return getJeanineKeypair();
-    case MOCK_JIDS.pipo:
+    case TEST_JIDS.pipo:
       return getPipoKeypair();
-    case MOCK_JIDS.sim1:
+    case TEST_JIDS.sim1:
       return getSim1Keypair();
-    case MOCK_JIDS.sim2:
+    case TEST_JIDS.sim2:
       return getSim2Keypair();
-    case MOCK_JIDS.simipad:
+    case TEST_JIDS.simipad:
       return getSimipadKeypair();
     default:
       return null;
@@ -211,12 +220,12 @@ export const getOtherDevicesPublicKeys = async (myJid: string): Promise<Record<s
   if (!__DEV__) return {};
 
   const allTestJids = [
-    MOCK_JIDS.bert,
-    MOCK_JIDS.jeanine,
-    MOCK_JIDS.pipo,
-    MOCK_JIDS.sim1,
-    MOCK_JIDS.sim2,
-    MOCK_JIDS.simipad,
+    TEST_JIDS.bert,
+    TEST_JIDS.jeanine,
+    TEST_JIDS.pipo,
+    TEST_JIDS.sim1,
+    TEST_JIDS.sim2,
+    TEST_JIDS.simipad,
   ];
   const otherJids = allTestJids.filter(jid => jid !== myJid);
 

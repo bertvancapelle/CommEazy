@@ -368,40 +368,34 @@ class ServiceContainerClass {
           console.info('[ServiceContainer] Skipping push registration (not available)');
         }
 
-        // 6c. Subscribe to mock contacts' presence (dev only)
+        // 6c. Subscribe to database contacts' presence
         // This sends presence subscription requests so we receive their online status
-        const { getMockContactsForDevice } = await import('./mock/mockContacts');
-        const { getOtherDevicesPublicKeys } = await import('./mock/testKeys');
-
-        // Get public keys for other test devices
-        const publicKeyMap = await getOtherDevicesPublicKeys(devUser.jid);
-
-        const contactsToSubscribe = getMockContactsForDevice(devUser.jid, publicKeyMap);
-        console.log(`[ServiceContainer] Subscribing to ${contactsToSubscribe.length} contacts' presence`);
-        for (const contact of contactsToSubscribe) {
+        if (this._database) {
           try {
-            await this._xmpp.subscribeToPresence(contact.jid);
-            console.debug('[ServiceContainer] Subscribed to presence of contact');
-          } catch (subError) {
-            console.warn(`[ServiceContainer] Failed to subscribe to ${contact.jid}:`, subError);
+            const dbContacts = await this._database.getContacts();
+            console.log(`[ServiceContainer] Subscribing to ${dbContacts.length} contacts' presence`);
+            for (const contact of dbContacts) {
+              try {
+                await this._xmpp.subscribeToPresence(contact.jid);
+                console.debug('[ServiceContainer] Subscribed to presence of contact');
+              } catch (subError) {
+                console.warn(`[ServiceContainer] Failed to subscribe to ${contact.jid}:`, subError);
+              }
+            }
+          } catch (dbError) {
+            console.warn('[ServiceContainer] Failed to load contacts for presence subscription:', dbError);
           }
         }
       } catch (xmppError) {
-        // XMPP connection is optional in dev - app works with mock data
-        console.warn('[ServiceContainer] XMPP connection failed (continuing with mock mode):', xmppError);
+        // XMPP connection is optional in dev
+        console.warn('[ServiceContainer] XMPP connection failed:', xmppError);
       }
 
-      // 7. Seed mock data in development mode (dynamic import to avoid startup issues)
+      // 7. Setup deterministic test keys for E2E encryption testing
       try {
-        const { seedMockData, printDevToolsStatus } = await import('./mock');
-        await seedMockData(this._database);
-
-        // 8. Setup deterministic test keys for E2E encryption testing
         await this.setupTestDeviceEncryption(devUser.jid);
-
-        printDevToolsStatus();
       } catch (error) {
-        console.warn('[DEV] Failed to seed mock data:', error);
+        console.warn('[DEV] Failed to setup test device encryption:', error);
       }
     }
   }
@@ -423,14 +417,12 @@ class ServiceContainerClass {
     if (!this._database || !this._encryption) return;
 
     try {
-      const { getTestKeypairForJid, getOtherDevicesPublicKeys } = await import('./mock/testKeys');
-      const { setPlaintextMode } = await import('./mock/devTools');
+      const { getTestKeypairForJid, getOtherDevicesPublicKeys } = await import('./testKeys');
 
       // Get the deterministic test keypair for this device
       const myKeypair = await getTestKeypairForJid(myJid);
       if (!myKeypair) {
         console.log('[ServiceContainer] Not a test device JID, skipping test key setup');
-        setPlaintextMode(true);
         return;
       }
 
@@ -443,7 +435,6 @@ class ServiceContainerClass {
       const otherDevicesKeys = await getOtherDevicesPublicKeys(myJid);
       if (Object.keys(otherDevicesKeys).length === 0) {
         console.warn('[ServiceContainer] Could not get other devices public keys');
-        setPlaintextMode(true);
         return;
       }
 
@@ -453,7 +444,6 @@ class ServiceContainerClass {
         const otherContact = await this._database.getContact(otherJid);
 
         if (otherContact) {
-          // Update contact with the public key
           const updatedContact = {
             ...otherContact,
             publicKey,
@@ -466,23 +456,9 @@ class ServiceContainerClass {
         }
       }
 
-      if (updatedCount > 0) {
-        // Plaintext mode is now controlled by devConfig.ts
-        // With react-native-libsodium (native module), encryption should work with Hermes
-        const { USE_PLAINTEXT_MODE } = await import('@/config/devConfig');
-        setPlaintextMode(USE_PLAINTEXT_MODE);
-        console.log(`[ServiceContainer] Updated ${updatedCount} test device contacts (plaintextMode: ${USE_PLAINTEXT_MODE})`);
-      } else {
-        console.warn('[ServiceContainer] No test device contacts found, using devConfig setting');
-        const { USE_PLAINTEXT_MODE } = await import('@/config/devConfig');
-        setPlaintextMode(USE_PLAINTEXT_MODE);
-      }
+      console.log(`[ServiceContainer] Updated ${updatedCount} test device contacts with public keys`);
     } catch (error) {
       console.error('[ServiceContainer] Failed to setup test device encryption:', error);
-      // Fall back to devConfig setting on error
-      const { setPlaintextMode } = await import('./mock/devTools');
-      const { USE_PLAINTEXT_MODE } = await import('@/config/devConfig');
-      setPlaintextMode(USE_PLAINTEXT_MODE);
     }
   }
 

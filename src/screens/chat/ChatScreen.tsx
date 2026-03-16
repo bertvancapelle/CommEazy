@@ -117,26 +117,12 @@ export function ChatScreen() {
           unsubscribe = observable.subscribe(msgs => {
             if (!cancelled) setMessages(msgs);
           });
-        } else if (__DEV__) {
-          // Fallback to mock data in dev mode if service not ready
-          const { getMockMessages } = await import('@/services/mock');
-          const mockMsgs = getMockMessages(chatId, MESSAGE_LIMIT);
-          if (!cancelled) setMessages(mockMsgs);
         } else {
           if (!cancelled) setMessages([]);
         }
       } catch (error) {
         console.error('Failed to load messages:', error);
-        // Fallback to mock data on error in dev mode
-        if (__DEV__ && !cancelled) {
-          try {
-            const { getMockMessages } = await import('@/services/mock');
-            const mockMsgs = getMockMessages(chatId, MESSAGE_LIMIT);
-            setMessages(mockMsgs);
-          } catch {
-            setMessages([]);
-          }
-        } else if (!cancelled) {
+        if (!cancelled) {
           setMessages([]);
         }
       }
@@ -193,23 +179,8 @@ export function ChatScreen() {
         const result = await chatService.sendMessage(contactJid, text);
         console.info('[ChatScreen] sendMessage result:', result);
         AccessibilityInfo.announceForAccessibility(t('chat.sending'));
-      } else if (__DEV__) {
-        console.info('[ChatScreen] Using dev fallback (service not ready)');
-        // Fallback: add message locally in dev mode
-        // Use mock current user from dev constants
-        const { MOCK_CURRENT_USER } = await import('@/services/mock');
-        const newMessage: Message = {
-          id: `local_${Date.now()}`,
-          chatId,
-          senderId: MOCK_CURRENT_USER.jid,
-          senderName: MOCK_CURRENT_USER.name,
-          content: text,
-          contentType: 'text',
-          timestamp: Date.now(),
-          status: 'sent',
-        };
-        setMessages(prev => [newMessage, ...prev]);
-        AccessibilityInfo.announceForAccessibility(t('chat.sending'));
+      } else {
+        console.warn('[ChatScreen] Service not ready, cannot send message');
       }
     } catch (error) {
       console.error('[ChatScreen] Failed to send message:', error);
