@@ -32,7 +32,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     userUuid: MOCK_UUIDS.ik,
     jid: 'ik@commeazy.local',
     firstName: 'Ik',
-    lastName: '',
+    lastName: '(iPhone fysiek)',
     phoneNumber: '+31201234567',
     mobileNumber: '+31600000001',
     email: 'ik@commeazy.local',

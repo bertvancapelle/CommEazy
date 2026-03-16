@@ -160,6 +160,17 @@ export interface UserProfile {
   language: SupportedLanguage;
   photoPath?: string;                    // Local file path to own avatar
 
+  // Personal contact details (shareable with contacts via consent)
+  email?: string;                        // E-mailadres
+  mobileNumber?: string;                 // Mobiel nummer (apart van verificatie phoneNumber)
+  landlineNumber?: string;               // Vast telefoonnummer
+  addressStreet?: string;                // Straat + huisnummer
+  addressPostalCode?: string;            // Postcode
+  addressCity?: string;                  // Stad
+  addressCountry?: string;              // Land
+  birthDate?: string;                    // Geboortedatum (ISO: YYYY-MM-DD)
+  weddingDate?: string;                  // Trouwdatum (ISO: YYYY-MM-DD)
+
   // Feedback settings (accessibility)
   hapticIntensity?: string;              // 'off' | 'veryLight' | 'light' | 'normal' | 'strong'
   audioFeedbackEnabled?: boolean;        // Play sound on tap (respects silent mode)
@@ -244,6 +255,32 @@ export interface AdTargetingContext {
   city: string;
   ageBracket: AgeBracket;
   language: SupportedLanguage;
+}
+
+// ============================================================
+// Contact Data Sharing Consent
+// ============================================================
+
+/**
+ * SharedDataConsent — per-contact consent record for data sharing.
+ *
+ * Tracks whether the current user has granted consent to share their
+ * personal contact details with a specific contact. Consent is:
+ * - All-or-nothing (single toggle, not per-field)
+ * - Symmetrical but independent (A can share with B without B sharing with A)
+ * - Revocable at any time
+ *
+ * @see CONTACT_DATA_SHARING.md for architecture details
+ */
+export interface SharedDataConsent {
+  /** Contact JID this consent applies to */
+  contactJid: string;
+  /** Whether current user consents to share their personal data with this contact */
+  isSharingEnabled: boolean;
+  /** Timestamp when consent was last changed */
+  consentChangedAt: number;
+  /** Timestamp when shared data was last synced to this contact */
+  lastSyncedAt?: number;
 }
 
 // ============================================================

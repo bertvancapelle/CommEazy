@@ -19,6 +19,7 @@ import {
   ContactModel,
   GroupModel,
   UserProfileModel,
+  SharedDataConsentModel,
   modelClasses,
 } from '@/models';
 
@@ -29,6 +30,7 @@ import type {
   Contact,
   Group,
   UserProfile,
+  SharedDataConsent,
   Observable,
   ContentType,
   DeliveryStatus,
@@ -546,6 +548,17 @@ export class WatermelonDBService implements DatabaseService {
           record.dialToneEnabled = profile.dialToneEnabled;
           record.incomingCallVibration = profile.incomingCallVibration;
           record.outgoingCallVibration = profile.outgoingCallVibration;
+
+          // Personal contact details (v24)
+          record.email = profile.email;
+          record.mobileNumber = profile.mobileNumber;
+          record.landlineNumber = profile.landlineNumber;
+          record.addressStreet = profile.addressStreet;
+          record.addressPostalCode = profile.addressPostalCode;
+          record.addressCity = profile.addressCity;
+          record.addressCountry = profile.addressCountry;
+          record.birthDate = profile.birthDate;
+          record.weddingDate = profile.weddingDate;
         });
       } else {
         await db.get<UserProfileModel>('user_profile').create(record => {
@@ -596,6 +609,17 @@ export class WatermelonDBService implements DatabaseService {
           record.dialToneEnabled = profile.dialToneEnabled;
           record.incomingCallVibration = profile.incomingCallVibration;
           record.outgoingCallVibration = profile.outgoingCallVibration;
+
+          // Personal contact details (v24)
+          record.email = profile.email;
+          record.mobileNumber = profile.mobileNumber;
+          record.landlineNumber = profile.landlineNumber;
+          record.addressStreet = profile.addressStreet;
+          record.addressPostalCode = profile.addressPostalCode;
+          record.addressCity = profile.addressCity;
+          record.addressCountry = profile.addressCountry;
+          record.birthDate = profile.birthDate;
+          record.weddingDate = profile.weddingDate;
         });
       }
     });
@@ -746,6 +770,95 @@ export class WatermelonDBService implements DatabaseService {
       dialToneEnabled: p.dialToneEnabled,
       incomingCallVibration: p.incomingCallVibration,
       outgoingCallVibration: p.outgoingCallVibration,
+
+      // Personal contact details (v24)
+      email: p.email,
+      mobileNumber: p.mobileNumber,
+      landlineNumber: p.landlineNumber,
+      addressStreet: p.addressStreet,
+      addressPostalCode: p.addressPostalCode,
+      addressCity: p.addressCity,
+      addressCountry: p.addressCountry,
+      birthDate: p.birthDate,
+      weddingDate: p.weddingDate,
     };
+  }
+
+  // ============================================================
+  // Shared Data Consent
+  // ============================================================
+
+  /**
+   * Get consent record for a specific contact
+   */
+  async getConsentForContact(contactJid: string): Promise<SharedDataConsent | null> {
+    if (!this.database) return null;
+    const collection = this.database.get<SharedDataConsentModel>('shared_data_consents');
+    const results = await collection.query(
+      Q.where('contact_jid', contactJid),
+    ).fetch();
+    if (results.length === 0) return null;
+    const c = results[0];
+    return {
+      contactJid: c.contactJid,
+      isSharingEnabled: c.isSharingEnabled,
+      consentChangedAt: c.consentChangedAt,
+      lastSyncedAt: c.lastSyncedAt,
+    };
+  }
+
+  /**
+   * Get all consent records (for "Gedeeld met" overview)
+   */
+  async getAllConsents(): Promise<SharedDataConsent[]> {
+    if (!this.database) return [];
+    const collection = this.database.get<SharedDataConsentModel>('shared_data_consents');
+    const results = await collection.query().fetch();
+    return results.map(c => ({
+      contactJid: c.contactJid,
+      isSharingEnabled: c.isSharingEnabled,
+      consentChangedAt: c.consentChangedAt,
+      lastSyncedAt: c.lastSyncedAt,
+    }));
+  }
+
+  /**
+   * Set sharing consent for a contact (create or update)
+   */
+  async setConsentForContact(contactJid: string, enabled: boolean): Promise<void> {
+    if (!this.database) return;
+    const collection = this.database.get<SharedDataConsentModel>('shared_data_consents');
+    const existing = await collection.query(
+      Q.where('contact_jid', contactJid),
+    ).fetch();
+
+    await this.database.write(async () => {
+      if (existing.length > 0) {
+        await existing[0].toggleSharing(enabled);
+      } else {
+        await collection.create(record => {
+          record.contactJid = contactJid;
+          record.isSharingEnabled = enabled;
+          record.consentChangedAt = Date.now();
+        });
+      }
+    });
+  }
+
+  /**
+   * Get contacts with whom data is currently shared
+   */
+  async getSharedWithContacts(): Promise<SharedDataConsent[]> {
+    if (!this.database) return [];
+    const collection = this.database.get<SharedDataConsentModel>('shared_data_consents');
+    const results = await collection.query(
+      Q.where('is_sharing_enabled', true),
+    ).fetch();
+    return results.map(c => ({
+      contactJid: c.contactJid,
+      isSharingEnabled: c.isSharingEnabled,
+      consentChangedAt: c.consentChangedAt,
+      lastSyncedAt: c.lastSyncedAt,
+    }));
   }
 }

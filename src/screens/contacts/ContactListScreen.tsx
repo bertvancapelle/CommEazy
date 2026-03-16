@@ -41,6 +41,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { useContactGroups } from '@/hooks/useContactGroups';
 import { ServiceContainer } from '@/services/container';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
+import { getAvatarPath } from '@/services/imageService';
 import { getSmartSections, getCallFrequency } from '@/services/contacts';
 import type { SmartSection, ContactGroup } from '@/services/contacts';
 import type { ContactStackParams } from '@/navigation';
@@ -125,6 +126,11 @@ export function ContactListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Profile avatar for header
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('');
+
+
   // Contact groups state
   const [selectedChipId, setSelectedChipId] = useState<ChipId>('all');
   const [callFrequency, setCallFrequency] = useState<Record<string, number>>({});
@@ -187,6 +193,29 @@ export function ContactListScreen() {
       }
     };
     void loadContacts();
+  }, []);
+
+  // Load profile for header avatar
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const profile = await ServiceContainer.database.getUserProfile();
+        if (profile) {
+          setProfileName(profile.name);
+          if (profile.photoPath) {
+            setProfilePhotoUrl(`file://${profile.photoPath}`);
+          } else {
+            const savedPath = await getAvatarPath('my_profile');
+            if (savedPath) {
+              setProfilePhotoUrl(`file://${savedPath}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load profile for avatar:', error);
+      }
+    };
+    void loadProfile();
   }, []);
 
   // Compute smart sections from contacts (memoized for performance)
@@ -387,6 +416,24 @@ export function ContactListScreen() {
             icon="contacts"
             title={t('tabs.contacts')}
             skipSafeArea
+            rightAccessory={
+              <HapticTouchable
+                hapticDisabled
+                onPress={() => {
+                  void triggerFeedback('tap');
+                  navigation.navigate('ProfileSettings' as never);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('settings.profile')}
+                style={{ marginRight: spacing.sm }}
+              >
+                <ContactAvatar
+                  name={profileName}
+                  photoUrl={profilePhotoUrl ?? undefined}
+                  size={36}
+                />
+              </HapticTouchable>
+            }
           />
         }
         controlsBlock={

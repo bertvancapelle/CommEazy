@@ -30,9 +30,14 @@ import {
   TextInput,
   Platform,
   KeyboardAvoidingView,
+  Modal,
+  Switch,
   NativeSyntheticEvent,
   TextInputFocusEventData,
 } from 'react-native';
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -41,7 +46,7 @@ import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { ContactAvatar, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { ContactAvatar, LoadingView, ScrollViewWithIndicator, ErrorView, LiquidGlassView } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import {
   pickImageFromCamera,
@@ -86,6 +91,26 @@ export function ProfileSettingsScreen() {
   const [loading, setLoading] = useState(true);
   const [hasShownValidationAlert, setHasShownValidationAlert] = useState(false);
   const [cityInput, setCityInput] = useState(''); // Local state for city input
+
+  // Personal data fields (shareable with contacts via consent)
+  const [personalEmail, setPersonalEmail] = useState('');
+  const [personalMobile, setPersonalMobile] = useState('');
+  const [personalLandline, setPersonalLandline] = useState('');
+  const [personalStreet, setPersonalStreet] = useState('');
+  const [personalPostalCode, setPersonalPostalCode] = useState('');
+  const [personalCity, setPersonalCity] = useState('');
+  const [personalCountry, setPersonalCountry] = useState('');
+  const [birthDate, setBirthDate] = useState<string | undefined>(undefined);
+  const [weddingDate, setWeddingDate] = useState<string | undefined>(undefined);
+  const [activeDatePicker, setActiveDatePicker] = useState<'birth' | 'wedding' | null>(null);
+
+  // Shared data consent state
+  const [sharedWithContacts, setSharedWithContacts] = useState<Array<{
+    contactJid: string;
+    contactName: string;
+    isSharingEnabled: boolean;
+  }>>([]);
+
   const [notification, setNotification] = useState<{
     type: 'error' | 'warning' | 'info' | 'success';
     title: string;
@@ -189,6 +214,17 @@ export function ProfileSettingsScreen() {
           setDisplayName(loadedProfile.name);
           setCityInput(loadedProfile.city || '');
 
+          // Load personal data fields
+          setPersonalEmail(loadedProfile.email || '');
+          setPersonalMobile(loadedProfile.mobileNumber || '');
+          setPersonalLandline(loadedProfile.landlineNumber || '');
+          setPersonalStreet(loadedProfile.addressStreet || '');
+          setPersonalPostalCode(loadedProfile.addressPostalCode || '');
+          setPersonalCity(loadedProfile.addressCity || '');
+          setPersonalCountry(loadedProfile.addressCountry || '');
+          setBirthDate(loadedProfile.birthDate || undefined);
+          setWeddingDate(loadedProfile.weddingDate || undefined);
+
           if (loadedProfile.photoPath) {
             setPhotoUrl(`file://${loadedProfile.photoPath}`);
           } else {
@@ -197,6 +233,23 @@ export function ProfileSettingsScreen() {
               setPhotoUrl(`file://${savedPath}`);
             }
           }
+        }
+
+        // Load consent data (shared with contacts)
+        const consents = await ServiceContainer.database.getAllConsents();
+        if (consents.length > 0) {
+          const contacts = await ServiceContainer.database.getContactsOnce();
+          const sharedData = consents.map(c => {
+            const contact = contacts.find(ct => ct.jid === c.contactJid);
+            return {
+              contactJid: c.contactJid,
+              contactName: contact
+                ? `${contact.firstName} ${contact.lastName}`.trim()
+                : c.contactJid,
+              isSharingEnabled: c.isSharingEnabled,
+            };
+          });
+          setSharedWithContacts(sharedData);
         }
       } catch (error) {
         console.error('Failed to load profile:', error);
@@ -429,6 +482,92 @@ export function ProfileSettingsScreen() {
     void triggerFeedback('tap');
     await saveProfile({ gender: gender as Gender });
   }, [saveProfile, triggerFeedback]);
+
+  // Personal data save handlers (save on blur)
+  const handlePersonalFieldBlur = useCallback(async (field: string, value: string) => {
+    const updates: Partial<UserProfile> = {};
+    switch (field) {
+      case 'email': updates.email = value.trim(); break;
+      case 'mobileNumber': updates.mobileNumber = value.trim(); break;
+      case 'landlineNumber': updates.landlineNumber = value.trim(); break;
+      case 'addressStreet': updates.addressStreet = value.trim(); break;
+      case 'addressPostalCode': updates.addressPostalCode = value.trim(); break;
+      case 'addressCity': updates.addressCity = value.trim(); break;
+      case 'addressCountry': updates.addressCountry = value.trim(); break;
+    }
+    const saved = await saveProfile(updates);
+    if (saved) {
+      setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
+    }
+  }, [saveProfile, t]);
+
+  const handleDateChange = useCallback(async (type: 'birth' | 'wedding', event: DateTimePickerEvent, date?: Date) => {
+    if (event.type === 'set' && date) {
+      const isoDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      if (type === 'birth') {
+        setBirthDate(isoDate);
+        await saveProfile({ birthDate: isoDate });
+      } else {
+        setWeddingDate(isoDate);
+        await saveProfile({ weddingDate: isoDate });
+      }
+      setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
+    }
+    setActiveDatePicker(null);
+  }, [saveProfile, t]);
+
+  const handleClearDate = useCallback(async (type: 'birth' | 'wedding') => {
+    void triggerFeedback('tap');
+    if (type === 'birth') {
+      setBirthDate(undefined);
+      await saveProfile({ birthDate: '' });
+    } else {
+      setWeddingDate(undefined);
+      await saveProfile({ weddingDate: '' });
+    }
+    setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
+  }, [saveProfile, t, triggerFeedback]);
+
+  // Format ISO date (YYYY-MM-DD) to localized display
+  const formatDate = useCallback((isoDate: string | undefined): string => {
+    if (!isoDate) return '';
+    try {
+      const date = new Date(isoDate + 'T00:00:00');
+      return date.toLocaleDateString(i18n.language, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return isoDate;
+    }
+  }, [i18n.language]);
+
+  // Toggle consent for sharing data with a contact
+  const handleToggleConsent = useCallback(async (contactJid: string, currentEnabled: boolean) => {
+    void triggerFeedback('tap');
+    const newEnabled = !currentEnabled;
+    try {
+      const { ServiceContainer } = await import('@/services/container');
+      await ServiceContainer.database.setConsentForContact(contactJid, newEnabled);
+      setSharedWithContacts(prev =>
+        prev.map(c =>
+          c.contactJid === contactJid
+            ? { ...c, isSharingEnabled: newEnabled }
+            : c,
+        ),
+      );
+      setNotification({
+        type: 'success',
+        title: newEnabled
+          ? t('profile.sharing.enabled')
+          : t('profile.sharing.disabled'),
+        message: '',
+      });
+    } catch (error) {
+      console.error('Failed to toggle consent:', error);
+    }
+  }, [triggerFeedback, t]);
 
   // Build picker options with flag emojis
   const languageOptions = SUPPORTED_LANGUAGES.map(lang => ({
@@ -830,6 +969,267 @@ export function ProfileSettingsScreen() {
         )}
       </View>
 
+      {/* Personal data section (shareable with contacts via consent) */}
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('profile.personal.title')}</Text>
+        <Text style={[styles.sectionSubtitle, { color: themeColors.textTertiary }]}>{t('profile.personal.subtitle')}</Text>
+
+        {/* Email */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.emailLabel')}</Text>
+          <TextInput
+            style={[styles.personalInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            value={personalEmail}
+            onChangeText={setPersonalEmail}
+            onBlur={() => handlePersonalFieldBlur('email', personalEmail)}
+            placeholder={t('profile.personal.emailPlaceholder')}
+            placeholderTextColor={themeColors.textTertiary}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+            accessibilityLabel={t('profile.personal.emailLabel')}
+          />
+        </View>
+
+        {/* Mobile number */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.mobileLabel')}</Text>
+          <TextInput
+            style={[styles.personalInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            value={personalMobile}
+            onChangeText={setPersonalMobile}
+            onBlur={() => handlePersonalFieldBlur('mobileNumber', personalMobile)}
+            placeholder={t('profile.personal.mobilePlaceholder')}
+            placeholderTextColor={themeColors.textTertiary}
+            keyboardType="phone-pad"
+            returnKeyType="done"
+            accessibilityLabel={t('profile.personal.mobileLabel')}
+          />
+        </View>
+
+        {/* Landline number */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.landlineLabel')}</Text>
+          <TextInput
+            style={[styles.personalInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            value={personalLandline}
+            onChangeText={setPersonalLandline}
+            onBlur={() => handlePersonalFieldBlur('landlineNumber', personalLandline)}
+            placeholder={t('profile.personal.landlinePlaceholder')}
+            placeholderTextColor={themeColors.textTertiary}
+            keyboardType="phone-pad"
+            returnKeyType="done"
+            accessibilityLabel={t('profile.personal.landlineLabel')}
+          />
+        </View>
+
+        {/* Address sub-section */}
+        <Text style={[styles.fieldLabel, { color: themeColors.textPrimary, marginTop: spacing.sm }]}>{t('profile.personal.addressTitle')}</Text>
+
+        {/* Street */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.streetLabel')}</Text>
+          <TextInput
+            style={[styles.personalInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            value={personalStreet}
+            onChangeText={setPersonalStreet}
+            onBlur={() => handlePersonalFieldBlur('addressStreet', personalStreet)}
+            placeholder={t('profile.personal.streetPlaceholder')}
+            placeholderTextColor={themeColors.textTertiary}
+            returnKeyType="done"
+            accessibilityLabel={t('profile.personal.streetLabel')}
+          />
+        </View>
+
+        {/* Postal code + City row */}
+        <View style={styles.personalRowFields}>
+          <View style={[styles.fieldContainer, { flex: 1, marginRight: spacing.sm }]}>
+            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.postalCodeLabel')}</Text>
+            <TextInput
+              style={[styles.personalInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+              value={personalPostalCode}
+              onChangeText={setPersonalPostalCode}
+              onBlur={() => handlePersonalFieldBlur('addressPostalCode', personalPostalCode)}
+              placeholder={t('profile.personal.postalCodePlaceholder')}
+              placeholderTextColor={themeColors.textTertiary}
+              returnKeyType="done"
+              accessibilityLabel={t('profile.personal.postalCodeLabel')}
+            />
+          </View>
+          <View style={[styles.fieldContainer, { flex: 2 }]}>
+            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.cityLabel')}</Text>
+            <TextInput
+              style={[styles.personalInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+              value={personalCity}
+              onChangeText={setPersonalCity}
+              onBlur={() => handlePersonalFieldBlur('addressCity', personalCity)}
+              placeholder={t('profile.personal.cityPlaceholder')}
+              placeholderTextColor={themeColors.textTertiary}
+              returnKeyType="done"
+              accessibilityLabel={t('profile.personal.cityLabel')}
+            />
+          </View>
+        </View>
+
+        {/* Country */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.countryLabel')}</Text>
+          <TextInput
+            style={[styles.personalInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            value={personalCountry}
+            onChangeText={setPersonalCountry}
+            onBlur={() => handlePersonalFieldBlur('addressCountry', personalCountry)}
+            placeholder={t('profile.personal.countryPlaceholder')}
+            placeholderTextColor={themeColors.textTertiary}
+            returnKeyType="done"
+            accessibilityLabel={t('profile.personal.countryLabel')}
+          />
+        </View>
+
+        {/* Important dates sub-section */}
+        <Text style={[styles.fieldLabel, { color: themeColors.textPrimary, marginTop: spacing.sm }]}>{t('profile.personal.datesTitle')}</Text>
+
+        {/* Birth date */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.birthDateLabel')}</Text>
+          <View style={styles.dateFieldRow}>
+            <HapticTouchable hapticDisabled
+              style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border, flex: 1 }]}
+              onPress={() => { void triggerFeedback('tap'); setActiveDatePicker('birth'); }}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.personal.birthDateLabel')}
+            >
+              <Text style={[styles.pickerValue, birthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+                {birthDate ? formatDate(birthDate) : t('profile.personal.selectDate')}
+              </Text>
+              <Text style={styles.editIcon}>📅</Text>
+            </HapticTouchable>
+            {birthDate && (
+              <HapticTouchable hapticDisabled
+                style={styles.clearDateButton}
+                onPress={() => handleClearDate('birth')}
+                accessibilityRole="button"
+                accessibilityLabel={t('profile.personal.clearDate')}
+              >
+                <Text style={[styles.clearDateText, { color: themeColors.textSecondary }]}>✕</Text>
+              </HapticTouchable>
+            )}
+          </View>
+        </View>
+
+        {/* Wedding date */}
+        <View style={styles.fieldContainer}>
+          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.weddingDateLabel')}</Text>
+          <View style={styles.dateFieldRow}>
+            <HapticTouchable hapticDisabled
+              style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border, flex: 1 }]}
+              onPress={() => { void triggerFeedback('tap'); setActiveDatePicker('wedding'); }}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.personal.weddingDateLabel')}
+            >
+              <Text style={[styles.pickerValue, weddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+                {weddingDate ? formatDate(weddingDate) : t('profile.personal.selectDate')}
+              </Text>
+              <Text style={styles.editIcon}>📅</Text>
+            </HapticTouchable>
+            {weddingDate && (
+              <HapticTouchable hapticDisabled
+                style={styles.clearDateButton}
+                onPress={() => handleClearDate('wedding')}
+                accessibilityRole="button"
+                accessibilityLabel={t('profile.personal.clearDate')}
+              >
+                <Text style={[styles.clearDateText, { color: themeColors.textSecondary }]}>✕</Text>
+              </HapticTouchable>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* Date picker modals */}
+      {activeDatePicker && (
+        <Modal
+          visible={true}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setActiveDatePicker(null)}
+        >
+          <View style={styles.datePickerOverlay}>
+            <View style={[styles.datePickerContainer, { backgroundColor: themeColors.surface }]}>
+              <View style={[styles.datePickerHeader, { borderBottomColor: themeColors.border }]}>
+                <Text style={[styles.datePickerTitle, { color: themeColors.textPrimary }]}>
+                  {activeDatePicker === 'birth'
+                    ? t('profile.personal.birthDateLabel')
+                    : t('profile.personal.weddingDateLabel')}
+                </Text>
+                <HapticTouchable
+                  style={[styles.datePickerDoneButton, { backgroundColor: accentColor.primary }]}
+                  onPress={() => setActiveDatePicker(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.done')}
+                >
+                  <Text style={[styles.datePickerDoneText, { color: themeColors.textOnPrimary }]}>
+                    {t('common.done')}
+                  </Text>
+                </HapticTouchable>
+              </View>
+              <DateTimePicker
+                value={
+                  activeDatePicker === 'birth' && birthDate
+                    ? new Date(birthDate + 'T00:00:00')
+                    : activeDatePicker === 'wedding' && weddingDate
+                      ? new Date(weddingDate + 'T00:00:00')
+                      : new Date()
+                }
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(event, date) => handleDateChange(activeDatePicker, event, date)}
+                maximumDate={new Date()}
+                locale={i18n.language}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* ── Gedeeld met (Shared with) ─────────────────────────── */}
+      {sharedWithContacts.length > 0 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
+            {t('profile.sharing.title')}
+          </Text>
+          <Text style={[styles.sectionSubtitle, { color: themeColors.textSecondary }]}>
+            {t('profile.sharing.subtitle')}
+          </Text>
+
+          {sharedWithContacts.map(item => (
+            <View
+              key={item.contactJid}
+              style={[styles.consentRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            >
+              <View style={styles.consentInfo}>
+                <ContactAvatar
+                  name={item.contactName}
+                  size={40}
+                />
+                <Text style={[styles.consentName, { color: themeColors.textPrimary }]}>
+                  {item.contactName}
+                </Text>
+              </View>
+              <Switch
+                value={item.isSharingEnabled}
+                onValueChange={() => handleToggleConsent(item.contactJid, item.isSharingEnabled)}
+                trackColor={{ false: themeColors.border, true: accentColor.primaryLight }}
+                thumbColor={item.isSharingEnabled ? accentColor.primary : themeColors.surface}
+                accessibilityLabel={t('profile.sharing.toggleLabel', { name: item.contactName })}
+                accessibilityRole="switch"
+              />
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Dev mode: Show UUID */}
       {__DEV__ && profile?.userUuid && (
         <View style={[styles.devSection, { backgroundColor: themeColors.surface, borderColor: accentColor.primary }]}>
@@ -1076,5 +1476,89 @@ const styles = StyleSheet.create({
   inputError: {
     backgroundColor: colors.errorBackground,
     borderColor: colors.errorBorder,
+  },
+  // Personal data section styles
+  personalInput: {
+    ...typography.body,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    color: colors.textPrimary,
+    backgroundColor: colors.surface,
+    minHeight: touchTargets.comfortable,
+  },
+  personalRowFields: {
+    flexDirection: 'row',
+  },
+  dateFieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  clearDateButton: {
+    width: touchTargets.minimum,
+    height: touchTargets.minimum,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing.xs,
+  },
+  clearDateText: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  // Date picker modal styles
+  datePickerOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  datePickerContainer: {
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    paddingBottom: spacing.xl,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+  },
+  datePickerTitle: {
+    ...typography.body,
+    fontWeight: '700',
+  },
+  datePickerDoneButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
+  },
+  datePickerDoneText: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  // Consent / Shared with section styles
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+    minHeight: touchTargets.minimum,
+  },
+  consentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flex: 1,
+  },
+  consentName: {
+    ...typography.body,
+    fontWeight: '600',
+    flex: 1,
   },
 });

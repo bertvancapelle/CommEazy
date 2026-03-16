@@ -108,6 +108,8 @@ export interface ModuleHeaderProps {
   onSave?: () => void;
   /** Disable the Save button (e.g. form not valid) */
   saveDisabled?: boolean;
+  /** Optional accessory rendered in the right side of the header (before MediaIndicator) */
+  rightAccessory?: React.ReactNode;
 }
 
 // ============================================================
@@ -130,6 +132,7 @@ export function ModuleHeader({
   onCancel,
   onSave,
   saveDisabled = false,
+  rightAccessory,
 }: ModuleHeaderProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -259,8 +262,9 @@ export function ModuleHeader({
             <Text style={styles.title}>{title}</Text>
           </View>
 
-          {/* Right: MediaIndicator + Grid button */}
+          {/* Right: rightAccessory + MediaIndicator + Grid button */}
           <View style={styles.rightControls}>
+            {rightAccessory}
             <View style={styles.mediaIndicatorWrapper}>
               <MediaIndicator
                 moduleColor={moduleColor}

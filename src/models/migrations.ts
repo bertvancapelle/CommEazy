@@ -23,6 +23,10 @@
  * - v19: Added category snapshot fields to agenda_items (category_icon, category_name, form_type)
  * - v20: Added categories to contacts (JSON array of agenda category IDs)
  * - v21: Added end_time, notes, source to agenda_items (ICS calendar import)
+ * - v22: Added email to contacts (ICS calendar invitation via mail)
+ * - v23: Added mobile_number to contacts (landline/mobile distinction)
+ * - v24: Added personal contact details to user_profile (email, mobile, landline, address, dates) for contact data sharing
+ * - v25: Added shared_data_consents table for per-contact data sharing consent
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -388,6 +392,43 @@ export const migrations = schemaMigrations({
           table: 'contacts',
           columns: [
             { name: 'mobile_number', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v23 to v24: Add personal contact details to user_profile (contact data sharing)
+    {
+      toVersion: 24,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'email', type: 'string', isOptional: true },
+            { name: 'mobile_number', type: 'string', isOptional: true },
+            { name: 'landline_number', type: 'string', isOptional: true },
+            { name: 'address_street', type: 'string', isOptional: true },
+            { name: 'address_postal_code', type: 'string', isOptional: true },
+            { name: 'address_city', type: 'string', isOptional: true },
+            { name: 'address_country', type: 'string', isOptional: true },
+            { name: 'birth_date', type: 'string', isOptional: true },
+            { name: 'wedding_date', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v24 to v25: Add shared_data_consents table (per-contact data sharing consent)
+    {
+      toVersion: 25,
+      steps: [
+        createTable({
+          name: 'shared_data_consents',
+          columns: [
+            { name: 'contact_jid', type: 'string', isIndexed: true },
+            { name: 'is_sharing_enabled', type: 'boolean' },
+            { name: 'consent_changed_at', type: 'number' },
+            { name: 'last_synced_at', type: 'number', isOptional: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
           ],
         }),
       ],

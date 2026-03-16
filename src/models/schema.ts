@@ -30,6 +30,9 @@
  * - v20: Added categories to contacts (JSON array of agenda category IDs)
  * - v21: Added end_time, notes, source to agenda_items (ICS calendar import)
  * - v22: Added email to contacts (enables ICS calendar invitation via mail)
+ * - v23: Added mobile_number to contacts (landline/mobile distinction)
+ * - v24: Added personal contact details to user_profile (email, mobile, landline, address, dates) for contact data sharing
+ * - v25: Added shared_data_consents table for per-contact data sharing consent
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -56,10 +59,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 23;
+export const SCHEMA_VERSION = 25;
 
 export const schema = appSchema({
-  version: 23,
+  version: 25,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -193,6 +196,17 @@ export const schema = appSchema({
         { name: 'haptic_feedback_enabled', type: 'boolean' },
         { name: 'photo_path', type: 'string', isOptional: true }, // Local file path to own avatar
 
+        // Personal contact details (v24: shareable with contacts via consent)
+        { name: 'email', type: 'string', isOptional: true },                // E-mailadres
+        { name: 'mobile_number', type: 'string', isOptional: true },        // Mobiel nummer
+        { name: 'landline_number', type: 'string', isOptional: true },      // Vast telefoonnummer
+        { name: 'address_street', type: 'string', isOptional: true },       // Straat + huisnummer
+        { name: 'address_postal_code', type: 'string', isOptional: true },  // Postcode
+        { name: 'address_city', type: 'string', isOptional: true },         // Stad (apart van demographics city)
+        { name: 'address_country', type: 'string', isOptional: true },      // Land
+        { name: 'birth_date', type: 'string', isOptional: true },           // Geboortedatum (ISO: YYYY-MM-DD)
+        { name: 'wedding_date', type: 'string', isOptional: true },         // Trouwdatum (ISO: YYYY-MM-DD)
+
         // Subscription (v4: freemium model)
         { name: 'subscription_tier', type: 'string' },            // 'free' | 'premium'
         { name: 'subscription_expires', type: 'number', isOptional: true },
@@ -276,6 +290,19 @@ export const schema = appSchema({
         // Recurring exceptions ("alleen vandaag" edits)
         { name: 'parent_id', type: 'string', isOptional: true },     // Ref to parent recurring item
         { name: 'exception_date', type: 'number', isOptional: true }, // Date this exception overrides
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+
+    // Shared data consent table (v25) — per-contact consent for data sharing
+    tableSchema({
+      name: 'shared_data_consents',
+      columns: [
+        { name: 'contact_jid', type: 'string', isIndexed: true },       // Contact JID
+        { name: 'is_sharing_enabled', type: 'boolean' },                // Consent toggle
+        { name: 'consent_changed_at', type: 'number' },                 // Last consent change
+        { name: 'last_synced_at', type: 'number', isOptional: true },   // Last sync timestamp
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

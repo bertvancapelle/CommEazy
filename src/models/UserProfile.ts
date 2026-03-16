@@ -24,6 +24,17 @@ export class UserProfileModel extends Model {
   @field('haptic_feedback_enabled') hapticFeedbackEnabled!: boolean;
   @field('photo_path') photoPath?: string;             // Local file path to own avatar
 
+  // Personal contact details (shareable with contacts via consent, v24)
+  @field('email') email?: string;                        // E-mailadres
+  @field('mobile_number') mobileNumber?: string;         // Mobiel nummer (apart van verificatie phoneNumber)
+  @field('landline_number') landlineNumber?: string;     // Vast telefoonnummer
+  @field('address_street') addressStreet?: string;       // Straat + huisnummer
+  @field('address_postal_code') addressPostalCode?: string; // Postcode
+  @field('address_city') addressCity?: string;           // Stad
+  @field('address_country') addressCountry?: string;     // Land
+  @field('birth_date') birthDate?: string;               // Geboortedatum (ISO: YYYY-MM-DD)
+  @field('wedding_date') weddingDate?: string;           // Trouwdatum (ISO: YYYY-MM-DD)
+
   // Subscription (freemium model)
   @field('subscription_tier') subscriptionTier!: SubscriptionTier;  // 'free' | 'premium'
   @field('subscription_expires') subscriptionExpires?: number;       // Timestamp when premium expires
@@ -163,6 +174,33 @@ export class UserProfileModel extends Model {
   @writer async updateAccentColor(newAccentColor: string): Promise<void> {
     await this.update(record => {
       record.accentColor = newAccentColor;
+    });
+  }
+
+  /**
+   * Update personal contact details (shareable with contacts via consent)
+   */
+  @writer async updatePersonalData(data: {
+    email?: string;
+    mobileNumber?: string;
+    landlineNumber?: string;
+    addressStreet?: string;
+    addressPostalCode?: string;
+    addressCity?: string;
+    addressCountry?: string;
+    birthDate?: string;
+    weddingDate?: string;
+  }): Promise<void> {
+    await this.update(record => {
+      if (data.email !== undefined) record.email = data.email;
+      if (data.mobileNumber !== undefined) record.mobileNumber = data.mobileNumber;
+      if (data.landlineNumber !== undefined) record.landlineNumber = data.landlineNumber;
+      if (data.addressStreet !== undefined) record.addressStreet = data.addressStreet;
+      if (data.addressPostalCode !== undefined) record.addressPostalCode = data.addressPostalCode;
+      if (data.addressCity !== undefined) record.addressCity = data.addressCity;
+      if (data.addressCountry !== undefined) record.addressCountry = data.addressCountry;
+      if (data.birthDate !== undefined) record.birthDate = data.birthDate;
+      if (data.weddingDate !== undefined) record.weddingDate = data.weddingDate;
     });
   }
 }

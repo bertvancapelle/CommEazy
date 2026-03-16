@@ -13,6 +13,7 @@ export { GroupModel } from './Group';
 export { UserProfileModel } from './UserProfile';
 export { MediaMessageModel } from './MediaMessage';
 export { AgendaItemModel, type MedicationLogEntry } from './AgendaItem';
+export { SharedDataConsentModel } from './SharedDataConsent';
 
 // Model classes array for database initialization
 export const modelClasses = [
@@ -23,4 +24,5 @@ export const modelClasses = [
   require('./UserProfile').UserProfileModel,
   require('./MediaMessage').MediaMessageModel,
   require('./AgendaItem').AgendaItemModel,
+  require('./SharedDataConsent').SharedDataConsentModel,
 ];
