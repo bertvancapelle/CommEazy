@@ -169,6 +169,54 @@ jobs:
 - Credential rotation: monthly
 ```
 
+### API Gateway (Express.js)
+```bash
+# App Attestation + JWT token issuance
+- HTTP: port 8443
+- Endpoints: /attest (iOS/Android), /token/refresh
+- Middleware: express-rate-limit (100 req/15min per IP)
+- Attestation store: Redis (primary) + in-memory Map (fallback)
+- JWT: 24h access token, 30d refresh token
+- Monitoring: attestation success/failure rate, JWT refresh count
+```
+
+### Invitation Relay (Express.js)
+```bash
+# Encrypted contact key exchange
+- HTTP: port 5283
+- Endpoints: PUT /invitation/:code, GET /invitation/:code, DELETE /invitation/:code
+- Storage: in-memory Map (ephemeral)
+- TTL: 24 hours per invitation
+- Read policy: single read (deleted after GET)
+- Code format: CE-XXXX-XXXX-XXXX (V2) and CE-XXXX-XXXX (V1 legacy)
+- Rate limiting: 20 req/15min per IP (PUT), 30 req/15min per IP (GET)
+- Monitoring: active invitations count, expiry cleanup rate
+```
+
+### Redis (Attestation Store)
+```bash
+# Optional — graceful fallback to in-memory Map
+- Port: 6379 (default)
+- Config: REDIS_HOST, REDIS_PORT, REDIS_PASSWORD env vars
+- Data: attestation public keys only
+- TTL: 30 days (EX 2592000) per key
+- Fallback: in-memory Map with hourly cleanup of entries >30 days
+- Monitoring: connected_clients, used_memory, expired_keys
+```
+
+### Server-Side Security Monitoring
+
+| Service | Metric | Alert Threshold |
+|---------|--------|-----------------|
+| API Gateway | Attestation failure rate | >20% in 5 min |
+| API Gateway | JWT refresh rate | >100/min per device |
+| Invitation Relay | Active invitations | >10,000 concurrent |
+| Invitation Relay | Expired cleanup failures | Any failure |
+| Redis | Memory usage | >80% maxmemory |
+| Redis | Connection count | >100 simultaneous |
+| Push Gateway | APNs delivery failures | >10% in 5 min |
+| Prosody | WebSocket connections | >1000 simultaneous |
+
 ## Senior Inclusive — DevOps Impact
 
 - **Automated screenshot generation**: Ensures store screenshots are always current and in all 13 languages (see CONSTANTS.md)

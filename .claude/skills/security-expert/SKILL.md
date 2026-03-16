@@ -19,9 +19,12 @@ model: sonnet
 ## Core Responsibilities
 
 - E2E encryption implementation (libsodium: 1-on-1 box, encrypt-to-all ≤8, shared-key >8)
-- Key management (generation, Realm encrypted storage, QR verification, backup)
+- Key management (generation, Keychain storage, QR verification, backup)
+- Invitation crypto (Argon2id KDF, code-based symmetric encryption, rate limiting)
+- App attestation & JWT tokens (App Attest iOS, Play Integrity Android, API Gateway)
 - Zero server storage verification (Prosody config audits)
 - Input validation (XSS, XMPP injection, timing attacks)
+- Rate limiting (client-side sliding window, server-side per-IP)
 - Encryption export compliance (US BIS Self-Classification Report)
 - GDPR compliance validation
 - Security audit of all PRs touching encryption/storage
@@ -109,7 +112,7 @@ Data NOT collected:
   
 Security practices:
   Data encrypted in transit: Yes (TLS + E2E)
-  Data encrypted at rest: Yes (Realm/DB encryption)
+  Data encrypted at rest: Yes (SQLCipher DB encryption + Keychain for keys)
   Data deletion: "Users can delete all data by removing the app"
 ```
 
@@ -219,6 +222,100 @@ async function encryptSharedKey(plaintext: string, members: Contact[]): Promise<
 - Text-only: encrypt-to-all viable to ~20 members
 - Photo: shared-key essential above 3 members (30MB vs 1.2MB payload at 30 members)
 
+## Invitation Crypto (Contact Key Exchange)
+
+Invitation codes enable secure contact exchange without server trust. The code serves as a shared secret for symmetric encryption of contact data.
+
+### Code Format
+- **V2 (current):** `CE-XXXX-XXXX-XXXX` (12 chars from 30-char alphabet, ~59 bits entropy)
+- **V1 (legacy):** `CE-XXXX-XXXX` (8 chars, ~39 bits) — accepted for backward compatibility
+
+### Key Derivation
+- **V2:** Argon2id (`crypto_pwhash`, OPSLIMIT_MODERATE, MEMLIMIT_MODERATE ~64MB, ~250ms per attempt)
+- **V1 fallback:** BLAKE2b single-pass hash (only for decrypting old codes)
+- Salt: deterministic via `crypto_generichash(16, "commeazy-invitation-salt-v2:" + normalized_code)`
+
+### Encryption
+- NaCl secretbox (XSalsa20-Poly1305) with Argon2id-derived key
+- Payload: `{ uuid, publicKey, displayName, jid }`
+
+### Rate Limiting (Client-Side)
+- Sliding window: max 5 decryption attempts per 60 seconds
+- In-memory timestamp array, reset on app restart
+- `isDecryptRateLimited()` check BEFORE calling `decryptInvitation()`
+
+### Decryption Flow
+1. Check rate limit → return null if exceeded
+2. Record attempt timestamp
+3. Try V2 (Argon2id) key derivation + secretbox_open
+4. On failure: try V1 (BLAKE2b) fallback for legacy codes
+5. Return parsed payload or null
+
+### Files
+- `src/services/invitation/invitationCrypto.ts` — encrypt/decrypt + KDF + rate limiter
+- `src/services/invitation/codeGenerator.ts` — code generation + validation + normalization
+- `src/services/invitation/invitationRelay.ts` — API client for relay server
+- `server/invitation-relay/server.js` — relay server (SQLite, 7-day TTL)
+
+## App Attestation & JWT Token System
+
+### Architecture
+```
+Client (iOS/Android) → API Gateway (port 8443) → Backend Services
+                         ↓
+                    Attestation Middleware
+                         ↓
+                    Redis (prod) / Map (dev)
+```
+
+### App Attest (iOS)
+- `DCAppAttestService` generates hardware-bound key pair
+- Attestation object sent to API Gateway for verification
+- Key ID stored in attestation store (Redis with 30-day TTL)
+- Subsequent requests use assertions (signed with attested key)
+
+### Attestation Store
+- **Production:** Redis with `EX 2592000` (30-day TTL, automatic expiry)
+- **Development:** In-memory Map with periodic cleanup (1 hour interval, 30-day max age)
+- **Graceful fallback:** If Redis unavailable, falls back to Map with warning log
+- **ioredis** as `optionalDependency` — server runs without Redis
+
+### JWT Tokens
+- Access token: 24h expiry (configurable via `JWT_ACCESS_TOKEN_EXPIRY`)
+- Refresh token: 30d expiry (configurable via `JWT_REFRESH_TOKEN_EXPIRY`)
+- Secret: 64-byte hex (`JWT_SECRET` env var)
+
+### Server-Side Rate Limiting
+- API Gateway: 60 requests per minute per IP (`express-rate-limit`)
+- Invitation Relay: 30 requests per minute per IP
+
+### Files
+- `server/api-gateway/middleware/attestation.js` — attestation verification + Redis/Map store
+- `server/api-gateway/server.js` — Express gateway with JWT + rate limiting
+- `src/services/attestation/tokenManager.ts` — client-side JWT + Keychain storage
+
+## Secure Storage Architecture
+
+### Keychain Accessibility Levels (iOS)
+
+| Data Type | Accessibility | Reason |
+|-----------|--------------|--------|
+| JWT tokens | `WHEN_UNLOCKED` | Only needed while app is active |
+| E2E encryption keys | `AFTER_FIRST_UNLOCK` | Must survive iCloud Backup + device migration |
+| Biometric-protected data | `BIOMETRY_ANY` | Requires biometric auth each access |
+| Mail credentials | `WHEN_UNLOCKED_THIS_DEVICE_ONLY` | Device-bound, not backed up |
+
+### Abstraction Layer
+- `src/services/secureStorage.ts` — Keychain abstraction (get/set/delete with accessibility levels)
+- `src/services/keyManager.ts` — Key generation, storage, rotation stubs
+- `src/services/attestation/tokenManager.ts` — JWT token lifecycle with Keychain migration
+
+### Database Encryption
+- WatermelonDB with SQLiteAdapter + SQLCipher
+- Encryption key generated via `crypto_secretbox_keygen()` at first launch
+- Key stored in Keychain (`AFTER_FIRST_UNLOCK`)
+- Key backup encrypted with Argon2id-derived key from user PIN
+
 ## Zero Server Storage Verification
 
 ```bash
@@ -257,7 +354,11 @@ find /var/lib/prosody/ -name "*.dat" -newer /var/lib/prosody/ -exec ls -la {} \;
 
 **FILE OWNERSHIP — I am the sole writer of:**
 - `src/services/encryption.ts`
-- `src/services/keyManagement.ts`
+- `src/services/keyManager.ts`
+- `src/services/secureStorage.ts`
+- `src/services/invitation/invitationCrypto.ts`
+- `src/services/attestation/tokenManager.ts`
+- `server/api-gateway/middleware/attestation.js`
 - `ios/CommEazyTemp/PrivacyInfo.xcprivacy` (security entries)
 
 **Other skills may READ but not WRITE these files without my approval.**
@@ -280,18 +381,27 @@ My contribution to a task is complete when:
 ## Quality Checklist
 
 - [ ] All messages encrypted before leaving device (no plaintext path exists)
-- [ ] Private keys encrypted in Realm, never in logs
+- [ ] Private keys stored in Keychain (AFTER_FIRST_UNLOCK), never in logs
+- [ ] Database encrypted with SQLCipher (key in Keychain)
 - [ ] Prosody zero-storage verified (monthly audit)
 - [ ] Input validation on all user input
 - [ ] Timing-safe comparison for PINs/keys
 - [ ] Sensitive data cleared from memory (sodium.memzero)
 - [ ] TLS enforced for XMPP, Firebase, all connections
+- [ ] ATS hardened (NSAllowsArbitraryLoads: false in Info.plist)
 - [ ] US BIS Self-Classification Report filed
 - [ ] Privacy Manifest (iOS) complete
 - [ ] Data Safety Section (Android) complete
 - [ ] QR verification tested with senior users (large viewfinder)
 - [ ] Security messages translated in 13 languages (see CONSTANTS.md) (NL/EN/EN-GB/DE/FR/ES/IT/NO/SV/DA/PT/PT-BR)
 - [ ] Error messages never expose key material or crypto details
+- [ ] Invitation crypto: Argon2id KDF for V2 codes, BLAKE2b fallback for V1
+- [ ] Invitation crypto: client-side rate limiting (5 attempts/60s) enforced
+- [ ] Attestation store: Redis with 30-day TTL (production), Map fallback (development)
+- [ ] JWT tokens stored in Keychain (WHEN_UNLOCKED), not AsyncStorage
+- [ ] Keychain accessibility levels correct per data type (see Secure Storage Architecture)
+- [ ] Console log stripping configured for production builds (babel transform-remove-console)
+- [ ] NSLog statements wrapped in `#if DEBUG` for native modules
 
 ## Collaboration
 
@@ -302,4 +412,5 @@ My contribution to a task is complete when:
 - **With android-specialist**: Data Safety, Keystore usage
 - **With xmpp-specialist**: TLS config, E2E encryption over XMPP
 - **With testing-qa**: Security test cases, penetration test plan
-- **With onboarding-recovery**: Key backup encryption (PBKDF2 + user PIN)
+- **With onboarding-recovery**: Key backup encryption (Argon2id + user PIN)
+- **With devops-specialist**: API Gateway monitoring, Redis health, attestation store

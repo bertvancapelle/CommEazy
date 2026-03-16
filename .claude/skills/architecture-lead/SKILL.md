@@ -141,7 +141,7 @@ i18n.use(initReactI18next).init({
 
 **Architecture rules:**
 - ALL user-facing strings via `i18n.t()` — ZERO hardcoded strings
-- Locale stored in Realm user preferences
+- Locale stored in AsyncStorage user preferences
 - Date/time via `Intl.DateTimeFormat` with user's locale
 - Numbers via `Intl.NumberFormat`
 - String keys: `screen.component.element` (e.g., `chat.input.placeholder`)
@@ -236,13 +236,86 @@ interface XMPPService {
 }
 
 interface DatabaseService {
-  // Technology-agnostic — works with Realm, WatermelonDB, or SQLite
+  // Technology-agnostic — works with WatermelonDB (SQLCipher) or other SQL databases
   saveMessage(msg: Message): Promise<void>;
   getMessages(chatId: string, limit: number): Observable<Message[]>;
   saveOutboxMessage(msg: OutboxMessage): Promise<void>;
   getExpiredOutbox(olderThan: Date): Promise<OutboxMessage[]>;
   cleanupExpiredOutbox(): Promise<number>;
 }
+```
+
+## Server-Side Architecture
+
+CommEazy's server infrastructure ondersteunt drie kernfuncties: messaging routing, trust/attestation, en contact key exchange.
+
+### Architectuur Overzicht
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Client (React Native)                    │
+│  ┌──────────┐  ┌──────────────┐  ┌───────────────────────┐  │
+│  │ xmpp.js  │  │ tokenManager │  │ invitationCrypto      │  │
+│  │ (WSS)    │  │ (JWT + Attest)│  │ (Argon2id + NaCl)    │  │
+│  └────┬─────┘  └──────┬───────┘  └──────────┬────────────┘  │
+└───────┼───────────────┼──────────────────────┼──────────────┘
+        │               │                      │
+        ▼               ▼                      ▼
+┌──────────────┐ ┌──────────────┐  ┌───────────────────────┐
+│   Prosody    │ │ API Gateway  │  │  Invitation Relay     │
+│   (XMPP)    │ │ (port 8443)  │  │  (port 5283)          │
+│   port 5280  │ │ JWT verify   │  │  Encrypted blob store │
+│   WebSocket  │ │ App Attest   │  │  24h TTL, 1 read      │
+└──────────────┘ │ Rate limiting│  └───────────────────────┘
+                 └──────┬───────┘
+                        │
+                        ▼
+                 ┌──────────────┐
+                 │    Redis     │
+                 │  Attest keys │
+                 │  30-day TTL  │
+                 │  (+ Map      │
+                 │   fallback)  │
+                 └──────────────┘
+```
+
+### Componenten
+
+| Component | Poort | Doel | Zero Storage? |
+|-----------|-------|------|---------------|
+| **Prosody** | 5280 (WS), 5281 (WSS) | XMPP routing, presence, MUC | ✅ Routing only |
+| **Push Gateway** | 5282 | APNs/FCM push delivery | ✅ No message content |
+| **API Gateway** | 8443 | App Attestation, JWT tokens | ✅ Only attestation keys |
+| **Invitation Relay** | 5283 | Encrypted invitation exchange | ✅ Ephemeral (24h TTL, 1 read) |
+| **Redis** | 6379 | Attestation key store | ✅ Only public keys (30-day TTL) |
+| **Coturn** | 3478, 5349 | STUN/TURN for WebRTC | ✅ No data stored |
+
+### Trust Model
+
+**App-to-Server Trust (Attestation):**
+1. Client generates attestation via DCAppAttestService (iOS) / Play Integrity (Android)
+2. API Gateway verifies attestation, stores public key in Redis (30-day TTL)
+3. API Gateway issues JWT tokens (24h access + 30d refresh)
+4. All subsequent API calls authenticated via JWT Bearer token
+
+**User-to-User Trust (Invitation Codes):**
+1. Inviter generates `CE-XXXX-XXXX-XXXX` code (~59 bits entropy)
+2. Inviter encrypts contact data with Argon2id-derived key from code
+3. Encrypted blob uploaded to Invitation Relay (24h TTL, single read)
+4. Invitee enters code, derives same key, decrypts contact data
+5. Both parties exchange public keys → E2E encrypted channel established
+
+### Data Flow Principe
+
+```
+GEEN server slaat message content op.
+GEEN server heeft toegang tot private keys.
+GEEN server kan berichten decrypteren.
+
+Prosody = router (doorgeefluik)
+API Gateway = bouncer (identiteit verificatie)
+Invitation Relay = postbus (versleuteld, eenmalig, tijdelijk)
+Redis = geheugen (alleen publieke attestation keys)
 ```
 
 ## Context/Provider Standaard Pipeline (VERPLICHT)

@@ -21,7 +21,7 @@ model: sonnet
 - Native iOS modules (CocoaPods integration)
 - App Store submission and compliance
 - Privacy Manifest (PrivacyInfo.xcprivacy) — MANDATORY
-- Keychain for secure key storage (WHEN_UNLOCKED_THIS_DEVICE_ONLY)
+- Keychain for secure key storage (multiple accessibility levels: WHEN_UNLOCKED for tokens, AFTER_FIRST_UNLOCK for E2E keys, BIOMETRY_ANY for biometric, WHEN_UNLOCKED_THIS_DEVICE_ONLY for mail credentials)
 - APNs push notifications via Firebase Cloud Messaging
 - Background tasks (BackgroundFetch, BGProcessingTask)
 - iPad multitasking (Split View, Slide Over)
@@ -805,7 +805,7 @@ My contribution to a task is complete when:
 - [ ] iPad Split View and Slide Over functional
 - [ ] Haptic feedback on all interactive elements
 - [ ] Background fetch configured for offline sync
-- [ ] Keychain used for key storage (WHEN_UNLOCKED_THIS_DEVICE_ONLY)
+- [ ] Keychain used for key storage (per-data-type accessibility: WHEN_UNLOCKED for tokens, AFTER_FIRST_UNLOCK for E2E keys, BIOMETRY_ANY for biometric, WHEN_UNLOCKED_THIS_DEVICE_ONLY for mail)
 - [ ] App Transport Security enforced (no exceptions)
 - [ ] Minimum deployment: iOS 15.0
 - [ ] Hermes engine enabled

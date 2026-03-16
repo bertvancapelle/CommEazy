@@ -25,7 +25,8 @@ model: sonnet
 - Contact discovery and QR-based key verification
 - Device migration (old phone → new phone)
 - Account recovery (lost phone, reinstall)
-- Key backup with user PIN (PBKDF2 encrypted)
+- Key backup with user PIN (Argon2id encrypted)
+- Invitation code onboarding flow (iPad standalone, contact invitation via CE-XXXX-XXXX-XXXX codes)
 
 ## WHY a Separate Skill?
 
@@ -115,7 +116,7 @@ Screen 4: Profile Setup
 2. Language selection → Phone verification (same number)
 3. App detects: "We found a backup for this number"
 4. Enter backup PIN (set during initial setup or in Settings)
-5. Backup decrypted (PBKDF2 + user PIN)
+5. Backup decrypted (Argon2id + user PIN)
 6. Keys restored, contacts restored, message history NOT restored
    (messages were on old device, zero server storage)
 7. Contacts receive notification: "Jan has a new device"
@@ -125,37 +126,49 @@ Screen 4: Profile Setup
 ### Key Backup Implementation
 
 ```typescript
-// Backup creation (encrypted with user PIN)
+// Backup creation (encrypted with user PIN via Argon2id)
 async function createKeyBackup(pin: string, keyPair: KeyPair): Promise<EncryptedBackup> {
-  // Derive encryption key from PIN using PBKDF2
-  const salt = sodium.randombytes_buf(16);
-  const derivedKey = await pbkdf2(pin, salt, {
-    iterations: 600000,  // OWASP 2023 recommendation
-    keyLength: 32,
-    digest: 'sha256'
-  });
-  
-  // Encrypt key pair with derived key
-  const iv = sodium.randombytes_buf(12);
-  const encrypted = await aesGcmEncrypt(
-    JSON.stringify({ publicKey: keyPair.publicKey, privateKey: keyPair.privateKey }),
-    derivedKey,
-    iv
+  await sodiumReady;
+
+  // Derive encryption key from PIN using Argon2id (memory-hard, brute-force resistant)
+  const salt = randombytes_buf(16);
+  const derivedKey = crypto_pwhash(
+    crypto_secretbox_KEYBYTES,  // 32 bytes
+    pin,
+    salt,
+    crypto_pwhash_OPSLIMIT_MODERATE,   // ~250ms per attempt
+    crypto_pwhash_MEMLIMIT_MODERATE,   // ~64MB RAM
+    crypto_pwhash_ALG_ARGON2ID13,
   );
-  
-  // Store backup (Firebase-stored, encrypted, server can't read)
-  return { salt, iv, encrypted, version: 1 };
+
+  // Encrypt key pair with NaCl secretbox (XSalsa20-Poly1305)
+  const nonce = randombytes_buf(crypto_secretbox_NONCEBYTES);
+  const plaintext = stringToBytes(JSON.stringify({
+    publicKey: keyPair.publicKey,
+    privateKey: keyPair.privateKey,
+  }));
+  const encrypted = crypto_secretbox_easy(plaintext, nonce, derivedKey);
+
+  return { salt, nonce, encrypted, version: 2 };
 }
 
 // Backup restoration
 async function restoreKeyBackup(pin: string, backup: EncryptedBackup): Promise<KeyPair> {
-  const derivedKey = await pbkdf2(pin, backup.salt, {
-    iterations: 600000, keyLength: 32, digest: 'sha256'
-  });
-  
+  await sodiumReady;
+
+  const derivedKey = crypto_pwhash(
+    crypto_secretbox_KEYBYTES,
+    pin,
+    backup.salt,
+    crypto_pwhash_OPSLIMIT_MODERATE,
+    crypto_pwhash_MEMLIMIT_MODERATE,
+    crypto_pwhash_ALG_ARGON2ID13,
+  );
+
   try {
-    const decrypted = await aesGcmDecrypt(backup.encrypted, derivedKey, backup.iv);
-    return JSON.parse(decrypted);
+    const decrypted = crypto_secretbox_open_easy(backup.encrypted, backup.nonce, derivedKey);
+    if (!decrypted) throw new Error('Decryption failed');
+    return JSON.parse(to_string(decrypted));
   } catch {
     throw new AppError('E500', 'auth', () => {}, { reason: 'wrong_pin' });
   }
@@ -262,7 +275,7 @@ function BackupPinSetup() {
 
 | From | What | Format | When |
 |------|------|--------|------|
-| security-expert | Key backup encryption specs (PBKDF2) | Security spec | Before backup flow design |
+| security-expert | Key backup encryption specs (Argon2id) | Security spec | Before backup flow design |
 | ui-designer | Onboarding screen layouts, PIN input design | Wireframes | Before implementation |
 | accessibility-specialist | Full onboarding flow a11y audit | Audit report | Before finalization |
 | ios-specialist | SMS auto-fill, biometrics APIs | API docs | Before implementation |
@@ -297,7 +310,7 @@ My contribution to a task is complete when:
 - [ ] Phone verification completes (SMS + voice fallback)
 - [ ] Key pair generated automatically (user never sees)
 - [ ] Backup PIN setup with LARGE keypad (60pt cells)
-- [ ] Key backup encrypted (PBKDF2, 600k iterations)
+- [ ] Key backup encrypted (Argon2id, OPSLIMIT_MODERATE, MEMLIMIT_MODERATE)
 - [ ] Device migration flow tested end-to-end
 - [ ] Wrong PIN handling (3 attempts + lockout)
 - [ ] All onboarding text translated (13 languages (see CONSTANTS.md))
@@ -309,7 +322,7 @@ My contribution to a task is complete when:
 
 ## Collaboration
 
-- **With security-expert**: Key backup encryption, PBKDF2 parameters
+- **With security-expert**: Key backup encryption, Argon2id parameters, invitation crypto
 - **With architecture-lead**: Key backup/restore flow architecture
 - **With ui-designer**: Onboarding screen layouts, PIN input design
 - **With accessibility-specialist**: Full onboarding flow a11y audit

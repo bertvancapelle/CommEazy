@@ -92,6 +92,9 @@ CommEazy gebruikt een **dual-engine TTS architectuur** waarbij Nederlands ALTIJD
 | Auth flow | security-expert, onboarding-recovery-specialist | ui-designer |
 | Privacy Manifest update | security-expert, ios-specialist | - |
 | Data Safety Section | security-expert, android-specialist | - |
+| Rate limiting wijzigingen | security-expert, architecture-lead | devops-specialist |
+| Invitation crypto / relay | security-expert, architecture-lead, onboarding-recovery-specialist | devops-specialist |
+| App Attestation / JWT | security-expert, ios-specialist, android-specialist | devops-specialist |
 
 ### Database & Storage
 
