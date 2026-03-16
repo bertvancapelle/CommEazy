@@ -438,12 +438,25 @@ class ServiceContainerClass {
         return;
       }
 
-      // Update all other device contacts with their public keys
+      // Create or update all other device contacts with their public keys
+      const { TEST_ACCOUNTS } = await import('@/config/devConfig');
+
+      // Build JID → account info lookup
+      const jidToAccount = new Map<string, { firstName: string; lastName: string }>();
+      for (const account of Object.values(TEST_ACCOUNTS)) {
+        jidToAccount.set(account.jid, {
+          firstName: account.firstName,
+          lastName: account.lastName,
+        });
+      }
+
       let updatedCount = 0;
+      let createdCount = 0;
       for (const [otherJid, publicKey] of Object.entries(otherDevicesKeys)) {
         const otherContact = await this._database.getContact(otherJid);
 
         if (otherContact) {
+          // Update existing contact with public key
           const updatedContact = {
             ...otherContact,
             publicKey,
@@ -452,11 +465,26 @@ class ServiceContainerClass {
           console.log(`[ServiceContainer] Updated ${otherJid} with public key: ${publicKey.substring(0, 20)}...`);
           updatedCount++;
         } else {
-          console.warn(`[ServiceContainer] Contact ${otherJid} not found`);
+          // Create new contact with firstName + lastName from TEST_ACCOUNTS
+          const accountInfo = jidToAccount.get(otherJid);
+          const userUuid = otherJid.split('@')[0] ?? otherJid;
+          const newContact = {
+            userUuid,
+            jid: otherJid,
+            firstName: accountInfo?.firstName ?? 'Unknown',
+            lastName: accountInfo?.lastName ?? '',
+            publicKey,
+            verified: false,
+            lastSeen: Date.now(),
+            trustLevel: 2, // Connected (test device)
+          };
+          await this._database.saveContact(newContact);
+          console.log(`[ServiceContainer] Created contact ${newContact.firstName} ${newContact.lastName} (${otherJid})`);
+          createdCount++;
         }
       }
 
-      console.log(`[ServiceContainer] Updated ${updatedCount} test device contacts with public keys`);
+      console.log(`[ServiceContainer] Test device contacts: ${createdCount} created, ${updatedCount} updated`);
     } catch (error) {
       console.error('[ServiceContainer] Failed to setup test device encryption:', error);
     }

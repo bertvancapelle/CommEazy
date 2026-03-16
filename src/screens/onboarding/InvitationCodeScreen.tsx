@@ -50,7 +50,9 @@ import {
   isDecryptRateLimited,
   encryptInvitation,
   uploadResponse,
+  getPayloadDisplayName,
 } from '@/services/invitation';
+import type { InvitationPayload } from '@/services/invitation';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'InvitationCode'>;
 
@@ -65,12 +67,7 @@ export function InvitationCodeScreen({ navigation }: Props) {
   const [codeInput, setCodeInput] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [senderName, setSenderName] = useState('');
-  const [senderData, setSenderData] = useState<{
-    uuid: string;
-    publicKey: string;
-    displayName: string;
-    jid: string;
-  } | null>(null);
+  const [senderData, setSenderData] = useState<InvitationPayload | null>(null);
 
   // Format code as user types
   const handleCodeChange = useCallback((text: string) => {
@@ -115,7 +112,7 @@ export function InvitationCodeScreen({ navigation }: Props) {
         return;
       }
 
-      setSenderName(payload.displayName);
+      setSenderName(getPayloadDisplayName(payload));
       setSenderData(payload);
       setState('confirm');
     } catch {
@@ -149,15 +146,16 @@ export function InvitationCodeScreen({ navigation }: Props) {
         ['@commeazy/onboarding_via', 'invitation'],
         ['@commeazy/first_contact_uuid', senderData.uuid],
         ['@commeazy/first_contact_jid', senderData.jid],
-        ['@commeazy/first_contact_name', senderData.displayName],
+        ['@commeazy/first_contact_name', getPayloadDisplayName(senderData)],
         ['@commeazy/first_contact_pubkey', senderData.publicKey],
       ]);
 
       const code = normalizeInvitationCode(codeInput);
 
-      // Encrypt own contact data with the invitation code
+      // Encrypt own contact data with the invitation code (V2 payload)
+      // Note: during onboarding, user hasn't entered name yet, so we send "New User"
       const { encrypted, nonce } = await encryptInvitation(
-        { uuid: userUuid, publicKey, displayName: 'New User', jid },
+        { version: 2, uuid: userUuid, publicKey, jid, firstName: 'New', lastName: 'User' },
         code,
       );
 

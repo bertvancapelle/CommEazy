@@ -72,12 +72,62 @@ function stringToBytes(str: string): Uint8Array {
   return new Uint8Array(utf8);
 }
 
-/** Invitation payload structure */
-export interface InvitationPayload {
+/** Invitation payload V1 (legacy — displayName only) */
+export interface InvitationPayloadV1 {
   uuid: string;
   publicKey: string;
   displayName: string;
   jid: string;
+}
+
+/** Photo embedded in invitation payload (max 200×200px JPEG, base64-encoded) */
+export interface InvitationPhoto {
+  data: string;        // base64-encoded image data
+  mimeType: 'image/jpeg';
+}
+
+/** Invitation payload V2 (firstName/lastName + optional profile fields + photo) */
+export interface InvitationPayloadV2 {
+  version: 2;
+  uuid: string;
+  publicKey: string;
+  jid: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  email?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  };
+  birthDate?: string;  // ISO "YYYY-MM-DD"
+  photo?: InvitationPhoto;
+}
+
+/**
+ * Union type for invitation payloads.
+ * V1: legacy payloads with displayName (no version field).
+ * V2: new payloads with firstName/lastName and optional profile data.
+ */
+export type InvitationPayload = InvitationPayloadV1 | InvitationPayloadV2;
+
+/** Type guard: check if payload is V2 */
+export function isPayloadV2(payload: InvitationPayload): payload is InvitationPayloadV2 {
+  return 'version' in payload && payload.version === 2;
+}
+
+/**
+ * Extract display name from any payload version.
+ * V2: "firstName lastName"
+ * V1: displayName field
+ */
+export function getPayloadDisplayName(payload: InvitationPayload): string {
+  if (isPayloadV2(payload)) {
+    return `${payload.firstName} ${payload.lastName}`.trim();
+  }
+  return payload.displayName;
 }
 
 /**

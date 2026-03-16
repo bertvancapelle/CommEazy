@@ -46,36 +46,48 @@ export const TEST_ACCOUNTS = {
     jid: 'e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b@commeazy.local',
     password: 'test123',
     name: 'Bert',
+    firstName: 'Bert',
+    lastName: 'Van Capelle',
   },
   // Physical device: iPhone 12 (Jeanine)
   jeanine: {
     jid: 'b8c9d0e1-f2a3-4b8c-5d9e-6f7a8b9c0d1e@commeazy.local',
     password: 'test123',
     name: 'Jeanine',
+    firstName: 'Jeanine',
+    lastName: 'Van Capelle',
   },
   // Physical device: iPad (Pipo)
   pipo: {
     jid: 'd0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a@commeazy.local',
     password: 'test123',
     name: 'Pipo',
+    firstName: 'Pipo',
+    lastName: 'De Clown',
   },
   // Simulator: iPhone 17 Pro
   sim1: {
     jid: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local',
     password: 'test123',
     name: 'Sim1',
+    firstName: 'Sim1',
+    lastName: 'iPhone17Pro',
   },
   // Simulator: iPhone 16e
   sim2: {
     jid: 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d@commeazy.local',
     password: 'test123',
     name: 'Sim2',
+    firstName: 'Sim2',
+    lastName: 'iPhone16e',
   },
   // Simulator: iPad
   simipad: {
     jid: 'c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f@commeazy.local',
     password: 'test123',
     name: 'SimiPad',
+    firstName: 'SimiPad',
+    lastName: 'iPadSim',
   },
 } as const;
 

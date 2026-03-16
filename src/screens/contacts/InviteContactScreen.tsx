@@ -43,7 +43,11 @@ import {
   decryptInvitation,
   uploadInvitation,
   pollForResponse,
+  isPayloadV2,
+  getPayloadDisplayName,
 } from '@/services/invitation';
+import type { InvitationPayloadV2 } from '@/services/invitation';
+import { ServiceContainer } from '@/services/container';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'InviteContact'>;
 
@@ -71,7 +75,7 @@ export function InviteContactScreen() {
     setErrorMessage('');
 
     try {
-      // Get user profile data
+      // Get identity data from AsyncStorage
       const [userUuid, publicKey, displayName, jid] = await Promise.all([
         AsyncStorage.getItem('@commeazy/user_uuid'),
         AsyncStorage.getItem('@commeazy/public_key'),
@@ -83,15 +87,49 @@ export function InviteContactScreen() {
         throw new Error('Missing user profile data');
       }
 
+      // Split display name into firstName + lastName
+      const nameParts = displayName.trim().split(/\s+/);
+      const firstName = nameParts[0] ?? displayName;
+      const lastName = nameParts.slice(1).join(' ');
+
+      // Build V2 payload with optional profile fields from database
+      const payload: InvitationPayloadV2 = {
+        version: 2,
+        uuid: userUuid,
+        publicKey,
+        jid,
+        firstName,
+        lastName,
+      };
+
+      // Enrich with optional profile fields (if user profile exists in DB)
+      try {
+        const profile = await ServiceContainer.database.getUserProfile();
+        if (profile) {
+          if (profile.email) payload.email = profile.email;
+          if (profile.mobileNumber || profile.phoneNumber) {
+            payload.phoneNumber = profile.mobileNumber || profile.phoneNumber;
+          }
+          if (profile.addressStreet || profile.addressCity) {
+            payload.address = {
+              street: profile.addressStreet,
+              city: profile.addressCity,
+              postalCode: profile.addressPostalCode,
+              country: profile.addressCountry,
+            };
+          }
+          if (profile.birthDate) payload.birthDate = profile.birthDate;
+        }
+      } catch {
+        // Profile enrichment is optional — continue without it
+      }
+
       // Generate invitation code
       const newCode = generateInvitationCode();
       setCode(newCode);
 
       // Encrypt contact data
-      const { encrypted, nonce } = await encryptInvitation(
-        { uuid: userUuid, publicKey, displayName, jid },
-        newCode,
-      );
+      const { encrypted, nonce } = await encryptInvitation(payload, newCode);
 
       // Upload to relay
       await uploadInvitation(newCode, encrypted, nonce);
@@ -134,10 +172,38 @@ export function InviteContactScreen() {
       // Decrypt the response
       const payload = await decryptInvitation(response.encrypted, response.nonce, code);
       if (payload) {
-        // TODO: Save contact to database
-        // const db = ServiceContainer.get('database');
-        // await db.addContact({ ... });
-        setAcceptorName(payload.displayName);
+        // Save acceptor as contact
+        const acceptorUuid = payload.uuid;
+        const db = ServiceContainer.database;
+        if (isPayloadV2(payload)) {
+          await db.saveContact({
+            userUuid: acceptorUuid,
+            jid: payload.jid,
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            publicKey: payload.publicKey,
+            verified: false,
+            lastSeen: Date.now(),
+            trustLevel: 2, // Connected via relay
+            phoneNumber: payload.phoneNumber,
+            email: payload.email,
+            address: payload.address,
+            birthDate: payload.birthDate,
+          });
+        } else {
+          // V1 fallback: displayName → firstName, empty lastName
+          await db.saveContact({
+            userUuid: acceptorUuid,
+            jid: payload.jid,
+            firstName: payload.displayName,
+            lastName: '',
+            publicKey: payload.publicKey,
+            verified: false,
+            lastSeen: Date.now(),
+            trustLevel: 2,
+          });
+        }
+        setAcceptorName(getPayloadDisplayName(payload));
         setState('success');
         void triggerFeedback('success');
       } else {

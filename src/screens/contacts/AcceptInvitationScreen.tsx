@@ -46,7 +46,11 @@ import {
   isDecryptRateLimited,
   encryptInvitation,
   uploadResponse,
+  isPayloadV2,
+  getPayloadDisplayName,
 } from '@/services/invitation';
+import type { InvitationPayload, InvitationPayloadV2 } from '@/services/invitation';
+import { ServiceContainer } from '@/services/container';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'AcceptInvitation'>;
 
@@ -62,12 +66,7 @@ export function AcceptInvitationScreen() {
   const [codeInput, setCodeInput] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [senderName, setSenderName] = useState('');
-  const [senderData, setSenderData] = useState<{
-    uuid: string;
-    publicKey: string;
-    displayName: string;
-    jid: string;
-  } | null>(null);
+  const [senderData, setSenderData] = useState<InvitationPayload | null>(null);
 
   // Format code as user types: auto-add CE- prefix and dashes
   const handleCodeChange = useCallback((text: string) => {
@@ -116,7 +115,7 @@ export function AcceptInvitationScreen() {
       }
 
       // Show sender info for confirmation
-      setSenderName(payload.displayName);
+      setSenderName(getPayloadDisplayName(payload));
       setSenderData(payload);
       setState('confirm');
     } catch {
@@ -132,7 +131,7 @@ export function AcceptInvitationScreen() {
     setState('saving');
 
     try {
-      // Get own profile data
+      // Get own identity data from AsyncStorage
       const [userUuid, publicKey, displayName, jid] = await Promise.all([
         AsyncStorage.getItem('@commeazy/user_uuid'),
         AsyncStorage.getItem('@commeazy/public_key'),
@@ -144,26 +143,81 @@ export function AcceptInvitationScreen() {
         throw new Error('Missing user profile data');
       }
 
+      // Split display name into firstName + lastName for V2 payload
+      const nameParts = displayName.trim().split(/\s+/);
+      const firstName = nameParts[0] ?? displayName;
+      const lastName = nameParts.slice(1).join(' ');
+
+      // Build V2 response payload
+      const responsePayload: InvitationPayloadV2 = {
+        version: 2,
+        uuid: userUuid,
+        publicKey,
+        jid,
+        firstName,
+        lastName,
+      };
+
+      // Enrich with optional profile fields from database
+      try {
+        const profile = await ServiceContainer.database.getUserProfile();
+        if (profile) {
+          if (profile.email) responsePayload.email = profile.email;
+          if (profile.mobileNumber || profile.phoneNumber) {
+            responsePayload.phoneNumber = profile.mobileNumber || profile.phoneNumber;
+          }
+          if (profile.addressStreet || profile.addressCity) {
+            responsePayload.address = {
+              street: profile.addressStreet,
+              city: profile.addressCity,
+              postalCode: profile.addressPostalCode,
+              country: profile.addressCountry,
+            };
+          }
+          if (profile.birthDate) responsePayload.birthDate = profile.birthDate;
+        }
+      } catch {
+        // Profile enrichment is optional — continue without it
+      }
+
       const code = normalizeInvitationCode(codeInput);
 
       // Encrypt own contact data with the same code
-      const { encrypted, nonce } = await encryptInvitation(
-        { uuid: userUuid, publicKey, displayName, jid },
-        code,
-      );
+      const { encrypted, nonce } = await encryptInvitation(responsePayload, code);
 
       // Upload response to relay
       await uploadResponse(code, encrypted, nonce);
 
-      // TODO: Save sender as contact in database
-      // const db = ServiceContainer.get('database');
-      // await db.addContact({
-      //   userUuid: senderData.uuid,
-      //   jid: senderData.jid,
-      //   firstName: senderData.displayName,
-      //   publicKey: senderData.publicKey,
-      //   trustLevel: 2, // Connected via relay
-      // });
+      // Save sender as contact in database
+      const db = ServiceContainer.database;
+      if (isPayloadV2(senderData)) {
+        await db.saveContact({
+          userUuid: senderData.uuid,
+          jid: senderData.jid,
+          firstName: senderData.firstName,
+          lastName: senderData.lastName,
+          publicKey: senderData.publicKey,
+          verified: false,
+          lastSeen: Date.now(),
+          trustLevel: 2, // Connected via relay
+          phoneNumber: senderData.phoneNumber,
+          email: senderData.email,
+          address: senderData.address,
+          birthDate: senderData.birthDate,
+        });
+      } else {
+        // V1 fallback: displayName → firstName, empty lastName
+        await db.saveContact({
+          userUuid: senderData.uuid,
+          jid: senderData.jid,
+          firstName: senderData.displayName,
+          lastName: '',
+          publicKey: senderData.publicKey,
+          verified: false,
+          lastSeen: Date.now(),
+          trustLevel: 2,
+        });
+      }
 
       setState('success');
       void triggerFeedback('success');

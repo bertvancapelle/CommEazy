@@ -17,9 +17,16 @@ export {
   decryptInvitation,
   deriveKeyFromCode,
   isDecryptRateLimited,
+  isPayloadV2,
+  getPayloadDisplayName,
 } from './invitationCrypto';
 
-export type { InvitationPayload } from './invitationCrypto';
+export type {
+  InvitationPayload,
+  InvitationPayloadV1,
+  InvitationPayloadV2,
+  InvitationPhoto,
+} from './invitationCrypto';
 
 export {
   uploadInvitation,
