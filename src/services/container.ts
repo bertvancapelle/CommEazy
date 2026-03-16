@@ -241,11 +241,11 @@ class ServiceContainerClass {
       console.log('[ServiceContainer] Generated new encryption keypair');
     }
 
-    // 2. Database (encrypted with key from encryption service)
+    // 2. Database (encrypted with key from Keychain)
     this._database = new WatermelonDBService();
-    // For now, use a random key. In production, derive from user's PIN or keychain
-    const dbKey = new ArrayBuffer(32);
-    await this._database.initialize(dbKey);
+    const { getDatabaseKey } = await import('./keyManager');
+    const dbKeyHex = await getDatabaseKey();
+    await this._database.initialize(dbKeyHex);
 
     // 3. XMPP (needs encryption for message handling)
     this._xmpp = new XmppJsService();

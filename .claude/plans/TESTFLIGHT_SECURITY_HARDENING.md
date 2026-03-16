@@ -1,9 +1,10 @@
 # TestFlight Security Hardening — Implementatieplan (Fase 1-4)
 
-> **Status:** ⏳ TODO — Nog niet gestart
+> **Status:** ✅ Fase 1-3 VOLTOOID — Fase 4 evalueren tijdens TestFlight
 > **Doelgroep:** 5-10 externe testers via TestFlight
 > **Aanpak:** Fase 4-fundamenten worden in Fase 1-3 ingebouwd
 > **Aangemaakt:** Maart 2026 (PNA sessie)
+> **Laatste update:** 16 maart 2026 — Fase 1-3 geïmplementeerd
 
 ---
 
@@ -11,18 +12,18 @@
 
 Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10 MEDIUM, 6 LOW).
 
-| Fase | Doel | Items |
-|------|------|-------|
-| **Fase 1** | BLOKKEERDERS — zonder deze geen TestFlight | 6 items |
-| **Fase 2** | HIGH-PRIORITY — noodzakelijk voor externe testers | 6 items |
-| **Fase 3** | LOGGING & HYGIENE — polijsten voor externe testers | 4 items |
-| **Fase 4** | EVALUATE DURING TESTFLIGHT — fundamenten nu, evaluatie later | 5 items |
+| Fase | Doel | Items | Status |
+|------|------|-------|--------|
+| **Fase 1** | BLOKKEERDERS — zonder deze geen TestFlight | 6 items | ✅ VOLTOOID |
+| **Fase 2** | HIGH-PRIORITY — noodzakelijk voor externe testers | 6 items | ✅ VOLTOOID (2.5 deferred) |
+| **Fase 3** | LOGGING & HYGIENE — polijsten voor externe testers | 4 items | ✅ VOLTOOID |
+| **Fase 4** | EVALUATE DURING TESTFLIGHT — fundamenten nu, evaluatie later | 5 items | ⏳ TestFlight |
 
 ---
 
-## Fase 1: BLOKKEERDERS
+## Fase 1: BLOKKEERDERS ✅
 
-### 1.1 Database Encryptie Fix
+### 1.1 Database Encryptie Fix ✅
 
 **Severity:** CRITICAL
 **Huidig:** `container.ts:241` maakt een zero-filled `ArrayBuffer(32)`. `database.ts:55-63` berekent `keyHex` maar geeft deze NIET door aan `SQLiteAdapter`.
@@ -47,7 +48,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 1.2 App Transport Security (ATS) Hardening
+### 1.2 App Transport Security (ATS) Hardening ✅
 
 **Severity:** MEDIUM-HIGH
 **Huidig:** `Info.plist:60` — `NSAllowsArbitraryLoads: true` (alles HTTP toegestaan)
@@ -85,7 +86,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 1.3 Dev Credentials Verwijderen uit Production Bundle
+### 1.3 Dev Credentials Verwijderen uit Production Bundle ✅
 
 **Severity:** HIGH
 **Huidig:** `devConfig.ts` bevat hardcoded passwords (`'test123'`), API keys (OWM, KNMI), en test accounts.
@@ -109,7 +110,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 1.4 PIN Setup Implementeren
+### 1.4 PIN Setup Implementeren ✅
 
 **Severity:** CRITICAL
 **Huidig:** `PinSetupScreen.tsx:90` — PIN wordt gecollecteerd maar weggegooid (`setTimeout(500)` als placeholder).
@@ -129,7 +130,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 1.5 Plaintext Mode / Test Keys Verwijderen
+### 1.5 Plaintext Mode / Test Keys Verwijderen ✅
 
 **Severity:** CRITICAL
 **Huidig:** `chat.ts:200-211` — `isPlaintextMode()` bypass. `chat.ts:220-224` — test key fallback. `chat.ts:748` — plaintext reception handler.
@@ -149,7 +150,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 1.6 Console Log Stripping (Production Build)
+### 1.6 Console Log Stripping (Production Build) ✅
 
 **Severity:** MEDIUM
 **Huidig:** Honderden `console.log`/`console.debug` statements. `babel-plugin-transform-remove-console` is gepland maar niet geconfigureerd.
@@ -168,9 +169,9 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-## Fase 2: HIGH-PRIORITY
+## Fase 2: HIGH-PRIORITY ✅
 
-### 2.1 Token Migratie naar Keychain
+### 2.1 Token Migratie naar Keychain ✅
 
 **Severity:** HIGH (Google OAuth) / MEDIUM (JWT)
 **Huidig:** `tokenManager.ts:276-286` — JWT tokens in AsyncStorage. `AskAIContext.tsx:43,250` — Google OAuth token in AsyncStorage.
@@ -192,7 +193,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 2.2 Biometric Key Restore Fix
+### 2.2 Biometric Key Restore Fix ✅
 
 **Severity:** HIGH
 **Huidig:** `encryption.ts` `restoreBackup()` slaat private key op in Keychain ZONDER `accessControl: BIOMETRY_ANY`. Key generation WEL (correct).
@@ -209,7 +210,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 2.3 Prosody Server Hardening
+### 2.3 Prosody Server Hardening ✅
 
 **Severity:** CRITICAL (meerdere items)
 **Huidig:**
@@ -243,7 +244,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 
 ---
 
-### 2.4 WebView originWhitelist Beperken
+### 2.4 WebView originWhitelist Beperken ✅
 
 **Severity:** CRITICAL (mismatch met domain whitelist)
 **Huidig:** `ArticleWebViewer.tsx:1127` — `originWhitelist={['https://*', 'http://*']}` (alles toegestaan)
@@ -263,7 +264,7 @@ De `onShouldStartLoadWithRequest` handler (domain whitelist) is de primaire verd
 
 ---
 
-### 2.5 Certificate Pinning (Basis)
+### 2.5 Certificate Pinning (Basis) ⏳ DEFERRED
 
 **Severity:** HIGH
 **Huidig:** Geen certificate pinning in de gehele codebase.
@@ -285,7 +286,7 @@ De `onShouldStartLoadWithRequest` handler (domain whitelist) is de primaire verd
 
 ---
 
-### 2.6 SMTP Path Sanitization
+### 2.6 SMTP Path Sanitization ✅ (was al geïmplementeerd)
 
 **Severity:** MEDIUM
 **Huidig:** `MailModule.swift:783` — `filePath` direct als URL zonder sanitisatie bij send.
@@ -304,9 +305,9 @@ let fileURL = tempDirectoryURL.appendingPathComponent(sanitizedPath)
 
 ---
 
-## Fase 3: LOGGING & HYGIENE
+## Fase 3: LOGGING & HYGIENE ✅
 
-### 3.1 Native NSLog Audit
+### 3.1 Native NSLog Audit ✅
 
 **Scope:** Alle `.swift` en `.m` bestanden in `ios/`
 
@@ -324,7 +325,7 @@ let fileURL = tempDirectoryURL.appendingPathComponent(sanitizedPath)
 
 ---
 
-### 3.2 VoIP Push Payload Filtering
+### 3.2 VoIP Push Payload Filtering ✅
 
 **Severity:** MEDIUM
 **Huidig:** `VoIPPushModule.swift:85-89` — forwardt complete raw payload naar JS.
@@ -352,7 +353,7 @@ let fileURL = tempDirectoryURL.appendingPathComponent(sanitizedPath)
 
 ---
 
-### 3.3 Dead Code Eliminatie
+### 3.3 Dead Code Eliminatie ✅
 
 **Verwijder volledig:**
 - `src/services/mock/testKeys.ts` (als niet al in Fase 1)
@@ -361,7 +362,7 @@ let fileURL = tempDirectoryURL.appendingPathComponent(sanitizedPath)
 
 ---
 
-### 3.4 Push Gateway Hardening
+### 3.4 Push Gateway Hardening ✅
 
 **Huidig:** `LOG_LEVEL=debug`, APNs environment = development
 

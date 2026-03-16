@@ -20,7 +20,13 @@
  */
 
 import { RADAR_PROVIDER_CONFIG, RadarFrame } from '@/types/weather';
-import { KNMI_API_KEY, KNMI_PROXY_URL } from '@/config/devConfig';
+// KNMI credentials are dev-only; in production, these come from secure config
+const KNMI_API_KEY = __DEV__
+  ? require('@/config/devConfig').KNMI_API_KEY as string
+  : '';
+const KNMI_PROXY_URL: string | null = __DEV__
+  ? require('@/config/devConfig').KNMI_PROXY_URL as string | null
+  : null;
 
 // ============================================================
 // Types

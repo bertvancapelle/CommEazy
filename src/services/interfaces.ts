@@ -325,7 +325,7 @@ export function uuidFromJid(jid: string): string | null {
 // ============================================================
 
 export interface DatabaseService {
-  initialize(encryptionKey: ArrayBuffer): Promise<void>;
+  initialize(encryptionKeyHex: string): Promise<void>;
   close(): Promise<void>;
 
   // Messages

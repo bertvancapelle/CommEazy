@@ -45,18 +45,13 @@ export class WatermelonDBService implements DatabaseService {
   private database: Database | null = null;
   private adapter: SQLiteAdapter | null = null;
 
-  async initialize(encryptionKey: ArrayBuffer): Promise<void> {
-    // Convert ArrayBuffer to hex string for SQLCipher
-    const keyArray = new Uint8Array(encryptionKey);
-    const keyHex = Array.from(keyArray)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-
+  async initialize(encryptionKeyHex: string): Promise<void> {
     this.adapter = new SQLiteAdapter({
       schema,
       migrations,
       dbName: 'commeazy',
       jsi: true, // Enable JSI for better performance
+      encryptionKey: encryptionKeyHex,
       onSetUpError: error => {
         console.error('Database setup error:', error);
       },

@@ -1,6 +1,7 @@
-module.exports = {
-  presets: ['module:@react-native/babel-preset'],
-  plugins: [
+module.exports = function (api) {
+  const isProduction = api.env('production');
+
+  const plugins = [
     ['@babel/plugin-proposal-decorators', { legacy: true }],
     ['@babel/plugin-transform-private-methods', { loose: true }],
     ['@babel/plugin-transform-class-properties', { loose: true }],
@@ -23,5 +24,19 @@ module.exports = {
         },
       },
     ],
-  ],
+  ];
+
+  // Strip console.log and console.debug in production builds
+  // Keep console.warn and console.error for diagnostics
+  if (isProduction) {
+    plugins.push([
+      'transform-remove-console',
+      { exclude: ['warn', 'error'] },
+    ]);
+  }
+
+  return {
+    presets: ['module:@react-native/babel-preset'],
+    plugins,
+  };
 };

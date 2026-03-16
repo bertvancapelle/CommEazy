@@ -23,6 +23,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
+import { secureSet, secureGet } from '@/services/secureStorage';
 
 import { sendToGemini } from '@/services/gemini';
 import type {
@@ -157,12 +158,12 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
 
   const loadInitialState = useCallback(async () => {
     try {
-      // Check if Google account is linked
-      const linked = await AsyncStorage.getItem(STORAGE_KEYS.GOOGLE_LINKED);
+      // Check if Google account is linked (Keychain)
+      const linked = await secureGet('google_linked');
       setIsGoogleLinked(linked === 'true');
 
-      // Load saved access token
-      const token = await AsyncStorage.getItem(STORAGE_KEYS.GOOGLE_ACCESS_TOKEN);
+      // Load saved access token (Keychain)
+      const token = await secureGet('google_access_token');
       if (token) setAccessToken(token);
 
       // Load conversation index
@@ -206,8 +207,8 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
       } catch {
         // Package not installed yet — use mock for development
         console.warn('[AskAIContext] Google Sign-In not installed, using mock');
-        await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_LINKED, 'true');
-        await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_ACCESS_TOKEN, 'mock-token');
+        await secureSet('google_linked', 'true');
+        await secureSet('google_access_token', 'mock-token');
         setIsGoogleLinked(true);
         setAccessToken('mock-token');
         return;
@@ -245,9 +246,9 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
         }
       }
 
-      // Persist linked status and token
-      await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_LINKED, 'true');
-      await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_ACCESS_TOKEN, token);
+      // Persist linked status and token (Keychain)
+      await secureSet('google_linked', 'true');
+      await secureSet('google_access_token', token);
       setIsGoogleLinked(true);
       setAccessToken(token);
     } catch (err) {
@@ -272,7 +273,7 @@ export function AskAIProvider({ children }: AskAIProviderProps) {
       const module = await import('@react-native-google-signin/google-signin');
       const tokens = await module.GoogleSignin.getTokens();
       const token = tokens.accessToken;
-      await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_ACCESS_TOKEN, token);
+      await secureSet('google_access_token', token);
       setAccessToken(token);
       return token;
     } catch {

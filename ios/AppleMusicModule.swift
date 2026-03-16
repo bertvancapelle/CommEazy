@@ -659,7 +659,9 @@ class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
                     return
                 }
 
+                #if DEBUG
                 NSLog("[AppleMusicModule] Found song: '\(song.title)' by \(song.artistName), duration: \(song.duration ?? 0)s")
+                #endif
 
                 // Set queue and play
                 player.queue = [song]
@@ -717,7 +719,9 @@ class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
                     return
                 }
 
+                #if DEBUG
                 NSLog("[AppleMusicModule] Found library song: '\(song.title)' by \(song.artistName)")
+                #endif
 
                 // Use ApplicationMusicPlayer.Queue for proper queue setup
                 player.queue = ApplicationMusicPlayer.Queue(for: [song])
@@ -737,7 +741,9 @@ class AppleMusicModule: RCTEventEmitter, @unchecked Sendable {
                         $0.title.lowercased() == song.title.lowercased() &&
                         $0.artistName.lowercased() == song.artistName.lowercased()
                     }) ?? catalogResponse.songs.first {
+                        #if DEBUG
                         NSLog("[AppleMusicModule] Found catalog equivalent: '\(catalogSong.title)' by \(catalogSong.artistName)")
+                        #endif
                         player.queue = ApplicationMusicPlayer.Queue(for: [catalogSong])
                         try await player.play()
                         NSLog("[AppleMusicModule] Catalog fallback playing successfully")

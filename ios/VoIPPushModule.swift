@@ -83,8 +83,14 @@ class VoIPPushModule: RCTEventEmitter {
 
   /// Called by AppDelegate when a VoIP push arrives
   @objc func didReceiveVoIPPush(_ payload: [AnyHashable: Any]) {
+    // Filter payload: only forward required fields to JS (no raw data leak)
+    let filtered: [String: Any] = [
+      "callId": payload["callId"] ?? "",
+      "callerJid": payload["from"] ?? "",
+      "type": payload["type"] ?? "call"
+    ]
     if hasListeners {
-      sendEvent(withName: "onVoIPPush", body: payload)
+      sendEvent(withName: "onVoIPPush", body: filtered)
     }
   }
 }

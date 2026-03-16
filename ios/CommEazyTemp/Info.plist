@@ -58,7 +58,7 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<true/>
+		<false/>
 		<key>NSAllowsArbitraryLoadsForMedia</key>
 		<true/>
 		<key>NSAllowsLocalNetworking</key>
@@ -72,6 +72,18 @@
 				<key>NSExceptionMinimumTLSVersion</key>
 				<string>TLSv1.2</string>
 				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+			<key>commeazy.local</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 			</dict>
 		</dict>

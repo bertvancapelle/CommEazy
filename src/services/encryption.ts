@@ -308,7 +308,7 @@ export class SodiumEncryptionService implements EncryptionService {
       await Keychain.setGenericPassword(
         KEY_ACCOUNT_PRIVATE,
         to_base64(privateKey, base64_variants.ORIGINAL),
-        { service: `${KEY_SERVICE}.private` },
+        { service: `${KEY_SERVICE}.private`, accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY },
       );
 
       return {

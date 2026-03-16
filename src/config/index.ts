@@ -77,5 +77,5 @@ export const config = {
 
 export type AppConfig = typeof config;
 
-// Re-export dev config for easy access
-export * from './devConfig';
+// Dev config is imported directly where needed (with __DEV__ guards).
+// Do NOT re-export here — prevents API keys leaking into production bundle.

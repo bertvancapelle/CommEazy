@@ -1122,9 +1122,9 @@ export function ArticleWebViewer({
               // Allow only HTTPS (iOS 9+/Android uses this by default)
               // Note: nu.nl uses HTTPS, so this is fine
               mixedContentMode="never"
-              // Only allow http/https URLs - blocks intent://, tel:, mailto: etc.
+              // Only allow HTTPS URLs - blocks http://, intent://, tel:, mailto: etc.
               // This prevents consent buttons from opening external apps
-              originWhitelist={['https://*', 'http://*']}
+              originWhitelist={['https://*']}
               // CRITICAL: Disable automatic scheme handling
               // This prevents iOS from automatically opening Universal Links
               // when navigating to URLs that other apps have registered

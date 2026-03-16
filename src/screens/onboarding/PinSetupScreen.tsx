@@ -23,11 +23,16 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import * as Keychain from 'react-native-keychain';
 import { typography, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { Button, ProgressIndicator, PinInput } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
+import { ServiceContainer } from '@/services/container';
 import type { OnboardingStackParams } from '@/navigation';
+
+const BACKUP_SERVICE = 'com.commeazy.encryption.backup';
+const BACKUP_ACCOUNT = 'encryptedKeyBackup';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'PinSetup'>;
 
@@ -87,11 +92,25 @@ export function PinSetupScreen({ navigation, route }: Props) {
 
     setIsLoading(true);
     try {
-      // TODO: Store PIN securely for backup encryption
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Create PIN-encrypted backup of the private key
+      const backup = await ServiceContainer.encryption.createBackup(pin);
+
+      // Store encrypted backup in Keychain (survives iCloud Backup)
+      await Keychain.setGenericPassword(
+        BACKUP_ACCOUNT,
+        JSON.stringify(backup),
+        {
+          service: BACKUP_SERVICE,
+          accessible: Keychain.ACCESSIBLE.AFTER_FIRST_UNLOCK,
+        },
+      );
+
+      console.info('[PinSetup] Encrypted key backup stored in Keychain');
+
       // Navigate to Demographics (required for free users)
       navigation.navigate('Demographics', { name });
     } catch (err) {
+      console.error('[PinSetup] Backup creation failed:', (err as Error).message);
       setError(t('errors.genericError'));
       isVerifyingRef.current = false;
     } finally {

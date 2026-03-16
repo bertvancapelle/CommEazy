@@ -94,7 +94,9 @@ class SiriCallModule: RCTEventEmitter {
             callData["callType"] = intent.callCapability == .videoCall ? "video" : "audio"
         }
         
+        #if DEBUG
         NSLog("[SiriCallModule] Call data: \(callData)")
+        #endif
         
         // Emit to React Native or queue if no listeners
         if hasListeners {
@@ -189,7 +191,7 @@ class SiriCallModule: RCTEventEmitter {
                 NSLog("[SiriCallModule] Failed to donate shortcut: \(error.localizedDescription)")
                 reject("DONATE_FAILED", "Failed to donate shortcut", error)
             } else {
-                NSLog("[SiriCallModule] Successfully donated shortcut for \(contactName)")
+                NSLog("[SiriCallModule] Successfully donated shortcut")
                 resolve(["success": true])
             }
         }

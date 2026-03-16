@@ -2,8 +2,7 @@
  * Token Manager — JWT token storage and renewal
  *
  * Manages JWT access and refresh tokens for API Gateway authentication.
- * Tokens are stored in AsyncStorage (acceptable because they are
- * short-lived and device-bound via attestation).
+ * Tokens are stored in Keychain (WHEN_UNLOCKED accessibility).
  *
  * Flow:
  * 1. First launch: attestation → tokens stored
@@ -12,21 +11,42 @@
  * 4. Refresh expired: re-attestation triggered
  *
  * @see TRUST_AND_ATTESTATION_PLAN.md section 3.2
+ * @see TESTFLIGHT_SECURITY_HARDENING.md Item 2.1
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { secureSet, secureGet, secureRemove, migrateFromAsyncStorage } from '../secureStorage';
 import { isAppAttestSupported, generateAttestKey, attestKey } from './appAttest';
 
 const LOG_PREFIX = '[tokenManager]';
 
-// AsyncStorage keys
+// Secure storage keys (Keychain)
 const KEYS = {
+  ACCESS_TOKEN: 'jwt_access_token',
+  REFRESH_TOKEN: 'jwt_refresh_token',
+  ATTEST_KEY_ID: 'attest_key_id',
+  TOKEN_EXPIRY: 'jwt_token_expiry',
+};
+
+// Legacy AsyncStorage keys (for migration)
+const LEGACY_KEYS = {
   ACCESS_TOKEN: '@commeazy/jwt_access_token',
   REFRESH_TOKEN: '@commeazy/jwt_refresh_token',
   ATTEST_KEY_ID: '@commeazy/attest_key_id',
   TOKEN_EXPIRY: '@commeazy/jwt_token_expiry',
 };
+
+/**
+ * Migrate tokens from AsyncStorage to Keychain (one-time, on app update).
+ */
+export async function migrateTokenStorage(): Promise<void> {
+  await Promise.all([
+    migrateFromAsyncStorage(LEGACY_KEYS.ACCESS_TOKEN, KEYS.ACCESS_TOKEN),
+    migrateFromAsyncStorage(LEGACY_KEYS.REFRESH_TOKEN, KEYS.REFRESH_TOKEN),
+    migrateFromAsyncStorage(LEGACY_KEYS.ATTEST_KEY_ID, KEYS.ATTEST_KEY_ID),
+    migrateFromAsyncStorage(LEGACY_KEYS.TOKEN_EXPIRY, KEYS.TOKEN_EXPIRY),
+  ]);
+}
 
 // API Gateway base URL (configurable for dev/production)
 const API_GATEWAY_URL = __DEV__
@@ -46,8 +66,8 @@ interface TokenResponse {
 export async function getAccessToken(): Promise<string | null> {
   try {
     const [token, expiryStr] = await Promise.all([
-      AsyncStorage.getItem(KEYS.ACCESS_TOKEN),
-      AsyncStorage.getItem(KEYS.TOKEN_EXPIRY),
+      secureGet(KEYS.ACCESS_TOKEN),
+      secureGet(KEYS.TOKEN_EXPIRY),
     ]);
 
     if (!token) return null;
@@ -75,7 +95,7 @@ export async function getAccessToken(): Promise<string | null> {
  */
 async function refreshAccessToken(): Promise<string | null> {
   try {
-    const refreshToken = await AsyncStorage.getItem(KEYS.REFRESH_TOKEN);
+    const refreshToken = await secureGet(KEYS.REFRESH_TOKEN);
     if (!refreshToken) {
       console.debug(LOG_PREFIX, 'No refresh token, attestation needed');
       return null;
@@ -144,7 +164,7 @@ async function performIOSAttestation(
   }
 
   // Check if we already have an attested key
-  let keyId = await AsyncStorage.getItem(KEYS.ATTEST_KEY_ID);
+  let keyId = await secureGet(KEYS.ATTEST_KEY_ID);
 
   if (!keyId) {
     // Generate and attest a new key
@@ -174,7 +194,7 @@ async function performIOSAttestation(
     }
 
     const data: TokenResponse = await response.json();
-    await AsyncStorage.setItem(KEYS.ATTEST_KEY_ID, keyId);
+    await secureSet(KEYS.ATTEST_KEY_ID, keyId);
     await storeTokens(data);
 
     console.info(LOG_PREFIX, 'iOS attestation successful');
@@ -203,7 +223,7 @@ async function performIOSAttestation(
 
   if (!response.ok) {
     // Key may be invalidated — generate new one
-    await AsyncStorage.removeItem(KEYS.ATTEST_KEY_ID);
+    await secureRemove(KEYS.ATTEST_KEY_ID);
     console.warn(LOG_PREFIX, 'Re-attestation failed, key invalidated');
     return false;
   }
@@ -271,16 +291,16 @@ async function requestDevModeToken(
 }
 
 /**
- * Store tokens in AsyncStorage.
+ * Store tokens in Keychain (WHEN_UNLOCKED accessibility).
  */
 async function storeTokens(data: TokenResponse): Promise<void> {
   const expiry = Date.now() + data.expiresIn * 1000;
 
   await Promise.all([
-    AsyncStorage.setItem(KEYS.ACCESS_TOKEN, data.accessToken),
-    AsyncStorage.setItem(KEYS.TOKEN_EXPIRY, expiry.toString()),
+    secureSet(KEYS.ACCESS_TOKEN, data.accessToken),
+    secureSet(KEYS.TOKEN_EXPIRY, expiry.toString()),
     ...(data.refreshToken
-      ? [AsyncStorage.setItem(KEYS.REFRESH_TOKEN, data.refreshToken)]
+      ? [secureSet(KEYS.REFRESH_TOKEN, data.refreshToken)]
       : []),
   ]);
 }
@@ -290,9 +310,9 @@ async function storeTokens(data: TokenResponse): Promise<void> {
  */
 export async function clearTokens(): Promise<void> {
   await Promise.all([
-    AsyncStorage.removeItem(KEYS.ACCESS_TOKEN),
-    AsyncStorage.removeItem(KEYS.REFRESH_TOKEN),
-    AsyncStorage.removeItem(KEYS.TOKEN_EXPIRY),
+    secureRemove(KEYS.ACCESS_TOKEN),
+    secureRemove(KEYS.REFRESH_TOKEN),
+    secureRemove(KEYS.TOKEN_EXPIRY),
   ]);
 }
 
@@ -301,8 +321,8 @@ export async function clearTokens(): Promise<void> {
  */
 export async function hasValidTokens(): Promise<boolean> {
   const [token, expiryStr] = await Promise.all([
-    AsyncStorage.getItem(KEYS.ACCESS_TOKEN),
-    AsyncStorage.getItem(KEYS.TOKEN_EXPIRY),
+    secureGet(KEYS.ACCESS_TOKEN),
+    secureGet(KEYS.TOKEN_EXPIRY),
   ]);
 
   if (!token) return false;
