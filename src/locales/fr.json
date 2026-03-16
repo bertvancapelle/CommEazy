@@ -261,6 +261,27 @@
       "incompleteTitle": "Données incomplètes",
       "incompleteMessage": "Veuillez remplir tous les champs obligatoires"
     },
+    "profileStep1": {
+      "title": "Qui êtes-vous ?",
+      "hint": "Parlez-nous de vous pour que vos contacts puissent vous reconnaître.",
+      "incompleteTitle": "Champs incomplets",
+      "incompleteMessage": "Veuillez remplir votre prénom, nom, genre et date de naissance."
+    },
+    "profileStep2": {
+      "title": "Où habitez-vous ?",
+      "hint": "Votre adresse n'est partagée qu'avec les contacts que vous ajoutez vous-même.",
+      "provinceLabel": "Province",
+      "selectProvince": "Choisissez votre province",
+      "incompleteTitle": "Adresse incomplète",
+      "incompleteMessage": "Veuillez remplir votre pays, rue, code postal, ville et province."
+    },
+    "profileStep3": {
+      "title": "Comment vous joindre ?",
+      "hint": "Entrez vos coordonnées pour que votre famille puisse facilement vous joindre.",
+      "allOptional": "Tous les champs sont facultatifs — vous pouvez passer cette étape.",
+      "privacyNote": "Ces informations ne sont partagées qu'avec les contacts que vous ajoutez vous-même. Elles ne sont jamais stockées sur nos serveurs.",
+      "skipButton": "Passer"
+    },
     "invitationCode": {
       "title": "Entrer le code",
       "instruction": "Entrez le code que vous avez reçu d'un membre de la famille",

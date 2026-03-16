@@ -288,6 +288,27 @@
       "incompleteTitle": "Dados incompletos",
       "incompleteMessage": "Por favor, preencha todos os campos obrigatórios"
     },
+    "profileStep1": {
+      "title": "Quem é você?",
+      "hint": "Conte-nos sobre você para que seus contatos possam reconhecê-lo.",
+      "incompleteTitle": "Campos incompletos",
+      "incompleteMessage": "Por favor, preencha seu nome, sobrenome, gênero e data de nascimento."
+    },
+    "profileStep2": {
+      "title": "Onde você mora?",
+      "hint": "Seu endereço só é compartilhado com contatos que você mesmo adicionar.",
+      "provinceLabel": "Estado",
+      "selectProvince": "Escolha seu estado",
+      "incompleteTitle": "Endereço incompleto",
+      "incompleteMessage": "Por favor, preencha seu país, rua, CEP, cidade e estado."
+    },
+    "profileStep3": {
+      "title": "Como podemos entrar em contato?",
+      "hint": "Insira seus dados de contato para que sua família possa entrar em contato facilmente.",
+      "allOptional": "Todos os campos são opcionais — você pode pular esta etapa.",
+      "privacyNote": "Essas informações são compartilhadas apenas com contatos que você mesmo adicionar. Elas nunca são armazenadas em nossos servidores.",
+      "skipButton": "Pular"
+    },
     "invitationCode": {
       "title": "Inserir código",
       "instruction": "Insira o código que você recebeu de um familiar",

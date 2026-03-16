@@ -170,9 +170,9 @@ export function InvitationCodeScreen({ navigation }: Props) {
     }
   }, [senderData, codeInput, t, triggerFeedback]);
 
-  // Continue to name input (next onboarding step)
+  // Continue to PIN setup (next onboarding step)
   const handleContinue = useCallback(() => {
-    navigation.navigate('NameInput');
+    navigation.navigate('PinSetup');
   }, [navigation]);
 
   // Reset to input state

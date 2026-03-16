@@ -38,11 +38,10 @@ type Props = NativeStackScreenProps<OnboardingStackParams, 'PinSetup'>;
 
 type PinStep = 'create' | 'confirm';
 
-export function PinSetupScreen({ navigation, route }: Props) {
+export function PinSetupScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
-  const { firstName, lastName } = route.params;
   const [step, setStep] = useState<PinStep>('create');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -107,8 +106,8 @@ export function PinSetupScreen({ navigation, route }: Props) {
 
       console.info('[PinSetup] Encrypted key backup stored in Keychain');
 
-      // Navigate to Demographics (required for free users)
-      navigation.navigate('Demographics', { firstName, lastName });
+      // Navigate to profile wizard step 1
+      navigation.navigate('ProfileStep1');
     } catch (err) {
       console.error('[PinSetup] Backup creation failed:', (err as Error).message);
       setError(t('errors.genericError'));
@@ -173,7 +172,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.inner}>
-          <ProgressIndicator currentStep={4} totalSteps={6} />
+          <ProgressIndicator currentStep={3} totalSteps={8} />
 
           <View style={styles.content}>
             <Text style={[styles.title, { color: themeColors.textPrimary }]}>

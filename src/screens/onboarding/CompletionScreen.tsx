@@ -5,7 +5,7 @@
  * Senior-inclusive: clear acknowledgment, no rush.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -19,14 +19,24 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { typography, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { Button, ProgressIndicator } from '@/components';
+import { ServiceContainer } from '@/services/container';
 import type { OnboardingStackParams } from '@/navigation';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'Completion'>;
 
-export function CompletionScreen({ route, navigation }: Props) {
+export function CompletionScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
-  const { firstName, lastName } = route.params;
+  const [firstName, setFirstName] = useState('');
+
+  useEffect(() => {
+    // Load firstName from profile
+    ServiceContainer.database.getUserProfile().then(profile => {
+      if (profile?.firstName) {
+        setFirstName(profile.firstName);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     // Announce completion to screen readers
@@ -45,7 +55,7 @@ export function CompletionScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <ProgressIndicator currentStep={6} totalSteps={6} />
+      <ProgressIndicator currentStep={8} totalSteps={8} />
 
       <View style={styles.content}>
         <View style={styles.celebration}>

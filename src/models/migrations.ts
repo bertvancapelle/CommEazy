@@ -28,6 +28,8 @@
  * - v24: Added personal contact details to user_profile (email, mobile, landline, address, dates) for contact data sharing
  * - v25: Added shared_data_consents table for per-contact data sharing consent
  * - v26: Added profile_version to contacts and user_profile for profile sync
+ * - v27: Split name into first_name + last_name on user_profile
+ * - v28: Added address_province to contacts and user_profile (personal address province/state)
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -461,6 +463,24 @@ export const migrations = schemaMigrations({
           columns: [
             { name: 'first_name', type: 'string' },
             { name: 'last_name', type: 'string' },
+          ],
+        }),
+      ],
+    },
+    // Migration from v27 to v28: Add address_province to contacts and user_profile
+    {
+      toVersion: 28,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'address_province', type: 'string', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'address_province', type: 'string', isOptional: true },
           ],
         }),
       ],

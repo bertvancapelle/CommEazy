@@ -158,6 +158,27 @@
       "incompleteTitle": "Uppgifter ofullständiga",
       "incompleteMessage": "Vänligen fyll i alla obligatoriska fält"
     },
+    "profileStep1": {
+      "title": "Vem är du?",
+      "hint": "Berätta om dig själv så att dina kontakter kan känna igen dig.",
+      "incompleteTitle": "Ofullständiga fält",
+      "incompleteMessage": "Vänligen fyll i ditt förnamn, efternamn, kön och födelsedatum."
+    },
+    "profileStep2": {
+      "title": "Var bor du?",
+      "hint": "Din adress delas bara med kontakter du lägger till själv.",
+      "provinceLabel": "Län",
+      "selectProvince": "Välj ditt län",
+      "incompleteTitle": "Adress ofullständig",
+      "incompleteMessage": "Vänligen fyll i ditt land, gata, postnummer, stad och län."
+    },
+    "profileStep3": {
+      "title": "Hur når vi dig?",
+      "hint": "Ange dina kontaktuppgifter så att din familj enkelt kan nå dig.",
+      "allOptional": "Alla fält är valfria — du kan hoppa över detta steg.",
+      "privacyNote": "Denna information delas bara med kontakter du lägger till själv. Den lagras aldrig på våra servrar.",
+      "skipButton": "Hoppa över"
+    },
     "invitationCode": {
       "title": "Ange kod",
       "instruction": "Ange koden du fick från en familjemedlem",

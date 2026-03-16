@@ -31,10 +31,10 @@ import {
   PhoneVerificationScreen,
   DeviceLinkScanScreen,
   InvitationCodeScreen,
-  NameInputScreen,
   PinSetupScreen,
-  DemographicsScreen,
-  PersonalDetailsScreen,
+  ProfileStep1Screen,
+  ProfileStep2Screen,
+  ProfileStep3Screen,
   NavigationTutorialScreen,
   CompletionScreen,
 } from '@/screens/onboarding';
@@ -56,12 +56,12 @@ export type OnboardingStackParams = {
   PhoneVerification: undefined;
   DeviceLinkScan: undefined;
   InvitationCode: undefined;
-  NameInput: undefined;
-  PinSetup: { firstName: string; lastName: string };
-  Demographics: { firstName: string; lastName: string };
-  PersonalDetails: { firstName: string; lastName: string };
-  NavigationTutorial: { firstName: string; lastName: string };
-  Completion: { firstName: string; lastName: string };
+  PinSetup: undefined;
+  ProfileStep1: undefined;
+  ProfileStep2: undefined;
+  ProfileStep3: undefined;
+  NavigationTutorial: undefined;
+  Completion: undefined;
 };
 
 export type ChatStackParams = {
@@ -183,23 +183,23 @@ function OnboardingNavigator() {
         options={{ title: '' }}
       />
       <OnboardingStack.Screen
-        name="NameInput"
-        component={NameInputScreen}
-        options={{ title: '' }}
-      />
-      <OnboardingStack.Screen
         name="PinSetup"
         component={PinSetupScreen}
         options={{ title: '', headerBackVisible: false }}
       />
       <OnboardingStack.Screen
-        name="Demographics"
-        component={DemographicsScreen}
+        name="ProfileStep1"
+        component={ProfileStep1Screen}
         options={{ title: '', headerBackVisible: false }}
       />
       <OnboardingStack.Screen
-        name="PersonalDetails"
-        component={PersonalDetailsScreen}
+        name="ProfileStep2"
+        component={ProfileStep2Screen}
+        options={{ title: '', headerBackVisible: false }}
+      />
+      <OnboardingStack.Screen
+        name="ProfileStep3"
+        component={ProfileStep3Screen}
         options={{ title: '', headerBackVisible: false }}
       />
       <OnboardingStack.Screen

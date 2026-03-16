@@ -261,6 +261,27 @@
       "incompleteTitle": "Dati incompleti",
       "incompleteMessage": "Compila tutti i campi obbligatori"
     },
+    "profileStep1": {
+      "title": "Chi sei?",
+      "hint": "Raccontaci qualcosa di te in modo che i tuoi contatti possano riconoscerti.",
+      "incompleteTitle": "Campi incompleti",
+      "incompleteMessage": "Per favore, inserisci il tuo nome, cognome, genere e data di nascita."
+    },
+    "profileStep2": {
+      "title": "Dove abiti?",
+      "hint": "Il tuo indirizzo viene condiviso solo con i contatti che aggiungi tu stesso.",
+      "provinceLabel": "Provincia",
+      "selectProvince": "Scegli la tua provincia",
+      "incompleteTitle": "Indirizzo incompleto",
+      "incompleteMessage": "Per favore, inserisci il tuo paese, via, codice postale, città e provincia."
+    },
+    "profileStep3": {
+      "title": "Come possiamo raggiungerti?",
+      "hint": "Inserisci i tuoi dati di contatto in modo che la tua famiglia possa raggiungerti facilmente.",
+      "allOptional": "Tutti i campi sono facoltativi — puoi saltare questo passaggio.",
+      "privacyNote": "Queste informazioni vengono condivise solo con i contatti che aggiungi tu stesso. Non vengono mai memorizzate sui nostri server.",
+      "skipButton": "Salta"
+    },
     "invitationCode": {
       "title": "Inserisci codice",
       "instruction": "Inserisci il codice che hai ricevuto da un familiare",

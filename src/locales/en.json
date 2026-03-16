@@ -261,6 +261,27 @@
       "incompleteTitle": "Details incomplete",
       "incompleteMessage": "Please fill in all required fields"
     },
+    "profileStep1": {
+      "title": "Who are you?",
+      "hint": "Tell us about yourself so your contacts can recognise you.",
+      "incompleteTitle": "Incomplete fields",
+      "incompleteMessage": "Please fill in your first name, last name, gender, and date of birth."
+    },
+    "profileStep2": {
+      "title": "Where do you live?",
+      "hint": "Your address is only shared with contacts you add yourself.",
+      "provinceLabel": "Province",
+      "selectProvince": "Choose your province",
+      "incompleteTitle": "Address incomplete",
+      "incompleteMessage": "Please fill in your country, street, postal code, city, and province."
+    },
+    "profileStep3": {
+      "title": "How can we reach you?",
+      "hint": "Enter your contact details so family can easily reach you.",
+      "allOptional": "All fields are optional — you can skip this step.",
+      "privacyNote": "This information is only shared with contacts you add yourself. It is never stored on our servers.",
+      "skipButton": "Skip"
+    },
     "invitationCode": {
       "title": "Enter code",
       "instruction": "Enter the code you received from a family member",

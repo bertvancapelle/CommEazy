@@ -27,6 +27,7 @@ export class ContactModel extends Model {
   @field('address_postal_code') addressPostalCode?: string;
   @field('address_city') addressCity?: string;
   @field('address_country') addressCountry?: string;
+  @field('address_province') addressProvince?: string;
   // Important dates (ISO date strings: "YYYY-MM-DD")
   @field('birth_date') birthDate?: string;
   @field('wedding_date') weddingDate?: string;
@@ -120,12 +121,14 @@ export class ContactModel extends Model {
     postalCode?: string;
     city?: string;
     country?: string;
+    province?: string;
   }): Promise<void> {
     await this.update(record => {
       record.addressStreet = address.street;
       record.addressPostalCode = address.postalCode;
       record.addressCity = address.city;
       record.addressCountry = address.country;
+      record.addressProvince = address.province;
     });
   }
 

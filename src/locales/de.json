@@ -261,6 +261,27 @@
       "incompleteTitle": "Daten unvollständig",
       "incompleteMessage": "Bitte füllen Sie alle Pflichtfelder aus"
     },
+    "profileStep1": {
+      "title": "Wer bist du?",
+      "hint": "Erzähle uns etwas über dich, damit deine Kontakte dich erkennen.",
+      "incompleteTitle": "Felder unvollständig",
+      "incompleteMessage": "Bitte fülle deinen Vornamen, Nachnamen, Geschlecht und Geburtsdatum aus."
+    },
+    "profileStep2": {
+      "title": "Wo wohnst du?",
+      "hint": "Deine Adresse wird nur mit Kontakten geteilt, die du selbst hinzufügst.",
+      "provinceLabel": "Bundesland",
+      "selectProvince": "Wähle dein Bundesland",
+      "incompleteTitle": "Adresse unvollständig",
+      "incompleteMessage": "Bitte fülle dein Land, deine Straße, Postleitzahl, Stadt und dein Bundesland aus."
+    },
+    "profileStep3": {
+      "title": "Wie erreichen wir dich?",
+      "hint": "Gib deine Kontaktdaten ein, damit deine Familie dich leicht erreichen kann.",
+      "allOptional": "Alle Felder sind optional — du kannst diesen Schritt überspringen.",
+      "privacyNote": "Diese Daten werden nur mit Kontakten geteilt, die du selbst hinzufügst. Sie werden niemals auf unseren Servern gespeichert.",
+      "skipButton": "Überspringen"
+    },
     "invitationCode": {
       "title": "Code eingeben",
       "instruction": "Gib den Code ein, den du von einem Familienmitglied erhalten hast",

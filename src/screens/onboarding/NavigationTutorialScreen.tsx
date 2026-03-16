@@ -2,7 +2,7 @@
  * NavigationTutorialScreen — Hold-to-Navigate Introduction
  *
  * Teaches new users how to use the Hold-to-Navigate system.
- * Part of the onboarding flow (after DemographicsScreen, before CompletionScreen).
+ * Part of the onboarding flow (after ProfileStep3Screen, before CompletionScreen).
  *
  * Steps:
  * 1. Introduction - explain the concept
@@ -40,18 +40,13 @@ import { useHoldToNavigate } from '@/hooks/useHoldToNavigate';
 
 type TutorialStep = 'intro' | 'practice' | 'customize' | 'done';
 
-import type { RouteProp } from '@react-navigation/native';
-
 interface NavigationTutorialScreenProps {
   navigation: NativeStackNavigationProp<OnboardingStackParams>;
-  route: RouteProp<OnboardingStackParams, 'NavigationTutorial'>;
 }
 
 export function NavigationTutorialScreen({
   navigation,
-  route,
 }: NavigationTutorialScreenProps) {
-  const { firstName, lastName } = route.params;
   const { t } = useTranslation();
   const themeColors = useColors();
   const insets = useSafeAreaInsets();
@@ -125,16 +120,16 @@ export function NavigationTutorialScreen({
         break;
       case 'done':
         completeTutorial();
-        navigation.navigate('Completion', { firstName, lastName });
+        navigation.navigate('Completion');
         break;
     }
-  }, [currentStep, completeTutorial, navigation, fadeAnimation, firstName, lastName]);
+  }, [currentStep, completeTutorial, navigation, fadeAnimation]);
 
   // Skip tutorial
   const skipTutorial = useCallback(() => {
     completeTutorial();
-    navigation.navigate('Completion', { firstName, lastName });
-  }, [completeTutorial, navigation, firstName, lastName]);
+    navigation.navigate('Completion');
+  }, [completeTutorial, navigation]);
 
   // Cleanup
   useEffect(() => {

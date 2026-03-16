@@ -158,6 +158,27 @@
       "incompleteTitle": "Oplysninger ufuldstændige",
       "incompleteMessage": "Udfyld venligst alle obligatoriske felter"
     },
+    "profileStep1": {
+      "title": "Hvem er du?",
+      "hint": "Fortæl os om dig selv, så dine kontakter kan genkende dig.",
+      "incompleteTitle": "Felter ufuldstændige",
+      "incompleteMessage": "Udfyld venligst dit fornavn, efternavn, køn og fødselsdato."
+    },
+    "profileStep2": {
+      "title": "Hvor bor du?",
+      "hint": "Din adresse deles kun med kontakter, du selv tilføjer.",
+      "provinceLabel": "Region",
+      "selectProvince": "Vælg din region",
+      "incompleteTitle": "Adresse ufuldstændig",
+      "incompleteMessage": "Udfyld venligst dit land, gade, postnummer, by og region."
+    },
+    "profileStep3": {
+      "title": "Hvordan når vi dig?",
+      "hint": "Indtast dine kontaktoplysninger, så din familie nemt kan nå dig.",
+      "allOptional": "Alle felter er valgfrie — du kan springe dette trin over.",
+      "privacyNote": "Disse oplysninger deles kun med kontakter, du selv tilføjer. De gemmes aldrig på vores servere.",
+      "skipButton": "Spring over"
+    },
     "invitationCode": {
       "title": "Indtast kode",
       "instruction": "Indtast koden du modtog fra et familiemedlem",

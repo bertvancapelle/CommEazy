@@ -34,6 +34,8 @@
  * - v24: Added personal contact details to user_profile (email, mobile, landline, address, dates) for contact data sharing
  * - v25: Added shared_data_consents table for per-contact data sharing consent
  * - v26: Added profile_version to contacts and user_profile for profile sync
+ * - v27: Split name into first_name + last_name on user_profile
+ * - v28: Added address_province to contacts and user_profile (personal address province/state)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -60,10 +62,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 27;
+export const SCHEMA_VERSION = 28;
 
 export const schema = appSchema({
-  version: 27,
+  version: 28,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -151,6 +153,7 @@ export const schema = appSchema({
         { name: 'address_postal_code', type: 'string', isOptional: true },  // Postcode
         { name: 'address_city', type: 'string', isOptional: true },         // Stad
         { name: 'address_country', type: 'string', isOptional: true },      // Land
+        { name: 'address_province', type: 'string', isOptional: true },    // Provincie/staat (v28)
         // Important dates (v14) — ISO date strings "YYYY-MM-DD"
         { name: 'birth_date', type: 'string', isOptional: true },           // Geboortedatum
         { name: 'wedding_date', type: 'string', isOptional: true },         // Trouwdatum
@@ -208,6 +211,7 @@ export const schema = appSchema({
         { name: 'address_postal_code', type: 'string', isOptional: true },  // Postcode
         { name: 'address_city', type: 'string', isOptional: true },         // Stad (apart van demographics city)
         { name: 'address_country', type: 'string', isOptional: true },      // Land
+        { name: 'address_province', type: 'string', isOptional: true },    // Provincie/staat (v28)
         { name: 'birth_date', type: 'string', isOptional: true },           // Geboortedatum (ISO: YYYY-MM-DD)
         { name: 'wedding_date', type: 'string', isOptional: true },         // Trouwdatum (ISO: YYYY-MM-DD)
 

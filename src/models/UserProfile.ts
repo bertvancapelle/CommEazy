@@ -33,6 +33,7 @@ export class UserProfileModel extends Model {
   @field('address_postal_code') addressPostalCode?: string; // Postcode
   @field('address_city') addressCity?: string;           // Stad
   @field('address_country') addressCountry?: string;     // Land
+  @field('address_province') addressProvince?: string;   // Provincie/staat (v28)
   @field('birth_date') birthDate?: string;               // Geboortedatum (ISO: YYYY-MM-DD)
   @field('wedding_date') weddingDate?: string;           // Trouwdatum (ISO: YYYY-MM-DD)
 
@@ -193,6 +194,7 @@ export class UserProfileModel extends Model {
     addressPostalCode?: string;
     addressCity?: string;
     addressCountry?: string;
+    addressProvince?: string;
     birthDate?: string;
     weddingDate?: string;
   }): Promise<void> {
@@ -204,6 +206,7 @@ export class UserProfileModel extends Model {
       if (data.addressPostalCode !== undefined) record.addressPostalCode = data.addressPostalCode;
       if (data.addressCity !== undefined) record.addressCity = data.addressCity;
       if (data.addressCountry !== undefined) record.addressCountry = data.addressCountry;
+      if (data.addressProvince !== undefined) record.addressProvince = data.addressProvince;
       if (data.birthDate !== undefined) record.birthDate = data.birthDate;
       if (data.weddingDate !== undefined) record.weddingDate = data.weddingDate;
     });

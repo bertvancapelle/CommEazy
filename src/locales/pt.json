@@ -288,6 +288,27 @@
       "incompleteTitle": "Dados incompletos",
       "incompleteMessage": "Por favor, preencha todos os campos obrigatórios"
     },
+    "profileStep1": {
+      "title": "Quem é você?",
+      "hint": "Conte-nos sobre si para que os seus contactos possam reconhecê-lo.",
+      "incompleteTitle": "Campos incompletos",
+      "incompleteMessage": "Por favor, preencha o seu nome, apelido, género e data de nascimento."
+    },
+    "profileStep2": {
+      "title": "Onde mora?",
+      "hint": "A sua morada é partilhada apenas com contactos que adiciona.",
+      "provinceLabel": "Distrito",
+      "selectProvince": "Escolha o seu distrito",
+      "incompleteTitle": "Morada incompleta",
+      "incompleteMessage": "Por favor, preencha o seu país, rua, código postal, cidade e distrito."
+    },
+    "profileStep3": {
+      "title": "Como podemos contactá-lo?",
+      "hint": "Introduza os seus dados de contacto para que a sua família possa contactá-lo facilmente.",
+      "allOptional": "Todos os campos são opcionais — pode saltar este passo.",
+      "privacyNote": "Estas informações são partilhadas apenas com contactos que adiciona. Nunca são armazenadas nos nossos servidores.",
+      "skipButton": "Saltar"
+    },
     "invitationCode": {
       "title": "Introduzir código",
       "instruction": "Introduza o código que recebeu de um familiar",

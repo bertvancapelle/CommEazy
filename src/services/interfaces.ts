@@ -99,6 +99,7 @@ export interface ContactAddress {
   postalCode?: string;       // Postcode (e.g., "1012 AB")
   city?: string;             // Stad (e.g., "Amsterdam")
   country?: string;          // Land (e.g., "Nederland")
+  province?: string;         // Provincie/staat (e.g., "Noord-Holland")
 }
 
 export interface Contact {
@@ -171,6 +172,7 @@ export interface UserProfile {
   addressPostalCode?: string;            // Postcode
   addressCity?: string;                  // Stad
   addressCountry?: string;              // Land
+  addressProvince?: string;             // Provincie/staat
   birthDate?: string;                    // Geboortedatum (ISO: YYYY-MM-DD)
   weddingDate?: string;                  // Trouwdatum (ISO: YYYY-MM-DD)
 

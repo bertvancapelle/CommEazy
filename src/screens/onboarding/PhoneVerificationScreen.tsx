@@ -78,7 +78,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
         throw new Error('No confirmation result');
       }
       await confirmation.confirm(verificationCode);
-      navigation.navigate('NameInput');
+      navigation.navigate('PinSetup');
     } catch (err) {
       const errCode = (err as { code?: string }).code;
       const errMessage = err instanceof Error ? err.message : '';

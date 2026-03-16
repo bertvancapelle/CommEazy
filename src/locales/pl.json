@@ -178,6 +178,27 @@
       "incompleteTitle": "Dane niekompletne",
       "incompleteMessage": "Proszę wypełnić wszystkie wymagane pola"
     },
+    "profileStep1": {
+      "title": "Kim jesteś?",
+      "hint": "Opowiedz nam o sobie, aby Twoje kontakty mogły Cię rozpoznać.",
+      "incompleteTitle": "Niekompletne pola",
+      "incompleteMessage": "Proszę wypełnić imię, nazwisko, płeć i datę urodzenia."
+    },
+    "profileStep2": {
+      "title": "Gdzie mieszkasz?",
+      "hint": "Twój adres jest udostępniany tylko kontaktom, które sam dodasz.",
+      "provinceLabel": "Województwo",
+      "selectProvince": "Wybierz swoje województwo",
+      "incompleteTitle": "Adres niekompletny",
+      "incompleteMessage": "Proszę wypełnić kraj, ulicę, kod pocztowy, miasto i województwo."
+    },
+    "profileStep3": {
+      "title": "Jak się z Tobą skontaktować?",
+      "hint": "Podaj swoje dane kontaktowe, aby Twoja rodzina mogła łatwo się z Tobą skontaktować.",
+      "allOptional": "Wszystkie pola są opcjonalne — możesz pominąć ten krok.",
+      "privacyNote": "Te informacje są udostępniane tylko kontaktom, które sam dodasz. Nigdy nie są przechowywane na naszych serwerach.",
+      "skipButton": "Pomiń"
+    },
     "invitationCode": {
       "title": "Wpisz kod",
       "instruction": "Wpisz kod, który otrzymałeś od członka rodziny",

@@ -87,6 +87,27 @@
       "incompleteTitle": "Gegevens onvolledig",
       "incompleteMessage": "Vul alstublieft alle verplichte velden in"
     },
+    "profileStep1": {
+      "title": "Wie ben je?",
+      "hint": "Vertel ons iets over jezelf zodat je contacten je herkennen.",
+      "incompleteTitle": "Velden onvolledig",
+      "incompleteMessage": "Vul alstublieft je voornaam, achternaam, geslacht en geboortedatum in."
+    },
+    "profileStep2": {
+      "title": "Waar woon je?",
+      "hint": "Je adres wordt alleen gedeeld met contacten die je zelf toevoegt.",
+      "provinceLabel": "Provincie",
+      "selectProvince": "Kies je provincie",
+      "incompleteTitle": "Adres onvolledig",
+      "incompleteMessage": "Vul alstublieft je land, straat, postcode, stad en provincie in."
+    },
+    "profileStep3": {
+      "title": "Hoe bereiken we je?",
+      "hint": "Vul hier je contactgegevens in zodat familie je makkelijk kan bereiken.",
+      "allOptional": "Alle velden zijn optioneel — je kunt deze stap overslaan.",
+      "privacyNote": "Deze gegevens worden alleen gedeeld met contacten die je zelf toevoegt. Ze worden nooit op onze servers opgeslagen.",
+      "skipButton": "Overslaan"
+    },
     "invitationCode": {
       "title": "Code invoeren",
       "instruction": "Voer de code in die je van een familielid hebt ontvangen",
