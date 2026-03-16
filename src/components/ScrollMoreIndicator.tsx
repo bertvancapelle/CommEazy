@@ -1,28 +1,28 @@
 /**
- * ScrollMoreIndicator — Bouncing arrow indicating scrollable content below
+ * ScrollMoreIndicator — Bouncing arrow indicating scrollable content above or below
  *
- * Shows a 48pt circular button with a chevron-down icon that bounces
- * to indicate more content is available. Tapping scrolls down by ~80%
- * of the viewport height.
+ * Shows a 48pt circular button with a chevron icon that bounces
+ * to indicate more content is available. Tapping scrolls by ~80%
+ * of the viewport height in the indicated direction.
  *
  * Features:
+ * - Supports both 'up' and 'down' directions (default: 'down')
  * - Bouncing animation (respects Reduced Motion)
- * - Dynamic bottom offset (sits above MiniPlayer when active)
+ * - Dynamic bottom offset (sits above MiniPlayer when active, direction='down' only)
  * - Fades in/out on visibility change
  * - VoiceOver accessible with i18n label
  *
  * @example
- * const { scrollRef, hasOverflow, isAtBottom, scrollDownByViewport, ...scrollProps } = useScrollOverflow();
- *
- * <View style={{ flex: 1 }}>
- *   <ScrollView ref={scrollRef} {...scrollProps} scrollEventThrottle={16}>
- *     {content}
- *   </ScrollView>
- *   <ScrollMoreIndicator
- *     visible={hasOverflow && !isAtBottom}
- *     onPress={scrollDownByViewport}
- *   />
- * </View>
+ * <ScrollMoreIndicator
+ *   visible={hasOverflow && !isAtTop}
+ *   onPress={scrollUpByViewport}
+ *   direction="up"
+ * />
+ * <ScrollMoreIndicator
+ *   visible={hasOverflow && !isAtBottom}
+ *   onPress={scrollDownByViewport}
+ *   direction="down"
+ * />
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -43,7 +43,9 @@ interface ScrollMoreIndicatorProps {
   visible: boolean;
   /** Callback when the indicator is tapped */
   onPress: () => void;
-  /** Additional bottom offset (e.g. for tab bars) */
+  /** Direction of the indicator: 'down' shows at bottom, 'up' shows at top */
+  direction?: 'down' | 'up';
+  /** Additional bottom offset (e.g. for tab bars) — only used for direction='down' */
   extraBottomOffset?: number;
 }
 
@@ -62,6 +64,7 @@ const BOUNCE_DURATION = 1200;
 export function ScrollMoreIndicator({
   visible,
   onPress,
+  direction = 'down',
   extraBottomOffset = 0,
 }: ScrollMoreIndicatorProps) {
   const { t } = useTranslation();
@@ -73,9 +76,11 @@ export function ScrollMoreIndicator({
   const bounceAnim = useRef(new Animated.Value(0)).current;
   const bounceRef = useRef<Animated.CompositeAnimation | null>(null);
 
-  // Determine bottom offset: above MiniPlayer if active
+  // Determine positioning offset
+  const isUp = direction === 'up';
   const miniPlayerOffset = activePlayback ? MINI_PLAYER_HEIGHT + spacing.sm : 0;
   const bottomOffset = spacing.md + miniPlayerOffset + extraBottomOffset;
+  const topOffset = spacing.md;
 
   // Fade in/out
   useEffect(() => {
@@ -115,9 +120,10 @@ export function ScrollMoreIndicator({
     };
   }, [visible, reduceMotion, bounceAnim]);
 
+  // Bounce direction: down indicator bounces up, up indicator bounces down
   const translateY = bounceAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -BOUNCE_AMPLITUDE],
+    outputRange: [0, isUp ? BOUNCE_AMPLITUDE : -BOUNCE_AMPLITUDE],
   });
 
   // Don't render at all when fully faded out (avoid phantom touch targets)
@@ -125,13 +131,15 @@ export function ScrollMoreIndicator({
     return null;
   }
 
+  const positionStyle = isUp ? { top: topOffset } : { bottom: bottomOffset };
+
   return (
     <Animated.View
       pointerEvents={visible ? 'auto' : 'none'}
       style={[
         styles.container,
+        positionStyle,
         {
-          bottom: bottomOffset,
           opacity: fadeAnim,
           transform: [{ translateY }],
         },
@@ -142,10 +150,12 @@ export function ScrollMoreIndicator({
         hapticType="tap"
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel={t('common.scrollForMore')}
+        accessibilityLabel={
+          isUp ? t('common.scrollUpForMore') : t('common.scrollForMore')
+        }
         style={styles.button}
       >
-        <Icon name="chevron-down" size={24} color="#FFFFFF" />
+        <Icon name={isUp ? 'chevron-up' : 'chevron-down'} size={24} color="#FFFFFF" />
       </HapticTouchable>
     </Animated.View>
   );

@@ -3,9 +3,10 @@
  *
  * Wraps a standard ScrollView with:
  * - Automatic overflow detection (content taller than viewport?)
+ * - Bouncing chevron-up indicator when content extends above (after scrolling down)
  * - Bouncing chevron-down indicator when content extends below
- * - Indicator disappears once user reaches the bottom
- * - Tapping the indicator scrolls down by ~80% of the viewport
+ * - Indicators disappear once user reaches the respective edge
+ * - Tapping an indicator scrolls by ~80% of the viewport in that direction
  * - Dynamic bottom offset above MiniPlayer when audio is playing
  * - Respects Reduced Motion system preference
  *
@@ -109,11 +110,19 @@ export const ScrollViewWithIndicator = forwardRef<
         {children}
       </ScrollView>
       {!indicatorDisabled && (
-        <ScrollMoreIndicator
-          visible={overflow.hasOverflow && !overflow.isAtBottom}
-          onPress={overflow.scrollDownByViewport}
-          extraBottomOffset={indicatorBottomOffset}
-        />
+        <>
+          <ScrollMoreIndicator
+            visible={overflow.hasOverflow && !overflow.isAtTop}
+            onPress={overflow.scrollUpByViewport}
+            direction="up"
+          />
+          <ScrollMoreIndicator
+            visible={overflow.hasOverflow && !overflow.isAtBottom}
+            onPress={overflow.scrollDownByViewport}
+            direction="down"
+            extraBottomOffset={indicatorBottomOffset}
+          />
+        </>
       )}
     </View>
   );

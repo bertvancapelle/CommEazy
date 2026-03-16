@@ -37,8 +37,12 @@ export interface UseScrollOverflowReturn {
   hasOverflow: boolean;
   /** Whether the user has scrolled to (near) the bottom */
   isAtBottom: boolean;
+  /** Whether the user is at (near) the top */
+  isAtTop: boolean;
   /** Scroll down by ~80% of the viewport height */
   scrollDownByViewport: () => void;
+  /** Scroll up by ~80% of the viewport height */
+  scrollUpByViewport: () => void;
   /** Attach to ScrollView onContentSizeChange */
   onContentSizeChange: (w: number, h: number) => void;
   /** Attach to ScrollView onLayout */
@@ -49,6 +53,9 @@ export interface UseScrollOverflowReturn {
 
 /** Threshold in points for "at bottom" detection */
 const BOTTOM_THRESHOLD = 40;
+
+/** Threshold in points for "at top" detection */
+const TOP_THRESHOLD = 40;
 
 /**
  * @param externalRef - Optional external ScrollView ref (e.g. from forwardRef).
@@ -70,6 +77,7 @@ export function useScrollOverflow(
 
   const [hasOverflow, setHasOverflow] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
 
   // Store mutable refs for layout values (avoid re-renders)
   const contentHeight = useRef(0);
@@ -84,6 +92,9 @@ export function useScrollOverflow(
       currentOffset.current + layoutHeight.current >=
       contentHeight.current - BOTTOM_THRESHOLD;
     setIsAtBottom(atBottom);
+
+    const atTop = currentOffset.current <= TOP_THRESHOLD;
+    setIsAtTop(atTop);
   }, []);
 
   const onContentSizeChange = useCallback(
@@ -121,11 +132,21 @@ export function useScrollOverflow(
     sv.scrollTo({ y: targetOffset, animated: true });
   }, [getScrollView]);
 
+  const scrollUpByViewport = useCallback(() => {
+    const sv = getScrollView();
+    if (!sv) return;
+    const scrollAmount = layoutHeight.current * 0.8;
+    const targetOffset = Math.max(currentOffset.current - scrollAmount, 0);
+    sv.scrollTo({ y: targetOffset, animated: true });
+  }, [getScrollView]);
+
   return {
     scrollRef: internalRef,
     hasOverflow,
     isAtBottom,
+    isAtTop,
     scrollDownByViewport,
+    scrollUpByViewport,
     onContentSizeChange,
     onLayout,
     onScroll,
