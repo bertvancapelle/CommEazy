@@ -178,8 +178,8 @@ export class ProfileSyncService {
       // Build payload from shareable profile fields
       const payload: ProfileSyncPayload = {
         version: profile.profileVersion ?? 1,
-        firstName: profile.name.split(' ')[0] || profile.name,
-        lastName: profile.name.split(' ').slice(1).join(' ') || '',
+        firstName: profile.firstName,
+        lastName: profile.lastName,
         phoneNumber: profile.phoneNumber,
         mobileNumber: profile.mobileNumber,
         email: profile.email,
@@ -436,8 +436,8 @@ export class ProfileSyncService {
 
     const payload: ProfileSyncPayload = {
       version: myVersion,
-      firstName: profile.name.split(' ')[0] || profile.name,
-      lastName: profile.name.split(' ').slice(1).join(' ') || '',
+      firstName: profile.firstName,
+      lastName: profile.lastName,
       phoneNumber: profile.phoneNumber,
       mobileNumber: profile.mobileNumber,
       email: profile.email,

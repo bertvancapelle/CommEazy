@@ -502,7 +502,8 @@ export class WatermelonDBService implements DatabaseService {
             record.userUuid = profile.userUuid;
           }
           record.jid = profile.jid;
-          record.name = profile.name;
+          record.firstName = profile.firstName;
+          record.lastName = profile.lastName;
           record.phoneNumber = profile.phoneNumber;
           record.publicKey = profile.publicKey;
 
@@ -566,7 +567,8 @@ export class WatermelonDBService implements DatabaseService {
           // Identity - generate UUID at first creation if not provided
           record.userUuid = profile.userUuid || (uuid.v4() as string);
           record.jid = profile.jid;
-          record.name = profile.name;
+          record.firstName = profile.firstName;
+          record.lastName = profile.lastName;
           record.phoneNumber = profile.phoneNumber;
           record.publicKey = profile.publicKey;
 
@@ -731,7 +733,8 @@ export class WatermelonDBService implements DatabaseService {
       // Identity
       userUuid: p.userUuid,
       jid: p.jid,
-      name: p.name,
+      firstName: p.firstName,
+      lastName: p.lastName,
       phoneNumber: p.phoneNumber,
       publicKey: p.publicKey,
 

@@ -26,7 +26,7 @@ type Props = NativeStackScreenProps<OnboardingStackParams, 'Completion'>;
 export function CompletionScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
-  const { name } = route.params;
+  const { firstName, lastName } = route.params;
 
   useEffect(() => {
     // Announce completion to screen readers
@@ -52,7 +52,7 @@ export function CompletionScreen({ route, navigation }: Props) {
           <Text style={styles.emoji}>🎉</Text>
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>{t('onboarding.allSet')}</Text>
           <Text style={[styles.message, { color: themeColors.primary }]}>
-            {t('onboarding.welcomeUser', { name })}
+            {t('onboarding.welcomeUser', { name: firstName })}
           </Text>
           <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('onboarding.allSetMessage')}</Text>
         </View>

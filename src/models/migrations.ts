@@ -452,5 +452,18 @@ export const migrations = schemaMigrations({
         }),
       ],
     },
+    // Migration from v26 to v27: Split name into first_name + last_name on user_profile
+    {
+      toVersion: 27,
+      steps: [
+        addColumns({
+          table: 'user_profile',
+          columns: [
+            { name: 'first_name', type: 'string' },
+            { name: 'last_name', type: 'string' },
+          ],
+        }),
+      ],
+    },
   ],
 });

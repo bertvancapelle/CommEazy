@@ -68,7 +68,8 @@ export interface DeviceLinkBundle {
   nonce: string;
   profile: {
     jid: string;
-    name: string;
+    firstName: string;
+    lastName: string;
     phoneNumber: string;
     language: string;
   };
@@ -198,7 +199,8 @@ export class DeviceLinkService {
       nonce: to_base64(nonce),
       profile: {
         jid: profile.jid,
-        name: profile.name,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
         phoneNumber: profile.phoneNumber,
         language: profile.language,
       },

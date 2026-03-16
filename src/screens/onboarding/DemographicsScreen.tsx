@@ -455,7 +455,7 @@ export function DemographicsScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();
   const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
-  const { name } = route.params;
+  const { firstName, lastName } = route.params;
 
   const [countryCode, setCountryCode] = useState<string | undefined>();
   const [regionCode, setRegionCode] = useState<string | undefined>();
@@ -522,13 +522,13 @@ export function DemographicsScreen({ route, navigation }: Props) {
         });
       }
 
-      // Navigate to navigation tutorial
-      navigation.navigate('NavigationTutorial', { name });
+      // Navigate to personal details
+      navigation.navigate('PersonalDetails', { firstName, lastName });
     } catch (error) {
       console.error('Failed to save demographics:', error);
       setNotification({ type: 'error', title: t('errors.genericTitle'), message: t('errors.genericError') });
     }
-  }, [countryCode, regionCode, selectedCity, ageBracket, name, navigation, t, triggerFeedback]);
+  }, [countryCode, regionCode, selectedCity, ageBracket, firstName, lastName, navigation, t, triggerFeedback]);
 
   // Build picker options
   const countryOptions = COUNTRIES.map(code => ({

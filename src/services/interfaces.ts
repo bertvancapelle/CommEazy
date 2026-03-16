@@ -154,7 +154,8 @@ export interface UserProfile {
   // Identity (UUID is stable, phone/name can change)
   userUuid: string;                      // Stable identifier, generated once at onboarding
   jid: string;                           // = {userUuid}@commeazy.local
-  name: string;                          // Display name, can change
+  firstName: string;                     // Voornaam
+  lastName: string;                      // Achternaam
   phoneNumber: string;                   // Can change (verified via Firebase)
   publicKey: string;
 

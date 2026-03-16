@@ -14,7 +14,8 @@ export class UserProfileModel extends Model {
   // Identity (UUID is stable, phone/name can change)
   @field('user_uuid') userUuid!: string;               // Stable identifier, never changes
   @field('jid') jid!: string;                          // = {userUuid}@commeazy.local
-  @field('name') name!: string;                        // Display name, can change
+  @field('first_name') firstName!: string;              // Voornaam
+  @field('last_name') lastName!: string;                // Achternaam
   @field('phone_number') phoneNumber!: string;         // Can change
   @field('public_key') publicKey!: string;
 
@@ -107,9 +108,10 @@ export class UserProfileModel extends Model {
   /**
    * Update user name
    */
-  @writer async updateName(newName: string): Promise<void> {
+  @writer async updateName(newFirstName: string, newLastName: string): Promise<void> {
     await this.update(record => {
-      record.name = newName;
+      record.firstName = newFirstName;
+      record.lastName = newLastName;
     });
   }
 

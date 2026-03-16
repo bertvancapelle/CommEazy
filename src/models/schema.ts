@@ -60,10 +60,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 26;
+export const SCHEMA_VERSION = 27;
 
 export const schema = appSchema({
-  version: 26,
+  version: 27,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -189,7 +189,8 @@ export const schema = appSchema({
         // Identity (v4: UUID is stable, phone/name can change)
         { name: 'user_uuid', type: 'string' },                    // Stable identifier, never changes
         { name: 'jid', type: 'string' },                          // = {user_uuid}@commeazy.local
-        { name: 'name', type: 'string' },                         // Display name, can change
+        { name: 'first_name', type: 'string' },                   // Voornaam
+        { name: 'last_name', type: 'string' },                    // Achternaam
         { name: 'phone_number', type: 'string' },                 // Can change
         { name: 'public_key', type: 'string' },
 

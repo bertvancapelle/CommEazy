@@ -42,7 +42,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
-  const { name } = route.params;
+  const { firstName, lastName } = route.params;
   const [step, setStep] = useState<PinStep>('create');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -108,7 +108,7 @@ export function PinSetupScreen({ navigation, route }: Props) {
       console.info('[PinSetup] Encrypted key backup stored in Keychain');
 
       // Navigate to Demographics (required for free users)
-      navigation.navigate('Demographics', { name });
+      navigation.navigate('Demographics', { firstName, lastName });
     } catch (err) {
       console.error('[PinSetup] Backup creation failed:', (err as Error).message);
       setError(t('errors.genericError'));

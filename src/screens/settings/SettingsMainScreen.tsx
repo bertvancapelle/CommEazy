@@ -160,7 +160,7 @@ export function SettingsMainScreen() {
           const profile = await ServiceContainer.database.getUserProfile();
 
           if (profile) {
-            setDisplayName(profile.name);
+            setDisplayName(`${profile.firstName} ${profile.lastName}`.trim());
             if (profile.photoPath) {
               setPhotoUrl(`file://${profile.photoPath}?t=${Date.now()}`);
             } else {

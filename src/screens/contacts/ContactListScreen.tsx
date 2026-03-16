@@ -203,7 +203,7 @@ export function ContactListScreen() {
       try {
         const profile = await ServiceContainer.database.getUserProfile();
         if (profile) {
-          setProfileName(profile.name);
+          setProfileName(`${profile.firstName} ${profile.lastName}`.trim());
           if (profile.photoPath) {
             setProfilePhotoUrl(`file://${profile.photoPath}`);
           } else {

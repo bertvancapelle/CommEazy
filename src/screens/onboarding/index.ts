@@ -1,7 +1,7 @@
 /**
  * Onboarding Screens
  *
- * Flow: Language → Welcome → DeviceChoice → Phone/LinkScan/InvitationCode → Name → PIN → Demographics → NavigationTutorial → Completion
+ * Flow: Language → Welcome → DeviceChoice → Phone/LinkScan/InvitationCode → Name → PIN → Demographics → PersonalDetails → NavigationTutorial → Completion
  *
  * DeviceChoice allows three paths:
  * 1. New Account → Phone verification (standard)
@@ -23,5 +23,6 @@ export { InvitationCodeScreen } from './InvitationCodeScreen';
 export { NameInputScreen } from './NameInputScreen';
 export { PinSetupScreen } from './PinSetupScreen';
 export { DemographicsScreen } from './DemographicsScreen';
+export { PersonalDetailsScreen } from './PersonalDetailsScreen';
 export { NavigationTutorialScreen } from './NavigationTutorialScreen';
 export { CompletionScreen } from './CompletionScreen';

@@ -83,9 +83,11 @@ export function ProfileSettingsScreen() {
   const { refresh: refreshModules } = useModuleConfig();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState('');
+  const [displayFirstName, setDisplayFirstName] = useState('');
+  const [displayLastName, setDisplayLastName] = useState('');
   const [editingName, setEditingName] = useState(false);
-  const [tempName, setTempName] = useState('');
+  const [tempFirstName, setTempFirstName] = useState('');
+  const [tempLastName, setTempLastName] = useState('');
   const [savingPhoto, setSavingPhoto] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -120,6 +122,7 @@ export function ProfileSettingsScreen() {
 
   // ScrollView ref for scrolling to fields
   const scrollViewRef = useRef<ScrollView>(null);
+  const lastNameInputRef = useRef<TextInput>(null);
 
   // Field position refs for scrolling to empty fields
   const fieldPositions = useRef<Record<FieldId, number>>({
@@ -148,11 +151,11 @@ export function ProfileSettingsScreen() {
 
   // Helper to find first missing field
   const getFirstMissingField = useCallback((
-    name: string,
+    firstName: string,
     userProfile: UserProfile | null,
     city: string
   ): FieldId | null => {
-    if (!name || name.trim().length < 2) return 'name';
+    if (!firstName || firstName.trim().length < 2) return 'name';
     if (!userProfile?.countryCode) return 'country';
     if (!userProfile?.regionCode) return 'region';
     if (!city.trim()) return 'city';
@@ -180,7 +183,8 @@ export function ProfileSettingsScreen() {
   const openPickerForField = useCallback((fieldId: FieldId) => {
     switch (fieldId) {
       case 'name':
-        setTempName(displayName);
+        setTempFirstName(displayFirstName);
+        setTempLastName(displayLastName);
         setEditingName(true);
         break;
       case 'country':
@@ -200,7 +204,7 @@ export function ProfileSettingsScreen() {
         setActivePicker('gender');
         break;
     }
-  }, [displayName]);
+  }, [displayFirstName, displayLastName]);
 
   // Load current user profile
   useEffect(() => {
@@ -211,7 +215,8 @@ export function ProfileSettingsScreen() {
 
         if (loadedProfile) {
           setProfile(loadedProfile);
-          setDisplayName(loadedProfile.name);
+          setDisplayFirstName(loadedProfile.firstName);
+          setDisplayLastName(loadedProfile.lastName);
           setCityInput(loadedProfile.city || '');
 
           // Load personal data fields
@@ -265,7 +270,7 @@ export function ProfileSettingsScreen() {
   useEffect(() => {
     if (loading || hasShownValidationAlert || !profile) return;
 
-    const firstMissing = getFirstMissingField(displayName, profile, cityInput);
+    const firstMissing = getFirstMissingField(displayFirstName, profile, cityInput);
     if (firstMissing) {
       setHasShownValidationAlert(true);
 
@@ -284,7 +289,7 @@ export function ProfileSettingsScreen() {
         }, 300);
       }, 500);
     }
-  }, [loading, hasShownValidationAlert, profile, displayName, cityInput, getFirstMissingField, scrollToField, openPickerForField, t]);
+  }, [loading, hasShownValidationAlert, profile, displayFirstName, cityInput, getFirstMissingField, scrollToField, openPickerForField, t]);
 
   // Save city when leaving screen (beforeRemove event)
   // This ensures city is saved even if user taps back without blurring the input
@@ -410,21 +415,24 @@ export function ProfileSettingsScreen() {
 
   const handleEditName = useCallback(() => {
     void triggerFeedback('tap');
-    setTempName(displayName);
+    setTempFirstName(displayFirstName);
+    setTempLastName(displayLastName);
     setEditingName(true);
-  }, [displayName, triggerFeedback]);
+  }, [displayFirstName, displayLastName, triggerFeedback]);
 
   const handleSaveName = useCallback(async () => {
     void triggerFeedback('tap');
-    const trimmedName = tempName.trim();
-    if (trimmedName.length < 2) {
+    const trimmedFirst = tempFirstName.trim();
+    const trimmedLast = tempLastName.trim();
+    if (trimmedFirst.length < 2) {
       setNotification({ type: 'warning', title: t('errors.genericTitle'), message: t('onboarding.nameMinLength') });
       return;
     }
-    setDisplayName(trimmedName);
+    setDisplayFirstName(trimmedFirst);
+    setDisplayLastName(trimmedLast);
     setEditingName(false);
-    await saveProfile({ name: trimmedName });
-  }, [tempName, saveProfile, t, triggerFeedback]);
+    await saveProfile({ firstName: trimmedFirst, lastName: trimmedLast });
+  }, [tempFirstName, tempLastName, saveProfile, t, triggerFeedback]);
 
   const handleCountrySelect = useCallback(async (countryCode: string) => {
     void triggerFeedback('tap');
@@ -689,8 +697,9 @@ export function ProfileSettingsScreen() {
 
   // Check if profile is complete (all required fields filled)
   // Use cityInput for real-time validation
+  const displayName = `${displayFirstName} ${displayLastName}`.trim();
   const isProfileComplete = Boolean(
-    displayName.trim().length >= 2 &&
+    displayFirstName.trim().length >= 2 &&
     profile?.countryCode &&
     profile?.regionCode &&
     cityInput.trim() &&
@@ -700,7 +709,7 @@ export function ProfileSettingsScreen() {
 
   // Check which fields are empty (for error styling)
   // Use cityInput for real-time validation (before blur saves to profile)
-  const isNameEmpty = !displayName || displayName.trim().length < 2;
+  const isNameEmpty = !displayFirstName || displayFirstName.trim().length < 2;
   const isCountryEmpty = !profile?.countryCode;
   const isRegionEmpty = !profile?.regionCode;
   const isCityEmpty = !cityInput.trim();
@@ -771,18 +780,34 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.nameLabel')}</Text>
         {editingName ? (
           <View style={styles.editNameContainer}>
-            <TextInput
-              style={[styles.nameInput, { borderColor: accentColor.primary, color: themeColors.textPrimary, backgroundColor: themeColors.background }, isNameEmpty && styles.inputError]}
-              value={tempName}
-              onChangeText={setTempName}
-              autoFocus
-              maxLength={50}
-              returnKeyType="done"
-              onSubmitEditing={handleSaveName}
-              onFocus={(e) => handleInputFocus(e, 'name')}
-              accessibilityLabel={t('onboarding.nameLabel')}
-              accessibilityHint={t('profile.enterYourName')}
-            />
+            <View style={styles.nameFieldsRow}>
+              <TextInput
+                style={[styles.nameInput, { flex: 1, borderColor: accentColor.primary, color: themeColors.textPrimary, backgroundColor: themeColors.background }, isNameEmpty && styles.inputError]}
+                value={tempFirstName}
+                onChangeText={setTempFirstName}
+                autoFocus
+                maxLength={50}
+                returnKeyType="next"
+                onSubmitEditing={() => lastNameInputRef.current?.focus()}
+                onFocus={(e) => handleInputFocus(e, 'name')}
+                placeholder={t('onboarding.firstNamePlaceholder')}
+                placeholderTextColor={themeColors.textSecondary}
+                accessibilityLabel={t('onboarding.firstNameLabel')}
+              />
+              <TextInput
+                ref={lastNameInputRef}
+                style={[styles.nameInput, { flex: 1, borderColor: accentColor.primary, color: themeColors.textPrimary, backgroundColor: themeColors.background }]}
+                value={tempLastName}
+                onChangeText={setTempLastName}
+                maxLength={50}
+                returnKeyType="done"
+                onSubmitEditing={handleSaveName}
+                onFocus={(e) => handleInputFocus(e, 'name')}
+                placeholder={t('onboarding.lastNamePlaceholder')}
+                placeholderTextColor={themeColors.textSecondary}
+                accessibilityLabel={t('onboarding.lastNameLabel')}
+              />
+            </View>
             <HapticTouchable hapticDisabled
               style={[styles.saveButton, { backgroundColor: accentColor.primary }]}
               onPress={handleSaveName}
@@ -1383,12 +1408,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   editNameContainer: {
+    gap: spacing.sm,
+  },
+  nameFieldsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: spacing.sm,
   },
   nameInput: {
     ...typography.body,
-    flex: 1,
     borderWidth: 1,
     borderColor: colors.primary,
     borderRadius: borderRadius.sm,
@@ -1402,7 +1429,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
-    marginLeft: spacing.sm,
+    alignSelf: 'flex-end',
+    minHeight: touchTargets.minimum,
+    justifyContent: 'center',
   },
   saveButtonText: {
     ...typography.body,

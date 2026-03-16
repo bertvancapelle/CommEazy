@@ -34,6 +34,7 @@ import {
   NameInputScreen,
   PinSetupScreen,
   DemographicsScreen,
+  PersonalDetailsScreen,
   NavigationTutorialScreen,
   CompletionScreen,
 } from '@/screens/onboarding';
@@ -56,10 +57,11 @@ export type OnboardingStackParams = {
   DeviceLinkScan: undefined;
   InvitationCode: undefined;
   NameInput: undefined;
-  PinSetup: { name: string };
-  Demographics: { name: string };
-  NavigationTutorial: { name: string };
-  Completion: { name: string };
+  PinSetup: { firstName: string; lastName: string };
+  Demographics: { firstName: string; lastName: string };
+  PersonalDetails: { firstName: string; lastName: string };
+  NavigationTutorial: { firstName: string; lastName: string };
+  Completion: { firstName: string; lastName: string };
 };
 
 export type ChatStackParams = {
@@ -193,6 +195,11 @@ function OnboardingNavigator() {
       <OnboardingStack.Screen
         name="Demographics"
         component={DemographicsScreen}
+        options={{ title: '', headerBackVisible: false }}
+      />
+      <OnboardingStack.Screen
+        name="PersonalDetails"
+        component={PersonalDetailsScreen}
         options={{ title: '', headerBackVisible: false }}
       />
       <OnboardingStack.Screen
