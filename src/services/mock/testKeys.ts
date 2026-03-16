@@ -7,15 +7,16 @@
  * SECURITY WARNING: These keys are PUBLIC and should NEVER be used in production!
  * They are included in the source code intentionally for development testing only.
  *
- * Test devices (physical):
- * - bert@commeazy.local: iPhone 14 (physical, Bert)
- * - jeanine@commeazy.local: iPhone 12 (physical, Jeanine)
- * - pipo@commeazy.local: iPad (physical, Pipo)
+ * PRIVACY ARCHITECTURE: JIDs are UUID-based (production-parity).
+ * Names are profile data only — no PII in JIDs.
  *
- * Test devices (simulator):
- * - sim1@commeazy.local: iPhone 17 Pro (simulator)
- * - sim2@commeazy.local: iPhone 16e (simulator)
- * - simipad@commeazy.local: iPad (simulator)
+ * Test device mapping (UUID JID → Device):
+ * - e5f6a7b8-c9d0-...@commeazy.local → iPhone 14 (physical, Bert)
+ * - b8c9d0e1-f2a3-...@commeazy.local → iPhone 12 (physical, Jeanine)
+ * - d0e1f2a3-b4c5-...@commeazy.local → iPad (physical, Pipo)
+ * - f6a7b8c9-d0e1-...@commeazy.local → iPhone 17 Pro (simulator)
+ * - a7b8c9d0-e1f2-...@commeazy.local → iPhone 16e (simulator)
+ * - c9d0e1f2-a3b4-...@commeazy.local → iPad (simulator)
  *
  * The keys are generated from deterministic seeds using crypto_box_seed_keypair.
  * This ensures all devices generate identical keypairs.
@@ -32,6 +33,8 @@ import {
   base64_variants,
   ready as sodiumReady,
 } from 'react-native-libsodium';
+
+import { MOCK_JIDS } from './mockContacts';
 
 // Seeds for deterministic key generation (32 bytes each, as UTF-8 hash)
 // Seeds are kept at original values for keypair continuity across JID rename
@@ -83,8 +86,8 @@ const generateKeypairFromSeed = async (seedString: string): Promise<{ publicKey:
 };
 
 /**
- * Get or generate the test keypair for 'bert@commeazy.local'.
- * Physical iPhone 14 (Bert).
+ * Get or generate the test keypair for Bert's device.
+ * Physical iPhone 14.
  */
 export const getBertKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
@@ -97,8 +100,8 @@ export const getBertKeypair = async (): Promise<{ publicKey: string; privateKey:
 };
 
 /**
- * Get or generate the test keypair for 'jeanine@commeazy.local'.
- * Physical iPhone 12 (Jeanine).
+ * Get or generate the test keypair for Jeanine's device.
+ * Physical iPhone 12.
  */
 export const getJeanineKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
@@ -111,8 +114,8 @@ export const getJeanineKeypair = async (): Promise<{ publicKey: string; privateK
 };
 
 /**
- * Get or generate the test keypair for 'pipo@commeazy.local'.
- * Physical iPad (Pipo).
+ * Get or generate the test keypair for Pipo's device.
+ * Physical iPad.
  */
 export const getPipoKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   if (!__DEV__) throw new Error('Test keypairs only available in dev mode');
@@ -125,7 +128,7 @@ export const getPipoKeypair = async (): Promise<{ publicKey: string; privateKey:
 };
 
 /**
- * Get or generate the test keypair for 'sim1@commeazy.local'.
+ * Get or generate the test keypair for Sim1 device.
  * iPhone 17 Pro simulator.
  */
 export const getSim1Keypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
@@ -139,7 +142,7 @@ export const getSim1Keypair = async (): Promise<{ publicKey: string; privateKey:
 };
 
 /**
- * Get or generate the test keypair for 'sim2@commeazy.local'.
+ * Get or generate the test keypair for Sim2 device.
  * iPhone 16e simulator.
  */
 export const getSim2Keypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
@@ -153,7 +156,7 @@ export const getSim2Keypair = async (): Promise<{ publicKey: string; privateKey:
 };
 
 /**
- * Get or generate the test keypair for 'simipad@commeazy.local'.
+ * Get or generate the test keypair for SimiPad device.
  * iPad simulator.
  */
 export const getSimipadKeypair = async (): Promise<{ publicKey: string; privateKey: string }> => {
@@ -167,24 +170,24 @@ export const getSimipadKeypair = async (): Promise<{ publicKey: string; privateK
 };
 
 /**
- * Get the test keypair for a given JID.
+ * Get the test keypair for a given JID (UUID-based).
  * Returns null if the JID is not a test account.
  */
 export const getTestKeypairForJid = async (jid: string): Promise<{ publicKey: string; privateKey: string } | null> => {
   if (!__DEV__) return null;
 
   switch (jid) {
-    case 'bert@commeazy.local':
+    case MOCK_JIDS.bert:
       return getBertKeypair();
-    case 'jeanine@commeazy.local':
+    case MOCK_JIDS.jeanine:
       return getJeanineKeypair();
-    case 'pipo@commeazy.local':
+    case MOCK_JIDS.pipo:
       return getPipoKeypair();
-    case 'sim1@commeazy.local':
+    case MOCK_JIDS.sim1:
       return getSim1Keypair();
-    case 'sim2@commeazy.local':
+    case MOCK_JIDS.sim2:
       return getSim2Keypair();
-    case 'simipad@commeazy.local':
+    case MOCK_JIDS.simipad:
       return getSimipadKeypair();
     default:
       return null;
@@ -207,7 +210,14 @@ export const getTestPublicKeyForJid = async (jid: string): Promise<string | null
 export const getOtherDevicesPublicKeys = async (myJid: string): Promise<Record<string, string>> => {
   if (!__DEV__) return {};
 
-  const allTestJids = ['bert@commeazy.local', 'jeanine@commeazy.local', 'pipo@commeazy.local', 'sim1@commeazy.local', 'sim2@commeazy.local', 'simipad@commeazy.local'];
+  const allTestJids = [
+    MOCK_JIDS.bert,
+    MOCK_JIDS.jeanine,
+    MOCK_JIDS.pipo,
+    MOCK_JIDS.sim1,
+    MOCK_JIDS.sim2,
+    MOCK_JIDS.simipad,
+  ];
   const otherJids = allTestJids.filter(jid => jid !== myJid);
 
   const result: Record<string, string> = {};

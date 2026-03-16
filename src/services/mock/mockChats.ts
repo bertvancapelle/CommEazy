@@ -3,16 +3,19 @@
  *
  * Seed messages for testing chat functionality between test devices.
  * Only loaded in __DEV__ mode.
+ *
+ * PRIVACY ARCHITECTURE: JIDs are UUID-based (production-parity).
  */
 
 import type { Message } from '../interfaces';
+import { MOCK_JIDS } from './mockContacts';
 import { getMockContactsForDevice } from './mockContacts';
 import { chatService } from '../chat';
 
 // Current user is determined dynamically — this constant is a fallback
 // for code that needs a static reference (e.g., unread count filtering).
 export const MOCK_CURRENT_USER = {
-  jid: 'sim1@commeazy.local',
+  jid: MOCK_JIDS.sim1,
   name: 'Sim1',
 };
 
@@ -20,16 +23,17 @@ export const MOCK_CURRENT_USER = {
 const minutesAgo = (minutes: number): number => Date.now() - minutes * 60 * 1000;
 
 // ============================================================
-// Conversation between test devices (sim1@commeazy.local <-> sim2@commeazy.local)
+// Conversation between test devices (sim1 <-> sim2)
 // This chat ID is generated the same way as ChatService.getChatId()
 // ============================================================
-export const DEVICE_CHAT_ID = 'chat:sim1@commeazy.local:sim2@commeazy.local';
+const chatJids = [MOCK_JIDS.sim1, MOCK_JIDS.sim2].sort();
+export const DEVICE_CHAT_ID = `chat:${chatJids.join(':')}`;
 
 export const MOCK_MESSAGES_DEVICE_CHAT: Message[] = [
   {
     id: 'device_msg_1',
     chatId: DEVICE_CHAT_ID,
-    senderId: 'sim2@commeazy.local',
+    senderId: MOCK_JIDS.sim2,
     senderName: 'Sim2 (iPhone 16e)',
     content: 'Hallo! Dit is een testbericht van de iPhone 16e.',
     contentType: 'text',
@@ -40,7 +44,7 @@ export const MOCK_MESSAGES_DEVICE_CHAT: Message[] = [
   {
     id: 'device_msg_2',
     chatId: DEVICE_CHAT_ID,
-    senderId: 'sim1@commeazy.local',
+    senderId: MOCK_JIDS.sim1,
     senderName: 'Sim1 (iPhone 17 Pro)',
     content: 'Hoi! Bericht van de iPhone 17 Pro.',
     contentType: 'text',
@@ -51,7 +55,7 @@ export const MOCK_MESSAGES_DEVICE_CHAT: Message[] = [
   {
     id: 'device_msg_3',
     chatId: DEVICE_CHAT_ID,
-    senderId: 'sim2@commeazy.local',
+    senderId: MOCK_JIDS.sim2,
     senderName: 'Sim2 (iPhone 16e)',
     content: 'Mooi! De messaging werkt! 🎉',
     contentType: 'text',

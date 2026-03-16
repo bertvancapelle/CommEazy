@@ -86,8 +86,8 @@ export function GroupDetailScreen() {
           const mockGroup: Group = {
             id: groupId,
             name: name,
-            members: ['sim1@commeazy.local', 'sim2@commeazy.local', 'piet@commeazy.local'],
-            createdBy: 'sim1@commeazy.local',
+            members: ['f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local', 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d@commeazy.local', 'a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d@commeazy.local'],
+            createdBy: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local',
             createdAt: Date.now() - 86400000,
             encryptionMode: 'encrypt-to-all',
           };
@@ -95,7 +95,7 @@ export function GroupDetailScreen() {
             {
               id: '1',
               chatId: groupId,
-              senderId: 'sim2@commeazy.local',
+              senderId: 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d@commeazy.local',
               senderName: 'Sim2',
               content: 'Goedemorgen allemaal! 🌞',
               contentType: 'text',
@@ -105,7 +105,7 @@ export function GroupDetailScreen() {
             {
               id: '2',
               chatId: groupId,
-              senderId: 'piet@commeazy.local',
+              senderId: 'a1b2c3d4-e5f6-4a1b-8c9d-0e1f2a3b4c5d@commeazy.local',
               senderName: 'Piet',
               content: 'Goedemorgen! Hoe is het?',
               contentType: 'text',
@@ -115,7 +115,7 @@ export function GroupDetailScreen() {
             {
               id: '3',
               chatId: groupId,
-              senderId: 'sim1@commeazy.local',
+              senderId: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local',
               senderName: 'Sim1',
               content: 'Prima hier! Wie komt er zondag?',
               contentType: 'text',

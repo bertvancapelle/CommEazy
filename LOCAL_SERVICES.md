@@ -69,14 +69,15 @@ consider_websocket_secure = true
 VirtualHost "commeazy.local"
 ```
 
-### Test Accounts
+### Test Accounts (UUID-based JIDs — privacy-by-design)
 
 ```bash
-prosodyctl adduser ik@commeazy.local       # Password: test123
-prosodyctl adduser oma@commeazy.local      # Password: test123
-prosodyctl adduser test@commeazy.local     # Password: test123
-prosodyctl adduser jeanine@commeazy.local  # Password: test123
-prosodyctl adduser ipad@commeazy.local     # Password: test123
+prosodyctl adduser e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b@commeazy.local  # test123 — Bert (iPhone 14)
+prosodyctl adduser b8c9d0e1-f2a3-4b8c-5d9e-6f7a8b9c0d1e@commeazy.local  # test123 — Jeanine (iPhone 12)
+prosodyctl adduser d0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a@commeazy.local  # test123 — Pipo (iPad)
+prosodyctl adduser f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local  # test123 — Sim1 (iPhone 17 Pro sim)
+prosodyctl adduser a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d@commeazy.local  # test123 — Sim2 (iPhone 16e sim)
+prosodyctl adduser c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f@commeazy.local  # test123 — SimiPad (iPad sim)
 ```
 
 ---
@@ -234,15 +235,16 @@ lsof -i :8081 | head -3
 
 ---
 
-## Test Devices
+## Test Devices (UUID-based JIDs)
 
-| Device | User | JID | Type | iOS |
-|--------|------|-----|------|-----|
-| iPhone 17 Pro | Ik | ik@commeazy.local | Simulator | iOS 26 |
-| iPhone 16e | Oma | oma@commeazy.local | Simulator | iOS 26 |
-| iPad (any) | iPad | ipad@commeazy.local | Simulator | iOS 26 |
-| iPhone 14 (Bert) | Test | test@commeazy.local | Fysiek | iOS 26.4 beta |
-| iPhone (Jeanine) | Jeanine | jeanine@commeazy.local | Fysiek | iOS 26.3 |
+| Device | Gebruiker | JID (UUID-based) | Type | iOS |
+|--------|-----------|-------------------|------|-----|
+| iPhone 14 | Bert | `e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b@commeazy.local` | Fysiek | iOS 26.4 beta |
+| iPhone 12 | Jeanine | `b8c9d0e1-f2a3-4b8c-5d9e-6f7a8b9c0d1e@commeazy.local` | Fysiek | iOS 26.3 |
+| iPad | Pipo | `d0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a@commeazy.local` | Fysiek | iOS 26+ |
+| iPhone 17 Pro | Sim1 | `f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local` | Simulator | iOS 26 |
+| iPhone 16e | Sim2 | `a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d@commeazy.local` | Simulator | iOS 26 |
+| iPad (any) | SimiPad | `c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f@commeazy.local` | Simulator | iOS 26 |
 
 ---
 

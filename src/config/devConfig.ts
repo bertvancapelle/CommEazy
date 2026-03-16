@@ -4,6 +4,9 @@
  * Central place to toggle between mock mode and production mode.
  * This makes it easy to switch for testing.
  *
+ * PRIVACY ARCHITECTURE: JIDs are UUID-based (production-parity).
+ * Names and emails are PROFILE DATA — no PII in JIDs.
+ *
  * USAGE:
  * - Set USE_REAL_SERVICES = true for device-to-device testing
  * - Set USE_REAL_SERVICES = false for UI-only development
@@ -11,13 +14,13 @@
  * REQUIREMENTS for USE_REAL_SERVICES = true:
  * 1. Prosody XMPP server must be running: sudo prosodyctl start
  * 2. Both devices must be on the same network
- * 3. Test accounts must exist in Prosody:
- *    - bert@commeazy.local (iPhone 14 physical, Bert)
- *    - jeanine@commeazy.local (iPhone 12 physical, Jeanine)
- *    - pipo@commeazy.local (iPad physical, Pipo)
- *    - sim1@commeazy.local (iPhone 17 Pro simulator)
- *    - sim2@commeazy.local (iPhone 16e simulator)
- *    - simipad@commeazy.local (iPad simulator)
+ * 3. Test accounts must exist in Prosody (UUID-based):
+ *    - e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b@commeazy.local (iPhone 14, Bert)
+ *    - b8c9d0e1-f2a3-4b8c-5d9e-6f7a8b9c0d1e@commeazy.local (iPhone 12, Jeanine)
+ *    - d0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a@commeazy.local (iPad, Pipo)
+ *    - f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local (iPhone 17 Pro sim)
+ *    - a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d@commeazy.local (iPhone 16e sim)
+ *    - c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f@commeazy.local (iPad sim)
  */
 
 // ============================================================
@@ -67,43 +70,43 @@ export const XMPP_PORT = 5222;
 export const MUC_DOMAIN = `muc.${XMPP_HOST}`;
 
 // ============================================================
-// Test accounts
+// Test accounts (UUID-based JIDs — production-parity)
 // ============================================================
 
 export const TEST_ACCOUNTS = {
-  // Physical device (iPhone 14, Bert)
+  // Physical device: iPhone 14 (Bert)
   bert: {
-    jid: 'bert@commeazy.local',
+    jid: 'e5f6a7b8-c9d0-4e5f-2a6b-3c4d5e6f7a8b@commeazy.local',
     password: 'test123',
     name: 'Bert',
   },
-  // Physical device (iPhone 12, Jeanine)
+  // Physical device: iPhone 12 (Jeanine)
   jeanine: {
-    jid: 'jeanine@commeazy.local',
+    jid: 'b8c9d0e1-f2a3-4b8c-5d9e-6f7a8b9c0d1e@commeazy.local',
     password: 'test123',
     name: 'Jeanine',
   },
-  // Physical iPad (Pipo)
+  // Physical device: iPad (Pipo)
   pipo: {
-    jid: 'pipo@commeazy.local',
+    jid: 'd0e1f2a3-b4c5-4d0e-7f1a-8b9c0d1e2f3a@commeazy.local',
     password: 'test123',
     name: 'Pipo',
   },
-  // iPhone 17 Pro simulator
+  // Simulator: iPhone 17 Pro
   sim1: {
-    jid: 'sim1@commeazy.local',
+    jid: 'f6a7b8c9-d0e1-4f6a-3b7c-4d5e6f7a8b9c@commeazy.local',
     password: 'test123',
     name: 'Sim1',
   },
-  // iPhone 16e simulator
+  // Simulator: iPhone 16e
   sim2: {
-    jid: 'sim2@commeazy.local',
+    jid: 'a7b8c9d0-e1f2-4a7b-4c8d-5e6f7a8b9c0d@commeazy.local',
     password: 'test123',
     name: 'Sim2',
   },
-  // iPad simulator
+  // Simulator: iPad
   simipad: {
-    jid: 'simipad@commeazy.local',
+    jid: 'c9d0e1f2-a3b4-4c9d-6e0f-7a8b9c0d1e2f@commeazy.local',
     password: 'test123',
     name: 'SimiPad',
   },
