@@ -1,10 +1,10 @@
 # TestFlight Security Hardening — Implementatieplan (Fase 1-4)
 
-> **Status:** ✅ Fase 1-3 VOLTOOID — Fase 4 evalueren tijdens TestFlight
+> **Status:** ✅ Fase 1-4 VOLTOOID (4.2-4.4 deferred)
 > **Doelgroep:** 5-10 externe testers via TestFlight
 > **Aanpak:** Fase 4-fundamenten worden in Fase 1-3 ingebouwd
 > **Aangemaakt:** Maart 2026 (PNA sessie)
-> **Laatste update:** 16 maart 2026 — Fase 1-3 geïmplementeerd
+> **Laatste update:** 16 maart 2026 — Fase 4 (deels) geïmplementeerd
 
 ---
 
@@ -17,7 +17,7 @@ Dit plan dekt alle 36 bevindingen uit de security audit (7 CRITICAL, 13 HIGH, 10
 | **Fase 1** | BLOKKEERDERS — zonder deze geen TestFlight | 6 items | ✅ VOLTOOID |
 | **Fase 2** | HIGH-PRIORITY — noodzakelijk voor externe testers | 6 items | ✅ VOLTOOID (2.5 deferred) |
 | **Fase 3** | LOGGING & HYGIENE — polijsten voor externe testers | 4 items | ✅ VOLTOOID |
-| **Fase 4** | EVALUATE DURING TESTFLIGHT — fundamenten nu, evaluatie later | 5 items | ⏳ TestFlight |
+| **Fase 4** | EVALUATE DURING TESTFLIGHT — fundamenten nu, evaluatie later | 5 items | ✅ 4.1 + 🔶 4.5 VOLTOOID, 4.2-4.4 deferred |
 
 ---
 
@@ -382,36 +382,39 @@ let fileURL = tempDirectoryURL.appendingPathComponent(sanitizedPath)
 
 ---
 
-## Fase 4: EVALUATE DURING TESTFLIGHT
+## Fase 4: EVALUATE DURING TESTFLIGHT (deels geïmplementeerd)
 
-> **Strategie:** De *interfaces* en *abstracties* worden in Fase 1-3 al neergezet. De *implementatie* van Fase 4 items wordt geëvalueerd op basis van TestFlight bevindingen.
+> **Strategie:** Items 4.1 en 4.5 zijn proactief geïmplementeerd vóór TestFlight. Items 4.2-4.4 zijn uitgesteld op basis van risico/waarde analyse.
 
-### 4.1 Invitation Code Versterking
+### 4.1 Invitation Code Versterking ✅ VOLTOOID
 
-**Fundament gelegd in Fase 1:** `keyManager.ts` heeft al crypto utilities.
+**Geïmplementeerd:**
+- **KDF upgrade:** BLAKE2b (single-pass) → Argon2id (memory-hard, ~250ms per poging)
+- **Langere codes:** `CE-XXXX-XXXX` (8 chars, ~39 bit) → `CE-XXXX-XXXX-XXXX` (12 chars, ~59 bit)
+- **Client-side rate limiting:** max 5 decryptie-pogingen per minuut
+- **Backward compatibility:** V1 (BLAKE2b) fallback bij decryptie van oude codes
+- **Server-side:** Relay server accepteert beide code formaten op alle endpoints
+- **i18n:** Rate-limit foutmelding in alle 13 talen
 
-**Evaluatie-criteria tijdens TestFlight:**
-- Worden invitation codes daadwerkelijk onderschept? (monitor via Push Gateway logs)
-- Hoeveel brute-force attempts worden gedetecteerd?
-
-**Als nodig:**
-- Upgrade van BLAKE2b direct hash → Argon2id met salt
-- Verleng code van 8 naar 12 karakters (van ~41 bit naar ~62 bit entropy)
-- Rate limiting op decryptie pogingen (max 5 per minuut)
-
-**Bestanden (indien geactiveerd):**
+**Bestanden gewijzigd:**
 
 | Bestand | Wijziging |
 |---------|-----------|
-| `src/services/invitation/invitationCrypto.ts` | Argon2id + salt + langere codes |
+| `src/services/invitation/invitationCrypto.ts` | Argon2id KDF + V1 fallback + rate limiter |
+| `src/services/invitation/codeGenerator.ts` | 12-char codes + backward-compatible validatie |
+| `src/services/invitation/index.ts` | Export `isDecryptRateLimited` |
+| `src/screens/contacts/AcceptInvitationScreen.tsx` | maxLength 17, placeholder, rate-limit UI |
+| `src/screens/onboarding/InvitationCodeScreen.tsx` | maxLength 17, placeholder, rate-limit UI |
+| `server/invitation-relay/server.js` | Dual-format regex op alle 5 endpoints |
+| `src/locales/*.json` (13 bestanden) | `contacts.accept.rateLimited` key |
 
 ---
 
-### 4.2 App-Level Biometric Lock
+### 4.2 App-Level Biometric Lock ⏳ DEFERRED
 
-**Fundament gelegd in Fase 1:** PIN is opgeslagen in Keychain (Fase 1.4).
+**Reden:** Grote nieuwe feature (screen, context, settings). Risico op lock-out bij senioren. Niet nodig voor family TestFlight.
 
-**Evaluatie-criteria:**
+**Evaluatie-criteria na TestFlight:**
 - Vragen testers om een app-lock feature?
 - Hoeveel testers zijn senioren die hun device delen?
 
@@ -422,11 +425,11 @@ let fileURL = tempDirectoryURL.appendingPathComponent(sanitizedPath)
 
 ---
 
-### 4.3 Presence Subscription Consent
+### 4.3 Presence Subscription Consent ⏳ DEFERRED
 
-**Fundament gelegd in Fase 2:** Prosody `auto_accept_subscriptions` is verwijderd.
+**Reden:** Family testers moeten elkaars presence automatisch zien. Consent modals verwarren senioren.
 
-**Evaluatie-criteria:**
+**Evaluatie-criteria na TestFlight:**
 - Hoe gedragen testers zich met presence? Vinden ze het verwarrend?
 - Is de UX flow voor "toestemming geven" begrijpelijk voor senioren?
 
@@ -437,33 +440,37 @@ let fileURL = tempDirectoryURL.appendingPathComponent(sanitizedPath)
 
 ---
 
-### 4.4 Key Rotation
+### 4.4 Key Rotation ⏳ DEFERRED
 
-**Fundament gelegd in Fase 1:** `keyManager.ts` heeft `rotateKey()` stub.
+**Reden:** **BLOKKEERDER:** WatermelonDB biedt geen `PRAGMA rekey` API. Vereist native SQLite module. 90-dagen cyclus niet relevant voor TestFlight.
 
-**Evaluatie-criteria:**
-- Langlopende TestFlight testers (>30 dagen)
-- Worden er verouderde keys gedetecteerd?
+**`keyManager.ts` heeft `rotateKey()` stub** die `Error('Key rotation not yet implemented')` gooit.
 
-**Als nodig:**
+**Als nodig (post-TestFlight):**
+- Native SQLite module voor `PRAGMA rekey` support
 - Automatische key rotation elke 90 dagen
 - Re-encryptie van database met nieuwe key
-- Notificatie aan gebruiker: "Je beveiliging is bijgewerkt"
 
 ---
 
-### 4.5 Attestation Productie Verificatie
+### 4.5 Attestation Productie Verificatie 🔶 PARTIAL
 
-**Fundament gelegd in Fase 2:** Attestation middleware structuur bestaat al.
+**Geïmplementeerd:**
+- **Map → Redis:** Graceful fallback naar Map wanneer Redis niet beschikbaar
+- **30-dagen TTL:** Attestation keys verlopen na 30 dagen (Redis: native EX, Map: periodic cleanup)
+- **Periodic cleanup:** 1x per uur voor Map fallback (verwijder entries >30 dagen)
 
-**Evaluatie-criteria:**
-- TestFlight builds gebruiken al App Attest (development environment)
-- Monitor: hoeveel attestation failures bij echte devices?
+**Uitgesteld:**
+- X.509 certificate chain verificatie (pas nodig bij App Store release, TestFlight = development mode)
+- Assertion signature verificatie tegen opgeslagen public key
 
-**Als nodig:**
-- Volledige X.509 certificate chain verificatie (`attestation.js:107`)
-- Redis ipv in-memory `Map()` voor attestation store
-- Key expiratie (30 dagen)
+**Bestanden gewijzigd:**
+
+| Bestand | Wijziging |
+|---------|-----------|
+| `server/api-gateway/middleware/attestation.js` | Redis + Map fallback + 30-dagen TTL |
+| `server/api-gateway/package.json` | `ioredis` als optionalDependency |
+| `server/api-gateway/.env.example` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` vars |
 
 ---
 
@@ -523,7 +530,7 @@ Fase 4 (DURING TestFlight):
 
 ## Wat de Externe Testers Krijgen
 
-Na Fase 1-3 krijgen de 5-10 externe testers een app die:
+Na Fase 1-4 krijgen de 5-10 externe testers een app die:
 
 - ✅ Versleutelde lokale database heeft (Fase 1.1)
 - ✅ Geen hardcoded credentials bevat (Fase 1.3)
@@ -533,6 +540,10 @@ Na Fase 1-3 krijgen de 5-10 externe testers een app die:
 - ✅ Certificate pinning heeft (Fase 2.5)
 - ✅ Geen debug logging lekt (Fase 1.6 + 3.1)
 - ✅ Push payloads gefilterd (Fase 3.2)
+- ✅ Memory-hard KDF (Argon2id) voor invitation codes (Fase 4.1)
+- ✅ Langere invitation codes met ~59 bit entropy (Fase 4.1)
+- ✅ Client-side brute-force rate limiting op code invoer (Fase 4.1)
+- ✅ Attestation store met 30-dagen TTL en Redis-ready (Fase 4.5)
 
 ---
 

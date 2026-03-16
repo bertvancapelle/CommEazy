@@ -175,11 +175,11 @@ app.post('/api/v1/invitations', (req, res) => {
     });
   }
 
-  // Validate code format: CE-XXXX-XXXX
-  if (!/^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}$/.test(code)) {
+  // Validate code format: CE-XXXX-XXXX (legacy) or CE-XXXX-XXXX-XXXX (new)
+  if (!/^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}(-[2-9A-HJ-KM-NP-Z]{4})?$/.test(code)) {
     return res.status(400).json({
       error: 'INVALID_CODE',
-      message: 'Code must match format CE-XXXX-XXXX',
+      message: 'Code must match format CE-XXXX-XXXX or CE-XXXX-XXXX-XXXX',
     });
   }
 
@@ -226,6 +226,14 @@ app.post('/api/v1/invitations', (req, res) => {
 app.get('/api/v1/invitations/:code', (req, res) => {
   const { code } = req.params;
 
+  // Validate code format
+  if (!/^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}(-[2-9A-HJ-KM-NP-Z]{4})?$/.test(code)) {
+    return res.status(400).json({
+      error: 'INVALID_CODE',
+      message: 'Code must match format CE-XXXX-XXXX or CE-XXXX-XXXX-XXXX',
+    });
+  }
+
   const invitation = stmts.getInvitation.get(code);
   if (!invitation) {
     return res.status(404).json({
@@ -253,6 +261,14 @@ app.put('/api/v1/invitations/:code/response', (req, res) => {
   const { code } = req.params;
   const { encrypted, nonce } = req.body;
   const responderUuid = req.headers['x-user-uuid'];
+
+  // Validate code format
+  if (!/^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}(-[2-9A-HJ-KM-NP-Z]{4})?$/.test(code)) {
+    return res.status(400).json({
+      error: 'INVALID_CODE',
+      message: 'Code must match format CE-XXXX-XXXX or CE-XXXX-XXXX-XXXX',
+    });
+  }
 
   if (!encrypted || !nonce) {
     return res.status(400).json({
@@ -307,6 +323,14 @@ app.put('/api/v1/invitations/:code/response', (req, res) => {
 app.get('/api/v1/invitations/:code/response', (req, res) => {
   const { code } = req.params;
 
+  // Validate code format
+  if (!/^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}(-[2-9A-HJ-KM-NP-Z]{4})?$/.test(code)) {
+    return res.status(400).json({
+      error: 'INVALID_CODE',
+      message: 'Code must match format CE-XXXX-XXXX or CE-XXXX-XXXX-XXXX',
+    });
+  }
+
   const response = stmts.getResponse.get(code);
   if (!response) {
     return res.status(404).json({
@@ -338,6 +362,14 @@ app.get('/api/v1/invitations/:code/response', (req, res) => {
 app.delete('/api/v1/invitations/:code', (req, res) => {
   const { code } = req.params;
   const userUuid = req.headers['x-user-uuid'];
+
+  // Validate code format
+  if (!/^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}(-[2-9A-HJ-KM-NP-Z]{4})?$/.test(code)) {
+    return res.status(400).json({
+      error: 'INVALID_CODE',
+      message: 'Code must match format CE-XXXX-XXXX or CE-XXXX-XXXX-XXXX',
+    });
+  }
 
   // Verify ownership
   const invitation = stmts.getInvitation.get(code);

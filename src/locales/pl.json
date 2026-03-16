@@ -365,7 +365,8 @@
       "notFound": "To zaproszenie nie zostało znalezione lub wygasło.",
       "decryptFailed": "Kod jest nieprawidłowy lub zaproszenie jest uszkodzone.",
       "errorLookup": "Coś poszło nie tak. Sprawdź połączenie internetowe i spróbuj ponownie.",
-      "errorAccept": "Nie można potwierdzić zaproszenia. Spróbuj ponownie."
+      "errorAccept": "Nie można potwierdzić zaproszenia. Spróbuj ponownie.",
+      "rateLimited": "Zbyt wiele prób. Poczekaj minutę i spróbuj ponownie."
     },
     "verify": "Zweryfikuj",
     "verified": "Zweryfikowany",

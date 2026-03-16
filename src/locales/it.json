@@ -448,7 +448,8 @@
       "notFound": "Questo invito non è stato trovato o è scaduto.",
       "decryptFailed": "Il codice è errato o l'invito è danneggiato.",
       "errorLookup": "Qualcosa è andato storto. Controlla la connessione internet e riprova.",
-      "errorAccept": "Impossibile confermare l'invito. Riprova."
+      "errorAccept": "Impossibile confermare l'invito. Riprova.",
+      "rateLimited": "Troppi tentativi. Attendi un minuto e riprova."
     },
     "verify": "Verifica",
     "verified": "Verificato",

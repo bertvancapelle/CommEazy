@@ -475,7 +475,8 @@
       "notFound": "Este convite não foi encontrado ou expirou.",
       "decryptFailed": "O código está incorreto ou o convite está danificado.",
       "errorLookup": "Algo deu errado. Verifique sua conexão com a internet e tente novamente.",
-      "errorAccept": "Não foi possível confirmar o convite. Por favor, tente novamente."
+      "errorAccept": "Não foi possível confirmar o convite. Por favor, tente novamente.",
+      "rateLimited": "Muitas tentativas. Aguarde um minuto e tente novamente."
     },
     "verify": "Verificar",
     "verified": "Verificado",

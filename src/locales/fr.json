@@ -448,7 +448,8 @@
       "notFound": "Cette invitation n'a pas été trouvée ou a expiré.",
       "decryptFailed": "Le code est incorrect ou l'invitation est endommagée.",
       "errorLookup": "Une erreur s'est produite. Vérifiez votre connexion internet et réessayez.",
-      "errorAccept": "Impossible de confirmer l'invitation. Veuillez réessayer."
+      "errorAccept": "Impossible de confirmer l'invitation. Veuillez réessayer.",
+      "rateLimited": "Trop de tentatives. Attendez une minute et réessayez."
     },
     "verify": "Vérifier",
     "verified": "Vérifié",

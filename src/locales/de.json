@@ -448,7 +448,8 @@
       "notFound": "Diese Einladung wurde nicht gefunden oder ist abgelaufen.",
       "decryptFailed": "Der Code ist falsch oder die Einladung ist beschädigt.",
       "errorLookup": "Etwas ist schiefgelaufen. Überprüfe deine Internetverbindung und versuche es erneut.",
-      "errorAccept": "Die Einladung konnte nicht bestätigt werden. Bitte versuche es erneut."
+      "errorAccept": "Die Einladung konnte nicht bestätigt werden. Bitte versuche es erneut.",
+      "rateLimited": "Zu viele Versuche. Warte eine Minute und versuche es erneut."
     },
     "verify": "Verifizieren",
     "verified": "Verifiziert",

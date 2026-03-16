@@ -47,6 +47,7 @@ import {
   normalizeInvitationCode,
   downloadInvitation,
   decryptInvitation,
+  isDecryptRateLimited,
   encryptInvitation,
   uploadResponse,
 } from '@/services/invitation';
@@ -96,6 +97,13 @@ export function InvitationCodeScreen({ navigation }: Props) {
       if (!invitation) {
         setState('error');
         setErrorMessage(t('onboarding.invitationCode.notFound', 'Deze uitnodiging is niet gevonden of is verlopen.'));
+        return;
+      }
+
+      // Check rate limit before attempting decryption
+      if (isDecryptRateLimited()) {
+        setState('error');
+        setErrorMessage(t('contacts.accept.rateLimited', 'Te veel pogingen. Wacht een minuut en probeer opnieuw.'));
         return;
       }
 
@@ -216,13 +224,13 @@ export function InvitationCodeScreen({ navigation }: Props) {
                     borderColor: errorMessage ? themeColors.error : themeColors.border,
                   },
                 ]}
-                placeholder="CE-XXXX-XXXX"
+                placeholder="CE-XXXX-XXXX-XXXX"
                 placeholderTextColor={themeColors.textTertiary}
                 value={codeInput}
                 onChangeText={handleCodeChange}
                 autoCapitalize="characters"
                 autoCorrect={false}
-                maxLength={12}
+                maxLength={17}
                 returnKeyType="go"
                 onSubmitEditing={() => {
                   if (isCodeComplete) {

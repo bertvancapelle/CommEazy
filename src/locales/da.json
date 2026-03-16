@@ -345,7 +345,8 @@
       "notFound": "Denne invitation blev ikke fundet eller er udløbet.",
       "decryptFailed": "Koden er forkert eller invitationen er beskadiget.",
       "errorLookup": "Noget gik galt. Tjek din internetforbindelse og prøv igen.",
-      "errorAccept": "Kunne ikke bekræfte invitationen. Prøv venligst igen."
+      "errorAccept": "Kunne ikke bekræfte invitationen. Prøv venligst igen.",
+      "rateLimited": "For mange forsøg. Vent et minut og prøv igen."
     },
     "verify": "Bekræft",
     "verified": "Bekræftet",

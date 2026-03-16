@@ -16,6 +16,7 @@ export {
   encryptInvitation,
   decryptInvitation,
   deriveKeyFromCode,
+  isDecryptRateLimited,
 } from './invitationCrypto';
 
 export type { InvitationPayload } from './invitationCrypto';

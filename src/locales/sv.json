@@ -345,7 +345,8 @@
       "notFound": "Denna inbjudan hittades inte eller har gått ut.",
       "decryptFailed": "Koden är felaktig eller inbjudan är skadad.",
       "errorLookup": "Något gick fel. Kontrollera din internetanslutning och försök igen.",
-      "errorAccept": "Kunde inte bekräfta inbjudan. Försök igen."
+      "errorAccept": "Kunde inte bekräfta inbjudan. Försök igen.",
+      "rateLimited": "För många försök. Vänta en minut och försök igen."
     },
     "verify": "Verifiera",
     "verified": "Verifierad",

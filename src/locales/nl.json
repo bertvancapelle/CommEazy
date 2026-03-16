@@ -288,7 +288,8 @@
       "notFound": "Deze uitnodiging is niet gevonden of is verlopen.",
       "decryptFailed": "De code klopt niet of de uitnodiging is beschadigd.",
       "errorLookup": "Er ging iets mis. Controleer je internetverbinding en probeer opnieuw.",
-      "errorAccept": "Kon de uitnodiging niet bevestigen. Probeer opnieuw."
+      "errorAccept": "Kon de uitnodiging niet bevestigen. Probeer opnieuw.",
+      "rateLimited": "Te veel pogingen. Wacht een minuut en probeer opnieuw."
     },
     "verify": "Verifiëren",
     "verified": "Geverifieerd",

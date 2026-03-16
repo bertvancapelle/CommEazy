@@ -375,7 +375,8 @@
       "notFound": "Denne invitasjonen ble ikke funnet eller har utløpt.",
       "decryptFailed": "Koden er feil eller invitasjonen er skadet.",
       "errorLookup": "Noe gikk galt. Sjekk internettforbindelsen din og prøv igjen.",
-      "errorAccept": "Kunne ikke bekrefte invitasjonen. Vennligst prøv igjen."
+      "errorAccept": "Kunne ikke bekrefte invitasjonen. Vennligst prøv igjen.",
+      "rateLimited": "For mange forsøk. Vent et minutt og prøv igjen."
     },
     "verify": "Bekreft",
     "verified": "Bekreftet",
