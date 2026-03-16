@@ -480,6 +480,10 @@
     "lastNamePlaceholder": "Introduce los apellidos (opcional)",
     "phoneLabel": "Número de teléfono",
     "phonePlaceholder": "612345678",
+    "landlineLabel": "Teléfono fijo",
+    "landlinePlaceholder": "912345678",
+    "mobileLabel": "Número móvil",
+    "mobilePlaceholder": "612345678",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "nombre@ejemplo.es",
     "addHint": "También puedes escanear un código QR para añadir un contacto",
@@ -575,7 +579,7 @@
       "filterAll": "Todos"
     },
     "reachability": {
-      "a11ySummary": "App: {{app}}, Correo: {{email}}, Teléfono: {{phone}}",
+      "a11ySummary": "App: {{app}}, Correo: {{email}}, Fijo: {{landline}}, Móvil: {{mobile}}",
       "available": "disponible",
       "unavailable": "no disponible"
     },
@@ -949,6 +953,7 @@
     "enterContactFirstName": "Introducir nombre del contacto",
     "enterContactLastName": "Introducir apellidos del contacto",
     "enterPhoneNumber": "Introducir número de teléfono",
+    "enterMobileNumber": "Ingrese número móvil",
     "addContact": "Añadir contacto",
     "startChatHint": "Enviar un mensaje a {{name}}",
     "deleteContactHint": "Eliminar a {{name}} de tus contactos",

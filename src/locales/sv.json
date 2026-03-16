@@ -377,6 +377,10 @@
     "lastNamePlaceholder": "Ange efternamn (valfritt)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
+    "landlineLabel": "Fast telefon",
+    "landlinePlaceholder": "812345678",
+    "mobileLabel": "Mobilnummer",
+    "mobilePlaceholder": "701234567",
     "emailLabel": "E-postadress",
     "emailPlaceholder": "namn@exempel.se",
     "addHint": "Du kan också skanna en QR-kod för att lägga till en kontakt",
@@ -470,7 +474,7 @@
       "filterAll": "Alla"
     },
     "reachability": {
-      "a11ySummary": "App: {{app}}, E-post: {{email}}, Telefon: {{phone}}",
+      "a11ySummary": "App: {{app}}, E-post: {{email}}, Fast: {{landline}}, Mobil: {{mobile}}",
       "available": "tillgänglig",
       "unavailable": "inte tillgänglig"
     },
@@ -844,6 +848,7 @@
     "enterContactFirstName": "Ange kontaktens förnamn",
     "enterContactLastName": "Ange kontaktens efternamn",
     "enterPhoneNumber": "Ange telefonnummer",
+    "enterMobileNumber": "Ange mobilnummer",
     "addContact": "Lägg till kontakt",
     "startChatHint": "Skicka ett meddelande till {{name}}",
     "deleteContactHint": "Ta bort {{name}} från dina kontakter",

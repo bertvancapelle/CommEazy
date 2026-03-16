@@ -377,6 +377,10 @@
     "lastNamePlaceholder": "Indtast efternavn (valgfrit)",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "612345678",
+    "landlineLabel": "Fastnetnummer",
+    "landlinePlaceholder": "33123456",
+    "mobileLabel": "Mobilnummer",
+    "mobilePlaceholder": "20123456",
     "emailLabel": "E-mailadresse",
     "emailPlaceholder": "navn@eksempel.dk",
     "addHint": "Du kan også scanne en QR-kode for at tilføje en kontakt",
@@ -470,7 +474,7 @@
       "filterAll": "Alle"
     },
     "reachability": {
-      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Telefon: {{phone}}",
+      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Fastnet: {{landline}}, Mobil: {{mobile}}",
       "available": "tilgængelig",
       "unavailable": "ikke tilgængelig"
     },
@@ -844,6 +848,7 @@
     "enterContactFirstName": "Indtast kontaktens fornavn",
     "enterContactLastName": "Indtast kontaktens efternavn",
     "enterPhoneNumber": "Indtast telefonnummer",
+    "enterMobileNumber": "Indtast mobilnummer",
     "addContact": "Tilføj kontakt",
     "startChatHint": "Send en besked til {{name}}",
     "deleteContactHint": "Slet {{name}} fra dine kontakter",

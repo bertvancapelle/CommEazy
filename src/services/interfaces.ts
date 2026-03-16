@@ -106,7 +106,8 @@ export interface Contact {
   jid: string;               // = {userUuid}@commeazy.local
   firstName: string;         // Voornaam
   lastName: string;          // Achternaam
-  phoneNumber?: string;      // Optional (privacy: can be hidden after QR verify)
+  phoneNumber?: string;      // Optional landline (privacy: can be hidden after QR verify)
+  mobileNumber?: string;     // Optional mobile phone number
   email?: string;            // Optional e-mailadres
   publicKey: string;         // Base64
   verified: boolean;         // QR verified

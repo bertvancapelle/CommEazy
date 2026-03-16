@@ -480,6 +480,10 @@
     "lastNamePlaceholder": "Enter surname (optional)",
     "phoneLabel": "Phone number",
     "phonePlaceholder": "612345678",
+    "landlineLabel": "Landline number",
+    "landlinePlaceholder": "201234567",
+    "mobileLabel": "Mobile number",
+    "mobilePlaceholder": "712345678",
     "emailLabel": "Email address",
     "emailPlaceholder": "name@example.co.uk",
     "addHint": "You can also scan a QR code to add a contact",
@@ -575,7 +579,7 @@
       "filterAll": "All"
     },
     "reachability": {
-      "a11ySummary": "App: {{app}}, Email: {{email}}, Phone: {{phone}}",
+      "a11ySummary": "App: {{app}}, Email: {{email}}, Landline: {{landline}}, Mobile: {{mobile}}",
       "available": "available",
       "unavailable": "not available"
     },
@@ -952,6 +956,7 @@
     "enterContactFirstName": "Enter the contact's first name",
     "enterContactLastName": "Enter the contact's surname",
     "enterPhoneNumber": "Enter phone number",
+    "enterMobileNumber": "Enter mobile number",
     "addContact": "Add contact",
     "startChatHint": "Send a message to {{name}}",
     "deleteContactHint": "Delete {{name}} from your contacts",

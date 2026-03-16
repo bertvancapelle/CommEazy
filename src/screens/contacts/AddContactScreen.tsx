@@ -27,14 +27,15 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
+import { HapticTouchable, Icon, ScrollViewWithIndicator } from '@/components';
+import type { IconName } from '@/components/Icon';
 import type { ContactStackParams } from '@/navigation';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'AddContact'>;
 
 interface AddContactOption {
   key: string;
-  icon: string;
+  icon: IconName;
   titleKey: string;
   titleDefault: string;
   descriptionKey: string;
@@ -118,7 +119,7 @@ export function AddContactScreen() {
                 {t(option.descriptionKey, option.descriptionDefault)}
               </Text>
             </View>
-            <Icon name="chevron-forward" size={24} color={themeColors.textTertiary} />
+            <Icon name="chevron-right" size={24} color={themeColors.primary} />
           </HapticTouchable>
         ))}
       </View>

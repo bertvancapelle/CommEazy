@@ -506,6 +506,10 @@
     "lastNamePlaceholder": "Introduzir apelido (opcional)",
     "phoneLabel": "Numero de telefone",
     "phonePlaceholder": "912345678",
+    "landlineLabel": "Telefone fixo",
+    "landlinePlaceholder": "211234567",
+    "mobileLabel": "Número móvel",
+    "mobilePlaceholder": "912345678",
     "emailLabel": "Endereço de e-mail",
     "emailPlaceholder": "nome@exemplo.pt",
     "addHint": "Também pode digitalizar um codigo QR para adicionar um contacto",
@@ -599,7 +603,7 @@
       "filterAll": "Todos"
     },
     "reachability": {
-      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Telefone: {{phone}}",
+      "a11ySummary": "App: {{app}}, Email: {{email}}, Fixo: {{landline}}, Móvel: {{mobile}}",
       "available": "disponível",
       "unavailable": "não disponível"
     },
@@ -974,6 +978,7 @@
     "enterContactFirstName": "Introduzir o nome próprio do contacto",
     "enterContactLastName": "Introduzir o apelido do contacto",
     "enterPhoneNumber": "Introduzir numero de telefone",
+    "enterMobileNumber": "Introduzir número de telemóvel",
     "addContact": "Adicionar contacto",
     "startChatHint": "Enviar uma mensagem para {{name}}",
     "voiceCallHint": "Iniciar uma chamada de voz com {{name}}",

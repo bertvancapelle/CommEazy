@@ -1,6 +1,6 @@
 # Unified Groups — Architectuurplan
 
-> **Status:** Fase 1 voltooid (UI indicators + email reminder)
+> **Status:** Fase 1 voltooid (UI indicators + email reminder + v23: 4-icoon + mobileNumber)
 > **Besloten in:** PNA sessie maart 2026
 > **Doel:** Eén groepsconcept dat organisatie EN communicatie combineert
 
@@ -29,23 +29,29 @@ Een "groep" in CommEazy is **zowel** een organisatorische eenheid (categorie) **
 |------|-------------|-----------|
 | `trustLevel >= 2` | Via key exchange / verification | Heeft CommEazy app |
 | `email` niet leeg | Handmatig ingevuld of via contact sync | Heeft e-mailadres |
-| `phoneNumber` niet leeg | Verplicht veld bij toevoegen | Heeft telefoonnummer |
+| `phoneNumber` niet leeg | Handmatig ingevuld | Heeft vast telefoonnummer |
+| `mobileNumber` niet leeg | Handmatig ingevuld (v23) | Heeft mobiel nummer |
 
 **Geen `isAppUser` veld nodig** — `trustLevel` vervult deze rol.
+
+**v23 wijziging:** `mobileNumber` is een apart veld naast `phoneNumber` (landline). Beide zijn optioneel, maar minimaal één is verplicht bij toevoegen.
 
 ---
 
 ## 2. UI Implementatie
 
-### 2.1 ContactReachabilityIcons (Fase 1 — VOLTOOID)
+### 2.1 ContactReachabilityIcons (Fase 1 — VOLTOOID, v23: 4 iconen)
 
-Drie vaste icoonposities onder elke contactnaam:
+Vier vaste icoonposities onder elke contactnaam:
 
 ```
-Positie 1: 💬 (chatbubble) of ✗ — CommEazy app
+Positie 1: 💬 (chatbubble) of ✗ — CommEazy app (trustLevel >= 2)
 Positie 2: ✉️ (mail) of ✗ — E-mailadres
-Positie 3: 📞 (phone) of ✗ — Telefoonnummer
+Positie 3: 📞 (phone-landline) of ✗ — Vast telefoonnummer
+Positie 4: 📱 (cellphone) of ✗ — Mobiel nummer
 ```
+
+**v23 wijziging:** Uitgebreid van 3 naar 4 iconen. Telefoon is opgesplitst in vast (landline) en mobiel. Dit geeft senioren beter inzicht in hoe ze een contact kunnen bereiken.
 
 **Regels:**
 - Vaste posities — iconen verschuiven NOOIT
@@ -131,16 +137,23 @@ Bericht verzenden naar "Familie"
 
 ---
 
-## 4. Gewijzigde Bestanden (Fase 1)
+## 4. Gewijzigde Bestanden (Fase 1 + v23)
 
 | Bestand | Wijziging |
 |---------|-----------|
-| `src/components/ContactReachabilityIcons.tsx` | **NIEUW** — Reusable status icons component |
+| `src/components/ContactReachabilityIcons.tsx` | **NIEUW** — Reusable status icons, v23: 4 iconen (app/email/landline/mobile) |
+| `src/components/Icon.tsx` | v23: `phone-landline` + `cellphone` icons toegevoegd |
 | `src/components/index.ts` | Export toegevoegd |
-| `src/screens/contacts/ContactListScreen.tsx` | ContactListItem: reachability icons onder naam |
-| `src/screens/contacts/CreateGroupModal.tsx` | Contact picker: reachability icons |
-| `src/screens/contacts/ManualAddContactScreen.tsx` | Email reminder modal bij opslaan |
-| `src/locales/*.json` (13 bestanden) | `contacts.reachability.*` + `contacts.emailReminder.*` keys |
+| `src/services/interfaces.ts` | v23: `mobileNumber?: string` toegevoegd aan Contact interface |
+| `src/models/Contact.ts` | v23: `@field('mobile_number') mobileNumber` |
+| `src/models/schema.ts` | v23: schema version 23, `mobile_number` kolom |
+| `src/models/migrations.ts` | v23: migratie v22→v23 |
+| `src/screens/contacts/ContactListScreen.tsx` | ContactListItem: 4-icoon reachability, accent chevron |
+| `src/screens/contacts/CreateGroupModal.tsx` | Contact picker: 4-icoon reachability |
+| `src/screens/contacts/ManualAddContactScreen.tsx` | Email reminder modal + apart mobiel nummer veld |
+| `src/screens/contacts/AddContactScreen.tsx` | Chevron fix (chevron-right, accent kleur) |
+| `src/services/mock/mockContacts.ts` | v23: trustLevel + mobileNumber mock data |
+| `src/locales/*.json` (13 bestanden) | `contacts.reachability.*` + `contacts.emailReminder.*` + `landlineLabel/mobileLabel` keys |
 
 ---
 
@@ -150,9 +163,18 @@ Bericht verzenden naar "Familie"
 
 | Key | NL | EN |
 |-----|----|----|
-| `a11ySummary` | App: {{app}}, E-mail: {{email}}, Telefoon: {{phone}} | App: {{app}}, Email: {{email}}, Phone: {{phone}} |
+| `a11ySummary` | App: {{app}}, E-mail: {{email}}, Vast: {{landline}}, Mobiel: {{mobile}} | App: {{app}}, Email: {{email}}, Landline: {{landline}}, Mobile: {{mobile}} |
 | `available` | beschikbaar | available |
 | `unavailable` | niet beschikbaar | not available |
+
+### contacts (v23 — nieuwe velden)
+
+| Key | NL | EN |
+|-----|----|----|
+| `landlineLabel` | Vast telefoonnummer | Landline number |
+| `landlinePlaceholder` | 201234567 | 201234567 |
+| `mobileLabel` | Mobiel nummer | Mobile number |
+| `mobilePlaceholder` | 612345678 | 612345678 |
 
 ### contacts.emailReminder
 
@@ -171,7 +193,7 @@ Alle 13 talen zijn bijgewerkt.
 
 | Criterium | Oordeel | Toelichting |
 |-----------|---------|-------------|
-| **Eenvoud** | ✅ | Drie vaste iconen — geen uitleg nodig na eerste keer |
-| **Consistentie** | ✅ | Zelfde iconen overal (lijst, groepen, zoeken) |
-| **Herkenbaarheid** | ✅ | Groen = goed, rood kruis = ontbreekt — universeel patroon |
+| **Eenvoud** | ✅ | Vier vaste iconen — na eerste keer duidelijk (app/mail/vast/mobiel) |
+| **Consistentie** | ✅ | Zelfde 4 iconen overal (lijst, groepen, zoeken) |
+| **Herkenbaarheid** | ✅ | Groen = goed, rood kruis = ontbreekt — universeel patroon. Telefoon (vast) en mobiel hebben herkenbare, onderscheidbare iconen |
 | **Reminder** | ✅ | Eenvoudige modal met één actie — toevoegen of overslaan |

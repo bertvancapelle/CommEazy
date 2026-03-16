@@ -380,5 +380,17 @@ export const migrations = schemaMigrations({
         }),
       ],
     },
+    // Migration from v22 to v23: Add mobile_number to contacts (landline/mobile distinction)
+    {
+      toVersion: 23,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'mobile_number', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

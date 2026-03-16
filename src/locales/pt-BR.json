@@ -506,6 +506,10 @@
     "lastNamePlaceholder": "Digite o sobrenome (opcional)",
     "phoneLabel": "Número de celular",
     "phonePlaceholder": "11999999999",
+    "landlineLabel": "Telefone fixo",
+    "landlinePlaceholder": "1123456789",
+    "mobileLabel": "Número celular",
+    "mobilePlaceholder": "11987654321",
     "emailLabel": "Endereço de e-mail",
     "emailPlaceholder": "nome@exemplo.com.br",
     "addHint": "Você também pode escanear um código QR para adicionar um contato",
@@ -599,7 +603,7 @@
       "filterAll": "Todos"
     },
     "reachability": {
-      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Telefone: {{phone}}",
+      "a11ySummary": "App: {{app}}, Email: {{email}}, Fixo: {{landline}}, Celular: {{mobile}}",
       "available": "disponível",
       "unavailable": "não disponível"
     },
@@ -976,6 +980,7 @@
     "enterContactFirstName": "Digite o nome do contato",
     "enterContactLastName": "Digite o sobrenome do contato",
     "enterPhoneNumber": "Digite número de celular",
+    "enterMobileNumber": "Inserir número de celular",
     "addContact": "Adicionar contato",
     "startChatHint": "Enviar uma mensagem para {{name}}",
     "voiceCallHint": "Iniciar uma chamada de voz com {{name}}",

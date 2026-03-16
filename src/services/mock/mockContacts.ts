@@ -33,10 +33,12 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     jid: 'ik@commeazy.local',
     firstName: 'Ik',
     lastName: '',
-    phoneNumber: '+31600000001',
+    phoneNumber: '+31201234567',
+    mobileNumber: '+31600000001',
     email: 'ik@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
+    trustLevel: 2, // Connected (has CommEazy app)
     lastSeen: 0, // Unknown - presence comes from XMPP
     address: {
       street: 'Kerkstraat 42',
@@ -51,7 +53,8 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     jid: 'oma@commeazy.local',
     firstName: 'Oma',
     lastName: '(simulator)',
-    phoneNumber: '+31600000002',
+    phoneNumber: '+31207654321',
+    mobileNumber: '+31600000002',
     email: 'oma@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
@@ -75,7 +78,7 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     jid: 'jeanine@commeazy.local',
     firstName: 'Jeanine',
     lastName: '',
-    phoneNumber: '+31600000004',
+    mobileNumber: '+31600000004',
     email: 'jeanine@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
@@ -93,10 +96,11 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     jid: 'ipad@commeazy.local',
     firstName: 'iPad',
     lastName: '(simulator)',
-    phoneNumber: '+31600000005',
+    mobileNumber: '+31600000005',
     email: 'ipad@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
+    trustLevel: 2, // Connected (has CommEazy app)
     lastSeen: 0, // Unknown - presence comes from XMPP
     categories: JSON.stringify(['other']),
   },
@@ -105,10 +109,11 @@ const TEST_DEVICE_CONTACTS: Record<string, Contact> = {
     jid: 'ipadphys@commeazy.local',
     firstName: 'iPad',
     lastName: '(fysiek)',
-    phoneNumber: '+31600000006',
+    mobileNumber: '+31600000006',
     email: 'ipadphys@commeazy.local',
     publicKey: '', // Will be set dynamically with real key
     verified: true,
+    trustLevel: 2, // Connected (has CommEazy app)
     lastSeen: 0, // Unknown - presence comes from XMPP
     categories: JSON.stringify(['family']),
   },

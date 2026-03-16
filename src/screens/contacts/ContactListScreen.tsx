@@ -101,12 +101,13 @@ function ContactListItem({
           <ContactReachabilityIcons
             hasApp={(contact.trustLevel ?? 0) >= 2}
             hasEmail={!!contact.email}
-            hasPhone={!!contact.phoneNumber}
+            hasLandline={!!contact.phoneNumber}
+            hasMobile={!!contact.mobileNumber}
           />
         </View>
 
         {/* Chevron indicator */}
-        <Text style={[styles.chevron, { color: themeColors.textTertiary }]}>›</Text>
+        <Icon name="chevron-right" size={24} color={themeColors.primary} />
       </HapticTouchable>
     </VoiceFocusable>
   );
@@ -523,10 +524,6 @@ const styles = StyleSheet.create({
   contactName: {
     ...typography.h3,
     marginBottom: spacing.xs,
-  },
-  chevron: {
-    fontSize: 28,
-    fontWeight: '300',
   },
   emptyContainer: {
     flex: 1,

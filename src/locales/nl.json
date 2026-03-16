@@ -319,6 +319,10 @@
     "lastNamePlaceholder": "Voer achternaam in (optioneel)",
     "phoneLabel": "Telefoonnummer",
     "phonePlaceholder": "612345678",
+    "landlineLabel": "Vast telefoonnummer",
+    "landlinePlaceholder": "201234567",
+    "mobileLabel": "Mobiel nummer",
+    "mobilePlaceholder": "612345678",
     "emailLabel": "E-mailadres",
     "emailPlaceholder": "naam@voorbeeld.nl",
     "addHint": "Je kunt ook een QR-code scannen om een contact toe te voegen",
@@ -412,7 +416,7 @@
       "filterAll": "Alle"
     },
     "reachability": {
-      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Telefoon: {{phone}}",
+      "a11ySummary": "App: {{app}}, E-mail: {{email}}, Vast: {{landline}}, Mobiel: {{mobile}}",
       "available": "beschikbaar",
       "unavailable": "niet beschikbaar"
     },
@@ -786,6 +790,7 @@
     "enterContactFirstName": "Voer de voornaam van het contact in",
     "enterContactLastName": "Voer de achternaam van het contact in",
     "enterPhoneNumber": "Voer telefoonnummer in",
+    "enterMobileNumber": "Voer mobiel nummer in",
     "addContact": "Contact toevoegen",
     "startChatHint": "Stuur een bericht naar {{name}}",
     "voiceCallHint": "Start een spraakoproep met {{name}}",

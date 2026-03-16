@@ -15,7 +15,8 @@ export class ContactModel extends Model {
   @field('jid') jid!: string;               // = {userUuid}@commeazy.local
   @field('first_name') firstName!: string;
   @field('last_name') lastName!: string;
-  @field('phone_number') phoneNumber?: string;  // Optional (privacy: can be hidden)
+  @field('phone_number') phoneNumber?: string;  // Optional landline (privacy: can be hidden)
+  @field('mobile_number') mobileNumber?: string;  // Optional mobile phone (v23)
   @field('email') email?: string;              // Optional email address (v22)
   @field('public_key') publicKey!: string; // Base64
   @field('verified') verified!: boolean; // QR verified

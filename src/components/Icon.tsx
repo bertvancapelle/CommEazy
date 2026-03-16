@@ -122,7 +122,11 @@ export type IconName =
   | 'lock'
   | 'calendar'
   | 'checkbox-checked'
-  | 'checkbox-unchecked';
+  | 'checkbox-unchecked'
+  | 'qr-code'
+  | 'person-add'
+  | 'phone-landline'
+  | 'cellphone';
 
 interface IconProps {
   name: IconName;
@@ -2140,6 +2144,78 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw}
             fill="none"
+          />
+        </Svg>
+      );
+
+    case 'qr-code':
+      // QR code icon (grid pattern)
+      return (
+        <Svg {...iconProps}>
+          <Rect x="3" y="3" width="7" height="7" rx="1" stroke={color} strokeWidth={sw} fill="none" />
+          <Rect x="14" y="3" width="7" height="7" rx="1" stroke={color} strokeWidth={sw} fill="none" />
+          <Rect x="3" y="14" width="7" height="7" rx="1" stroke={color} strokeWidth={sw} fill="none" />
+          <Rect x="5.5" y="5.5" width="2" height="2" fill={color} />
+          <Rect x="16.5" y="5.5" width="2" height="2" fill={color} />
+          <Rect x="5.5" y="16.5" width="2" height="2" fill={color} />
+          <Rect x="14" y="14" width="3" height="3" fill={color} />
+          <Rect x="18" y="14" width="3" height="3" fill={color} />
+          <Rect x="14" y="18" width="3" height="3" fill={color} />
+          <Rect x="18" y="18" width="3" height="3" fill={color} />
+        </Svg>
+      );
+
+    case 'person-add':
+      // Person with plus sign
+      return (
+        <Svg {...iconProps}>
+          <Circle cx="10" cy="8" r="4" stroke={color} strokeWidth={sw} fill="none" />
+          <Path
+            d="M2 20C2 16.6863 5.13401 14 9 14C9.69 14 10.36 14.08 11 14.23"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            fill="none"
+          />
+          <Path
+            d="M18 14V20M15 17H21"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'phone-landline':
+      // Landline phone (handset on base)
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M5 4C5 3.44772 5.44772 3 6 3H18C18.5523 3 19 3.44772 19 4V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V4Z"
+            stroke={color}
+            strokeWidth={sw}
+            fill="none"
+          />
+          <Circle cx="12" cy="17" r="2" stroke={color} strokeWidth={sw} fill="none" />
+          <Rect x="8" y="6" width="8" height="4" rx="1" stroke={color} strokeWidth={sw} fill="none" />
+        </Svg>
+      );
+
+    case 'cellphone':
+      // Mobile phone (smartphone outline)
+      return (
+        <Svg {...iconProps}>
+          <Rect
+            x="7" y="2" width="10" height="20" rx="2"
+            stroke={color}
+            strokeWidth={sw}
+            fill="none"
+          />
+          <Path
+            d="M11 18H13"
+            stroke={color}
+            strokeWidth={sw + 0.5}
+            strokeLinecap="round"
           />
         </Svg>
       );

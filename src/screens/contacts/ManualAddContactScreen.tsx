@@ -76,6 +76,8 @@ export function ManualAddContactScreen() {
     lastName: string;
     phoneNumber: string;
     countryCode: string;
+    mobileNumber: string;
+    mobileCountryCode: string;
     email: string;
     street: string;
     postalCode: string;
@@ -106,6 +108,8 @@ export function ManualAddContactScreen() {
     lastName: '',
     phoneNumber: '',
     countryCode: '+31',
+    mobileNumber: '',
+    mobileCountryCode: '+31',
     email: '',
     street: '',
     postalCode: '',
@@ -121,9 +125,10 @@ export function ManualAddContactScreen() {
   }, []);
 
   // Convenience accessors for backward compatibility
-  const { firstName, lastName, phoneNumber, countryCode, email, street, postalCode, city, country, birthDate, weddingDate, deathDate } = form;
+  const { firstName, lastName, phoneNumber, countryCode, mobileNumber, mobileCountryCode, email, street, postalCode, city, country, birthDate, weddingDate, deathDate } = form;
 
   const [showCountryCodes, setShowCountryCodes] = useState(false);
+  const [showMobileCountryCodes, setShowMobileCountryCodes] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notification, setNotification] = useState<{
     type: 'error' | 'warning' | 'info' | 'success';
@@ -168,7 +173,8 @@ export function ManualAddContactScreen() {
     return n.trim().length >= 1;
   }, []);
 
-  const canSave = isValidFirstName(firstName) && isValidPhone(phoneNumber) && selectedCategories.length > 0;
+  const hasValidPhone = isValidPhone(phoneNumber) || isValidPhone(mobileNumber);
+  const canSave = isValidFirstName(firstName) && hasValidPhone && selectedCategories.length > 0;
 
   // ── Dirty state — determines Cancel behavior ──
   const isDirty = useMemo(() => {
@@ -176,6 +182,7 @@ export function ManualAddContactScreen() {
       firstName.trim().length > 0 ||
       lastName.trim().length > 0 ||
       phoneNumber.trim().length > 0 ||
+      mobileNumber.trim().length > 0 ||
       email.trim().length > 0 ||
       street.trim().length > 0 ||
       postalCode.trim().length > 0 ||
@@ -186,7 +193,7 @@ export function ManualAddContactScreen() {
       deathDate !== undefined ||
       selectedCategories.length > 0
     );
-  }, [firstName, lastName, phoneNumber, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories]);
+  }, [firstName, lastName, phoneNumber, mobileNumber, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories]);
 
   // Cancel with unsaved changes guard
   const handleCancel = useCallback(() => {
@@ -209,10 +216,12 @@ export function ManualAddContactScreen() {
     setSaving(true);
 
     try {
-      const fullPhoneNumber = `${countryCode}${phoneNumber.replace(/\D/g, '')}`;
+      const fullPhoneNumber = phoneNumber.trim() ? `${countryCode}${phoneNumber.replace(/\D/g, '')}` : undefined;
+      const fullMobileNumber = mobileNumber.trim() ? `${mobileCountryCode}${mobileNumber.replace(/\D/g, '')}` : undefined;
 
       // Generate a JID from phone number (simplified - in production use server)
-      const jid = `${fullPhoneNumber.replace(/\+/g, '')}@commeazy.app`;
+      const primaryNumber = fullPhoneNumber || fullMobileNumber || '';
+      const jid = `${primaryNumber.replace(/\+/g, '')}@commeazy.app`;
 
       // Build address if any field is filled
       const hasAddress = street.trim() || postalCode.trim() || city.trim() || country.trim();
@@ -233,6 +242,7 @@ export function ManualAddContactScreen() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phoneNumber: fullPhoneNumber,
+        mobileNumber: fullMobileNumber,
         email: finalEmail,
         address,
         birthDate,
@@ -253,7 +263,7 @@ export function ManualAddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [countryCode, phoneNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
+  }, [countryCode, phoneNumber, mobileCountryCode, mobileNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
 
   // Save handler: shows reminder modal if email is missing
   const handleSave = useCallback(async () => {
@@ -287,12 +297,25 @@ export function ManualAddContactScreen() {
   const toggleCountryCodes = useCallback(() => {
     void triggerFeedback('tap');
     setShowCountryCodes((prev) => !prev);
+    setShowMobileCountryCodes(false);
   }, [triggerFeedback]);
 
   const selectCountryCode = useCallback((code: string) => {
     void triggerFeedback('tap');
     setField('countryCode', code);
     setShowCountryCodes(false);
+  }, [triggerFeedback, setField]);
+
+  const toggleMobileCountryCodes = useCallback(() => {
+    void triggerFeedback('tap');
+    setShowMobileCountryCodes((prev) => !prev);
+    setShowCountryCodes(false);
+  }, [triggerFeedback]);
+
+  const selectMobileCountryCode = useCallback((code: string) => {
+    void triggerFeedback('tap');
+    setField('mobileCountryCode', code);
+    setShowMobileCountryCodes(false);
   }, [triggerFeedback, setField]);
 
   return (
@@ -367,9 +390,9 @@ export function ManualAddContactScreen() {
           />
         </View>
 
-        {/* Phone number input */}
+        {/* Landline phone number input */}
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.phoneLabel')}</Text>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.landlineLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
             <HapticTouchable hapticDisabled
@@ -383,16 +406,16 @@ export function ManualAddContactScreen() {
               <Text style={[styles.dropdownIcon, { color: themeColors.textSecondary }]}>▼</Text>
             </HapticTouchable>
 
-            {/* Phone number */}
+            {/* Landline number */}
             <TextInput
               style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
-              placeholder={t('contacts.phonePlaceholder')}
+              placeholder={t('contacts.landlinePlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               value={phoneNumber}
               onChangeText={(v) => setField('phoneNumber', v)}
               keyboardType="phone-pad"
               returnKeyType="done"
-              accessibilityLabel={t('contacts.phoneLabel')}
+              accessibilityLabel={t('contacts.landlineLabel')}
               accessibilityHint={t('accessibility.enterPhoneNumber')}
             />
           </View>
@@ -405,6 +428,56 @@ export function ManualAddContactScreen() {
                   key={item.code}
                   style={[styles.countryCodeOption, { borderBottomColor: themeColors.divider }]}
                   onPress={() => selectCountryCode(item.code)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.country} ${item.code}`}
+                >
+                  <Text style={[styles.countryCodeOptionText, { color: themeColors.textPrimary }]}>
+                    {item.country} {item.code}
+                  </Text>
+                </HapticTouchable>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Mobile phone number input */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.mobileLabel')}</Text>
+          <View style={styles.phoneInputContainer}>
+            {/* Country code selector */}
+            <HapticTouchable hapticDisabled
+              style={[styles.countryCodeButton, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}
+              onPress={toggleMobileCountryCodes}
+              accessibilityRole="button"
+              accessibilityLabel={t('accessibility.countryCode')}
+              accessibilityHint={t('accessibility.selectCountryCode')}
+            >
+              <Text style={[styles.countryCodeText, { color: themeColors.textPrimary }]}>{mobileCountryCode}</Text>
+              <Text style={[styles.dropdownIcon, { color: themeColors.textSecondary }]}>▼</Text>
+            </HapticTouchable>
+
+            {/* Mobile number */}
+            <TextInput
+              style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+              placeholder={t('contacts.mobilePlaceholder')}
+              placeholderTextColor={themeColors.textTertiary}
+              value={mobileNumber}
+              onChangeText={(v) => setField('mobileNumber', v)}
+              keyboardType="phone-pad"
+              returnKeyType="done"
+              accessibilityLabel={t('contacts.mobileLabel')}
+              accessibilityHint={t('accessibility.enterMobileNumber')}
+            />
+          </View>
+
+          {/* Mobile country code dropdown */}
+          {showMobileCountryCodes && (
+            <View style={[styles.countryCodeDropdown, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+              {COUNTRY_CODES.map((item) => (
+                <HapticTouchable hapticDisabled
+                  key={item.code}
+                  style={[styles.countryCodeOption, { borderBottomColor: themeColors.divider }]}
+                  onPress={() => selectMobileCountryCode(item.code)}
                   accessibilityRole="button"
                   accessibilityLabel={`${item.country} ${item.code}`}
                 >
