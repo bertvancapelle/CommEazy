@@ -405,6 +405,9 @@ Bij het bouwen van een nieuwe module, raadpleeg deze checklist voor verplichte s
 | `useColors()` | `@/contexts/ThemeContext` | Thema kleuren |
 | `useModuleColor(moduleId)` | `@/contexts/ModuleColorsContext` | Module-specifieke kleur |
 | `useFeedback()` | `@/hooks/useFeedback` | Haptic/audio feedback |
+| `useLabelStyle()` | `@/contexts/FieldTextStyleContext` | Label kleur/gewicht/stijl (gebruiker instelbaar) |
+| `useFieldTextStyle()` | `@/contexts/FieldTextStyleContext` | Veldwaarde kleur/gewicht/stijl (gebruiker instelbaar) |
+| `useModalTextStyle()` | `@/contexts/FieldTextStyleContext` | Modal optietekst kleur/gewicht/stijl (gebruiker instelbaar) |
 | `ModuleHeader` | `@/components` | Screen header |
 | `VoiceFocusable` | `@/components` | Lijst items (>3) |
 | `useVoiceFocusList()` | `@/contexts/VoiceFocusContext` | Lijst registratie |
@@ -1195,6 +1198,8 @@ My contribution to a task is complete when:
 - [ ] **Unified Retry:** Alle retries gebruiken `RetryConfig` met `maxAttempts` en `maxDelayMs` (zie architecture-lead SKILL.md)
 - [ ] **Connection Recovery:** State machine pattern voor WebRTC/XMPP/WebSocket (zie architecture-lead SKILL.md)
 - [ ] **Component Registry:** Module screens gebruiken `ModuleHeader`, `SearchBar`, `ChipSelector` (zie CLAUDE.md sectie 14)
+- [ ] **Text Style Hooks:** Formulier labels gebruiken `useLabelStyle()`, veldwaarden `useFieldTextStyle()`, modals `useModalTextStyle()` — GEEN hardcoded `fontWeight: '700'` of `color: colors.textPrimary` voor labels/velden
+- [ ] **Conditioneel Picker Styling:** Gevulde pickers: `fieldTextStyle` (kleur + gewicht + stijl), lege pickers: `themeColors.textTertiary`
 - [ ] **Verplichte Componenten (BLOKKEERDER):** `HapticTouchable` i.p.v. raw `TouchableOpacity`, `ErrorView` i.p.v. `Alert.alert()` voor fouten, `LoadingView` i.p.v. bare `ActivityIndicator`, `ScrollViewWithIndicator` i.p.v. raw `ScrollView` — zie ui-designer SKILL.md "Verplichte Component Standaarden"
 - [ ] **Database Schema (BLOKKEERDER):** Bij ELKE wijziging aan WatermelonDB modellen: `schema.ts` + `migrations.ts` + model in DEZELFDE commit — zie architecture-lead SKILL.md "Database Schema Wijziging Protocol"
 

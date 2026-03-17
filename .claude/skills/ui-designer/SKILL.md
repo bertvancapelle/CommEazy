@@ -270,10 +270,34 @@ Land                          ← Label (vet, boven, buiten rand)
 **Regels voor formuliervelden:**
 1. **Labels BOVEN het veld** — Nooit inline naast de waarde
 2. **Labels BUITEN de rand** — De label tekst staat boven het afgerande gebied
-3. **Labels altijd vet** — Gebruik `fontWeight: '700'`
+3. **Labels altijd vet** — Standaard `fontWeight: '700'`, maar komt uit `useLabelStyle()` hook (gebruiker kan dit aanpassen)
 4. **Geen hoofdletters** — Gebruik "Land", "Taal", NIET "LAND", "TAAL"
 5. **Dunne rand om ALLE interactieve elementen** — `borderWidth: 1, borderColor: colors.border`
 6. **Afgeronde hoeken** — `borderRadius: borderRadius.md`
+7. **Text style hooks VERPLICHT** — Labels gebruiken `useLabelStyle()`, veldwaarden gebruiken `useFieldTextStyle()`, modaltekst gebruikt `useModalTextStyle()` — allemaal uit `@/contexts/FieldTextStyleContext`. NOOIT hardcoded `fontWeight: '700'` of `color: colors.textPrimary` voor labels/velden — de gebruiker kan kleur en stijl aanpassen via Instellingen → Weergave & Kleuren
+8. **Conditioneel styling voor picker waarden** — Gevulde velden: `{ color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }`. Lege/placeholder velden: `{ color: themeColors.textTertiary }`
+9. **PickerModal opties** — Altijd `useModalTextStyle()` voor optietekst. Geselecteerde optie overschrijft met `accentColor.primary` + `fontWeight: '600'`
+
+**Voorbeeld — Label met hook:**
+```typescript
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
+
+const labelStyle = useLabelStyle();
+const fieldTextStyle = useFieldTextStyle();
+
+// Label
+<Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+  {t('demographics.countryLabel')}
+</Text>
+
+// Picker waarde (conditioneel)
+<Text style={[styles.pickerValue, countryCode
+  ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }
+  : { color: themeColors.textTertiary }
+]}>
+  {countryCode ? t(`demographics.countries.${countryCode}`) : t('demographics.selectCountry')}
+</Text>
+```
 
 ### 7b. ZOEKVELDEN (VERPLICHT)
 
@@ -2834,6 +2858,9 @@ My contribution to a task is complete when:
 - [ ] Navigatie buttons: 60×60pt container met 2px accent rand
 - [ ] Navigatie buttons: positionering consistent (links-boven voor close/back)
 - [ ] Navigatie buttons: accessibilityLabel EN accessibilityHint aanwezig
+- [ ] **Text Style Hooks:** Labels gebruiken `useLabelStyle()`, veldwaarden `useFieldTextStyle()`, modaltekst `useModalTextStyle()` — GEEN hardcoded `fontWeight: '700'` of `color: colors.textPrimary`
+- [ ] **Picker Conditioneel:** Gevulde picker waarden gebruiken `fieldTextStyle`, lege pickers gebruiken `themeColors.textTertiary`
+- [ ] **PickerModal:** Optietekst gebruikt `useModalTextStyle()`, geselecteerde optie overschrijft met `accentColor.primary`
 - [ ] **Conclusie-bevestiging:** Bij ELKE UX conclusie of aanbeveling EERST aan gebruiker vragen "Ben je het eens?" — NOOIT aannemen dat gebruiker akkoord is
 - [ ] Tested with 5 senior users (65-80) on working prototype
 

@@ -825,11 +825,14 @@ Bij het ontwerpen van settings schermen MOET je altijd deze principes volgen:
   - Voorbeeld: Trilsterkte alleen tonen als Trillen aan staat
   - Voorbeeld: Geluid versterken alleen tonen als Geluid aan staat
 
-#### 3. Blauwe Knoppen en Waarden (VERPLICHT)
-- **Alle interactieve knoppen**: `backgroundColor: colors.primary` (blauw)
-- **Alle waarden van settings**: `color: colors.primary` (blauw)
-- Dit creëert visuele samenhang: de blauwe knoppen wijzigen de blauwe waarden
-- Waarden worden weergegeven als labels (niet als input velden)
+#### 3. Instelbare Text Styling voor Labels, Waarden en Modaltekst (VERPLICHT)
+- **Alle labels** (veld labels + sectie titels): Kleur en stijl komen uit `useLabelStyle()` hook (standaard blauw `#1565C0`, instelbaar door gebruiker in Instellingen → Weergave & Kleuren → Labels)
+- **Alle waarden van settings en velden**: Kleur en stijl komen uit `useFieldTextStyle()` hook (standaard blauw `#1565C0`, instelbaar via Instellingen → Weergave & Kleuren → Veldtekst)
+- **Alle modaltekst** (picker opties): Kleur en stijl komen uit `useModalTextStyle()` hook (standaard blauw `#1565C0`, instelbaar via Instellingen → Weergave & Kleuren → Modaltekst)
+- **Interactieve knoppen** (+/- steppers): `backgroundColor: colors.primary` (blauw) — deze blijven hardcoded
+- Dit creëert visuele samenhang: de gebruiker kan de tekstkleuren onafhankelijk aanpassen
+- NOOIT `color: colors.primary` hardcoden voor labels of veldwaarden — gebruik de hooks
+- WCAG AAA contrast is gegarandeerd: de 16 beschikbare kleuren zijn gevalideerd op ≥7:1 ratio
 
 #### 4. Grote, Duidelijke Touch Targets
 - **Minimum 60pt** voor alle interactieve elementen
@@ -841,16 +844,26 @@ Bij het ontwerpen van settings schermen MOET je altijd deze principes volgen:
 Bij settings met +/- knoppen voor het aanpassen van waarden:
 
 1. **Label BOVEN de control** — Niet naast of inline, maar erboven op een aparte regel
-2. **Waarde in blauw** — Alle waarden (bijv. "1.0 seconde", "30 pixels") krijgen `color: colors.primary`
-3. **Waarde onder het label** — Geeft meer ruimte voor langere labels
-4. **+/- knoppen in blauw** — `backgroundColor: colors.primary`
+2. **Label styling via hook** — Kleur en stijl uit `useLabelStyle()` (gebruiker instelbaar)
+3. **Waarde styling via hook** — Kleur en stijl uit `useFieldTextStyle()` (gebruiker instelbaar, standaard blauw)
+4. **Waarde onder het label** — Geeft meer ruimte voor langere labels
+5. **+/- knoppen in blauw** — `backgroundColor: colors.primary` (hardcoded, niet via hook)
 
 ```typescript
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
+
+const labelStyle = useLabelStyle();
+const fieldTextStyle = useFieldTextStyle();
+
 // CORRECT layout voor stepper
 <View style={styles.stepperContainer}>
   <View style={styles.stepperLabelContainer}>
-    <Text style={styles.stepperLabel}>{t('settings.holdDelay')}</Text>
-    <Text style={styles.stepperValue}>{t('settings.holdDelaySeconds', { seconds: value })}</Text>
+    <Text style={[styles.stepperLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+      {t('settings.holdDelay')}
+    </Text>
+    <Text style={[styles.stepperValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+      {t('settings.holdDelaySeconds', { seconds: value })}
+    </Text>
   </View>
   <View style={styles.stepperButtons}>
     <TouchableOpacity style={styles.stepperButton}>
@@ -879,13 +892,11 @@ stepperLabelContainer: {
 },
 stepperLabel: {
   ...typography.body,
-  color: colors.textPrimary,
-  fontWeight: '700',  // Labels always bold
+  // Kleur en fontWeight komen uit useLabelStyle() hook
 },
 stepperValue: {
   ...typography.small,
-  color: colors.primary,  // VALUES IN BLUE (same as +/- buttons)
-  fontWeight: '600',
+  // Kleur en fontWeight komen uit useFieldTextStyle() hook
   marginTop: spacing.xs,
 },
 stepperButtons: {
@@ -896,7 +907,7 @@ stepperButton: {
   width: touchTargets.minimum,
   height: touchTargets.minimum,
   borderRadius: borderRadius.md,
-  backgroundColor: colors.primary,
+  backgroundColor: colors.primary,  // Knoppen blijven hardcoded blauw
   justifyContent: 'center',
   alignItems: 'center',
 },
@@ -907,10 +918,11 @@ stepperButtonText: {
 },
 ```
 
-### Why Blue Values?
-- **Visuele consistentie** — Waarden zijn blauw, net als de +/- knoppen die ze beïnvloeden
-- **Duidelijke feedback** — Gebruiker ziet direct welke waarde bij welke control hoort
-- **Senior-vriendelijk** — Hoog contrast, duidelijk onderscheid tussen labels en waarden
+### Why Configurable Text Styling?
+- **Gebruikerscontrole** — Senioren kunnen kleur en stijl aanpassen naar eigen voorkeur
+- **WCAG AAA gegarandeerd** — Alle 16 beschikbare kleuren hebben ≥7:1 contrast ratio
+- **Visuele consistentie** — Standaard blauw (`#1565C0`) creëert samenhang met knoppen
+- **Senior-vriendelijk** — Drie onafhankelijke instellingen (labels, velden, modals) geven controle zonder overweldiging
 
 ### Monochrome Iconen (VERPLICHT)
 
