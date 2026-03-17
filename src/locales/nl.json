@@ -523,6 +523,12 @@
     "notificationsHint": "Geluid en trillen voor berichten",
     "notificationsComingSoon": "Meldinginstellingen worden binnenkort toegevoegd",
     "backupHint": "Maak een back-up van je berichten",
+    "sections": {
+      "personal": "Persoonlijk",
+      "display": "Weergave",
+      "apps": "Apps & Diensten",
+      "device": "Apparaat"
+    },
     "liquidGlass": {
       "title": "Weergave",
       "subtitle": "Liquid Glass effecten",

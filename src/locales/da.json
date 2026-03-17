@@ -581,6 +581,12 @@
     "notificationsHint": "Lyd og vibration for beskeder",
     "notificationsComingSoon": "Notifikationsindstillinger tilføjes snart",
     "backupHint": "Opret en sikkerhedskopi af dine beskeder",
+    "sections": {
+      "personal": "Personligt",
+      "display": "Visning",
+      "apps": "Apps og tjenester",
+      "device": "Enhed"
+    },
     "liquidGlass": {
       "title": "Udseende",
       "subtitle": "Liquid Glass-effekter",

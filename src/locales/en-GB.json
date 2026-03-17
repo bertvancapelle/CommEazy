@@ -686,6 +686,12 @@
     "notificationsHint": "Sound and vibration for messages",
     "notificationsComingSoon": "Notification settings will be added soon",
     "backupHint": "Back up your messages",
+    "sections": {
+      "personal": "Personal",
+      "display": "Display",
+      "apps": "Apps & Services",
+      "device": "Device"
+    },
     "liquidGlass": {
       "title": "Appearance",
       "subtitle": "Liquid Glass effects",

@@ -581,6 +581,12 @@
     "notificationsHint": "Ljud och vibration för meddelanden",
     "notificationsComingSoon": "Aviseringsinställningar läggs till snart",
     "backupHint": "Skapa en säkerhetskopia av dina meddelanden",
+    "sections": {
+      "personal": "Personligt",
+      "display": "Visning",
+      "apps": "Appar och tjänster",
+      "device": "Enhet"
+    },
     "liquidGlass": {
       "title": "Utseende",
       "subtitle": "Liquid Glass-effekter",

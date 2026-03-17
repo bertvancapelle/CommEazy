@@ -686,6 +686,12 @@
     "notificationsHint": "Sonido y vibración para mensajes",
     "notificationsComingSoon": "La configuración de notificaciones se añadirá pronto",
     "backupHint": "Haz una copia de seguridad de tus mensajes",
+    "sections": {
+      "personal": "Personal",
+      "display": "Pantalla",
+      "apps": "Apps y servicios",
+      "device": "Dispositivo"
+    },
     "liquidGlass": {
       "title": "Apariencia",
       "subtitle": "Efectos Liquid Glass",

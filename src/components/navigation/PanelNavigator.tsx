@@ -447,7 +447,7 @@ function SettingsPanelNavigator() {
           <SettingsPanelStack.Screen
             name="ProfileSettings"
             component={ProfileSettingsScreen}
-            options={{ title: t('profile.changePhoto') }}
+            options={{ title: t('settings.profile') }}
           />
           <SettingsPanelStack.Screen
             name="PrivacySettings"

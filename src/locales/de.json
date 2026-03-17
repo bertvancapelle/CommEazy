@@ -686,6 +686,12 @@
     "notificationsHint": "Ton und Vibration für Nachrichten",
     "notificationsComingSoon": "Benachrichtigungseinstellungen werden bald hinzugefügt",
     "backupHint": "Sichere deine Nachrichten",
+    "sections": {
+      "personal": "Persönlich",
+      "display": "Darstellung",
+      "apps": "Apps & Dienste",
+      "device": "Gerät"
+    },
     "liquidGlass": {
       "title": "Darstellung",
       "subtitle": "Liquid Glass-Effekte",

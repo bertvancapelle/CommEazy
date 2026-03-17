@@ -566,7 +566,7 @@ export function ProfileSettingsScreen() {
     );
   }
 
-  const displayName = `${displayFirstName} ${displayLastName}`.trim();
+
 
   // Required field indicator
   const requiredMark = <Text style={{ color: colors.error, fontWeight: '700' }}> *</Text>;
@@ -602,47 +602,6 @@ export function ProfileSettingsScreen() {
         onScroll={handleScrollToField}
         scrollEventThrottle={16}
       >
-      {/* Profile photo + name display */}
-      <View style={styles.profileSection}>
-        <HapticTouchable hapticDisabled
-          onPress={handleChangePhoto}
-          activeOpacity={0.8}
-          disabled={savingPhoto}
-          accessibilityRole="button"
-          accessibilityLabel={t('profile.changePhoto')}
-          accessibilityHint={t('profile.tapToChange')}
-        >
-          <View style={styles.avatarContainer}>
-            <ContactAvatar
-              name={displayName}
-              photoUrl={photoUrl ?? undefined}
-              size={120}
-            />
-            <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary, borderColor: themeColors.background }]}>
-              {savingPhoto ? (
-                <ActivityIndicator size="small" color={themeColors.textOnPrimary} />
-              ) : (
-                <Text style={styles.cameraIcon}>📷</Text>
-              )}
-            </View>
-          </View>
-        </HapticTouchable>
-        {/* Full name displayed under photo */}
-        {displayName ? (
-          <Text style={[styles.displayName, { color: themeColors.textPrimary }]}>{displayName}</Text>
-        ) : null}
-      </View>
-
-      {/* Phone number (read-only) */}
-      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.phoneLabel')}</Text>
-        <View style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-          <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>{profile?.phoneNumber || '—'}</Text>
-          <Text style={styles.readOnlyIcon}>🔒</Text>
-        </View>
-        <Text style={[styles.fieldHint, { color: themeColors.textTertiary }]}>{t('profile.phoneReadOnly')}</Text>
-      </View>
-
       {/* ── Section 1: "Wie ben je?" ─────────────────────────── */}
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.profileStep1.title')}</Text>
@@ -1046,34 +1005,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: spacing.lg,
   },
-  profileSection: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  avatarContainer: {
-    position: 'relative',
-  },
-  cameraIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: colors.background,
-  },
-  cameraIcon: {
-    fontSize: 16,
-  },
-  displayName: {
-    ...typography.h3,
-    marginTop: spacing.sm,
-    textAlign: 'center',
-  },
   section: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
@@ -1135,11 +1066,6 @@ const styles = StyleSheet.create({
   editIcon: {
     fontSize: 18,
     marginLeft: spacing.sm,
-  },
-  readOnlyIcon: {
-    fontSize: 16,
-    marginLeft: spacing.sm,
-    opacity: 0.5,
   },
   rowFields: {
     flexDirection: 'row',

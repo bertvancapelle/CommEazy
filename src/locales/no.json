@@ -611,6 +611,12 @@
     "notificationsHint": "Lyd og vibrasjon for meldinger",
     "notificationsComingSoon": "Varslingsinnstillinger blir lagt til snart",
     "backupHint": "Lag en sikkerhetskopi av meldingene dine",
+    "sections": {
+      "personal": "Personlig",
+      "display": "Visning",
+      "apps": "Apper og tjenester",
+      "device": "Enhet"
+    },
     "liquidGlass": {
       "title": "Utseende",
       "subtitle": "Liquid Glass-effekter",

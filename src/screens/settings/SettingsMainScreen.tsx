@@ -39,6 +39,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { getAvatarPath } from '@/services/imageService';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { SettingsStackParams } from '@/navigation';
 import type { SupportedLanguage } from '@/services/interfaces';
 import { PickerModal } from './PickerModal';
@@ -105,6 +106,7 @@ export function SettingsMainScreen() {
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
   const themeColors = useColors(); // Dynamic colors based on theme
+  const settingsModuleColor = useModuleColor('settings');
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
@@ -229,284 +231,111 @@ export function SettingsMainScreen() {
               />
             )}
 
-            <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
-        {/* Profile header - tappable to edit */}
-        <HapticTouchable hapticDisabled
-        style={[styles.profileHeader, { backgroundColor: themeColors.surface }]}
-        onPress={() => navigation.navigate('ProfileSettings')}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel={t('profile.changePhoto')}
-        accessibilityHint={t('profile.tapToChange')}
-      >
-        <View style={styles.avatarContainer}>
-          <ContactAvatar
-            name={displayName}
-            photoUrl={photoUrl ?? undefined}
-            size={80}
-          />
-          {/* Small camera icon */}
-          <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary, borderColor: themeColors.surface }]}>
-            <Icon name="camera" size={14} color={themeColors.textOnPrimary} />
-          </View>
-        </View>
-        <View style={styles.profileInfo}>
-          <Text style={[styles.profileName, { color: themeColors.textPrimary }]}>{displayName || t('common.loading')}</Text>
-          <Text style={[styles.profileHint, { color: themeColors.textSecondary }]}>{t('profile.tapToChange')}</Text>
-        </View>
-        <Icon name="chevron-right" size={24} color={themeColors.textTertiary} />
-      </HapticTouchable>
+            {/* Fixed top section: avatar + language + separator */}
+            <View style={styles.fixedTopSection}>
+              {/* Profile header - only avatar is tappable (photo change) */}
+              <View style={[styles.profileHeader, { backgroundColor: themeColors.surface }]}>
+                <HapticTouchable hapticDisabled
+                  onPress={() => navigation.navigate('ProfileSettings')}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('profile.changePhoto')}
+                >
+                  <View style={styles.avatarContainer}>
+                    <ContactAvatar
+                      name={displayName}
+                      photoUrl={photoUrl ?? undefined}
+                      size={80}
+                    />
+                    {/* Small camera icon */}
+                    <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary, borderColor: themeColors.surface }]}>
+                      <Icon name="camera" size={14} color={themeColors.textOnPrimary} />
+                    </View>
+                  </View>
+                </HapticTouchable>
+                <View style={styles.profileInfo}>
+                  <Text style={[styles.profileName, { color: themeColors.textPrimary }]}>{displayName || t('common.loading')}</Text>
+                </View>
+              </View>
 
-      {/* Language selector - button with flag */}
-      <HapticTouchable hapticDisabled
-        style={[styles.languageSelector, { backgroundColor: themeColors.surface }]}
-        onPress={() => setShowLanguagePicker(true)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={t('settings.screenLanguage')}
-        accessibilityHint={t('profile.languageHint')}
-      >
-        <Text style={[styles.languageLabel, { color: themeColors.textPrimary }]}>{t('settings.screenLanguage')}</Text>
-        <View style={[styles.languageButton, { backgroundColor: accentColor.primary }]}>
-          <Text style={styles.languageButtonFlag}>{currentFlag}</Text>
-          <Text style={styles.languageButtonText}>{t(`profile.language.${currentLanguage}`)}</Text>
-        </View>
-      </HapticTouchable>
+              {/* Language selector - button with flag */}
+              <HapticTouchable hapticDisabled
+                style={[styles.languageSelector, { backgroundColor: themeColors.surface }]}
+                onPress={() => setShowLanguagePicker(true)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('settings.screenLanguage')}
+                accessibilityHint={t('profile.languageHint')}
+              >
+                <Text style={[styles.languageLabel, { color: themeColors.textPrimary }]}>{t('settings.screenLanguage')}</Text>
+                <View style={[styles.languageButton, { backgroundColor: accentColor.primary }]}>
+                  <Text style={styles.languageButtonFlag}>{currentFlag}</Text>
+                  <Text style={styles.languageButtonText}>{t(`profile.language.${currentLanguage}`)}</Text>
+                </View>
+              </HapticTouchable>
 
-      {/* Subsection buttons */}
+              {/* Separator line in module color */}
+              <View style={[styles.separator, { backgroundColor: settingsModuleColor }]} />
+            </View>
+
+            {/* Scrollable menu items below separator */}
+            <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.menuContentContainer}>
+
+      {/* ── Section 1: Persoonlijk ────────────────── */}
+      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.personal')}</Text>
       <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
-        {/* Profiel */}
-        <VoiceFocusable
-          id="profile"
-          label={t('settings.profile')}
-          index={0}
-          onSelect={() => navigation.navigate('ProfileSettings')}
-        >
-          <SubsectionButton
-            icon="person"
-            label={t('settings.profile')}
-            onPress={() => navigation.navigate('ProfileSettings')}
-            accessibilityHint={t('settings.editProfileHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('profile')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
+        <VoiceFocusable id="profile" label={t('settings.profile')} index={0} onSelect={() => navigation.navigate('ProfileSettings')}>
+          <SubsectionButton icon="person" label={t('settings.profile')} onPress={() => navigation.navigate('ProfileSettings')} accessibilityHint={t('settings.editProfileHint')} iconColor={accentColor.primary} focused={isItemFocused('profile')} focusStyle={getFocusStyle()} themeColors={themeColors} />
         </VoiceFocusable>
+        <VoiceFocusable id="privacy" label={t('privacySettings.title')} index={1} onSelect={() => navigation.navigate('PrivacySettings')}>
+          <SubsectionButton icon="lock" label={t('privacySettings.title')} onPress={() => navigation.navigate('PrivacySettings')} accessibilityHint={t('privacySettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('privacy')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+        </VoiceFocusable>
+      </View>
 
-        {/* Privacy - direct onder Profiel */}
-        <VoiceFocusable
-          id="privacy"
-          label={t('privacySettings.title')}
-          index={1}
-          onSelect={() => navigation.navigate('PrivacySettings')}
-        >
-          <SubsectionButton
-            icon="lock"
-            label={t('privacySettings.title')}
-            onPress={() => navigation.navigate('PrivacySettings')}
-            accessibilityHint={t('privacySettings.screenHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('privacy')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
+      {/* ── Section 2: Weergave ────────────────── */}
+      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.display')}</Text>
+      <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
+        <VoiceFocusable id="appearance" label={t('appearance.title')} index={2} onSelect={() => navigation.navigate('AppearanceSettings')}>
+          <SubsectionButton icon="sun" label={t('appearance.title')} onPress={() => navigation.navigate('AppearanceSettings')} accessibilityHint={t('appearance.theme.hint')} iconColor={accentColor.primary} focused={isItemFocused('appearance')} focusStyle={getFocusStyle()} themeColors={themeColors} />
         </VoiceFocusable>
+        <VoiceFocusable id="accessibility" label={t('settings.accessibility')} index={3} onSelect={() => navigation.navigate('AccessibilitySettings')}>
+          <SubsectionButton icon="accessibility" label={t('settings.accessibility')} onPress={() => navigation.navigate('AccessibilitySettings')} accessibilityHint={t('accessibilitySettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('accessibility')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+        </VoiceFocusable>
+        <VoiceFocusable id="voice" label={t('voiceSettings.title')} index={4} onSelect={() => navigation.navigate('VoiceSettings')}>
+          <SubsectionButton icon="mic" label={t('voiceSettings.title')} onPress={() => navigation.navigate('VoiceSettings')} accessibilityHint={t('voiceSettings.enableVoiceControlHint')} iconColor={accentColor.primary} focused={isItemFocused('voice')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+        </VoiceFocusable>
+      </View>
 
-        {/* Toegankelijkheid */}
-        <VoiceFocusable
-          id="accessibility"
-          label={t('settings.accessibility')}
-          index={2}
-          onSelect={() => navigation.navigate('AccessibilitySettings')}
-        >
-          <SubsectionButton
-            icon="accessibility"
-            label={t('settings.accessibility')}
-            onPress={() => navigation.navigate('AccessibilitySettings')}
-            accessibilityHint={t('accessibilitySettings.screenHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('accessibility')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
+      {/* ── Section 3: Apps & Diensten ────────────────── */}
+      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.apps')}</Text>
+      <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
+        <VoiceFocusable id="modules" label={t('settings.modules.title')} index={5} onSelect={() => navigation.navigate('ModulesSettings')}>
+          <SubsectionButton icon="news" label={t('settings.modules.title')} onPress={() => navigation.navigate('ModulesSettings')} accessibilityHint={t('settings.modules.settingsHint')} iconColor={accentColor.primary} focused={isItemFocused('modules')} focusStyle={getFocusStyle()} themeColors={themeColors} />
         </VoiceFocusable>
+        <VoiceFocusable id="call-settings" label={t('callSettings.title')} index={6} onSelect={() => navigation.navigate('CallSettings')}>
+          <SubsectionButton icon="call" label={t('callSettings.title')} onPress={() => navigation.navigate('CallSettings')} accessibilityHint={t('callSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('call-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+        </VoiceFocusable>
+        <VoiceFocusable id="mail-settings" label={t('mailSettings.title')} index={7} onSelect={() => navigation.navigate('MailSettings')}>
+          <SubsectionButton icon="mail" label={t('mailSettings.title')} onPress={() => navigation.navigate('MailSettings')} accessibilityHint={t('mailSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('mail-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+        </VoiceFocusable>
+        <VoiceFocusable id="apple-music-settings" label={t('appleMusicSettings.title')} index={8} onSelect={() => navigation.navigate('AppleMusicSettings')}>
+          <SubsectionButton icon="musical-notes" label={t('appleMusicSettings.title')} onPress={() => navigation.navigate('AppleMusicSettings')} accessibilityHint={t('appleMusicSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('apple-music-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+        </VoiceFocusable>
+        <VoiceFocusable id="notifications" label={t('settings.notifications')} index={9} onSelect={() => { setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') }); }}>
+          <SubsectionButton icon="notifications" label={t('settings.notifications')} onPress={() => { setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') }); }} accessibilityHint={t('settings.notificationsHint')} iconColor={accentColor.primary} focused={isItemFocused('notifications')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+        </VoiceFocusable>
+      </View>
 
-        {/* Weergave en Kleuren (Theme + Accent Color) */}
-        <VoiceFocusable
-          id="appearance"
-          label={t('appearance.title')}
-          index={3}
-          onSelect={() => navigation.navigate('AppearanceSettings')}
-        >
-          <SubsectionButton
-            icon="sun"
-            label={t('appearance.title')}
-            onPress={() => navigation.navigate('AppearanceSettings')}
-            accessibilityHint={t('appearance.theme.hint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('appearance')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
+      {/* ── Section 4: Apparaat ────────────────── */}
+      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.device')}</Text>
+      <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
+        <VoiceFocusable id="backup" label={t('settings.backup')} index={10} onSelect={() => navigation.navigate('BackupSettings')}>
+          <SubsectionButton icon="backup" label={t('settings.backup')} onPress={() => navigation.navigate('BackupSettings')} accessibilityHint={t('settings.backupHint')} iconColor={accentColor.primary} focused={isItemFocused('backup')} focusStyle={getFocusStyle()} themeColors={themeColors} />
         </VoiceFocusable>
-
-        {/* Spraakbesturing */}
-        <VoiceFocusable
-          id="voice"
-          label={t('voiceSettings.title')}
-          index={4}
-          onSelect={() => navigation.navigate('VoiceSettings')}
-        >
-          <SubsectionButton
-            icon="mic"
-            label={t('voiceSettings.title')}
-            onPress={() => navigation.navigate('VoiceSettings')}
-            accessibilityHint={t('voiceSettings.enableVoiceControlHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('voice')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
+        <VoiceFocusable id="device-link" label={t('settings.deviceLink')} index={11} onSelect={() => navigation.navigate('DeviceLinkShowQR')}>
+          <SubsectionButton icon="device" label={t('settings.deviceLink')} onPress={() => navigation.navigate('DeviceLinkShowQR')} accessibilityHint={t('deviceLink.showQRSubtitle')} iconColor={accentColor.primary} focused={isItemFocused('device-link')} focusStyle={getFocusStyle()} themeColors={themeColors} />
         </VoiceFocusable>
-
-        {/* Modules - Country-specific content */}
-        <VoiceFocusable
-          id="modules"
-          label={t('settings.modules.title')}
-          index={5}
-          onSelect={() => navigation.navigate('ModulesSettings')}
-        >
-          <SubsectionButton
-            icon="news"
-            label={t('settings.modules.title')}
-            onPress={() => navigation.navigate('ModulesSettings')}
-            accessibilityHint={t('settings.modules.settingsHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('modules')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
-        </VoiceFocusable>
-
-        {/* Bel-instellingen */}
-        <VoiceFocusable
-          id="call-settings"
-          label={t('callSettings.title')}
-          index={6}
-          onSelect={() => navigation.navigate('CallSettings')}
-        >
-          <SubsectionButton
-            icon="call"
-            label={t('callSettings.title')}
-            onPress={() => navigation.navigate('CallSettings')}
-            accessibilityHint={t('callSettings.screenHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('call-settings')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
-        </VoiceFocusable>
-
-        {/* E-mail instellingen */}
-        <VoiceFocusable
-          id="mail-settings"
-          label={t('mailSettings.title')}
-          index={7}
-          onSelect={() => navigation.navigate('MailSettings')}
-        >
-          <SubsectionButton
-            icon="mail"
-            label={t('mailSettings.title')}
-            onPress={() => navigation.navigate('MailSettings')}
-            accessibilityHint={t('mailSettings.screenHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('mail-settings')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
-        </VoiceFocusable>
-
-        {/* Apple Music instellingen */}
-        <VoiceFocusable
-          id="apple-music-settings"
-          label={t('appleMusicSettings.title')}
-          index={8}
-          onSelect={() => navigation.navigate('AppleMusicSettings')}
-        >
-          <SubsectionButton
-            icon="musical-notes"
-            label={t('appleMusicSettings.title')}
-            onPress={() => navigation.navigate('AppleMusicSettings')}
-            accessibilityHint={t('appleMusicSettings.screenHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('apple-music-settings')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
-        </VoiceFocusable>
-
-        {/* Meldingen - TODO: Create NotificationsSettingsScreen */}
-        <VoiceFocusable
-          id="notifications"
-          label={t('settings.notifications')}
-          index={9}
-          onSelect={() => {
-            setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') });
-          }}
-        >
-          <SubsectionButton
-            icon="notifications"
-            label={t('settings.notifications')}
-            onPress={() => {
-              setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') });
-            }}
-            accessibilityHint={t('settings.notificationsHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('notifications')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
-        </VoiceFocusable>
-
-        {/* Back-up */}
-        <VoiceFocusable
-          id="backup"
-          label={t('settings.backup')}
-          index={10}
-          onSelect={() => navigation.navigate('BackupSettings')}
-        >
-          <SubsectionButton
-            icon="backup"
-            label={t('settings.backup')}
-            onPress={() => navigation.navigate('BackupSettings')}
-            accessibilityHint={t('settings.backupHint')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('backup')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
-        </VoiceFocusable>
-
-        {/* Nieuw toestel koppelen */}
-        <VoiceFocusable
-          id="device-link"
-          label={t('settings.deviceLink')}
-          index={11}
-          onSelect={() => navigation.navigate('DeviceLinkShowQR')}
-        >
-          <SubsectionButton
-            icon="device"
-            label={t('settings.deviceLink')}
-            onPress={() => navigation.navigate('DeviceLinkShowQR')}
-            accessibilityHint={t('deviceLink.showQRSubtitle')}
-            iconColor={accentColor.primary}
-            focused={isItemFocused('device-link')}
-            focusStyle={getFocusStyle()}
-            themeColors={themeColors}
-          />
-        </VoiceFocusable>
-        </View>
+      </View>
 
         {/* DEV: Development tools section */}
         {__DEV__ && (
@@ -557,10 +386,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  fixedTopSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+  },
+  separator: {
+    height: 4,
+    marginTop: spacing.sm,
+    borderRadius: 2,
+  },
   scrollView: {
     flex: 1,
   },
-  contentContainer: {
+  menuContentContainer: {
     padding: spacing.lg,
   },
   profileHeader: {
@@ -568,8 +406,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    padding: spacing.sm,
+    marginBottom: spacing.xs,
   },
   avatarContainer: {
     position: 'relative',
@@ -595,11 +433,6 @@ const styles = StyleSheet.create({
     ...typography.h3,
     color: colors.textPrimary,
   },
-  profileHint: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
   // Language selector
   languageSelector: {
     flexDirection: 'row',
@@ -607,8 +440,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
+    padding: spacing.sm,
     minHeight: touchTargets.comfortable,
   },
   languageLabel: {
@@ -633,12 +465,20 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
     fontWeight: '700',
   },
+  // Section headers for grouped menu items
+  sectionHeader: {
+    ...typography.label,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+    marginTop: spacing.sm,
+    paddingLeft: spacing.xs,
+  },
   // Subsection buttons container
   subsectionsContainer: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     overflow: 'hidden',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
   },
   subsectionButton: {
     flexDirection: 'row',

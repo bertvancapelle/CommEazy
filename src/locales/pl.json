@@ -601,6 +601,12 @@
     "notificationsHint": "Dźwięk i wibracje dla wiadomości",
     "notificationsComingSoon": "Ustawienia powiadomień będą wkrótce dostępne",
     "backupHint": "Utwórz kopię zapasową swoich wiadomości",
+    "sections": {
+      "personal": "Osobiste",
+      "display": "Wyświetlanie",
+      "apps": "Aplikacje i usługi",
+      "device": "Urządzenie"
+    },
     "liquidGlass": {
       "title": "Wygląd",
       "subtitle": "Efekty Liquid Glass",
