@@ -23,12 +23,14 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type {
   NavigationDestination,
+  DynamicNavigationDestination,
   GridItem,
   CollectionReference,
   ModuleCollection,
 } from '@/types/navigation';
-import { isCollectionReference } from '@/types/navigation';
+import { isCollectionReference, isDynamicDestination } from '@/types/navigation';
 import { ALL_MODULES } from '@/hooks/useModuleUsage';
+import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 import {
   getModuleOrder,
   saveModuleOrder,
@@ -89,6 +91,14 @@ export function useModuleOrder(
 ): UseModuleOrderReturn {
   const [customOrder, setCustomOrder] = useState<GridItem[] | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { enabledModules } = useModuleConfig();
+
+  // Build set of enabled dynamic module destinations (e.g., 'module:nunl')
+  const enabledDynamicDestinations = useMemo(() => {
+    return new Set<DynamicNavigationDestination>(
+      enabledModules.map((m) => `module:${m.moduleId}` as DynamicNavigationDestination)
+    );
+  }, [enabledModules]);
 
   // Load saved order on mount
   useEffect(() => {
@@ -132,7 +142,7 @@ export function useModuleOrder(
     return refs;
   }, [collections]);
 
-  // Merge saved order with ALL_MODULES to handle newly added modules
+  // Merge saved order with ALL_MODULES + enabled dynamic modules
   const orderedModules = useMemo(() => {
     const baseOrder = customOrder ?? DEFAULT_GRID_ORDER;
 
@@ -142,9 +152,17 @@ export function useModuleOrder(
         // Keep collection references that still exist
         return validCollectionRefs.has(item);
       }
-      // Keep modules that still exist AND are not inside a collection
-      return ALL_MODULES.includes(item as NavigationDestination) &&
-        !collectionModuleIds.has(item);
+      // Keep static modules that still exist AND are not inside a collection
+      if (ALL_MODULES.includes(item as NavigationDestination) &&
+        !collectionModuleIds.has(item)) {
+        return true;
+      }
+      // Keep enabled dynamic modules (e.g., 'module:nunl')
+      if (isDynamicDestination(item as NavigationDestination) &&
+        enabledDynamicDestinations.has(item as DynamicNavigationDestination)) {
+        return true;
+      }
+      return false;
     });
 
     // Ensure all collection references are present
@@ -154,15 +172,22 @@ export function useModuleOrder(
       }
     }
 
-    // Append any standalone modules not in the saved order and not in collections
+    // Append any standalone static modules not in the saved order and not in collections
     for (const moduleId of ALL_MODULES) {
       if (!ordered.includes(moduleId) && !collectionModuleIds.has(moduleId)) {
         ordered.push(moduleId);
       }
     }
 
+    // Append any enabled dynamic modules not yet in the order
+    for (const dest of enabledDynamicDestinations) {
+      if (!ordered.includes(dest)) {
+        ordered.push(dest);
+      }
+    }
+
     return ordered;
-  }, [customOrder, collectionModuleIds, validCollectionRefs]);
+  }, [customOrder, collectionModuleIds, validCollectionRefs, enabledDynamicDestinations]);
 
   // Save new order (called after drag & drop)
   const updateOrder = useCallback(async (newOrder: GridItem[]) => {

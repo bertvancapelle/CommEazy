@@ -394,6 +394,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **UI met achtergrondkleur (iOS)** | **ui-designer, ios-specialist** — Liquid Glass compliance voor iOS/iPadOS 26+, zie SKILL.md sectie 14 |
 | **MiniPlayer/ModuleHeader/Cards** | **ui-designer** — `moduleId` prop VERPLICHT voor Liquid Glass |
 | **Nieuwe module** | **BLOKKEERDER** — Volledige checklist hieronder MOET worden doorlopen |
+| **Landen-specifieke module toevoegen/wijzigen** | **BLOKKEERDER** — Dynamische Grid Regel: landen-specifieke modules worden ALTIJD dynamisch in het HomeScreen grid getoond op basis van `ModuleConfigContext.enabledModules`. Nooit toevoegen aan statische `ALL_MODULES` array. Zie "Dynamische Module Grid Regel" hieronder |
 | **Audio module toevoegen/wijzigen** | **Zie Module Dependency Matrix hieronder** — MediaIndicator, GlassPlayer, contexts |
 | **Playback feature wijzigen** | **Zie Module Dependency Matrix hieronder** — 100% Feature Parity vereist |
 | **Shared component props wijzigen** | **VERPLICHT** — ALLE gebruikers van component MOETEN worden bijgewerkt, zie "Component Props Uniformiteit" |
@@ -534,6 +535,56 @@ function MyComponent({ moduleId }: Props) {
 grep -rn "backgroundColor.*#[0-9A-Fa-f]\{6\}" src/components/ src/screens/ | \
   grep -v "textOnPrimary\|border\|surface\|background"
 ```
+
+#### Dynamische Module Grid Regel (BLOKKEERDER voor landen-specifieke modules)
+
+**Trigger:** Nieuwe landen-specifieke module toevoegen of wijzigen.
+
+**Kernregel:** Landen-specifieke modules (nu.nl, NOS, BBC, etc.) worden ALTIJD dynamisch in het HomeScreen grid getoond op basis van `ModuleConfigContext.enabledModules`. Ze mogen NOOIT worden toegevoegd aan de statische `ALL_MODULES` array in `useModuleUsage.ts`.
+
+**Waarom?**
+- Landen-specifieke modules zijn niet relevant voor alle gebruikers
+- `ModuleConfigContext` beheert welke modules ingeschakeld zijn (auto-enabled per land of handmatig opt-in)
+- `useModuleOrder.ts` leest `enabledModules` uit `ModuleConfigContext` en voegt ze als `module:{id}` items toe aan het grid
+- `HomeScreen.tsx` resolvet icoon, label en kleur via `moduleRegistry.ts`
+
+**Data Flow:**
+```
+ModuleConfigContext.enabledModules → useModuleOrder (als 'module:{id}') → HomeScreen grid
+                                                                          ↓
+                                                          getIconName → moduleRegistry.icon
+                                                          getLabel → moduleRegistry.labelKey
+                                                          getModuleColor → MODULE_TINT_COLORS[rawId]
+```
+
+**Verboden patterns:**
+```typescript
+// ❌ FOUT — landen-specifieke module in statische array
+export const ALL_MODULES: NavigationDestination[] = [
+  'chats', 'radio', 'nunl',  // ← VERBODEN: toont voor ALLE gebruikers
+];
+
+// ❌ FOUT — landen-specifieke module in DEFAULT_GRID_ORDER
+const DEFAULT_GRID_ORDER: GridItem[] = [
+  'chats', 'radio', 'module:nunl',  // ← VERBODEN: default moet landen-neutraal zijn
+];
+```
+
+**Correcte flow voor nieuwe landen-specifieke module:**
+1. Definieer module in `src/config/moduleRegistry.ts` (COUNTRY_MODULES array)
+2. Registreer kleuren in `liquidGlass.ts` (MODULE_TINT_COLORS) en `ModuleColorsContext.tsx`
+3. Module wordt automatisch ingeschakeld via `ModuleConfigContext.autoEnableCountryModules()`
+4. `useModuleOrder` pikt `enabledModules` op en toont ze in het grid als `module:{id}`
+5. `HomeScreen` resolvet metadata via `getModuleById()` uit moduleRegistry
+
+**Bestanden betrokken:**
+| Bestand | Rol |
+|---------|-----|
+| `src/config/moduleRegistry.ts` | Module definitie (icon, label, categories) |
+| `src/contexts/ModuleConfigContext.tsx` | Enable/disable management |
+| `src/hooks/useModuleOrder.ts` | Grid ordering (leest enabledModules) |
+| `src/screens/HomeScreen.tsx` | Grid rendering (resolvet icon/label/color) |
+| `src/types/liquidGlass.ts` | Tint kleuren voor Liquid Glass |
 
 #### Type Export Consistency
 

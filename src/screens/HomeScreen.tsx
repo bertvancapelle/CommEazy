@@ -58,14 +58,18 @@ import {
   mapModuleIconToIconName,
   isCollectionReference,
   getCollectionId,
+  isDynamicDestination,
+  getModuleIdFromDest,
 } from '@/types/navigation';
 import type {
   NavigationDestination,
   StaticNavigationDestination,
+  DynamicNavigationDestination,
   GridItem,
   CollectionReference,
   ModuleCollection,
 } from '@/types/navigation';
+import { getModuleById } from '@/config/moduleRegistry';
 import { LoadingView } from '@/components/LoadingView';
 import { useModuleOrder } from '@/hooks/useModuleOrder';
 import { useModuleCollections } from '@/hooks/useModuleCollections';
@@ -197,16 +201,26 @@ export function HomeScreen({
   // ============================================================
 
   const getModuleColor = useCallback((moduleId: string): string => {
+    // Dynamic modules use 'module:nunl' format — resolve to raw ID for color lookup
+    const colorKey = moduleId.startsWith('module:') ? moduleId.replace('module:', '') : moduleId;
     if (moduleColors) {
-      return moduleColors.getModuleHex(moduleId as any);
+      return moduleColors.getModuleHex(colorKey as any);
     }
-    return MODULE_TINT_COLORS[moduleId as keyof typeof MODULE_TINT_COLORS]?.tintColor || '#607D8B';
+    return MODULE_TINT_COLORS[colorKey as keyof typeof MODULE_TINT_COLORS]?.tintColor || '#607D8B';
   }, [moduleColors]);
 
   const getIconName = useCallback((moduleId: NavigationDestination) => {
     const staticDef = STATIC_MODULE_DEFINITIONS[moduleId as StaticNavigationDestination];
     if (staticDef) {
       return mapModuleIconToIconName(staticDef.icon);
+    }
+    // Dynamic modules: resolve icon from moduleRegistry
+    if (isDynamicDestination(moduleId)) {
+      const rawId = getModuleIdFromDest(moduleId as DynamicNavigationDestination);
+      const def = getModuleById(rawId);
+      if (def) {
+        return mapModuleIconToIconName(def.icon);
+      }
     }
     return 'grid' as const;
   }, []);
@@ -215,6 +229,14 @@ export function HomeScreen({
     const staticDef = STATIC_MODULE_DEFINITIONS[moduleId as StaticNavigationDestination];
     if (staticDef) {
       return t(staticDef.labelKey);
+    }
+    // Dynamic modules: resolve label from moduleRegistry
+    if (isDynamicDestination(moduleId)) {
+      const rawId = getModuleIdFromDest(moduleId as DynamicNavigationDestination);
+      const def = getModuleById(rawId);
+      if (def) {
+        return t(def.labelKey);
+      }
     }
     return t(`navigation.${moduleId}`, moduleId);
   }, [t]);
