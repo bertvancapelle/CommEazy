@@ -14,6 +14,7 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   TextInput as RNTextInput,
@@ -247,7 +248,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
             </Text>
             <HapticTouchable hapticDisabled
               style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-              onPress={() => setShowBirthDatePicker(true)}
+              onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowBirthDatePicker(true), 100); }}
               accessibilityRole="button"
               accessibilityLabel={t('onboarding.personalDetails.birthDate')}
             >
@@ -265,7 +266,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
             </Text>
             <HapticTouchable hapticDisabled
               style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-              onPress={() => setShowWeddingDatePicker(true)}
+              onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowWeddingDatePicker(true), 100); }}
               accessibilityRole="button"
               accessibilityLabel={t('onboarding.personalDetails.weddingDate')}
             >

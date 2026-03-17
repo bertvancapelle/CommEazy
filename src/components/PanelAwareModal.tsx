@@ -54,7 +54,7 @@ export function PanelAwareModal({
   // iPad Split View: render as panel-scoped absolute overlay
   if (panelId !== null) {
     return (
-      <View style={styles.panelOverlay}>
+      <View style={styles.panelOverlay} pointerEvents="box-none">
         {children}
       </View>
     );

@@ -22,6 +22,7 @@ import {
   StyleSheet,
   TextInput,
   Alert,
+  Keyboard,
   Linking,
   Platform,
   KeyboardAvoidingView,
@@ -958,7 +959,7 @@ export function ContactDetailScreen() {
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                onPress={() => setShowBirthDatePicker(true)}
+                onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowBirthDatePicker(true), 100); }}
                 accessibilityRole="button"
                 accessibilityLabel={t('contacts.dates.birthDate')}
               >
@@ -974,7 +975,7 @@ export function ContactDetailScreen() {
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                onPress={() => setShowWeddingDatePicker(true)}
+                onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowWeddingDatePicker(true), 100); }}
                 accessibilityRole="button"
                 accessibilityLabel={t('contacts.dates.weddingDate')}
               >
@@ -990,7 +991,7 @@ export function ContactDetailScreen() {
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                onPress={() => setShowDeathDatePicker(true)}
+                onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowDeathDatePicker(true), 100); }}
                 accessibilityRole="button"
                 accessibilityLabel={t('contacts.dates.deathDate')}
               >

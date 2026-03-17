@@ -33,6 +33,7 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Keyboard,
   Platform,
   KeyboardAvoidingView,
   Switch,
@@ -659,7 +660,7 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('settings.language')}</Text>
         <HapticTouchable hapticDisabled
           style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-          onPress={() => setActivePicker('language')}
+          onPress={() => { Keyboard.dismiss(); setTimeout(() => setActivePicker('language'), 100); }}
           accessibilityRole="button"
           accessibilityHint={t('profile.tapToChange')}
         >
@@ -732,7 +733,7 @@ export function ProfileSettingsScreen() {
           </Text>
           <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => setActivePicker('gender')}
+            onPress={() => { Keyboard.dismiss(); setTimeout(() => setActivePicker('gender'), 100); }}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.genderLabel')}
           >
@@ -752,7 +753,7 @@ export function ProfileSettingsScreen() {
           </Text>
           <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => setShowBirthDatePicker(true)}
+            onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowBirthDatePicker(true), 100); }}
             accessibilityRole="button"
             accessibilityLabel={t('profile.personal.birthDateLabel')}
           >
@@ -770,7 +771,7 @@ export function ProfileSettingsScreen() {
           </Text>
           <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => setShowWeddingDatePicker(true)}
+            onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowWeddingDatePicker(true), 100); }}
             accessibilityRole="button"
             accessibilityLabel={t('profile.personal.weddingDateLabel')}
           >
@@ -793,7 +794,7 @@ export function ProfileSettingsScreen() {
           </Text>
           <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => setActivePicker('country')}
+            onPress={() => { Keyboard.dismiss(); setTimeout(() => setActivePicker('country'), 100); }}
             accessibilityRole="button"
             accessibilityLabel={t('demographics.countryLabel')}
           >
