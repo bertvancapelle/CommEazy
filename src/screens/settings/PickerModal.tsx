@@ -4,7 +4,8 @@
  * Extracted from ProfileSettingsScreen for better separation of concerns.
  *
  * Features:
- * - Page sheet presentation (iOS)
+ * - PanelAwareModal (stays within panel on iPad Split View)
+ * - Page sheet presentation on iPhone (iOS)
  * - Scrollable option list with checkmark for selected item
  * - Senior-inclusive touch targets (≥60pt)
  * - Theme-aware styling
@@ -15,10 +16,9 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
-import { ScrollViewWithIndicator } from '@/components';
+import { ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets } from '@/theme';
@@ -50,11 +50,11 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={onClose}
+      moduleId={moduleId ?? 'settings'}
     >
       <LiquidGlassView moduleId={moduleId ?? 'settings'} style={styles.container} cornerRadius={0}>
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
@@ -101,7 +101,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
           ))}
         </ScrollViewWithIndicator>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
