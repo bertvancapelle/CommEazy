@@ -272,6 +272,10 @@
       "hint": "Votre adresse n'est partagée qu'avec les contacts que vous ajoutez vous-même.",
       "provinceLabel": "Province",
       "selectProvince": "Choisissez votre province",
+      "houseNumber": "Numéro",
+      "houseNumberPlaceholder": "ex. 30",
+      "lookingUp": "Recherche d'adresse...",
+      "provincePlaceholder": "ex. Île-de-France",
       "incompleteTitle": "Adresse incomplète",
       "incompleteMessage": "Veuillez remplir votre pays, rue, code postal, ville et province."
     },

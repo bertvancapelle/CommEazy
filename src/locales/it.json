@@ -272,6 +272,10 @@
       "hint": "Il tuo indirizzo viene condiviso solo con i contatti che aggiungi tu stesso.",
       "provinceLabel": "Provincia",
       "selectProvince": "Scegli la tua provincia",
+      "houseNumber": "Numero civico",
+      "houseNumberPlaceholder": "es. 30",
+      "lookingUp": "Ricerca indirizzo...",
+      "provincePlaceholder": "es. Lombardia",
       "incompleteTitle": "Indirizzo incompleto",
       "incompleteMessage": "Per favore, inserisci il tuo paese, via, codice postale, città e provincia."
     },

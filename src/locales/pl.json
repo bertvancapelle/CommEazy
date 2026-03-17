@@ -189,6 +189,10 @@
       "hint": "Twój adres jest udostępniany tylko kontaktom, które sam dodasz.",
       "provinceLabel": "Województwo",
       "selectProvince": "Wybierz swoje województwo",
+      "houseNumber": "Numer domu",
+      "houseNumberPlaceholder": "np. 30",
+      "lookingUp": "Wyszukiwanie adresu...",
+      "provincePlaceholder": "np. Mazowieckie",
       "incompleteTitle": "Adres niekompletny",
       "incompleteMessage": "Proszę wypełnić kraj, ulicę, kod pocztowy, miasto i województwo."
     },

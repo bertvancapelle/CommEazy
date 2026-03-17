@@ -272,6 +272,10 @@
       "hint": "Tu dirección solo se comparte con los contactos que añadas tú mismo.",
       "provinceLabel": "Provincia",
       "selectProvince": "Elige tu provincia",
+      "houseNumber": "Número",
+      "houseNumberPlaceholder": "ej. 30",
+      "lookingUp": "Buscando dirección...",
+      "provincePlaceholder": "ej. Madrid",
       "incompleteTitle": "Dirección incompleta",
       "incompleteMessage": "Por favor, rellena tu país, calle, código postal, ciudad y provincia."
     },

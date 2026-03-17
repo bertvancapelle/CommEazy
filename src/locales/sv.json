@@ -169,6 +169,10 @@
       "hint": "Din adress delas bara med kontakter du lägger till själv.",
       "provinceLabel": "Län",
       "selectProvince": "Välj ditt län",
+      "houseNumber": "Husnummer",
+      "houseNumberPlaceholder": "t.ex. 30",
+      "lookingUp": "Söker adress...",
+      "provincePlaceholder": "t.ex. Stockholm",
       "incompleteTitle": "Adress ofullständig",
       "incompleteMessage": "Vänligen fyll i ditt land, gata, postnummer, stad och län."
     },

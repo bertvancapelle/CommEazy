@@ -299,6 +299,10 @@
       "hint": "A sua morada é partilhada apenas com contactos que adiciona.",
       "provinceLabel": "Distrito",
       "selectProvince": "Escolha o seu distrito",
+      "houseNumber": "Número",
+      "houseNumberPlaceholder": "ex. 30",
+      "lookingUp": "A procurar morada...",
+      "provincePlaceholder": "ex. Lisboa",
       "incompleteTitle": "Morada incompleta",
       "incompleteMessage": "Por favor, preencha o seu país, rua, código postal, cidade e distrito."
     },

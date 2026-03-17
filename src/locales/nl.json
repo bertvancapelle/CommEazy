@@ -98,6 +98,10 @@
       "hint": "Je adres wordt alleen gedeeld met contacten die je zelf toevoegt.",
       "provinceLabel": "Provincie",
       "selectProvince": "Kies je provincie",
+      "houseNumber": "Huisnummer",
+      "houseNumberPlaceholder": "bijv. 30",
+      "lookingUp": "Adres opzoeken...",
+      "provincePlaceholder": "bijv. Noord-Holland",
       "incompleteTitle": "Adres onvolledig",
       "incompleteMessage": "Vul alstublieft je land, straat, postcode, stad en provincie in."
     },

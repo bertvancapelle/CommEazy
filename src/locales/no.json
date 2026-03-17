@@ -199,6 +199,10 @@
       "hint": "Adressen din deles bare med kontakter du legger til selv.",
       "provinceLabel": "Fylke",
       "selectProvince": "Velg ditt fylke",
+      "houseNumber": "Husnummer",
+      "houseNumberPlaceholder": "f.eks. 30",
+      "lookingUp": "Søker opp adresse...",
+      "provincePlaceholder": "f.eks. Oslo",
       "incompleteTitle": "Adresse ufullstendig",
       "incompleteMessage": "Vennligst fyll inn land, gate, postnummer, by og fylke."
     },

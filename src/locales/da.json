@@ -169,6 +169,10 @@
       "hint": "Din adresse deles kun med kontakter, du selv tilføjer.",
       "provinceLabel": "Region",
       "selectProvince": "Vælg din region",
+      "houseNumber": "Husnummer",
+      "houseNumberPlaceholder": "f.eks. 30",
+      "lookingUp": "Søger adresse...",
+      "provincePlaceholder": "f.eks. Hovedstaden",
       "incompleteTitle": "Adresse ufuldstændig",
       "incompleteMessage": "Udfyld venligst dit land, gade, postnummer, by og region."
     },

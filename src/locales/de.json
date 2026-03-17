@@ -272,6 +272,10 @@
       "hint": "Deine Adresse wird nur mit Kontakten geteilt, die du selbst hinzufügst.",
       "provinceLabel": "Bundesland",
       "selectProvince": "Wähle dein Bundesland",
+      "houseNumber": "Hausnummer",
+      "houseNumberPlaceholder": "z.B. 30",
+      "lookingUp": "Adresse suchen...",
+      "provincePlaceholder": "z.B. Nordrhein-Westfalen",
       "incompleteTitle": "Adresse unvollständig",
       "incompleteMessage": "Bitte fülle dein Land, deine Straße, Postleitzahl, Stadt und dein Bundesland aus."
     },

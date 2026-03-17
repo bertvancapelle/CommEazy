@@ -1,14 +1,17 @@
 /**
  * ProfileStep2Screen — "Waar woon je?"
  *
- * Collects: country*, street*, postalCode*, city*, province*
- * Also saves demographics (countryCode, regionCode, city, ageBracket) for ad targeting.
+ * New field order optimized for GISCO Address API auto-lookup:
+ *   Land* → Postcode* → Huisnummer → [auto-lookup] → Straat → Stad* → Provincie
+ *
+ * When country is EU + exactly 1 GISCO result: auto-fills street, city, province.
+ * Otherwise: fields stay empty for manual entry (silent fallback).
  *
  * Part of the 3-step onboarding profile wizard:
  *   PinSetup → ProfileStep1 → ProfileStep2 → ProfileStep3 → NavigationTutorial
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,16 +21,17 @@ import {
   Platform,
   TextInput as RNTextInput,
   Modal,
-  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, Icon } from '@/components';
+import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
+import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
 import type { OnboardingStackParams } from '@/navigation';
 
 type Props = NativeStackScreenProps<OnboardingStackParams, 'ProfileStep2'>;
@@ -38,20 +42,6 @@ const COUNTRIES = ['NL', 'BE', 'LU', 'DE', 'AT', 'CH', 'FR', 'ES', 'GB', 'IE', '
 const COUNTRY_FLAGS: Record<string, string> = {
   NL: '🇳🇱', BE: '🇧🇪', LU: '🇱🇺', DE: '🇩🇪', AT: '🇦🇹',
   CH: '🇨🇭', FR: '🇫🇷', ES: '🇪🇸', GB: '🇬🇧', IE: '🇮🇪', US: '🇺🇸',
-};
-
-const REGIONS_BY_COUNTRY: Record<string, string[]> = {
-  NL: ['NL-DR', 'NL-FL', 'NL-FR', 'NL-GE', 'NL-GR', 'NL-LI', 'NL-NB', 'NL-NH', 'NL-OV', 'NL-UT', 'NL-ZE', 'NL-ZH'],
-  BE: ['BE-VLG', 'BE-WAL', 'BE-BRU'],
-  DE: ['DE-BW', 'DE-BY', 'DE-BE', 'DE-BB', 'DE-HB', 'DE-HH', 'DE-HE', 'DE-MV', 'DE-NI', 'DE-NW', 'DE-RP', 'DE-SL', 'DE-SN', 'DE-ST', 'DE-SH', 'DE-TH'],
-  AT: ['AT-1', 'AT-2', 'AT-3', 'AT-4', 'AT-5', 'AT-6', 'AT-7', 'AT-8', 'AT-9'],
-  CH: ['CH-ZH', 'CH-BE', 'CH-LU', 'CH-UR', 'CH-SZ', 'CH-OW', 'CH-NW', 'CH-GL', 'CH-ZG', 'CH-FR', 'CH-SO', 'CH-BS', 'CH-BL', 'CH-SH', 'CH-AR', 'CH-AI', 'CH-SG', 'CH-GR', 'CH-AG', 'CH-TG', 'CH-TI', 'CH-VD', 'CH-VS', 'CH-NE', 'CH-GE', 'CH-JU'],
-  FR: ['FR-IDF', 'FR-CVL', 'FR-BFC', 'FR-NOR', 'FR-HDF', 'FR-GES', 'FR-PDL', 'FR-BRE', 'FR-NAQ', 'FR-OCC', 'FR-ARA', 'FR-PAC', 'FR-COR'],
-  ES: ['ES-AN', 'ES-AR', 'ES-AS', 'ES-CN', 'ES-CB', 'ES-CL', 'ES-CM', 'ES-CT', 'ES-EX', 'ES-GA', 'ES-IB', 'ES-RI', 'ES-MD', 'ES-MC', 'ES-NC', 'ES-PV', 'ES-VC'],
-  GB: ['GB-ENG', 'GB-SCT', 'GB-WLS', 'GB-NIR'],
-  IE: ['IE-L', 'IE-M', 'IE-C', 'IE-U'],
-  US: ['US-CA', 'US-TX', 'US-FL', 'US-NY', 'US-PA', 'US-IL', 'US-OH', 'US-GA', 'US-NC', 'US-MI'],
-  LU: ['LU'],
 };
 
 interface PickerModalProps {
@@ -127,14 +117,16 @@ export function ProfileStep2Screen({ navigation }: Props) {
   const themeColors = useColors();
   const { triggerFeedback } = useFeedback();
 
+  // Fields in new order: Land → Postcode → Huisnummer → Straat → Stad → Provincie
   const [countryCode, setCountryCode] = useState<string | undefined>();
-  const [addressStreet, setAddressStreet] = useState('');
   const [addressPostalCode, setAddressPostalCode] = useState('');
+  const [houseNumber, setHouseNumber] = useState('');
+  const [addressStreet, setAddressStreet] = useState('');
   const [addressCity, setAddressCity] = useState('');
-  const [regionCode, setRegionCode] = useState<string | undefined>();
+  const [addressProvince, setAddressProvince] = useState('');
 
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
-  const [regionPickerVisible, setRegionPickerVisible] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{
     type: 'error' | 'warning' | 'info' | 'success';
@@ -142,24 +134,70 @@ export function ProfileStep2Screen({ navigation }: Props) {
     message: string;
   } | null>(null);
 
-  const postalRef = useRef<RNTextInput>(null);
+  const houseNumberRef = useRef<RNTextInput>(null);
+  const streetRef = useRef<RNTextInput>(null);
   const cityRef = useRef<RNTextInput>(null);
+  const provinceRef = useRef<RNTextInput>(null);
+
+  // Track whether auto-lookup has been attempted for current postcode+housenumber
+  const lastLookupKey = useRef('');
 
   const handleCountrySelect = useCallback((code: string) => {
     void triggerFeedback('tap');
     setCountryCode(code);
-    setRegionCode(undefined);
+    // Reset address fields when country changes
+    setAddressStreet('');
+    setAddressCity('');
+    setAddressProvince('');
+    lastLookupKey.current = '';
   }, [triggerFeedback]);
 
-  // Check if country has regions
-  const hasRegions = countryCode && REGIONS_BY_COUNTRY[countryCode] && REGIONS_BY_COUNTRY[countryCode].length > 1;
+  // Auto-lookup when postcode changes (and country is GISCO-supported)
+  const performLookup = useCallback(async () => {
+    if (!countryCode || !addressPostalCode.trim()) return;
+    if (!isGISCOSupported(countryCode)) return;
 
+    const lookupKey = `${countryCode}:${addressPostalCode.trim()}:${houseNumber.trim()}`;
+    if (lookupKey === lastLookupKey.current) return;
+    lastLookupKey.current = lookupKey;
+
+    setIsLookingUp(true);
+    const result = await lookupAddress(countryCode, addressPostalCode.trim(), houseNumber.trim() || undefined);
+    setIsLookingUp(false);
+
+    if (result) {
+      // Auto-fill: combine street + house number if API returned a street
+      if (result.street) {
+        setAddressStreet(
+          houseNumber.trim()
+            ? `${result.street} ${houseNumber.trim()}`
+            : result.street,
+        );
+      }
+      if (result.city) setAddressCity(result.city);
+      if (result.province) setAddressProvince(result.province);
+    }
+    // If no result: fields stay as-is (empty or user-edited) — silent fallback
+  }, [countryCode, addressPostalCode, houseNumber]);
+
+  // Trigger lookup when postcode field loses focus or house number field loses focus
+  const handlePostalCodeBlur = useCallback(() => {
+    if (addressPostalCode.trim().length >= 3) {
+      void performLookup();
+    }
+  }, [addressPostalCode, performLookup]);
+
+  const handleHouseNumberBlur = useCallback(() => {
+    if (addressPostalCode.trim().length >= 3) {
+      void performLookup();
+    }
+  }, [addressPostalCode, performLookup]);
+
+  // Required: country, postcode, city
   const isValid = Boolean(
     countryCode &&
-    addressStreet.trim() &&
     addressPostalCode.trim() &&
-    addressCity.trim() &&
-    (!hasRegions || regionCode),
+    addressCity.trim(),
   );
 
   const handleContinue = useCallback(async () => {
@@ -181,14 +219,13 @@ export function ProfileStep2Screen({ navigation }: Props) {
         await ServiceContainer.database.saveUserProfile({
           ...profile,
           // Address fields
-          addressStreet: addressStreet.trim(),
+          addressStreet: addressStreet.trim() || undefined,
           addressPostalCode: addressPostalCode.trim(),
           addressCity: addressCity.trim(),
           addressCountry: countryCode,
-          addressProvince: regionCode || undefined,
+          addressProvince: addressProvince.trim() || undefined,
           // Demographics (for ad targeting)
           countryCode,
-          regionCode: regionCode || countryCode, // Use country code for countries without regions (LU)
           city: addressCity.trim(),
         });
       }
@@ -204,7 +241,7 @@ export function ProfileStep2Screen({ navigation }: Props) {
     } finally {
       setIsSaving(false);
     }
-  }, [countryCode, regionCode, addressStreet, addressPostalCode, addressCity, isValid, navigation, t, triggerFeedback]);
+  }, [countryCode, addressStreet, addressPostalCode, addressCity, addressProvince, isValid, navigation, t, triggerFeedback]);
 
   // Build picker options
   const countryOptions = COUNTRIES.map(code => ({
@@ -212,12 +249,8 @@ export function ProfileStep2Screen({ navigation }: Props) {
     label: `${COUNTRY_FLAGS[code]} ${t(`demographics.countries.${code}`, code)}`,
   }));
 
-  const regionOptions = countryCode && REGIONS_BY_COUNTRY[countryCode]
-    ? REGIONS_BY_COUNTRY[countryCode].map(code => ({
-        value: code,
-        label: t(`demographics.regions.${code}`, code),
-      }))
-    : [];
+  // Show GISCO indicator when country is EU
+  const showGISCOHint = countryCode && isGISCOSupported(countryCode);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -226,7 +259,7 @@ export function ProfileStep2Screen({ navigation }: Props) {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={100}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 100}
       >
         <ScrollViewWithIndicator
           style={styles.flex}
@@ -249,10 +282,10 @@ export function ProfileStep2Screen({ navigation }: Props) {
             />
           )}
 
-          {/* Country picker */}
+          {/* 1. Country picker (required) */}
           <View style={styles.inputGroup}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-              {t('demographics.countryLabel')}
+              {t('demographics.countryLabel')} <Text style={styles.requiredStar}>*</Text>
             </Text>
             <HapticTouchable
               onPress={() => setCountryPickerVisible(true)}
@@ -269,68 +302,89 @@ export function ProfileStep2Screen({ navigation }: Props) {
             </HapticTouchable>
           </View>
 
-          {/* Province/Region picker (only if country has regions) */}
-          {countryCode && hasRegions && (
-            <View style={styles.inputGroup}>
-              <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-                {t('onboarding.profileStep2.provinceLabel')}
+          {/* 2. Postcode + House number row */}
+          <View style={styles.addressRow}>
+            <View style={styles.postalCodeWrapper}>
+              <TextInput
+                label={`${t('onboarding.personalDetails.addressPostalCode')} *`}
+                value={addressPostalCode}
+                onChangeText={(text) => {
+                  setAddressPostalCode(text);
+                  lastLookupKey.current = ''; // Reset so next blur triggers lookup
+                }}
+                placeholder={t('onboarding.personalDetails.postalCodePlaceholder')}
+                autoCapitalize="characters"
+                returnKeyType="next"
+                onSubmitEditing={() => houseNumberRef.current?.focus()}
+                onBlur={handlePostalCodeBlur}
+                accessibilityLabel={t('onboarding.personalDetails.addressPostalCode')}
+              />
+            </View>
+            <View style={styles.houseNumberWrapper}>
+              <TextInput
+                ref={houseNumberRef}
+                label={t('onboarding.profileStep2.houseNumber')}
+                value={houseNumber}
+                onChangeText={(text) => {
+                  setHouseNumber(text);
+                  lastLookupKey.current = ''; // Reset so next blur triggers lookup
+                }}
+                placeholder={t('onboarding.profileStep2.houseNumberPlaceholder')}
+                returnKeyType="next"
+                onSubmitEditing={() => streetRef.current?.focus()}
+                onBlur={handleHouseNumberBlur}
+                accessibilityLabel={t('onboarding.profileStep2.houseNumber')}
+              />
+            </View>
+          </View>
+
+          {/* GISCO lookup indicator */}
+          {isLookingUp && showGISCOHint && (
+            <View style={styles.lookupRow}>
+              <ActivityIndicator size="small" color={themeColors.primary} />
+              <Text style={[styles.lookupText, { color: themeColors.textTertiary }]}>
+                {t('onboarding.profileStep2.lookingUp')}
               </Text>
-              <HapticTouchable
-                onPress={() => setRegionPickerVisible(true)}
-                style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                accessibilityRole="button"
-                accessibilityLabel={t('onboarding.profileStep2.provinceLabel')}
-              >
-                <Text style={[styles.pickerValue, { color: regionCode ? themeColors.textPrimary : themeColors.textTertiary }]}>
-                  {regionCode
-                    ? t(`demographics.regions.${regionCode}`, regionCode)
-                    : t('onboarding.profileStep2.selectProvince')}
-                </Text>
-                <Text style={[styles.editIcon, { color: themeColors.textSecondary }]}>✏️</Text>
-              </HapticTouchable>
             </View>
           )}
 
-          {/* Street */}
+          {/* 3. Street (auto-filled or manual) */}
           <TextInput
+            ref={streetRef}
             label={t('onboarding.personalDetails.addressStreet')}
             value={addressStreet}
             onChangeText={setAddressStreet}
             placeholder={t('onboarding.personalDetails.streetPlaceholder')}
             autoCapitalize="words"
             returnKeyType="next"
-            onSubmitEditing={() => postalRef.current?.focus()}
+            onSubmitEditing={() => cityRef.current?.focus()}
             accessibilityLabel={t('onboarding.personalDetails.addressStreet')}
           />
 
-          {/* Postal code + City row */}
-          <View style={styles.addressRow}>
-            <View style={styles.postalCodeWrapper}>
-              <TextInput
-                ref={postalRef}
-                label={t('onboarding.personalDetails.addressPostalCode')}
-                value={addressPostalCode}
-                onChangeText={setAddressPostalCode}
-                placeholder={t('onboarding.personalDetails.postalCodePlaceholder')}
-                autoCapitalize="characters"
-                returnKeyType="next"
-                onSubmitEditing={() => cityRef.current?.focus()}
-                accessibilityLabel={t('onboarding.personalDetails.addressPostalCode')}
-              />
-            </View>
-            <View style={styles.cityWrapper}>
-              <TextInput
-                ref={cityRef}
-                label={t('onboarding.personalDetails.addressCity')}
-                value={addressCity}
-                onChangeText={setAddressCity}
-                placeholder={t('onboarding.personalDetails.cityPlaceholder')}
-                autoCapitalize="words"
-                returnKeyType="done"
-                accessibilityLabel={t('onboarding.personalDetails.addressCity')}
-              />
-            </View>
-          </View>
+          {/* 4. City (auto-filled or manual, required) */}
+          <TextInput
+            ref={cityRef}
+            label={`${t('onboarding.personalDetails.addressCity')} *`}
+            value={addressCity}
+            onChangeText={setAddressCity}
+            placeholder={t('onboarding.personalDetails.cityPlaceholder')}
+            autoCapitalize="words"
+            returnKeyType="next"
+            onSubmitEditing={() => provinceRef.current?.focus()}
+            accessibilityLabel={t('onboarding.personalDetails.addressCity')}
+          />
+
+          {/* 5. Province (auto-filled or manual) */}
+          <TextInput
+            ref={provinceRef}
+            label={t('onboarding.profileStep2.provinceLabel')}
+            value={addressProvince}
+            onChangeText={setAddressProvince}
+            placeholder={t('onboarding.profileStep2.provincePlaceholder')}
+            autoCapitalize="words"
+            returnKeyType="done"
+            accessibilityLabel={t('onboarding.profileStep2.provinceLabel')}
+          />
 
           {/* Extra bottom padding */}
           <View style={{ height: spacing.xxl }} />
@@ -346,7 +400,7 @@ export function ProfileStep2Screen({ navigation }: Props) {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Picker modals */}
+      {/* Country picker modal */}
       <PickerModal
         visible={countryPickerVisible}
         title={t('demographics.selectCountry')}
@@ -354,15 +408,6 @@ export function ProfileStep2Screen({ navigation }: Props) {
         selectedValue={countryCode}
         onSelect={handleCountrySelect}
         onClose={() => setCountryPickerVisible(false)}
-      />
-
-      <PickerModal
-        visible={regionPickerVisible}
-        title={t('onboarding.profileStep2.selectProvince')}
-        options={regionOptions}
-        selectedValue={regionCode}
-        onSelect={setRegionCode}
-        onClose={() => setRegionPickerVisible(false)}
       />
     </SafeAreaView>
   );
@@ -437,6 +482,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: spacing.xs,
   },
+  requiredStar: {
+    color: '#D32F2F',
+    fontWeight: '700',
+  },
   inputGroup: {
     marginBottom: spacing.md,
   },
@@ -462,10 +511,20 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   postalCodeWrapper: {
-    width: 130,
-  },
-  cityWrapper: {
     flex: 1,
+  },
+  houseNumberWrapper: {
+    width: 110,
+  },
+  lookupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+    marginTop: -spacing.xs,
+  },
+  lookupText: {
+    ...typography.small,
   },
   footer: {
     paddingHorizontal: spacing.lg,

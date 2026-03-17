@@ -299,6 +299,10 @@
       "hint": "Seu endereço só é compartilhado com contatos que você mesmo adicionar.",
       "provinceLabel": "Estado",
       "selectProvince": "Escolha seu estado",
+      "houseNumber": "Número",
+      "houseNumberPlaceholder": "ex. 30",
+      "lookingUp": "Buscando endereço...",
+      "provincePlaceholder": "ex. São Paulo",
       "incompleteTitle": "Endereço incompleto",
       "incompleteMessage": "Por favor, preencha seu país, rua, CEP, cidade e estado."
     },

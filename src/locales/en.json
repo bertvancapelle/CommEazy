@@ -272,6 +272,10 @@
       "hint": "Your address is only shared with contacts you add yourself.",
       "provinceLabel": "Province",
       "selectProvince": "Choose your province",
+      "houseNumber": "House number",
+      "houseNumberPlaceholder": "e.g. 30",
+      "lookingUp": "Looking up address...",
+      "provincePlaceholder": "e.g. South Holland",
       "incompleteTitle": "Address incomplete",
       "incompleteMessage": "Please fill in your country, street, postal code, city, and province."
     },
