@@ -102,7 +102,7 @@ export function DateTimePickerModal({
       onRequestClose={onClose}
       moduleId={moduleId}
     >
-      <View style={styles.overlay} pointerEvents="box-none">
+      <View style={styles.overlay}>
         <LiquidGlassView moduleId={moduleId} style={styles.container} cornerRadius={borderRadius.lg}>
           <ModalLayout
             headerBlock={

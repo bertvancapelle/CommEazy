@@ -1,24 +1,19 @@
 /**
- * ModalLayout — Positions modal header above or below content
+ * ModalLayout — Consistent layout for modal header, content, and footer
  *
- * Reads the user's "Schermindeling" (toolbar position) setting from
- * ModuleLayoutContext and rearranges the modal layout accordingly:
+ * Always renders: Header → Content → Footer
  *
- * - "top" (default): Header → Content → Footer
- * - "bottom": Footer → Content → Header
+ * The user's "Schermindeling" (toolbar position) setting is intentionally
+ * NOT applied here. That setting controls module screen layout via
+ * ModuleScreenLayout, not modal internals. Bottom-sheet modals (pickers,
+ * dialogs, selection sheets) must always keep header on top — reordering
+ * breaks their layout inside overflow:hidden containers.
  *
- * This ensures modals follow the same toolbar position as module screens,
- * providing a consistent experience for seniors.
- *
- * Exception: UnifiedFullPlayer is excluded — it keeps its own layout.
- *
- * @see src/contexts/ModuleLayoutContext.tsx
- * @see src/components/ModuleScreenLayout.tsx
+ * @see src/components/ModuleScreenLayout.tsx — screen-level reordering
  */
 
 import React, { type ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
 // Types
@@ -42,19 +37,6 @@ export function ModalLayout({
   contentBlock,
   footerBlock,
 }: ModalLayoutProps) {
-  const { toolbarPosition } = useModuleLayoutSafe();
-  const isBottom = toolbarPosition === 'bottom';
-
-  if (isBottom) {
-    return (
-      <View style={styles.flex}>
-        {footerBlock}
-        {contentBlock}
-        {headerBlock}
-      </View>
-    );
-  }
-
   return (
     <View style={styles.flex}>
       {headerBlock}
