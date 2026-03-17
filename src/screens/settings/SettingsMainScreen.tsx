@@ -40,6 +40,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { getAvatarPath } from '@/services/imageService';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
+import { useLabelStyle } from '@/contexts/FieldTextStyleContext';
 import type { SettingsStackParams } from '@/navigation';
 import type { SupportedLanguage } from '@/services/interfaces';
 import { PickerModal } from './PickerModal';
@@ -70,9 +71,10 @@ interface SubsectionButtonProps {
   focused?: boolean;
   focusStyle?: { borderColor: string; borderWidth: number; backgroundColor: string };
   themeColors: typeof colors;
+  labelStyle: { color: string; fontWeight: '400' | '700'; fontStyle: 'normal' | 'italic' };
 }
 
-function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, focused, focusStyle, themeColors }: SubsectionButtonProps) {
+function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, focused, focusStyle, themeColors, labelStyle }: SubsectionButtonProps) {
   return (
     <HapticTouchable hapticDisabled
       style={[
@@ -93,7 +95,7 @@ function SubsectionButton({ icon, label, onPress, accessibilityHint, iconColor, 
       <View style={styles.subsectionIconContainer}>
         <Icon name={icon} size={24} color={iconColor} />
       </View>
-      <Text style={[styles.subsectionLabel, { color: themeColors.textPrimary }]}>{label}</Text>
+      <Text style={[styles.subsectionLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{label}</Text>
       <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
     </HapticTouchable>
   );
@@ -107,6 +109,7 @@ export function SettingsMainScreen() {
   const { accentColor } = useAccentColor();
   const themeColors = useColors(); // Dynamic colors based on theme
   const settingsModuleColor = useModuleColor('settings');
+  const labelStyle = useLabelStyle();
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
@@ -267,7 +270,7 @@ export function SettingsMainScreen() {
                 accessibilityLabel={t('settings.screenLanguage')}
                 accessibilityHint={t('profile.languageHint')}
               >
-                <Text style={[styles.languageLabel, { color: themeColors.textPrimary }]}>{t('settings.screenLanguage')}</Text>
+                <Text style={[styles.languageLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('settings.screenLanguage')}</Text>
                 <View style={[styles.languageButton, { backgroundColor: accentColor.primary }]}>
                   <Text style={styles.languageButtonFlag}>{currentFlag}</Text>
                   <Text style={styles.languageButtonText}>{t(`profile.language.${currentLanguage}`)}</Text>
@@ -282,58 +285,58 @@ export function SettingsMainScreen() {
             <ScrollViewWithIndicator ref={scrollRef} style={styles.scrollView} contentContainerStyle={styles.menuContentContainer}>
 
       {/* ── Section 1: Persoonlijk ────────────────── */}
-      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.personal')}</Text>
+      <Text style={[styles.sectionHeader, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('settings.sections.personal')}</Text>
       <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
         <VoiceFocusable id="profile" label={t('settings.profile')} index={0} onSelect={() => navigation.navigate('ProfileSettings')}>
-          <SubsectionButton icon="person" label={t('settings.profile')} onPress={() => navigation.navigate('ProfileSettings')} accessibilityHint={t('settings.editProfileHint')} iconColor={accentColor.primary} focused={isItemFocused('profile')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="person" label={t('settings.profile')} onPress={() => navigation.navigate('ProfileSettings')} accessibilityHint={t('settings.editProfileHint')} iconColor={accentColor.primary} focused={isItemFocused('profile')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="privacy" label={t('privacySettings.title')} index={1} onSelect={() => navigation.navigate('PrivacySettings')}>
-          <SubsectionButton icon="lock" label={t('privacySettings.title')} onPress={() => navigation.navigate('PrivacySettings')} accessibilityHint={t('privacySettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('privacy')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="lock" label={t('privacySettings.title')} onPress={() => navigation.navigate('PrivacySettings')} accessibilityHint={t('privacySettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('privacy')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
       </View>
 
       {/* ── Section 2: Weergave ────────────────── */}
-      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.display')}</Text>
+      <Text style={[styles.sectionHeader, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('settings.sections.display')}</Text>
       <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
         <VoiceFocusable id="appearance" label={t('appearance.title')} index={2} onSelect={() => navigation.navigate('AppearanceSettings')}>
-          <SubsectionButton icon="sun" label={t('appearance.title')} onPress={() => navigation.navigate('AppearanceSettings')} accessibilityHint={t('appearance.theme.hint')} iconColor={accentColor.primary} focused={isItemFocused('appearance')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="sun" label={t('appearance.title')} onPress={() => navigation.navigate('AppearanceSettings')} accessibilityHint={t('appearance.theme.hint')} iconColor={accentColor.primary} focused={isItemFocused('appearance')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="accessibility" label={t('settings.accessibility')} index={3} onSelect={() => navigation.navigate('AccessibilitySettings')}>
-          <SubsectionButton icon="accessibility" label={t('settings.accessibility')} onPress={() => navigation.navigate('AccessibilitySettings')} accessibilityHint={t('accessibilitySettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('accessibility')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="accessibility" label={t('settings.accessibility')} onPress={() => navigation.navigate('AccessibilitySettings')} accessibilityHint={t('accessibilitySettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('accessibility')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="voice" label={t('voiceSettings.title')} index={4} onSelect={() => navigation.navigate('VoiceSettings')}>
-          <SubsectionButton icon="mic" label={t('voiceSettings.title')} onPress={() => navigation.navigate('VoiceSettings')} accessibilityHint={t('voiceSettings.enableVoiceControlHint')} iconColor={accentColor.primary} focused={isItemFocused('voice')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="mic" label={t('voiceSettings.title')} onPress={() => navigation.navigate('VoiceSettings')} accessibilityHint={t('voiceSettings.enableVoiceControlHint')} iconColor={accentColor.primary} focused={isItemFocused('voice')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
       </View>
 
       {/* ── Section 3: Apps & Diensten ────────────────── */}
-      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.apps')}</Text>
+      <Text style={[styles.sectionHeader, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('settings.sections.apps')}</Text>
       <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
         <VoiceFocusable id="modules" label={t('settings.modules.title')} index={5} onSelect={() => navigation.navigate('ModulesSettings')}>
-          <SubsectionButton icon="news" label={t('settings.modules.title')} onPress={() => navigation.navigate('ModulesSettings')} accessibilityHint={t('settings.modules.settingsHint')} iconColor={accentColor.primary} focused={isItemFocused('modules')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="news" label={t('settings.modules.title')} onPress={() => navigation.navigate('ModulesSettings')} accessibilityHint={t('settings.modules.settingsHint')} iconColor={accentColor.primary} focused={isItemFocused('modules')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="call-settings" label={t('callSettings.title')} index={6} onSelect={() => navigation.navigate('CallSettings')}>
-          <SubsectionButton icon="call" label={t('callSettings.title')} onPress={() => navigation.navigate('CallSettings')} accessibilityHint={t('callSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('call-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="call" label={t('callSettings.title')} onPress={() => navigation.navigate('CallSettings')} accessibilityHint={t('callSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('call-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="mail-settings" label={t('mailSettings.title')} index={7} onSelect={() => navigation.navigate('MailSettings')}>
-          <SubsectionButton icon="mail" label={t('mailSettings.title')} onPress={() => navigation.navigate('MailSettings')} accessibilityHint={t('mailSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('mail-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="mail" label={t('mailSettings.title')} onPress={() => navigation.navigate('MailSettings')} accessibilityHint={t('mailSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('mail-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="apple-music-settings" label={t('appleMusicSettings.title')} index={8} onSelect={() => navigation.navigate('AppleMusicSettings')}>
-          <SubsectionButton icon="musical-notes" label={t('appleMusicSettings.title')} onPress={() => navigation.navigate('AppleMusicSettings')} accessibilityHint={t('appleMusicSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('apple-music-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="musical-notes" label={t('appleMusicSettings.title')} onPress={() => navigation.navigate('AppleMusicSettings')} accessibilityHint={t('appleMusicSettings.screenHint')} iconColor={accentColor.primary} focused={isItemFocused('apple-music-settings')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="notifications" label={t('settings.notifications')} index={9} onSelect={() => { setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') }); }}>
-          <SubsectionButton icon="notifications" label={t('settings.notifications')} onPress={() => { setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') }); }} accessibilityHint={t('settings.notificationsHint')} iconColor={accentColor.primary} focused={isItemFocused('notifications')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="notifications" label={t('settings.notifications')} onPress={() => { setNotification({ type: 'info', title: t('common.comingSoon'), message: t('settings.notificationsComingSoon') }); }} accessibilityHint={t('settings.notificationsHint')} iconColor={accentColor.primary} focused={isItemFocused('notifications')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
       </View>
 
       {/* ── Section 4: Apparaat ────────────────── */}
-      <Text style={[styles.sectionHeader, { color: themeColors.textSecondary }]}>{t('settings.sections.device')}</Text>
+      <Text style={[styles.sectionHeader, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('settings.sections.device')}</Text>
       <View style={[styles.subsectionsContainer, { backgroundColor: themeColors.surface }]}>
         <VoiceFocusable id="backup" label={t('settings.backup')} index={10} onSelect={() => navigation.navigate('BackupSettings')}>
-          <SubsectionButton icon="backup" label={t('settings.backup')} onPress={() => navigation.navigate('BackupSettings')} accessibilityHint={t('settings.backupHint')} iconColor={accentColor.primary} focused={isItemFocused('backup')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="backup" label={t('settings.backup')} onPress={() => navigation.navigate('BackupSettings')} accessibilityHint={t('settings.backupHint')} iconColor={accentColor.primary} focused={isItemFocused('backup')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
         <VoiceFocusable id="device-link" label={t('settings.deviceLink')} index={11} onSelect={() => navigation.navigate('DeviceLinkShowQR')}>
-          <SubsectionButton icon="device" label={t('settings.deviceLink')} onPress={() => navigation.navigate('DeviceLinkShowQR')} accessibilityHint={t('deviceLink.showQRSubtitle')} iconColor={accentColor.primary} focused={isItemFocused('device-link')} focusStyle={getFocusStyle()} themeColors={themeColors} />
+          <SubsectionButton icon="device" label={t('settings.deviceLink')} onPress={() => navigation.navigate('DeviceLinkShowQR')} accessibilityHint={t('deviceLink.showQRSubtitle')} iconColor={accentColor.primary} focused={isItemFocused('device-link')} focusStyle={getFocusStyle()} themeColors={themeColors} labelStyle={labelStyle} />
         </VoiceFocusable>
       </View>
 

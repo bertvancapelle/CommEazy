@@ -604,7 +604,7 @@ export function ProfileSettingsScreen() {
       >
       {/* ── Section 1: "Wie ben je?" ─────────────────────────── */}
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.profileStep1.title')}</Text>
+        <Text style={[styles.sectionTitle, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('onboarding.profileStep1.title')}</Text>
 
         {/* First name */}
         <View style={styles.fieldContainer} ref={registerField('displayFirstName')}>
@@ -705,7 +705,7 @@ export function ProfileSettingsScreen() {
 
       {/* ── Section 2: "Waar woon je?" ─────────────────────────── */}
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.profileStep2.title')}</Text>
+        <Text style={[styles.sectionTitle, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('onboarding.profileStep2.title')}</Text>
 
         {/* Country */}
         <View style={styles.fieldContainer} ref={registerField('country')}>
@@ -835,7 +835,7 @@ export function ProfileSettingsScreen() {
 
       {/* ── Section 3: "Hoe bereiken we je?" ─────────────────────────── */}
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.profileStep3.title')}</Text>
+        <Text style={[styles.sectionTitle, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('onboarding.profileStep3.title')}</Text>
         <Text style={[styles.sectionSubtitle, { color: themeColors.textTertiary }]}>{t('profile.personal.subtitle')}</Text>
 
         {/* Email */}
@@ -895,7 +895,7 @@ export function ProfileSettingsScreen() {
       {/* ── Gedeeld met (Shared with) ─────────────────────────── */}
       {sharedWithContacts.length > 0 && (
         <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('profile.sharing.title')}
           </Text>
           <Text style={[styles.sectionSubtitle, { color: themeColors.textSecondary }]}>
