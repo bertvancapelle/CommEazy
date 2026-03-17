@@ -893,6 +893,40 @@
       "color": "Cor da borda",
       "selectTitle": "Escolher cor da borda"
     },
+    "fieldTextStyle": {
+      "title": "Estilo de texto dos campos",
+      "hint": "Personalize as cores e o estilo de rótulos, valores e texto de seleção",
+      "fontStyles": {
+        "standard": "Padrão",
+        "bold": "Negrito",
+        "italic": "Itálico",
+        "boldItalic": "Negrito + Itálico"
+      },
+      "labelStyle": {
+        "title": "Rótulos",
+        "hint": "Rótulos dos campos e títulos de seção",
+        "color": "Cor do rótulo",
+        "fontStyle": "Estilo de texto",
+        "selectTitle": "Escolher cor do rótulo"
+      },
+      "fieldTextStyle": {
+        "title": "Texto dos campos",
+        "hint": "Valores digitados e opções selecionadas",
+        "color": "Cor do texto",
+        "fontStyle": "Estilo de texto",
+        "selectTitle": "Escolher cor do texto"
+      },
+      "modalTextStyle": {
+        "title": "Texto do modal",
+        "hint": "Opções nas listas de seleção",
+        "color": "Cor do texto",
+        "fontStyle": "Estilo de texto",
+        "selectTitle": "Escolher cor do texto"
+      },
+      "reset": "Redefinir estilo de texto",
+      "previewLabel": "Nome",
+      "previewValue": "João"
+    },
     "preview": {
       "title": "Pré-visualização",
       "hint": "É assim que o app aparece agora",

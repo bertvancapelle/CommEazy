@@ -869,6 +869,40 @@
       "color": "Border colour",
       "selectTitle": "Choose border colour"
     },
+    "fieldTextStyle": {
+      "title": "Field Text Style",
+      "hint": "Customise the colours and style of labels, field values and picker text",
+      "fontStyles": {
+        "standard": "Standard",
+        "bold": "Bold",
+        "italic": "Italic",
+        "boldItalic": "Bold + Italic"
+      },
+      "labelStyle": {
+        "title": "Labels",
+        "hint": "Field labels and section titles",
+        "color": "Label colour",
+        "fontStyle": "Text style",
+        "selectTitle": "Choose label colour"
+      },
+      "fieldTextStyle": {
+        "title": "Field Text",
+        "hint": "Entered values and selected options",
+        "color": "Text colour",
+        "fontStyle": "Text style",
+        "selectTitle": "Choose text colour"
+      },
+      "modalTextStyle": {
+        "title": "Modal Text",
+        "hint": "Options in picker lists",
+        "color": "Text colour",
+        "fontStyle": "Text style",
+        "selectTitle": "Choose text colour"
+      },
+      "reset": "Reset text style",
+      "previewLabel": "First name",
+      "previewValue": "John"
+    },
     "preview": {
       "title": "Preview",
       "hint": "This is how the app looks now",

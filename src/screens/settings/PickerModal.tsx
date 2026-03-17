@@ -23,6 +23,7 @@ import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
+import { useModalTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import type { ModuleColorId } from '@/types/liquidGlass';
 
@@ -49,6 +50,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
+  const modalTextStyle = useModalTextStyle();
   return (
     <PanelAwareModal
       visible={visible}
@@ -88,7 +90,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
               <Text
                 style={[
                   styles.optionText,
-                  { color: themeColors.textPrimary },
+                  { color: modalTextStyle.color, fontWeight: modalTextStyle.fontWeight, fontStyle: modalTextStyle.fontStyle },
                   selectedValue === option.value && { color: accentColor.primary, fontWeight: '600' },
                 ]}
               >

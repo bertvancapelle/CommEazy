@@ -28,6 +28,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
+import { useLabelStyle, useFieldTextStyle, useModalTextStyle } from '@/contexts/FieldTextStyleContext';
 import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
@@ -56,6 +57,7 @@ interface PickerModalProps {
 function PickerModal({ visible, title, options, selectedValue, onSelect, onClose }: PickerModalProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const modalTextStyle = useModalTextStyle();
   return (
     <Modal
       visible={visible}
@@ -95,7 +97,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
               <Text
                 style={[
                   pickerStyles.optionText,
-                  { color: themeColors.textPrimary },
+                  { color: modalTextStyle.color, fontWeight: modalTextStyle.fontWeight, fontStyle: modalTextStyle.fontStyle },
                   selectedValue === option.value && { color: themeColors.primary, fontWeight: '600' },
                 ]}
               >
@@ -115,6 +117,8 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
 export function ProfileStep2Screen({ navigation }: Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
 
   // Fields in new order: Land → Postcode → Huisnummer → Straat → Stad → Provincie
@@ -284,7 +288,7 @@ export function ProfileStep2Screen({ navigation }: Props) {
 
           {/* 1. Country picker (required) */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('demographics.countryLabel')} <Text style={styles.requiredStar}>*</Text>
             </Text>
             <HapticTouchable
@@ -293,7 +297,7 @@ export function ProfileStep2Screen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('demographics.countryLabel')}
             >
-              <Text style={[styles.pickerValue, { color: countryCode ? themeColors.textPrimary : themeColors.textTertiary }]}>
+              <Text style={[styles.pickerValue, countryCode ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
                 {countryCode
                   ? `${COUNTRY_FLAGS[countryCode]} ${t(`demographics.countries.${countryCode}`, countryCode)}`
                   : t('demographics.selectCountry')}

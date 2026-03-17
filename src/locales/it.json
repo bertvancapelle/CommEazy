@@ -868,6 +868,40 @@
       "color": "Colore del bordo",
       "selectTitle": "Scegli il colore del bordo"
     },
+    "fieldTextStyle": {
+      "title": "Stile testo campi",
+      "hint": "Personalizza i colori e lo stile di etichette, valori e testo di selezione",
+      "fontStyles": {
+        "standard": "Standard",
+        "bold": "Grassetto",
+        "italic": "Corsivo",
+        "boldItalic": "Grassetto + Corsivo"
+      },
+      "labelStyle": {
+        "title": "Etichette",
+        "hint": "Etichette dei campi e titoli delle sezioni",
+        "color": "Colore etichetta",
+        "fontStyle": "Stile testo",
+        "selectTitle": "Scegli il colore dell'etichetta"
+      },
+      "fieldTextStyle": {
+        "title": "Testo dei campi",
+        "hint": "Valori inseriti e opzioni selezionate",
+        "color": "Colore del testo",
+        "fontStyle": "Stile testo",
+        "selectTitle": "Scegli il colore del testo"
+      },
+      "modalTextStyle": {
+        "title": "Testo modale",
+        "hint": "Opzioni nelle liste di selezione",
+        "color": "Colore del testo",
+        "fontStyle": "Stile testo",
+        "selectTitle": "Scegli il colore del testo"
+      },
+      "reset": "Ripristina stile testo",
+      "previewLabel": "Nome",
+      "previewValue": "Marco"
+    },
     "preview": {
       "title": "Anteprima",
       "hint": "Ecco come appare l'app ora",

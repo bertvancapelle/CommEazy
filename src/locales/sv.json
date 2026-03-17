@@ -764,6 +764,40 @@
       "color": "Kantfärg",
       "selectTitle": "Välj kantfärg"
     },
+    "fieldTextStyle": {
+      "title": "Textstil för fält",
+      "hint": "Anpassa färgerna och stilen för etiketter, fältvärden och valtext",
+      "fontStyles": {
+        "standard": "Standard",
+        "bold": "Fet",
+        "italic": "Kursiv",
+        "boldItalic": "Fet + Kursiv"
+      },
+      "labelStyle": {
+        "title": "Etiketter",
+        "hint": "Fältetiketter och sektionsrubriker",
+        "color": "Etikettfärg",
+        "fontStyle": "Textstil",
+        "selectTitle": "Välj etikettfärg"
+      },
+      "fieldTextStyle": {
+        "title": "Fälttext",
+        "hint": "Inmatade värden och valda alternativ",
+        "color": "Textfärg",
+        "fontStyle": "Textstil",
+        "selectTitle": "Välj textfärg"
+      },
+      "modalTextStyle": {
+        "title": "Modaltext",
+        "hint": "Alternativ i vallistor",
+        "color": "Textfärg",
+        "fontStyle": "Textstil",
+        "selectTitle": "Välj textfärg"
+      },
+      "reset": "Återställ textstil",
+      "previewLabel": "Förnamn",
+      "previewValue": "Erik"
+    },
     "preview": {
       "title": "Förhandsvisning",
       "hint": "Så här ser appen ut nu",

@@ -869,6 +869,40 @@
       "color": "Randfarbe",
       "selectTitle": "Randfarbe wählen"
     },
+    "fieldTextStyle": {
+      "title": "Feldtext-Stil",
+      "hint": "Passen Sie die Farben und den Stil von Labels, Feldwerten und Auswahltexten an",
+      "fontStyles": {
+        "standard": "Standard",
+        "bold": "Fett",
+        "italic": "Kursiv",
+        "boldItalic": "Fett + Kursiv"
+      },
+      "labelStyle": {
+        "title": "Labels",
+        "hint": "Feldlabels und Abschnittstitel",
+        "color": "Labelfarbe",
+        "fontStyle": "Textstil",
+        "selectTitle": "Labelfarbe wählen"
+      },
+      "fieldTextStyle": {
+        "title": "Feldtext",
+        "hint": "Eingegebene Werte und ausgewählte Optionen",
+        "color": "Textfarbe",
+        "fontStyle": "Textstil",
+        "selectTitle": "Textfarbe wählen"
+      },
+      "modalTextStyle": {
+        "title": "Modaltext",
+        "hint": "Optionen in Auswahllisten",
+        "color": "Textfarbe",
+        "fontStyle": "Textstil",
+        "selectTitle": "Textfarbe wählen"
+      },
+      "reset": "Textstil zurücksetzen",
+      "previewLabel": "Vorname",
+      "previewValue": "Hans"
+    },
     "preview": {
       "title": "Vorschau",
       "hint": "So sieht die App jetzt aus",

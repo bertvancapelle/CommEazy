@@ -869,6 +869,40 @@
       "color": "Couleur de la bordure",
       "selectTitle": "Choisir la couleur de la bordure"
     },
+    "fieldTextStyle": {
+      "title": "Style de texte des champs",
+      "hint": "Personnalisez les couleurs et le style des labels, valeurs et texte de sélection",
+      "fontStyles": {
+        "standard": "Standard",
+        "bold": "Gras",
+        "italic": "Italique",
+        "boldItalic": "Gras + Italique"
+      },
+      "labelStyle": {
+        "title": "Labels",
+        "hint": "Labels des champs et titres de sections",
+        "color": "Couleur du label",
+        "fontStyle": "Style de texte",
+        "selectTitle": "Choisir la couleur du label"
+      },
+      "fieldTextStyle": {
+        "title": "Texte des champs",
+        "hint": "Valeurs saisies et options sélectionnées",
+        "color": "Couleur du texte",
+        "fontStyle": "Style de texte",
+        "selectTitle": "Choisir la couleur du texte"
+      },
+      "modalTextStyle": {
+        "title": "Texte des modales",
+        "hint": "Options dans les listes de sélection",
+        "color": "Couleur du texte",
+        "fontStyle": "Style de texte",
+        "selectTitle": "Choisir la couleur du texte"
+      },
+      "reset": "Réinitialiser le style de texte",
+      "previewLabel": "Prénom",
+      "previewValue": "Jean"
+    },
     "preview": {
       "title": "Aperçu",
       "hint": "Voici à quoi ressemble l'application maintenant",

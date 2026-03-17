@@ -220,3 +220,20 @@ export {
   type AppleMusicBrowsingState,
   type BrowsableModuleId,
 } from './ModuleBrowsingContext';
+
+export {
+  FieldTextStyleProvider,
+  useFieldTextStyleContext,
+  useFieldTextStyleContextSafe,
+  useLabelStyle,
+  useFieldTextStyle,
+  useModalTextStyle,
+  getTextStyleColorHex,
+  DEFAULT_FIELD_TEXT_STYLE_SETTINGS,
+  type FieldTextStyleContextValue,
+  type FieldTextStyleSettings,
+  type TextStyleColor,
+  type FontStyleOption,
+  type TextStyleSetting,
+  type ResolvedTextStyle,
+} from './FieldTextStyleContext';

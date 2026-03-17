@@ -43,6 +43,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ContactAvatar, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
@@ -100,6 +101,8 @@ export function ProfileSettingsScreen() {
   const navigation = useNavigation();
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
   const screenIsFocused = useIsFocused();
   const { isVoiceSessionActive } = useVoiceFocusContext();
@@ -653,7 +656,7 @@ export function ProfileSettingsScreen() {
           accessibilityRole="button"
           accessibilityHint={t('profile.tapToChange')}
         >
-          <Text style={[styles.pickerValue, { color: accentColor.primary }]}>
+          <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
             {t(`profile.language.${i18n.language as SupportedLanguage}`)}
           </Text>
           <Text style={styles.editIcon}>✏️</Text>
@@ -665,7 +668,7 @@ export function ProfileSettingsScreen() {
       <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.phoneLabel')}</Text>
         <View style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-          <Text style={[styles.pickerValue, { color: accentColor.primary }]}>{profile?.phoneNumber || '—'}</Text>
+          <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>{profile?.phoneNumber || '—'}</Text>
           <Text style={styles.readOnlyIcon}>🔒</Text>
         </View>
         <Text style={[styles.fieldHint, { color: themeColors.textTertiary }]}>{t('profile.phoneReadOnly')}</Text>
@@ -677,11 +680,11 @@ export function ProfileSettingsScreen() {
 
         {/* First name */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.firstNameLabel')}{requiredMark}
           </Text>
           <TextInput
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={displayFirstName}
             onChangeText={setDisplayFirstName}
             onBlur={() => handleNameBlur('firstName', displayFirstName)}
@@ -696,12 +699,12 @@ export function ProfileSettingsScreen() {
 
         {/* Last name */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.lastNameLabel')}{requiredMark}
           </Text>
           <TextInput
             ref={lastNameInputRef}
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={displayLastName}
             onChangeText={setDisplayLastName}
             onBlur={() => handleNameBlur('lastName', displayLastName)}
@@ -715,7 +718,7 @@ export function ProfileSettingsScreen() {
 
         {/* Gender */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('demographics.genderLabel')}{requiredMark}
           </Text>
           <HapticTouchable hapticDisabled
@@ -724,7 +727,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('demographics.genderLabel')}
           >
-            <Text style={[styles.pickerValue, gender ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+            <Text style={[styles.pickerValue, gender ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
               {gender
                 ? t(`demographics.gender.${gender}`)
                 : t('demographics.selectGender')}
@@ -735,7 +738,7 @@ export function ProfileSettingsScreen() {
 
         {/* Birth date */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('profile.personal.birthDateLabel')}{requiredMark}
           </Text>
           <HapticTouchable hapticDisabled
@@ -744,7 +747,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('profile.personal.birthDateLabel')}
           >
-            <Text style={[styles.pickerValue, birthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+            <Text style={[styles.pickerValue, birthDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
               {formatDateDisplay(birthDate)}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
@@ -753,7 +756,7 @@ export function ProfileSettingsScreen() {
 
         {/* Wedding date */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('profile.personal.weddingDateLabel')}
           </Text>
           <HapticTouchable hapticDisabled
@@ -762,7 +765,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('profile.personal.weddingDateLabel')}
           >
-            <Text style={[styles.pickerValue, weddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+            <Text style={[styles.pickerValue, weddingDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
               {formatDateDisplay(weddingDate)}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
@@ -776,7 +779,7 @@ export function ProfileSettingsScreen() {
 
         {/* Country */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('demographics.countryLabel')}{requiredMark}
           </Text>
           <HapticTouchable hapticDisabled
@@ -785,7 +788,7 @@ export function ProfileSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('demographics.countryLabel')}
           >
-            <Text style={[styles.pickerValue, addressCountryCode ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+            <Text style={[styles.pickerValue, addressCountryCode ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
               {addressCountryCode
                 ? `${COUNTRY_FLAGS[addressCountryCode] || ''} ${t(`demographics.countries.${addressCountryCode}`, addressCountryCode)}`
                 : t('demographics.selectCountry')}
@@ -797,11 +800,11 @@ export function ProfileSettingsScreen() {
         {/* Postcode + Huisnummer row */}
         <View style={styles.rowFields}>
           <View style={[styles.fieldContainer, { flex: 1, marginRight: spacing.sm }]}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.personalDetails.addressPostalCode')}{requiredMark}
             </Text>
             <TextInput
-              style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+              style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
               value={addressPostalCode}
               onChangeText={setAddressPostalCode}
               onBlur={() => {
@@ -816,11 +819,11 @@ export function ProfileSettingsScreen() {
             />
           </View>
           <View style={[styles.fieldContainer, { flex: 1 }]}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.profileStep2.houseNumber')}{requiredMark}
             </Text>
             <TextInput
-              style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+              style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
               value={addressHouseNumber}
               onChangeText={setAddressHouseNumber}
               onBlur={() => void handleAddressLookup()}
@@ -845,11 +848,11 @@ export function ProfileSettingsScreen() {
 
         {/* Street */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.personalDetails.addressStreet')}
           </Text>
           <TextInput
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={addressStreet}
             onChangeText={setAddressStreet}
             onBlur={() => handleAddressFieldBlur('addressStreet', addressStreet)}
@@ -862,11 +865,11 @@ export function ProfileSettingsScreen() {
 
         {/* City */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.personalDetails.addressCity')}{requiredMark}
           </Text>
           <TextInput
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={addressCity}
             onChangeText={setAddressCity}
             onBlur={() => handleAddressFieldBlur('addressCity', addressCity)}
@@ -879,11 +882,11 @@ export function ProfileSettingsScreen() {
 
         {/* Province */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.profileStep2.provinceLabel')}
           </Text>
           <TextInput
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={addressProvince}
             onChangeText={setAddressProvince}
             onBlur={() => handleAddressFieldBlur('addressProvince', addressProvince)}
@@ -902,9 +905,9 @@ export function ProfileSettingsScreen() {
 
         {/* Email */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.emailLabel')}</Text>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('profile.personal.emailLabel')}</Text>
           <TextInput
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={personalEmail}
             onChangeText={setPersonalEmail}
             onBlur={() => handleContactFieldBlur('email', personalEmail)}
@@ -920,9 +923,9 @@ export function ProfileSettingsScreen() {
 
         {/* Mobile number */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.mobileLabel')}</Text>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('profile.personal.mobileLabel')}</Text>
           <TextInput
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={personalMobile}
             onChangeText={setPersonalMobile}
             onBlur={() => handleContactFieldBlur('mobileNumber', personalMobile)}
@@ -936,9 +939,9 @@ export function ProfileSettingsScreen() {
 
         {/* Landline number */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>{t('profile.personal.landlineLabel')}</Text>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('profile.personal.landlineLabel')}</Text>
           <TextInput
-            style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
+            style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={personalLandline}
             onChangeText={setPersonalLandline}
             onBlur={() => handleContactFieldBlur('landlineNumber', personalLandline)}

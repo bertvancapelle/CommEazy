@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 
 interface TextInputProps extends Omit<RNTextInputProps, 'style'> {
   label?: string;
@@ -30,18 +31,20 @@ interface TextInputProps extends Omit<RNTextInputProps, 'style'> {
 export const TextInput = forwardRef<RNTextInput, TextInputProps>(
   function TextInputInner({ label, hint, error, containerStyle, ...props }, ref) {
     const { accentColor } = useAccentColor();
+    const labelStyle = useLabelStyle();
+    const fieldTextStyle = useFieldTextStyle();
     const hasError = Boolean(error);
 
     return (
       <View style={[styles.container, containerStyle]}>
         {label && (
-          <Text style={styles.label} accessibilityRole="text">
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]} accessibilityRole="text">
             {label}
           </Text>
         )}
         <RNTextInput
           ref={ref}
-          style={[styles.input, hasError && styles.inputError]}
+          style={[styles.input, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }, hasError && styles.inputError]}
           placeholderTextColor={colors.textTertiary}
           selectionColor={accentColor.primary}
           accessibilityLabel={label}

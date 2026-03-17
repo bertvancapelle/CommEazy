@@ -794,6 +794,40 @@
       "color": "Kantfarge",
       "selectTitle": "Velg kantfarge"
     },
+    "fieldTextStyle": {
+      "title": "Tekststil for felt",
+      "hint": "Tilpass fargene og stilen for etiketter, feltverdier og valgtekst",
+      "fontStyles": {
+        "standard": "Standard",
+        "bold": "Fet",
+        "italic": "Kursiv",
+        "boldItalic": "Fet + Kursiv"
+      },
+      "labelStyle": {
+        "title": "Etiketter",
+        "hint": "Feltetiketter og seksjonsoverskrifter",
+        "color": "Etikettfarge",
+        "fontStyle": "Tekststil",
+        "selectTitle": "Velg etikettfarge"
+      },
+      "fieldTextStyle": {
+        "title": "Felttekst",
+        "hint": "Innskrevne verdier og valgte alternativer",
+        "color": "Tekstfarge",
+        "fontStyle": "Tekststil",
+        "selectTitle": "Velg tekstfarge"
+      },
+      "modalTextStyle": {
+        "title": "Modaltekst",
+        "hint": "Alternativer i valglister",
+        "color": "Tekstfarge",
+        "fontStyle": "Tekststil",
+        "selectTitle": "Velg tekstfarge"
+      },
+      "reset": "Tilbakestill tekststil",
+      "previewLabel": "Fornavn",
+      "previewValue": "Ola"
+    },
     "preview": {
       "title": "Forhåndsvisning",
       "hint": "Slik ser appen ut nå",

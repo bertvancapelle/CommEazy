@@ -36,6 +36,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { Icon, VoiceFocusable, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { getAllAccounts } from '@/services/mail/credentialManager';
@@ -61,6 +62,8 @@ export function MailSettingsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParams>>();
   const themeColors = useColors();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { accentColor } = useAccentColor();
   const { triggerFeedback } = useFeedback();
   const isFocused = useIsFocused();
@@ -338,7 +341,7 @@ export function MailSettingsScreen() {
 
             {/* Message count picker */}
             <View style={styles.settingRow}>
-              <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.settingLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('mailSettings.sync.messageCount')}
               </Text>
             </View>
@@ -350,7 +353,7 @@ export function MailSettingsScreen() {
               accessibilityLabel={t('mailSettings.sync.messageCount')}
               accessibilityHint={t('mailSettings.sync.messageCountHint')}
             >
-              <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
                 {t('mailSettings.sync.messageCountOption', { count: messageCount })}
               </Text>
               <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
@@ -358,7 +361,7 @@ export function MailSettingsScreen() {
 
             {/* Auto-sync toggle */}
             <View style={[styles.toggleRow, { borderBottomColor: themeColors.border }]}>
-              <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.settingLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('mailSettings.sync.autoSync')}
               </Text>
               <Switch
@@ -377,7 +380,7 @@ export function MailSettingsScreen() {
 
             {/* Auto-download attachments toggle */}
             <View style={[styles.toggleRow, { borderBottomColor: 'transparent' }]}>
-              <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.settingLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('mailSettings.sync.autoDownload')}
               </Text>
               <Switch
@@ -429,7 +432,7 @@ export function MailSettingsScreen() {
 
             {/* Cache size display */}
             <View style={styles.infoRow}>
-              <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.settingLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('mailSettings.storage.cacheSize')}
               </Text>
               <Text style={[styles.infoValue, { color: themeColors.textSecondary }]}>
@@ -474,7 +477,7 @@ export function MailSettingsScreen() {
 
             {/* Email notifications toggle */}
             <View style={[styles.toggleRow, { borderBottomColor: themeColors.border }]}>
-              <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.settingLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('mailSettings.security.emailNotifications')}
               </Text>
               <Switch
@@ -493,7 +496,7 @@ export function MailSettingsScreen() {
 
             {/* Biometric lock toggle */}
             <View style={[styles.toggleRow, { borderBottomColor: 'transparent' }]}>
-              <Text style={[styles.settingLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.settingLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('mailSettings.security.biometricLock')}
               </Text>
               <Switch

@@ -706,6 +706,40 @@
       "color": "Randkleur",
       "selectTitle": "Kies randkleur"
     },
+    "fieldTextStyle": {
+      "title": "Tekststijl velden",
+      "hint": "Pas de kleuren en stijl aan van labels, veldwaarden en keuzetekst",
+      "fontStyles": {
+        "standard": "Standaard",
+        "bold": "Vet",
+        "italic": "Cursief",
+        "boldItalic": "Vet + Cursief"
+      },
+      "labelStyle": {
+        "title": "Labels",
+        "hint": "Veldlabels en sectietitels",
+        "color": "Labelkleur",
+        "fontStyle": "Tekststijl",
+        "selectTitle": "Kies labelkleur"
+      },
+      "fieldTextStyle": {
+        "title": "Veldtekst",
+        "hint": "Ingevulde waarden en geselecteerde opties",
+        "color": "Tekstkleur",
+        "fontStyle": "Tekststijl",
+        "selectTitle": "Kies tekstkleur"
+      },
+      "modalTextStyle": {
+        "title": "Modaltekst",
+        "hint": "Opties in keuzelijsten",
+        "color": "Tekstkleur",
+        "fontStyle": "Tekststijl",
+        "selectTitle": "Kies tekstkleur"
+      },
+      "reset": "Tekststijl herstellen",
+      "previewLabel": "Voornaam",
+      "previewValue": "Jan"
+    },
     "preview": {
       "title": "Voorbeeld",
       "hint": "Zo ziet de app er nu uit",

@@ -785,6 +785,40 @@
       "color": "Kolor ramki",
       "selectTitle": "Wybierz kolor ramki"
     },
+    "fieldTextStyle": {
+      "title": "Styl tekstu pól",
+      "hint": "Dostosuj kolory i styl etykiet, wartości pól i tekstu wyboru",
+      "fontStyles": {
+        "standard": "Standardowy",
+        "bold": "Pogrubiony",
+        "italic": "Kursywa",
+        "boldItalic": "Pogrubiony + Kursywa"
+      },
+      "labelStyle": {
+        "title": "Etykiety",
+        "hint": "Etykiety pól i nagłówki sekcji",
+        "color": "Kolor etykiety",
+        "fontStyle": "Styl tekstu",
+        "selectTitle": "Wybierz kolor etykiety"
+      },
+      "fieldTextStyle": {
+        "title": "Tekst pól",
+        "hint": "Wprowadzone wartości i wybrane opcje",
+        "color": "Kolor tekstu",
+        "fontStyle": "Styl tekstu",
+        "selectTitle": "Wybierz kolor tekstu"
+      },
+      "modalTextStyle": {
+        "title": "Tekst modalu",
+        "hint": "Opcje na listach wyboru",
+        "color": "Kolor tekstu",
+        "fontStyle": "Styl tekstu",
+        "selectTitle": "Wybierz kolor tekstu"
+      },
+      "reset": "Zresetuj styl tekstu",
+      "previewLabel": "Imię",
+      "previewValue": "Jan"
+    },
     "preview": {
       "title": "Podgląd",
       "hint": "Tak wygląda aplikacja teraz",

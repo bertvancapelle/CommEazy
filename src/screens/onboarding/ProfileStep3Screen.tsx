@@ -23,6 +23,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
@@ -43,6 +44,8 @@ const COUNTRY_CODES = [
 export function ProfileStep3Screen({ navigation }: Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
 
   const [landlineNumber, setLandlineNumber] = useState('');
@@ -134,7 +137,7 @@ export function ProfileStep3Screen({ navigation }: Props) {
           {/* Landline */}
           <View style={styles.phoneRow}>
             <View style={styles.countryCodeWrapper}>
-              <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('onboarding.personalDetails.landlineCountryCode')}
               </Text>
               <HapticTouchable
@@ -142,7 +145,7 @@ export function ProfileStep3Screen({ navigation }: Props) {
                 style={[styles.countryCodeButton, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}
                 accessibilityLabel={t('accessibility.countryCode')}
               >
-                <Text style={[styles.countryCodeText, { color: themeColors.textPrimary }]}>{landlineCountryCode}</Text>
+                <Text style={[styles.countryCodeText, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>{landlineCountryCode}</Text>
                 <Icon name="chevron-down" size={16} color={themeColors.textSecondary} />
               </HapticTouchable>
               {showLandlineCountryCodes && (
@@ -182,7 +185,7 @@ export function ProfileStep3Screen({ navigation }: Props) {
           {/* Mobile */}
           <View style={styles.phoneRow}>
             <View style={styles.countryCodeWrapper}>
-              <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('onboarding.personalDetails.mobileCountryCode')}
               </Text>
               <HapticTouchable
@@ -190,7 +193,7 @@ export function ProfileStep3Screen({ navigation }: Props) {
                 style={[styles.countryCodeButton, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}
                 accessibilityLabel={t('accessibility.countryCode')}
               >
-                <Text style={[styles.countryCodeText, { color: themeColors.textPrimary }]}>{mobileCountryCode}</Text>
+                <Text style={[styles.countryCodeText, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>{mobileCountryCode}</Text>
                 <Icon name="chevron-down" size={16} color={themeColors.textSecondary} />
               </HapticTouchable>
               {showMobileCountryCodes && (

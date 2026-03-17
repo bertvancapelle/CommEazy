@@ -869,6 +869,40 @@
       "color": "Color del borde",
       "selectTitle": "Elegir color del borde"
     },
+    "fieldTextStyle": {
+      "title": "Estilo de texto de campos",
+      "hint": "Personaliza los colores y el estilo de etiquetas, valores y texto de selección",
+      "fontStyles": {
+        "standard": "Estándar",
+        "bold": "Negrita",
+        "italic": "Cursiva",
+        "boldItalic": "Negrita + Cursiva"
+      },
+      "labelStyle": {
+        "title": "Etiquetas",
+        "hint": "Etiquetas de campos y títulos de sección",
+        "color": "Color de etiqueta",
+        "fontStyle": "Estilo de texto",
+        "selectTitle": "Elegir color de etiqueta"
+      },
+      "fieldTextStyle": {
+        "title": "Texto de campos",
+        "hint": "Valores introducidos y opciones seleccionadas",
+        "color": "Color del texto",
+        "fontStyle": "Estilo de texto",
+        "selectTitle": "Elegir color del texto"
+      },
+      "modalTextStyle": {
+        "title": "Texto de modales",
+        "hint": "Opciones en listas de selección",
+        "color": "Color del texto",
+        "fontStyle": "Estilo de texto",
+        "selectTitle": "Elegir color del texto"
+      },
+      "reset": "Restablecer estilo de texto",
+      "previewLabel": "Nombre",
+      "previewValue": "Juan"
+    },
     "preview": {
       "title": "Vista previa",
       "hint": "Así se ve la aplicación ahora",

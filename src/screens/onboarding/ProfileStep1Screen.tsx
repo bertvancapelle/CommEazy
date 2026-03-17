@@ -24,6 +24,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, DateTimePickerModal } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
@@ -42,6 +43,8 @@ export function ProfileStep1Screen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
 
   const [firstName, setFirstName] = useState('');
@@ -191,7 +194,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
 
           {/* Gender */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('demographics.genderLabel')}
             </Text>
             <View style={styles.genderRow}>
@@ -228,7 +231,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
 
           {/* Birth date */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.personalDetails.birthDate')}
             </Text>
             <HapticTouchable hapticDisabled
@@ -237,7 +240,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('onboarding.personalDetails.birthDate')}
             >
-              <Text style={[styles.pickerValue, birthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              <Text style={[styles.pickerValue, birthDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
                 {formatDateDisplay(birthDate)}
               </Text>
               <Text style={styles.editIcon}>✏️</Text>
@@ -246,7 +249,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
 
           {/* Wedding date (optional) */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.personalDetails.weddingDate')}
             </Text>
             <HapticTouchable hapticDisabled
@@ -255,7 +258,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('onboarding.personalDetails.weddingDate')}
             >
-              <Text style={[styles.pickerValue, weddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              <Text style={[styles.pickerValue, weddingDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
                 {formatDateDisplay(weddingDate)}
               </Text>
               <Text style={styles.editIcon}>✏️</Text>

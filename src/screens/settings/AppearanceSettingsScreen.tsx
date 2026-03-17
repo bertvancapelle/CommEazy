@@ -46,6 +46,12 @@ import {
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
 import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
 import { useButtonStyle, type ButtonBorderColor } from '@/contexts/ButtonStyleContext';
+import {
+  useFieldTextStyleContext,
+  getTextStyleColorHex,
+  type TextStyleColor,
+  type FontStyleOption,
+} from '@/contexts/FieldTextStyleContext';
 import { useModuleLayout } from '@/contexts/ModuleLayoutContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ModuleColorsScreen } from './ModuleColorsScreen';
@@ -80,6 +86,14 @@ const THEME_OPTIONS: ThemeOption[] = [
     labelKey: 'appearance.theme.system',
     hintKey: 'appearance.theme.systemHint',
   },
+];
+
+/** Font style options for the selector */
+const FONT_STYLE_OPTIONS: { value: FontStyleOption; labelKey: string }[] = [
+  { value: 'standard', labelKey: 'appearance.fieldTextStyle.fontStyles.standard' },
+  { value: 'bold', labelKey: 'appearance.fieldTextStyle.fontStyles.bold' },
+  { value: 'italic', labelKey: 'appearance.fieldTextStyle.fontStyles.italic' },
+  { value: 'boldItalic', labelKey: 'appearance.fieldTextStyle.fontStyles.boldItalic' },
 ];
 
 // ============================================================
@@ -252,6 +266,91 @@ function ColorSelectorRow({ label, currentColorHex, currentColorLabel, onPress, 
 }
 
 // ============================================================
+// Font Style Selector Row (for text style settings)
+// ============================================================
+
+interface FontStyleSelectorRowProps {
+  label: string;
+  currentValue: FontStyleOption;
+  onSelect: (value: FontStyleOption) => void;
+  themeColors: typeof colors;
+  accentColor: string;
+}
+
+function FontStyleSelectorRow({ label, currentValue, onSelect, themeColors, accentColor }: FontStyleSelectorRowProps) {
+  const { t } = useTranslation();
+
+  return (
+    <View style={styles.fontStyleContainer}>
+      <Text style={[styles.fontStyleLabel, { color: themeColors.textPrimary }]}>{label}</Text>
+      <View style={styles.fontStyleRow}>
+        {FONT_STYLE_OPTIONS.map((option) => {
+          const isSelected = currentValue === option.value;
+          return (
+            <HapticTouchable
+              key={option.value}
+              onPress={() => onSelect(option.value)}
+              style={[
+                styles.fontStyleOption,
+                {
+                  backgroundColor: isSelected ? accentColor : themeColors.surface,
+                  borderColor: isSelected ? accentColor : themeColors.border,
+                },
+              ]}
+              accessibilityRole="radio"
+              accessibilityLabel={t(option.labelKey)}
+              accessibilityState={{ selected: isSelected }}
+            >
+              <Text
+                style={[
+                  styles.fontStyleOptionText,
+                  { color: isSelected ? colors.textOnPrimary : themeColors.textPrimary },
+                  option.value === 'bold' || option.value === 'boldItalic' ? { fontWeight: '700' } : undefined,
+                  option.value === 'italic' || option.value === 'boldItalic' ? { fontStyle: 'italic' } : undefined,
+                ]}
+              >
+                {t(option.labelKey)}
+              </Text>
+            </HapticTouchable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ============================================================
+// Text Style Preview (shows current text style settings)
+// ============================================================
+
+interface TextStylePreviewProps {
+  labelColor: string;
+  labelFontWeight: '400' | '700';
+  labelFontStyle: 'normal' | 'italic';
+  fieldColor: string;
+  fieldFontWeight: '400' | '700';
+  fieldFontStyle: 'normal' | 'italic';
+  themeColors: typeof colors;
+}
+
+function TextStylePreview({ labelColor, labelFontWeight, labelFontStyle, fieldColor, fieldFontWeight, fieldFontStyle, themeColors }: TextStylePreviewProps) {
+  const { t } = useTranslation();
+
+  return (
+    <View style={[styles.textStylePreview, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+      <Text style={[styles.textStylePreviewLabel, { color: labelColor, fontWeight: labelFontWeight, fontStyle: labelFontStyle }]}>
+        {t('onboarding.firstName')}
+      </Text>
+      <View style={[styles.textStylePreviewField, { borderColor: themeColors.border }]}>
+        <Text style={[styles.textStylePreviewValue, { color: fieldColor, fontWeight: fieldFontWeight, fontStyle: fieldFontStyle }]}>
+          Jan
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// ============================================================
 // Main Screen
 // ============================================================
 
@@ -281,6 +380,17 @@ export function AppearanceSettingsScreen() {
     getBorderColorHex,
   } = useButtonStyle();
 
+  // Field text style context
+  const {
+    settings: textStyleSettings,
+    labelStyle,
+    fieldTextStyle,
+    setLabelSetting,
+    setFieldTextSetting,
+    setModalTextSetting,
+    resetAll: resetAllTextStyles,
+  } = useFieldTextStyleContext();
+
   // Module layout context
   const { toolbarPosition, toggleToolbarPosition, resetToDefault, isCustomized } = useModuleLayout();
 
@@ -289,6 +399,9 @@ export function AppearanceSettingsScreen() {
   const [showGlobalColorPicker, setShowGlobalColorPicker] = useState(false);
   const [showButtonBorderColorPicker, setShowButtonBorderColorPicker] = useState(false);
   const [showModuleColors, setShowModuleColors] = useState(false);
+  const [showLabelColorPicker, setShowLabelColorPicker] = useState(false);
+  const [showFieldTextColorPicker, setShowFieldTextColorPicker] = useState(false);
+  const [showModalTextColorPicker, setShowModalTextColorPicker] = useState(false);
 
   // Prepare color options for modals (unified palette)
   const colorOptions = ACCENT_COLOR_KEYS.map((key) => ({
@@ -384,6 +497,83 @@ export function AppearanceSettingsScreen() {
     { value: 'white', hex: '#FFFFFF', label: t('colors.white') },
     { value: 'black', hex: '#000000', label: t('colors.black') },
   ];
+
+  // Text style color options (16 accent colors + white + black)
+  const textStyleColorOptions: Array<{ value: TextStyleColor; hex: string; label: string }> = [
+    ...colorOptions.map(opt => ({ ...opt, value: opt.value as TextStyleColor, hex: ACCENT_COLORS[opt.value].primaryLight || ACCENT_COLORS[opt.value].primary })),
+    { value: 'white', hex: '#FFFFFF', label: t('colors.white') },
+    { value: 'black', hex: '#1A1A1A', label: t('colors.black') },
+  ];
+
+  // Text style color label helper
+  const getTextStyleColorLabel = (colorKey: TextStyleColor): string => {
+    if (colorKey === 'white') return t('colors.white');
+    if (colorKey === 'black') return t('colors.black');
+    return t(ACCENT_COLORS[colorKey]?.label || 'colors.black');
+  };
+
+  // Text style handlers
+  const handleLabelColorSelect = useCallback(
+    async (color: TextStyleColor) => {
+      await triggerFeedback('tap');
+      await setLabelSetting({ color });
+    },
+    [setLabelSetting, triggerFeedback]
+  );
+
+  const handleFieldTextColorSelect = useCallback(
+    async (color: TextStyleColor) => {
+      await triggerFeedback('tap');
+      await setFieldTextSetting({ color });
+    },
+    [setFieldTextSetting, triggerFeedback]
+  );
+
+  const handleModalTextColorSelect = useCallback(
+    async (color: TextStyleColor) => {
+      await triggerFeedback('tap');
+      await setModalTextSetting({ color });
+    },
+    [setModalTextSetting, triggerFeedback]
+  );
+
+  const handleLabelFontStyleSelect = useCallback(
+    async (fontStyle: FontStyleOption) => {
+      await triggerFeedback('tap');
+      await setLabelSetting({ fontStyle });
+    },
+    [setLabelSetting, triggerFeedback]
+  );
+
+  const handleFieldTextFontStyleSelect = useCallback(
+    async (fontStyle: FontStyleOption) => {
+      await triggerFeedback('tap');
+      await setFieldTextSetting({ fontStyle });
+    },
+    [setFieldTextSetting, triggerFeedback]
+  );
+
+  const handleModalTextFontStyleSelect = useCallback(
+    async (fontStyle: FontStyleOption) => {
+      await triggerFeedback('tap');
+      await setModalTextSetting({ fontStyle });
+    },
+    [setModalTextSetting, triggerFeedback]
+  );
+
+  const handleResetTextStyles = useCallback(async () => {
+    await triggerFeedback('tap');
+    await resetAllTextStyles();
+  }, [resetAllTextStyles, triggerFeedback]);
+
+  // Check if any text style is customized (not default)
+  const isTextStyleCustomized =
+    textStyleSettings.label.color !== 'black' ||
+    textStyleSettings.label.fontStyle !== 'standard' ||
+    textStyleSettings.fieldText.color !== 'blue' ||
+    textStyleSettings.fieldText.fontStyle !== 'standard' ||
+    textStyleSettings.modalText.color !== 'black' ||
+    textStyleSettings.modalText.fontStyle !== 'standard';
 
   // Get current button border color label
   const getButtonBorderColorLabel = (): string => {
@@ -573,6 +763,137 @@ export function AppearanceSettingsScreen() {
           selectedValue={buttonStyleSettings.borderColor}
           title={t('appearance.buttonBorder.selectTitle')}
         />
+      </View>
+
+      {/* Text Style Section */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>{t('appearance.fieldTextStyle.title')}</Text>
+        <Text style={[styles.sectionHint, { color: themeColors.textSecondary }]}>{t('appearance.fieldTextStyle.hint')}</Text>
+
+        {/* Preview */}
+        <TextStylePreview
+          labelColor={labelStyle.color}
+          labelFontWeight={labelStyle.fontWeight}
+          labelFontStyle={labelStyle.fontStyle}
+          fieldColor={fieldTextStyle.color}
+          fieldFontWeight={fieldTextStyle.fontWeight}
+          fieldFontStyle={fieldTextStyle.fontStyle}
+          themeColors={themeColors}
+        />
+
+        {/* Label Style subsection */}
+        <Text style={[styles.textStyleSubTitle, { color: themeColors.textPrimary }]}>
+          {t('appearance.fieldTextStyle.labelStyle.title')}
+        </Text>
+        <Text style={[styles.textStyleSubHint, { color: themeColors.textSecondary }]}>
+          {t('appearance.fieldTextStyle.labelStyle.hint')}
+        </Text>
+
+        <ColorSelectorRow
+          label={t('appearance.fieldTextStyle.labelStyle.color')}
+          currentColorHex={getTextStyleColorHex(textStyleSettings.label.color)}
+          currentColorLabel={getTextStyleColorLabel(textStyleSettings.label.color)}
+          onPress={() => setShowLabelColorPicker(true)}
+          themeColors={themeColors}
+        />
+        <FontStyleSelectorRow
+          label={t('appearance.fieldTextStyle.labelStyle.fontStyle')}
+          currentValue={textStyleSettings.label.fontStyle}
+          onSelect={(fs) => void handleLabelFontStyleSelect(fs)}
+          themeColors={themeColors}
+          accentColor={accentColor.primary}
+        />
+
+        {/* Label Color Picker Modal */}
+        <ColorPickerModal
+          visible={showLabelColorPicker}
+          onClose={() => setShowLabelColorPicker(false)}
+          onSelect={(color) => void handleLabelColorSelect(color)}
+          colors={textStyleColorOptions}
+          selectedValue={textStyleSettings.label.color}
+          title={t('appearance.fieldTextStyle.labelStyle.selectTitle')}
+        />
+
+        {/* Field Text Style subsection */}
+        <Text style={[styles.textStyleSubTitle, { color: themeColors.textPrimary }]}>
+          {t('appearance.fieldTextStyle.fieldTextStyle.title')}
+        </Text>
+        <Text style={[styles.textStyleSubHint, { color: themeColors.textSecondary }]}>
+          {t('appearance.fieldTextStyle.fieldTextStyle.hint')}
+        </Text>
+
+        <ColorSelectorRow
+          label={t('appearance.fieldTextStyle.fieldTextStyle.color')}
+          currentColorHex={getTextStyleColorHex(textStyleSettings.fieldText.color)}
+          currentColorLabel={getTextStyleColorLabel(textStyleSettings.fieldText.color)}
+          onPress={() => setShowFieldTextColorPicker(true)}
+          themeColors={themeColors}
+        />
+        <FontStyleSelectorRow
+          label={t('appearance.fieldTextStyle.fieldTextStyle.fontStyle')}
+          currentValue={textStyleSettings.fieldText.fontStyle}
+          onSelect={(fs) => void handleFieldTextFontStyleSelect(fs)}
+          themeColors={themeColors}
+          accentColor={accentColor.primary}
+        />
+
+        {/* Field Text Color Picker Modal */}
+        <ColorPickerModal
+          visible={showFieldTextColorPicker}
+          onClose={() => setShowFieldTextColorPicker(false)}
+          onSelect={(color) => void handleFieldTextColorSelect(color)}
+          colors={textStyleColorOptions}
+          selectedValue={textStyleSettings.fieldText.color}
+          title={t('appearance.fieldTextStyle.fieldTextStyle.selectTitle')}
+        />
+
+        {/* Modal Text Style subsection */}
+        <Text style={[styles.textStyleSubTitle, { color: themeColors.textPrimary }]}>
+          {t('appearance.fieldTextStyle.modalTextStyle.title')}
+        </Text>
+        <Text style={[styles.textStyleSubHint, { color: themeColors.textSecondary }]}>
+          {t('appearance.fieldTextStyle.modalTextStyle.hint')}
+        </Text>
+
+        <ColorSelectorRow
+          label={t('appearance.fieldTextStyle.modalTextStyle.color')}
+          currentColorHex={getTextStyleColorHex(textStyleSettings.modalText.color)}
+          currentColorLabel={getTextStyleColorLabel(textStyleSettings.modalText.color)}
+          onPress={() => setShowModalTextColorPicker(true)}
+          themeColors={themeColors}
+        />
+        <FontStyleSelectorRow
+          label={t('appearance.fieldTextStyle.modalTextStyle.fontStyle')}
+          currentValue={textStyleSettings.modalText.fontStyle}
+          onSelect={(fs) => void handleModalTextFontStyleSelect(fs)}
+          themeColors={themeColors}
+          accentColor={accentColor.primary}
+        />
+
+        {/* Modal Text Color Picker Modal */}
+        <ColorPickerModal
+          visible={showModalTextColorPicker}
+          onClose={() => setShowModalTextColorPicker(false)}
+          onSelect={(color) => void handleModalTextColorSelect(color)}
+          colors={textStyleColorOptions}
+          selectedValue={textStyleSettings.modalText.color}
+          title={t('appearance.fieldTextStyle.modalTextStyle.selectTitle')}
+        />
+
+        {/* Reset text styles button */}
+        {isTextStyleCustomized && (
+          <HapticTouchable hapticDisabled
+            style={[styles.resetInlineButton, { borderColor: themeColors.border }]}
+            onPress={() => void handleResetTextStyles()}
+            accessibilityRole="button"
+            accessibilityLabel={t('appearance.fieldTextStyle.reset')}
+          >
+            <Icon name="refresh" size={16} color={themeColors.textSecondary} />
+            <Text style={[styles.resetInlineButtonText, { color: themeColors.textSecondary }]}>
+              {t('appearance.fieldTextStyle.reset')}
+            </Text>
+          </HapticTouchable>
+        )}
       </View>
 
       {/* Module Layout Section — Toolbar Position */}
@@ -1038,5 +1359,68 @@ const styles = StyleSheet.create({
   // Disabled state
   disabledSection: {
     opacity: 0.5,
+  },
+  // Text Style Section
+  textStyleSubTitle: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  textStyleSubHint: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  fontStyleContainer: {
+    marginBottom: spacing.sm,
+  },
+  fontStyleLabel: {
+    ...typography.small,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  fontStyleRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  fontStyleOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.xs,
+  },
+  fontStyleOptionText: {
+    ...typography.small,
+    textAlign: 'center',
+  },
+  textStylePreview: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  textStylePreviewLabel: {
+    ...typography.body,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  textStylePreviewField: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  textStylePreviewValue: {
+    ...typography.body,
   },
 });

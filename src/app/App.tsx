@@ -31,6 +31,7 @@ import { FavoriteLocationsProvider } from '@/contexts/FavoriteLocationsContext';
 import { ReducedMotionProvider } from '@/contexts/ReducedMotionContext';
 import { PresenceProvider } from '@/contexts/PresenceContext';
 import { PlaylistImportProvider } from '@/contexts/PlaylistImportContext';
+import { FieldTextStyleProvider } from '@/contexts/FieldTextStyleContext';
 import { FloatingImportIndicator } from '@/components';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
@@ -111,6 +112,7 @@ export default function App() {
         <ServiceProvider reducedMotion={reducedMotion}>
           <FeedbackProvider>
           <ThemeSystemProvider>
+          <FieldTextStyleProvider>
             <PresenceProvider>
               <VoiceSystemProvider>
                 <HoldGestureProvider>
@@ -135,6 +137,7 @@ export default function App() {
                 </HoldGestureProvider>
               </VoiceSystemProvider>
             </PresenceProvider>
+          </FieldTextStyleProvider>
           </ThemeSystemProvider>
           </FeedbackProvider>
         </ServiceProvider>
