@@ -129,7 +129,7 @@ export function ContactDetailScreen() {
   const { navigateToModuleInOtherPane } = useNavigateToModule();
 
   const { groups, addContacts, removeContacts } = useContactGroups();
-  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
   const [notification, setNotification] = useState<{
     type: 'error' | 'warning' | 'info' | 'success';
@@ -496,7 +496,7 @@ export function ContactDetailScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={100}
     >
-    <ScrollViewWithIndicator ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+    <ScrollViewWithIndicator ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" onScroll={handleScrollToField} scrollEventThrottle={16}>
       {notification && (
         <ErrorView
           type={notification.type}

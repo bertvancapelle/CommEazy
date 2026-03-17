@@ -29,7 +29,7 @@ import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon , ScrollViewWithIndicator } from '@/components';
+import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon , ScrollViewWithIndicator, ModalLayout } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -192,167 +192,171 @@ export function EditGroupModal({
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
         <LiquidGlassView moduleId="groups" style={styles.modal} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
-            <HapticTouchable
-              style={styles.closeButton}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.cancel')}
-            >
-              <Icon name="close" size={24} color={themeColors.textSecondary} />
-            </HapticTouchable>
-
-            <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
-              {group.emoji ? `${group.emoji} ` : ''}{group.name}
-            </Text>
-
-            <HapticTouchable
-              style={[
-                styles.saveButton,
-                {
-                  backgroundColor: hasChanges && isValid
-                    ? themeColors.primary
-                    : themeColors.border,
-                },
-              ]}
-              onPress={handleSave}
-              disabled={!hasChanges || !isValid}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.save', 'Opslaan')}
-              accessibilityState={{ disabled: !hasChanges || !isValid }}
-            >
-              <Text
-                style={[
-                  styles.saveButtonText,
-                  {
-                    color: hasChanges && isValid
-                      ? themeColors.textOnPrimary
-                      : themeColors.textTertiary,
-                  },
-                ]}
-              >
-                {t('common.save', 'Opslaan')}
-              </Text>
-            </HapticTouchable>
-          </View>
-
-          <ScrollViewWithIndicator
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Group name edit */}
-            <VoiceTextInput
-              voiceId="edit-group-name"
-              label={t('contacts.groups.renameGroup', 'Hernoemen')}
-              value={editName}
-              onChangeText={handleNameChange}
-              maxLength={50}
-            />
-
-            {/* Emoji selector */}
-            <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
-              {t('contacts.groups.changeEmoji', 'Icoon wijzigen')}
-            </Text>
-            <View style={styles.emojiGrid}>
-              {GROUP_EMOJIS.map((emoji) => (
-                <HapticTouchable hapticDisabled
-                  key={emoji}
-                  style={[
-                    styles.emojiButton,
-                    selectedEmoji === emoji && {
-                      backgroundColor: `${themeColors.primary}20`,
-                      borderColor: themeColors.primary,
-                      borderWidth: 2,
-                    },
-                  ]}
-                  onPress={() => handleEmojiSelect(emoji)}
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
+                <HapticTouchable
+                  style={styles.closeButton}
+                  onPress={onClose}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: selectedEmoji === emoji }}
-                  accessibilityLabel={emoji}
+                  accessibilityLabel={t('common.cancel')}
                 >
-                  <Text style={styles.emojiText}>{emoji}</Text>
+                  <Icon name="close" size={24} color={themeColors.textSecondary} />
                 </HapticTouchable>
-              ))}
-            </View>
 
-            {/* Member management */}
-            <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
-              {t('contacts.groups.manageMembers', 'Leden beheren')}
-              <Text style={{ color: themeColors.textSecondary }}>
-                {` (${memberJids.size})`}
-              </Text>
-            </Text>
+                <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
+                  {group.emoji ? `${group.emoji} ` : ''}{group.name}
+                </Text>
 
-            {sortedContacts.map((contact) => {
-              const displayName = getContactDisplayName(contact);
-              const isMember = memberJids.has(contact.jid);
-
-              return (
-                <HapticTouchable hapticDisabled
-                  key={contact.jid}
+                <HapticTouchable
                   style={[
-                    styles.contactRow,
+                    styles.saveButton,
                     {
-                      backgroundColor: isMember
-                        ? `${themeColors.primary}10`
-                        : themeColors.surface,
-                      borderBottomColor: themeColors.divider,
+                      backgroundColor: hasChanges && isValid
+                        ? themeColors.primary
+                        : themeColors.border,
                     },
                   ]}
-                  onPress={() => toggleContact(contact.jid)}
-                  activeOpacity={0.7}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: isMember }}
-                  accessibilityLabel={displayName}
+                  onPress={handleSave}
+                  disabled={!hasChanges || !isValid}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.save', 'Opslaan')}
+                  accessibilityState={{ disabled: !hasChanges || !isValid }}
                 >
-                  <ContactAvatar
-                    name={displayName}
-                    photoUrl={contact.photoUrl}
-                    size={48}
-                  />
                   <Text
-                    style={[styles.contactName, { color: themeColors.textPrimary }]}
-                    numberOfLines={1}
-                  >
-                    {displayName}
-                  </Text>
-                  <View
                     style={[
-                      styles.checkbox,
+                      styles.saveButtonText,
                       {
-                        backgroundColor: isMember ? themeColors.primary : 'transparent',
-                        borderColor: isMember ? themeColors.primary : themeColors.border,
+                        color: hasChanges && isValid
+                          ? themeColors.textOnPrimary
+                          : themeColors.textTertiary,
                       },
                     ]}
                   >
-                    {isMember && (
-                      <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
-                    )}
-                  </View>
+                    {t('common.save', 'Opslaan')}
+                  </Text>
                 </HapticTouchable>
-              );
-            })}
-
-            {/* Delete group button */}
-            <View style={styles.deleteSection}>
-              <HapticTouchable
-                style={[styles.deleteButton, { borderColor: themeColors.error }]}
-                onPress={handleDelete}
-                accessibilityRole="button"
-                accessibilityLabel={t('contacts.groups.deleteGroup', 'Groep verwijderen')}
+              </View>
+            }
+            contentBlock={
+              <ScrollViewWithIndicator
+                style={styles.content}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
               >
-                <Icon name="trash" size={20} color={themeColors.error} />
-                <Text style={[styles.deleteButtonText, { color: themeColors.error }]}>
-                  {t('contacts.groups.deleteGroup', 'Groep verwijderen')}
-                </Text>
-              </HapticTouchable>
-            </View>
+                {/* Group name edit */}
+                <VoiceTextInput
+                  voiceId="edit-group-name"
+                  label={t('contacts.groups.renameGroup', 'Hernoemen')}
+                  value={editName}
+                  onChangeText={handleNameChange}
+                  maxLength={50}
+                />
 
-            {/* Bottom spacing */}
-            <View style={{ height: spacing.xl }} />
-          </ScrollViewWithIndicator>
+                {/* Emoji selector */}
+                <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
+                  {t('contacts.groups.changeEmoji', 'Icoon wijzigen')}
+                </Text>
+                <View style={styles.emojiGrid}>
+                  {GROUP_EMOJIS.map((emoji) => (
+                    <HapticTouchable hapticDisabled
+                      key={emoji}
+                      style={[
+                        styles.emojiButton,
+                        selectedEmoji === emoji && {
+                          backgroundColor: `${themeColors.primary}20`,
+                          borderColor: themeColors.primary,
+                          borderWidth: 2,
+                        },
+                      ]}
+                      onPress={() => handleEmojiSelect(emoji)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: selectedEmoji === emoji }}
+                      accessibilityLabel={emoji}
+                    >
+                      <Text style={styles.emojiText}>{emoji}</Text>
+                    </HapticTouchable>
+                  ))}
+                </View>
+
+                {/* Member management */}
+                <Text style={[styles.sectionLabel, { color: themeColors.textPrimary }]}>
+                  {t('contacts.groups.manageMembers', 'Leden beheren')}
+                  <Text style={{ color: themeColors.textSecondary }}>
+                    {` (${memberJids.size})`}
+                  </Text>
+                </Text>
+
+                {sortedContacts.map((contact) => {
+                  const displayName = getContactDisplayName(contact);
+                  const isMember = memberJids.has(contact.jid);
+
+                  return (
+                    <HapticTouchable hapticDisabled
+                      key={contact.jid}
+                      style={[
+                        styles.contactRow,
+                        {
+                          backgroundColor: isMember
+                            ? `${themeColors.primary}10`
+                            : themeColors.surface,
+                          borderBottomColor: themeColors.divider,
+                        },
+                      ]}
+                      onPress={() => toggleContact(contact.jid)}
+                      activeOpacity={0.7}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: isMember }}
+                      accessibilityLabel={displayName}
+                    >
+                      <ContactAvatar
+                        name={displayName}
+                        photoUrl={contact.photoUrl}
+                        size={48}
+                      />
+                      <Text
+                        style={[styles.contactName, { color: themeColors.textPrimary }]}
+                        numberOfLines={1}
+                      >
+                        {displayName}
+                      </Text>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          {
+                            backgroundColor: isMember ? themeColors.primary : 'transparent',
+                            borderColor: isMember ? themeColors.primary : themeColors.border,
+                          },
+                        ]}
+                      >
+                        {isMember && (
+                          <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
+                        )}
+                      </View>
+                    </HapticTouchable>
+                  );
+                })}
+
+                {/* Delete group button */}
+                <View style={styles.deleteSection}>
+                  <HapticTouchable
+                    style={[styles.deleteButton, { borderColor: themeColors.error }]}
+                    onPress={handleDelete}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('contacts.groups.deleteGroup', 'Groep verwijderen')}
+                  >
+                    <Icon name="trash" size={20} color={themeColors.error} />
+                    <Text style={[styles.deleteButtonText, { color: themeColors.error }]}>
+                      {t('contacts.groups.deleteGroup', 'Groep verwijderen')}
+                    </Text>
+                  </HapticTouchable>
+                </View>
+
+                {/* Bottom spacing */}
+                <View style={{ height: spacing.xl }} />
+              </ScrollViewWithIndicator>
+            }
+          />
         </LiquidGlassView>
       </View>
     </PanelAwareModal>

@@ -628,7 +628,7 @@ export function MailComposeScreen({
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { triggerHaptic } = useFeedback();
-  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
   // Contact loading
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -1086,6 +1086,8 @@ export function MailComposeScreen({
         ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        onScroll={handleScrollToField}
+        scrollEventThrottle={16}
       >
         {/* To — Recipient chips with inline search */}
         <View ref={registerField('to')}>

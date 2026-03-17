@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, Icon , ScrollViewWithIndicator } from '@/components';
+import { PanelAwareModal, HapticTouchable, Icon, ScrollViewWithIndicator, ModalLayout } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { MusicCollection } from '@/services/music';
@@ -189,186 +189,190 @@ export function SongCollectionModal({
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
         <LiquidGlassView moduleId="appleMusic" style={styles.modal} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
-            <HapticTouchable
-              style={styles.closeButton}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.close', 'Sluiten')}
-            >
-              <Icon name="close" size={24} color={themeColors.textSecondary} />
-            </HapticTouchable>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
+                <HapticTouchable
+                  style={styles.closeButton}
+                  onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close', 'Sluiten')}
+                >
+                  <Icon name="close" size={24} color={themeColors.textSecondary} />
+                </HapticTouchable>
 
-            <View style={styles.headerCenter}>
-              <Text
-                style={[styles.headerTitle, { color: themeColors.textPrimary }]}
-                numberOfLines={1}
-              >
-                {t('appleMusic.collections.addToCollection', 'Toevoegen aan...')}
-              </Text>
-              <Text
-                style={[styles.headerSubtitle, { color: themeColors.textSecondary }]}
-                numberOfLines={1}
-              >
-                {songTitle}
-              </Text>
-            </View>
-
-            {/* Spacer to balance header */}
-            <View style={styles.closeButton} />
-          </View>
-
-          <ScrollViewWithIndicator
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Collection list */}
-            {collections.length > 0 ? (
-              collections.map(collection => {
-                const isMember = membershipMap[collection.id] ?? false;
-
-                return (
-                  <HapticTouchable
-                    key={collection.id}
-                    style={[
-                      styles.collectionRow,
-                      {
-                        backgroundColor: isMember
-                          ? `${themeColors.primary}10`
-                          : themeColors.surface,
-                        borderBottomColor: themeColors.divider,
-                      },
-                    ]}
-                    onPress={() => handleToggle(collection.id)}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: isMember }}
-                    accessibilityLabel={`${collection.name}, ${collection.songCatalogIds.length} ${t('appleMusic.collections.songs', 'nummers')}`}
+                <View style={styles.headerCenter}>
+                  <Text
+                    style={[styles.headerTitle, { color: themeColors.textPrimary }]}
+                    numberOfLines={1}
                   >
-                    <View
+                    {t('appleMusic.collections.addToCollection', 'Toevoegen aan...')}
+                  </Text>
+                  <Text
+                    style={[styles.headerSubtitle, { color: themeColors.textSecondary }]}
+                    numberOfLines={1}
+                  >
+                    {songTitle}
+                  </Text>
+                </View>
+
+                {/* Spacer to balance header */}
+                <View style={styles.closeButton} />
+              </View>
+            }
+            contentBlock={
+              <ScrollViewWithIndicator
+                style={styles.content}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Collection list */}
+                {collections.length > 0 ? (
+                  collections.map(collection => {
+                    const isMember = membershipMap[collection.id] ?? false;
+
+                    return (
+                      <HapticTouchable
+                        key={collection.id}
+                        style={[
+                          styles.collectionRow,
+                          {
+                            backgroundColor: isMember
+                              ? `${themeColors.primary}10`
+                              : themeColors.surface,
+                            borderBottomColor: themeColors.divider,
+                          },
+                        ]}
+                        onPress={() => handleToggle(collection.id)}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: isMember }}
+                        accessibilityLabel={`${collection.name}, ${collection.songCatalogIds.length} ${t('appleMusic.collections.songs', 'nummers')}`}
+                      >
+                        <View
+                          style={[
+                            styles.checkbox,
+                            {
+                              backgroundColor: isMember ? themeColors.primary : 'transparent',
+                              borderColor: isMember ? themeColors.primary : themeColors.border,
+                            },
+                          ]}
+                        >
+                          {isMember && (
+                            <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
+                          )}
+                        </View>
+                        <View style={styles.collectionInfo}>
+                          <Text
+                            style={[styles.collectionName, { color: themeColors.textPrimary }]}
+                            numberOfLines={1}
+                          >
+                            {collection.name}
+                          </Text>
+                          <Text style={[styles.collectionCount, { color: themeColors.textSecondary }]}>
+                            {t('appleMusic.collections.songCount', '{{count}} nummers', {
+                              count: collection.songCatalogIds.length,
+                            })}
+                          </Text>
+                        </View>
+                      </HapticTouchable>
+                    );
+                  })
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                      {t('appleMusic.collections.noListsYet', 'Je hebt nog geen lijsten')}
+                    </Text>
+                  </View>
+                )}
+
+                {/* "+ Nieuwe lijst" section */}
+                {!showCreateForm ? (
+                  <HapticTouchable
+                    style={[
+                      styles.createRow,
+                      { borderBottomColor: themeColors.divider },
+                    ]}
+                    onPress={() => {
+                      void triggerFeedback('tap');
+                      setShowCreateForm(true);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('appleMusic.collections.createCollection', 'Nieuwe lijst')}
+                  >
+                    <View style={[styles.createIcon, { backgroundColor: `${themeColors.primary}20` }]}>
+                      <Icon name="add" size={20} color={themeColors.primary} />
+                    </View>
+                    <Text style={[styles.createText, { color: themeColors.primary }]}>
+                      {t('appleMusic.collections.createCollection', 'Nieuwe lijst')}
+                    </Text>
+                  </HapticTouchable>
+                ) : (
+                  <View style={[styles.createForm, { borderBottomColor: themeColors.divider }]}>
+                    <TextInput
                       style={[
-                        styles.checkbox,
+                        styles.createInput,
                         {
-                          backgroundColor: isMember ? themeColors.primary : 'transparent',
-                          borderColor: isMember ? themeColors.primary : themeColors.border,
+                          color: themeColors.textPrimary,
+                          borderColor: themeColors.border,
+                          backgroundColor: themeColors.surface,
                         },
                       ]}
-                    >
-                      {isMember && (
-                        <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
-                      )}
-                    </View>
-                    <View style={styles.collectionInfo}>
-                      <Text
-                        style={[styles.collectionName, { color: themeColors.textPrimary }]}
-                        numberOfLines={1}
-                      >
-                        {collection.name}
-                      </Text>
-                      <Text style={[styles.collectionCount, { color: themeColors.textSecondary }]}>
-                        {t('appleMusic.collections.songCount', '{{count}} nummers', {
-                          count: collection.songCatalogIds.length,
-                        })}
-                      </Text>
-                    </View>
-                  </HapticTouchable>
-                );
-              })
-            ) : (
-              <View style={styles.emptyState}>
-                <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-                  {t('appleMusic.collections.noListsYet', 'Je hebt nog geen lijsten')}
-                </Text>
-              </View>
-            )}
-
-            {/* "+ Nieuwe lijst" section */}
-            {!showCreateForm ? (
-              <HapticTouchable
-                style={[
-                  styles.createRow,
-                  { borderBottomColor: themeColors.divider },
-                ]}
-                onPress={() => {
-                  void triggerFeedback('tap');
-                  setShowCreateForm(true);
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t('appleMusic.collections.createCollection', 'Nieuwe lijst')}
-              >
-                <View style={[styles.createIcon, { backgroundColor: `${themeColors.primary}20` }]}>
-                  <Icon name="add" size={20} color={themeColors.primary} />
-                </View>
-                <Text style={[styles.createText, { color: themeColors.primary }]}>
-                  {t('appleMusic.collections.createCollection', 'Nieuwe lijst')}
-                </Text>
-              </HapticTouchable>
-            ) : (
-              <View style={[styles.createForm, { borderBottomColor: themeColors.divider }]}>
-                <TextInput
-                  style={[
-                    styles.createInput,
-                    {
-                      color: themeColors.textPrimary,
-                      borderColor: themeColors.border,
-                      backgroundColor: themeColors.surface,
-                    },
-                  ]}
-                  placeholder={t('appleMusic.collections.newListName', 'Naam van nieuwe lijst')}
-                  placeholderTextColor={themeColors.textSecondary}
-                  value={newListName}
-                  onChangeText={setNewListName}
-                  autoFocus
-                  maxLength={50}
-                  returnKeyType="done"
-                  onSubmitEditing={handleCreateAndAdd}
-                />
-                <HapticTouchable
-                  style={[
-                    styles.createAndAddButton,
-                    {
-                      backgroundColor: newListName.trim() ? themeColors.primary : themeColors.border,
-                    },
-                  ]}
-                  onPress={handleCreateAndAdd}
-                  disabled={!newListName.trim() || isCreating}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('appleMusic.collections.createAndAdd', 'Maak aan + voeg toe')}
-                >
-                  {isCreating ? (
-                    <ActivityIndicator size="small" color={themeColors.textOnPrimary} />
-                  ) : (
-                    <Text
+                      placeholder={t('appleMusic.collections.newListName', 'Naam van nieuwe lijst')}
+                      placeholderTextColor={themeColors.textSecondary}
+                      value={newListName}
+                      onChangeText={setNewListName}
+                      autoFocus
+                      maxLength={50}
+                      returnKeyType="done"
+                      onSubmitEditing={handleCreateAndAdd}
+                    />
+                    <HapticTouchable
                       style={[
-                        styles.createAndAddText,
-                        { color: newListName.trim() ? themeColors.textOnPrimary : themeColors.textSecondary },
+                        styles.createAndAddButton,
+                        {
+                          backgroundColor: newListName.trim() ? themeColors.primary : themeColors.border,
+                        },
                       ]}
+                      onPress={handleCreateAndAdd}
+                      disabled={!newListName.trim() || isCreating}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('appleMusic.collections.createAndAdd', 'Maak aan + voeg toe')}
                     >
-                      {t('appleMusic.collections.createAndAdd', 'Maak aan + voeg toe')}
-                    </Text>
-                  )}
+                      {isCreating ? (
+                        <ActivityIndicator size="small" color={themeColors.textOnPrimary} />
+                      ) : (
+                        <Text
+                          style={[
+                            styles.createAndAddText,
+                            { color: newListName.trim() ? themeColors.textOnPrimary : themeColors.textSecondary },
+                          ]}
+                        >
+                          {t('appleMusic.collections.createAndAdd', 'Maak aan + voeg toe')}
+                        </Text>
+                      )}
+                    </HapticTouchable>
+                  </View>
+                )}
+
+                {/* Bottom spacing */}
+                <View style={{ height: spacing.md }} />
+              </ScrollViewWithIndicator>
+            }
+            footerBlock={
+              <View style={[styles.footer, { borderTopColor: themeColors.divider }]}>
+                <HapticTouchable
+                  style={[styles.saveButton, { backgroundColor: themeColors.primary }]}
+                  onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('appleMusic.collections.save', 'Opslaan')}
+                >
+                  <Text style={[styles.saveButtonText, { color: themeColors.textOnPrimary }]}>
+                    {t('appleMusic.collections.save', 'Opslaan')}
+                  </Text>
                 </HapticTouchable>
               </View>
-            )}
-
-            {/* Bottom spacing */}
-            <View style={{ height: spacing.md }} />
-          </ScrollViewWithIndicator>
-
-          {/* Save/Close button */}
-          <View style={[styles.footer, { borderTopColor: themeColors.divider }]}>
-            <HapticTouchable
-              style={[styles.saveButton, { backgroundColor: themeColors.primary }]}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('appleMusic.collections.save', 'Opslaan')}
-            >
-              <Text style={[styles.saveButtonText, { color: themeColors.textOnPrimary }]}>
-                {t('appleMusic.collections.save', 'Opslaan')}
-              </Text>
-            </HapticTouchable>
-          </View>
+            }
+          />
         </LiquidGlassView>
       </View>
     </PanelAwareModal>

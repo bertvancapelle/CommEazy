@@ -26,6 +26,7 @@ import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, borderRadius, touchTargets, animation } from '@/theme';
+import { ModalLayout } from './ModalLayout';
 import { LiquidGlassView } from './LiquidGlassView';
 import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
@@ -271,86 +272,89 @@ export function ContactSelectionModal({
           accessibilityLabel={getTitle()}
         >
           <LiquidGlassView moduleId="contacts" style={styles.modal} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{getTitle()}</Text>
-            {getSubtitle() && (
-              <Text style={styles.subtitle}>{getSubtitle()}</Text>
-            )}
-            {/* Voice session hint */}
-            {isVoiceSessionActive && matches.length > 0 && (
-              <View style={styles.voiceHint}>
-                <Text style={styles.voiceHintIcon}>🎤</Text>
-                <Text style={styles.voiceHintText}>
-                  {t('voiceCommands.modalHint', 'Zeg "volgende", "vorige" of "open"')}
-                </Text>
+          <ModalLayout
+            headerBlock={
+              <View style={styles.header}>
+                <Text style={styles.title}>{getTitle()}</Text>
+                {getSubtitle() && (
+                  <Text style={styles.subtitle}>{getSubtitle()}</Text>
+                )}
+                {/* Voice session hint */}
+                {isVoiceSessionActive && matches.length > 0 && (
+                  <View style={styles.voiceHint}>
+                    <Text style={styles.voiceHintIcon}>🎤</Text>
+                    <Text style={styles.voiceHintText}>
+                      {t('voiceCommands.modalHint', 'Zeg "volgende", "vorige" of "open"')}
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
-
-          {/* Contact list */}
-          {matches.length > 0 ? (
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.contactList}
-              contentContainerStyle={styles.contactListContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {matches.map((match, index) => (
-                <HapticTouchable hapticDisabled
-                  key={match.contact.jid}
-                  style={[
-                    styles.contactRow,
-                    index === focusedIndex && styles.contactRowFocused,
-                  ]}
-                  onPress={() => handleContactPress(match.contact)}
-                  accessibilityRole="button"
-                  accessibilityLabel={getContactDisplayName(match.contact)}
-                  accessibilityHint={t('accessibility.startChatHint', { name: getContactDisplayName(match.contact) })}
-                  accessibilityState={{ selected: index === focusedIndex }}
+            }
+            contentBlock={
+              matches.length > 0 ? (
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.contactList}
+                  contentContainerStyle={styles.contactListContent}
+                  showsVerticalScrollIndicator={false}
                 >
-                  <ContactAvatar
-                    name={getContactDisplayName(match.contact)}
-                    photoUri={match.contact.avatarUrl}
-                    size={48}
+                  {matches.map((match, index) => (
+                    <HapticTouchable hapticDisabled
+                      key={match.contact.jid}
+                      style={[
+                        styles.contactRow,
+                        index === focusedIndex && styles.contactRowFocused,
+                      ]}
+                      onPress={() => handleContactPress(match.contact)}
+                      accessibilityRole="button"
+                      accessibilityLabel={getContactDisplayName(match.contact)}
+                      accessibilityHint={t('accessibility.startChatHint', { name: getContactDisplayName(match.contact) })}
+                      accessibilityState={{ selected: index === focusedIndex }}
+                    >
+                      <ContactAvatar
+                        name={getContactDisplayName(match.contact)}
+                        photoUri={match.contact.avatarUrl}
+                        size={48}
+                      />
+                      <Text style={styles.contactName}>{getContactDisplayName(match.contact)}</Text>
+                      {/* Show score badge for debugging in dev mode */}
+                      {__DEV__ && (
+                        <View style={styles.scoreBadge}>
+                          <Text style={styles.scoreText}>{Math.round(match.score * 100)}%</Text>
+                        </View>
+                      )}
+                    </HapticTouchable>
+                  ))}
+                </ScrollView>
+              ) : (
+                /* No matches - show browse option */
+                <View style={styles.noMatchesContainer}>
+                  <Text style={styles.noMatchesIcon}>🔍</Text>
+                  <Text style={styles.noMatchesText}>
+                    {t('contactSelection.noMatchesFor', { name: searchTerm })}
+                  </Text>
+                </View>
+              )
+            }
+            footerBlock={
+              <View style={styles.footer}>
+                {matches.length === 0 && (
+                  <Button
+                    title={t('contactSelection.browseContacts')}
+                    onPress={onBrowseContacts}
+                    variant="primary"
+                    style={styles.browseButton}
                   />
-                  <Text style={styles.contactName}>{getContactDisplayName(match.contact)}</Text>
-                  {/* Show score badge for debugging in dev mode */}
-                  {__DEV__ && (
-                    <View style={styles.scoreBadge}>
-                      <Text style={styles.scoreText}>{Math.round(match.score * 100)}%</Text>
-                    </View>
-                  )}
-                </HapticTouchable>
-              ))}
-            </ScrollView>
-          ) : (
-            /* No matches - show browse option */
-            <View style={styles.noMatchesContainer}>
-              <Text style={styles.noMatchesIcon}>🔍</Text>
-              <Text style={styles.noMatchesText}>
-                {t('contactSelection.noMatchesFor', { name: searchTerm })}
-              </Text>
-            </View>
-          )}
-
-          {/* Footer buttons */}
-          <View style={styles.footer}>
-            {matches.length === 0 && (
-              <Button
-                title={t('contactSelection.browseContacts')}
-                onPress={onBrowseContacts}
-                variant="primary"
-                style={styles.browseButton}
-              />
-            )}
-            <Button
-              title={t('common.cancel')}
-              onPress={onClose}
-              variant="secondary"
-              style={styles.cancelButton}
-            />
-          </View>
+                )}
+                <Button
+                  title={t('common.cancel')}
+                  onPress={onClose}
+                  variant="secondary"
+                  style={styles.cancelButton}
+                />
+              </View>
+            }
+          />
           </LiquidGlassView>
         </Animated.View>
 

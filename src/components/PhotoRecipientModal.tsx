@@ -31,6 +31,7 @@ import { HapticTouchable } from './HapticTouchable';
 import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
 import { Icon } from './Icon';
+import { ModalLayout } from './ModalLayout';
 import { LiquidGlassView } from './LiquidGlassView';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
@@ -124,113 +125,119 @@ export function PhotoRecipientModal({
       accessibilityViewIsModal
     >
       <LiquidGlassView moduleId="photoAlbum" style={styles.container} cornerRadius={0}>
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-          <HapticTouchable
-            style={styles.closeButton}
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Text style={[styles.closeButtonText, { color: themeColors.textPrimary }]}>{t('common.close')}</Text>
-          </HapticTouchable>
-          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{getTitle()}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
-        {/* Selection counter */}
-        <View style={[styles.counterBar, { backgroundColor: themeColors.surface }]}>
-          <Text style={[styles.counterText, { color: themeColors.textSecondary }]}>
-            {t('modules.photoAlbum.recipientCount', '{{count}} selected', {
-              count: selectedContacts.size,
-            })}
-          </Text>
-        </View>
-
-        {/* Contact list */}
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={resolvedAccent} />
-            <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
-              {t('common.loading', 'Loading...')}
-            </Text>
-          </View>
-        ) : contacts.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Icon name="users" size={64} color={themeColors.textSecondary} />
-            <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-              {t('modules.photoAlbum.noContacts', 'No contacts')}
-            </Text>
-            <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>
-              {t('modules.photoAlbum.noContactsHint', 'Add contacts to send photos.')}
-            </Text>
-          </View>
-        ) : (
-          <ScrollView
-            style={styles.contactList}
-            contentContainerStyle={styles.contactListContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {contacts.map((contact) => {
-              const isSelected = selectedContacts.has(contact.jid);
-
-              return (
-                <HapticTouchable
-                  key={contact.jid}
-                  style={[
-                    styles.contactRow,
-                    { backgroundColor: themeColors.surface, borderColor: themeColors.border },
-                    isSelected && { borderColor: resolvedAccent, borderWidth: 2 },
-                  ]}
-                  onPress={() => handleToggleContact(contact)}
-                  accessibilityRole="checkbox"
-                  accessibilityLabel={getContactDisplayName(contact)}
-                  accessibilityState={{ checked: isSelected }}
-                >
-                  <ContactAvatar
-                    name={getContactDisplayName(contact)}
-                    photoUri={contact.avatarUrl}
-                    size={48}
-                  />
-                  <Text
-                    style={[
-                      styles.contactName,
-                      { color: themeColors.textPrimary },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {getContactDisplayName(contact)}
-                  </Text>
-                  {isSelected && (
-                    <View style={[styles.checkBadge, { backgroundColor: resolvedAccent }]}>
-                      <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
-                    </View>
-                  )}
-                </HapticTouchable>
-              );
-            })}
-          </ScrollView>
-        )}
-
-        {/* Footer */}
-        <View style={[styles.footer, { borderTopColor: themeColors.border }]}>
-          <Button
-            title={
-              selectedContacts.size === 0
-                ? t('modules.photoAlbum.selectRecipients', 'Select recipients')
-                : t('modules.photoAlbum.sendToSelected', 'Send to {{count}} contact(s)', {
+        <ModalLayout
+          headerBlock={
+            <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+              <HapticTouchable
+                style={styles.closeButton}
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <Text style={[styles.closeButtonText, { color: themeColors.textPrimary }]}>{t('common.close')}</Text>
+              </HapticTouchable>
+              <Text style={[styles.title, { color: themeColors.textPrimary }]}>{getTitle()}</Text>
+              <View style={styles.headerSpacer} />
+            </View>
+          }
+          contentBlock={
+            <>
+              {/* Selection counter */}
+              <View style={[styles.counterBar, { backgroundColor: themeColors.surface }]}>
+                <Text style={[styles.counterText, { color: themeColors.textSecondary }]}>
+                  {t('modules.photoAlbum.recipientCount', '{{count}} selected', {
                     count: selectedContacts.size,
-                  })
-            }
-            onPress={handleConfirm}
-            variant="primary"
-            disabled={selectedContacts.size === 0}
-            style={[
-              styles.confirmButton,
-              { backgroundColor: selectedContacts.size > 0 ? resolvedAccent : themeColors.disabled },
-            ]}
-          />
-        </View>
+                  })}
+                </Text>
+              </View>
+
+              {/* Contact list */}
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={resolvedAccent} />
+                  <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
+                    {t('common.loading', 'Loading...')}
+                  </Text>
+                </View>
+              ) : contacts.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Icon name="users" size={64} color={themeColors.textSecondary} />
+                  <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
+                    {t('modules.photoAlbum.noContacts', 'No contacts')}
+                  </Text>
+                  <Text style={[styles.emptyHint, { color: themeColors.textSecondary }]}>
+                    {t('modules.photoAlbum.noContactsHint', 'Add contacts to send photos.')}
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView
+                  style={styles.contactList}
+                  contentContainerStyle={styles.contactListContent}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {contacts.map((contact) => {
+                    const isSelected = selectedContacts.has(contact.jid);
+
+                    return (
+                      <HapticTouchable
+                        key={contact.jid}
+                        style={[
+                          styles.contactRow,
+                          { backgroundColor: themeColors.surface, borderColor: themeColors.border },
+                          isSelected && { borderColor: resolvedAccent, borderWidth: 2 },
+                        ]}
+                        onPress={() => handleToggleContact(contact)}
+                        accessibilityRole="checkbox"
+                        accessibilityLabel={getContactDisplayName(contact)}
+                        accessibilityState={{ checked: isSelected }}
+                      >
+                        <ContactAvatar
+                          name={getContactDisplayName(contact)}
+                          photoUri={contact.avatarUrl}
+                          size={48}
+                        />
+                        <Text
+                          style={[
+                            styles.contactName,
+                            { color: themeColors.textPrimary },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {getContactDisplayName(contact)}
+                        </Text>
+                        {isSelected && (
+                          <View style={[styles.checkBadge, { backgroundColor: resolvedAccent }]}>
+                            <Icon name="checkmark" size={16} color={themeColors.textOnPrimary} />
+                          </View>
+                        )}
+                      </HapticTouchable>
+                    );
+                  })}
+                </ScrollView>
+              )}
+            </>
+          }
+          footerBlock={
+            <View style={[styles.footer, { borderTopColor: themeColors.border }]}>
+              <Button
+                title={
+                  selectedContacts.size === 0
+                    ? t('modules.photoAlbum.selectRecipients', 'Select recipients')
+                    : t('modules.photoAlbum.sendToSelected', 'Send to {{count}} contact(s)', {
+                        count: selectedContacts.size,
+                      })
+                }
+                onPress={handleConfirm}
+                variant="primary"
+                disabled={selectedContacts.size === 0}
+                style={[
+                  styles.confirmButton,
+                  { backgroundColor: selectedContacts.size > 0 ? resolvedAccent : themeColors.disabled },
+                ]}
+              />
+            </View>
+          }
+        />
       </LiquidGlassView>
     </Modal>
   );

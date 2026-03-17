@@ -24,7 +24,7 @@ import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, Icon } from '@/components';
+import { PanelAwareModal, HapticTouchable, Icon, ModalLayout } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -77,60 +77,63 @@ export function CreateMusicCollectionModal({
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
         <LiquidGlassView moduleId="appleMusic" style={styles.modal} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
-            <HapticTouchable
-              style={styles.closeButton}
-              onPress={handleClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.cancel')}
-            >
-              <Icon name="close" size={24} color={themeColors.textSecondary} />
-            </HapticTouchable>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
+                <HapticTouchable
+                  style={styles.closeButton}
+                  onPress={handleClose}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <Icon name="close" size={24} color={themeColors.textSecondary} />
+                </HapticTouchable>
 
-            <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
-              {t('appleMusic.collections.createCollection', 'Nieuwe verzameling')}
-            </Text>
+                <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
+                  {t('appleMusic.collections.createCollection', 'Nieuwe verzameling')}
+                </Text>
 
-            <HapticTouchable
-              style={[
-                styles.createButton,
-                {
-                  backgroundColor: isValid ? themeColors.primary : themeColors.border,
-                },
-              ]}
-              onPress={handleCreate}
-              disabled={!isValid}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.create', 'Aanmaken')}
-              accessibilityState={{ disabled: !isValid }}
-            >
-              <Text
-                style={[
-                  styles.createButtonText,
-                  { color: isValid ? themeColors.textOnPrimary : themeColors.textTertiary },
-                ]}
-              >
-                {t('common.create', 'Aanmaken')}
-              </Text>
-            </HapticTouchable>
-          </View>
+                <HapticTouchable
+                  style={[
+                    styles.createButton,
+                    {
+                      backgroundColor: isValid ? themeColors.primary : themeColors.border,
+                    },
+                  ]}
+                  onPress={handleCreate}
+                  disabled={!isValid}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.create', 'Aanmaken')}
+                  accessibilityState={{ disabled: !isValid }}
+                >
+                  <Text
+                    style={[
+                      styles.createButtonText,
+                      { color: isValid ? themeColors.textOnPrimary : themeColors.textTertiary },
+                    ]}
+                  >
+                    {t('common.create', 'Aanmaken')}
+                  </Text>
+                </HapticTouchable>
+              </View>
+            }
+            contentBlock={
+              <View style={styles.content}>
+                <VoiceTextInput
+                  voiceId="collection-name"
+                  label={t('appleMusic.collections.collectionName', 'Naam')}
+                  value={collectionName}
+                  onChangeText={setCollectionName}
+                  placeholder={t('appleMusic.collections.collectionNamePlaceholder', 'bijv. Feestje, Relaxen...')}
+                  maxLength={50}
+                  autoFocus
+                />
 
-          {/* Content */}
-          <View style={styles.content}>
-            <VoiceTextInput
-              voiceId="collection-name"
-              label={t('appleMusic.collections.collectionName', 'Naam')}
-              value={collectionName}
-              onChangeText={setCollectionName}
-              placeholder={t('appleMusic.collections.collectionNamePlaceholder', 'bijv. Feestje, Relaxen...')}
-              maxLength={50}
-              autoFocus
-            />
-
-            {/* Bottom spacing */}
-            <View style={{ height: spacing.xl }} />
-          </View>
+                {/* Bottom spacing */}
+                <View style={{ height: spacing.xl }} />
+              </View>
+            }
+          />
         </LiquidGlassView>
       </View>
     </PanelAwareModal>

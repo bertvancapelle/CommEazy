@@ -46,7 +46,7 @@ export function CreateGroupScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const themeColors = useColors();
-  const { scrollRef, registerField, getFieldFocusHandler } = useScrollToField();
+  const { scrollRef, registerField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
   // Step state
   const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -149,6 +149,8 @@ export function CreateGroupScreen() {
         style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        onScroll={handleScrollToField}
+        scrollEventThrottle={16}
       >
         <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>{t('group.nameTitle')}</Text>
         <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>{t('group.nameHint')}</Text>

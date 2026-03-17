@@ -766,7 +766,7 @@ export function AgendaItemFormScreen({
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
-  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField, getFieldHighlightStyle, setFieldFocus } = useScrollToField();
 
   const isEditing = !!initialData;
 
@@ -1290,7 +1290,7 @@ export function AgendaItemFormScreen({
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={100}
+        keyboardVerticalOffset={0}
       >
       {notification && (
         <ErrorView
@@ -1326,6 +1326,8 @@ export function AgendaItemFormScreen({
           { paddingBottom: insets.bottom + spacing.xl },
         ]}
         keyboardShouldPersistTaps="handled"
+        onScroll={handleScrollToField}
+        scrollEventThrottle={16}
       >
         {/* ====== Form Type — 3 inline buttons ====== */}
         <View style={styles.fieldContainer}>
@@ -1402,6 +1404,7 @@ export function AgendaItemFormScreen({
                 borderColor: themeColors.border,
                 backgroundColor: themeColors.surface,
               },
+              getFieldHighlightStyle('title', moduleColor),
             ]}
             value={title}
             onChangeText={setTitle}
@@ -1422,8 +1425,8 @@ export function AgendaItemFormScreen({
             {t('modules.agenda.form.dateLabel')}
           </Text>
           <HapticTouchable
-            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-            onPress={() => { Keyboard.dismiss(); setShowDatePicker(true); }}
+            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }, getFieldHighlightStyle('date', moduleColor)]}
+            onPress={() => { Keyboard.dismiss(); setFieldFocus('date'); setShowDatePicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.dateLabel')}: ${formatDate(selectedDate, locale)}`}
           >
@@ -1451,8 +1454,8 @@ export function AgendaItemFormScreen({
               {t('modules.agenda.form.timeLabel')}
             </Text>
             <HapticTouchable
-              style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-              onPress={() => { Keyboard.dismiss(); setShowTimePicker(true); }}
+              style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }, getFieldHighlightStyle('time', moduleColor)]}
+              onPress={() => { Keyboard.dismiss(); setFieldFocus('time'); setShowTimePicker(true); }}
               accessibilityRole="button"
               accessibilityLabel={`${t('modules.agenda.form.timeLabel')}: ${formatTime(selectedTime)}`}
             >
@@ -1476,8 +1479,9 @@ export function AgendaItemFormScreen({
                   style={[
                     styles.pickerRow,
                     { borderColor: themeColors.border, backgroundColor: themeColors.surface, flex: 1 },
+                    getFieldHighlightStyle('medicationTime', moduleColor),
                   ]}
-                  onPress={() => { Keyboard.dismiss(); setEditingMedTimeIndex(index); }}
+                  onPress={() => { Keyboard.dismiss(); setFieldFocus('medicationTime'); setEditingMedTimeIndex(index); }}
                   accessibilityRole="button"
                   accessibilityLabel={`${t('modules.agenda.form.timeLabel')} ${index + 1}: ${formatTime(medTime)}`}
                 >
@@ -1522,8 +1526,8 @@ export function AgendaItemFormScreen({
             {endTime ? (
               <View style={styles.endTimeRow}>
                 <HapticTouchable
-                  style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface, flex: 1 }]}
-                  onPress={() => { Keyboard.dismiss(); setShowEndTimePicker(true); }}
+                  style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface, flex: 1 }, getFieldHighlightStyle('endTime', moduleColor)]}
+                  onPress={() => { Keyboard.dismiss(); setFieldFocus('endTime'); setShowEndTimePicker(true); }}
                   accessibilityRole="button"
                   accessibilityLabel={`${t('modules.agenda.form.endTimeLabel')}: ${formatTime(endTime)}`}
                 >
@@ -1533,21 +1537,20 @@ export function AgendaItemFormScreen({
                   <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
                 </HapticTouchable>
                 <HapticTouchable
-                  style={styles.clearEndDate}
+                  style={[styles.removeTimeButton, { borderColor: themeColors.textSecondary }]}
                   onPress={() => setEndTime(null)}
                   accessibilityRole="button"
                   accessibilityLabel={t('modules.agenda.form.clearEndTime')}
                 >
-                  <Text style={[styles.clearEndDateText, { color: accentColor.primary }]}>
-                    {t('modules.agenda.form.clearEndTime')}
-                  </Text>
+                  <Icon name="x" size={18} color={themeColors.textSecondary} />
                 </HapticTouchable>
               </View>
             ) : (
               <HapticTouchable
-                style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
+                style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }, getFieldHighlightStyle('endTime', moduleColor)]}
                 onPress={() => {
                   Keyboard.dismiss();
+                  setFieldFocus('endTime');
                   // Default end time: 1 hour after start time
                   const defaultEnd = new Date(selectedTime);
                   defaultEnd.setHours(defaultEnd.getHours() + 1);
@@ -1560,7 +1563,7 @@ export function AgendaItemFormScreen({
                 <Text style={[styles.pickerValue, { color: themeColors.textTertiary }]}>
                   {t('modules.agenda.form.addEndTime')}
                 </Text>
-                <Icon name="add" size={20} color={themeColors.textSecondary} />
+                <Icon name="plus" size={20} color={themeColors.textSecondary} />
               </HapticTouchable>
             )}
           </View>
@@ -1580,6 +1583,7 @@ export function AgendaItemFormScreen({
                 borderColor: themeColors.border,
                 backgroundColor: themeColors.surface,
               },
+              getFieldHighlightStyle('notes', moduleColor),
             ]}
             value={notes}
             onChangeText={setNotes}
@@ -1602,8 +1606,8 @@ export function AgendaItemFormScreen({
             {t('modules.agenda.form.repeatLabel')}
           </Text>
           <HapticTouchable
-            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-            onPress={() => { Keyboard.dismiss(); setShowRepeatPicker(true); }}
+            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }, getFieldHighlightStyle('repeat', moduleColor)]}
+            onPress={() => { Keyboard.dismiss(); setFieldFocus('repeat'); setShowRepeatPicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.repeatLabel')}: ${t(REPEAT_OPTIONS.find(o => o.value === repeatType)?.labelKey ?? 'modules.agenda.repeat.none')}`}
           >
@@ -1620,34 +1624,34 @@ export function AgendaItemFormScreen({
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('modules.agenda.form.endDateLabel')}
             </Text>
-            <HapticTouchable
-              style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-              onPress={() => { Keyboard.dismiss(); setShowEndDatePicker(true); }}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('modules.agenda.form.endDateLabel')}: ${endDate ? formatDate(endDate, locale) : t('modules.agenda.form.noEndDate')}`}
-            >
-              <Text
-                style={[
-                  styles.pickerValue,
-                  { color: endDate ? themeColors.textPrimary : themeColors.textTertiary },
-                ]}
-              >
-                {endDate ? formatDate(endDate, locale) : t('modules.agenda.form.noEndDate')}
-              </Text>
-              <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
-            </HapticTouchable>
-            {endDate != null && (
+            <View style={styles.endTimeRow}>
               <HapticTouchable
-                style={styles.clearEndDate}
-                onPress={() => setEndDate(null)}
+                style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface, flex: 1 }, getFieldHighlightStyle('endDate', moduleColor)]}
+                onPress={() => { Keyboard.dismiss(); setFieldFocus('endDate'); setShowEndDatePicker(true); }}
                 accessibilityRole="button"
-                accessibilityLabel={t('modules.agenda.form.clearEndDate')}
+                accessibilityLabel={`${t('modules.agenda.form.endDateLabel')}: ${endDate ? formatDate(endDate, locale) : t('modules.agenda.form.noEndDate')}`}
               >
-                <Text style={[styles.clearEndDateText, { color: accentColor.primary }]}>
-                  {t('modules.agenda.form.clearEndDate')}
+                <Text
+                  style={[
+                    styles.pickerValue,
+                    { color: endDate ? themeColors.textPrimary : themeColors.textTertiary },
+                  ]}
+                >
+                  {endDate ? formatDate(endDate, locale) : t('modules.agenda.form.noEndDate')}
                 </Text>
+                <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
               </HapticTouchable>
-            )}
+              {endDate != null && (
+                <HapticTouchable
+                  style={[styles.removeTimeButton, { borderColor: themeColors.textSecondary }]}
+                  onPress={() => setEndDate(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.agenda.form.clearEndDate')}
+                >
+                  <Icon name="x" size={18} color={themeColors.textSecondary} />
+                </HapticTouchable>
+              )}
+            </View>
           </View>
         )}
 
@@ -1657,8 +1661,8 @@ export function AgendaItemFormScreen({
             {t('modules.agenda.form.reminderLabel')}
           </Text>
           <HapticTouchable
-            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
-            onPress={() => { Keyboard.dismiss(); setShowReminderPicker(true); }}
+            style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }, getFieldHighlightStyle('reminder', moduleColor)]}
+            onPress={() => { Keyboard.dismiss(); setFieldFocus('reminder'); setShowReminderPicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.reminderLabel')}: ${t(REMINDER_OPTIONS.find(o => o.value === reminderOffset)?.labelKey ?? '')}`}
           >
@@ -1804,6 +1808,7 @@ export function AgendaItemFormScreen({
                           borderColor: themeColors.border,
                           backgroundColor: fieldBgColor,
                         },
+                        getFieldHighlightStyle('street', moduleColor),
                       ]}
                       value={addressStreet}
                       onChangeText={setAddressStreet}
@@ -1834,6 +1839,7 @@ export function AgendaItemFormScreen({
                               borderColor: themeColors.border,
                               backgroundColor: fieldBgColor,
                             },
+                            getFieldHighlightStyle('postalCode', moduleColor),
                           ]}
                           value={addressPostalCode}
                           onChangeText={setAddressPostalCode}
@@ -1860,6 +1866,7 @@ export function AgendaItemFormScreen({
                               borderColor: themeColors.border,
                               backgroundColor: fieldBgColor,
                             },
+                            getFieldHighlightStyle('city', moduleColor),
                           ]}
                           value={addressCity}
                           onChangeText={setAddressCity}
@@ -2306,16 +2313,6 @@ const styles = StyleSheet.create({
   notesInput: {
     minHeight: 100,
     textAlignVertical: 'top',
-  },
-
-  // End date
-  clearEndDate: {
-    marginTop: spacing.xs,
-    paddingVertical: spacing.xs,
-  },
-  clearEndDateText: {
-    ...typography.body,
-    fontWeight: '600',
   },
 
   // Contact chips

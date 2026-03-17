@@ -47,7 +47,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
   const labelStyle = useLabelStyle();
   const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
-  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -151,6 +151,8 @@ export function ProfileStep1Screen({ navigation }: Props) {
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          onScroll={handleScrollToField}
+          scrollEventThrottle={16}
         >
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>
             {t('onboarding.profileStep1.title')}

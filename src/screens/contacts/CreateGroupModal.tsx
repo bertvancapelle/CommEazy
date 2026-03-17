@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon, ScrollViewWithIndicator, ContactReachabilityIcons } from '@/components';
+import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon, ScrollViewWithIndicator, ContactReachabilityIcons, ModalLayout } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -127,46 +127,48 @@ export function CreateGroupModal({
       onRequestClose={handleClose}
     >
       <LiquidGlassView moduleId="contacts" style={[styles.fullScreen, { backgroundColor: themeColors.background }]}>
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: themeColors.divider, paddingTop: insets.top }]}>
-          <HapticTouchable
-            style={styles.closeButton}
-            onPress={handleClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.cancel')}
-          >
-            <Icon name="close" size={24} color={themeColors.textSecondary} />
-          </HapticTouchable>
+        <ModalLayout
+          headerBlock={
+            <View style={[styles.header, { borderBottomColor: themeColors.divider, paddingTop: insets.top }]}>
+              <HapticTouchable
+                style={styles.closeButton}
+                onPress={handleClose}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cancel')}
+              >
+                <Icon name="close" size={24} color={themeColors.textSecondary} />
+              </HapticTouchable>
 
-          <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
-            {t('contacts.groups.newGroup', 'Nieuwe groep')}
-          </Text>
+              <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
+                {t('contacts.groups.newGroup', 'Nieuwe groep')}
+              </Text>
 
-          <HapticTouchable
-            style={[
-              styles.createButton,
-              {
-                backgroundColor: isValid ? themeColors.primary : themeColors.border,
-              },
-            ]}
-            onPress={handleCreate}
-            disabled={!isValid}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.create', 'Aanmaken')}
-            accessibilityState={{ disabled: !isValid }}
-          >
-            <Text
-              style={[
-                styles.createButtonText,
-                { color: isValid ? themeColors.textOnPrimary : themeColors.textTertiary },
-              ]}
-            >
-              {t('common.create', 'Aanmaken')}
-            </Text>
-          </HapticTouchable>
-        </View>
-
-        <ScrollViewWithIndicator
+              <HapticTouchable
+                style={[
+                  styles.createButton,
+                  {
+                    backgroundColor: isValid ? themeColors.primary : themeColors.border,
+                  },
+                ]}
+                onPress={handleCreate}
+                disabled={!isValid}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.create', 'Aanmaken')}
+                accessibilityState={{ disabled: !isValid }}
+              >
+                <Text
+                  style={[
+                    styles.createButtonText,
+                    { color: isValid ? themeColors.textOnPrimary : themeColors.textTertiary },
+                  ]}
+                >
+                  {t('common.create', 'Aanmaken')}
+                </Text>
+              </HapticTouchable>
+            </View>
+          }
+          contentBlock={
+            <ScrollViewWithIndicator
           style={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -278,6 +280,8 @@ export function CreateGroupModal({
           {/* Bottom spacing */}
           <View style={{ height: insets.bottom + spacing.xl }} />
         </ScrollViewWithIndicator>
+          }
+        />
       </LiquidGlassView>
     </PanelAwareModal>
   );

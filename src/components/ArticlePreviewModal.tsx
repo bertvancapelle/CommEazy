@@ -29,7 +29,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, NunlLogo } from '@/components';
+import { Icon, IconButton, NunlLogo, ModalLayout } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -201,110 +201,115 @@ export function ArticlePreviewModal({
       onRequestClose={handleClose}
     >
       <LiquidGlassView moduleId="nunl" style={[styles.container, { paddingTop: insets.top }]} cornerRadius={0}>
-        {/* Header */}
-        <View style={styles.header}>
-          <IconButton
-            icon="chevron-down"
-            onPress={handleClose}
-            size={48}
-            color={colors.textPrimary}
-            accessibilityLabel={t('articleViewer.close')}
-          />
-          <Text style={styles.headerTitle}>{t('articlePreview.title')}</Text>
-          <View style={{ width: 48 }} />
-        </View>
+        <ModalLayout
+          headerBlock={
+            <View style={styles.header}>
+              <IconButton
+                icon="chevron-down"
+                onPress={handleClose}
+                size={48}
+                color={colors.textPrimary}
+                accessibilityLabel={t('articleViewer.close')}
+              />
+              <Text style={styles.headerTitle}>{t('articlePreview.title')}</Text>
+              <View style={{ width: 48 }} />
+            </View>
+          }
+          contentBlock={
+            <>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Article Title */}
+                <Text style={styles.articleTitle} accessibilityRole="header">
+                  {article.title}
+                </Text>
 
-        {/* Content */}
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Article Title */}
-          <Text style={styles.articleTitle} accessibilityRole="header">
-            {article.title}
-          </Text>
+                {/* Article Date */}
+                <Text style={styles.articleDate}>
+                  {article.pubDate.toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                  })}
+                </Text>
 
-          {/* Article Date */}
-          <Text style={styles.articleDate}>
-            {article.pubDate.toLocaleDateString(undefined, {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            })}
-          </Text>
-
-          {/* Article Image */}
-          {article.imageUrl && (
-            <Image
-              source={{ uri: article.imageUrl }}
-              style={styles.articleImage}
-              resizeMode="cover"
-              accessibilityLabel={t('articlePreview.imageAlt', { title: article.title })}
-            />
-          )}
-
-          {/* Article Description (Abstract) */}
-          <View style={[styles.abstractBox, { borderLeftColor: accentColor }]}>
-            <Text style={styles.abstractLabel}>
-              {t('articlePreview.abstractLabel')}
-            </Text>
-            <Text style={styles.abstractText}>{article.description}</Text>
-          </View>
-
-          {/* TTS Playing State - Show stop button */}
-          {(isTTSPlaying || isTTSLoading) ? (
-            <HapticTouchable hapticDisabled
-              style={[styles.ttsPlayingButton, { backgroundColor: accentColor }]}
-              onPress={handleStopTTS}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel={t('articleViewer.stop')}
-              disabled={isTTSLoading}
-            >
-              <View style={styles.ttsPlayingContent}>
-                {isTTSLoading ? (
-                  <ActivityIndicator size="small" color={colors.textOnPrimary} />
-                ) : (
-                  <Icon name="pause" size={28} color={colors.textOnPrimary} />
+                {/* Article Image */}
+                {article.imageUrl && (
+                  <Image
+                    source={{ uri: article.imageUrl }}
+                    style={styles.articleImage}
+                    resizeMode="cover"
+                    accessibilityLabel={t('articlePreview.imageAlt', { title: article.title })}
+                  />
                 )}
-                <View style={styles.ttsPlayingTextContainer}>
-                  <Text style={styles.ttsPlayingTitle}>
-                    {isTTSLoading ? t('articleViewer.loading') : t('articlePreview.nowPlaying')}
+
+                {/* Article Description (Abstract) */}
+                <View style={[styles.abstractBox, { borderLeftColor: accentColor }]}>
+                  <Text style={styles.abstractLabel}>
+                    {t('articlePreview.abstractLabel')}
                   </Text>
-                  <Text style={styles.ttsPlayingSubtitle} numberOfLines={1}>
-                    {article.title}
-                  </Text>
+                  <Text style={styles.abstractText}>{article.description}</Text>
                 </View>
-              </View>
-              <Text style={styles.ttsStopText}>{t('articleViewer.stop')}</Text>
-            </HapticTouchable>
-          ) : (
-            /* Choice: Read Abstract (TTS) */
-            <ChoiceButton
-              icon="volume-up"
-              title={t('articlePreview.readAbstract')}
-              subtitle={t('articlePreview.readAbstractHint')}
-              onPress={handleReadAbstract}
-              accentColor={accentColor}
-              isPrimary={true}
-            />
-          )}
 
-          {/* Choice: Open Full Article — with nu.nl logo */}
-          <ChoiceButton
-            icon="book-open"
-            title={t('articlePreview.openFullArticle')}
-            subtitle={t('articlePreview.openFullArticleHint')}
-            onPress={handleOpenFullArticle}
-            accentColor={accentColor}
-            isPrimary={false}
-            customLogo={<NunlLogo size={32} />}
-          />
-        </ScrollView>
+                {/* TTS Playing State - Show stop button */}
+                {(isTTSPlaying || isTTSLoading) ? (
+                  <HapticTouchable hapticDisabled
+                    style={[styles.ttsPlayingButton, { backgroundColor: accentColor }]}
+                    onPress={handleStopTTS}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('articleViewer.stop')}
+                    disabled={isTTSLoading}
+                  >
+                    <View style={styles.ttsPlayingContent}>
+                      {isTTSLoading ? (
+                        <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                      ) : (
+                        <Icon name="pause" size={28} color={colors.textOnPrimary} />
+                      )}
+                      <View style={styles.ttsPlayingTextContainer}>
+                        <Text style={styles.ttsPlayingTitle}>
+                          {isTTSLoading ? t('articleViewer.loading') : t('articlePreview.nowPlaying')}
+                        </Text>
+                        <Text style={styles.ttsPlayingSubtitle} numberOfLines={1}>
+                          {article.title}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.ttsStopText}>{t('articleViewer.stop')}</Text>
+                  </HapticTouchable>
+                ) : (
+                  /* Choice: Read Abstract (TTS) */
+                  <ChoiceButton
+                    icon="volume-up"
+                    title={t('articlePreview.readAbstract')}
+                    subtitle={t('articlePreview.readAbstractHint')}
+                    onPress={handleReadAbstract}
+                    accentColor={accentColor}
+                    isPrimary={true}
+                  />
+                )}
 
-        {/* Bottom safe area */}
-        <View style={{ height: insets.bottom + spacing.md }} />
+                {/* Choice: Open Full Article — with nu.nl logo */}
+                <ChoiceButton
+                  icon="book-open"
+                  title={t('articlePreview.openFullArticle')}
+                  subtitle={t('articlePreview.openFullArticleHint')}
+                  onPress={handleOpenFullArticle}
+                  accentColor={accentColor}
+                  isPrimary={false}
+                  customLogo={<NunlLogo size={32} />}
+                />
+              </ScrollView>
+
+              {/* Bottom safe area */}
+              <View style={{ height: insets.bottom + spacing.md }} />
+            </>
+          }
+        />
       </LiquidGlassView>
     </Modal>
   );

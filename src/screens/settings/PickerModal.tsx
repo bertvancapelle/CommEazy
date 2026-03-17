@@ -20,6 +20,7 @@ import {
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -59,49 +60,55 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
       moduleId={moduleId ?? 'settings'}
     >
       <LiquidGlassView moduleId={moduleId ?? 'settings'} style={styles.container} cornerRadius={0}>
-        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[styles.title, { color: themeColors.textPrimary }]}>{title}</Text>
-          <HapticTouchable hapticDisabled
-            onPress={onClose}
-            style={styles.closeButton}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Text style={[styles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
-          </HapticTouchable>
-        </View>
-        <ScrollViewWithIndicator style={styles.optionsList}>
-          {options.map((option) => (
-            <HapticTouchable hapticDisabled
-              key={option.value}
-              style={[
-                styles.option,
-                { borderBottomColor: themeColors.border },
-                selectedValue === option.value && { backgroundColor: accentColor.primaryLight + '20' },
-              ]}
-              onPress={() => {
-                onSelect(option.value);
-                onClose();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={option.label}
-              accessibilityState={{ selected: selectedValue === option.value }}
-            >
-              <Text
-                style={[
-                  styles.optionText,
-                  { color: modalTextStyle.color, fontWeight: modalTextStyle.fontWeight, fontStyle: modalTextStyle.fontStyle },
-                  selectedValue === option.value && { color: accentColor.primary, fontWeight: '600' },
-                ]}
+        <ModalLayout
+          headerBlock={
+            <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+              <Text style={[styles.title, { color: themeColors.textPrimary }]}>{title}</Text>
+              <HapticTouchable hapticDisabled
+                onPress={onClose}
+                style={styles.closeButton}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
               >
-                {option.label}
-              </Text>
-              {selectedValue === option.value && (
-                <Text style={[styles.checkmark, { color: accentColor.primary }]}>✓</Text>
-              )}
-            </HapticTouchable>
-          ))}
-        </ScrollViewWithIndicator>
+                <Text style={[styles.closeText, { color: themeColors.textSecondary }]}>✕</Text>
+              </HapticTouchable>
+            </View>
+          }
+          contentBlock={
+            <ScrollViewWithIndicator style={styles.optionsList}>
+              {options.map((option) => (
+                <HapticTouchable hapticDisabled
+                  key={option.value}
+                  style={[
+                    styles.option,
+                    { borderBottomColor: themeColors.border },
+                    selectedValue === option.value && { backgroundColor: accentColor.primaryLight + '20' },
+                  ]}
+                  onPress={() => {
+                    onSelect(option.value);
+                    onClose();
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={option.label}
+                  accessibilityState={{ selected: selectedValue === option.value }}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: modalTextStyle.color, fontWeight: modalTextStyle.fontWeight, fontStyle: modalTextStyle.fontStyle },
+                      selectedValue === option.value && { color: accentColor.primary, fontWeight: '600' },
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {selectedValue === option.value && (
+                    <Text style={[styles.checkmark, { color: accentColor.primary }]}>✓</Text>
+                  )}
+                </HapticTouchable>
+              ))}
+            </ScrollViewWithIndicator>
+          }
+        />
       </LiquidGlassView>
     </PanelAwareModal>
   );

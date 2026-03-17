@@ -67,7 +67,7 @@ export function ManualAddContactScreen() {
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
   const insets = useSafeAreaInsets();
-  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
   // Save-time reminder modal state (shown when email is missing)
   const [showEmailReminder, setShowEmailReminder] = useState(false);
@@ -387,6 +387,8 @@ export function ManualAddContactScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
+        onScroll={handleScrollToField}
+        scrollEventThrottle={16}
       >
         {/* First name input */}
         <View ref={registerField('firstName')} style={styles.inputGroup}>

@@ -36,6 +36,7 @@ import { useTranslation } from 'react-i18next';
 import { HapticTouchable } from './HapticTouchable';
 import { PanelAwareModal } from './PanelAwareModal';
 import { LiquidGlassView } from './LiquidGlassView';
+import { ModalLayout } from './ModalLayout';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -103,36 +104,39 @@ export function DateTimePickerModal({
     >
       <View style={styles.overlay}>
         <LiquidGlassView moduleId={moduleId} style={styles.container} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-            <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-              {title}
-            </Text>
-            <HapticTouchable
-              style={[styles.doneButton, { backgroundColor: moduleColor }]}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.done')}
-            >
-              <Text style={styles.doneButtonText}>
-                {t('common.done')}
-              </Text>
-            </HapticTouchable>
-          </View>
-
-          {/* Native Picker */}
-          <View style={styles.pickerContainer}>
-            <DateTimePicker
-              value={value}
-              mode={mode}
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onChange}
-              minimumDate={minimumDate}
-              maximumDate={maximumDate}
-              is24Hour={is24Hour}
-              locale={locale}
-            />
-          </View>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+                <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+                  {title}
+                </Text>
+                <HapticTouchable
+                  style={[styles.doneButton, { backgroundColor: moduleColor }]}
+                  onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.done')}
+                >
+                  <Text style={styles.doneButtonText}>
+                    {t('common.done')}
+                  </Text>
+                </HapticTouchable>
+              </View>
+            }
+            contentBlock={
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  value={value}
+                  mode={mode}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onChange}
+                  minimumDate={minimumDate}
+                  maximumDate={maximumDate}
+                  is24Hour={is24Hour}
+                  locale={locale}
+                />
+              </View>
+            }
+          />
         </LiquidGlassView>
       </View>
     </PanelAwareModal>

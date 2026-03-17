@@ -158,7 +158,7 @@ export function ProfileSettingsScreen() {
   const lastNameInputRef = useRef<TextInput>(null);
 
   // Scroll-to-field hook for keyboard/modal-return auto-scrolling
-  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
   // Refs to track latest values for beforeRemove (avoids stale closures)
   const profileRef = useRef(profile);
@@ -620,6 +620,8 @@ export function ProfileSettingsScreen() {
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
+        onScroll={handleScrollToField}
+        scrollEventThrottle={16}
       >
       {/* Profile photo + name display */}
       <View style={styles.profileSection}>
