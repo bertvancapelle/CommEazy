@@ -164,9 +164,9 @@ export { QueueView } from './QueueView';
 export type { QueueViewProps } from './QueueView';
 export { FloatingImportIndicator } from './FloatingImportIndicator';
 
-// SeniorDatePicker Component (single-field date picker with popup for seniors — reusable)
-export { SeniorDatePicker } from './SeniorDatePicker';
-export type { SeniorDatePickerProps } from './SeniorDatePicker';
+// DateTimePickerModal (app-wide standard date & time picker — native spinner in bottom-sheet)
+export { DateTimePickerModal } from './DateTimePickerModal';
+export type { DateTimePickerModalProps, DateTimePickerEvent } from './DateTimePickerModal';
 
 // Fullscreen Image Viewer (reusable — mail, chat, photo album)
 export { FullscreenImageViewer } from './FullscreenImageViewer';

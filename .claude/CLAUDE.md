@@ -384,6 +384,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern (sectie 15) MOET worden gevolgd |
 | **Modal met zoekfunctie** | **BLOKKEERDER** — Zoeken mag NOOIT in een modal, zie sectie 15.1 |
 | **Nieuwe of gewijzigde Modal** | **ui-designer** — Modal Design Standaard (SKILL.md sectie 11b) MOET worden gevolgd: PageSheet (standaard) of FullScreen (uitzondering). Geen fade+centered overlays, geen close X in header, footer VERPLICHT |
+| **Datum/tijd picker toevoegen** | **BLOKKEERDER** — MOET `DateTimePickerModal` uit `@/components` gebruiken. Geen custom date pickers, geen raw `DateTimePicker` in modals. `moduleId` prop VERPLICHT. Zie Component Registry sectie "DateTimePickerModal" |
 | **Icon component gebruik** | **ui-designer** — Icoon MOET bestaan in IconName type, zie SKILL.md sectie 10b |
 | **AccentColor properties** | **ui-designer** — Alleen bestaande properties gebruiken (primary/primaryLight/primaryDark/light/label), zie SKILL.md sectie 10c |
 | **Chat/message styling** | **ui-designer** — WhatsApp-style message direction pattern, zie SKILL.md sectie 10d |
@@ -3246,6 +3247,66 @@ import { LANGUAGES } from '@/constants/demographics';
 - `components.chipSelector.searchBy` — "Zoeken op basis van:" (toggle modal)
 - `components.chipSelector.tapToChange` — "{{current}} - tik om te wijzigen"
 
+### DateTimePickerModal (App-wide Standard Date & Time Picker)
+
+**Verplichte component:** `DateTimePickerModal`
+
+ALLE datum- en tijdpickers in de app MOETEN de gestandaardiseerde `DateTimePickerModal` component gebruiken. Geen custom date picker implementaties, geen `SeniorDatePicker` (verwijderd), geen raw `DateTimePicker` in modals.
+
+**Kenmerken:**
+- Native iOS spinner in bottom-sheet (`PanelAwareModal` — iPad Split View compatible)
+- `LiquidGlassView` met module-specifieke tint color
+- `moduleId` is een **verplichte** prop
+- Ondersteunt `'date'` en `'time'` mode
+- Locale-aware via `locale` prop (e.g. `'nl-NL'`, `'de-DE'`)
+
+| Screen | Instances | moduleId | Modes |
+|--------|-----------|----------|-------|
+| ProfileSettingsScreen | 2 | `"settings"` | date, date |
+| ProfileStep1Screen | 2 | `"settings"` | date, date |
+| ContactDetailScreen | 3 | `"contacts"` | date, date, date |
+| ManualAddContactScreen | 3 | `"contacts"` | date, date, date |
+| AgendaItemFormScreen | 5 | `"agenda"` | date, time, time, time, date |
+
+**Trigger Field Pattern (VERPLICHT):**
+
+Date picker velden gebruiken een `HapticTouchable` trigger die de huidige waarde toont (of `-` als leeg):
+
+```typescript
+import { DateTimePickerModal } from '@/components';
+
+const [showPicker, setShowPicker] = useState(false);
+const [dateValue, setDateValue] = useState<string | undefined>(); // ISO "YYYY-MM-DD"
+
+// Trigger field
+<HapticTouchable hapticDisabled
+  style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+  onPress={() => setShowPicker(true)}
+>
+  <Text style={[styles.pickerValue, dateValue ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+    {dateValue ? formatDateDisplay(dateValue) : '-'}
+  </Text>
+  <Text style={styles.editIcon}>✏️</Text>
+</HapticTouchable>
+
+// Modal
+<DateTimePickerModal
+  visible={showPicker}
+  title={t('label.key')}
+  value={parseDateValue(dateValue)}
+  mode="date"
+  moduleId="settings"
+  onChange={(_event, selectedDate) => {
+    if (selectedDate) setDateValue(selectedDate.toISOString().split('T')[0]);
+  }}
+  onClose={() => setShowPicker(false)}
+  locale={pickerLocale}
+/>
+```
+
+**Verwijderde componenten (niet meer gebruiken):**
+- ~~`SeniorDatePicker`~~ → verwijderd, vervangen door `DateTimePickerModal`
+
 ### Hoe deze Registry te Gebruiken
 
 **Bij nieuwe module screen:**
@@ -3253,7 +3314,8 @@ import { LANGUAGES } from '@/constants/demographics';
 2. Check: Heeft deze screen audio playback? → Gebruik `MiniPlayer` + `ExpandedAudioPlayer`
 3. Check: Heeft deze screen zoekfunctionaliteit? → Gebruik `SearchBar` (VERPLICHT)
 4. Check: Heeft deze screen land/taal selectie? → Gebruik `ChipSelector` (VERPLICHT)
-5. Configureer de juiste props volgens de tabel
+5. Check: Heeft deze screen datum/tijd pickers? → Gebruik `DateTimePickerModal` (VERPLICHT)
+6. Configureer de juiste props volgens de tabel
 
 **Bij nieuwe standaard component:**
 1. Voeg de component toe aan deze registry

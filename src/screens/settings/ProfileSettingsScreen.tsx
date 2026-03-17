@@ -63,7 +63,7 @@ import {
 } from './profileSettingsConstants';
 import { PickerModal } from './PickerModal';
 import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
-import { SeniorDatePicker } from '@/components/SeniorDatePicker';
+import { DateTimePickerModal } from '@/components/DateTimePickerModal';
 
 // Auto-calculate ageBracket from birthDate
 function calculateAgeBracket(birthDateString: string): AgeBracket | undefined {
@@ -113,6 +113,8 @@ export function ProfileSettingsScreen() {
   const [gender, setGender] = useState<Gender | undefined>();
   const [birthDate, setBirthDate] = useState<string | undefined>(undefined);
   const [weddingDate, setWeddingDate] = useState<string | undefined>(undefined);
+  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
+  const [showWeddingDatePicker, setShowWeddingDatePicker] = useState(false);
 
   // Section 2: "Waar woon je?" (with GISCO auto-lookup)
   const [addressCountryCode, setAddressCountryCode] = useState<string | undefined>();
@@ -337,25 +339,57 @@ export function ProfileSettingsScreen() {
     await saveProfile({ gender: g });
   }, [saveProfile, triggerFeedback]);
 
-  const handleBirthDateChange = useCallback(async (date: string | undefined) => {
-    setBirthDate(date);
-    const updates: Partial<UserProfile> = { birthDate: date || '' };
+  const handleBirthDatePickerChange = useCallback((_event: import('@react-native-community/datetimepicker').DateTimePickerEvent, selectedDate?: Date) => {
+    if (!selectedDate) return;
+    const iso = selectedDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+    setBirthDate(iso);
+    const updates: Partial<UserProfile> = { birthDate: iso };
     // Auto-calculate ageBracket
-    if (date) {
-      const bracket = calculateAgeBracket(date);
-      if (bracket) {
-        updates.ageBracket = bracket;
-      }
+    const bracket = calculateAgeBracket(iso);
+    if (bracket) {
+      updates.ageBracket = bracket;
     }
-    const saved = await saveProfile(updates);
-    if (saved) setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
+    void saveProfile(updates).then((saved) => {
+      if (saved) setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
+    });
   }, [saveProfile, t]);
 
-  const handleWeddingDateChange = useCallback(async (date: string | undefined) => {
-    setWeddingDate(date);
-    const saved = await saveProfile({ weddingDate: date || '' });
-    if (saved) setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
+  const handleWeddingDatePickerChange = useCallback((_event: import('@react-native-community/datetimepicker').DateTimePickerEvent, selectedDate?: Date) => {
+    if (!selectedDate) return;
+    const iso = selectedDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+    setWeddingDate(iso);
+    void saveProfile({ weddingDate: iso }).then((saved) => {
+      if (saved) setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
+    });
   }, [saveProfile, t]);
+
+  // Locale mapping for native date picker
+  const pickerLocale = useMemo(() => {
+    const lang = i18n.language;
+    const map: Record<string, string> = {
+      nl: 'nl-NL', en: 'en-US', 'en-GB': 'en-GB', de: 'de-DE',
+      fr: 'fr-FR', es: 'es-ES', it: 'it-IT', no: 'nb-NO',
+      sv: 'sv-SE', da: 'da-DK', pt: 'pt-PT', 'pt-BR': 'pt-BR', pl: 'pl-PL',
+    };
+    return map[lang] || 'en-US';
+  }, [i18n.language]);
+
+  // Format date for display in touchable field
+  const formatDateDisplay = useCallback((isoDate: string | undefined): string => {
+    if (!isoDate) return '-';
+    const d = new Date(isoDate + 'T00:00:00');
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString(pickerLocale, {
+      day: 'numeric', month: 'long', year: 'numeric',
+    });
+  }, [pickerLocale]);
+
+  // Parse ISO string to Date for picker value
+  const parseDateValue = useCallback((isoDate: string | undefined): Date => {
+    if (!isoDate) return new Date();
+    const d = new Date(isoDate + 'T00:00:00');
+    return isNaN(d.getTime()) ? new Date() : d;
+  }, []);
 
   // ── Section 2: "Waar woon je?" handlers ──
 
@@ -663,7 +697,7 @@ export function ProfileSettingsScreen() {
         {/* Last name */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-            {t('onboarding.lastNameLabel')}
+            {t('onboarding.lastNameLabel')}{requiredMark}
           </Text>
           <TextInput
             ref={lastNameInputRef}
@@ -682,7 +716,7 @@ export function ProfileSettingsScreen() {
         {/* Gender */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-            {t('demographics.genderLabel')}
+            {t('demographics.genderLabel')}{requiredMark}
           </Text>
           <HapticTouchable hapticDisabled
             style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -702,15 +736,19 @@ export function ProfileSettingsScreen() {
         {/* Birth date */}
         <View style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-            {t('profile.personal.birthDateLabel')}
+            {t('profile.personal.birthDateLabel')}{requiredMark}
           </Text>
-          <SeniorDatePicker
-            value={birthDate}
-            onChange={handleBirthDateChange}
+          <HapticTouchable hapticDisabled
+            style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={() => setShowBirthDatePicker(true)}
+            accessibilityRole="button"
             accessibilityLabel={t('profile.personal.birthDateLabel')}
-            maxYear={new Date().getFullYear()}
-            minYear={1900}
-          />
+          >
+            <Text style={[styles.pickerValue, birthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              {formatDateDisplay(birthDate)}
+            </Text>
+            <Text style={styles.editIcon}>✏️</Text>
+          </HapticTouchable>
         </View>
 
         {/* Wedding date */}
@@ -718,13 +756,17 @@ export function ProfileSettingsScreen() {
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
             {t('profile.personal.weddingDateLabel')}
           </Text>
-          <SeniorDatePicker
-            value={weddingDate}
-            onChange={handleWeddingDateChange}
+          <HapticTouchable hapticDisabled
+            style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={() => setShowWeddingDatePicker(true)}
+            accessibilityRole="button"
             accessibilityLabel={t('profile.personal.weddingDateLabel')}
-            maxYear={new Date().getFullYear() + 5}
-            minYear={1940}
-          />
+          >
+            <Text style={[styles.pickerValue, weddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              {formatDateDisplay(weddingDate)}
+            </Text>
+            <Text style={styles.editIcon}>✏️</Text>
+          </HapticTouchable>
         </View>
       </View>
 
@@ -775,7 +817,7 @@ export function ProfileSettingsScreen() {
           </View>
           <View style={[styles.fieldContainer, { flex: 1 }]}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
-              {t('onboarding.profileStep2.houseNumber')}
+              {t('onboarding.profileStep2.houseNumber')}{requiredMark}
             </Text>
             <TextInput
               style={[styles.textInput, { borderColor: themeColors.border, color: themeColors.textPrimary, backgroundColor: themeColors.surface }]}
@@ -985,6 +1027,33 @@ export function ProfileSettingsScreen() {
         selectedValue={gender}
         onSelect={handleGenderSelect}
         onClose={closePicker}
+      />
+
+      {/* Date picker modals */}
+      <DateTimePickerModal
+        visible={showBirthDatePicker}
+        title={t('profile.personal.birthDateLabel')}
+        value={parseDateValue(birthDate)}
+        mode="date"
+        moduleId="settings"
+        onChange={handleBirthDatePickerChange}
+        onClose={() => setShowBirthDatePicker(false)}
+        maximumDate={new Date()}
+        minimumDate={new Date(1900, 0, 1)}
+        locale={pickerLocale}
+      />
+
+      <DateTimePickerModal
+        visible={showWeddingDatePicker}
+        title={t('profile.personal.weddingDateLabel')}
+        value={parseDateValue(weddingDate)}
+        mode="date"
+        moduleId="settings"
+        onChange={handleWeddingDatePickerChange}
+        onClose={() => setShowWeddingDatePicker(false)}
+        maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
+        minimumDate={new Date(1940, 0, 1)}
+        locale={pickerLocale}
       />
 
       </ScrollViewWithIndicator>

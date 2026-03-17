@@ -34,8 +34,8 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
-import { SeniorDatePicker } from '@/components/SeniorDatePicker';
-import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView, PanelAwareModal, Icon } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView, PanelAwareModal, Icon, DateTimePickerModal } from '@/components';
+import { useAccentColor } from '@/hooks/useAccentColor';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -60,9 +60,10 @@ const COUNTRY_CODES = [
 ];
 
 export function ManualAddContactScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const { triggerFeedback } = useFeedback();
+  const { accentColor } = useAccentColor();
   const themeColors = useColors();
   const insets = useSafeAreaInsets();
 
@@ -126,6 +127,34 @@ export function ManualAddContactScreen() {
 
   // Convenience accessors for backward compatibility
   const { firstName, lastName, phoneNumber, countryCode, mobileNumber, mobileCountryCode, email, street, postalCode, city, country, birthDate, weddingDate, deathDate } = form;
+
+  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
+  const [showWeddingDatePicker, setShowWeddingDatePicker] = useState(false);
+  const [showDeathDatePicker, setShowDeathDatePicker] = useState(false);
+
+  // Locale mapping for native date picker
+  const pickerLocale = useMemo(() => {
+    const lang = i18n.language;
+    const map: Record<string, string> = {
+      nl: 'nl-NL', en: 'en-US', 'en-GB': 'en-GB', de: 'de-DE',
+      fr: 'fr-FR', es: 'es-ES', it: 'it-IT', no: 'nb-NO',
+      sv: 'sv-SE', da: 'da-DK', pt: 'pt-PT', 'pt-BR': 'pt-BR', pl: 'pl-PL',
+    };
+    return map[lang] || 'en-US';
+  }, [i18n.language]);
+
+  const formatDateDisplay = useCallback((isoDate: string | undefined): string => {
+    if (!isoDate) return '-';
+    const d = new Date(isoDate + 'T00:00:00');
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString(pickerLocale, { day: 'numeric', month: 'long', year: 'numeric' });
+  }, [pickerLocale]);
+
+  const parseDateValue = useCallback((isoDate: string | undefined): Date => {
+    if (!isoDate) return new Date();
+    const d = new Date(isoDate + 'T00:00:00');
+    return isNaN(d.getTime()) ? new Date() : d;
+  }, []);
 
   const [showCountryCodes, setShowCountryCodes] = useState(false);
   const [showMobileCountryCodes, setShowMobileCountryCodes] = useState(false);
@@ -573,33 +602,94 @@ export function ManualAddContactScreen() {
 
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.birthDate')}</Text>
-          <SeniorDatePicker
-            value={birthDate}
-            onChange={(v) => setField('birthDate', v)}
+          <HapticTouchable hapticDisabled
+            style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={() => setShowBirthDatePicker(true)}
+            accessibilityRole="button"
             accessibilityLabel={t('contacts.dates.birthDate')}
-            minYear={1900}
-          />
+          >
+            <Text style={[styles.datePickerValue, birthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              {formatDateDisplay(birthDate)}
+            </Text>
+            <Text style={styles.datePickerEditIcon}>✏️</Text>
+          </HapticTouchable>
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.weddingDate')}</Text>
-          <SeniorDatePicker
-            value={weddingDate}
-            onChange={(v) => setField('weddingDate', v)}
+          <HapticTouchable hapticDisabled
+            style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={() => setShowWeddingDatePicker(true)}
+            accessibilityRole="button"
             accessibilityLabel={t('contacts.dates.weddingDate')}
-            minYear={1940}
-          />
+          >
+            <Text style={[styles.datePickerValue, weddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              {formatDateDisplay(weddingDate)}
+            </Text>
+            <Text style={styles.datePickerEditIcon}>✏️</Text>
+          </HapticTouchable>
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.deathDate')}</Text>
-          <SeniorDatePicker
-            value={deathDate}
-            onChange={(v) => setField('deathDate', v)}
+          <HapticTouchable hapticDisabled
+            style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={() => setShowDeathDatePicker(true)}
+            accessibilityRole="button"
             accessibilityLabel={t('contacts.dates.deathDate')}
-            minYear={1940}
-          />
+          >
+            <Text style={[styles.datePickerValue, deathDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              {formatDateDisplay(deathDate)}
+            </Text>
+            <Text style={styles.datePickerEditIcon}>✏️</Text>
+          </HapticTouchable>
         </View>
+
+        {/* Date picker modals */}
+        <DateTimePickerModal
+          visible={showBirthDatePicker}
+          title={t('contacts.dates.birthDate')}
+          value={parseDateValue(birthDate)}
+          mode="date"
+          moduleId="contacts"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) setField('birthDate', selectedDate.toISOString().split('T')[0]);
+          }}
+          onClose={() => setShowBirthDatePicker(false)}
+          maximumDate={new Date()}
+          minimumDate={new Date(1900, 0, 1)}
+          locale={pickerLocale}
+        />
+
+        <DateTimePickerModal
+          visible={showWeddingDatePicker}
+          title={t('contacts.dates.weddingDate')}
+          value={parseDateValue(weddingDate)}
+          mode="date"
+          moduleId="contacts"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) setField('weddingDate', selectedDate.toISOString().split('T')[0]);
+          }}
+          onClose={() => setShowWeddingDatePicker(false)}
+          maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
+          minimumDate={new Date(1940, 0, 1)}
+          locale={pickerLocale}
+        />
+
+        <DateTimePickerModal
+          visible={showDeathDatePicker}
+          title={t('contacts.dates.deathDate')}
+          value={parseDateValue(deathDate)}
+          mode="date"
+          moduleId="contacts"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) setField('deathDate', selectedDate.toISOString().split('T')[0]);
+          }}
+          onClose={() => setShowDeathDatePicker(false)}
+          maximumDate={new Date()}
+          minimumDate={new Date(1940, 0, 1)}
+          locale={pickerLocale}
+        />
 
         {/* Agenda categories section (required — min 1) */}
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
@@ -743,6 +833,26 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '700',
     marginBottom: spacing.sm,
+  },
+  datePickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    minHeight: touchTargets.comfortable,
+  },
+  datePickerValue: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  datePickerEditIcon: {
+    fontSize: 18,
+    marginLeft: spacing.sm,
   },
   textInput: {
     ...typography.input,

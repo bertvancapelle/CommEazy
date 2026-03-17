@@ -42,12 +42,12 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DateTimePicker, {
+import {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView, DateTimePickerModal } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -305,99 +305,11 @@ const formPickerStyles = StyleSheet.create({
 });
 
 // ============================================================
-// DateTimePickerModal — wraps DateTimePicker in a pageSheet modal
+// Shared styles — used by FormPickerModal, CategoryPickerModal, ContactPickerModal
+// (DateTimePickerModal is now imported from @/components)
 // ============================================================
 
-interface DateTimePickerModalProps {
-  visible: boolean;
-  title: string;
-  value: Date;
-  mode: 'date' | 'time';
-  onChange: (event: DateTimePickerEvent, date?: Date) => void;
-  onClose: () => void;
-  minimumDate?: Date;
-  is24Hour?: boolean;
-  locale?: string;
-}
-
-function DateTimePickerModal({
-  visible,
-  title,
-  value,
-  mode,
-  onChange,
-  onClose,
-  minimumDate,
-  is24Hour,
-  locale: pickerLocale,
-}: DateTimePickerModalProps) {
-  const { t } = useTranslation();
-  const themeColors = useColors();
-  const moduleColor = useModuleColor('agenda');
-
-  return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={dateTimePickerModalStyles.overlay}>
-        <LiquidGlassView moduleId="agenda" style={dateTimePickerModalStyles.container} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={[dateTimePickerModalStyles.header, { borderBottomColor: themeColors.border }]}>
-            <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
-              {title}
-            </Text>
-            <HapticTouchable
-              style={[dateTimePickerModalStyles.doneButton, { backgroundColor: moduleColor }]}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.agenda.form.done')}
-            >
-              <Text style={dateTimePickerModalStyles.doneButtonText}>
-                {t('modules.agenda.form.done')}
-              </Text>
-            </HapticTouchable>
-          </View>
-
-          {/* Picker */}
-          <View style={dateTimePickerModalStyles.pickerContainer}>
-            <DateTimePicker
-              value={value}
-              mode={mode}
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onChange}
-              minimumDate={minimumDate}
-              is24Hour={is24Hour}
-              locale={pickerLocale}
-            />
-          </View>
-        </LiquidGlassView>
-      </View>
-    </Modal>
-  );
-}
-
 const dateTimePickerModalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  container: {
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-  },
   doneButton: {
     minWidth: touchTargets.minimum,
     height: touchTargets.minimum,
@@ -410,11 +322,6 @@ const dateTimePickerModalStyles = StyleSheet.create({
     ...typography.body,
     fontWeight: '700',
     color: colors.textOnPrimary,
-  },
-  pickerContainer: {
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
   },
 });
 
@@ -1994,6 +1901,7 @@ export function AgendaItemFormScreen({
         title={t('modules.agenda.form.dateLabel')}
         value={selectedDate}
         mode="date"
+        moduleId="agenda"
         onChange={handleDateChange}
         onClose={() => setShowDatePicker(false)}
         locale={locale}
@@ -2004,6 +1912,7 @@ export function AgendaItemFormScreen({
         title={t('modules.agenda.form.timeLabel')}
         value={selectedTime}
         mode="time"
+        moduleId="agenda"
         onChange={handleTimeChange}
         onClose={() => setShowTimePicker(false)}
         is24Hour={true}
@@ -2015,6 +1924,7 @@ export function AgendaItemFormScreen({
         title={`${t('modules.agenda.form.timeLabel')} ${(editingMedTimeIndex ?? 0) + 1}`}
         value={editingMedTimeIndex != null ? (medicationTimes[editingMedTimeIndex] ?? new Date()) : new Date()}
         mode="time"
+        moduleId="agenda"
         onChange={handleMedTimeChange}
         onClose={() => setEditingMedTimeIndex(null)}
         is24Hour={true}
@@ -2026,6 +1936,7 @@ export function AgendaItemFormScreen({
         title={t('modules.agenda.form.endTimeLabel')}
         value={endTime ?? new Date()}
         mode="time"
+        moduleId="agenda"
         onChange={(event, date) => {
           if (date) setEndTime(date);
           if (Platform.OS === 'android') setShowEndTimePicker(false);
@@ -2040,6 +1951,7 @@ export function AgendaItemFormScreen({
         title={t('modules.agenda.form.endDateLabel')}
         value={endDate ?? new Date(selectedDate.getTime() + 30 * 24 * 60 * 60 * 1000)}
         mode="date"
+        moduleId="agenda"
         onChange={handleEndDateChange}
         onClose={() => setShowEndDatePicker(false)}
         minimumDate={selectedDate}

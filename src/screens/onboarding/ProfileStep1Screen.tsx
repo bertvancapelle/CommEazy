@@ -8,7 +8,7 @@
  *   PinSetup → ProfileStep1 → ProfileStep2 → ProfileStep3 → NavigationTutorial
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,10 +21,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { typography, spacing, touchTargets, borderRadius } from '@/theme';
+import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator } from '@/components';
-import { SeniorDatePicker } from '@/components/SeniorDatePicker';
+import { useAccentColor } from '@/hooks/useAccentColor';
+import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, DateTimePickerModal } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
 import type { OnboardingStackParams } from '@/navigation';
@@ -39,8 +39,9 @@ const GENDER_OPTIONS: { value: Gender; labelKey: string }[] = [
 ];
 
 export function ProfileStep1Screen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const themeColors = useColors();
+  const { accentColor } = useAccentColor();
   const { triggerFeedback } = useFeedback();
 
   const [firstName, setFirstName] = useState('');
@@ -48,6 +49,32 @@ export function ProfileStep1Screen({ navigation }: Props) {
   const [gender, setGender] = useState<Gender | undefined>();
   const [birthDate, setBirthDate] = useState<string | undefined>();
   const [weddingDate, setWeddingDate] = useState<string | undefined>();
+  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
+  const [showWeddingDatePicker, setShowWeddingDatePicker] = useState(false);
+
+  // Locale mapping for native date picker
+  const pickerLocale = useMemo(() => {
+    const lang = i18n.language;
+    const map: Record<string, string> = {
+      nl: 'nl-NL', en: 'en-US', 'en-GB': 'en-GB', de: 'de-DE',
+      fr: 'fr-FR', es: 'es-ES', it: 'it-IT', no: 'nb-NO',
+      sv: 'sv-SE', da: 'da-DK', pt: 'pt-PT', 'pt-BR': 'pt-BR', pl: 'pl-PL',
+    };
+    return map[lang] || 'en-US';
+  }, [i18n.language]);
+
+  const formatDateDisplay = useCallback((isoDate: string | undefined): string => {
+    if (!isoDate) return '-';
+    const d = new Date(isoDate + 'T00:00:00');
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString(pickerLocale, { day: 'numeric', month: 'long', year: 'numeric' });
+  }, [pickerLocale]);
+
+  const parseDateValue = useCallback((isoDate: string | undefined): Date => {
+    if (!isoDate) return new Date();
+    const d = new Date(isoDate + 'T00:00:00');
+    return isNaN(d.getTime()) ? new Date() : d;
+  }, []);
 
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{
@@ -204,13 +231,17 @@ export function ProfileStep1Screen({ navigation }: Props) {
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('onboarding.personalDetails.birthDate')}
             </Text>
-            <SeniorDatePicker
-              value={birthDate}
-              onChange={setBirthDate}
+            <HapticTouchable hapticDisabled
+              style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+              onPress={() => setShowBirthDatePicker(true)}
+              accessibilityRole="button"
               accessibilityLabel={t('onboarding.personalDetails.birthDate')}
-              minYear={1900}
-              allowClear={false}
-            />
+            >
+              <Text style={[styles.pickerValue, birthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+                {formatDateDisplay(birthDate)}
+              </Text>
+              <Text style={styles.editIcon}>✏️</Text>
+            </HapticTouchable>
           </View>
 
           {/* Wedding date (optional) */}
@@ -218,16 +249,56 @@ export function ProfileStep1Screen({ navigation }: Props) {
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('onboarding.personalDetails.weddingDate')}
             </Text>
-            <SeniorDatePicker
-              value={weddingDate}
-              onChange={setWeddingDate}
+            <HapticTouchable hapticDisabled
+              style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+              onPress={() => setShowWeddingDatePicker(true)}
+              accessibilityRole="button"
               accessibilityLabel={t('onboarding.personalDetails.weddingDate')}
-              minYear={1940}
-            />
+            >
+              <Text style={[styles.pickerValue, weddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+                {formatDateDisplay(weddingDate)}
+              </Text>
+              <Text style={styles.editIcon}>✏️</Text>
+            </HapticTouchable>
             <Text style={[styles.optionalHint, { color: themeColors.textTertiary }]}>
               {t('common.optional')}
             </Text>
           </View>
+
+          {/* Date picker modals */}
+          <DateTimePickerModal
+            visible={showBirthDatePicker}
+            title={t('onboarding.personalDetails.birthDate')}
+            value={parseDateValue(birthDate)}
+            mode="date"
+            moduleId="settings"
+            onChange={(_event, selectedDate) => {
+              if (selectedDate) {
+                setBirthDate(selectedDate.toISOString().split('T')[0]);
+              }
+            }}
+            onClose={() => setShowBirthDatePicker(false)}
+            maximumDate={new Date()}
+            minimumDate={new Date(1900, 0, 1)}
+            locale={pickerLocale}
+          />
+
+          <DateTimePickerModal
+            visible={showWeddingDatePicker}
+            title={t('onboarding.personalDetails.weddingDate')}
+            value={parseDateValue(weddingDate)}
+            mode="date"
+            moduleId="settings"
+            onChange={(_event, selectedDate) => {
+              if (selectedDate) {
+                setWeddingDate(selectedDate.toISOString().split('T')[0]);
+              }
+            }}
+            onClose={() => setShowWeddingDatePicker(false)}
+            maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
+            minimumDate={new Date(1940, 0, 1)}
+            locale={pickerLocale}
+          />
 
           {/* Extra bottom padding */}
           <View style={{ height: spacing.xxl }} />
@@ -288,6 +359,26 @@ const styles = StyleSheet.create({
   genderText: {
     ...typography.body,
     fontWeight: '600',
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    minHeight: touchTargets.comfortable,
+  },
+  pickerValue: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  editIcon: {
+    fontSize: 18,
+    marginLeft: spacing.sm,
   },
   optionalHint: {
     ...typography.small,
