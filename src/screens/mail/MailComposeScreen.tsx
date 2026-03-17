@@ -41,6 +41,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { useScrollToField } from '@/hooks/useScrollToField';
 import type { MailAccount, CachedMailHeader, MailBody, MailAttachment, MailRecipient } from '@/types/mail';
 import { parseEmailAddress } from '@/types/mail';
 import { AttachmentPreviewBar } from '@/components/mail/AttachmentPreviewBar';
@@ -439,6 +440,7 @@ function RecipientField({
   placeholder,
   accountEmail,
   accountDisplayName,
+  onInputFocus,
 }: {
   label: string;
   recipients: MailRecipient[];
@@ -452,6 +454,8 @@ function RecipientField({
   accountEmail?: string;
   /** Account display name for "To myself" chip */
   accountDisplayName?: string;
+  /** Called when the recipient input is focused (for scroll-to-field) */
+  onInputFocus?: () => void;
 }) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
@@ -570,7 +574,10 @@ function RecipientField({
               // Small delay so tapping a suggestion still works
               setTimeout(() => setShowSuggestions(false), 200);
             }}
-            onFocus={() => setShowSuggestions(true)}
+            onFocus={() => {
+              setShowSuggestions(true);
+              onInputFocus?.();
+            }}
             accessibilityLabel={label}
           />
         </View>
@@ -621,6 +628,7 @@ export function MailComposeScreen({
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { triggerHaptic } = useFeedback();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
 
   // Contact loading
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -1075,22 +1083,26 @@ export function MailComposeScreen({
       </View>
 
       <ScrollViewWithIndicator
+        ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         {/* To — Recipient chips with inline search */}
-        <RecipientField
-          label={t('modules.mail.compose.to')}
-          recipients={toRecipients}
-          onAddRecipient={handleAddToRecipient}
-          onRemoveRecipient={handleRemoveToRecipient}
-          contacts={contacts}
-          accentColor={accentColor}
-          themeColors={themeColors}
-          placeholder={t('modules.mail.compose.toPlaceholder')}
-          accountEmail={account.email}
-          accountDisplayName={account.displayName}
-        />
+        <View ref={registerField('to')}>
+          <RecipientField
+            label={t('modules.mail.compose.to')}
+            recipients={toRecipients}
+            onAddRecipient={handleAddToRecipient}
+            onRemoveRecipient={handleRemoveToRecipient}
+            contacts={contacts}
+            accentColor={accentColor}
+            themeColors={themeColors}
+            placeholder={t('modules.mail.compose.toPlaceholder')}
+            accountEmail={account.email}
+            accountDisplayName={account.displayName}
+            onInputFocus={getFieldFocusHandler('to')}
+          />
+        </View>
 
         {/* CC/BCC toggle */}
         {!showCcBcc && (
@@ -1112,34 +1124,40 @@ export function MailComposeScreen({
 
         {/* CC field */}
         {showCcBcc && (
-          <RecipientField
-            label={t('modules.mail.compose.ccLabel')}
-            recipients={ccRecipients}
-            onAddRecipient={handleAddCcRecipient}
-            onRemoveRecipient={handleRemoveCcRecipient}
-            contacts={contacts}
-            accentColor={accentColor}
-            themeColors={themeColors}
-            placeholder={t('modules.mail.compose.ccPlaceholder')}
-          />
+          <View ref={registerField('cc')}>
+            <RecipientField
+              label={t('modules.mail.compose.ccLabel')}
+              recipients={ccRecipients}
+              onAddRecipient={handleAddCcRecipient}
+              onRemoveRecipient={handleRemoveCcRecipient}
+              contacts={contacts}
+              accentColor={accentColor}
+              themeColors={themeColors}
+              placeholder={t('modules.mail.compose.ccPlaceholder')}
+              onInputFocus={getFieldFocusHandler('cc')}
+            />
+          </View>
         )}
 
         {/* BCC field */}
         {showCcBcc && (
-          <RecipientField
-            label={t('modules.mail.compose.bccLabel')}
-            recipients={bccRecipients}
-            onAddRecipient={handleAddBccRecipient}
-            onRemoveRecipient={handleRemoveBccRecipient}
-            contacts={contacts}
-            accentColor={accentColor}
-            themeColors={themeColors}
-            placeholder={t('modules.mail.compose.bccPlaceholder')}
-          />
+          <View ref={registerField('bcc')}>
+            <RecipientField
+              label={t('modules.mail.compose.bccLabel')}
+              recipients={bccRecipients}
+              onAddRecipient={handleAddBccRecipient}
+              onRemoveRecipient={handleRemoveBccRecipient}
+              contacts={contacts}
+              accentColor={accentColor}
+              themeColors={themeColors}
+              placeholder={t('modules.mail.compose.bccPlaceholder')}
+              onInputFocus={getFieldFocusHandler('bcc')}
+            />
+          </View>
         )}
 
         {/* Subject */}
-        <View style={[styles.fieldRow, { borderBottomColor: themeColors.border }]}>
+        <View ref={registerField('subject')} style={[styles.fieldRow, { borderBottomColor: themeColors.border }]}>
           <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
             {t('modules.mail.compose.subject')}
           </Text>
@@ -1151,6 +1169,7 @@ export function MailComposeScreen({
             placeholderTextColor={themeColors.textSecondary}
             returnKeyType="next"
             onSubmitEditing={() => bodyInputRef.current?.focus()}
+            onFocus={getFieldFocusHandler('subject')}
             accessibilityLabel={t('modules.mail.compose.subject')}
           />
         </View>
@@ -1166,17 +1185,20 @@ export function MailComposeScreen({
         )}
 
         {/* Body */}
-        <TextInput
-          ref={bodyInputRef}
-          style={[styles.bodyInput, { color: themeColors.textPrimary }]}
-          value={body}
-          onChangeText={setBody}
-          placeholder={t('modules.mail.compose.bodyPlaceholder')}
-          placeholderTextColor={themeColors.textSecondary}
-          multiline
-          textAlignVertical="top"
-          accessibilityLabel={t('modules.mail.compose.body')}
-        />
+        <View ref={registerField('body')}>
+          <TextInput
+            ref={bodyInputRef}
+            style={[styles.bodyInput, { color: themeColors.textPrimary }]}
+            value={body}
+            onChangeText={setBody}
+            placeholder={t('modules.mail.compose.bodyPlaceholder')}
+            placeholderTextColor={themeColors.textSecondary}
+            multiline
+            textAlignVertical="top"
+            onFocus={getFieldFocusHandler('body')}
+            accessibilityLabel={t('modules.mail.compose.body')}
+          />
+        </View>
 
         {/* Original message preview (forward/reply) */}
         {originalHtml && (
@@ -1263,7 +1285,10 @@ export function MailComposeScreen({
         <AlbumPickerModal
           visible={showAlbumPicker}
           onSelect={handleAddPhotos}
-          onClose={() => setShowAlbumPicker(false)}
+          onClose={() => {
+            setShowAlbumPicker(false);
+            scrollToField('body', { isModalReturn: true });
+          }}
         />
       )}
     </KeyboardAvoidingView>

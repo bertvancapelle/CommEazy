@@ -24,6 +24,7 @@ import {
   Alert,
   Linking,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -35,6 +36,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { ContactAvatar, Icon, DateTimePickerModal, HapticTouchable, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useScrollToField } from '@/hooks/useScrollToField';
 import { useCall } from '@/contexts/CallContext';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
 import { useContactGroups } from '@/hooks/useContactGroups';
@@ -127,6 +129,7 @@ export function ContactDetailScreen() {
   const { navigateToModuleInOtherPane } = useNavigateToModule();
 
   const { groups, addContacts, removeContacts } = useContactGroups();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
 
   const [notification, setNotification] = useState<{
     type: 'error' | 'warning' | 'info' | 'success';
@@ -488,7 +491,12 @@ export function ContactDetailScreen() {
   const showNavigationButton = hasNavigableAddress(contact.address);
 
   return (
-    <ScrollViewWithIndicator style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
+    <ScrollViewWithIndicator ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
       {notification && (
         <ErrorView
           type={notification.type}
@@ -796,12 +804,13 @@ export function ContactDetailScreen() {
 
         {/* Phone number */}
         {isEditing ? (
-          <View style={styles.editFieldContainer}>
+          <View ref={registerField('phone')} style={styles.editFieldContainer}>
             <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
             <TextInput
               style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
               value={editPhone}
               onChangeText={setEditPhone}
+              onFocus={getFieldFocusHandler('phone')}
               placeholder={t('contacts.phonePlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               keyboardType="phone-pad"
@@ -819,12 +828,13 @@ export function ContactDetailScreen() {
 
         {/* Email */}
         {isEditing ? (
-          <View style={styles.editFieldContainer}>
+          <View ref={registerField('email')} style={styles.editFieldContainer}>
             <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.emailLabel')}</Text>
             <TextInput
               style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
               value={editEmail}
               onChangeText={setEditEmail}
+              onFocus={getFieldFocusHandler('email')}
               placeholder={t('contacts.emailPlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               keyboardType="email-address"
@@ -849,45 +859,49 @@ export function ContactDetailScreen() {
 
         {isEditing ? (
           <>
-            <View style={styles.editFieldContainer}>
+            <View ref={registerField('street')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.street')}</Text>
               <TextInput
                 style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
                 value={editStreet}
                 onChangeText={setEditStreet}
+                onFocus={getFieldFocusHandler('street')}
                 placeholder={t('contacts.address.street')}
                 placeholderTextColor={themeColors.textTertiary}
                 accessibilityLabel={t('contacts.address.street')}
               />
             </View>
-            <View style={styles.editFieldContainer}>
+            <View ref={registerField('postalCode')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.postalCode')}</Text>
               <TextInput
                 style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
                 value={editPostalCode}
                 onChangeText={setEditPostalCode}
+                onFocus={getFieldFocusHandler('postalCode')}
                 placeholder={t('contacts.address.postalCode')}
                 placeholderTextColor={themeColors.textTertiary}
                 accessibilityLabel={t('contacts.address.postalCode')}
               />
             </View>
-            <View style={styles.editFieldContainer}>
+            <View ref={registerField('city')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.city')}</Text>
               <TextInput
                 style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
                 value={editCity}
                 onChangeText={setEditCity}
+                onFocus={getFieldFocusHandler('city')}
                 placeholder={t('contacts.address.city')}
                 placeholderTextColor={themeColors.textTertiary}
                 accessibilityLabel={t('contacts.address.city')}
               />
             </View>
-            <View style={styles.editFieldContainer}>
+            <View ref={registerField('country')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.country')}</Text>
               <TextInput
                 style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
                 value={editCountry}
                 onChangeText={setEditCountry}
+                onFocus={getFieldFocusHandler('country')}
                 placeholder={t('contacts.address.country')}
                 placeholderTextColor={themeColors.textTertiary}
                 accessibilityLabel={t('contacts.address.country')}
@@ -940,7 +954,7 @@ export function ContactDetailScreen() {
         {isEditing ? (
           <>
             {/* Birth date editor */}
-            <View style={styles.editFieldContainer}>
+            <View ref={registerField('birthDate')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -956,7 +970,7 @@ export function ContactDetailScreen() {
             </View>
 
             {/* Wedding date editor */}
-            <View style={styles.editFieldContainer}>
+            <View ref={registerField('weddingDate')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -972,7 +986,7 @@ export function ContactDetailScreen() {
             </View>
 
             {/* Death date editor */}
-            <View style={styles.editFieldContainer}>
+            <View ref={registerField('deathDate')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -997,7 +1011,7 @@ export function ContactDetailScreen() {
               onChange={(_event, selectedDate) => {
                 if (selectedDate) setEditBirthDate(selectedDate.toISOString().split('T')[0]);
               }}
-              onClose={() => setShowBirthDatePicker(false)}
+              onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
               maximumDate={new Date()}
               minimumDate={new Date(1900, 0, 1)}
               locale={pickerLocale}
@@ -1012,7 +1026,7 @@ export function ContactDetailScreen() {
               onChange={(_event, selectedDate) => {
                 if (selectedDate) setEditWeddingDate(selectedDate.toISOString().split('T')[0]);
               }}
-              onClose={() => setShowWeddingDatePicker(false)}
+              onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
               maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
               minimumDate={new Date(1940, 0, 1)}
               locale={pickerLocale}
@@ -1027,7 +1041,7 @@ export function ContactDetailScreen() {
               onChange={(_event, selectedDate) => {
                 if (selectedDate) setEditDeathDate(selectedDate.toISOString().split('T')[0]);
               }}
-              onClose={() => setShowDeathDatePicker(false)}
+              onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
               maximumDate={new Date()}
               minimumDate={new Date(1940, 0, 1)}
               locale={pickerLocale}
@@ -1137,7 +1151,11 @@ export function ContactDetailScreen() {
           <Text style={[styles.dangerButtonText, { color: themeColors.error }]}>{t('contacts.delete')}</Text>
         </HapticTouchable>
       </View>
+
+      {/* Extra bottom padding to ensure last fields scroll above keyboard */}
+      <View style={{ height: spacing.xxl }} />
     </ScrollViewWithIndicator>
+    </KeyboardAvoidingView>
   );
 }
 

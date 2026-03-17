@@ -79,3 +79,10 @@ export { useModuleBadges, type UseModuleBadgesReturn } from './useModuleBadges';
 
 // Scroll Overflow Detection
 export { useScrollOverflow, type UseScrollOverflowReturn } from './useScrollOverflow';
+
+// Form Field Scroll Management
+export {
+  useScrollToField,
+  type UseScrollToFieldReturn,
+  type ScrollToFieldOptions,
+} from './useScrollToField';

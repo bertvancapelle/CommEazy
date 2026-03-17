@@ -430,6 +430,16 @@ Bij het bouwen van een nieuwe module, raadpleeg deze checklist voor verplichte s
 | `AudioPlayerControls` | `@/components` | Control configuratie interface |
 | Glass Player bridge | `@/services/glassPlayer` | iOS 26+ native player |
 
+### Modules met Formuliervelden (VERPLICHT)
+
+| Shared Object | Import | Gebruik |
+|---------------|--------|---------|
+| `useScrollToField()` | `@/hooks` | **VERPLICHT** — Keyboard focus + modal-return scroll op ALLE form screens |
+| `KeyboardAvoidingView` | `react-native` | Wrapper rond ScrollView voor keyboard avoidance |
+| `ScrollViewWithIndicator` | `@/components` | ScrollView met `ref={scrollRef}` en `keyboardShouldPersistTaps="handled"` |
+
+**Regels:** Zie ui-designer SKILL.md sectie 6b voor volledige implementatie. Elke TextInput MOET `onFocus={getFieldFocusHandler(key)}` hebben, elke modal onClose MOET `scrollToField(key, { isModalReturn: true })` aanroepen.
+
 ### Modules met Zoekfunctionaliteit
 
 | Shared Object | Import | Gebruik |

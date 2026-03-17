@@ -27,6 +27,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, DateTimePickerModal } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useScrollToField } from '@/hooks/useScrollToField';
 import { ServiceContainer } from '@/services/container';
 import type { OnboardingStackParams } from '@/navigation';
 import type { Gender } from '@/services/interfaces';
@@ -46,6 +47,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
   const labelStyle = useLabelStyle();
   const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -145,6 +147,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
         keyboardVerticalOffset={100}
       >
         <ScrollViewWithIndicator
+          ref={scrollRef}
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
@@ -166,31 +169,37 @@ export function ProfileStep1Screen({ navigation }: Props) {
           )}
 
           {/* First name */}
-          <TextInput
-            label={t('onboarding.firstName')}
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder={t('onboarding.firstNamePlaceholder')}
-            autoFocus
-            autoCapitalize="words"
-            autoCorrect={false}
-            returnKeyType="next"
-            onSubmitEditing={() => lastNameRef.current?.focus()}
-            accessibilityLabel={t('onboarding.firstName')}
-          />
+          <View ref={registerField('firstName')}>
+            <TextInput
+              label={t('onboarding.firstName')}
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder={t('onboarding.firstNamePlaceholder')}
+              autoFocus
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="next"
+              onSubmitEditing={() => lastNameRef.current?.focus()}
+              onFocus={getFieldFocusHandler('firstName')}
+              accessibilityLabel={t('onboarding.firstName')}
+            />
+          </View>
 
           {/* Last name */}
-          <TextInput
-            ref={lastNameRef}
-            label={t('onboarding.lastName')}
-            value={lastName}
-            onChangeText={setLastName}
-            placeholder={t('onboarding.lastNamePlaceholder')}
-            autoCapitalize="words"
-            autoCorrect={false}
-            returnKeyType="done"
-            accessibilityLabel={t('onboarding.lastName')}
-          />
+          <View ref={registerField('lastName')}>
+            <TextInput
+              ref={lastNameRef}
+              label={t('onboarding.lastName')}
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder={t('onboarding.lastNamePlaceholder')}
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="done"
+              onFocus={getFieldFocusHandler('lastName')}
+              accessibilityLabel={t('onboarding.lastName')}
+            />
+          </View>
 
           {/* Gender */}
           <View style={styles.inputGroup}>
@@ -230,7 +239,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
           </View>
 
           {/* Birth date */}
-          <View style={styles.inputGroup}>
+          <View ref={registerField('birthDate')} style={styles.inputGroup}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.personalDetails.birthDate')}
             </Text>
@@ -248,7 +257,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
           </View>
 
           {/* Wedding date (optional) */}
-          <View style={styles.inputGroup}>
+          <View ref={registerField('weddingDate')} style={styles.inputGroup}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.personalDetails.weddingDate')}
             </Text>
@@ -280,7 +289,10 @@ export function ProfileStep1Screen({ navigation }: Props) {
                 setBirthDate(selectedDate.toISOString().split('T')[0]);
               }
             }}
-            onClose={() => setShowBirthDatePicker(false)}
+            onClose={() => {
+              setShowBirthDatePicker(false);
+              scrollToField('birthDate', { isModalReturn: true });
+            }}
             maximumDate={new Date()}
             minimumDate={new Date(1900, 0, 1)}
             locale={pickerLocale}
@@ -297,7 +309,10 @@ export function ProfileStep1Screen({ navigation }: Props) {
                 setWeddingDate(selectedDate.toISOString().split('T')[0]);
               }
             }}
-            onClose={() => setShowWeddingDatePicker(false)}
+            onClose={() => {
+              setShowWeddingDatePicker(false);
+              scrollToField('weddingDate', { isModalReturn: true });
+            }}
             maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
             minimumDate={new Date(1940, 0, 1)}
             locale={pickerLocale}

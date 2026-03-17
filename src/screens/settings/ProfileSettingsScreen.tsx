@@ -65,6 +65,7 @@ import {
 import { PickerModal } from './PickerModal';
 import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
 import { DateTimePickerModal } from '@/components/DateTimePickerModal';
+import { useScrollToField } from '@/hooks/useScrollToField';
 
 // Auto-calculate ageBracket from birthDate
 function calculateAgeBracket(birthDateString: string): AgeBracket | undefined {
@@ -155,6 +156,9 @@ export function ProfileSettingsScreen() {
   // ScrollView ref for scrolling to fields
   const scrollViewRef = useRef<ScrollView>(null);
   const lastNameInputRef = useRef<TextInput>(null);
+
+  // Scroll-to-field hook for keyboard/modal-return auto-scrolling
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
 
   // Refs to track latest values for beforeRemove (avoids stale closures)
   const profileRef = useRef(profile);
@@ -607,6 +611,7 @@ export function ProfileSettingsScreen() {
       <ScrollViewWithIndicator
         ref={(ref) => {
           scrollViewRef.current = ref;
+          (scrollRef as React.MutableRefObject<ScrollView | null>).current = ref;
           if (voiceScrollRef) {
             (voiceScrollRef as React.MutableRefObject<ScrollView | null>).current = ref;
           }
@@ -648,7 +653,7 @@ export function ProfileSettingsScreen() {
       </View>
 
       {/* Language section */}
-      <View style={[styles.section, { backgroundColor: themeColors.surface }]}>
+      <View style={[styles.section, { backgroundColor: themeColors.surface }]} ref={registerField('language')}>
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('settings.language')}</Text>
         <HapticTouchable hapticDisabled
           style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -679,7 +684,7 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.profileStep1.title')}</Text>
 
         {/* First name */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('displayFirstName')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.firstNameLabel')}{requiredMark}
           </Text>
@@ -688,6 +693,7 @@ export function ProfileSettingsScreen() {
             value={displayFirstName}
             onChangeText={setDisplayFirstName}
             onBlur={() => handleNameBlur('firstName', displayFirstName)}
+            onFocus={getFieldFocusHandler('displayFirstName')}
             placeholder={t('onboarding.firstNamePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             maxLength={50}
@@ -698,7 +704,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Last name */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('displayLastName')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.lastNameLabel')}{requiredMark}
           </Text>
@@ -708,6 +714,7 @@ export function ProfileSettingsScreen() {
             value={displayLastName}
             onChangeText={setDisplayLastName}
             onBlur={() => handleNameBlur('lastName', displayLastName)}
+            onFocus={getFieldFocusHandler('displayLastName')}
             placeholder={t('onboarding.lastNamePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             maxLength={50}
@@ -717,7 +724,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Gender */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('gender')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('demographics.genderLabel')}{requiredMark}
           </Text>
@@ -737,7 +744,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Birth date */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('birthDate')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('profile.personal.birthDateLabel')}{requiredMark}
           </Text>
@@ -755,7 +762,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Wedding date */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('weddingDate')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('profile.personal.weddingDateLabel')}
           </Text>
@@ -778,7 +785,7 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('onboarding.profileStep2.title')}</Text>
 
         {/* Country */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('country')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('demographics.countryLabel')}{requiredMark}
           </Text>
@@ -799,7 +806,7 @@ export function ProfileSettingsScreen() {
 
         {/* Postcode + Huisnummer row */}
         <View style={styles.rowFields}>
-          <View style={[styles.fieldContainer, { flex: 1, marginRight: spacing.sm }]}>
+          <View style={[styles.fieldContainer, { flex: 1, marginRight: spacing.sm }]} ref={registerField('addressPostalCode')}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.personalDetails.addressPostalCode')}{requiredMark}
             </Text>
@@ -811,6 +818,7 @@ export function ProfileSettingsScreen() {
                 void handleAddressFieldBlur('addressPostalCode', addressPostalCode);
                 void handleAddressLookup();
               }}
+              onFocus={getFieldFocusHandler('addressPostalCode')}
               placeholder={t('onboarding.personalDetails.postalCodePlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               autoCapitalize="characters"
@@ -818,7 +826,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('onboarding.personalDetails.addressPostalCode')}
             />
           </View>
-          <View style={[styles.fieldContainer, { flex: 1 }]}>
+          <View style={[styles.fieldContainer, { flex: 1 }]} ref={registerField('addressHouseNumber')}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.profileStep2.houseNumber')}{requiredMark}
             </Text>
@@ -827,6 +835,7 @@ export function ProfileSettingsScreen() {
               value={addressHouseNumber}
               onChangeText={setAddressHouseNumber}
               onBlur={() => void handleAddressLookup()}
+              onFocus={getFieldFocusHandler('addressHouseNumber')}
               placeholder={t('onboarding.profileStep2.houseNumberPlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               keyboardType="default"
@@ -847,7 +856,7 @@ export function ProfileSettingsScreen() {
         )}
 
         {/* Street */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('addressStreet')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.personalDetails.addressStreet')}
           </Text>
@@ -856,6 +865,7 @@ export function ProfileSettingsScreen() {
             value={addressStreet}
             onChangeText={setAddressStreet}
             onBlur={() => handleAddressFieldBlur('addressStreet', addressStreet)}
+            onFocus={getFieldFocusHandler('addressStreet')}
             placeholder={t('onboarding.personalDetails.streetPlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             returnKeyType="next"
@@ -864,7 +874,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* City */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('addressCity')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.personalDetails.addressCity')}{requiredMark}
           </Text>
@@ -873,6 +883,7 @@ export function ProfileSettingsScreen() {
             value={addressCity}
             onChangeText={setAddressCity}
             onBlur={() => handleAddressFieldBlur('addressCity', addressCity)}
+            onFocus={getFieldFocusHandler('addressCity')}
             placeholder={t('onboarding.personalDetails.cityPlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             returnKeyType="next"
@@ -881,7 +892,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Province */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('addressProvince')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.profileStep2.provinceLabel')}
           </Text>
@@ -890,6 +901,7 @@ export function ProfileSettingsScreen() {
             value={addressProvince}
             onChangeText={setAddressProvince}
             onBlur={() => handleAddressFieldBlur('addressProvince', addressProvince)}
+            onFocus={getFieldFocusHandler('addressProvince')}
             placeholder={t('onboarding.profileStep2.provincePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             returnKeyType="done"
@@ -904,13 +916,14 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionSubtitle, { color: themeColors.textTertiary }]}>{t('profile.personal.subtitle')}</Text>
 
         {/* Email */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('personalEmail')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('profile.personal.emailLabel')}</Text>
           <TextInput
             style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={personalEmail}
             onChangeText={setPersonalEmail}
             onBlur={() => handleContactFieldBlur('email', personalEmail)}
+            onFocus={getFieldFocusHandler('personalEmail')}
             placeholder={t('profile.personal.emailPlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             keyboardType="email-address"
@@ -922,13 +935,14 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Mobile number */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('personalMobile')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('profile.personal.mobileLabel')}</Text>
           <TextInput
             style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={personalMobile}
             onChangeText={setPersonalMobile}
             onBlur={() => handleContactFieldBlur('mobileNumber', personalMobile)}
+            onFocus={getFieldFocusHandler('personalMobile')}
             placeholder={t('profile.personal.mobilePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             keyboardType="phone-pad"
@@ -938,13 +952,14 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Landline number */}
-        <View style={styles.fieldContainer}>
+        <View style={styles.fieldContainer} ref={registerField('personalLandline')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('profile.personal.landlineLabel')}</Text>
           <TextInput
             style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
             value={personalLandline}
             onChangeText={setPersonalLandline}
             onBlur={() => handleContactFieldBlur('landlineNumber', personalLandline)}
+            onFocus={getFieldFocusHandler('personalLandline')}
             placeholder={t('profile.personal.landlinePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             keyboardType="phone-pad"
@@ -1011,7 +1026,7 @@ export function ProfileSettingsScreen() {
         options={languageOptions}
         selectedValue={i18n.language}
         onSelect={handleLanguageSelect}
-        onClose={closePicker}
+        onClose={() => { closePicker(); scrollToField('language', { isModalReturn: true }); }}
       />
 
       <PickerModal
@@ -1020,7 +1035,7 @@ export function ProfileSettingsScreen() {
         options={countryOptions}
         selectedValue={addressCountryCode}
         onSelect={handleCountrySelect}
-        onClose={closePicker}
+        onClose={() => { closePicker(); scrollToField('country', { isModalReturn: true }); }}
       />
 
       <PickerModal
@@ -1029,7 +1044,7 @@ export function ProfileSettingsScreen() {
         options={genderOptions}
         selectedValue={gender}
         onSelect={handleGenderSelect}
-        onClose={closePicker}
+        onClose={() => { closePicker(); scrollToField('gender', { isModalReturn: true }); }}
       />
 
       {/* Date picker modals */}
@@ -1040,7 +1055,7 @@ export function ProfileSettingsScreen() {
         mode="date"
         moduleId="settings"
         onChange={handleBirthDatePickerChange}
-        onClose={() => setShowBirthDatePicker(false)}
+        onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
         maximumDate={new Date()}
         minimumDate={new Date(1900, 0, 1)}
         locale={pickerLocale}
@@ -1053,7 +1068,7 @@ export function ProfileSettingsScreen() {
         mode="date"
         moduleId="settings"
         onChange={handleWeddingDatePickerChange}
-        onClose={() => setShowWeddingDatePicker(false)}
+        onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
         maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
         minimumDate={new Date(1940, 0, 1)}
         locale={pickerLocale}

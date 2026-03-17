@@ -36,6 +36,7 @@ import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView, PanelAwareModal, Icon, DateTimePickerModal } from '@/components';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useScrollToField } from '@/hooks/useScrollToField';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -66,6 +67,7 @@ export function ManualAddContactScreen() {
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
   const insets = useSafeAreaInsets();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
 
   // Save-time reminder modal state (shown when email is missing)
   const [showEmailReminder, setShowEmailReminder] = useState(false);
@@ -381,12 +383,13 @@ export function ManualAddContactScreen() {
       )}
 
       <ScrollViewWithIndicator
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
         {/* First name input */}
-        <View style={styles.inputGroup}>
+        <View ref={registerField('firstName')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.firstNameLabel')}</Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
@@ -394,6 +397,7 @@ export function ManualAddContactScreen() {
             placeholderTextColor={themeColors.textTertiary}
             value={firstName}
             onChangeText={(v) => setField('firstName', v)}
+            onFocus={getFieldFocusHandler('firstName')}
             autoCapitalize="words"
             autoCorrect={false}
             returnKeyType="next"
@@ -403,7 +407,7 @@ export function ManualAddContactScreen() {
         </View>
 
         {/* Last name input */}
-        <View style={styles.inputGroup}>
+        <View ref={registerField('lastName')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.lastNameLabel')}</Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
@@ -411,6 +415,7 @@ export function ManualAddContactScreen() {
             placeholderTextColor={themeColors.textTertiary}
             value={lastName}
             onChangeText={(v) => setField('lastName', v)}
+            onFocus={getFieldFocusHandler('lastName')}
             autoCapitalize="words"
             autoCorrect={false}
             returnKeyType="next"
@@ -420,7 +425,7 @@ export function ManualAddContactScreen() {
         </View>
 
         {/* Landline phone number input */}
-        <View style={styles.inputGroup}>
+        <View ref={registerField('phoneNumber')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.landlineLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
@@ -442,6 +447,7 @@ export function ManualAddContactScreen() {
               placeholderTextColor={themeColors.textTertiary}
               value={phoneNumber}
               onChangeText={(v) => setField('phoneNumber', v)}
+              onFocus={getFieldFocusHandler('phoneNumber')}
               keyboardType="phone-pad"
               returnKeyType="done"
               accessibilityLabel={t('contacts.landlineLabel')}
@@ -470,7 +476,7 @@ export function ManualAddContactScreen() {
         </View>
 
         {/* Mobile phone number input */}
-        <View style={styles.inputGroup}>
+        <View ref={registerField('mobileNumber')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.mobileLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
@@ -492,6 +498,7 @@ export function ManualAddContactScreen() {
               placeholderTextColor={themeColors.textTertiary}
               value={mobileNumber}
               onChangeText={(v) => setField('mobileNumber', v)}
+              onFocus={getFieldFocusHandler('mobileNumber')}
               keyboardType="phone-pad"
               returnKeyType="done"
               accessibilityLabel={t('contacts.mobileLabel')}
@@ -520,7 +527,7 @@ export function ManualAddContactScreen() {
         </View>
 
         {/* Email input */}
-        <View style={styles.inputGroup}>
+        <View ref={registerField('email')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.emailLabel')}</Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
@@ -528,6 +535,7 @@ export function ManualAddContactScreen() {
             placeholderTextColor={themeColors.textTertiary}
             value={email}
             onChangeText={(v) => setField('email', v)}
+            onFocus={getFieldFocusHandler('email')}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -539,7 +547,7 @@ export function ManualAddContactScreen() {
         {/* Address section */}
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.address.title')}</Text>
 
-        <View style={styles.inputGroup}>
+        <View ref={registerField('street')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.street')}</Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
@@ -547,6 +555,7 @@ export function ManualAddContactScreen() {
             placeholderTextColor={themeColors.textTertiary}
             value={street}
             onChangeText={(v) => setField('street', v)}
+            onFocus={getFieldFocusHandler('street')}
             autoCapitalize="words"
             returnKeyType="next"
             accessibilityLabel={t('contacts.address.street')}
@@ -554,7 +563,7 @@ export function ManualAddContactScreen() {
         </View>
 
         <View style={styles.addressRow}>
-          <View style={[styles.inputGroup, styles.postalCodeField]}>
+          <View ref={registerField('postalCode')} style={[styles.inputGroup, styles.postalCodeField]}>
             <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.postalCode')}</Text>
             <TextInput
               style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
@@ -562,13 +571,14 @@ export function ManualAddContactScreen() {
               placeholderTextColor={themeColors.textTertiary}
               value={postalCode}
               onChangeText={(v) => setField('postalCode', v)}
+              onFocus={getFieldFocusHandler('postalCode')}
               autoCapitalize="characters"
               returnKeyType="next"
               accessibilityLabel={t('contacts.address.postalCode')}
             />
           </View>
 
-          <View style={[styles.inputGroup, styles.cityField]}>
+          <View ref={registerField('city')} style={[styles.inputGroup, styles.cityField]}>
             <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.city')}</Text>
             <TextInput
               style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
@@ -576,6 +586,7 @@ export function ManualAddContactScreen() {
               placeholderTextColor={themeColors.textTertiary}
               value={city}
               onChangeText={(v) => setField('city', v)}
+              onFocus={getFieldFocusHandler('city')}
               autoCapitalize="words"
               returnKeyType="next"
               accessibilityLabel={t('contacts.address.city')}
@@ -583,7 +594,7 @@ export function ManualAddContactScreen() {
           </View>
         </View>
 
-        <View style={styles.inputGroup}>
+        <View ref={registerField('country')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.country')}</Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
@@ -591,6 +602,7 @@ export function ManualAddContactScreen() {
             placeholderTextColor={themeColors.textTertiary}
             value={country}
             onChangeText={(v) => setField('country', v)}
+            onFocus={getFieldFocusHandler('country')}
             autoCapitalize="words"
             returnKeyType="done"
             accessibilityLabel={t('contacts.address.country')}
@@ -600,7 +612,7 @@ export function ManualAddContactScreen() {
         {/* Dates section */}
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.dates.title')}</Text>
 
-        <View style={styles.inputGroup}>
+        <View ref={registerField('birthDate')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.birthDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -615,7 +627,7 @@ export function ManualAddContactScreen() {
           </HapticTouchable>
         </View>
 
-        <View style={styles.inputGroup}>
+        <View ref={registerField('weddingDate')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.weddingDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -630,7 +642,7 @@ export function ManualAddContactScreen() {
           </HapticTouchable>
         </View>
 
-        <View style={styles.inputGroup}>
+        <View ref={registerField('deathDate')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.deathDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -655,7 +667,7 @@ export function ManualAddContactScreen() {
           onChange={(_event, selectedDate) => {
             if (selectedDate) setField('birthDate', selectedDate.toISOString().split('T')[0]);
           }}
-          onClose={() => setShowBirthDatePicker(false)}
+          onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
           maximumDate={new Date()}
           minimumDate={new Date(1900, 0, 1)}
           locale={pickerLocale}
@@ -670,7 +682,7 @@ export function ManualAddContactScreen() {
           onChange={(_event, selectedDate) => {
             if (selectedDate) setField('weddingDate', selectedDate.toISOString().split('T')[0]);
           }}
-          onClose={() => setShowWeddingDatePicker(false)}
+          onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
           maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
           minimumDate={new Date(1940, 0, 1)}
           locale={pickerLocale}
@@ -685,7 +697,7 @@ export function ManualAddContactScreen() {
           onChange={(_event, selectedDate) => {
             if (selectedDate) setField('deathDate', selectedDate.toISOString().split('T')[0]);
           }}
-          onClose={() => setShowDeathDatePicker(false)}
+          onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
           maximumDate={new Date()}
           minimumDate={new Date(1940, 0, 1)}
           locale={pickerLocale}
@@ -742,6 +754,9 @@ export function ManualAddContactScreen() {
         <Text style={[styles.hintNote, { color: themeColors.textTertiary }]}>
           {t('contacts.add.manualHint', 'Dit contact wordt opgeslagen zonder versleuteling. Nodig iemand uit voor beveiligde berichten.')}
         </Text>
+
+        {/* Bottom padding for keyboard scroll space */}
+        <View style={{ height: 48 }} />
       </ScrollViewWithIndicator>
 
             {/* Save-time reminder modal: prompts for missing email */}

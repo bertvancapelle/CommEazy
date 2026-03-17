@@ -36,6 +36,7 @@ import { groupChatService } from '@/services/groupChat';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
 import { triggerHaptic } from '@/hooks/useHoldToNavigate';
+import { useScrollToField } from '@/hooks/useScrollToField';
 
 type NavigationProp = NativeStackNavigationProp<GroupStackParams, 'CreateGroup'>;
 
@@ -45,6 +46,7 @@ export function CreateGroupScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const themeColors = useColors();
+  const { scrollRef, registerField, getFieldFocusHandler } = useScrollToField();
 
   // Step state
   const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -142,20 +144,28 @@ export function CreateGroupScreen() {
   // Step 1: Group name
   const renderStep1 = () => (
     <View style={styles.stepContainer}>
-      <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>{t('group.nameTitle')}</Text>
-      <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>{t('group.nameHint')}</Text>
+      <ScrollViewWithIndicator
+        ref={scrollRef}
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>{t('group.nameTitle')}</Text>
+        <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>{t('group.nameHint')}</Text>
 
-      <View style={styles.inputContainer}>
-        <Text style={[styles.inputLabel, { color: themeColors.textPrimary }]}>{t('group.name')}</Text>
-        <TextInput
-          value={groupName}
-          onChangeText={setGroupName}
-          placeholder={t('group.namePlaceholder')}
-          autoFocus
-          maxLength={50}
-          accessibilityLabel={t('group.name')}
-        />
-      </View>
+        <View style={styles.inputContainer} ref={registerField('groupName')}>
+          <Text style={[styles.inputLabel, { color: themeColors.textPrimary }]}>{t('group.name')}</Text>
+          <TextInput
+            value={groupName}
+            onChangeText={setGroupName}
+            placeholder={t('group.namePlaceholder')}
+            autoFocus
+            maxLength={50}
+            accessibilityLabel={t('group.name')}
+            onFocus={getFieldFocusHandler('groupName')}
+          />
+        </View>
+      </ScrollViewWithIndicator>
 
       <Button
         title={t('common.next')}

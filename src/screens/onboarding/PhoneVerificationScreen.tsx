@@ -194,6 +194,7 @@ export function PhoneVerificationScreen({ navigation }: Props) {
               </View>
             </View>
           )}
+          <View style={{ height: 48 }} />
         </ScrollViewWithIndicator>
 
         <View style={styles.footer}>

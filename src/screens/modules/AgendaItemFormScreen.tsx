@@ -39,6 +39,7 @@ import {
   Modal,
   Keyboard,
   Switch,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -51,6 +52,7 @@ import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, Scr
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useScrollToField } from '@/hooks/useScrollToField';
 import {
   FORM_TYPES,
   getFormType,
@@ -764,6 +766,7 @@ export function AgendaItemFormScreen({
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
 
   const isEditing = !!initialData;
 
@@ -1284,6 +1287,11 @@ export function AgendaItemFormScreen({
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
+      >
       {notification && (
         <ErrorView
           type={notification.type}
@@ -1311,6 +1319,7 @@ export function AgendaItemFormScreen({
         contentBlock={
           <>
       <ScrollViewWithIndicator
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -1380,7 +1389,7 @@ export function AgendaItemFormScreen({
         </View>
 
         {/* ====== Title ====== */}
-        <View style={styles.fieldContainer}>
+        <View ref={registerField('title')} style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
             {t('modules.agenda.form.titleLabel')}
           </Text>
@@ -1402,12 +1411,13 @@ export function AgendaItemFormScreen({
             returnKeyType="done"
             blurOnSubmit={true}
             onSubmitEditing={() => Keyboard.dismiss()}
+            onFocus={getFieldFocusHandler('title')}
             accessibilityLabel={t('modules.agenda.form.titleLabel')}
           />
         </View>
 
         {/* ====== Date ====== */}
-        <View style={styles.fieldContainer}>
+        <View ref={registerField('date')} style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
             {t('modules.agenda.form.dateLabel')}
           </Text>
@@ -1436,7 +1446,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Time (single) ====== */}
         {formTypeDef.showTimeField && !formTypeDef.showMultipleTimes && (
-          <View style={styles.fieldContainer}>
+          <View ref={registerField('time')} style={styles.fieldContainer}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('modules.agenda.form.timeLabel')}
             </Text>
@@ -1456,7 +1466,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Multiple Times (medication) ====== */}
         {formTypeDef.showMultipleTimes && (
-          <View style={styles.fieldContainer}>
+          <View ref={registerField('medicationTime')} style={styles.fieldContainer}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('modules.agenda.form.timesLabel')}
             </Text>
@@ -1505,7 +1515,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== End Time (optional — shown for appointment when start time is set) ====== */}
         {formTypeDef.showTimeField && !formTypeDef.showMultipleTimes && (
-          <View style={styles.fieldContainer}>
+          <View ref={registerField('endTime')} style={styles.fieldContainer}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('modules.agenda.form.endTimeLabel')}
             </Text>
@@ -1557,7 +1567,7 @@ export function AgendaItemFormScreen({
         )}
 
         {/* ====== Notes (optional) ====== */}
-        <View style={styles.fieldContainer}>
+        <View ref={registerField('notes')} style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
             {t('modules.agenda.form.notesLabel')}
           </Text>
@@ -1581,12 +1591,13 @@ export function AgendaItemFormScreen({
             textAlignVertical="top"
             blurOnSubmit={true}
             onSubmitEditing={() => Keyboard.dismiss()}
+            onFocus={getFieldFocusHandler('notes')}
             accessibilityLabel={t('modules.agenda.form.notesLabel')}
           />
         </View>
 
         {/* ====== Repeat ====== */}
-        <View style={styles.fieldContainer}>
+        <View ref={registerField('repeat')} style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
             {t('modules.agenda.form.repeatLabel')}
           </Text>
@@ -1605,7 +1616,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== End Date (when repeating) ====== */}
         {repeatType != null && (
-          <View style={styles.fieldContainer}>
+          <View ref={registerField('endDate')} style={styles.fieldContainer}>
             <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
               {t('modules.agenda.form.endDateLabel')}
             </Text>
@@ -1641,7 +1652,7 @@ export function AgendaItemFormScreen({
         )}
 
         {/* ====== Reminder ====== */}
-        <View style={styles.fieldContainer}>
+        <View ref={registerField('reminder')} style={styles.fieldContainer}>
           <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
             {t('modules.agenda.form.reminderLabel')}
           </Text>
@@ -1781,7 +1792,7 @@ export function AgendaItemFormScreen({
                   )}
 
                   {/* Street */}
-                  <View style={styles.addressFieldGap}>
+                  <View ref={registerField('street')} style={styles.addressFieldGap}>
                     <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
                       {t('modules.agenda.form.streetLabel')}
                     </Text>
@@ -1803,12 +1814,13 @@ export function AgendaItemFormScreen({
                       returnKeyType="next"
                       blurOnSubmit={true}
                       onSubmitEditing={() => Keyboard.dismiss()}
+                      onFocus={getFieldFocusHandler('street')}
                       accessibilityLabel={t('modules.agenda.form.streetLabel')}
                     />
                   </View>
 
                   {/* Postal code + City row */}
-                  <View style={styles.addressFieldGap}>
+                  <View ref={registerField('postalCode')} style={styles.addressFieldGap}>
                     <View style={styles.addressRow}>
                       <View style={styles.postalCodeField}>
                         <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
@@ -1832,6 +1844,7 @@ export function AgendaItemFormScreen({
                           returnKeyType="next"
                           blurOnSubmit={true}
                           onSubmitEditing={() => Keyboard.dismiss()}
+                          onFocus={getFieldFocusHandler('postalCode')}
                           accessibilityLabel={t('modules.agenda.form.postalCodeLabel')}
                         />
                       </View>
@@ -1857,6 +1870,7 @@ export function AgendaItemFormScreen({
                           returnKeyType="done"
                           blurOnSubmit={true}
                           onSubmitEditing={() => Keyboard.dismiss()}
+                          onFocus={getFieldFocusHandler('city')}
                           accessibilityLabel={t('modules.agenda.form.cityLabel')}
                         />
                       </View>
@@ -1903,7 +1917,7 @@ export function AgendaItemFormScreen({
         mode="date"
         moduleId="agenda"
         onChange={handleDateChange}
-        onClose={() => setShowDatePicker(false)}
+        onClose={() => { setShowDatePicker(false); scrollToField('date', { isModalReturn: true }); }}
         locale={locale}
       />
 
@@ -1914,7 +1928,7 @@ export function AgendaItemFormScreen({
         mode="time"
         moduleId="agenda"
         onChange={handleTimeChange}
-        onClose={() => setShowTimePicker(false)}
+        onClose={() => { setShowTimePicker(false); scrollToField('time', { isModalReturn: true }); }}
         is24Hour={true}
         locale={locale}
       />
@@ -1926,7 +1940,7 @@ export function AgendaItemFormScreen({
         mode="time"
         moduleId="agenda"
         onChange={handleMedTimeChange}
-        onClose={() => setEditingMedTimeIndex(null)}
+        onClose={() => { setEditingMedTimeIndex(null); scrollToField('medicationTime', { isModalReturn: true }); }}
         is24Hour={true}
         locale={locale}
       />
@@ -1941,7 +1955,7 @@ export function AgendaItemFormScreen({
           if (date) setEndTime(date);
           if (Platform.OS === 'android') setShowEndTimePicker(false);
         }}
-        onClose={() => setShowEndTimePicker(false)}
+        onClose={() => { setShowEndTimePicker(false); scrollToField('endTime', { isModalReturn: true }); }}
         is24Hour={true}
         locale={locale}
       />
@@ -1953,7 +1967,7 @@ export function AgendaItemFormScreen({
         mode="date"
         moduleId="agenda"
         onChange={handleEndDateChange}
-        onClose={() => setShowEndDatePicker(false)}
+        onClose={() => { setShowEndDatePicker(false); scrollToField('endDate', { isModalReturn: true }); }}
         minimumDate={selectedDate}
         locale={locale}
       />
@@ -1967,7 +1981,7 @@ export function AgendaItemFormScreen({
         onSelect={(value) => {
           setRepeatType(value === '__none__' ? null : (value as RepeatType));
         }}
-        onClose={() => setShowRepeatPicker(false)}
+        onClose={() => { setShowRepeatPicker(false); scrollToField('repeat', { isModalReturn: true }); }}
       />
 
       <FormPickerModal
@@ -1976,7 +1990,7 @@ export function AgendaItemFormScreen({
         options={reminderOptions}
         selectedValue={reminderOffset}
         onSelect={(value) => setReminderOffset(value as ReminderOffset)}
-        onClose={() => setShowReminderPicker(false)}
+        onClose={() => { setShowReminderPicker(false); scrollToField('reminder', { isModalReturn: true }); }}
       />
 
       {/* Contact Picker Modal */}
@@ -2164,6 +2178,7 @@ export function AgendaItemFormScreen({
           </>
         }
       />
+      </KeyboardAvoidingView>
     </View>
   );
 }

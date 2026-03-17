@@ -1139,6 +1139,7 @@ Het hoofdmenu van Instellingen volgt dit patroon:
 - [ ] **Accent colors: gebruikerswaarden gebruiken `accentColor.primary`, niet hardcoded `colors.primary`**
 - [ ] **Settings values: waarden in accent color**
 - [ ] Focus management: correct focus after navigation/actions
+- [ ] **Form field scroll (BLOKKEERDER):** `useScrollToField()` hook MOET gebruikt worden op ALLE formulier-schermen — keyboard focus EN modal-return scroll VERPLICHT (zie ui-designer SKILL.md sectie 6b)
 - [ ] Error states: accessible error messages with recovery
 
 ### Per Release

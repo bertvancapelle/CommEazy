@@ -364,6 +364,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 |-------------------|---------------------------|
 | UI componenten, styling | ui-designer, accessibility-specialist |
 | Formuliervelden, inputs | ui-designer, accessibility-specialist |
+| **Formulier-scherm toevoegen/wijzigen** | **BLOKKEERDER** — `useScrollToField()` hook VERPLICHT op ALLE schermen met invoervelden (keyboard + modal-return). Zie ui-designer SKILL.md sectie 6b en Component Registry sectie "useScrollToField" |
 | Lijsten met >3 items | ui-designer, accessibility-specialist, react-native-expert |
 | Voice control, spraak | accessibility-specialist, react-native-expert |
 | Encryptie, keys, tokens | security-expert |
@@ -3307,6 +3308,47 @@ const [dateValue, setDateValue] = useState<string | undefined>(); // ISO "YYYY-M
 **Verwijderde componenten (niet meer gebruiken):**
 - ~~`SeniorDatePicker`~~ → verwijderd, vervangen door `DateTimePickerModal`
 
+### useScrollToField (VERPLICHT voor ALLE formulier-schermen)
+
+**Verplichte hook:** `useScrollToField` uit `@/hooks`
+
+ALLE schermen met invoervelden (TextInput en/of modal-triggered pickers) MOETEN de `useScrollToField` hook gebruiken. Dit lost twee kritieke problemen op voor senioren:
+
+1. **Keyboard focus:** Wanneer een TextInput focus krijgt, scrollt de ScrollView zodat het veld zichtbaar is boven het toetsenbord
+2. **Modal-return:** Wanneer een modal (DateTimePickerModal, PickerModal) sluit, scrollt de ScrollView terug naar het bewerkte veld
+
+**Hook API:**
+```typescript
+const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
+```
+
+| Return value | Gebruik |
+|-------------|---------|
+| `scrollRef` | `ref` op ScrollViewWithIndicator |
+| `registerField(key)` | `ref` callback op `<View>` wrapper van elk veld |
+| `getFieldFocusHandler(key)` | `onFocus` handler op elke TextInput |
+| `scrollToField(key, opts)` | Aanroepen in modal `onClose` met `{ isModalReturn: true }` |
+
+**Adoptie status:**
+
+| Screen | useScrollToField | Keyboard fields | Modal fields |
+|--------|-----------------|-----------------|--------------|
+| ContactDetailScreen | ✅ | 5 | 3 |
+| ManualAddContactScreen | ✅ | 9 | 3 |
+| AgendaItemFormScreen | ✅ | 5 | 7 |
+| MailComposeScreen | ✅ | 5 | 1 |
+| ProfileSettingsScreen | ✅ | 10 | 5 |
+| ProfileStep1Screen | ✅ | 2 | 2 |
+| CreateGroupScreen | ✅ | 1 | 0 |
+
+**Combinatie met andere verplichte componenten:**
+- ALTIJD samen met `KeyboardAvoidingView` wrapper
+- ALTIJD samen met `ScrollViewWithIndicator` (niet raw ScrollView)
+- ALTIJD `keyboardShouldPersistTaps="handled"` op de ScrollView
+- ALTIJD `<View style={{ height: spacing.xxl }} />` als bottom padding
+
+Zie ui-designer SKILL.md sectie 6b voor volledige implementatie details en code voorbeelden.
+
 ### Hoe deze Registry te Gebruiken
 
 **Bij nieuwe module screen:**
@@ -3315,7 +3357,8 @@ const [dateValue, setDateValue] = useState<string | undefined>(); // ISO "YYYY-M
 3. Check: Heeft deze screen zoekfunctionaliteit? → Gebruik `SearchBar` (VERPLICHT)
 4. Check: Heeft deze screen land/taal selectie? → Gebruik `ChipSelector` (VERPLICHT)
 5. Check: Heeft deze screen datum/tijd pickers? → Gebruik `DateTimePickerModal` (VERPLICHT)
-6. Configureer de juiste props volgens de tabel
+6. Check: Heeft deze screen formuliervelden? → Gebruik `useScrollToField` (VERPLICHT)
+7. Configureer de juiste props volgens de tabel
 
 **Bij nieuwe standaard component:**
 1. Voeg de component toe aan deze registry
@@ -3344,6 +3387,11 @@ grep -r "searchInput:" src/screens/
 
 # Check welke screens zoekfunctionaliteit in een Modal hebben (VERBODEN)
 grep -r "Modal.*search\|search.*Modal" src/screens/modules/*.tsx
+
+# Check welke formulier-schermen useScrollToField nog NIET gebruiken (BLOKKEERDER)
+for f in src/screens/contacts/ContactDetailScreen.tsx src/screens/contacts/ManualAddContactScreen.tsx src/screens/agenda/AgendaItemFormScreen.tsx src/screens/mail/MailComposeScreen.tsx src/screens/settings/ProfileSettingsScreen.tsx src/screens/onboarding/ProfileStep1Screen.tsx src/screens/group/CreateGroupScreen.tsx; do
+  grep -qL "useScrollToField" "$f" && echo "MISSING useScrollToField: $f"
+done
 ```
 
 ---

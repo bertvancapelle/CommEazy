@@ -178,75 +178,118 @@ const handlePress = useCallback(() => {
 - Active voice: "Bericht verstuurd" not "Het bericht is verstuurd door het systeem"
 - Error messages explain what happened AND what to do
 
-### 6b. KEYBOARD AVOIDANCE (VERPLICHT)
+### 6b. KEYBOARD & MODAL-RETURN SCROLL (VERPLICHT)
 
-Het veld dat de gebruiker bewerkt moet ALTIJD zichtbaar zijn boven het toetsenbord. Dit is cruciaal voor senioren die anders niet kunnen zien wat ze typen.
+Het veld dat de gebruiker bewerkt moet ALTIJD zichtbaar zijn. Dit geldt voor TWEE scenario's:
 
-**Implementatie vereisten:**
-1. **KeyboardAvoidingView wrapper** — Alle schermen met invoervelden moeten een `KeyboardAvoidingView` wrapper hebben
-2. **ScrollView integratie** — Combineer met ScrollView die `keyboardShouldPersistTaps="handled"` en `keyboardDismissMode="interactive"` heeft
-3. **Auto-scroll bij focus** — Wanneer een veld focus krijgt, scroll automatisch zodat het veld zichtbaar is boven het toetsenbord
-4. **Platform-specifiek gedrag** — iOS: `behavior="padding"`, Android: `behavior="height"`
+1. **KEYBOARD:** Wanneer een TextInput focus krijgt en het toetsenbord verschijnt, MOET de ScrollView scrollen zodat het veld zichtbaar is boven het toetsenbord
+2. **MODAL-RETURN:** Wanneer een modal (DateTimePickerModal, PickerModal) sluit na bewerking, MOET de ScrollView terugscrollen naar het veld dat zojuist bewerkt is
 
-**Standaard implementatie:**
+Dit is cruciaal voor senioren die anders niet kunnen zien wat ze typen of waar ze zojuist een waarde hebben gekozen.
+
+**⚠️ BLOKKEERDER: `useScrollToField` hook is VERPLICHT op ALLE formulier-schermen.**
+
+#### Implementatie vereisten:
+
+1. **`useScrollToField()` hook** — VERPLICHT op elk scherm met invoervelden (keyboard OF modal)
+2. **KeyboardAvoidingView wrapper** — VERPLICHT rond de ScrollView
+3. **`registerField(key)`** — Elk veld MOET geregistreerd worden met een unieke key
+4. **`getFieldFocusHandler(key)`** — Elke TextInput MOET een onFocus handler hebben
+5. **`scrollToField(key, { isModalReturn: true })`** — Elke modal onClose MOET terugscrolleen naar het veld
+6. **Bottom padding** — `<View style={{ height: spacing.xxl }} />` onderaan de ScrollView
+
+#### Standaard implementatie:
+
 ```typescript
-import {
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-  NativeSyntheticEvent,
-  TextInputFocusEventData,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform } from 'react-native';
+import { ScrollViewWithIndicator } from '@/components';
+import { useScrollToField } from '@/hooks';
 
 // In component:
-const scrollViewRef = useRef<ScrollView>(null);
-const fieldPositions = useRef<Record<string, number>>({});
-
-// Scroll naar veld wanneer het focus krijgt
-const handleInputFocus = useCallback((
-  event: NativeSyntheticEvent<TextInputFocusEventData>,
-  fieldId: string
-) => {
-  setTimeout(() => {
-    const yPosition = fieldPositions.current[fieldId];
-    if (scrollViewRef.current && yPosition > 0) {
-      scrollViewRef.current.scrollTo({
-        y: Math.max(0, yPosition - 150), // 150pt boven toetsenbord
-        animated: true,
-      });
-    }
-  }, 300); // Wacht tot toetsenbord verschijnt
-}, []);
+const { scrollRef, registerField, scrollToField, getFieldFocusHandler } = useScrollToField();
 
 // In render:
 return (
   <KeyboardAvoidingView
     style={{ flex: 1 }}
     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    keyboardVerticalOffset={100}
   >
-    <ScrollView
-      ref={scrollViewRef}
+    <ScrollViewWithIndicator
+      ref={scrollRef}
       keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="interactive"
     >
-      {/* Velden met onLayout voor positie tracking */}
-      <View onLayout={(e) => { fieldPositions.current.city = e.nativeEvent.layout.y; }}>
-        <TextInput
-          onFocus={(e) => handleInputFocus(e, 'city')}
-          // ... andere props
-        />
+      {/* TextInput veld — auto-scroll bij keyboard focus */}
+      <View ref={registerField('email')}>
+        <Text style={styles.fieldLabel}>{t('fields.email')}</Text>
+        <TextInput onFocus={getFieldFocusHandler('email')} />
       </View>
-    </ScrollView>
+
+      {/* Modal-triggered veld — scroll terug na modal sluit */}
+      <View ref={registerField('birthDate')}>
+        <Text style={styles.fieldLabel}>{t('fields.birthDate')}</Text>
+        <HapticTouchable onPress={() => setShowDatePicker(true)}>
+          <Text>{birthDate || '-'}</Text>
+        </HapticTouchable>
+      </View>
+
+      {/* Bottom padding voor keyboard ruimte */}
+      <View style={{ height: spacing.xxl }} />
+    </ScrollViewWithIndicator>
   </KeyboardAvoidingView>
 );
+
+// Modal met scrollToField in onClose:
+<DateTimePickerModal
+  visible={showDatePicker}
+  moduleId="contacts"
+  onClose={() => {
+    setShowDatePicker(false);
+    scrollToField('birthDate', { isModalReturn: true });
+  }}
+/>
 ```
 
-**Regels:**
-- ELKE TextInput moet een `onFocus` handler hebben die scrollt naar het veld
-- Gebruik `onLayout` om veld posities bij te houden
-- `keyboardVerticalOffset` aanpassen aan header hoogte (meestal 90pt voor navigatie header)
+#### Regels:
+
+- **VERPLICHT:** `useScrollToField()` hook op ALLE schermen met formuliervelden
+- **VERPLICHT:** `registerField(key)` op de `<View>` wrapper van ELK veld (TextInput én picker)
+- **VERPLICHT:** `getFieldFocusHandler(key)` als `onFocus` op ELKE TextInput
+- **VERPLICHT:** `scrollToField(key, { isModalReturn: true })` in `onClose` van ELKE modal die een veld bewerkt
+- **VERPLICHT:** `<View style={{ height: spacing.xxl }} />` als bottom padding in de ScrollView
+- **VERPLICHT:** `keyboardShouldPersistTaps="handled"` op de ScrollView
+- `keyboardVerticalOffset` aanpassen aan header hoogte (100pt voor ModuleHeader)
 - Test op fysiek device — simulators hebben andere keyboard gedrag
+
+#### Schermen die `useScrollToField` MOETEN gebruiken:
+
+| Screen | TextInput velden | Modal velden | Status |
+|--------|-----------------|--------------|--------|
+| ContactDetailScreen | phone, email, street, postalCode, city | birthDate, weddingDate, deathDate | ✅ |
+| ManualAddContactScreen | firstName, lastName, phone, mobile, email, street, postalCode, city | birthDate, weddingDate, deathDate | ✅ |
+| AgendaItemFormScreen | title, notes, street, postalCode, city | date, time, endTime, medicationTime, repeat, endDate, reminder | ✅ |
+| MailComposeScreen | to, cc, bcc, subject, body | albumPicker | ✅ |
+| ProfileSettingsScreen | firstName, lastName, phone, mobile, email, street, postalCode, city, biography | language, gender, country, birthDate, weddingDate | ✅ |
+| ProfileStep1Screen | firstName, lastName | birthDate, weddingDate | ✅ |
+| CreateGroupScreen | groupName | — | ✅ |
+
+#### Anti-patterns (VERBODEN):
+
+```typescript
+// ❌ FOUT — Geen scroll bij keyboard focus
+<TextInput onFocus={() => {}} />
+
+// ❌ FOUT — Handmatige onLayout positie tracking (verouderd)
+<View onLayout={(e) => { fieldPositions.current.city = e.nativeEvent.layout.y; }}>
+
+// ❌ FOUT — Modal sluit zonder terug te scrollen
+<DateTimePickerModal onClose={() => setShowPicker(false)} />
+
+// ❌ FOUT — Geen registerField op het veld
+<View>
+  <TextInput onFocus={getFieldFocusHandler('email')} />
+</View>
+```
 
 ### 7. FORMULIER VELDEN (VERPLICHT)
 
