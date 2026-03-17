@@ -8,7 +8,6 @@
  *
  * Also shows:
  * - Profile photo
- * - Language selector
  * - Phone number (read-only)
  * - Shared data consent toggles
  * - UUID (dev mode only)
@@ -56,12 +55,10 @@ import {
   getAvatarPath,
 } from '@/services/imageService';
 import { useModuleConfig } from '@/contexts/ModuleConfigContext';
-import type { UserProfile, AgeBracket, SupportedLanguage, Gender } from '@/services/interfaces';
+import type { UserProfile, AgeBracket, Gender } from '@/services/interfaces';
 import {
-  SUPPORTED_LANGUAGES,
   COUNTRIES,
   COUNTRY_FLAGS,
-  LANGUAGE_FLAGS,
 } from './profileSettingsConstants';
 import { PickerModal } from './PickerModal';
 import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
@@ -166,7 +163,7 @@ export function ProfileSettingsScreen() {
   profileRef.current = profile;
 
   // Single active picker state (only one picker can be open at a time)
-  type PickerType = 'language' | 'country' | 'gender' | null;
+  type PickerType = 'country' | 'gender' | null;
   const [activePicker, setActivePicker] = useState<PickerType>(null);
   const closePicker = useCallback(() => setActivePicker(null), []);
 
@@ -487,14 +484,6 @@ export function ProfileSettingsScreen() {
     if (saved) setNotification({ type: 'success', title: t('profile.personal.saved'), message: '' });
   }, [saveProfile, t]);
 
-  // ── Language handler ──
-
-  const handleLanguageSelect = useCallback(async (language: string) => {
-    void triggerFeedback('tap');
-    await i18n.changeLanguage(language);
-    await saveProfile({ language: language as SupportedLanguage });
-  }, [i18n, saveProfile, triggerFeedback]);
-
   // ── Consent handler ──
 
   const handleToggleConsent = useCallback(async (contactJid: string, currentEnabled: boolean) => {
@@ -524,11 +513,6 @@ export function ProfileSettingsScreen() {
 
   // ── Picker options ──
 
-  const languageOptions = SUPPORTED_LANGUAGES.map(lang => ({
-    value: lang,
-    label: `${LANGUAGE_FLAGS[lang]} ${t(`profile.language.${lang}`)}`,
-  }));
-
   const countryOptions = COUNTRIES.map(code => ({
     value: code,
     label: `${COUNTRY_FLAGS[code]} ${t(`demographics.countries.${code}`, code)}`,
@@ -557,12 +541,6 @@ export function ProfileSettingsScreen() {
         label: t('onboarding.firstNameLabel'),
         index: index++,
         onSelect: () => {},
-      },
-      {
-        id: 'language',
-        label: t('settings.language'),
-        index: index++,
-        onSelect: () => setActivePicker('language'),
       },
       {
         id: 'country',
@@ -653,23 +631,6 @@ export function ProfileSettingsScreen() {
         {displayName ? (
           <Text style={[styles.displayName, { color: themeColors.textPrimary }]}>{displayName}</Text>
         ) : null}
-      </View>
-
-      {/* Language section */}
-      <View style={[styles.section, { backgroundColor: themeColors.surface }]} ref={registerField('language')}>
-        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('settings.language')}</Text>
-        <HapticTouchable hapticDisabled
-          style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-          onPress={() => { Keyboard.dismiss(); setTimeout(() => setActivePicker('language'), 100); }}
-          accessibilityRole="button"
-          accessibilityHint={t('profile.tapToChange')}
-        >
-          <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
-            {t(`profile.language.${i18n.language as SupportedLanguage}`)}
-          </Text>
-          <Text style={styles.editIcon}>✏️</Text>
-        </HapticTouchable>
-        <Text style={[styles.fieldHint, { color: themeColors.textTertiary }]}>{t('profile.languageHint')}</Text>
       </View>
 
       {/* Phone number (read-only) */}
@@ -1023,15 +984,6 @@ export function ProfileSettingsScreen() {
       )}
 
       {/* Picker modals */}
-      <PickerModal
-        visible={activePicker === 'language'}
-        title={t('profile.selectLanguage')}
-        options={languageOptions}
-        selectedValue={i18n.language}
-        onSelect={handleLanguageSelect}
-        onClose={() => { closePicker(); scrollToField('language', { isModalReturn: true }); }}
-      />
-
       <PickerModal
         visible={activePicker === 'country'}
         title={t('demographics.selectCountry')}

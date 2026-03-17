@@ -649,6 +649,7 @@
   "settings": {
     "title": "Réglages",
     "language": "Langue",
+    "screenLanguage": "Langue d'affichage",
     "notifications": "Notifications",
     "notificationSettings": "Paramètres des notifications",
     "sound": "Sons des messages",

@@ -649,6 +649,7 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
+    "screenLanguage": "Display language",
     "notifications": "Notifications",
     "sound": "Message sounds",
     "haptic": "Vibrate on messages",

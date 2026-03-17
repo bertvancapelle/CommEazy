@@ -486,6 +486,7 @@
   "settings": {
     "title": "Instellingen",
     "language": "Taal",
+    "screenLanguage": "Scherm taal",
     "notifications": "Meldingen",
     "notificationSettings": "Meldinginstellingen",
     "sound": "Geluid bij berichten",

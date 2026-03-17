@@ -544,6 +544,7 @@
   "settings": {
     "title": "Indstillinger",
     "language": "Sprog",
+    "screenLanguage": "Skærmsprog",
     "notifications": "Notifikationer",
     "notificationSettings": "Notifikationsindstillinger",
     "sound": "Lyd ved beskeder",

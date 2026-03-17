@@ -26,9 +26,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ActionSheetIOS,
-  Platform,
-  Alert,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +41,7 @@ import { getAvatarPath } from '@/services/imageService';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import type { SettingsStackParams } from '@/navigation';
 import type { SupportedLanguage } from '@/services/interfaces';
+import { PickerModal } from './PickerModal';
 
 type NavigationProp = NativeStackNavigationProp<SettingsStackParams, 'SettingsMain'>;
 
@@ -187,49 +185,24 @@ export function SettingsMainScreen() {
     }, [])
   );
 
-  // Get current language display
+  // Language picker state
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const currentLanguage = i18n.language as SupportedLanguage;
-  const languageDisplay = `${LANGUAGE_FLAGS[currentLanguage] || ''} ${t(`profile.language.${currentLanguage}`)}`;
+  const currentFlag = LANGUAGE_FLAGS[currentLanguage] || '';
 
-  // Available languages
+  // Language options for PickerModal
   const languages: SupportedLanguage[] = ['nl', 'en', 'de', 'fr', 'es', 'it', 'pl', 'no', 'sv', 'da'];
+  const languageOptions = useMemo(() =>
+    languages.map(lang => ({
+      value: lang,
+      label: `${LANGUAGE_FLAGS[lang]} ${t(`profile.language.${lang}`)}`,
+    })),
+  [t]);
 
-  // Handle language selection
-  const handleLanguagePress = useCallback(() => {
+  const handleLanguageSelect = useCallback((language: string) => {
     void triggerFeedback('tap');
-    const options = languages.map(
-      (lang) => `${LANGUAGE_FLAGS[lang]} ${t(`profile.language.${lang}`)}`
-    );
-    options.push(t('common.cancel'));
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          cancelButtonIndex: options.length - 1,
-          title: t('settings.language'),
-        },
-        (buttonIndex) => {
-          if (buttonIndex < languages.length) {
-            void i18n.changeLanguage(languages[buttonIndex]);
-          }
-        }
-      );
-    } else {
-      // Android: Use Alert with buttons
-      Alert.alert(
-        t('settings.language'),
-        undefined,
-        [
-          ...languages.map((lang) => ({
-            text: `${LANGUAGE_FLAGS[lang]} ${t(`profile.language.${lang}`)}`,
-            onPress: () => void i18n.changeLanguage(lang),
-          })),
-          { text: t('common.cancel'), style: 'cancel' as const },
-        ]
-      );
-    }
-  }, [i18n, t, triggerFeedback]);
+    void i18n.changeLanguage(language);
+  }, [i18n, triggerFeedback]);
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -284,19 +257,19 @@ export function SettingsMainScreen() {
         <Icon name="chevron-right" size={24} color={themeColors.textTertiary} />
       </HapticTouchable>
 
-      {/* Language selector - below profile */}
+      {/* Language selector - button with flag */}
       <HapticTouchable hapticDisabled
         style={[styles.languageSelector, { backgroundColor: themeColors.surface }]}
-        onPress={handleLanguagePress}
+        onPress={() => setShowLanguagePicker(true)}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel={t('settings.language')}
+        accessibilityLabel={t('settings.screenLanguage')}
         accessibilityHint={t('profile.languageHint')}
       >
-        <Text style={[styles.languageLabel, { color: themeColors.textPrimary }]}>{t('settings.language')}</Text>
-        <View style={styles.languageValueContainer}>
-          <Text style={[styles.languageValue, { color: accentColor.primary }]}>{languageDisplay}</Text>
-          <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
+        <Text style={[styles.languageLabel, { color: themeColors.textPrimary }]}>{t('settings.screenLanguage')}</Text>
+        <View style={[styles.languageButton, { backgroundColor: accentColor.primary }]}>
+          <Text style={styles.languageButtonFlag}>{currentFlag}</Text>
+          <Text style={styles.languageButtonText}>{t(`profile.language.${currentLanguage}`)}</Text>
         </View>
       </HapticTouchable>
 
@@ -562,6 +535,16 @@ export function SettingsMainScreen() {
           </Text>
         </View>
       </ScrollViewWithIndicator>
+
+            {/* Language picker modal */}
+            <PickerModal
+              visible={showLanguagePicker}
+              title={t('settings.screenLanguage')}
+              options={languageOptions}
+              selectedValue={currentLanguage}
+              onSelect={handleLanguageSelect}
+              onClose={() => setShowLanguagePicker(false)}
+            />
           </>
         }
       />
@@ -633,14 +616,22 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '700',
   },
-  languageValueContainer: {
+  languageButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.minimum,
   },
-  languageValue: {
-    ...typography.body,
-    // color set dynamically via accentColor.primary
+  languageButtonFlag: {
+    fontSize: 22,
     marginRight: spacing.sm,
+  },
+  languageButtonText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
   },
   // Subsection buttons container
   subsectionsContainer: {
