@@ -18,12 +18,11 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, type AccentColorKey } from '@/theme';
-import { Icon, LiquidGlassView, ScrollViewWithIndicator, type IconName PanelAwareModal, &;
+import { Icon, LiquidGlassView, ScrollViewWithIndicator, type IconName, PanelAwareModal } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import {

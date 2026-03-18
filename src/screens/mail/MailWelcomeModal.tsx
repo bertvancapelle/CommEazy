@@ -14,14 +14,13 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Button, Icon PanelAwareModal, &;
+import { Button, Icon, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 
 // ============================================================

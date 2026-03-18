@@ -37,14 +37,13 @@ import {
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, ModuleScreenLayout, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, type SearchBarRef PanelAwareModal, &;
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, ModuleScreenLayout, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, type SearchBarRef, PanelAwareModal } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';

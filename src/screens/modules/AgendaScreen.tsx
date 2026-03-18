@@ -28,13 +28,12 @@ import {
   Platform,
   Switch,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, ModuleHeader, ModuleScreenLayout, HapticTouchable, LoadingView, SearchBar , ScrollViewWithIndicatorPanelAwareModal, &;
+import { Icon, ModuleHeader, ModuleScreenLayout, HapticTouchable, LoadingView, SearchBar , ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import {
   AgendaProvider,

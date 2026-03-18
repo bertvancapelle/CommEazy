@@ -26,12 +26,11 @@ import {
   StatusBar,
   useWindowDimensions,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
-import { ModuleHeader, ModuleScreenLayout, ErrorView PanelAwareModal, &;
+import { ModuleHeader, ModuleScreenLayout, ErrorView, PanelAwareModal } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
   colors,

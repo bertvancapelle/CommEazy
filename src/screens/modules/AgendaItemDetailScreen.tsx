@@ -19,12 +19,11 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator, ErrorView PanelAwareModal, &;
+import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator, ErrorView, PanelAwareModal } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';

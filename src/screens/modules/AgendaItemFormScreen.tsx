@@ -40,7 +40,6 @@ import {
   Switch,
   KeyboardAvoidingView,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -48,7 +47,7 @@ import {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView, DateTimePickerModal PanelAwareModal, &;
+import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView, DateTimePickerModal, PanelAwareModal } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';

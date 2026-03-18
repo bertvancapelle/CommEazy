@@ -26,7 +26,6 @@ import {
   RefreshControl,
   Linking,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,7 +33,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, ModuleScreenLayout, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView, ScrollViewWithIndicator PanelAwareModal, &;
+import { Icon, ModuleHeader, ModuleScreenLayout, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';

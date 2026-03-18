@@ -22,14 +22,13 @@ import {
   TextInput as RNTextInput,
   ActivityIndicator,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useLabelStyle, useFieldTextStyle, useModalTextStyle } from '@/contexts/FieldTextStyleContext';
-import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator PanelAwareModal, &;
+import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
 import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';

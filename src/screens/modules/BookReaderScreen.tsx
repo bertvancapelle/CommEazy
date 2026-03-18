@@ -30,14 +30,13 @@ import {
   Linking,
   Platform,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, LoadingView PanelAwareModal, &;
+import { Icon, IconButton, LoadingView, PanelAwareModal } from '@/components';
 import { useBooksContext } from '@/contexts/BooksContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';

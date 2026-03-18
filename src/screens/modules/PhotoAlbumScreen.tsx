@@ -30,7 +30,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,8 +42,8 @@ import { ModuleHeader,
   FullscreenImageViewer,
   LoadingView,
   ErrorView,
-  SlideshowViewer, ScrollViewWithIndicator, LiquidGlassView PanelAwareModal, &;
-import type { ViewerImage, SlideshowPhoto PanelAwareModal, &;
+  SlideshowViewer, ScrollViewWithIndicator, LiquidGlassView, PanelAwareModal } from '@/components';
+import type { ViewerImage, SlideshowPhoto } from '@/components';
 import { Icon } from '@/components/Icon';
 import {
   colors,

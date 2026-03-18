@@ -31,7 +31,6 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -52,7 +51,7 @@ import { Icon,
   QueueView,
   HapticTouchable,
   LiquidGlassView,
-  type SearchBarRef, ScrollViewWithIndicator PanelAwareModal, &;
+  type SearchBarRef, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
