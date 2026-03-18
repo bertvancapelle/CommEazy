@@ -364,8 +364,8 @@ export function RadioScreen() {
   const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | null>(null);
-  // Default to Favorites tab — seniors want quick access to their saved stations
-  const [showFavorites, setShowFavorites] = useState(savedBrowsing?.showFavorites ?? true);
+  // Discovery search modal — opens on SearchTabButton tap
+  const [showSearchModal, setShowSearchModal] = useState(false);
   // Popup shown when no favorites exist — explains how to find and save stations
   const [showNoFavoritesModal, setShowNoFavoritesModal] = useState(false);
   // Track if we've already shown the modal this session
@@ -379,14 +379,14 @@ export function RadioScreen() {
   useEffect(() => {
     saveBrowsing({
       module: 'radio',
-      showFavorites,
+      showFavorites: true, // Always favorites on main screen (search is modal)
       searchQuery,
       filterMode,
       selectedCountry,
       selectedLanguage,
       stations,
     });
-  }, [showFavorites, searchQuery, filterMode, selectedCountry, selectedLanguage, stations, saveBrowsing]);
+  }, [searchQuery, filterMode, selectedCountry, selectedLanguage, stations, saveBrowsing]);
 
   // Close expanded player when music stops
   useEffect(() => {
@@ -597,19 +597,19 @@ export function RadioScreen() {
           if (profile?.radioFavorites && profile.radioFavorites.length > 0) {
             setFavorites(profile.radioFavorites);
           } else {
-            // No favorites yet — switch to Search tab and auto-search with default country (NL)
-            // This is more user-friendly than showing a modal asking to search
+            // No favorites yet — open search modal with default country (NL)
+            // This is more user-friendly than showing an empty favorites list
             if (!hasShownModalRef.current) {
               hasShownModalRef.current = true;
-              setShowFavorites(false); // Switch to Search tab
+              setShowSearchModal(true); // Open discovery search modal
               // selectedCountry defaults to 'NL', loadStations will trigger via useEffect
             }
           }
         } else {
-          // Database not initialized — switch to Search tab with default country (NL)
+          // Database not initialized — open search modal with default country (NL)
           if (!hasShownModalRef.current) {
             hasShownModalRef.current = true;
-            setShowFavorites(false); // Switch to Search tab
+            setShowSearchModal(true); // Open discovery search modal
           }
         }
       } catch (error) {
@@ -622,12 +622,12 @@ export function RadioScreen() {
   // Note: In-app audio playback disabled until react-native-track-player is configured
   // Currently opens stream in external player (Safari)
 
-  // Search stations when filter changes (country or language)
+  // Search stations when filter changes (country or language) — only when modal open
   useEffect(() => {
-    if (!searchQuery) {
+    if (showSearchModal && !searchQuery) {
       loadStations();
     }
-  }, [selectedCountry, selectedLanguage, filterMode]);
+  }, [selectedCountry, selectedLanguage, filterMode, showSearchModal]);
 
   // Handle filter mode change — reset to appropriate default
   const handleFilterModeChange = useCallback((newMode: FilterMode) => {
@@ -706,8 +706,8 @@ export function RadioScreen() {
 
   // Debounced search — automatically search 500ms after user stops typing
   useEffect(() => {
-    // Don't auto-search when showing favorites
-    if (showFavorites) return;
+    // Only auto-search when search modal is open
+    if (!showSearchModal) return;
 
     // If search query is empty, load default stations immediately
     if (!searchQuery.trim()) {
@@ -722,7 +722,7 @@ export function RadioScreen() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, showFavorites, loadStations, handleSearch]);
+  }, [searchQuery, showSearchModal, loadStations, handleSearch]);
 
   // Convert RadioScreen station to RadioContext station format
   const toContextStation = useCallback((station: RadioStation | FavoriteStation): RadioContextStation => {
@@ -882,10 +882,10 @@ export function RadioScreen() {
     }
   }, [favorites, t, removeFavorite, addFavorite]);
 
-  // Voice focus for station list
-  // Sort stations so currently playing station appears at the top
+  // Voice focus for station list — main screen always shows favorites
+  // Sort so currently playing station appears at the top
   const displayedStations = useMemo(() => {
-    const baseList = showFavorites ? favorites : stations;
+    const baseList = favorites;
     if (!contextStation) return baseList;
 
     // Find the currently playing station and move it to the top
@@ -904,7 +904,7 @@ export function RadioScreen() {
     });
 
     return [playingStation, ...otherStations];
-  }, [showFavorites, favorites, stations, contextStation]);
+  }, [favorites, contextStation]);
 
   const voiceFocusItems = useMemo(() => {
     if (!isFocused) return [];
@@ -957,55 +957,20 @@ export function RadioScreen() {
             />
           }
           controlsBlock={<>
-        {/* Tab selector — uses standardized FavoriteTabButton/SearchTabButton */}
+        {/* Tab selector — Favorites (main) + Search (opens modal) */}
         <View style={styles.tabBar}>
           <FavoriteTabButton
-            isActive={showFavorites}
-            onPress={() => {
-              triggerFeedback('tap');
-              setShowFavorites(true);
-            }}
+            isActive={!showSearchModal}
+            onPress={() => setShowSearchModal(false)}
             count={favorites.length}
             label={t('modules.radio.favorites')}
           />
           <SearchTabButton
-            isActive={!showFavorites}
-            onPress={() => {
-              triggerFeedback('tap');
-              setShowFavorites(false);
-            }}
+            isActive={showSearchModal}
+            onPress={() => setShowSearchModal(true)}
             label={t('modules.radio.search')}
           />
         </View>
-
-        {/* Search/Filter section — alleen zichtbaar wanneer NIET favorieten */}
-        {!showFavorites && (
-          <View style={styles.searchSection}>
-            {/* Country/Language chips selector with toggle */}
-            <ChipSelector
-              mode={filterMode}
-              options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
-              selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
-              onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
-              allowModeToggle={true}
-              onModeChange={handleFilterModeChange}
-            />
-
-            {/* Search bar — placeholder dynamisch op basis van filterMode */}
-            <SearchBar
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmit={handleSearch}
-              placeholder={filterMode === 'country'
-                ? t('modules.radio.searchPlaceholderByCountry')
-                : t('modules.radio.searchPlaceholderByLanguage')
-              }
-              searchButtonLabel={t('modules.radio.searchButton')}
-              maxLength={SEARCH_MAX_LENGTH}
-            />
-          </View>
-        )}
 
         {/* Playback Error Banner — shown when a stream fails */}
         {playbackError && (
@@ -1035,43 +1000,27 @@ export function RadioScreen() {
         )}
         </>}
         contentBlock={<>
-      {/* Station list — ALWAYS visible, with bottom padding for mini-player */}
-      {isLoading ? (
-        <LoadingView message={t('modules.radio.loading')} fullscreen />
-      ) : apiError ? (
-        <ErrorView
-          title={t(`modules.radio.errors.${apiError}Title`)}
-          message={t(`modules.radio.errors.${apiError}`)}
-          onRetry={() => {
-            triggerFeedback('tap');
-            loadStations();
-          }}
-          fullscreen
-        />
-      ) : displayedStations.length === 0 ? (
+      {/* Favorites list — always shown on main screen */}
+      {displayedStations.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name={showFavorites ? 'heart' : 'radio'} size={64} color={themeColors.textTertiary} />
+          <Icon name="heart" size={64} color={themeColors.textTertiary} />
           <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-            {showFavorites ? t('modules.radio.noFavorites') : t('modules.radio.noStations')}
+            {t('modules.radio.noFavorites')}
           </Text>
-          {showFavorites && (
-            <>
-              <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>{t('modules.radio.noFavoritesHintExtended')}</Text>
-              {/* Clear call-to-action button for seniors */}
-              <HapticTouchable hapticDisabled
-                style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
-                onPress={() => {
-                  triggerFeedback('tap');
-                  setShowFavorites(false); // Switch to search tab
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.radio.goToSearch')}
-              >
-                <Icon name="search" size={24} color={colors.textOnPrimary} />
-                <Text style={styles.emptyActionButtonText}>{t('modules.radio.goToSearch')}</Text>
-              </HapticTouchable>
-            </>
-          )}
+          <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>{t('modules.radio.noFavoritesHintExtended')}</Text>
+          {/* Clear call-to-action button for seniors — opens search modal */}
+          <HapticTouchable hapticDisabled
+            style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
+            onPress={() => {
+              triggerFeedback('tap');
+              setShowSearchModal(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('modules.radio.goToSearch')}
+          >
+            <Icon name="search" size={24} color={colors.textOnPrimary} />
+            <Text style={styles.emptyActionButtonText}>{t('modules.radio.goToSearch')}</Text>
+          </HapticTouchable>
         </View>
       ) : (
         <ScrollViewWithIndicator
@@ -1272,7 +1221,6 @@ export function RadioScreen() {
         animationType={isReducedMotion ? 'none' : 'fade'}
         onRequestClose={() => {
           setShowNoFavoritesModal(false);
-          setShowFavorites(false);
         }}
         accessibilityViewIsModal={true}
       >
@@ -1316,13 +1264,13 @@ export function RadioScreen() {
               </View>
             </View>
 
-            {/* OK Button — goes to Search */}
+            {/* OK Button — opens search modal */}
             <HapticTouchable hapticDisabled
               style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
               onPress={() => {
                 triggerFeedback('tap');
                 setShowNoFavoritesModal(false);
-                setShowFavorites(false); // Navigate to Search tab
+                setShowSearchModal(true); // Open discovery search modal
               }}
               accessibilityRole="button"
               accessibilityLabel={t('modules.radio.welcomeButton')}
@@ -1332,6 +1280,153 @@ export function RadioScreen() {
               <Text style={styles.modalButtonText}>{t('modules.radio.welcomeButton')}</Text>
             </HapticTouchable>
           </View>
+        </View>
+      </PanelAwareModal>
+
+      {/* ============================================================
+          DISCOVERY SEARCH MODAL — Opens when SearchTabButton is tapped
+          Contains ChipSelector + SearchBar + search results list
+          ============================================================ */}
+      <PanelAwareModal
+        visible={showSearchModal}
+        animationType={isReducedMotion ? 'none' : 'slide'}
+        onRequestClose={() => setShowSearchModal(false)}
+      >
+        <View style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]}>
+          {/* Modal header with close button */}
+          <View style={[styles.searchModalHeader, { backgroundColor: radioModuleColor }]}>
+            <View style={{ height: insets.top }} />
+            <View style={styles.searchModalHeaderRow}>
+              <Icon name="search" size={28} color={colors.textOnPrimary} />
+              <Text style={styles.searchModalTitle}>{t('modules.radio.search')}</Text>
+              <View style={{ flex: 1 }} />
+              <IconButton
+                icon="chevron-down"
+                onPress={() => setShowSearchModal(false)}
+                accessibilityLabel={t('common.close')}
+                size={28}
+              />
+            </View>
+          </View>
+
+          {/* Search controls: ChipSelector + SearchBar */}
+          <View style={styles.searchSection}>
+            <ChipSelector
+              mode={filterMode}
+              options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+              selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
+              onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
+              allowModeToggle={true}
+              onModeChange={handleFilterModeChange}
+            />
+            <SearchBar
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder={filterMode === 'country'
+                ? t('modules.radio.searchPlaceholderByCountry')
+                : t('modules.radio.searchPlaceholderByLanguage')
+              }
+              searchButtonLabel={t('modules.radio.searchButton')}
+              maxLength={SEARCH_MAX_LENGTH}
+            />
+          </View>
+
+          {/* Search results */}
+          {isLoading ? (
+            <LoadingView message={t('modules.radio.loading')} fullscreen />
+          ) : apiError ? (
+            <ErrorView
+              title={t(`modules.radio.errors.${apiError}Title`)}
+              message={t(`modules.radio.errors.${apiError}`)}
+              onRetry={() => {
+                triggerFeedback('tap');
+                loadStations();
+              }}
+              fullscreen
+            />
+          ) : stations.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Icon name="radio" size={64} color={themeColors.textTertiary} />
+              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                {t('modules.radio.noStations')}
+              </Text>
+            </View>
+          ) : (
+            <ScrollViewWithIndicator
+              style={styles.stationList}
+              contentContainerStyle={styles.stationListContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {stations.map((station) => {
+                const id = station.stationuuid;
+                const isCurrentStation = contextStation && contextStation.id === id;
+
+                return (
+                  <View
+                    key={id}
+                    style={[
+                      styles.stationItem,
+                      { backgroundColor: themeColors.surface },
+                      isCurrentStation && {
+                        borderWidth: 2,
+                        borderColor: accentColor.primary,
+                      },
+                    ]}
+                  >
+                    {/* Playing wave icon */}
+                    {isCurrentStation && (
+                      <View style={styles.playingWaveContainer}>
+                        <PlayingWaveIcon
+                          color={accentColor.primary}
+                          size={24}
+                          isPlaying={isPlaying}
+                        />
+                      </View>
+                    )}
+
+                    {/* Station info - tap to play and close modal */}
+                    <HapticTouchable hapticDisabled
+                      style={styles.stationInfoTouchable}
+                      onPress={() => {
+                        handleSelectStation(station);
+                        setShowSearchModal(false); // Close modal after selection
+                      }}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={station.name}
+                      accessibilityState={{ selected: isCurrentStation ?? false }}
+                      accessibilityHint={t('modules.radio.stationHint')}
+                    >
+                      <View style={styles.stationInfo}>
+                        <Text style={[styles.stationName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                          {station.name}
+                        </Text>
+                        <Text style={[styles.stationCountry, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                          {station.country}
+                        </Text>
+                      </View>
+                    </HapticTouchable>
+
+                    {/* Favorite button */}
+                    <IconButton
+                      icon="heart"
+                      iconActive="heart-filled"
+                      isActive={isFavorite(station)}
+                      onPress={() => handleToggleFavorite(station)}
+                      accessibilityLabel={
+                        isFavorite(station)
+                          ? t('modules.radio.removeFromFavorites', { name: station.name })
+                          : t('modules.radio.addToFavorites', { name: station.name })
+                      }
+                      size={24}
+                    />
+                  </View>
+                );
+              })}
+            </ScrollViewWithIndicator>
+          )}
         </View>
       </PanelAwareModal>
     </KeyboardAvoidingView>
@@ -1382,6 +1477,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     gap: spacing.md,
+  },
+  // Discovery Search Modal styles
+  searchModalContainer: {
+    flex: 1,
+  },
+  searchModalHeader: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  searchModalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: touchTargets.minimum,
+  },
+  searchModalTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
   },
   // countryList, countryChip, countryChipText, filterLabel removed — using standardized ChipSelector component
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component

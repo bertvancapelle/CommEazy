@@ -199,7 +199,8 @@ export function PodcastScreen() {
   const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | 'parse' | null>(null);
-  const [showSubscriptions, setShowSubscriptions] = useState(savedBrowsing?.showSubscriptions ?? true);
+  // Discovery search modal — opens on SearchTabButton tap
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const hasShownWelcomeRef = useRef(false);
   // Podcast uses country filter (iTunes API is store/region-based, not language-based)
@@ -237,14 +238,14 @@ export function PodcastScreen() {
   useEffect(() => {
     saveBrowsing({
       module: 'podcast',
-      showSubscriptions,
+      showSubscriptions: true, // Always subscriptions on main screen (search is modal)
       searchQuery,
       selectedCountry,
       selectedShow,
       showEpisodes,
       searchResults,
     });
-  }, [showSubscriptions, searchQuery, selectedCountry, selectedShow, showEpisodes, searchResults, saveBrowsing]);
+  }, [searchQuery, selectedCountry, selectedShow, showEpisodes, searchResults, saveBrowsing]);
 
   // Close expanded player when episode ends
   useEffect(() => {
@@ -586,10 +587,10 @@ export function PodcastScreen() {
     }
   }, [isSubscribed, subscribe, unsubscribe, triggerFeedback, t]);
 
-  // Voice focus for show list
-  // Sort shows so currently playing show appears at the top
+  // Voice focus for show list — main screen always shows subscriptions
+  // Sort so currently playing show appears at the top
   const displayedShows = useMemo(() => {
-    const baseList = showSubscriptions ? subscriptions : searchResults;
+    const baseList = subscriptions;
     if (!currentShow) return baseList;
 
     // Find the currently playing show and move it to the top
@@ -599,7 +600,7 @@ export function PodcastScreen() {
     // Put playing show first, then the rest
     const otherShows = baseList.filter((s) => s.id !== currentShow.id);
     return [playingShow, ...otherShows];
-  }, [showSubscriptions, subscriptions, searchResults, currentShow]);
+  }, [subscriptions, currentShow]);
 
   const voiceFocusItems = useMemo(() => {
     if (!isFocused) return [];
@@ -667,45 +668,20 @@ export function PodcastScreen() {
             />
           }
           controlsBlock={<>
-        {/* Tab selector — uses standardized FavoriteTabButton/SearchTabButton */}
+        {/* Tab selector — Subscriptions (main) + Discover (opens modal) */}
         <View style={styles.tabBar}>
           <FavoriteTabButton
-            isActive={showSubscriptions}
-            onPress={() => setShowSubscriptions(true)}
+            isActive={!showSearchModal}
+            onPress={() => setShowSearchModal(false)}
             count={subscriptions.length}
             label={t('modules.podcast.favorites')}
           />
           <SearchTabButton
-            isActive={!showSubscriptions}
-            onPress={() => setShowSubscriptions(false)}
+            isActive={showSearchModal}
+            onPress={() => setShowSearchModal(true)}
             label={t('modules.podcast.discover')}
           />
         </View>
-
-        {/* Search section (Discover tab only) */}
-        {!showSubscriptions && (
-          <View style={styles.searchSection}>
-            <SearchBar
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmit={handleSearch}
-              placeholder={t('modules.podcast.searchPlaceholder')}
-              searchButtonLabel={t('modules.podcast.searchButton')}
-              maxLength={SEARCH_MAX_LENGTH}
-            />
-
-            {/* Country selector — iTunes API is store/region-based, not language-based */}
-            <View style={styles.countrySelector}>
-              <ChipSelector
-                mode="country"
-                options={COUNTRIES}
-                selectedCode={selectedCountry}
-                onSelect={handleCountryChange}
-              />
-            </View>
-          </View>
-        )}
 
         {/* Playback Error Banner */}
         {playbackError && (
@@ -734,42 +710,26 @@ export function PodcastScreen() {
         )}
         </>}
         contentBlock={<>
-        {/* Show list */}
-        {isLoading ? (
-          <LoadingView message={t('modules.podcast.loading')} fullscreen />
-        ) : apiError ? (
-          <ErrorView
-            title={t(`modules.podcast.errors.${apiError}Title`)}
-            message={t(`modules.podcast.errors.${apiError}`)}
-            onRetry={() => {
-              triggerFeedback('tap');
-              handleSearch();
-            }}
-            fullscreen
-          />
-        ) : displayedShows.length === 0 ? (
+        {/* Subscriptions list — always shown on main screen */}
+        {displayedShows.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Icon name={showSubscriptions ? 'heart' : 'podcast'} size={64} color={colors.textTertiary} />
+            <Icon name="heart" size={64} color={colors.textTertiary} />
             <Text style={styles.emptyText}>
-              {showSubscriptions ? t('modules.podcast.noFavorites') : t('modules.podcast.noResults')}
+              {t('modules.podcast.noFavorites')}
             </Text>
-            {showSubscriptions && (
-              <>
-                <Text style={styles.emptyHint}>{t('modules.podcast.noFavoritesHint')}</Text>
-                <HapticTouchable hapticDisabled
-                  style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
-                  onPress={() => {
-                    triggerFeedback('tap');
-                    setShowSubscriptions(false);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('modules.podcast.goToDiscover')}
-                >
-                  <Icon name="search" size={24} color={colors.textOnPrimary} />
-                  <Text style={styles.emptyActionButtonText}>{t('modules.podcast.goToDiscover')}</Text>
-                </HapticTouchable>
-              </>
-            )}
+            <Text style={styles.emptyHint}>{t('modules.podcast.noFavoritesHint')}</Text>
+            <HapticTouchable hapticDisabled
+              style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
+              onPress={() => {
+                triggerFeedback('tap');
+                setShowSearchModal(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('modules.podcast.goToDiscover')}
+            >
+              <Icon name="search" size={24} color={colors.textOnPrimary} />
+              <Text style={styles.emptyActionButtonText}>{t('modules.podcast.goToDiscover')}</Text>
+            </HapticTouchable>
           </View>
         ) : (
           <ScrollViewWithIndicator
@@ -1257,7 +1217,7 @@ export function PodcastScreen() {
           animationType={isReducedMotion ? 'none' : 'fade'}
           onRequestClose={() => {
             setShowWelcomeModal(false);
-            setShowSubscriptions(false);
+            setShowSearchModal(true);
           }}
           accessibilityViewIsModal={true}
         >
@@ -1292,7 +1252,7 @@ export function PodcastScreen() {
                 onPress={() => {
                   triggerFeedback('tap');
                   setShowWelcomeModal(false);
-                  setShowSubscriptions(false);
+                  setShowSearchModal(true);
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={t('modules.podcast.welcomeButton')}
@@ -1518,6 +1478,161 @@ export function PodcastScreen() {
           </View>
         </PanelAwareModal>
 
+      {/* ============================================================
+          DISCOVERY SEARCH MODAL — Opens when SearchTabButton is tapped
+          Contains ChipSelector + SearchBar + search results list
+          ============================================================ */}
+      <PanelAwareModal
+        visible={showSearchModal}
+        animationType={isReducedMotion ? 'none' : 'slide'}
+        onRequestClose={() => setShowSearchModal(false)}
+      >
+        <View style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]}>
+          {/* Modal header with close button */}
+          <View style={[styles.searchModalHeader, { backgroundColor: podcastModuleColor }]}>
+            <View style={{ height: insets.top }} />
+            <View style={styles.searchModalHeaderRow}>
+              <Icon name="search" size={28} color={colors.textOnPrimary} />
+              <Text style={styles.searchModalTitle}>{t('modules.podcast.discover')}</Text>
+              <View style={{ flex: 1 }} />
+              <IconButton
+                icon="chevron-down"
+                onPress={() => setShowSearchModal(false)}
+                accessibilityLabel={t('common.close')}
+                size={28}
+              />
+            </View>
+          </View>
+
+          {/* Search controls: ChipSelector + SearchBar */}
+          <View style={styles.searchSection}>
+            <ChipSelector
+              mode="country"
+              options={COUNTRIES}
+              selectedCode={selectedCountry}
+              onSelect={handleCountryChange}
+            />
+            <SearchBar
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder={t('modules.podcast.searchPlaceholder')}
+              searchButtonLabel={t('modules.podcast.searchButton')}
+              maxLength={SEARCH_MAX_LENGTH}
+            />
+          </View>
+
+          {/* Search results */}
+          {isLoading ? (
+            <LoadingView message={t('modules.podcast.loading')} fullscreen />
+          ) : apiError ? (
+            <ErrorView
+              title={t(`modules.podcast.errors.${apiError}Title`)}
+              message={t(`modules.podcast.errors.${apiError}`)}
+              onRetry={() => {
+                triggerFeedback('tap');
+                handleSearch();
+              }}
+              fullscreen
+            />
+          ) : searchResults.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Icon name="podcast" size={64} color={themeColors.textTertiary} />
+              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                {t('modules.podcast.noResults')}
+              </Text>
+            </View>
+          ) : (
+            <ScrollViewWithIndicator
+              style={styles.showList}
+              contentContainerStyle={styles.showListContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {searchResults.map((show) => {
+                const isCurrentShow = currentShow && currentShow.id === show.id;
+
+                return (
+                  <View
+                    key={show.id}
+                    style={[
+                      styles.showItem,
+                      { backgroundColor: themeColors.surface },
+                      isCurrentShow && {
+                        borderWidth: 2,
+                        borderColor: accentColor.primary,
+                      },
+                    ]}
+                  >
+                    {/* Playing wave icon */}
+                    {isCurrentShow && (
+                      <View style={styles.playingWaveContainer}>
+                        <PlayingWaveIcon
+                          color={accentColor.primary}
+                          size={24}
+                          isPlaying={isPlaying}
+                        />
+                      </View>
+                    )}
+
+                    {/* Show info - tap to open show detail and close modal */}
+                    <HapticTouchable hapticDisabled
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}
+                      onPress={() => {
+                        handleShowPress(show);
+                        setShowSearchModal(false);
+                      }}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={show.title}
+                      accessibilityState={{ selected: isCurrentShow ?? false }}
+                      accessibilityHint={t('modules.podcast.showHint')}
+                    >
+                      {/* Artwork */}
+                      {show.artwork ? (
+                        <Image
+                          source={{ uri: show.artwork }}
+                          style={styles.showArtwork}
+                          accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
+                        />
+                      ) : (
+                        <View style={[styles.showArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
+                          <Icon name="podcast" size={32} color={colors.textOnPrimary} />
+                        </View>
+                      )}
+
+                      {/* Info */}
+                      <View style={styles.showInfo}>
+                        <Text style={[styles.showTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
+                          {show.title}
+                        </Text>
+                        <Text style={[styles.showAuthor, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                          {show.author}
+                        </Text>
+                      </View>
+                    </HapticTouchable>
+
+                    {/* Subscribe button */}
+                    <IconButton
+                      icon="heart"
+                      iconActive="heart-filled"
+                      isActive={isSubscribed(show.id)}
+                      onPress={() => handleToggleSubscribe(show)}
+                      accessibilityLabel={
+                        isSubscribed(show.id)
+                          ? t('modules.podcast.removeFromFavorites', { name: show.title })
+                          : t('modules.podcast.addToFavorites', { name: show.title })
+                      }
+                      size={24}
+                    />
+                  </View>
+                );
+              })}
+            </ScrollViewWithIndicator>
+          )}
+        </View>
+      </PanelAwareModal>
+
       {/* Voice hint */}
       {isVoiceSessionActive && (
         <View style={styles.voiceHint}>
@@ -1571,6 +1686,26 @@ const styles = StyleSheet.create({
   searchSection: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
+    gap: spacing.md,
+  },
+  // Discovery Search Modal styles
+  searchModalContainer: {
+    flex: 1,
+  },
+  searchModalHeader: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  searchModalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: touchTargets.minimum,
+  },
+  searchModalTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
   },
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   countrySelector: {

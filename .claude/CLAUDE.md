@@ -382,8 +382,8 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Media modules (Radio/Podcast/Audiobook)** | **ui-designer, accessibility-specialist, react-native-expert, ios-specialist** |
 | **ChipSelector (Land/Taal filter)** | **architecture-lead, react-native-expert** — API land/taal ondersteuning MOET eerst gevalideerd worden |
 | **TTS (Text-to-Speech)** | **accessibility-specialist, react-native-expert, ios-specialist** — Nederlands MOET Piper TTS (nl_NL-rdh-high) gebruiken |
-| **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern (sectie 15) MOET worden gevolgd |
-| **Modal met zoekfunctie** | **BLOKKEERDER** — Zoeken mag NOOIT in een modal, zie sectie 15.1 |
+| **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern (sectie 15) MOET worden gevolgd. Discovery = modal, Lokale filter = inline |
+| **Lokale filter in modal** | **BLOKKEERDER** — Lokale filters (contacten, chats) mogen NOOIT in een modal, zie sectie 15.1 |
 | **Nieuwe of gewijzigde Modal** | **ui-designer** — Modal Design Standaard (SKILL.md sectie 11b) MOET worden gevolgd: PageSheet (standaard) of FullScreen (uitzondering). Geen fade+centered overlays, geen close X in header, footer VERPLICHT. **ModalLayout VERPLICHT** — respecteert toolbar positie (SKILL.md sectie 11c) |
 | **Datum/tijd picker toevoegen** | **BLOKKEERDER** — MOET `DateTimePickerModal` uit `@/components` gebruiken. Geen custom date pickers, geen raw `DateTimePicker` in modals. `moduleId` prop VERPLICHT. Zie Component Registry sectie "DateTimePickerModal" |
 | **Icon component gebruik** | **ui-designer** — Icoon MOET bestaan in IconName type, zie SKILL.md sectie 10b |
@@ -3481,41 +3481,69 @@ done
 
 **ALLE modules met zoek/discovery functionaliteit** MOETEN dit pattern volgen. Dit garandeert consistente UX across alle modules.
 
-### 15.1 Zoeklocatie: ALTIJD op Hoofdscherm
+### 15.1 Zoeklocatie: Discovery (Modal) vs Lokaal Filter (Inline)
 
-Zoekfunctionaliteit MOET direct zichtbaar zijn op het hoofdscherm, **NOOIT verborgen in een modal**.
+Zoekfunctionaliteit heeft **twee categorieën** met verschillende UX-patronen:
 
-**Waarom?**
-- Senioren verwachten dat zoeken direct beschikbaar is
-- Extra taps naar modals = extra verwarring
-- Consistentie met andere modules (Radio, Podcast, Books)
+| Type | Waar | Voorbeeld | Rationale |
+|------|------|-----------|-----------|
+| **Discovery** (extern API) | **Modal** (via SearchTabButton) | Radio zenders, Podcasts, Mail zoeken | Houdt hoofdscherm rustig; discovery is een focused actie |
+| **Lokale filter** (bestaande data) | **Inline op hoofdscherm** | Contacten filteren, chatlijst filteren | Directe feedback bij elke keystroke, geen extra tap nodig |
 
-**✅ CORRECT — Zoeken op hoofdscherm:**
+#### Discovery Search — Modal Pattern (Radio, Podcast, Mail)
+
+**Waarom modal voor discovery?**
+- Hoofdscherm toont alleen favorieten/opgeslagen items — geen UI-clutter
+- SearchBar + ChipSelector + zoekresultaten samen in modal geeft gefocuste zoekervaring
+- Senior-toets: duidelijke scheiding — je bent OF in favorieten OF in zoeken, niet door elkaar
+
+**Gedrag:**
+1. Tap op **SearchTabButton** ("Zoeken") → **PanelAwareModal** opent (slide-up)
+2. Modal bevat: SearchBar + ChipSelector + zoekresultaten lijst
+3. Modal heeft sluitknop (chevron-down) om terug te gaan naar favorieten
+4. Selectie van item → modal sluit, actie wordt uitgevoerd (playback start / item toegevoegd)
+
+**✅ CORRECT — Discovery zoeken in modal:**
 ```
 ┌─────────────────────────────────────┐
 │        📻 Radio                     │
 ├─────────────────────────────────────┤
-│  [❤️ Favorieten] [🔍 Zoeken]        │  ← Tabs direct zichtbaar
+│  [❤️ Favorieten] [🔍 Zoeken]        │  ← Twee knoppen, altijd zichtbaar
 ├─────────────────────────────────────┤
-│  🔍 [__Zoek een zender...__] [🔍]   │  ← SearchBar op hoofdscherm
-├─────────────────────────────────────┤
-│  Zoekresultaten / Content...        │
+│  Favorieten lijst...                │  ← Rustig hoofdscherm
+│                                     │
+│  Tap "Zoeken" → Modal opent:        │
+│  ┌─────────────────────────────┐    │
+│  │  ˅  Zoek zenders            │    │
+│  │  🔍 [__Zoek...__] [🔍]      │    │
+│  │  [🇳🇱 NL] [🇧🇪 BE] [🇩🇪 DE]  │    │
+│  │  Zoekresultaten...           │    │
+│  └─────────────────────────────┘    │
 └─────────────────────────────────────┘
 ```
 
-**❌ FOUT — Zoeken in modal:**
+#### Lokale Filter — Inline Pattern (Contacten, Chats)
+
+**Waarom inline voor lokale filter?**
+- Directe feedback bij elke keystroke (geen submit nodig)
+- Data is al lokaal beschikbaar, geen wachttijd
+- SearchBar is onderdeel van de content flow
+
+**✅ CORRECT — Lokale filter inline op hoofdscherm:**
 ```
 ┌─────────────────────────────────────┐
-│        🌤️ Weer                      │
+│        👥 Contacten                  │
 ├─────────────────────────────────────┤
-│  📍 Amsterdam                    ▼  │  ← Tik om modal te openen
+│  🔍 [__Zoek contact...__]           │  ← Altijd zichtbaar, filtert live
 ├─────────────────────────────────────┤
-│  Weerdata...                        │
-│                                     │
-│     ┌─────────────────────┐         │
-│     │ [Modal met zoek]    │         │  ← VERBODEN: verborgen in modal
-│     └─────────────────────┘         │
+│  Gefilterde contacten lijst...      │
 └─────────────────────────────────────┘
+```
+
+**❌ FOUT — Lokale filter in modal (VERBODEN):**
+```
+Lokale data doorzoeken mag NOOIT in een modal.
+Senioren verwachten directe feedback bij lokale filters.
 ```
 
 ### 15.2 Tabs: Favorieten vs Zoeken
@@ -3527,32 +3555,50 @@ Modules met zowel favorieten/opgeslagen items ALS zoekfunctionaliteit MOETEN tab
 | **Favorieten** | `FavoriteTabButton` | Opgeslagen/favoriete items |
 | **Zoeken** | `SearchTabButton` | Discovery/search interface |
 
-**Implementatie:**
+**Implementatie — Discovery search (modal):**
 ```typescript
-import { FavoriteTabButton, SearchTabButton } from '@/components';
+import { FavoriteTabButton, SearchTabButton, PanelAwareModal } from '@/components';
 
-const [showFavorites, setShowFavorites] = useState(true);
+const [showSearchModal, setShowSearchModal] = useState(false);
 
-// Tab bar
+// Tab bar (altijd zichtbaar op hoofdscherm)
 <View style={styles.tabBar}>
   <FavoriteTabButton
-    isActive={showFavorites}
-    onPress={() => setShowFavorites(true)}
-    count={savedLocations.length}
-    label={t('modules.weather.myLocations')}
+    isActive={!showSearchModal}
+    onPress={() => setShowSearchModal(false)}
+    count={favorites.length}
+    label={t('modules.radio.favorites')}
   />
   <SearchTabButton
-    isActive={!showFavorites}
-    onPress={() => setShowFavorites(false)}
+    isActive={showSearchModal}
+    onPress={() => setShowSearchModal(true)}
+    label={t('modules.radio.search')}
   />
 </View>
 
-// Content based on active tab
-{showFavorites ? (
-  <FavoritesContent />
-) : (
-  <SearchContent />
-)}
+// Favorieten lijst (altijd zichtbaar op hoofdscherm)
+<FavoritesContent />
+
+// Search modal (opent bij tap op "Zoeken")
+<PanelAwareModal visible={showSearchModal} onRequestClose={() => setShowSearchModal(false)}>
+  {/* SearchBar + ChipSelector + zoekresultaten */}
+</PanelAwareModal>
+```
+
+**Implementatie — Lokale filter (inline):**
+```typescript
+import { SearchBar } from '@/components';
+
+// SearchBar altijd zichtbaar op hoofdscherm
+<SearchBar
+  value={searchQuery}
+  onChangeText={handleFilter}
+  onSubmit={() => {}}
+  placeholder={t('contacts.searchPlaceholder')}
+/>
+
+// Gefilterde lijst direct eronder
+<FilteredList data={filteredData} />
 ```
 
 ### 15.3 Zoekgedrag: API vs Lokaal
@@ -3598,9 +3644,10 @@ const handleSearch = useCallback(async () => {
 
 Weather zoekt via **externe API** (Open-Meteo geocoding), dus MOET:
 - ✅ Tabs gebruiken: "Mijn Locaties" | "Zoeken"
-- ✅ SearchBar op hoofdscherm (niet in modal)
+- ✅ Discovery search in PanelAwareModal (externe API = modal pattern)
 - ✅ Expliciete submit (niet live filtering)
 - ✅ Weerdata tonen wanneer locatie geselecteerd is
+- ✅ Modal sluit na locatieselectie → weer wordt geladen
 
 **Weather Screen Layout:**
 ```
@@ -3629,19 +3676,22 @@ Weather zoekt via **externe API** (Open-Meteo geocoding), dus MOET:
 
 Bij ELKE module met zoekfunctionaliteit:
 
-- [ ] **SearchBar op HOOFDSCHERM** — NOOIT in een modal
+- [ ] **Discovery search = modal** — External API zoeken opent PanelAwareModal met SearchBar + ChipSelector + resultaten
+- [ ] **Lokale filter = inline** — Lokale data filteren via SearchBar direct op hoofdscherm (NOOIT in modal)
 - [ ] **Tabs gebruiken** — FavoriteTabButton + SearchTabButton (indien favorieten)
+- [ ] **SearchTabButton opent modal** — Bij discovery modules: `onPress={() => setShowSearchModal(true)}`
 - [ ] **API zoeken = expliciete submit** — onSubmit roept zoekfunctie aan
 - [ ] **Lokale filter = live filtering** — alleen voor lokale data
 - [ ] **Geen lege onSubmit** — `onSubmit={() => {}}` is VERBODEN voor API zoeken
 - [ ] **ChipSelector** — voor land/taal filtering (indien van toepassing)
+- [ ] **Modal sluit na selectie** — Gebruiker selecteert item → modal sluit → actie wordt uitgevoerd
 
 ### 15.6 Automatische Trigger
 
 | Wijziging bevat... | Verplichte validatie door |
 |-------------------|---------------------------|
-| **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern MOET worden gevolgd |
-| **Modal met zoekfunctie** | **BLOKKEERDER** — Zoeken mag NOOIT in een modal |
+| **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern MOET worden gevolgd. Discovery = modal, Lokale filter = inline |
+| **Lokale filter in modal** | **BLOKKEERDER** — Lokale filters (contacten, chats) mogen NOOIT in een modal, zie sectie 15.1 |
 
 ---
 
