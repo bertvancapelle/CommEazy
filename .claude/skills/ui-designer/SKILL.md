@@ -2514,6 +2514,106 @@ grep -rn "animationType=\"fade\"" src/ --include="*.tsx" | grep -v "FullscreenIm
 grep -rn "✕\|×\|closeText" src/ --include="*.tsx"
 ```
 
+### 11b-2. MODAL HEADER PATTERN (VERPLICHT voor PageSheet modals met gekleurde header)
+
+**PRINCIPE:** Alle PageSheet modals met een gekleurde module-header MOETEN hetzelfde header pattern volgen. Dit garandeert visuele consistentie en herkenbaarheid voor senioren.
+
+**Layout:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Safe Area spacer (height: insets.top)                        │
+├──────────────────────────────────────────────────────────────┤
+│  [˅ chevron-down]   Titel (centered)   [♡ actie-knop]        │
+│  ↑ Links            ↑ flex: 1          ↑ Rechts (optioneel)  │
+│  backgroundColor: moduleColor                                 │
+│  minHeight: touchTargets.minimum (60pt)                       │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Structuur:**
+1. **Safe Area spacer** — `<View style={{ height: insets.top }} />` bovenaan
+2. **Header row** — `flexDirection: 'row'`, `alignItems: 'center'`, `gap: spacing.sm`
+3. **Chevron-down** (links) — Sluit de modal, via `IconButton` met `size={28}`
+4. **Titel** (midden) — `flex: 1`, `numberOfLines={1}`, `typography.h3`, `textOnPrimary`
+5. **Actie-knop** (rechts, optioneel) — Contextafhankelijk (hartje, zoek, etc.)
+
+**Styling:**
+```typescript
+// Header container
+modalHeader: {
+  paddingHorizontal: spacing.md,
+  paddingBottom: spacing.sm,
+  backgroundColor: moduleColor,  // Via useModuleColor() hook
+},
+
+// Header row
+modalHeaderRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: spacing.sm,
+  minHeight: touchTargets.minimum,  // 60pt
+},
+
+// Titel
+modalTitle: {
+  ...typography.h3,
+  color: colors.textOnPrimary,
+  fontWeight: '700',
+  flex: 1,  // Neemt resterende ruimte in
+},
+```
+
+**Implementatie:**
+```typescript
+<View style={[styles.modalHeader, { backgroundColor: moduleColor }]}>
+  <View style={{ height: insets.top }} />
+  <View style={styles.modalHeaderRow}>
+    <IconButton
+      icon="chevron-down"
+      onPress={onClose}
+      accessibilityLabel={t('common.close')}
+      size={28}
+    />
+    <Text style={styles.modalTitle} numberOfLines={1}>
+      {title}
+    </Text>
+    <View style={{ flex: 1 }} />
+    {/* Optionele actie-knop rechts */}
+    <IconButton
+      icon="heart"
+      onPress={onAction}
+      accessibilityLabel={actionLabel}
+      size={28}
+    />
+  </View>
+</View>
+```
+
+**Huidige adoptie:**
+
+| Modal | Header Pattern | Actie-knop rechts |
+|-------|---------------|-------------------|
+| Podcast Search Modal | ✅ | Geen (close rechts) |
+| Podcast Show Detail Modal | ✅ | Hartje (favoriet) |
+| Radio Search Modal | ✅ | Geen (close rechts) |
+
+**Regels:**
+- Chevron-down ALTIJD links (sluit de modal)
+- Titel neemt resterende ruimte (flex: 1, numberOfLines: 1)
+- Alle tekst en iconen in `textOnPrimary` kleur
+- Achtergrondkleur via `useModuleColor(moduleId)` — NOOIT hardcoded hex
+- Touch targets ≥60pt op alle interactieve elementen
+
+**Wanneer DIT pattern te gebruiken:**
+- Discovery modals (zoekschermen)
+- Detail modals (show detail, item detail)
+- Elke PageSheet modal met module-specifieke context
+
+**Wanneer NIET dit pattern:**
+- Formulier modals → Gebruik formMode header (Cancel/Save)
+- Picker modals → Hebben eigen compact header
+- FullScreen viewers → Eigen overlay controls
+
 ### 11c. MODAL TOOLBAR POSITIE (VERPLICHT)
 
 **PRINCIPE:** Modals MOETEN dezelfde "Schermindeling" toolbar positie respecteren als module screens.
