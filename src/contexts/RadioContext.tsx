@@ -50,6 +50,7 @@ export interface RadioStation {
   country: string;
   countryCode: string;
   favicon?: string;
+  homepage?: string;
 }
 
 export interface StreamMetadata {

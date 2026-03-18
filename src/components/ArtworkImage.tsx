@@ -18,7 +18,7 @@
  * />
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Image, View, type StyleProp, type ViewStyle, type ImageStyle } from 'react-native';
 import { Icon, type IconName } from './Icon';
 import { colors } from '@/theme';
@@ -26,6 +26,8 @@ import { colors } from '@/theme';
 export interface ArtworkImageProps {
   /** Image URL — when null/undefined/empty, placeholder is shown immediately */
   uri: string | null | undefined;
+  /** Fallback image URL — tried when uri fails to load, before showing placeholder */
+  fallbackUri?: string | null;
   /** Style for the image and placeholder container */
   style: StyleProp<ImageStyle>;
   /** Icon to show in placeholder */
@@ -40,20 +42,42 @@ export interface ArtworkImageProps {
 
 export function ArtworkImage({
   uri,
+  fallbackUri,
   style,
   placeholderIcon,
   placeholderColor,
   placeholderIconSize = 32,
   accessibilityLabel,
 }: ArtworkImageProps) {
-  const [hasError, setHasError] = useState(false);
+  const [primaryFailed, setPrimaryFailed] = useState(false);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
 
-  const handleError = useCallback(() => {
-    setHasError(true);
+  // Reset error state when URIs change
+  const uriRef = useRef(uri);
+  const fallbackRef = useRef(fallbackUri);
+  if (uri !== uriRef.current) {
+    uriRef.current = uri;
+    setPrimaryFailed(false);
+  }
+  if (fallbackUri !== fallbackRef.current) {
+    fallbackRef.current = fallbackUri;
+    setFallbackFailed(false);
+  }
+
+  const handlePrimaryError = useCallback(() => {
+    setPrimaryFailed(true);
   }, []);
 
-  // Show placeholder when no URI or when load failed
-  if (!uri || hasError) {
+  const handleFallbackError = useCallback(() => {
+    setFallbackFailed(true);
+  }, []);
+
+  // Determine which URI to show
+  const showPrimary = uri && !primaryFailed;
+  const showFallback = !showPrimary && fallbackUri && !fallbackFailed;
+
+  // Show placeholder when all URIs exhausted
+  if (!showPrimary && !showFallback) {
     return (
       <View
         style={[style, { backgroundColor: placeholderColor, justifyContent: 'center', alignItems: 'center' }]}
@@ -66,9 +90,9 @@ export function ArtworkImage({
 
   return (
     <Image
-      source={{ uri }}
+      source={{ uri: showPrimary ? uri! : fallbackUri! }}
       style={style}
-      onError={handleError}
+      onError={showPrimary ? handlePrimaryError : handleFallbackError}
       accessibilityLabel={accessibilityLabel}
     />
   );

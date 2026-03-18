@@ -51,6 +51,7 @@ import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import { useModuleBrowsingState, type RadioBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { ServiceContainer } from '@/services/container';
+import { scrapeStationArtwork, getCachedArtworkSync } from '@/services/stationArtworkService';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
@@ -84,6 +85,7 @@ interface FavoriteStation {
   country: string;
   countryCode: string;
   favicon: string;
+  homepage?: string;
   addedAt: number;
 }
 
@@ -378,6 +380,8 @@ export function RadioScreen() {
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   // Playback error state — shown when a stream fails to play
   const [playbackError, setPlaybackError] = useState<string | null>(null);
+  // Scraped high-res artwork from station homepage (progressive enhancement)
+  const [scrapedArtwork, setScrapedArtwork] = useState<string | null>(null);
 
   // Save browsing state on every change — restored on return navigation
   useEffect(() => {
@@ -430,7 +434,7 @@ export function RadioScreen() {
     showGlassMiniPlayer({
       moduleId: 'radio',
       tintColorHex: radioModuleColor,
-      artwork: metadata.artwork || contextStation.favicon || null,
+      artwork: metadata.artwork || scrapedArtwork || contextStation.favicon || null,
       title: contextStation.name,
       subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
       progressType: 'duration',
@@ -442,6 +446,7 @@ export function RadioScreen() {
     contextStation,
     metadata.artwork,
     metadata.title,
+    scrapedArtwork,
     showGlassMiniPlayer,
     configureGlassControls,
     isBuffering,
@@ -487,7 +492,7 @@ export function RadioScreen() {
 
     updateGlassContent({
       tintColorHex: radioModuleColor,  // MUST include to prevent fallback to default color
-      artwork: metadata.artwork || contextStation.favicon || null,
+      artwork: metadata.artwork || scrapedArtwork || contextStation.favicon || null,
       title: contextStation.name,
       subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
       listenDuration: positionRef.current,
@@ -498,6 +503,7 @@ export function RadioScreen() {
     isGlassPlayerVisible,
     contextStation,
     metadata.artwork,
+    scrapedArtwork,
     metadata.title,
     isBuffering,
     radioModuleColor,
@@ -522,6 +528,46 @@ export function RadioScreen() {
 
     return () => clearInterval(interval);
   }, [isGlassPlayerAvailable, isGlassPlayerVisible, isPlaying, updateGlassPlaybackState]);
+
+  // Scrape high-res artwork from station homepage when playback starts
+  useEffect(() => {
+    if (!contextStation) {
+      setScrapedArtwork(null);
+      return;
+    }
+
+    const homepage = contextStation.homepage;
+    if (!homepage) {
+      setScrapedArtwork(null);
+      return;
+    }
+
+    // Check synchronous memory cache first (instant, no flicker)
+    const cached = getCachedArtworkSync(homepage);
+    if (cached) {
+      setScrapedArtwork(cached);
+      return;
+    }
+
+    // Scrape asynchronously in background
+    let cancelled = false;
+    scrapeStationArtwork(homepage).then(result => {
+      if (!cancelled && result.url) {
+        setScrapedArtwork(result.url);
+        // Update Glass Player with the better artwork
+        if (isGlassPlayerAvailable && isGlassPlayerVisible) {
+          updateGlassContent({
+            tintColorHex: radioModuleColor,
+            artwork: result.url,
+            title: contextStation.name,
+            subtitle: metadata.title || contextStation.name,
+          });
+        }
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [contextStation?.id]); // Only re-scrape when station changes
 
   // Listen for playback errors from RadioContext
   useEffect(() => {
@@ -726,6 +772,7 @@ export function RadioScreen() {
       country: station.country,
       countryCode: 'countrycode' in station ? station.countrycode : station.countryCode,
       favicon: 'favicon' in station ? station.favicon : undefined,
+      homepage: 'homepage' in station ? station.homepage : undefined,
     };
   }, []);
 
@@ -753,7 +800,7 @@ export function RadioScreen() {
       await showGlassMiniPlayer({
         moduleId: 'radio',
         tintColorHex: radioModuleColor,
-        artwork: metadata.artwork || contextStation.favicon || null,
+        artwork: metadata.artwork || scrapedArtwork || contextStation.favicon || null,
         title: contextStation.name,
         subtitle: isBuffering ? t('modules.radio.buffering') : metadata.title,
         progressType: 'duration',
@@ -770,7 +817,7 @@ export function RadioScreen() {
 
     // Success feedback
     triggerFeedback('success');
-  }, [holdGesture, playStation, toContextStation, triggerFeedback, contextStation, isPlaying, showGlassMiniPlayer, radioModuleColor, metadata.artwork, metadata.title, isBuffering, t]);
+  }, [holdGesture, playStation, toContextStation, triggerFeedback, contextStation, isPlaying, showGlassMiniPlayer, radioModuleColor, metadata.artwork, scrapedArtwork, metadata.title, isBuffering, t]);
 
   // Favorites management
   const isFavorite = useCallback((station: RadioStation | FavoriteStation) => {
@@ -819,6 +866,7 @@ export function RadioScreen() {
       country: station.country,
       countryCode: 'countrycode' in station ? station.countrycode : station.countryCode,
       favicon: 'favicon' in station ? station.favicon : '',
+      homepage: 'homepage' in station ? station.homepage : undefined,
       addedAt: Date.now(),
     };
 
@@ -1052,6 +1100,7 @@ export function RadioScreen() {
                   {/* Station artwork thumbnail */}
                   <ArtworkImage
                     uri={station.favicon}
+                    fallbackUri={station.homepage ? getCachedArtworkSync(station.homepage) : undefined}
                     style={styles.stationArtwork}
                     placeholderIcon="radio"
                     placeholderColor={radioModuleColor}
@@ -1127,7 +1176,7 @@ export function RadioScreen() {
         {shouldShowRNMiniPlayer && (
           <UnifiedMiniPlayer
             moduleId="radio"
-            artwork={metadata.artwork || contextStation.favicon || null}
+            artwork={metadata.artwork || scrapedArtwork || contextStation.favicon || null}
             title={contextStation.name}
             subtitle={isBuffering ? t('modules.radio.buffering') : metadata.title}
             placeholderIcon="radio"
@@ -1390,6 +1439,7 @@ export function RadioScreen() {
                     {/* Station artwork thumbnail */}
                     <ArtworkImage
                       uri={station.favicon}
+                      fallbackUri={station.homepage ? getCachedArtworkSync(station.homepage) : undefined}
                       style={styles.stationArtwork}
                       placeholderIcon="radio"
                       placeholderColor={radioModuleColor}
