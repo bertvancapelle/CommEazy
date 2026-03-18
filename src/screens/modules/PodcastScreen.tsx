@@ -1458,6 +1458,9 @@ export function PodcastScreen() {
             />
           </View>
 
+          {/* Separator between controls and results */}
+          <View style={{ height: 1, backgroundColor: podcastModuleColor, opacity: 0.4, marginHorizontal: spacing.md }} />
+
           {/* Search results */}
           {isLoading ? (
             <LoadingView message={t('modules.podcast.loading')} fullscreen />
@@ -1610,7 +1613,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: spacing.md,
-    marginTop: spacing.md,
+    marginVertical: spacing.sm,
     gap: spacing.sm,
   },
   // Tab styles removed — using standardized FavoriteTabButton/SearchTabButton components
