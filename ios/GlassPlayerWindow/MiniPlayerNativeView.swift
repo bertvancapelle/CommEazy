@@ -27,6 +27,10 @@ protocol MiniPlayerNativeViewDelegate: AnyObject {
     func miniPlayerDidTapExpand()
     func miniPlayerDidTapMinimize()
     func miniPlayerDidSwipeDown()
+    /// Called during drag-to-reposition: newY is the desired window Y origin
+    func miniPlayerDidDrag(toY newY: CGFloat)
+    /// Called when drag ends — delegate should persist the position
+    func miniPlayerDidEndDrag()
 }
 
 // MARK: - MiniPlayerNativeView
@@ -279,6 +283,15 @@ class MiniPlayerNativeView: UIView {
     
     /// Tracks whether a swipe-down was just recognized (prevents expand on swipe)
     private var swipeDownRecognized = false
+    
+    // MARK: - Drag-to-Reposition State
+    
+    /// Whether drag mode is currently active (long press triggered)
+    private var isDragging = false
+    /// The Y offset between the touch point and the window's origin when drag started
+    private var dragStartOffsetY: CGFloat = 0
+    /// Tracks whether a drag was just completed (prevents expand after drag)
+    private var dragJustEnded = false
 
     private func setupGestures() {
         isUserInteractionEnabled = true
@@ -287,6 +300,16 @@ class MiniPlayerNativeView: UIView {
         let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeDown))
         swipeDown.direction = .down
         addGestureRecognizer(swipeDown)
+        
+        // Long press gesture to activate drag-to-reposition (300ms hold)
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.3
+        longPress.allowableMovement = 10 // Small movement allowed during hold
+        longPress.delegate = self
+        addGestureRecognizer(longPress)
+        
+        // Long press should not interfere with swipe-down
+        swipeDown.require(toFail: longPress)
     }
     
     // MARK: - Actions
@@ -327,6 +350,66 @@ class MiniPlayerNativeView: UIView {
         // Reset flag after brief delay (touchesEnded may still fire)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             self?.swipeDownRecognized = false
+        }
+    }
+    
+    // MARK: - Long Press → Drag-to-Reposition
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            // Drag mode activated — haptic feedback
+            let impact = UIImpactFeedbackGenerator(style: .heavy)
+            impact.impactOccurred()
+            
+            isDragging = true
+            
+            // Calculate offset: distance from touch point (screen coords) to window's Y origin
+            // Using location(in: nil) gives screen coordinates, avoiding feedback loops
+            // when the window frame moves during drag
+            let touchInScreen = gesture.location(in: nil)
+            let windowOriginY = self.window?.frame.origin.y ?? 0
+            dragStartOffsetY = touchInScreen.y - windowOriginY
+            
+            // Visual feedback: subtle scale pulse
+            UIView.animate(withDuration: 0.15, delay: 0, options: .curveEaseOut) {
+                self.transform = CGAffineTransform(scaleX: 1.03, y: 1.03)
+            }
+            
+        case .changed:
+            guard isDragging else { return }
+            
+            // Use screen coordinates directly (location in nil = screen space)
+            let touchInScreen = gesture.location(in: nil)
+            let newWindowY = touchInScreen.y - dragStartOffsetY
+            
+            // Delegate handles clamping and frame update
+            delegate?.miniPlayerDidDrag(toY: newWindowY)
+            
+        case .ended, .cancelled:
+            guard isDragging else { return }
+            isDragging = false
+            dragJustEnded = true
+            
+            // Restore scale
+            UIView.animate(withDuration: 0.15, delay: 0, options: .curveEaseOut) {
+                self.transform = .identity
+            }
+            
+            // Light haptic to confirm placement
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+            
+            // Notify delegate to persist position
+            delegate?.miniPlayerDidEndDrag()
+            
+            // Reset flag after brief delay (prevents touchesEnded from firing expand)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                self?.dragJustEnded = false
+            }
+            
+        default:
+            break
         }
     }
     
@@ -601,6 +684,49 @@ extension MiniPlayerNativeView {
         super.touchesEnded(touches, with: event)
         // Don't expand if a swipe-down gesture was just recognized
         guard !swipeDownRecognized else { return }
+        // Don't expand if a drag gesture is active or just ended
+        guard !isDragging && !dragJustEnded else { return }
         delegate?.miniPlayerDidTapExpand()
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+@available(iOS 26.0, *)
+extension MiniPlayerNativeView: UIGestureRecognizerDelegate {
+    
+    /// Allow long press and swipe-down to coexist
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        // Don't allow simultaneous long press + swipe
+        return false
+    }
+    
+    /// Prevent long press from activating when touching buttons
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldReceive touch: UITouch
+    ) -> Bool {
+        // If touch is on a button, don't start long press
+        let point = touch.location(in: self)
+        
+        let playPauseRect = playPauseButton.frame.insetBy(dx: -5, dy: -5)
+        if playPauseRect.contains(point) && !playPauseButton.isHidden {
+            return false
+        }
+        
+        let stopRect = stopButton.frame.insetBy(dx: -5, dy: -5)
+        if stopRect.contains(point) && !stopButton.isHidden {
+            return false
+        }
+        
+        let minimizeRect = minimizeButton.frame.insetBy(dx: -5, dy: -5)
+        if minimizeRect.contains(point) && !minimizeButton.isHidden {
+            return false
+        }
+        
+        return true
     }
 }

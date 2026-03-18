@@ -53,6 +53,7 @@ import { ServiceContainer } from '@/services/container';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
 // Types
@@ -271,6 +272,8 @@ export function RadioScreen() {
   const { triggerFeedback } = useFeedback();
   const isReducedMotion = useReducedMotion();
   const themeColors = useColors();
+  const layoutContext = useModuleLayoutSafe();
+  const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // Radio Context for playback
@@ -1099,14 +1102,15 @@ export function RadioScreen() {
       </View>
 
       {/* ============================================================
-          OVERLAY LAYER — Floating MiniPlayer at bottom
+          OVERLAY LAYER — Floating MiniPlayer (position-aware)
           pointerEvents="box-none" allows touches to pass through
+          Toolbar 'top' → player at bottom; Toolbar 'bottom' → player at top
           ============================================================ */}
       <View style={styles.overlayLayer} pointerEvents="box-none">
-        {/* Spacer pushes MiniPlayer to bottom */}
-        <View style={styles.overlaySpacer} pointerEvents="none" />
+        {/* Spacer: pushes MiniPlayer to bottom when toolbar is at top */}
+        {toolbarPosition !== 'bottom' && <View style={styles.overlaySpacer} pointerEvents="none" />}
 
-        {/* Floating Mini-Player — absolute positioned at bottom
+        {/* Floating Mini-Player — position-aware
             ONLY shown when Glass Player is NOT available (iOS <26 or Android)
             On iOS 26+, the native GlassPlayerWindow handles this
             IMPORTANT: Wait for availability check to complete before rendering */}
@@ -1137,6 +1141,9 @@ export function RadioScreen() {
             style={styles.absolutePlayer}
           />
         )}
+
+        {/* Spacer: pushes MiniPlayer to top when toolbar is at bottom */}
+        {toolbarPosition === 'bottom' && <View style={styles.overlaySpacer} pointerEvents="none" />}
       </View>
 
       {/* Expanded Full Player

@@ -37,6 +37,8 @@ export interface GlassPlayerContent {
   showStopButton?: boolean;
   /** Panel bounds for iPad Split View (x, y, width, height in points) */
   panelBounds?: { x: number; y: number; width: number; height: number };
+  /** Toolbar position — determines mini player default placement */
+  toolbarPosition?: 'top' | 'bottom';
 }
 
 export type ShuffleMode = 'off' | 'songs';
@@ -132,6 +134,7 @@ interface GlassPlayerWindowModuleInterface {
   setTemporarilyHidden(hidden: boolean): void;
   updatePanelBounds(bounds: { x: number; y: number; width: number; height: number } | null): void;
   configureButtonStyle(borderEnabled: boolean, borderColorHex: string): void;
+  updateToolbarPosition(position: string): void;
 }
 
 // ============================================================
@@ -390,6 +393,19 @@ class GlassPlayerService {
     }
 
     this.nativeModule.configureButtonStyle(borderEnabled, borderColorHex);
+  }
+
+  /**
+   * Update toolbar position (user setting: "top" or "bottom")
+   * Determines mini player default placement and full player layout.
+   * Also resets any saved drag position when toolbar position changes.
+   */
+  updateToolbarPosition(position: 'top' | 'bottom'): void {
+    if (!this.nativeModule) {
+      return;
+    }
+
+    this.nativeModule.updateToolbarPosition(position);
   }
 
   /**

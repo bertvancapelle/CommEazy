@@ -49,4 +49,6 @@ RCT_EXTERN_METHOD(updatePanelBounds:(NSDictionary *)bounds)
 RCT_EXTERN_METHOD(configureButtonStyle:(BOOL)borderEnabled
                   borderColorHex:(NSString *)borderColorHex)
 
+RCT_EXTERN_METHOD(updateToolbarPosition:(NSString *)position)
+
 @end

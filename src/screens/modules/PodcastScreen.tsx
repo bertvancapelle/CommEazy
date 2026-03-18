@@ -63,6 +63,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingState, type PodcastBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
 // Constants
@@ -92,6 +93,8 @@ export function PodcastScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+  const layoutContext = useModuleLayoutSafe();
+  const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // User-customizable module color for Liquid Glass
@@ -814,12 +817,13 @@ export function PodcastScreen() {
       </View>
 
       {/* ============================================================
-          OVERLAY LAYER — Floating MiniPlayer at bottom
+          OVERLAY LAYER — Floating MiniPlayer (position-aware)
           pointerEvents="box-none" allows touches to pass through
+          Toolbar 'top' → player at bottom; Toolbar 'bottom' → player at top
           ============================================================ */}
       <View style={styles.overlayLayer} pointerEvents="box-none">
-        {/* Spacer pushes MiniPlayer to bottom */}
-        <View style={styles.overlaySpacer} pointerEvents="none" />
+        {/* Spacer: pushes MiniPlayer to bottom when toolbar is at top */}
+        {toolbarPosition !== 'bottom' && <View style={styles.overlaySpacer} pointerEvents="none" />}
 
         {/* Mini-player — React Native fallback when Glass Player not available */}
         {currentEpisode && currentShow && !isPlayerExpanded && !showSpeedPicker && !showSleepTimerPicker && !isGlassPlayerAvailable && (
@@ -854,6 +858,9 @@ export function PodcastScreen() {
             style={styles.absolutePlayer}
           />
         )}
+
+        {/* Spacer: pushes MiniPlayer to top when toolbar is at bottom */}
+        {toolbarPosition === 'bottom' && <View style={styles.overlaySpacer} pointerEvents="none" />}
       </View>
 
       {/* Show Detail Modal */}

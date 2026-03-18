@@ -71,6 +71,18 @@ class GlassPlayerWindow: UIWindow {
     /// Panel bounds from React Native (iPad Split View)
     /// When set, the player constrains itself to this region instead of full screen
     private var panelBounds: CGRect?
+    
+    /// Toolbar position from React Native (user setting: "top" or "bottom")
+    /// Determines default mini player placement — "top" = mini at top, "bottom" = mini at bottom
+    private var toolbarPosition: String = "top"
+    
+    /// User's dragged offset for mini player (persistent via UserDefaults)
+    /// When nil, mini player uses default position based on toolbarPosition
+    private var draggedMiniPlayerY: CGFloat?
+    
+    /// Key for UserDefaults persistence of dragged position
+    private static let dragPositionKey = "commeazy_miniPlayerDraggedY"
+    private static let dragToolbarKey = "commeazy_miniPlayerDragToolbar"
 
     // ============================================================
     // MARK: Layout Constants
@@ -79,6 +91,7 @@ class GlassPlayerWindow: UIWindow {
     private let miniPlayerHeight: CGFloat = 88  // Larger for better visibility and senior-inclusive design
     private let horizontalMargin: CGFloat = 16  // Side margins for floating effect
     private let bottomMargin: CGFloat = 20      // Space above safe area
+    private let topMargin: CGFloat = 20         // Space below safe area (toolbar at top)
     private let fullPlayerMargin: CGFloat = 16  // All-around margin for full player
     private let cornerRadius: CGFloat = 24      // Rounded corners
 
@@ -257,6 +270,143 @@ class GlassPlayerWindow: UIWindow {
             restoreCorrectFrameForState()
         }
     }
+    
+    /// Update toolbar position (called from React Native when user changes setting)
+    func updateToolbarPosition(_ position: String) {
+        let oldPosition = toolbarPosition
+        toolbarPosition = position
+        
+        // Reset dragged position when toolbar position changes (PNA decision)
+        if oldPosition != position {
+            clearDraggedPosition()
+        }
+        
+        // Re-layout if currently visible
+        if currentState != .hidden {
+            restoreCorrectFrameForState()
+        }
+    }
+    
+    // ============================================================
+    // MARK: Mini Player Frame Calculation
+    // ============================================================
+    
+    /// Calculate the mini player frame based on toolbar position and optional drag offset
+    private func calculateMiniFrame() -> CGRect {
+        let bounds = effectiveBounds
+        let playerWidth = bounds.width - (horizontalMargin * 2)
+        
+        // If user has dragged to a custom position, use that
+        if let draggedY = draggedMiniPlayerY {
+            return CGRect(
+                x: bounds.origin.x + horizontalMargin,
+                y: draggedY,
+                width: playerWidth,
+                height: miniPlayerHeight
+            )
+        }
+        
+        // Default position based on toolbar position
+        let y: CGFloat
+        if toolbarPosition == "bottom" {
+            // Toolbar at bottom → mini player at TOP (below safe area + module header area)
+            let topSafe = safeAreaTop
+            // Module header height from React Native (safe area + header content)
+            let moduleHeaderHeight: CGFloat = 120
+            y = topSafe + moduleHeaderHeight + topMargin
+        } else {
+            // Toolbar at top (default) → mini player at BOTTOM (above safe area)
+            let bottomSafe = safeAreaBottom
+            let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
+            y = bounds.origin.y + bounds.height - windowHeight
+        }
+        
+        return CGRect(
+            x: bounds.origin.x + horizontalMargin,
+            y: y,
+            width: playerWidth,
+            height: miniPlayerHeight
+        )
+    }
+    
+    // ============================================================
+    // MARK: Drag Position Persistence
+    // ============================================================
+    
+    /// Load saved drag position from UserDefaults
+    func loadDraggedPosition() {
+        let defaults = UserDefaults.standard
+        let savedToolbar = defaults.string(forKey: GlassPlayerWindow.dragToolbarKey)
+        
+        // Only restore if the saved toolbar position matches current
+        if savedToolbar == toolbarPosition {
+            let savedY = defaults.double(forKey: GlassPlayerWindow.dragPositionKey)
+            if savedY > 0 {
+                draggedMiniPlayerY = CGFloat(savedY)
+            }
+        }
+    }
+    
+    /// Save drag position to UserDefaults
+    private func saveDraggedPosition() {
+        let defaults = UserDefaults.standard
+        if let y = draggedMiniPlayerY {
+            defaults.set(Double(y), forKey: GlassPlayerWindow.dragPositionKey)
+            defaults.set(toolbarPosition, forKey: GlassPlayerWindow.dragToolbarKey)
+        }
+    }
+    
+    /// Clear saved drag position (called when toolbar position changes)
+    private func clearDraggedPosition() {
+        draggedMiniPlayerY = nil
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: GlassPlayerWindow.dragPositionKey)
+        defaults.removeObject(forKey: GlassPlayerWindow.dragToolbarKey)
+    }
+    
+    /// Set a new dragged Y position for the mini player
+    /// Called from the drag gesture handler in MiniPlayerNativeView
+    func setDraggedPosition(_ y: CGFloat) {
+        // Clamp to ensure at least 50% visibility
+        let bounds = effectiveBounds
+        let minY = bounds.origin.y - (miniPlayerHeight / 2) // 50% off top
+        let maxY = bounds.origin.y + bounds.height - (miniPlayerHeight / 2) // 50% off bottom
+        
+        draggedMiniPlayerY = min(max(y, minY), maxY)
+        saveDraggedPosition()
+    }
+    
+    /// Calculate the full player frame based on toolbar position
+    private func calculateFullFrame() -> CGRect {
+        let bounds = effectiveBounds
+        let topSafe = safeAreaTop
+        let bottomSafe = safeAreaBottom
+        let moduleHeaderHeight: CGFloat = 120
+        
+        if toolbarPosition == "bottom" {
+            // Toolbar at bottom: full player starts below safe area, ends above toolbar
+            let topOffset = topSafe + fullPlayerMargin
+            // Toolbar area ≈ moduleHeaderHeight from bottom
+            let bottomOffset = bottomSafe + moduleHeaderHeight + fullPlayerMargin
+            
+            return CGRect(
+                x: bounds.origin.x + fullPlayerMargin,
+                y: topOffset,
+                width: bounds.width - (fullPlayerMargin * 2),
+                height: bounds.origin.y + bounds.height - topOffset - bottomOffset
+            )
+        } else {
+            // Toolbar at top (default): full player starts below module header
+            let topOffset = topSafe + moduleHeaderHeight + fullPlayerMargin
+            
+            return CGRect(
+                x: bounds.origin.x + fullPlayerMargin,
+                y: topOffset,
+                width: bounds.width - (fullPlayerMargin * 2),
+                height: bounds.origin.y + bounds.height - topOffset - bottomSafe - fullPlayerMargin
+            )
+        }
+    }
 
     // ============================================================
     // MARK: State Transitions
@@ -278,6 +428,12 @@ class GlassPlayerWindow: UIWindow {
             panelBounds = CGRect(x: x, y: y, width: width, height: height)
         }
         
+        // Update toolbar position from config
+        let newToolbarPosition = newContent.toolbarPosition
+        if newToolbarPosition != toolbarPosition {
+            updateToolbarPosition(newToolbarPosition)
+        }
+        
         // Reset sleep timer when showing NEW content (different song)
         if contentChanged {
             fullPlayerView.resetSleepTimer()
@@ -290,20 +446,11 @@ class GlassPlayerWindow: UIWindow {
             return
         }
 
-        let bounds = effectiveBounds
-        let bottomSafe = safeAreaBottom
+        // Load any persisted drag position
+        loadDraggedPosition()
         
-        // Floating mini player: smaller with margins all around
-        let playerWidth = bounds.width - (horizontalMargin * 2)
-        let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
-
-        // Position at bottom of the effective bounds (panel or screen)
-        let windowFrame = CGRect(
-            x: bounds.origin.x + horizontalMargin,
-            y: bounds.origin.y + bounds.height - windowHeight,
-            width: playerWidth,
-            height: miniPlayerHeight  // Just the player height, not including safe area
-        )
+        // Calculate position based on toolbar position + optional drag offset
+        let windowFrame = calculateMiniFrame()
         frame = windowFrame
 
 
@@ -337,22 +484,8 @@ class GlassPlayerWindow: UIWindow {
         // If collapseToMini() is called during animation, it needs to see .full.
         currentState = .full
 
-        let bounds = effectiveBounds
-        let topSafe = safeAreaTop
-        let bottomSafe = safeAreaBottom
-        
-        // Full player floats below the module header
-        // Module header height (from React Native) = 120pt including safe area
-        let moduleHeaderHeight: CGFloat = 120
-        let topOffset = topSafe + moduleHeaderHeight + fullPlayerMargin
-        
-        // Full player with margins all around for floating glass effect
-        let fullFrame = CGRect(
-            x: bounds.origin.x + fullPlayerMargin,
-            y: topOffset,
-            width: bounds.width - (fullPlayerMargin * 2),
-            height: bounds.origin.y + bounds.height - topOffset - bottomSafe - fullPlayerMargin
-        )
+        // Calculate full player frame based on toolbar position
+        let fullFrame = calculateFullFrame()
 
         // Step 1: Fade out mini player first
         UIView.animate(
@@ -389,17 +522,7 @@ class GlassPlayerWindow: UIWindow {
         // If hide() or expandToFull() is called during animation, it needs to see .mini.
         currentState = .mini
 
-        let bounds = effectiveBounds
-        let bottomSafe = safeAreaBottom
-        let playerWidth = bounds.width - (horizontalMargin * 2)
-        let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
-        
-        let miniFrame = CGRect(
-            x: bounds.origin.x + horizontalMargin,
-            y: bounds.origin.y + bounds.height - windowHeight,
-            width: playerWidth,
-            height: miniPlayerHeight
-        )
+        let miniFrame = calculateMiniFrame()
 
         // Cancel any in-progress expand animations to prevent visual glitches
         self.layer.removeAllAnimations()
@@ -480,18 +603,7 @@ class GlassPlayerWindow: UIWindow {
         isMinimized = false
         
         // Always restore to mini state for simplicity
-        let bounds = effectiveBounds
-        let bottomSafe = safeAreaBottom
-        let playerWidth = bounds.width - (horizontalMargin * 2)
-        let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
-        
-        let miniFrame = CGRect(
-            x: bounds.origin.x + horizontalMargin,
-            y: bounds.origin.y + bounds.height - windowHeight,
-            width: playerWidth,
-            height: miniPlayerHeight
-        )
-        
+        let miniFrame = calculateMiniFrame()
         frame = miniFrame
         miniPlayerView.isHidden = false
         miniPlayerView.alpha = 1
@@ -532,22 +644,10 @@ class GlassPlayerWindow: UIWindow {
     /// Restore the correct window frame and view layout for the current state
     /// Called when restoring from temporary hide to ensure visual consistency
     private func restoreCorrectFrameForState() {
-        let bounds = effectiveBounds
-        
         switch currentState {
         case .mini:
-            // Restore mini player frame
-            let bottomSafe = safeAreaBottom
-            let playerWidth = bounds.width - (horizontalMargin * 2)
-            let windowHeight = miniPlayerHeight + bottomMargin + bottomSafe
-            
-            let miniFrame = CGRect(
-                x: bounds.origin.x + horizontalMargin,
-                y: bounds.origin.y + bounds.height - windowHeight,
-                width: playerWidth,
-                height: miniPlayerHeight
-            )
-            
+            // Restore mini player frame using toolbar-aware calculation
+            let miniFrame = calculateMiniFrame()
             frame = miniFrame
             miniPlayerView.isHidden = false
             miniPlayerView.alpha = 1
@@ -556,19 +656,8 @@ class GlassPlayerWindow: UIWindow {
             layoutViewsForMini()
             
         case .full:
-            // Restore full player frame
-            let topSafe = safeAreaTop
-            let bottomSafe = safeAreaBottom
-            let moduleHeaderHeight: CGFloat = 120
-            let topOffset = topSafe + moduleHeaderHeight + fullPlayerMargin
-            
-            let fullFrame = CGRect(
-                x: bounds.origin.x + fullPlayerMargin,
-                y: topOffset,
-                width: bounds.width - (fullPlayerMargin * 2),
-                height: bounds.origin.y + bounds.height - topOffset - bottomSafe - fullPlayerMargin
-            )
-            
+            // Restore full player frame using toolbar-aware calculation
+            let fullFrame = calculateFullFrame()
             frame = fullFrame
             miniPlayerView.isHidden = true
             miniPlayerView.alpha = 0
@@ -709,6 +798,23 @@ extension GlassPlayerWindow: MiniPlayerNativeViewDelegate {
         minimize()
         eventDelegate?.playerDidTapMinimize()
     }
+    
+    func miniPlayerDidDrag(toY newY: CGFloat) {
+        guard currentState == .mini else { return }
+        
+        // Update the dragged position (clamps to 50% visibility)
+        setDraggedPosition(newY)
+        
+        // Move the window frame to the new position
+        var newFrame = frame
+        newFrame.origin.y = draggedMiniPlayerY ?? newY
+        frame = newFrame
+    }
+    
+    func miniPlayerDidEndDrag() {
+        // Position is already saved in setDraggedPosition via saveDraggedPosition
+        // Nothing extra needed — the position persists in UserDefaults
+    }
 }
 
 // ============================================================
@@ -779,10 +885,12 @@ struct PlayerContent {
     let listenDuration: Double
     let showStopButton: Bool
     let panelBounds: CGRect?
+    let toolbarPosition: String // "top" or "bottom"
 
     init(from config: NSDictionary) {
         moduleId = config["moduleId"] as? String ?? "radio"
         tintColorHex = config["tintColorHex"] as? String ?? "#00897B"
+        toolbarPosition = config["toolbarPosition"] as? String ?? "top"
         
         // Parse artwork URL
         let rawArtwork = config["artwork"]

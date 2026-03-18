@@ -50,6 +50,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingContextSafe, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
 // Types
@@ -89,6 +90,8 @@ export function BookPlayerScreen() {
   const { triggerFeedback } = useFeedback();
   const holdGesture = useHoldGestureContextSafe();
   const themeColors = useColors();
+  const layoutContext = useModuleLayoutSafe();
+  const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
   const browsingCtx = useModuleBrowsingContextSafe();
 
   // User-customizable module color for Liquid Glass
@@ -393,12 +396,13 @@ export function BookPlayerScreen() {
       </View>
 
       {/* ============================================================
-          OVERLAY LAYER — Floating MiniPlayer at bottom
+          OVERLAY LAYER — Floating MiniPlayer (position-aware)
           pointerEvents="box-none" allows touches to pass through
+          Toolbar 'top' → player at bottom; Toolbar 'bottom' → player at top
           ============================================================ */}
       <View style={styles.overlayLayer} pointerEvents="box-none">
-        {/* Spacer pushes MiniPlayer to bottom */}
-        <View style={styles.overlaySpacer} pointerEvents="none" />
+        {/* Spacer: pushes MiniPlayer to bottom when toolbar is at top */}
+        {toolbarPosition !== 'bottom' && <View style={styles.overlaySpacer} pointerEvents="none" />}
 
         {/* Mini Player */}
         {currentChapter && (
@@ -419,6 +423,9 @@ export function BookPlayerScreen() {
             style={styles.absolutePlayer}
           />
         )}
+
+        {/* Spacer: pushes MiniPlayer to top when toolbar is at bottom */}
+        {toolbarPosition === 'bottom' && <View style={styles.overlaySpacer} pointerEvents="none" />}
       </View>
 
       {/* Expanded Player */}

@@ -77,6 +77,7 @@ import { useModuleColorsContextSafe } from '@/contexts/ModuleColorsContext';
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBadges } from '@/hooks/useModuleBadges';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 import {
   spacing,
   colors,
@@ -136,6 +137,8 @@ export function HomeScreen({
   const moduleColors = useModuleColorsContextSafe();
   const { triggerFeedback } = useFeedback();
   const { getBadgeCount } = useModuleBadges();
+  const layoutContext = useModuleLayoutSafe();
+  const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
 
   // Collection overlay state
   const [openCollection, setOpenCollection] = useState<ModuleCollection | null>(null);
@@ -704,6 +707,24 @@ export function HomeScreen({
         </View>
       )}
 
+      {/* Mini-player at top — shown when toolbar is at bottom (fullscreen variant only) */}
+      {toolbarPosition === 'bottom' && !isPaneVariant && !isWiggleMode && activePlayback && (
+        <UnifiedMiniPlayer
+          moduleId={activePlayback.moduleId}
+          artwork={activePlayback.artwork}
+          title={activePlayback.title}
+          subtitle={activePlayback.subtitle}
+          isPlaying={activePlayback.isPlaying}
+          isLoading={activePlayback.isLoading}
+          progressType={activePlayback.progressType}
+          progress={activePlayback.progress}
+          listenDuration={activePlayback.listenDuration}
+          onPress={() => onModulePress(activePlayback.moduleId as NavigationDestination)}
+          onPlayPause={activePlayback.onPlayPause}
+          onStop={activePlayback.onStop}
+        />
+      )}
+
       <ScrollViewWithIndicator
         ref={scrollViewRef}
         style={styles.scrollView}
@@ -882,8 +903,10 @@ export function HomeScreen({
         );
       })()}
 
-      {/* Mini-player — shown when audio is playing (fullscreen variant only) */}
-      {!isPaneVariant && !isWiggleMode && activePlayback && (
+      {/* Mini-player — shown when audio is playing (fullscreen variant only)
+          Position-aware: toolbar 'top' → player at bottom; toolbar 'bottom' → player at top
+          When toolbar is at bottom, rendered before ScrollView (see above) */}
+      {toolbarPosition !== 'bottom' && !isPaneVariant && !isWiggleMode && activePlayback && (
         <UnifiedMiniPlayer
           moduleId={activePlayback.moduleId}
           artwork={activePlayback.artwork}

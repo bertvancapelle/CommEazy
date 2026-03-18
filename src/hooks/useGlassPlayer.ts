@@ -38,6 +38,7 @@ import {
   type GlassPlayerSpeedEvent,
 } from '@/services/glassPlayer';
 import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
 // Types
@@ -117,6 +118,10 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     isGlassPlayerAvailable: isAvailable,
     isGlassPlayerCheckComplete,
   } = useLiquidGlassContext();
+
+  // Get toolbar position for position-aware mini player placement
+  const layoutContext = useModuleLayoutSafe();
+  const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
 
   // Derive isCheckingAvailability from context
   const isCheckingAvailability = !isGlassPlayerCheckComplete;
@@ -234,15 +239,22 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
     };
   }, []);
 
+  // Send toolbar position updates to native side when it changes
+  useEffect(() => {
+    glassPlayer.updateToolbarPosition(toolbarPosition);
+  }, [toolbarPosition]);
+
   // Wrapped methods that update local state
   const showMiniPlayer = useCallback(async (content: GlassPlayerContent): Promise<boolean> => {
-    const result = await glassPlayer.showMiniPlayer(content);
+    // Inject current toolbar position so native side knows where to place the player
+    const contentWithPosition = { ...content, toolbarPosition };
+    const result = await glassPlayer.showMiniPlayer(contentWithPosition);
     if (result) {
       setIsVisible(true);
       setIsExpanded(false);
     }
     return result;
-  }, []);
+  }, [toolbarPosition]);
 
   const expandToFull = useCallback(async (): Promise<boolean> => {
     const result = await glassPlayer.expandToFull();

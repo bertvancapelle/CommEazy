@@ -268,6 +268,17 @@ class GlassPlayerWindowModule: RCTEventEmitter {
         }
     }
 
+    /// Update toolbar position (user setting: "top" or "bottom")
+    /// Determines mini player default placement and full player layout
+    @objc
+    func updateToolbarPosition(_ position: String) {
+        if #available(iOS 26.0, *) {
+            DispatchQueue.main.async {
+                self.glassWindow?.updateToolbarPosition(position)
+            }
+        }
+    }
+    
     /// Configure button border styling (user setting)
     /// @param borderEnabled Whether to show button borders
     /// @param borderColorHex Hex color for button borders (e.g., "#FFFFFF")

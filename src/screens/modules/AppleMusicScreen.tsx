@@ -83,6 +83,7 @@ import { PlaylistBrowserModal } from './PlaylistBrowserModal';
 import type { MusicCollection } from '@/services/music';
 import { usePlaylistImportContext } from '@/contexts/PlaylistImportContext';
 import { useModuleBrowsingState, type AppleMusicBrowsingState } from '@/contexts/ModuleBrowsingContext';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
 // Constants
@@ -124,6 +125,8 @@ export function AppleMusicScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+  const layoutContext = useModuleLayoutSafe();
+  const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
   const playlistImportCtx = usePlaylistImportContext();
 
   // Apple Music Context
@@ -2312,8 +2315,9 @@ export function AppleMusicScreen() {
         }
       />
 
-      {/* Mini Player (iOS <26 / Android fallback)
-          On iOS 26+, the native GlassPlayerWindow handles this */}
+      {/* Mini Player (iOS <26 / Android fallback, position-aware)
+          On iOS 26+, the native GlassPlayerWindow handles this
+          Toolbar 'top' → player at bottom; Toolbar 'bottom' → player at top */}
       {shouldShowRNMiniPlayer && (
         <UnifiedMiniPlayer
           moduleId="appleMusic"
@@ -2327,7 +2331,7 @@ export function AppleMusicScreen() {
           onPress={() => setIsPlayerExpanded(true)}
           onPlayPause={handlePlayPause}
           onStop={stop}
-          style={styles.miniPlayer}
+          style={toolbarPosition === 'bottom' ? styles.miniPlayerTop : styles.miniPlayer}
         />
       )}
 
@@ -2579,6 +2583,12 @@ const styles = StyleSheet.create({
   miniPlayer: {
     position: 'absolute',
     bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  miniPlayerTop: {
+    position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
   },
