@@ -865,7 +865,7 @@ export function PodcastScreen() {
           onRequestClose={() => setSelectedShow(null)}
           accessibilityViewIsModal={true}
         >
-          <LiquidGlassView moduleId="podcast" style={[styles.showDetailModalContainer, { backgroundColor: themeColors.background }]} cornerRadius={0}>
+          <LiquidGlassView moduleId="podcast" style={styles.showDetailModalContainer} cornerRadius={0}>
             {selectedShow && (
               <>
                 {/* Header — consistent with search modal */}

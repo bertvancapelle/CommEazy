@@ -593,7 +593,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowSettingsModal(false)}>
-          <LiquidGlassView moduleId="books" style={[styles.settingsModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
+          <LiquidGlassView moduleId="books" style={styles.settingsModalContent} cornerRadius={16}>
             <ModalLayout
               headerBlock={
                 <View style={styles.settingsHeader}>
@@ -759,7 +759,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowSleepTimerModal(false)}>
-          <LiquidGlassView moduleId="books" style={[styles.sleepTimerModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
+          <LiquidGlassView moduleId="books" style={styles.sleepTimerModalContent} cornerRadius={16}>
             <View style={styles.sleepTimerHeader}>
               <Icon name="clock" size={32} color={booksModuleColor} />
               <Text style={styles.sleepTimerTitle}>
@@ -828,7 +828,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowNoHighQualityVoiceModal(false)}>
-          <LiquidGlassView moduleId="books" style={[styles.noVoiceModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
+          <LiquidGlassView moduleId="books" style={styles.noVoiceModalContent} cornerRadius={16}>
             {/* Warning icon */}
             <View style={styles.noVoiceIconContainer}>
               <Icon name="alert-circle" size={48} color={colors.error} />
@@ -900,7 +900,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowVoiceSelectionModal(false)}>
-          <LiquidGlassView moduleId="books" style={[styles.voiceSelectionModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
+          <LiquidGlassView moduleId="books" style={styles.voiceSelectionModalContent} cornerRadius={16}>
             {/* Header */}
             <View style={styles.voiceSelectionHeader}>
               <Icon name="mic" size={32} color={booksModuleColor} />
@@ -1019,7 +1019,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowVoiceUnavailableModal(false)}>
-          <LiquidGlassView moduleId="books" style={[styles.voiceUnavailableModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
+          <LiquidGlassView moduleId="books" style={styles.voiceUnavailableModalContent} cornerRadius={16}>
             {/* Warning icon */}
             <View style={styles.voiceUnavailableIconContainer}>
               <Icon name="alert-circle" size={48} color={colors.warning} />

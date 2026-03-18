@@ -1268,7 +1268,7 @@ export function RadioScreen() {
         accessibilityViewIsModal={true}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowNoFavoritesModal(false)}>
-          <LiquidGlassView moduleId="radio" style={[styles.modalContent, { backgroundColor: themeColors.surface }]} cornerRadius={16}>
+          <LiquidGlassView moduleId="radio" style={styles.modalContent} cornerRadius={16}>
             <ModalLayout
               headerBlock={
                 <View style={styles.modalHeader}>

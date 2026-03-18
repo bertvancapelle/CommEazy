@@ -175,6 +175,7 @@ class LiquidGlassNativeView: UIView {
         // === Container for all glass layers ===
         let containerView = UIView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.isUserInteractionEnabled = false  // Touches must pass through to React Native children
         containerView.layer.cornerRadius = cornerRadius
         containerView.layer.cornerCurve = .continuous
         containerView.clipsToBounds = true
@@ -196,8 +197,9 @@ class LiquidGlassNativeView: UIView {
         // === Layer 2: Semi-transparent tint color overlay ===
         // Gives the glass its characteristic module color
         // Opacity controlled by user's tintIntensity setting (0.0-1.0)
-        // Map tintIntensity to reasonable alpha range: 0.1 (10%) to 0.6 (60%)
-        let tintAlpha = 0.1 + (tintIntensity * 0.5)  // tintIntensity 0→10%, 0.5→35%, 1.0→60%
+        // Keep tint subtle so glass remains translucent (especially inside Modal windows)
+        // Map tintIntensity to alpha range: 0.05 (5%) to 0.30 (30%)
+        let tintAlpha = 0.05 + (tintIntensity * 0.25)  // tintIntensity 0→5%, 0.5→17%, 1.0→30%
         let tintOverlay = UIView()
         tintOverlay.translatesAutoresizingMaskIntoConstraints = false
         tintOverlay.backgroundColor = baseColor.withAlphaComponent(tintAlpha)
@@ -213,9 +215,10 @@ class LiquidGlassNativeView: UIView {
         // === Layer 3: UIGlassEffect for Liquid Glass highlights and interactivity ===
         var glassEffect = UIGlassEffect()
         // Use tintIntensity to control glass effect tint as well
-        let glassAlpha = 0.15 + (tintIntensity * 0.35)  // tintIntensity 0→15%, 0.5→32%, 1.0→50%
+        // Keep alpha low so the material blur shows through
+        let glassAlpha = 0.08 + (tintIntensity * 0.22)  // tintIntensity 0→8%, 0.5→19%, 1.0→30%
         glassEffect.tintColor = baseColor.withAlphaComponent(glassAlpha)
-        glassEffect.isInteractive = true  // Glass highlights on touch
+        glassEffect.isInteractive = false  // Disable touch interactivity (touches pass to React Native children)
 
         let glassView = UIVisualEffectView(effect: glassEffect)
         glassView.translatesAutoresizingMaskIntoConstraints = false
@@ -231,11 +234,11 @@ class LiquidGlassNativeView: UIView {
         // === Layer 4: Top specular highlight (glass reflection) ===
         let highlightGradient = CAGradientLayer()
         highlightGradient.colors = [
-            UIColor.white.withAlphaComponent(0.45).cgColor,  // Bright at top
-            UIColor.white.withAlphaComponent(0.15).cgColor,  // Fade
+            UIColor.white.withAlphaComponent(0.25).cgColor,  // Subtle highlight at top
+            UIColor.white.withAlphaComponent(0.08).cgColor,  // Gentle fade
             UIColor.clear.cgColor,                            // Transparent
         ]
-        highlightGradient.locations = [0.0, 0.15, 0.4]
+        highlightGradient.locations = [0.0, 0.12, 0.35]
         highlightGradient.startPoint = CGPoint(x: 0.5, y: 0.0)
         highlightGradient.endPoint = CGPoint(x: 0.5, y: 1.0)
 
@@ -256,14 +259,14 @@ class LiquidGlassNativeView: UIView {
         self.gradientLayerRef = highlightGradient
 
         // === Layer 5: Glass edge border ===
-        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.35).cgColor
+        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.20).cgColor
         containerView.layer.borderWidth = 0.5
 
         // === Layer 6: Subtle inner glow/shadow for depth ===
         containerView.layer.shadowColor = UIColor.white.cgColor
         containerView.layer.shadowOffset = CGSize(width: 0, height: 0)
-        containerView.layer.shadowOpacity = 0.15
-        containerView.layer.shadowRadius = 3
+        containerView.layer.shadowOpacity = 0.08
+        containerView.layer.shadowRadius = 2
         containerView.layer.masksToBounds = false  // Allow shadow to show
 
         // Clear our background so layers can show
@@ -306,6 +309,7 @@ class LiquidGlassNativeView: UIView {
         // === Container view for all glass effect layers ===
         let containerView = UIView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.isUserInteractionEnabled = false  // Touches must pass through to React Native children
         containerView.layer.cornerRadius = cornerRadius
         containerView.clipsToBounds = cornerRadius > 0
 

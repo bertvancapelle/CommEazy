@@ -769,7 +769,7 @@ export function ManualAddContactScreen() {
               presentationStyle="pageSheet"
               onRequestClose={() => setShowEmailReminder(false)}
             >
-              <LiquidGlassView moduleId="contacts" style={[styles.reminderModal, { backgroundColor: themeColors.background }]}>
+              <LiquidGlassView moduleId="contacts" style={styles.reminderModal}>
                 <View style={[styles.reminderHeader, { paddingTop: insets.top + spacing.md }]}>
                   <Icon name="mail" size={40} color={themeColors.primary} />
                   <Text style={[styles.reminderTitle, { color: themeColors.textPrimary }]}>

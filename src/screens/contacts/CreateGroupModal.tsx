@@ -126,7 +126,7 @@ export function CreateGroupModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <LiquidGlassView moduleId="contacts" style={[styles.fullScreen, { backgroundColor: themeColors.background }]}>
+      <LiquidGlassView moduleId="contacts" style={styles.fullScreen}>
         <ModalLayout
           headerBlock={
             <View style={[styles.header, { borderBottomColor: themeColors.divider, paddingTop: insets.top }]}>
