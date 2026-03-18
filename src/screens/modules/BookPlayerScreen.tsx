@@ -48,6 +48,8 @@ import {
 } from '@/contexts/BooksContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingContextSafe, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 
 // ============================================================
 // Types
@@ -473,28 +475,36 @@ export function BookPlayerScreen() {
           }}
           activeOpacity={1}
         >
-          <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.pickerTitle}>{t('modules.books.audio.playbackSpeedTitle')}</Text>
-            {PLAYBACK_RATES.map((rate) => (
-              <HapticTouchable hapticDisabled
-                key={rate}
-                style={[
-                  styles.pickerOption,
-                  playbackRate === rate && { backgroundColor: accentColor.primaryLight },
-                ]}
-                onPress={() => handleSpeedChange(rate)}
-              >
-                <Text
-                  style={[
-                    styles.pickerOptionText,
-                    playbackRate === rate && { color: accentColor.primary, fontWeight: '700' },
-                  ]}
-                >
-                  {rate}x
-                </Text>
-              </HapticTouchable>
-            ))}
-          </View>
+          <LiquidGlassView moduleId="books" style={styles.pickerContent} cornerRadius={16} onStartShouldSetResponder={() => true}>
+            <ModalLayout
+              headerBlock={
+                <Text style={styles.pickerTitle}>{t('modules.books.audio.playbackSpeedTitle')}</Text>
+              }
+              contentBlock={
+                <>
+                  {PLAYBACK_RATES.map((rate) => (
+                    <HapticTouchable hapticDisabled
+                      key={rate}
+                      style={[
+                        styles.pickerOption,
+                        playbackRate === rate && { backgroundColor: accentColor.primaryLight },
+                      ]}
+                      onPress={() => handleSpeedChange(rate)}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerOptionText,
+                          playbackRate === rate && { color: accentColor.primary, fontWeight: '700' },
+                        ]}
+                      >
+                        {rate}x
+                      </Text>
+                    </HapticTouchable>
+                  ))}
+                </>
+              }
+            />
+          </LiquidGlassView>
         </HapticTouchable>
       </PanelAwareModal>
 
@@ -516,38 +526,46 @@ export function BookPlayerScreen() {
           }}
           activeOpacity={1}
         >
-          <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.pickerTitle}>{t('modules.books.audio.sleepTimerTitle')}</Text>
-            {sleepTimerMinutes && (
-              <HapticTouchable hapticDisabled
-                style={styles.pickerOption}
-                onPress={() => handleSleepTimer(null)}
-              >
-                <Text style={[styles.pickerOptionText, { color: colors.error }]}>
-                  {t('modules.books.audio.sleepTimerCancel')}
-                </Text>
-              </HapticTouchable>
-            )}
-            {SLEEP_TIMER_OPTIONS.map((minutes) => (
-              <HapticTouchable hapticDisabled
-                key={minutes}
-                style={[
-                  styles.pickerOption,
-                  sleepTimerMinutes === minutes && { backgroundColor: accentColor.primaryLight },
-                ]}
-                onPress={() => handleSleepTimer(minutes)}
-              >
-                <Text
-                  style={[
-                    styles.pickerOptionText,
-                    sleepTimerMinutes === minutes && { color: accentColor.primary, fontWeight: '700' },
-                  ]}
-                >
-                  {t('modules.books.audio.sleepTimerMinutes', { minutes })}
-                </Text>
-              </HapticTouchable>
-            ))}
-          </View>
+          <LiquidGlassView moduleId="books" style={styles.pickerContent} cornerRadius={16} onStartShouldSetResponder={() => true}>
+            <ModalLayout
+              headerBlock={
+                <Text style={styles.pickerTitle}>{t('modules.books.audio.sleepTimerTitle')}</Text>
+              }
+              contentBlock={
+                <>
+                  {sleepTimerMinutes && (
+                    <HapticTouchable hapticDisabled
+                      style={styles.pickerOption}
+                      onPress={() => handleSleepTimer(null)}
+                    >
+                      <Text style={[styles.pickerOptionText, { color: colors.error }]}>
+                        {t('modules.books.audio.sleepTimerCancel')}
+                      </Text>
+                    </HapticTouchable>
+                  )}
+                  {SLEEP_TIMER_OPTIONS.map((minutes) => (
+                    <HapticTouchable hapticDisabled
+                      key={minutes}
+                      style={[
+                        styles.pickerOption,
+                        sleepTimerMinutes === minutes && { backgroundColor: accentColor.primaryLight },
+                      ]}
+                      onPress={() => handleSleepTimer(minutes)}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerOptionText,
+                          sleepTimerMinutes === minutes && { color: accentColor.primary, fontWeight: '700' },
+                        ]}
+                      >
+                        {t('modules.books.audio.sleepTimerMinutes', { minutes })}
+                      </Text>
+                    </HapticTouchable>
+                  ))}
+                </>
+              }
+            />
+          </LiquidGlassView>
         </HapticTouchable>
       </PanelAwareModal>
     </View>

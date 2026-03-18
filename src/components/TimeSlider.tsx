@@ -20,6 +20,8 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, Text, Platform } from 'react-native';
 import { HapticTouchable } from './HapticTouchable';
 import { PanelAwareModal } from './PanelAwareModal';
+import { LiquidGlassView } from './LiquidGlassView';
+import { ModalLayout } from './ModalLayout';
 import Slider from '@react-native-community/slider';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { useTranslation } from 'react-i18next';
@@ -264,16 +266,24 @@ export function TimeSlider({
           onPress={dismissWarning}
           hapticDisabled
         >
-          <View style={styles.warningBox}>
-            <Text style={styles.warningIcon}>⚠️</Text>
-            <Text style={styles.warningText}>{warningMessage}</Text>
-            <HapticTouchable
-              style={[styles.warningButton, { backgroundColor: accentColor.primary }]}
-              onPress={dismissWarning}
-            >
-              <Text style={styles.warningButtonText}>{t('common.ok')}</Text>
-            </HapticTouchable>
-          </View>
+          <LiquidGlassView moduleId="weather" style={styles.warningBox} cornerRadius={16}>
+            <ModalLayout
+              contentBlock={
+                <>
+                  <Text style={styles.warningIcon}>⚠️</Text>
+                  <Text style={styles.warningText}>{warningMessage}</Text>
+                </>
+              }
+              footerBlock={
+                <HapticTouchable
+                  style={[styles.warningButton, { backgroundColor: accentColor.primary }]}
+                  onPress={dismissWarning}
+                >
+                  <Text style={styles.warningButtonText}>{t('common.ok')}</Text>
+                </HapticTouchable>
+              }
+            />
+          </LiquidGlassView>
         </HapticTouchable>
       </PanelAwareModal>
     </View>

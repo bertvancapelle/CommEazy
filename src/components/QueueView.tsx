@@ -27,6 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon } from './Icon';
 import { LiquidGlassView } from './LiquidGlassView';
+import { ModalLayout } from './ModalLayout';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { AppleMusicSong } from '@/contexts/AppleMusicContext';
 
@@ -116,132 +117,137 @@ export function QueueView({
       accessibilityViewIsModal={true}
     >
       <LiquidGlassView moduleId="appleMusic" style={styles.overlay} cornerRadius={0}>
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>
-              {t('modules.appleMusic.queue.title')}
-            </Text>
-            <HapticTouchable hapticDisabled
-              style={styles.closeButton}
-              onPress={handleClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.close')}
-            >
-              <Text style={styles.closeButtonText}>{t('common.close')}</Text>
-            </HapticTouchable>
-          </View>
-
-          {/* Queue count */}
-          {!isEmpty && (
-            <Text style={styles.queueCount}>
-              {t('modules.appleMusic.queue.songCount', { count: queue.length })}
-            </Text>
-          )}
-
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingBottom: insets.bottom + spacing.lg },
-            ]}
-            showsVerticalScrollIndicator={false}
-          >
-            {isEmpty ? (
-              /* Empty state */
-              <View style={styles.emptyState}>
-                <Icon name="musical-notes" size={64} color={colors.textTertiary} />
-                <Text style={styles.emptyTitle}>
-                  {t('modules.appleMusic.queue.empty')}
+        <ModalLayout
+          headerBlock={
+            <View style={[styles.container, { paddingTop: insets.top }]}>
+              {/* Header */}
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>
+                  {t('modules.appleMusic.queue.title')}
                 </Text>
-                <Text style={styles.emptyDescription}>
-                  {t('modules.appleMusic.queue.emptyDescription')}
-                </Text>
+                <HapticTouchable hapticDisabled
+                  style={styles.closeButton}
+                  onPress={handleClose}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                >
+                  <Text style={styles.closeButtonText}>{t('common.close')}</Text>
+                </HapticTouchable>
               </View>
-            ) : (
-              <>
-                {/* Now Playing section */}
-                {nowPlaying && nowPlayingIndex >= 0 && (
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
-                      {t('modules.appleMusic.queue.nowPlaying')}
-                    </Text>
-                    <View style={[styles.nowPlayingCard, { borderColor: accentColor }]}>
-                      {nowPlaying.artworkUrl ? (
-                        <Image
-                          source={{ uri: nowPlaying.artworkUrl }}
-                          style={styles.nowPlayingArtwork}
-                          accessibilityIgnoresInvertColors
-                        />
-                      ) : (
-                        <View style={[styles.nowPlayingArtwork, styles.artworkPlaceholder, { backgroundColor: accentColor }]}>
-                          <Icon name="musical-notes" size={32} color={colors.textOnPrimary} />
+
+              {/* Queue count */}
+              {!isEmpty && (
+                <Text style={styles.queueCount}>
+                  {t('modules.appleMusic.queue.songCount', { count: queue.length })}
+                </Text>
+              )}
+            </View>
+          }
+          contentBlock={
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={[
+                styles.scrollContent,
+                { paddingBottom: insets.bottom + spacing.lg },
+              ]}
+              showsVerticalScrollIndicator={false}
+            >
+              {isEmpty ? (
+                /* Empty state */
+                <View style={styles.emptyState}>
+                  <Icon name="musical-notes" size={64} color={colors.textTertiary} />
+                  <Text style={styles.emptyTitle}>
+                    {t('modules.appleMusic.queue.empty')}
+                  </Text>
+                  <Text style={styles.emptyDescription}>
+                    {t('modules.appleMusic.queue.emptyDescription')}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  {/* Now Playing section */}
+                  {nowPlaying && nowPlayingIndex >= 0 && (
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>
+                        {t('modules.appleMusic.queue.nowPlaying')}
+                      </Text>
+                      <View style={[styles.nowPlayingCard, { borderColor: accentColor }]}>
+                        {nowPlaying.artworkUrl ? (
+                          <Image
+                            source={{ uri: nowPlaying.artworkUrl }}
+                            style={styles.nowPlayingArtwork}
+                            accessibilityIgnoresInvertColors
+                          />
+                        ) : (
+                          <View style={[styles.nowPlayingArtwork, styles.artworkPlaceholder, { backgroundColor: accentColor }]}>
+                            <Icon name="musical-notes" size={32} color={colors.textOnPrimary} />
+                          </View>
+                        )}
+                        <View style={styles.nowPlayingInfo}>
+                          <Text style={styles.nowPlayingTitle} numberOfLines={1}>
+                            {nowPlaying.title}
+                          </Text>
+                          <Text style={styles.nowPlayingArtist} numberOfLines={1}>
+                            {nowPlaying.artistName}
+                          </Text>
                         </View>
-                      )}
-                      <View style={styles.nowPlayingInfo}>
-                        <Text style={styles.nowPlayingTitle} numberOfLines={1}>
-                          {nowPlaying.title}
-                        </Text>
-                        <Text style={styles.nowPlayingArtist} numberOfLines={1}>
-                          {nowPlaying.artistName}
-                        </Text>
-                      </View>
-                      <View style={styles.nowPlayingIndicator}>
-                        <Icon name="volume-up" size={20} color={accentColor} />
+                        <View style={styles.nowPlayingIndicator}>
+                          <Icon name="volume-up" size={20} color={accentColor} />
+                        </View>
                       </View>
                     </View>
-                  </View>
-                )}
+                  )}
 
-                {/* Up Next section */}
-                {upNextSongs.length > 0 && (
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
-                      {t('modules.appleMusic.queue.upNext')}
-                    </Text>
-                    {upNextSongs.map((song, index) => {
-                      const actualIndex = nowPlayingIndex >= 0 ? nowPlayingIndex + 1 + index : index;
-                      return (
-                        <HapticTouchable hapticDisabled
-                          key={`${song.id}-${index}`}
-                          style={styles.queueItem}
-                          onPress={() => handleSongPress(song, actualIndex)}
-                          accessibilityRole="button"
-                          accessibilityLabel={`${song.title}, ${song.artistName}`}
-                          accessibilityHint={t('modules.appleMusic.play', { title: song.title })}
-                        >
-                          <Text style={styles.queueNumber}>{index + 1}</Text>
-                          {song.artworkUrl ? (
-                            <Image
-                              source={{ uri: song.artworkUrl }}
-                              style={styles.queueArtwork}
-                              accessibilityIgnoresInvertColors
-                            />
-                          ) : (
-                            <View style={[styles.queueArtwork, styles.artworkPlaceholder, { backgroundColor: accentColor }]}>
-                              <Icon name="musical-notes" size={16} color={colors.textOnPrimary} />
+                  {/* Up Next section */}
+                  {upNextSongs.length > 0 && (
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>
+                        {t('modules.appleMusic.queue.upNext')}
+                      </Text>
+                      {upNextSongs.map((song, index) => {
+                        const actualIndex = nowPlayingIndex >= 0 ? nowPlayingIndex + 1 + index : index;
+                        return (
+                          <HapticTouchable hapticDisabled
+                            key={`${song.id}-${index}`}
+                            style={styles.queueItem}
+                            onPress={() => handleSongPress(song, actualIndex)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`${song.title}, ${song.artistName}`}
+                            accessibilityHint={t('modules.appleMusic.play', { title: song.title })}
+                          >
+                            <Text style={styles.queueNumber}>{index + 1}</Text>
+                            {song.artworkUrl ? (
+                              <Image
+                                source={{ uri: song.artworkUrl }}
+                                style={styles.queueArtwork}
+                                accessibilityIgnoresInvertColors
+                              />
+                            ) : (
+                              <View style={[styles.queueArtwork, styles.artworkPlaceholder, { backgroundColor: accentColor }]}>
+                                <Icon name="musical-notes" size={16} color={colors.textOnPrimary} />
+                              </View>
+                            )}
+                            <View style={styles.queueItemInfo}>
+                              <Text style={styles.queueItemTitle} numberOfLines={1}>
+                                {song.title}
+                              </Text>
+                              <Text style={styles.queueItemArtist} numberOfLines={1}>
+                                {song.artistName}
+                              </Text>
                             </View>
-                          )}
-                          <View style={styles.queueItemInfo}>
-                            <Text style={styles.queueItemTitle} numberOfLines={1}>
-                              {song.title}
+                            <Text style={styles.queueItemDuration}>
+                              {formatDuration(song.duration)}
                             </Text>
-                            <Text style={styles.queueItemArtist} numberOfLines={1}>
-                              {song.artistName}
-                            </Text>
-                          </View>
-                          <Text style={styles.queueItemDuration}>
-                            {formatDuration(song.duration)}
-                          </Text>
-                        </HapticTouchable>
-                      );
-                    })}
-                  </View>
-                )}
-              </>
-            )}
-          </ScrollView>
-        </View>
+                          </HapticTouchable>
+                        );
+                      })}
+                    </View>
+                  )}
+                </>
+              )}
+            </ScrollView>
+          }
+        />
       </LiquidGlassView>
     </PanelAwareModal>
   );

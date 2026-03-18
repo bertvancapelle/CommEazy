@@ -41,6 +41,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { Icon } from './Icon';
 import { LoadingView } from './LoadingView';
+import { LiquidGlassView } from './LiquidGlassView';
 
 // ============================================================
 // Types
@@ -163,7 +164,7 @@ export function FullscreenImageViewer({
       onShow={handleShow}
     >
       <StatusBar hidden />
-      <View style={styles.container}>
+      <LiquidGlassView moduleId="photos" style={styles.container} cornerRadius={0}>
         {/* Photo display */}
         <Image
           source={{ uri: currentImage.uri }}
@@ -285,7 +286,7 @@ export function FullscreenImageViewer({
             </HapticTouchable>
           </View>
         )}
-      </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }

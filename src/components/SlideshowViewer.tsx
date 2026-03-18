@@ -31,6 +31,7 @@ import { typography, spacing, borderRadius, touchTargets } from '@/theme';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { HapticTouchable } from './HapticTouchable';
 import { Icon } from './Icon';
+import { LiquidGlassView } from './LiquidGlassView';
 
 // ============================================================
 // Constants
@@ -306,7 +307,7 @@ export function SlideshowViewer({
       <StatusBar hidden />
       {visible && <KeepAwake />}
 
-      <View style={styles.container}>
+      <LiquidGlassView moduleId="photos" style={styles.container} cornerRadius={0}>
         {/* Photo */}
         <HapticTouchable
           style={styles.photoArea}
@@ -416,7 +417,7 @@ export function SlideshowViewer({
             </View>
           </Animated.View>
         )}
-      </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }

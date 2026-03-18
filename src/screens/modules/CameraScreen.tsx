@@ -44,6 +44,7 @@ import { savePhoto } from '@/services/media';
 import { usePaneContextSafe, type PaneId } from '@/contexts/PaneContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
 import { orientationService } from '@/services/orientationService';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
 
 // ============================================================
 // Constants
@@ -376,9 +377,9 @@ export function CameraScreen() {
         statusBarTranslucent
       >
         <StatusBar hidden />
-        <View style={styles.fullScreenContainer}>
+        <LiquidGlassView moduleId="camera" style={styles.fullScreenContainer} cornerRadius={0}>
           {renderCameraView()}
-        </View>
+        </LiquidGlassView>
       </PanelAwareModal>
     );
   }

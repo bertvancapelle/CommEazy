@@ -44,6 +44,8 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingContextSafe, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 
 // ============================================================
 // Constants
@@ -590,18 +592,23 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.settingsModalContent, { backgroundColor: colors.surface }]}>
-            <View style={styles.settingsHeader}>
-              <Text style={styles.settingsTitle}>
-                {t('modules.books.reading.settings')}
-              </Text>
-              <IconButton
-                icon="close"
-                onPress={() => setShowSettingsModal(false)}
-                accessibilityLabel={t('common.close')}
-                size={24}
-              />
-            </View>
+          <LiquidGlassView moduleId="books" style={[styles.settingsModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
+            <ModalLayout
+              headerBlock={
+                <View style={styles.settingsHeader}>
+                  <Text style={styles.settingsTitle}>
+                    {t('modules.books.reading.settings')}
+                  </Text>
+                  <IconButton
+                    icon="close"
+                    onPress={() => setShowSettingsModal(false)}
+                    accessibilityLabel={t('common.close')}
+                    size={24}
+                  />
+                </View>
+              }
+              contentBlock={
+                <>
 
             {/* Font size */}
             <View style={styles.settingSection}>
@@ -725,16 +732,20 @@ export function BookReaderScreen() {
               </View>
             </View>
 
-            {/* Close button */}
-            <HapticTouchable hapticDisabled
-              style={[styles.closeSettingsButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => setShowSettingsModal(false)}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.done')}
-            >
-              <Text style={styles.closeSettingsButtonText}>{t('common.done')}</Text>
-            </HapticTouchable>
-          </View>
+                </>
+              }
+              footerBlock={
+                <HapticTouchable hapticDisabled
+                  style={[styles.closeSettingsButton, { backgroundColor: accentColor.primary }]}
+                  onPress={() => setShowSettingsModal(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.done')}
+                >
+                  <Text style={styles.closeSettingsButtonText}>{t('common.done')}</Text>
+                </HapticTouchable>
+              }
+            />
+          </LiquidGlassView>
         </View>
       </PanelAwareModal>
 
@@ -747,7 +758,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.sleepTimerModalContent, { backgroundColor: colors.surface }]}>
+          <LiquidGlassView moduleId="books" style={[styles.sleepTimerModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             <View style={styles.sleepTimerHeader}>
               <Icon name="clock" size={32} color={booksModuleColor} />
               <Text style={styles.sleepTimerTitle}>
@@ -803,7 +814,7 @@ export function BookReaderScreen() {
             >
               <Text style={styles.sleepTimerCancelText}>{t('common.cancel')}</Text>
             </HapticTouchable>
-          </View>
+          </LiquidGlassView>
         </View>
       </PanelAwareModal>
 
@@ -816,7 +827,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.noVoiceModalContent, { backgroundColor: colors.surface }]}>
+          <LiquidGlassView moduleId="books" style={[styles.noVoiceModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             {/* Warning icon */}
             <View style={styles.noVoiceIconContainer}>
               <Icon name="alert-circle" size={48} color={colors.error} />
@@ -875,7 +886,7 @@ export function BookReaderScreen() {
             >
               <Text style={styles.noVoiceCancelText}>{t('common.close')}</Text>
             </HapticTouchable>
-          </View>
+          </LiquidGlassView>
         </View>
       </PanelAwareModal>
 
@@ -888,7 +899,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.voiceSelectionModalContent, { backgroundColor: colors.surface }]}>
+          <LiquidGlassView moduleId="books" style={[styles.voiceSelectionModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             {/* Header */}
             <View style={styles.voiceSelectionHeader}>
               <Icon name="mic" size={32} color={booksModuleColor} />
@@ -994,7 +1005,7 @@ export function BookReaderScreen() {
             >
               <Text style={styles.voiceSelectionCancelText}>{t('common.cancel')}</Text>
             </HapticTouchable>
-          </View>
+          </LiquidGlassView>
         </View>
       </PanelAwareModal>
 
@@ -1007,7 +1018,7 @@ export function BookReaderScreen() {
         accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.voiceUnavailableModalContent, { backgroundColor: colors.surface }]}>
+          <LiquidGlassView moduleId="books" style={[styles.voiceUnavailableModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             {/* Warning icon */}
             <View style={styles.voiceUnavailableIconContainer}>
               <Icon name="alert-circle" size={48} color={colors.warning} />
@@ -1061,7 +1072,7 @@ export function BookReaderScreen() {
             >
               <Text style={styles.voiceUnavailableCancelText}>{t('common.cancel')}</Text>
             </HapticTouchable>
-          </View>
+          </LiquidGlassView>
         </View>
       </PanelAwareModal>
     </View>

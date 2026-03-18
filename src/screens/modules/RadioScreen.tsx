@@ -51,6 +51,8 @@ import { useModuleBrowsingState, type RadioBrowsingState } from '@/contexts/Modu
 import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { ServiceContainer } from '@/services/container';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 
 // ============================================================
 // Types
@@ -1225,61 +1227,67 @@ export function RadioScreen() {
         accessibilityViewIsModal={true}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]}>
-            {/* Title */}
-            <View style={styles.modalHeader}>
-              <Icon name="heart" size={48} color={accentColor.primary} />
-              <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>{t('modules.radio.welcomeTitle')}</Text>
-            </View>
+          <LiquidGlassView moduleId="radio" style={[styles.modalContent, { backgroundColor: themeColors.surface }]} cornerRadius={16}>
+            <ModalLayout
+              headerBlock={
+                <View style={styles.modalHeader}>
+                  <Icon name="heart" size={48} color={accentColor.primary} />
+                  <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>{t('modules.radio.welcomeTitle')}</Text>
+                </View>
+              }
+              contentBlock={
+                <>
+                  {/* Explanation */}
+                  <Text style={[styles.modalText, { color: themeColors.textSecondary }]}>
+                    {t('modules.radio.welcomeText')}
+                  </Text>
 
-            {/* Explanation */}
-            <Text style={[styles.modalText, { color: themeColors.textSecondary }]}>
-              {t('modules.radio.welcomeText')}
-            </Text>
+                  {/* Steps with heart icon */}
+                  <View style={styles.modalStep}>
+                    <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
+                      <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>1</Text>
+                    </View>
+                    <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
+                      {t('modules.radio.welcomeStep1')}
+                    </Text>
+                  </View>
 
-            {/* Steps with heart icon */}
-            <View style={styles.modalStep}>
-              <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
-                <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>1</Text>
-              </View>
-              <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
-                {t('modules.radio.welcomeStep1')}
-              </Text>
-            </View>
-
-            <View style={styles.modalStep}>
-              <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
-                <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>2</Text>
-              </View>
-              <View style={styles.modalStepContent}>
-                <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
-                  {t('modules.radio.welcomeStep2')}
-                </Text>
-                <Icon
-                  name="heart"
-                  size={24}
-                  color={accentColor.primary}
-                  style={styles.modalStepIcon}
-                />
-              </View>
-            </View>
-
-            {/* OK Button — opens search modal */}
-            <HapticTouchable hapticDisabled
-              style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => {
-                triggerFeedback('tap');
-                setShowNoFavoritesModal(false);
-                setShowSearchModal(true); // Open discovery search modal
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.radio.welcomeButton')}
-              accessibilityHint={t('modules.radio.welcomeButtonHint')}
-            >
-              <Icon name="search" size={24} color={colors.textOnPrimary} />
-              <Text style={styles.modalButtonText}>{t('modules.radio.welcomeButton')}</Text>
-            </HapticTouchable>
-          </View>
+                  <View style={styles.modalStep}>
+                    <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
+                      <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>2</Text>
+                    </View>
+                    <View style={styles.modalStepContent}>
+                      <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
+                        {t('modules.radio.welcomeStep2')}
+                      </Text>
+                      <Icon
+                        name="heart"
+                        size={24}
+                        color={accentColor.primary}
+                        style={styles.modalStepIcon}
+                      />
+                    </View>
+                  </View>
+                </>
+              }
+              footerBlock={
+                <HapticTouchable hapticDisabled
+                  style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
+                  onPress={() => {
+                    triggerFeedback('tap');
+                    setShowNoFavoritesModal(false);
+                    setShowSearchModal(true); // Open discovery search modal
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.radio.welcomeButton')}
+                  accessibilityHint={t('modules.radio.welcomeButtonHint')}
+                >
+                  <Icon name="search" size={24} color={colors.textOnPrimary} />
+                  <Text style={styles.modalButtonText}>{t('modules.radio.welcomeButton')}</Text>
+                </HapticTouchable>
+              }
+            />
+          </LiquidGlassView>
         </View>
       </PanelAwareModal>
 
@@ -1292,7 +1300,7 @@ export function RadioScreen() {
         animationType={isReducedMotion ? 'none' : 'slide'}
         onRequestClose={() => setShowSearchModal(false)}
       >
-        <View style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="radio" style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]} cornerRadius={0}>
           {/* Modal header with close button */}
           <View style={[styles.searchModalHeader, { backgroundColor: radioModuleColor }]}>
             <View style={{ height: insets.top }} />
@@ -1427,7 +1435,7 @@ export function RadioScreen() {
               })}
             </ScrollViewWithIndicator>
           )}
-        </View>
+        </LiquidGlassView>
       </PanelAwareModal>
     </KeyboardAvoidingView>
   );

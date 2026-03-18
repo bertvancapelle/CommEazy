@@ -384,7 +384,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **TTS (Text-to-Speech)** | **accessibility-specialist, react-native-expert, ios-specialist** — Nederlands MOET Piper TTS (nl_NL-rdh-high) gebruiken |
 | **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern (sectie 15) MOET worden gevolgd. Discovery = modal, Lokale filter = inline |
 | **Lokale filter in modal** | **BLOKKEERDER** — Lokale filters (contacten, chats) mogen NOOIT in een modal, zie sectie 15.1 |
-| **Nieuwe of gewijzigde Modal** | **ui-designer** — Modal Design Standaard (SKILL.md sectie 11b) MOET worden gevolgd: PageSheet (standaard) of FullScreen (uitzondering). Geen fade+centered overlays, geen close X in header, footer VERPLICHT. **ModalLayout VERPLICHT** — respecteert toolbar positie (SKILL.md sectie 11c) |
+| **Nieuwe of gewijzigde Modal** | **ui-designer, ios-specialist** — Modal Design Standaard (SKILL.md sectie 11b) MOET worden gevolgd: PageSheet (standaard) of FullScreen (uitzondering). **LiquidGlassView VERPLICHT** op ALLE modals (behalve DevModePanel en Players). **ModalLayout VERPLICHT** op categorie 1 (standaard dialogen) — respecteert toolbar positie (SKILL.md sectie 11c). `moduleId` prop VERPLICHT. |
 | **Datum/tijd picker toevoegen** | **BLOKKEERDER** — MOET `DateTimePickerModal` uit `@/components` gebruiken. Geen custom date pickers, geen raw `DateTimePicker` in modals. `moduleId` prop VERPLICHT. Zie Component Registry sectie "DateTimePickerModal" |
 | **Icon component gebruik** | **ui-designer** — Icoon MOET bestaan in IconName type, zie SKILL.md sectie 10b |
 | **AccentColor properties** | **ui-designer** — Alleen bestaande properties gebruiken (primary/primaryLight/primaryDark/light/label), zie SKILL.md sectie 10c |
@@ -3299,11 +3299,38 @@ import { LANGUAGES } from '@/constants/demographics';
 - `components.chipSelector.searchBy` — "Zoeken op basis van:" (toggle modal)
 - `components.chipSelector.tapToChange` — "{{current}} - tik om te wijzigen"
 
-### ModalLayout (VERPLICHT voor ALLE modals met header/content structuur)
+### Modal Liquid Glass Standaard (VERPLICHT)
+
+**Alle modals MOETEN LiquidGlassView gebruiken op iOS/iPadOS 26+.**
+
+Zie ui-designer SKILL.md sectie 11b voor de volledige classificatie.
+
+#### Modal Classificatie
+
+| Categorie | LiquidGlassView | ModalLayout | Voorbeelden |
+|-----------|-----------------|-------------|-------------|
+| **1. Standaard dialogen** (PageSheet) | ✅ VERPLICHT | ✅ VERPLICHT | DateTimePickerModal, PickerModal, CreateGroupModal, QueueView, CollectionOverlay, discovery search modals |
+| **2. Full-screen viewers** (FullScreen) | ✅ VERPLICHT | ❌ UITGEZONDERD | FullscreenImageViewer, SlideshowViewer, ArticleWebViewer |
+| **3. Development tools** | ❌ UITGEZONDERD | ❌ UITGEZONDERD | DevModePanel |
+| **4. Players (eigen architectuur)** | ❌ NIET AANPASSEN | ❌ NIET AANPASSEN | UnifiedMiniPlayer, UnifiedFullPlayer |
+
+#### Drie-laagse modal structuur (Categorie 1)
+
+```
+PanelAwareModal → LiquidGlassView (moduleId, cornerRadius={0}) → ModalLayout (headerBlock/contentBlock/footerBlock)
+```
+
+#### Twee-laagse modal structuur (Categorie 2)
+
+```
+PanelAwareModal → LiquidGlassView (moduleId) → eigen layout (geen ModalLayout)
+```
+
+### ModalLayout (VERPLICHT voor categorie 1 modals)
 
 **Verplichte component:** `ModalLayout`
 
-ALLE modals die een header + content structuur hebben MOETEN `ModalLayout` gebruiken. Dit component respecteert de gebruiker's "Schermindeling" instelling (toolbar boven/onder) zodat modals consistent zijn met module screens.
+Alle categorie 1 modals (standaard dialogen met header/content/footer) MOETEN `ModalLayout` gebruiken. Dit component respecteert de gebruiker's "Schermindeling" instelling (toolbar boven/onder) zodat modals consistent zijn met module screens.
 
 **Kenmerken:**
 - Respecteert `toolbarPosition` uit `ModuleLayoutContext` (via `useModuleLayoutSafe()`)
@@ -3311,19 +3338,19 @@ ALLE modals die een header + content structuur hebben MOETEN `ModalLayout` gebru
 - Bij `bottom`: Content → Footer → Header
 - Graceful fallback buiten `ModuleLayoutProvider`
 
-**Adoptie status (9 modals):**
+**Adoptie status:**
 
-| Modal | Gebruikt ModalLayout |
-|-------|---------------------|
-| DateTimePickerModal | ✅ |
-| ArticlePreviewModal | ✅ |
-| PhotoRecipientModal | ✅ |
-| ContactSelectionModal | ✅ |
-| CreateGroupModal | ✅ |
-| EditGroupModal | ✅ |
-| SongCollectionModal | ✅ |
-| CreateMusicCollectionModal | ✅ |
-| PickerModal | ✅ |
+| Modal | LiquidGlassView | ModalLayout | Categorie |
+|-------|-----------------|-------------|-----------|
+| DateTimePickerModal | ✅ | ✅ | 1 |
+| ArticlePreviewModal | ✅ | ✅ | 1 |
+| PhotoRecipientModal | ✅ | ✅ | 1 |
+| ContactSelectionModal | ✅ | ✅ | 1 |
+| CreateGroupModal | ✅ | ✅ | 1 |
+| EditGroupModal | ✅ | ✅ | 1 |
+| SongCollectionModal | ✅ | ✅ | 1 |
+| CreateMusicCollectionModal | ✅ | ✅ | 1 |
+| PickerModal | ✅ | ✅ | 1 |
 
 **Bestanden:**
 - `src/components/ModalLayout.tsx` — Component

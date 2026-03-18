@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator, ErrorView, PanelAwareModal } from '@/components';
+import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator, ErrorView, PanelAwareModal, LiquidGlassView, ModalLayout } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -103,44 +103,52 @@ function RecurringActionModal({
       onRequestClose={onCancel}
     >
       <View style={recurringStyles.overlay}>
-        <View style={[recurringStyles.sheet, { backgroundColor: themeColors.background }]}>
-          <Text style={[recurringStyles.title, { color: themeColors.textPrimary }]}>
-            {title}
-          </Text>
+        <LiquidGlassView moduleId="agenda" cornerRadius={16} style={[recurringStyles.sheet]}>
+          <ModalLayout
+            headerBlock={
+              <Text style={[recurringStyles.title, { color: themeColors.textPrimary }]}>
+                {title}
+              </Text>
+            }
+            contentBlock={
+              <>
+                <HapticTouchable
+                  style={[recurringStyles.option, { borderColor: themeColors.border }]}
+                  onPress={onTodayOnly}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.agenda.detail.todayOnly')}
+                >
+                  <Text style={[recurringStyles.optionText, { color: themeColors.textPrimary }]}>
+                    {t('modules.agenda.detail.todayOnly')}
+                  </Text>
+                </HapticTouchable>
 
-          <HapticTouchable
-            style={[recurringStyles.option, { borderColor: themeColors.border }]}
-            onPress={onTodayOnly}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.agenda.detail.todayOnly')}
-          >
-            <Text style={[recurringStyles.optionText, { color: themeColors.textPrimary }]}>
-              {t('modules.agenda.detail.todayOnly')}
-            </Text>
-          </HapticTouchable>
-
-          <HapticTouchable
-            style={[recurringStyles.option, { borderColor: themeColors.border }]}
-            onPress={onAllFollowing}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.agenda.detail.allFollowing')}
-          >
-            <Text style={[recurringStyles.optionText, { color: themeColors.textPrimary }]}>
-              {t('modules.agenda.detail.allFollowing')}
-            </Text>
-          </HapticTouchable>
-
-          <HapticTouchable
-            style={[recurringStyles.cancelOption]}
-            onPress={onCancel}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.cancel')}
-          >
-            <Text style={[recurringStyles.cancelText, { color: themeColors.textSecondary }]}>
-              {t('common.cancel')}
-            </Text>
-          </HapticTouchable>
-        </View>
+                <HapticTouchable
+                  style={[recurringStyles.option, { borderColor: themeColors.border }]}
+                  onPress={onAllFollowing}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.agenda.detail.allFollowing')}
+                >
+                  <Text style={[recurringStyles.optionText, { color: themeColors.textPrimary }]}>
+                    {t('modules.agenda.detail.allFollowing')}
+                  </Text>
+                </HapticTouchable>
+              </>
+            }
+            footerBlock={
+              <HapticTouchable
+                style={[recurringStyles.cancelOption]}
+                onPress={onCancel}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cancel')}
+              >
+                <Text style={[recurringStyles.cancelText, { color: themeColors.textSecondary }]}>
+                  {t('common.cancel')}
+                </Text>
+              </HapticTouchable>
+            }
+          />
+        </LiquidGlassView>
       </View>
     </PanelAwareModal>
   );
@@ -652,7 +660,7 @@ export function AgendaItemDetailScreen({
         animationType="slide"
         onRequestClose={handleShareClose}
       >
-        <View style={[shareStyles.container, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="agenda" style={[shareStyles.container]} cornerRadius={0}>
           {/* Header */}
           <View
             style={[
@@ -791,7 +799,7 @@ export function AgendaItemDetailScreen({
               }}
             />
           </View>
-        </View>
+        </LiquidGlassView>
       </PanelAwareModal>
     </View>
   );

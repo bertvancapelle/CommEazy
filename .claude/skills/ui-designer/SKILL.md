@@ -2238,7 +2238,28 @@ modalContent: {
 
 ### 11b. MODAL DESIGN STANDAARD (VERPLICHT)
 
-Alle modals in CommEazy MOETEN één van twee categorieën volgen. Er zijn GEEN uitzonderingen.
+Alle modals in CommEazy MOETEN één van de onderstaande categorieën volgen. Er zijn GEEN uitzonderingen.
+
+#### Modal Classificatie
+
+| Categorie | LiquidGlassView | ModalLayout | Voorbeelden |
+|-----------|-----------------|-------------|-------------|
+| **1. Standaard dialogen** (PageSheet) | ✅ VERPLICHT | ✅ VERPLICHT | DateTimePickerModal, PickerModal, CreateGroupModal, QueueView, CollectionOverlay, discovery search modals |
+| **2. Full-screen viewers** (FullScreen) | ✅ VERPLICHT | ❌ UITGEZONDERD | FullscreenImageViewer, SlideshowViewer, ArticleWebViewer |
+| **3. Development tools** | ❌ UITGEZONDERD | ❌ UITGEZONDERD | DevModePanel |
+| **4. Players (eigen architectuur)** | ❌ NIET AANPASSEN | ❌ NIET AANPASSEN | UnifiedMiniPlayer, UnifiedFullPlayer |
+
+**Drie-laagse modal structuur (Categorie 1):**
+```
+PanelAwareModal → LiquidGlassView (moduleId) → ModalLayout (headerBlock/contentBlock/footerBlock)
+```
+
+**Twee-laagse modal structuur (Categorie 2):**
+```
+PanelAwareModal → LiquidGlassView (moduleId) → eigen layout (geen ModalLayout)
+```
+
+**moduleId is VERPLICHT** op alle modals met LiquidGlassView — dit bepaalt de Liquid Glass tint kleur.
 
 #### Categorie 1: PageSheet Modal (STANDAARD)
 
@@ -2426,7 +2447,8 @@ fullScreenCloseButton: {
 | SlideshowViewer | Fotolijst slideshow | Chevron-down linksboven (auto-hide) |
 
 **Geen vaste header/footer border structuur** — layout is content-afhankelijk.
-**Geen LiquidGlassView wrapper** — FullScreen modals gebruiken eigen achtergrond.
+**WEL LiquidGlassView wrapper** — FullScreen modals gebruiken LiquidGlassView voor Liquid Glass effect op iOS 26+, maar GEEN ModalLayout (geen header/footer omdraaien).
+**Geen ModalLayout** — layout is immersive content, geen header/content/footer structuur.
 
 #### Verboden Patterns (BLOKKEERDER)
 
@@ -2472,6 +2494,9 @@ Bij ELKE nieuwe of gewijzigde modal:
 - [ ] **PageSheet:** Footer met close-knop (Variant A) of actie-knop (Variant B)
 - [ ] **PageSheet:** Footer knop `minHeight: touchTargets.comfortable`
 - [ ] **FullScreen:** Chevron-down close knop linksboven, 60pt touch target
+- [ ] **FullScreen:** LiquidGlassView wrapper met `moduleId` (GEEN ModalLayout)
+- [ ] **Beide:** `PanelAwareModal` gebruiken (GEEN raw `<Modal>`)
+- [ ] **Beide:** `LiquidGlassView` wrapper met `moduleId` prop
 - [ ] **Beide:** `onRequestClose={onClose}` aanwezig (Android back button)
 - [ ] **Beide:** Accessibility labels op alle interactieve elementen
 - [ ] **Geen:** Fade + centered overlay, backdrop tap-to-dismiss, close X in header

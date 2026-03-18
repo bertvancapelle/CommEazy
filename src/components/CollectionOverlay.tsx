@@ -32,6 +32,7 @@ import { HapticTouchable } from '@/components/HapticTouchable';
 import { Icon } from '@/components/Icon';
 import type { IconName } from '@/components/Icon';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import {
   STATIC_MODULE_DEFINITIONS,
   mapModuleIconToIconName,
@@ -243,74 +244,80 @@ export function CollectionOverlay({
             cornerRadius={OVERLAY_CORNER_RADIUS}
             style={styles.glassContainer}
           >
-            {/* Close button */}
-            <View style={styles.closeButtonRow}>
-              <HapticTouchable
-                onPress={onClose}
-                hapticType="tap"
-                style={styles.closeButton}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-              >
-                <Icon name="x" size={24} color="#FFFFFF" />
-              </HapticTouchable>
-            </View>
-
-            {/* Title */}
-            <Text
-              style={styles.title}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.8}
-            >
-              {collectionTitle}
-            </Text>
-
-            {/* Module grid */}
-            <View style={styles.grid}>
-              {rows.map((row, rowIndex) => (
-                <View key={rowIndex} style={styles.gridRow}>
-                  {row.map((moduleId) => (
+            <ModalLayout
+              headerBlock={
+                <>
+                  {/* Close button */}
+                  <View style={styles.closeButtonRow}>
                     <HapticTouchable
-                      key={moduleId}
-                      onPress={() => handleModulePress(moduleId)}
+                      onPress={onClose}
                       hapticType="tap"
-                      style={styles.gridItem}
+                      style={styles.closeButton}
                       accessibilityRole="button"
-                      accessibilityLabel={getLabel(moduleId)}
+                      accessibilityLabel={t('common.close')}
                     >
-                      <View
-                        style={[
-                          styles.iconCircle,
-                          { backgroundColor: getModuleColor(moduleId) },
-                        ]}
-                      >
-                        <Icon
-                          name={getIconName(moduleId)}
-                          size={ITEM_ICON_SIZE}
-                          color="#FFFFFF"
-                        />
-                      </View>
-                      <Text
-                        style={styles.itemLabel}
-                        numberOfLines={2}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.85}
-                      >
-                        {getLabel(moduleId)}
-                      </Text>
+                      <Icon name="x" size={24} color="#FFFFFF" />
                     </HapticTouchable>
+                  </View>
+
+                  {/* Title */}
+                  <Text
+                    style={styles.title}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
+                  >
+                    {collectionTitle}
+                  </Text>
+                </>
+              }
+              contentBlock={
+                <View style={styles.grid}>
+                  {rows.map((row, rowIndex) => (
+                    <View key={rowIndex} style={styles.gridRow}>
+                      {row.map((moduleId) => (
+                        <HapticTouchable
+                          key={moduleId}
+                          onPress={() => handleModulePress(moduleId)}
+                          hapticType="tap"
+                          style={styles.gridItem}
+                          accessibilityRole="button"
+                          accessibilityLabel={getLabel(moduleId)}
+                        >
+                          <View
+                            style={[
+                              styles.iconCircle,
+                              { backgroundColor: getModuleColor(moduleId) },
+                            ]}
+                          >
+                            <Icon
+                              name={getIconName(moduleId)}
+                              size={ITEM_ICON_SIZE}
+                              color="#FFFFFF"
+                            />
+                          </View>
+                          <Text
+                            style={styles.itemLabel}
+                            numberOfLines={2}
+                            adjustsFontSizeToFit
+                            minimumFontScale={0.85}
+                          >
+                            {getLabel(moduleId)}
+                          </Text>
+                        </HapticTouchable>
+                      ))}
+                      {/* Fill empty cells for alignment */}
+                      {row.length < GRID_COLUMNS &&
+                        Array.from({ length: GRID_COLUMNS - row.length }).map(
+                          (_, i) => (
+                            <View key={`empty-${i}`} style={styles.gridItem} />
+                          ),
+                        )}
+                    </View>
                   ))}
-                  {/* Fill empty cells for alignment */}
-                  {row.length < GRID_COLUMNS &&
-                    Array.from({ length: GRID_COLUMNS - row.length }).map(
-                      (_, i) => (
-                        <View key={`empty-${i}`} style={styles.gridItem} />
-                      ),
-                    )}
                 </View>
-              ))}
-            </View>
+              }
+            />
           </LiquidGlassView>
         </Animated.View>
       </View>

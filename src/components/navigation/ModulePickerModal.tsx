@@ -34,6 +34,7 @@ import { useNavigationContext } from '@/contexts/NavigationContext';
 import { ModuleIcon } from './ModuleIcon';
 import type { ModuleDefinition, NavigationDestination } from '@/types/navigation';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import {
   colors,
   typography,
@@ -132,66 +133,69 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
           cornerRadius={borderRadius.lg}
           onStartShouldSetResponder={() => true}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('splitView.chooseModule')}</Text>
-            <Text style={styles.subtitle}>
-              {targetPanel === 'left'
-                ? t('splitView.leftPanel')
-                : t('splitView.rightPanel')}
-            </Text>
-          </View>
+          <ModalLayout
+            headerBlock={
+              <View style={styles.header}>
+                <Text style={styles.title}>{t('splitView.chooseModule')}</Text>
+                <Text style={styles.subtitle}>
+                  {targetPanel === 'left'
+                    ? t('splitView.leftPanel')
+                    : t('splitView.rightPanel')}
+                </Text>
+              </View>
+            }
+            contentBlock={
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Primary Section (Communication) */}
+                <ModuleSection
+                  title={t('navigation.sections.communication')}
+                  modules={groupedModules.primary}
+                  currentModuleId={currentModuleId}
+                  onSelect={handleModuleSelect}
+                />
 
-          {/* Module Grid */}
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Primary Section (Communication) */}
-            <ModuleSection
-              title={t('navigation.sections.communication')}
-              modules={groupedModules.primary}
-              currentModuleId={currentModuleId}
-              onSelect={handleModuleSelect}
-            />
+                {/* Secondary Section (Media) */}
+                <ModuleSection
+                  title={t('navigation.sections.media')}
+                  modules={groupedModules.secondary}
+                  currentModuleId={currentModuleId}
+                  onSelect={handleModuleSelect}
+                />
 
-            {/* Secondary Section (Media) */}
-            <ModuleSection
-              title={t('navigation.sections.media')}
-              modules={groupedModules.secondary}
-              currentModuleId={currentModuleId}
-              onSelect={handleModuleSelect}
-            />
+                {/* Dynamic Section (Country-specific) */}
+                {groupedModules.dynamic.length > 0 && (
+                  <ModuleSection
+                    title={t('navigation.sections.modules')}
+                    modules={groupedModules.dynamic}
+                    currentModuleId={currentModuleId}
+                    onSelect={handleModuleSelect}
+                  />
+                )}
 
-            {/* Dynamic Section (Country-specific) */}
-            {groupedModules.dynamic.length > 0 && (
-              <ModuleSection
-                title={t('navigation.sections.modules')}
-                modules={groupedModules.dynamic}
-                currentModuleId={currentModuleId}
-                onSelect={handleModuleSelect}
-              />
-            )}
-
-            {/* Footer Section */}
-            <ModuleSection
-              title={t('navigation.sections.system')}
-              modules={groupedModules.footer}
-              currentModuleId={currentModuleId}
-              onSelect={handleModuleSelect}
-            />
-          </ScrollView>
-
-          {/* Cancel Button */}
-          <HapticTouchable hapticDisabled
-            style={styles.cancelButton}
-            onPress={handleBackdropPress}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.cancel')}
-          >
-            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
-          </HapticTouchable>
+                {/* Footer Section */}
+                <ModuleSection
+                  title={t('navigation.sections.system')}
+                  modules={groupedModules.footer}
+                  currentModuleId={currentModuleId}
+                  onSelect={handleModuleSelect}
+                />
+              </ScrollView>
+            }
+            footerBlock={
+              <HapticTouchable hapticDisabled
+                style={styles.cancelButton}
+                onPress={handleBackdropPress}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cancel')}
+              >
+                <Text style={styles.cancelText}>{t('common.cancel')}</Text>
+              </HapticTouchable>
+            }
+          />
         </LiquidGlassView>
       </HapticTouchable>
     </PanelAwareModal>

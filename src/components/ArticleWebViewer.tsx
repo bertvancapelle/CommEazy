@@ -46,6 +46,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, IconButton, AdMobBanner, LoadingView } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { orientationService } from '@/services/orientationService';
@@ -1230,71 +1231,83 @@ export function ArticleWebViewer({
         >
           <View style={styles.externalLinkOverlay}>
             <LiquidGlassView moduleId="nunl" style={styles.externalLinkModal} cornerRadius={borderRadius.lg}>
-              {/* Icon */}
-              <View style={[styles.externalLinkIconContainer, { backgroundColor: accentColor }]}>
-                <Icon name="external-link" size={32} color={colors.textOnPrimary} />
-              </View>
+              <ModalLayout
+                headerBlock={
+                  <>
+                    {/* Icon */}
+                    <View style={[styles.externalLinkIconContainer, { backgroundColor: accentColor }]}>
+                      <Icon name="external-link" size={32} color={colors.textOnPrimary} />
+                    </View>
 
-              {/* Title */}
-              <Text style={styles.externalLinkTitle}>
-                {t('articleViewer.externalLink.title')}
-              </Text>
+                    {/* Title */}
+                    <Text style={styles.externalLinkTitle}>
+                      {t('articleViewer.externalLink.title')}
+                    </Text>
+                  </>
+                }
+                contentBlock={
+                  <>
+                    {/* Description */}
+                    <Text style={styles.externalLinkDescription}>
+                      {t('articleViewer.externalLink.description')}
+                    </Text>
 
-              {/* Description */}
-              <Text style={styles.externalLinkDescription}>
-                {t('articleViewer.externalLink.description')}
-              </Text>
+                    {/* URL Preview */}
+                    {pendingExternalUrl && (
+                      <Text style={styles.externalLinkUrl} numberOfLines={2}>
+                        {pendingExternalUrl}
+                      </Text>
+                    )}
 
-              {/* URL Preview */}
-              {pendingExternalUrl && (
-                <Text style={styles.externalLinkUrl} numberOfLines={2}>
-                  {pendingExternalUrl}
-                </Text>
-              )}
+                    {/* Settings Hint */}
+                    <Text style={styles.externalLinkSettingsHint}>
+                      {t('articleViewer.externalLink.settingsHint')}
+                    </Text>
+                  </>
+                }
+                footerBlock={
+                  <>
+                    {/* Buttons */}
+                    <View style={styles.externalLinkButtons}>
+                      {/* Cancel */}
+                      <HapticTouchable hapticDisabled
+                        style={styles.externalLinkButtonSecondary}
+                        onPress={handleExternalLinkCancel}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.cancel')}
+                      >
+                        <Text style={styles.externalLinkButtonSecondaryText}>
+                          {t('common.cancel')}
+                        </Text>
+                      </HapticTouchable>
 
-              {/* Settings Hint */}
-              <Text style={styles.externalLinkSettingsHint}>
-                {t('articleViewer.externalLink.settingsHint')}
-              </Text>
+                      {/* Open Once */}
+                      <HapticTouchable hapticDisabled
+                        style={[styles.externalLinkButton, { backgroundColor: accentColor }]}
+                        onPress={handleExternalLinkOpen}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('articleViewer.externalLink.open')}
+                      >
+                        <Text style={styles.externalLinkButtonText}>
+                          {t('articleViewer.externalLink.open')}
+                        </Text>
+                      </HapticTouchable>
+                    </View>
 
-              {/* Buttons */}
-              <View style={styles.externalLinkButtons}>
-                {/* Cancel */}
-                <HapticTouchable hapticDisabled
-                  style={styles.externalLinkButtonSecondary}
-                  onPress={handleExternalLinkCancel}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.cancel')}
-                >
-                  <Text style={styles.externalLinkButtonSecondaryText}>
-                    {t('common.cancel')}
-                  </Text>
-                </HapticTouchable>
-
-                {/* Open Once */}
-                <HapticTouchable hapticDisabled
-                  style={[styles.externalLinkButton, { backgroundColor: accentColor }]}
-                  onPress={handleExternalLinkOpen}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('articleViewer.externalLink.open')}
-                >
-                  <Text style={styles.externalLinkButtonText}>
-                    {t('articleViewer.externalLink.open')}
-                  </Text>
-                </HapticTouchable>
-              </View>
-
-              {/* Always Open Button */}
-              <HapticTouchable hapticDisabled
-                style={styles.externalLinkAlwaysButton}
-                onPress={handleExternalLinkAlways}
-                accessibilityRole="button"
-                accessibilityLabel={t('articleViewer.externalLink.always')}
-              >
-                <Text style={[styles.externalLinkAlwaysText, { color: accentColor }]}>
-                  {t('articleViewer.externalLink.always')}
-                </Text>
-              </HapticTouchable>
+                    {/* Always Open Button */}
+                    <HapticTouchable hapticDisabled
+                      style={styles.externalLinkAlwaysButton}
+                      onPress={handleExternalLinkAlways}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('articleViewer.externalLink.always')}
+                    >
+                      <Text style={[styles.externalLinkAlwaysText, { color: accentColor }]}>
+                        {t('articleViewer.externalLink.always')}
+                      </Text>
+                    </HapticTouchable>
+                  </>
+                }
+              />
             </LiquidGlassView>
           </View>
         </PanelAwareModal>

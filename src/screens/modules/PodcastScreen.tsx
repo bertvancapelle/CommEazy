@@ -61,6 +61,8 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingState, type PodcastBrowsingState } from '@/contexts/ModuleBrowsingContext';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 
 // ============================================================
 // Constants
@@ -882,7 +884,7 @@ export function PodcastScreen() {
           accessibilityViewIsModal={true}
         >
           <View style={styles.modalOverlay}>
-            <View style={[styles.showDetailModal, { paddingTop: insets.top + spacing.md }]}>
+            <LiquidGlassView moduleId="podcast" style={[styles.showDetailModal, { paddingTop: insets.top + spacing.md }]} cornerRadius={0}>
               {selectedShow && (
                 <>
                   {/* Header */}
@@ -1036,7 +1038,7 @@ export function PodcastScreen() {
                   </HapticTouchable>
                 </>
               )}
-            </View>
+            </LiquidGlassView>
           </View>
         </PanelAwareModal>
 
@@ -1112,34 +1114,42 @@ export function PodcastScreen() {
             }}
             activeOpacity={1}
           >
-            <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
-              <Text style={styles.pickerTitle}>{t('modules.podcast.playbackSpeedTitle')}</Text>
-              {PLAYBACK_RATES.map((rate) => (
-                <HapticTouchable hapticDisabled
-                  key={rate}
-                  style={[
-                    styles.pickerOption,
-                    playbackRate === rate && { backgroundColor: accentColor.primaryLight },
-                  ]}
-                  onPress={async () => {
-                    await triggerFeedback('tap');
-                    await setPlaybackRate(rate);
-                    setShowSpeedPicker(false);
-                    // Return to expanded player
-                    setTimeout(() => setIsPlayerExpanded(true), 100);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.pickerOptionText,
-                      playbackRate === rate && { color: accentColor.primary, fontWeight: '700' },
-                    ]}
-                  >
-                    {rate}x
-                  </Text>
-                </HapticTouchable>
-              ))}
-            </View>
+            <LiquidGlassView moduleId="podcast" style={styles.pickerContent} cornerRadius={16} onStartShouldSetResponder={() => true}>
+              <ModalLayout
+                headerBlock={
+                  <Text style={styles.pickerTitle}>{t('modules.podcast.playbackSpeedTitle')}</Text>
+                }
+                contentBlock={
+                  <>
+                    {PLAYBACK_RATES.map((rate) => (
+                      <HapticTouchable hapticDisabled
+                        key={rate}
+                        style={[
+                          styles.pickerOption,
+                          playbackRate === rate && { backgroundColor: accentColor.primaryLight },
+                        ]}
+                        onPress={async () => {
+                          await triggerFeedback('tap');
+                          await setPlaybackRate(rate);
+                          setShowSpeedPicker(false);
+                          // Return to expanded player
+                          setTimeout(() => setIsPlayerExpanded(true), 100);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.pickerOptionText,
+                            playbackRate === rate && { color: accentColor.primary, fontWeight: '700' },
+                          ]}
+                        >
+                          {rate}x
+                        </Text>
+                      </HapticTouchable>
+                    ))}
+                  </>
+                }
+              />
+            </LiquidGlassView>
           </HapticTouchable>
         </PanelAwareModal>
 
@@ -1163,50 +1173,58 @@ export function PodcastScreen() {
             }}
             activeOpacity={1}
           >
-            <View style={styles.pickerContent} onStartShouldSetResponder={() => true}>
-              <Text style={styles.pickerTitle}>{t('modules.podcast.sleepTimerTitle')}</Text>
-              {sleepTimerMinutes && (
-                <HapticTouchable hapticDisabled
-                  style={[styles.pickerOption, { backgroundColor: colors.errorBackground }]}
-                  onPress={() => {
-                    triggerFeedback('tap');
-                    setSleepTimer(null);
-                    setShowSleepTimerPicker(false);
-                    // Return to expanded player
-                    setTimeout(() => setIsPlayerExpanded(true), 100);
-                  }}
-                >
-                  <Text style={[styles.pickerOptionText, { color: colors.error }]}>
-                    {t('modules.podcast.sleepTimerCancel')}
-                  </Text>
-                </HapticTouchable>
-              )}
-              {SLEEP_TIMER_OPTIONS.map((minutes) => (
-                <HapticTouchable hapticDisabled
-                  key={minutes}
-                  style={[
-                    styles.pickerOption,
-                    sleepTimerMinutes === minutes && { backgroundColor: accentColor.primaryLight },
-                  ]}
-                  onPress={() => {
-                    triggerFeedback('tap');
-                    setSleepTimer(minutes);
-                    setShowSleepTimerPicker(false);
-                    // Return to expanded player
-                    setTimeout(() => setIsPlayerExpanded(true), 100);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.pickerOptionText,
-                      sleepTimerMinutes === minutes && { color: accentColor.primary, fontWeight: '700' },
-                    ]}
-                  >
-                    {t('modules.podcast.sleepTimerMinutes', { minutes })}
-                  </Text>
-                </HapticTouchable>
-              ))}
-            </View>
+            <LiquidGlassView moduleId="podcast" style={styles.pickerContent} cornerRadius={16} onStartShouldSetResponder={() => true}>
+              <ModalLayout
+                headerBlock={
+                  <Text style={styles.pickerTitle}>{t('modules.podcast.sleepTimerTitle')}</Text>
+                }
+                contentBlock={
+                  <>
+                    {sleepTimerMinutes && (
+                      <HapticTouchable hapticDisabled
+                        style={[styles.pickerOption, { backgroundColor: colors.errorBackground }]}
+                        onPress={() => {
+                          triggerFeedback('tap');
+                          setSleepTimer(null);
+                          setShowSleepTimerPicker(false);
+                          // Return to expanded player
+                          setTimeout(() => setIsPlayerExpanded(true), 100);
+                        }}
+                      >
+                        <Text style={[styles.pickerOptionText, { color: colors.error }]}>
+                          {t('modules.podcast.sleepTimerCancel')}
+                        </Text>
+                      </HapticTouchable>
+                    )}
+                    {SLEEP_TIMER_OPTIONS.map((minutes) => (
+                      <HapticTouchable hapticDisabled
+                        key={minutes}
+                        style={[
+                          styles.pickerOption,
+                          sleepTimerMinutes === minutes && { backgroundColor: accentColor.primaryLight },
+                        ]}
+                        onPress={() => {
+                          triggerFeedback('tap');
+                          setSleepTimer(minutes);
+                          setShowSleepTimerPicker(false);
+                          // Return to expanded player
+                          setTimeout(() => setIsPlayerExpanded(true), 100);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.pickerOptionText,
+                            sleepTimerMinutes === minutes && { color: accentColor.primary, fontWeight: '700' },
+                          ]}
+                        >
+                          {t('modules.podcast.sleepTimerMinutes', { minutes })}
+                        </Text>
+                      </HapticTouchable>
+                    ))}
+                  </>
+                }
+              />
+            </LiquidGlassView>
           </HapticTouchable>
         </PanelAwareModal>
 
@@ -1222,45 +1240,53 @@ export function PodcastScreen() {
           accessibilityViewIsModal={true}
         >
           <View style={styles.welcomeOverlay}>
-            <View style={styles.welcomeContent}>
-              <View style={styles.welcomeHeader}>
-                <Icon name="podcast" size={48} color={accentColor.primary} />
-                <Text style={styles.welcomeTitle}>{t('modules.podcast.welcomeTitle')}</Text>
-              </View>
+            <LiquidGlassView moduleId="podcast" style={styles.welcomeContent} cornerRadius={16}>
+              <ModalLayout
+                headerBlock={
+                  <View style={styles.welcomeHeader}>
+                    <Icon name="podcast" size={48} color={accentColor.primary} />
+                    <Text style={styles.welcomeTitle}>{t('modules.podcast.welcomeTitle')}</Text>
+                  </View>
+                }
+                contentBlock={
+                  <>
+                    <Text style={styles.welcomeText}>{t('modules.podcast.welcomeText')}</Text>
 
-              <Text style={styles.welcomeText}>{t('modules.podcast.welcomeText')}</Text>
+                    <View style={styles.welcomeStep}>
+                      <View style={styles.welcomeStepNumber}>
+                        <Text style={styles.welcomeStepNumberText}>1</Text>
+                      </View>
+                      <Text style={styles.welcomeStepText}>{t('modules.podcast.welcomeStep1')}</Text>
+                    </View>
 
-              <View style={styles.welcomeStep}>
-                <View style={styles.welcomeStepNumber}>
-                  <Text style={styles.welcomeStepNumberText}>1</Text>
-                </View>
-                <Text style={styles.welcomeStepText}>{t('modules.podcast.welcomeStep1')}</Text>
-              </View>
-
-              <View style={styles.welcomeStep}>
-                <View style={styles.welcomeStepNumber}>
-                  <Text style={styles.welcomeStepNumberText}>2</Text>
-                </View>
-                <View style={styles.welcomeStepContent}>
-                  <Text style={styles.welcomeStepText}>{t('modules.podcast.welcomeStep2')}</Text>
-                  <Icon name="heart" size={24} color={accentColor.primary} style={styles.welcomeStepIcon} />
-                </View>
-              </View>
-
-              <HapticTouchable hapticDisabled
-                style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
-                onPress={() => {
-                  triggerFeedback('tap');
-                  setShowWelcomeModal(false);
-                  setShowSearchModal(true);
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.podcast.welcomeButton')}
-              >
-                <Icon name="search" size={24} color={colors.textOnPrimary} />
-                <Text style={styles.welcomeButtonText}>{t('modules.podcast.welcomeButton')}</Text>
-              </HapticTouchable>
-            </View>
+                    <View style={styles.welcomeStep}>
+                      <View style={styles.welcomeStepNumber}>
+                        <Text style={styles.welcomeStepNumberText}>2</Text>
+                      </View>
+                      <View style={styles.welcomeStepContent}>
+                        <Text style={styles.welcomeStepText}>{t('modules.podcast.welcomeStep2')}</Text>
+                        <Icon name="heart" size={24} color={accentColor.primary} style={styles.welcomeStepIcon} />
+                      </View>
+                    </View>
+                  </>
+                }
+                footerBlock={
+                  <HapticTouchable hapticDisabled
+                    style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
+                    onPress={() => {
+                      triggerFeedback('tap');
+                      setShowWelcomeModal(false);
+                      setShowSearchModal(true);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.podcast.welcomeButton')}
+                  >
+                    <Icon name="search" size={24} color={colors.textOnPrimary} />
+                    <Text style={styles.welcomeButtonText}>{t('modules.podcast.welcomeButton')}</Text>
+                  </HapticTouchable>
+                }
+              />
+            </LiquidGlassView>
           </View>
         </PanelAwareModal>
 
@@ -1281,7 +1307,7 @@ export function PodcastScreen() {
           accessibilityViewIsModal={true}
         >
           <View style={styles.continueListeningOverlay}>
-            <View style={styles.continueListeningContent}>
+            <LiquidGlassView moduleId="podcast" style={styles.continueListeningContent} cornerRadius={16}>
               {continueListeningEpisode && continueListeningShow && (
                 <>
                   {/* Episode artwork */}
@@ -1376,7 +1402,7 @@ export function PodcastScreen() {
                   </View>
                 </>
               )}
-            </View>
+            </LiquidGlassView>
           </View>
         </PanelAwareModal>
 
@@ -1394,7 +1420,7 @@ export function PodcastScreen() {
           accessibilityViewIsModal={true}
         >
           <View style={styles.nextEpisodeOverlay}>
-            <View style={styles.nextEpisodeContent}>
+            <LiquidGlassView moduleId="podcast" style={styles.nextEpisodeContent} cornerRadius={16}>
               {nextEpisodeInfo && (
                 <>
                   {/* Checkmark icon for completed episode */}
@@ -1474,7 +1500,7 @@ export function PodcastScreen() {
                   </View>
                 </>
               )}
-            </View>
+            </LiquidGlassView>
           </View>
         </PanelAwareModal>
 
@@ -1487,7 +1513,7 @@ export function PodcastScreen() {
         animationType={isReducedMotion ? 'none' : 'slide'}
         onRequestClose={() => setShowSearchModal(false)}
       >
-        <View style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]}>
+        <LiquidGlassView moduleId="podcast" style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]} cornerRadius={0}>
           {/* Modal header with close button */}
           <View style={[styles.searchModalHeader, { backgroundColor: podcastModuleColor }]}>
             <View style={{ height: insets.top }} />
@@ -1630,7 +1656,7 @@ export function PodcastScreen() {
               })}
             </ScrollViewWithIndicator>
           )}
-        </View>
+        </LiquidGlassView>
       </PanelAwareModal>
 
       {/* Voice hint */}

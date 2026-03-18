@@ -22,6 +22,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Button, Icon, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 
 // ============================================================
 // Constants
@@ -129,47 +130,53 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
           ]}
           cornerRadius={borderRadius.lg}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Icon name="mail" size={40} color={accentColor.primary} />
-            <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-              {t('modules.mail.welcome.title')}
-            </Text>
-            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
-              {t('modules.mail.welcome.subtitle')}
-            </Text>
-          </View>
+          <ModalLayout
+            headerBlock={
+              <View style={styles.header}>
+                <Icon name="mail" size={40} color={accentColor.primary} />
+                <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+                  {t('modules.mail.welcome.title')}
+                </Text>
+                <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
+                  {t('modules.mail.welcome.subtitle')}
+                </Text>
+              </View>
+            }
+            contentBlock={
+              <>
+                {/* Steps */}
+                <View style={styles.stepsContainer}>
+                  {WELCOME_STEPS.map((step, index) => (
+                    <View key={index} style={styles.stepRow}>
+                      <Text style={styles.stepEmoji}>{step.icon}</Text>
+                      <View style={styles.stepContent}>
+                        <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
+                          {t(step.titleKey)}
+                        </Text>
+                        <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
+                          {t(step.descriptionKey)}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
 
-          {/* Steps */}
-          <View style={styles.stepsContainer}>
-            {WELCOME_STEPS.map((step, index) => (
-              <View key={index} style={styles.stepRow}>
-                <Text style={styles.stepEmoji}>{step.icon}</Text>
-                <View style={styles.stepContent}>
-                  <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>
-                    {t(step.titleKey)}
-                  </Text>
-                  <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>
-                    {t(step.descriptionKey)}
+                {/* Privacy note */}
+                <View style={[styles.privacyNote, { backgroundColor: accentColor.light }]}>
+                  <Icon name="lock" size={18} color={accentColor.primary} />
+                  <Text style={[styles.privacyText, { color: themeColors.textPrimary }]}>
+                    {t('modules.mail.welcome.privacyNote')}
                   </Text>
                 </View>
-              </View>
-            ))}
-          </View>
-
-          {/* Privacy note */}
-          <View style={[styles.privacyNote, { backgroundColor: accentColor.light }]}>
-            <Icon name="lock" size={18} color={accentColor.primary} />
-            <Text style={[styles.privacyText, { color: themeColors.textPrimary }]}>
-              {t('modules.mail.welcome.privacyNote')}
-            </Text>
-          </View>
-
-          {/* Action */}
-          <Button
-            title={t('modules.mail.welcome.understood')}
-            onPress={handleDismiss}
-            accessibilityLabel={t('modules.mail.welcome.understood')}
+              </>
+            }
+            footerBlock={
+              <Button
+                title={t('modules.mail.welcome.understood')}
+                onPress={handleDismiss}
+                accessibilityLabel={t('modules.mail.welcome.understood')}
+              />
+            }
           />
         </LiquidGlassView>
       </View>

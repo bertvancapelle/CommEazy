@@ -36,6 +36,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { HapticTouchable } from './HapticTouchable';
 import { PanelAwareModal } from './PanelAwareModal';
+import { LiquidGlassView } from './LiquidGlassView';
+import { ModalLayout } from './ModalLayout';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
@@ -291,83 +293,92 @@ export function ChipSelector({
           activeOpacity={1}
           onPress={() => setShowModeModal(false)}
         >
-          <View
+          <LiquidGlassView
+            moduleId="settings"
             style={[
               styles.modalContent,
               { paddingBottom: insets.bottom + spacing.lg },
             ]}
+            cornerRadius={16}
           >
-            <Text style={styles.modalTitle}>
-              {t('components.chipSelector.searchBy')}
-            </Text>
+            <ModalLayout
+              headerBlock={
+                <Text style={styles.modalTitle}>
+                  {t('components.chipSelector.searchBy')}
+                </Text>
+              }
+              contentBlock={
+                <>
+                  {/* Country option */}
+                  <HapticTouchable
+                    hapticDisabled
+                    style={[
+                      styles.modalOption,
+                      mode === 'country' && {
+                        backgroundColor: accentColor.primary,
+                        borderColor: accentColor.primary,
+                      },
+                    ]}
+                    onPress={() => handleModeSelect('country')}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: mode === 'country' }}
+                  >
+                    <Text style={styles.modalOptionIcon}>🌍</Text>
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        mode === 'country' && styles.modalOptionTextActive,
+                      ]}
+                    >
+                      {t('components.chipSelector.country')}
+                    </Text>
+                    {mode === 'country' && (
+                      <Icon name="check" size={24} color={colors.textOnPrimary} />
+                    )}
+                  </HapticTouchable>
 
-            {/* Country option */}
-            <HapticTouchable
-              hapticDisabled
-              style={[
-                styles.modalOption,
-                mode === 'country' && {
-                  backgroundColor: accentColor.primary,
-                  borderColor: accentColor.primary,
-                },
-              ]}
-              onPress={() => handleModeSelect('country')}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: mode === 'country' }}
-            >
-              <Text style={styles.modalOptionIcon}>🌍</Text>
-              <Text
-                style={[
-                  styles.modalOptionText,
-                  mode === 'country' && styles.modalOptionTextActive,
-                ]}
-              >
-                {t('components.chipSelector.country')}
-              </Text>
-              {mode === 'country' && (
-                <Icon name="check" size={24} color={colors.textOnPrimary} />
-              )}
-            </HapticTouchable>
-
-            {/* Language option */}
-            <HapticTouchable
-              hapticDisabled
-              style={[
-                styles.modalOption,
-                mode === 'language' && {
-                  backgroundColor: accentColor.primary,
-                  borderColor: accentColor.primary,
-                },
-              ]}
-              onPress={() => handleModeSelect('language')}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: mode === 'language' }}
-            >
-              <Text style={styles.modalOptionIcon}>🗣️</Text>
-              <Text
-                style={[
-                  styles.modalOptionText,
-                  mode === 'language' && styles.modalOptionTextActive,
-                ]}
-              >
-                {t('components.chipSelector.language')}
-              </Text>
-              {mode === 'language' && (
-                <Icon name="check" size={24} color={colors.textOnPrimary} />
-              )}
-            </HapticTouchable>
-
-            {/* Cancel button */}
-            <HapticTouchable
-              hapticDisabled
-              style={styles.modalCancel}
-              onPress={() => setShowModeModal(false)}
-            >
-              <Text style={styles.modalCancelText}>
-                {t('common.cancel')}
-              </Text>
-            </HapticTouchable>
-          </View>
+                  {/* Language option */}
+                  <HapticTouchable
+                    hapticDisabled
+                    style={[
+                      styles.modalOption,
+                      mode === 'language' && {
+                        backgroundColor: accentColor.primary,
+                        borderColor: accentColor.primary,
+                      },
+                    ]}
+                    onPress={() => handleModeSelect('language')}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: mode === 'language' }}
+                  >
+                    <Text style={styles.modalOptionIcon}>🗣️</Text>
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        mode === 'language' && styles.modalOptionTextActive,
+                      ]}
+                    >
+                      {t('components.chipSelector.language')}
+                    </Text>
+                    {mode === 'language' && (
+                      <Icon name="check" size={24} color={colors.textOnPrimary} />
+                    )}
+                  </HapticTouchable>
+                </>
+              }
+              footerBlock={
+                <HapticTouchable
+                  hapticDisabled
+                  style={styles.modalCancel}
+                  onPress={() => setShowModeModal(false)}
+                >
+                  <Text style={styles.modalCancelText}>
+                    {t('common.cancel')}
+                  </Text>
+                </HapticTouchable>
+              }
+            />
+          </LiquidGlassView>
         </HapticTouchable>
       </PanelAwareModal>
     </View>

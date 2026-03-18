@@ -27,6 +27,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, SearchBar, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import type { MailRecipient } from '@/types/mail';
 
 // ============================================================
@@ -105,72 +106,78 @@ export function ContactPickerModal({
       onRequestClose={handleClose}
     >
       <LiquidGlassView moduleId="mail" style={styles.container} cornerRadius={0}>
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-            {t('modules.mail.compose.selectContact')}
-          </Text>
-          <HapticTouchable hapticDisabled
-            style={styles.closeButton}
-            onPress={handleClose}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Icon name="close" size={24} color={themeColors.textPrimary} />
-          </HapticTouchable>
-        </View>
+        <ModalLayout
+          headerBlock={
+            <>
+              {/* Header */}
+              <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+                <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+                  {t('modules.mail.compose.selectContact')}
+                </Text>
+                <HapticTouchable hapticDisabled
+                  style={styles.closeButton}
+                  onPress={handleClose}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                >
+                  <Icon name="close" size={24} color={themeColors.textPrimary} />
+                </HapticTouchable>
+              </View>
 
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmit={() => {}}
-            placeholder={t('modules.mail.compose.searchContacts')}
-          />
-        </View>
-
-        {/* Contact List */}
-        <ScrollView
-          contentContainerStyle={styles.listContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {filteredContacts.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-                {t('modules.mail.compose.noContactsWithEmail')}
-              </Text>
-            </View>
-          ) : (
-            filteredContacts.map(contact => (
-              <HapticTouchable hapticDisabled
-                key={contact.id}
-                style={[styles.contactItem, { borderBottomColor: themeColors.border }]}
-                onPress={() => handleSelect(contact)}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={`${contact.firstName} ${contact.lastName}, ${contact.email}`}
-              >
-                {/* Avatar placeholder */}
-                <View style={[styles.avatar, { backgroundColor: accentColor.light }]}>
-                  <Text style={[styles.avatarText, { color: accentColor.primary }]}>
-                    {(contact.firstName[0] || '').toUpperCase()}
+              {/* Search */}
+              <View style={styles.searchContainer}>
+                <SearchBar
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onSubmit={() => {}}
+                  placeholder={t('modules.mail.compose.searchContacts')}
+                />
+              </View>
+            </>
+          }
+          contentBlock={
+            <ScrollView
+              contentContainerStyle={styles.listContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {filteredContacts.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                    {t('modules.mail.compose.noContactsWithEmail')}
                   </Text>
                 </View>
+              ) : (
+                filteredContacts.map(contact => (
+                  <HapticTouchable hapticDisabled
+                    key={contact.id}
+                    style={[styles.contactItem, { borderBottomColor: themeColors.border }]}
+                    onPress={() => handleSelect(contact)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${contact.firstName} ${contact.lastName}, ${contact.email}`}
+                  >
+                    {/* Avatar placeholder */}
+                    <View style={[styles.avatar, { backgroundColor: accentColor.light }]}>
+                      <Text style={[styles.avatarText, { color: accentColor.primary }]}>
+                        {(contact.firstName[0] || '').toUpperCase()}
+                      </Text>
+                    </View>
 
-                <View style={styles.contactInfo}>
-                  <Text style={[styles.contactName, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                    {contact.firstName} {contact.lastName}
-                  </Text>
-                  <Text style={[styles.contactEmail, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                    {contact.email}
-                  </Text>
-                </View>
-              </HapticTouchable>
-            ))
-          )}
-        </ScrollView>
+                    <View style={styles.contactInfo}>
+                      <Text style={[styles.contactName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                        {contact.firstName} {contact.lastName}
+                      </Text>
+                      <Text style={[styles.contactEmail, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                        {contact.email}
+                      </Text>
+                    </View>
+                  </HapticTouchable>
+                ))
+              )}
+            </ScrollView>
+          }
+        />
       </LiquidGlassView>
     </PanelAwareModal>
   );

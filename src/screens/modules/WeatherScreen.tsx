@@ -51,6 +51,8 @@ import {
   type RadarData,
 } from '@/services/radarService';
 import type { WeatherLocation, DailyForecast, RadarFrame } from '@/types/weather';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 
 // ============================================================
 // Constants
@@ -493,7 +495,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDet
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[styles.dayDetailModal, { paddingTop: insets.top }]}>
+      <LiquidGlassView moduleId="weather" style={[styles.dayDetailModal, { paddingTop: insets.top }]} cornerRadius={0}>
         {/* Header */}
         <View style={styles.dayDetailHeader}>
           <HapticTouchable hapticDisabled
@@ -562,7 +564,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDet
             </View>
           </View>
         </ScrollViewWithIndicator>
-      </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }
@@ -672,7 +674,7 @@ function LocationPickerModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={[styles.locationPickerModal, { paddingTop: insets.top }]}>
+      <LiquidGlassView moduleId="weather" style={[styles.locationPickerModal, { paddingTop: insets.top }]} cornerRadius={0}>
         {/* Fixed Header */}
         <View style={styles.locationPickerHeader}>
           <HapticTouchable hapticDisabled
@@ -797,7 +799,7 @@ function LocationPickerModal({
             })
           )}
         </ScrollViewWithIndicator>
-      </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }
@@ -824,48 +826,51 @@ function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
       onRequestClose={onDismiss}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]}>
-          {/* Header */}
-          <View style={[styles.welcomeHeader, { backgroundColor: accentColor }]}>
-            <Icon name="weather-partly-cloudy" size={48} color={colors.textOnPrimary} />
-            <Text style={styles.welcomeTitle}>{t('modules.weather.welcome.title')}</Text>
-          </View>
-
-          {/* Steps */}
-          <View style={styles.welcomeContent}>
-            <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
-                <Text style={styles.stepNumberText}>1</Text>
+        <LiquidGlassView moduleId="weather" style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]} cornerRadius={16}>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.welcomeHeader, { backgroundColor: accentColor }]}>
+                <Icon name="weather-partly-cloudy" size={48} color={colors.textOnPrimary} />
+                <Text style={styles.welcomeTitle}>{t('modules.weather.welcome.title')}</Text>
               </View>
-              <Text style={styles.stepText}>{t('modules.weather.welcome.step1')}</Text>
-            </View>
+            }
+            contentBlock={
+              <View style={styles.welcomeContent}>
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
+                    <Text style={styles.stepNumberText}>1</Text>
+                  </View>
+                  <Text style={styles.stepText}>{t('modules.weather.welcome.step1')}</Text>
+                </View>
 
-            <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
-                <Text style={styles.stepNumberText}>2</Text>
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
+                    <Text style={styles.stepNumberText}>2</Text>
+                  </View>
+                  <Text style={styles.stepText}>{t('modules.weather.welcome.step2')}</Text>
+                </View>
+
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
+                    <Text style={styles.stepNumberText}>3</Text>
+                  </View>
+                  <Text style={styles.stepText}>{t('modules.weather.welcome.step3')}</Text>
+                </View>
               </View>
-              <Text style={styles.stepText}>{t('modules.weather.welcome.step2')}</Text>
-            </View>
-
-            <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: accentColor }]}>
-                <Text style={styles.stepNumberText}>3</Text>
-              </View>
-              <Text style={styles.stepText}>{t('modules.weather.welcome.step3')}</Text>
-            </View>
-          </View>
-
-          {/* Button */}
-          <HapticTouchable hapticDisabled
-            style={[styles.welcomeButton, { backgroundColor: accentColor }]}
-            onPress={onDismiss}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.weather.welcome.understood')}
-          >
-            <Text style={styles.welcomeButtonText}>{t('modules.weather.welcome.understood')}</Text>
-          </HapticTouchable>
-        </View>
+            }
+            footerBlock={
+              <HapticTouchable hapticDisabled
+                style={[styles.welcomeButton, { backgroundColor: accentColor }]}
+                onPress={onDismiss}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.weather.welcome.understood')}
+              >
+                <Text style={styles.welcomeButtonText}>{t('modules.weather.welcome.understood')}</Text>
+              </HapticTouchable>
+            }
+          />
+        </LiquidGlassView>
       </View>
     </PanelAwareModal>
   );

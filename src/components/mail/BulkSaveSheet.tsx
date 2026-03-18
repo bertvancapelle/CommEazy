@@ -29,6 +29,8 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, PanelAwareModal } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import type { MailAttachmentMeta } from '@/types/mail';
 import { saveAttachmentsBulk, type BulkSaveResult, type SaveResult } from '@/services/mail/saveToAlbumService';
 
@@ -172,105 +174,108 @@ export function BulkSaveSheet({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-            {t('modules.mail.detail.saveAllPhotos', { count: attachments.length })}
-          </Text>
-          <HapticTouchable hapticDisabled
-            style={styles.closeButton}
-            onPress={handleClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Icon name="close" size={24} color={themeColors.textPrimary} />
-          </HapticTouchable>
-        </View>
-
-        {/* Items list */}
-        <ScrollView contentContainerStyle={styles.listContent}>
-          {items.map((item, index) => (
-            <View
-              key={index}
-              style={[styles.itemRow, { borderBottomColor: themeColors.border }]}
-            >
-              {/* Status icon */}
-              <View style={styles.statusIcon}>
-                {item.status === 'pending' && (
-                  <Icon name="image" size={20} color={themeColors.textSecondary} />
-                )}
-                {item.status === 'saving' && (
-                  <ActivityIndicator size="small" color={accentColor.primary} />
-                )}
-                {item.status === 'success' && (
-                  <Icon name="check" size={20} color="#4CAF50" />
-                )}
-                {item.status === 'failed' && (
-                  <Icon name="warning" size={20} color="#F44336" />
-                )}
-              </View>
-
-              {/* File info */}
-              <View style={styles.itemInfo}>
-                <Text style={[styles.itemName, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                  {item.attachment.name}
-                </Text>
-                <Text style={[styles.itemSize, { color: themeColors.textSecondary }]}>
-                  {formatFileSize(item.attachment.size)}
-                </Text>
-              </View>
-
-              {/* Progress */}
-              {item.status === 'saving' && (
-                <Text style={[styles.progressText, { color: accentColor.primary }]}>
-                  {Math.round(item.progress * 100)}%
-                </Text>
-              )}
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Action bar */}
-        <View style={[styles.actionBar, { borderTopColor: themeColors.border }]}>
-          {isComplete ? (
-            <View style={styles.resultRow}>
-              <Text style={[styles.resultText, { color: themeColors.textPrimary }]}>
-                {t('modules.mail.detail.saveComplete', { saved: savedCount, failed: failedCount })}
+      <LiquidGlassView moduleId="mail" style={styles.container} cornerRadius={0}>
+        <ModalLayout
+          headerBlock={
+            <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+              <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+                {t('modules.mail.detail.saveAllPhotos', { count: attachments.length })}
               </Text>
               <HapticTouchable hapticDisabled
-                style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
+                style={styles.closeButton}
                 onPress={handleClose}
                 accessibilityRole="button"
                 accessibilityLabel={t('common.close')}
               >
-                <Text style={styles.actionButtonText}>{t('common.close')}</Text>
+                <Icon name="close" size={24} color={themeColors.textPrimary} />
               </HapticTouchable>
             </View>
-          ) : isSaving ? (
-            <HapticTouchable hapticDisabled
-              style={[styles.actionButton, { backgroundColor: '#F44336' }]}
-              onPress={handleCancel}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.cancel')}
-            >
-              <Text style={styles.actionButtonText}>{t('common.cancel')}</Text>
-            </HapticTouchable>
-          ) : (
-            <HapticTouchable hapticDisabled
-              style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
-              onPress={handleSaveAll}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.mail.detail.saveAllButton')}
-            >
-              <Icon name="download" size={20} color="#FFFFFF" />
-              <Text style={styles.actionButtonText}>
-                {t('modules.mail.detail.saveAllButton')}
-              </Text>
-            </HapticTouchable>
-          )}
-        </View>
-      </View>
+          }
+          contentBlock={
+            <ScrollView contentContainerStyle={styles.listContent}>
+              {items.map((item, index) => (
+                <View
+                  key={index}
+                  style={[styles.itemRow, { borderBottomColor: themeColors.border }]}
+                >
+                  {/* Status icon */}
+                  <View style={styles.statusIcon}>
+                    {item.status === 'pending' && (
+                      <Icon name="image" size={20} color={themeColors.textSecondary} />
+                    )}
+                    {item.status === 'saving' && (
+                      <ActivityIndicator size="small" color={accentColor.primary} />
+                    )}
+                    {item.status === 'success' && (
+                      <Icon name="check" size={20} color="#4CAF50" />
+                    )}
+                    {item.status === 'failed' && (
+                      <Icon name="warning" size={20} color="#F44336" />
+                    )}
+                  </View>
+
+                  {/* File info */}
+                  <View style={styles.itemInfo}>
+                    <Text style={[styles.itemName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                      {item.attachment.name}
+                    </Text>
+                    <Text style={[styles.itemSize, { color: themeColors.textSecondary }]}>
+                      {formatFileSize(item.attachment.size)}
+                    </Text>
+                  </View>
+
+                  {/* Progress */}
+                  {item.status === 'saving' && (
+                    <Text style={[styles.progressText, { color: accentColor.primary }]}>
+                      {Math.round(item.progress * 100)}%
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+          }
+          footerBlock={
+            <View style={[styles.actionBar, { borderTopColor: themeColors.border }]}>
+              {isComplete ? (
+                <View style={styles.resultRow}>
+                  <Text style={[styles.resultText, { color: themeColors.textPrimary }]}>
+                    {t('modules.mail.detail.saveComplete', { saved: savedCount, failed: failedCount })}
+                  </Text>
+                  <HapticTouchable hapticDisabled
+                    style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
+                    onPress={handleClose}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.close')}
+                  >
+                    <Text style={styles.actionButtonText}>{t('common.close')}</Text>
+                  </HapticTouchable>
+                </View>
+              ) : isSaving ? (
+                <HapticTouchable hapticDisabled
+                  style={[styles.actionButton, { backgroundColor: '#F44336' }]}
+                  onPress={handleCancel}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <Text style={styles.actionButtonText}>{t('common.cancel')}</Text>
+                </HapticTouchable>
+              ) : (
+                <HapticTouchable hapticDisabled
+                  style={[styles.actionButton, { backgroundColor: accentColor.primary }]}
+                  onPress={handleSaveAll}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.mail.detail.saveAllButton')}
+                >
+                  <Icon name="download" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>
+                    {t('modules.mail.detail.saveAllButton')}
+                  </Text>
+                </HapticTouchable>
+              )}
+            </View>
+          }
+        />
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }

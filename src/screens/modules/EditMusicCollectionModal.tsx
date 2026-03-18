@@ -31,6 +31,7 @@ import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { PanelAwareModal, HapticTouchable, Icon } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
 import type { MusicCollection } from '@/services/music';
@@ -124,87 +125,90 @@ export function EditMusicCollectionModal({
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
         <LiquidGlassView moduleId="appleMusic" style={styles.modal} cornerRadius={borderRadius.lg}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
-            <HapticTouchable
-              style={styles.closeButton}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.cancel')}
-            >
-              <Icon name="close" size={24} color={themeColors.textSecondary} />
-            </HapticTouchable>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
+                <HapticTouchable
+                  style={styles.closeButton}
+                  onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <Icon name="close" size={24} color={themeColors.textSecondary} />
+                </HapticTouchable>
 
-            <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
-              {collection.name}
-            </Text>
-
-            <HapticTouchable
-              style={[
-                styles.saveButton,
-                {
-                  backgroundColor: hasChanges && isValid
-                    ? themeColors.primary
-                    : themeColors.border,
-                },
-              ]}
-              onPress={handleSave}
-              disabled={!hasChanges || !isValid}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.save', 'Opslaan')}
-              accessibilityState={{ disabled: !hasChanges || !isValid }}
-            >
-              <Text
-                style={[
-                  styles.saveButtonText,
-                  {
-                    color: hasChanges && isValid
-                      ? themeColors.textOnPrimary
-                      : themeColors.textTertiary,
-                  },
-                ]}
-              >
-                {t('common.save', 'Opslaan')}
-              </Text>
-            </HapticTouchable>
-          </View>
-
-          {/* Content */}
-          <View style={styles.content}>
-            {/* Collection name edit */}
-            <VoiceTextInput
-              voiceId="edit-collection-name"
-              label={t('appleMusic.collections.rename', 'Hernoemen')}
-              value={editName}
-              onChangeText={handleNameChange}
-              maxLength={50}
-            />
-
-            {/* Song count info */}
-            <Text style={[styles.songCount, { color: themeColors.textSecondary }]}>
-              {t('appleMusic.collections.songCount', '{{count}} nummers', {
-                count: collection.songCatalogIds.length,
-              })}
-            </Text>
-
-            {/* Delete collection button */}
-            <View style={styles.deleteSection}>
-              <HapticTouchable
-                style={[styles.deleteButton, { borderColor: themeColors.error }]}
-                onPress={handleDelete}
-                accessibilityRole="button"
-                accessibilityLabel={t('appleMusic.collections.deleteCollection', 'Verzameling verwijderen')}
-              >
-                <Icon name="trash" size={20} color={themeColors.error} />
-                <Text style={[styles.deleteButtonText, { color: themeColors.error }]}>
-                  {t('appleMusic.collections.deleteCollection', 'Verzameling verwijderen')}
+                <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
+                  {collection.name}
                 </Text>
-              </HapticTouchable>
-            </View>
 
-            {/* Bottom spacing */}
-            <View style={{ height: spacing.xl }} />
-          </View>
+                <HapticTouchable
+                  style={[
+                    styles.saveButton,
+                    {
+                      backgroundColor: hasChanges && isValid
+                        ? themeColors.primary
+                        : themeColors.border,
+                    },
+                  ]}
+                  onPress={handleSave}
+                  disabled={!hasChanges || !isValid}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.save', 'Opslaan')}
+                  accessibilityState={{ disabled: !hasChanges || !isValid }}
+                >
+                  <Text
+                    style={[
+                      styles.saveButtonText,
+                      {
+                        color: hasChanges && isValid
+                          ? themeColors.textOnPrimary
+                          : themeColors.textTertiary,
+                      },
+                    ]}
+                  >
+                    {t('common.save', 'Opslaan')}
+                  </Text>
+                </HapticTouchable>
+              </View>
+            }
+            contentBlock={
+              <View style={styles.content}>
+                {/* Collection name edit */}
+                <VoiceTextInput
+                  voiceId="edit-collection-name"
+                  label={t('appleMusic.collections.rename', 'Hernoemen')}
+                  value={editName}
+                  onChangeText={handleNameChange}
+                  maxLength={50}
+                />
+
+                {/* Song count info */}
+                <Text style={[styles.songCount, { color: themeColors.textSecondary }]}>
+                  {t('appleMusic.collections.songCount', '{{count}} nummers', {
+                    count: collection.songCatalogIds.length,
+                  })}
+                </Text>
+
+                {/* Delete collection button */}
+                <View style={styles.deleteSection}>
+                  <HapticTouchable
+                    style={[styles.deleteButton, { borderColor: themeColors.error }]}
+                    onPress={handleDelete}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('appleMusic.collections.deleteCollection', 'Verzameling verwijderen')}
+                  >
+                    <Icon name="trash" size={20} color={themeColors.error} />
+                    <Text style={[styles.deleteButtonText, { color: themeColors.error }]}>
+                      {t('appleMusic.collections.deleteCollection', 'Verzameling verwijderen')}
+                    </Text>
+                  </HapticTouchable>
+                </View>
+
+                {/* Bottom spacing */}
+                <View style={{ height: spacing.xl }} />
+              </View>
+            }
+          />
         </LiquidGlassView>
       </View>
     </PanelAwareModal>

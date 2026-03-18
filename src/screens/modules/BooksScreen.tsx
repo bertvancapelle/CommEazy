@@ -43,7 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, ModuleScreenLayout, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, type SearchBarRef, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, ModuleScreenLayout, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, ModalLayout, type SearchBarRef, PanelAwareModal } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -779,57 +779,65 @@ export function BooksScreen() {
               >
                 <View style={styles.modalOverlay}>
                   <LiquidGlassView moduleId="books" style={styles.modalContent} cornerRadius={borderRadius.lg}>
-                    <View style={styles.modalHeader}>
-                      <Icon name="book" size={48} color={booksModuleColor} />
-                      <Text style={styles.modalTitle}>{t('modules.books.welcomeTitle')}</Text>
-                    </View>
+                    <ModalLayout
+                      headerBlock={
+                        <View style={styles.modalHeader}>
+                          <Icon name="book" size={48} color={booksModuleColor} />
+                          <Text style={styles.modalTitle}>{t('modules.books.welcomeTitle')}</Text>
+                        </View>
+                      }
+                      contentBlock={
+                        <>
+                          <Text style={styles.modalText}>
+                            {t('modules.books.welcomeText')}
+                          </Text>
 
-                    <Text style={styles.modalText}>
-                      {t('modules.books.welcomeText')}
-                    </Text>
+                          <View style={styles.modalStep}>
+                            <View style={styles.modalStepNumber}>
+                              <Text style={styles.modalStepNumberText}>1</Text>
+                            </View>
+                            <Text style={styles.modalStepText}>
+                              {t('modules.books.welcomeStep1')}
+                            </Text>
+                          </View>
 
-                    <View style={styles.modalStep}>
-                      <View style={styles.modalStepNumber}>
-                        <Text style={styles.modalStepNumberText}>1</Text>
-                      </View>
-                      <Text style={styles.modalStepText}>
-                        {t('modules.books.welcomeStep1')}
-                      </Text>
-                    </View>
+                          <View style={styles.modalStep}>
+                            <View style={styles.modalStepNumber}>
+                              <Text style={styles.modalStepNumberText}>2</Text>
+                            </View>
+                            <Text style={styles.modalStepText}>
+                              {t('modules.books.welcomeStep2')}
+                            </Text>
+                          </View>
 
-                    <View style={styles.modalStep}>
-                      <View style={styles.modalStepNumber}>
-                        <Text style={styles.modalStepNumberText}>2</Text>
-                      </View>
-                      <Text style={styles.modalStepText}>
-                        {t('modules.books.welcomeStep2')}
-                      </Text>
-                    </View>
-
-                    <View style={styles.modalStep}>
-                      <View style={styles.modalStepNumber}>
-                        <Text style={styles.modalStepNumberText}>3</Text>
-                      </View>
-                      <Text style={styles.modalStepText}>
-                        {t('modules.books.welcomeStep3')}
-                      </Text>
-                    </View>
-
-                    <HapticTouchable hapticDisabled
-                      style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
-                      onPress={() => {
-                        triggerFeedback('tap');
-                        setShowWelcomeModal(false);
-                        setShowLibrary(false);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.welcomeButton')}
-                    >
-                      <Icon name="search" size={24} color={colors.textOnPrimary} />
-                      <Text style={styles.modalButtonText}>
-                        {t('modules.books.welcomeButton')}
-                      </Text>
-                    </HapticTouchable>
+                          <View style={styles.modalStep}>
+                            <View style={styles.modalStepNumber}>
+                              <Text style={styles.modalStepNumberText}>3</Text>
+                            </View>
+                            <Text style={styles.modalStepText}>
+                              {t('modules.books.welcomeStep3')}
+                            </Text>
+                          </View>
+                        </>
+                      }
+                      footerBlock={
+                        <HapticTouchable hapticDisabled
+                          style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
+                          onPress={() => {
+                            triggerFeedback('tap');
+                            setShowWelcomeModal(false);
+                            setShowLibrary(false);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('modules.books.welcomeButton')}
+                        >
+                          <Icon name="search" size={24} color={colors.textOnPrimary} />
+                          <Text style={styles.modalButtonText}>
+                            {t('modules.books.welcomeButton')}
+                          </Text>
+                        </HapticTouchable>
+                      }
+                    />
                   </LiquidGlassView>
                 </View>
               </PanelAwareModal>
@@ -974,69 +982,73 @@ export function BooksScreen() {
               >
                 <View style={styles.modalOverlay}>
                   <LiquidGlassView moduleId="books" style={styles.modeModalContent} cornerRadius={borderRadius.lg}>
-                    {/* Book title */}
-                    {selectedBookForMode && (
-                      <View style={styles.modeModalHeader}>
-                        <Text style={styles.modeModalTitle} numberOfLines={2}>
-                          {selectedBookForMode.title}
-                        </Text>
-                        <Text style={styles.modeModalAuthor} numberOfLines={1}>
-                          {selectedBookForMode.author}
-                        </Text>
-                      </View>
-                    )}
+                    <ModalLayout
+                      headerBlock={
+                        <>
+                          {selectedBookForMode && (
+                            <View style={styles.modeModalHeader}>
+                              <Text style={styles.modeModalTitle} numberOfLines={2}>
+                                {selectedBookForMode.title}
+                              </Text>
+                              <Text style={styles.modeModalAuthor} numberOfLines={1}>
+                                {selectedBookForMode.author}
+                              </Text>
+                            </View>
+                          )}
+                          <Text style={styles.modeModalQuestion}>
+                            {t('modules.books.modeQuestion')}
+                          </Text>
+                        </>
+                      }
+                      contentBlock={
+                        <>
+                          <HapticTouchable hapticDisabled
+                            style={styles.modeOption}
+                            onPress={() => handleModeSelect('read')}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('modules.books.read')}
+                            accessibilityHint={t('modules.books.readHint')}
+                          >
+                            <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
+                              <Icon name="document-text" size={32} color={colors.textOnPrimary} />
+                            </View>
+                            <View style={styles.modeOptionText}>
+                              <Text style={styles.modeOptionTitle}>{t('modules.books.read')}</Text>
+                              <Text style={styles.modeOptionDescription}>{t('modules.books.readDescription')}</Text>
+                            </View>
+                          </HapticTouchable>
 
-                    {/* Mode options */}
-                    <Text style={styles.modeModalQuestion}>
-                      {t('modules.books.modeQuestion')}
-                    </Text>
-
-                    {/* Read option */}
-                    <HapticTouchable hapticDisabled
-                      style={styles.modeOption}
-                      onPress={() => handleModeSelect('read')}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.read')}
-                      accessibilityHint={t('modules.books.readHint')}
-                    >
-                      <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
-                        <Icon name="document-text" size={32} color={colors.textOnPrimary} />
-                      </View>
-                      <View style={styles.modeOptionText}>
-                        <Text style={styles.modeOptionTitle}>{t('modules.books.read')}</Text>
-                        <Text style={styles.modeOptionDescription}>{t('modules.books.readDescription')}</Text>
-                      </View>
-                    </HapticTouchable>
-
-                    {/* Listen option */}
-                    <HapticTouchable hapticDisabled
-                      style={styles.modeOption}
-                      onPress={() => handleModeSelect('listen')}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.books.listen')}
-                      accessibilityHint={t('modules.books.listenHint')}
-                    >
-                      <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
-                        <Icon name="headset" size={32} color={colors.textOnPrimary} />
-                      </View>
-                      <View style={styles.modeOptionText}>
-                        <Text style={styles.modeOptionTitle}>{t('modules.books.listen')}</Text>
-                        <Text style={styles.modeOptionDescription}>{t('modules.books.listenDescription')}</Text>
-                      </View>
-                    </HapticTouchable>
-
-                    {/* Cancel button */}
-                    <HapticTouchable hapticDisabled
-                      style={styles.modeModalCancel}
-                      onPress={() => {
-                        setShowModeModal(false);
-                        setSelectedBookForMode(null);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.cancel')}
-                    >
-                      <Text style={styles.modeModalCancelText}>{t('common.cancel')}</Text>
-                    </HapticTouchable>
+                          <HapticTouchable hapticDisabled
+                            style={styles.modeOption}
+                            onPress={() => handleModeSelect('listen')}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('modules.books.listen')}
+                            accessibilityHint={t('modules.books.listenHint')}
+                          >
+                            <View style={[styles.modeOptionIcon, { backgroundColor: booksModuleColor }]}>
+                              <Icon name="headset" size={32} color={colors.textOnPrimary} />
+                            </View>
+                            <View style={styles.modeOptionText}>
+                              <Text style={styles.modeOptionTitle}>{t('modules.books.listen')}</Text>
+                              <Text style={styles.modeOptionDescription}>{t('modules.books.listenDescription')}</Text>
+                            </View>
+                          </HapticTouchable>
+                        </>
+                      }
+                      footerBlock={
+                        <HapticTouchable hapticDisabled
+                          style={styles.modeModalCancel}
+                          onPress={() => {
+                            setShowModeModal(false);
+                            setSelectedBookForMode(null);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.cancel')}
+                        >
+                          <Text style={styles.modeModalCancelText}>{t('common.cancel')}</Text>
+                        </HapticTouchable>
+                      }
+                    />
                   </LiquidGlassView>
                 </View>
               </PanelAwareModal>

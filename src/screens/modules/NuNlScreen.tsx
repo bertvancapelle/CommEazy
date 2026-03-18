@@ -34,6 +34,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
 import { Icon, IconButton, VoiceFocusable, ModuleHeader, ModuleScreenLayout, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView , ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -210,54 +212,57 @@ function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeM
       onRequestClose={onDismiss}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
-          {/* Header */}
-          <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
-            <Icon name="news" size={48} color={themeColors.textOnPrimary} />
-            <Text style={[styles.welcomeTitle, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.title')}</Text>
-          </View>
-
-          {/* Steps */}
-          <View style={styles.welcomeContent}>
-            <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>1</Text>
+        <LiquidGlassView moduleId="nunl" style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]} cornerRadius={borderRadius.lg}>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
+                <Icon name="news" size={48} color={themeColors.textOnPrimary} />
+                <Text style={[styles.welcomeTitle, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.title')}</Text>
               </View>
-              <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                {t('modules.nunl.welcome.step1')}
-              </Text>
-            </View>
+            }
+            contentBlock={
+              <View style={styles.welcomeContent}>
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                    <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>1</Text>
+                  </View>
+                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                    {t('modules.nunl.welcome.step1')}
+                  </Text>
+                </View>
 
-            <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>2</Text>
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                    <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>2</Text>
+                  </View>
+                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                    {t('modules.nunl.welcome.step2')}
+                  </Text>
+                </View>
+
+                <View style={styles.welcomeStep}>
+                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                    <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>3</Text>
+                  </View>
+                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                    {t('modules.nunl.welcome.step3')}
+                  </Text>
+                </View>
               </View>
-              <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                {t('modules.nunl.welcome.step2')}
-              </Text>
-            </View>
-
-            <View style={styles.welcomeStep}>
-              <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                <Text style={[styles.stepNumberText, { color: themeColors.textOnPrimary }]}>3</Text>
-              </View>
-              <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                {t('modules.nunl.welcome.step3')}
-              </Text>
-            </View>
-          </View>
-
-          {/* Button */}
-          <HapticTouchable hapticDisabled
-            style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
-            onPress={onDismiss}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.nunl.welcome.understood')}
-          >
-            <Text style={[styles.welcomeButtonText, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.welcome.understood')}</Text>
-          </HapticTouchable>
-        </View>
+            }
+            footerBlock={
+              <HapticTouchable hapticDisabled
+                style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
+                onPress={onDismiss}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.nunl.welcome.understood')}
+              >
+                <Text style={[styles.welcomeButtonText, { color: themeColors.textOnPrimary }]}>{t('modules.nunl.welcome.understood')}</Text>
+              </HapticTouchable>
+            }
+          />
+        </LiquidGlassView>
       </View>
     </PanelAwareModal>
   );

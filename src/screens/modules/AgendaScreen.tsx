@@ -34,6 +34,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { Icon, ModuleHeader, ModuleScreenLayout, HapticTouchable, LoadingView, SearchBar , ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import { useColors } from '@/contexts/ThemeContext';
 import {
   AgendaProvider,
@@ -683,58 +685,61 @@ function AgendaScreenInner() {
           onRequestClose={handleWelcomeDismiss}
         >
           <View style={styles.modalOverlay}>
-            <View style={[styles.welcomeModal, { backgroundColor: themeColors.surface, paddingBottom: insets.bottom + spacing.lg }]}>
-              {/* Header */}
-              <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
-                <Icon name="calendar" size={48} color={colors.textOnPrimary} />
-                <Text style={[styles.welcomeTitle, { color: colors.textOnPrimary }]}>
-                  {t('modules.agenda.title')}
-                </Text>
-              </View>
-
-              {/* Steps */}
-              <View style={styles.welcomeContent}>
-                <View style={styles.welcomeStep}>
-                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                    <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>1</Text>
+            <LiquidGlassView moduleId="agenda" style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]} cornerRadius={borderRadius.lg}>
+              <ModalLayout
+                headerBlock={
+                  <View style={[styles.welcomeHeader, { backgroundColor: moduleColor }]}>
+                    <Icon name="calendar" size={48} color={colors.textOnPrimary} />
+                    <Text style={[styles.welcomeTitle, { color: colors.textOnPrimary }]}>
+                      {t('modules.agenda.title')}
+                    </Text>
                   </View>
-                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                    {t('modules.agenda.welcome.step1')}
-                  </Text>
-                </View>
+                }
+                contentBlock={
+                  <View style={styles.welcomeContent}>
+                    <View style={styles.welcomeStep}>
+                      <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                        <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>1</Text>
+                      </View>
+                      <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                        {t('modules.agenda.welcome.step1')}
+                      </Text>
+                    </View>
 
-                <View style={styles.welcomeStep}>
-                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                    <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>2</Text>
+                    <View style={styles.welcomeStep}>
+                      <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                        <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>2</Text>
+                      </View>
+                      <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                        {t('modules.agenda.welcome.step2')}
+                      </Text>
+                    </View>
+
+                    <View style={styles.welcomeStep}>
+                      <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
+                        <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>3</Text>
+                      </View>
+                      <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
+                        {t('modules.agenda.welcome.step3')}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                    {t('modules.agenda.welcome.step2')}
-                  </Text>
-                </View>
-
-                <View style={styles.welcomeStep}>
-                  <View style={[styles.stepNumber, { backgroundColor: accentColor.primary }]}>
-                    <Text style={[styles.stepNumberText, { color: colors.textOnPrimary }]}>3</Text>
-                  </View>
-                  <Text style={[styles.stepText, { color: themeColors.textPrimary }]}>
-                    {t('modules.agenda.welcome.step3')}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Button */}
-              <HapticTouchable hapticDisabled
-                style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
-                onPress={handleWelcomeDismiss}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel={t('modules.agenda.welcome.understood')}
-              >
-                <Text style={[styles.welcomeButtonText, { color: colors.textOnPrimary }]}>
-                  {t('modules.agenda.welcome.understood')}
-                </Text>
-              </HapticTouchable>
-            </View>
+                }
+                footerBlock={
+                  <HapticTouchable hapticDisabled
+                    style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
+                    onPress={handleWelcomeDismiss}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.agenda.welcome.understood')}
+                  >
+                    <Text style={[styles.welcomeButtonText, { color: colors.textOnPrimary }]}>
+                      {t('modules.agenda.welcome.understood')}
+                    </Text>
+                  </HapticTouchable>
+                }
+              />
+            </LiquidGlassView>
           </View>
         </PanelAwareModal>
       </>

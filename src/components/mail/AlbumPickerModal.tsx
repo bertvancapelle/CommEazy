@@ -37,6 +37,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, LoadingView, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 
 // ============================================================
 // Types
@@ -201,118 +202,124 @@ export function AlbumPickerModal({
       onRequestClose={handleClose}
     >
       <LiquidGlassView moduleId="mail" style={styles.container} cornerRadius={0}>
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-          <HapticTouchable hapticDisabled
-            style={styles.headerButton}
-            onPress={handleClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.cancel')}
-          >
-            <Text style={[styles.headerButtonText, { color: accentColor.primary }]}>
-              {t('common.cancel')}
-            </Text>
-          </HapticTouchable>
+        <ModalLayout
+          headerBlock={
+            <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+              <HapticTouchable hapticDisabled
+                style={styles.headerButton}
+                onPress={handleClose}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cancel')}
+              >
+                <Text style={[styles.headerButtonText, { color: accentColor.primary }]}>
+                  {t('common.cancel')}
+                </Text>
+              </HapticTouchable>
 
-          <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-            {t('modules.mail.compose.selectPhotos')}
-          </Text>
-
-          <HapticTouchable hapticDisabled
-            style={styles.headerButton}
-            onPress={handleConfirm}
-            disabled={isOverLimit || selectedPhotos.size === 0}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.mail.compose.attachSelected')}
-          >
-            <Text
-              style={[
-                styles.headerButtonText,
-                { color: isOverLimit || selectedPhotos.size === 0
-                  ? themeColors.textSecondary
-                  : accentColor.primary
-                },
-              ]}
-            >
-              {selectedPhotos.size > 0
-                ? `${t('modules.mail.compose.attach')} (${selectedPhotos.size})`
-                : t('modules.mail.compose.attach')
-              }
-            </Text>
-          </HapticTouchable>
-        </View>
-
-        {/* Size warning */}
-        {isOverWarning && (
-          <View style={[styles.warningBanner, { backgroundColor: isOverLimit ? '#FFEBEE' : '#FFF3E0' }]}>
-            <Icon name="warning" size={20} color={isOverLimit ? themeColors.error : themeColors.warning} />
-            <Text style={[styles.warningText, { color: isOverLimit ? themeColors.error : themeColors.warning }]}>
-              {isOverLimit
-                ? t('modules.mail.compose.totalSizeExceeded')
-                : t('modules.mail.compose.totalSizeWarning')
-              }
-            </Text>
-          </View>
-        )}
-
-        {/* Photo Grid */}
-        {loadError ? (
-          <View style={styles.loadingContainer}>
-            <Icon name="warning" size={48} color={themeColors.textSecondary} />
-            <Text style={[styles.errorText, { color: themeColors.textPrimary }]}>
-              {t('modules.mail.compose.photoAccessUnavailable')}
-            </Text>
-            <Text style={[styles.errorHint, { color: themeColors.textSecondary }]}>
-              {t('modules.mail.compose.photoAccessHint')}
-            </Text>
-            <HapticTouchable hapticDisabled
-              style={[styles.settingsButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => Linking.openSettings()}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.mail.compose.openSettings')}
-            >
-              <Text style={styles.settingsButtonText}>
-                {t('modules.mail.compose.openSettings')}
+              <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+                {t('modules.mail.compose.selectPhotos')}
               </Text>
-            </HapticTouchable>
-          </View>
-        ) : isLoading ? (
-          <LoadingView message={t('common.loading')} />
-        ) : (
-          <ScrollView contentContainerStyle={styles.gridContent}>
-            <View style={styles.grid}>
-              {photos.map(photo => {
-                const isSelected = selectedPhotos.has(photo.uri);
-                return (
-                  <HapticTouchable hapticDisabled
-                    key={photo.uri}
-                    style={[
-                      styles.gridItem,
-                      { width: itemSize, height: itemSize },
-                      isSelected && { borderColor: accentColor.primary, borderWidth: 3 },
-                    ]}
-                    onPress={() => handleToggle(photo.uri)}
-                    activeOpacity={0.7}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: isSelected }}
-                    accessibilityLabel={photo.fileName}
-                  >
-                    <Image
-                      source={{ uri: photo.uri }}
-                      style={styles.gridImage}
-                      resizeMode="cover"
-                    />
-                    {isSelected && (
-                      <View style={[styles.checkmark, { backgroundColor: accentColor.primary }]}>
-                        <Icon name="check" size={16} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </HapticTouchable>
-                );
-              })}
+
+              <HapticTouchable hapticDisabled
+                style={styles.headerButton}
+                onPress={handleConfirm}
+                disabled={isOverLimit || selectedPhotos.size === 0}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.mail.compose.attachSelected')}
+              >
+                <Text
+                  style={[
+                    styles.headerButtonText,
+                    { color: isOverLimit || selectedPhotos.size === 0
+                      ? themeColors.textSecondary
+                      : accentColor.primary
+                    },
+                  ]}
+                >
+                  {selectedPhotos.size > 0
+                    ? `${t('modules.mail.compose.attach')} (${selectedPhotos.size})`
+                    : t('modules.mail.compose.attach')
+                  }
+                </Text>
+              </HapticTouchable>
             </View>
-          </ScrollView>
-        )}
+          }
+          contentBlock={
+            <>
+              {/* Size warning */}
+              {isOverWarning && (
+                <View style={[styles.warningBanner, { backgroundColor: isOverLimit ? '#FFEBEE' : '#FFF3E0' }]}>
+                  <Icon name="warning" size={20} color={isOverLimit ? themeColors.error : themeColors.warning} />
+                  <Text style={[styles.warningText, { color: isOverLimit ? themeColors.error : themeColors.warning }]}>
+                    {isOverLimit
+                      ? t('modules.mail.compose.totalSizeExceeded')
+                      : t('modules.mail.compose.totalSizeWarning')
+                    }
+                  </Text>
+                </View>
+              )}
+
+              {/* Photo Grid */}
+              {loadError ? (
+                <View style={styles.loadingContainer}>
+                  <Icon name="warning" size={48} color={themeColors.textSecondary} />
+                  <Text style={[styles.errorText, { color: themeColors.textPrimary }]}>
+                    {t('modules.mail.compose.photoAccessUnavailable')}
+                  </Text>
+                  <Text style={[styles.errorHint, { color: themeColors.textSecondary }]}>
+                    {t('modules.mail.compose.photoAccessHint')}
+                  </Text>
+                  <HapticTouchable hapticDisabled
+                    style={[styles.settingsButton, { backgroundColor: accentColor.primary }]}
+                    onPress={() => Linking.openSettings()}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('modules.mail.compose.openSettings')}
+                  >
+                    <Text style={styles.settingsButtonText}>
+                      {t('modules.mail.compose.openSettings')}
+                    </Text>
+                  </HapticTouchable>
+                </View>
+              ) : isLoading ? (
+                <LoadingView message={t('common.loading')} />
+              ) : (
+                <ScrollView contentContainerStyle={styles.gridContent}>
+                  <View style={styles.grid}>
+                    {photos.map(photo => {
+                      const isSelected = selectedPhotos.has(photo.uri);
+                      return (
+                        <HapticTouchable hapticDisabled
+                          key={photo.uri}
+                          style={[
+                            styles.gridItem,
+                            { width: itemSize, height: itemSize },
+                            isSelected && { borderColor: accentColor.primary, borderWidth: 3 },
+                          ]}
+                          onPress={() => handleToggle(photo.uri)}
+                          activeOpacity={0.7}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: isSelected }}
+                          accessibilityLabel={photo.fileName}
+                        >
+                          <Image
+                            source={{ uri: photo.uri }}
+                            style={styles.gridImage}
+                            resizeMode="cover"
+                          />
+                          {isSelected && (
+                            <View style={[styles.checkmark, { backgroundColor: accentColor.primary }]}>
+                              <Icon name="check" size={16} color="#FFFFFF" />
+                            </View>
+                          )}
+                        </HapticTouchable>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              )}
+            </>
+          }
+        />
       </LiquidGlassView>
     </PanelAwareModal>
   );

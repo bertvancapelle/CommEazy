@@ -29,6 +29,8 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, PanelAwareModal } from '@/components';
+import { LiquidGlassView } from '@/components/LiquidGlassView';
+import { ModalLayout } from '@/components/ModalLayout';
 import { openURL as contentRouterOpenURL } from '@/services/mail/contentRouter';
 import {
   isWhitelisted as isDomainWhitelisted,
@@ -236,69 +238,75 @@ export function MailBodyWebView({
         onRequestClose={handleDismissWarningModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]}>
-            {/* Warning icon + title */}
-            <View style={styles.modalHeader}>
-              <Icon name="warning" size={28} color="#E65100" />
-              <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
-                {t('modules.mail.detail.warningModalTitle')}
-              </Text>
-            </View>
+          <LiquidGlassView moduleId="mail" style={styles.modalContent} cornerRadius={borderRadius.lg}>
+            <ModalLayout
+              headerBlock={
+                <View style={styles.modalHeader}>
+                  <Icon name="warning" size={28} color="#E65100" />
+                  <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
+                    {t('modules.mail.detail.warningModalTitle')}
+                  </Text>
+                </View>
+              }
+              contentBlock={
+                <>
+                  {/* Warning text */}
+                  <Text style={[styles.modalBody, { color: themeColors.textPrimary }]}>
+                    {t('modules.mail.detail.warningModalBody')}
+                  </Text>
 
-            {/* Warning text */}
-            <Text style={[styles.modalBody, { color: themeColors.textPrimary }]}>
-              {t('modules.mail.detail.warningModalBody')}
-            </Text>
+                  {/* Sender domain info */}
+                  {senderDomain ? (
+                    <View style={[styles.modalDomainRow, { backgroundColor: themeColors.background }]}>
+                      <Text style={[styles.modalDomainLabel, { color: themeColors.textSecondary }]}>
+                        {t('modules.mail.detail.warningModalSender')}
+                      </Text>
+                      <Text style={[styles.modalDomainValue, { color: themeColors.textPrimary }]}>
+                        {senderDomain}
+                      </Text>
+                    </View>
+                  ) : null}
 
-            {/* Sender domain info */}
-            {senderDomain ? (
-              <View style={[styles.modalDomainRow, { backgroundColor: themeColors.background }]}>
-                <Text style={[styles.modalDomainLabel, { color: themeColors.textSecondary }]}>
-                  {t('modules.mail.detail.warningModalSender')}
-                </Text>
-                <Text style={[styles.modalDomainValue, { color: themeColors.textPrimary }]}>
-                  {senderDomain}
-                </Text>
-              </View>
-            ) : null}
+                  {/* Whitelist toggle */}
+                  {senderDomain ? (
+                    <View style={[styles.modalToggleRow, { borderColor: themeColors.border }]}>
+                      <Text style={[styles.modalToggleLabel, { color: themeColors.textPrimary }]}>
+                        {t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
+                      </Text>
+                      <Switch
+                        value={whitelistToggle}
+                        onValueChange={(value) => {
+                          triggerHaptic('tap');
+                          setWhitelistToggle(value);
+                        }}
+                        trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
+                        thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+                        accessibilityLabel={t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
+                      />
+                    </View>
+                  ) : null}
 
-            {/* Whitelist toggle */}
-            {senderDomain ? (
-              <View style={[styles.modalToggleRow, { borderColor: themeColors.border }]}>
-                <Text style={[styles.modalToggleLabel, { color: themeColors.textPrimary }]}>
-                  {t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
-                </Text>
-                <Switch
-                  value={whitelistToggle}
-                  onValueChange={(value) => {
-                    triggerHaptic('tap');
-                    setWhitelistToggle(value);
-                  }}
-                  trackColor={{ false: themeColors.disabled, true: accentColor.primary }}
-                  thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
-                  accessibilityLabel={t('modules.mail.detail.warningModalAlwaysAllow', { domain: senderDomain })}
-                />
-              </View>
-            ) : null}
-
-            {/* Settings reference */}
-            <Text style={[styles.modalSettingsHint, { color: themeColors.textSecondary }]}>
-              {t('modules.mail.detail.warningModalSettingsHint')}
-            </Text>
-
-            {/* Dismiss button */}
-            <HapticTouchable hapticDisabled
-              style={[styles.modalDismissButton, { backgroundColor: accentColor.primary }]}
-              onPress={handleDismissWarningModal}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.mail.detail.warningModalDismiss')}
-            >
-              <Text style={styles.modalDismissButtonText}>
-                {t('modules.mail.detail.warningModalDismiss')}
-              </Text>
-            </HapticTouchable>
-          </View>
+                  {/* Settings reference */}
+                  <Text style={[styles.modalSettingsHint, { color: themeColors.textSecondary }]}>
+                    {t('modules.mail.detail.warningModalSettingsHint')}
+                  </Text>
+                </>
+              }
+              footerBlock={
+                <HapticTouchable hapticDisabled
+                  style={[styles.modalDismissButton, { backgroundColor: accentColor.primary }]}
+                  onPress={handleDismissWarningModal}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.mail.detail.warningModalDismiss')}
+                >
+                  <Text style={styles.modalDismissButtonText}>
+                    {t('modules.mail.detail.warningModalDismiss')}
+                  </Text>
+                </HapticTouchable>
+              }
+            />
+          </LiquidGlassView>
         </View>
       </PanelAwareModal>
 
