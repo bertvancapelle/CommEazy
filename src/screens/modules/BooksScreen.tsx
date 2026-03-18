@@ -36,6 +36,7 @@ import {
   Image,
   Alert,
   DeviceEventEmitter,
+  Pressable,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -777,7 +778,7 @@ export function BooksScreen() {
                 }}
                 accessibilityViewIsModal={true}
               >
-                <View style={styles.modalOverlay}>
+                <Pressable style={styles.modalOverlay} onPress={() => { setShowWelcomeModal(false); setShowLibrary(false); }}>
                   <LiquidGlassView moduleId="books" style={styles.modalContent} cornerRadius={borderRadius.lg}>
                     <ModalLayout
                       headerBlock={
@@ -839,7 +840,7 @@ export function BooksScreen() {
                       }
                     />
                   </LiquidGlassView>
-                </View>
+                </Pressable>
               </PanelAwareModal>
 
               {/* Cleanup Modal */}
@@ -980,7 +981,7 @@ export function BooksScreen() {
                 }}
                 accessibilityViewIsModal={true}
               >
-                <View style={styles.modalOverlay}>
+                <Pressable style={styles.modalOverlay} onPress={() => { setShowModeModal(false); setSelectedBookForMode(null); }}>
                   <LiquidGlassView moduleId="books" style={styles.modeModalContent} cornerRadius={borderRadius.lg}>
                     <ModalLayout
                       headerBlock={
@@ -1050,7 +1051,7 @@ export function BooksScreen() {
                       }
                     />
                   </LiquidGlassView>
-                </View>
+                </Pressable>
               </PanelAwareModal>
             </>
           }

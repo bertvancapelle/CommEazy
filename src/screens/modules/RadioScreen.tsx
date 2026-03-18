@@ -29,6 +29,8 @@ import {
   KeyboardAvoidingView,
   Alert,
   DeviceEventEmitter,
+  Pressable,
+  Image,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -1048,6 +1050,15 @@ export function RadioScreen() {
                     </View>
                   )}
 
+                  {/* Station artwork thumbnail */}
+                  {station.favicon ? (
+                    <Image source={{ uri: station.favicon }} style={styles.stationArtwork} accessibilityLabel={station.name} />
+                  ) : (
+                    <View style={[styles.stationArtwork, styles.stationArtworkPlaceholder, { backgroundColor: radioModuleColor }]}>
+                      <Icon name="radio" size={32} color={colors.textOnPrimary} />
+                    </View>
+                  )}
+
                   {/* Station info - tappable area for playing */}
                   <HapticTouchable hapticDisabled
                     style={styles.stationInfoTouchable}
@@ -1208,7 +1219,7 @@ export function RadioScreen() {
         }}
         accessibilityViewIsModal={true}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowNoFavoritesModal(false)}>
           <LiquidGlassView moduleId="radio" style={[styles.modalContent, { backgroundColor: themeColors.surface }]} cornerRadius={16}>
             <ModalLayout
               headerBlock={
@@ -1270,7 +1281,7 @@ export function RadioScreen() {
               }
             />
           </LiquidGlassView>
-        </View>
+        </Pressable>
       </PanelAwareModal>
 
       {/* ============================================================
@@ -1374,6 +1385,15 @@ export function RadioScreen() {
                           size={24}
                           isPlaying={isPlaying}
                         />
+                      </View>
+                    )}
+
+                    {/* Station artwork thumbnail */}
+                    {station.favicon ? (
+                      <Image source={{ uri: station.favicon }} style={styles.stationArtwork} accessibilityLabel={station.name} />
+                    ) : (
+                      <View style={[styles.stationArtwork, styles.stationArtworkPlaceholder, { backgroundColor: radioModuleColor }]}>
+                        <Icon name="radio" size={32} color={colors.textOnPrimary} />
                       </View>
                     )}
 
@@ -1616,6 +1636,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.sm,
+  },
+  stationArtwork: {
+    width: 72,
+    height: 72,
+    borderRadius: borderRadius.sm,
+    marginRight: spacing.sm,
+  },
+  stationArtworkPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   favoriteButton: {
     width: touchTargets.minimum,

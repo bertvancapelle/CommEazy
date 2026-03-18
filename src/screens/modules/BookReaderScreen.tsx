@@ -29,6 +29,7 @@ import {
   PanResponder,
   Linking,
   Platform,
+  Pressable,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -591,7 +592,7 @@ export function BookReaderScreen() {
         onRequestClose={() => setShowSettingsModal(false)}
         accessibilityViewIsModal={true}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowSettingsModal(false)}>
           <LiquidGlassView moduleId="books" style={[styles.settingsModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             <ModalLayout
               headerBlock={
@@ -746,7 +747,7 @@ export function BookReaderScreen() {
               }
             />
           </LiquidGlassView>
-        </View>
+        </Pressable>
       </PanelAwareModal>
 
       {/* Sleep Timer Modal */}
@@ -757,7 +758,7 @@ export function BookReaderScreen() {
         onRequestClose={() => setShowSleepTimerModal(false)}
         accessibilityViewIsModal={true}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowSleepTimerModal(false)}>
           <LiquidGlassView moduleId="books" style={[styles.sleepTimerModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             <View style={styles.sleepTimerHeader}>
               <Icon name="clock" size={32} color={booksModuleColor} />
@@ -815,7 +816,7 @@ export function BookReaderScreen() {
               <Text style={styles.sleepTimerCancelText}>{t('common.cancel')}</Text>
             </HapticTouchable>
           </LiquidGlassView>
-        </View>
+        </Pressable>
       </PanelAwareModal>
 
       {/* No High Quality Voice Modal (blocks playback) */}
@@ -826,7 +827,7 @@ export function BookReaderScreen() {
         onRequestClose={() => setShowNoHighQualityVoiceModal(false)}
         accessibilityViewIsModal={true}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowNoHighQualityVoiceModal(false)}>
           <LiquidGlassView moduleId="books" style={[styles.noVoiceModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             {/* Warning icon */}
             <View style={styles.noVoiceIconContainer}>
@@ -887,7 +888,7 @@ export function BookReaderScreen() {
               <Text style={styles.noVoiceCancelText}>{t('common.close')}</Text>
             </HapticTouchable>
           </LiquidGlassView>
-        </View>
+        </Pressable>
       </PanelAwareModal>
 
       {/* Voice Selection Modal - shows all Enhanced + Premium voices */}
@@ -898,7 +899,7 @@ export function BookReaderScreen() {
         onRequestClose={() => setShowVoiceSelectionModal(false)}
         accessibilityViewIsModal={true}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowVoiceSelectionModal(false)}>
           <LiquidGlassView moduleId="books" style={[styles.voiceSelectionModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             {/* Header */}
             <View style={styles.voiceSelectionHeader}>
@@ -1006,7 +1007,7 @@ export function BookReaderScreen() {
               <Text style={styles.voiceSelectionCancelText}>{t('common.cancel')}</Text>
             </HapticTouchable>
           </LiquidGlassView>
-        </View>
+        </Pressable>
       </PanelAwareModal>
 
       {/* Voice Unavailable Modal - shown when previously selected voice was deleted */}
@@ -1017,7 +1018,7 @@ export function BookReaderScreen() {
         onRequestClose={() => setShowVoiceUnavailableModal(false)}
         accessibilityViewIsModal={true}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowVoiceUnavailableModal(false)}>
           <LiquidGlassView moduleId="books" style={[styles.voiceUnavailableModalContent, { backgroundColor: colors.surface }]} cornerRadius={16}>
             {/* Warning icon */}
             <View style={styles.voiceUnavailableIconContainer}>
@@ -1073,7 +1074,7 @@ export function BookReaderScreen() {
               <Text style={styles.voiceUnavailableCancelText}>{t('common.cancel')}</Text>
             </HapticTouchable>
           </LiquidGlassView>
-        </View>
+        </Pressable>
       </PanelAwareModal>
     </View>
   );

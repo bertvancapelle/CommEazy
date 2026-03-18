@@ -25,6 +25,7 @@ import {
   ScrollView,
   RefreshControl,
   Image,
+  Pressable,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -211,7 +212,7 @@ function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeM
       transparent
       onRequestClose={onDismiss}
     >
-      <View style={styles.modalOverlay}>
+      <Pressable style={styles.modalOverlay} onPress={onDismiss}>
         <LiquidGlassView moduleId="nunl" style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]} cornerRadius={borderRadius.lg}>
           <ModalLayout
             headerBlock={
@@ -263,7 +264,7 @@ function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeM
             }
           />
         </LiquidGlassView>
-      </View>
+      </Pressable>
     </PanelAwareModal>
   );
 }

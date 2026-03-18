@@ -25,6 +25,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Linking,
+  Pressable,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -825,7 +826,7 @@ function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
       transparent
       onRequestClose={onDismiss}
     >
-      <View style={styles.modalOverlay}>
+      <Pressable style={styles.modalOverlay} onPress={onDismiss}>
         <LiquidGlassView moduleId="weather" style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]} cornerRadius={16}>
           <ModalLayout
             headerBlock={
@@ -871,7 +872,7 @@ function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
             }
           />
         </LiquidGlassView>
-      </View>
+      </Pressable>
     </PanelAwareModal>
   );
 }

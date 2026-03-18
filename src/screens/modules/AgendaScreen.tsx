@@ -27,6 +27,7 @@ import {
   Linking,
   Platform,
   Switch,
+  Pressable,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
@@ -684,7 +685,7 @@ function AgendaScreenInner() {
           transparent
           onRequestClose={handleWelcomeDismiss}
         >
-          <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalOverlay} onPress={handleWelcomeDismiss}>
             <LiquidGlassView moduleId="agenda" style={[styles.welcomeModal, { paddingBottom: insets.bottom + spacing.lg }]} cornerRadius={borderRadius.lg}>
               <ModalLayout
                 headerBlock={
@@ -740,7 +741,7 @@ function AgendaScreenInner() {
                 }
               />
             </LiquidGlassView>
-          </View>
+          </Pressable>
         </PanelAwareModal>
       </>
     );

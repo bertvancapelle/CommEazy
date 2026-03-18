@@ -19,6 +19,7 @@ import {
   Alert,
   Switch,
   Platform,
+  Pressable,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { WebView } from 'react-native-webview';
@@ -237,7 +238,7 @@ export function MailBodyWebView({
         animationType="fade"
         onRequestClose={handleDismissWarningModal}
       >
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={handleDismissWarningModal}>
           <LiquidGlassView moduleId="mail" style={styles.modalContent} cornerRadius={borderRadius.lg}>
             <ModalLayout
               headerBlock={
@@ -307,7 +308,7 @@ export function MailBodyWebView({
               }
             />
           </LiquidGlassView>
-        </View>
+        </Pressable>
       </PanelAwareModal>
 
       {/* WebView — renders the HTML mail body */}
