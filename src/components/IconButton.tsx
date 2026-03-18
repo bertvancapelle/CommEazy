@@ -5,11 +5,16 @@
  * recognizable as buttons. Seniors may not realize a standalone icon is
  * interactive.
  *
- * Visual states:
- * - Rest (inactive): 2px accent border, transparent bg, outline icon in accent
- * - Rest (active): 2px accent border, transparent bg, filled icon in accent
- * - Pressed: Accent fill, white icon
- * - Flash after release: Brief (250ms) return to rest state
+ * Variants:
+ * - "default": For use on light/content backgrounds
+ *   - Rest (inactive): 2px accent border, transparent bg, outline icon in accent
+ *   - Rest (active): 2px accent border, transparent bg, filled icon in accent
+ *   - Pressed: Accent fill, white icon
+ *
+ * - "onPrimary": For use on colored headers (module headers, modal headers)
+ *   - Rest: rgba(255,255,255,0.15) bg, no border, white icon
+ *   - Pressed: rgba(255,255,255,0.3) bg, white icon
+ *   - Consistent with ModuleHeader button styling
  *
  * @see .claude/skills/ui-designer/SKILL.md Section 10
  */
@@ -24,6 +29,8 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { useHoldGestureGuard } from '@/contexts/HoldGestureContext';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { colors, borderRadius, touchTargets } from '@/theme';
+
+export type IconButtonVariant = 'default' | 'onPrimary';
 
 export interface IconButtonProps {
   /** Icon name (outline version) */
@@ -44,8 +51,12 @@ export interface IconButtonProps {
   disabled?: boolean;
   /** Custom container style */
   style?: object;
-  /** Custom color (hex) - overrides accentColor. Use for module-specific colors. */
-  color?: string;
+  /**
+   * Visual variant:
+   * - "default": accent border + transparent bg (for content areas)
+   * - "onPrimary": white semi-transparent bg + white icon (for colored headers)
+   */
+  variant?: IconButtonVariant;
 }
 
 /**
@@ -68,6 +79,15 @@ export interface IconButtonProps {
  *   onPress={handleStop}
  *   accessibilityLabel={t('radio.stop')}
  * />
+ *
+ * @example
+ * // Close button on colored modal header
+ * <IconButton
+ *   icon="chevron-down"
+ *   variant="onPrimary"
+ *   onPress={handleClose}
+ *   accessibilityLabel={t('common.close')}
+ * />
  */
 export function IconButton({
   icon,
@@ -79,6 +99,7 @@ export function IconButton({
   size = 28,
   disabled = false,
   style,
+  variant = 'default',
 }: IconButtonProps) {
   const { accentColor } = useAccentColor();
   const reduceMotion = useReducedMotion();
@@ -86,6 +107,8 @@ export function IconButton({
   const buttonStyleContext = useButtonStyleSafe();
   const [isPressed, setIsPressed] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
+
+  const isOnPrimary = variant === 'onPrimary';
 
   const handlePressIn = useCallback(() => {
     setIsPressed(true);
@@ -112,12 +135,29 @@ export function IconButton({
   // Determine visual state
   const showFilled = isPressed || isFlashing;
   const currentIcon = isActive ? (iconActive || icon) : icon;
-  const iconColor = showFilled ? colors.textOnPrimary : accentColor.primary;
 
-  // User-configurable button border (overrides default accent border color)
-  const userBorderStyle = buttonStyleContext?.settings.borderEnabled
+  // Icon color depends on variant
+  const iconColor = isOnPrimary
+    ? colors.textOnPrimary  // Always white on colored headers
+    : showFilled ? colors.textOnPrimary : accentColor.primary;
+
+  // User-configurable button border (only for default variant)
+  const userBorderStyle = !isOnPrimary && buttonStyleContext?.settings.borderEnabled
     ? { borderColor: buttonStyleContext.getBorderColorHex() }
     : undefined;
+
+  // Container style depends on variant
+  const variantStyle = isOnPrimary
+    ? [
+        styles.containerOnPrimary,
+        showFilled && { backgroundColor: 'rgba(255, 255, 255, 0.3)' },
+      ]
+    : [
+        styles.container,
+        { borderColor: accentColor.primary },
+        userBorderStyle,
+        showFilled && { backgroundColor: accentColor.primary },
+      ];
 
   return (
     <HapticTouchable
@@ -127,10 +167,7 @@ export function IconButton({
       onPressOut={handlePressOut}
       disabled={disabled}
       style={[
-        styles.container,
-        { borderColor: accentColor.primary },
-        userBorderStyle,
-        showFilled && { backgroundColor: accentColor.primary },
+        ...variantStyle,
         disabled && styles.disabled,
         style,
       ]}
@@ -154,6 +191,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: borderRadius.md,    // 12pt (consistent with search/favorites tabs)
     backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  containerOnPrimary: {
+    width: touchTargets.minimum,      // 60pt
+    height: touchTargets.minimum,     // 60pt
+    borderRadius: borderRadius.md,    // 12pt
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',  // Consistent with ModuleHeader buttons
     alignItems: 'center',
     justifyContent: 'center',
   },

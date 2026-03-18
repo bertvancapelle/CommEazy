@@ -207,9 +207,9 @@ export function ArticlePreviewModal({
             <View style={styles.header}>
               <IconButton
                 icon="chevron-down"
+                variant="onPrimary"
                 onPress={handleClose}
                 size={48}
-                color={colors.textPrimary}
                 accessibilityLabel={t('articleViewer.close')}
               />
               <Text style={styles.headerTitle}>{t('articlePreview.title')}</Text>

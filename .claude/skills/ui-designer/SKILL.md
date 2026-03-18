@@ -2533,9 +2533,10 @@ grep -rn "✕\|×\|closeText" src/ --include="*.tsx"
 **Structuur:**
 1. **Safe Area spacer** — `<View style={{ height: insets.top }} />` bovenaan
 2. **Header row** — `flexDirection: 'row'`, `alignItems: 'center'`, `gap: spacing.sm`
-3. **Chevron-down** (links) — Sluit de modal, via `IconButton` met `size={28}`
+3. **Chevron-down** (links) — Sluit de modal, via `IconButton` met `variant="onPrimary"` en `size={28}`
 4. **Titel** (midden) — `flex: 1`, `numberOfLines={1}`, `typography.h3`, `textOnPrimary`
-5. **Actie-knop** (rechts, optioneel) — Contextafhankelijk (hartje, zoek, etc.)
+5. **Actie-knop** (rechts, optioneel) — Contextafhankelijk (hartje, zoek, etc.), ook `variant="onPrimary"`
+6. **GEEN spacer** — Titel met `flex: 1` vult automatisch de ruimte tussen knoppen. Geen `<View style={{ flex: 1 }} />` nodig.
 
 **Styling:**
 ```typescript
@@ -2570,6 +2571,7 @@ modalTitle: {
   <View style={styles.modalHeaderRow}>
     <IconButton
       icon="chevron-down"
+      variant="onPrimary"
       onPress={onClose}
       accessibilityLabel={t('common.close')}
       size={28}
@@ -2577,10 +2579,10 @@ modalTitle: {
     <Text style={styles.modalTitle} numberOfLines={1}>
       {title}
     </Text>
-    <View style={{ flex: 1 }} />
-    {/* Optionele actie-knop rechts */}
+    {/* Optionele actie-knop rechts — geen spacer nodig, titel flex:1 vult de ruimte */}
     <IconButton
       icon="heart"
+      variant="onPrimary"
       onPress={onAction}
       accessibilityLabel={actionLabel}
       size={28}
@@ -2589,17 +2591,29 @@ modalTitle: {
 </View>
 ```
 
+**⚠️ VERPLICHT: `variant="onPrimary"` op ALLE IconButtons in modal headers**
+
+IconButton heeft twee varianten:
+- `"default"` — Voor gebruik op lichte/content achtergronden (accent border, transparant)
+- `"onPrimary"` — Voor gebruik op gekleurde headers (`rgba(255,255,255,0.15)` achtergrond, wit icoon)
+
+Zonder `variant="onPrimary"` verdwijnt de IconButton visueel wanneer de accentkleur gelijk is aan de module achtergrondkleur (bijv. donkerblauw accent op donkerblauwe header).
+
 **Huidige adoptie:**
 
-| Modal | Header Pattern | Actie-knop rechts |
-|-------|---------------|-------------------|
-| Podcast Search Modal | ✅ | Geen (close rechts) |
-| Podcast Show Detail Modal | ✅ | Hartje (favoriet) |
-| Radio Search Modal | ✅ | Geen (close rechts) |
+| Modal | Header Pattern | variant="onPrimary" | Actie-knop rechts |
+|-------|---------------|---------------------|-------------------|
+| Podcast Search Modal | ✅ | ✅ | Geen (close rechts) |
+| Podcast Show Detail Modal | ✅ | ✅ | Hartje (favoriet) |
+| Radio Search Modal | ✅ | ✅ | Geen (close rechts) |
+| ArticlePreviewModal | ✅ | ✅ | Geen |
+| ArticleViewer | ✅ | ✅ | External-link |
 
 **Regels:**
 - Chevron-down ALTIJD links (sluit de modal)
+- `variant="onPrimary"` VERPLICHT op ALLE IconButtons in modal headers
 - Titel neemt resterende ruimte (flex: 1, numberOfLines: 1)
+- GEEN `<View style={{ flex: 1 }} />` spacer — titel flex:1 is voldoende
 - Alle tekst en iconen in `textOnPrimary` kleur
 - Achtergrondkleur via `useModuleColor(moduleId)` — NOOIT hardcoded hex
 - Touch targets ≥60pt op alle interactieve elementen

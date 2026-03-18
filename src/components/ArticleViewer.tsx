@@ -306,18 +306,18 @@ export function ArticleViewer({
         <View style={styles.header}>
           <IconButton
             icon="chevron-down"
+            variant="onPrimary"
             onPress={handleClose}
             size={48}
-            color={colors.textPrimary}
             accessibilityLabel={t('articleViewer.close')}
           />
 
           <View style={styles.headerActions}>
             <IconButton
               icon="external-link"
+              variant="onPrimary"
               onPress={handleOpenInBrowser}
               size={48}
-              color={accentColor}
               accessibilityLabel={t('articleViewer.openInBrowser')}
               disabled={isOpeningBrowser}
             />

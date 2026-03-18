@@ -25,7 +25,7 @@ export { ContactAvatar } from './ContactAvatar';
 export { Icon } from './Icon';
 export type { IconName } from './Icon';
 export { IconButton } from './IconButton';
-export type { IconButtonProps } from './IconButton';
+export type { IconButtonProps, IconButtonVariant } from './IconButton';
 
 // Senior-inclusive pattern components (MANDATORY)
 export { LoadingView } from './LoadingView';

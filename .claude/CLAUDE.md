@@ -387,6 +387,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Nieuwe of gewijzigde Modal** | **ui-designer, ios-specialist** — Modal Design Standaard (SKILL.md sectie 11b) MOET worden gevolgd: PageSheet (standaard) of FullScreen (uitzondering). **LiquidGlassView VERPLICHT** op ALLE modals (behalve DevModePanel en Players). **ModalLayout VERPLICHT** op categorie 1 (standaard dialogen) — respecteert toolbar positie (SKILL.md sectie 11c). `moduleId` prop VERPLICHT. |
 | **Datum/tijd picker toevoegen** | **BLOKKEERDER** — MOET `DateTimePickerModal` uit `@/components` gebruiken. Geen custom date pickers, geen raw `DateTimePicker` in modals. `moduleId` prop VERPLICHT. Zie Component Registry sectie "DateTimePickerModal" |
 | **Icon component gebruik** | **ui-designer** — Icoon MOET bestaan in IconName type, zie SKILL.md sectie 10b |
+| **IconButton in modal header** | **BLOKKEERDER** — `variant="onPrimary"` VERPLICHT op ALLE IconButtons op gekleurde achtergronden (modal headers, module headers). Zonder variant verdwijnt de knop visueel. Zie SKILL.md sectie 11b-2 |
 | **AccentColor properties** | **ui-designer** — Alleen bestaande properties gebruiken (primary/primaryLight/primaryDark/light/label), zie SKILL.md sectie 10c |
 | **Chat/message styling** | **ui-designer** — WhatsApp-style message direction pattern, zie SKILL.md sectie 10d |
 | **Device-specifieke navigation** | **architecture-lead, ui-designer** — UX Consistentie Principe (sectie 10c) MOET worden gevolgd |

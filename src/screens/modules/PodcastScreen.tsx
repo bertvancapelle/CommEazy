@@ -872,6 +872,7 @@ export function PodcastScreen() {
                   <View style={styles.showDetailModalHeaderRow}>
                     <IconButton
                       icon="chevron-down"
+                      variant="onPrimary"
                       onPress={() => setSelectedShow(null)}
                       accessibilityLabel={t('common.close')}
                       size={28}
@@ -879,9 +880,9 @@ export function PodcastScreen() {
                     <Text style={styles.showDetailModalTitle} numberOfLines={1}>
                       {selectedShow.title}
                     </Text>
-                    <View style={{ flex: 1 }} />
                     <IconButton
                       icon={isSubscribed(selectedShow.id) ? 'heart-filled' : 'heart'}
+                      variant="onPrimary"
                       onPress={() => handleToggleSubscribe(selectedShow)}
                       accessibilityLabel={
                         isSubscribed(selectedShow.id)
@@ -1429,6 +1430,7 @@ export function PodcastScreen() {
               <View style={{ flex: 1 }} />
               <IconButton
                 icon="chevron-down"
+                variant="onPrimary"
                 onPress={() => setShowSearchModal(false)}
                 accessibilityLabel={t('common.close')}
                 size={28}

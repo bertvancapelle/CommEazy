@@ -1285,6 +1285,7 @@ export function RadioScreen() {
               <View style={{ flex: 1 }} />
               <IconButton
                 icon="chevron-down"
+                variant="onPrimary"
                 onPress={() => setShowSearchModal(false)}
                 accessibilityLabel={t('common.close')}
                 size={28}
