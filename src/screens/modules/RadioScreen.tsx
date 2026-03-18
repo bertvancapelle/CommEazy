@@ -36,7 +36,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode , ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -957,121 +957,53 @@ export function RadioScreen() {
             />
           }
           controlsBlock={<>
-        {/* 3-way toggle: [❤️ Favorieten]  <space>  [Land] [Taal] */}
-        <View style={styles.toggleRow}>
-          {/* Favorites button — links */}
-          <HapticTouchable hapticDisabled
-            style={[
-              styles.filterToggleButton,
-              styles.favoritesToggleButton,
-              showFavorites && { backgroundColor: accentColor.primary },
-            ]}
+        {/* Tab selector — uses standardized FavoriteTabButton/SearchTabButton */}
+        <View style={styles.tabBar}>
+          <FavoriteTabButton
+            isActive={showFavorites}
             onPress={() => {
               triggerFeedback('tap');
               setShowFavorites(true);
             }}
-            accessibilityRole="tab"
-            accessibilityLabel={t('modules.radio.favorites')}
-            accessibilityState={{ selected: showFavorites }}
-          >
-            <Icon
-              name={showFavorites ? 'heart-filled' : 'heart'}
-              size={24}
-              color={showFavorites ? colors.textOnPrimary : accentColor.primary}
-            />
-            <Text style={[
-              styles.filterToggleButtonText,
-              showFavorites && styles.filterToggleButtonTextActive,
-            ]}>
-              {t('modules.radio.favorites')}
-            </Text>
-            {favorites.length > 0 && (
-              <View style={[
-                styles.favoritesCountBadge,
-                { backgroundColor: showFavorites ? 'rgba(255, 255, 255, 0.3)' : accentColor.primary },
-              ]}>
-                <Text style={styles.favoritesCountText}>
-                  {favorites.length > 99 ? '99+' : favorites.length}
-                </Text>
-              </View>
-            )}
-          </HapticTouchable>
-
-          {/* Spacer — duwt Land/Taal naar rechts */}
-          <View style={styles.toggleSpacer} />
-
-          {/* Land/Taal toggle buttons — rechts */}
-          <HapticTouchable hapticDisabled
-            style={[
-              styles.filterToggleButton,
-              !showFavorites && filterMode === 'country' && { backgroundColor: accentColor.primary },
-            ]}
+            count={favorites.length}
+            label={t('modules.radio.favorites')}
+          />
+          <SearchTabButton
+            isActive={!showFavorites}
             onPress={() => {
               triggerFeedback('tap');
               setShowFavorites(false);
-              handleFilterModeChange('country');
             }}
-            accessibilityRole="tab"
-            accessibilityLabel={t('components.chipSelector.country')}
-            accessibilityState={{ selected: !showFavorites && filterMode === 'country' }}
-          >
-            <Text style={[
-              styles.filterToggleButtonText,
-              !showFavorites && filterMode === 'country' && styles.filterToggleButtonTextActive,
-            ]}>
-              {t('components.chipSelector.country')}
-            </Text>
-          </HapticTouchable>
-          <HapticTouchable hapticDisabled
-            style={[
-              styles.filterToggleButton,
-              !showFavorites && filterMode === 'language' && { backgroundColor: accentColor.primary },
-            ]}
-            onPress={() => {
-              triggerFeedback('tap');
-              setShowFavorites(false);
-              handleFilterModeChange('language');
-            }}
-            accessibilityRole="tab"
-            accessibilityLabel={t('components.chipSelector.language')}
-            accessibilityState={{ selected: !showFavorites && filterMode === 'language' }}
-          >
-            <Text style={[
-              styles.filterToggleButtonText,
-              !showFavorites && filterMode === 'language' && styles.filterToggleButtonTextActive,
-            ]}>
-              {t('components.chipSelector.language')}
-            </Text>
-          </HapticTouchable>
+            label={t('modules.radio.search')}
+          />
         </View>
 
         {/* Search/Filter section — alleen zichtbaar wanneer NIET favorieten */}
         {!showFavorites && (
-          <View style={styles.filterSection}>
-            {/* Country/Language chips selector */}
+          <View style={styles.searchSection}>
+            {/* Country/Language chips selector with toggle */}
             <ChipSelector
               mode={filterMode}
               options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
               selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
               onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
-              allowModeToggle={false}
+              allowModeToggle={true}
+              onModeChange={handleFilterModeChange}
             />
 
-            {/* Search bar — screen-wide, onderaan, placeholder dynamisch op basis van filterMode */}
-            <View style={styles.searchBarContainer}>
-              <SearchBar
-                ref={searchInputRef}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmit={handleSearch}
-                placeholder={filterMode === 'country'
-                  ? t('modules.radio.searchPlaceholderByCountry')
-                  : t('modules.radio.searchPlaceholderByLanguage')
-                }
-                searchButtonLabel={t('modules.radio.searchButton')}
-                maxLength={SEARCH_MAX_LENGTH}
-              />
-            </View>
+            {/* Search bar — placeholder dynamisch op basis van filterMode */}
+            <SearchBar
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmit={handleSearch}
+              placeholder={filterMode === 'country'
+                ? t('modules.radio.searchPlaceholderByCountry')
+                : t('modules.radio.searchPlaceholderByLanguage')
+              }
+              searchButtonLabel={t('modules.radio.searchButton')}
+              maxLength={SEARCH_MAX_LENGTH}
+            />
           </View>
         )}
 
@@ -1112,7 +1044,7 @@ export function RadioScreen() {
           message={t(`modules.radio.errors.${apiError}`)}
           onRetry={() => {
             triggerFeedback('tap');
-            loadStationsByCountry();
+            loadStations();
           }}
           fullscreen
         />
@@ -1438,63 +1370,18 @@ const styles = StyleSheet.create({
     // MiniPlayer positioned at bottom of overlay
     // No explicit positioning needed — it's the last child in flex column
   },
-  // 3-way toggle row: [❤️ Favorieten] | [Land] [Taal]
-  toggleRow: {
+  // Tab bar — uses standardized FavoriteTabButton/SearchTabButton components
+  tabBar: {
     flexDirection: 'row',
-    alignItems: 'center',
     marginHorizontal: spacing.md,
-    gap: spacing.xs,
+    marginTop: spacing.md,
+    gap: spacing.sm,
   },
-  toggleSpacer: {
-    flex: 1,  // Neemt alle beschikbare ruimte — duwt Land/Taal naar rechts
-  },
-  filterToggleButton: {
-    height: touchTargets.minimum,  // 60pt — senior-inclusive
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  favoritesToggleButton: {
-    // Extra width voor hart icoon + badge
-    minWidth: touchTargets.minimum,
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  favoritesCountBadge: {
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: spacing.xs,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  favoritesCountText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textOnPrimary,
-    textAlign: 'center',
-    lineHeight: 16,
-    includeFontPadding: false,
-  },
-  filterToggleButtonText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  filterToggleButtonTextActive: {
-    color: colors.textOnPrimary,
-  },
-  filterSection: {
+  // Tab styles removed — using standardized FavoriteTabButton/SearchTabButton components
+  searchSection: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     gap: spacing.md,
-  },
-  searchBarContainer: {
-    // SearchBar is nu screen-wide (geen extra styling nodig)
   },
   // countryList, countryChip, countryChipText, filterLabel removed — using standardized ChipSelector component
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
