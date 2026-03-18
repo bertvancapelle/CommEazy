@@ -384,7 +384,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **TTS (Text-to-Speech)** | **accessibility-specialist, react-native-expert, ios-specialist** — Nederlands MOET Piper TTS (nl_NL-rdh-high) gebruiken |
 | **Zoekfunctionaliteit in module** | **ui-designer, react-native-expert** — Module Search Pattern (sectie 15) MOET worden gevolgd |
 | **Modal met zoekfunctie** | **BLOKKEERDER** — Zoeken mag NOOIT in een modal, zie sectie 15.1 |
-| **Nieuwe of gewijzigde Modal** | **ui-designer** — Modal Design Standaard (SKILL.md sectie 11b) MOET worden gevolgd: PageSheet (standaard) of FullScreen (uitzondering). Geen fade+centered overlays, geen close X in header, footer VERPLICHT |
+| **Nieuwe of gewijzigde Modal** | **ui-designer** — Modal Design Standaard (SKILL.md sectie 11b) MOET worden gevolgd: PageSheet (standaard) of FullScreen (uitzondering). Geen fade+centered overlays, geen close X in header, footer VERPLICHT. **ModalLayout VERPLICHT** — respecteert toolbar positie (SKILL.md sectie 11c) |
 | **Datum/tijd picker toevoegen** | **BLOKKEERDER** — MOET `DateTimePickerModal` uit `@/components` gebruiken. Geen custom date pickers, geen raw `DateTimePicker` in modals. `moduleId` prop VERPLICHT. Zie Component Registry sectie "DateTimePickerModal" |
 | **Icon component gebruik** | **ui-designer** — Icoon MOET bestaan in IconName type, zie SKILL.md sectie 10b |
 | **AccentColor properties** | **ui-designer** — Alleen bestaande properties gebruiken (primary/primaryLight/primaryDark/light/label), zie SKILL.md sectie 10c |
@@ -3298,6 +3298,36 @@ import { LANGUAGES } from '@/constants/demographics';
 - `components.chipSelector.language` — "Taal" / "Language" / etc.
 - `components.chipSelector.searchBy` — "Zoeken op basis van:" (toggle modal)
 - `components.chipSelector.tapToChange` — "{{current}} - tik om te wijzigen"
+
+### ModalLayout (VERPLICHT voor ALLE modals met header/content structuur)
+
+**Verplichte component:** `ModalLayout`
+
+ALLE modals die een header + content structuur hebben MOETEN `ModalLayout` gebruiken. Dit component respecteert de gebruiker's "Schermindeling" instelling (toolbar boven/onder) zodat modals consistent zijn met module screens.
+
+**Kenmerken:**
+- Respecteert `toolbarPosition` uit `ModuleLayoutContext` (via `useModuleLayoutSafe()`)
+- Bij `top` (default): Header → Content → Footer
+- Bij `bottom`: Content → Footer → Header
+- Graceful fallback buiten `ModuleLayoutProvider`
+
+**Adoptie status (9 modals):**
+
+| Modal | Gebruikt ModalLayout |
+|-------|---------------------|
+| DateTimePickerModal | ✅ |
+| ArticlePreviewModal | ✅ |
+| PhotoRecipientModal | ✅ |
+| ContactSelectionModal | ✅ |
+| CreateGroupModal | ✅ |
+| EditGroupModal | ✅ |
+| SongCollectionModal | ✅ |
+| CreateMusicCollectionModal | ✅ |
+| PickerModal | ✅ |
+
+**Bestanden:**
+- `src/components/ModalLayout.tsx` — Component
+- `src/contexts/ModuleLayoutContext.tsx` — Toolbar positie context
 
 ### DateTimePickerModal (App-wide Standard Date & Time Picker)
 

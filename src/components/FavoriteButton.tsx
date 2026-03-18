@@ -22,6 +22,7 @@ import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import { HapticTouchable } from './HapticTouchable';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 
 // ============================================================
@@ -112,8 +113,14 @@ export function FavoriteTabButton({
 }: FavoriteTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const buttonStyleContext = useButtonStyleSafe();
 
   const displayLabel = label ?? t('common.favorites');
+
+  // User-configurable button border
+  const userBorderStyle = buttonStyleContext?.settings.borderEnabled
+    ? { borderWidth: 2, borderColor: buttonStyleContext.getBorderColorHex() }
+    : undefined;
 
   return (
     <HapticTouchable
@@ -122,6 +129,7 @@ export function FavoriteTabButton({
         isActive
           ? { backgroundColor: accentColor.primary }
           : styles.tabInactive,
+        userBorderStyle,
       ]}
       onPress={onPress}
       accessibilityRole="tab"

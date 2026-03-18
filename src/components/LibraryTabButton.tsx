@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { HapticTouchable } from './HapticTouchable';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 
 // ============================================================
@@ -59,8 +60,14 @@ export function LibraryTabButton({
 }: LibraryTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const buttonStyleContext = useButtonStyleSafe();
 
   const displayLabel = label ?? t('common.library');
+
+  // User-configurable button border
+  const userBorderStyle = buttonStyleContext?.settings.borderEnabled
+    ? { borderWidth: 2, borderColor: buttonStyleContext.getBorderColorHex() }
+    : undefined;
 
   return (
     <HapticTouchable
@@ -69,6 +76,7 @@ export function LibraryTabButton({
         isActive
           ? { backgroundColor: accentColor.primary }
           : styles.tabInactive,
+        userBorderStyle,
       ]}
       onPress={onPress}
       accessibilityRole="tab"

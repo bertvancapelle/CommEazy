@@ -2489,6 +2489,40 @@ grep -rn "animationType=\"fade\"" src/ --include="*.tsx" | grep -v "FullscreenIm
 grep -rn "✕\|×\|closeText" src/ --include="*.tsx"
 ```
 
+### 11c. MODAL TOOLBAR POSITIE (VERPLICHT)
+
+**PRINCIPE:** Modals MOETEN dezelfde "Schermindeling" toolbar positie respecteren als module screens.
+
+Dit is geen optionele feature — het is een VEREISTE. Wanneer de gebruiker kiest voor toolbar onderaan (`toolbarPosition === 'bottom'`), moet de header (titel + actieknoppen) in modals OOK naar de onderkant verplaatsen.
+
+**Waarom?**
+- Senioren bouwen spiergeheugen op: "knoppen staan altijd onderaan"
+- Als modals dit negeren, raken ze in de war
+- Consistentie tussen module screens en modals is essentieel
+
+**Implementatie:** `ModalLayout.tsx` leest `useModuleLayoutSafe()` en keert de blok-volgorde om bij `position === 'bottom'`:
+
+| Toolbar positie | Volgorde |
+|----------------|----------|
+| `top` (default) | Header → Content → Footer |
+| `bottom` | Content → Footer → Header |
+
+**Gebruik in modals (VERPLICHT):**
+```typescript
+import { ModalLayout } from '@/components';
+
+// ModalLayout respecteert automatisch de toolbar positie
+<ModalLayout
+  headerBlock={<View>...</View>}
+  contentBlock={<ScrollViewWithIndicator>...</ScrollViewWithIndicator>}
+  footerBlock={<View>...</View>}  // optioneel
+/>
+```
+
+**Bestanden:**
+- `src/components/ModalLayout.tsx` — Implementatie
+- `src/contexts/ModuleLayoutContext.tsx` — Toolbar positie context
+
 ### 12. MODULE HEADERS (VERPLICHT)
 
 Elk module scherm MOET een consistente header hebben die:
@@ -4411,7 +4445,33 @@ func configureButtonStyle(borderEnabled: Bool, borderColorHex: String) {
 
 ### 15.5 Buttons die MOETEN voldoen
 
-#### React Native (ModuleHeader, SearchBar, etc.)
+#### Base Button Components (useButtonStyleSafe VERPLICHT)
+
+Deze 5 componenten zijn de bouwstenen voor ALLE buttons in de app. Ze integreren `useButtonStyleSafe()` zodat de user-configurable border automatisch doorwerkt naar alle screens en modals.
+
+| Component | useButtonStyleSafe | Border gedrag |
+|-----------|-------------------|---------------|
+| `Button.tsx` | ✅ | 2px user border (override van variant border) |
+| `IconButton.tsx` | ✅ | User border color override op bestaande 2px accent border |
+| `FavoriteTabButton` | ✅ | 2px user border op tab container |
+| `SearchButton` (icon + tab) | ✅ | 2px user border op beide varianten |
+| `LibraryTabButton` | ✅ | 2px user border op tab container |
+| `AirPlayButton` | ✅ | Gold standard referentie |
+
+**Pattern (VERPLICHT in elke button component):**
+```typescript
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
+
+const buttonStyleContext = useButtonStyleSafe();
+const userBorderStyle = buttonStyleContext?.settings.borderEnabled
+  ? { borderWidth: 2, borderColor: buttonStyleContext.getBorderColorHex() }
+  : undefined;
+
+// Toepassen als laatste style override (na variant styles, vóór disabled)
+style={[styles.base, variantStyle, userBorderStyle, disabled && styles.disabled]}
+```
+
+#### Samengestelde Components (ModuleHeader, SearchBar, etc.)
 
 | Component | Button | Size | cornerRadius |
 |-----------|--------|------|--------------|

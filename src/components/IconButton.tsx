@@ -22,6 +22,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useHoldGestureGuard } from '@/contexts/HoldGestureContext';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { colors, borderRadius, touchTargets } from '@/theme';
 
 export interface IconButtonProps {
@@ -82,6 +83,7 @@ export function IconButton({
   const { accentColor } = useAccentColor();
   const reduceMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
+  const buttonStyleContext = useButtonStyleSafe();
   const [isPressed, setIsPressed] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
 
@@ -112,6 +114,11 @@ export function IconButton({
   const currentIcon = isActive ? (iconActive || icon) : icon;
   const iconColor = showFilled ? colors.textOnPrimary : accentColor.primary;
 
+  // User-configurable button border (overrides default accent border color)
+  const userBorderStyle = buttonStyleContext?.settings.borderEnabled
+    ? { borderColor: buttonStyleContext.getBorderColorHex() }
+    : undefined;
+
   return (
     <HapticTouchable
       hapticDisabled
@@ -122,6 +129,7 @@ export function IconButton({
       style={[
         styles.container,
         { borderColor: accentColor.primary },
+        userBorderStyle,
         showFilled && { backgroundColor: accentColor.primary },
         disabled && styles.disabled,
         style,

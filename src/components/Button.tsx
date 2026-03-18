@@ -23,6 +23,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { HapticTouchable } from './HapticTouchable';
 import { colors, typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 
 // Haptic feedback helper - senior-inclusive: provides tactile confirmation
 const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'medium') => {
@@ -64,7 +65,14 @@ export function Button({
   testID,
 }: ButtonProps) {
   const { accentColor } = useAccentColor();
+  const buttonStyleContext = useButtonStyleSafe();
   const isDisabled = disabled || loading;
+
+  // User-configurable button border
+  const userBorderStyle: ViewStyle | false = !!buttonStyleContext?.settings.borderEnabled && {
+    borderWidth: 2,
+    borderColor: buttonStyleContext.getBorderColorHex(),
+  };
 
   // Build button styles with accent color
   const buttonStyle: ViewStyle[] = [
@@ -76,6 +84,7 @@ export function Button({
       borderColor: accentColor.primary,
     },
     variant === 'text' && styles.text,
+    userBorderStyle,
     isDisabled && styles.disabled,
     style as ViewStyle,
   ].filter(Boolean) as ViewStyle[];

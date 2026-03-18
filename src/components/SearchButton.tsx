@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { HapticTouchable } from './HapticTouchable';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 
 // ============================================================
@@ -67,12 +68,19 @@ export function SearchButton({
 }: SearchButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const buttonStyleContext = useButtonStyleSafe();
+
+  // User-configurable button border
+  const userBorderStyle = buttonStyleContext?.settings.borderEnabled
+    ? { borderWidth: 2, borderColor: buttonStyleContext.getBorderColorHex() }
+    : undefined;
 
   return (
     <HapticTouchable
       style={[
         styles.iconButton,
         { backgroundColor: accentColor.primary },
+        userBorderStyle,
         disabled && styles.disabled,
       ]}
       onPress={onPress}
@@ -105,8 +113,14 @@ export function SearchTabButton({
 }: SearchTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
+  const buttonStyleContext = useButtonStyleSafe();
 
   const displayLabel = label ?? t('common.search');
+
+  // User-configurable button border
+  const userBorderStyle = buttonStyleContext?.settings.borderEnabled
+    ? { borderWidth: 2, borderColor: buttonStyleContext.getBorderColorHex() }
+    : undefined;
 
   return (
     <HapticTouchable
@@ -115,6 +129,7 @@ export function SearchTabButton({
         isActive
           ? { backgroundColor: accentColor.primary }
           : styles.tabInactive,
+        userBorderStyle,
       ]}
       onPress={onPress}
       accessibilityRole="tab"
