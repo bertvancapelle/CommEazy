@@ -17,12 +17,13 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   Image,
   StatusBar,
   Animated,
   useWindowDimensions,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { useTranslation } from 'react-i18next';
 import KeepAwake from 'react-native-keep-awake';
 
@@ -295,7 +296,7 @@ export function SlideshowViewer({
   if (photos.length === 0) return null;
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType={reduceMotion ? 'none' : 'fade'}
       statusBarTranslucent
@@ -416,7 +417,7 @@ export function SlideshowViewer({
           </Animated.View>
         )}
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

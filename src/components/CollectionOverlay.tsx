@@ -20,12 +20,13 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
-  Modal,
+  // Modal removed — using PanelAwareModal
   Animated,
   StyleSheet,
   Dimensions,
   Pressable,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { useTranslation } from 'react-i18next';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { Icon } from '@/components/Icon';
@@ -211,7 +212,7 @@ export function CollectionOverlay({
   }
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       transparent
       animationType="none"
@@ -313,7 +314,7 @@ export function CollectionOverlay({
           </LiquidGlassView>
         </Animated.View>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

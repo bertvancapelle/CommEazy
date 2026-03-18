@@ -17,8 +17,9 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  Modal,
+  // Modal removed — using PanelAwareModal
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -107,7 +108,7 @@ export function QueueView({
   const isEmpty = queue.length === 0;
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       transparent={true}
       animationType="slide"
@@ -242,7 +243,7 @@ export function QueueView({
           </ScrollView>
         </View>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

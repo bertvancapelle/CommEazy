@@ -26,18 +26,18 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Modal,
   PanResponder,
   Linking,
   Platform,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, LoadingView } from '@/components';
+import { Icon, IconButton, LoadingView PanelAwareModal, &;
 import { useBooksContext } from '@/contexts/BooksContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -583,7 +583,7 @@ export function BookReaderScreen() {
       </View>
 
       {/* Settings Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showSettingsModal}
         transparent={true}
         animationType={isReducedMotion ? 'none' : 'slide'}
@@ -737,10 +737,10 @@ export function BookReaderScreen() {
             </HapticTouchable>
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
 
       {/* Sleep Timer Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showSleepTimerModal}
         transparent={true}
         animationType={isReducedMotion ? 'none' : 'fade'}
@@ -806,10 +806,10 @@ export function BookReaderScreen() {
             </HapticTouchable>
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
 
       {/* No High Quality Voice Modal (blocks playback) */}
-      <Modal
+      <PanelAwareModal
         visible={showNoHighQualityVoiceModal}
         transparent={true}
         animationType={isReducedMotion ? 'none' : 'fade'}
@@ -878,10 +878,10 @@ export function BookReaderScreen() {
             </HapticTouchable>
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
 
       {/* Voice Selection Modal - shows all Enhanced + Premium voices */}
-      <Modal
+      <PanelAwareModal
         visible={showVoiceSelectionModal}
         transparent={true}
         animationType={isReducedMotion ? 'none' : 'slide'}
@@ -997,10 +997,10 @@ export function BookReaderScreen() {
             </HapticTouchable>
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
 
       {/* Voice Unavailable Modal - shown when previously selected voice was deleted */}
-      <Modal
+      <PanelAwareModal
         visible={showVoiceUnavailableModal}
         transparent={true}
         animationType={isReducedMotion ? 'none' : 'fade'}
@@ -1064,7 +1064,7 @@ export function BookReaderScreen() {
             </HapticTouchable>
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
     </View>
   );
 }

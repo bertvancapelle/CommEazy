@@ -18,13 +18,13 @@ import {
   Text,
   StyleSheet,
   Alert,
-  Modal,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { Icon, HapticTouchable, ContactAvatar, Button, LoadingView, ScrollViewWithIndicator, ErrorView PanelAwareModal, &;
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -97,7 +97,7 @@ function RecurringActionModal({
   const themeColors = useColors();
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="fade"
       transparent
@@ -143,7 +143,7 @@ function RecurringActionModal({
           </HapticTouchable>
         </View>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
@@ -648,7 +648,7 @@ export function AgendaItemDetailScreen({
       />
 
       {/* Share contact picker modal */}
-      <Modal
+      <PanelAwareModal
         visible={showShareModal}
         animationType="slide"
         onRequestClose={handleShareClose}
@@ -793,7 +793,7 @@ export function AgendaItemDetailScreen({
             />
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
     </View>
   );
 }

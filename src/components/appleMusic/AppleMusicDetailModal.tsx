@@ -20,10 +20,11 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ScrollView,
   Image,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -469,7 +470,7 @@ export function AppleMusicDetailModal({
   };
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -530,7 +531,7 @@ export function AppleMusicDetailModal({
           </>
         )}
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

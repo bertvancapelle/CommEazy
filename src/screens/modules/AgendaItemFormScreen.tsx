@@ -36,11 +36,11 @@ import {
   StyleSheet,
   Platform,
   Alert,
-  Modal,
   Keyboard,
   Switch,
   KeyboardAvoidingView,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -48,7 +48,7 @@ import {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView, DateTimePickerModal } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView, DateTimePickerModal PanelAwareModal, &;
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -200,7 +200,7 @@ function FormPickerModal({
   const moduleColor = useModuleColor('agenda');
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -267,7 +267,7 @@ function FormPickerModal({
           })}
         </ScrollViewWithIndicator>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
@@ -420,7 +420,7 @@ function CategoryPickerModal({
   }, [selectedCategoryId, accentColor, themeColors, onSelect, onClose, handleLongPressCustom, t]);
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -492,7 +492,7 @@ function CategoryPickerModal({
           </View>
         </ScrollViewWithIndicator>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
@@ -611,7 +611,7 @@ function CreateCategoryModal({
   }, [selectedEmoji, categoryName, onSave, t]);
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -702,7 +702,7 @@ function CreateCategoryModal({
           ))}
         </ScrollViewWithIndicator>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
@@ -2003,7 +2003,7 @@ export function AgendaItemFormScreen({
       />
 
       {/* Contact Picker Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showContactPicker}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -2183,7 +2183,7 @@ export function AgendaItemFormScreen({
             )}
           </ScrollViewWithIndicator>
         </LiquidGlassView>
-      </Modal>
+      </PanelAwareModal>
           </>
         }
       />

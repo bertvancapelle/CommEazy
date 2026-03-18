@@ -25,8 +25,8 @@ import {
   ScrollView,
   RefreshControl,
   Image,
-  Modal,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, ModuleHeader, ModuleScreenLayout, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView , ScrollViewWithIndicator } from '@/components';
+import { Icon, IconButton, VoiceFocusable, ModuleHeader, ModuleScreenLayout, ArticlePreviewModal, ArticleWebViewer, NunlLogo, LoadingView, ErrorView , ScrollViewWithIndicator PanelAwareModal, &;
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -204,7 +204,7 @@ function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeM
   const { accentColor } = useAccentColor();
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="fade"
       transparent
@@ -260,7 +260,7 @@ function WelcomeModal({ visible, onDismiss, themeColors, moduleColor }: WelcomeM
           </HapticTouchable>
         </View>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

@@ -18,11 +18,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   Animated,
   Easing,
   AccessibilityInfo,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
@@ -151,7 +152,7 @@ export function VoiceCommandOverlay({
   if (!visible) return null;
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       transparent={false}
       animationType="fade"
@@ -248,7 +249,7 @@ export function VoiceCommandOverlay({
         </View>
         </LiquidGlassView>
       </Animated.View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

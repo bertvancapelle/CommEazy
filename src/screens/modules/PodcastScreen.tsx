@@ -26,7 +26,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Modal,
   Image,
   Platform,
   AccessibilityInfo,
@@ -34,13 +33,14 @@ import {
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, type SearchBarRef } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, type SearchBarRef PanelAwareModal, &;
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -915,7 +915,7 @@ export function PodcastScreen() {
       </View>
 
       {/* Show Detail Modal */}
-        <Modal
+        <PanelAwareModal
           visible={selectedShow !== null}
           transparent={true}
           animationType={isReducedMotion ? 'none' : 'slide'}
@@ -1079,7 +1079,7 @@ export function PodcastScreen() {
               )}
             </View>
           </View>
-        </Modal>
+        </PanelAwareModal>
 
         {/* Expanded Player — React Native fallback when Glass Player not available */}
         <UnifiedFullPlayer
@@ -1134,7 +1134,7 @@ export function PodcastScreen() {
         />
 
         {/* Speed Picker Modal */}
-        <Modal
+        <PanelAwareModal
           visible={showSpeedPicker}
           transparent={true}
           animationType="fade"
@@ -1182,10 +1182,10 @@ export function PodcastScreen() {
               ))}
             </View>
           </HapticTouchable>
-        </Modal>
+        </PanelAwareModal>
 
         {/* Sleep Timer Picker Modal */}
-        <Modal
+        <PanelAwareModal
           visible={showSleepTimerPicker}
           transparent={true}
           animationType="fade"
@@ -1249,10 +1249,10 @@ export function PodcastScreen() {
               ))}
             </View>
           </HapticTouchable>
-        </Modal>
+        </PanelAwareModal>
 
         {/* Welcome Modal */}
-        <Modal
+        <PanelAwareModal
           visible={showWelcomeModal}
           transparent={true}
           animationType={isReducedMotion ? 'none' : 'fade'}
@@ -1303,10 +1303,10 @@ export function PodcastScreen() {
               </HapticTouchable>
             </View>
           </View>
-        </Modal>
+        </PanelAwareModal>
 
         {/* Continue Listening Dialog */}
-        <Modal
+        <PanelAwareModal
           visible={showContinueListeningDialog && continueListeningEpisode !== null}
           transparent={true}
           animationType={isReducedMotion ? 'none' : 'fade'}
@@ -1419,10 +1419,10 @@ export function PodcastScreen() {
               )}
             </View>
           </View>
-        </Modal>
+        </PanelAwareModal>
 
         {/* Next Episode Dialog — shown when current episode ends and there's a next one */}
-        <Modal
+        <PanelAwareModal
           visible={showNextEpisodeDialog && nextEpisodeInfo !== null}
           transparent={true}
           animationType={isReducedMotion ? 'none' : 'fade'}
@@ -1517,7 +1517,7 @@ export function PodcastScreen() {
               )}
             </View>
           </View>
-        </Modal>
+        </PanelAwareModal>
 
       {/* Voice hint */}
       {isVoiceSessionActive && (

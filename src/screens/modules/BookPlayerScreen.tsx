@@ -26,9 +26,9 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   AccessibilityInfo,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,7 +36,7 @@ import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-na
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, VoiceFocusable, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, LoadingView, ScrollViewWithIndicator } from '@/components';
+import { Icon, VoiceFocusable, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, LoadingView, ScrollViewWithIndicator PanelAwareModal, &;
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -457,7 +457,7 @@ export function BookPlayerScreen() {
       />
 
       {/* Speed Picker Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showSpeedPicker}
         transparent={true}
         animationType="fade"
@@ -497,10 +497,10 @@ export function BookPlayerScreen() {
             ))}
           </View>
         </HapticTouchable>
-      </Modal>
+      </PanelAwareModal>
 
       {/* Sleep Timer Picker Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showSleepTimerPicker}
         transparent={true}
         animationType="fade"
@@ -550,7 +550,7 @@ export function BookPlayerScreen() {
             ))}
           </View>
         </HapticTouchable>
-      </Modal>
+      </PanelAwareModal>
     </View>
   );
 }

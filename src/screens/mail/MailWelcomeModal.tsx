@@ -13,15 +13,15 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Button, Icon } from '@/components';
+import { Button, Icon PanelAwareModal, &;
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 
 // ============================================================
@@ -113,7 +113,7 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
   }, [onDismiss]);
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       transparent
       animationType="fade"
@@ -174,7 +174,7 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
           />
         </LiquidGlassView>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

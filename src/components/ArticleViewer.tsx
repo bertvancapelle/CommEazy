@@ -23,13 +23,14 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ActivityIndicator,
   Linking,
   Platform,
   AccessibilityInfo,
   ScrollView,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -294,7 +295,7 @@ export function ArticleViewer({
   if (!article) return null;
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType={reducedMotion ? 'fade' : 'slide'}
       presentationStyle="pageSheet"
@@ -401,7 +402,7 @@ export function ArticleViewer({
           )}
         </View>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

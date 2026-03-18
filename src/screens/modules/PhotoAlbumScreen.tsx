@@ -26,11 +26,11 @@ import {
   useWindowDimensions,
   InteractionManager,
   Linking,
-  Modal,
   TextInput,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,8 +43,8 @@ import { ModuleHeader,
   FullscreenImageViewer,
   LoadingView,
   ErrorView,
-  SlideshowViewer, ScrollViewWithIndicator, LiquidGlassView } from '@/components';
-import type { ViewerImage, SlideshowPhoto } from '@/components';
+  SlideshowViewer, ScrollViewWithIndicator, LiquidGlassView PanelAwareModal, &;
+import type { ViewerImage, SlideshowPhoto PanelAwareModal, &;
 import { Icon } from '@/components/Icon';
 import {
   colors,
@@ -1368,7 +1368,7 @@ export function PhotoAlbumScreen() {
       />
 
       {/* Create Album Modal */}
-      <Modal
+      <PanelAwareModal
         visible={isCreateAlbumModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -1445,10 +1445,10 @@ export function PhotoAlbumScreen() {
           </View>
           </LiquidGlassView>
         </KeyboardAvoidingView>
-      </Modal>
+      </PanelAwareModal>
 
       {/* Add to Album Modal */}
-      <Modal
+      <PanelAwareModal
         visible={isAddToAlbumModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -1532,7 +1532,7 @@ export function PhotoAlbumScreen() {
             })}
           </ScrollViewWithIndicator>
         </LiquidGlassView>
-      </Modal>
+      </PanelAwareModal>
 
             {/* Sending overlay */}
             {isSending && (

@@ -27,12 +27,13 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  Modal,
+  // Modal removed — using PanelAwareModal
   Image,
   StyleSheet,
   StatusBar,
   useWindowDimensions,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -154,7 +155,7 @@ export function FullscreenImageViewer({
   if (!currentImage) return null;
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="fade"
       presentationStyle="fullScreen"
@@ -285,7 +286,7 @@ export function FullscreenImageViewer({
           </View>
         )}
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

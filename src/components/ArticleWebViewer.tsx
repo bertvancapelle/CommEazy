@@ -31,11 +31,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ActivityIndicator,
   Platform,
   Linking,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
 import { WebView, WebViewNavigation, WebViewOpenWindowEvent } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -967,7 +968,7 @@ export function ArticleWebViewer({
   if (!article) return null;
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType={reducedMotion ? 'fade' : 'slide'}
       presentationStyle="fullScreen"
@@ -1221,7 +1222,7 @@ export function ArticleWebViewer({
         </View>
 
         {/* External Link Confirmation Modal */}
-        <Modal
+        <PanelAwareModal
           visible={pendingExternalUrl !== null}
           animationType={reducedMotion ? 'fade' : 'slide'}
           transparent
@@ -1296,9 +1297,9 @@ export function ArticleWebViewer({
               </HapticTouchable>
             </LiquidGlassView>
           </View>
-        </Modal>
+        </PanelAwareModal>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

@@ -17,11 +17,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ScrollView,
   Animated,
   AccessibilityInfo,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
@@ -238,7 +239,7 @@ export function ContactSelectionModal({
   if (!visible) return null;
 
   return (
-    <Modal
+    <PanelAwareModal
       transparent
       visible={visible}
       animationType="none"
@@ -370,7 +371,7 @@ export function ContactSelectionModal({
           />
         )}
       </Animated.View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

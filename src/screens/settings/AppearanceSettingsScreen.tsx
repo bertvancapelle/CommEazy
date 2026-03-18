@@ -28,15 +28,15 @@ import {
   Text,
   StyleSheet,
   Platform,
-  Modal,
   Switch,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import Slider from '@react-native-community/slider';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, DEFAULT_ACCENT_COLOR, type AccentColorKey } from '@/theme';
-import { Icon, LiquidGlassView, type IconName, ScrollViewWithIndicator } from '@/components';
+import { Icon, LiquidGlassView, type IconName, ScrollViewWithIndicator PanelAwareModal, &;
 import { useTheme, useColors, type ThemeMode } from '@/contexts/ThemeContext';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -181,7 +181,7 @@ function ColorPickerModal<T extends string>({
   };
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -231,7 +231,7 @@ function ColorPickerModal<T extends string>({
           </HapticTouchable>
         </View>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

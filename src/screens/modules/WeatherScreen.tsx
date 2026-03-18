@@ -24,9 +24,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Modal,
   Linking,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,7 +34,7 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, typography, spacing, touchTargets, borderRadius, shadows } from '@/theme';
-import { Icon, ModuleHeader, ModuleScreenLayout, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView, ScrollViewWithIndicator } from '@/components';
+import { Icon, ModuleHeader, ModuleScreenLayout, VoiceFocusable, SearchBar, FavoriteButton, RadarMap, TimeSlider, LoadingView, ErrorView, ScrollViewWithIndicator PanelAwareModal, &;
 import { useVoiceFocusList } from '@/contexts/VoiceFocusContext';
 import { useFavoriteLocations } from '@/contexts/FavoriteLocationsContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -488,7 +488,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDet
   };
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -564,7 +564,7 @@ function DayDetailModal({ visible, day, dayIndex, onClose, accentColor }: DayDet
           </View>
         </ScrollViewWithIndicator>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
@@ -667,7 +667,7 @@ function LocationPickerModal({
   const isGpsSelected = currentLocationId === 'current';
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -799,7 +799,7 @@ function LocationPickerModal({
           )}
         </ScrollViewWithIndicator>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
@@ -818,7 +818,7 @@ function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="fade"
       transparent
@@ -868,7 +868,7 @@ function WelcomeModal({ visible, onDismiss, accentColor }: WelcomeModalProps) {
           </HapticTouchable>
         </View>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

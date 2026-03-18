@@ -20,16 +20,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   TextInput as RNTextInput,
-  Modal,
   ActivityIndicator,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useLabelStyle, useFieldTextStyle, useModalTextStyle } from '@/contexts/FieldTextStyleContext';
-import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator } from '@/components';
+import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator PanelAwareModal, &;
 import { useFeedback } from '@/hooks/useFeedback';
 import { ServiceContainer } from '@/services/container';
 import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
@@ -59,7 +59,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
   const themeColors = useColors();
   const modalTextStyle = useModalTextStyle();
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -110,7 +110,7 @@ function PickerModal({ visible, title, options, selectedValue, onSelect, onClose
           ))}
         </ScrollViewWithIndicator>
       </View>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

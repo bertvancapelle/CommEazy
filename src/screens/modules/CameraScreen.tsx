@@ -25,13 +25,13 @@ import {
   Vibration,
   StatusBar,
   useWindowDimensions,
-  Modal,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
-import { ModuleHeader, ModuleScreenLayout, ErrorView } from '@/components';
+import { ModuleHeader, ModuleScreenLayout, ErrorView PanelAwareModal, &;
 import { Icon } from '@/components/Icon';
 import {
   colors,
@@ -370,7 +370,7 @@ export function CameraScreen() {
   // Full-screen modal
   if (isFullScreen) {
     return (
-      <Modal
+      <PanelAwareModal
         visible={true}
         animationType="fade"
         supportedOrientations={['portrait', 'landscape']}
@@ -380,7 +380,7 @@ export function CameraScreen() {
         <View style={styles.fullScreenContainer}>
           {renderCameraView()}
         </View>
-      </Modal>
+      </PanelAwareModal>
     );
   }
 

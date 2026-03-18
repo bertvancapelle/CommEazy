@@ -19,10 +19,11 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { useTranslation } from 'react-i18next';
 
 import { typography, spacing, borderRadius, touchTargets } from '@/theme';
@@ -117,7 +118,7 @@ export function PhotoRecipientModal({
   };
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -239,7 +240,7 @@ export function PhotoRecipientModal({
           }
         />
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

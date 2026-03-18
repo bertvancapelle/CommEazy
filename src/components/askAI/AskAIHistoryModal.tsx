@@ -12,10 +12,11 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ScrollView,
   Alert,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -123,7 +124,7 @@ export function AskAIHistoryModal({
   }, {});
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -199,7 +200,7 @@ export function AskAIHistoryModal({
           </ScrollView>
         )}
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

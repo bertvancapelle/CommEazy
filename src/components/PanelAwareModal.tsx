@@ -31,6 +31,10 @@ export interface PanelAwareModalProps {
   onRequestClose?: () => void;
   /** Module color ID for Liquid Glass tint (passed through to children) */
   moduleId?: ModuleColorId;
+  /** Modal presentation style (only used on iPhone) */
+  presentationStyle?: 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
+  /** Supported orientations (only used on iPhone) */
+  supportedOrientations?: Array<'portrait' | 'portrait-upside-down' | 'landscape' | 'landscape-left' | 'landscape-right'>;
   /** Children to render inside the modal */
   children: ReactNode;
 }
@@ -45,6 +49,8 @@ export function PanelAwareModal({
   transparent = true,
   onRequestClose,
   moduleId: _moduleId,
+  presentationStyle,
+  supportedOrientations,
   children,
 }: PanelAwareModalProps) {
   const panelId = usePanelId();
@@ -67,6 +73,8 @@ export function PanelAwareModal({
       transparent={transparent}
       animationType={animationType}
       onRequestClose={onRequestClose}
+      presentationStyle={presentationStyle}
+      supportedOrientations={supportedOrientations}
       accessibilityViewIsModal={true}
     >
       {children}

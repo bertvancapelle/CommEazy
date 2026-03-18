@@ -12,11 +12,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ScrollView,
   AccessibilityRole,
   Alert,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { HapticTouchable } from './HapticTouchable';
 import { colors, typography, spacing, borderRadius } from '@/theme';
 // Dev state managed locally now that mock module is removed
@@ -171,7 +172,7 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
     <>
       <DevModeButton onPress={() => setVisible(true)} />
 
-      <Modal
+      <PanelAwareModal
         visible={visible}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -259,7 +260,7 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
             </View>
           </ScrollView>
         </View>
-      </Modal>
+      </PanelAwareModal>
     </>
   );
 }

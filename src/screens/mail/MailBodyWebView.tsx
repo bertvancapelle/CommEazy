@@ -17,10 +17,10 @@ import {
   Text,
   StyleSheet,
   Alert,
-  Modal,
   Switch,
   Platform,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
@@ -29,7 +29,7 @@ import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { Icon } from '@/components';
+import { Icon PanelAwareModal, &;
 import { openURL as contentRouterOpenURL } from '@/services/mail/contentRouter';
 import {
   isWhitelisted as isDomainWhitelisted,
@@ -230,7 +230,7 @@ export function MailBodyWebView({
       )}
 
       {/* Warning modal — shown after images are loaded (dismissable) */}
-      <Modal
+      <PanelAwareModal
         visible={showWarningModal}
         transparent
         animationType="fade"
@@ -301,7 +301,7 @@ export function MailBodyWebView({
             </HapticTouchable>
           </View>
         </View>
-      </Modal>
+      </PanelAwareModal>
 
       {/* WebView — renders the HTML mail body */}
       <WebView

@@ -30,8 +30,8 @@ import {
   Platform,
   Image,
   Alert,
-  Modal,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -52,7 +52,7 @@ import { Icon,
   QueueView,
   HapticTouchable,
   LiquidGlassView,
-  type SearchBarRef, ScrollViewWithIndicator } from '@/components';
+  type SearchBarRef, ScrollViewWithIndicator PanelAwareModal, &;
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -2425,7 +2425,7 @@ export function AppleMusicScreen() {
       />
 
       {/* Show All Recently Played Modal */}
-      <Modal
+      <PanelAwareModal
         visible={showAllRecentlyPlayed}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -2491,7 +2491,7 @@ export function AppleMusicScreen() {
             ))}
           </ScrollView>
         </LiquidGlassView>
-      </Modal>
+      </PanelAwareModal>
 
       {/* Queue View Modal */}
       <QueueView

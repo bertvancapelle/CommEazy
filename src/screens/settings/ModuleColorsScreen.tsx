@@ -16,14 +16,14 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
   Platform,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, type AccentColorKey } from '@/theme';
-import { Icon, LiquidGlassView, ScrollViewWithIndicator, type IconName } from '@/components';
+import { Icon, LiquidGlassView, ScrollViewWithIndicator, type IconName PanelAwareModal, &;
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import {
@@ -98,7 +98,7 @@ function ColorPickerModal({ visible, onClose, onSelect, selectedValue, title }: 
   };
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -148,7 +148,7 @@ function ColorPickerModal({ visible, onClose, onSelect, selectedValue, title }: 
           </HapticTouchable>
         </View>
       </LiquidGlassView>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
@@ -258,7 +258,7 @@ export function ModuleColorsScreen({ visible, onClose }: ModuleColorsScreenProps
   const hasCustomColors = Object.keys(customColors).length > 0;
 
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -363,7 +363,7 @@ export function ModuleColorsScreen({ visible, onClose }: ModuleColorsScreenProps
         selectedValue={editingModuleId ? getColorKeyFromHex(getModuleHex(editingModuleId)) : 'blue'}
         title={editingModuleId ? t('appearance.moduleColors.selectTitle', { module: t(MODULE_LABELS[editingModuleId]) }) : ''}
       />
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

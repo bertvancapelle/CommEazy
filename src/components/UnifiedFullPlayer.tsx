@@ -21,7 +21,7 @@ import {
   View,
   Text,
   Image,
-  Modal,
+  // Modal removed — using PanelAwareModal
   ScrollView,
   StyleSheet,
   Platform,
@@ -29,6 +29,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { PanelAwareModal } from './PanelAwareModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -546,7 +547,7 @@ export function UnifiedFullPlayer(props: UnifiedFullPlayerProps) {
 
   // ── iPhone: render as Modal ──
   return (
-    <Modal
+    <PanelAwareModal
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
@@ -554,7 +555,7 @@ export function UnifiedFullPlayer(props: UnifiedFullPlayerProps) {
       supportedOrientations={['portrait', 'landscape']}
     >
       {playerContent}
-    </Modal>
+    </PanelAwareModal>
   );
 }
 

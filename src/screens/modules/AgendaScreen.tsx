@@ -24,17 +24,17 @@ import {
   Image,
   StyleSheet,
   RefreshControl,
-  Modal,
   Linking,
   Platform,
   Switch,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, ModuleHeader, ModuleScreenLayout, HapticTouchable, LoadingView, SearchBar , ScrollViewWithIndicator} from '@/components';
+import { Icon, ModuleHeader, ModuleScreenLayout, HapticTouchable, LoadingView, SearchBar , ScrollViewWithIndicatorPanelAwareModal, &;
 import { useColors } from '@/contexts/ThemeContext';
 import {
   AgendaProvider,
@@ -677,7 +677,7 @@ function AgendaScreenInner() {
         </ScrollViewWithIndicator>
 
         {/* Welcome Modal */}
-        <Modal
+        <PanelAwareModal
           visible={showWelcome}
           animationType="fade"
           transparent
@@ -737,7 +737,7 @@ function AgendaScreenInner() {
               </HapticTouchable>
             </View>
           </View>
-        </Modal>
+        </PanelAwareModal>
       </>
     );
   };

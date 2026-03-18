@@ -16,12 +16,13 @@
 import React, { useCallback } from 'react';
 import {
   View,
-  Modal,
+  // Modal removed — using PanelAwareModal
   StyleSheet,
   Text,
   ScrollView,
   Platform,
 } from 'react-native';
+import { PanelAwareModal } from '@/components';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -105,7 +106,7 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
   // ============================================================
 
   return (
-    <Modal
+    <PanelAwareModal
       visible
       transparent
       animationType="fade"
@@ -193,7 +194,7 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
           </HapticTouchable>
         </LiquidGlassView>
       </HapticTouchable>
-    </Modal>
+    </PanelAwareModal>
   );
 }
 
