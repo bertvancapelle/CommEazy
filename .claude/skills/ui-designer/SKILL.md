@@ -2261,6 +2261,28 @@ PanelAwareModal → LiquidGlassView (moduleId) → eigen layout (geen ModalLayou
 
 **moduleId is VERPLICHT** op alle modals met LiquidGlassView — dit bepaalt de Liquid Glass tint kleur.
 
+**⚠️ BLOKKEERDER: Solide backgroundColor op LiquidGlassView is VERBODEN**
+
+Een `LiquidGlassView` met een opaque `backgroundColor` (bijv. `themeColors.background`) overschrijft het Liquid Glass effect volledig — het glaseffect wordt onzichtbaar. Dit geldt ook voor child Views met solide achtergrondkleuren die de hele `LiquidGlassView` bedekken.
+
+```typescript
+// ❌ VERBODEN — backgroundColor overschrijft glaseffect
+<LiquidGlassView moduleId="radio" style={{ backgroundColor: themeColors.background }}>
+
+// ❌ VERBODEN — child View met solide kleur bedekt glaseffect
+<LiquidGlassView moduleId="radio">
+  <View style={{ flex: 1, backgroundColor: radioModuleColor }}>  {/* Bedekt alles! */}
+
+// ✅ GOED — geen backgroundColor, glaseffect zichtbaar
+<LiquidGlassView moduleId="radio" style={{ flex: 1 }} cornerRadius={0}>
+
+// ✅ GOED — transparante of semi-transparante achtergrond
+<LiquidGlassView moduleId="radio" style={{ flex: 1 }}>
+  <View style={{ backgroundColor: 'rgba(0,0,0,0.05)' }}>  {/* Subtiel, glas schijnt door */}
+```
+
+**ALLE modals op iOS 26+ MOETEN Liquid Glass tonen — GEEN UITZONDERINGEN** (behalve DevModePanel en Players). Als het glaseffect niet zichtbaar is, is de implementatie FOUT.
+
 #### Categorie 1: PageSheet Modal (STANDAARD)
 
 Dit is het primaire modal pattern voor settings, pickers, formulieren, lijsten en content-browsing.

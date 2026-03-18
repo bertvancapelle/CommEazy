@@ -1421,149 +1421,155 @@ export function PodcastScreen() {
         animationType={isReducedMotion ? 'none' : 'slide'}
         onRequestClose={() => setShowSearchModal(false)}
       >
-        <LiquidGlassView moduleId="podcast" style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]} cornerRadius={0}>
-          {/* Modal header with close button */}
-          <View style={[styles.searchModalHeader, { backgroundColor: podcastModuleColor }]}>
-            <View style={{ height: insets.top }} />
-            <View style={styles.searchModalHeaderRow}>
-              <Icon name="search" size={28} color={colors.textOnPrimary} />
-              <Text style={styles.searchModalTitle}>{t('modules.podcast.discover')}</Text>
-              <View style={{ flex: 1 }} />
-              <IconButton
-                icon="chevron-down"
-                variant="onPrimary"
-                onPress={() => setShowSearchModal(false)}
-                accessibilityLabel={t('common.close')}
-                size={28}
-              />
-            </View>
-          </View>
+        <LiquidGlassView moduleId="podcast" style={styles.searchModalContainer} cornerRadius={0}>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.searchModalHeader, { borderBottomColor: themeColors.border }]}>
+                <Text style={[styles.searchModalTitle, { color: themeColors.textPrimary }]}>{t('modules.podcast.discover')}</Text>
+              </View>
+            }
+            contentBlock={
+              <>
+                {/* Search controls: ChipSelector + SearchBar */}
+                <View style={styles.searchSection}>
+                  <ChipSelector
+                    mode="country"
+                    options={COUNTRIES}
+                    selectedCode={selectedCountry}
+                    onSelect={handleCountryChange}
+                  />
+                  <SearchBar
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    onSubmit={handleSearch}
+                    placeholder={t('modules.podcast.searchPlaceholder')}
+                    searchButtonLabel={t('modules.podcast.searchButton')}
+                    maxLength={SEARCH_MAX_LENGTH}
+                  />
+                </View>
 
-          {/* Search controls: ChipSelector + SearchBar */}
-          <View style={styles.searchSection}>
-            <ChipSelector
-              mode="country"
-              options={COUNTRIES}
-              selectedCode={selectedCountry}
-              onSelect={handleCountryChange}
-            />
-            <SearchBar
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmit={handleSearch}
-              placeholder={t('modules.podcast.searchPlaceholder')}
-              searchButtonLabel={t('modules.podcast.searchButton')}
-              maxLength={SEARCH_MAX_LENGTH}
-            />
-          </View>
+                {/* Separator between controls and results */}
+                <View style={{ height: 4, backgroundColor: podcastModuleColor, opacity: 0.4, marginTop: spacing.xs }} />
 
-          {/* Separator between controls and results */}
-          <View style={{ height: 1, backgroundColor: podcastModuleColor, opacity: 0.4, marginHorizontal: spacing.md }} />
-
-          {/* Search results */}
-          {isLoading ? (
-            <LoadingView message={t('modules.podcast.loading')} fullscreen />
-          ) : apiError ? (
-            <ErrorView
-              title={t(`modules.podcast.errors.${apiError}Title`)}
-              message={t(`modules.podcast.errors.${apiError}`)}
-              onRetry={() => {
-                triggerFeedback('tap');
-                handleSearch();
-              }}
-              fullscreen
-            />
-          ) : searchResults.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Icon name="podcast" size={64} color={themeColors.textTertiary} />
-              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-                {t('modules.podcast.noResults')}
-              </Text>
-            </View>
-          ) : (
-            <ScrollViewWithIndicator
-              style={styles.showList}
-              contentContainerStyle={styles.showListContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              {searchResults.map((show) => {
-                const isCurrentShow = currentShow && currentShow.id === show.id;
-
-                return (
-                  <View
-                    key={show.id}
-                    style={[
-                      styles.showItem,
-                      { backgroundColor: themeColors.surface },
-                      isCurrentShow && {
-                        borderWidth: 2,
-                        borderColor: accentColor.primary,
-                      },
-                    ]}
-                  >
-                    {/* Playing wave icon */}
-                    {isCurrentShow && (
-                      <View style={styles.playingWaveContainer}>
-                        <PlayingWaveIcon
-                          color={accentColor.primary}
-                          size={24}
-                          isPlaying={isPlaying}
-                        />
-                      </View>
-                    )}
-
-                    {/* Show info - tap to open show detail and close modal */}
-                    <HapticTouchable hapticDisabled
-                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}
-                      onPress={() => {
-                        handleShowPress(show);
-                        setShowSearchModal(false);
-                      }}
-                      activeOpacity={0.7}
-                      accessibilityRole="button"
-                      accessibilityLabel={show.title}
-                      accessibilityState={{ selected: isCurrentShow ?? false }}
-                      accessibilityHint={t('modules.podcast.showHint')}
-                    >
-                      {/* Artwork */}
-                      <ArtworkImage
-                        uri={show.artwork}
-                        style={styles.showArtwork}
-                        placeholderIcon="podcast"
-                        placeholderColor={podcastModuleColor}
-                        accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
-                      />
-
-                      {/* Info */}
-                      <View style={styles.showInfo}>
-                        <Text style={[styles.showTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
-                          {show.title}
-                        </Text>
-                        <Text style={[styles.showAuthor, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                          {show.author}
-                        </Text>
-                      </View>
-                    </HapticTouchable>
-
-                    {/* Subscribe button */}
-                    <IconButton
-                      icon="heart"
-                      iconActive="heart-filled"
-                      isActive={isSubscribed(show.id)}
-                      onPress={() => handleToggleSubscribe(show)}
-                      accessibilityLabel={
-                        isSubscribed(show.id)
-                          ? t('modules.podcast.removeFromFavorites', { name: show.title })
-                          : t('modules.podcast.addToFavorites', { name: show.title })
-                      }
-                      size={24}
-                    />
+                {/* Search results */}
+                {isLoading ? (
+                  <LoadingView message={t('modules.podcast.loading')} fullscreen />
+                ) : apiError ? (
+                  <ErrorView
+                    title={t(`modules.podcast.errors.${apiError}Title`)}
+                    message={t(`modules.podcast.errors.${apiError}`)}
+                    onRetry={() => {
+                      triggerFeedback('tap');
+                      handleSearch();
+                    }}
+                    fullscreen
+                  />
+                ) : searchResults.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <Icon name="podcast" size={64} color={themeColors.textTertiary} />
+                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                      {t('modules.podcast.noResults')}
+                    </Text>
                   </View>
-                );
-              })}
-            </ScrollViewWithIndicator>
-          )}
+                ) : (
+                  <ScrollViewWithIndicator
+                    style={styles.showList}
+                    contentContainerStyle={styles.showListContent}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {searchResults.map((show) => {
+                      const isCurrentShow = currentShow && currentShow.id === show.id;
+
+                      return (
+                        <View
+                          key={show.id}
+                          style={[
+                            styles.showItem,
+                            { backgroundColor: themeColors.surface },
+                            isCurrentShow && {
+                              borderWidth: 2,
+                              borderColor: accentColor.primary,
+                            },
+                          ]}
+                        >
+                          {/* Playing wave icon */}
+                          {isCurrentShow && (
+                            <View style={styles.playingWaveContainer}>
+                              <PlayingWaveIcon
+                                color={accentColor.primary}
+                                size={24}
+                                isPlaying={isPlaying}
+                              />
+                            </View>
+                          )}
+
+                          {/* Show info - tap to open show detail and close modal */}
+                          <HapticTouchable hapticDisabled
+                            style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}
+                            onPress={() => {
+                              handleShowPress(show);
+                              setShowSearchModal(false);
+                            }}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={show.title}
+                            accessibilityState={{ selected: isCurrentShow ?? false }}
+                            accessibilityHint={t('modules.podcast.showHint')}
+                          >
+                            {/* Artwork */}
+                            <ArtworkImage
+                              uri={show.artwork}
+                              style={styles.showArtwork}
+                              placeholderIcon="podcast"
+                              placeholderColor={podcastModuleColor}
+                              accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
+                            />
+
+                            {/* Info */}
+                            <View style={styles.showInfo}>
+                              <Text style={[styles.showTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
+                                {show.title}
+                              </Text>
+                              <Text style={[styles.showAuthor, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                                {show.author}
+                              </Text>
+                            </View>
+                          </HapticTouchable>
+
+                          {/* Subscribe button */}
+                          <IconButton
+                            icon="heart"
+                            iconActive="heart-filled"
+                            isActive={isSubscribed(show.id)}
+                            onPress={() => handleToggleSubscribe(show)}
+                            accessibilityLabel={
+                              isSubscribed(show.id)
+                                ? t('modules.podcast.removeFromFavorites', { name: show.title })
+                                : t('modules.podcast.addToFavorites', { name: show.title })
+                            }
+                            size={24}
+                          />
+                        </View>
+                      );
+                    })}
+                  </ScrollViewWithIndicator>
+                )}
+              </>
+            }
+            footerBlock={
+              <View style={[styles.searchModalFooter, { borderTopColor: themeColors.border }]}>
+                <HapticTouchable hapticDisabled
+                  style={[styles.searchModalCloseButton, { backgroundColor: accentColor.primary }]}
+                  onPress={() => setShowSearchModal(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                >
+                  <Text style={styles.searchModalCloseButtonText}>{t('common.close')}</Text>
+                </HapticTouchable>
+              </View>
+            }
+          />
         </LiquidGlassView>
       </PanelAwareModal>
 
@@ -1627,19 +1633,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchModalHeader: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  searchModalHeaderRow: {
-    flexDirection: 'row',
+    padding: spacing.lg,
     alignItems: 'center',
-    gap: spacing.sm,
-    minHeight: touchTargets.minimum,
+    borderBottomWidth: 1,
   },
   searchModalTitle: {
     ...typography.h3,
-    color: colors.textOnPrimary,
     fontWeight: '700',
+  },
+  searchModalFooter: {
+    padding: spacing.lg,
+    borderTopWidth: 1,
+  },
+  searchModalCloseButton: {
+    minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchModalCloseButtonText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
   },
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   countrySelector: {

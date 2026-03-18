@@ -1341,155 +1341,161 @@ export function RadioScreen() {
         animationType={isReducedMotion ? 'none' : 'slide'}
         onRequestClose={() => setShowSearchModal(false)}
       >
-        <LiquidGlassView moduleId="radio" style={[styles.searchModalContainer, { backgroundColor: themeColors.background }]} cornerRadius={0}>
-          {/* Modal header with close button */}
-          <View style={[styles.searchModalHeader, { backgroundColor: radioModuleColor }]}>
-            <View style={{ height: insets.top }} />
-            <View style={styles.searchModalHeaderRow}>
-              <Icon name="search" size={28} color={colors.textOnPrimary} />
-              <Text style={styles.searchModalTitle}>{t('modules.radio.search')}</Text>
-              <View style={{ flex: 1 }} />
-              <IconButton
-                icon="chevron-down"
-                variant="onPrimary"
-                onPress={() => setShowSearchModal(false)}
-                accessibilityLabel={t('common.close')}
-                size={28}
-              />
-            </View>
-          </View>
+        <LiquidGlassView moduleId="radio" style={styles.searchModalContainer} cornerRadius={0}>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.searchModalHeader, { borderBottomColor: themeColors.border }]}>
+                <Text style={[styles.searchModalTitle, { color: themeColors.textPrimary }]}>{t('modules.radio.search')}</Text>
+              </View>
+            }
+            contentBlock={
+              <>
+                {/* Search controls: ChipSelector + SearchBar */}
+                <View style={styles.searchSection}>
+                  <ChipSelector
+                    mode={filterMode}
+                    options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+                    selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
+                    onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
+                    allowModeToggle={true}
+                    onModeChange={handleFilterModeChange}
+                  />
+                  <SearchBar
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    onSubmit={handleSearch}
+                    placeholder={filterMode === 'country'
+                      ? t('modules.radio.searchPlaceholderByCountry')
+                      : t('modules.radio.searchPlaceholderByLanguage')
+                    }
+                    searchButtonLabel={t('modules.radio.searchButton')}
+                    maxLength={SEARCH_MAX_LENGTH}
+                  />
+                </View>
 
-          {/* Search controls: ChipSelector + SearchBar */}
-          <View style={styles.searchSection}>
-            <ChipSelector
-              mode={filterMode}
-              options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
-              selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
-              onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
-              allowModeToggle={true}
-              onModeChange={handleFilterModeChange}
-            />
-            <SearchBar
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmit={handleSearch}
-              placeholder={filterMode === 'country'
-                ? t('modules.radio.searchPlaceholderByCountry')
-                : t('modules.radio.searchPlaceholderByLanguage')
-              }
-              searchButtonLabel={t('modules.radio.searchButton')}
-              maxLength={SEARCH_MAX_LENGTH}
-            />
-          </View>
+                {/* Separator between controls and results */}
+                <View style={{ height: 4, backgroundColor: radioModuleColor, opacity: 0.4, marginTop: spacing.xs }} />
 
-          {/* Separator between controls and results */}
-          <View style={{ height: 1, backgroundColor: radioModuleColor, opacity: 0.4, marginHorizontal: spacing.md }} />
-
-          {/* Search results */}
-          {isLoading ? (
-            <LoadingView message={t('modules.radio.loading')} fullscreen />
-          ) : apiError ? (
-            <ErrorView
-              title={t(`modules.radio.errors.${apiError}Title`)}
-              message={t(`modules.radio.errors.${apiError}`)}
-              onRetry={() => {
-                triggerFeedback('tap');
-                loadStations();
-              }}
-              fullscreen
-            />
-          ) : stations.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Icon name="radio" size={64} color={themeColors.textTertiary} />
-              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-                {t('modules.radio.noStations')}
-              </Text>
-            </View>
-          ) : (
-            <ScrollViewWithIndicator
-              style={styles.stationList}
-              contentContainerStyle={styles.stationListContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              {stations.map((station) => {
-                const id = station.stationuuid;
-                const isCurrentStation = contextStation && contextStation.id === id;
-
-                return (
-                  <View
-                    key={id}
-                    style={[
-                      styles.stationItem,
-                      { backgroundColor: themeColors.surface },
-                      isCurrentStation && {
-                        borderWidth: 2,
-                        borderColor: accentColor.primary,
-                      },
-                    ]}
-                  >
-                    {/* Playing wave icon */}
-                    {isCurrentStation && (
-                      <View style={styles.playingWaveContainer}>
-                        <PlayingWaveIcon
-                          color={accentColor.primary}
-                          size={24}
-                          isPlaying={isPlaying}
-                        />
-                      </View>
-                    )}
-
-                    {/* Station artwork thumbnail */}
-                    <ArtworkImage
-                      uri={station.favicon}
-                      fallbackUri={station.homepage ? getCachedArtworkSync(station.homepage) : undefined}
-                      style={styles.stationArtwork}
-                      placeholderIcon="radio"
-                      placeholderColor={radioModuleColor}
-                      accessibilityLabel={station.name}
-                    />
-
-                    {/* Station info - tap to play and close modal */}
-                    <HapticTouchable hapticDisabled
-                      style={styles.stationInfoTouchable}
-                      onPress={() => {
-                        handleSelectStation(station);
-                        setShowSearchModal(false); // Close modal after selection
-                      }}
-                      activeOpacity={0.7}
-                      accessibilityRole="button"
-                      accessibilityLabel={station.name}
-                      accessibilityState={{ selected: isCurrentStation ?? false }}
-                      accessibilityHint={t('modules.radio.stationHint')}
-                    >
-                      <View style={styles.stationInfo}>
-                        <Text style={[styles.stationName, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                          {station.name}
-                        </Text>
-                        <Text style={[styles.stationCountry, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                          {station.country}
-                        </Text>
-                      </View>
-                    </HapticTouchable>
-
-                    {/* Favorite button */}
-                    <IconButton
-                      icon="heart"
-                      iconActive="heart-filled"
-                      isActive={isFavorite(station)}
-                      onPress={() => handleToggleFavorite(station)}
-                      accessibilityLabel={
-                        isFavorite(station)
-                          ? t('modules.radio.removeFromFavorites', { name: station.name })
-                          : t('modules.radio.addToFavorites', { name: station.name })
-                      }
-                      size={24}
-                    />
+                {/* Search results */}
+                {isLoading ? (
+                  <LoadingView message={t('modules.radio.loading')} fullscreen />
+                ) : apiError ? (
+                  <ErrorView
+                    title={t(`modules.radio.errors.${apiError}Title`)}
+                    message={t(`modules.radio.errors.${apiError}`)}
+                    onRetry={() => {
+                      triggerFeedback('tap');
+                      loadStations();
+                    }}
+                    fullscreen
+                  />
+                ) : stations.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <Icon name="radio" size={64} color={themeColors.textTertiary} />
+                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                      {t('modules.radio.noStations')}
+                    </Text>
                   </View>
-                );
-              })}
-            </ScrollViewWithIndicator>
-          )}
+                ) : (
+                  <ScrollViewWithIndicator
+                    style={styles.stationList}
+                    contentContainerStyle={styles.stationListContent}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {stations.map((station) => {
+                      const id = station.stationuuid;
+                      const isCurrentStation = contextStation && contextStation.id === id;
+
+                      return (
+                        <View
+                          key={id}
+                          style={[
+                            styles.stationItem,
+                            { backgroundColor: themeColors.surface },
+                            isCurrentStation && {
+                              borderWidth: 2,
+                              borderColor: accentColor.primary,
+                            },
+                          ]}
+                        >
+                          {/* Playing wave icon */}
+                          {isCurrentStation && (
+                            <View style={styles.playingWaveContainer}>
+                              <PlayingWaveIcon
+                                color={accentColor.primary}
+                                size={24}
+                                isPlaying={isPlaying}
+                              />
+                            </View>
+                          )}
+
+                          {/* Station artwork thumbnail */}
+                          <ArtworkImage
+                            uri={station.favicon}
+                            fallbackUri={station.homepage ? getCachedArtworkSync(station.homepage) : undefined}
+                            style={styles.stationArtwork}
+                            placeholderIcon="radio"
+                            placeholderColor={radioModuleColor}
+                            accessibilityLabel={station.name}
+                          />
+
+                          {/* Station info - tap to play and close modal */}
+                          <HapticTouchable hapticDisabled
+                            style={styles.stationInfoTouchable}
+                            onPress={() => {
+                              handleSelectStation(station);
+                              setShowSearchModal(false); // Close modal after selection
+                            }}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={station.name}
+                            accessibilityState={{ selected: isCurrentStation ?? false }}
+                            accessibilityHint={t('modules.radio.stationHint')}
+                          >
+                            <View style={styles.stationInfo}>
+                              <Text style={[styles.stationName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                                {station.name}
+                              </Text>
+                              <Text style={[styles.stationCountry, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                                {station.country}
+                              </Text>
+                            </View>
+                          </HapticTouchable>
+
+                          {/* Favorite button */}
+                          <IconButton
+                            icon="heart"
+                            iconActive="heart-filled"
+                            isActive={isFavorite(station)}
+                            onPress={() => handleToggleFavorite(station)}
+                            accessibilityLabel={
+                              isFavorite(station)
+                                ? t('modules.radio.removeFromFavorites', { name: station.name })
+                                : t('modules.radio.addToFavorites', { name: station.name })
+                            }
+                            size={24}
+                          />
+                        </View>
+                      );
+                    })}
+                  </ScrollViewWithIndicator>
+                )}
+              </>
+            }
+            footerBlock={
+              <View style={[styles.searchModalFooter, { borderTopColor: themeColors.border }]}>
+                <HapticTouchable hapticDisabled
+                  style={[styles.searchModalCloseButton, { backgroundColor: accentColor.primary }]}
+                  onPress={() => setShowSearchModal(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                >
+                  <Text style={styles.searchModalCloseButtonText}>{t('common.close')}</Text>
+                </HapticTouchable>
+              </View>
+            }
+          />
         </LiquidGlassView>
       </PanelAwareModal>
     </KeyboardAvoidingView>
@@ -1546,19 +1552,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchModalHeader: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  searchModalHeaderRow: {
-    flexDirection: 'row',
+    padding: spacing.lg,
     alignItems: 'center',
-    gap: spacing.sm,
-    minHeight: touchTargets.minimum,
+    borderBottomWidth: 1,
   },
   searchModalTitle: {
     ...typography.h3,
-    color: colors.textOnPrimary,
     fontWeight: '700',
+  },
+  searchModalFooter: {
+    padding: spacing.lg,
+    borderTopWidth: 1,
+  },
+  searchModalCloseButton: {
+    minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchModalCloseButtonText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
   },
   // countryList, countryChip, countryChipText, filterLabel removed — using standardized ChipSelector component
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
