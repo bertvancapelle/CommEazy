@@ -203,8 +203,6 @@ export function PodcastScreen() {
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | 'parse' | null>(null);
   // Discovery search modal — opens on SearchTabButton tap
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const hasShownWelcomeRef = useRef(false);
   // Podcast uses country filter (iTunes API is store/region-based, not language-based)
   const [selectedCountry, setSelectedCountry] = useState(savedBrowsing?.selectedCountry ?? 'NL');
 
@@ -321,14 +319,6 @@ export function PodcastScreen() {
       setPlaybackError(null);
     }
   }, [isPlaying]);
-
-  // Show welcome modal for first-time users
-  useEffect(() => {
-    if (!hasShownWelcomeRef.current && subscriptions.length === 0) {
-      hasShownWelcomeRef.current = true;
-      setShowWelcomeModal(true);
-    }
-  }, [subscriptions.length]);
 
   // ============================================================
   // Glass Player Effects (iOS 26+ Liquid Glass)
@@ -682,6 +672,7 @@ export function PodcastScreen() {
             isActive={showSearchModal}
             onPress={() => setShowSearchModal(true)}
             label={t('modules.podcast.discover')}
+            pulse={subscriptions.length === 0}
           />
         </View>
 
@@ -715,23 +706,13 @@ export function PodcastScreen() {
         {/* Subscriptions list — always shown on main screen */}
         {displayedShows.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Icon name="heart" size={64} color={colors.textTertiary} />
+            <Icon name="podcast" size={64} color={colors.textTertiary} />
             <Text style={styles.emptyText}>
               {t('modules.podcast.noFavorites')}
             </Text>
-            <Text style={styles.emptyHint}>{t('modules.podcast.noFavoritesHint')}</Text>
-            <HapticTouchable hapticDisabled
-              style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
-              onPress={() => {
-                triggerFeedback('tap');
-                setShowSearchModal(true);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('modules.podcast.goToDiscover')}
-            >
-              <Icon name="search" size={24} color={colors.textOnPrimary} />
-              <Text style={styles.emptyActionButtonText}>{t('modules.podcast.goToDiscover')}</Text>
-            </HapticTouchable>
+            <Text style={styles.emptyHint}>
+              {t('modules.podcast.emptyStateHint')}
+            </Text>
           </View>
         ) : (
           <ScrollViewWithIndicator
@@ -1226,68 +1207,6 @@ export function PodcastScreen() {
               />
             </LiquidGlassView>
           </HapticTouchable>
-        </PanelAwareModal>
-
-        {/* Welcome Modal */}
-        <PanelAwareModal
-          visible={showWelcomeModal}
-          transparent={true}
-          animationType={isReducedMotion ? 'none' : 'fade'}
-          onRequestClose={() => {
-            setShowWelcomeModal(false);
-            setShowSearchModal(true);
-          }}
-          accessibilityViewIsModal={true}
-        >
-          <View style={styles.welcomeOverlay}>
-            <LiquidGlassView moduleId="podcast" style={styles.welcomeContent} cornerRadius={16}>
-              <ModalLayout
-                headerBlock={
-                  <View style={styles.welcomeHeader}>
-                    <Icon name="podcast" size={48} color={accentColor.primary} />
-                    <Text style={styles.welcomeTitle}>{t('modules.podcast.welcomeTitle')}</Text>
-                  </View>
-                }
-                contentBlock={
-                  <>
-                    <Text style={styles.welcomeText}>{t('modules.podcast.welcomeText')}</Text>
-
-                    <View style={styles.welcomeStep}>
-                      <View style={styles.welcomeStepNumber}>
-                        <Text style={styles.welcomeStepNumberText}>1</Text>
-                      </View>
-                      <Text style={styles.welcomeStepText}>{t('modules.podcast.welcomeStep1')}</Text>
-                    </View>
-
-                    <View style={styles.welcomeStep}>
-                      <View style={styles.welcomeStepNumber}>
-                        <Text style={styles.welcomeStepNumberText}>2</Text>
-                      </View>
-                      <View style={styles.welcomeStepContent}>
-                        <Text style={styles.welcomeStepText}>{t('modules.podcast.welcomeStep2')}</Text>
-                        <Icon name="heart" size={24} color={accentColor.primary} style={styles.welcomeStepIcon} />
-                      </View>
-                    </View>
-                  </>
-                }
-                footerBlock={
-                  <HapticTouchable hapticDisabled
-                    style={[styles.welcomeButton, { backgroundColor: accentColor.primary }]}
-                    onPress={() => {
-                      triggerFeedback('tap');
-                      setShowWelcomeModal(false);
-                      setShowSearchModal(true);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.podcast.welcomeButton')}
-                  >
-                    <Icon name="search" size={24} color={colors.textOnPrimary} />
-                    <Text style={styles.welcomeButtonText}>{t('modules.podcast.welcomeButton')}</Text>
-                  </HapticTouchable>
-                }
-              />
-            </LiquidGlassView>
-          </View>
         </PanelAwareModal>
 
         {/* Continue Listening Dialog */}
@@ -1804,22 +1723,6 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
     textAlign: 'center',
   },
-  emptyActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.comfortable,
-    marginTop: spacing.md,
-  },
-  emptyActionButtonText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
-  },
   showList: {
     flex: 1,
   },
@@ -2048,89 +1951,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     textAlign: 'center',
-  },
-  // Welcome Modal
-  welcomeOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  welcomeContent: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    maxWidth: 400,
-    width: '100%',
-  },
-  welcomeHeader: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    gap: spacing.sm,
-  },
-  welcomeTitle: {
-    ...typography.h2,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  welcomeText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-    lineHeight: 26,
-  },
-  welcomeStep: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    gap: spacing.md,
-  },
-  welcomeStepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  welcomeStepNumberText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-  welcomeStepContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  welcomeStepText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    flex: 1,
-  },
-  welcomeStepIcon: {
-    marginLeft: spacing.xs,
-  },
-  welcomeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.comfortable,
-    marginTop: spacing.lg,
-  },
-  welcomeButtonText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
   },
   voiceHint: {
     position: 'absolute',

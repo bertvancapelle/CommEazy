@@ -370,8 +370,6 @@ export function RadioScreen() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   // Popup shown when no favorites exist — explains how to find and save stations
   const [showNoFavoritesModal, setShowNoFavoritesModal] = useState(false);
-  // Track if we've already shown the modal this session
-  const hasShownModalRef = useRef(false);
   // Expanded player view — tap mini-player to expand
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   // Playback error state — shown when a stream fails to play
@@ -598,21 +596,8 @@ export function RadioScreen() {
           const profile = await ServiceContainer.database.getUserProfile();
           if (profile?.radioFavorites && profile.radioFavorites.length > 0) {
             setFavorites(profile.radioFavorites);
-          } else {
-            // No favorites yet — open search modal with default country (NL)
-            // This is more user-friendly than showing an empty favorites list
-            if (!hasShownModalRef.current) {
-              hasShownModalRef.current = true;
-              setShowSearchModal(true); // Open discovery search modal
-              // selectedCountry defaults to 'NL', loadStations will trigger via useEffect
-            }
           }
-        } else {
-          // Database not initialized — open search modal with default country (NL)
-          if (!hasShownModalRef.current) {
-            hasShownModalRef.current = true;
-            setShowSearchModal(true); // Open discovery search modal
-          }
+          // No favorites → show empty state with pulsing SearchTabButton
         }
       } catch (error) {
         console.error('[RadioScreen] Failed to load favorites:', error);
@@ -971,6 +956,7 @@ export function RadioScreen() {
             isActive={showSearchModal}
             onPress={() => setShowSearchModal(true)}
             label={t('modules.radio.search')}
+            pulse={favorites.length === 0}
           />
         </View>
 
@@ -1005,24 +991,13 @@ export function RadioScreen() {
       {/* Favorites list — always shown on main screen */}
       {displayedStations.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="heart" size={64} color={themeColors.textTertiary} />
+          <Icon name="radio" size={64} color={themeColors.textTertiary} />
           <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
             {t('modules.radio.noFavorites')}
           </Text>
-          <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>{t('modules.radio.noFavoritesHintExtended')}</Text>
-          {/* Clear call-to-action button for seniors — opens search modal */}
-          <HapticTouchable hapticDisabled
-            style={[styles.emptyActionButton, { backgroundColor: accentColor.primary }]}
-            onPress={() => {
-              triggerFeedback('tap');
-              setShowSearchModal(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t('modules.radio.goToSearch')}
-          >
-            <Icon name="search" size={24} color={colors.textOnPrimary} />
-            <Text style={styles.emptyActionButtonText}>{t('modules.radio.goToSearch')}</Text>
-          </HapticTouchable>
+          <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>
+            {t('modules.radio.emptyStateHint')}
+          </Text>
         </View>
       ) : (
         <ScrollViewWithIndicator
@@ -1533,22 +1508,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textTertiary,
     textAlign: 'center',
-  },
-  emptyActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    minHeight: touchTargets.comfortable,
-    marginTop: spacing.md,
-  },
-  emptyActionButtonText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
   },
   // Playback error banner styles
   playbackErrorBanner: {

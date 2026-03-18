@@ -13,13 +13,14 @@
  * @see .claude/CLAUDE.md Section 12 (Media Module Design Principles)
  */
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
 import { HapticTouchable } from './HapticTouchable';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 
@@ -45,6 +46,8 @@ export interface SearchTabButtonProps {
   onPress: () => void;
   /** Tab label (default: uses i18n 'common.search') */
   label?: string;
+  /** Pulse animation to draw attention (e.g. when favorites are empty) */
+  pulse?: boolean;
 }
 
 // ============================================================
@@ -110,25 +113,59 @@ export function SearchTabButton({
   isActive,
   onPress,
   label,
+  pulse = false,
 }: SearchTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
   const buttonStyleContext = useButtonStyleSafe();
+  const reduceMotion = useReducedMotion();
 
   const displayLabel = label ?? t('common.search');
+
+  // Pulse animation (opacity 1.0 → 0.4 → 1.0, 1200ms cycle)
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (pulse && !isActive && !reduceMotion) {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 0.4,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      animation.start();
+      return () => animation.stop();
+    }
+    // Reset opacity when pulse stops
+    pulseAnim.setValue(1);
+  }, [pulse, isActive, reduceMotion, pulseAnim]);
 
   // User-configurable button border
   const userBorderStyle = buttonStyleContext?.settings.borderEnabled
     ? { borderWidth: 2, borderColor: buttonStyleContext.getBorderColorHex() }
     : undefined;
 
-  return (
+  // Reduce Motion fallback: static accent background when pulse is active
+  const pulseStaticStyle = pulse && !isActive && reduceMotion
+    ? { backgroundColor: accentColor.light }
+    : undefined;
+
+  const buttonContent = (
     <HapticTouchable
       style={[
         styles.tab,
         isActive
           ? { backgroundColor: accentColor.primary }
           : styles.tabInactive,
+        pulseStaticStyle,
         userBorderStyle,
       ]}
       onPress={onPress}
@@ -151,6 +188,17 @@ export function SearchTabButton({
       </Text>
     </HapticTouchable>
   );
+
+  // Wrap in Animated.View for pulse animation (non-reduced-motion)
+  if (pulse && !isActive && !reduceMotion) {
+    return (
+      <Animated.View style={[styles.pulseWrapper, { opacity: pulseAnim }]}>
+        {buttonContent}
+      </Animated.View>
+    );
+  }
+
+  return buttonContent;
 }
 
 // ============================================================
@@ -202,6 +250,11 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: colors.textOnPrimary,
+  },
+
+  // Pulse animation wrapper — must match tab flex layout
+  pulseWrapper: {
+    flex: 1,
   },
 });
 
