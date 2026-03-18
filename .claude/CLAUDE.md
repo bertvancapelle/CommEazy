@@ -1569,6 +1569,59 @@ zip -r ~/Projects/CommEazy-claude-config-$(date +%Y%m%d).zip .claude/
 
 **⚠️ NOOIT VERWIJDEREN:** Config backup ZIP bestanden (`~/Projects/CommEazy-claude-config-*.zip`) mogen NOOIT worden verwijderd door opruimscripts, maandelijks onderhoud, of welke cleanup dan ook. Deze backups zijn permanent en worden handmatig beheerd door de gebruiker.
 
+### ⚠️ Na ELKE Push: Update SESSION_STATE.md
+
+**Dit is VERPLICHT.** Na elke succesvolle push MOET Claude `.claude/SESSION_STATE.md` bijwerken met de huidige sessie-staat.
+
+**Wat vastleggen:**
+- Voltooide taken (met commit hash)
+- Openstaande taken
+- Lopende PNA-conclusies die nog niet geïmplementeerd zijn
+- Relevante beslissingen en hun rationale
+- Context hints voor de volgende sessie (welke bestanden, welke regelnummers)
+
+**Bij nieuwe sessie MOET Claude:**
+1. `.claude/SESSION_STATE.md` EERST lezen
+2. Openstaande taken benoemen aan de gebruiker
+3. Lopende PNA-conclusies vermelden
+
+**SESSION_STATE.md wordt OVERSCHREVEN bij elke update** (niet geappend) — het bevat alleen de staat van de LAATSTE sessie.
+
+### ⚠️ Context Window Management (VERPLICHT)
+
+**KRITIEK:** Claude heeft een beperkt context window. Wanneer dit vol raakt, wordt de sessie abrupt beëindigd en gaat alle niet-vastgelegde context verloren.
+
+**Claude's Verantwoordelijkheid:**
+
+Claude MOET actief inschatten wanneer het context window vol begint te raken. Indicatoren:
+- Meer dan ~8-10 grote file reads in één sessie
+- Meer dan ~15-20 vraag-antwoord interacties
+- Meerdere Explore agent calls met grote output
+- Lange PNA-discussies met veel heen-en-weer
+
+**Bij ~70% geschatte context gebruik:**
+
+```
+⚠️ **Context drempel ~70%** — We naderen de limiet van deze sessie.
+
+Aanbeveling: Rond de huidige taak af, dan nieuwe sessie starten.
+SESSION_STATE.md is bijgewerkt met alle relevante context.
+```
+
+**Bij ~85% geschatte context gebruik:**
+
+```
+🔴 **Context drempel ~85%** — Na deze interactie nieuwe sessie starten.
+
+SESSION_STATE.md is bijgewerkt. Alle openstaande zaken zijn vastgelegd.
+```
+
+**Regels:**
+- Bij drempelwaarschuwing: SESSION_STATE.md DIRECT bijwerken (niet wachten op commit)
+- Waarschuwing gaat VOOR op andere output
+- Na waarschuwing: alleen nog korte, essentiële interacties
+- NOOIT een grote file read of explore agent starten na 70% waarschuwing
+
 ### ⚠️ Na ELKE Push: Valideer Metro, Prosody en Push Gateway Status
 
 **Dit is een gebruikersvoorkeur.** Na elke succesvolle push MOET Claude de status van Metro, Prosody en Push Gateway valideren.
