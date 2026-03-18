@@ -859,168 +859,155 @@ export function PodcastScreen() {
       {/* Show Detail Modal */}
         <PanelAwareModal
           visible={selectedShow !== null}
-          transparent={true}
           animationType={isReducedMotion ? 'none' : 'slide'}
           onRequestClose={() => setSelectedShow(null)}
           accessibilityViewIsModal={true}
         >
-          <View style={styles.modalOverlay}>
-            <LiquidGlassView moduleId="podcast" style={[styles.showDetailModal, { paddingTop: insets.top + spacing.md }]} cornerRadius={0}>
-              {selectedShow && (
-                <>
-                  {/* Header */}
-                  <View style={styles.showDetailHeader}>
-                    {selectedShow.artwork ? (
-                      <Image
-                        source={{ uri: selectedShow.artwork }}
-                        style={styles.showDetailArtwork}
-                      />
-                    ) : (
-                      <View style={[styles.showDetailArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
-                        <Icon name="podcast" size={48} color={colors.textOnPrimary} />
-                      </View>
-                    )}
-                    <View style={styles.showDetailInfo}>
-                      <Text style={styles.showDetailTitle} numberOfLines={2}>
-                        {selectedShow.title}
-                      </Text>
-                      <Text style={styles.showDetailAuthor} numberOfLines={1}>
-                        {selectedShow.author}
-                      </Text>
-                      <HapticTouchable hapticDisabled
-                        style={[
-                          styles.subscribeButton,
-                          isSubscribed(selectedShow.id)
-                            ? styles.subscribeButtonActive
-                            : { borderColor: accentColor.primary },
-                        ]}
-                        onPress={() => handleToggleSubscribe(selectedShow)}
-                        accessibilityRole="button"
-                        accessibilityLabel={
-                          isSubscribed(selectedShow.id)
-                            ? t('modules.podcast.removeFromFavorites', { name: selectedShow.title })
-                            : t('modules.podcast.addToFavorites', { name: selectedShow.title })
-                        }
-                      >
-                        <Icon
-                          name={isSubscribed(selectedShow.id) ? 'heart-filled' : 'heart'}
-                          size={20}
-                          color={isSubscribed(selectedShow.id) ? colors.textOnPrimary : accentColor.primary}
-                        />
-                        <Text
-                          style={[
-                            styles.subscribeButtonText,
-                            isSubscribed(selectedShow.id)
-                              ? styles.subscribeButtonTextActive
-                              : { color: accentColor.primary },
-                          ]}
-                        >
-                          {isSubscribed(selectedShow.id)
-                            ? t('modules.podcast.isFavorite')
-                            : t('modules.podcast.addToFavorites')}
-                        </Text>
-                      </HapticTouchable>
-                    </View>
+          <LiquidGlassView moduleId="podcast" style={[styles.showDetailModalContainer, { backgroundColor: themeColors.background }]} cornerRadius={0}>
+            {selectedShow && (
+              <>
+                {/* Header — consistent with search modal */}
+                <View style={[styles.showDetailModalHeader, { backgroundColor: podcastModuleColor }]}>
+                  <View style={{ height: insets.top }} />
+                  <View style={styles.showDetailModalHeaderRow}>
+                    <IconButton
+                      icon="chevron-down"
+                      onPress={() => setSelectedShow(null)}
+                      accessibilityLabel={t('common.close')}
+                      size={28}
+                    />
+                    <Text style={styles.showDetailModalTitle} numberOfLines={1}>
+                      {selectedShow.title}
+                    </Text>
+                    <View style={{ flex: 1 }} />
+                    <IconButton
+                      icon={isSubscribed(selectedShow.id) ? 'heart-filled' : 'heart'}
+                      onPress={() => handleToggleSubscribe(selectedShow)}
+                      accessibilityLabel={
+                        isSubscribed(selectedShow.id)
+                          ? t('modules.podcast.removeFromFavorites', { name: selectedShow.title })
+                          : t('modules.podcast.addToFavorites', { name: selectedShow.title })
+                      }
+                      size={28}
+                    />
                   </View>
+                </View>
 
-                  {/* Episodes */}
-                  <Text style={styles.episodesTitle}>
-                    {t('modules.podcast.episodes')} ({showEpisodes.length})
-                  </Text>
+                {/* Scrollable content: artwork + info + episodes */}
+                {isLoadingEpisodes ? (
+                  <LoadingView />
+                ) : (
+                  <ScrollViewWithIndicator
+                    style={styles.episodeList}
+                    contentContainerStyle={{ paddingBottom: spacing.xxl }}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {/* Show artwork + info */}
+                    <View style={styles.showDetailHeader}>
+                      {selectedShow.artwork ? (
+                        <Image
+                          source={{ uri: selectedShow.artwork }}
+                          style={styles.showDetailArtwork}
+                        />
+                      ) : (
+                        <View style={[styles.showDetailArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
+                          <Icon name="podcast" size={48} color={colors.textOnPrimary} />
+                        </View>
+                      )}
+                      <View style={styles.showDetailInfo}>
+                        <Text style={styles.showDetailTitle} numberOfLines={2}>
+                          {selectedShow.title}
+                        </Text>
+                        <Text style={styles.showDetailAuthor} numberOfLines={1}>
+                          {selectedShow.author}
+                        </Text>
+                      </View>
+                    </View>
 
-                  {isLoadingEpisodes ? (
-                    <LoadingView />
-                  ) : (
-                    <ScrollView style={styles.episodeList}>
-                      {sortedShowEpisodes.map((episode) => {
-                        const episodeProgress = getEpisodeProgress(episode.id);
-                        const completed = isEpisodeCompleted(episode.id);
-                        const isCurrentEpisode = currentEpisode && currentEpisode.id === episode.id;
+                    {/* Episodes title */}
+                    <Text style={styles.episodesTitle}>
+                      {t('modules.podcast.episodes')} ({showEpisodes.length})
+                    </Text>
 
-                        return (
-                          <HapticTouchable hapticDisabled
-                            key={episode.id}
-                            style={[
-                              styles.episodeItem,
-                              // Playing episode: thin accent border
-                              isCurrentEpisode && {
-                                borderWidth: 2,
-                                borderColor: accentColor.primary,
-                              },
-                            ]}
-                            onPress={() => handlePlayEpisode(episode)}
-                            onLongPress={() => {
-                              // Empty handler prevents onPress from firing after long press
-                            }}
-                            accessibilityRole="button"
-                            accessibilityLabel={episode.title}
-                            accessibilityState={{ selected: isCurrentEpisode ?? false }}
-                            accessibilityHint={t('modules.podcast.episodeHint')}
-                          >
-                            {/* Playing wave icon — shown for currently playing episode */}
-                            {isCurrentEpisode && (
-                              <View style={styles.episodePlayingWaveContainer}>
-                                <PlayingWaveIcon
-                                  color={accentColor.primary}
-                                  size={20}
-                                  isPlaying={isPlaying}
-                                />
-                              </View>
-                            )}
+                    {/* Episodes list */}
+                    {sortedShowEpisodes.map((episode) => {
+                      const episodeProgress = getEpisodeProgress(episode.id);
+                      const completed = isEpisodeCompleted(episode.id);
+                      const isCurrentEpisode = currentEpisode && currentEpisode.id === episode.id;
 
-                            <View style={styles.episodeInfo}>
-                              <Text style={styles.episodeTitle} numberOfLines={2}>
-                                {episode.title}
+                      return (
+                        <HapticTouchable hapticDisabled
+                          key={episode.id}
+                          style={[
+                            styles.episodeItem,
+                            // Playing episode: thin accent border
+                            isCurrentEpisode && {
+                              borderWidth: 2,
+                              borderColor: accentColor.primary,
+                            },
+                          ]}
+                          onPress={() => handlePlayEpisode(episode)}
+                          onLongPress={() => {
+                            // Empty handler prevents onPress from firing after long press
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={episode.title}
+                          accessibilityState={{ selected: isCurrentEpisode ?? false }}
+                          accessibilityHint={t('modules.podcast.episodeHint')}
+                        >
+                          {/* Playing wave icon — shown for currently playing episode */}
+                          {isCurrentEpisode && (
+                            <View style={styles.episodePlayingWaveContainer}>
+                              <PlayingWaveIcon
+                                color={accentColor.primary}
+                                size={20}
+                                isPlaying={isPlaying}
+                              />
+                            </View>
+                          )}
+
+                          <View style={styles.episodeInfo}>
+                            <Text style={styles.episodeTitle} numberOfLines={2}>
+                              {episode.title}
+                            </Text>
+                            <View style={styles.episodeMeta}>
+                              <Text style={styles.episodeDate}>
+                                {formatEpisodeDate(episode.publishedAt)}
                               </Text>
-                              <View style={styles.episodeMeta}>
-                                <Text style={styles.episodeDate}>
-                                  {formatEpisodeDate(episode.publishedAt)}
-                                </Text>
-                                <Text style={styles.episodeDuration}>
-                                  {formatTime(episode.duration)}
-                                </Text>
-                                {completed && (
-                                  <View style={styles.completedBadge}>
-                                    <Icon name="check" size={20} color={colors.textOnPrimary} />
-                                  </View>
-                                )}
-                              </View>
-                              {episodeProgress && !completed && (
-                                <View style={styles.episodeProgressContainer}>
-                                  <View
-                                    style={[
-                                      styles.episodeProgressBar,
-                                      {
-                                        width: `${(episodeProgress.position / episodeProgress.duration) * 100}%`,
-                                        backgroundColor: accentColor.primary,
-                                      },
-                                    ]}
-                                  />
+                              <Text style={styles.episodeDuration}>
+                                {formatTime(episode.duration)}
+                              </Text>
+                              {completed && (
+                                <View style={styles.completedBadge}>
+                                  <Icon name="check" size={20} color={colors.textOnPrimary} />
                                 </View>
                               )}
                             </View>
-                            <View style={[styles.playButton, { backgroundColor: accentColor.primary }]}>
-                              <Icon name={isCurrentEpisode && isPlaying ? 'pause' : 'play'} size={20} color={colors.textOnPrimary} />
-                            </View>
-                          </HapticTouchable>
-                        );
-                      })}
-                    </ScrollView>
-                  )}
-
-                  {/* Close button */}
-                  <HapticTouchable hapticDisabled
-                    style={[styles.closeButton, { backgroundColor: accentColor.primary }]}
-                    onPress={() => setSelectedShow(null)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.close')}
-                  >
-                    <Text style={styles.closeButtonText}>{t('common.close')}</Text>
-                  </HapticTouchable>
-                </>
-              )}
-            </LiquidGlassView>
-          </View>
+                            {episodeProgress && !completed && (
+                              <View style={styles.episodeProgressContainer}>
+                                <View
+                                  style={[
+                                    styles.episodeProgressBar,
+                                    {
+                                      width: `${(episodeProgress.position / episodeProgress.duration) * 100}%`,
+                                      backgroundColor: accentColor.primary,
+                                    },
+                                  ]}
+                                />
+                              </View>
+                            )}
+                          </View>
+                          <View style={[styles.playButton, { backgroundColor: accentColor.primary }]}>
+                            <Icon name={isCurrentEpisode && isPlaying ? 'pause' : 'play'} size={20} color={colors.textOnPrimary} />
+                          </View>
+                        </HapticTouchable>
+                      );
+                    })}
+                  </ScrollViewWithIndicator>
+                )}
+              </>
+            )}
+          </LiquidGlassView>
         </PanelAwareModal>
 
         {/* Expanded Player — React Native fallback when Glass Player not available */}
@@ -1769,21 +1756,30 @@ const styles = StyleSheet.create({
   },
   // Mini-player styles removed — using standardized MiniPlayer component
   // Show Detail Modal
-  modalOverlay: {
+  showDetailModalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
-  showDetailModal: {
-    flex: 1,
-    backgroundColor: colors.background,
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    marginTop: 60,
+  showDetailModalHeader: {
     paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  showDetailModalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: touchTargets.minimum,
+  },
+  showDetailModalTitle: {
+    ...typography.h3,
+    color: colors.textOnPrimary,
+    fontWeight: '700',
+    flex: 1,
   },
   showDetailHeader: {
     flexDirection: 'row',
     marginBottom: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
   },
   showDetailArtwork: {
     width: 120,
@@ -1805,37 +1801,16 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
-  subscribeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 2,
-    marginTop: spacing.md,
-    minHeight: touchTargets.minimum,
-  },
-  subscribeButtonActive: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
-  },
-  subscribeButtonText: {
-    ...typography.body,
-    fontWeight: '600',
-  },
-  subscribeButtonTextActive: {
-    color: colors.textOnPrimary,
-  },
   episodesTitle: {
     ...typography.h3,
     color: colors.textPrimary,
     fontWeight: '700',
     marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
   },
   episodeList: {
     flex: 1,
+    paddingHorizontal: spacing.md,
   },
   episodeItem: {
     flexDirection: 'row',
@@ -1903,20 +1878,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  closeButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    marginTop: spacing.md,
-    marginBottom: spacing.lg,
-    minHeight: touchTargets.minimum,
-  },
-  closeButtonText: {
-    ...typography.body,
-    color: colors.textOnPrimary,
-    fontWeight: '600',
   },
   // Picker Modals
   pickerOverlay: {
