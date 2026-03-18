@@ -388,7 +388,7 @@ export function UnifiedMiniPlayer({
             accessibilityLabel={playPauseLabel}
             style={[styles.controlButton, getButtonBorderStyle()]}
           >
-            {isLoading ? (
+            {isLoading && !isPlaying ? (
               <View style={styles.loadingDots}>
                 <View style={styles.loadingDot} />
                 <View style={styles.loadingDot} />

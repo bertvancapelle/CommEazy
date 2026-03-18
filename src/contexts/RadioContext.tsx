@@ -177,6 +177,14 @@ export function RadioProvider({ children }: RadioProviderProps) {
   const isPlaying = playbackState.state === State.Playing;
   const isBuffering = playbackState.state === State.Buffering || playbackState.state === State.Loading;
 
+  // Guard: clear stale isLoading when playback is already active
+  // Prevents spinner showing when navigating back to RadioScreen while playing
+  useEffect(() => {
+    if (isPlaying && isLoading) {
+      setIsLoading(false);
+    }
+  }, [isPlaying, isLoading]);
+
   // ============================================================
   // Initialization
   // ============================================================
