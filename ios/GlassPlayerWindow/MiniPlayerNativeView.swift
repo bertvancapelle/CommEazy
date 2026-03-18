@@ -43,6 +43,7 @@ class MiniPlayerNativeView: UIView {
     weak var delegate: MiniPlayerNativeViewDelegate?
     
     private let artworkImageView = UIImageView()
+    private let artworkPlaceholderIcon = UIImageView()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let progressView = UIProgressView()
@@ -115,7 +116,21 @@ class MiniPlayerNativeView: UIView {
         artworkImageView.backgroundColor = UIColor.white.withAlphaComponent(0.2)
         artworkImageView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(artworkImageView)
-        
+
+        // Artwork placeholder icon (SF Symbol, shown when no artwork available)
+        let placeholderConfig = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        artworkPlaceholderIcon.image = UIImage(systemName: "radio", withConfiguration: placeholderConfig)
+        artworkPlaceholderIcon.tintColor = UIColor.white.withAlphaComponent(0.8)
+        artworkPlaceholderIcon.contentMode = .center
+        artworkPlaceholderIcon.translatesAutoresizingMaskIntoConstraints = false
+        artworkPlaceholderIcon.isHidden = false  // Visible by default until artwork loads
+        artworkImageView.addSubview(artworkPlaceholderIcon)
+
+        NSLayoutConstraint.activate([
+            artworkPlaceholderIcon.centerXAnchor.constraint(equalTo: artworkImageView.centerXAnchor),
+            artworkPlaceholderIcon.centerYAnchor.constraint(equalTo: artworkImageView.centerYAnchor),
+        ])
+
         // Title
         titleLabel.font = .systemFont(ofSize: Layout.titleFontSize, weight: .semibold)
         titleLabel.textColor = .white
@@ -447,8 +462,9 @@ class MiniPlayerNativeView: UIView {
             NSLog("[GlassPlayer] MiniPlayer updateContent - Loading artwork from: \(urlString)")
             loadImage(from: url)
         } else {
-            NSLog("[GlassPlayer] MiniPlayer updateContent - No artwork URL, clearing image")
+            NSLog("[GlassPlayer] MiniPlayer updateContent - No artwork URL, showing placeholder")
             artworkImageView.image = nil
+            artworkPlaceholderIcon.isHidden = false
         }
         
         // Update stop button visibility (single source of truth via content)
@@ -606,38 +622,43 @@ class MiniPlayerNativeView: UIView {
     
     private func loadImage(from url: URL) {
         NSLog("[GlassPlayer] MiniPlayer loadImage - URL: \(url.absoluteString)")
-        
+
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
-        
+
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let error = error {
                 NSLog("[GlassPlayer] MiniPlayer loadImage - ERROR: \(error.localizedDescription)")
+                DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                 return
             }
-            
+
             // Check HTTP response
             if let httpResponse = response as? HTTPURLResponse {
                 NSLog("[GlassPlayer] MiniPlayer loadImage - HTTP status: \(httpResponse.statusCode)")
                 if httpResponse.statusCode != 200 {
+                    DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                     return
                 }
             }
-            
+
             guard let data = data, !data.isEmpty else {
                 NSLog("[GlassPlayer] MiniPlayer loadImage - No data received")
+                DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                 return
             }
-            
+
             guard let image = UIImage(data: data) else {
                 NSLog("[GlassPlayer] MiniPlayer loadImage - Failed to create image from data (size: \(data.count) bytes)")
+                DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                 return
             }
-            
+
             NSLog("[GlassPlayer] MiniPlayer loadImage - SUCCESS, image size: \(image.size)")
-            
+
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image
+                self?.artworkPlaceholderIcon.isHidden = true
             }
         }.resume()
     }

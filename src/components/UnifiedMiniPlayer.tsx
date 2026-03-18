@@ -138,6 +138,15 @@ export function UnifiedMiniPlayer({
   const layoutContext = useModuleLayoutSafe();
   const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
 
+  // ── Artwork error fallback ──
+  const [artworkFailed, setArtworkFailed] = useState(false);
+  const artworkRef = useRef(artwork);
+  if (artwork !== artworkRef.current) {
+    artworkRef.current = artwork;
+    setArtworkFailed(false);
+  }
+  const handleArtworkError = useCallback(() => setArtworkFailed(true), []);
+
   // ── Drag-to-Reposition State ──
   const [dragOffsetY, setDragOffsetY] = useState<number | null>(null);
   const isDragMode = useRef(false);
@@ -334,11 +343,12 @@ export function UnifiedMiniPlayer({
           accessibilityLabel={t('audio.expandPlayer', 'Open speler')}
           style={styles.artworkTouchable}
         >
-          {artwork ? (
+          {artwork && !artworkFailed ? (
             <Image
               source={{ uri: artwork }}
               style={styles.artwork}
               accessibilityIgnoresInvertColors
+              onError={handleArtworkError}
             />
           ) : (
             <View style={[styles.artworkPlaceholder, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>

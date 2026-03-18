@@ -64,6 +64,7 @@ class FullPlayerNativeView: UIView {
     
     private let closeButton = UIButton(type: .system)
     private let artworkImageView = UIImageView()
+    private let artworkPlaceholderIcon = UIImageView()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     
@@ -311,14 +312,28 @@ class FullPlayerNativeView: UIView {
         artworkImageView.layer.cornerRadius = 16
         artworkImageView.backgroundColor = UIColor.white.withAlphaComponent(0.2)
         artworkImageView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         // Add shadow
         artworkImageView.layer.shadowColor = UIColor.black.cgColor
         artworkImageView.layer.shadowOffset = CGSize(width: 0, height: 8)
         artworkImageView.layer.shadowRadius = 16
         artworkImageView.layer.shadowOpacity = 0.3
-        
+
         contentView.addSubview(artworkImageView)
+
+        // Artwork placeholder icon (SF Symbol, shown when no artwork available)
+        let placeholderConfig = UIImage.SymbolConfiguration(pointSize: 64, weight: .medium)
+        artworkPlaceholderIcon.image = UIImage(systemName: "radio", withConfiguration: placeholderConfig)
+        artworkPlaceholderIcon.tintColor = UIColor.white.withAlphaComponent(0.8)
+        artworkPlaceholderIcon.contentMode = .center
+        artworkPlaceholderIcon.translatesAutoresizingMaskIntoConstraints = false
+        artworkPlaceholderIcon.isHidden = false  // Visible by default until artwork loads
+        artworkImageView.addSubview(artworkPlaceholderIcon)
+
+        NSLayoutConstraint.activate([
+            artworkPlaceholderIcon.centerXAnchor.constraint(equalTo: artworkImageView.centerXAnchor),
+            artworkPlaceholderIcon.centerYAnchor.constraint(equalTo: artworkImageView.centerYAnchor),
+        ])
     }
     
     private func setupLabels() {
@@ -801,8 +816,9 @@ class FullPlayerNativeView: UIView {
             NSLog("[GlassPlayer] FullPlayer updateContent - Loading artwork from: \(urlString)")
             loadImage(from: url)
         } else {
-            NSLog("[GlassPlayer] FullPlayer updateContent - No artwork URL, clearing image")
+            NSLog("[GlassPlayer] FullPlayer updateContent - No artwork URL, showing placeholder")
             artworkImageView.image = nil
+            artworkPlaceholderIcon.isHidden = false
         }
     }
     
@@ -1020,38 +1036,43 @@ class FullPlayerNativeView: UIView {
     
     private func loadImage(from url: URL) {
         NSLog("[GlassPlayer] FullPlayer loadImage - URL: \(url.absoluteString)")
-        
+
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
-        
+
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let error = error {
                 NSLog("[GlassPlayer] FullPlayer loadImage - ERROR: \(error.localizedDescription)")
+                DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                 return
             }
-            
+
             // Check HTTP response
             if let httpResponse = response as? HTTPURLResponse {
                 NSLog("[GlassPlayer] FullPlayer loadImage - HTTP status: \(httpResponse.statusCode)")
                 if httpResponse.statusCode != 200 {
+                    DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                     return
                 }
             }
-            
+
             guard let data = data, !data.isEmpty else {
                 NSLog("[GlassPlayer] FullPlayer loadImage - No data received")
+                DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                 return
             }
-            
+
             guard let image = UIImage(data: data) else {
                 NSLog("[GlassPlayer] FullPlayer loadImage - Failed to create image from data (size: \(data.count) bytes)")
+                DispatchQueue.main.async { self?.artworkPlaceholderIcon.isHidden = false }
                 return
             }
-            
+
             NSLog("[GlassPlayer] FullPlayer loadImage - SUCCESS, image size: \(image.size)")
-            
+
             DispatchQueue.main.async {
                 self?.artworkImageView.image = image
+                self?.artworkPlaceholderIcon.isHidden = true
             }
         }.resume()
     }

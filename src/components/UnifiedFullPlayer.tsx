@@ -16,7 +16,7 @@
  * - SeekSlider with internal drag state
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -196,6 +196,15 @@ export function UnifiedFullPlayer(props: UnifiedFullPlayerProps) {
 
   const artworkSize = Math.min(screenWidth - ARTWORK_PADDING * 2, 280);
 
+  // ── Artwork error fallback ──
+  const [artworkFailed, setArtworkFailed] = useState(false);
+  const artworkRef = useRef(artwork);
+  if (artwork !== artworkRef.current) {
+    artworkRef.current = artwork;
+    setArtworkFailed(false);
+  }
+  const handleArtworkError = useCallback(() => setArtworkFailed(true), []);
+
   const hasSeek = onSeek !== undefined && duration !== undefined && position !== undefined;
   const hasSkip = onSkipBackward !== undefined || onSkipForward !== undefined;
   const hasSpeed = onSpeedPress !== undefined && playbackRate !== undefined;
@@ -270,11 +279,12 @@ export function UnifiedFullPlayer(props: UnifiedFullPlayerProps) {
 
         {/* Zone 2: Artwork */}
         <View style={styles.artworkContainer}>
-          {artwork ? (
+          {artwork && !artworkFailed ? (
             <Image
               source={{ uri: artwork }}
               style={[styles.artwork, { width: artworkSize, height: artworkSize }]}
               accessibilityIgnoresInvertColors
+              onError={handleArtworkError}
             />
           ) : (
             <View style={[styles.artworkPlaceholder, { width: artworkSize, height: artworkSize }]}>
