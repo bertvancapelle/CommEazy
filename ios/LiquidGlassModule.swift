@@ -162,8 +162,10 @@ class LiquidGlassNativeView: UIView {
     /// Creates the actual UIGlassEffect (iOS 26+)
     /// Uses Apple's native Liquid Glass material with module tint color
     ///
-    /// HYBRID APPROACH: UIBlurEffect base + UIGlassEffect overlay + visual enhancements
-    /// This ensures visible glass effect even when React Native content isn't blurrable
+    /// APPROACH: Dark base + UIGlassEffect overlay + tint + visual enhancements
+    /// The dark base ensures the glass is visible even inside Modal UIWindows
+    /// (where UIBlurEffect has nothing to blur because Modal creates a separate UIWindow).
+    /// This matches GlassPlayerView's proven approach.
     @available(iOS 26.0, *)
     private func createLiquidGlassEffect() {
         guard let baseColor = UIColor(hexString: tintColorHex) else {
@@ -178,47 +180,31 @@ class LiquidGlassNativeView: UIView {
         containerView.isUserInteractionEnabled = false  // Touches must pass through to React Native children
         containerView.layer.cornerRadius = cornerRadius
         containerView.layer.cornerCurve = .continuous
-        containerView.clipsToBounds = true
+        containerView.clipsToBounds = true  // Clip children to corner radius
 
-        // === Layer 1: UIBlurEffect base for frosted glass foundation ===
-        // This provides the "frosted" appearance even without native content behind
-        let blurEffect = UIBlurEffect(style: .systemThinMaterial)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(blurView)
-
-        NSLayoutConstraint.activate([
-            blurView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            blurView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            blurView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-        ])
-
-        // === Layer 2: Semi-transparent tint color overlay ===
-        // Gives the glass its characteristic module color
-        // Opacity controlled by user's tintIntensity setting (0.0-1.0)
-        // Keep tint subtle so glass remains translucent (especially inside Modal windows)
-        // Map tintIntensity to alpha range: 0.05 (5%) to 0.30 (30%)
-        let tintAlpha = 0.05 + (tintIntensity * 0.25)  // tintIntensity 0→5%, 0.5→17%, 1.0→30%
-        let tintOverlay = UIView()
-        tintOverlay.translatesAutoresizingMaskIntoConstraints = false
-        tintOverlay.backgroundColor = baseColor.withAlphaComponent(tintAlpha)
-        containerView.addSubview(tintOverlay)
+        // === Layer 1: Semi-transparent dark base for visibility ===
+        // Unlike UIBlurEffect (which needs native content behind it to blur),
+        // this dark base provides a visible foundation in ANY context — including
+        // Modal UIWindows where there's no blurrable content.
+        // Matches GlassPlayerView's proven Layer 0 approach.
+        let darkBase = UIView()
+        darkBase.translatesAutoresizingMaskIntoConstraints = false
+        darkBase.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+        containerView.addSubview(darkBase)
 
         NSLayoutConstraint.activate([
-            tintOverlay.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            tintOverlay.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            tintOverlay.topAnchor.constraint(equalTo: containerView.topAnchor),
-            tintOverlay.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            darkBase.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            darkBase.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            darkBase.topAnchor.constraint(equalTo: containerView.topAnchor),
+            darkBase.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
 
-        // === Layer 3: UIGlassEffect for Liquid Glass highlights and interactivity ===
-        var glassEffect = UIGlassEffect()
-        // Use tintIntensity to control glass effect tint as well
-        // Keep alpha low so the material blur shows through
-        let glassAlpha = 0.08 + (tintIntensity * 0.22)  // tintIntensity 0→8%, 0.5→19%, 1.0→30%
+        // === Layer 2: UIGlassEffect for Liquid Glass highlights ===
+        let glassEffect = UIGlassEffect()
+        // Map tintIntensity to glass tint alpha: subtle range so glass material shows through
+        let glassAlpha = 0.10 + (tintIntensity * 0.20)  // tintIntensity 0→10%, 0.5→20%, 1.0→30%
         glassEffect.tintColor = baseColor.withAlphaComponent(glassAlpha)
-        glassEffect.isInteractive = false  // Disable touch interactivity (touches pass to React Native children)
+        glassEffect.isInteractive = false  // Touches pass to React Native children via hitTest override
 
         let glassView = UIVisualEffectView(effect: glassEffect)
         glassView.translatesAutoresizingMaskIntoConstraints = false
@@ -231,14 +217,31 @@ class LiquidGlassNativeView: UIView {
             glassView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
 
+        // === Layer 3: Semi-transparent tint color overlay ===
+        // Gives the glass its characteristic module color
+        // Map tintIntensity to alpha range: 0.10 (10%) to 0.40 (40%)
+        let tintAlpha = 0.10 + (tintIntensity * 0.30)  // tintIntensity 0→10%, 0.5→25%, 1.0→40%
+        let tintOverlay = UIView()
+        tintOverlay.translatesAutoresizingMaskIntoConstraints = false
+        tintOverlay.backgroundColor = baseColor.withAlphaComponent(tintAlpha)
+        containerView.addSubview(tintOverlay)
+
+        NSLayoutConstraint.activate([
+            tintOverlay.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            tintOverlay.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            tintOverlay.topAnchor.constraint(equalTo: containerView.topAnchor),
+            tintOverlay.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
+
         // === Layer 4: Top specular highlight (glass reflection) ===
         let highlightGradient = CAGradientLayer()
         highlightGradient.colors = [
-            UIColor.white.withAlphaComponent(0.25).cgColor,  // Subtle highlight at top
-            UIColor.white.withAlphaComponent(0.08).cgColor,  // Gentle fade
-            UIColor.clear.cgColor,                            // Transparent
+            UIColor.white.withAlphaComponent(0.30).cgColor,  // Bright top highlight
+            UIColor.white.withAlphaComponent(0.10).cgColor,  // Gentle fade
+            UIColor.clear.cgColor,                            // Transparent middle
+            UIColor.white.withAlphaComponent(0.05).cgColor,  // Subtle bottom glow
         ]
-        highlightGradient.locations = [0.0, 0.12, 0.35]
+        highlightGradient.locations = [0.0, 0.12, 0.5, 1.0]
         highlightGradient.startPoint = CGPoint(x: 0.5, y: 0.0)
         highlightGradient.endPoint = CGPoint(x: 0.5, y: 1.0)
 
@@ -259,18 +262,20 @@ class LiquidGlassNativeView: UIView {
         self.gradientLayerRef = highlightGradient
 
         // === Layer 5: Glass edge border ===
-        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.20).cgColor
+        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
         containerView.layer.borderWidth = 0.5
-
-        // === Layer 6: Subtle inner glow/shadow for depth ===
-        containerView.layer.shadowColor = UIColor.white.cgColor
-        containerView.layer.shadowOffset = CGSize(width: 0, height: 0)
-        containerView.layer.shadowOpacity = 0.08
-        containerView.layer.shadowRadius = 2
-        containerView.layer.masksToBounds = false  // Allow shadow to show
 
         // Clear our background so layers can show
         backgroundColor = .clear
+
+        // === Shadow on parent view (not container) ===
+        // Shadow must be on the parent (self) because container has clipsToBounds = true.
+        // clipsToBounds clips children to corner radius but masks shadow too.
+        // By putting shadow on self (which doesn't clip), both work correctly.
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 4)
+        layer.shadowOpacity = 0.25
+        layer.shadowRadius = 8
 
         // Insert container as background (behind React Native children)
         insertSubview(containerView, at: 0)
@@ -285,7 +290,7 @@ class LiquidGlassNativeView: UIView {
 
         // Log for debugging
         let version = ProcessInfo.processInfo.operatingSystemVersion
-        NSLog("[LiquidGlass] ✅ Created HYBRID Glass Effect (iOS %d.%d.%d) - layers: UIBlurEffect + tint @%.0f%% + UIGlassEffect + highlight gradient + border, tint: %@, intensity: %.2f, radius: %.1f",
+        NSLog("[LiquidGlass] ✅ Created Glass Effect (iOS %d.%d.%d) - layers: darkBase + UIGlassEffect + tint @%.0f%% + highlight gradient + border, tint: %@, intensity: %.2f, radius: %.1f",
               version.majorVersion, version.minorVersion, version.patchVersion,
               tintAlpha * 100, tintColorHex, tintIntensity, cornerRadius)
     }
@@ -417,9 +422,43 @@ class LiquidGlassNativeView: UIView {
     }
 
     // ============================================================
+    // MARK: Touch Passthrough
+    // ============================================================
+
+    /// Override hitTest to ensure touches pass through the glass effect layers
+    /// to reach React Native children (buttons, TextInput, ScrollView, etc.)
+    ///
+    /// Without this override, touches on "empty" areas (between React children)
+    /// are consumed by this UIView without being forwarded to React Native's
+    /// touch system — making the entire view unresponsive.
+    ///
+    /// This is the same pattern used by GlassPlayerView (which works correctly).
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard isUserInteractionEnabled, !isHidden, alpha > 0.01 else { return nil }
+
+        // Check React Native children (all subviews except the glass container)
+        // Iterate in reverse order (highest index = topmost view first)
+        for subview in subviews.reversed() {
+            // Skip the glass effect container — it's decorative only
+            if subview === glassEffectView { continue }
+
+            guard subview.isUserInteractionEnabled, !subview.isHidden, subview.alpha > 0.01 else { continue }
+
+            let convertedPoint = subview.convert(point, from: self)
+            if let hitView = subview.hitTest(convertedPoint, with: event) {
+                return hitView
+            }
+        }
+
+        // No React child was hit — return nil so the touch passes through
+        // to the modal's background or parent view hierarchy
+        return nil
+    }
+
+    // ============================================================
     // MARK: Layout
     // ============================================================
-    
+
     private var lastBounds: CGRect = .zero
 
     override func layoutSubviews() {
