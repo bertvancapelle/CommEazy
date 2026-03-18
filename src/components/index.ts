@@ -14,6 +14,10 @@
  * - Button: haptic feedback built-in
  */
 
+// Artwork Image (Image with onError fallback to placeholder icon)
+export { ArtworkImage } from './ArtworkImage';
+export type { ArtworkImageProps } from './ArtworkImage';
+
 // Core UI components
 export { Button } from './Button';
 export { HapticTouchable } from './HapticTouchable';

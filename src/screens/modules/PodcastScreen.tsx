@@ -26,7 +26,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Platform,
   AccessibilityInfo,
   KeyboardAvoidingView,
@@ -39,7 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, type SearchBarRef, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, ScrollViewWithIndicator, type SearchBarRef, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -771,17 +770,13 @@ export function PodcastScreen() {
                     )}
 
                     {/* Artwork */}
-                    {show.artwork ? (
-                      <Image
-                        source={{ uri: show.artwork }}
-                        style={styles.showArtwork}
-                        accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
-                      />
-                    ) : (
-                      <View style={[styles.showArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
-                        <Icon name="podcast" size={32} color={colors.textOnPrimary} />
-                      </View>
-                    )}
+                    <ArtworkImage
+                      uri={show.artwork}
+                      style={styles.showArtwork}
+                      placeholderIcon="podcast"
+                      placeholderColor={podcastModuleColor}
+                      accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
+                    />
 
                     {/* Info */}
                     <View style={styles.showInfo}>
@@ -912,16 +907,13 @@ export function PodcastScreen() {
                   >
                     {/* Show artwork + info */}
                     <View style={styles.showDetailHeader}>
-                      {selectedShow.artwork ? (
-                        <Image
-                          source={{ uri: selectedShow.artwork }}
-                          style={styles.showDetailArtwork}
-                        />
-                      ) : (
-                        <View style={[styles.showDetailArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
-                          <Icon name="podcast" size={48} color={colors.textOnPrimary} />
-                        </View>
-                      )}
+                      <ArtworkImage
+                        uri={selectedShow.artwork}
+                        style={styles.showDetailArtwork}
+                        placeholderIcon="podcast"
+                        placeholderColor={podcastModuleColor}
+                        placeholderIconSize={48}
+                      />
                       <View style={styles.showDetailInfo}>
                         <Text style={styles.showDetailTitle} numberOfLines={2}>
                           {selectedShow.title}
@@ -1225,12 +1217,13 @@ export function PodcastScreen() {
               {continueListeningEpisode && continueListeningShow && (
                 <>
                   {/* Episode artwork */}
-                  {(continueListeningEpisode.artwork || continueListeningShow.artwork) && (
-                    <Image
-                      source={{ uri: continueListeningEpisode.artwork || continueListeningShow.artwork }}
-                      style={styles.continueListeningArtwork}
-                    />
-                  )}
+                  <ArtworkImage
+                    uri={continueListeningEpisode.artwork || continueListeningShow.artwork}
+                    style={styles.continueListeningArtwork}
+                    placeholderIcon="podcast"
+                    placeholderColor={podcastModuleColor}
+                    placeholderIconSize={48}
+                  />
 
                   {/* Title */}
                   <Text style={styles.continueListeningTitle}>
@@ -1350,12 +1343,13 @@ export function PodcastScreen() {
                   </Text>
 
                   {/* Next episode artwork */}
-                  {(nextEpisodeInfo.nextEpisode.artwork || nextEpisodeInfo.show.artwork) && (
-                    <Image
-                      source={{ uri: nextEpisodeInfo.nextEpisode.artwork || nextEpisodeInfo.show.artwork }}
-                      style={styles.nextEpisodeArtwork}
-                    />
-                  )}
+                  <ArtworkImage
+                    uri={nextEpisodeInfo.nextEpisode.artwork || nextEpisodeInfo.show.artwork}
+                    style={styles.nextEpisodeArtwork}
+                    placeholderIcon="podcast"
+                    placeholderColor={podcastModuleColor}
+                    placeholderIconSize={48}
+                  />
 
                   {/* Question */}
                   <Text style={styles.nextEpisodeQuestion}>
@@ -1530,17 +1524,13 @@ export function PodcastScreen() {
                       accessibilityHint={t('modules.podcast.showHint')}
                     >
                       {/* Artwork */}
-                      {show.artwork ? (
-                        <Image
-                          source={{ uri: show.artwork }}
-                          style={styles.showArtwork}
-                          accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
-                        />
-                      ) : (
-                        <View style={[styles.showArtwork, styles.showArtworkPlaceholder, { backgroundColor: podcastModuleColor }]}>
-                          <Icon name="podcast" size={32} color={colors.textOnPrimary} />
-                        </View>
-                      )}
+                      <ArtworkImage
+                        uri={show.artwork}
+                        style={styles.showArtwork}
+                        placeholderIcon="podcast"
+                        placeholderColor={podcastModuleColor}
+                        accessibilityLabel={t('modules.podcast.showArtwork', { show: show.title })}
+                      />
 
                       {/* Info */}
                       <View style={styles.showInfo}>
@@ -1744,11 +1734,6 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: borderRadius.sm,
-  },
-  showArtworkPlaceholder: {
-    // backgroundColor uses dynamic podcastModuleColor inline
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   showInfo: {
     flex: 1,

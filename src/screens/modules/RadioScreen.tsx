@@ -30,7 +30,6 @@ import {
   Alert,
   DeviceEventEmitter,
   Pressable,
-  Image,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +37,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -1051,13 +1050,13 @@ export function RadioScreen() {
                   )}
 
                   {/* Station artwork thumbnail */}
-                  {station.favicon ? (
-                    <Image source={{ uri: station.favicon }} style={styles.stationArtwork} accessibilityLabel={station.name} />
-                  ) : (
-                    <View style={[styles.stationArtwork, styles.stationArtworkPlaceholder, { backgroundColor: radioModuleColor }]}>
-                      <Icon name="radio" size={32} color={colors.textOnPrimary} />
-                    </View>
-                  )}
+                  <ArtworkImage
+                    uri={station.favicon}
+                    style={styles.stationArtwork}
+                    placeholderIcon="radio"
+                    placeholderColor={radioModuleColor}
+                    accessibilityLabel={station.name}
+                  />
 
                   {/* Station info - tappable area for playing */}
                   <HapticTouchable hapticDisabled
@@ -1389,13 +1388,13 @@ export function RadioScreen() {
                     )}
 
                     {/* Station artwork thumbnail */}
-                    {station.favicon ? (
-                      <Image source={{ uri: station.favicon }} style={styles.stationArtwork} accessibilityLabel={station.name} />
-                    ) : (
-                      <View style={[styles.stationArtwork, styles.stationArtworkPlaceholder, { backgroundColor: radioModuleColor }]}>
-                        <Icon name="radio" size={32} color={colors.textOnPrimary} />
-                      </View>
-                    )}
+                    <ArtworkImage
+                      uri={station.favicon}
+                      style={styles.stationArtwork}
+                      placeholderIcon="radio"
+                      placeholderColor={radioModuleColor}
+                      accessibilityLabel={station.name}
+                    />
 
                     {/* Station info - tap to play and close modal */}
                     <HapticTouchable hapticDisabled
@@ -1642,10 +1641,6 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: borderRadius.sm,
     marginRight: spacing.sm,
-  },
-  stationArtworkPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   favoriteButton: {
     width: touchTargets.minimum,
