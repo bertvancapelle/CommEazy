@@ -173,7 +173,7 @@ export { DateTimePickerModal } from './DateTimePickerModal';
 export type { DateTimePickerModalProps, DateTimePickerEvent } from './DateTimePickerModal';
 
 // Modal Layout (toolbar position aware — wraps header/content/footer blocks)
-export { ModalLayout } from './ModalLayout';
+export { ModalLayout, useModalLayoutBottom } from './ModalLayout';
 export type { ModalLayoutProps } from './ModalLayout';
 
 // Fullscreen Image Viewer (reusable — mail, chat, photo album)

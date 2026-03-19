@@ -61,7 +61,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingState, type PodcastBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
-import { ModalLayout } from '@/components/ModalLayout';
+import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
@@ -94,6 +94,7 @@ export function PodcastScreen() {
   const themeColors = useColors();
   const layoutContext = useModuleLayoutSafe();
   const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
+  const { isBottom: isModalBottom, headerStyle: modalHeaderStyle } = useModalLayoutBottom();
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // User-customizable module color for Liquid Glass
@@ -1424,9 +1425,9 @@ export function PodcastScreen() {
         <LiquidGlassView moduleId="podcast" style={styles.searchModalContainer} cornerRadius={0}>
           <ModalLayout
             headerBlock={
-              <View style={styles.searchSection}>
-                {/* Safe area spacer */}
-                <View style={{ height: insets.top }} />
+              <View style={[styles.searchSection, modalHeaderStyle]}>
+                {/* Safe area spacer — at screen edge (top or bottom) */}
+                <View style={{ height: isModalBottom ? 4 : insets.top }} />
                 {/* 1. SearchBar + magnifying glass (primary action) */}
                 <SearchBar
                   ref={searchInputRef}

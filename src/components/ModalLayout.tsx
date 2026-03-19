@@ -5,12 +5,21 @@
  * - "top" (default): Header → Content → Footer
  * - "bottom": Content → Footer → Header
  *
+ * TWO levels of reordering at "bottom":
+ * 1. Block-level (automatic): headerBlock moves below contentBlock/footerBlock
+ * 2. Children-level (consumer responsibility): headerBlock Views with multiple
+ *    vertical children MUST use useModalLayoutBottom() to reverse their order.
+ *
  * This matches ModuleScreenLayout behavior so that modals opened from
  * a bottom-toolbar screen keep controls near the same edge. The user's
  * muscle memory is preserved: action buttons stay where they expect them.
  *
  * Uses useModuleLayoutSafe (graceful fallback) so it works even outside
  * ModuleLayoutProvider.
+ *
+ * ⚠️ VERPLICHT: Elke headerBlock met meerdere verticale children MOET
+ * useModalLayoutBottom() gebruiken om flexDirection om te draaien bij
+ * toolbar positie "bottom". Zie Consistency Safeguard in CLAUDE.md.
  *
  * @see src/components/ModuleScreenLayout.tsx — screen-level reordering
  * @see src/contexts/ModuleLayoutContext.tsx — toolbar position setting
@@ -31,6 +40,46 @@ export interface ModalLayoutProps {
   contentBlock: ReactNode;
   /** Optional footer block — bottom action buttons (e.g., Save, Confirm) */
   footerBlock?: ReactNode;
+}
+
+// ============================================================
+// Hook: useModalLayoutBottom
+// ============================================================
+
+/**
+ * Hook for headerBlock consumers with multiple vertical children.
+ *
+ * Returns `isBottom` boolean and a `headerStyle` object that reverses
+ * flexDirection when toolbar is at bottom. Apply this style to your
+ * headerBlock's root View to automatically reverse the order of vertical
+ * children (safe area spacer, controls, search bar, etc.).
+ *
+ * For headerBlocks with a single horizontal row (title + button),
+ * this hook is not needed — the row stays the same at both positions.
+ *
+ * @example
+ * const { isBottom, headerStyle } = useModalLayoutBottom();
+ *
+ * <ModalLayout
+ *   headerBlock={
+ *     <View style={[styles.searchSection, headerStyle]}>
+ *       <View style={{ height: isBottom ? 4 : insets.top }} />
+ *       <ChipSelector ... />
+ *       <SearchBar ... />
+ *     </View>
+ *   }
+ *   ...
+ * />
+ */
+export function useModalLayoutBottom() {
+  const { toolbarPosition } = useModuleLayoutSafe();
+  const isBottom = toolbarPosition === 'bottom';
+
+  return {
+    isBottom,
+    /** Apply to headerBlock root View to reverse children at bottom */
+    headerStyle: isBottom ? styles.columnReverse : undefined,
+  };
 }
 
 // ============================================================
@@ -75,5 +124,8 @@ export function ModalLayout({
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  columnReverse: {
+    flexDirection: 'column-reverse',
   },
 });

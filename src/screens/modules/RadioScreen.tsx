@@ -55,7 +55,7 @@ import { ServiceContainer } from '@/services/container';
 import { scrapeStationArtwork, getCachedArtworkSync } from '@/services/stationArtworkService';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
-import { ModalLayout } from '@/components/ModalLayout';
+import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 import { useModalTextStyle } from '@/contexts/FieldTextStyleContext';
 
@@ -280,6 +280,7 @@ export function RadioScreen() {
   const layoutContext = useModuleLayoutSafe();
   const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
   const modalTextStyle = useModalTextStyle();
+  const { isBottom: isModalBottom, headerStyle: modalHeaderStyle } = useModalLayoutBottom();
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // Radio Context for playback
@@ -1347,9 +1348,9 @@ export function RadioScreen() {
         <LiquidGlassView moduleId="radio" style={styles.searchModalContainer} cornerRadius={0}>
           <ModalLayout
             headerBlock={
-              <View style={styles.searchSection}>
-                {/* Safe area spacer — flush with Dynamic Island */}
-                <View style={{ height: insets.top }} />
+              <View style={[styles.searchSection, modalHeaderStyle]}>
+                {/* Safe area spacer — at screen edge (top or bottom) */}
+                <View style={{ height: isModalBottom ? 4 : insets.top }} />
                 {/* 1. [Landen/Taal ▾] toggle + close button (same row) */}
                 <ChipSelector
                   mode={filterMode}

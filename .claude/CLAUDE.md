@@ -402,6 +402,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 | **Nieuw screen toevoegen** | **BLOKKEERDER** — Screen MOET route hebben in `navigation/index.tsx`, zie "Navigation Route Completeness". Screen MOET `ModuleScreenLayout` gebruiken, zie Component Registry sectie "ModuleScreenLayout" |
 | **Nieuwe theme kleur toevoegen** | **BLOKKEERDER** — Kleur MOET bestaan in BEIDE `colors.ts` EN `darkColors.ts`, zie "Theme Color Consistency" |
 | **Type export toevoegen** | **VERPLICHT** — Type MOET geëxporteerd worden in relevante `index.ts` bestanden, zie "Type Export Consistency" |
+| **Layout in ModalLayout of ModuleScreenLayout** | **BLOKKEERDER** — ui-designer, architecture-lead — MOET bij BEIDE toolbar posities (top/bottom) gevalideerd worden. headerBlock met meerdere verticale children MOET `useModalLayoutBottom()` gebruiken. Zie "Toolbar Position Dual Validation" |
 | **Nieuwe button/knop toevoegen** | **ui-designer, ios-specialist** — Button Standaardisatie (ui-designer SKILL.md sectie 15) MOET worden gevolgd: 60pt, 12pt cornerRadius, rgba background, border support |
 | **Native iOS button wijzigen** | **ios-specialist** — Zie "Native Button Standaardisatie" in ios-specialist SKILL.md |
 | **Haptic/audio feedback instelling** | **accessibility-specialist** — MOET `useFeedback()` hook gebruiken (leest uit gedeelde `FeedbackContext`). NOOIT lokale state voor feedback instellingen. |
@@ -607,6 +608,98 @@ TYPE="CallState" && \
 echo "Defined in:" && grep -r "type $TYPE\|interface $TYPE" src/ --include="*.ts" --include="*.tsx" | head -3 && \
 echo "Exported from:" && grep -r "export.*$TYPE" src/*/index.ts
 ```
+
+#### Toolbar Position Dual Validation (BLOKKEERDER)
+
+**Trigger:** Elke wijziging aan layout binnen ModalLayout of ModuleScreenLayout consumers.
+
+**⚠️ KRITIEK — HERHAALDELIJK GEMIST:** Dit protocol bestaat omdat layout wijzigingen herhaaldelijk alleen bij toolbar positie "top" werden getest, waardoor "bottom" positie broken was.
+
+**Kernregel:** Bij ELKE layout-gerelateerde wijziging MOET Claude BEIDE toolbar posities valideren.
+
+**Twee niveaus van reordering bij "bottom":**
+
+| Niveau | Wat gebeurt er | Wie is verantwoordelijk |
+|--------|---------------|------------------------|
+| **1. Block-level** | headerBlock ↔ contentBlock ↔ footerBlock wisselen van positie | `ModalLayout` (automatisch) / `ModuleScreenLayout` (automatisch) |
+| **2. Children-level** | Verticale children BINNEN headerBlock/controlsBlock worden omgekeerd | **Consumer** via `useModalLayoutBottom()` hook (modals) of `reverseChildren()` (screens) |
+
+**Wanneer `useModalLayoutBottom()` VERPLICHT is:**
+- headerBlock bevat **meerdere verticale children** (bijv. safe area spacer → ChipSelector → SearchBar)
+- De volgorde van deze children MOET omkeren bij "bottom" (dichtstbij schermrand = dichtstbij de actie)
+
+**Wanneer `useModalLayoutBottom()` NIET nodig is:**
+- headerBlock bevat **één horizontale rij** (bijv. titel links + knop rechts)
+- headerBlock bevat **één enkel element** (bijv. alleen een titel)
+
+**Implementatie patroon:**
+```typescript
+import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
+
+const { isBottom, headerStyle } = useModalLayoutBottom();
+
+<ModalLayout
+  headerBlock={
+    <View style={[styles.searchSection, headerStyle]}>
+      {/* Safe area spacer — hoogte afhankelijk van positie */}
+      <View style={{ height: isBottom ? 4 : insets.top }} />
+      <ChipSelector ... />
+      <SearchBar ... />
+    </View>
+  }
+  contentBlock={...}
+/>
+```
+
+**Claude's Verplichte Validatie bij Layout Wijzigingen:**
+
+1. **Stel jezelf de vraag:** "Werkt dit bij BEIDE toolbar posities (top EN bottom)?"
+2. **Controleer:** Heeft de headerBlock meerdere verticale children?
+3. **Zo ja:** Gebruikt het `useModalLayoutBottom()` met `headerStyle`?
+4. **Rapporteer** aan gebruiker met twee ASCII diagrammen:
+
+```
+📋 **Toolbar Position Dual Validation**
+
+✅ Top layout:
+┌─ Safe area spacer ─┐
+│ ChipSelector        │
+│ SearchBar           │
+├─ Content ───────────┤
+
+✅ Bottom layout (column-reverse):
+├─ Content ───────────┤
+│ SearchBar           │
+│ ChipSelector        │
+└─ Safe area spacer ─┘
+```
+
+**Validatie Commando:**
+```bash
+# Vind ModalLayout consumers zonder useModalLayoutBottom
+grep -rl "ModalLayout" src/ --include="*.tsx" | while read f; do
+  if grep -q "searchSection\|multiple.*children" "$f" && ! grep -q "useModalLayoutBottom" "$f"; then
+    echo "⚠️ MISSING useModalLayoutBottom: $f"
+  fi
+done
+```
+
+**Adoptie status:**
+
+| Consumer | useModalLayoutBottom | Reden |
+|----------|---------------------|-------|
+| RadioScreen (search modal) | ✅ | Meerdere verticale children (spacer → chips → search) |
+| PodcastScreen (search modal) | ✅ | Meerdere verticale children (spacer → search → chips → title) |
+| RadioScreen (no-favorites modal) | ❌ n.v.t. | Enkele content, geen verticale stack |
+| PodcastScreen (speed picker) | ❌ n.v.t. | Enkel title element |
+| PodcastScreen (sleep timer) | ❌ n.v.t. | Enkel title element |
+| PickerModal | ❌ n.v.t. | Enkele horizontale rij (title + close) |
+| DateTimePickerModal | ❌ n.v.t. | Enkele horizontale rij (title + done) |
+| ContactSelectionModal | ❌ n.v.t. | Enkele content (title + subtitle) |
+| CreateGroupModal | ❌ n.v.t. | Enkele horizontale rij (close + title + create) |
+| EditGroupModal | ❌ n.v.t. | Enkele horizontale rij (close + title + save) |
+| PhotoRecipientModal | ❌ n.v.t. | Enkele horizontale rij (close + title + spacer) |
+| QueueView | ❌ n.v.t. | Enkele horizontale rij (title + close) |
 
 ### Module Dependency Matrix (VERPLICHT)
 
