@@ -34,7 +34,7 @@ import { useNavigationContext } from '@/contexts/NavigationContext';
 import { ModuleIcon } from './ModuleIcon';
 import type { ModuleDefinition, NavigationDestination } from '@/types/navigation';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
-import { ModalLayout } from '@/components/ModalLayout';
+import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 import {
   colors,
   typography,
@@ -63,6 +63,7 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
   const insets = useSafeAreaInsets();
   const { modules, getModulesByGroup } = useNavigationContext();
   const { panes, setPaneModule } = usePaneContext();
+  const { headerStyle } = useModalLayoutBottom();
 
   // Get current module for this panel
   const currentModuleId = panes[targetPanel]?.moduleId ?? 'menu';
@@ -135,7 +136,7 @@ export function ModulePickerModal({ targetPanel, onClose }: ModulePickerModalPro
         >
           <ModalLayout
             headerBlock={
-              <View style={styles.header}>
+              <View style={[styles.header, headerStyle]}>
                 <Text style={styles.title}>{t('splitView.chooseModule')}</Text>
                 <Text style={styles.subtitle}>
                   {targetPanel === 'left'

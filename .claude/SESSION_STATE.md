@@ -5,31 +5,27 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-18
-- **Sessie:** Liquid Glass touch-blocking fix + opacity tuning + modal backgroundColor cleanup
+- **Datum:** 2026-03-19
+- **Sessie:** Toolbar Position Dual Validation — fix + safeguard + script
+- **Commit:** `deb5f93`
 
 ## Voltooide Taken Deze Sessie
 
-1. **Liquid Glass touch-blocking fix** (`a045947`)
-   - `containerView.isUserInteractionEnabled = false` in beide `createLiquidGlassEffect()` en `createBlurWithTintEffect()`
-   - `glassEffect.isInteractive = false` (was `true`) — voorkomt dat UIGlassEffect touch events claimt
-   - Root cause: full-screen LiquidGlassView (flex:1, cornerRadius:0) in modals blokkeerde ALLE touches
+1. **ChipSelector modal-in-modal fix** (`c7566fc` — begin van sessie)
+   - Replaced modal-based mode toggle with inline toggle buttons in ChipSelector
+   - Fixed modal stacking issue op iPad Split View
 
-2. **Liquid Glass opacity tuning** (`a045947`)
-   - Alle 6 lagen verlaagd: tint overlay (5-30%), glass effect (8-30%), specular highlight (25%/8%), border (20%), shadow (8%)
-   - Reden: opacity stacking maakte glass onnodig opaque, vooral in Modal UIWindow (geen blur content)
-
-3. **backgroundColor overrides verwijderd uit 9 LiquidGlassViews** (`a045947`)
-   - CreateGroupModal.tsx, PodcastScreen.tsx, RadioScreen.tsx, ManualAddContactScreen.tsx, BookReaderScreen.tsx (5x)
-   - Deze overrides schilderden een opaque kleur BOVENOP de native glass layers
-
-4. **Radio/Podcast search modals Categorie 1 refactor** (`1745466` — vorige sessie)
-   - Conform gemaakt aan PanelAwareModal → LiquidGlassView → ModalLayout structuur
+2. **Toolbar Position Dual Validation** (`deb5f93`)
+   - **Probleem:** Bij toolbar positie "bottom" verplaatst ModalLayout de headerBlock naar onder, maar de children BINNEN de headerBlock (safe area spacer, ChipSelector, SearchBar) bleven in "top" volgorde — controls zaten ver van de duim
+   - **Oplossing:** `useModalLayoutBottom()` hook in ModalLayout.tsx — geeft `headerStyle` (column-reverse) en `isBottom` boolean
+   - **Toegepast op:** RadioScreen search modal + PodcastScreen search modal
+   - **CLAUDE.md:** Nieuwe "Toolbar Position Dual Validation" Consistency Safeguard + Automatische Trigger
+   - **Script:** `scripts/validate-toolbar-positions.sh` — scant alle ModalLayout consumers
 
 ## Openstaande Taken
 
-1. **4 overlay-wrapper modals** — DateTimePickerModal, ContactSelectionModal, CollectionOverlay, MailWelcomeModal hebben nog semi-opaque overlay Views rond LiquidGlassView. Mogelijk herstructureren voor betere glass appearance.
-2. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren. Glass toont material texture + tint, maar geen echte blur-through-to-content. Alleen GlassPlayerWindow (native) bereikt dat. Mogelijk alternatieve modal architectuur nodig.
+1. **4 overlay-wrapper modals** — DateTimePickerModal, ContactSelectionModal, CollectionOverlay, MailWelcomeModal hebben nog semi-opaque overlay Views rond LiquidGlassView.
+2. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren. Glass toont material texture + tint, maar geen echte blur-through-to-content.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
@@ -39,14 +35,15 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| containerView.isUserInteractionEnabled = false | Touches MOETEN doorvallen naar React Native children; glass is decoratief |
-| glassEffect.isInteractive = false | Interactive glass claimt touch events — ongewenst voor full-screen modals |
-| Opacity ranges fors verlaagd | In Modal UIWindow is er geen blur content, dus stacking maakt glass onnodig opaque |
-| backgroundColor overrides verwijderd | Deze overrides waren workaround voor touch-blocking, nu niet meer nodig |
+| Hook-based approach (niet wrapper) | headerBlock is een single ReactNode — column-reverse op wrapper ziet maar 1 child. Consumer moet style toepassen op EIGEN View |
+| `useModalLayoutBottom()` naam | Duidelijk doel: alleen voor ModalLayout headerBlocks met meerdere verticale children |
+| BooksScreen/WeatherScreen niet gefixed | Hun searchSection zit in ModuleScreenLayout controlsBlock, niet in ModalLayout headerBlock — reverseChildren() handelt dit al af |
+| Script heuristic: skip ModuleScreenLayout files | Voorkomt false positives — files met ModuleScreenLayout hebben searchSection in controlsBlock |
 
 ## Context voor Volgende Sessie
 
-- `ios/LiquidGlassModule.swift` — Twee functies: `createLiquidGlassEffect()` (6 lagen) en `createBlurWithTintEffect()` (fallback)
-- Touch-blocking was alleen merkbaar bij full-screen glass (modals), niet bij kleine elementen (buttons/cards)
-- PodcastScreen.tsx: show detail modal ~860-1011, search modal ~1430-1580
-- 27 van 44 modals hebben semi-opaque overlay Views — meeste zijn functioneel (dimming), 4 wrappen direct rond LiquidGlassView
+- `src/components/ModalLayout.tsx:74-83` — useModalLayoutBottom hook definitie
+- `src/screens/modules/RadioScreen.tsx:283` — hook call, `:1351` — headerStyle toepassing
+- `src/screens/modules/PodcastScreen.tsx:97` — hook call, `:1428` — headerStyle toepassing
+- `scripts/validate-toolbar-positions.sh` — 0 violations bij laatste run (31 files checked)
+- CLAUDE.md bevat nu Automatic Trigger + volledige Consistency Safeguard sectie voor toolbar position validatie

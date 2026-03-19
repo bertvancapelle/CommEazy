@@ -27,7 +27,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, SearchBar, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
-import { ModalLayout } from '@/components/ModalLayout';
+import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 import type { MailRecipient } from '@/types/mail';
 
 // ============================================================
@@ -64,6 +64,7 @@ export function ContactPickerModal({
   const { accentColor } = useAccentColor();
   const { triggerHaptic } = useFeedback();
   const [searchQuery, setSearchQuery] = useState('');
+  const { headerStyle } = useModalLayoutBottom();
 
   // Filter contacts by search query
   const filteredContacts = useMemo(() => {
@@ -108,7 +109,7 @@ export function ContactPickerModal({
       <LiquidGlassView moduleId="mail" style={styles.container} cornerRadius={0}>
         <ModalLayout
           headerBlock={
-            <>
+            <View style={headerStyle}>
               {/* Header */}
               <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
                 <Text style={[styles.title, { color: themeColors.textPrimary }]}>
@@ -134,7 +135,7 @@ export function ContactPickerModal({
                   placeholder={t('modules.mail.compose.searchContacts')}
                 />
               </View>
-            </>
+            </View>
           }
           contentBlock={
             <ScrollView

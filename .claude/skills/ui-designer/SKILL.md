@@ -2238,6 +2238,8 @@ modalContent: {
 
 ### 11b. MODAL DESIGN STANDAARD (VERPLICHT)
 
+> **@see `.claude/standards/MODAL_GLASS_STANDARD.md`** — Volledige referentie met drie-laagse architectuur, native Glass layer specificaties, implementatie templates, toolbar position handling, modal inventaris en troubleshooting.
+
 Alle modals in CommEazy MOETEN één van de onderstaande categorieën volgen. Er zijn GEEN uitzonderingen.
 
 #### Modal Classificatie

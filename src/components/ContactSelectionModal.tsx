@@ -27,7 +27,7 @@ import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, borderRadius, touchTargets, animation } from '@/theme';
-import { ModalLayout } from './ModalLayout';
+import { ModalLayout, useModalLayoutBottom } from './ModalLayout';
 import { LiquidGlassView } from './LiquidGlassView';
 import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
@@ -111,6 +111,7 @@ export function ContactSelectionModal({
   reducedMotion = false,
 }: ContactSelectionModalProps) {
   const { t } = useTranslation();
+  const { headerStyle } = useModalLayoutBottom();
   const [internalFocusIndex, setInternalFocusIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -275,7 +276,7 @@ export function ContactSelectionModal({
           <LiquidGlassView moduleId="contacts" style={styles.modal} cornerRadius={borderRadius.lg}>
           <ModalLayout
             headerBlock={
-              <View style={styles.header}>
+              <View style={[styles.header, headerStyle]}>
                 <Text style={styles.title}>{getTitle()}</Text>
                 {getSubtitle() && (
                   <Text style={styles.subtitle}>{getSubtitle()}</Text>

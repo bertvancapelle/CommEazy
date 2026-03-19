@@ -22,7 +22,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Button, Icon, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
-import { ModalLayout } from '@/components/ModalLayout';
+import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 
 // ============================================================
 // Constants
@@ -106,6 +106,7 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { triggerHaptic } = useFeedback();
+  const { headerStyle } = useModalLayoutBottom();
 
   const handleDismiss = useCallback(() => {
     triggerHaptic('tap');
@@ -132,7 +133,7 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
         >
           <ModalLayout
             headerBlock={
-              <View style={styles.header}>
+              <View style={[styles.header, headerStyle]}>
                 <Icon name="mail" size={40} color={accentColor.primary} />
                 <Text style={[styles.title, { color: themeColors.textPrimary }]}>
                   {t('modules.mail.welcome.title')}

@@ -690,12 +690,15 @@ done
 |----------|---------------------|-------|
 | RadioScreen (search modal) | ✅ | Meerdere verticale children (spacer → chips → search) |
 | PodcastScreen (search modal) | ✅ | Meerdere verticale children (spacer → search → chips → title) |
+| ContactPickerModal | ✅ | Meerdere verticale children (header row → search container) |
+| ModulePickerModal | ✅ | Meerdere verticale children (title → subtitle) |
+| MailWelcomeModal | ✅ | Meerdere verticale children (icon → title → subtitle) |
+| ContactSelectionModal | ✅ | Meerdere verticale children (title → subtitle → voice hint) |
 | RadioScreen (no-favorites modal) | ❌ n.v.t. | Enkele content, geen verticale stack |
 | PodcastScreen (speed picker) | ❌ n.v.t. | Enkel title element |
 | PodcastScreen (sleep timer) | ❌ n.v.t. | Enkel title element |
 | PickerModal | ❌ n.v.t. | Enkele horizontale rij (title + close) |
 | DateTimePickerModal | ❌ n.v.t. | Enkele horizontale rij (title + done) |
-| ContactSelectionModal | ❌ n.v.t. | Enkele content (title + subtitle) |
 | CreateGroupModal | ❌ n.v.t. | Enkele horizontale rij (close + title + create) |
 | EditGroupModal | ❌ n.v.t. | Enkele horizontale rij (close + title + save) |
 | PhotoRecipientModal | ❌ n.v.t. | Enkele horizontale rij (close + title + spacer) |
@@ -3451,6 +3454,8 @@ import { LANGUAGES } from '@/constants/demographics';
 **Alle modals MOETEN LiquidGlassView gebruiken op iOS/iPadOS 26+.**
 
 Zie ui-designer SKILL.md sectie 11b voor de volledige classificatie.
+
+> **@see `.claude/standards/MODAL_GLASS_STANDARD.md`** — Volledige referentie met drie-laagse architectuur, native Glass layer specificaties, implementatie templates, toolbar position handling, modal inventaris en troubleshooting.
 
 #### Modal Classificatie
 
