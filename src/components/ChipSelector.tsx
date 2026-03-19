@@ -17,12 +17,12 @@
  * - Clear visual feedback on selection
  * - Large, readable text (18pt)
  * - Haptic feedback on selection
- * - Simple popup for mode switching (2 large buttons)
+ * - Inline toggle buttons for mode switching (Land/Taal)
  *
  * @see .claude/CLAUDE.md Section 14 (Component Registry)
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -31,13 +31,8 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from './Icon';
 import { HapticTouchable } from './HapticTouchable';
-import { PanelAwareModal } from './PanelAwareModal';
-import { LiquidGlassView } from './LiquidGlassView';
-import { ModalLayout } from './ModalLayout';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
@@ -128,10 +123,8 @@ export function ChipSelector({
   trailingElement,
 }: ChipSelectorProps) {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const { triggerFeedback } = useFeedback();
-  const [showModeModal, setShowModeModal] = useState(false);
 
   // Auto-scroll to selected chip
   const scrollViewRef = useRef<ScrollView>(null);
@@ -191,17 +184,9 @@ export function ChipSelector({
     onSelect(code);
   };
 
-  const handleLabelPress = async () => {
-    if (allowModeToggle && onModeChange) {
+  const handleModeToggle = async (newMode: FilterMode) => {
+    if (newMode !== mode && onModeChange) {
       await triggerFeedback('tap');
-      setShowModeModal(true);
-    }
-  };
-
-  const handleModeSelect = async (newMode: FilterMode) => {
-    await triggerFeedback('tap');
-    setShowModeModal(false);
-    if (onModeChange && newMode !== mode) {
       onModeChange(newMode);
     }
   };
@@ -213,38 +198,61 @@ export function ChipSelector({
 
   return (
     <View style={styles.container}>
-      {/* Label row — label (left) + optional trailing element (right, e.g. close button) */}
+      {/* Label row — toggle buttons or static label (left) + optional trailing element (right) */}
       <View style={styles.labelRow}>
-        <HapticTouchable
-          hapticDisabled
-          onPress={handleLabelPress}
-          disabled={!allowModeToggle}
-          style={[
-            styles.labelContainer,
-            allowModeToggle && styles.labelContainerTappable,
-            allowModeToggle && glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: 'rgba(255, 255, 255, 0.3)' },
-          ]}
-          accessibilityRole={allowModeToggle ? 'button' : 'text'}
-          accessibilityLabel={allowModeToggle
-            ? t('components.chipSelector.tapToChange', { current: displayLabel })
-            : displayLabel
-          }
-          accessibilityHint={allowModeToggle
-            ? t('components.chipSelector.tapToChangeHint')
-            : undefined
-          }
-        >
-          <Text style={[
-            styles.label,
-            glassMode && { color: 'rgba(255, 255, 255, 0.9)' },
-            allowModeToggle && { color: accentColor.primary },
-          ]}>
-            {displayLabel}
-          </Text>
-          {allowModeToggle && (
-            <Icon name="chevron-down" size={18} color={accentColor.primary} />
-          )}
-        </HapticTouchable>
+        {allowModeToggle ? (
+          <View style={styles.toggleRow}>
+            <HapticTouchable
+              hapticDisabled
+              style={[
+                styles.toggleButton,
+                glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.3)' },
+                mode === 'country' && { backgroundColor: accentColor.primary, borderColor: accentColor.primary },
+              ]}
+              onPress={() => handleModeToggle('country')}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: mode === 'country' }}
+              accessibilityLabel={t('components.chipSelector.country')}
+            >
+              <Text style={[
+                styles.toggleButtonText,
+                glassMode && mode !== 'country' && { color: 'rgba(255, 255, 255, 0.9)' },
+                mode === 'country' && styles.toggleButtonTextActive,
+              ]}>
+                {t('components.chipSelector.country')}
+              </Text>
+            </HapticTouchable>
+            <HapticTouchable
+              hapticDisabled
+              style={[
+                styles.toggleButton,
+                glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.3)' },
+                mode === 'language' && { backgroundColor: accentColor.primary, borderColor: accentColor.primary },
+              ]}
+              onPress={() => handleModeToggle('language')}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: mode === 'language' }}
+              accessibilityLabel={t('components.chipSelector.language')}
+            >
+              <Text style={[
+                styles.toggleButtonText,
+                glassMode && mode !== 'language' && { color: 'rgba(255, 255, 255, 0.9)' },
+                mode === 'language' && styles.toggleButtonTextActive,
+              ]}>
+                {t('components.chipSelector.language')}
+              </Text>
+            </HapticTouchable>
+          </View>
+        ) : (
+          <View style={styles.labelContainer}>
+            <Text style={[
+              styles.label,
+              glassMode && { color: 'rgba(255, 255, 255, 0.9)' },
+            ]}>
+              {displayLabel}
+            </Text>
+          </View>
+        )}
         {trailingElement}
       </View>
 
@@ -292,108 +300,6 @@ export function ChipSelector({
         })}
       </ScrollView>
 
-      {/* Mode Selection Modal */}
-      <PanelAwareModal
-        visible={showModeModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowModeModal(false)}
-      >
-        <HapticTouchable
-          hapticDisabled
-          longPressGuardDisabled
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowModeModal(false)}
-        >
-          <LiquidGlassView
-            moduleId="settings"
-            style={[
-              styles.modalContent,
-              { paddingBottom: insets.bottom + spacing.lg },
-            ]}
-            cornerRadius={16}
-          >
-            <ModalLayout
-              headerBlock={
-                <Text style={styles.modalTitle}>
-                  {t('components.chipSelector.searchBy')}
-                </Text>
-              }
-              contentBlock={
-                <>
-                  {/* Country option */}
-                  <HapticTouchable
-                    hapticDisabled
-                    style={[
-                      styles.modalOption,
-                      mode === 'country' && {
-                        backgroundColor: accentColor.primary,
-                        borderColor: accentColor.primary,
-                      },
-                    ]}
-                    onPress={() => handleModeSelect('country')}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: mode === 'country' }}
-                  >
-                    <Text style={styles.modalOptionIcon}>🌍</Text>
-                    <Text
-                      style={[
-                        styles.modalOptionText,
-                        mode === 'country' && styles.modalOptionTextActive,
-                      ]}
-                    >
-                      {t('components.chipSelector.country')}
-                    </Text>
-                    {mode === 'country' && (
-                      <Icon name="check" size={24} color={colors.textOnPrimary} />
-                    )}
-                  </HapticTouchable>
-
-                  {/* Language option */}
-                  <HapticTouchable
-                    hapticDisabled
-                    style={[
-                      styles.modalOption,
-                      mode === 'language' && {
-                        backgroundColor: accentColor.primary,
-                        borderColor: accentColor.primary,
-                      },
-                    ]}
-                    onPress={() => handleModeSelect('language')}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: mode === 'language' }}
-                  >
-                    <Text style={styles.modalOptionIcon}>🗣️</Text>
-                    <Text
-                      style={[
-                        styles.modalOptionText,
-                        mode === 'language' && styles.modalOptionTextActive,
-                      ]}
-                    >
-                      {t('components.chipSelector.language')}
-                    </Text>
-                    {mode === 'language' && (
-                      <Icon name="check" size={24} color={colors.textOnPrimary} />
-                    )}
-                  </HapticTouchable>
-                </>
-              }
-              footerBlock={
-                <HapticTouchable
-                  hapticDisabled
-                  style={styles.modalCancel}
-                  onPress={() => setShowModeModal(false)}
-                >
-                  <Text style={styles.modalCancelText}>
-                    {t('common.cancel')}
-                  </Text>
-                </HapticTouchable>
-              }
-            />
-          </LiquidGlassView>
-        </HapticTouchable>
-      </PanelAwareModal>
     </View>
   );
 }
@@ -417,20 +323,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  labelContainerTappable: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    alignSelf: 'flex-start', // Don't stretch full width
-    minHeight: touchTargets.minimum, // 60pt minimum touch target
-  },
   label: {
     ...typography.label,
     color: colors.textSecondary,
     fontWeight: '700',
+  },
+  // Toggle buttons for mode switching (Land/Taal)
+  toggleRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  toggleButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minHeight: touchTargets.minimum, // 60pt — senior-inclusive
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toggleButtonText: {
+    ...typography.body, // 18pt — senior-inclusive
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  toggleButtonTextActive: {
+    color: colors.textOnPrimary,
   },
   chipList: {
     gap: spacing.xs,
@@ -455,57 +375,6 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: colors.textOnPrimary,
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    padding: spacing.lg,
-  },
-  modalTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  modalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.sm,
-    minHeight: touchTargets.comfortable, // 72pt — senior-inclusive
-  },
-  modalOptionIcon: {
-    fontSize: 28,
-    marginRight: spacing.md,
-  },
-  modalOptionText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    flex: 1,
-  },
-  modalOptionTextActive: {
-    color: colors.textOnPrimary,
-  },
-  modalCancel: {
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    marginTop: spacing.sm,
-  },
-  modalCancelText: {
-    ...typography.body,
-    color: colors.textSecondary,
   },
 });
 
