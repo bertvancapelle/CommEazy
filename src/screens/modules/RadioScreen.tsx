@@ -30,6 +30,7 @@ import {
   Alert,
   DeviceEventEmitter,
   Pressable,
+  Keyboard,
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
@@ -56,6 +57,7 @@ import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
+import { useModalTextStyle } from '@/contexts/FieldTextStyleContext';
 
 // ============================================================
 // Types
@@ -277,6 +279,7 @@ export function RadioScreen() {
   const themeColors = useColors();
   const layoutContext = useModuleLayoutSafe();
   const toolbarPosition = layoutContext?.toolbarPosition ?? 'top';
+  const modalTextStyle = useModalTextStyle();
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // Radio Context for playback
@@ -1344,42 +1347,52 @@ export function RadioScreen() {
         <LiquidGlassView moduleId="radio" style={styles.searchModalContainer} cornerRadius={0}>
           <ModalLayout
             headerBlock={
-              <View style={[styles.searchModalHeader, { borderBottomColor: themeColors.border }]}>
-                <Text style={[styles.searchModalTitle, { color: themeColors.textPrimary }]}>{t('modules.radio.search')}</Text>
+              <View style={styles.searchSection}>
+                {/* Safe area spacer — flush with Dynamic Island */}
+                <View style={{ height: insets.top }} />
+                {/* 1. [Landen/Taal ▾] toggle + close button (same row) */}
+                <ChipSelector
+                  mode={filterMode}
+                  options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
+                  selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
+                  onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
+                  allowModeToggle={true}
+                  onModeChange={handleFilterModeChange}
+                  glassMode
+                  trailingElement={
+                    <IconButton
+                      icon="chevron-down"
+                      variant="onPrimary"
+                      onPress={() => setShowSearchModal(false)}
+                      accessibilityLabel={t('common.close')}
+                    />
+                  }
+                />
+                {/* 2. SearchBar — placeholder serves as implicit title */}
+                <SearchBar
+                  ref={searchInputRef}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onSubmit={handleSearch}
+                  placeholder={filterMode === 'country'
+                    ? t('modules.radio.searchPlaceholderByCountry')
+                    : t('modules.radio.searchPlaceholderByLanguage')
+                  }
+                  searchButtonLabel={t('modules.radio.searchButton')}
+                  maxLength={SEARCH_MAX_LENGTH}
+                  showButton={false}
+                  glassMode
+                />
               </View>
             }
             contentBlock={
-              <>
-                {/* Search controls: ChipSelector + SearchBar */}
-                <View style={styles.searchSection}>
-                  <ChipSelector
-                    mode={filterMode}
-                    options={filterMode === 'country' ? COUNTRIES : LANGUAGES}
-                    selectedCode={filterMode === 'country' ? selectedCountry : selectedLanguage}
-                    onSelect={filterMode === 'country' ? handleCountryChange : handleLanguageChange}
-                    allowModeToggle={true}
-                    onModeChange={handleFilterModeChange}
-                  />
-                  <SearchBar
-                    ref={searchInputRef}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    onSubmit={handleSearch}
-                    placeholder={filterMode === 'country'
-                      ? t('modules.radio.searchPlaceholderByCountry')
-                      : t('modules.radio.searchPlaceholderByLanguage')
-                    }
-                    searchButtonLabel={t('modules.radio.searchButton')}
-                    maxLength={SEARCH_MAX_LENGTH}
-                  />
-                </View>
-
+              <View style={{ flex: 1 }}>
                 {/* Separator between controls and results */}
-                <View style={{ height: 4, backgroundColor: radioModuleColor, opacity: 0.4, marginTop: spacing.xs }} />
+                <View style={{ height: 4, backgroundColor: radioModuleColor, opacity: 0.4 }} />
 
                 {/* Search results */}
                 {isLoading ? (
-                  <LoadingView message={t('modules.radio.loading')} fullscreen />
+                  <LoadingView message={t('modules.radio.loading')} fullscreen transparent />
                 ) : apiError ? (
                   <ErrorView
                     title={t(`modules.radio.errors.${apiError}Title`)}
@@ -1389,11 +1402,12 @@ export function RadioScreen() {
                       loadStations();
                     }}
                     fullscreen
+                    transparent
                   />
                 ) : stations.length === 0 ? (
                   <View style={styles.emptyContainer}>
-                    <Icon name="radio" size={64} color={themeColors.textTertiary} />
-                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                    <Icon name="radio" size={64} color={modalTextStyle.color + '66'} />
+                    <Text style={[styles.emptyText, { color: modalTextStyle.color, opacity: 0.7 }]}>
                       {t('modules.radio.noStations')}
                     </Text>
                   </View>
@@ -1402,6 +1416,10 @@ export function RadioScreen() {
                     style={styles.stationList}
                     contentContainerStyle={styles.stationListContent}
                     keyboardShouldPersistTaps="handled"
+                    onScrollBeginDrag={() => {
+                      Keyboard.dismiss();
+                      searchInputRef.current?.blur();
+                    }}
                   >
                     {stations.map((station) => {
                       const id = station.stationuuid;
@@ -1412,7 +1430,7 @@ export function RadioScreen() {
                           key={id}
                           style={[
                             styles.stationItem,
-                            { backgroundColor: themeColors.surface },
+                            { backgroundColor: radioModuleColor + '33' },
                             isCurrentStation && {
                               borderWidth: 2,
                               borderColor: accentColor.primary,
@@ -1454,10 +1472,10 @@ export function RadioScreen() {
                             accessibilityHint={t('modules.radio.stationHint')}
                           >
                             <View style={styles.stationInfo}>
-                              <Text style={[styles.stationName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                              <Text style={[styles.stationName, { color: modalTextStyle.color, fontWeight: modalTextStyle.fontWeight }]} numberOfLines={1}>
                                 {station.name}
                               </Text>
-                              <Text style={[styles.stationCountry, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                              <Text style={[styles.stationCountry, { color: modalTextStyle.color, opacity: 0.7 }]} numberOfLines={1}>
                                 {station.country}
                               </Text>
                             </View>
@@ -1481,20 +1499,9 @@ export function RadioScreen() {
                     })}
                   </ScrollViewWithIndicator>
                 )}
-              </>
-            }
-            footerBlock={
-              <View style={[styles.searchModalFooter, { borderTopColor: themeColors.border }]}>
-                <HapticTouchable hapticDisabled
-                  style={[styles.searchModalCloseButton, { backgroundColor: accentColor.primary }]}
-                  onPress={() => setShowSearchModal(false)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.close')}
-                >
-                  <Text style={styles.searchModalCloseButtonText}>{t('common.close')}</Text>
-                </HapticTouchable>
               </View>
             }
+            footerBlock={undefined}
           />
         </LiquidGlassView>
       </PanelAwareModal>
@@ -1544,37 +1551,29 @@ const styles = StyleSheet.create({
   // Tab styles removed — using standardized FavoriteTabButton/SearchTabButton components
   searchSection: {
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    gap: spacing.md,
+    paddingTop: spacing.xs,
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
   },
   // Discovery Search Modal styles
   searchModalContainer: {
     flex: 1,
   },
-  searchModalHeader: {
-    padding: spacing.lg,
+  searchModalFilterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  searchModalTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
   },
   searchModalTitle: {
     ...typography.h3,
     fontWeight: '700',
   },
-  searchModalFooter: {
-    padding: spacing.lg,
-    borderTopWidth: 1,
-  },
-  searchModalCloseButton: {
-    minHeight: touchTargets.comfortable,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchModalCloseButtonText: {
-    ...typography.body,
-    fontWeight: '700',
-    color: colors.textOnPrimary,
-  },
+  // searchModalFooter, searchModalCloseButton, searchModalCloseButtonText removed — close button moved to header
   // countryList, countryChip, countryChipText, filterLabel removed — using standardized ChipSelector component
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   loadingContainer: {
@@ -1647,6 +1646,7 @@ const styles = StyleSheet.create({
   },
   stationList: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   stationListContent: {
     padding: spacing.md,
@@ -1656,14 +1656,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     // CRITICAL: alignItems center ensures IconButton (60pt) is vertically centered
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    // backgroundColor set dynamically via inline style (radioModuleColor + '33' = 20% opacity)
     borderRadius: borderRadius.md,
     // Padding around content
     paddingVertical: spacing.xs,
-    paddingLeft: spacing.md,
-    // paddingRight: 0 — IconButton edge aligns with SearchBar edge
-    // (stationListContent has padding.md, filterSection has paddingHorizontal.md)
-    paddingRight: 0,
+    paddingLeft: spacing.sm,
+    paddingRight: spacing.sm,
     // Row height accommodates IconButton (60pt) + vertical padding
     minHeight: touchTargets.minimum + spacing.xs * 2,
   },

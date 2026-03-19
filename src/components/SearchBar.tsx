@@ -62,6 +62,8 @@ export interface SearchBarProps {
   maxLength?: number;
   /** Show the search button (default: true) */
   showButton?: boolean;
+  /** Use semi-transparent backgrounds for Liquid Glass modal contexts */
+  glassMode?: boolean;
   /** Additional TextInput props */
   textInputProps?: Omit<TextInputProps, 'value' | 'onChangeText' | 'placeholder' | 'onSubmitEditing' | 'maxLength'>;
 }
@@ -93,6 +95,7 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
       clearButtonLabel = 'Clear',
       maxLength = 100,
       showButton = true,
+      glassMode = false,
       textInputProps,
     },
     ref
@@ -130,9 +133,13 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
         <View style={styles.inputWrapper}>
           <TextInput
             ref={inputRef}
-            style={[styles.input, value.length > 0 && styles.inputWithClear]}
+            style={[
+              styles.input,
+              glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: 'rgba(255, 255, 255, 0.3)', color: '#FFFFFF' },
+              (value.length > 0 || !showButton) && styles.inputWithClear,
+            ]}
             placeholder={placeholder}
-            placeholderTextColor={colors.textTertiary}
+            placeholderTextColor={glassMode ? 'rgba(255, 255, 255, 0.5)' : colors.textTertiary}
             value={value}
             onChangeText={onChangeText}
             onSubmitEditing={handleSubmit}
@@ -143,17 +150,21 @@ export const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(
             accessibilityLabel={placeholder}
             {...textInputProps}
           />
-          {value.length > 0 && (
+          {value.length > 0 ? (
             <Pressable
-              style={styles.clearButton}
+              style={[styles.clearButton, glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.3)' }]}
               onPress={handleClear}
               accessibilityRole="button"
               accessibilityLabel={clearButtonLabel}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Icon name="x" size={18} color={colors.textTertiary} />
+              <Icon name="x" size={18} color={glassMode ? 'rgba(255, 255, 255, 0.7)' : colors.textTertiary} />
             </Pressable>
-          )}
+          ) : !showButton ? (
+            <View style={styles.inFieldSearchIcon}>
+              <Icon name="search" size={20} color={glassMode ? 'rgba(255, 255, 255, 0.4)' : colors.textTertiary} />
+            </View>
+          ) : null}
         </View>
         {showButton && (
           <HapticTouchable
@@ -218,6 +229,12 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inFieldSearchIcon: {
+    position: 'absolute',
+    right: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
   },

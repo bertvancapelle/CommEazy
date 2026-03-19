@@ -74,6 +74,10 @@ export interface ChipSelectorProps {
   allowModeToggle?: boolean;
   /** Callback when mode changes (required if allowModeToggle is true) */
   onModeChange?: (mode: FilterMode) => void;
+  /** Use semi-transparent backgrounds for Liquid Glass modal contexts */
+  glassMode?: boolean;
+  /** Optional element rendered to the right of the label row (e.g., close button) */
+  trailingElement?: React.ReactNode;
 }
 
 // ============================================================
@@ -120,6 +124,8 @@ export function ChipSelector({
   label,
   allowModeToggle = false,
   onModeChange,
+  glassMode = false,
+  trailingElement,
 }: ChipSelectorProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -207,35 +213,40 @@ export function ChipSelector({
 
   return (
     <View style={styles.container}>
-      {/* Label — ABOVE chips, bold, tappable if toggle enabled */}
-      <HapticTouchable
-        hapticDisabled
-        onPress={handleLabelPress}
-        disabled={!allowModeToggle}
-        style={[
-          styles.labelContainer,
-          allowModeToggle && styles.labelContainerTappable,
-        ]}
-        accessibilityRole={allowModeToggle ? 'button' : 'text'}
-        accessibilityLabel={allowModeToggle
-          ? t('components.chipSelector.tapToChange', { current: displayLabel })
-          : displayLabel
-        }
-        accessibilityHint={allowModeToggle
-          ? t('components.chipSelector.tapToChangeHint')
-          : undefined
-        }
-      >
-        <Text style={[
-          styles.label,
-          allowModeToggle && { color: accentColor.primary },
-        ]}>
-          {displayLabel}
-        </Text>
-        {allowModeToggle && (
-          <Icon name="chevron-down" size={18} color={accentColor.primary} />
-        )}
-      </HapticTouchable>
+      {/* Label row — label (left) + optional trailing element (right, e.g. close button) */}
+      <View style={styles.labelRow}>
+        <HapticTouchable
+          hapticDisabled
+          onPress={handleLabelPress}
+          disabled={!allowModeToggle}
+          style={[
+            styles.labelContainer,
+            allowModeToggle && styles.labelContainerTappable,
+            allowModeToggle && glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: 'rgba(255, 255, 255, 0.3)' },
+          ]}
+          accessibilityRole={allowModeToggle ? 'button' : 'text'}
+          accessibilityLabel={allowModeToggle
+            ? t('components.chipSelector.tapToChange', { current: displayLabel })
+            : displayLabel
+          }
+          accessibilityHint={allowModeToggle
+            ? t('components.chipSelector.tapToChangeHint')
+            : undefined
+          }
+        >
+          <Text style={[
+            styles.label,
+            glassMode && { color: 'rgba(255, 255, 255, 0.9)' },
+            allowModeToggle && { color: accentColor.primary },
+          ]}>
+            {displayLabel}
+          </Text>
+          {allowModeToggle && (
+            <Icon name="chevron-down" size={18} color={accentColor.primary} />
+          )}
+        </HapticTouchable>
+        {trailingElement}
+      </View>
 
       {/* Horizontal scrolling chips */}
       <ScrollView
@@ -255,6 +266,7 @@ export function ChipSelector({
               key={option.code}
               style={[
                 styles.chip,
+                glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: 'rgba(255, 255, 255, 0.3)' },
                 isSelected && {
                   backgroundColor: accentColor.primary,
                   borderColor: accentColor.primary,
@@ -269,6 +281,7 @@ export function ChipSelector({
               <Text
                 style={[
                   styles.chipText,
+                  glassMode && !isSelected && { color: 'rgba(255, 255, 255, 0.9)' },
                   isSelected && styles.chipTextActive,
                 ]}
               >
@@ -393,11 +406,16 @@ const styles = StyleSheet.create({
   container: {
     // No margin — let parent control spacing
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
   labelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    marginBottom: spacing.xs,
   },
   labelContainerTappable: {
     backgroundColor: colors.surface,

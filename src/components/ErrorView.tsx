@@ -44,6 +44,8 @@ interface ErrorViewProps {
   type?: 'error' | 'warning' | 'info' | 'success';
   /** Whether to show fullscreen centered */
   fullscreen?: boolean;
+  /** Transparent background (use inside LiquidGlassView modals) */
+  transparent?: boolean;
   /** Auto-dismiss after N milliseconds (recommended: 3000 for success/info) */
   autoDismiss?: number;
   /** Callback when notification is dismissed (auto or manual) */
@@ -57,6 +59,7 @@ export function ErrorView({
   retryText,
   type = 'error',
   fullscreen = false,
+  transparent = false,
   autoDismiss,
   onDismiss,
 }: ErrorViewProps) {
@@ -100,7 +103,7 @@ export function ErrorView({
 
   return (
     <View
-      style={[styles.container, fullscreen && styles.fullscreen]}
+      style={[styles.container, fullscreen && styles.fullscreen, transparent && { backgroundColor: 'transparent' }]}
       accessibilityRole="alert"
       accessibilityLabel={`${displayTitle}. ${displayMessage}`}
     >

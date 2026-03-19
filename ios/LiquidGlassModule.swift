@@ -15,6 +15,7 @@
 
 import UIKit
 import React
+// FORCE RECOMPILE: 2026-03-19T5 — remove RED canary diagnostic, restore normal module colors
 
 // ============================================================
 // MARK: - LiquidGlassModule (RCT Bridge Module)
@@ -234,36 +235,45 @@ class LiquidGlassNativeView: UIView {
         ])
 
         // === Layer 4: Top specular highlight (glass reflection) ===
-        let highlightGradient = CAGradientLayer()
-        highlightGradient.colors = [
-            UIColor.white.withAlphaComponent(0.30).cgColor,  // Bright top highlight
-            UIColor.white.withAlphaComponent(0.10).cgColor,  // Gentle fade
-            UIColor.clear.cgColor,                            // Transparent middle
-            UIColor.white.withAlphaComponent(0.05).cgColor,  // Subtle bottom glow
-        ]
-        highlightGradient.locations = [0.0, 0.12, 0.5, 1.0]
-        highlightGradient.startPoint = CGPoint(x: 0.5, y: 0.0)
-        highlightGradient.endPoint = CGPoint(x: 0.5, y: 1.0)
+        // Skip highlight for full-screen modals (cornerRadius=0) to avoid visible white line at top
+        if cornerRadius > 0 {
+            let highlightGradient = CAGradientLayer()
+            highlightGradient.colors = [
+                UIColor.white.withAlphaComponent(0.30).cgColor,  // Bright top highlight
+                UIColor.white.withAlphaComponent(0.10).cgColor,  // Gentle fade
+                UIColor.clear.cgColor,                            // Transparent middle
+                UIColor.white.withAlphaComponent(0.05).cgColor,  // Subtle bottom glow
+            ]
+            highlightGradient.locations = [0.0, 0.12, 0.5, 1.0]
+            highlightGradient.startPoint = CGPoint(x: 0.5, y: 0.0)
+            highlightGradient.endPoint = CGPoint(x: 0.5, y: 1.0)
 
-        let highlightView = UIView()
-        highlightView.translatesAutoresizingMaskIntoConstraints = false
-        highlightView.layer.addSublayer(highlightGradient)
-        highlightView.isUserInteractionEnabled = false
-        containerView.addSubview(highlightView)
+            let highlightView = UIView()
+            highlightView.translatesAutoresizingMaskIntoConstraints = false
+            highlightView.layer.addSublayer(highlightGradient)
+            highlightView.isUserInteractionEnabled = false
+            containerView.addSubview(highlightView)
 
-        NSLayoutConstraint.activate([
-            highlightView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            highlightView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            highlightView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            highlightView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-        ])
+            NSLayoutConstraint.activate([
+                highlightView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                highlightView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                highlightView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                highlightView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            ])
 
-        // Store gradient for bounds updates
-        self.gradientLayerRef = highlightGradient
+            // Store gradient for bounds updates
+            self.gradientLayerRef = highlightGradient
+        }
 
         // === Layer 5: Glass edge border ===
-        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
-        containerView.layer.borderWidth = 0.5
+        // Skip border for full-screen modals (cornerRadius=0) to avoid visible white line at top
+        if cornerRadius > 0 {
+            containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
+            containerView.layer.borderWidth = 0.5
+            NSLog("[LiquidGlass] ✅ Layer 5 BORDER applied (radius: %.1f)", cornerRadius)
+        } else {
+            NSLog("[LiquidGlass] ⏭️ Layer 5 BORDER SKIPPED (radius: 0 — full-screen modal)")
+        }
 
         // Clear our background so layers can show
         backgroundColor = .clear
@@ -272,17 +282,31 @@ class LiquidGlassNativeView: UIView {
         // Shadow must be on the parent (self) because container has clipsToBounds = true.
         // clipsToBounds clips children to corner radius but masks shadow too.
         // By putting shadow on self (which doesn't clip), both work correctly.
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 4)
-        layer.shadowOpacity = 0.25
-        layer.shadowRadius = 8
+        // Skip shadow for full-screen modals (cornerRadius=0) — no visible edges to shadow
+        if cornerRadius > 0 {
+            layer.shadowColor = UIColor.black.cgColor
+            layer.shadowOffset = CGSize(width: 0, height: 4)
+            layer.shadowOpacity = 0.25
+            layer.shadowRadius = 8
+            NSLog("[LiquidGlass] ✅ SHADOW applied (radius: %.1f)", cornerRadius)
+        } else {
+            NSLog("[LiquidGlass] ⏭️ SHADOW SKIPPED (radius: 0 — full-screen modal)")
+        }
 
         // Insert container as background (behind React Native children)
         insertSubview(containerView, at: 0)
+
+        // For full-screen modals (cornerRadius=0): extend container 20pt ABOVE the view bounds.
+        // This hides UIGlassEffect's inherent top edge highlight off-screen.
+        // UIGlassEffect renders its own edge/highlight as part of its material —
+        // we can't disable it (only tintColor + isInteractive are configurable),
+        // so we push it off the visible area.
+        let topOverflow: CGFloat = cornerRadius > 0 ? 0 : -20
+
         NSLayoutConstraint.activate([
             containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            containerView.topAnchor.constraint(equalTo: topAnchor),
+            containerView.topAnchor.constraint(equalTo: topAnchor, constant: topOverflow),
             containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
 
@@ -439,7 +463,7 @@ class LiquidGlassNativeView: UIView {
         // Check React Native children (all subviews except the glass container)
         // Iterate in reverse order (highest index = topmost view first)
         for subview in subviews.reversed() {
-            // Skip the glass effect container — it's decorative only
+            // Skip decorative-only view (glass container)
             if subview === glassEffectView { continue }
 
             guard subview.isUserInteractionEnabled, !subview.isHidden, subview.alpha > 0.01 else { continue }
@@ -463,11 +487,14 @@ class LiquidGlassNativeView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        glassEffectView?.frame = bounds
+        // DO NOT set glassEffectView?.frame = bounds here!
+        // The container uses Auto Layout constraints (including -20pt top overflow
+        // for cornerRadius=0 full-screen modals). Setting frame directly overrides
+        // those constraints every layout cycle, wiping out the overflow.
 
         // Update gradient layer frame if present (for frosted glass fallback)
         if let gradientLayer = gradientLayerRef {
-            gradientLayer.frame = bounds
+            gradientLayer.frame = glassEffectView?.bounds ?? bounds
         }
 
         // Recreate effect if bounds changed significantly (first layout or resize)
@@ -481,9 +508,9 @@ class LiquidGlassNativeView: UIView {
 
     // React Native children are added directly to this view
     override func insertReactSubview(_ subview: UIView!, at atIndex: Int) {
-        // Insert after glass effect view (if present)
-        let insertIndex = glassEffectView != nil ? atIndex + 1 : atIndex
-        insertSubview(subview, at: insertIndex)
+        // Insert after glass effect view (which is at index 0)
+        let offset = glassEffectView != nil ? 1 : 0
+        insertSubview(subview, at: atIndex + offset)
     }
 
     override func removeReactSubview(_ subview: UIView!) {

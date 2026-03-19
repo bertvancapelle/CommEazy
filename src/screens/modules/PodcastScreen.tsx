@@ -1424,37 +1424,48 @@ export function PodcastScreen() {
         <LiquidGlassView moduleId="podcast" style={styles.searchModalContainer} cornerRadius={0}>
           <ModalLayout
             headerBlock={
-              <View style={[styles.searchModalHeader, { borderBottomColor: themeColors.border }]}>
-                <Text style={[styles.searchModalTitle, { color: themeColors.textPrimary }]}>{t('modules.podcast.discover')}</Text>
+              <View style={styles.searchSection}>
+                {/* Safe area spacer */}
+                <View style={{ height: insets.top }} />
+                {/* 1. SearchBar + magnifying glass (primary action) */}
+                <SearchBar
+                  ref={searchInputRef}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onSubmit={handleSearch}
+                  placeholder={t('modules.podcast.searchPlaceholder')}
+                  searchButtonLabel={t('modules.podcast.searchButton')}
+                  maxLength={SEARCH_MAX_LENGTH}
+                  glassMode
+                />
+                {/* 2. Country chips (no toggle — Podcast is country-only) */}
+                <ChipSelector
+                  mode="country"
+                  options={COUNTRIES}
+                  selectedCode={selectedCountry}
+                  onSelect={handleCountryChange}
+                  glassMode
+                />
+                {/* 3. "Podcasts zoeken" title left + chevron-down close right */}
+                <View style={styles.searchModalTitleRow}>
+                  <Text style={[styles.searchModalTitle, { color: 'rgba(255, 255, 255, 0.7)' }]}>{t('modules.podcast.discover')}</Text>
+                  <IconButton
+                    icon="chevron-down"
+                    variant="onPrimary"
+                    onPress={() => setShowSearchModal(false)}
+                    accessibilityLabel={t('common.close')}
+                  />
+                </View>
               </View>
             }
             contentBlock={
               <>
-                {/* Search controls: ChipSelector + SearchBar */}
-                <View style={styles.searchSection}>
-                  <ChipSelector
-                    mode="country"
-                    options={COUNTRIES}
-                    selectedCode={selectedCountry}
-                    onSelect={handleCountryChange}
-                  />
-                  <SearchBar
-                    ref={searchInputRef}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    onSubmit={handleSearch}
-                    placeholder={t('modules.podcast.searchPlaceholder')}
-                    searchButtonLabel={t('modules.podcast.searchButton')}
-                    maxLength={SEARCH_MAX_LENGTH}
-                  />
-                </View>
-
                 {/* Separator between controls and results */}
-                <View style={{ height: 4, backgroundColor: podcastModuleColor, opacity: 0.4, marginTop: spacing.xs }} />
+                <View style={{ height: 4, backgroundColor: podcastModuleColor, opacity: 0.4 }} />
 
                 {/* Search results */}
                 {isLoading ? (
-                  <LoadingView message={t('modules.podcast.loading')} fullscreen />
+                  <LoadingView message={t('modules.podcast.loading')} fullscreen transparent />
                 ) : apiError ? (
                   <ErrorView
                     title={t(`modules.podcast.errors.${apiError}Title`)}
@@ -1464,11 +1475,12 @@ export function PodcastScreen() {
                       handleSearch();
                     }}
                     fullscreen
+                    transparent
                   />
                 ) : searchResults.length === 0 ? (
                   <View style={styles.emptyContainer}>
-                    <Icon name="podcast" size={64} color={themeColors.textTertiary} />
-                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                    <Icon name="podcast" size={64} color="rgba(255, 255, 255, 0.4)" />
+                    <Text style={[styles.emptyText, { color: 'rgba(255, 255, 255, 0.7)' }]}>
                       {t('modules.podcast.noResults')}
                     </Text>
                   </View>
@@ -1486,7 +1498,7 @@ export function PodcastScreen() {
                           key={show.id}
                           style={[
                             styles.showItem,
-                            { backgroundColor: themeColors.surface },
+                            { backgroundColor: podcastModuleColor + '26' },
                             isCurrentShow && {
                               borderWidth: 2,
                               borderColor: accentColor.primary,
@@ -1528,10 +1540,10 @@ export function PodcastScreen() {
 
                             {/* Info */}
                             <View style={styles.showInfo}>
-                              <Text style={[styles.showTitle, { color: themeColors.textPrimary }]} numberOfLines={2}>
+                              <Text style={[styles.showTitle, { color: '#FFFFFF' }]} numberOfLines={2}>
                                 {show.title}
                               </Text>
-                              <Text style={[styles.showAuthor, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                              <Text style={[styles.showAuthor, { color: 'rgba(255, 255, 255, 0.7)' }]} numberOfLines={1}>
                                 {show.author}
                               </Text>
                             </View>
@@ -1557,18 +1569,7 @@ export function PodcastScreen() {
                 )}
               </>
             }
-            footerBlock={
-              <View style={[styles.searchModalFooter, { borderTopColor: themeColors.border }]}>
-                <HapticTouchable hapticDisabled
-                  style={[styles.searchModalCloseButton, { backgroundColor: accentColor.primary }]}
-                  onPress={() => setShowSearchModal(false)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.close')}
-                >
-                  <Text style={styles.searchModalCloseButtonText}>{t('common.close')}</Text>
-                </HapticTouchable>
-              </View>
-            }
+            footerBlock={undefined}
           />
         </LiquidGlassView>
       </PanelAwareModal>
@@ -1632,30 +1633,16 @@ const styles = StyleSheet.create({
   searchModalContainer: {
     flex: 1,
   },
-  searchModalHeader: {
-    padding: spacing.lg,
+  searchModalTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
   },
   searchModalTitle: {
     ...typography.h3,
     fontWeight: '700',
   },
-  searchModalFooter: {
-    padding: spacing.lg,
-    borderTopWidth: 1,
-  },
-  searchModalCloseButton: {
-    minHeight: touchTargets.comfortable,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchModalCloseButtonText: {
-    ...typography.body,
-    fontWeight: '700',
-    color: colors.textOnPrimary,
-  },
+  // searchModalFooter, searchModalCloseButton, searchModalCloseButtonText removed — close button moved to header
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   countrySelector: {
     marginTop: spacing.md,
@@ -1729,6 +1716,7 @@ const styles = StyleSheet.create({
   },
   showList: {
     flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.30)',
   },
   showListContent: {
     padding: spacing.md,
@@ -1737,9 +1725,12 @@ const styles = StyleSheet.create({
   showItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    // Transparent background — glass shows through between items
+    backgroundColor: 'transparent',
     borderRadius: borderRadius.md,
-    padding: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingLeft: spacing.sm,
+    paddingRight: spacing.sm,
     gap: spacing.md,
   },
   playingWaveContainer: {

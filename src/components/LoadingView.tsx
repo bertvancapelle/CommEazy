@@ -25,12 +25,15 @@ interface LoadingViewProps {
   size?: 'small' | 'large';
   /** Whether to show fullscreen centered */
   fullscreen?: boolean;
+  /** Transparent background (use inside LiquidGlassView modals) */
+  transparent?: boolean;
 }
 
 export function LoadingView({
   message,
   size = 'large',
   fullscreen = false,
+  transparent = false,
 }: LoadingViewProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -38,7 +41,7 @@ export function LoadingView({
 
   return (
     <View
-      style={[styles.container, fullscreen && styles.fullscreen]}
+      style={[styles.container, fullscreen && styles.fullscreen, transparent && { backgroundColor: 'transparent' }]}
       accessibilityRole="progressbar"
       accessibilityLabel={displayMessage}
       accessibilityState={{ busy: true }}
