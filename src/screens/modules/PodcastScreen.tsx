@@ -29,6 +29,7 @@ import {
   Platform,
   AccessibilityInfo,
   KeyboardAvoidingView,
+  Pressable,
   Alert,
   DeviceEventEmitter,
 } from 'react-native';
@@ -38,7 +39,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, TabButtonRow, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, ScrollViewWithIndicator, type SearchBarRef, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, RecentTabButton, TabButtonRow, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, ScrollViewWithIndicator, type SearchBarRef, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -60,10 +61,17 @@ import { ServiceContainer } from '@/services/container';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useRecentPodcasts } from '@/hooks/useRecentPodcasts';
 import { useModuleBrowsingState, type PodcastBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
+
+// ============================================================
+// Types
+// ============================================================
+
+type PodcastTab = 'recent' | 'favorites' | 'search';
 
 // ============================================================
 // Constants
@@ -198,6 +206,9 @@ export function PodcastScreen() {
     },
   });
 
+  // Recent podcasts — persisted in AsyncStorage (max 10, newest first)
+  const { recentShows, addRecentShow } = useRecentPodcasts();
+
   // Browsing state persistence — restores tab, search, filters on return
   const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<PodcastBrowsingState>('podcast');
 
@@ -206,8 +217,12 @@ export function PodcastScreen() {
   const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | 'parse' | null>(null);
-  // Discovery search modal — opens on SearchTabButton tap
-  const [showSearchModal, setShowSearchModal] = useState(false);
+  // Active tab — 'recent' is the default landing page; restored from browsing state
+  const [activeTab, setActiveTab] = useState<PodcastTab>(savedBrowsing?.activeTab ?? 'recent');
+  // Discovery search modal — opens when Search tab is active
+  const showSearchModal = activeTab === 'search';
+  // Popup shown when no favorites exist — explains how to find and save shows
+  const [showNoFavoritesModal, setShowNoFavoritesModal] = useState(false);
   // Podcast uses country filter (iTunes API is store/region-based, not language-based)
   const [selectedCountry, setSelectedCountry] = useState(
     savedBrowsing?.selectedCountry ?? userCountryCode ?? detectCountryFromLocale(i18n.language)
@@ -250,14 +265,15 @@ export function PodcastScreen() {
   useEffect(() => {
     saveBrowsing({
       module: 'podcast',
-      showSubscriptions: true, // Always subscriptions on main screen (search is modal)
+      showSubscriptions: activeTab === 'favorites',
+      activeTab,
       searchQuery,
       selectedCountry,
       selectedShow,
       showEpisodes,
       searchResults,
     });
-  }, [searchQuery, selectedCountry, selectedShow, showEpisodes, searchResults, saveBrowsing]);
+  }, [activeTab, searchQuery, selectedCountry, selectedShow, showEpisodes, searchResults, saveBrowsing]);
 
   // Close expanded player when episode ends
   useEffect(() => {
@@ -565,9 +581,17 @@ export function PodcastScreen() {
     // Store the episode list in context for next/previous navigation
     setCurrentShowEpisodes(showEpisodes);
     await playEpisode(episode, selectedShow);
+    // Track this show as recently played (for Recent tab)
+    addRecentShow({
+      id: selectedShow.id,
+      title: selectedShow.title,
+      author: selectedShow.author,
+      artwork: selectedShow.artwork,
+      feedUrl: selectedShow.feedUrl,
+    });
     // Keep the show detail view open so the senior stays in context
     // (previously setSelectedShow(null) closed the modal, which was confusing)
-  }, [holdGesture, selectedShow, showEpisodes, playEpisode, setCurrentShowEpisodes, triggerFeedback, currentEpisode, isPlaying, showGlassFromMinimized]);
+  }, [holdGesture, selectedShow, showEpisodes, playEpisode, setCurrentShowEpisodes, triggerFeedback, currentEpisode, isPlaying, showGlassFromMinimized, addRecentShow]);
 
   // Subscribe/unsubscribe
   const handleToggleSubscribe = useCallback(async (show: PodcastShow) => {
@@ -591,10 +615,19 @@ export function PodcastScreen() {
     }
   }, [isSubscribed, subscribe, unsubscribe, triggerFeedback, t]);
 
-  // Voice focus for show list — main screen always shows subscriptions
+  // Voice focus for show list — shows recent or favorites based on active tab
   // Sort so currently playing show appears at the top
   const displayedShows = useMemo(() => {
-    const baseList = subscriptions;
+    const baseList: PodcastShow[] = activeTab === 'recent'
+      ? recentShows.map(rs => ({
+          id: rs.id,
+          title: rs.title,
+          author: rs.author,
+          artwork: rs.artwork,
+          feedUrl: rs.feedUrl,
+        } as PodcastShow))
+      : subscriptions;
+
     if (!currentShow) return baseList;
 
     // Find the currently playing show and move it to the top
@@ -604,7 +637,7 @@ export function PodcastScreen() {
     // Put playing show first, then the rest
     const otherShows = baseList.filter((s) => s.id !== currentShow.id);
     return [playingShow, ...otherShows];
-  }, [subscriptions, currentShow]);
+  }, [subscriptions, recentShows, activeTab, currentShow]);
 
   const voiceFocusItems = useMemo(() => {
     if (!isFocused) return [];
@@ -672,23 +705,29 @@ export function PodcastScreen() {
             />
           }
           controlsBlock={<>
-        {/* Tab selector — Subscriptions (main) + Discover (opens modal) */}
+        {/* Tab selector — Recent (default) + Favorites + Search */}
         <View style={styles.tabBar}>
-          <TabButtonRow labels={[t('modules.podcast.favorites'), t('modules.podcast.discover')]}>
+          <TabButtonRow labels={[t('modules.podcast.recentTab'), t('modules.podcast.favorites'), t('modules.podcast.discover')]}>
             {(syncedFontSize) => (
               <>
+                <RecentTabButton
+                  isActive={activeTab === 'recent'}
+                  onPress={() => setActiveTab('recent')}
+                  label={t('modules.podcast.recentTab')}
+                  syncedFontSize={syncedFontSize}
+                />
                 <FavoriteTabButton
-                  isActive={!showSearchModal}
-                  onPress={() => setShowSearchModal(false)}
+                  isActive={activeTab === 'favorites'}
+                  onPress={() => setActiveTab('favorites')}
                   count={subscriptions.length}
                   label={t('modules.podcast.favorites')}
                   syncedFontSize={syncedFontSize}
                 />
                 <SearchTabButton
-                  isActive={showSearchModal}
-                  onPress={() => setShowSearchModal(true)}
+                  isActive={activeTab === 'search'}
+                  onPress={() => setActiveTab('search')}
                   label={t('modules.podcast.discover')}
-                  pulse={subscriptions.length === 0}
+                  pulse={recentShows.length === 0 && subscriptions.length === 0}
                   syncedFontSize={syncedFontSize}
                 />
               </>
@@ -723,15 +762,19 @@ export function PodcastScreen() {
         )}
         </>}
         contentBlock={<>
-        {/* Subscriptions list — always shown on main screen */}
+        {/* Show list — shows recent or favorites based on active tab */}
         {displayedShows.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Icon name="podcast" size={64} color={colors.textTertiary} />
-            <Text style={styles.emptyText}>
-              {t('modules.podcast.noFavorites')}
+            <Icon name={activeTab === 'recent' ? 'clock' : 'podcast'} size={64} color={themeColors.textTertiary} />
+            <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+              {activeTab === 'recent'
+                ? t('modules.podcast.noRecentShows')
+                : t('modules.podcast.noFavorites')}
             </Text>
-            <Text style={styles.emptyHint}>
-              {t('modules.podcast.emptyStateHint')}
+            <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>
+              {activeTab === 'recent'
+                ? t('modules.podcast.noRecentHint')
+                : t('modules.podcast.emptyStateHint')}
             </Text>
           </View>
         ) : (
@@ -1437,7 +1480,7 @@ export function PodcastScreen() {
       <PanelAwareModal
         visible={showSearchModal}
         animationType={isReducedMotion ? 'none' : 'slide'}
-        onRequestClose={() => setShowSearchModal(false)}
+        onRequestClose={() => setActiveTab('recent')}
       >
         <KeyboardAvoidingView
           style={styles.searchModalContainer}
@@ -1449,7 +1492,24 @@ export function PodcastScreen() {
               <View style={[styles.searchSection, modalHeaderStyle]}>
                 {/* Safe area spacer — at screen edge (top or bottom) */}
                 <View style={{ height: isModalBottom ? 4 : insets.top }} />
-                {/* 1. SearchBar + magnifying glass (primary action) */}
+                {/* 1. Country chips + close button (same row via trailingElement) */}
+                <ChipSelector
+                  mode="country"
+                  options={COUNTRIES}
+                  selectedCode={selectedCountry}
+                  onSelect={handleCountryChange}
+                  glassMode
+                  reversed={isModalBottom}
+                  trailingElement={
+                    <IconButton
+                      icon="chevron-down"
+                      variant="onPrimary"
+                      onPress={() => setActiveTab('recent')}
+                      accessibilityLabel={t('common.close')}
+                    />
+                  }
+                />
+                {/* 2. SearchBar — placeholder serves as implicit title */}
                 <SearchBar
                   ref={searchInputRef}
                   value={searchQuery}
@@ -1458,27 +1518,9 @@ export function PodcastScreen() {
                   placeholder={t('modules.podcast.searchPlaceholder')}
                   searchButtonLabel={t('modules.podcast.searchButton')}
                   maxLength={SEARCH_MAX_LENGTH}
+                  showButton={false}
                   glassMode
                 />
-                {/* 2. Country chips (no toggle — Podcast is country-only) */}
-                <ChipSelector
-                  mode="country"
-                  options={COUNTRIES}
-                  selectedCode={selectedCountry}
-                  onSelect={handleCountryChange}
-                  glassMode
-                  reversed={isModalBottom}
-                />
-                {/* 3. "Podcasts zoeken" title left + chevron-down close right */}
-                <View style={styles.searchModalTitleRow}>
-                  <Text style={[styles.searchModalTitle, { color: 'rgba(255, 255, 255, 0.7)' }]}>{t('modules.podcast.discover')}</Text>
-                  <IconButton
-                    icon="chevron-down"
-                    variant="onPrimary"
-                    onPress={() => setShowSearchModal(false)}
-                    accessibilityLabel={t('common.close')}
-                  />
-                </View>
               </View>
             }
             contentBlock={
@@ -1544,7 +1586,7 @@ export function PodcastScreen() {
                             style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}
                             onPress={() => {
                               handleShowPress(show);
-                              setShowSearchModal(false);
+                              setActiveTab('recent');
                             }}
                             activeOpacity={0.7}
                             accessibilityRole="button"
@@ -1596,6 +1638,80 @@ export function PodcastScreen() {
           />
         </LiquidGlassView>
         </KeyboardAvoidingView>
+      </PanelAwareModal>
+
+      {/* No Favorites Modal — explains how to find and save shows */}
+      <PanelAwareModal
+        visible={showNoFavoritesModal}
+        transparent={true}
+        animationType={isReducedMotion ? 'none' : 'fade'}
+        onRequestClose={() => {
+          setShowNoFavoritesModal(false);
+        }}
+        accessibilityViewIsModal={true}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowNoFavoritesModal(false)}>
+          <LiquidGlassView moduleId="podcast" style={styles.modalContent} cornerRadius={16}>
+            <ModalLayout
+              headerBlock={
+                <View style={styles.modalHeader}>
+                  <Icon name="heart" size={48} color={accentColor.primary} />
+                  <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>{t('modules.podcast.welcomeTitle')}</Text>
+                </View>
+              }
+              contentBlock={
+                <>
+                  {/* Explanation */}
+                  <Text style={[styles.modalText, { color: themeColors.textSecondary }]}>
+                    {t('modules.podcast.welcomeText')}
+                  </Text>
+
+                  {/* Steps with heart icon */}
+                  <View style={styles.modalStep}>
+                    <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
+                      <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>1</Text>
+                    </View>
+                    <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
+                      {t('modules.podcast.welcomeStep1')}
+                    </Text>
+                  </View>
+
+                  <View style={styles.modalStep}>
+                    <View style={[styles.modalStepNumber, { backgroundColor: themeColors.border }]}>
+                      <Text style={[styles.modalStepNumberText, { color: themeColors.textPrimary }]}>2</Text>
+                    </View>
+                    <View style={styles.modalStepContent}>
+                      <Text style={[styles.modalStepText, { color: themeColors.textPrimary }]}>
+                        {t('modules.podcast.welcomeStep2')}
+                      </Text>
+                      <Icon
+                        name="heart"
+                        size={24}
+                        color={accentColor.primary}
+                        style={styles.modalStepIcon}
+                      />
+                    </View>
+                  </View>
+                </>
+              }
+              footerBlock={
+                <HapticTouchable hapticDisabled
+                  style={[styles.modalButton, { backgroundColor: accentColor.primary }]}
+                  onPress={() => {
+                    triggerFeedback('tap');
+                    setShowNoFavoritesModal(false);
+                    setActiveTab('search'); // Open discovery search modal
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.podcast.welcomeButton')}
+                >
+                  <Icon name="search" size={24} color={colors.textOnPrimary} />
+                  <Text style={styles.modalButtonText}>{t('modules.podcast.welcomeButton')}</Text>
+                </HapticTouchable>
+              }
+            />
+          </LiquidGlassView>
+        </Pressable>
       </PanelAwareModal>
 
       {/* Voice hint */}
@@ -1657,15 +1773,7 @@ const styles = StyleSheet.create({
   searchModalContainer: {
     flex: 1,
   },
-  searchModalTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  searchModalTitle: {
-    ...typography.h3,
-    fontWeight: '700',
-  },
+  // searchModalTitleRow, searchModalTitle removed — close button moved to ChipSelector trailingElement (matching Radio)
   // searchModalFooter, searchModalCloseButton, searchModalCloseButtonText removed — close button moved to header
   // searchContainer, searchInput, searchButton removed — using standardized SearchBar component
   countrySelector: {
@@ -1939,6 +2047,89 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     textAlign: 'center',
+  },
+  // No Favorites Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    maxWidth: 400,
+    width: '100%',
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  modalTitle: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  modalText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    lineHeight: 26,
+  },
+  modalStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: spacing.md,
+  },
+  modalStepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalStepNumberText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  modalStepContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  modalStepText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  modalStepIcon: {
+    marginLeft: spacing.xs,
+  },
+  modalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    minHeight: touchTargets.comfortable,
+    marginTop: spacing.lg,
+  },
+  modalButtonText: {
+    ...typography.body,
+    color: colors.textOnPrimary,
+    fontWeight: '600',
   },
   voiceHint: {
     position: 'absolute',

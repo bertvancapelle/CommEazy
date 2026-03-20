@@ -50,6 +50,8 @@ export interface RadioBrowsingState {
 export interface PodcastBrowsingState {
   module: 'podcast';
   showSubscriptions: boolean;
+  /** Active tab — 'recent' | 'favorites' | 'search' */
+  activeTab?: 'recent' | 'favorites' | 'search';
   searchQuery: string;
   selectedCountry: string;
   /** Currently viewed show (detail view) */
