@@ -1914,7 +1914,8 @@
         "tracks": "Titel",
         "showAll": "Alle {{count}} anzeigen",
         "noResults": "Keine Musik gefunden",
-        "error": "Suche fehlgeschlagen. Bitte erneut versuchen."
+        "error": "Suche fehlgeschlagen. Bitte erneut versuchen.",
+        "resultsFound": "Ergebnisse gefunden"
       },
       "discovery": {
         "recentlyPlayed": "Zuletzt gespielt",

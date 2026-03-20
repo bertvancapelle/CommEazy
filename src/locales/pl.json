@@ -1720,7 +1720,8 @@
         "tracks": "utworów",
         "showAll": "Pokaż wszystkie ({{count}})",
         "noResults": "Nie znaleziono muzyki",
-        "error": "Wyszukiwanie nieudane. Spróbuj ponownie."
+        "error": "Wyszukiwanie nieudane. Spróbuj ponownie.",
+        "resultsFound": "wyników znalezionych"
       },
       "discovery": {
         "recentlyPlayed": "Ostatnio odtwarzane",

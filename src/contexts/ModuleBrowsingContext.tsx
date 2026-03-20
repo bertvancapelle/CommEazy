@@ -77,8 +77,9 @@ export interface BooksBrowsingState {
 /** Apple Music browsing state */
 export interface AppleMusicBrowsingState {
   module: 'appleMusic';
-  activeTab: 'favorites' | 'search';
-  favoritesSubTab: 'playlists' | 'albums' | 'artists';
+  activeTab: 'recent' | 'favorites' | 'search';
+  recentSubTab: 'recentlyPlayed' | 'discover';
+  favoritesSubTab: 'playlists' | 'albums';
   searchQuery: string;
   searchFilter: 'all' | 'songs' | 'albums' | 'artists' | 'playlists';
   /** Currently open collection/playlist/album ID */

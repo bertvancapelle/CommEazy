@@ -1914,7 +1914,8 @@
         "tracks": "titres",
         "showAll": "Afficher tous ({{count}})",
         "noResults": "Aucune musique trouvée",
-        "error": "Échec de la recherche. Veuillez réessayer."
+        "error": "Échec de la recherche. Veuillez réessayer.",
+        "resultsFound": "résultats trouvés"
       },
       "discovery": {
         "recentlyPlayed": "Écoutés récemment",

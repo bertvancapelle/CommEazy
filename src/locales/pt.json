@@ -1931,7 +1931,8 @@
         "tracks": "faixas",
         "showAll": "Mostrar todos ({{count}})",
         "noResults": "Nenhuma música encontrada",
-        "error": "Pesquisa falhou. Tente novamente."
+        "error": "Pesquisa falhou. Tente novamente.",
+        "resultsFound": "resultados encontrados"
       },
       "discovery": {
         "recentlyPlayed": "Reproduzidos recentemente",

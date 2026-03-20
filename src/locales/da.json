@@ -1758,7 +1758,8 @@
         "tracks": "numre",
         "showAll": "Vis alle ({{count}})",
         "noResults": "Ingen musik fundet",
-        "error": "Søgning mislykkedes. Prøv igen."
+        "error": "Søgning mislykkedes. Prøv igen.",
+        "resultsFound": "resultater fundet"
       },
       "discovery": {
         "recentlyPlayed": "Afspillet for nylig",

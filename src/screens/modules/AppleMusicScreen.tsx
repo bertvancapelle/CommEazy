@@ -30,6 +30,9 @@ import {
   Platform,
   Image,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  AccessibilityInfo,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -51,7 +54,13 @@ import { Icon,
   QueueView,
   HapticTouchable,
   LiquidGlassView,
+  TabButtonRow,
+  RecentTabButton,
+  FavoriteTabButton,
+  SearchTabButton,
+  ModalLayout,
   type SearchBarRef, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { useModalLayoutBottom } from '@/components/ModalLayout';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -75,6 +84,7 @@ import { useMusicCollections } from '@/hooks/useMusicCollections';
 import { useAlbumFavorites } from '@/hooks/useAlbumFavorites';
 import { useArtistFavorites } from '@/hooks/useArtistFavorites';
 import { useMusicPlayStats } from '@/hooks/useMusicPlayStats';
+import { useSearchCache } from '@/hooks/useSearchCache';
 import { MusicCollectionChipBar, type MusicChipId } from '@/components/MusicCollectionChipBar';
 
 import { EditMusicCollectionModal } from './EditMusicCollectionModal';
@@ -99,10 +109,13 @@ const MINI_PLAYER_HEIGHT = 84;
 // Types
 // ============================================================
 
-type TabType = 'favorites' | 'search';
+type TabType = 'recent' | 'favorites' | 'search';
 
-// Favorites sub-tab filter
-type FavoritesSubTab = 'playlists' | 'albums' | 'artists';
+// Recent tab sub-toggle
+type RecentSubTab = 'recentlyPlayed' | 'discover';
+
+// Favorites sub-tab filter (artists removed from favorites per PNA decision)
+type FavoritesSubTab = 'playlists' | 'albums';
 
 // Search result filter types
 type SearchFilterType = 'all' | 'songs' | 'albums' | 'artists' | 'playlists';
@@ -190,21 +203,29 @@ export function AppleMusicScreen() {
   // Browsing state persistence — restores tab, search, filters on return
   const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<AppleMusicBrowsingState>('appleMusic');
 
-  // Local search state (context returns Promise, we manage state here)
+  // Search cache — persists last search across sessions
+  const { cachedSearch, saveSearch } = useSearchCache<SearchResults>('appleMusic');
+
+  // Local search state — 3-tier init: savedBrowsing → cachedSearch → null
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResults | null>(savedBrowsing?.searchResults as SearchResults | null ?? null);
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(
+    (savedBrowsing?.searchResults as SearchResults | null) ?? cachedSearch ?? null
+  );
   const [searchError, setSearchError] = useState<string | null>(null);
 
   // State — initialized from saved browsing state if available
-  const [activeTab, setActiveTab] = useState<TabType>(savedBrowsing?.activeTab ?? 'favorites');
-  const [favoritesSubTab, setFavoritesSubTab] = useState<FavoritesSubTab>(savedBrowsing?.favoritesSubTab ?? 'playlists');
-  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>(savedBrowsing?.activeTab ?? 'recent');
+  const [recentSubTab, setRecentSubTab] = useState<RecentSubTab>(savedBrowsing?.recentSubTab ?? 'recentlyPlayed');
+  const [favoritesSubTab, setFavoritesSubTab] = useState<FavoritesSubTab>(
+    savedBrowsing?.favoritesSubTab === 'artists' ? 'playlists' : (savedBrowsing?.favoritesSubTab ?? 'playlists') as FavoritesSubTab
+  );
   const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [isQueueVisible, setIsQueueVisible] = useState(false);
   const [searchFilter, setSearchFilter] = useState<SearchFilterType>(savedBrowsing?.searchFilter ?? 'all');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAllRecentlyPlayed, setShowAllRecentlyPlayed] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
   // Inline notification state (replaces Alert.alert for single-button notifications)
   const [notification, setNotification] = useState<{
@@ -232,7 +253,6 @@ export function AppleMusicScreen() {
   // Play stats maps for sorting favorites by most used
   const playlistStatsMap = playStats.getStatsMap('playlist');
   const albumStatsMap = playStats.getStatsMap('album');
-  const artistStatsMap = playStats.getStatsMap('artist');
 
   // Sorted favorites (by play count, most used first)
   const sortedCollections = useMemo(() => {
@@ -252,15 +272,6 @@ export function AppleMusicScreen() {
       return b.addedAt - a.addedAt;
     });
   }, [albumFavorites.albums, albumStatsMap]);
-
-  const sortedArtists = useMemo(() => {
-    return [...artistFavorites.artists].sort((a, b) => {
-      const countA = artistStatsMap.get(a.catalogId)?.playCount ?? 0;
-      const countB = artistStatsMap.get(b.catalogId)?.playCount ?? 0;
-      if (countA !== countB) return countB - countA;
-      return b.addedAt - a.addedAt;
-    });
-  }, [artistFavorites.artists, artistStatsMap]);
 
   // Songs for the currently opened collection (collection detail view)
   const openCollection = useMemo(() => {
@@ -348,6 +359,7 @@ export function AppleMusicScreen() {
     saveBrowsing({
       module: 'appleMusic',
       activeTab,
+      recentSubTab,
       favoritesSubTab,
       searchQuery,
       searchFilter,
@@ -355,7 +367,7 @@ export function AppleMusicScreen() {
       selectedChipId,
       searchResults,
     });
-  }, [activeTab, favoritesSubTab, searchQuery, searchFilter, openCollectionId, selectedChipId, searchResults, saveBrowsing]);
+  }, [activeTab, recentSubTab, favoritesSubTab, searchQuery, searchFilter, openCollectionId, selectedChipId, searchResults, saveBrowsing]);
 
   // Check if platform supports full functionality
   const hasFullSupport = capabilities?.hasMusicKit && capabilities?.canPlayback;
@@ -691,26 +703,35 @@ export function AppleMusicScreen() {
     const trimmedQuery = searchQuery.trim();
     if (!trimmedQuery) return;
 
+    Keyboard.dismiss();
     setIsSearching(true);
     setSearchError(null);
 
     try {
       console.debug('[AppleMusicScreen] Searching catalog');
       const results = await searchCatalog(trimmedQuery);
-      console.log('[AppleMusicScreen] Search results:', {
-        songs: results.songs?.length ?? 0,
-        albums: results.albums?.length ?? 0,
-        artists: results.artists?.length ?? 0,
-        playlists: results.playlists?.length ?? 0,
-      });
+      const totalCount =
+        (results.songs?.length ?? 0) +
+        (results.albums?.length ?? 0) +
+        (results.artists?.length ?? 0) +
+        (results.playlists?.length ?? 0);
+      console.debug('[AppleMusicScreen] Search results:', totalCount, 'items');
       setSearchResults(results);
+      saveSearch(results);
+
+      // Announce results count for accessibility
+      const announcement = totalCount > 0
+        ? `${totalCount} ${t('modules.appleMusic.search.resultsFound', { count: totalCount })}`
+        : t('modules.appleMusic.search.noResults');
+      AccessibilityInfo.announceForAccessibility(announcement);
     } catch (error) {
       console.error('[AppleMusicScreen] Search error:', error);
       setSearchError(error instanceof Error ? error.message : 'Search failed');
+      triggerFeedback('error');
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery, searchCatalog]);
+  }, [searchQuery, searchCatalog, saveSearch, t, triggerFeedback]);
 
   const clearSearch = useCallback(() => {
     setSearchResults(null);
@@ -1009,6 +1030,11 @@ export function AppleMusicScreen() {
               <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
                 {song.artistName}
               </Text>
+              {song.albumTitle ? (
+                <Text style={[styles.songAlbumTitle, { color: themeColors.textTertiary }]} numberOfLines={1}>
+                  {song.albumTitle}
+                </Text>
+              ) : null}
             </View>
           </HapticTouchable>
           <View style={styles.songItemActions}>
@@ -1091,9 +1117,8 @@ export function AppleMusicScreen() {
     );
   };
 
-  // Render a single artist item
+  // Render a single artist item (no heart — artists not in favorites per PNA decision)
   const renderArtistItem = (artist: AppleMusicArtist, index: number) => {
-    const isArtistFav = artistFavorites.isFavorite(artist.id);
     return (
       <VoiceFocusable
         key={artist.id}
@@ -1126,28 +1151,7 @@ export function AppleMusicScreen() {
               {t('modules.appleMusic.search.artistsTitle')}
             </Text>
           </View>
-          <View style={styles.songItemActions}>
-            <IconButton
-              icon={isArtistFav ? 'heart-filled' : 'heart'}
-              isActive={isArtistFav}
-              size={24}
-              onPress={() => {
-                void triggerFeedback(isArtistFav ? 'tap' : 'success');
-                void artistFavorites.toggle({
-                  catalogId: artist.id,
-                  name: artist.name,
-                  artworkUrl: artist.artworkUrl,
-                });
-              }}
-              accessibilityLabel={
-                isArtistFav
-                  ? t('modules.appleMusic.favorites.removeFromFavorites')
-                  : t('modules.appleMusic.favorites.addToFavorites')
-              }
-              style={styles.songItemHeartButton}
-            />
-            <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
-          </View>
+          <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
         </HapticTouchable>
       </VoiceFocusable>
     );
@@ -1505,59 +1509,219 @@ export function AppleMusicScreen() {
     </ScrollViewWithIndicator>
   );
 
-  const renderSearchTab = () => (
+  // ============================================================
+  // Recent Tab — "Onlangs beluisterd" / "Ontdekken" sub-toggle
+  // ============================================================
+
+  const renderRecentTab = () => (
     <View style={styles.tabContent}>
-      <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onSubmit={handleSearch}
-        placeholder={t('modules.appleMusic.search.placeholder')}
-        searchButtonLabel={t('modules.appleMusic.search.button')}
-        maxLength={SEARCH_MAX_LENGTH}
-      />
-
-      {isSearching && (
-        <LoadingView />
-      )}
-
-      {searchError && (
-        <ErrorView
-          message={t('modules.appleMusic.search.error')}
-          onRetry={clearSearch}
-          retryText={t('common.dismiss')}
-        />
-      )}
-
-      {/* Discovery sections (shown before user searches) */}
-      {showDiscovery && renderDiscoverySections()}
-
-      {/* Filter tabs - only show when we have results */}
-      {hasAnyResults && renderSearchFilterTabs()}
-
-      {/* Results */}
-      {hasAnyResults && (
-        <ScrollViewWithIndicator
-          ref={scrollRef}
-          style={styles.resultsList}
-          contentContainerStyle={[
-            styles.resultsContent,
-            { paddingBottom: bottomPadding + insets.bottom },
+      {/* Sub-toggle: Onlangs beluisterd / Ontdekken */}
+      <View style={[styles.recentSubToggle, { borderBottomColor: themeColors.border }]}>
+        <HapticTouchable hapticDisabled
+          style={[
+            styles.recentSubToggleButton,
+            recentSubTab === 'recentlyPlayed' && { borderBottomColor: appleMusicColor, borderBottomWidth: 3 },
           ]}
+          onPress={() => setRecentSubTab('recentlyPlayed')}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: recentSubTab === 'recentlyPlayed' }}
+          accessibilityLabel={t('modules.appleMusic.tabs.recent')}
         >
-          {searchFilter === 'all' ? renderAllResults() : renderFilteredResults()}
-        </ScrollViewWithIndicator>
-      )}
-
-      {/* No results state */}
-      {!isSearching && !hasAnyResults && searchQuery && (
-        <View style={styles.emptyState}>
-          <Icon name="search" size={48} color={themeColors.textSecondary} />
-          <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-            {t('modules.appleMusic.search.noResults')}
+          <Text style={[
+            styles.recentSubToggleText,
+            { color: recentSubTab === 'recentlyPlayed' ? themeColors.textPrimary : themeColors.textSecondary },
+            recentSubTab === 'recentlyPlayed' && { fontWeight: '700' },
+          ]} numberOfLines={1}>
+            {t('modules.appleMusic.tabs.recent')}
           </Text>
-        </View>
+        </HapticTouchable>
+        <HapticTouchable hapticDisabled
+          style={[
+            styles.recentSubToggleButton,
+            recentSubTab === 'discover' && { borderBottomColor: appleMusicColor, borderBottomWidth: 3 },
+          ]}
+          onPress={() => setRecentSubTab('discover')}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: recentSubTab === 'discover' }}
+          accessibilityLabel={t('modules.appleMusic.tabs.discover')}
+        >
+          <Text style={[
+            styles.recentSubToggleText,
+            { color: recentSubTab === 'discover' ? themeColors.textPrimary : themeColors.textSecondary },
+            recentSubTab === 'discover' && { fontWeight: '700' },
+          ]} numberOfLines={1}>
+            {t('modules.appleMusic.tabs.discover')}
+          </Text>
+        </HapticTouchable>
+      </View>
+
+      {/* Content based on sub-toggle */}
+      {recentSubTab === 'recentlyPlayed' ? (
+        /* Recently played items */
+        recentlyPlayed.length > 0 ? (
+          <ScrollViewWithIndicator
+            style={styles.resultsList}
+            contentContainerStyle={[
+              styles.resultsContent,
+              { paddingBottom: bottomPadding + insets.bottom },
+            ]}
+          >
+            {recentlyPlayed.map((item) => (
+              <HapticTouchable hapticDisabled
+                key={`${item.type}-${item.id}`}
+                style={[styles.songItem, { backgroundColor: themeColors.surface }]}
+                onPress={() => handleRecentlyPlayedTap(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title}${item.subtitle ? `, ${item.subtitle}` : ''}`}
+              >
+                {item.artworkUrl ? (
+                  <Image
+                    source={{ uri: item.artworkUrl.replace('{w}', '60').replace('{h}', '60') }}
+                    style={styles.songArtwork}
+                  />
+                ) : (
+                  <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: themeColors.border }]}>
+                    <Icon name="appleMusic" size={24} color={themeColors.textSecondary} />
+                  </View>
+                )}
+                <View style={styles.songInfo}>
+                  <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                  {item.subtitle ? (
+                    <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                      {item.subtitle}
+                    </Text>
+                  ) : null}
+                </View>
+                <Icon
+                  name={item.type === 'album' ? 'chevron-right' : 'play'}
+                  size={24}
+                  color={appleMusicColor}
+                />
+              </HapticTouchable>
+            ))}
+          </ScrollViewWithIndicator>
+        ) : (
+          <View style={styles.emptyState}>
+            <Icon name="clock" size={48} color={themeColors.textSecondary} />
+            <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
+              {t('modules.appleMusic.recent.emptyTitle')}
+            </Text>
+            <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+              {t('modules.appleMusic.recent.emptyDescription')}
+            </Text>
+          </View>
+        )
+      ) : (
+        /* Discover content — uses existing renderDiscoverySections */
+        renderDiscoverySections()
       )}
     </View>
+  );
+
+  // ============================================================
+  // Search Modal Content (replaces inline search tab)
+  // ============================================================
+
+  const searchModalRef = useRef<SearchBarRef>(null);
+  const { isBottom: isSearchModalBottom, headerStyle: searchModalHeaderStyle } = useModalLayoutBottom();
+
+  const renderSearchModalContent = () => (
+    <PanelAwareModal
+      visible={showSearchModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => setShowSearchModal(false)}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <LiquidGlassView moduleId="appleMusic" style={{ flex: 1 }} cornerRadius={0}>
+          <ModalLayout
+            headerBlock={
+              <View style={[styles.searchModalHeader, searchModalHeaderStyle]}>
+                <View style={{ height: isSearchModalBottom ? 4 : insets.top }} />
+                <View style={styles.searchModalTitleRow}>
+                  <Text style={[styles.searchModalTitle, { color: themeColors.textPrimary }]}>
+                    {t('modules.appleMusic.tabs.search')}
+                  </Text>
+                  <IconButton
+                    icon="close"
+                    size={28}
+                    color={themeColors.textPrimary}
+                    onPress={() => setShowSearchModal(false)}
+                    accessibilityLabel={t('common.close')}
+                  />
+                </View>
+                <SearchBar
+                  ref={searchModalRef}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onSubmit={handleSearch}
+                  placeholder={t('modules.appleMusic.search.placeholder')}
+                  searchButtonLabel={t('modules.appleMusic.search.button')}
+                  maxLength={SEARCH_MAX_LENGTH}
+                />
+              </View>
+            }
+            contentBlock={
+              <View style={{ flex: 1 }}>
+                {isSearching && <LoadingView />}
+
+                {searchError && (
+                  <ErrorView
+                    message={t('modules.appleMusic.search.error')}
+                    onRetry={clearSearch}
+                    retryText={t('common.dismiss')}
+                  />
+                )}
+
+                {/* Filter tabs - only show when we have results */}
+                {hasAnyResults && renderSearchFilterTabs()}
+
+                {/* Results */}
+                {hasAnyResults && (
+                  <ScrollViewWithIndicator
+                    ref={scrollRef}
+                    style={styles.resultsList}
+                    contentContainerStyle={[
+                      styles.resultsContent,
+                      { paddingBottom: insets.bottom + spacing.lg },
+                    ]}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                  >
+                    {searchFilter === 'all' ? renderAllResults() : renderFilteredResults()}
+                  </ScrollViewWithIndicator>
+                )}
+
+                {/* No results state */}
+                {!isSearching && !hasAnyResults && searchQuery && (
+                  <View style={styles.emptyState}>
+                    <Icon name="search" size={48} color={themeColors.textSecondary} />
+                    <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+                      {t('modules.appleMusic.search.noResults')}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Empty initial state */}
+                {!isSearching && !hasAnyResults && !searchQuery && (
+                  <View style={styles.emptyState}>
+                    <Icon name="search" size={48} color={themeColors.textSecondary} />
+                    <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+                      {t('modules.appleMusic.search.placeholder')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            }
+          />
+        </LiquidGlassView>
+      </KeyboardAvoidingView>
+    </PanelAwareModal>
   );
 
   // ============================================================
@@ -1721,12 +1885,10 @@ export function AppleMusicScreen() {
     const hasCollections = musicCollections.collections.length > 0;
     const hasImportedPlaylists = musicCollections.collections.some(c => !!c.sourcePlaylistId);
     const hasAlbumFavorites = albumFavorites.albums.length > 0;
-    const hasArtistFavorites = artistFavorites.artists.length > 0;
 
     // Last played per category
     const lastPlayedPlaylist = playStats.getLastPlayed('playlist');
     const lastPlayedAlbum = playStats.getLastPlayed('album');
-    const lastPlayedArtist = playStats.getLastPlayed('artist');
 
     // Render "Last Played" sticky header row
     const renderLastPlayed = (
@@ -1753,6 +1915,98 @@ export function AppleMusicScreen() {
       );
     };
 
+    // If a collection is open, show detail view
+    if (openCollectionId && openCollection) {
+      return (
+        <View style={styles.tabContent}>
+          {/* Back button + collection name + Play All */}
+          <View style={styles.favStickyHeader}>
+            <View style={styles.collectionBackRow}>
+              <HapticTouchable
+                style={styles.collectionBackButton}
+                onPress={() => setOpenCollectionId(null)}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.appleMusic.favorites.playlists')}
+              >
+                <Icon name="chevron-left" size={28} color={appleMusicColor} />
+              </HapticTouchable>
+              <Text style={[styles.collectionBackText, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                {t('modules.appleMusic.favorites.playlists')}
+              </Text>
+            </View>
+
+            <View style={styles.collectionDetailHeader}>
+              <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: appleMusicColor + '20' }]}>
+                <Icon name="list" size={24} color={appleMusicColor} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                  {openCollection.name}
+                </Text>
+                <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                  {openCollection.songCatalogIds.length} {t('modules.appleMusic.collections.songs')}
+                </Text>
+              </View>
+              <HapticTouchable
+                style={styles.collectionEditButton}
+                onPress={() => setEditCollectionModal({ visible: true, collection: openCollection })}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.edit')}
+              >
+                <Icon name="settings" size={22} color={themeColors.textSecondary} />
+              </HapticTouchable>
+            </View>
+
+            {/* Play All button */}
+            {openCollectionSongs.length > 0 && (
+              <HapticTouchable
+                style={[styles.collectionPlayAllButton, { backgroundColor: appleMusicColor }]}
+                onPress={() => {
+                  playStats.recordPlay('playlist', openCollection.id, {
+                    displayName: openCollection.name,
+                    artworkUrl: null,
+                  });
+                  if (openCollectionSongs.length > 0) {
+                    handlePlaySong(openCollectionSongs[0]);
+                  }
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.appleMusic.detail.playAll')}
+              >
+                <Icon name="play" size={20} color="#FFFFFF" />
+                <Text style={styles.collectionPlayAllText}>
+                  {t('modules.appleMusic.detail.playAll')}
+                </Text>
+              </HapticTouchable>
+            )}
+          </View>
+
+          {/* Song list — ref for auto-scroll to currently playing song */}
+          <ScrollView
+            ref={collectionScrollRef}
+            style={styles.resultsList}
+            contentContainerStyle={[
+              styles.resultsContent,
+              { paddingBottom: bottomPadding + insets.bottom },
+            ]}
+          >
+            {openCollectionSongs.map((song, index) =>
+              renderSongItem(song, index, 'favorites')
+            )}
+            {openCollectionSongs.length === 0 && (
+              <View style={styles.emptyState}>
+                <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
+                <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
+                  {t('modules.appleMusic.collections.collectionEmpty')}
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      );
+    }
+
+    // Main favorites view: Verzamelingen + Albums in one scrollable view
     return (
       <View style={styles.tabContent}>
         {/* Loading state */}
@@ -1760,311 +2014,162 @@ export function AppleMusicScreen() {
           <LoadingView />
         )}
 
-        {/* ===== PLAYLISTS sub-tab ===== */}
-        {favoritesSubTab === 'playlists' && !musicCollections.isLoading && (
-          <>
-            {openCollectionId && openCollection ? (
-              /* ---- Collection detail view: show songs in this collection ---- */
-              <>
-                {/* Back button + collection name + Play All */}
-                <View style={styles.favStickyHeader}>
-                  <View style={styles.collectionBackRow}>
-                    <HapticTouchable
-                      style={styles.collectionBackButton}
-                      onPress={() => setOpenCollectionId(null)}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.appleMusic.favorites.playlists')}
-                    >
-                      <Icon name="chevron-left" size={28} color={appleMusicColor} />
-                    </HapticTouchable>
-                    <Text style={[styles.collectionBackText, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                      {t('modules.appleMusic.favorites.playlists')}
-                    </Text>
-                  </View>
+        {!musicCollections.isLoading && (
+          <ScrollView
+            style={styles.resultsList}
+            contentContainerStyle={[
+              styles.resultsContent,
+              { paddingBottom: bottomPadding + insets.bottom },
+            ]}
+          >
+            {/* ===== VERZAMELINGEN (Collections/Playlists) section ===== */}
+            <View style={styles.favSectionHeader}>
+              <Text style={[styles.favSectionTitle, { color: themeColors.textPrimary }]}>
+                {t('modules.appleMusic.favorites.playlists')}
+              </Text>
+              <Text style={[styles.favSectionCount, { color: themeColors.textSecondary }]}>
+                {musicCollections.collections.length}
+              </Text>
+            </View>
 
-                  <View style={styles.collectionDetailHeader}>
-                    <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: appleMusicColor + '20' }]}>
-                      <Icon name="list" size={24} color={appleMusicColor} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                        {openCollection.name}
-                      </Text>
-                      <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                        {openCollection.songCatalogIds.length} {t('modules.appleMusic.collections.songs')}
-                      </Text>
-                    </View>
-                    <HapticTouchable
-                      style={styles.collectionEditButton}
-                      onPress={() => setEditCollectionModal({ visible: true, collection: openCollection })}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.edit')}
-                    >
-                      <Icon name="settings" size={22} color={themeColors.textSecondary} />
-                    </HapticTouchable>
-                  </View>
+            {/* New playlist + Import buttons */}
+            <View style={styles.favActionRow}>
+              <HapticTouchable
+                style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
+                onPress={() => {
+                  Alert.prompt(
+                    t('modules.appleMusic.collections.createCollection'),
+                    t('modules.appleMusic.collections.newListName'),
+                    [
+                      { text: t('common.cancel'), style: 'cancel' },
+                      {
+                        text: t('common.create', 'Aanmaken'),
+                        onPress: (name?: string) => {
+                          if (name?.trim()) {
+                            musicCollections.create(name.trim());
+                          }
+                        },
+                      },
+                    ],
+                    'plain-text',
+                  );
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('modules.appleMusic.favorites.newPlaylist')}
+              >
+                <Icon name="plus" size={20} color={appleMusicColor} />
+                <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
+                  {t('modules.appleMusic.favorites.newPlaylist')}
+                </Text>
+              </HapticTouchable>
 
-                  {/* Play All button */}
-                  {openCollectionSongs.length > 0 && (
-                    <HapticTouchable
-                      style={[styles.collectionPlayAllButton, { backgroundColor: appleMusicColor }]}
-                      onPress={() => {
-                        playStats.recordPlay('playlist', openCollection.id, {
-                          displayName: openCollection.name,
-                          artworkUrl: null,
-                        });
-                        if (openCollectionSongs.length > 0) {
-                          handlePlaySong(openCollectionSongs[0]);
-                        }
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.appleMusic.detail.playAll')}
-                    >
-                      <Icon name="play" size={20} color="#FFFFFF" />
-                      <Text style={styles.collectionPlayAllText}>
-                        {t('modules.appleMusic.detail.playAll')}
-                      </Text>
-                    </HapticTouchable>
-                  )}
-                </View>
-
-                {/* Song list — ref for auto-scroll to currently playing song */}
-                <ScrollView
-                  ref={collectionScrollRef}
-                  style={styles.resultsList}
-                  contentContainerStyle={[
-                    styles.resultsContent,
-                    { paddingBottom: bottomPadding + insets.bottom },
-                  ]}
+              {/* Import playlists button — hidden after first import */}
+              {!hasImportedPlaylists && (
+                <HapticTouchable
+                  style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
+                  onPress={() => setShowPlaylistBrowser(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('modules.appleMusic.import.importButton')}
                 >
-                  {openCollectionSongs.map((song, index) =>
-                    renderSongItem(song, index, 'favorites')
-                  )}
-                  {openCollectionSongs.length === 0 && (
-                    <View style={styles.emptyState}>
-                      <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
-                      <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
-                        {t('modules.appleMusic.collections.collectionEmpty')}
-                      </Text>
-                    </View>
-                  )}
-                </ScrollView>
-              </>
-            ) : (
-              /* ---- Collection list view ---- */
-              <>
-                {/* Sticky header: New playlist + Last Played */}
-                <View style={styles.favStickyHeader}>
-                  {/* New playlist button */}
-                  <HapticTouchable
-                    style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
-                    onPress={() => {
-                      Alert.prompt(
-                        t('modules.appleMusic.collections.createCollection'),
-                        t('modules.appleMusic.collections.newListName'),
-                        [
-                          { text: t('common.cancel'), style: 'cancel' },
-                          {
-                            text: t('common.create', 'Aanmaken'),
-                            onPress: (name?: string) => {
-                              if (name?.trim()) {
-                                musicCollections.create(name.trim());
-                              }
-                            },
-                          },
-                        ],
-                        'plain-text',
-                      );
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('modules.appleMusic.favorites.newPlaylist')}
-                  >
-                    <Icon name="plus" size={20} color={appleMusicColor} />
-                    <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
-                      {t('modules.appleMusic.favorites.newPlaylist')}
+                  <Icon name="download" size={20} color={appleMusicColor} />
+                  <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
+                    {t('modules.appleMusic.import.importButton')}
+                  </Text>
+                </HapticTouchable>
+              )}
+            </View>
+
+            {/* Last played playlist */}
+            {renderLastPlayed(lastPlayedPlaylist, () => {
+              if (lastPlayedPlaylist) {
+                setOpenCollectionId(lastPlayedPlaylist.itemId);
+                setSelectedChipId(`collection:${lastPlayedPlaylist.itemId}` as MusicChipId);
+              }
+            })}
+
+            {/* Collection list */}
+            {hasCollections ? (
+              sortedCollections.map((collection) => (
+                <HapticTouchable
+                  key={collection.id}
+                  style={[styles.songItem, { backgroundColor: themeColors.surface }]}
+                  onPress={() => {
+                    setOpenCollectionId(collection.id);
+                    setSelectedChipId(`collection:${collection.id}` as MusicChipId);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${collection.name}, ${collection.songCatalogIds.length} ${t('modules.appleMusic.collections.songs')}`}
+                >
+                  <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: appleMusicColor + '20' }]}>
+                    <Icon name="list" size={24} color={appleMusicColor} />
+                  </View>
+                  <View style={styles.songInfo}>
+                    <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                      {collection.name}
                     </Text>
-                  </HapticTouchable>
-
-                  {/* Last played playlist */}
-                  {renderLastPlayed(lastPlayedPlaylist, () => {
-                    if (lastPlayedPlaylist) {
-                      setOpenCollectionId(lastPlayedPlaylist.itemId);
-                      setSelectedChipId(`collection:${lastPlayedPlaylist.itemId}` as MusicChipId);
-                    }
-                  })}
-
-                  {/* Import playlists button — hidden after first import (manage via Settings) */}
-                  {!hasImportedPlaylists && (
-                    <HapticTouchable
-                      style={[styles.favStickyAction, { borderColor: appleMusicColor }]}
-                      onPress={() => setShowPlaylistBrowser(true)}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('modules.appleMusic.import.importButton')}
-                    >
-                      <Icon name="download" size={20} color={appleMusicColor} />
-                      <Text style={[styles.favStickyActionText, { color: appleMusicColor }]}>
-                        {t('modules.appleMusic.import.importButton')}
-                      </Text>
-                    </HapticTouchable>
-                  )}
-                </View>
-
-                {/* Scrollable collection list */}
-                {hasCollections ? (
-                  <ScrollView
-                    style={styles.resultsList}
-                    contentContainerStyle={[
-                      styles.resultsContent,
-                      { paddingBottom: bottomPadding + insets.bottom },
-                    ]}
-                  >
-                    {sortedCollections.map((collection, index) => (
-                      <HapticTouchable
-                        key={collection.id}
-                        style={[styles.songItem, { backgroundColor: themeColors.surface }]}
-                        onPress={() => {
-                          setOpenCollectionId(collection.id);
-                          setSelectedChipId(`collection:${collection.id}` as MusicChipId);
-                        }}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${collection.name}, ${collection.songCatalogIds.length} ${t('modules.appleMusic.collections.songs')}`}
-                      >
-                        <View style={[styles.songArtwork, styles.songArtworkPlaceholder, { backgroundColor: appleMusicColor + '20' }]}>
-                          <Icon name="list" size={24} color={appleMusicColor} />
-                        </View>
-                        <View style={styles.songInfo}>
-                          <Text style={[styles.songTitle, { color: themeColors.textPrimary }]} numberOfLines={1}>
-                            {collection.name}
-                          </Text>
-                          <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                            {collection.songCatalogIds.length} {t('modules.appleMusic.collections.songs')}
-                            {collection.sourcePlaylistId ? ` • ${t('modules.appleMusic.favorites.imported')}` : ''}
-                          </Text>
-                        </View>
-                        <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
-                      </HapticTouchable>
-                    ))}
-                  </ScrollView>
-                ) : (
-                  <View style={styles.emptyState}>
-                    <Icon name="list" size={48} color={themeColors.textSecondary} />
-                    <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
-                      {t('modules.appleMusic.favorites.emptyPlaylistsTitle')}
-                    </Text>
-                    <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-                      {t('modules.appleMusic.favorites.emptyPlaylistsDescription')}
+                    <Text style={[styles.songArtist, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                      {collection.songCatalogIds.length} {t('modules.appleMusic.collections.songs')}
+                      {collection.sourcePlaylistId ? ` • ${t('modules.appleMusic.favorites.imported')}` : ''}
                     </Text>
                   </View>
-                )}
-              </>
-            )}
-          </>
-        )}
-
-        {/* ===== ALBUMS sub-tab ===== */}
-        {favoritesSubTab === 'albums' && (
-          <>
-            {/* Sticky header: Last Played */}
-            {lastPlayedAlbum && (
-              <View style={styles.favStickyHeader}>
-                {renderLastPlayed(lastPlayedAlbum, () => {
-                  if (lastPlayedAlbum) {
-                    handleAlbumPress({
-                      id: lastPlayedAlbum.itemId,
-                      title: lastPlayedAlbum.displayName,
-                      artistName: '',
-                      artworkUrl: lastPlayedAlbum.artworkUrl,
-                      trackCount: 0,
-                    } as AppleMusicAlbum);
-                  }
-                })}
+                  <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
+                </HapticTouchable>
+              ))
+            ) : (
+              <View style={[styles.emptyState, { paddingVertical: spacing.lg }]}>
+                <Icon name="list" size={36} color={themeColors.textSecondary} />
+                <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
+                  {t('modules.appleMusic.favorites.emptyPlaylistsDescription')}
+                </Text>
               </View>
             )}
 
+            {/* ===== ALBUMS section ===== */}
+            <View style={[styles.favSectionHeader, { marginTop: spacing.lg }]}>
+              <Text style={[styles.favSectionTitle, { color: themeColors.textPrimary }]}>
+                {t('modules.appleMusic.favorites.albums')}
+              </Text>
+              <Text style={[styles.favSectionCount, { color: themeColors.textSecondary }]}>
+                {albumFavorites.albums.length}
+              </Text>
+            </View>
+
+            {/* Last played album */}
+            {renderLastPlayed(lastPlayedAlbum, () => {
+              if (lastPlayedAlbum) {
+                handleAlbumPress({
+                  id: lastPlayedAlbum.itemId,
+                  title: lastPlayedAlbum.displayName,
+                  artistName: '',
+                  artworkUrl: lastPlayedAlbum.artworkUrl,
+                  trackCount: 0,
+                } as AppleMusicAlbum);
+              }
+            })}
+
+            {/* Album list */}
             {hasAlbumFavorites ? (
-              <ScrollView
-                style={styles.resultsList}
-                contentContainerStyle={[
-                  styles.resultsContent,
-                  { paddingBottom: bottomPadding + insets.bottom },
-                ]}
-              >
-                {sortedAlbums.map((album, index) =>
-                  renderAlbumItem(
-                    {
-                      id: album.catalogId,
-                      title: album.title,
-                      artistName: album.artistName,
-                      artworkUrl: album.artworkUrl,
-                      trackCount: album.trackCount,
-                    } as AppleMusicAlbum,
-                    index,
-                  )
-                )}
-              </ScrollView>
+              sortedAlbums.map((album, index) =>
+                renderAlbumItem(
+                  {
+                    id: album.catalogId,
+                    title: album.title,
+                    artistName: album.artistName,
+                    artworkUrl: album.artworkUrl,
+                    trackCount: album.trackCount,
+                  } as AppleMusicAlbum,
+                  index,
+                )
+              )
             ) : (
-              <View style={styles.emptyState}>
-                <Icon name="appleMusic" size={48} color={themeColors.textSecondary} />
-                <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
-                  {t('modules.appleMusic.favorites.emptyAlbumsTitle')}
-                </Text>
+              <View style={[styles.emptyState, { paddingVertical: spacing.lg }]}>
+                <Icon name="appleMusic" size={36} color={themeColors.textSecondary} />
                 <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
                   {t('modules.appleMusic.favorites.emptyAlbumsDescription')}
                 </Text>
               </View>
             )}
-          </>
-        )}
-
-        {/* ===== ARTISTS sub-tab ===== */}
-        {favoritesSubTab === 'artists' && (
-          <>
-            {/* Sticky header: Last Played */}
-            {lastPlayedArtist && (
-              <View style={styles.favStickyHeader}>
-                {renderLastPlayed(lastPlayedArtist, () => {
-                  if (lastPlayedArtist) {
-                    handleArtistPress({
-                      id: lastPlayedArtist.itemId,
-                      name: lastPlayedArtist.displayName,
-                      artworkUrl: lastPlayedArtist.artworkUrl,
-                    } as AppleMusicArtist);
-                  }
-                })}
-              </View>
-            )}
-
-            {hasArtistFavorites ? (
-              <ScrollView
-                style={styles.resultsList}
-                contentContainerStyle={[
-                  styles.resultsContent,
-                  { paddingBottom: bottomPadding + insets.bottom },
-                ]}
-              >
-                {sortedArtists.map((artist, index) =>
-                  renderArtistItem(
-                    {
-                      id: artist.catalogId,
-                      name: artist.name,
-                      artworkUrl: artist.artworkUrl,
-                    } as AppleMusicArtist,
-                    index,
-                  )
-                )}
-              </ScrollView>
-            ) : (
-              <View style={styles.emptyState}>
-                <Icon name="contacts" size={48} color={themeColors.textSecondary} />
-                <Text style={[styles.emptyStateTitle, { color: themeColors.textPrimary }]}>
-                  {t('modules.appleMusic.favorites.emptyArtistsTitle')}
-                </Text>
-                <Text style={[styles.emptyStateText, { color: themeColors.textSecondary }]}>
-                  {t('modules.appleMusic.favorites.emptyArtistsDescription')}
-                </Text>
-              </View>
-            )}
-          </>
+          </ScrollView>
         )}
       </View>
     );
@@ -2083,8 +2188,11 @@ export function AppleMusicScreen() {
     return (
       <View style={styles.mainContent}>
         {/* Tab Content */}
+        {activeTab === 'recent' && renderRecentTab()}
         {activeTab === 'favorites' && renderFavoritesTab()}
-        {activeTab === 'search' && renderSearchTab()}
+
+        {/* Search modal (opens when search tab is tapped) */}
+        {renderSearchModalContent()}
       </View>
     );
   };
@@ -2096,158 +2204,32 @@ export function AppleMusicScreen() {
   const renderTabBar = () => {
     if (isAndroid || authStatus !== 'authorized') return <></>;
 
-    const subTabLabels: Record<FavoritesSubTab, string> = {
-      playlists: t('modules.appleMusic.favorites.playlists'),
-      albums: t('modules.appleMusic.favorites.albums'),
-      artists: t('modules.appleMusic.favorites.artists'),
-    };
-
     return (
-      <View style={[styles.twoTabBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
-        {/* Favorites tab — dropdown trigger */}
-        <View style={{ flex: 1, position: 'relative', zIndex: 10 }}>
-          <HapticTouchable hapticDisabled
-            style={[
-              styles.twoTab,
-              {
-                backgroundColor: activeTab === 'favorites'
-                  ? appleMusicColor
-                  : themeColors.background,
-                borderColor: appleMusicColor,
-              },
-            ]}
-            onPress={() => {
-              if (activeTab === 'favorites') {
-                setShowFavoritesDropdown(!showFavoritesDropdown);
-              } else {
-                setActiveTab('favorites');
-                setShowFavoritesDropdown(false);
-              }
-            }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: activeTab === 'favorites' }}
-            accessibilityLabel={`${subTabLabels[favoritesSubTab]}, ${t('modules.appleMusic.favorites.changeCategory')}`}
-            accessibilityHint={t('modules.appleMusic.favorites.changeCategoryHint')}
-          >
-            <Icon
-              name="heart-filled"
-              size={22}
-              color={activeTab === 'favorites' ? '#FFFFFF' : appleMusicColor}
+      <TabButtonRow>
+        {(syncedFontSize) => (
+          <>
+            <RecentTabButton
+              isActive={activeTab === 'recent'}
+              onPress={() => setActiveTab('recent')}
+              label={t('modules.appleMusic.tabs.recent')}
+              syncedFontSize={syncedFontSize}
             />
-            <Text
-              style={[
-                styles.twoTabText,
-                { color: activeTab === 'favorites' ? '#FFFFFF' : themeColors.textPrimary },
-              ]}
-              numberOfLines={1}
-            >
-              {subTabLabels[favoritesSubTab]}
-            </Text>
-            {activeTab === 'favorites' && (
-              <Icon
-                name="chevron-down"
-                size={16}
-                color="#FFFFFF"
-              />
-            )}
-          </HapticTouchable>
-
-          {/* Dropdown popup menu */}
-          {showFavoritesDropdown && activeTab === 'favorites' && (
-            <>
-              <HapticTouchable hapticDisabled
-                style={styles.favDropdownOverlay}
-                activeOpacity={1}
-                onPress={() => setShowFavoritesDropdown(false)}
-                accessibilityLabel={t('common.close')}
-              />
-              <View style={[styles.favDropdownMenu, {
-                backgroundColor: themeColors.surface,
-                borderColor: themeColors.border,
-                top: touchTargets.minimum + spacing.xs,
-                left: 0,
-                right: 0,
-              }]}>
-                {(['playlists', 'albums', 'artists'] as FavoritesSubTab[]).map((key) => {
-                  const isActive = favoritesSubTab === key;
-                  const count = key === 'playlists'
-                    ? musicCollections.collections.length
-                    : key === 'albums'
-                      ? albumFavorites.count
-                      : artistFavorites.count;
-                  return (
-                    <HapticTouchable hapticDisabled
-                      key={key}
-                      style={[
-                        styles.favDropdownItem,
-                        isActive && { backgroundColor: appleMusicColor },
-                      ]}
-                      onPress={() => {
-                        setFavoritesSubTab(key);
-                        setShowFavoritesDropdown(false);
-                        setOpenCollectionId(null);
-                      }}
-                      accessibilityRole="menuitem"
-                      accessibilityState={{ selected: isActive }}
-                      accessibilityLabel={`${subTabLabels[key]} (${count})`}
-                    >
-                      <Icon
-                        name="heart-filled"
-                        size={18}
-                        color={isActive ? '#FFFFFF' : appleMusicColor}
-                      />
-                      <Text
-                        style={[
-                          styles.favDropdownItemText,
-                          { color: isActive ? '#FFFFFF' : themeColors.textPrimary },
-                        ]}
-                      >
-                        {subTabLabels[key]} ({count})
-                      </Text>
-                      {isActive && (
-                        <Icon name="checkmark" size={18} color="#FFFFFF" />
-                      )}
-                    </HapticTouchable>
-                  );
-                })}
-              </View>
-            </>
-          )}
-        </View>
-
-        {/* Search tab */}
-        <HapticTouchable hapticDisabled
-          style={[
-            styles.twoTab,
-            { flex: 1 },
-            {
-              backgroundColor: activeTab === 'search'
-                ? appleMusicColor
-                : themeColors.background,
-              borderColor: appleMusicColor,
-            },
-          ]}
-          onPress={() => { setActiveTab('search'); setShowFavoritesDropdown(false); }}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'search' }}
-          accessibilityLabel={t('modules.appleMusic.tabs.search')}
-        >
-          <Icon
-            name="search"
-            size={22}
-            color={activeTab === 'search' ? '#FFFFFF' : appleMusicColor}
-          />
-          <Text
-            style={[
-              styles.twoTabText,
-              { color: activeTab === 'search' ? '#FFFFFF' : themeColors.textPrimary },
-            ]}
-            numberOfLines={1}
-          >
-            {t('modules.appleMusic.tabs.search')}
-          </Text>
-        </HapticTouchable>
-      </View>
+            <FavoriteTabButton
+              isActive={activeTab === 'favorites'}
+              onPress={() => setActiveTab('favorites')}
+              count={musicCollections.collections.length + albumFavorites.albums.length}
+              label={t('modules.appleMusic.tabs.favorites')}
+              syncedFontSize={syncedFontSize}
+            />
+            <SearchTabButton
+              isActive={showSearchModal}
+              onPress={() => setShowSearchModal(true)}
+              label={t('modules.appleMusic.tabs.search')}
+              syncedFontSize={syncedFontSize}
+            />
+          </>
+        )}
+      </TabButtonRow>
     );
   };
 
@@ -2629,32 +2611,71 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Simple 2-tab bar
-  twoTabBar: {
+  // Recent sub-toggle (Onlangs beluisterd / Ontdekken)
+  recentSubToggle: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-    zIndex: 10,
-    overflow: 'visible',
   },
-  twoTab: {
+  recentSubToggleButton: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
     paddingVertical: spacing.sm,
-    minHeight: touchTargets.minimum,
-    borderRadius: borderRadius.md,
-    borderWidth: 1.5,
+    minHeight: 48,
   },
-  twoTabText: {
+  recentSubToggleText: {
     ...typography.body,
     fontWeight: '600',
+  },
+
+  // Favorites section headers (Verzamelingen / Albums)
+  favSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  favSectionTitle: {
+    ...typography.h3,
+    fontWeight: '700',
+  },
+  favSectionCount: {
+    ...typography.body,
+    fontWeight: '600',
+  },
+  favActionRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+  },
+
+  // Song album title (3rd line)
+  songAlbumTitle: {
+    ...typography.small,
+    marginTop: 2,
+  },
+
+  // Search modal
+  searchModalHeader: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  searchModalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  searchModalTitle: {
+    ...typography.h3,
+    fontWeight: '700',
   },
 
   // Shuffle All button
@@ -2945,45 +2966,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-
-  // Favorites dropdown overlay (used by tab bar dropdown)
-  favDropdownOverlay: {
-    position: 'absolute',
-    top: -1000,
-    left: -1000,
-    right: -1000,
-    bottom: -1000,
-    zIndex: 1,
-  },
-  favDropdownMenu: {
-    position: 'absolute',
-    top: touchTargets.minimum + spacing.sm + spacing.xs,
-    left: spacing.md,
-    right: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    overflow: 'hidden',
-    zIndex: 2,
-    // Shadow for depth
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  favDropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    minHeight: touchTargets.minimum,
-  },
-  favDropdownItemText: {
-    ...typography.body,
-    fontWeight: '600',
-    flex: 1,
   },
 
   // Result sections

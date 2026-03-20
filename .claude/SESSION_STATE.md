@@ -6,31 +6,24 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-20
-- **Sessie:** Recently Played Stations + 3 PNA bug fixes
-- **Commit:** `273ccfa`
+- **Sessie:** Search cache persistence + Podcast modal white background fix
+- **Commit:** `39b4ae2`
 
 ## Voltooide Taken Deze Sessie
 
-1. **Recently Played Stations** (`62213e6` — vorige sessie/context)
-   - RecentTabButton component, useRecentStations hook, RadioScreen integratie
-   - Drie-tab layout: Recent | Favorieten | Zoeken
+1. **Podcast search modal visual sync met Radio** (`5a17b9d` — eerdere commit)
+   - 6 visuele sync punten: lettertype kleur, border kleur, placeholder tekst kleur, clear button kleur, taal label styling, chip volgorde
 
-2. **Bug 1: Glass Player mini player visibility restore** (`273ccfa`)
-   - `GlassPlayerWindow.swift` `showMini()` guard blokkeerde visibility restore wanneer window `setTemporarilyHidden(true)` had
-   - Fix: detecteer alpha == 0 of isHidden, restore frame + animate alpha to 1
-   - Haptic feedback + MediaIndicator werkten al, nu ook mini player zichtbaar
+2. **Task A: Fix Podcast modal white background** (`39b4ae2`)
+   - Bug: Module tint kleur (paars) bleek door in search modal wanneer geen resultaten getoond werden (loading, empty, error states)
+   - Root cause: `backgroundColor: '#FFFFFF'` stond op `showList` style (ScrollView) die alleen rendert bij resultaten
+   - Fix: Verplaatst naar contentBlock wrapper `<View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>`
 
-3. **Bug 2: Tab button dynamic text scaling** (`273ccfa`)
-   - `RecentTabButton.tsx`, `FavoriteButton.tsx` (FavoriteTabButton), `SearchButton.tsx` (SearchTabButton)
-   - Toegevoegd: `numberOfLines={1}` + `adjustsFontSizeToFit` + `minimumFontScale={0.75}`
-   - Voorkomt woordafbreking in tab labels bij langere vertalingen
-
-4. **Bug 3: ChipSelector defaults from profile** (`273ccfa`)
-   - `RadioScreen.tsx`: country default = `userCountryCode ?? detectCountryFromLocale(i18n.language)`
-   - `RadioScreen.tsx`: language default = `detectLanguageFromLocale(i18n.language)`
-   - `PodcastScreen.tsx`: country default = `userCountryCode ?? detectCountryFromLocale(i18n.language)`
-   - `BooksScreen.tsx`: al correct (gebruikt `detectLanguageFromLocale`)
-   - Priority chain: savedBrowsing > profile country/app language > fallback
+3. **Task B: Search cache persistence** (`39b4ae2`)
+   - Nieuwe `useSearchCache<T>` hook (`src/hooks/useSearchCache.ts`) — generiek, AsyncStorage-gebaseerd
+   - Geïntegreerd in PodcastScreen: cached query + resultaten worden hersteld bij app herstart
+   - Geïntegreerd in RadioScreen: alleen handmatige zoekacties worden gecached (niet auto land/taal queries)
+   - State priority chain: savedBrowsing (in-session) → cachedSearch (cross-session) → empty default
 
 ## Openstaande Taken
 
@@ -44,15 +37,15 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Mini player visibility restore via alpha + frame check | `setTemporarilyHidden()` zet alleen alpha=0 zonder state change, dus `showMini()` guard op `.hidden` miste dit |
-| `minimumFontScale={0.75}` voor tab buttons | Max 25% verkleining (18pt → ~13.5pt) — voldoende voor langere vertalingen, nog leesbaar voor senioren |
-| Profile country + app language als chip defaults | Gebruiker verwacht dat chips matchen met profiel/taal instellingen, niet hardcoded NL/nl |
-| Geen live-update bij taalwissel in open module | Gebruiker gaat altijd via Instellingen, module re-renders bij terugkeer — initial mount defaults zijn voldoende |
+| `useSearchCache` als aparte hook (niet in ModuleBrowsingContext) | ModuleBrowsingContext is in-session state; search cache is cross-session persistence — gescheiden concerns |
+| Geen expiration op search cache | Eenvoud voor senioren; data is niet privacy-gevoelig (zoektermen + resultaten) |
+| Radio: alleen handmatige zoekacties gecached | Auto land/taal queries zijn niet "de laatste zoekopdracht van de gebruiker" — die horen bij ChipSelector defaults |
+| backgroundColor fix op contentBlock wrapper i.p.v. showList | Wrapper omvat alle states (loading, empty, error, results) — geen tint doorschijnen meer |
 
 ## Context voor Volgende Sessie
 
-- `ios/GlassPlayerWindow/GlassPlayerWindow.swift:444` — showMini() visibility restore guard
-- `src/components/RecentTabButton.tsx`, `FavoriteButton.tsx`, `SearchButton.tsx` — alle tab buttons hebben nu dynamic text scaling
-- `src/screens/modules/RadioScreen.tsx` — ChipSelector defaults via useModuleConfig + i18n
-- `src/screens/modules/PodcastScreen.tsx` — idem voor country default
+- `src/hooks/useSearchCache.ts` — Nieuwe hook, geëxporteerd via `src/hooks/index.ts`
+- `src/screens/modules/PodcastScreen.tsx:1545` — contentBlock wrapper met backgroundColor fix
+- `src/screens/modules/RadioScreen.tsx:764-767` — saveRadioSearch in handleSearch
+- `src/screens/modules/PodcastScreen.tsx:506-510` — savePodcastSearch in handleSearch
 - `.claude/standards/MODAL_GLASS_STANDARD.md` — Single source of truth voor alle modal implementaties

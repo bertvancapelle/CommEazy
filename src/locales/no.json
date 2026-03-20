@@ -1788,7 +1788,8 @@
         "tracks": "spor",
         "showAll": "Vis alle ({{count}})",
         "noResults": "Ingen musikk funnet",
-        "error": "Søk mislyktes. Prøv igjen."
+        "error": "Søk mislyktes. Prøv igjen.",
+        "resultsFound": "resultater funnet"
       },
       "discovery": {
         "recentlyPlayed": "Nylig spilt",

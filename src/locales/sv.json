@@ -1758,7 +1758,8 @@
         "tracks": "spår",
         "showAll": "Visa alla ({{count}})",
         "noResults": "Ingen musik hittades",
-        "error": "Sökning misslyckades. Försök igen."
+        "error": "Sökning misslyckades. Försök igen.",
+        "resultsFound": "resultat hittades"
       },
       "discovery": {
         "recentlyPlayed": "Nyligen spelat",

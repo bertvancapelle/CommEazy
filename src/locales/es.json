@@ -1914,7 +1914,8 @@
         "tracks": "pistas",
         "showAll": "Mostrar todos ({{count}})",
         "noResults": "No se encontró música",
-        "error": "Error en la búsqueda. Inténtalo de nuevo."
+        "error": "Error en la búsqueda. Inténtalo de nuevo.",
+        "resultsFound": "resultados encontrados"
       },
       "discovery": {
         "recentlyPlayed": "Reproducido recientemente",

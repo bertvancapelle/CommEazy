@@ -1924,7 +1924,8 @@
         "tracks": "nummers",
         "showAll": "Toon alle {{count}}",
         "noResults": "Geen muziek gevonden",
-        "error": "Zoeken mislukt. Probeer het opnieuw."
+        "error": "Zoeken mislukt. Probeer het opnieuw.",
+        "resultsFound": "resultaten gevonden"
       },
       "discovery": {
         "recentlyPlayed": "Recent afgespeeld",

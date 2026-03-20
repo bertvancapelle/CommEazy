@@ -1929,7 +1929,8 @@
         "tracks": "tracks",
         "showAll": "Show all {{count}}",
         "noResults": "No music found",
-        "error": "Search failed. Please try again."
+        "error": "Search failed. Please try again.",
+        "resultsFound": "results found"
       },
       "discovery": {
         "recentlyPlayed": "Recently Played",

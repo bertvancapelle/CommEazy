@@ -1862,7 +1862,8 @@
         "tracks": "brani",
         "showAll": "Mostra tutti ({{count}})",
         "noResults": "Nessuna musica trovata",
-        "error": "Ricerca fallita. Riprova."
+        "error": "Ricerca fallita. Riprova.",
+        "resultsFound": "risultati trovati"
       },
       "discovery": {
         "recentlyPlayed": "Ascoltati di recente",
