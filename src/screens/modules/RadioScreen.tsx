@@ -38,7 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, RecentTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, RecentTabButton, TabButtonRow, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -1039,25 +1039,33 @@ export function RadioScreen() {
           }
           controlsBlock={<>
         {/* Tab selector — Recent (default) + Favorites + Search */}
-        <View style={styles.tabBar}>
-          <RecentTabButton
-            isActive={activeTab === 'recent'}
-            onPress={() => setActiveTab('recent')}
-            label={t('modules.radio.recentTab')}
-          />
-          <FavoriteTabButton
-            isActive={activeTab === 'favorites'}
-            onPress={() => setActiveTab('favorites')}
-            count={favorites.length}
-            label={t('modules.radio.favorites')}
-          />
-          <SearchTabButton
-            isActive={activeTab === 'search'}
-            onPress={() => setActiveTab('search')}
-            label={t('modules.radio.search')}
-            pulse={recentStations.length === 0 && favorites.length === 0}
-          />
-        </View>
+        {/* TabButtonRow synchronizes font size across all three tab labels */}
+        <TabButtonRow labels={[t('modules.radio.recentTab'), t('modules.radio.favorites'), t('modules.radio.search')]}>
+          {(syncedFontSize) => (
+            <View style={styles.tabBar}>
+              <RecentTabButton
+                isActive={activeTab === 'recent'}
+                onPress={() => setActiveTab('recent')}
+                label={t('modules.radio.recentTab')}
+                syncedFontSize={syncedFontSize}
+              />
+              <FavoriteTabButton
+                isActive={activeTab === 'favorites'}
+                onPress={() => setActiveTab('favorites')}
+                count={favorites.length}
+                label={t('modules.radio.favorites')}
+                syncedFontSize={syncedFontSize}
+              />
+              <SearchTabButton
+                isActive={activeTab === 'search'}
+                onPress={() => setActiveTab('search')}
+                label={t('modules.radio.search')}
+                pulse={recentStations.length === 0 && favorites.length === 0}
+                syncedFontSize={syncedFontSize}
+              />
+            </View>
+          )}
+        </TabButtonRow>
 
         {/* Playback Error Banner — shown when a stream fails */}
         {playbackError && (

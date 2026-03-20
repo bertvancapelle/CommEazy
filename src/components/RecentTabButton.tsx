@@ -34,6 +34,8 @@ export interface RecentTabButtonProps {
   onPress: () => void;
   /** Tab label (default: uses i18n 'common.recent') */
   label?: string;
+  /** Synchronized font size from TabButtonRow (ensures all tabs match) */
+  syncedFontSize?: number;
 }
 
 // ============================================================
@@ -53,6 +55,7 @@ export function RecentTabButton({
   isActive,
   onPress,
   label,
+  syncedFontSize,
 }: RecentTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -88,6 +91,7 @@ export function RecentTabButton({
         style={[
           styles.tabText,
           isActive && styles.tabTextActive,
+          syncedFontSize != null && { fontSize: syncedFontSize },
         ]}
         numberOfLines={2}
       >
@@ -110,7 +114,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',  // Icons align to top across all buttons
     gap: spacing.xs,
     minHeight: touchTargets.comfortable,  // 72pt
   },

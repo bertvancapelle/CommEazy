@@ -107,6 +107,10 @@ export type { SearchButtonProps, SearchTabButtonProps } from './SearchButton';
 export { RecentTabButton } from './RecentTabButton';
 export type { RecentTabButtonProps } from './RecentTabButton';
 
+// Tab Button Row (synchronizes font sizes across tab buttons)
+export { TabButtonRow } from './TabButtonRow';
+export type { TabButtonRowProps } from './TabButtonRow';
+
 // Library Tab Button Component (for BooksScreen)
 export { LibraryTabButton } from './LibraryTabButton';
 export type { LibraryTabButtonProps } from './LibraryTabButton';
