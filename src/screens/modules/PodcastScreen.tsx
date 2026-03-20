@@ -1439,6 +1439,10 @@ export function PodcastScreen() {
         animationType={isReducedMotion ? 'none' : 'slide'}
         onRequestClose={() => setShowSearchModal(false)}
       >
+        <KeyboardAvoidingView
+          style={styles.searchModalContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         <LiquidGlassView moduleId="podcast" style={styles.searchModalContainer} cornerRadius={0}>
           <ModalLayout
             headerBlock={
@@ -1591,6 +1595,7 @@ export function PodcastScreen() {
             footerBlock={undefined}
           />
         </LiquidGlassView>
+        </KeyboardAvoidingView>
       </PanelAwareModal>
 
       {/* Voice hint */}

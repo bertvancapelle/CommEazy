@@ -1407,6 +1407,10 @@ export function RadioScreen() {
         animationType={isReducedMotion ? 'none' : 'slide'}
         onRequestClose={() => setActiveTab('recent')}
       >
+        <KeyboardAvoidingView
+          style={styles.searchModalContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         <LiquidGlassView moduleId="radio" style={styles.searchModalContainer} cornerRadius={0}>
           <ModalLayout
             headerBlock={
@@ -1568,6 +1572,7 @@ export function RadioScreen() {
             footerBlock={undefined}
           />
         </LiquidGlassView>
+        </KeyboardAvoidingView>
       </PanelAwareModal>
     </KeyboardAvoidingView>
   );
