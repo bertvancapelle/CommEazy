@@ -29,6 +29,7 @@ import {
   Platform,
   AccessibilityInfo,
   KeyboardAvoidingView,
+  Keyboard,
   Pressable,
   Alert,
   DeviceEventEmitter,
@@ -65,6 +66,7 @@ import { useRecentPodcasts } from '@/hooks/useRecentPodcasts';
 import { useModuleBrowsingState, type PodcastBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
+import { useModalTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
@@ -109,6 +111,7 @@ export function PodcastScreen() {
 
   // User-customizable module color for Liquid Glass
   const podcastModuleColor = useModuleColor('podcast');
+  const modalTextStyle = useModalTextStyle();
 
   // Podcast Context
   const {
@@ -1524,7 +1527,7 @@ export function PodcastScreen() {
               </View>
             }
             contentBlock={
-              <>
+              <View style={{ flex: 1 }}>
                 {/* Separator between controls and results */}
                 <View style={{ height: 4, backgroundColor: podcastModuleColor, opacity: 0.4 }} />
 
@@ -1544,8 +1547,8 @@ export function PodcastScreen() {
                   />
                 ) : searchResults.length === 0 ? (
                   <View style={styles.emptyContainer}>
-                    <Icon name="podcast" size={64} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={[styles.emptyText, { color: 'rgba(255, 255, 255, 0.7)' }]}>
+                    <Icon name="podcast" size={64} color={modalTextStyle.color + '66'} />
+                    <Text style={[styles.emptyText, { color: modalTextStyle.color, opacity: 0.7 }]}>
                       {t('modules.podcast.noResults')}
                     </Text>
                   </View>
@@ -1554,6 +1557,10 @@ export function PodcastScreen() {
                     style={styles.showList}
                     contentContainerStyle={styles.showListContent}
                     keyboardShouldPersistTaps="handled"
+                    onScrollBeginDrag={() => {
+                      Keyboard.dismiss();
+                      searchInputRef.current?.blur();
+                    }}
                   >
                     {searchResults.map((show) => {
                       const isCurrentShow = currentShow && currentShow.id === show.id;
@@ -1563,7 +1570,7 @@ export function PodcastScreen() {
                           key={show.id}
                           style={[
                             styles.showItem,
-                            { backgroundColor: podcastModuleColor + '26' },
+                            { backgroundColor: podcastModuleColor + '33' },
                             isCurrentShow && {
                               borderWidth: 2,
                               borderColor: accentColor.primary,
@@ -1605,10 +1612,10 @@ export function PodcastScreen() {
 
                             {/* Info */}
                             <View style={styles.showInfo}>
-                              <Text style={[styles.showTitle, { color: '#FFFFFF' }]} numberOfLines={2}>
+                              <Text style={[styles.showTitle, { color: modalTextStyle.color, fontWeight: modalTextStyle.fontWeight }]} numberOfLines={2}>
                                 {show.title}
                               </Text>
-                              <Text style={[styles.showAuthor, { color: 'rgba(255, 255, 255, 0.7)' }]} numberOfLines={1}>
+                              <Text style={[styles.showAuthor, { color: modalTextStyle.color, opacity: 0.7 }]} numberOfLines={1}>
                                 {show.author}
                               </Text>
                             </View>
@@ -1632,7 +1639,7 @@ export function PodcastScreen() {
                     })}
                   </ScrollViewWithIndicator>
                 )}
-              </>
+              </View>
             }
             footerBlock={undefined}
           />
@@ -1848,7 +1855,7 @@ const styles = StyleSheet.create({
   },
   showList: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.30)',
+    backgroundColor: '#FFFFFF',
   },
   showListContent: {
     padding: spacing.md,
