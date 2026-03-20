@@ -165,9 +165,7 @@ export function FavoriteTabButton({
           styles.tabText,
           isActive && styles.tabTextActive,
         ]}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.75}
+        numberOfLines={2}
       >
         {displayLabel}
       </Text>

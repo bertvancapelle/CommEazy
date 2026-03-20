@@ -5,37 +5,32 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-19
-- **Sessie:** Modal Glass Standard + useModalLayoutBottom uitrol
-- **Commit:** `c4f25a4`
+- **Datum:** 2026-03-20
+- **Sessie:** Recently Played Stations + 3 PNA bug fixes
+- **Commit:** `273ccfa`
 
 ## Voltooide Taken Deze Sessie
 
-1. **ChipSelector modal-in-modal fix** (`c7566fc` — begin van sessie)
-   - Replaced modal-based mode toggle with inline toggle buttons in ChipSelector
-   - Fixed modal stacking issue op iPad Split View
+1. **Recently Played Stations** (`62213e6` — vorige sessie/context)
+   - RecentTabButton component, useRecentStations hook, RadioScreen integratie
+   - Drie-tab layout: Recent | Favorieten | Zoeken
 
-2. **Toolbar Position Dual Validation** (`deb5f93`)
-   - `useModalLayoutBottom()` hook in ModalLayout.tsx
-   - Toegepast op RadioScreen + PodcastScreen search modals
-   - CLAUDE.md Consistency Safeguard + `scripts/validate-toolbar-positions.sh`
+2. **Bug 1: Glass Player mini player visibility restore** (`273ccfa`)
+   - `GlassPlayerWindow.swift` `showMini()` guard blokkeerde visibility restore wanneer window `setTemporarilyHidden(true)` had
+   - Fix: detecteer alpha == 0 of isHidden, restore frame + animate alpha to 1
+   - Haptic feedback + MediaIndicator werkten al, nu ook mini player zichtbaar
 
-3. **MODAL_GLASS_STANDARD.md referentie document** (`c4f25a4`)
-   - Nieuw bestand: `.claude/standards/MODAL_GLASS_STANDARD.md`
-   - 14 secties: drie-laagse architectuur, native Glass layer specs, implementatie templates, toolbar position handling, modal inventaris (26 modals), troubleshooting
-   - Alle kennis uit het Radio/Podcast modal iteratieproces gedestilleerd
+3. **Bug 2: Tab button dynamic text scaling** (`273ccfa`)
+   - `RecentTabButton.tsx`, `FavoriteButton.tsx` (FavoriteTabButton), `SearchButton.tsx` (SearchTabButton)
+   - Toegevoegd: `numberOfLines={1}` + `adjustsFontSizeToFit` + `minimumFontScale={0.75}`
+   - Voorkomt woordafbreking in tab labels bij langere vertalingen
 
-4. **useModalLayoutBottom uitrol naar 4 resterende modals** (`c4f25a4`)
-   - `ContactPickerModal` — Fragment headerBlock → View met headerStyle
-   - `ModulePickerModal` — headerStyle merged met bestaande header style
-   - `MailWelcomeModal` — headerStyle op header View (icon + title + subtitle)
-   - `ContactSelectionModal` — headerStyle op header View (title + subtitle + voice hint)
-   - **Resultaat:** Alle 26 modals nu volledig conform
-
-5. **@see references toegevoegd** (`c4f25a4`)
-   - CLAUDE.md §14 Modal Liquid Glass Standaard
-   - ui-designer SKILL.md §11b Modal Design Standaard
-   - Adoptie status tabel in CLAUDE.md bijgewerkt (6 ✅ entries)
+4. **Bug 3: ChipSelector defaults from profile** (`273ccfa`)
+   - `RadioScreen.tsx`: country default = `userCountryCode ?? detectCountryFromLocale(i18n.language)`
+   - `RadioScreen.tsx`: language default = `detectLanguageFromLocale(i18n.language)`
+   - `PodcastScreen.tsx`: country default = `userCountryCode ?? detectCountryFromLocale(i18n.language)`
+   - `BooksScreen.tsx`: al correct (gebruikt `detectLanguageFromLocale`)
+   - Priority chain: savedBrowsing > profile country/app language > fallback
 
 ## Openstaande Taken
 
@@ -49,14 +44,15 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Eén centraal referentie document (MODAL_GLASS_STANDARD.md) | Voorkomt herhaling van moeizaam trial-and-error bij elke modal migratie |
-| Alle 4 modals met verticale children krijgen useModalLayoutBottom | Consistentie: toolbar position "bottom" moet overal correct werken |
-| @see references i.p.v. duplicatie | CLAUDE.md en SKILL.md verwijzen naar standaard, geen content duplicatie |
-| ContactSelectionModal: conditionals (subtitle, voice hint) geen probleem | column-reverse keert alleen GERENDERDE children om — conditionals werken correct |
+| Mini player visibility restore via alpha + frame check | `setTemporarilyHidden()` zet alleen alpha=0 zonder state change, dus `showMini()` guard op `.hidden` miste dit |
+| `minimumFontScale={0.75}` voor tab buttons | Max 25% verkleining (18pt → ~13.5pt) — voldoende voor langere vertalingen, nog leesbaar voor senioren |
+| Profile country + app language als chip defaults | Gebruiker verwacht dat chips matchen met profiel/taal instellingen, niet hardcoded NL/nl |
+| Geen live-update bij taalwissel in open module | Gebruiker gaat altijd via Instellingen, module re-renders bij terugkeer — initial mount defaults zijn voldoende |
 
 ## Context voor Volgende Sessie
 
+- `ios/GlassPlayerWindow/GlassPlayerWindow.swift:444` — showMini() visibility restore guard
+- `src/components/RecentTabButton.tsx`, `FavoriteButton.tsx`, `SearchButton.tsx` — alle tab buttons hebben nu dynamic text scaling
+- `src/screens/modules/RadioScreen.tsx` — ChipSelector defaults via useModuleConfig + i18n
+- `src/screens/modules/PodcastScreen.tsx` — idem voor country default
 - `.claude/standards/MODAL_GLASS_STANDARD.md` — Single source of truth voor alle modal implementaties
-- `src/components/ModalLayout.tsx:74-83` — useModalLayoutBottom hook definitie
-- Alle 26 modals conform (zie MODAL_GLASS_STANDARD.md §11 inventaris)
-- `scripts/validate-toolbar-positions.sh` — 0 violations bij laatste run
