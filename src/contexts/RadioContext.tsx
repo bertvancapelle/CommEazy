@@ -118,6 +118,10 @@ async function setupTrackPlayer(): Promise<boolean> {
       await TrackPlayer.setupPlayer({
         // Allow continuous playback
         waitForBuffer: true,
+        // Use longFormAudio policy for proper AirPlay 2 integration —
+        // routes audio to the same output as built-in Music/Podcast apps
+        // and enables enhanced AirPlay buffering.
+        iosCategoryPolicy: 'longFormAudio',
       });
       console.log('[RadioContext] TrackPlayer initialized successfully');
     } catch (setupError) {

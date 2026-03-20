@@ -63,12 +63,17 @@ RCT_EXPORT_METHOD(initialize:(NSString *)modelDir
     RCTLogInfo(@"[PiperTtsModule] Initializing with model: %@", modelDir);
 
     // Configure audio session for playback
-    // Use MixWithOthers + DuckOthers so TTS can play alongside music
-    // This prevents activation failures when Apple Music is playing
+    // Use MixWithOthers + DuckOthers so TTS can play alongside music.
+    // IMPORTANT: Use the 5-parameter setCategory that includes routeSharingPolicy.
+    // The 4-parameter version (without policy) resets the policy to .default,
+    // which breaks AirPlay 2 routing set by TrackPlayer's longFormAudio policy.
+    // We preserve the current policy so AirPlay route is not disrupted.
     NSError *error = nil;
     AVAudioSession *session = [AVAudioSession sharedInstance];
+    AVAudioSessionRouteSharingPolicy currentPolicy = session.routeSharingPolicy;
     [session setCategory:AVAudioSessionCategoryPlayback
                     mode:AVAudioSessionModeDefault
+         routeSharingPolicy:currentPolicy
                  options:(AVAudioSessionCategoryOptionMixWithOthers | AVAudioSessionCategoryOptionDuckOthers)
                    error:&error];
 
