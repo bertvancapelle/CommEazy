@@ -27,6 +27,7 @@
 
 import React, { type ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
@@ -92,14 +93,18 @@ export function ModalLayout({
   footerBlock,
 }: ModalLayoutProps) {
   const { toolbarPosition } = useModuleLayoutSafe();
+  const insets = useSafeAreaInsets();
   const isBottom = toolbarPosition === 'bottom';
 
   if (isBottom) {
-    // Bottom layout: Content → Footer → Header
+    // Bottom layout: Safe Area Spacer → Content → Footer → Header
     // Header (title + action buttons) moves to the bottom of the modal
     // so action buttons stay near the user's thumb zone.
+    // The safe area spacer protects the top edge (Dynamic Island / notch)
+    // because the headerBlock (which normally contains it) is now at the bottom.
     return (
       <View style={styles.flex}>
+        <View style={{ height: insets.top }} />
         {contentBlock}
         {footerBlock}
         {headerBlock}
