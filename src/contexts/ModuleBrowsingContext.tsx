@@ -36,6 +36,8 @@ import type { FilterMode } from '@/components/ChipSelector';
 export interface RadioBrowsingState {
   module: 'radio';
   showFavorites: boolean;
+  /** Active tab — 'recent' | 'favorites' | 'search' */
+  activeTab?: 'recent' | 'favorites' | 'search';
   searchQuery: string;
   filterMode: FilterMode;
   selectedCountry: string;

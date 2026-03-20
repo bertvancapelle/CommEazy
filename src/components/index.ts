@@ -103,6 +103,10 @@ export type { FavoriteButtonProps, FavoriteTabButtonProps } from './FavoriteButt
 export { SearchButton, SearchTabButton } from './SearchButton';
 export type { SearchButtonProps, SearchTabButtonProps } from './SearchButton';
 
+// Recent Tab Button Component (for RadioScreen recent stations)
+export { RecentTabButton } from './RecentTabButton';
+export type { RecentTabButtonProps } from './RecentTabButton';
+
 // Library Tab Button Component (for BooksScreen)
 export { LibraryTabButton } from './LibraryTabButton';
 export type { LibraryTabButtonProps } from './LibraryTabButton';

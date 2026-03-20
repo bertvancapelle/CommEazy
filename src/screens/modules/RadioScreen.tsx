@@ -38,7 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, RecentTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -51,6 +51,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import { useModuleBrowsingState, type RadioBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
+import { useRecentStations } from '@/hooks/useRecentStations';
 import { ServiceContainer } from '@/services/container';
 import { scrapeStationArtwork, getCachedArtworkSync } from '@/services/stationArtworkService';
 import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
@@ -79,6 +80,8 @@ interface RadioStation {
   codec: string;
   bitrate: number;
 }
+
+type RadioTab = 'recent' | 'favorites' | 'search';
 
 interface FavoriteStation {
   id: string;
@@ -376,10 +379,15 @@ export function RadioScreen() {
   const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | null>(null);
-  // Discovery search modal — opens on SearchTabButton tap
-  const [showSearchModal, setShowSearchModal] = useState(false);
+  // Active tab — 'recent' is the default landing page; restored from browsing state
+  const [activeTab, setActiveTab] = useState<RadioTab>(savedBrowsing?.activeTab ?? 'recent');
+  // Discovery search modal — opens when Search tab is active
+  const showSearchModal = activeTab === 'search';
   // Popup shown when no favorites exist — explains how to find and save stations
   const [showNoFavoritesModal, setShowNoFavoritesModal] = useState(false);
+
+  // Recent stations — persisted in AsyncStorage (max 10, newest first)
+  const { recentStations, addRecentStation } = useRecentStations();
   // Expanded player view — tap mini-player to expand
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   // Playback error state — shown when a stream fails to play
@@ -391,14 +399,15 @@ export function RadioScreen() {
   useEffect(() => {
     saveBrowsing({
       module: 'radio',
-      showFavorites: true, // Always favorites on main screen (search is modal)
+      showFavorites: activeTab === 'favorites',
+      activeTab,
       searchQuery,
       filterMode,
       selectedCountry,
       selectedLanguage,
       stations,
     });
-  }, [searchQuery, filterMode, selectedCountry, selectedLanguage, stations, saveBrowsing]);
+  }, [activeTab, searchQuery, filterMode, selectedCountry, selectedLanguage, stations, saveBrowsing]);
 
   // Close expanded player when music stops
   useEffect(() => {
@@ -819,9 +828,20 @@ export function RadioScreen() {
     const converted = toContextStation(station);
     await playStation(converted);
 
+    // Add to recent history (max 10, newest first, deduplicates by ID)
+    addRecentStation({
+      id: converted.id,
+      name: converted.name,
+      streamUrl: converted.streamUrl,
+      country: converted.country,
+      countryCode: converted.countryCode,
+      favicon: converted.favicon,
+      homepage: converted.homepage,
+    });
+
     // Success feedback
     triggerFeedback('success');
-  }, [holdGesture, playStation, toContextStation, triggerFeedback, contextStation, isPlaying, showGlassMiniPlayer, radioModuleColor, metadata.artwork, scrapedArtwork, metadata.title, isBuffering, t]);
+  }, [holdGesture, playStation, toContextStation, triggerFeedback, contextStation, isPlaying, showGlassMiniPlayer, radioModuleColor, metadata.artwork, scrapedArtwork, metadata.title, isBuffering, t, addRecentStation]);
 
   // Favorites management
   const isFavorite = useCallback((station: RadioStation | FavoriteStation) => {
@@ -925,10 +945,22 @@ export function RadioScreen() {
     }
   }, [favorites, t, removeFavorite, addFavorite]);
 
-  // Voice focus for station list — main screen always shows favorites
+  // Voice focus for station list — shows recent or favorites based on active tab
   // Sort so currently playing station appears at the top
   const displayedStations = useMemo(() => {
-    const baseList = favorites;
+    const baseList: (FavoriteStation | RadioStation)[] = activeTab === 'recent'
+      ? recentStations.map(rs => ({
+          id: rs.id,
+          name: rs.name,
+          streamUrl: rs.streamUrl,
+          country: rs.country,
+          countryCode: rs.countryCode,
+          favicon: rs.favicon ?? '',
+          homepage: rs.homepage,
+          addedAt: rs.lastPlayedAt,
+        } as FavoriteStation))
+      : favorites;
+
     if (!contextStation) return baseList;
 
     // Find the currently playing station and move it to the top
@@ -947,7 +979,7 @@ export function RadioScreen() {
     });
 
     return [playingStation, ...otherStations];
-  }, [favorites, contextStation]);
+  }, [favorites, recentStations, activeTab, contextStation]);
 
   const voiceFocusItems = useMemo(() => {
     if (!isFocused) return [];
@@ -1000,19 +1032,24 @@ export function RadioScreen() {
             />
           }
           controlsBlock={<>
-        {/* Tab selector — Favorites (main) + Search (opens modal) */}
+        {/* Tab selector — Recent (default) + Favorites + Search */}
         <View style={styles.tabBar}>
+          <RecentTabButton
+            isActive={activeTab === 'recent'}
+            onPress={() => setActiveTab('recent')}
+            label={t('modules.radio.recentTab')}
+          />
           <FavoriteTabButton
-            isActive={!showSearchModal}
-            onPress={() => setShowSearchModal(false)}
+            isActive={activeTab === 'favorites'}
+            onPress={() => setActiveTab('favorites')}
             count={favorites.length}
             label={t('modules.radio.favorites')}
           />
           <SearchTabButton
-            isActive={showSearchModal}
-            onPress={() => setShowSearchModal(true)}
+            isActive={activeTab === 'search'}
+            onPress={() => setActiveTab('search')}
             label={t('modules.radio.search')}
-            pulse={favorites.length === 0}
+            pulse={recentStations.length === 0 && favorites.length === 0}
           />
         </View>
 
@@ -1044,15 +1081,19 @@ export function RadioScreen() {
         )}
         </>}
         contentBlock={<>
-      {/* Favorites list — always shown on main screen */}
+      {/* Station list — shows recent or favorites based on active tab */}
       {displayedStations.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="radio" size={64} color={themeColors.textTertiary} />
+          <Icon name={activeTab === 'recent' ? 'clock' : 'radio'} size={64} color={themeColors.textTertiary} />
           <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-            {t('modules.radio.noFavorites')}
+            {activeTab === 'recent'
+              ? t('modules.radio.noRecentStations')
+              : t('modules.radio.noFavorites')}
           </Text>
           <Text style={[styles.emptyHint, { color: themeColors.textTertiary }]}>
-            {t('modules.radio.emptyStateHint')}
+            {activeTab === 'recent'
+              ? t('modules.radio.noRecentHint')
+              : t('modules.radio.emptyStateHint')}
           </Text>
         </View>
       ) : (
@@ -1321,7 +1362,7 @@ export function RadioScreen() {
                   onPress={() => {
                     triggerFeedback('tap');
                     setShowNoFavoritesModal(false);
-                    setShowSearchModal(true); // Open discovery search modal
+                    setActiveTab('search'); // Open discovery search modal
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={t('modules.radio.welcomeButton')}
@@ -1343,7 +1384,7 @@ export function RadioScreen() {
       <PanelAwareModal
         visible={showSearchModal}
         animationType={isReducedMotion ? 'none' : 'slide'}
-        onRequestClose={() => setShowSearchModal(false)}
+        onRequestClose={() => setActiveTab('recent')}
       >
         <LiquidGlassView moduleId="radio" style={styles.searchModalContainer} cornerRadius={0}>
           <ModalLayout
@@ -1365,7 +1406,7 @@ export function RadioScreen() {
                     <IconButton
                       icon="chevron-down"
                       variant="onPrimary"
-                      onPress={() => setShowSearchModal(false)}
+                      onPress={() => setActiveTab('recent')}
                       accessibilityLabel={t('common.close')}
                     />
                   }
@@ -1465,7 +1506,7 @@ export function RadioScreen() {
                             style={styles.stationInfoTouchable}
                             onPress={() => {
                               handleSelectStation(station);
-                              setShowSearchModal(false); // Close modal after selection
+                              setActiveTab('recent'); // Close modal after selection, go to recent
                             }}
                             activeOpacity={0.7}
                             accessibilityRole="button"
