@@ -84,10 +84,15 @@ export function RecentTabButton({
         size={28}
         color={isActive ? colors.textOnPrimary : colors.textSecondary}
       />
-      <Text style={[
-        styles.tabText,
-        isActive && styles.tabTextActive,
-      ]}>
+      <Text
+        style={[
+          styles.tabText,
+          isActive && styles.tabTextActive,
+        ]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
+      >
         {displayLabel}
       </Text>
     </HapticTouchable>

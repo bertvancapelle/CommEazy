@@ -442,7 +442,16 @@ class GlassPlayerWindow: UIWindow {
         updateContent(config)
 
         guard currentState == .hidden else {
-            // Already showing, just update content
+            // Already showing — but window may be temporarily hidden (alpha == 0).
+            // Restore visibility if needed (e.g., after setTemporarilyHidden(true)).
+            if self.alpha == 0 || self.isHidden {
+                self.layer.removeAllAnimations()
+                self.isHidden = false
+                restoreCorrectFrameForState()
+                UIView.animate(withDuration: 0.2) {
+                    self.alpha = 1
+                }
+            }
             return
         }
 

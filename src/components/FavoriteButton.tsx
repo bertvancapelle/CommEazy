@@ -160,10 +160,15 @@ export function FavoriteTabButton({
           </View>
         )}
       </View>
-      <Text style={[
-        styles.tabText,
-        isActive && styles.tabTextActive,
-      ]}>
+      <Text
+        style={[
+          styles.tabText,
+          isActive && styles.tabTextActive,
+        ]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
+      >
         {displayLabel}
       </Text>
     </HapticTouchable>

@@ -54,7 +54,8 @@ import {
   searchPodcasts,
   getPodcastEpisodes,
 } from '@/services/podcastService';
-import { COUNTRIES } from '@/constants/demographics';
+import { COUNTRIES, detectCountryFromLocale } from '@/constants/demographics';
+import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 import { ServiceContainer } from '@/services/container';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -88,6 +89,7 @@ export function PodcastScreen() {
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
   const { isVoiceSessionActive } = useVoiceFocusContext();
+  const { userCountryCode } = useModuleConfig();
   const holdGesture = useHoldGestureContextSafe();
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
@@ -207,7 +209,9 @@ export function PodcastScreen() {
   // Discovery search modal — opens on SearchTabButton tap
   const [showSearchModal, setShowSearchModal] = useState(false);
   // Podcast uses country filter (iTunes API is store/region-based, not language-based)
-  const [selectedCountry, setSelectedCountry] = useState(savedBrowsing?.selectedCountry ?? 'NL');
+  const [selectedCountry, setSelectedCountry] = useState(
+    savedBrowsing?.selectedCountry ?? userCountryCode ?? detectCountryFromLocale(i18n.language)
+  );
 
   // Show detail modal
   const [selectedShow, setSelectedShow] = useState<PodcastShow | null>(savedBrowsing?.selectedShow as PodcastShow | null ?? null);

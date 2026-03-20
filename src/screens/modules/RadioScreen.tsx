@@ -54,7 +54,8 @@ import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { useRecentStations } from '@/hooks/useRecentStations';
 import { ServiceContainer } from '@/services/container';
 import { scrapeStationArtwork, getCachedArtworkSync } from '@/services/stationArtworkService';
-import { COUNTRIES, LANGUAGES } from '@/constants/demographics';
+import { COUNTRIES, LANGUAGES, detectCountryFromLocale, detectLanguageFromLocale } from '@/constants/demographics';
+import { useModuleConfig } from '@/contexts/ModuleConfigContext';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
@@ -269,13 +270,14 @@ const MAX_FAVORITES = 10;
 const SEARCH_MAX_LENGTH = 100;
 
 export function RadioScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { accentColor } = useAccentColor();
   const radioModuleColor = useModuleColor('radio');  // User-customizable module color
   const panelId = usePanelId(); // null on iPhone, 'left'|'right' on iPad Split View
   const { isVoiceSessionActive } = useVoiceFocusContext();
+  const { userCountryCode } = useModuleConfig();
   const holdGesture = useHoldGestureContextSafe();
   const { triggerFeedback } = useFeedback();
   const isReducedMotion = useReducedMotion();
@@ -373,8 +375,12 @@ export function RadioScreen() {
   // State — initialized from saved browsing state if available
   const [stations, setStations] = useState<RadioStation[]>(savedBrowsing?.stations as RadioStation[] ?? []);
   const [favorites, setFavorites] = useState<FavoriteStation[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState(savedBrowsing?.selectedCountry ?? 'NL');
-  const [selectedLanguage, setSelectedLanguage] = useState(savedBrowsing?.selectedLanguage ?? 'nl');
+  const [selectedCountry, setSelectedCountry] = useState(
+    savedBrowsing?.selectedCountry ?? userCountryCode ?? detectCountryFromLocale(i18n.language)
+  );
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    savedBrowsing?.selectedLanguage ?? detectLanguageFromLocale(i18n.language)
+  );
   const [filterMode, setFilterMode] = useState<FilterMode>(savedBrowsing?.filterMode ?? 'country');
   const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
   const [isLoading, setIsLoading] = useState(false);
