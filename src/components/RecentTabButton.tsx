@@ -7,6 +7,7 @@
  * - 72pt min height touch target
  * - Haptic feedback on press
  * - User-configurable button border support
+ * - adjustsFontSizeToFit with minimumFontScale for long labels
  *
  * @see FavoriteButton.tsx (FavoriteTabButton)
  * @see SearchButton.tsx (SearchTabButton)
@@ -34,8 +35,6 @@ export interface RecentTabButtonProps {
   onPress: () => void;
   /** Tab label (default: uses i18n 'common.recent') */
   label?: string;
-  /** Synchronized font size from TabButtonRow (ensures all tabs match) */
-  syncedFontSize?: number;
 }
 
 // ============================================================
@@ -55,7 +54,6 @@ export function RecentTabButton({
   isActive,
   onPress,
   label,
-  syncedFontSize,
 }: RecentTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -91,9 +89,10 @@ export function RecentTabButton({
         style={[
           styles.tabText,
           isActive && styles.tabTextActive,
-          syncedFontSize != null && { fontSize: syncedFontSize },
         ]}
         numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
       >
         {displayLabel}
       </Text>

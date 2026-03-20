@@ -107,10 +107,15 @@ export function LibraryTabButton({
           </View>
         )}
       </View>
-      <Text style={[
-        styles.tabText,
-        isActive && styles.tabTextActive,
-      ]}>
+      <Text
+        style={[
+          styles.tabText,
+          isActive && styles.tabTextActive,
+        ]}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
         {displayLabel}
       </Text>
     </HapticTouchable>
@@ -131,7 +136,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',  // Icons align to top across all buttons
     gap: spacing.xs,
     minHeight: touchTargets.comfortable,  // 72pt
   },

@@ -48,8 +48,6 @@ export interface SearchTabButtonProps {
   label?: string;
   /** Pulse animation to draw attention (e.g. when favorites are empty) */
   pulse?: boolean;
-  /** Synchronized font size from TabButtonRow (ensures all tabs match) */
-  syncedFontSize?: number;
 }
 
 // ============================================================
@@ -116,7 +114,6 @@ export function SearchTabButton({
   onPress,
   label,
   pulse = false,
-  syncedFontSize,
 }: SearchTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -187,9 +184,10 @@ export function SearchTabButton({
         style={[
           styles.tabText,
           isActive && styles.tabTextActive,
-          syncedFontSize != null && { fontSize: syncedFontSize },
         ]}
         numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
       >
         {displayLabel}
       </Text>
