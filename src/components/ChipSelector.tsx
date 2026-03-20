@@ -73,6 +73,8 @@ export interface ChipSelectorProps {
   glassMode?: boolean;
   /** Optional element rendered to the right of the label row (e.g., close button) */
   trailingElement?: React.ReactNode;
+  /** Reverse internal layout (chips above, label row below) for bottom toolbar position */
+  reversed?: boolean;
 }
 
 // ============================================================
@@ -121,6 +123,7 @@ export function ChipSelector({
   onModeChange,
   glassMode = false,
   trailingElement,
+  reversed = false,
 }: ChipSelectorProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -196,110 +199,125 @@ export function ChipSelector({
     return option.flag || option.icon || '';
   };
 
+  // Label row — toggle buttons or static label (left) + optional trailing element (right)
+  const labelRowElement = (
+    <View style={[styles.labelRow, reversed ? styles.labelRowReversed : undefined]}>
+      {allowModeToggle ? (
+        <View style={styles.toggleRow}>
+          <HapticTouchable
+            hapticDisabled
+            style={[
+              styles.toggleButton,
+              glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.3)' },
+              mode === 'country' && { backgroundColor: accentColor.primary, borderColor: accentColor.primary },
+            ]}
+            onPress={() => handleModeToggle('country')}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: mode === 'country' }}
+            accessibilityLabel={t('components.chipSelector.country')}
+          >
+            <Text style={[
+              styles.toggleButtonText,
+              glassMode && mode !== 'country' && { color: 'rgba(255, 255, 255, 0.9)' },
+              mode === 'country' && styles.toggleButtonTextActive,
+            ]}>
+              {t('components.chipSelector.country')}
+            </Text>
+          </HapticTouchable>
+          <HapticTouchable
+            hapticDisabled
+            style={[
+              styles.toggleButton,
+              glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.3)' },
+              mode === 'language' && { backgroundColor: accentColor.primary, borderColor: accentColor.primary },
+            ]}
+            onPress={() => handleModeToggle('language')}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: mode === 'language' }}
+            accessibilityLabel={t('components.chipSelector.language')}
+          >
+            <Text style={[
+              styles.toggleButtonText,
+              glassMode && mode !== 'language' && { color: 'rgba(255, 255, 255, 0.9)' },
+              mode === 'language' && styles.toggleButtonTextActive,
+            ]}>
+              {t('components.chipSelector.language')}
+            </Text>
+          </HapticTouchable>
+        </View>
+      ) : (
+        <View style={styles.labelContainer}>
+          <Text style={[
+            styles.label,
+            glassMode && { color: 'rgba(255, 255, 255, 0.9)' },
+          ]}>
+            {displayLabel}
+          </Text>
+        </View>
+      )}
+      {trailingElement}
+    </View>
+  );
+
+  // Horizontal scrolling chips
+  const chipsElement = (
+    <ScrollView
+      ref={scrollViewRef}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.chipList}
+      onLayout={handleScrollViewLayout}
+    >
+      {options.map((option) => {
+        const isSelected = selectedCode === option.code;
+        const chipIcon = getChipIcon(option);
+
+        return (
+          <HapticTouchable
+            hapticDisabled
+            key={option.code}
+            style={[
+              styles.chip,
+              glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: 'rgba(255, 255, 255, 0.3)' },
+              isSelected && {
+                backgroundColor: accentColor.primary,
+                borderColor: accentColor.primary,
+              },
+            ]}
+            onPress={() => handleSelect(option.code)}
+            onLayout={(event) => handleChipLayout(option.code, event)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: isSelected }}
+            accessibilityLabel={`${chipIcon} ${option.nativeName}`}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                glassMode && !isSelected && { color: 'rgba(255, 255, 255, 0.9)' },
+                isSelected && styles.chipTextActive,
+              ]}
+            >
+              {chipIcon} {option.nativeName}
+            </Text>
+          </HapticTouchable>
+        );
+      })}
+    </ScrollView>
+  );
+
   return (
     <View style={styles.container}>
-      {/* Label row — toggle buttons or static label (left) + optional trailing element (right) */}
-      <View style={styles.labelRow}>
-        {allowModeToggle ? (
-          <View style={styles.toggleRow}>
-            <HapticTouchable
-              hapticDisabled
-              style={[
-                styles.toggleButton,
-                glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.3)' },
-                mode === 'country' && { backgroundColor: accentColor.primary, borderColor: accentColor.primary },
-              ]}
-              onPress={() => handleModeToggle('country')}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: mode === 'country' }}
-              accessibilityLabel={t('components.chipSelector.country')}
-            >
-              <Text style={[
-                styles.toggleButtonText,
-                glassMode && mode !== 'country' && { color: 'rgba(255, 255, 255, 0.9)' },
-                mode === 'country' && styles.toggleButtonTextActive,
-              ]}>
-                {t('components.chipSelector.country')}
-              </Text>
-            </HapticTouchable>
-            <HapticTouchable
-              hapticDisabled
-              style={[
-                styles.toggleButton,
-                glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderColor: 'rgba(255, 255, 255, 0.3)' },
-                mode === 'language' && { backgroundColor: accentColor.primary, borderColor: accentColor.primary },
-              ]}
-              onPress={() => handleModeToggle('language')}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: mode === 'language' }}
-              accessibilityLabel={t('components.chipSelector.language')}
-            >
-              <Text style={[
-                styles.toggleButtonText,
-                glassMode && mode !== 'language' && { color: 'rgba(255, 255, 255, 0.9)' },
-                mode === 'language' && styles.toggleButtonTextActive,
-              ]}>
-                {t('components.chipSelector.language')}
-              </Text>
-            </HapticTouchable>
-          </View>
-        ) : (
-          <View style={styles.labelContainer}>
-            <Text style={[
-              styles.label,
-              glassMode && { color: 'rgba(255, 255, 255, 0.9)' },
-            ]}>
-              {displayLabel}
-            </Text>
-          </View>
-        )}
-        {trailingElement}
-      </View>
-
-      {/* Horizontal scrolling chips */}
-      <ScrollView
-        ref={scrollViewRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipList}
-        onLayout={handleScrollViewLayout}
-      >
-        {options.map((option) => {
-          const isSelected = selectedCode === option.code;
-          const chipIcon = getChipIcon(option);
-
-          return (
-            <HapticTouchable
-              hapticDisabled
-              key={option.code}
-              style={[
-                styles.chip,
-                glassMode && { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: 'rgba(255, 255, 255, 0.3)' },
-                isSelected && {
-                  backgroundColor: accentColor.primary,
-                  borderColor: accentColor.primary,
-                },
-              ]}
-              onPress={() => handleSelect(option.code)}
-              onLayout={(event) => handleChipLayout(option.code, event)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: isSelected }}
-              accessibilityLabel={`${chipIcon} ${option.nativeName}`}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  glassMode && !isSelected && { color: 'rgba(255, 255, 255, 0.9)' },
-                  isSelected && styles.chipTextActive,
-                ]}
-              >
-                {chipIcon} {option.nativeName}
-              </Text>
-            </HapticTouchable>
-          );
-        })}
-      </ScrollView>
-
+      {reversed ? (
+        <>
+          {chipsElement}
+          {labelRowElement}
+        </>
+      ) : (
+        <>
+          {labelRowElement}
+          {chipsElement}
+        </>
+      )}
     </View>
   );
 }
@@ -317,6 +335,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+  },
+  labelRowReversed: {
+    marginBottom: 0,
+    marginTop: spacing.xs,
   },
   labelContainer: {
     flexDirection: 'row',

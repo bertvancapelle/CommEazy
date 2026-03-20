@@ -133,6 +133,10 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
+  // Ref for toolbarPosition so showMiniPlayer callback stays stable
+  const toolbarPositionRef = useRef(toolbarPosition);
+  toolbarPositionRef.current = toolbarPosition;
+
   // Log when availability changes (for debugging)
   useEffect(() => {
     if (isGlassPlayerCheckComplete) {
@@ -247,14 +251,15 @@ export function useGlassPlayer(options: UseGlassPlayerOptions = {}): UseGlassPla
   // Wrapped methods that update local state
   const showMiniPlayer = useCallback(async (content: GlassPlayerContent): Promise<boolean> => {
     // Inject current toolbar position so native side knows where to place the player
-    const contentWithPosition = { ...content, toolbarPosition };
+    // Uses ref to keep this callback stable (toolbarPosition already sent via updateToolbarPosition)
+    const contentWithPosition = { ...content, toolbarPosition: toolbarPositionRef.current };
     const result = await glassPlayer.showMiniPlayer(contentWithPosition);
     if (result) {
       setIsVisible(true);
       setIsExpanded(false);
     }
     return result;
-  }, [toolbarPosition]);
+  }, []);
 
   const expandToFull = useCallback(async (): Promise<boolean> => {
     const result = await glassPlayer.expandToFull();

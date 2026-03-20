@@ -1360,6 +1360,7 @@ export function RadioScreen() {
                   allowModeToggle={true}
                   onModeChange={handleFilterModeChange}
                   glassMode
+                  reversed={isModalBottom}
                   trailingElement={
                     <IconButton
                       icon="chevron-down"

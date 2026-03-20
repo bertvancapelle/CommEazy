@@ -57,6 +57,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBrowsingState, type BooksBrowsingState } from '@/contexts/ModuleBrowsingContext';
+import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
 
 // ============================================================
 // Constants
@@ -92,6 +93,8 @@ export function BooksScreen() {
   const isReducedMotion = useReducedMotion();
   const { triggerFeedback } = useFeedback();
   const themeColors = useColors();
+  const { toolbarPosition } = useModuleLayoutSafe();
+  const isToolbarBottom = toolbarPosition === 'bottom';
   const searchInputRef = useRef<SearchBarRef>(null);
 
   // User-customizable module color for Liquid Glass
@@ -505,6 +508,7 @@ export function BooksScreen() {
                       options={LANGUAGES}
                       selectedCode={selectedLanguage}
                       onSelect={handleLanguageChange}
+                      reversed={isToolbarBottom}
                     />
                   </View>
                 </View>

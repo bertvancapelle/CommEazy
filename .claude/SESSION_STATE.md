@@ -6,8 +6,8 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-19
-- **Sessie:** Toolbar Position Dual Validation — fix + safeguard + script
-- **Commit:** `deb5f93`
+- **Sessie:** Modal Glass Standard + useModalLayoutBottom uitrol
+- **Commit:** `c4f25a4`
 
 ## Voltooide Taken Deze Sessie
 
@@ -16,16 +16,30 @@
    - Fixed modal stacking issue op iPad Split View
 
 2. **Toolbar Position Dual Validation** (`deb5f93`)
-   - **Probleem:** Bij toolbar positie "bottom" verplaatst ModalLayout de headerBlock naar onder, maar de children BINNEN de headerBlock (safe area spacer, ChipSelector, SearchBar) bleven in "top" volgorde — controls zaten ver van de duim
-   - **Oplossing:** `useModalLayoutBottom()` hook in ModalLayout.tsx — geeft `headerStyle` (column-reverse) en `isBottom` boolean
-   - **Toegepast op:** RadioScreen search modal + PodcastScreen search modal
-   - **CLAUDE.md:** Nieuwe "Toolbar Position Dual Validation" Consistency Safeguard + Automatische Trigger
-   - **Script:** `scripts/validate-toolbar-positions.sh` — scant alle ModalLayout consumers
+   - `useModalLayoutBottom()` hook in ModalLayout.tsx
+   - Toegepast op RadioScreen + PodcastScreen search modals
+   - CLAUDE.md Consistency Safeguard + `scripts/validate-toolbar-positions.sh`
+
+3. **MODAL_GLASS_STANDARD.md referentie document** (`c4f25a4`)
+   - Nieuw bestand: `.claude/standards/MODAL_GLASS_STANDARD.md`
+   - 14 secties: drie-laagse architectuur, native Glass layer specs, implementatie templates, toolbar position handling, modal inventaris (26 modals), troubleshooting
+   - Alle kennis uit het Radio/Podcast modal iteratieproces gedestilleerd
+
+4. **useModalLayoutBottom uitrol naar 4 resterende modals** (`c4f25a4`)
+   - `ContactPickerModal` — Fragment headerBlock → View met headerStyle
+   - `ModulePickerModal` — headerStyle merged met bestaande header style
+   - `MailWelcomeModal` — headerStyle op header View (icon + title + subtitle)
+   - `ContactSelectionModal` — headerStyle op header View (title + subtitle + voice hint)
+   - **Resultaat:** Alle 26 modals nu volledig conform
+
+5. **@see references toegevoegd** (`c4f25a4`)
+   - CLAUDE.md §14 Modal Liquid Glass Standaard
+   - ui-designer SKILL.md §11b Modal Design Standaard
+   - Adoptie status tabel in CLAUDE.md bijgewerkt (6 ✅ entries)
 
 ## Openstaande Taken
 
-1. **4 overlay-wrapper modals** — DateTimePickerModal, ContactSelectionModal, CollectionOverlay, MailWelcomeModal hebben nog semi-opaque overlay Views rond LiquidGlassView.
-2. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren. Glass toont material texture + tint, maar geen echte blur-through-to-content.
+1. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren. Glass toont material texture + tint, maar geen echte blur-through-to-content.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
@@ -35,15 +49,14 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Hook-based approach (niet wrapper) | headerBlock is een single ReactNode — column-reverse op wrapper ziet maar 1 child. Consumer moet style toepassen op EIGEN View |
-| `useModalLayoutBottom()` naam | Duidelijk doel: alleen voor ModalLayout headerBlocks met meerdere verticale children |
-| BooksScreen/WeatherScreen niet gefixed | Hun searchSection zit in ModuleScreenLayout controlsBlock, niet in ModalLayout headerBlock — reverseChildren() handelt dit al af |
-| Script heuristic: skip ModuleScreenLayout files | Voorkomt false positives — files met ModuleScreenLayout hebben searchSection in controlsBlock |
+| Eén centraal referentie document (MODAL_GLASS_STANDARD.md) | Voorkomt herhaling van moeizaam trial-and-error bij elke modal migratie |
+| Alle 4 modals met verticale children krijgen useModalLayoutBottom | Consistentie: toolbar position "bottom" moet overal correct werken |
+| @see references i.p.v. duplicatie | CLAUDE.md en SKILL.md verwijzen naar standaard, geen content duplicatie |
+| ContactSelectionModal: conditionals (subtitle, voice hint) geen probleem | column-reverse keert alleen GERENDERDE children om — conditionals werken correct |
 
 ## Context voor Volgende Sessie
 
+- `.claude/standards/MODAL_GLASS_STANDARD.md` — Single source of truth voor alle modal implementaties
 - `src/components/ModalLayout.tsx:74-83` — useModalLayoutBottom hook definitie
-- `src/screens/modules/RadioScreen.tsx:283` — hook call, `:1351` — headerStyle toepassing
-- `src/screens/modules/PodcastScreen.tsx:97` — hook call, `:1428` — headerStyle toepassing
-- `scripts/validate-toolbar-positions.sh` — 0 violations bij laatste run (31 files checked)
-- CLAUDE.md bevat nu Automatic Trigger + volledige Consistency Safeguard sectie voor toolbar position validatie
+- Alle 26 modals conform (zie MODAL_GLASS_STANDARD.md §11 inventaris)
+- `scripts/validate-toolbar-positions.sh` — 0 violations bij laatste run

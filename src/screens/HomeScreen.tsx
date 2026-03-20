@@ -75,6 +75,7 @@ import { useModuleOrder } from '@/hooks/useModuleOrder';
 import { useModuleCollections } from '@/hooks/useModuleCollections';
 import { useModuleColorsContextSafe } from '@/contexts/ModuleColorsContext';
 import { MODULE_TINT_COLORS } from '@/types/liquidGlass';
+import { useLiquidGlassContext } from '@/contexts/LiquidGlassContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useModuleBadges } from '@/hooks/useModuleBadges';
 import { useModuleLayoutSafe } from '@/contexts/ModuleLayoutContext';
@@ -195,6 +196,10 @@ export function HomeScreen({
   // Active audio detection via unified hook
   const activePlayback = useActivePlayback();
   const activeAudioModule = activePlayback?.moduleId as NavigationDestination | null ?? null;
+
+  // Glass Player availability — don't show RN MiniPlayer when native Glass Player handles it
+  const { isGlassPlayerAvailable, isGlassPlayerCheckComplete } = useLiquidGlassContext();
+  const hideRNMiniPlayer = isGlassPlayerCheckComplete && isGlassPlayerAvailable;
 
   // The modules to display — local order during wiggle, stored order otherwise
   const displayModules = isWiggleMode ? localOrder : orderedModules;
@@ -708,7 +713,7 @@ export function HomeScreen({
       )}
 
       {/* Mini-player at top — shown when toolbar is at bottom (fullscreen variant only) */}
-      {toolbarPosition === 'bottom' && !isPaneVariant && !isWiggleMode && activePlayback && (
+      {toolbarPosition === 'bottom' && !isPaneVariant && !isWiggleMode && activePlayback && !hideRNMiniPlayer && (
         <UnifiedMiniPlayer
           moduleId={activePlayback.moduleId}
           artwork={activePlayback.artwork}
@@ -906,7 +911,7 @@ export function HomeScreen({
       {/* Mini-player — shown when audio is playing (fullscreen variant only)
           Position-aware: toolbar 'top' → player at bottom; toolbar 'bottom' → player at top
           When toolbar is at bottom, rendered before ScrollView (see above) */}
-      {toolbarPosition !== 'bottom' && !isPaneVariant && !isWiggleMode && activePlayback && (
+      {toolbarPosition !== 'bottom' && !isPaneVariant && !isWiggleMode && activePlayback && !hideRNMiniPlayer && (
         <UnifiedMiniPlayer
           moduleId={activePlayback.moduleId}
           artwork={activePlayback.artwork}

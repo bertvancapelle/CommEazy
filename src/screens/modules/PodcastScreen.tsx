@@ -1446,6 +1446,7 @@ export function PodcastScreen() {
                   selectedCode={selectedCountry}
                   onSelect={handleCountryChange}
                   glassMode
+                  reversed={isModalBottom}
                 />
                 {/* 3. "Podcasts zoeken" title left + chevron-down close right */}
                 <View style={styles.searchModalTitleRow}>
