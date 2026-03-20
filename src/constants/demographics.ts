@@ -50,17 +50,18 @@ export interface LanguageOption {
  * Matches all 13 app languages — users should be able to search in their own language
  */
 export const LANGUAGES: LanguageOption[] = [
-  { code: 'nl', nameKey: 'demographics.language.nl', nativeName: 'Nederlands', icon: '🗣️' },
-  { code: 'en', nameKey: 'demographics.language.en', nativeName: 'English', icon: '🗣️' },
-  { code: 'de', nameKey: 'demographics.language.de', nativeName: 'Deutsch', icon: '🗣️' },
-  { code: 'fr', nameKey: 'demographics.language.fr', nativeName: 'Français', icon: '🗣️' },
-  { code: 'es', nameKey: 'demographics.language.es', nativeName: 'Español', icon: '🗣️' },
-  { code: 'it', nameKey: 'demographics.language.it', nativeName: 'Italiano', icon: '🗣️' },
-  { code: 'no', nameKey: 'demographics.language.no', nativeName: 'Norsk', icon: '🗣️' },
-  { code: 'sv', nameKey: 'demographics.language.sv', nativeName: 'Svenska', icon: '🗣️' },
+  // Alphabetical by nativeName — predictable for users scanning the chip list
   { code: 'da', nameKey: 'demographics.language.da', nativeName: 'Dansk', icon: '🗣️' },
-  { code: 'pt', nameKey: 'demographics.language.pt', nativeName: 'Português', icon: '🗣️' },
+  { code: 'de', nameKey: 'demographics.language.de', nativeName: 'Deutsch', icon: '🗣️' },
+  { code: 'en', nameKey: 'demographics.language.en', nativeName: 'English', icon: '🗣️' },
+  { code: 'es', nameKey: 'demographics.language.es', nativeName: 'Español', icon: '🗣️' },
+  { code: 'fr', nameKey: 'demographics.language.fr', nativeName: 'Français', icon: '🗣️' },
+  { code: 'it', nameKey: 'demographics.language.it', nativeName: 'Italiano', icon: '🗣️' },
+  { code: 'nl', nameKey: 'demographics.language.nl', nativeName: 'Nederlands', icon: '🗣️' },
+  { code: 'no', nameKey: 'demographics.language.no', nativeName: 'Norsk', icon: '🗣️' },
   { code: 'pl', nameKey: 'demographics.language.pl', nativeName: 'Polski', icon: '🗣️' },
+  { code: 'pt', nameKey: 'demographics.language.pt', nativeName: 'Português', icon: '🗣️' },
+  { code: 'sv', nameKey: 'demographics.language.sv', nativeName: 'Svenska', icon: '🗣️' },
 ];
 
 // ============================================================
@@ -79,25 +80,17 @@ export interface CountryOption {
  * Matches the 5 supported languages: NL, EN (UK/US), DE, FR, ES
  */
 export const COUNTRIES: CountryOption[] = [
-  // Benelux
-  { code: 'NL', nameKey: 'demographics.country.NL', nativeName: 'Nederland', flag: '🇳🇱' },
+  // Alphabetical by nativeName — predictable for users scanning the chip list
   { code: 'BE', nameKey: 'demographics.country.BE', nativeName: 'België', flag: '🇧🇪' },
-  { code: 'LU', nameKey: 'demographics.country.LU', nativeName: 'Luxembourg', flag: '🇱🇺' },
-
-  // German-speaking
   { code: 'DE', nameKey: 'demographics.country.DE', nativeName: 'Deutschland', flag: '🇩🇪' },
+  { code: 'ES', nameKey: 'demographics.country.ES', nativeName: 'España', flag: '🇪🇸' },
+  { code: 'FR', nameKey: 'demographics.country.FR', nativeName: 'France', flag: '🇫🇷' },
+  { code: 'IE', nameKey: 'demographics.country.IE', nativeName: 'Ireland', flag: '🇮🇪' },
+  { code: 'LU', nameKey: 'demographics.country.LU', nativeName: 'Luxembourg', flag: '🇱🇺' },
+  { code: 'NL', nameKey: 'demographics.country.NL', nativeName: 'Nederland', flag: '🇳🇱' },
   { code: 'AT', nameKey: 'demographics.country.AT', nativeName: 'Österreich', flag: '🇦🇹' },
   { code: 'CH', nameKey: 'demographics.country.CH', nativeName: 'Schweiz', flag: '🇨🇭' },
-
-  // French-speaking
-  { code: 'FR', nameKey: 'demographics.country.FR', nativeName: 'France', flag: '🇫🇷' },
-
-  // Spanish-speaking
-  { code: 'ES', nameKey: 'demographics.country.ES', nativeName: 'España', flag: '🇪🇸' },
-
-  // English-speaking
   { code: 'GB', nameKey: 'demographics.country.GB', nativeName: 'United Kingdom', flag: '🇬🇧' },
-  { code: 'IE', nameKey: 'demographics.country.IE', nativeName: 'Ireland', flag: '🇮🇪' },
   { code: 'US', nameKey: 'demographics.country.US', nativeName: 'United States', flag: '🇺🇸' },
 ];
 

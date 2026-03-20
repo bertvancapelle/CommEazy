@@ -38,7 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, ScrollViewWithIndicator, type SearchBarRef, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, TabButtonRow, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, ScrollViewWithIndicator, type SearchBarRef, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -212,6 +212,11 @@ export function PodcastScreen() {
   const [selectedCountry, setSelectedCountry] = useState(
     savedBrowsing?.selectedCountry ?? userCountryCode ?? detectCountryFromLocale(i18n.language)
   );
+
+  // Sync country chip when user changes app language in Settings
+  useEffect(() => {
+    setSelectedCountry(detectCountryFromLocale(i18n.language));
+  }, [i18n.language]);
 
   // Show detail modal
   const [selectedShow, setSelectedShow] = useState<PodcastShow | null>(savedBrowsing?.selectedShow as PodcastShow | null ?? null);
@@ -669,18 +674,26 @@ export function PodcastScreen() {
           controlsBlock={<>
         {/* Tab selector — Subscriptions (main) + Discover (opens modal) */}
         <View style={styles.tabBar}>
-          <FavoriteTabButton
-            isActive={!showSearchModal}
-            onPress={() => setShowSearchModal(false)}
-            count={subscriptions.length}
-            label={t('modules.podcast.favorites')}
-          />
-          <SearchTabButton
-            isActive={showSearchModal}
-            onPress={() => setShowSearchModal(true)}
-            label={t('modules.podcast.discover')}
-            pulse={subscriptions.length === 0}
-          />
+          <TabButtonRow labels={[t('modules.podcast.favorites'), t('modules.podcast.discover')]}>
+            {(syncedFontSize) => (
+              <>
+                <FavoriteTabButton
+                  isActive={!showSearchModal}
+                  onPress={() => setShowSearchModal(false)}
+                  count={subscriptions.length}
+                  label={t('modules.podcast.favorites')}
+                  syncedFontSize={syncedFontSize}
+                />
+                <SearchTabButton
+                  isActive={showSearchModal}
+                  onPress={() => setShowSearchModal(true)}
+                  label={t('modules.podcast.discover')}
+                  pulse={subscriptions.length === 0}
+                  syncedFontSize={syncedFontSize}
+                />
+              </>
+            )}
+          </TabButtonRow>
         </View>
 
         {/* Playback Error Banner */}

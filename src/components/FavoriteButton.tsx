@@ -53,6 +53,8 @@ export interface FavoriteTabButtonProps {
   count?: number;
   /** Tab label (default: uses i18n 'common.favorites') */
   label?: string;
+  /** Synchronized font size from TabButtonRow (overrides base size) */
+  syncedFontSize?: number;
 }
 
 // ============================================================
@@ -110,6 +112,7 @@ export function FavoriteTabButton({
   onPress,
   count = 0,
   label,
+  syncedFontSize,
 }: FavoriteTabButtonProps) {
   const { t } = useTranslation();
   const { accentColor } = useAccentColor();
@@ -164,10 +167,9 @@ export function FavoriteTabButton({
         style={[
           styles.tabText,
           isActive && styles.tabTextActive,
+          syncedFontSize != null && { fontSize: syncedFontSize },
         ]}
         numberOfLines={2}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
       >
         {displayLabel}
       </Text>

@@ -111,6 +111,10 @@ export type { RecentTabButtonProps } from './RecentTabButton';
 export { LibraryTabButton } from './LibraryTabButton';
 export type { LibraryTabButtonProps } from './LibraryTabButton';
 
+// Tab Button Row — Synchronizes font size across tab buttons
+export { TabButtonRow } from './TabButtonRow';
+export type { TabButtonRowProps } from './TabButtonRow';
+
 // SearchBar Component (standardized search input with button)
 export { SearchBar } from './SearchBar';
 export type { SearchBarProps, SearchBarRef } from './SearchBar';

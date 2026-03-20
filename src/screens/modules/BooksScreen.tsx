@@ -44,7 +44,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, ModuleScreenLayout, LibraryTabButton, SearchTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, ModalLayout, type SearchBarRef, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, ModuleHeader, ModuleScreenLayout, LibraryTabButton, SearchTabButton, TabButtonRow, SearchBar, ChipSelector, LoadingView, ErrorView, ScrollViewWithIndicator, LiquidGlassView, ModalLayout, type SearchBarRef, PanelAwareModal } from '@/components';
 import { LANGUAGES, detectLanguageFromLocale } from '@/constants/demographics';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
@@ -133,6 +133,11 @@ export function BooksScreen() {
   const [selectedLanguage, setSelectedLanguage] = useState(
     savedBrowsing?.selectedLanguage ?? detectLanguageFromLocale(i18n.language)
   );
+  // Sync language chip when user changes app language in Settings
+  useEffect(() => {
+    setSelectedLanguage(detectLanguageFromLocale(i18n.language));
+  }, [i18n.language]);
+
   // Default to Library tab — seniors want quick access to their downloaded books
   const [showLibrary, setShowLibrary] = useState(savedBrowsing?.showLibrary ?? true);
   // Welcome modal for first-time users
@@ -474,17 +479,25 @@ export function BooksScreen() {
             <>
               {/* Tab selector — uses standardized LibraryTabButton/SearchTabButton */}
               <View style={styles.tabBar}>
-                <LibraryTabButton
-                  isActive={showLibrary}
-                  onPress={() => setShowLibrary(true)}
-                  count={library.length}
-                  label={t('modules.books.library')}
-                />
-                <SearchTabButton
-                  isActive={!showLibrary}
-                  onPress={() => setShowLibrary(false)}
-                  label={t('modules.books.search')}
-                />
+                <TabButtonRow labels={[t('modules.books.library'), t('modules.books.search')]}>
+                  {(syncedFontSize) => (
+                    <>
+                      <LibraryTabButton
+                        isActive={showLibrary}
+                        onPress={() => setShowLibrary(true)}
+                        count={library.length}
+                        label={t('modules.books.library')}
+                        syncedFontSize={syncedFontSize}
+                      />
+                      <SearchTabButton
+                        isActive={!showLibrary}
+                        onPress={() => setShowLibrary(false)}
+                        label={t('modules.books.search')}
+                        syncedFontSize={syncedFontSize}
+                      />
+                    </>
+                  )}
+                </TabButtonRow>
               </View>
 
               {/* Search section */}

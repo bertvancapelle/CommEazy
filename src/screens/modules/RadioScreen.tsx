@@ -38,7 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, RecentTabButton, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { Icon, IconButton, VoiceFocusable, PlayingWaveIcon, UnifiedMiniPlayer, UnifiedFullPlayer, ModuleHeader, ModuleScreenLayout, FavoriteTabButton, SearchTabButton, RecentTabButton, TabButtonRow, SearchBar, ChipSelector, LoadingView, ErrorView, ArtworkImage, type SearchBarRef, type FilterMode, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useHoldGestureContextSafe } from '@/contexts/HoldGestureContext';
 import { useColors } from '@/contexts/ThemeContext';
@@ -391,6 +391,12 @@ export function RadioScreen() {
   const showSearchModal = activeTab === 'search';
   // Popup shown when no favorites exist — explains how to find and save stations
   const [showNoFavoritesModal, setShowNoFavoritesModal] = useState(false);
+
+  // Sync chips when user changes app language in Settings
+  useEffect(() => {
+    setSelectedCountry(detectCountryFromLocale(i18n.language));
+    setSelectedLanguage(detectLanguageFromLocale(i18n.language));
+  }, [i18n.language]);
 
   // Recent stations — persisted in AsyncStorage (max 10, newest first)
   const { recentStations, addRecentStation } = useRecentStations();
@@ -1040,23 +1046,32 @@ export function RadioScreen() {
           controlsBlock={<>
         {/* Tab selector — Recent (default) + Favorites + Search */}
         <View style={styles.tabBar}>
-          <RecentTabButton
-            isActive={activeTab === 'recent'}
-            onPress={() => setActiveTab('recent')}
-            label={t('modules.radio.recentTab')}
-          />
-          <FavoriteTabButton
-            isActive={activeTab === 'favorites'}
-            onPress={() => setActiveTab('favorites')}
-            count={favorites.length}
-            label={t('modules.radio.favorites')}
-          />
-          <SearchTabButton
-            isActive={activeTab === 'search'}
-            onPress={() => setActiveTab('search')}
-            label={t('modules.radio.search')}
-            pulse={recentStations.length === 0 && favorites.length === 0}
-          />
+          <TabButtonRow labels={[t('modules.radio.recentTab'), t('modules.radio.favorites'), t('modules.radio.search')]}>
+            {(syncedFontSize) => (
+              <>
+                <RecentTabButton
+                  isActive={activeTab === 'recent'}
+                  onPress={() => setActiveTab('recent')}
+                  label={t('modules.radio.recentTab')}
+                  syncedFontSize={syncedFontSize}
+                />
+                <FavoriteTabButton
+                  isActive={activeTab === 'favorites'}
+                  onPress={() => setActiveTab('favorites')}
+                  count={favorites.length}
+                  label={t('modules.radio.favorites')}
+                  syncedFontSize={syncedFontSize}
+                />
+                <SearchTabButton
+                  isActive={activeTab === 'search'}
+                  onPress={() => setActiveTab('search')}
+                  label={t('modules.radio.search')}
+                  pulse={recentStations.length === 0 && favorites.length === 0}
+                  syncedFontSize={syncedFontSize}
+                />
+              </>
+            )}
+          </TabButtonRow>
         </View>
 
         {/* Playback Error Banner — shown when a stream fails */}
