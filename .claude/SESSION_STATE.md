@@ -6,28 +6,28 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-20
-- **Sessie:** Search cache persistence + Podcast modal white background fix
-- **Commit:** `39b4ae2`
+- **Sessie:** Apple Music module redesign — 3-tab layout, search modal, combined favorites
+- **Commit:** `0967435`
 
 ## Voltooide Taken Deze Sessie
 
-1. **Podcast search modal visual sync met Radio** (`5a17b9d` — eerdere commit)
-   - 6 visuele sync punten: lettertype kleur, border kleur, placeholder tekst kleur, clear button kleur, taal label styling, chip volgorde
-
-2. **Task A: Fix Podcast modal white background** (`39b4ae2`)
-   - Bug: Module tint kleur (paars) bleek door in search modal wanneer geen resultaten getoond werden (loading, empty, error states)
-   - Root cause: `backgroundColor: '#FFFFFF'` stond op `showList` style (ScrollView) die alleen rendert bij resultaten
-   - Fix: Verplaatst naar contentBlock wrapper `<View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>`
-
-3. **Task B: Search cache persistence** (`39b4ae2`)
-   - Nieuwe `useSearchCache<T>` hook (`src/hooks/useSearchCache.ts`) — generiek, AsyncStorage-gebaseerd
-   - Geïntegreerd in PodcastScreen: cached query + resultaten worden hersteld bij app herstart
-   - Geïntegreerd in RadioScreen: alleen handmatige zoekacties worden gecached (niet auto land/taal queries)
-   - State priority chain: savedBrowsing (in-session) → cachedSearch (cross-session) → empty default
+1. **Apple Music module redesign** (`0967435`)
+   - Vervangen 2-tab (favorites|search) met 3-tab (recent|favorites|search) via TabButtonRow
+   - Zoeken verplaatst van inline tab naar PanelAwareModal (consistent met Radio/Podcast)
+   - Recent tab toegevoegd met sub-toggle: "Onlangs beluisterd" / "Ontdekken"
+   - Favorieten tab: Verzamelingen + Albums gecombineerd in scrollbare view (artists sub-tab verwijderd)
+   - Favorites dropdown menu verwijderd, section headers toegevoegd
+   - useSearchCache integratie voor cross-session zoek persistentie
+   - albumTitle als 3e regel in zoekresultaten voor songs
+   - Hart-knoppen verwijderd van artist/playlist zoekresultaten
+   - i18n key `modules.appleMusic.search.resultsFound` in 13 locales
+   - AppleMusicBrowsingState type uitgebreid met `recentSubTab` veld
+   - Dead code opgeruimd: artistStatsMap, sortedArtists, showFavoritesDropdown
 
 ## Openstaande Taken
 
 1. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren. Glass toont material texture + tint, maar geen echte blur-through-to-content.
+2. **SongCollectionModal uitbreiding** — Bulk album toevoegen (`songs: Song[]` + `albumTitle?: string` props) was in PNA ontwerp maar nog niet geïmplementeerd. Optionele toekomstige taak.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
@@ -37,15 +37,19 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| `useSearchCache` als aparte hook (niet in ModuleBrowsingContext) | ModuleBrowsingContext is in-session state; search cache is cross-session persistence — gescheiden concerns |
-| Geen expiration op search cache | Eenvoud voor senioren; data is niet privacy-gevoelig (zoektermen + resultaten) |
-| Radio: alleen handmatige zoekacties gecached | Auto land/taal queries zijn niet "de laatste zoekopdracht van de gebruiker" — die horen bij ChipSelector defaults |
-| backgroundColor fix op contentBlock wrapper i.p.v. showList | Wrapper omvat alle states (loading, empty, error, results) — geen tint doorschijnen meer |
+| 3-tab layout i.p.v. 2-tab | Consistentie met Radio en Podcast modules die al 3-tab hebben |
+| Search in modal i.p.v. inline | Module Search Pattern (CLAUDE.md sectie 15): Discovery = modal |
+| Artists sub-tab verwijderd | Artiest-favorieten waren verwarrend; songs en albums zijn de primaire eenheden |
+| Verzamelingen + Albums gecombineerd | Eenvoudiger voor senioren — één scrollbare view i.p.v. tab-switching |
+| favoritesSubTab state behouden | Backward compatibility met opgeslagen browsing state; graceful migration van 'artists' → 'playlists' |
+| Hart-knoppen weg bij artists/playlists in search | Alleen songs en albums krijgen favorieten — consistent met Apple Music UX |
 
 ## Context voor Volgende Sessie
 
-- `src/hooks/useSearchCache.ts` — Nieuwe hook, geëxporteerd via `src/hooks/index.ts`
-- `src/screens/modules/PodcastScreen.tsx:1545` — contentBlock wrapper met backgroundColor fix
-- `src/screens/modules/RadioScreen.tsx:764-767` — saveRadioSearch in handleSearch
-- `src/screens/modules/PodcastScreen.tsx:506-510` — savePodcastSearch in handleSearch
-- `.claude/standards/MODAL_GLASS_STANDARD.md` — Single source of truth voor alle modal implementaties
+- `src/screens/modules/AppleMusicScreen.tsx` — Volledig geredesigned (~3100 regels)
+  - `renderTabBar` (~lijn 2214): TabButtonRow met Recent/Favorites/Search
+  - `renderFavoritesTab` (~lijn 1894): Gecombineerde Verzamelingen + Albums view
+  - `renderIOSContent` (~lijn 2192): Tab routing + search modal rendering
+  - `renderSearchModalContent`: PanelAwareModal met ModalLayout + useModalLayoutBottom
+- `src/contexts/ModuleBrowsingContext.tsx` (~lijn 78): AppleMusicBrowsingState type met `recentSubTab`
+- `src/screens/modules/SongCollectionModal.tsx` — Ongewijzigd, potentiële uitbreiding voor bulk album adding
