@@ -63,6 +63,7 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useRecentPodcasts } from '@/hooks/useRecentPodcasts';
+import { useSearchCache } from '@/hooks/useSearchCache';
 import { useModuleBrowsingState, type PodcastBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
@@ -212,12 +213,19 @@ export function PodcastScreen() {
   // Recent podcasts — persisted in AsyncStorage (max 10, newest first)
   const { recentShows, addRecentShow } = useRecentPodcasts();
 
+  // Search cache — persists last search query + results across app restarts
+  const { cachedSearch: cachedPodcastSearch, saveSearch: savePodcastSearch } = useSearchCache<PodcastShow>('podcast');
+
   // Browsing state persistence — restores tab, search, filters on return
   const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<PodcastBrowsingState>('podcast');
 
-  // State — initialized from saved browsing state if available
-  const [searchResults, setSearchResults] = useState<PodcastShow[]>(savedBrowsing?.searchResults as PodcastShow[] ?? []);
-  const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
+  // State — initialized from saved browsing state (in-session) or search cache (cross-session)
+  const [searchResults, setSearchResults] = useState<PodcastShow[]>(
+    savedBrowsing?.searchResults as PodcastShow[] ?? cachedPodcastSearch?.results ?? []
+  );
+  const [searchQuery, setSearchQuery] = useState(
+    savedBrowsing?.searchQuery ?? cachedPodcastSearch?.query ?? ''
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | 'parse' | null>(null);
   // Active tab — 'recent' is the default landing page; restored from browsing state
@@ -492,13 +500,16 @@ export function PodcastScreen() {
         t(`modules.podcast.errors.${result.error}`)
       );
     } else {
-      setSearchResults(result.data ?? []);
-      if (result.data?.length === 0) {
+      const results = result.data ?? [];
+      setSearchResults(results);
+      // Persist to AsyncStorage for cross-session restore
+      savePodcastSearch(searchQuery.trim(), results);
+      if (results.length === 0) {
         AccessibilityInfo.announceForAccessibility(t('modules.podcast.noResults'));
       }
     }
     setIsLoading(false);
-  }, [searchQuery, selectedCountry, triggerFeedback, t]);
+  }, [searchQuery, selectedCountry, triggerFeedback, t, savePodcastSearch]);
 
   // Find the last played episode with progress for a show
   const findLastPlayedEpisode = useCallback((episodes: PodcastEpisode[]): PodcastEpisode | null => {
@@ -1527,7 +1538,7 @@ export function PodcastScreen() {
               </View>
             }
             contentBlock={
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
                 {/* Separator between controls and results */}
                 <View style={{ height: 4, backgroundColor: podcastModuleColor, opacity: 0.4 }} />
 
@@ -1855,7 +1866,6 @@ const styles = StyleSheet.create({
   },
   showList: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   showListContent: {
     padding: spacing.md,

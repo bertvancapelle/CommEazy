@@ -86,3 +86,6 @@ export {
   type UseScrollToFieldReturn,
   type ScrollToFieldOptions,
 } from './useScrollToField';
+
+// Search Cache (module-level search persistence)
+export { useSearchCache, type SearchCacheEntry } from './useSearchCache';

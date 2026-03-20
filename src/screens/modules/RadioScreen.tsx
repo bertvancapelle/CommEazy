@@ -52,6 +52,7 @@ import { useGlassPlayer } from '@/hooks/useGlassPlayer';
 import { useModuleBrowsingState, type RadioBrowsingState } from '@/contexts/ModuleBrowsingContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { useRecentStations } from '@/hooks/useRecentStations';
+import { useSearchCache } from '@/hooks/useSearchCache';
 import { ServiceContainer } from '@/services/container';
 import { scrapeStationArtwork, getCachedArtworkSync } from '@/services/stationArtworkService';
 import { COUNTRIES, LANGUAGES, detectCountryFromLocale, detectLanguageFromLocale } from '@/constants/demographics';
@@ -369,11 +370,16 @@ export function RadioScreen() {
     console.log('[RadioScreen] isCheckingGlassPlayerAvailability:', isCheckingGlassPlayerAvailability, 'isGlassPlayerAvailable:', isGlassPlayerAvailable);
   }, [isCheckingGlassPlayerAvailability, isGlassPlayerAvailable]);
 
+  // Search cache — persists last manual search query + results across app restarts
+  const { cachedSearch: cachedRadioSearch, saveSearch: saveRadioSearch } = useSearchCache<RadioStation>('radio');
+
   // Browsing state persistence — restores tab, search, filters on return
   const { savedState: savedBrowsing, save: saveBrowsing } = useModuleBrowsingState<RadioBrowsingState>('radio');
 
-  // State — initialized from saved browsing state if available
-  const [stations, setStations] = useState<RadioStation[]>(savedBrowsing?.stations as RadioStation[] ?? []);
+  // State — initialized from saved browsing state (in-session) or search cache (cross-session)
+  const [stations, setStations] = useState<RadioStation[]>(
+    savedBrowsing?.stations as RadioStation[] ?? cachedRadioSearch?.results ?? []
+  );
   const [favorites, setFavorites] = useState<FavoriteStation[]>([]);
   const [selectedCountry, setSelectedCountry] = useState(
     savedBrowsing?.selectedCountry ?? userCountryCode ?? detectCountryFromLocale(i18n.language)
@@ -382,7 +388,9 @@ export function RadioScreen() {
     savedBrowsing?.selectedLanguage ?? detectLanguageFromLocale(i18n.language)
   );
   const [filterMode, setFilterMode] = useState<FilterMode>(savedBrowsing?.filterMode ?? 'country');
-  const [searchQuery, setSearchQuery] = useState(savedBrowsing?.searchQuery ?? '');
+  const [searchQuery, setSearchQuery] = useState(
+    savedBrowsing?.searchQuery ?? cachedRadioSearch?.query ?? ''
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<'network' | 'timeout' | 'server' | null>(null);
   // Active tab — 'recent' is the default landing page; restored from browsing state
@@ -761,10 +769,13 @@ export function RadioScreen() {
         t(`modules.radio.errors.${result.error}`)
       );
     } else {
-      setStations(result.data ?? []);
+      const results = result.data ?? [];
+      setStations(results);
+      // Persist manual search to AsyncStorage for cross-session restore
+      saveRadioSearch(searchQuery.trim(), results);
     }
     setIsLoading(false);
-  }, [searchQuery, selectedCountry, selectedLanguage, filterMode, loadStations, triggerFeedback, t]);
+  }, [searchQuery, selectedCountry, selectedLanguage, filterMode, loadStations, triggerFeedback, t, saveRadioSearch]);
 
   // Debounced search — automatically search 500ms after user stops typing
   useEffect(() => {
