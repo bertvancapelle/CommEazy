@@ -152,19 +152,20 @@ patchRNScreensCodegen();
 // in RadioContext.tsx (use removeUpcomingTracks + skipToNext instead).
 
 // ============================================================
-// SwiftAudioEx: AirPlay route change guard (v2 — reason-aware)
+// SwiftAudioEx: AirPlay route change guard (v3 — 7s timer + smart .playing detection)
 // ============================================================
 // When switching to/from AirPlay (or connecting Bluetooth), iOS momentarily
 // pauses AVPlayer during route negotiation. SwiftAudioEx's pause handler
-// (AVPlayerWrapper.swift line ~440) interprets this as an external
-// disconnect and sets playWhenReady=false → rate=0, which kills the
-// AirPlay connection after ~5-6 seconds of timeout.
+// interprets this as an external disconnect and sets playWhenReady=false →
+// rate=0, which kills the AirPlay connection.
 //
-// Fix v2: Route change observer that reads the AVAudioSession route change
-// reason. Only suppresses pause detection for .newDeviceAvailable (AirPlay
-// select, BT connect). After 1.5s, re-applies AVPlayer rate to kick
-// playback on the new route. Device disconnections (.oldDeviceUnavailable)
-// are NOT suppressed so headphone-off → pause works normally.
+// Fix v3 improvements over v2:
+// - Timer increased from 1.5s to 7s (AirPlay 2 enhanced buffering negotiation
+//   takes 5-6 seconds; 1.5s was too short, causing applyAVPlayerRate() to fire
+//   during active negotiation which disrupted the AirPlay 2 handshake)
+// - Smart .playing detection: when .playing TimeControlStatus fires (route has
+//   actually settled), clear the guard immediately instead of waiting for timeout
+// - Only re-apply rate if not already playing (prevents double-apply)
 function patchSwiftAudioExAirPlayGuard() {
   const filePath = path.join(
     __dirname, '..', 'ios', 'Pods', 'SwiftAudioEx', 'Sources',
@@ -193,16 +194,14 @@ function patchSwiftAudioExAirPlayGuard() {
     stateQueueDecl,
     `${stateQueueDecl}
 
-    // MARK: - AirPlay Route Change Guard
+    // MARK: - AirPlay Route Change Guard (v3)
     // When switching to/from AirPlay (or connecting Bluetooth), iOS momentarily
     // pauses AVPlayer during route negotiation. Without this guard, the .paused
     // status handler sets playWhenReady=false → rate=0 → kills the connection.
     //
-    // Strategy: Only suppress pause detection for NEW device connections (AirPlay
-    // select, BT headphone connect). For device disconnections (BT headphone off,
-    // AirPlay deselect), let the normal pause handler work as designed.
-    // After a new-device route change, re-apply AVPlayer rate to kick playback
-    // on the new output route.
+    // Strategy: Suppress pause detection for NEW device connections. Clear the
+    // guard when .playing fires (route settled) or after 7s safety timeout
+    // (covers AirPlay 2 enhanced buffering negotiation which takes 5-6s).
     private var isRouteChanging: Bool = false
     private var routeChangeTimer: Timer?`
   );
@@ -239,17 +238,26 @@ function patchSwiftAudioExAirPlayGuard() {
         case .newDeviceAvailable:
             // New device connected (AirPlay selected, BT headphone connected).
             // iOS will momentarily pause AVPlayer during route negotiation.
-            // Suppress pause detection and re-apply rate after route settles.
+            // AirPlay 2 enhanced buffering negotiation takes 5-6 seconds.
+            // Suppress pause detection until the route has fully settled.
+            //
+            // Strategy: set isRouteChanging=true immediately, then clear it
+            // when we observe .playing TimeControlStatus (route settled) or
+            // after a 7s safety timeout (longer than AirPlay 2 handshake).
+            // Do NOT re-apply avPlayer.rate during negotiation — let iOS
+            // complete the AirPlay 2 handshake first.
             isRouteChanging = true
             routeChangeTimer?.invalidate()
-            routeChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { [weak self] _ in
+            routeChangeTimer = Timer.scheduledTimer(withTimeInterval: 7.0, repeats: false) { [weak self] _ in
                 guard let self = self else { return }
-                self.isRouteChanging = false
-                // Re-apply AVPlayer rate to kick playback on the new output route.
-                // Without this, AVPlayer stays at rate=0 after the route transition
-                // even though playWhenReady is still true.
-                if self.playWhenReady {
-                    self.applyAVPlayerRate()
+                if self.isRouteChanging {
+                    self.isRouteChanging = false
+                    // Only re-apply rate if still wanting to play and not already playing.
+                    // The .playing case in didChangeTimeControlStatus may have already
+                    // cleared isRouteChanging and resumed playback.
+                    if self.playWhenReady && self.avPlayer.timeControlStatus != .playing {
+                        self.applyAVPlayerRate()
+                    }
                 }
             }
 
@@ -286,7 +294,7 @@ function patchSwiftAudioExAirPlayGuard() {
                     // Skip pause detection during new-device route changes (AirPlay
                     // select, BT connect). isRouteChanging is only set for
                     // .newDeviceAvailable, NOT for .oldDeviceUnavailable (disconnect).
-                    // Rate is re-applied after 1.5s by the route change timer.
+                    // Rate is re-applied after route settles (7s timeout or .playing).
                     if (self.isRouteChanging) {
                         break
                     }
@@ -296,8 +304,31 @@ function patchSwiftAudioExAirPlayGuard() {
                     }`
   );
 
+  // 4. Add smart .playing detection — clear route change guard when playback starts
+  const playingCase = `        case .playing:
+            self.state = .playing`;
+
+  if (!content.includes(playingCase)) {
+    console.log('[patch-packages] WARNING: Could not find .playing case in AVPlayerWrapper.swift');
+    fs.writeFileSync(filePath, content, 'utf8');
+    console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: AirPlay route change guard (v3 — partial, missing .playing detection)');
+    return;
+  }
+
+  content = content.replace(
+    playingCase,
+    `        case .playing:
+            // If we were waiting for an AirPlay/BT route transition to settle,
+            // the route has now settled — clear the guard and cancel the timeout.
+            if self.isRouteChanging {
+                self.isRouteChanging = false
+                self.routeChangeTimer?.invalidate()
+            }
+            self.state = .playing`
+  );
+
   fs.writeFileSync(filePath, content, 'utf8');
-  console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: AirPlay route change guard (v2 reason-aware)');
+  console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: AirPlay route change guard (v3 — 7s timer + .playing detection)');
 }
 
 patchSwiftAudioExAirPlayGuard();
@@ -460,3 +491,66 @@ function patchRNFBMessagingForFirebaseAuth() {
 }
 
 patchRNFBMessagingForFirebaseAuth();
+
+// ============================================================
+// RNTrackPlayer: Guard configureAudioSession setCategory calls
+// ============================================================
+// RNTrackPlayer calls configureAudioSession() on every playWhenReady change.
+// The original unconditionally calls setCategory() which during active AirPlay 2
+// playback triggers a route renegotiation — causing a 5-6s timeout and fallback
+// to the local speaker. This patch adds a needsUpdate check so setCategory() is
+// only called when the session configuration actually needs to change.
+function patchRNTrackPlayerConfigureAudioSession() {
+  const filePath = path.join(
+    __dirname, '..', 'node_modules',
+    'react-native-track-player', 'ios',
+    'RNTrackPlayer', 'RNTrackPlayer.swift'
+  );
+
+  if (!fs.existsSync(filePath)) return;
+
+  let content = fs.readFileSync(filePath, 'utf8');
+
+  // Already patched?
+  if (content.includes('needsUpdate')) return;
+
+  // Original code from react-native-track-player 4.1.2
+  const oldCode = `        if (player.playWhenReady) {
+            try? audioSessionController.activateSession()
+            if #available(iOS 11.0, *) {
+                try? AVAudioSession.sharedInstance().setCategory(sessionCategory, mode: sessionCategoryMode, policy: sessionCategoryPolicy, options: sessionCategoryOptions)
+            } else {
+                try? AVAudioSession.sharedInstance().setCategory(sessionCategory, mode: sessionCategoryMode, options: sessionCategoryOptions)
+            }
+        }`;
+
+  const newCode = `        if (player.playWhenReady) {
+            try? audioSessionController.activateSession()
+            // [patch-packages] Only call setCategory if the session doesn't already
+            // have the correct configuration. Calling setCategory during active
+            // AirPlay 2 playback triggers a route renegotiation that can cause a
+            // 5-6s timeout and fallback to the local speaker.
+            if #available(iOS 11.0, *) {
+                let session = AVAudioSession.sharedInstance()
+                let needsUpdate = session.category != sessionCategory
+                    || session.mode != sessionCategoryMode
+                    || session.routeSharingPolicy != sessionCategoryPolicy
+                    || session.categoryOptions != sessionCategoryOptions
+                if needsUpdate {
+                    try? session.setCategory(sessionCategory, mode: sessionCategoryMode, policy: sessionCategoryPolicy, options: sessionCategoryOptions)
+                }
+            } else {
+                try? AVAudioSession.sharedInstance().setCategory(sessionCategory, mode: sessionCategoryMode, options: sessionCategoryOptions)
+            }
+        }`;
+
+  if (content.includes(oldCode)) {
+    content = content.replace(oldCode, newCode);
+    fs.writeFileSync(filePath, content, 'utf8');
+    console.log('[patch-packages] Patched RNTrackPlayer.swift: configureAudioSession setCategory guard');
+  } else {
+    console.log('[patch-packages] WARNING: Could not find original configureAudioSession in RNTrackPlayer.swift (may already be patched or version mismatch)');
+  }
+}
+
+patchRNTrackPlayerConfigureAudioSession();
