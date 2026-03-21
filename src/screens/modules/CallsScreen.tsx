@@ -40,7 +40,6 @@ import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import type { Contact, CallType } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
 import { ServiceContainer } from '@/services/container';
-import { chatService } from '@/services/chat';
 import type { RootStackParams } from '@/navigation';
 
 type CallsNavigationProp = NativeStackNavigationProp<RootStackParams>;
@@ -152,8 +151,8 @@ export function CallsScreen() {
   useEffect(() => {
     const loadContacts = async () => {
       try {
-        if (ServiceContainer.isInitialized && chatService.isInitialized) {
-          const contactList = await chatService.getContacts();
+        if (ServiceContainer.isInitialized) {
+          const contactList = await ServiceContainer.database.getContactsOnce();
           const sorted = [...contactList].sort((a, b) =>
             getContactDisplayName(a).localeCompare(getContactDisplayName(b), undefined, { sensitivity: 'base' })
           );

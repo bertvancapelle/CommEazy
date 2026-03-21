@@ -146,6 +146,11 @@ function patchRNScreensCodegen() {
 
 patchRNScreensCodegen();
 
+// NOTE: AirPlay session deactivation patch was removed — removing deactivateSession()
+// from configureAudioSession() caused audio to stop completely on both AirPlay AND
+// iPhone. The correct fix is to avoid TrackPlayer.reset() during station switches
+// in RadioContext.tsx (use removeUpcomingTracks + skipToNext instead).
+
 // ============================================================
 // Firebase 11.x + RNFB 21.x: FIRAuth Swift header compatibility
 // ============================================================
