@@ -49,7 +49,7 @@ import {
   type Book,
   type DownloadedBook,
 } from '@/services/gutenbergService';
-import { useAudioOrchestrator } from './AudioOrchestratorContext';
+import { useAudioOrchestrator, type AudioSourceState } from './AudioOrchestratorContext';
 import type {
   VoiceQualityStatus,
   BookMode,
@@ -148,6 +148,25 @@ export function BooksProvider({ children }: BooksProviderProps) {
   const downloadedBookIds = useRef<Set<string>>(new Set());
   const chapterProgressSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const playbackRateRef = useRef(1.0); // Ref for immediate access to current rate
+
+  // ── Refs for Audio Orchestrator Push+Pull ──
+  // These allow buildBooksState() to read latest state without triggering re-registration
+  const isSpeakingRef = useRef(isSpeaking);
+  isSpeakingRef.current = isSpeaking;
+  const isAudioPlayingRef = useRef(isAudioPlaying);
+  isAudioPlayingRef.current = isAudioPlaying;
+  const currentBookRef = useRef(currentBook);
+  currentBookRef.current = currentBook;
+  const bookModeRef = useRef(bookMode);
+  bookModeRef.current = bookMode;
+  const audioProgressRef = useRef(audioProgress);
+  audioProgressRef.current = audioProgress;
+  const ttsProgressRef = useRef(ttsProgress);
+  ttsProgressRef.current = ttsProgress;
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
+  const isAudioLoadingRef = useRef(isAudioLoading);
+  isAudioLoadingRef.current = isAudioLoading;
   const pageTransitionTimeoutRef = useRef<NodeJS.Timeout | null>(null); // For TTS page transition
 
   // ============================================================
@@ -733,10 +752,13 @@ export function BooksProvider({ children }: BooksProviderProps) {
     setIsSpeaking(false);
     setIsPaused(true);
 
+    // Push paused state to orchestrator
+    audioOrchestrator.updateState('books', { isPlaying: false });
+
     AccessibilityInfo.announceForAccessibility(
       t('modules.books.tts.pause')
     );
-  }, [t]);
+  }, [t, audioOrchestrator]);
 
   const resumeReading = useCallback(async () => {
     await ttsService.resume();
@@ -1088,6 +1110,9 @@ export function BooksProvider({ children }: BooksProviderProps) {
       setIsAudioPlaying(false);
       setIsAudioPaused(true);
 
+      // Push paused state to orchestrator
+      audioOrchestrator.updateState('books', { isPlaying: false });
+
       // Save progress immediately on pause
       if (currentBook && currentChapter) {
         const progress: ChapterProgress = {
@@ -1109,7 +1134,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
     } catch (error) {
       console.error('[BooksContext] pauseAudio failed:', error);
     }
-  }, [currentBook, currentChapter, currentChapterIndex, audioProgress, t]);
+  }, [currentBook, currentChapter, currentChapterIndex, audioProgress, t, audioOrchestrator]);
 
   /**
    * Stop audio playback completely (both Piper and system TTS)
@@ -1638,7 +1663,7 @@ export function BooksProvider({ children }: BooksProviderProps) {
   }, [ttsSettings]);
 
   // ============================================================
-  // Audio Orchestrator Registration
+  // Audio Orchestrator Registration (Push + Pull)
   // ============================================================
 
   // Use ref to provide stable stop function for orchestrator
@@ -1648,6 +1673,50 @@ export function BooksProvider({ children }: BooksProviderProps) {
   const stopReadingRef = useRef(stopReading);
   stopReadingRef.current = stopReading;
 
+  /**
+   * Build full AudioSourceState for the orchestrator (Pull fallback).
+   * Handles dual-mode: 'read' (system TTS) and 'listen' (Piper audio chapters).
+   */
+  const buildBooksState = useCallback((): AudioSourceState => {
+    const book = currentBookRef.current;
+    const mode = bookModeRef.current;
+    const isListenMode = mode === 'listen';
+
+    // Progress depends on mode
+    let progress = 0;
+    let position = 0;
+    let duration = 0;
+
+    if (isListenMode) {
+      const ap = audioProgressRef.current;
+      progress = ap.percentage / 100;
+      position = ap.position;
+      duration = ap.duration;
+    } else {
+      const tp = ttsProgressRef.current;
+      progress = tp.percentage / 100;
+      position = tp.position;
+      duration = tp.length;
+    }
+
+    return {
+      isPlaying: isSpeakingRef.current || isAudioPlayingRef.current,
+      isBuffering: isLoadingRef.current || isAudioLoadingRef.current,
+      title: book?.title || '',
+      subtitle: book?.author || '',
+      artwork: null,
+      progressType: 'bar',
+      progress,
+      listenDuration: 0,
+      position,
+      duration,
+      isFavorite: false,
+      sleepTimerActive: false,
+      playbackRate: playbackRateRef.current,
+      moduleId: 'books',
+    };
+  }, []);
+
   useEffect(() => {
     // Register books as an audio source with the orchestrator
     audioOrchestrator.registerSource('books', {
@@ -1656,13 +1725,32 @@ export function BooksProvider({ children }: BooksProviderProps) {
         await stopReadingRef.current();
         await stopAudioRef.current();
       },
-      isPlaying: () => isSpeaking || isAudioPlaying,
+      isPlaying: () => isSpeakingRef.current || isAudioPlayingRef.current,
+      getState: () => buildBooksState(),
     });
 
     return () => {
       audioOrchestrator.unregisterSource('books');
     };
-  }, [audioOrchestrator, isSpeaking, isAudioPlaying]);
+  }, [audioOrchestrator, buildBooksState]);
+
+  // ── Push state to orchestrator on every relevant change ──
+  useEffect(() => {
+    if (!isSpeaking && !isAudioPlaying) return; // Only push when actively playing
+    audioOrchestrator.updateState('books', buildBooksState());
+  }, [
+    isSpeaking,
+    isAudioPlaying,
+    isLoading,
+    isAudioLoading,
+    currentBook,
+    bookMode,
+    audioProgress,
+    ttsProgress,
+    playbackRate,
+    audioOrchestrator,
+    buildBooksState,
+  ]);
 
   // ============================================================
   // Context Value

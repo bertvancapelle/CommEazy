@@ -13,7 +13,10 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { NativeModules } from 'react-native';
 import { ttsService, type TtsProgress } from '@/services/ttsService';
 import { piperTtsService } from '@/services/piperTtsService';
-import { useAudioOrchestratorOptional } from '@/contexts/AudioOrchestratorContext';
+import { useAudioOrchestratorOptional, type AudioSourceState } from '@/contexts/AudioOrchestratorContext';
+
+/** Audio source key for mail TTS */
+const TTS_SOURCE = 'tts:mail' as const;
 
 // Languages that use Piper TTS (high-quality offline voices)
 const PIPER_SUPPORTED_LANGUAGES = ['nl-NL', 'nl-BE'];
@@ -166,7 +169,7 @@ export function useMailTTS(): UseMailTTSReturn {
         setIsPaused(false);
         setProgress(1);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -184,7 +187,7 @@ export function useMailTTS(): UseMailTTSReturn {
         setIsPaused(false);
         setProgress(0);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -194,7 +197,7 @@ export function useMailTTS(): UseMailTTSReturn {
         setIsPlaying(false);
         setIsLoading(false);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -211,7 +214,7 @@ export function useMailTTS(): UseMailTTSReturn {
         setIsPaused(false);
         setProgress(1);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -221,7 +224,7 @@ export function useMailTTS(): UseMailTTSReturn {
         setIsPlaying(false);
         setIsLoading(false);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -238,14 +241,39 @@ export function useMailTTS(): UseMailTTSReturn {
     };
   }, []);
 
-  // Register with audio orchestrator
+  // ── Refs for Audio Orchestrator Push+Pull ──
   const isPlayingRef = useRef(false);
   isPlayingRef.current = isPlaying;
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
 
+  /** Build AudioSourceState for the orchestrator (Pull fallback) */
+  const buildMailTtsState = useCallback((): AudioSourceState => {
+    return {
+      isPlaying: isPlayingRef.current,
+      isBuffering: isLoadingRef.current,
+      title: 'E-mail',
+      subtitle: '',
+      artwork: null,
+      progressType: 'bar',
+      progress: progressRef.current,
+      listenDuration: 0,
+      position: 0,
+      duration: 0,
+      isFavorite: false,
+      sleepTimerActive: false,
+      playbackRate: 1,
+      moduleId: 'mail',
+    };
+  }, []);
+
+  // Register with audio orchestrator
   useEffect(() => {
     if (!audioOrchestrator) return;
 
-    audioOrchestrator.registerSource('tts', {
+    audioOrchestrator.registerSource(TTS_SOURCE, {
       stop: async () => {
         await piperTtsService.stop();
         await ttsService.stop();
@@ -255,12 +283,19 @@ export function useMailTTS(): UseMailTTSReturn {
         currentEngineRef.current = null;
       },
       isPlaying: () => isPlayingRef.current,
+      getState: () => buildMailTtsState(),
     });
 
     return () => {
-      audioOrchestrator.unregisterSource('tts');
+      audioOrchestrator.unregisterSource(TTS_SOURCE);
     };
-  }, [audioOrchestrator]);
+  }, [audioOrchestrator, buildMailTtsState]);
+
+  // ── Push state to orchestrator on every relevant change ──
+  useEffect(() => {
+    if (!isPlaying || !audioOrchestrator) return;
+    audioOrchestrator.updateState(TTS_SOURCE, buildMailTtsState());
+  }, [isPlaying, isLoading, progress, audioOrchestrator, buildMailTtsState]);
 
   // ============================================================
   // Start reading
@@ -294,7 +329,7 @@ export function useMailTTS(): UseMailTTSReturn {
       const usePiper = shouldUsePiper(lang) && isPiperTtsInitRef.current;
 
       // Request exclusive playback (stops radio/podcast/music)
-      await audioOrchestratorRef.current?.requestPlayback('tts');
+      await audioOrchestratorRef.current?.requestPlayback(TTS_SOURCE);
 
       let success = false;
 
@@ -316,7 +351,7 @@ export function useMailTTS(): UseMailTTSReturn {
           setError('TTS playback failed');
           setIsLoading(false);
           currentEngineRef.current = null;
-          audioOrchestratorRef.current?.releasePlayback('tts');
+          audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
         }
       }
     } catch (err) {
@@ -324,7 +359,7 @@ export function useMailTTS(): UseMailTTSReturn {
         setError((err as Error).message);
         setIsLoading(false);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     }
   }, [ensureInitialized]);
@@ -343,7 +378,7 @@ export function useMailTTS(): UseMailTTSReturn {
     setIsPaused(false);
     setProgress(0);
     currentEngineRef.current = null;
-    audioOrchestratorRef.current?.releasePlayback('tts');
+    audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
   }, []);
 
   const pauseReading = useCallback(async () => {
@@ -353,7 +388,9 @@ export function useMailTTS(): UseMailTTSReturn {
       await ttsService.pause();
     }
     setIsPaused(true);
-  }, []);
+    // Push paused state to orchestrator
+    audioOrchestrator?.updateState(TTS_SOURCE, { isPlaying: false });
+  }, [audioOrchestrator]);
 
   const resumeReading = useCallback(async () => {
     if (currentEngineRef.current === 'piper') {

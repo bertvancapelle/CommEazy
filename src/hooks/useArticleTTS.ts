@@ -22,8 +22,11 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { ttsService, TtsProgress } from '@/services/ttsService';
 import { piperTtsService } from '@/services/piperTtsService';
 import { newsService } from '@/services/newsService';
-import { useAudioOrchestratorOptional } from '@/contexts/AudioOrchestratorContext';
+import { useAudioOrchestratorOptional, type AudioSourceState } from '@/contexts/AudioOrchestratorContext';
 import type { NewsArticle } from '@/types/modules';
+
+/** Audio source key for article TTS */
+const TTS_SOURCE = 'tts:article' as const;
 
 // Default TTS settings
 const DEFAULT_SPEECH_RATE = 1.0;
@@ -175,7 +178,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setProgress(1);
         setCurrentArticle(null);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -201,7 +204,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setProgress(0);
         setCurrentArticle(null);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -212,7 +215,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsPlaying(false);
         setIsLoading(false);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -230,7 +233,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setProgress(1);
         setCurrentArticle(null);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -240,7 +243,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsPlaying(false);
         setIsLoading(false);
         currentEngineRef.current = null;
-        audioOrchestratorRef.current?.releasePlayback('tts');
+        audioOrchestratorRef.current?.releasePlayback(TTS_SOURCE);
       }
     });
 
@@ -259,14 +262,42 @@ export function useArticleTTS(): UseArticleTTSReturn {
     };
   }, []);
 
-  // Register/unregister as TTS audio source with orchestrator
+  // ── Refs for Audio Orchestrator Push+Pull ──
   const isPlayingRef = useRef(false);
   isPlayingRef.current = isPlaying;
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+  const currentArticleRef = useRef(currentArticle);
+  currentArticleRef.current = currentArticle;
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
 
+  /** Build AudioSourceState for the orchestrator (Pull fallback) */
+  const buildArticleTtsState = useCallback((): AudioSourceState => {
+    const article = currentArticleRef.current;
+    return {
+      isPlaying: isPlayingRef.current,
+      isBuffering: isLoadingRef.current,
+      title: article?.title || '',
+      subtitle: article?.source || '',
+      artwork: article?.imageUrl ?? null,
+      progressType: 'bar',
+      progress: progressRef.current,
+      listenDuration: 0,
+      position: 0,
+      duration: 0,
+      isFavorite: false,
+      sleepTimerActive: false,
+      playbackRate: 1,
+      moduleId: article?.moduleId || 'nunl',
+    };
+  }, []);
+
+  // Register/unregister as TTS audio source with orchestrator
   useEffect(() => {
     if (!audioOrchestrator) return;
 
-    audioOrchestrator.registerSource('tts', {
+    audioOrchestrator.registerSource(TTS_SOURCE, {
       stop: async () => {
         await piperTtsService.stop();
         await ttsService.stop();
@@ -278,12 +309,19 @@ export function useArticleTTS(): UseArticleTTSReturn {
         currentEngineRef.current = null;
       },
       isPlaying: () => isPlayingRef.current,
+      getState: () => buildArticleTtsState(),
     });
 
     return () => {
-      audioOrchestrator.unregisterSource('tts');
+      audioOrchestrator.unregisterSource(TTS_SOURCE);
     };
-  }, [audioOrchestrator]);
+  }, [audioOrchestrator, buildArticleTtsState]);
+
+  // ── Push state to orchestrator on every relevant change ──
+  useEffect(() => {
+    if (!isPlaying || !audioOrchestrator) return;
+    audioOrchestrator.updateState(TTS_SOURCE, buildArticleTtsState());
+  }, [isPlaying, isLoading, progress, currentArticle, audioOrchestrator, buildArticleTtsState]);
 
   /**
    * Start TTS playback
@@ -320,7 +358,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
 
         // Request exclusive playback (stops radio/podcast/books/etc.)
         if (audioOrchestrator) {
-          await audioOrchestrator.requestPlayback('tts');
+          await audioOrchestrator.requestPlayback(TTS_SOURCE);
         }
 
         // Get language for this module
@@ -370,7 +408,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
           setError('TTS playback failed');
           setCurrentArticle(null);
           currentEngineRef.current = null;
-          audioOrchestrator?.releasePlayback('tts');
+          audioOrchestrator?.releasePlayback(TTS_SOURCE);
         }
       } catch (err) {
         console.error('[useArticleTTS] Error starting TTS:', err);
@@ -378,7 +416,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsLoading(false);
         setCurrentArticle(null);
         currentEngineRef.current = null;
-        audioOrchestrator?.releasePlayback('tts');
+        audioOrchestrator?.releasePlayback(TTS_SOURCE);
       }
     },
     [audioOrchestrator]
@@ -405,7 +443,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
 
         // Request exclusive playback (stops radio/podcast/books/etc.)
         if (audioOrchestrator) {
-          await audioOrchestrator.requestPlayback('tts');
+          await audioOrchestrator.requestPlayback(TTS_SOURCE);
         }
 
         // Get language for this module
@@ -455,7 +493,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
           setError('TTS playback failed');
           setCurrentArticle(null);
           currentEngineRef.current = null;
-          audioOrchestrator?.releasePlayback('tts');
+          audioOrchestrator?.releasePlayback(TTS_SOURCE);
         }
       } catch (err) {
         console.error('[useArticleTTS] Error starting TTS with text:', err);
@@ -463,7 +501,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
         setIsLoading(false);
         setCurrentArticle(null);
         currentEngineRef.current = null;
-        audioOrchestrator?.releasePlayback('tts');
+        audioOrchestrator?.releasePlayback(TTS_SOURCE);
       }
     },
     [audioOrchestrator]
@@ -483,7 +521,7 @@ export function useArticleTTS(): UseArticleTTSReturn {
     setCurrentSentence('');
     setCurrentArticle(null);
     currentEngineRef.current = null;
-    audioOrchestrator?.releasePlayback('tts');
+    audioOrchestrator?.releasePlayback(TTS_SOURCE);
   }, [audioOrchestrator]);
 
   /**
@@ -497,7 +535,9 @@ export function useArticleTTS(): UseArticleTTSReturn {
       await ttsService.pause();
       // State will be updated by event listener
     }
-  }, []);
+    // Push paused state to orchestrator
+    audioOrchestrator?.updateState(TTS_SOURCE, { isPlaying: false });
+  }, [audioOrchestrator]);
 
   /**
    * Resume TTS playback

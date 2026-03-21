@@ -6,23 +6,16 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-20
-- **Sessie:** Apple Music module redesign — 3-tab layout, search modal, combined favorites
-- **Commit:** `0967435`
+- **Sessie:** AirPlay routing fix — longFormAudio policy + TTS route sharing preservation
+- **Commit:** `6967837`
 
 ## Voltooide Taken Deze Sessie
 
-1. **Apple Music module redesign** (`0967435`)
-   - Vervangen 2-tab (favorites|search) met 3-tab (recent|favorites|search) via TabButtonRow
-   - Zoeken verplaatst van inline tab naar PanelAwareModal (consistent met Radio/Podcast)
-   - Recent tab toegevoegd met sub-toggle: "Onlangs beluisterd" / "Ontdekken"
-   - Favorieten tab: Verzamelingen + Albums gecombineerd in scrollbare view (artists sub-tab verwijderd)
-   - Favorites dropdown menu verwijderd, section headers toegevoegd
-   - useSearchCache integratie voor cross-session zoek persistentie
-   - albumTitle als 3e regel in zoekresultaten voor songs
-   - Hart-knoppen verwijderd van artist/playlist zoekresultaten
-   - i18n key `modules.appleMusic.search.resultsFound` in 13 locales
-   - AppleMusicBrowsingState type uitgebreid met `recentSubTab` veld
-   - Dead code opgeruimd: artistStatsMap, sortedArtists, showFavoritesDropdown
+1. **AirPlay routing fix** (`6967837`)
+   - Root cause: TrackPlayer gebruikte `.default` route sharing policy i.p.v. `.longFormAudio`
+   - Root cause 2: TtsModule.m en PiperTtsModule.mm gebruikten 4-parameter `setCategory` die de route sharing policy reset naar `.default`, waardoor AirPlay route werd verbroken
+   - Fix 1: `iosCategoryPolicy: 'longFormAudio'` toegevoegd aan `TrackPlayer.setupPlayer()` in RadioContext.tsx en PodcastContext.tsx
+   - Fix 2: TtsModule.m en PiperTtsModule.mm nu 5-parameter `setCategory` met `routeSharingPolicy:currentPolicy` om bestaande AirPlay route te preserven
 
 ## Openstaande Taken
 
@@ -37,19 +30,15 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| 3-tab layout i.p.v. 2-tab | Consistentie met Radio en Podcast modules die al 3-tab hebben |
-| Search in modal i.p.v. inline | Module Search Pattern (CLAUDE.md sectie 15): Discovery = modal |
-| Artists sub-tab verwijderd | Artiest-favorieten waren verwarrend; songs en albums zijn de primaire eenheden |
-| Verzamelingen + Albums gecombineerd | Eenvoudiger voor senioren — één scrollbare view i.p.v. tab-switching |
-| favoritesSubTab state behouden | Backward compatibility met opgeslagen browsing state; graceful migration van 'artists' → 'playlists' |
-| Hart-knoppen weg bij artists/playlists in search | Alleen songs en albums krijgen favorieten — consistent met Apple Music UX |
+| `longFormAudio` policy i.p.v. `.default` | Apple's aanbeveling voor music/podcast apps; routeert audio naar dezelfde output als ingebouwde Music/Podcast apps en enabled enhanced AirPlay 2 buffering |
+| 5-parameter `setCategory` in TTS modules | 4-parameter versie (zonder `routeSharingPolicy`) reset policy impliciet naar `.default`, wat AirPlay routing verbreekt na TTS initialisatie |
+| `allowsExternalPlayback` niet gepatcht | Is voor VIDEO external playback, niet audio-only AirPlay; SwiftAudioEx zet het op `false` maar dat is irrelevant voor audio streams |
+| Geen `AVAudioSessionCategoryOptionAllowAirPlay` toegevoegd | `.playback` category ondersteunt AirPlay impliciet; optie is alleen nodig voor `.playAndRecord` |
 
 ## Context voor Volgende Sessie
 
-- `src/screens/modules/AppleMusicScreen.tsx` — Volledig geredesigned (~3100 regels)
-  - `renderTabBar` (~lijn 2214): TabButtonRow met Recent/Favorites/Search
-  - `renderFavoritesTab` (~lijn 1894): Gecombineerde Verzamelingen + Albums view
-  - `renderIOSContent` (~lijn 2192): Tab routing + search modal rendering
-  - `renderSearchModalContent`: PanelAwareModal met ModalLayout + useModalLayoutBottom
-- `src/contexts/ModuleBrowsingContext.tsx` (~lijn 78): AppleMusicBrowsingState type met `recentSubTab`
-- `src/screens/modules/SongCollectionModal.tsx` — Ongewijzigd, potentiële uitbreiding voor bulk album adding
+- `src/contexts/RadioContext.tsx` (~lijn 118): TrackPlayer.setupPlayer met `iosCategoryPolicy: 'longFormAudio'`
+- `src/contexts/PodcastContext.tsx` (~lijn 157): Idem
+- `ios/CommEazyTemp/TtsModule.m` (~lijn 64-77): 5-parameter setCategory met route policy preservation
+- `ios/CommEazyTemp/PiperTtsModule.mm` (~lijn 65-78): Idem
+- AirPlay fix moet getest worden op fysiek device met AirPlay speaker

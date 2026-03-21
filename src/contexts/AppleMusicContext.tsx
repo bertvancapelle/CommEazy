@@ -34,7 +34,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
-import { useAudioOrchestrator } from './AudioOrchestratorContext';
+import { useAudioOrchestrator, type AudioSourceState } from './AudioOrchestratorContext';
 import type {
   AppleMusicAuthStatus,
   ShuffleMode,
@@ -810,11 +810,13 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
 
     try {
       await AppleMusicModule.pause();
+      // Push paused state — keeps activeSource (pause is resumable)
+      audioOrchestrator.updateState('appleMusic', { isPlaying: false });
       AccessibilityInfo.announceForAccessibility(t('modules.appleMusic.paused'));
     } catch (error) {
       console.error('[AppleMusicContext] Pause error:', error);
     }
-  }, [isIOS, t]);
+  }, [isIOS, audioOrchestrator, t]);
 
   const resume = useCallback(async () => {
     if (!isIOS || !AppleMusicModule) return;
@@ -976,7 +978,7 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   }, [isAndroid]);
 
   // ============================================================
-  // Audio Orchestrator Registration
+  // Audio Orchestrator Registration + State Push
   // ============================================================
 
   // Use refs to provide stable callbacks for orchestrator (prevents re-registration cycles)
@@ -984,6 +986,42 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   stopRef.current = stop;
   const isPlayingRef = useRef(isPlaying);
   isPlayingRef.current = isPlaying;
+
+  // Refs for getState pull fallback (all state needed to build AudioSourceState)
+  const nowPlayingRef = useRef(nowPlaying);
+  nowPlayingRef.current = nowPlaying;
+  const playbackStateRef = useRef(playbackState);
+  playbackStateRef.current = playbackState;
+  const effectiveArtworkUrlRef = useRef(effectiveArtworkUrl);
+  effectiveArtworkUrlRef.current = effectiveArtworkUrl;
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
+  const sleepTimerActiveRef = useRef(sleepTimerActive);
+  sleepTimerActiveRef.current = sleepTimerActive;
+
+  // Build full state snapshot for Push + Pull
+  const buildAppleMusicState = useCallback((): AudioSourceState => {
+    const song = nowPlayingRef.current;
+    const state = playbackStateRef.current;
+    const position = state?.currentTime ?? 0;
+    const duration = (song as any)?.duration ?? 0;
+    return {
+      isPlaying: isPlayingRef.current,
+      isBuffering: isLoadingRef.current,
+      title: song?.title || '',
+      subtitle: (song as any)?.artistName || '',
+      artwork: effectiveArtworkUrlRef.current ?? null,
+      progressType: 'bar',
+      progress: duration > 0 ? position / duration : 0,
+      listenDuration: 0,
+      position,
+      duration,
+      isFavorite: false, // Apple Music doesn't track favorites via context
+      sleepTimerActive: sleepTimerActiveRef.current,
+      playbackRate: 1,
+      moduleId: 'appleMusic',
+    };
+  }, []);
 
   useEffect(() => {
     // Register Apple Music as an audio source with the orchestrator
@@ -993,12 +1031,29 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
         await stopRef.current();
       },
       isPlaying: () => isPlayingRef.current,
+      getState: () => buildAppleMusicState(),
     });
 
     return () => {
       audioOrchestrator.unregisterSource('appleMusic');
     };
-  }, [audioOrchestrator]);
+  }, [audioOrchestrator, buildAppleMusicState]);
+
+  // Push state to orchestrator whenever Apple Music state changes
+  // Only pushes when appleMusic is the active source (orchestrator ignores otherwise)
+  useEffect(() => {
+    if (audioOrchestrator.activeSource !== 'appleMusic') return;
+    audioOrchestrator.updateState('appleMusic', buildAppleMusicState());
+  }, [
+    isPlaying,
+    nowPlaying,
+    playbackState,
+    effectiveArtworkUrl,
+    isLoading,
+    sleepTimerActive,
+    audioOrchestrator,
+    buildAppleMusicState,
+  ]);
 
   // ============================================================
   // Context Value

@@ -37,7 +37,7 @@ import TrackPlayer, {
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useAudioOrchestrator } from './AudioOrchestratorContext';
+import { useAudioOrchestrator, type AudioSourceState } from './AudioOrchestratorContext';
 
 // ============================================================
 // Types
@@ -523,9 +523,6 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
         setCurrentEpisode(episode);
         setCurrentShow(show);
 
-        // Stop any current playback
-        await TrackPlayer.reset();
-
         // Get resume position if available
         const savedProgress = episodeProgress[episode.id];
         const startPosition = savedProgress?.position && !savedProgress.completedAt
@@ -535,8 +532,10 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
         // Log the stream URL for debugging
         console.debug('[PodcastContext] Stream URL:', episode.streamUrl);
 
-        // Add the new track
-        await TrackPlayer.add({
+        // Use TrackPlayer.load() instead of reset()+add() to preserve the
+        // AirPlay audio route. reset() causes a nil-item transition that
+        // deactivates the audio session, dropping the AirPlay route.
+        await TrackPlayer.load({
           id: episode.id,
           url: episode.streamUrl,
           title: episode.title,
@@ -591,6 +590,8 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     try {
       await TrackPlayer.pause();
       setIsLoading(false); // Defense-in-depth: ensure loading clears on pause
+      // Push paused state — keeps activeSource (pause is resumable)
+      audioOrchestrator.updateState('podcast', { isPlaying: false });
       AccessibilityInfo.announceForAccessibility(t('modules.podcast.paused'));
 
       // Save progress immediately on pause
@@ -609,7 +610,7 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     } catch (error) {
       console.error('[PodcastContext] Failed to pause:', error);
     }
-  }, [isInitialized, currentEpisode, trackProgress, t]);
+  }, [isInitialized, currentEpisode, trackProgress, audioOrchestrator, t]);
 
   const stop = useCallback(async () => {
     if (!isInitialized) return;
@@ -768,7 +769,7 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   }, [subscriptions]);
 
   // ============================================================
-  // Audio Orchestrator Registration
+  // Audio Orchestrator Registration + State Push
   // ============================================================
 
   // Use refs to provide stable callbacks for orchestrator (prevents re-registration cycles)
@@ -776,6 +777,44 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   stopRef.current = stop;
   const isPlayingRef = useRef(isPlaying);
   isPlayingRef.current = isPlaying;
+
+  // Refs for getState pull fallback (all state needed to build AudioSourceState)
+  const isBufferingRef = useRef(isBuffering);
+  isBufferingRef.current = isBuffering;
+  const currentEpisodeRef = useRef(currentEpisode);
+  currentEpisodeRef.current = currentEpisode;
+  const currentShowRef = useRef(currentShow);
+  currentShowRef.current = currentShow;
+  const trackProgressRef = useRef(trackProgress);
+  trackProgressRef.current = trackProgress;
+  const playbackRateRef = useRef(playbackRate);
+  playbackRateRef.current = playbackRate;
+  const sleepTimerMinutesRef = useRef(sleepTimerMinutes);
+  sleepTimerMinutesRef.current = sleepTimerMinutes;
+
+  // Build full state snapshot for Push + Pull
+  const buildPodcastState = useCallback((): AudioSourceState => {
+    const episode = currentEpisodeRef.current;
+    const show = currentShowRef.current;
+    const prog = trackProgressRef.current;
+    const duration = prog.duration || episode?.duration || 0;
+    return {
+      isPlaying: isPlayingRef.current,
+      isBuffering: isBufferingRef.current,
+      title: episode?.title || '',
+      subtitle: show?.title || '',
+      artwork: episode?.artwork || show?.artwork || null,
+      progressType: 'bar',
+      progress: duration > 0 ? prog.position / duration : 0,
+      listenDuration: 0,
+      position: prog.position,
+      duration,
+      isFavorite: false, // PodcastContext doesn't track favorites per episode — screen overrides via push
+      sleepTimerActive: sleepTimerMinutesRef.current !== null,
+      playbackRate: playbackRateRef.current,
+      moduleId: 'podcast',
+    };
+  }, []);
 
   useEffect(() => {
     // Register podcast as an audio source with the orchestrator
@@ -785,12 +824,31 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
         await stopRef.current();
       },
       isPlaying: () => isPlayingRef.current,
+      getState: () => buildPodcastState(),
     });
 
     return () => {
       audioOrchestrator.unregisterSource('podcast');
     };
-  }, [audioOrchestrator]);
+  }, [audioOrchestrator, buildPodcastState]);
+
+  // Push state to orchestrator whenever podcast state changes
+  // Only pushes when podcast is the active source (orchestrator ignores otherwise)
+  useEffect(() => {
+    if (audioOrchestrator.activeSource !== 'podcast') return;
+    audioOrchestrator.updateState('podcast', buildPodcastState());
+  }, [
+    isPlaying,
+    isBuffering,
+    currentEpisode,
+    currentShow,
+    trackProgress.position,
+    trackProgress.duration,
+    playbackRate,
+    sleepTimerMinutes,
+    audioOrchestrator,
+    buildPodcastState,
+  ]);
 
   // ============================================================
   // Context Value

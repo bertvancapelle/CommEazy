@@ -37,7 +37,7 @@ import TrackPlayer, {
 import { useTranslation } from 'react-i18next';
 
 import { fetchArtwork } from '@/services/artworkService';
-import { useAudioOrchestrator } from './AudioOrchestratorContext';
+import { useAudioOrchestrator, type AudioSourceState } from './AudioOrchestratorContext';
 
 // ============================================================
 // Types
@@ -356,11 +356,12 @@ export function RadioProvider({ children }: RadioProviderProps) {
         setMetadata({}); // Clear previous metadata
         setShowPlayer(true);
 
-        // Stop any current playback
-        await TrackPlayer.reset();
-
-        // Add the new track
-        await TrackPlayer.add({
+        // Use TrackPlayer.load() instead of reset()+add()+play() to preserve
+        // the AirPlay audio route. reset() causes the player's currentItem to
+        // become nil, which triggers audio session deactivation and drops the
+        // AirPlay route. load() replaces the current track directly without
+        // a nil transition, keeping the audio session and route intact.
+        await TrackPlayer.load({
           id: station.id,
           url: station.streamUrl,
           title: station.name,
@@ -407,11 +408,13 @@ export function RadioProvider({ children }: RadioProviderProps) {
     try {
       await TrackPlayer.pause();
       setIsLoading(false); // Defense-in-depth: ensure loading clears on pause
+      // Push paused state — keeps activeSource (pause is resumable)
+      audioOrchestrator.updateState('radio', { isPlaying: false });
       AccessibilityInfo.announceForAccessibility(t('modules.radio.paused'));
     } catch (error) {
       console.error('[RadioContext] Failed to pause:', error);
     }
-  }, [isInitialized, t]);
+  }, [isInitialized, audioOrchestrator, t]);
 
   const stop = useCallback(async () => {
     if (!isInitialized) return;
@@ -431,7 +434,7 @@ export function RadioProvider({ children }: RadioProviderProps) {
   }, [isInitialized, audioOrchestrator, t]);
 
   // ============================================================
-  // Audio Orchestrator Registration
+  // Audio Orchestrator Registration + State Push
   // ============================================================
 
   // Use refs to provide stable callbacks for orchestrator (prevents re-registration cycles)
@@ -440,6 +443,40 @@ export function RadioProvider({ children }: RadioProviderProps) {
   const isPlayingRef = useRef(isPlaying);
   isPlayingRef.current = isPlaying;
 
+  // Refs for getState pull fallback (all state needed to build AudioSourceState)
+  const isBufferingRef = useRef(isBuffering);
+  isBufferingRef.current = isBuffering;
+  const currentStationRef = useRef(currentStation);
+  currentStationRef.current = currentStation;
+  const metadataRef = useRef(metadata);
+  metadataRef.current = metadata;
+  const positionRef = useRef(progress.position);
+  positionRef.current = progress.position;
+  const sleepTimerActiveRef = useRef(sleepTimerActive);
+  sleepTimerActiveRef.current = sleepTimerActive;
+
+  // Build full state snapshot for Push + Pull
+  const buildRadioState = useCallback((): AudioSourceState => {
+    const station = currentStationRef.current;
+    const meta = metadataRef.current;
+    return {
+      isPlaying: isPlayingRef.current,
+      isBuffering: isBufferingRef.current,
+      title: meta.title || station?.name || '',
+      subtitle: meta.artist || station?.name || '',
+      artwork: meta.artwork || station?.favicon || null,
+      progressType: 'duration',
+      progress: 0,
+      listenDuration: positionRef.current,
+      position: positionRef.current,
+      duration: 0,
+      isFavorite: false,  // RadioContext doesn't track favorites — screen overrides via push
+      sleepTimerActive: sleepTimerActiveRef.current,
+      playbackRate: 1,
+      moduleId: 'radio',
+    };
+  }, []);
+
   useEffect(() => {
     // Register radio as an audio source with the orchestrator
     audioOrchestrator.registerSource('radio', {
@@ -447,12 +484,29 @@ export function RadioProvider({ children }: RadioProviderProps) {
         await stopRef.current();
       },
       isPlaying: () => isPlayingRef.current,
+      getState: () => buildRadioState(),
     });
 
     return () => {
       audioOrchestrator.unregisterSource('radio');
     };
-  }, [audioOrchestrator]);
+  }, [audioOrchestrator, buildRadioState]);
+
+  // Push state to orchestrator whenever radio state changes
+  // Only pushes when radio is the active source (orchestrator ignores otherwise)
+  useEffect(() => {
+    if (audioOrchestrator.activeSource !== 'radio') return;
+    audioOrchestrator.updateState('radio', buildRadioState());
+  }, [
+    isPlaying,
+    isBuffering,
+    metadata,
+    currentStation,
+    progress.position,
+    sleepTimerActive,
+    audioOrchestrator,
+    buildRadioState,
+  ]);
 
   // ============================================================
   // Context Value

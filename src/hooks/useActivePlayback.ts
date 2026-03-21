@@ -2,15 +2,17 @@
  * useActivePlayback — Aggregates all audio contexts into a single active playback state
  *
  * Used by HomeScreen to show a UnifiedMiniPlayer for whatever audio is currently playing.
- * Reads from RadioContext, PodcastContext, BooksContext, and AppleMusicContext.
  *
- * Priority order (highest first): Apple Music → Radio → Podcast → Books
+ * Reads state from AudioOrchestrator's activeState (Single Source of Truth).
+ * Callbacks (onPlayPause / onStop) come from individual contexts since the
+ * orchestrator is a state container, not a control surface.
  *
  * Returns null when no audio is active.
  */
 
 import { useMemo } from 'react';
 
+import { useAudioOrchestratorOptional } from '@/contexts/AudioOrchestratorContext';
 import { useRadioContextSafe } from '@/contexts/RadioContext';
 import { usePodcastContextSafe } from '@/contexts/PodcastContext';
 import { useBooksContextSafe } from '@/contexts/BooksContext';
@@ -52,172 +54,128 @@ export interface ActivePlaybackInfo {
   collectionId?: string;
 }
 
+// ── Callbacks from individual contexts ─────────────────────────
+// The orchestrator provides state but NOT playback controls.
+// onPlayPause/onStop must come from individual contexts.
+
+interface SourceCallbacks {
+  onPlayPause: () => void;
+  onStop: () => void;
+}
+
+/**
+ * Build callbacks for the given source from individual context values.
+ * Returns null if the context is not available.
+ * NOTE: Not a hook — called inside useMemo. Named without 'use' prefix intentionally.
+ */
+function getSourceCallbacks(
+  source: string | null,
+  radioCtx: ReturnType<typeof useRadioContextSafe>,
+  podcastCtx: ReturnType<typeof usePodcastContextSafe>,
+  booksCtx: ReturnType<typeof useBooksContextSafe>,
+  appleMusicCtx: ReturnType<typeof useAppleMusicContextSafe>,
+): SourceCallbacks | null {
+  if (!source) return null;
+
+  switch (source) {
+    case 'radio':
+      if (!radioCtx) return null;
+      return {
+        onPlayPause: () => {
+          if (radioCtx.isPlaying) { radioCtx.pause(); }
+          else { radioCtx.play(); }
+        },
+        onStop: () => { radioCtx.stop(); },
+      };
+
+    case 'podcast':
+      if (!podcastCtx) return null;
+      return {
+        onPlayPause: () => {
+          if (podcastCtx.isPlaying) { podcastCtx.pause(); }
+          else { podcastCtx.play(); }
+        },
+        onStop: () => { podcastCtx.stop(); },
+      };
+
+    case 'books':
+      if (!booksCtx) return null;
+      return {
+        onPlayPause: () => {
+          const isListenMode = booksCtx.bookMode === 'listen';
+          if (isListenMode) {
+            if (booksCtx.isAudioPlaying) { booksCtx.pauseAudio(); }
+            else { booksCtx.playAudio(); }
+          } else {
+            if (booksCtx.isSpeaking) { booksCtx.pauseReading(); }
+            else { booksCtx.resumeReading(); }
+          }
+        },
+        onStop: () => {
+          const isListenMode = booksCtx.bookMode === 'listen';
+          if (isListenMode) { booksCtx.stopAudio(); }
+          else { booksCtx.stopReading(); }
+        },
+      };
+
+    case 'appleMusic':
+      if (!appleMusicCtx) return null;
+      return {
+        onPlayPause: () => { appleMusicCtx.togglePlayback(); },
+        onStop: () => { appleMusicCtx.stop(); },
+      };
+
+    default:
+      return null;
+  }
+}
+
 // ── Hook ───────────────────────────────────────────────────────
 
 export function useActivePlayback(): ActivePlaybackInfo | null {
+  // PRIMARY: AudioOrchestrator (Single Source of Truth)
+  const orchestrator = useAudioOrchestratorOptional();
+  const activeSource = orchestrator?.activeSource ?? null;
+  const activeState = orchestrator?.activeState ?? null;
+
+  // Individual contexts for callbacks only (orchestrator doesn't expose controls)
   const radioCtx = useRadioContextSafe();
   const podcastCtx = usePodcastContextSafe();
   const booksCtx = useBooksContextSafe();
   const appleMusicCtx = useAppleMusicContextSafe();
 
   return useMemo((): ActivePlaybackInfo | null => {
-    // Priority: Apple Music > Radio > Podcast > Books
+    // Nothing playing
+    if (!activeSource || !activeState) return null;
 
-    // ── Apple Music ──
-    if (appleMusicCtx?.isPlaying && appleMusicCtx?.nowPlaying) {
-      const song = appleMusicCtx.nowPlaying;
-      const state = appleMusicCtx.playbackState;
-      const position = state?.position ?? 0;
-      const duration = state?.duration ?? 0;
+    // Build callbacks from the individual context
+    const callbacks = getSourceCallbacks(
+      activeSource, radioCtx, podcastCtx, booksCtx, appleMusicCtx,
+    );
+    // TTS sources don't have context callbacks — they're self-contained hooks.
+    // If no callbacks, we can't provide play/pause/stop for the HomeScreen player.
+    if (!callbacks) return null;
 
-      return {
-        moduleId: 'appleMusic',
-        artwork: appleMusicCtx.effectiveArtworkUrl ?? null,
-        title: song.title || '',
-        subtitle: (song as any).artistName || '',
-        isPlaying: true,
-        isLoading: appleMusicCtx.isLoading ?? false,
-        progressType: 'bar',
-        progress: duration > 0 ? position / duration : 0,
-        onPlayPause: () => { appleMusicCtx.togglePlayback(); },
-        onStop: () => { appleMusicCtx.stop(); },
-        scrollToId: song.id,
-      };
-    }
-
-    // ── Radio ──
-    if (radioCtx?.isPlaying && radioCtx?.currentStation) {
-      const station = radioCtx.currentStation;
-
-      return {
-        moduleId: 'radio',
-        artwork: radioCtx.metadata?.artwork || station.favicon || null,
-        title: radioCtx.metadata?.title || station.name,
-        subtitle: radioCtx.metadata?.artist || station.name,
-        isPlaying: true,
-        isLoading: radioCtx.isLoading ?? false,
-        progressType: 'duration',
-        listenDuration: radioCtx.position ?? 0,
-        onPlayPause: () => {
-          if (radioCtx.isPlaying) {
-            radioCtx.pause();
-          } else {
-            radioCtx.play();
-          }
-        },
-        onStop: () => { radioCtx.stop(); },
-        scrollToId: station.id,
-      };
-    }
-
-    // ── Podcast ──
-    if (podcastCtx?.isPlaying && podcastCtx?.currentEpisode) {
-      const episode = podcastCtx.currentEpisode;
-      const show = podcastCtx.currentShow;
-      const position = podcastCtx.progress?.position ?? 0;
-      const duration = podcastCtx.progress?.duration ?? 0;
-
-      return {
-        moduleId: 'podcast',
-        artwork: episode.artwork || show?.artwork || null,
-        title: episode.title || '',
-        subtitle: show?.title || '',
-        isPlaying: true,
-        isLoading: podcastCtx.isLoading ?? false,
-        progressType: 'bar',
-        progress: duration > 0 ? position / duration : 0,
-        onPlayPause: () => {
-          if (podcastCtx.isPlaying) {
-            podcastCtx.pause();
-          } else {
-            podcastCtx.play();
-          }
-        },
-        onStop: () => { podcastCtx.stop(); },
-        scrollToId: episode.id,
-        collectionId: show?.id,
-      };
-    }
-
-    // ── Books ──
-    // BooksContext has two modes: 'read' (TTS) and 'listen' (audio player)
-    // Check both isSpeaking (TTS) and isAudioPlaying (audio)
-    const booksActive = booksCtx &&
-      (booksCtx.isSpeaking || booksCtx.isAudioPlaying) &&
-      booksCtx.currentBook;
-
-    if (booksActive && booksCtx) {
-      const book = booksCtx.currentBook!;
-      const isListenMode = booksCtx.bookMode === 'listen';
-      const audioProgress = booksCtx.audioProgress;
-      const progress = isListenMode && audioProgress
-        ? audioProgress.percentage / 100
-        : 0;
-
-      return {
-        moduleId: 'books',
-        artwork: null, // Books don't have artwork URLs
-        title: book.title || '',
-        subtitle: book.author || '',
-        isPlaying: true,
-        isLoading: booksCtx.isLoading || booksCtx.isAudioLoading || false,
-        progressType: 'bar',
-        progress,
-        onPlayPause: () => {
-          if (isListenMode) {
-            if (booksCtx.isAudioPlaying) {
-              booksCtx.pauseAudio();
-            } else {
-              booksCtx.playAudio();
-            }
-          } else {
-            if (booksCtx.isSpeaking) {
-              booksCtx.pauseReading();
-            } else {
-              booksCtx.resumeReading();
-            }
-          }
-        },
-        onStop: () => {
-          if (isListenMode) {
-            booksCtx.stopAudio();
-          } else {
-            booksCtx.stopReading();
-          }
-        },
-        scrollToId: book.id,
-      };
-    }
-
-    return null;
+    return {
+      moduleId: activeState.moduleId,
+      artwork: activeState.artwork,
+      title: activeState.title,
+      subtitle: activeState.subtitle,
+      isPlaying: activeState.isPlaying,
+      isLoading: activeState.isBuffering,
+      progressType: activeState.progressType,
+      progress: activeState.progressType === 'bar' ? activeState.progress : undefined,
+      listenDuration: activeState.progressType === 'duration' ? activeState.listenDuration : undefined,
+      onPlayPause: callbacks.onPlayPause,
+      onStop: callbacks.onStop,
+    };
   }, [
-    // Apple Music deps
-    appleMusicCtx?.isPlaying,
-    appleMusicCtx?.nowPlaying,
-    appleMusicCtx?.effectiveArtworkUrl,
-    appleMusicCtx?.playbackState,
-    appleMusicCtx?.isLoading,
-    // Radio deps
-    radioCtx?.isPlaying,
-    radioCtx?.currentStation,
-    radioCtx?.metadata,
-    radioCtx?.position,
-    radioCtx?.isLoading,
-    // Podcast deps
-    podcastCtx?.isPlaying,
-    podcastCtx?.currentEpisode,
-    podcastCtx?.currentShow,
-    podcastCtx?.progress,
-    podcastCtx?.isLoading,
-    // Books deps
-    booksCtx?.isSpeaking,
-    booksCtx?.isAudioPlaying,
-    booksCtx?.currentBook,
-    booksCtx?.bookMode,
-    booksCtx?.audioProgress,
-    booksCtx?.isLoading,
-    booksCtx?.isAudioLoading,
-    // Note: callbacks (play/pause/stop) are stable refs from contexts,
-    // no need to include them as deps
+    activeSource,
+    activeState,
+    // Context deps for callbacks (stable refs, but included for correctness)
+    radioCtx,
+    podcastCtx,
+    booksCtx,
+    appleMusicCtx,
   ]);
 }

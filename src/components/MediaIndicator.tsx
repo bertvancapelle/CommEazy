@@ -34,12 +34,9 @@ import {
 import { HapticTouchable } from './HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
-import { colors, spacing } from '@/theme';
+import { spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { useRadioContextSafe } from '@/contexts/RadioContext';
-import { usePodcastContextSafe } from '@/contexts/PodcastContext';
-import { useBooksContextSafe } from '@/contexts/BooksContext';
-import { useAppleMusicContextSafe } from '@/contexts/AppleMusicContext';
+import { useAudioOrchestratorOptional, type AudioSource } from '@/contexts/AudioOrchestratorContext';
 import { usePaneContextSafe } from '@/contexts/PaneContext';
 import { usePanelId } from '@/contexts/PanelIdContext';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -112,6 +109,15 @@ const AUDIO_SOURCE_TO_MODULE: Record<string, NavigationDestination> = {
 // Component
 // ============================================================
 
+/**
+ * Maps AudioSource to the base module name for source matching.
+ * TTS variants (tts:article, tts:mail, tts:weather) map to 'tts'.
+ */
+function sourceToModuleName(source: AudioSource): string {
+  if (source.startsWith('tts')) return 'tts';
+  return source;
+}
+
 export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorProps) {
   const { t } = useTranslation();
   const { triggerFeedback } = useFeedback();
@@ -125,27 +131,10 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const bar2Anim = useRef(new Animated.Value(0.6)).current;
   const bar3Anim = useRef(new Animated.Value(0.4)).current;
 
-  // Radio context (safe - returns null if provider not ready)
-  const radioContext = useRadioContextSafe();
-  const isRadioPlaying = radioContext?.isPlaying ?? false;
-  const currentStation = radioContext?.currentStation ?? null;
-  const sleepTimerActive = radioContext?.sleepTimerActive ?? false;
-
-  // Podcast context (safe - returns null if provider not ready)
-  const podcastContext = usePodcastContextSafe();
-  const isPodcastPlaying = podcastContext?.isPlaying ?? false;
-  const currentEpisode = podcastContext?.currentEpisode ?? null;
-
-  // Books TTS context (safe - returns null if provider not ready)
-  const booksContext = useBooksContextSafe();
-  const isBooksReading = booksContext?.isSpeaking ?? false;
-  const currentBook = booksContext?.currentBook ?? null;
-
-  // Apple Music context (safe - returns null if provider not ready)
-  const appleMusicContext = useAppleMusicContextSafe();
-  const isAppleMusicPlaying = appleMusicContext?.isPlaying ?? false;
-  const appleMusicNowPlaying = appleMusicContext?.nowPlaying ?? null;
-  const appleMusicSleepTimerActive = appleMusicContext?.sleepTimerActive ?? false;
+  // === PRIMARY: Read from AudioOrchestrator (Single Source of Truth) ===
+  const orchestrator = useAudioOrchestratorOptional();
+  const activeSource = orchestrator?.activeSource ?? null;
+  const activeState = orchestrator?.activeState ?? null;
 
   // Track Glass Player minimized state (for showing indicator on source module)
   const [isGlassMinimized, setIsGlassMinimized] = useState(false);
@@ -156,8 +145,6 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
     const unsubMinimize = glassPlayer.addEventListener('onMinimize', () => {
       setIsGlassMinimized(true);
     });
-    // When Glass Player becomes visible again (expand, collapse, showFromMinimized),
-    // it's no longer minimized. onExpand/onCollapse fire when player is shown.
     const unsubExpand = glassPlayer.addEventListener('onExpand', () => {
       setIsGlassMinimized(false);
     });
@@ -176,17 +163,10 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
     };
   }, []);
 
-  // Determine active media type
-  const getActiveMedia = useCallback((): { type: MediaType; source: string } | null => {
-    // Priority: apple music > radio > podcast > books
-    if (isAppleMusicPlaying && appleMusicNowPlaying) return { type: 'audio', source: 'appleMusic' };
-    if (isRadioPlaying && currentStation) return { type: 'audio', source: 'radio' };
-    if (isPodcastPlaying && currentEpisode) return { type: 'audio', source: 'podcast' };
-    if (isBooksReading && currentBook) return { type: 'audio', source: 'books' };
-    return null;
-  }, [isAppleMusicPlaying, appleMusicNowPlaying, isRadioPlaying, currentStation, isPodcastPlaying, currentEpisode, isBooksReading, currentBook]);
-
-  const activeMedia = getActiveMedia();
+  // Determine active media from orchestrator
+  const activeMedia = activeSource
+    ? { type: 'audio' as MediaType, source: sourceToModuleName(activeSource) }
+    : null;
 
   // Check if we should hide (on source module) — used after all hooks
   // Exception: when Glass Player is minimized, ALWAYS show so user can restore it
@@ -295,10 +275,8 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   // For reduced motion: show static bars
   const staticHeight = reducedMotion ? 0.5 : undefined;
 
-  // Check if sleep timer is active for the current media source
-  const showSleepTimerIndicator =
-    (activeMedia?.source === 'radio' && sleepTimerActive) ||
-    (activeMedia?.source === 'appleMusic' && appleMusicSleepTimerActive);
+  // Sleep timer: read from orchestrator activeState (Single Source of Truth)
+  const showSleepTimerIndicator = activeState?.sleepTimerActive ?? false;
 
   return (
     <View style={styles.indicatorRow}>
