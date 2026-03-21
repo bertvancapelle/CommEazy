@@ -6,45 +6,39 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-21
-- **Sessie:** AudioOrchestrator Push+Pull — Single Source of Truth voor alle audio state
-- **Commit:** `cf4e743`
+- **Sessie:** Fix AudioOrchestrator re-registration race condition + MediaIndicator always visible
+- **Commit:** `4e63885`
 
 ## Voltooide Taken Deze Sessie
 
-1. **AudioOrchestrator Push+Pull migratie voltooid** (`cf4e743`)
-   - 6-fasen migratieplan volledig uitgevoerd
-   - Alle 7 audio sources gemigreerd naar Push+Pull pattern:
+1. **AudioOrchestrator re-registration race condition opgelost** (`4e63885`)
+   - **Root cause:** `audioOrchestrator` context value object in useEffect dependency arrays van alle 7 audio sources
+   - Wanneer `requestPlayback()` `activeSource` wijzigde → context value veranderde → effects re-runden → cleanup riep `unregisterSource()` aan → die cleared `activeSource` terug naar null
+   - **Fix:** `audioOrchestratorRef` pattern in alle 7 files — decouples registration/push effects van context value changes
+   - Bestanden gefixt:
 
-   | Source | Key | Status |
-   |--------|-----|--------|
-   | RadioContext | `'radio'` | ✅ Push+Pull |
-   | PodcastContext | `'podcast'` | ✅ Push+Pull |
-   | AppleMusicContext | `'appleMusic'` | ✅ Push+Pull |
-   | BooksContext | `'books'` | ✅ Push+Pull |
-   | useArticleTTS | `'tts:article'` | ✅ Push+Pull |
-   | useMailTTS | `'tts:mail'` | ✅ Push+Pull |
-   | useWeather | `'tts:weather'` | ✅ Push+Pull |
+   | Source | File | Fix |
+   |--------|------|-----|
+   | RadioContext | `src/contexts/RadioContext.tsx` | audioOrchestratorRef in register + push |
+   | PodcastContext | `src/contexts/PodcastContext.tsx` | audioOrchestratorRef in register + push |
+   | BooksContext | `src/contexts/BooksContext.tsx` | audioOrchestratorRef in register + push |
+   | AppleMusicContext | `src/contexts/AppleMusicContext.tsx` | audioOrchestratorRef in register + push |
+   | useArticleTTS | `src/hooks/useArticleTTS.ts` | Bestaande ref, fixed deps |
+   | useMailTTS | `src/hooks/useMailTTS.ts` | Bestaande ref, fixed deps |
+   | useWeather | `src/hooks/useWeather.ts` | Bestaande ref, fixed deps |
 
-   - Consumers opgeschoond:
-     - `MediaIndicator.tsx`: leest nu alleen `activeState` van orchestrator (geen context imports meer)
-     - `useActivePlayback.ts`: leest `activeState` van orchestrator, individuele contexts alleen voor callbacks
-   - Legacy `'tts'` (generiek) verwijderd uit `AudioSource` type
-   - Unused imports opgeruimd (colors, context hooks)
-   - 11 bestanden gewijzigd, 733 insertions, 296 deletions
-
-2. **MediaIndicator bug gefixt**
-   - `showSleepTimerIndicator` refereerde verwijderde variabelen (`radioSleepTimerFallback`, `appleMusicSleepTimerFallback`)
-   - Vereenvoudigd naar `activeState?.sleepTimerActive ?? false`
-
-3. **useWeather.ts gemist in Phase 5d — alsnog gemigreerd**
-   - Gebruikte nog generiek `'tts'` key (6 occurrences)
-   - Volledig gemigreerd naar `'tts:weather'` met `buildWeatherTtsState()`, refs, push effect
+2. **MediaIndicator altijd zichtbaar** (`4e63885`)
+   - Gebruiker expliciet gevraagd: "voor een senior logischer als de media indicator ook zichtbaar is in de module header als hij in de module zit"
+   - `shouldHide` logica verwijderd uit MediaIndicator.tsx
+   - Dead code opgeruimd: `isGlassMinimized` state + Glass Player event listeners (alleen voor shouldHide)
+   - `currentSource` prop behouden — nog gebruikt in tap handler om onnodige navigatie te voorkomen
 
 ## Openstaande Taken
 
-1. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren. Glass toont material texture + tint, maar geen echte blur-through-to-content.
-2. **SongCollectionModal uitbreiding** — Bulk album toevoegen (`songs: Song[]` + `albumTitle?: string` props) was in PNA ontwerp maar nog niet geïmplementeerd. Optionele toekomstige taak.
-3. **Testen op fysiek device** — Verifieer dat MediaIndicator, Glass MiniPlayer, en AirPlay routing correct werken na de refactor.
+1. **AirPlay routing failure** — 5-6s connection attempt → fallback → geen geluid. AirPlay fix (`6967837`) met `longFormAudio` policy nog niet werkend. Moet onderzocht worden.
+2. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
+3. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren.
+4. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geïmplementeerd.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
@@ -54,16 +48,15 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Push+Pull hybrid (Aanpak 2) | Gebruiker koos expliciet: "dit moet altijd en stabiel werken!" — Push is primair (reactief), Pull is safety net fallback |
-| `activeState` als Single Source of Truth | MediaIndicator en useActivePlayback lezen ALLEEN van orchestrator, niet van individuele contexts |
-| TTS keys specifiek per module (`tts:article`, `tts:mail`, `tts:weather`) | Voorkomt conflicten tussen TTS sources; `sourceToModuleName()` mapt naar `'tts'` voor display |
-| `buildXxxState()` + refs pattern | Callbacks lezen via refs om re-registration in useEffect te voorkomen; stabiele referenties |
-| Legacy `'tts'` verwijderd uit AudioSource type | Alle consumers gemigreerd, geen backwards compatibility nodig |
+| `audioOrchestratorRef` pattern | Voorkomt re-registration cycles door context value changes; refs triggeren geen re-renders |
+| MediaIndicator altijd zichtbaar | Senior UX: consistent gedrag, geen verschil tussen modules. Gebruiker expliciet gevraagd. |
+| `shouldHide` + `isGlassMinimized` verwijderd | Dead code na design beslissing; Glass Player minimized state niet meer nodig voor visibility |
+| `currentSource` prop behouden | Nog nodig in tap handler voor pane navigation logica |
 
 ## Context voor Volgende Sessie
 
 - `src/contexts/AudioOrchestratorContext.tsx`: Centraal punt — `activeSource`, `activeState`, `updateState()`, `getActiveState()`
-- `src/components/MediaIndicator.tsx`: Leest alleen van orchestrator (geen context imports)
-- `src/hooks/useActivePlayback.ts`: Leest `activeState` van orchestrator, callbacks van individual contexts
-- Pattern per context: `buildXxxState()` callback + refs + push effect + `registerSource()` met `getState`
-- Vorige sessie: AirPlay fix (`6967837`) met `longFormAudio` policy — moet nog getest worden op fysiek device
+- `src/components/MediaIndicator.tsx`: Leest alleen van orchestrator, altijd zichtbaar wanneer activeSource != null
+- Pattern per context: `audioOrchestratorRef` + `buildXxxState()` callback + refs + push effect + `registerSource()` met `getState`
+- AirPlay issue: `src/services/glassPlayer.ts` + `AirPlayModule.swift` — longFormAudio policy werkt niet
+- Glass Player flicker: `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`

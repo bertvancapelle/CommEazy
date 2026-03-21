@@ -152,6 +152,187 @@ patchRNScreensCodegen();
 // in RadioContext.tsx (use removeUpcomingTracks + skipToNext instead).
 
 // ============================================================
+// SwiftAudioEx: AirPlay route change guard (v2 — reason-aware)
+// ============================================================
+// When switching to/from AirPlay (or connecting Bluetooth), iOS momentarily
+// pauses AVPlayer during route negotiation. SwiftAudioEx's pause handler
+// (AVPlayerWrapper.swift line ~440) interprets this as an external
+// disconnect and sets playWhenReady=false → rate=0, which kills the
+// AirPlay connection after ~5-6 seconds of timeout.
+//
+// Fix v2: Route change observer that reads the AVAudioSession route change
+// reason. Only suppresses pause detection for .newDeviceAvailable (AirPlay
+// select, BT connect). After 1.5s, re-applies AVPlayer rate to kick
+// playback on the new route. Device disconnections (.oldDeviceUnavailable)
+// are NOT suppressed so headphone-off → pause works normally.
+function patchSwiftAudioExAirPlayGuard() {
+  const filePath = path.join(
+    __dirname, '..', 'ios', 'Pods', 'SwiftAudioEx', 'Sources',
+    'SwiftAudioEx', 'AVPlayerWrapper', 'AVPlayerWrapper.swift'
+  );
+
+  if (!fs.existsSync(filePath)) return;
+
+  let content = fs.readFileSync(filePath, 'utf8');
+
+  // Already patched?
+  if (content.includes('isRouteChanging')) return;
+
+  // 1. Add route change guard properties after stateQueue declaration
+  const stateQueueDecl = `fileprivate let stateQueue = DispatchQueue(
+        label: "AVPlayerWrapper.stateQueue",
+        attributes: .concurrent
+    )`;
+
+  if (!content.includes(stateQueueDecl)) {
+    console.log('[patch-packages] WARNING: Could not find stateQueue declaration in AVPlayerWrapper.swift');
+    return;
+  }
+
+  content = content.replace(
+    stateQueueDecl,
+    `${stateQueueDecl}
+
+    // MARK: - AirPlay Route Change Guard
+    // When switching to/from AirPlay (or connecting Bluetooth), iOS momentarily
+    // pauses AVPlayer during route negotiation. Without this guard, the .paused
+    // status handler sets playWhenReady=false → rate=0 → kills the connection.
+    //
+    // Strategy: Only suppress pause detection for NEW device connections (AirPlay
+    // select, BT headphone connect). For device disconnections (BT headphone off,
+    // AirPlay deselect), let the normal pause handler work as designed.
+    // After a new-device route change, re-apply AVPlayer rate to kick playback
+    // on the new output route.
+    private var isRouteChanging: Bool = false
+    private var routeChangeTimer: Timer?`
+  );
+
+  // 2. Add route change observer in init() and deinit + handler
+  const setupAVPlayerCall = `        setupAVPlayer();
+    }`;
+
+  content = content.replace(
+    setupAVPlayerCall,
+    `        setupAVPlayer();
+
+        // Observe audio route changes for AirPlay/Bluetooth handling
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleRouteChange(_:)),
+            name: AVAudioSession.routeChangeNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        routeChangeTimer?.invalidate()
+    }
+
+    @objc private func handleRouteChange(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue)
+        else { return }
+
+        switch reason {
+        case .newDeviceAvailable:
+            // New device connected (AirPlay selected, BT headphone connected).
+            // iOS will momentarily pause AVPlayer during route negotiation.
+            // Suppress pause detection and re-apply rate after route settles.
+            isRouteChanging = true
+            routeChangeTimer?.invalidate()
+            routeChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                self.isRouteChanging = false
+                // Re-apply AVPlayer rate to kick playback on the new output route.
+                // Without this, AVPlayer stays at rate=0 after the route transition
+                // even though playWhenReady is still true.
+                if self.playWhenReady {
+                    self.applyAVPlayerRate()
+                }
+            }
+
+        case .oldDeviceUnavailable:
+            // Device disconnected (BT headphone turned off, AirPlay deselected).
+            // Do NOT suppress pause detection — let the normal handler set
+            // playWhenReady=false so the app correctly reflects the paused state.
+            // User can manually press play to resume on iPhone speaker.
+            break
+
+        default:
+            // .routeConfigurationChange, .categoryChange, .override, etc.
+            // These don't typically cause false pause detection, ignore them.
+            break
+        }
+    }`
+  );
+
+  // 3. Add isRouteChanging check in the pause handler
+  const pauseHandler = `                if (self.playWhenReady) {
+                    // Only if we are not on the boundaries of the track, otherwise itemDidPlayToEndTime will handle it instead.
+                    if (self.currentTime > 0 && self.currentTime < self.duration) {
+                        self.playWhenReady = false;
+                    }`;
+
+  if (!content.includes(pauseHandler)) {
+    console.log('[patch-packages] WARNING: Could not find pause handler in AVPlayerWrapper.swift');
+    return;
+  }
+
+  content = content.replace(
+    pauseHandler,
+    `                if (self.playWhenReady) {
+                    // Skip pause detection during new-device route changes (AirPlay
+                    // select, BT connect). isRouteChanging is only set for
+                    // .newDeviceAvailable, NOT for .oldDeviceUnavailable (disconnect).
+                    // Rate is re-applied after 1.5s by the route change timer.
+                    if (self.isRouteChanging) {
+                        break
+                    }
+                    // Only if we are not on the boundaries of the track, otherwise itemDidPlayToEndTime will handle it instead.
+                    if (self.currentTime > 0 && self.currentTime < self.duration) {
+                        self.playWhenReady = false;
+                    }`
+  );
+
+  fs.writeFileSync(filePath, content, 'utf8');
+  console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: AirPlay route change guard (v2 reason-aware)');
+}
+
+patchSwiftAudioExAirPlayGuard();
+
+// ============================================================
+// SwiftAudioEx: Enable AirPlay 2 external playback
+// ============================================================
+// AVPlayerWrapper.swift sets `avPlayer.allowsExternalPlayback = false`
+// with the comment "disabled since we're not making use of video playback".
+// This is a misunderstanding — allowsExternalPlayback controls ALL external
+// playback routing including audio-only AirPlay 2. With this set to false,
+// AVPlayer cannot route audio to AirPlay speakers at all.
+function patchSwiftAudioExAllowsExternalPlayback() {
+  const filePath = path.join(
+    __dirname, '..', 'ios', 'Pods', 'SwiftAudioEx', 'Sources',
+    'SwiftAudioEx', 'AVPlayerWrapper', 'AVPlayerWrapper.swift'
+  );
+
+  if (!fs.existsSync(filePath)) return;
+
+  let content = fs.readFileSync(filePath, 'utf8');
+
+  const oldLine = 'avPlayer.allowsExternalPlayback = false;';
+  const newLine = '// Enable external playback for AirPlay 2 audio routing\n        avPlayer.allowsExternalPlayback = true;';
+
+  if (content.includes(oldLine)) {
+    content = content.replace(oldLine, newLine);
+    fs.writeFileSync(filePath, content, 'utf8');
+    console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: allowsExternalPlayback = true');
+  }
+}
+
+patchSwiftAudioExAllowsExternalPlayback();
+
+// ============================================================
 // Firebase 11.x + RNFB 21.x: FIRAuth Swift header compatibility
 // ============================================================
 // Firebase 11.x rewrote FIRAuth in Swift. The ObjC interface is only available
