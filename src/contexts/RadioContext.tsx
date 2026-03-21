@@ -443,6 +443,10 @@ export function RadioProvider({ children }: RadioProviderProps) {
   const isPlayingRef = useRef(isPlaying);
   isPlayingRef.current = isPlaying;
 
+  // Stable ref for orchestrator — prevents re-registration when context value changes
+  const audioOrchestratorRef = useRef(audioOrchestrator);
+  audioOrchestratorRef.current = audioOrchestrator;
+
   // Refs for getState pull fallback (all state needed to build AudioSourceState)
   const isBufferingRef = useRef(isBuffering);
   isBufferingRef.current = isBuffering;
@@ -477,9 +481,13 @@ export function RadioProvider({ children }: RadioProviderProps) {
     };
   }, []);
 
+  // Register radio as an audio source — runs only on mount/unmount.
+  // Uses refs for all callbacks so the effect doesn't need to re-run
+  // when orchestrator context value changes (which would cause
+  // unregister→register cycles that clear activeSource).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Register radio as an audio source with the orchestrator
-    audioOrchestrator.registerSource('radio', {
+    audioOrchestratorRef.current.registerSource('radio', {
       stop: async () => {
         await stopRef.current();
       },
@@ -488,15 +496,16 @@ export function RadioProvider({ children }: RadioProviderProps) {
     });
 
     return () => {
-      audioOrchestrator.unregisterSource('radio');
+      audioOrchestratorRef.current.unregisterSource('radio');
     };
-  }, [audioOrchestrator, buildRadioState]);
+  }, [buildRadioState]);
 
-  // Push state to orchestrator whenever radio state changes
-  // Only pushes when radio is the active source (orchestrator ignores otherwise)
+  // Push state to orchestrator whenever radio state changes.
+  // Only pushes when radio is the active source (orchestrator ignores otherwise).
+  // Uses ref for orchestrator to avoid re-triggering on every context value change.
   useEffect(() => {
-    if (audioOrchestrator.activeSource !== 'radio') return;
-    audioOrchestrator.updateState('radio', buildRadioState());
+    if (audioOrchestratorRef.current.activeSource !== 'radio') return;
+    audioOrchestratorRef.current.updateState('radio', buildRadioState());
   }, [
     isPlaying,
     isBuffering,
@@ -504,7 +513,6 @@ export function RadioProvider({ children }: RadioProviderProps) {
     currentStation,
     progress.position,
     sleepTimerActive,
-    audioOrchestrator,
     buildRadioState,
   ]);
 

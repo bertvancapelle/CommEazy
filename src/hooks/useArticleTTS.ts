@@ -293,11 +293,13 @@ export function useArticleTTS(): UseArticleTTSReturn {
     };
   }, []);
 
-  // Register/unregister as TTS audio source with orchestrator
+  // Register/unregister as TTS audio source — runs only on mount/unmount.
+  // Uses audioOrchestratorRef to avoid re-registration cycles.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!audioOrchestrator) return;
+    if (!audioOrchestratorRef.current) return;
 
-    audioOrchestrator.registerSource(TTS_SOURCE, {
+    audioOrchestratorRef.current.registerSource(TTS_SOURCE, {
       stop: async () => {
         await piperTtsService.stop();
         await ttsService.stop();
@@ -313,15 +315,16 @@ export function useArticleTTS(): UseArticleTTSReturn {
     });
 
     return () => {
-      audioOrchestrator.unregisterSource(TTS_SOURCE);
+      audioOrchestratorRef.current?.unregisterSource(TTS_SOURCE);
     };
-  }, [audioOrchestrator, buildArticleTtsState]);
+  }, [buildArticleTtsState]);
 
-  // ── Push state to orchestrator on every relevant change ──
+  // Push state to orchestrator on every relevant change.
+  // Uses ref for orchestrator to avoid re-triggering on every context value change.
   useEffect(() => {
-    if (!isPlaying || !audioOrchestrator) return;
-    audioOrchestrator.updateState(TTS_SOURCE, buildArticleTtsState());
-  }, [isPlaying, isLoading, progress, currentArticle, audioOrchestrator, buildArticleTtsState]);
+    if (!isPlaying || !audioOrchestratorRef.current) return;
+    audioOrchestratorRef.current.updateState(TTS_SOURCE, buildArticleTtsState());
+  }, [isPlaying, isLoading, progress, currentArticle, buildArticleTtsState]);
 
   /**
    * Start TTS playback

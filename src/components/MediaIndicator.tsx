@@ -21,7 +21,7 @@
  * @see .claude/plans/COLLAPSIBLE_PANES_IPAD.md
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -59,8 +59,9 @@ interface MediaIndicatorProps {
 
   /**
    * Optional: The current module's media source.
-   * If this matches the active media source, the indicator is hidden.
-   * E.g., pass 'radio' on RadioScreen to hide when radio is playing.
+   * Used to avoid unnecessary navigation when tapping the indicator
+   * while already on the source module.
+   * E.g., pass 'radio' on RadioScreen.
    */
   currentSource?: string;
 }
@@ -136,41 +137,10 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
   const activeSource = orchestrator?.activeSource ?? null;
   const activeState = orchestrator?.activeState ?? null;
 
-  // Track Glass Player minimized state (for showing indicator on source module)
-  const [isGlassMinimized, setIsGlassMinimized] = useState(false);
-
-  useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-
-    const unsubMinimize = glassPlayer.addEventListener('onMinimize', () => {
-      setIsGlassMinimized(true);
-    });
-    const unsubExpand = glassPlayer.addEventListener('onExpand', () => {
-      setIsGlassMinimized(false);
-    });
-    const unsubCollapse = glassPlayer.addEventListener('onCollapse', () => {
-      setIsGlassMinimized(false);
-    });
-    const unsubClose = glassPlayer.addEventListener('onClose', () => {
-      setIsGlassMinimized(false);
-    });
-
-    return () => {
-      unsubMinimize();
-      unsubExpand();
-      unsubCollapse();
-      unsubClose();
-    };
-  }, []);
-
   // Determine active media from orchestrator
   const activeMedia = activeSource
     ? { type: 'audio' as MediaType, source: sourceToModuleName(activeSource) }
     : null;
-
-  // Check if we should hide (on source module) — used after all hooks
-  // Exception: when Glass Player is minimized, ALWAYS show so user can restore it
-  const shouldHide = activeMedia && currentSource && activeMedia.source === currentSource && !isGlassMinimized;
 
   // Start wave animation when active
   useEffect(() => {
@@ -264,8 +234,8 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
     );
   }, [activeMedia, triggerFeedback, t, paneCtx, panelId, currentSource]);
 
-  // Don't render if no active media OR we're on the source module
-  if (!activeMedia || shouldHide) {
+  // Don't render if no active media
+  if (!activeMedia) {
     return null;
   }
 

@@ -776,6 +776,12 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   const stopRef = useRef(stop);
   stopRef.current = stop;
   const isPlayingRef = useRef(isPlaying);
+
+  // Stable ref for orchestrator — prevents re-registration when context value changes
+  const audioOrchestratorRef = useRef(audioOrchestrator);
+  audioOrchestratorRef.current = audioOrchestrator;
+
+  // Note: isPlayingRef.current is set below after this line
   isPlayingRef.current = isPlaying;
 
   // Refs for getState pull fallback (all state needed to build AudioSourceState)
@@ -816,11 +822,14 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     };
   }, []);
 
+  // Register podcast as an audio source — runs only on mount/unmount.
+  // Uses refs for all callbacks so the effect doesn't re-run when
+  // orchestrator context value changes (which would cause
+  // unregister→register cycles that clear activeSource).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Register podcast as an audio source with the orchestrator
-    audioOrchestrator.registerSource('podcast', {
+    audioOrchestratorRef.current.registerSource('podcast', {
       stop: async () => {
-        // Use ref to always call the latest stop function
         await stopRef.current();
       },
       isPlaying: () => isPlayingRef.current,
@@ -828,15 +837,15 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     });
 
     return () => {
-      audioOrchestrator.unregisterSource('podcast');
+      audioOrchestratorRef.current.unregisterSource('podcast');
     };
-  }, [audioOrchestrator, buildPodcastState]);
+  }, [buildPodcastState]);
 
-  // Push state to orchestrator whenever podcast state changes
-  // Only pushes when podcast is the active source (orchestrator ignores otherwise)
+  // Push state to orchestrator whenever podcast state changes.
+  // Uses ref for orchestrator to avoid re-triggering on every context value change.
   useEffect(() => {
-    if (audioOrchestrator.activeSource !== 'podcast') return;
-    audioOrchestrator.updateState('podcast', buildPodcastState());
+    if (audioOrchestratorRef.current.activeSource !== 'podcast') return;
+    audioOrchestratorRef.current.updateState('podcast', buildPodcastState());
   }, [
     isPlaying,
     isBuffering,
@@ -846,7 +855,6 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     trackProgress.duration,
     playbackRate,
     sleepTimerMinutes,
-    audioOrchestrator,
     buildPodcastState,
   ]);
 

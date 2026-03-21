@@ -987,6 +987,10 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
   const isPlayingRef = useRef(isPlaying);
   isPlayingRef.current = isPlaying;
 
+  // Stable ref for orchestrator — prevents re-registration when context value changes
+  const audioOrchestratorRef = useRef(audioOrchestrator);
+  audioOrchestratorRef.current = audioOrchestrator;
+
   // Refs for getState pull fallback (all state needed to build AudioSourceState)
   const nowPlayingRef = useRef(nowPlaying);
   nowPlayingRef.current = nowPlaying;
@@ -1023,11 +1027,11 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     };
   }, []);
 
+  // Register Apple Music as an audio source — runs only on mount/unmount.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Register Apple Music as an audio source with the orchestrator
-    audioOrchestrator.registerSource('appleMusic', {
+    audioOrchestratorRef.current.registerSource('appleMusic', {
       stop: async () => {
-        // Use ref to always call the latest stop function
         await stopRef.current();
       },
       isPlaying: () => isPlayingRef.current,
@@ -1035,15 +1039,15 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     });
 
     return () => {
-      audioOrchestrator.unregisterSource('appleMusic');
+      audioOrchestratorRef.current.unregisterSource('appleMusic');
     };
-  }, [audioOrchestrator, buildAppleMusicState]);
+  }, [buildAppleMusicState]);
 
-  // Push state to orchestrator whenever Apple Music state changes
-  // Only pushes when appleMusic is the active source (orchestrator ignores otherwise)
+  // Push state to orchestrator whenever Apple Music state changes.
+  // Uses ref for orchestrator to avoid re-triggering on every context value change.
   useEffect(() => {
-    if (audioOrchestrator.activeSource !== 'appleMusic') return;
-    audioOrchestrator.updateState('appleMusic', buildAppleMusicState());
+    if (audioOrchestratorRef.current.activeSource !== 'appleMusic') return;
+    audioOrchestratorRef.current.updateState('appleMusic', buildAppleMusicState());
   }, [
     isPlaying,
     nowPlaying,
@@ -1051,7 +1055,6 @@ export function AppleMusicProvider({ children }: AppleMusicProviderProps) {
     effectiveArtworkUrl,
     isLoading,
     sleepTimerActive,
-    audioOrchestrator,
     buildAppleMusicState,
   ]);
 

@@ -1673,6 +1673,10 @@ export function BooksProvider({ children }: BooksProviderProps) {
   const stopReadingRef = useRef(stopReading);
   stopReadingRef.current = stopReading;
 
+  // Stable ref for orchestrator — prevents re-registration when context value changes
+  const audioOrchestratorRef = useRef(audioOrchestrator);
+  audioOrchestratorRef.current = audioOrchestrator;
+
   /**
    * Build full AudioSourceState for the orchestrator (Pull fallback).
    * Handles dual-mode: 'read' (system TTS) and 'listen' (Piper audio chapters).
@@ -1717,11 +1721,11 @@ export function BooksProvider({ children }: BooksProviderProps) {
     };
   }, []);
 
+  // Register books as an audio source — runs only on mount/unmount.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Register books as an audio source with the orchestrator
-    audioOrchestrator.registerSource('books', {
+    audioOrchestratorRef.current.registerSource('books', {
       stop: async () => {
-        // Stop both TTS reading and audio playback
         await stopReadingRef.current();
         await stopAudioRef.current();
       },
@@ -1730,14 +1734,15 @@ export function BooksProvider({ children }: BooksProviderProps) {
     });
 
     return () => {
-      audioOrchestrator.unregisterSource('books');
+      audioOrchestratorRef.current.unregisterSource('books');
     };
-  }, [audioOrchestrator, buildBooksState]);
+  }, [buildBooksState]);
 
-  // ── Push state to orchestrator on every relevant change ──
+  // Push state to orchestrator on every relevant change.
+  // Uses ref for orchestrator to avoid re-triggering on every context value change.
   useEffect(() => {
     if (!isSpeaking && !isAudioPlaying) return; // Only push when actively playing
-    audioOrchestrator.updateState('books', buildBooksState());
+    audioOrchestratorRef.current.updateState('books', buildBooksState());
   }, [
     isSpeaking,
     isAudioPlaying,
@@ -1748,7 +1753,6 @@ export function BooksProvider({ children }: BooksProviderProps) {
     audioProgress,
     ttsProgress,
     playbackRate,
-    audioOrchestrator,
     buildBooksState,
   ]);
 

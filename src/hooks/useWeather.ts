@@ -215,11 +215,13 @@ export function useWeather(): UseWeatherReturn {
     };
   }, []);
 
-  // Register/unregister as TTS audio source with orchestrator
+  // Register/unregister as TTS audio source with orchestrator.
+  // Uses audioOrchestratorRef to avoid re-registration cycles when context value changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!audioOrchestrator) return;
+    if (!audioOrchestratorRef.current) return;
 
-    audioOrchestrator.registerSource(TTS_SOURCE, {
+    audioOrchestratorRef.current.registerSource(TTS_SOURCE, {
       stop: async () => {
         await piperTtsService.stop();
         await ttsService.stop();
@@ -232,15 +234,16 @@ export function useWeather(): UseWeatherReturn {
     });
 
     return () => {
-      audioOrchestrator.unregisterSource(TTS_SOURCE);
+      audioOrchestratorRef.current?.unregisterSource(TTS_SOURCE);
     };
-  }, [audioOrchestrator, buildWeatherTtsState]);
+  }, [buildWeatherTtsState]);
 
   // ── Push state to orchestrator on every relevant change ──
+  // Uses audioOrchestratorRef to avoid re-triggering on every context value change.
   useEffect(() => {
-    if (!isTtsPlaying || !audioOrchestrator) return;
-    audioOrchestrator.updateState(TTS_SOURCE, buildWeatherTtsState());
-  }, [isTtsPlaying, ttsSection, audioOrchestrator, buildWeatherTtsState]);
+    if (!isTtsPlaying || !audioOrchestratorRef.current) return;
+    audioOrchestratorRef.current.updateState(TTS_SOURCE, buildWeatherTtsState());
+  }, [isTtsPlaying, ttsSection, buildWeatherTtsState]);
 
   // Load saved locations on mount
   useEffect(() => {

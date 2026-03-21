@@ -269,11 +269,13 @@ export function useMailTTS(): UseMailTTSReturn {
     };
   }, []);
 
-  // Register with audio orchestrator
+  // Register with audio orchestrator — runs only on mount/unmount.
+  // Uses audioOrchestratorRef to avoid re-registration cycles.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!audioOrchestrator) return;
+    if (!audioOrchestratorRef.current) return;
 
-    audioOrchestrator.registerSource(TTS_SOURCE, {
+    audioOrchestratorRef.current.registerSource(TTS_SOURCE, {
       stop: async () => {
         await piperTtsService.stop();
         await ttsService.stop();
@@ -287,15 +289,16 @@ export function useMailTTS(): UseMailTTSReturn {
     });
 
     return () => {
-      audioOrchestrator.unregisterSource(TTS_SOURCE);
+      audioOrchestratorRef.current?.unregisterSource(TTS_SOURCE);
     };
-  }, [audioOrchestrator, buildMailTtsState]);
+  }, [buildMailTtsState]);
 
-  // ── Push state to orchestrator on every relevant change ──
+  // Push state to orchestrator on every relevant change.
+  // Uses ref for orchestrator to avoid re-triggering on every context value change.
   useEffect(() => {
-    if (!isPlaying || !audioOrchestrator) return;
-    audioOrchestrator.updateState(TTS_SOURCE, buildMailTtsState());
-  }, [isPlaying, isLoading, progress, audioOrchestrator, buildMailTtsState]);
+    if (!isPlaying || !audioOrchestratorRef.current) return;
+    audioOrchestratorRef.current.updateState(TTS_SOURCE, buildMailTtsState());
+  }, [isPlaying, isLoading, progress, buildMailTtsState]);
 
   // ============================================================
   // Start reading
