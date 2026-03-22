@@ -6,10 +6,13 @@
  * the main app content, UIGlassEffect can properly blur the content underneath.
  *
  * Layers (from bottom to top):
- * 1. UIGlassEffect - Apple's native glass material
- * 2. Tint overlay - Module-specific color at 25% opacity
- * 3. Top highlight gradient - Specular reflection
- * 4. Border - Subtle white edge
+ * 1. Base layer - Dark background for visibility
+ * 2. UIGlassEffect - Apple's native glass material (provides its own specular highlights)
+ * 3. Tint overlay - Module-specific color at 50% opacity
+ *
+ * Note: highlightGradient, border, and shadow were removed because they caused
+ * rendering conflicts with UIGlassEffect's internal specular highlights, resulting
+ * in visible flickering at the bottom and right edges of the full player.
  *
  * @see .claude/plans/LIQUID_GLASS_PLAYER_WINDOW.md
  */
@@ -29,7 +32,6 @@ class GlassPlayerView: UIView {
 
     private var glassEffectView: UIVisualEffectView?
     private var tintOverlay: UIView?
-    private var highlightGradient: CAGradientLayer?
     private var currentTintColor: UIColor
 
     // ============================================================
@@ -66,7 +68,7 @@ class GlassPlayerView: UIView {
 
     private func setupGlassEffect() {
         backgroundColor = .clear
-        clipsToBounds = false  // Allow glow to extend outside bounds
+        clipsToBounds = true
         
         // Rounded corners for floating appearance
         layer.cornerRadius = 24
@@ -127,48 +129,6 @@ class GlassPlayerView: UIView {
         ])
 
         tintOverlay = tint
-
-        // === Layer 3: Subtle shadow for depth (dark mode compatible) ===
-        // Use dark shadow instead of white glow - works better on dark backgrounds
-        // The white glow created an "eye-shaped" artifact on dark backgrounds
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 4)
-        layer.shadowOpacity = 0.3
-        layer.shadowRadius = 8
-
-        // === Layer 4: Inner highlight gradient (top specular + subtle bottom) ===
-        let gradient = CAGradientLayer()
-        gradient.colors = [
-            UIColor.white.withAlphaComponent(0.50).cgColor,  // Bright top
-            UIColor.white.withAlphaComponent(0.10).cgColor,  // Fade middle-top
-            UIColor.clear.cgColor,                            // Clear middle
-            UIColor.white.withAlphaComponent(0.05).cgColor,  // Subtle bottom glow
-            UIColor.white.withAlphaComponent(0.15).cgColor,  // Bottom edge
-        ]
-        gradient.locations = [0.0, 0.12, 0.5, 0.88, 1.0]
-        gradient.startPoint = CGPoint(x: 0.5, y: 0.0)
-        gradient.endPoint = CGPoint(x: 0.5, y: 1.0)
-        gradient.cornerRadius = 24
-        layer.addSublayer(gradient)
-
-        highlightGradient = gradient
-
-        // === Layer 5: Subtle border (dark mode compatible) ===
-        // Reduced opacity to avoid visible line artifact on dark backgrounds
-        layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
-        layer.borderWidth = 0.5
-
-    }
-
-    // ============================================================
-    // MARK: Layout
-    // ============================================================
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        // Update gradient frame
-        highlightGradient?.frame = bounds
     }
 
     // ============================================================
