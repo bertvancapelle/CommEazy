@@ -152,21 +152,19 @@ patchRNScreensCodegen();
 // in RadioContext.tsx (use removeUpcomingTracks + skipToNext instead).
 
 // ============================================================
-// SwiftAudioEx: AirPlay route change guard (v3 — 7s timer + smart .playing detection)
+// SwiftAudioEx: AirPlay route change recovery (v11)
 // ============================================================
-// When switching to/from AirPlay (or connecting Bluetooth), iOS momentarily
-// pauses AVPlayer during route negotiation. SwiftAudioEx's pause handler
-// interprets this as an external disconnect and sets playWhenReady=false →
-// rate=0, which kills the AirPlay connection.
-//
-// Fix v3 improvements over v2:
-// - Timer increased from 1.5s to 7s (AirPlay 2 enhanced buffering negotiation
-//   takes 5-6 seconds; 1.5s was too short, causing applyAVPlayerRate() to fire
-//   during active negotiation which disrupted the AirPlay 2 handshake)
-// - Smart .playing detection: when .playing TimeControlStatus fires (route has
-//   actually settled), clear the guard immediately instead of waiting for timeout
-// - Only re-apply rate if not already playing (prevents double-apply)
-function patchSwiftAudioExAirPlayGuard() {
+// v1-v4: Custom route change handling — INTERFERED with iOS AirPlay handshake.
+// v6-v7: Diagnostics revealed AVPlayer pauses during AirPlay transition.
+// v8: Rate recovery after route change — works but route already fell back to Speaker.
+// v9: allowsExternalPlayback=true — NOT the root cause (both true/false fail).
+// v10: INTERRUPTION BEGAN recovery — isAirPlay already false when handler fires, INEFFECTIVE.
+// v11: ROOT CAUSE FOUND via Apple Developer Forums #742034 + Apple TechNote QA1803:
+//   iOS changes category from .playback to .playAndRecord during AirPlay route switch.
+//   .playAndRecord only supports mirrored AirPlay, breaking non-mirrored audio routing.
+//   Fix: When routeChangeNotification fires with reason=categoryChange, re-apply
+//   setCategory(.playback, .longFormAudio) to restore the correct configuration.
+function patchSwiftAudioExAirPlayDiagnostics() {
   const filePath = path.join(
     __dirname, '..', 'ios', 'Pods', 'SwiftAudioEx', 'Sources',
     'SwiftAudioEx', 'AVPlayerWrapper', 'AVPlayerWrapper.swift'
@@ -176,192 +174,266 @@ function patchSwiftAudioExAirPlayGuard() {
 
   let content = fs.readFileSync(filePath, 'utf8');
 
-  // Already patched?
-  if (content.includes('isRouteChanging')) return;
+  // Already patched? (v10 adds AirPlay interruption recovery)
+  if (content.includes('wasPlayingOnAirPlayBeforeInterruption')) return;
 
-  // 1. Add route change guard properties after stateQueue declaration
-  const stateQueueDecl = `fileprivate let stateQueue = DispatchQueue(
-        label: "AVPlayerWrapper.stateQueue",
-        attributes: .concurrent
-    )`;
+  // 1. Add diagnostic logging to didChangeTimeControlStatus entry
+  const timeControlFunc = `    func player(didChangeTimeControlStatus status: AVPlayer.TimeControlStatus) {
+        switch status {`;
 
-  if (!content.includes(stateQueueDecl)) {
-    console.log('[patch-packages] WARNING: Could not find stateQueue declaration in AVPlayerWrapper.swift');
-    return;
+  if (content.includes(timeControlFunc)) {
+    content = content.replace(
+      timeControlFunc,
+      `    func player(didChangeTimeControlStatus status: AVPlayer.TimeControlStatus) {
+        let outputType = AVAudioSession.sharedInstance().currentRoute.outputs.first?.portType.rawValue ?? "none"
+        NSLog("[AVPlayerWrapper] timeControlStatus=%ld playWhenReady=%d rate=%.1f output=%@ state=%@",
+              status.rawValue, self.playWhenReady, self.avPlayer.rate, outputType, "\\(self._state)")
+        switch status {`
+    );
   }
 
-  content = content.replace(
-    stateQueueDecl,
-    `${stateQueueDecl}
+  // 2. Add logging to waitingToPlay case
+  const waitingCase = `        case .waitingToPlayAtSpecifiedRate:
+            if self.asset != nil {
+                self.state = .buffering
+            }`;
 
-    // MARK: - AirPlay Route Change Guard (v3)
-    // When switching to/from AirPlay (or connecting Bluetooth), iOS momentarily
-    // pauses AVPlayer during route negotiation. Without this guard, the .paused
-    // status handler sets playWhenReady=false → rate=0 → kills the connection.
-    //
-    // Strategy: Suppress pause detection for NEW device connections. Clear the
-    // guard when .playing fires (route settled) or after 7s safety timeout
-    // (covers AirPlay 2 enhanced buffering negotiation which takes 5-6s).
-    private var isRouteChanging: Bool = false
-    private var routeChangeTimer: Timer?`
-  );
+  if (content.includes(waitingCase)) {
+    content = content.replace(
+      waitingCase,
+      `        case .waitingToPlayAtSpecifiedRate:
+            if self.asset != nil {
+                NSLog("[AVPlayerWrapper] .waitingToPlay reason=%@", self.avPlayer.reasonForWaitingToPlay?.rawValue ?? "nil")
+                self.state = .buffering
+            }`
+    );
+  }
 
-  // 2. Add route change observer in init() and deinit + handler
-  const setupAVPlayerCall = `        setupAVPlayer();
+  // 3. Add route change + interruption observers to init() with v10 AirPlay recovery
+  const initEnd = `        setupAVPlayer();
     }`;
 
-  content = content.replace(
-    setupAVPlayerCall,
-    `        setupAVPlayer();
+  // Find the init() method's setupAVPlayer call (must be the one inside public init)
+  if (content.includes(initEnd) && !content.includes('routeChangeNotification')) {
+    content = content.replace(
+      initEnd,
+      `        setupAVPlayer();
 
-        // Observe audio route changes for AirPlay/Bluetooth handling
+        // Observe route changes for diagnostics + v8 AirPlay recovery.
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handleRouteChange(_:)),
+            selector: #selector(routeChangeNotification(_:)),
             name: AVAudioSession.routeChangeNotification,
-            object: nil
+            object: AVAudioSession.sharedInstance()
+        )
+        // v10: Observe interruptions for AirPlay recovery
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(interruptionNotification(_:)),
+            name: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance()
         )
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
-        routeChangeTimer?.invalidate()
+        NotificationCenter.default.removeObserver(self)
     }
 
-    @objc private func handleRouteChange(_ notification: Notification) {
-        guard let userInfo = notification.userInfo,
-              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
-              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue)
-        else { return }
+    /// v10: Track whether we're in an AirPlay interruption recovery
+    private var airPlayInterruptionRecoveryPending = false
+    /// v10: Remember if we were playing when interrupted on AirPlay
+    private var wasPlayingOnAirPlayBeforeInterruption = false
 
-        switch reason {
-        case .newDeviceAvailable:
-            // New device connected (AirPlay selected, BT headphone connected).
-            // iOS will momentarily pause AVPlayer during route negotiation.
-            // AirPlay 2 enhanced buffering negotiation takes 5-6 seconds.
-            // Suppress pause detection until the route has fully settled.
-            //
-            // Strategy: set isRouteChanging=true immediately, then clear it
-            // when we observe .playing TimeControlStatus (route settled) or
-            // after a 7s safety timeout (longer than AirPlay 2 handshake).
-            // Do NOT re-apply avPlayer.rate during negotiation — let iOS
-            // complete the AirPlay 2 handshake first.
-            isRouteChanging = true
-            routeChangeTimer?.invalidate()
-            routeChangeTimer = Timer.scheduledTimer(withTimeInterval: 7.0, repeats: false) { [weak self] _ in
-                guard let self = self else { return }
-                if self.isRouteChanging {
-                    self.isRouteChanging = false
-                    // Only re-apply rate if still wanting to play and not already playing.
-                    // The .playing case in didChangeTimeControlStatus may have already
-                    // cleared isRouteChanging and resumed playback.
-                    if self.playWhenReady && self.avPlayer.timeControlStatus != .playing {
-                        self.applyAVPlayerRate()
+    @objc private func interruptionNotification(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+        let session = AVAudioSession.sharedInstance()
+        let output = session.currentRoute.outputs.first
+        let outputType = output?.portType.rawValue ?? "none"
+        let isAirPlay = output?.portType == .airPlay
+
+        if type == .began {
+            let wasPlaying = self.playWhenReady && self.avPlayer.rate > 0
+            NSLog("[AVPlayerWrapper] INTERRUPTION BEGAN output=%@ rate=%.1f playWhenReady=%d isAirPlay=%d wasPlaying=%d",
+                  outputType, self.avPlayer.rate, self.playWhenReady ? 1 : 0, isAirPlay ? 1 : 0, wasPlaying ? 1 : 0)
+
+            if isAirPlay && wasPlaying && self.asset != nil {
+                self.wasPlayingOnAirPlayBeforeInterruption = true
+                self.airPlayInterruptionRecoveryPending = true
+                NSLog("[AVPlayerWrapper] v10: AirPlay interruption detected — starting aggressive recovery")
+
+                for (index, delay) in [0.05, 0.2, 0.5, 1.0].enumerated() {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                        guard let self = self else { return }
+                        guard self.wasPlayingOnAirPlayBeforeInterruption && self.playWhenReady && self.asset != nil else {
+                            return
+                        }
+
+                        let currentOutput = AVAudioSession.sharedInstance().currentRoute.outputs.first
+                        let currentOutputType = currentOutput?.portType.rawValue ?? "none"
+                        NSLog("[AVPlayerWrapper] v10: Recovery attempt %d (%.0fms) output=%@ rate=%.1f",
+                              index + 1, delay * 1000, currentOutputType, self.avPlayer.rate)
+
+                        do {
+                            try AVAudioSession.sharedInstance().setActive(true, options: [])
+                        } catch {
+                            NSLog("[AVPlayerWrapper] v10: setActive failed at attempt %d: %@", index + 1, error.localizedDescription)
+                        }
+
+                        if self.avPlayer.rate == 0 {
+                            NSLog("[AVPlayerWrapper] v10: Forcing resume at attempt %d", index + 1)
+                            self.avPlayer.rate = self._rate
+                        }
+
+                        if self.avPlayer.rate > 0 {
+                            let finalOutput = AVAudioSession.sharedInstance().currentRoute.outputs.first?.portType.rawValue ?? "none"
+                            NSLog("[AVPlayerWrapper] v10: Recovery succeeded at attempt %d. Playing on %@", index + 1, finalOutput)
+                            self.wasPlayingOnAirPlayBeforeInterruption = false
+                            self.airPlayInterruptionRecoveryPending = false
+                        }
                     }
                 }
             }
+        } else {
+            let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+            let shouldResume = AVAudioSession.InterruptionOptions(rawValue: optionsValue).contains(.shouldResume)
+            NSLog("[AVPlayerWrapper] INTERRUPTION ENDED shouldResume=%d output=%@ rate=%.1f", shouldResume ? 1 : 0, outputType, self.avPlayer.rate)
 
-        case .oldDeviceUnavailable:
-            // Device disconnected (BT headphone turned off, AirPlay deselected).
-            // Do NOT suppress pause detection — let the normal handler set
-            // playWhenReady=false so the app correctly reflects the paused state.
-            // User can manually press play to resume on iPhone speaker.
-            break
+            if shouldResume && self.playWhenReady && self.avPlayer.rate == 0 && self.asset != nil {
+                NSLog("[AVPlayerWrapper] v10: Resuming after interruption ended (shouldResume=true)")
+                do {
+                    try AVAudioSession.sharedInstance().setActive(true, options: [])
+                } catch {
+                    NSLog("[AVPlayerWrapper] v10: Failed to re-activate session on ENDED: %@", error.localizedDescription)
+                }
+                self.avPlayer.rate = self._rate
+            }
 
-        default:
-            // .routeConfigurationChange, .categoryChange, .override, etc.
-            // These don't typically cause false pause detection, ignore them.
-            break
+            self.wasPlayingOnAirPlayBeforeInterruption = false
+            self.airPlayInterruptionRecoveryPending = false
+        }
+    }
+
+    @objc private func routeChangeNotification(_ notification: Notification) {
+        let session = AVAudioSession.sharedInstance()
+        let output = session.currentRoute.outputs.first
+        let outputType = output?.portType.rawValue ?? "none"
+        let outputName = output?.portName ?? "none"
+
+        let reasonRaw = (notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt) ?? 99
+        let reasonEnum = AVAudioSession.RouteChangeReason(rawValue: reasonRaw)
+        let reason: String
+        switch reasonEnum {
+        case .newDeviceAvailable:      reason = "newDeviceAvailable"
+        case .oldDeviceUnavailable:    reason = "oldDeviceUnavailable"
+        case .categoryChange:          reason = "categoryChange"
+        case .override:                reason = "override"
+        case .wakeFromSleep:           reason = "wakeFromSleep"
+        case .noSuitableRouteForCategory: reason = "noSuitableRouteForCategory"
+        case .routeConfigurationChange: reason = "routeConfigurationChange"
+        default:                       reason = "unknown(\\(reasonRaw))"
+        }
+
+        let prevOutput = (notification.userInfo?[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription)?
+            .outputs.first?.portType.rawValue ?? "none"
+
+        NSLog("[AVPlayerWrapper] ROUTE CHANGE reason=%@ prev=%@ now=%@ (%@) cat=%@ policy=%ld opts=%lu rate=%.1f extPlayback=%d extActive=%d",
+              reason, prevOutput, outputType, outputName,
+              session.category.rawValue,
+              session.routeSharingPolicy.rawValue,
+              session.categoryOptions.rawValue,
+              self.avPlayer.rate,
+              self.avPlayer.allowsExternalPlayback ? 1 : 0,
+              self.avPlayer.isExternalPlaybackActive ? 1 : 0)
+
+        // v11 fix: When iOS reports a categoryChange during AirPlay route transition,
+        // it may have changed our category from .playback to .playAndRecord (or similar).
+        // .playAndRecord only supports mirrored AirPlay, breaking non-mirrored audio routing.
+        // Apple Developer Forums #742034 confirms this is a known iOS behavior.
+        // Fix: Re-apply our desired .playback + .longFormAudio configuration immediately,
+        // then re-activate the session and resume playback after a short delay.
+        if reasonEnum == .categoryChange && self.playWhenReady && self.asset != nil {
+            let currentCategory = session.category
+            let currentPolicy = session.routeSharingPolicy
+            let needsRestore = currentCategory != .playback || currentPolicy != .longFormAudio
+
+            NSLog("[AVPlayerWrapper] v11: categoryChange detected. cat=%@ policy=%ld needsRestore=%d",
+                  currentCategory.rawValue, currentPolicy.rawValue, needsRestore ? 1 : 0)
+
+            if needsRestore {
+                NSLog("[AVPlayerWrapper] v11: Re-applying .playback + .longFormAudio (was cat=%@ policy=%ld)",
+                      currentCategory.rawValue, currentPolicy.rawValue)
+                do {
+                    try session.setCategory(
+                        .playback,
+                        mode: .default,
+                        policy: .longFormAudio,
+                        options: []
+                    )
+                    NSLog("[AVPlayerWrapper] v11: setCategory succeeded")
+                } catch {
+                    NSLog("[AVPlayerWrapper] v11: setCategory FAILED: %@", error.localizedDescription)
+                }
+
+                do {
+                    try session.setActive(true, options: [])
+                    NSLog("[AVPlayerWrapper] v11: setActive succeeded")
+                } catch {
+                    NSLog("[AVPlayerWrapper] v11: setActive FAILED: %@", error.localizedDescription)
+                }
+            }
+
+            // Resume playback after a short delay to let iOS complete the route transition.
+            // Even if category was already correct, the route change may have paused playback.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self = self else { return }
+                if self.playWhenReady && self.avPlayer.rate == 0 && self.asset != nil {
+                    let postOutput = AVAudioSession.sharedInstance().currentRoute.outputs.first?.portType.rawValue ?? "none"
+                    NSLog("[AVPlayerWrapper] v11: Resuming after categoryChange. output=%@", postOutput)
+                    self.avPlayer.rate = self._rate
+                }
+            }
+        }
+
+        // v8 fix: When route changes (any reason) and playWhenReady is true but AVPlayer has
+        // stopped (rate=0), nudge it to resume.
+        if reasonEnum != .categoryChange && self.playWhenReady && self.asset != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                guard let self = self else { return }
+                if self.playWhenReady && self.avPlayer.rate == 0 && self.asset != nil {
+                    let currentOutput = AVAudioSession.sharedInstance().currentRoute.outputs.first?.portType.rawValue ?? "none"
+                    NSLog("[AVPlayerWrapper] ROUTE CHANGE RECOVERY: rate was 0 with playWhenReady=true, resuming. output=%@", currentOutput)
+                    self.avPlayer.rate = self._rate
+                }
+            }
         }
     }`
-  );
-
-  // 3. Add isRouteChanging check in the pause handler
-  const pauseHandler = `                if (self.playWhenReady) {
-                    // Only if we are not on the boundaries of the track, otherwise itemDidPlayToEndTime will handle it instead.
-                    if (self.currentTime > 0 && self.currentTime < self.duration) {
-                        self.playWhenReady = false;
-                    }`;
-
-  if (!content.includes(pauseHandler)) {
-    console.log('[patch-packages] WARNING: Could not find pause handler in AVPlayerWrapper.swift');
-    return;
+    );
   }
 
-  content = content.replace(
-    pauseHandler,
-    `                if (self.playWhenReady) {
-                    // Skip pause detection during new-device route changes (AirPlay
-                    // select, BT connect). isRouteChanging is only set for
-                    // .newDeviceAvailable, NOT for .oldDeviceUnavailable (disconnect).
-                    // Rate is re-applied after route settles (7s timeout or .playing).
-                    if (self.isRouteChanging) {
-                        break
-                    }
-                    // Only if we are not on the boundaries of the track, otherwise itemDidPlayToEndTime will handle it instead.
-                    if (self.currentTime > 0 && self.currentTime < self.duration) {
-                        self.playWhenReady = false;
-                    }`
-  );
-
-  // 4. Add smart .playing detection — clear route change guard when playback starts
-  const playingCase = `        case .playing:
-            self.state = .playing`;
-
-  if (!content.includes(playingCase)) {
-    console.log('[patch-packages] WARNING: Could not find .playing case in AVPlayerWrapper.swift');
-    fs.writeFileSync(filePath, content, 'utf8');
-    console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: AirPlay route change guard (v3 — partial, missing .playing detection)');
-    return;
+  // 4. Explicitly enable allowsExternalPlayback (v9 fix).
+  // Previous versions (v7b-v8) set this to false, thinking it was only for video mirroring.
+  // However, setting allowsExternalPlayback=false causes iOS to reject AirPlay audio routing
+  // entirely — the route momentarily switches to AirPlay then immediately falls back to Speaker.
+  // The default is true, and Apple Music (which works perfectly with AirPlay) keeps it true.
+  // We explicitly set it to true to ensure any previous false value is overwritten.
+  const setupFunc = `    private func setupAVPlayer() {\n`;
+  if (content.includes(setupFunc) && !content.includes('allowsExternalPlayback = true')) {
+    // Remove any existing allowsExternalPlayback = false line first
+    content = content.replace(/\s*avPlayer\.allowsExternalPlayback = false\n?/g, '\n');
+    // Add allowsExternalPlayback = true
+    content = content.replace(
+      setupFunc,
+      `    private func setupAVPlayer() {\n        avPlayer.allowsExternalPlayback = true\n`
+    );
   }
-
-  content = content.replace(
-    playingCase,
-    `        case .playing:
-            // If we were waiting for an AirPlay/BT route transition to settle,
-            // the route has now settled — clear the guard and cancel the timeout.
-            if self.isRouteChanging {
-                self.isRouteChanging = false
-                self.routeChangeTimer?.invalidate()
-            }
-            self.state = .playing`
-  );
 
   fs.writeFileSync(filePath, content, 'utf8');
-  console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: AirPlay route change guard (v3 — 7s timer + .playing detection)');
+  console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: AirPlay v11 — categoryChange setCategory re-apply + route change recovery + diagnostics');
 }
 
-patchSwiftAudioExAirPlayGuard();
-
-// ============================================================
-// SwiftAudioEx: Enable AirPlay 2 external playback
-// ============================================================
-// AVPlayerWrapper.swift sets `avPlayer.allowsExternalPlayback = false`
-// with the comment "disabled since we're not making use of video playback".
-// This is a misunderstanding — allowsExternalPlayback controls ALL external
-// playback routing including audio-only AirPlay 2. With this set to false,
-// AVPlayer cannot route audio to AirPlay speakers at all.
-function patchSwiftAudioExAllowsExternalPlayback() {
-  const filePath = path.join(
-    __dirname, '..', 'ios', 'Pods', 'SwiftAudioEx', 'Sources',
-    'SwiftAudioEx', 'AVPlayerWrapper', 'AVPlayerWrapper.swift'
-  );
-
-  if (!fs.existsSync(filePath)) return;
-
-  let content = fs.readFileSync(filePath, 'utf8');
-
-  const oldLine = 'avPlayer.allowsExternalPlayback = false;';
-  const newLine = '// Enable external playback for AirPlay 2 audio routing\n        avPlayer.allowsExternalPlayback = true;';
-
-  if (content.includes(oldLine)) {
-    content = content.replace(oldLine, newLine);
-    fs.writeFileSync(filePath, content, 'utf8');
-    console.log('[patch-packages] Patched SwiftAudioEx AVPlayerWrapper.swift: allowsExternalPlayback = true');
-  }
-}
-
-patchSwiftAudioExAllowsExternalPlayback();
+patchSwiftAudioExAirPlayDiagnostics();
 
 // ============================================================
 // Firebase 11.x + RNFB 21.x: FIRAuth Swift header compatibility
@@ -496,10 +568,12 @@ patchRNFBMessagingForFirebaseAuth();
 // RNTrackPlayer: Guard configureAudioSession setCategory calls
 // ============================================================
 // RNTrackPlayer calls configureAudioSession() on every playWhenReady change.
-// The original unconditionally calls setCategory() which during active AirPlay 2
-// playback triggers a route renegotiation — causing a 5-6s timeout and fallback
-// to the local speaker. This patch adds a needsUpdate check so setCategory() is
-// only called when the session configuration actually needs to change.
+// The original unconditionally calls setCategory() AND setActive(true) which
+// during an active AirPlay 2 route transition disrupts the iOS handshake and
+// causes the route to fall back to the local speaker. This patch:
+// (a) guards activateSession() to only run when session is NOT already active
+// (b) adds a needsUpdate check so setCategory() is only called when needed
+// (c) adds diagnostic logging to see when session (de)activation happens
 function patchRNTrackPlayerConfigureAudioSession() {
   const filePath = path.join(
     __dirname, '..', 'node_modules',
@@ -511,8 +585,8 @@ function patchRNTrackPlayerConfigureAudioSession() {
 
   let content = fs.readFileSync(filePath, 'utf8');
 
-  // Already patched?
-  if (content.includes('needsUpdate')) return;
+  // Already patched? Check for the activateSession guard (v7)
+  if (content.includes('!audioSessionController.audioSessionIsActive')) return;
 
   // Original code from react-native-track-player 4.1.2
   const oldCode = `        if (player.playWhenReady) {
@@ -525,7 +599,13 @@ function patchRNTrackPlayerConfigureAudioSession() {
         }`;
 
   const newCode = `        if (player.playWhenReady) {
-            try? audioSessionController.activateSession()
+            NSLog("[RNTrackPlayer] configureAudioSession: ACTIVATE output=%@ isActive=%d", outputType, audioSessionController.audioSessionIsActive)
+            // [patch-packages] Only activate if not already active. Calling setActive(true)
+            // during an active AirPlay 2 route transition disrupts the iOS handshake
+            // and causes the route to fall back to the local speaker.
+            if !audioSessionController.audioSessionIsActive {
+                try? audioSessionController.activateSession()
+            }
             // [patch-packages] Only call setCategory if the session doesn't already
             // have the correct configuration. Calling setCategory during active
             // AirPlay 2 playback triggers a route renegotiation that can cause a
@@ -537,17 +617,45 @@ function patchRNTrackPlayerConfigureAudioSession() {
                     || session.routeSharingPolicy != sessionCategoryPolicy
                     || session.categoryOptions != sessionCategoryOptions
                 if needsUpdate {
+                    NSLog("[RNTrackPlayer] configureAudioSession: setCategory NEEDED cat=%@ policy=%ld output=%@",
+                          sessionCategory.rawValue, sessionCategoryPolicy.rawValue, outputType)
                     try? session.setCategory(sessionCategory, mode: sessionCategoryMode, policy: sessionCategoryPolicy, options: sessionCategoryOptions)
                 }
             } else {
                 try? AVAudioSession.sharedInstance().setCategory(sessionCategory, mode: sessionCategoryMode, options: sessionCategoryOptions)
             }
+        } else {
+            NSLog("[RNTrackPlayer] configureAudioSession: SKIP (playWhenReady=false) output=%@", outputType)
+        }`;
+
+  // Also need to add outputType variable at top of configureAudioSession
+  const funcHeader = `    private func configureAudioSession() {
+
+        // deactivate the session when there is no current item to be played`;
+
+  const funcHeaderNew = `    private func configureAudioSession() {
+        let outputType = AVAudioSession.sharedInstance().currentRoute.outputs.first?.portType.rawValue ?? "none"
+
+        // deactivate the session when there is no current item to be played`;
+
+  // Also add logging to deactivation
+  const deactivateCode = `        if (player.currentItem == nil) {
+            try? audioSessionController.deactivateSession()
+            return
+        }`;
+
+  const deactivateCodeNew = `        if (player.currentItem == nil) {
+            NSLog("[RNTrackPlayer] configureAudioSession: DEACTIVATE (no item) output=%@", outputType)
+            try? audioSessionController.deactivateSession()
+            return
         }`;
 
   if (content.includes(oldCode)) {
+    content = content.replace(funcHeader, funcHeaderNew);
+    content = content.replace(deactivateCode, deactivateCodeNew);
     content = content.replace(oldCode, newCode);
     fs.writeFileSync(filePath, content, 'utf8');
-    console.log('[patch-packages] Patched RNTrackPlayer.swift: configureAudioSession setCategory guard');
+    console.log('[patch-packages] Patched RNTrackPlayer.swift: configureAudioSession activateSession guard + setCategory guard + diagnostic logging (v7)');
   } else {
     console.log('[patch-packages] WARNING: Could not find original configureAudioSession in RNTrackPlayer.swift (may already be patched or version mismatch)');
   }

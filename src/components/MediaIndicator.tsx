@@ -198,7 +198,6 @@ export function MediaIndicator({ moduleColor, currentSource }: MediaIndicatorPro
         if (minimized) {
           console.info('[MediaIndicator] Restoring Glass Player from minimized state');
           await glassPlayer.showFromMinimized();
-          setIsGlassMinimized(false);
         }
       } catch {
         // Glass Player not available (iOS <26 or Android) — continue with pane navigation

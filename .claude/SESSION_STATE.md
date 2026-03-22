@@ -7,7 +7,7 @@
 
 - **Datum:** 2026-03-21
 - **Sessie:** AirPlay 2 — 3 extra root causes gevonden en gefixt (na eerste 4 fixes onvoldoende bleken)
-- **Commit:** (pending — wordt bijgewerkt na push)
+- **Commit:** `8ffda0d`
 
 ## Voltooide Taken Deze Sessie
 
