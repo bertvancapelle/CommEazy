@@ -509,6 +509,17 @@ class GlassPlayerWindow: UIWindow {
             self.fullPlayerView.isHidden = false
             self.fullPlayerView.alpha = 0
             
+            // Step 2b: Force layout pass BEFORE animating.
+            // After collapseToMini(), the fullPlayerView's internal constraints
+            // may still reference a stale frame (the previous full frame).
+            // Setting rootView.frame to current bounds and forcing layoutIfNeeded()
+            // resolves constraints for the current (mini) window size, so that
+            // the subsequent animation correctly interpolates from mini → full.
+            if let rootView = self.rootViewController?.view {
+                rootView.frame = self.bounds
+                rootView.layoutIfNeeded()
+            }
+            
             // Step 3: Expand window and fade in full player
             UIView.animate(
                 withDuration: 0.35,
