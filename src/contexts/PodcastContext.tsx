@@ -335,10 +335,11 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   useEffect(() => {
     if (!isInitialized) return;
 
-    // Listen for playback errors
+    // Listen for playback errors (only when podcast is the active source)
     const errorListener = TrackPlayer.addEventListener(
       Event.PlaybackError,
       (error) => {
+        if (audioOrchestrator.activeSource !== 'podcast') return;
         console.error('[PodcastContext] Playback error:', error);
         setIsLoading(false);
 

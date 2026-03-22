@@ -271,10 +271,11 @@ export function RadioProvider({ children }: RadioProviderProps) {
       }
     );
 
-    // Listen for playback errors
+    // Listen for playback errors (only when radio is the active source)
     const errorListener = TrackPlayer.addEventListener(
       Event.PlaybackError,
       (error) => {
+        if (audioOrchestrator.activeSource !== 'radio') return;
         console.error('[RadioContext] Playback error:', error);
         setIsLoading(false);
 
