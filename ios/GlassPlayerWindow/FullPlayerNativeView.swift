@@ -210,6 +210,9 @@ class FullPlayerNativeView: UIView {
         
         airPlayContainer.accessibilityLabel = "AirPlay"
         
+        // Delegate for haptic feedback + temporary key window (iOS 26.3 workaround)
+        airPlayRoutePicker.delegate = self
+        
         // Route detection: disable button when no external AirPlay devices available
         airPlayRouteDetector.isRouteDetectionEnabled = true
         airPlayRouteObservation = airPlayRouteDetector.observe(
@@ -1075,5 +1078,40 @@ class FullPlayerNativeView: UIView {
                 self?.artworkPlaceholderIcon.isHidden = true
             }
         }.resume()
+    }
+}
+
+// MARK: - AVRoutePickerViewDelegate (AirPlay haptic + iOS 26.3 key window workaround)
+
+@available(iOS 26.0, *)
+extension FullPlayerNativeView: AVRoutePickerViewDelegate {
+    
+    func routePickerViewWillBeginPresentingRoutes(_ routePickerView: AVRoutePickerView) {
+        NSLog("[GlassPlayer] AirPlay picker will begin presenting routes")
+        triggerHaptic()
+        
+        // iOS 26.3 workaround: AVRoutePickerView cannot present its system sheet
+        // from a non-key UIWindow. Temporarily make our window the key window so
+        // the route picker sheet can present correctly.
+        if let glassWindow = self.window {
+            NSLog("[GlassPlayer] AirPlay: temporarily making GlassPlayerWindow key window")
+            glassWindow.makeKey()
+        }
+    }
+    
+    func routePickerViewDidEndPresentingRoutes(_ routePickerView: AVRoutePickerView) {
+        NSLog("[GlassPlayer] AirPlay picker did end presenting routes")
+        
+        // Restore React Native's key window status after the AirPlay picker closes.
+        // Find the first non-GlassPlayer window and make it key again.
+        if let scene = self.window?.windowScene {
+            for window in scene.windows where window !== self.window {
+                if !window.isHidden && window.alpha > 0.01 {
+                    NSLog("[GlassPlayer] AirPlay: restoring key window to React Native")
+                    window.makeKey()
+                    break
+                }
+            }
+        }
     }
 }
