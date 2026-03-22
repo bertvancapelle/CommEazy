@@ -470,12 +470,26 @@ class ServiceContainerClass {
       // Create or update all other device contacts with their public keys
       const { TEST_ACCOUNTS } = await import('@/config/devConfig');
 
-      // Build JID → account info lookup
-      const jidToAccount = new Map<string, { firstName: string; lastName: string }>();
+      // Build JID → account info lookup (including test dates in March/April)
+      const jidToAccount = new Map<string, {
+        firstName: string;
+        lastName: string;
+        birthDate?: string;
+        weddingDate?: string;
+        deathDate?: string;
+      }>();
+      const testDates: Record<string, { birthDate?: string; weddingDate?: string; deathDate?: string }> = {
+        [TEST_ACCOUNTS.jeanine.jid]: { birthDate: '1962-03-15', weddingDate: '1985-04-22' },
+        [TEST_ACCOUNTS.pipo.jid]: { birthDate: '1955-04-03' },
+        [TEST_ACCOUNTS.sim1.jid]: { birthDate: '1990-03-28', weddingDate: '2018-04-08' },
+        [TEST_ACCOUNTS.sim2.jid]: { birthDate: '1948-04-10', weddingDate: '1972-03-01' },
+        [TEST_ACCOUNTS.simipad.jid]: { birthDate: '1935-03-05', deathDate: '2020-04-12' },
+      };
       for (const account of Object.values(TEST_ACCOUNTS)) {
         jidToAccount.set(account.jid, {
           firstName: account.firstName,
           lastName: account.lastName,
+          ...testDates[account.jid],
         });
       }
 
@@ -485,10 +499,14 @@ class ServiceContainerClass {
         const otherContact = await this._database.getContact(otherJid);
 
         if (otherContact) {
-          // Update existing contact with public key
+          // Update existing contact with public key + test dates
+          const accountInfo = jidToAccount.get(otherJid);
           const updatedContact = {
             ...otherContact,
             publicKey,
+            birthDate: accountInfo?.birthDate ?? otherContact.birthDate,
+            weddingDate: accountInfo?.weddingDate ?? otherContact.weddingDate,
+            deathDate: accountInfo?.deathDate ?? otherContact.deathDate,
           };
           await this._database.saveContact(updatedContact);
           console.log(`[ServiceContainer] Updated ${otherJid} with public key: ${publicKey.substring(0, 20)}...`);
@@ -506,6 +524,9 @@ class ServiceContainerClass {
             verified: false,
             lastSeen: Date.now(),
             trustLevel: 2, // Connected (test device)
+            birthDate: accountInfo?.birthDate,
+            weddingDate: accountInfo?.weddingDate,
+            deathDate: accountInfo?.deathDate,
           };
           await this._database.saveContact(newContact);
           console.log(`[ServiceContainer] Created contact ${newContact.firstName} ${newContact.lastName} (${otherJid})`);
