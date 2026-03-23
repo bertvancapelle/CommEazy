@@ -1142,51 +1142,6 @@ export function ContactDetailScreen() {
               </HapticTouchable>
             </View>
 
-            {/* Date picker modals */}
-            <DateTimePickerModal
-              visible={showBirthDatePicker}
-              title={t('contacts.dates.birthDate')}
-              value={parseDateValue(editBirthDate)}
-              mode="date"
-              moduleId="contacts"
-              onChange={(_event, selectedDate) => {
-                if (selectedDate) setEditBirthDate(selectedDate.toISOString().split('T')[0]);
-              }}
-              onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
-              maximumDate={new Date()}
-              minimumDate={new Date(1900, 0, 1)}
-              locale={pickerLocale}
-            />
-
-            <DateTimePickerModal
-              visible={showWeddingDatePicker}
-              title={t('contacts.dates.weddingDate')}
-              value={parseDateValue(editWeddingDate)}
-              mode="date"
-              moduleId="contacts"
-              onChange={(_event, selectedDate) => {
-                if (selectedDate) setEditWeddingDate(selectedDate.toISOString().split('T')[0]);
-              }}
-              onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
-              maximumDate={new Date()}
-              minimumDate={new Date(1940, 0, 1)}
-              locale={pickerLocale}
-            />
-
-            <DateTimePickerModal
-              visible={showDeathDatePicker}
-              title={t('contacts.dates.deathDate')}
-              value={parseDateValue(editDeathDate)}
-              mode="date"
-              moduleId="contacts"
-              onChange={(_event, selectedDate) => {
-                if (selectedDate) setEditDeathDate(selectedDate.toISOString().split('T')[0]);
-              }}
-              onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
-              maximumDate={new Date()}
-              minimumDate={new Date(1940, 0, 1)}
-              locale={pickerLocale}
-            />
           </>
         ) : (
           <>
@@ -1279,20 +1234,66 @@ export function ContactDetailScreen() {
         </HapticTouchable>
       </View>
 
-      {/* Country picker modal */}
-      <PickerModal
-        visible={showCountryPicker}
-        title={t('contacts.address.country')}
-        options={countryOptions}
-        selectedValue={editCountry}
-        onSelect={(code) => { setEditCountry(code); scrollToField('country', { isModalReturn: true }); }}
-        onClose={() => setShowCountryPicker(false)}
-        moduleId="contacts"
-      />
-
       {/* Extra bottom padding to ensure last fields scroll above keyboard */}
       <View style={{ height: spacing.xxl }} />
     </ScrollViewWithIndicator>
+
+    {/* Modals — OUTSIDE ScrollView for correct overlay on both iPhone and iPad Split View */}
+    <PickerModal
+      visible={showCountryPicker}
+      title={t('contacts.address.country')}
+      options={countryOptions}
+      selectedValue={editCountry}
+      onSelect={(code) => { setEditCountry(code); scrollToField('country', { isModalReturn: true }); }}
+      onClose={() => setShowCountryPicker(false)}
+      moduleId="contacts"
+    />
+
+    <DateTimePickerModal
+      visible={showBirthDatePicker}
+      title={t('contacts.dates.birthDate')}
+      value={parseDateValue(editBirthDate)}
+      mode="date"
+      moduleId="contacts"
+      onChange={(_event, selectedDate) => {
+        if (selectedDate) setEditBirthDate(selectedDate.toISOString().split('T')[0]);
+      }}
+      onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
+      maximumDate={new Date()}
+      minimumDate={new Date(1900, 0, 1)}
+      locale={pickerLocale}
+    />
+
+    <DateTimePickerModal
+      visible={showWeddingDatePicker}
+      title={t('contacts.dates.weddingDate')}
+      value={parseDateValue(editWeddingDate)}
+      mode="date"
+      moduleId="contacts"
+      onChange={(_event, selectedDate) => {
+        if (selectedDate) setEditWeddingDate(selectedDate.toISOString().split('T')[0]);
+      }}
+      onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
+      maximumDate={new Date()}
+      minimumDate={new Date(1940, 0, 1)}
+      locale={pickerLocale}
+    />
+
+    <DateTimePickerModal
+      visible={showDeathDatePicker}
+      title={t('contacts.dates.deathDate')}
+      value={parseDateValue(editDeathDate)}
+      mode="date"
+      moduleId="contacts"
+      onChange={(_event, selectedDate) => {
+        if (selectedDate) setEditDeathDate(selectedDate.toISOString().split('T')[0]);
+      }}
+      onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
+      maximumDate={new Date()}
+      minimumDate={new Date(1940, 0, 1)}
+      locale={pickerLocale}
+    />
+
     </KeyboardAvoidingView>
   );
 }

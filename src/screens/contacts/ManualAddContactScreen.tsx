@@ -38,7 +38,6 @@ import { ServiceContainer } from '@/services/container';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView, PanelAwareModal, Icon, DateTimePickerModal } from '@/components';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useScrollToField } from '@/hooks/useScrollToField';
-import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   STANDARD_CATEGORIES,
@@ -746,63 +745,6 @@ export function ManualAddContactScreen() {
           </HapticTouchable>
         </View>
 
-        {/* Date picker modals */}
-        <DateTimePickerModal
-          visible={showBirthDatePicker}
-          title={t('contacts.dates.birthDate')}
-          value={parseDateValue(birthDate)}
-          mode="date"
-          moduleId="contacts"
-          onChange={(_event, selectedDate) => {
-            if (selectedDate) setField('birthDate', selectedDate.toISOString().split('T')[0]);
-          }}
-          onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
-          maximumDate={new Date()}
-          minimumDate={new Date(1900, 0, 1)}
-          locale={pickerLocale}
-        />
-
-        <DateTimePickerModal
-          visible={showWeddingDatePicker}
-          title={t('contacts.dates.weddingDate')}
-          value={parseDateValue(weddingDate)}
-          mode="date"
-          moduleId="contacts"
-          onChange={(_event, selectedDate) => {
-            if (selectedDate) setField('weddingDate', selectedDate.toISOString().split('T')[0]);
-          }}
-          onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
-          maximumDate={new Date()}
-          minimumDate={new Date(1940, 0, 1)}
-          locale={pickerLocale}
-        />
-
-        <DateTimePickerModal
-          visible={showDeathDatePicker}
-          title={t('contacts.dates.deathDate')}
-          value={parseDateValue(deathDate)}
-          mode="date"
-          moduleId="contacts"
-          onChange={(_event, selectedDate) => {
-            if (selectedDate) setField('deathDate', selectedDate.toISOString().split('T')[0]);
-          }}
-          onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
-          maximumDate={new Date()}
-          minimumDate={new Date(1940, 0, 1)}
-          locale={pickerLocale}
-        />
-
-        {/* Country picker modal */}
-        <PickerModal
-          visible={showCountryPicker}
-          title={t('contacts.address.country')}
-          options={countryOptions}
-          selectedValue={country}
-          onSelect={(code) => { setField('country', code); scrollToField('country', { isModalReturn: true }); }}
-          onClose={() => setShowCountryPicker(false)}
-          moduleId="contacts"
-        />
-
         {/* Agenda categories section (required — min 1) */}
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
           {t('contacts.categories.title', 'Agenda categorieën')}
@@ -859,6 +801,62 @@ export function ManualAddContactScreen() {
         <View style={{ height: 48 }} />
       </ScrollViewWithIndicator>
 
+            {/* Modals — OUTSIDE ScrollView for correct overlay on both iPhone and iPad Split View */}
+            <DateTimePickerModal
+              visible={showBirthDatePicker}
+              title={t('contacts.dates.birthDate')}
+              value={parseDateValue(birthDate)}
+              mode="date"
+              moduleId="contacts"
+              onChange={(_event, selectedDate) => {
+                if (selectedDate) setField('birthDate', selectedDate.toISOString().split('T')[0]);
+              }}
+              onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
+              maximumDate={new Date()}
+              minimumDate={new Date(1900, 0, 1)}
+              locale={pickerLocale}
+            />
+
+            <DateTimePickerModal
+              visible={showWeddingDatePicker}
+              title={t('contacts.dates.weddingDate')}
+              value={parseDateValue(weddingDate)}
+              mode="date"
+              moduleId="contacts"
+              onChange={(_event, selectedDate) => {
+                if (selectedDate) setField('weddingDate', selectedDate.toISOString().split('T')[0]);
+              }}
+              onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
+              maximumDate={new Date()}
+              minimumDate={new Date(1940, 0, 1)}
+              locale={pickerLocale}
+            />
+
+            <DateTimePickerModal
+              visible={showDeathDatePicker}
+              title={t('contacts.dates.deathDate')}
+              value={parseDateValue(deathDate)}
+              mode="date"
+              moduleId="contacts"
+              onChange={(_event, selectedDate) => {
+                if (selectedDate) setField('deathDate', selectedDate.toISOString().split('T')[0]);
+              }}
+              onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
+              maximumDate={new Date()}
+              minimumDate={new Date(1940, 0, 1)}
+              locale={pickerLocale}
+            />
+
+            <PickerModal
+              visible={showCountryPicker}
+              title={t('contacts.address.country')}
+              options={countryOptions}
+              selectedValue={country}
+              onSelect={(code) => { setField('country', code); scrollToField('country', { isModalReturn: true }); }}
+              onClose={() => setShowCountryPicker(false)}
+              moduleId="contacts"
+            />
+
             {/* Save-time reminder modal: prompts for missing email */}
             <PanelAwareModal
               visible={showEmailReminder}
@@ -866,7 +864,7 @@ export function ManualAddContactScreen() {
               presentationStyle="pageSheet"
               onRequestClose={() => setShowEmailReminder(false)}
             >
-              <LiquidGlassView moduleId="contacts" style={styles.reminderModal}>
+              <View style={[styles.reminderModal, { backgroundColor: themeColors.surface }]}>
                 <View style={[styles.reminderHeader, { paddingTop: insets.top + spacing.md }]}>
                   <Icon name="mail" size={40} color={themeColors.primary} />
                   <Text style={[styles.reminderTitle, { color: themeColors.textPrimary }]}>
@@ -920,7 +918,7 @@ export function ManualAddContactScreen() {
                     </Text>
                   </HapticTouchable>
                 </View>
-              </LiquidGlassView>
+              </View>
             </PanelAwareModal>
           </>
         }

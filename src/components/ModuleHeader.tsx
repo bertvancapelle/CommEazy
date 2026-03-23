@@ -15,11 +15,6 @@
  * element above the reorderable blocks in ModuleScreenLayout.
  * This ensures AdMob stays at the top regardless of layout order.
  *
- * Liquid Glass Support (iOS 26+):
- * - Uses LiquidGlassView wrapper when available
- * - Falls back to solid color on iOS <26 and Android
- * - Module tint colors defined in MODULE_TINT_COLORS
- *
  * Senior-inclusive design:
  * - Touch targets ≥60pt for MediaIndicator and Grid button
  * - High contrast text on colored background
@@ -44,9 +39,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
 import { MediaIndicator } from './MediaIndicator';
-import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { useLiquidGlassContextSafe } from '@/contexts/LiquidGlassContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useButtonStyleSafe } from '@/contexts/ButtonStyleContext';
@@ -140,10 +133,6 @@ export function ModuleHeader({
   const moduleColor = useModuleColor(moduleId as ModuleColorId);
   // Accent color for Save button
   const { accentColor } = useAccentColor();
-
-  // Check if Liquid Glass is available (safe to call outside provider)
-  const liquidGlassContext = useLiquidGlassContextSafe();
-  const useLiquidGlass = liquidGlassContext?.isEnabled ?? false;
 
   const panelId = usePanelId();
   const { triggerFeedback } = useFeedback();
