@@ -37,10 +37,11 @@ Dit protocol zorgt ervoor dat wijzigingen worden gevalideerd tegen relevante ski
 **Workflow:**
 
 ```
-1. Identificeer: Welke CHANGE_VALIDATION_MATRIX triggers?
-2. Quick Check: Voldoet aan basisregels (touch targets, i18n, accessibility)?
-3. Implementeer
-4. Korte rapportage: "✅ [feature] toegevoegd, voldoet aan [skill] regels"
+1. Identificeer: Welke CHANGE_VALIDATION_MATRIX triggers? (beschrijving + file-pattern hooks)
+2. DECISION_PATTERNS.md check: Is er een bewezen patroon? → Pas toe
+3. Quick Check: Voldoet aan basisregels (touch targets, i18n, accessibility)?
+4. Implementeer
+5. Korte rapportage: "✅ [feature] toegevoegd, voldoet aan [skill] regels"
 ```
 
 **Quick Check Basisregels:**
@@ -69,11 +70,14 @@ Dit protocol zorgt ervoor dat wijzigingen worden gevalideerd tegen relevante ski
 
 ```
 1. Classificatie: Type wijziging bepalen
-2. Skill Identificatie: Welke skills moeten valideren? (zie matrix)
-3. Validatie: Check tegen elke skill's regels
-4. Rapportage: Gedetailleerd validatie-overzicht
-5. Implementatie: Alleen na goedkeuring
-6. Post-check: Tests, feature parity, recursieve updates
+2. Skill Identificatie: CHANGE_VALIDATION_MATRIX (beschrijving + file-pattern hooks)
+3. DECISION_PATTERNS.md check: Bewezen patroon? → Pas toe (tenzij contra-indicatie)
+4. Onvolledige match? → Escaleer naar Skill Domain (zie SKILL_DOMAINS.md)
+5. Validatie: Check tegen elke skill's regels
+6. Rapportage: Gedetailleerd validatie-overzicht
+7. Implementatie: Alleen na goedkeuring
+8. Post-check: Tests, feature parity, recursieve updates
+9. Leereffect: Nieuw patroon voor DECISION_PATTERNS.md?
 ```
 
 ---
@@ -331,7 +335,9 @@ Bij failures: build geblokkeerd tot gefixed.
 ## Referenties
 
 - `CONSTANTS.md` — Single Source of Truth voor constanten
-- `CHANGE_VALIDATION_MATRIX.md` — Volledige trigger-matrix
+- `CHANGE_VALIDATION_MATRIX.md` — Volledige trigger-matrix (beschrijving-gebaseerd + file-pattern hooks)
+- `DECISION_PATTERNS.md` — Bewezen ontwerppatronen (ReasoningBank) — raadplegen vóór implementatie
+- `SKILL_DOMAINS.md` — Domein-escalatie protocol (Model C) — alleen bij onvolledige matrix-match
 - `.claude/skills/[skill]/SKILL.md` — Skill-specifieke regels
 - `CLAUDE.md` sectie 14 — Component Registry
 - `CLAUDE.md` sectie 16 — Liquid Glass Feature Parity

@@ -205,6 +205,106 @@ CommEazy gebruikt een **dual-engine TTS architectuur** waarbij Nederlands ALTIJD
 
 ---
 
+## File-Pattern Hooks (Auto-Detect)
+
+> **Doel:** Automatische skill-activatie op basis van bestandspaden. Supplement bij de
+> beschrijving-gebaseerde triggers hierboven. Geïnspireerd door Ruflo's file-pattern hooks.
+>
+> **Hoe het werkt:** Wanneer een bestand wordt gewijzigd dat matcht met een patroon hieronder,
+> worden de bijbehorende skills automatisch geactiveerd — ongeacht hoe de wijziging beschreven is.
+
+### Database & Schema
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `src/models/schema.ts` | Schema versie wijziging | architecture-lead, security-expert |
+| `src/models/migrations.ts` | Migratie check | architecture-lead |
+| `src/models/schema.ts` ZONDER `src/models/migrations.ts` | **BLOKKEERDER** — migratie ontbreekt | architecture-lead |
+
+### Native iOS
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `ios/**/*NativeView.swift` | Feature parity check | ios-specialist, react-native-expert |
+| `ios/**/*Module.swift` | Native module wijziging | ios-specialist, react-native-expert |
+| `ios/**/PrivacyInfo.xcprivacy` | Privacy manifest | ios-specialist, security-expert |
+| `ios/**/GlassPlayer*.swift` | Glass Player wijziging | ios-specialist, react-native-expert, ui-designer |
+
+### UI Components
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `src/components/*Modal*.tsx` (nieuw bestand) | Modal standaard compliance | ui-designer, ios-specialist |
+| `src/components/ModalLayout.tsx` | Layout systeem wijziging | ui-designer, architecture-lead |
+| `src/components/ModuleHeader.tsx` | Header systeem wijziging | ui-designer, architecture-lead |
+| `src/components/Unified*Player*.tsx` | Player component wijziging | ui-designer, ios-specialist, react-native-expert |
+
+### Internationalisatie
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `src/locales/nl.json` | i18n referentie wijziging | documentation-writer, ui-designer |
+| `src/locales/nl.json` ZONDER alle 12 andere locales | **BLOKKEERDER** — incomplete i18n | documentation-writer |
+
+### Navigation & Routing
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `src/navigation/index.tsx` | Navigatie structuur wijziging | architecture-lead, ui-designer |
+| `src/screens/modules/*Screen.tsx` (nieuw bestand) | Nieuwe module screen | architecture-lead, ui-designer, accessibility-specialist |
+
+### Contexts & State
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `src/contexts/*Context.tsx` (nieuw bestand) | Nieuwe context provider | architecture-lead |
+| `src/contexts/AudioOrchestratorContext.tsx` | Audio state wijziging | architecture-lead, ios-specialist |
+
+### Configuration
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `src/config/moduleRegistry.ts` | Module registratie | architecture-lead, ui-designer |
+| `src/types/liquidGlass.ts` | Liquid Glass types | ui-designer, ios-specialist |
+| `src/theme/colors.ts` ZONDER `src/theme/darkColors.ts` | **BLOKKEERDER** — theme inconsistentie | ui-designer |
+
+### Server & Infrastructure
+
+| Bestandspatroon | Trigger | Verplichte Skills |
+|-----------------|---------|-------------------|
+| `server/push-gateway/*` | Push gateway wijziging | devops-specialist, ios-specialist |
+| Prosody config (`prosody.cfg.lua`) | XMPP server config | xmpp-specialist, devops-specialist |
+
+### Gebruik met Matrix
+
+File-Pattern Hooks werken **samen met** de beschrijving-gebaseerde matrix:
+
+1. **Beide matchen:** Neem de unie van alle geactiveerde skills
+2. **Alleen file-pattern matcht:** Gebruik de file-pattern skills
+3. **Alleen beschrijving matcht:** Gebruik de beschrijving skills
+4. **Geen match:** Escaleer naar Skill Domains (zie `SKILL_DOMAINS.md`)
+
+### BLOKKEERDER Patronen
+
+File-pattern hooks detecteren automatisch combinaties die een BLOKKEERDER zijn:
+
+| Combinatie | BLOKKEERDER Reden |
+|------------|-------------------|
+| `schema.ts` gewijzigd ZONDER `migrations.ts` | Database migratie ontbreekt → data verlies |
+| `nl.json` gewijzigd ZONDER andere locale bestanden | i18n incompleet → gebruikers zien verkeerde taal |
+| `colors.ts` gewijzigd ZONDER `darkColors.ts` | Theme inconsistentie → dark mode broken |
+
+---
+
+## Domein-Escalatie (bij onvolledige match)
+
+Wanneer NOCH de beschrijving-matrix NOCH de file-pattern hooks een volledige match geven,
+wordt de wijziging geëscaleerd naar het meest relevante Skill Domein.
+
+Zie `SKILL_DOMAINS.md` voor het volledige escalatie-protocol (Model C).
+
+---
+
 ## Skill Checklist Referenties
 
 Voor de specifieke validatie-regels van elke skill, zie:
