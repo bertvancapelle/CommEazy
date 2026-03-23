@@ -83,12 +83,13 @@ function ContactListItem({
         accessibilityLabel={displayName}
         accessibilityHint={t('accessibility.openContact', { name: displayName })}
       >
-        {/* Profile photo with presence dot */}
+        {/* Profile photo with presence dot + green ring for CommEazy contacts */}
         <ContactAvatar
           name={displayName}
           photoUrl={contact.photoUrl}
           size={60}
           presence={presence}
+          trustLevel={contact.trustLevel ?? 0}
         />
 
         {/* Name + reachability icons stacked vertically */}

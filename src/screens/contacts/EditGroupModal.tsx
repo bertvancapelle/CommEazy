@@ -313,6 +313,7 @@ export function EditGroupModal({
                         name={displayName}
                         photoUrl={contact.photoUrl}
                         size={48}
+                        trustLevel={contact.trustLevel ?? 0}
                       />
                       <Text
                         style={[styles.contactName, { color: themeColors.textPrimary }]}

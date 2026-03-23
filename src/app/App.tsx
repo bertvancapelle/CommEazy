@@ -33,6 +33,7 @@ import { PresenceProvider } from '@/contexts/PresenceContext';
 import { PlaylistImportProvider } from '@/contexts/PlaylistImportContext';
 import { FieldTextStyleProvider } from '@/contexts/FieldTextStyleContext';
 import { FloatingImportIndicator } from '@/components';
+import { DevModePanel } from '@/components/DevModePanel';
 import { ServiceContainer } from '@/services/container';
 import { chatService } from '@/services/chat';
 import { initializePodcastCache } from '@/services/podcastService';
@@ -126,6 +127,7 @@ export default function App() {
                               <HoldToNavigateProvider>
                                 <AppNavigator />
                                 <FloatingImportIndicator />
+                                {__DEV__ && <DevModePanel />}
                               </HoldToNavigateProvider>
                             </PlaylistImportProvider>
                           </CallProvider>

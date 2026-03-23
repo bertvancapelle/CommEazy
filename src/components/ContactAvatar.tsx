@@ -32,6 +32,8 @@ interface ContactAvatarProps {
   accessibilityLabel?: string;
   /** Visual presence data from useVisualPresence() — omit to hide dot */
   presence?: VisualPresence;
+  /** Trust level (0-3). Level ≥2 shows green ring around avatar */
+  trustLevel?: number;
 }
 
 /**
@@ -48,6 +50,7 @@ export function ContactAvatar({
   size = 60,
   accessibilityLabel,
   presence,
+  trustLevel,
 }: ContactAvatarProps) {
   const [imageError, setImageError] = useState(false);
   const showImage = photoUrl && !imageError;
@@ -61,6 +64,13 @@ export function ContactAvatar({
 
   // Scale font size based on avatar size — slightly smaller for 2 initials
   const fontSize = initial.length > 1 ? size * 0.32 : size * 0.4;
+
+  // Green ring for CommEazy contacts (trustLevel ≥ 2)
+  const showGreenRing = (trustLevel ?? 0) >= 2;
+  const ringWidth = showGreenRing ? 3 : 0;
+  // Inner avatar size shrinks to keep total size constant when ring is shown
+  const innerSize = showGreenRing ? size - ringWidth * 2 : size;
+  const innerBorderRadius = innerSize / 2;
 
   // Presence dot sizing: 30% of avatar diameter
   const dotSize = Math.round(size * 0.3);
@@ -80,7 +90,7 @@ export function ContactAvatar({
       accessibilityLabel={a11y}
       accessibilityRole="image"
     >
-      {/* Avatar circle */}
+      {/* Avatar circle — with optional green ring for CommEazy contacts */}
       <View
         style={[
           styles.avatarCircle,
@@ -88,6 +98,10 @@ export function ContactAvatar({
             width: size,
             height: size,
             borderRadius,
+          },
+          showGreenRing && {
+            borderWidth: ringWidth,
+            borderColor: colors.presenceAvailable,
           },
         ]}
       >
@@ -97,9 +111,9 @@ export function ContactAvatar({
             style={[
               styles.image,
               {
-                width: size,
-                height: size,
-                borderRadius,
+                width: innerSize,
+                height: innerSize,
+                borderRadius: innerBorderRadius,
               },
             ]}
             onError={() => setImageError(true)}
@@ -110,9 +124,9 @@ export function ContactAvatar({
             style={[
               styles.fallback,
               {
-                width: size,
-                height: size,
-                borderRadius,
+                width: innerSize,
+                height: innerSize,
+                borderRadius: innerBorderRadius,
                 backgroundColor: getAvatarColor(name),
               },
             ]}

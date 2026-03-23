@@ -245,6 +245,7 @@ export function CreateGroupModal({
                   name={displayName}
                   photoUrl={contact.photoUrl}
                   size={48}
+                  trustLevel={contact.trustLevel ?? 0}
                 />
                 <View style={styles.contactInfo}>
                   <Text

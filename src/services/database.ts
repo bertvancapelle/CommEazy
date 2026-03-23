@@ -313,6 +313,7 @@ export class WatermelonDBService implements DatabaseService {
           record.firstName = contact.firstName;
           record.lastName = contact.lastName;
           record.phoneNumber = contact.phoneNumber;
+          record.mobileNumber = contact.mobileNumber;
           record.email = contact.email;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
@@ -323,6 +324,7 @@ export class WatermelonDBService implements DatabaseService {
             record.addressPostalCode = contact.address.postalCode;
             record.addressCity = contact.address.city;
             record.addressCountry = contact.address.country;
+            record.addressProvince = contact.address.province;
           }
           record.birthDate = contact.birthDate;
           record.weddingDate = contact.weddingDate;
@@ -342,6 +344,7 @@ export class WatermelonDBService implements DatabaseService {
           record.firstName = contact.firstName;
           record.lastName = contact.lastName;
           record.phoneNumber = contact.phoneNumber;
+          record.mobileNumber = contact.mobileNumber;
           record.email = contact.email;
           record.publicKey = contact.publicKey;
           record.verified = contact.verified;
@@ -352,6 +355,7 @@ export class WatermelonDBService implements DatabaseService {
             record.addressPostalCode = contact.address.postalCode;
             record.addressCity = contact.address.city;
             record.addressCountry = contact.address.country;
+            record.addressProvince = contact.address.province;
           }
           record.birthDate = contact.birthDate;
           record.weddingDate = contact.weddingDate;

@@ -637,12 +637,13 @@ export function ContactDetailScreen() {
         />
       )}
 
-      {/* Profile header with large photo */}
+      {/* Profile header with large photo + green ring for CommEazy contacts */}
       <View style={styles.profileHeader}>
         <ContactAvatar
           name={displayName}
           photoUrl={contact.photoUrl}
           size={120}
+          trustLevel={contact.trustLevel ?? 0}
         />
         <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{displayName}</Text>
 

@@ -29,6 +29,107 @@ const setSimulateSlowNetwork = (v: boolean) => { _simulateSlowNetwork = v; };
 const isSimulatingOffline = () => _simulateOffline;
 const isSimulatingSlowNetwork = () => _simulateSlowNetwork;
 import { ServiceContainer } from '@/services/container';
+import type { Contact } from '@/services/interfaces';
+
+// ============================================================
+// Test Contacts — 4 fully populated address book contacts
+// Valid Dutch addresses (postcode + huisnummer verified)
+// TrustLevel 0 = address book contacts (not CommEazy users)
+// ============================================================
+
+const TEST_CONTACTS: Contact[] = [
+  {
+    userUuid: 'test-0001-aaaa-bbbb-cccc-111111111111',
+    jid: 'test-0001-aaaa-bbbb-cccc-111111111111@commeazy.local',
+    firstName: 'Henk',
+    lastName: 'de Vries',
+    phoneNumber: '+31207156789',        // Amsterdam landline
+    mobileNumber: '+31612345678',       // Dutch mobile
+    email: 'henk.devries@gmail.com',
+    publicKey: '',                       // No E2E key (address book contact)
+    verified: false,
+    lastSeen: 0,
+    trustLevel: 0,                       // Address book contact
+    address: {
+      street: 'Keizersgracht 672',       // Valid: Keizersgracht, Amsterdam
+      postalCode: '1017 ER',             // Valid postcode for Keizersgracht
+      city: 'Amsterdam',
+      province: 'Noord-Holland',
+      country: 'Nederland',
+    },
+    birthDate: '1952-03-14',
+    weddingDate: '1978-06-22',
+    isEmergencyContact: true,
+  },
+  {
+    userUuid: 'test-0002-aaaa-bbbb-cccc-222222222222',
+    jid: 'test-0002-aaaa-bbbb-cccc-222222222222@commeazy.local',
+    firstName: 'Maria',
+    lastName: 'Jansen',
+    phoneNumber: '+31302345678',         // Utrecht landline
+    mobileNumber: '+31687654321',        // Dutch mobile
+    email: 'maria.jansen@outlook.nl',
+    publicKey: '',
+    verified: false,
+    lastSeen: 0,
+    trustLevel: 0,
+    address: {
+      street: 'Oudegracht 158',          // Valid: Oudegracht, Utrecht
+      postalCode: '3511 AZ',             // Valid postcode for Oudegracht
+      city: 'Utrecht',
+      province: 'Utrecht',
+      country: 'Nederland',
+    },
+    birthDate: '1948-11-27',
+    deathDate: undefined,
+    isDeceased: false,
+  },
+  {
+    userUuid: 'test-0003-aaaa-bbbb-cccc-333333333333',
+    jid: 'test-0003-aaaa-bbbb-cccc-333333333333@commeazy.local',
+    firstName: 'Willem',
+    lastName: 'Bakker',
+    phoneNumber: '+31107891234',         // Rotterdam landline
+    mobileNumber: '+31623456789',        // Dutch mobile
+    email: 'w.bakker@ziggo.nl',
+    publicKey: '',
+    verified: false,
+    lastSeen: 0,
+    trustLevel: 0,
+    address: {
+      street: 'Coolsingel 40',           // Valid: Coolsingel (Stadhuis), Rotterdam
+      postalCode: '3011 AD',             // Valid postcode for Coolsingel
+      city: 'Rotterdam',
+      province: 'Zuid-Holland',
+      country: 'Nederland',
+    },
+    birthDate: '1955-07-08',
+    weddingDate: '1982-09-15',
+  },
+  {
+    userUuid: 'test-0004-aaaa-bbbb-cccc-444444444444',
+    jid: 'test-0004-aaaa-bbbb-cccc-444444444444@commeazy.local',
+    firstName: 'Johanna',
+    lastName: 'van den Berg',
+    phoneNumber: '+31534567890',         // Enschede landline
+    mobileNumber: '+31634567890',        // Dutch mobile
+    email: 'johanna.vdberg@kpnmail.nl',
+    publicKey: '',
+    verified: false,
+    lastSeen: 0,
+    trustLevel: 0,
+    address: {
+      street: 'Langestraat 24',          // Valid: Langestraat, Enschede
+      postalCode: '7511 HC',             // Valid postcode for Langestraat
+      city: 'Enschede',
+      province: 'Overijssel',
+      country: 'Nederland',
+    },
+    birthDate: '1960-01-03',
+    weddingDate: '1985-04-12',
+    isEmergencyContact: false,
+  },
+];
 
 interface DevModePanelProps {
   /** Callback when a QR code is "scanned" (simulated) */
@@ -150,6 +251,24 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
     }
   };
 
+  const seedTestContacts = async () => {
+    try {
+      const db = ServiceContainer.database;
+      let created = 0;
+      for (const contact of TEST_CONTACTS) {
+        await db.saveContact(contact);
+        created++;
+      }
+      Alert.alert(
+        'Test Contacten',
+        `${created} adresboek-contacten aangemaakt:\n\n` +
+        TEST_CONTACTS.map(c => `• ${c.firstName} ${c.lastName} (${c.address?.city})`).join('\n')
+      );
+    } catch (error) {
+      Alert.alert('Error', `Kon contacten niet aanmaken: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
+    }
+  };
+
   const testPushPermission = async () => {
     try {
       const messaging = await import('@react-native-firebase/messaging');
@@ -245,6 +364,18 @@ export function DevModePanel({ onQRCodeScanned, showQROptions = true }: DevModeP
                 onPress={testLocalNotification}
               >
                 <Text style={styles.optionText}>Send Test Notification</Text>
+              </HapticTouchable>
+            </View>
+
+            {/* Test Data */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Test Data</Text>
+
+              <HapticTouchable hapticDisabled
+                style={[styles.option, styles.optionSuccess]}
+                onPress={seedTestContacts}
+              >
+                <Text style={styles.optionText}>Seed 4 Test Contacten (NL)</Text>
               </HapticTouchable>
             </View>
 
