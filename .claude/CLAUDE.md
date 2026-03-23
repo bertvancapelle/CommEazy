@@ -4377,9 +4377,9 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 | 40 | **Backup & Restore** | ⏳ TODO | 🎯 MVP | iOS/iPadOS: iCloud Backup is afdoende — minimale implementatie: iCloud detectie + waarschuwingsbanner + mail re-login na restore. Android: uitgesteld (Keystore device-bound, 25MB limiet). Zie `BACKUP_RESTORE_PLAN.md` |
 | 41 | **React Native Upgrade** | ✅ DONE | 🎯 MVP | Geüpgraded van RN 0.73.6 → 0.84.1 via 3-stop strategie (0.76→0.78→0.84). New Architecture actief, Hermes V1, React 19.2.3, React Navigation 7. FlatList bug opgelost. Zie branch `upgrade/rn-0.84`. |
 | 43 | **FlatList Rehabilitatie** | ⏳ TODO | ⏳ TBD | 68 bestanden migreren van ScrollView + .map() terug naar FlatList (bug opgelost in RN 0.84). Zie `.claude/plans/FLATLIST_REHABILITATION.md`. |
-| 42 | **Trust & Attestation** | ⏳ TODO | 🎯 MVP | User-to-User Trust (QR-code + Invitation Relay) + App-to-Server Trust (App Attest/Play Integrity + API Gateway + JWT). Contact flow refactor (3 opties: in de buurt/uitnodigen/bekende). iPad standalone onboarding via invitation code. Zie `TRUST_AND_ATTESTATION_PLAN.md` |
+| 42 | **Trust & Attestation** | 🔶 PARTIAL | 🎯 MVP | ✅ Invitation Relay (code gen CE-XXXX, Argon2id KDF, V2 payload, HTTP relay API), ✅ 3-optie contact flow (Nearby/Invite/Manual), ✅ Trust levels 0-3 (model + UI), ✅ InviteContactScreen + AcceptInvitationScreen + InvitationCodeScreen (iPad), ✅ App Attest iOS (attestation + JWT token management), ✅ Profile Sync (push/pull via XMPP). ⏳ QR-code verificatie crypto (UI klaar, crypto stub), ⏳ Device linking transfer (UI klaar, transfer gesimuleerd), ⏳ Play Integrity Android (placeholder). Zie `TRUST_AND_ATTESTATION_PLAN.md` |
 
-**📊 Cross-Platform Samenvatting:** 24 items | ✅ 0 DONE | 🔶 4 PARTIAL | ⏳ 20 TODO
+**📊 Cross-Platform Samenvatting:** 24 items | ✅ 1 DONE | 🔶 5 PARTIAL | ⏳ 18 TODO
 
 ---
 
@@ -4389,8 +4389,8 @@ Features en taken die voor beide platforms gelden of backend/infrastructuur betr
 |----------|--------|---------|------------|---------|
 | **iOS/iPadOS** | 15 | 14 | 1 | 0 |
 | **Android** | 4 | 0 | 0 | 4 |
-| **Cross-Platform** | 24 | 0 | 4 | 20 |
-| **TOTAAL** | 43 | 14 | 5 | 24 |
+| **Cross-Platform** | 24 | 1 | 5 | 18 |
+| **TOTAAL** | 43 | 15 | 6 | 22 |
 
 ---
 

@@ -58,31 +58,101 @@ Wanneer Oma Maria een contact wil toevoegen, moet er een mechanisme zijn om:
 | E | **Familielid in het buitenland** | Invitation Relay via email of messaging app |
 | F | **Nieuw device** | iCloud Backup restore (iOS) of Invitation Relay voor key recovery |
 
-### 2.1 Face-to-Face Verificatie (QR-Code)
+### 2.1 "In de buurt" — Nearby Contact Wizard
 
-**Wanneer:** Twee gebruikers zitten fysiek bij elkaar.
+**Wanneer:** Twee gebruikers zitten fysiek bij elkaar (bijv. bij de koffie, familiebezoek).
 
-**Flow:**
+**Waarom een wizard?** Senioren hebben behoefte aan begeleiding stap-voor-stap. Een wizard voorkomt verwarring door slechts één actie per stap te vragen. De helper (kleinkind, buurvrouw) kan meekijken en bijsturen.
+
+#### Complete Wizard Flow (6 stappen)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Oma Maria (iPhone)           Tante Bep (iPhone)            │
-│                                                             │
-│  1. Contacten → "+" → "In de buurt"                         │
-│  2. Toont QR-code met:        3. Scant QR-code              │
-│     - userUuid                                              │
-│     - publicKey                                             │
-│     - displayName                                           │
-│  4. ← Bevestigingsscherm →    4. ← Bevestigingsscherm →    │
-│     "Is dit Tante Bep?"          "Is dit Oma Maria?"        │
-│  5. Beide tikken "Ja"                                       │
-│  6. Wederzijds XMPP presence subscription                   │
-│  7. ✅ Contact geverifieerd + E2E sleutels uitgewisseld     │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│  Oma Maria (iPhone) — INITIATOR                                     │
+│  Tante Bep (zit ernaast) — ONTVANGER                                │
+│                                                                     │
+│  Stap 1: "Heeft je contact de app al geïnstalleerd?"               │
+│          [Ja, de app staat erop] → Stap 3                           │
+│          [Nee, nog niet]         → Stap 2                           │
+│                                                                     │
+│  Stap 2: QR-code Download Link                                     │
+│          Scherm toont QR-code: https://commeazy.com/download        │
+│          + instructie: "Laat je contact deze code scannen            │
+│           met de camera van hun telefoon"                            │
+│          Tante Bep scant met Camera app → App Store/Play Store      │
+│          → Installeert CommEazy → Maakt profiel aan                  │
+│          [Wachtscherm: "Klaar? Tik hier om door te gaan"]           │
+│          → Stap 3                                                    │
+│                                                                     │
+│  Stap 3: "Heeft je contact een profiel aangemaakt?"                 │
+│          [Ja] → Stap 4                                              │
+│          [Nee, even wachten] → Wachtscherm met tips                 │
+│          → Stap 4                                                    │
+│                                                                     │
+│  Stap 4: QR-code Uitnodigingscode                                  │
+│          App genereert invitation code: CE-XXXX-XXXX-XXXX           │
+│          Scherm toont QR-code: https://commeazy.com/invite/CE-...   │
+│          + instructie: "Laat je contact deze code scannen"           │
+│          Tante Bep scant met Camera app → CommEazy opent            │
+│          → Relay uitwisseling (bidirectioneel via invitation code)   │
+│          → "Verbonden met Tante Bep!" ✅                            │
+│                                                                     │
+│  Stap 5: Video Call Test (optioneel)                                │
+│          "Wil je de verbinding testen met een kort videogesprek?"   │
+│          [Ja, bel nu] → Normaal videogesprek start                  │
+│            → Na ophangen: "Was dit Tante Bep?" [Ja] → Level 3 ✅   │
+│            → [Nee] → Level 2, waarschuwing tonen                    │
+│          [Overslaan] → Level 2, door naar Stap 6                    │
+│                                                                     │
+│  Stap 6: Klaar! 🎉                                                 │
+│          "Je kunt nu berichten sturen naar Tante Bep."              │
+│          [Stuur een berichtje] → Opent chat                         │
+│          [Terug naar contacten] → ContactListScreen                  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-**QR-code Payload:**
+#### Twee QR-codes in de Wizard
 
+De wizard gebruikt twee VERSCHILLENDE QR-codes voor twee verschillende doelen:
+
+| Stap | QR-code URL | Doel | Wanneer |
+|------|-------------|------|---------|
+| **Stap 2** | `https://commeazy.com/download` | App downloaden | Contact heeft CommEazy nog niet |
+| **Stap 4** | `https://commeazy.com/invite/CE-XXXX-XXXX-XXXX` | Key exchange via relay | Contact heeft CommEazy wel |
+
+Beide QR-codes worden gescand met de **Camera app** van het ontvangende device (niet een in-app scanner). Zie sectie 2.5 voor Universal Links configuratie.
+
+#### Video Call Test als Verificatie (Stap 5)
+
+Het videogesprek in Stap 5 dient twee doelen:
+
+1. **Functionele test** — Bevestigt dat de verbinding werkt (berichten, audio, video)
+2. **Level 3 verificatie** — Na het gesprek: "Was dit [naam]?" → Ja = Level 3 (geverifieerd)
+
+**Design beslissingen:**
+- Het videogesprek is een **normaal videogesprek** — geen speciale modus
+- Echo/feedback bij naast elkaar zitten is acceptabel (gesprek duurt 5-10 seconden)
+- Senioren verwachten echo wanneer ze naast elkaar zitten en begrijpen dit
+- Het toevoegen van speciale echo-cancellation of video-only modus zou onnodige complexiteit toevoegen
+- De verificatievraag komt ALLEEN bij de initiator (Oma Maria), niet bij Tante Bep
+- **Eenzijdige verificatie is voldoende** — elk device beheert zijn eigen trust levels onafhankelijk
+
+#### QR-code Payloads
+
+**Download QR (Stap 2):**
+```
+https://commeazy.com/download
+```
+Plain URL — Universal Link die redirect naar App Store (iOS) of Play Store (Android).
+
+**Invite QR (Stap 4):**
+```
+https://commeazy.com/invite/CE-A7K9-M2PX-R4BT
+```
+Universal Link met invitation code in URL path. Als CommEazy geïnstalleerd is: opent direct de AcceptInvitationScreen. Als niet geïnstalleerd: opent browser → landingspagina → store links.
+
+**Legacy QR Payload (voor in-app scanner, backward compat):**
 ```json
 {
   "v": 1,
@@ -93,10 +163,13 @@ Wanneer Oma Maria een contact wil toevoegen, moet er een mechanisme zijn om:
 }
 ```
 
-**Beveiliging:**
-- QR-code bevat publieke sleutel → direct trust establishment
-- Fysieke aanwezigheid = visuele verificatie
-- Geen server betrokken → zero-server-storage compliant
+#### Beveiliging
+
+- QR-code scannen via Camera app = geen in-app scanner nodig (minder code, minder attack surface)
+- Invitation code in URL is encrypted op relay (Argon2id key derivation + AES-256-GCM)
+- Fysieke aanwezigheid bij wizard = visuele verificatie mogelijk
+- Video call test bevestigt identiteit → Level 3 trust
+- Zero-server-storage compliant (relay slaat alleen encrypted blobs op, max 7 dagen)
 
 ### 2.2 Invitation Relay (Op Afstand)
 
@@ -144,11 +217,14 @@ Wanneer Oma Maria een contact wil toevoegen, moet er een mechanisme zijn om:
 **Invitation Code Format:**
 
 ```
-CE-XXXX-XXXX
+CE-XXXX-XXXX-XXXX
 
 Waarbij X = alfanumeriek (0-9, A-Z, exclusief verwarrende tekens: 0/O, 1/I/L)
 Effectief alfabet: 2-9, A-H, J-K, M-N, P-Z = 30 tekens
-Entropie: 30^8 ≈ 6.56 × 10^11 combinaties
+Entropie: 30^12 ≈ 5.31 × 10^17 combinaties
+
+De code wordt ook als URL verspreid via Universal Links:
+https://commeazy.com/invite/CE-XXXX-XXXX-XXXX
 ```
 
 **Encrypted Blob Structuur:**
@@ -219,6 +295,112 @@ CommEazy kent twee typen contacten:
 **Visuele indicatie:**
 - Adresboekcontact: grijs icoon, geen berichtknop
 - CommEazy-contact: gekleurd icoon met ✓, berichtknop zichtbaar
+
+### 2.5 Universal Links / commeazy.com
+
+**Domein:** `commeazy.com` (bevestigd)
+
+CommEazy gebruikt Universal Links (iOS) en App Links (Android) zodat QR-codes gescand met de **Camera app** automatisch CommEazy openen. Geen in-app QR-scanner nodig.
+
+#### Waarom Camera App in plaats van In-App Scanner?
+
+| Aspect | Camera App | In-App Scanner |
+|--------|-----------|----------------|
+| **Senior-friendliness** | ✅ Bekend van COVID-era QR-codes | ❌ Onbekende interface |
+| **Stappen** | 1 (open camera, richt op QR) | 3+ (open CommEazy, vind scanner, richt op QR) |
+| **App niet geïnstalleerd** | ✅ Browser fallback → store | ❌ Niet mogelijk |
+| **Code complexiteit** | ✅ Geen camera permission nodig | ❌ Camera permission + scanner UI |
+| **Betrouwbaarheid** | ✅ Systeem-level, altijd werkend | ⚠️ Kan bugs bevatten |
+
+#### URL Routes
+
+| URL | Doel | Gedrag met app | Gedrag zonder app |
+|-----|------|---------------|-------------------|
+| `commeazy.com/download` | App downloaden | Redirect naar store | Landing page met store links |
+| `commeazy.com/invite/CE-XXXX-XXXX-XXXX` | Contact uitnodigen | Opent AcceptInvitationScreen | Landing page → store → deep link na installatie |
+
+#### iOS Configuratie — apple-app-site-association
+
+Bestand: `https://commeazy.com/.well-known/apple-app-site-association`
+
+```json
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.com.commeazy.app",
+        "paths": [
+          "/invite/*",
+          "/download"
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Xcode configuratie:**
+- Associated Domains capability: `applinks:commeazy.com`
+- `AppDelegate` of `SceneDelegate` implementeert `application(_:continue:restorationHandler:)` voor URL afhandeling
+- React Native: `Linking.addEventListener('url', handleDeepLink)` of `react-navigation` deep linking
+
+#### Android Configuratie — assetlinks.json
+
+Bestand: `https://commeazy.com/.well-known/assetlinks.json`
+
+```json
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.commeazy.app",
+      "sha256_cert_fingerprints": ["SIGNING_KEY_FINGERPRINT"]
+    }
+  }
+]
+```
+
+**AndroidManifest.xml:**
+```xml
+<intent-filter android:autoVerify="true">
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="https" android:host="commeazy.com" android:pathPrefix="/invite/" />
+</intent-filter>
+```
+
+#### commeazy.com Landing Page
+
+Minimale landingspagina voor wanneer de app NIET geïnstalleerd is:
+
+```
+commeazy.com/invite/CE-XXXX-XXXX-XXXX
+┌─────────────────────────────────────┐
+│  CommEazy Logo                      │
+│                                     │
+│  "Je bent uitgenodigd voor          │
+│   CommEazy!"                        │
+│                                     │
+│  [Download voor iPhone]  → App Store│
+│  [Download voor Android] → Play Store│
+│                                     │
+│  "Na installatie wordt de           │
+│   uitnodiging automatisch geopend." │
+└─────────────────────────────────────┘
+```
+
+**Technisch:** Na installatie via store link bewaart het systeem de deferred deep link. Bij eerste app-open wordt de invitation code automatisch verwerkt (iOS: `NSUserActivity`, Android: deferred deep linking via Play Install Referrer).
+
+#### Beveiliging
+
+- HTTPS only (TLS 1.3)
+- Invitation code in URL is NIET de decryptiesleutel — het is een lookup key voor de relay
+- De daadwerkelijke encryptie gebruikt Argon2id key derivation van de volledige code
+- URL is tijdelijk geldig (7 dagen TTL op relay)
+- Rate limiting op relay voorkomt brute-force
 
 ---
 
@@ -429,16 +611,24 @@ Na succesvolle attestation ontvangt de app een JWT token voor alle verdere API-c
 
 ```
 Contacten → [+]
-  ├── "In de buurt"     → QR-code verificatie (sectie 2.1)
-  ├── "Uitnodigen"      → Invitation Relay (sectie 2.2)
-  └── "Bekende toevoegen" → Adresboekcontact (geen CommEazy, geen E2E)
+  ├── "In de buurt"        → Nearby Contact Wizard (sectie 2.1) — stap-voor-stap begeleiding
+  ├── "Uitnodigen"         → Invitation Relay (sectie 2.2) — op afstand, code via SMS/email
+  └── "Bekende toevoegen"  → Adresboekcontact (geen CommEazy, geen E2E)
 ```
 
 **Senior-friendly ontwerp:**
 - Maximaal 3 opties, geen technisch jargon
-- "In de buurt" = fysiek naast elkaar, toont QR-code
-- "Uitnodigen" = op afstand, stuurt code via favoriete app
+- "In de buurt" = fysiek naast elkaar → start Nearby Contact Wizard met 6 stappen
+  - Wizard begeleidt door: app installatie, profiel aanmaken, QR scannen, key exchange, optionele video call test
+  - Camera app scant QR-codes via Universal Links (commeazy.com)
+  - Optionele video call test aan einde voor Level 3 verificatie
+- "Uitnodigen" = op afstand, stuurt code via favoriete app (iOS Share Sheet)
 - "Bekende toevoegen" = naam + telefoon opslaan (geen berichten)
+
+**Na contact toevoegen — Trust Level:**
+- Via "In de buurt" wizard: Level 2 (verbonden) of Level 3 (geverifieerd via video call)
+- Via "Uitnodigen": Level 2 (verbonden via relay)
+- Via "Bekende toevoegen": Level 0 (adresboekcontact, geen CommEazy)
 
 ### 4.3 iPad Standalone Onboarding
 
@@ -481,17 +671,28 @@ Contacten → [+]
 
 ### 5.2 Trust Levels
 
-| Level | Beschrijving | Wanneer bereikt |
-|-------|-------------|-----------------|
-| **0 — Onbekend** | Geen relatie | Initiële staat |
-| **1 — Uitgenodigd** | Invitation verstuurd, wacht op acceptatie | Na "Uitnodigen" flow |
-| **2 — Verbonden** | Keys uitgewisseld via relay | Na relay key exchange |
-| **3 — Geverifieerd** | Face-to-face QR verificatie gedaan | Na QR-code exchange |
+| Level | Beschrijving | Wanneer bereikt | Mogelijkheden |
+|-------|-------------|-----------------|---------------|
+| **0 — Onbekend** | Adresboekcontact zonder CommEazy | Handmatig toegevoegd ("Bekende toevoegen") | Alleen contactgegevens opslaan |
+| **1 — Uitgenodigd** | Invitation verstuurd, wacht op acceptatie | Na "Uitnodigen" flow, code verstuurd | Geen communicatie mogelijk |
+| **2 — Verbonden** | E2E keys uitgewisseld via relay | Na relay key exchange (wizard stap 4 of "Uitnodigen") | ✅ Berichten, ✅ Foto's, ✅ Video calls, ✅ Spraakberichten |
+| **3 — Geverifieerd** | Identiteit persoonlijk bevestigd | Na video call verificatie (wizard stap 5) of later via contactprofiel | ✅ Alle Level 2 functies + geen waarschuwingen |
+
+**Hoe Level 3 bereiken:**
+- **Via Nearby Wizard (stap 5):** Na video call test → "Was dit [naam]?" → Ja
+- **Via contactprofiel:** Later alsnog een video call doen → verificatievraag verschijnt na ophangen
+- **Via QR-code exchange (legacy):** Face-to-face directe key exchange zonder relay
 
 **UX consequenties:**
-- Level 0-1: Geen berichten mogelijk
-- Level 2: Berichten mogelijk met waarschuwing "Niet persoonlijk geverifieerd"
-- Level 3: Volledig vertrouwd, geen waarschuwingen
+- Level 0: Contactgegevens alleen (grijs icoon, geen berichtknop)
+- Level 1: Wachtend op acceptatie (zandloper icoon)
+- Level 2: Volledig functioneel — berichten, foto's, video calls mogelijk. Subtiele indicatie "Niet persoonlijk geverifieerd" in contactprofiel (NIET bij elke interactie)
+- Level 3: Volledig vertrouwd, ✓ badge in contactlijst, geen waarschuwingen
+
+**Eenzijdige verificatie:**
+- Trust levels zijn **per device, per richting** — Oma Maria kan Tante Bep op Level 3 hebben, terwijl Tante Bep Oma Maria op Level 2 heeft
+- Dit is bewust: elk device beheert zijn eigen trust assessment onafhankelijk
+- Geen server-side trust synchronisatie nodig (zero-server-storage compliant)
 
 ### 5.3 Key Rotation
 
@@ -518,14 +719,19 @@ src/
     invitation/
       index.ts                    ← Exports
       invitationRelay.ts          ← Relay API client
-      invitationCrypto.ts         ← Code → AES key derivatie + encrypt/decrypt
-      codeGenerator.ts            ← CE-XXXX-XXXX generatie
+      invitationCrypto.ts         ← Argon2id key derivation + AES-256-GCM encrypt/decrypt
+      codeGenerator.ts            ← CE-XXXX-XXXX-XXXX generatie + URL helpers
+    deepLinking/
+      index.ts                    ← Exports
+      universalLinkHandler.ts     ← URL parsing + routing (extractCodeFromUrl)
+      deferredDeepLink.ts         ← Deferred deep link after app install
   screens/
     contacts/
       AddContactScreen.tsx        ← Refactor: 3 opties (in de buurt / uitnodigen / bekende)
-      VerifyContactScreen.tsx     ← Bestaand: QR-code exchange (robustness update)
-      InviteContactScreen.tsx     ← NIEUW: invitation code generatie + share
-      AcceptInvitationScreen.tsx  ← NIEUW: code invoer + relay download
+      NearbyContactWizard.tsx     ← NIEUW: 6-stappen wizard (sectie 2.1)
+      VerifyContactScreen.tsx     ← Bestaand: QR-code exchange (legacy, backward compat)
+      InviteContactScreen.tsx     ← NIEUW: invitation code generatie + share (op afstand)
+      AcceptInvitationScreen.tsx  ← NIEUW: code invoer + relay download + Universal Link entry
   contexts/
     AttestationContext.tsx        ← JWT token provider
 
@@ -544,6 +750,16 @@ server/
     server.js                     ← Express.js Invitation Relay
     store.js                      ← Encrypted blob opslag (SQLite of file-based)
     cleanup.js                    ← TTL cleanup (7 dagen)
+
+web/
+  commeazy.com/
+    .well-known/
+      apple-app-site-association  ← Universal Links config (iOS)
+      assetlinks.json             ← App Links config (Android)
+    invite/
+      index.html                  ← Landing page voor niet-geïnstalleerde apps
+    download/
+      index.html                  ← Redirect naar App Store / Play Store
 ```
 
 ### 6.2 Native Modules
@@ -690,26 +906,42 @@ export function decryptInvitation(
 const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'; // 30 tekens
 
 /**
- * Generate invitation code: CE-XXXX-XXXX
- * Entropy: 30^8 ≈ 6.56 × 10^11 combinaties
+ * Generate invitation code: CE-XXXX-XXXX-XXXX
+ * Entropy: 30^12 ≈ 5.31 × 10^17 combinaties
  */
 export function generateInvitationCode(): string {
-  const bytes = new Uint8Array(8);
+  const bytes = new Uint8Array(12);
   crypto.getRandomValues(bytes);
 
   let code = '';
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 12; i++) {
     code += ALPHABET[bytes[i] % ALPHABET.length];
   }
 
-  return `CE-${code.slice(0, 4)}-${code.slice(4, 8)}`;
+  return `CE-${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8, 12)}`;
+}
+
+/**
+ * Generate full invitation URL for QR-code display.
+ * Used in Nearby Contact Wizard (step 4).
+ */
+export function generateInvitationUrl(code: string): string {
+  return `https://commeazy.com/invite/${code}`;
+}
+
+/**
+ * Extract invitation code from URL (Universal Link handling).
+ */
+export function extractCodeFromUrl(url: string): string | null {
+  const match = url.match(/commeazy\.com\/invite\/(CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4})$/);
+  return match ? match[1] : null;
 }
 
 /**
  * Validate invitation code format.
  */
 export function isValidInvitationCode(code: string): boolean {
-  return /^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}$/.test(code);
+  return /^CE-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}-[2-9A-HJ-KM-NP-Z]{4}$/.test(code);
 }
 ```
 
@@ -717,34 +949,94 @@ export function isValidInvitationCode(code: string): boolean {
 
 ## 7. i18n Keys (Nieuw)
 
-### Invitation Flow
+### Contact Toevoegen — 3 Opties
 
 ```
 contacts.add.options.nearby          = "In de buurt"
 contacts.add.options.invite          = "Uitnodigen"
 contacts.add.options.addressBook     = "Bekende toevoegen"
+```
 
+### Nearby Contact Wizard (6 stappen)
+
+```
+contacts.wizard.title                = "Contact toevoegen"
+
+// Stap 1: App geïnstalleerd?
+contacts.wizard.step1.title          = "Heeft je contact de app al?"
+contacts.wizard.step1.subtitle       = "CommEazy moet op beide telefoons staan"
+contacts.wizard.step1.yesButton      = "Ja, de app staat erop"
+contacts.wizard.step1.noButton       = "Nee, nog niet"
+
+// Stap 2: Download QR
+contacts.wizard.step2.title          = "Laat deze code scannen"
+contacts.wizard.step2.instruction    = "Laat je contact deze code scannen met de camera van hun telefoon"
+contacts.wizard.step2.waitButton     = "Klaar? Tik hier om door te gaan"
+contacts.wizard.step2.tip            = "De camera herkent de code automatisch"
+
+// Stap 3: Profiel aangemaakt?
+contacts.wizard.step3.title          = "Heeft je contact een profiel aangemaakt?"
+contacts.wizard.step3.subtitle       = "Je contact moet de app openen en zijn naam invullen"
+contacts.wizard.step3.yesButton      = "Ja"
+contacts.wizard.step3.waitButton     = "Nee, even wachten"
+contacts.wizard.step3.waiting        = "Wacht tot je contact klaar is..."
+
+// Stap 4: Invite QR
+contacts.wizard.step4.title          = "Scan deze code om te verbinden"
+contacts.wizard.step4.instruction    = "Laat je contact deze code scannen met de camera"
+contacts.wizard.step4.connecting     = "Verbinden..."
+contacts.wizard.step4.success        = "Verbonden met {{name}}!"
+
+// Stap 5: Video call test
+contacts.wizard.step5.title          = "Wil je de verbinding testen?"
+contacts.wizard.step5.subtitle       = "Een kort videogesprek bevestigt dat alles werkt"
+contacts.wizard.step5.callButton     = "Ja, bel nu"
+contacts.wizard.step5.skipButton     = "Overslaan"
+contacts.wizard.step5.verifyTitle    = "Was dit {{name}}?"
+contacts.wizard.step5.verifyYes      = "Ja, dat klopt"
+contacts.wizard.step5.verifyNo       = "Nee, dat was iemand anders"
+contacts.wizard.step5.verified       = "{{name}} is geverifieerd! ✓"
+
+// Stap 6: Klaar
+contacts.wizard.step6.title          = "Klaar!"
+contacts.wizard.step6.subtitle       = "Je kunt nu berichten sturen naar {{name}}"
+contacts.wizard.step6.chatButton     = "Stuur een berichtje"
+contacts.wizard.step6.contactsButton = "Terug naar contacten"
+```
+
+### Invitation Flow (Op Afstand)
+
+```
 contacts.invite.title                = "Iemand uitnodigen"
 contacts.invite.generating           = "Code aanmaken..."
 contacts.invite.codeLabel            = "Jouw uitnodigingscode"
-contacts.invite.shareMessage         = "Ik wil je toevoegen in CommEazy! Download de app en voer deze code in: {{code}}"
-contacts.invite.shareButton          = "Stuur code"
+contacts.invite.shareMessage         = "Ik wil je toevoegen in CommEazy! Ga naar: {{url}}"
+contacts.invite.shareButton          = "Stuur uitnodiging"
 contacts.invite.waitingTitle         = "Wachten op reactie"
-contacts.invite.waitingSubtitle      = "Zodra {{name}} de code invult, worden jullie verbonden"
-contacts.invite.expiry               = "Deze code is 7 dagen geldig"
+contacts.invite.waitingSubtitle      = "Zodra {{name}} de link opent, worden jullie verbonden"
+contacts.invite.expiry               = "Deze uitnodiging is 7 dagen geldig"
 contacts.invite.success              = "{{name}} is toegevoegd!"
+```
 
+### Invitation Accepteren
+
+```
 contacts.accept.title                = "Uitnodiging invoeren"
 contacts.accept.codeInput            = "Voer de code in die je hebt ontvangen"
-contacts.accept.codePlaceholder      = "CE-XXXX-XXXX"
+contacts.accept.codePlaceholder      = "CE-XXXX-XXXX-XXXX"
 contacts.accept.invalidCode          = "Ongeldige code. Controleer de code en probeer opnieuw."
 contacts.accept.expired              = "Deze uitnodiging is verlopen. Vraag een nieuwe code."
 contacts.accept.connecting           = "Verbinden..."
 contacts.accept.success              = "{{name}} is toegevoegd aan je contacten!"
+```
 
+### Trust Level Indicatie
+
+```
 contacts.verify.notVerified          = "Niet persoonlijk geverifieerd"
 contacts.verify.verifiedBadge        = "Geverifieerd"
-contacts.verify.suggestion           = "Wil je {{name}} persoonlijk verifiëren? Scan elkaars QR-code wanneer jullie bij elkaar zijn."
+contacts.verify.suggestion           = "Wil je {{name}} persoonlijk verifiëren? Bel via video en bevestig dat je de juiste persoon ziet."
+contacts.verify.afterCall            = "Was dit {{name}}?"
 ```
 
 ### Attestation (Alleen bij errors)
@@ -768,69 +1060,137 @@ Alle 13 locales moeten worden bijgewerkt (nl, en, en-GB, de, fr, es, it, no, sv,
 4. Rate limiting middleware
 5. Push Gateway beschermen via gateway
 
-### Fase 2: Invitation Relay
+### Fase 2: Invitation Relay + Crypto
 
 1. Invitation Relay server opzetten
-2. Invitation crypto (code → key derivatie)
-3. Code generator
-4. InviteContactScreen UI
-5. AcceptInvitationScreen UI
-6. iOS Share Sheet integratie
+2. Invitation crypto (Argon2id key derivation + AES-256-GCM encrypt/decrypt)
+3. Code generator (CE-XXXX-XXXX-XXXX format, 12 chars)
+4. URL generator (commeazy.com/invite/CE-...)
+5. InviteContactScreen UI (op afstand flow)
+6. AcceptInvitationScreen UI (code invoer + relay download)
+7. iOS Share Sheet integratie
 
-### Fase 3: Contact Flow Refactor
+### Fase 3: Universal Links + commeazy.com
 
-1. AddContactScreen refactoren (3 opties)
-2. VerifyContactScreen robustness update
-3. Trust level visuele indicatie
-4. Contact model uitbreiden (trustLevel veld)
+1. commeazy.com domein configureren
+2. apple-app-site-association bestand deployen
+3. assetlinks.json bestand deployen (Android)
+4. Associated Domains capability in Xcode
+5. React Native deep link handler (`Linking` API)
+6. Extractie van invitation code uit URL
+7. Minimale landingspagina (voor wanneer app niet geïnstalleerd)
+8. Deferred deep linking testen (installatie via store → code automatisch verwerkt)
 
-### Fase 4: iPad Standalone Onboarding
+### Fase 4: Contact Flow Refactor + Nearby Wizard
 
-1. Onboarding flow uitbreiden met "Ik heb een code" pad
-2. Invitation code invoer in onboarding
+1. AddContactScreen refactoren (3 opties: in de buurt / uitnodigen / bekende)
+2. Nearby Contact Wizard implementeren (6 stappen):
+   - Stap 1: App geïnstalleerd? (Ja/Nee routing)
+   - Stap 2: Download QR tonen (commeazy.com/download)
+   - Stap 3: Profiel aangemaakt? (wachtscherm)
+   - Stap 4: Invite QR tonen (commeazy.com/invite/CE-...) + relay key exchange
+   - Stap 5: Video call test (optioneel) + Level 3 verificatie prompt
+   - Stap 6: Klaar scherm (chat starten / terug naar contacten)
+3. Trust level model in Contact schema (trustLevel: 0-3)
+4. Trust level visuele indicatie (iconen, badges, waarschuwingen)
+5. Video call verificatie prompt na ophangen (ook buiten wizard)
+
+### Fase 5: iPad Standalone Onboarding
+
+1. Onboarding flow uitbreiden met "Ik heb een uitnodigingscode" pad
+2. Invitation code invoer in onboarding (accepteert zowel code als URL)
 3. Testen op iPad zonder telefoon
 
-### Fase 5: i18n + Testing
+### Fase 6: i18n + Testing + Security
 
-1. Alle i18n keys in 13 talen
-2. Unit tests voor crypto functies
-3. Integration tests voor relay flow
-4. E2E test: iPhone ↔ iPad invitation
-5. Security review door security-expert skill
+1. Alle i18n keys in 13 talen (zie sectie 7 voor volledige key lijst)
+2. Unit tests voor crypto functies (encryptie, key derivation, code generatie)
+3. Unit tests voor URL extractie (extractCodeFromUrl)
+4. Integration tests voor relay flow (upload → download → decrypt)
+5. Integration tests voor Universal Links (deep link → AcceptInvitationScreen)
+6. E2E test: Nearby Contact Wizard volledig doorlopen
+7. E2E test: iPhone ↔ iPad invitation op afstand
+8. E2E test: Video call verificatie → Level 3 upgrade
+9. Security review door security-expert skill
+10. Accessibility audit (wizard schermen, VoiceOver, 60pt touch targets)
 
 ---
 
 ## 9. Pre-Productie Checklist
+
+### Server-side
 
 - [ ] API Gateway operationeel op productie server
 - [ ] App Attest (iOS) werkend en getest
 - [ ] Play Integrity (Android) werkend en getest
 - [ ] JWT token uitgifte en vernieuwing
 - [ ] Invitation Relay operationeel
-- [ ] Code generatie en validatie
-- [ ] Invitation crypto (encrypt/decrypt)
-- [ ] QR-code exchange robuust
-- [ ] AddContactScreen met 3 opties
-- [ ] InviteContactScreen met Share Sheet
-- [ ] AcceptInvitationScreen met code invoer
-- [ ] iPad standalone onboarding pad
-- [ ] Trust level visuele indicatie
 - [ ] Rate limiting getest (60/min)
 - [ ] TTL cleanup getest (7 dagen)
+
+### commeazy.com
+
+- [ ] Domein geconfigureerd met DNS
+- [ ] HTTPS actief (TLS 1.3 via Let's Encrypt)
+- [ ] apple-app-site-association gedeployed en gevalideerd
+- [ ] assetlinks.json gedeployed en gevalideerd
+- [ ] Landingspagina operationeel (download links naar stores)
+- [ ] Deferred deep linking werkend (iOS + Android)
+
+### App-side
+
+- [ ] Code generatie en validatie (CE-XXXX-XXXX-XXXX format)
+- [ ] Invitation crypto (Argon2id + AES-256-GCM encrypt/decrypt)
+- [ ] Universal Link handler (extractCodeFromUrl + routing)
+- [ ] AddContactScreen met 3 opties
+- [ ] Nearby Contact Wizard (6 stappen) volledig functioneel
+- [ ] InviteContactScreen met Share Sheet
+- [ ] AcceptInvitationScreen met code invoer + URL acceptatie
+- [ ] Video call verificatie prompt (na ophangen)
+- [ ] Trust level model in Contact schema
+- [ ] Trust level visuele indicatie (Level 0-3)
+- [ ] iPad standalone onboarding pad
+
+### Quality
+
 - [ ] i18n keys in alle 13 talen
+- [ ] Accessibility audit wizard schermen
 - [ ] Security audit voltooid
 - [ ] Zero-server-storage compliance geverifieerd
 - [ ] Privacy Manifest bijgewerkt (indien nodig)
 
 ---
 
-## 10. Referenties
+## 10. PNA Beslissingen Log
+
+Chronologisch overzicht van alle design-beslissingen genomen tijdens PNA-sessies.
+
+| Datum | Beslissing | Rationale |
+|-------|-----------|-----------|
+| 2026-03 | **3 contactopties** (in de buurt / uitnodigen / bekende) | Max 3 opties voor senioren, geen technisch jargon |
+| 2026-03 | **Trust levels 0-3** met eenzijdige verificatie | Elk device beheert eigen trust onafhankelijk |
+| 2026-03 | **Level 2 = volledig functioneel** (berichten, foto's, video calls) | Geen blokkade op communicatie bij relay-verbonden contacten |
+| 2026-03 | **Level 3 via video call** (niet alleen QR) | Praktischer voor senioren — video call is al een bewezen interactie |
+| 2026-03 | **Camera app scant QR** (geen in-app scanner) | Senioren kennen Camera QR van COVID-era, minder code, minder permissions |
+| 2026-03 | **commeazy.com domein** bevestigd | Universal Links (iOS) + App Links (Android) |
+| 2026-03 | **Twee QR-codes in wizard** (download + invite) | Elk doel apart: app installatie vs key exchange |
+| 2026-03 | **Echo bij video call test is OK** | 5-10 sec test, senioren verwachten echo naast elkaar, geen speciale modus nodig |
+| 2026-03 | **Eenzijdige verificatie** | Verificatievraag alleen bij initiator, niet bij ontvanger |
+| 2026-03 | **Invitation code format CE-XXXX-XXXX-XXXX** | 12 chars = 30^12 entropie, voldoende veilig met rate limiting |
+| 2026-03 | **Geen in-app QR-scanner** | Universal Links elimineren de noodzaak volledig |
+
+---
+
+## 11. Referenties
 
 - [Apple: App Attest](https://developer.apple.com/documentation/devicecheck/establishing-your-app-s-integrity)
 - [Apple: DeviceCheck](https://developer.apple.com/documentation/devicecheck)
+- [Apple: Universal Links](https://developer.apple.com/documentation/xcode/supporting-universal-links-in-your-app)
 - [Google: Play Integrity API](https://developer.android.com/google/play/integrity)
+- [Google: App Links](https://developer.android.com/training/app-links)
 - [RFC 7519: JSON Web Token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519)
 - [NaCl: secretbox (AES-256)](https://nacl.cr.yp.to/secretbox.html)
+- [Argon2id: Password Hashing](https://www.rfc-editor.org/rfc/rfc9106)
 - CommEazy Security Expert SKILL.md
 - CommEazy Architecture Lead SKILL.md
 - CommEazy Onboarding Recovery Specialist SKILL.md

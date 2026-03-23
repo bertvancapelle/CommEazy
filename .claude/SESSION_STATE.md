@@ -5,68 +5,55 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-21
-- **Sessie:** AirPlay 2 — 3 extra root causes gevonden en gefixt (na eerste 4 fixes onvoldoende bleken)
-- **Commit:** `8ffda0d`
+- **Datum:** 2026-03-23
+- **Sessie:** Trust & Attestation Plan — Nearby Contact Wizard + Universal Links + PNA beslissingen
+- **Commit:** (wordt bijgewerkt na push)
 
 ## Voltooide Taken Deze Sessie
 
-1. **AirPlay 2 routing failure — 3 EXTRA root causes gefixt** (bovenop eerdere 4 fixes uit `c1aea27`)
-   - **Symptoom:** Na eerste 4 fixes bleef 5-6s fallback. Gebruiker bevestigde: "helaas 5/6 sec fallback"
-   - **Deep-dive diagnose:** Complete event chain getraced tijdens AirPlay route switching
-
-   | Fix | Bestand | Probleem | Oplossing |
-   |-----|---------|----------|-----------|
-   | Fix 5a | `AVPlayerWrapper.swift` (Pods) | Route change timer was 1.5s, AirPlay 2 negotiation duurt 5-6s → `applyAVPlayerRate()` verstoorde handshake | Timer 1.5s→7s + smart `.playing` TimeControlStatus detection om guard vroeg te clearen |
-   | Fix 5b | `RNTrackPlayer.swift` (node_modules) | `configureAudioSession()` riep `setCategory()` UNCONDITIONALLY aan bij elke `playWhenReady` change → route renegotiation tijdens actief AirPlay | `needsUpdate` guard: alleen `setCategory()` als session config echt verschilt |
-   | Fix 6 | `ios/CommEazyTemp/Info.plist` | `AVInitialRouteSharingPolicy` ontbrak — iOS kon routing niet pre-configureren | `AVInitialRouteSharingPolicy = LongFormAudio` toegevoegd (WWDC23 aanbeveling) |
-   | Fix 7 | `scripts/patch-packages.js` | Nieuwe patches moeten `npm install` / `pod install` overleven | `patchSwiftAudioExAirPlayGuard` v2→v3 + nieuwe `patchRNTrackPlayerConfigureAudioSession()` |
-
-   - **Technische details:**
-     - AirPlay 2 enhanced buffering negotiation duurt 5-6 seconden (Apple docs)
-     - `setCategory()` tijdens actieve playback triggert route renegotiation (Apple docs)
-     - v3 route change guard: `isRouteChanging` flag + 7s safety timeout + `.playing` early-clear
-     - `needsUpdate` check vergelijkt `category`, `mode`, `routeSharingPolicy`, en `categoryOptions`
-
-2. **Eerdere fixes (vorige sessie, commit `c1aea27`)** — nog steeds actief:
-   - Fix 1: `allowsExternalPlayback = true` in AVPlayerWrapper.swift
-   - Fix 2: TtsModule.m 5-param setCategory met policy preservatie
-   - Fix 3: PiperTtsModule.mm 5-param setCategory met policy preservatie
-   - Fix 4: patch-packages.js `patchSwiftAudioExAllowsExternalPlayback()`
+1. **TRUST_AND_ATTESTATION_PLAN.md volledig bijgewerkt met PNA beslissingen**
+   - **Sectie 2.1:** Volledig herschreven — "In de buurt" is nu een 6-stappen Nearby Contact Wizard
+   - **Sectie 2.2:** Invitation code format geüpdated naar CE-XXXX-XXXX-XXXX (12 chars, 30^12 entropie)
+   - **Sectie 2.5:** NIEUW — Universal Links / commeazy.com configuratie (iOS + Android)
+   - **Sectie 4.2:** Contact Toevoegen UI bijgewerkt met wizard referenties en trust level resultaten
+   - **Sectie 5.2:** Trust Levels herschreven — Level 2 volledig functioneel (incl video calls), Level 3 via video call verificatie
+   - **Sectie 6.1:** Bestandsstructuur uitgebreid met NearbyContactWizard, deepLinking service, web/ folder
+   - **Sectie 6.4:** Code generator geüpdated naar 12-char format + URL helpers (generateInvitationUrl, extractCodeFromUrl)
+   - **Sectie 7:** i18n keys volledig herschreven — 30+ wizard-specifieke keys toegevoegd
+   - **Sectie 8:** Implementatiefasen uitgebreid van 5 naar 6 fasen (nieuwe Fase 3: Universal Links)
+   - **Sectie 9:** Pre-Productie Checklist gereorganiseerd in 4 categorieën (Server/commeazy.com/App/Quality)
+   - **Sectie 10:** NIEUW — PNA Beslissingen Log (11 beslissingen met datums en rationale)
+   - **Sectie 11:** Referenties uitgebreid met Universal Links, App Links, Argon2id docs
 
 ## Openstaande Taken
 
-1. **AirPlay fixes testen** — Clean build (⌘⇧K → ⌘R) nodig om alle 7 fixes te valideren op fysiek device met AirPlay speaker.
-2. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor discovery sections) — niet gerelateerd aan AirPlay fixes, apart committen.
-3. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geïmplementeerd, niet een regressie.
-4. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
-5. **Fundamentele UIWindow beperking** — React Native Modal creëert nieuw UIWindow, UIBlurEffect heeft niets om te blurren.
-6. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geïmplementeerd.
+1. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor) — niet gerelateerd, apart committen.
+2. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geïmplementeerd.
+3. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
+4. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geïmplementeerd.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
-Geen.
+Geen — alle PNA beslissingen zijn vastgelegd in TRUST_AND_ATTESTATION_PLAN.md sectie 10.
 
 ## Relevante Beslissingen Deze Sessie
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Timer 1.5s→7s (niet exact 6s) | AirPlay 2 negotiation duurt 5-6s, 7s geeft 1s marge |
-| Smart `.playing` detection | Route kan eerder settlen — timer van 7s alleen als safety timeout |
-| `needsUpdate` guard in configureAudioSession | Voorkomt onnodige `setCategory()` calls die route renegotiation triggeren |
-| `AVInitialRouteSharingPolicy` in Info.plist | WWDC23 aanbeveling — laat iOS routing pre-configureren vóór playback objects |
-| Alleen `setCategory()` skippen, niet `activateSession()` | Session activatie is nodig voor playback, alleen category config is problematisch |
+| Camera app scant QR (geen in-app scanner) | Senioren kennen Camera QR van COVID-era, minder code, minder permissions |
+| commeazy.com domein bevestigd | Universal Links (iOS) + App Links (Android) voor QR-code scanning |
+| Twee QR-codes in wizard (download + invite) | Elk doel apart: app installatie vs key exchange |
+| Echo bij video call test is OK | 5-10 sec test, senioren verwachten echo naast elkaar |
+| Eenzijdige verificatie voldoende | Elk device beheert eigen trust levels onafhankelijk |
+| Level 2 = volledig functioneel | Berichten, foto's, video calls — geen blokkade bij relay-verbonden contacten |
+| Level 3 via video call (niet alleen QR) | Praktischer voor senioren — video call is al een bewezen interactie |
+| Invitation code CE-XXXX-XXXX-XXXX (12 chars) | 30^12 entropie, voldoende veilig met rate limiting |
 
 ## Context voor Volgende Sessie
 
-- **AirPlay fix bestanden (alle 7 fixes):**
-  - `ios/Pods/SwiftAudioEx/.../AVPlayerWrapper.swift`: `allowsExternalPlayback = true` + route change guard v3 (7s + `.playing`)
-  - `node_modules/react-native-track-player/.../RNTrackPlayer.swift`: `configureAudioSession()` met `needsUpdate` guard
-  - `ios/TtsModule.m`: 5-param `setCategory` met policy preservatie
-  - `ios/PiperTtsModule.mm`: 5-param `setCategory` met policy preservatie
-  - `ios/CommEazyTemp/Info.plist`: `AVInitialRouteSharingPolicy = LongFormAudio`
-  - `scripts/patch-packages.js`: 3 patch functies (allowsExternalPlayback, AirPlay guard v3, configureAudioSession guard)
+- **TRUST_AND_ATTESTATION_PLAN.md** is nu het complete referentiedocument voor alle contact/trust/invitation functionaliteit
+- **Volgende implementatiestap:** Fase 1 (API Gateway + Attestation) of Fase 2 (Invitation Relay + Crypto) — afhankelijk van gebruikersprioriteit
+- **commeazy.com domein:** Moet nog geconfigureerd worden (DNS, HTTPS, well-known files)
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Audio Orchestrator:** `src/contexts/AudioOrchestratorContext.tsx` — centraal punt
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`
-- **Bluetooth controls:** Nog niet geïmplementeerd — zou via MPRemoteCommandCenter moeten
