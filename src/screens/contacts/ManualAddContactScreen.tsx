@@ -43,10 +43,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   STANDARD_CATEGORIES,
   CUSTOM_CATEGORIES_STORAGE_KEY,
+  DEFAULT_CONTACT_CATEGORY,
   type AgendaCategoryDef,
   type CustomCategory,
 } from '@/constants/agendaCategories';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PickerModal } from '@/screens/settings/PickerModal';
+import { COUNTRIES } from '@/constants/demographics';
+import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ManualAddContact'>;
 
@@ -87,6 +91,8 @@ export function ManualAddContactScreen() {
     postalCode: string;
     city: string;
     country: string;
+    province: string;
+    houseNumber: string;
     birthDate: string | undefined;
     weddingDate: string | undefined;
     deathDate: string | undefined;
@@ -119,6 +125,8 @@ export function ManualAddContactScreen() {
     postalCode: '',
     city: '',
     country: '',
+    province: '',
+    houseNumber: '',
     birthDate: undefined,
     weddingDate: undefined,
     deathDate: undefined,
@@ -129,7 +137,7 @@ export function ManualAddContactScreen() {
   }, []);
 
   // Convenience accessors for backward compatibility
-  const { firstName, lastName, phoneNumber, countryCode, mobileNumber, mobileCountryCode, email, street, postalCode, city, country, birthDate, weddingDate, deathDate } = form;
+  const { firstName, lastName, phoneNumber, countryCode, mobileNumber, mobileCountryCode, email, street, postalCode, city, country, province, houseNumber, birthDate, weddingDate, deathDate } = form;
 
   const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
   const [showWeddingDatePicker, setShowWeddingDatePicker] = useState(false);
@@ -169,6 +177,8 @@ export function ManualAddContactScreen() {
   } | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   // Load custom categories on mount
   useEffect(() => {
@@ -195,6 +205,40 @@ export function ManualAddContactScreen() {
     });
   }, [triggerFeedback]);
 
+  // Country picker options
+  const countryOptions = useMemo(() =>
+    COUNTRIES.map(c => ({ value: c.code, label: `${c.flag} ${c.nativeName}` })),
+    [],
+  );
+
+  const getCountryDisplayLabel = useCallback((code: string) => {
+    const c = COUNTRIES.find(item => item.code === code);
+    return c ? `${c.flag} ${c.nativeName}` : code;
+  }, []);
+
+  // Auto-fill address when country + postcode + housenumber are filled
+  useEffect(() => {
+    if (!country || !postalCode.trim()) return;
+    if (!isGISCOSupported(country)) return;
+    if (postalCode.trim().length < 4) return;
+
+    const timer = setTimeout(async () => {
+      setIsAutoFilling(true);
+      try {
+        const result = await lookupAddress(country, postalCode, houseNumber || undefined);
+        if (result) {
+          if (result.street) setField('street', result.street);
+          if (result.city) setField('city', result.city);
+          if (result.province) setField('province', result.province);
+        }
+      } finally {
+        setIsAutoFilling(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [country, postalCode, houseNumber, setField]);
+
   const isValidPhone = useCallback((phone: string): boolean => {
     // Basic validation: at least 6 digits
     const digitsOnly = phone.replace(/\D/g, '');
@@ -206,7 +250,7 @@ export function ManualAddContactScreen() {
   }, []);
 
   const hasValidPhone = isValidPhone(phoneNumber) || isValidPhone(mobileNumber);
-  const canSave = isValidFirstName(firstName) && hasValidPhone && selectedCategories.length > 0;
+  const canSave = isValidFirstName(firstName) && hasValidPhone;
 
   // ── Dirty state — determines Cancel behavior ──
   const isDirty = useMemo(() => {
@@ -220,12 +264,14 @@ export function ManualAddContactScreen() {
       postalCode.trim().length > 0 ||
       city.trim().length > 0 ||
       country.trim().length > 0 ||
+      province.trim().length > 0 ||
+      houseNumber.trim().length > 0 ||
       birthDate !== undefined ||
       weddingDate !== undefined ||
       deathDate !== undefined ||
       selectedCategories.length > 0
     );
-  }, [firstName, lastName, phoneNumber, mobileNumber, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories]);
+  }, [firstName, lastName, phoneNumber, mobileNumber, email, street, postalCode, city, country, province, houseNumber, birthDate, weddingDate, deathDate, selectedCategories]);
 
   // Cancel with unsaved changes guard
   const handleCancel = useCallback(() => {
@@ -256,13 +302,14 @@ export function ManualAddContactScreen() {
       const jid = `${primaryNumber.replace(/\+/g, '')}@commeazy.app`;
 
       // Build address if any field is filled
-      const hasAddress = street.trim() || postalCode.trim() || city.trim() || country.trim();
+      const hasAddress = street.trim() || houseNumber.trim() || postalCode.trim() || city.trim() || country.trim() || province.trim();
       const address = hasAddress
         ? {
-            street: street.trim() || undefined,
+            street: [street.trim(), houseNumber.trim()].filter(Boolean).join(' ') || undefined,
             postalCode: postalCode.trim() || undefined,
             city: city.trim() || undefined,
             country: country.trim() || undefined,
+            province: province.trim() || undefined,
           }
         : undefined;
 
@@ -280,7 +327,7 @@ export function ManualAddContactScreen() {
         birthDate,
         weddingDate,
         deathDate,
-        categories: selectedCategories.length > 0 ? JSON.stringify(selectedCategories) : undefined,
+        categories: JSON.stringify(selectedCategories.length > 0 ? selectedCategories : [DEFAULT_CONTACT_CATEGORY]),
         publicKey: '', // Will be set when contact shares their key
         verified: false,
         lastSeen: Date.now(),
@@ -295,7 +342,7 @@ export function ManualAddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [countryCode, phoneNumber, mobileCountryCode, mobileNumber, firstName, lastName, email, street, postalCode, city, country, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
+  }, [countryCode, phoneNumber, mobileCountryCode, mobileNumber, firstName, lastName, email, street, houseNumber, postalCode, city, country, province, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
 
   // Save handler: shows reminder modal if email is missing
   const handleSave = useCallback(async () => {
@@ -550,6 +597,60 @@ export function ManualAddContactScreen() {
         {/* Address section */}
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.address.title')}</Text>
 
+        {/* 1. Land (PickerModal) */}
+        <View ref={registerField('country')} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.country')}</Text>
+          <HapticTouchable hapticDisabled
+            style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+            onPress={() => { Keyboard.dismiss(); setShowCountryPicker(true); }}
+            accessibilityRole="button"
+            accessibilityLabel={t('contacts.address.country')}
+          >
+            <Text style={[styles.datePickerValue, country ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+              {country ? getCountryDisplayLabel(country) : '-'}
+            </Text>
+            <Text style={styles.datePickerEditIcon}>✏️</Text>
+          </HapticTouchable>
+        </View>
+
+        {/* 2. Postcode */}
+        <View ref={registerField('postalCode')} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.postalCode')}</Text>
+          <TextInput
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            placeholder={t('contacts.address.postalCode')}
+            placeholderTextColor={themeColors.textTertiary}
+            value={postalCode}
+            onChangeText={(v) => setField('postalCode', v)}
+            onFocus={getFieldFocusHandler('postalCode')}
+            autoCapitalize="characters"
+            returnKeyType="next"
+            accessibilityLabel={t('contacts.address.postalCode')}
+          />
+        </View>
+
+        {/* 3. Huisnummer */}
+        <View ref={registerField('houseNumber')} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.houseNumber')}</Text>
+          <TextInput
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            placeholder={t('contacts.address.houseNumber')}
+            placeholderTextColor={themeColors.textTertiary}
+            value={houseNumber}
+            onChangeText={(v) => setField('houseNumber', v)}
+            onFocus={getFieldFocusHandler('houseNumber')}
+            accessibilityLabel={t('contacts.address.houseNumber')}
+          />
+        </View>
+
+        {/* Auto-fill indicator */}
+        {isAutoFilling && (
+          <Text style={[styles.autoFillHint, { color: themeColors.textSecondary }]}>
+            {t('contacts.address.autoFilling')}
+          </Text>
+        )}
+
+        {/* 4. Straat (auto-filled, editable) */}
         <View ref={registerField('street')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.street')}</Text>
           <TextInput
@@ -565,50 +666,35 @@ export function ManualAddContactScreen() {
           />
         </View>
 
-        <View style={styles.addressRow}>
-          <View ref={registerField('postalCode')} style={[styles.inputGroup, styles.postalCodeField]}>
-            <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.postalCode')}</Text>
-            <TextInput
-              style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
-              placeholder={t('contacts.address.postalCode')}
-              placeholderTextColor={themeColors.textTertiary}
-              value={postalCode}
-              onChangeText={(v) => setField('postalCode', v)}
-              onFocus={getFieldFocusHandler('postalCode')}
-              autoCapitalize="characters"
-              returnKeyType="next"
-              accessibilityLabel={t('contacts.address.postalCode')}
-            />
-          </View>
-
-          <View ref={registerField('city')} style={[styles.inputGroup, styles.cityField]}>
-            <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.city')}</Text>
-            <TextInput
-              style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
-              placeholder={t('contacts.address.city')}
-              placeholderTextColor={themeColors.textTertiary}
-              value={city}
-              onChangeText={(v) => setField('city', v)}
-              onFocus={getFieldFocusHandler('city')}
-              autoCapitalize="words"
-              returnKeyType="next"
-              accessibilityLabel={t('contacts.address.city')}
-            />
-          </View>
-        </View>
-
-        <View ref={registerField('country')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.country')}</Text>
+        {/* 5. Plaats (auto-filled, editable) */}
+        <View ref={registerField('city')} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.city')}</Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
-            placeholder={t('contacts.address.country')}
+            placeholder={t('contacts.address.city')}
             placeholderTextColor={themeColors.textTertiary}
-            value={country}
-            onChangeText={(v) => setField('country', v)}
-            onFocus={getFieldFocusHandler('country')}
+            value={city}
+            onChangeText={(v) => setField('city', v)}
+            onFocus={getFieldFocusHandler('city')}
+            autoCapitalize="words"
+            returnKeyType="next"
+            accessibilityLabel={t('contacts.address.city')}
+          />
+        </View>
+
+        {/* 6. Provincie (auto-filled, editable) */}
+        <View ref={registerField('province')} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.province')}</Text>
+          <TextInput
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            placeholder={t('contacts.address.province')}
+            placeholderTextColor={themeColors.textTertiary}
+            value={province}
+            onChangeText={(v) => setField('province', v)}
+            onFocus={getFieldFocusHandler('province')}
             autoCapitalize="words"
             returnKeyType="done"
-            accessibilityLabel={t('contacts.address.country')}
+            accessibilityLabel={t('contacts.address.province')}
           />
         </View>
 
@@ -619,7 +705,7 @@ export function ManualAddContactScreen() {
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.birthDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowBirthDatePicker(true), 100); }}
+            onPress={() => { Keyboard.dismiss(); setShowBirthDatePicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={t('contacts.dates.birthDate')}
           >
@@ -634,7 +720,7 @@ export function ManualAddContactScreen() {
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.weddingDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowWeddingDatePicker(true), 100); }}
+            onPress={() => { Keyboard.dismiss(); setShowWeddingDatePicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={t('contacts.dates.weddingDate')}
           >
@@ -649,7 +735,7 @@ export function ManualAddContactScreen() {
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.deathDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowDeathDatePicker(true), 100); }}
+            onPress={() => { Keyboard.dismiss(); setShowDeathDatePicker(true); }}
             accessibilityRole="button"
             accessibilityLabel={t('contacts.dates.deathDate')}
           >
@@ -686,7 +772,7 @@ export function ManualAddContactScreen() {
             if (selectedDate) setField('weddingDate', selectedDate.toISOString().split('T')[0]);
           }}
           onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
-          maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
+          maximumDate={new Date()}
           minimumDate={new Date(1940, 0, 1)}
           locale={pickerLocale}
         />
@@ -706,12 +792,23 @@ export function ManualAddContactScreen() {
           locale={pickerLocale}
         />
 
+        {/* Country picker modal */}
+        <PickerModal
+          visible={showCountryPicker}
+          title={t('contacts.address.country')}
+          options={countryOptions}
+          selectedValue={country}
+          onSelect={(code) => { setField('country', code); scrollToField('country', { isModalReturn: true }); }}
+          onClose={() => setShowCountryPicker(false)}
+          moduleId="contacts"
+        />
+
         {/* Agenda categories section (required — min 1) */}
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
-          {t('contacts.categories.title', 'Agenda categorieën')} *
+          {t('contacts.categories.title', 'Agenda categorieën')}
         </Text>
-        <Text style={[styles.categoriesHint, { color: selectedCategories.length === 0 ? themeColors.error : themeColors.textSecondary }]}>
-          {t('contacts.categories.required', 'Kies minimaal één categorie')}
+        <Text style={[styles.categoriesHint, { color: themeColors.textSecondary }]}>
+          {t('contacts.categories.hint', 'Kies categorieën voor dit contact')}
         </Text>
         <View style={styles.categoryGrid}>
           {allCategories.map(cat => {
@@ -723,7 +820,7 @@ export function ManualAddContactScreen() {
                 onPress={() => handleToggleCategory(cat.id)}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: isSelected }}
-                accessibilityLabel={cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+                accessibilityLabel={'isStandard' in cat ? t(cat.name) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
               >
                 <View
                   style={[
@@ -743,7 +840,7 @@ export function ManualAddContactScreen() {
                   ]}
                   numberOfLines={2}
                 >
-                  {cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+                  {'isStandard' in cat ? t(cat.name) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
                 </Text>
               </HapticTouchable>
             );
@@ -946,6 +1043,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: spacing.sm,
     marginTop: spacing.md,
+  },
+  autoFillHint: {
+    ...typography.small,
+    fontStyle: 'italic',
+    paddingHorizontal: spacing.xs,
+    marginBottom: spacing.sm,
   },
   addressRow: {
     flexDirection: 'row',

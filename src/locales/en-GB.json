@@ -560,10 +560,13 @@
     "videoCall": "Video call",
     "address": {
       "title": "Address",
-      "street": "Street and house number",
+      "street": "Street",
+      "houseNumber": "House number",
       "postalCode": "Postcode",
       "city": "City",
       "country": "Country",
+      "province": "County",
+      "autoFilling": "Looking up address...",
       "navigate": "Navigate",
       "navigateHint": "Open directions to {{name}} in the maps app",
       "noAddress": "No address known"

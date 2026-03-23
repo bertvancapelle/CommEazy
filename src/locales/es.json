@@ -560,10 +560,13 @@
     "videoCall": "Videollamada",
     "address": {
       "title": "Dirección",
-      "street": "Calle y número",
+      "street": "Calle",
+      "houseNumber": "Número",
       "postalCode": "Código postal",
       "city": "Ciudad",
       "country": "País",
+      "province": "Provincia",
+      "autoFilling": "Buscando dirección...",
       "navigate": "Navegar a la dirección",
       "navigateHint": "Abre la aplicación de mapas con la dirección de {{name}}",
       "noAddress": "Sin dirección conocida"

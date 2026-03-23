@@ -139,8 +139,12 @@ export interface AgendaCategoryDef {
   isAutomatic: boolean;
 }
 
+/** Default category ID assigned when user doesn't pick a category */
+export const DEFAULT_CONTACT_CATEGORY = 'general';
+
 /** Standard built-in categories (same status as custom, but pre-installed) */
 export const STANDARD_CATEGORIES: AgendaCategoryDef[] = [
+  { id: 'general', icon: '👤', name: 'modules.agenda.categories.general', isStandard: true, defaultFormType: 'appointment', isAutomatic: false },
   { id: 'doctor', icon: '🏥', name: 'modules.agenda.categories.doctor', isStandard: true, defaultFormType: 'appointment', isAutomatic: false },
   { id: 'dentist', icon: '🦷', name: 'modules.agenda.categories.dentist', isStandard: true, defaultFormType: 'appointment', isAutomatic: false },
   { id: 'hairdresser', icon: '💇', name: 'modules.agenda.categories.hairdresser', isStandard: true, defaultFormType: 'appointment', isAutomatic: false },

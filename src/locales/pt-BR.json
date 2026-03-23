@@ -584,10 +584,13 @@
     "verificationFailedMessage": "O código QR não confere. Tente de novo.",
     "address": {
       "title": "Endereço",
-      "street": "Rua e número",
+      "street": "Rua",
+      "houseNumber": "Número",
       "postalCode": "CEP",
       "city": "Cidade",
       "country": "País",
+      "province": "Estado",
+      "autoFilling": "Buscando endereço...",
       "navigate": "Navegar até o endereço",
       "navigateHint": "Abre o aplicativo de mapas com o endereço de {{name}}",
       "noAddress": "Nenhum endereço conhecido"

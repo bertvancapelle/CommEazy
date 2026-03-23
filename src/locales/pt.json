@@ -584,10 +584,13 @@
     "verificationFailedMessage": "O codigo QR não corresponde. Tente novamente.",
     "address": {
       "title": "Morada",
-      "street": "Rua e número",
+      "street": "Rua",
+      "houseNumber": "Número",
       "postalCode": "Código postal",
       "city": "Cidade",
       "country": "País",
+      "province": "Distrito",
+      "autoFilling": "A procurar morada...",
       "navigate": "Navegar para a morada",
       "navigateHint": "Abre a aplicação de mapas com a morada de {{name}}",
       "noAddress": "Nenhum endereço conhecido"

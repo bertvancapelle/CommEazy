@@ -558,10 +558,13 @@
     "verificationFailedMessage": "Il codice QR non corrisponde. Riprova.",
     "address": {
       "title": "Indirizzo",
-      "street": "Via e numero",
+      "street": "Via",
+      "houseNumber": "Numero civico",
       "postalCode": "CAP",
       "city": "Città",
       "country": "Paese",
+      "province": "Provincia",
+      "autoFilling": "Ricerca indirizzo...",
       "navigate": "Naviga verso l'indirizzo",
       "navigateHint": "Apre l'app mappe con l'indirizzo di {{name}}",
       "noAddress": "Nessun indirizzo conosciuto"

@@ -397,10 +397,13 @@
     "verificationFailedMessage": "De QR-code komt niet overeen. Probeer het opnieuw.",
     "address": {
       "title": "Adres",
-      "street": "Straat en huisnummer",
+      "street": "Straat",
+      "houseNumber": "Huisnummer",
       "postalCode": "Postcode",
       "city": "Stad",
       "country": "Land",
+      "province": "Provincie",
+      "autoFilling": "Adres wordt opgezocht...",
       "navigate": "Navigeren",
       "navigateHint": "Open de route naar {{name}} in de kaarten-app",
       "noAddress": "Geen adres bekend"

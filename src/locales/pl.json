@@ -475,10 +475,13 @@
     "verificationFailedMessage": "Kod QR nie pasuje. Spróbuj ponownie.",
     "address": {
       "title": "Adres",
-      "street": "Ulica i numer",
+      "street": "Ulica",
+      "houseNumber": "Numer domu",
       "postalCode": "Kod pocztowy",
       "city": "Miasto",
       "country": "Kraj",
+      "province": "Województwo",
+      "autoFilling": "Wyszukiwanie adresu...",
       "navigate": "Nawiguj do adresu",
       "navigateHint": "Otwiera aplikację map z adresem {{name}}",
       "noAddress": "Brak znanego adresu"

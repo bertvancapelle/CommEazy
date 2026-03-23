@@ -455,10 +455,13 @@
     "verificationFailedMessage": "QR-koden stämmer inte. Försök igen.",
     "address": {
       "title": "Adress",
-      "street": "Gata och nummer",
+      "street": "Gata",
+      "houseNumber": "Husnummer",
       "postalCode": "Postnummer",
       "city": "Stad",
       "country": "Land",
+      "province": "Län",
+      "autoFilling": "Söker adress...",
       "navigate": "Navigera till adressen",
       "navigateHint": "Öppnar kartappen med adressen till {{name}}",
       "noAddress": "Ingen adress känd"

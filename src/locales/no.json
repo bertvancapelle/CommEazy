@@ -485,10 +485,13 @@
     "verificationFailedMessage": "QR-koden stemmer ikke. Prøv igjen.",
     "address": {
       "title": "Adresse",
-      "street": "Gate og nummer",
+      "street": "Gate",
+      "houseNumber": "Husnummer",
       "postalCode": "Postnummer",
       "city": "By",
       "country": "Land",
+      "province": "Fylke",
+      "autoFilling": "Slår opp adresse...",
       "navigate": "Naviger til adressen",
       "navigateHint": "Åpner kartappen med adressen til {{name}}",
       "noAddress": "Ingen adresse kjent"

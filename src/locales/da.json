@@ -455,10 +455,13 @@
     "verificationFailedMessage": "QR-koden stemmer ikke. Prøv igen.",
     "address": {
       "title": "Adresse",
-      "street": "Gade og nummer",
+      "street": "Gade",
+      "houseNumber": "Husnummer",
       "postalCode": "Postnummer",
       "city": "By",
       "country": "Land",
+      "province": "Region",
+      "autoFilling": "Søger adresse...",
       "navigate": "Naviger til adressen",
       "navigateHint": "Åbner kortappen med adressen på {{name}}",
       "noAddress": "Ingen adresse kendt"

@@ -52,21 +52,32 @@ import type { ContactStackParams } from '@/navigation';
 import {
   STANDARD_CATEGORIES,
   CUSTOM_CATEGORIES_STORAGE_KEY,
+  DEFAULT_CONTACT_CATEGORY,
   type AgendaCategoryDef,
   type CustomCategory,
 } from '@/constants/agendaCategories';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PickerModal } from '@/screens/settings/PickerModal';
+import { COUNTRIES } from '@/constants/demographics';
+import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
 
 type NavigationProp = NativeStackNavigationProp<ContactStackParams, 'ContactDetail'>;
 type ContactDetailRouteProp = RouteProp<ContactStackParams, 'ContactDetail'>;
 
-/** Format an address into display lines (street, postcode+city, country) */
+/** Resolve a country code to display label (flag + name), or return as-is if not a known code */
+function resolveCountryLabel(countryValue: string): string {
+  const country = COUNTRIES.find(c => c.code === countryValue);
+  return country ? `${country.flag} ${country.nativeName}` : countryValue;
+}
+
+/** Format an address into display lines (street, postcode+city, province, country) */
 function formatAddressLines(address: ContactAddress): string[] {
   const lines: string[] = [];
   if (address.street) lines.push(address.street);
   const cityLine = [address.postalCode, address.city].filter(Boolean).join(' ');
   if (cityLine) lines.push(cityLine);
-  if (address.country) lines.push(address.country);
+  if (address.province) lines.push(address.province);
+  if (address.country) lines.push(resolveCountryLabel(address.country));
   return lines;
 }
 
@@ -165,9 +176,13 @@ export function ContactDetailScreen() {
   const [editBirthDate, setEditBirthDate] = useState<string | undefined>(undefined);
   const [editWeddingDate, setEditWeddingDate] = useState<string | undefined>(undefined);
   const [editDeathDate, setEditDeathDate] = useState<string | undefined>(undefined);
+  const [editProvince, setEditProvince] = useState('');
+  const [editHouseNumber, setEditHouseNumber] = useState('');
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
   const [showWeddingDatePicker, setShowWeddingDatePicker] = useState(false);
   const [showDeathDatePicker, setShowDeathDatePicker] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
 
   // Locale mapping for native date picker
   const pickerLocale = useMemo(() => {
@@ -179,6 +194,43 @@ export function ContactDetailScreen() {
     };
     return map[lang] || 'en-US';
   }, [i18n.language]);
+
+  // Country picker options: flag + native name
+  const countryOptions = useMemo(() =>
+    COUNTRIES.map(c => ({ value: c.code, label: `${c.flag} ${c.nativeName}` })),
+    [],
+  );
+
+  const getCountryDisplayLabel = useCallback((code: string) => {
+    const country = COUNTRIES.find(c => c.code === code);
+    return country ? `${country.flag} ${country.nativeName}` : code;
+  }, []);
+
+  // Auto-fill address when country + postcode + housenumber are filled
+  useEffect(() => {
+    if (!isEditing) return;
+    if (!editCountry || !editPostalCode.trim()) return;
+    if (!isGISCOSupported(editCountry)) return;
+
+    // Minimum postcode length before attempting lookup
+    if (editPostalCode.trim().length < 4) return;
+
+    const timer = setTimeout(async () => {
+      setIsAutoFilling(true);
+      try {
+        const result = await lookupAddress(editCountry, editPostalCode, editHouseNumber || undefined);
+        if (result) {
+          if (result.street) setEditStreet(result.street);
+          if (result.city) setEditCity(result.city);
+          if (result.province) setEditProvince(result.province);
+        }
+      } finally {
+        setIsAutoFilling(false);
+      }
+    }, 500); // Debounce 500ms
+
+    return () => clearTimeout(timer);
+  }, [isEditing, editCountry, editPostalCode, editHouseNumber]);
 
   const formatDateForPicker = useCallback((isoDate: string | undefined): string => {
     if (!isoDate) return '-';
@@ -218,6 +270,8 @@ export function ContactDetailScreen() {
       setEditPostalCode(contact.address?.postalCode ?? '');
       setEditCity(contact.address?.city ?? '');
       setEditCountry(contact.address?.country ?? '');
+      setEditProvince(contact.address?.province ?? '');
+      setEditHouseNumber('');
       setEditBirthDate(contact.birthDate);
       setEditWeddingDate(contact.weddingDate);
       setEditDeathDate(contact.deathDate);
@@ -307,18 +361,19 @@ export function ContactDetailScreen() {
       ...contact,
       phoneNumber: editPhone.trim() || undefined,
       email: editEmail.trim() || undefined,
-      address: (editStreet || editPostalCode || editCity || editCountry)
+      address: (editStreet || editHouseNumber || editPostalCode || editCity || editCountry || editProvince)
         ? {
-            street: editStreet.trim() || undefined,
+            street: [editStreet.trim(), editHouseNumber.trim()].filter(Boolean).join(' ') || undefined,
             postalCode: editPostalCode.trim() || undefined,
             city: editCity.trim() || undefined,
             country: editCountry.trim() || undefined,
+            province: editProvince.trim() || undefined,
           }
         : undefined,
       birthDate: editBirthDate,
       weddingDate: editWeddingDate,
       deathDate: editDeathDate,
-      categories: editCategories.length > 0 ? JSON.stringify(editCategories) : undefined,
+      categories: JSON.stringify(editCategories.length > 0 ? editCategories : [DEFAULT_CONTACT_CATEGORY]),
     };
 
     // Persist to database and update local state
@@ -330,11 +385,29 @@ export function ContactDetailScreen() {
     } catch (error) {
       console.error('[ContactDetail] Failed to save contact:', error);
     }
-  }, [contact, displayName, editPhone, editEmail, editStreet, editPostalCode, editCity, editCountry, editBirthDate, editWeddingDate, editDeathDate, editCategories, triggerFeedback]);
+  }, [contact, displayName, editPhone, editEmail, editStreet, editHouseNumber, editPostalCode, editCity, editCountry, editProvince, editBirthDate, editWeddingDate, editDeathDate, editCategories, triggerFeedback]);
 
-  const handleCancelEdit = useCallback(() => {
-    void triggerFeedback('tap');
-    // Reset edit fields to current contact values
+  // Track dirty state for cancel confirmation
+  const isDirty = useMemo(() => {
+    if (!contact) return false;
+    const origCats = (() => { try { const c = contact.categories ? JSON.parse(contact.categories as string) : []; return Array.isArray(c) ? c : []; } catch { return []; } })();
+    return (
+      editPhone !== (contact.phoneNumber ?? '') ||
+      editEmail !== (contact.email ?? '') ||
+      editStreet !== (contact.address?.street ?? '') ||
+      editPostalCode !== (contact.address?.postalCode ?? '') ||
+      editCity !== (contact.address?.city ?? '') ||
+      editCountry !== (contact.address?.country ?? '') ||
+      editProvince !== (contact.address?.province ?? '') ||
+      editHouseNumber !== '' ||
+      editBirthDate !== contact.birthDate ||
+      editWeddingDate !== contact.weddingDate ||
+      editDeathDate !== contact.deathDate ||
+      JSON.stringify(editCategories) !== JSON.stringify(origCats)
+    );
+  }, [contact, editPhone, editEmail, editStreet, editPostalCode, editCity, editCountry, editProvince, editHouseNumber, editBirthDate, editWeddingDate, editDeathDate, editCategories]);
+
+  const resetEditFields = useCallback(() => {
     if (contact) {
       setEditPhone(contact.phoneNumber ?? '');
       setEditEmail(contact.email ?? '');
@@ -342,6 +415,8 @@ export function ContactDetailScreen() {
       setEditPostalCode(contact.address?.postalCode ?? '');
       setEditCity(contact.address?.city ?? '');
       setEditCountry(contact.address?.country ?? '');
+      setEditProvince(contact.address?.province ?? '');
+      setEditHouseNumber('');
       setEditBirthDate(contact.birthDate);
       setEditWeddingDate(contact.weddingDate);
       setEditDeathDate(contact.deathDate);
@@ -352,8 +427,24 @@ export function ContactDetailScreen() {
         setEditCategories([]);
       }
     }
-    setIsEditing(false);
-  }, [contact, triggerFeedback]);
+  }, [contact]);
+
+  const handleCancelEdit = useCallback(() => {
+    void triggerFeedback('tap');
+    if (isDirty) {
+      Alert.alert(
+        t('common.formActions.discardTitle'),
+        t('common.formActions.discardMessage'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('common.formActions.discard'), style: 'destructive', onPress: () => { resetEditFields(); setIsEditing(false); } },
+        ],
+      );
+    } else {
+      resetEditFields();
+      setIsEditing(false);
+    }
+  }, [isDirty, resetEditFields, t, triggerFeedback]);
 
   const handleStartChat = useCallback(async () => {
     void triggerFeedback('tap');
@@ -497,6 +588,43 @@ export function ContactDetailScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={100}
     >
+    {/* Fixed edit action bar — ABOVE ScrollView, always visible */}
+    <View style={[styles.fixedEditBar, { backgroundColor: themeColors.background, borderBottomColor: themeColors.border }]}>
+      {isEditing ? (
+        <>
+          <HapticTouchable hapticDisabled
+            style={[styles.fixedEditBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
+            onPress={handleCancelEdit}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cancel')}
+          >
+            <Text style={[styles.fixedEditBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
+          </HapticTouchable>
+          <HapticTouchable hapticDisabled
+            style={[styles.fixedEditBarButton, { backgroundColor: accentColor.primary }]}
+            onPress={() => void handleSave()}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('contacts.save')}
+          >
+            <Icon name="checkmark" size={22} color={themeColors.textOnPrimary} />
+            <Text style={[styles.fixedEditBarButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.save')}</Text>
+          </HapticTouchable>
+        </>
+      ) : (
+        <HapticTouchable hapticDisabled
+          style={[styles.fixedEditBarButton, { flex: 1, backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
+          onPress={handleStartEdit}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('contacts.edit')}
+        >
+          <Icon name="pencil" size={22} color={accentColor.primary} />
+          <Text style={[styles.fixedEditBarButtonText, { color: accentColor.primary }]}>{t('contacts.edit')}</Text>
+        </HapticTouchable>
+      )}
+    </View>
     <ScrollViewWithIndicator ref={scrollRef} style={[styles.container, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled" onScroll={handleScrollToField} scrollEventThrottle={16}>
       {notification && (
         <ErrorView
@@ -702,13 +830,13 @@ export function ContactDetailScreen() {
       {/* Agenda categories section (required — min 1) */}
       <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>
-          {t('contacts.categories.title', 'Agenda categorieën')} {isEditing ? '*' : ''}
+          {t('contacts.categories.title', 'Agenda categorieën')}
         </Text>
 
         {isEditing ? (
           <>
-            <Text style={[styles.categoriesHint, { color: editCategories.length === 0 ? themeColors.error : themeColors.textSecondary }]}>
-              {t('contacts.categories.required', 'Kies minimaal één categorie')}
+            <Text style={[styles.categoriesHint, { color: themeColors.textSecondary }]}>
+              {t('contacts.categories.hint', 'Kies categorieën voor dit contact')}
             </Text>
             <View style={styles.categoryGrid}>
               {allCategories.map(cat => {
@@ -720,7 +848,7 @@ export function ContactDetailScreen() {
                     onPress={() => handleToggleCategory(cat.id)}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: isSelected }}
-                    accessibilityLabel={cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+                    accessibilityLabel={'isStandard' in cat ? t(cat.name) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
                   >
                     <View
                       style={[
@@ -740,7 +868,7 @@ export function ContactDetailScreen() {
                       ]}
                       numberOfLines={2}
                     >
-                      {cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
+                      {'isStandard' in cat ? t(cat.name) : ('name' in cat ? (cat as CustomCategory).name : cat.id)}
                     </Text>
                   </HapticTouchable>
                 );
@@ -754,7 +882,7 @@ export function ContactDetailScreen() {
                 {editCategories.map(catId => {
                   const cat = allCategories.find(c => c.id === catId);
                   if (!cat) return null;
-                  const label = cat.nameKey ? t(cat.nameKey) : ('name' in cat ? (cat as CustomCategory).name : cat.id);
+                  const label = 'isStandard' in cat ? t(cat.name) : ('name' in cat ? (cat as CustomCategory).name : cat.id);
                   return (
                     <View key={catId} style={[styles.categoryChip, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}>
                       <Text style={styles.categoryChipEmoji}>{cat.icon}</Text>
@@ -771,33 +899,6 @@ export function ContactDetailScreen() {
           </>
         )}
       </View>
-
-      {/* Save / Cancel bar (only visible when editing) */}
-      {isEditing && (
-        <View style={styles.editBar}>
-          <HapticTouchable hapticDisabled
-            style={[styles.editBarButton, { backgroundColor: themeColors.primary, opacity: editCategories.length === 0 ? 0.4 : 1 }]}
-            onPress={() => void handleSave()}
-            activeOpacity={0.7}
-            disabled={editCategories.length === 0}
-            accessibilityRole="button"
-            accessibilityLabel={t('contacts.save')}
-            accessibilityState={{ disabled: editCategories.length === 0 }}
-          >
-            <Icon name="checkmark" size={22} color={themeColors.textOnPrimary} />
-            <Text style={[styles.editBarButtonText, { color: themeColors.textOnPrimary }]}>{t('contacts.save')}</Text>
-          </HapticTouchable>
-          <HapticTouchable hapticDisabled
-            style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
-            onPress={handleCancelEdit}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.cancel')}
-          >
-            <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('common.cancel')}</Text>
-          </HapticTouchable>
-        </View>
-      )}
 
       {/* Contact details section — phone + email */}
       <View style={[styles.detailsSection, { backgroundColor: themeColors.surface }]}>
@@ -860,6 +961,55 @@ export function ContactDetailScreen() {
 
         {isEditing ? (
           <>
+            {/* 1. Land (picker) */}
+            <View ref={registerField('country')} style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.country')}</Text>
+              <HapticTouchable hapticDisabled
+                style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+                onPress={() => { Keyboard.dismiss(); setShowCountryPicker(true); }}
+                accessibilityRole="button"
+                accessibilityLabel={t('contacts.address.country')}
+              >
+                <Text style={[styles.datePickerValue, editCountry ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
+                  {editCountry ? getCountryDisplayLabel(editCountry) : '-'}
+                </Text>
+                <Text style={styles.datePickerEditIcon}>✏️</Text>
+              </HapticTouchable>
+            </View>
+            {/* 2. Postcode */}
+            <View ref={registerField('postalCode')} style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.postalCode')}</Text>
+              <TextInput
+                style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                value={editPostalCode}
+                onChangeText={setEditPostalCode}
+                onFocus={getFieldFocusHandler('postalCode')}
+                placeholder={t('contacts.address.postalCode')}
+                placeholderTextColor={themeColors.textTertiary}
+                autoCapitalize="characters"
+                accessibilityLabel={t('contacts.address.postalCode')}
+              />
+            </View>
+            {/* 3. Huisnummer */}
+            <View ref={registerField('houseNumber')} style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.houseNumber')}</Text>
+              <TextInput
+                style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                value={editHouseNumber}
+                onChangeText={setEditHouseNumber}
+                onFocus={getFieldFocusHandler('houseNumber')}
+                placeholder={t('contacts.address.houseNumber')}
+                placeholderTextColor={themeColors.textTertiary}
+                accessibilityLabel={t('contacts.address.houseNumber')}
+              />
+            </View>
+            {/* Auto-fill indicator */}
+            {isAutoFilling && (
+              <Text style={[styles.autoFillHint, { color: themeColors.textSecondary }]}>
+                {t('contacts.address.autoFilling')}
+              </Text>
+            )}
+            {/* 4. Straat (auto-filled, editable) */}
             <View ref={registerField('street')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.street')}</Text>
               <TextInput
@@ -872,18 +1022,7 @@ export function ContactDetailScreen() {
                 accessibilityLabel={t('contacts.address.street')}
               />
             </View>
-            <View ref={registerField('postalCode')} style={styles.editFieldContainer}>
-              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.postalCode')}</Text>
-              <TextInput
-                style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                value={editPostalCode}
-                onChangeText={setEditPostalCode}
-                onFocus={getFieldFocusHandler('postalCode')}
-                placeholder={t('contacts.address.postalCode')}
-                placeholderTextColor={themeColors.textTertiary}
-                accessibilityLabel={t('contacts.address.postalCode')}
-              />
-            </View>
+            {/* 5. Plaats (auto-filled, editable) */}
             <View ref={registerField('city')} style={styles.editFieldContainer}>
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.city')}</Text>
               <TextInput
@@ -896,16 +1035,17 @@ export function ContactDetailScreen() {
                 accessibilityLabel={t('contacts.address.city')}
               />
             </View>
-            <View ref={registerField('country')} style={styles.editFieldContainer}>
-              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.country')}</Text>
+            {/* 6. Provincie (auto-filled, editable) */}
+            <View ref={registerField('province')} style={styles.editFieldContainer}>
+              <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.address.province')}</Text>
               <TextInput
                 style={[styles.editFieldInput, { color: themeColors.textPrimary, backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                value={editCountry}
-                onChangeText={setEditCountry}
-                onFocus={getFieldFocusHandler('country')}
-                placeholder={t('contacts.address.country')}
+                value={editProvince}
+                onChangeText={setEditProvince}
+                onFocus={getFieldFocusHandler('province')}
+                placeholder={t('contacts.address.province')}
                 placeholderTextColor={themeColors.textTertiary}
-                accessibilityLabel={t('contacts.address.country')}
+                accessibilityLabel={t('contacts.address.province')}
               />
             </View>
           </>
@@ -959,7 +1099,7 @@ export function ContactDetailScreen() {
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowBirthDatePicker(true), 100); }}
+                onPress={() => { Keyboard.dismiss(); setShowBirthDatePicker(true); }}
                 accessibilityRole="button"
                 accessibilityLabel={t('contacts.dates.birthDate')}
               >
@@ -975,7 +1115,7 @@ export function ContactDetailScreen() {
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowWeddingDatePicker(true), 100); }}
+                onPress={() => { Keyboard.dismiss(); setShowWeddingDatePicker(true); }}
                 accessibilityRole="button"
                 accessibilityLabel={t('contacts.dates.weddingDate')}
               >
@@ -991,7 +1131,7 @@ export function ContactDetailScreen() {
               <Text style={[styles.editFieldLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
               <HapticTouchable hapticDisabled
                 style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                onPress={() => { Keyboard.dismiss(); setTimeout(() => setShowDeathDatePicker(true), 100); }}
+                onPress={() => { Keyboard.dismiss(); setShowDeathDatePicker(true); }}
                 accessibilityRole="button"
                 accessibilityLabel={t('contacts.dates.deathDate')}
               >
@@ -1028,7 +1168,7 @@ export function ContactDetailScreen() {
                 if (selectedDate) setEditWeddingDate(selectedDate.toISOString().split('T')[0]);
               }}
               onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
-              maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
+              maximumDate={new Date()}
               minimumDate={new Date(1940, 0, 1)}
               locale={pickerLocale}
             />
@@ -1111,22 +1251,8 @@ export function ContactDetailScreen() {
         )}
       </View>
 
-      {/* Bottom actions: Edit + Verify + Delete */}
+      {/* Bottom actions: Verify + Delete */}
       <View style={styles.bottomActionsContainer}>
-        {/* Edit button (only when not editing) */}
-        {!isEditing && (
-          <HapticTouchable hapticDisabled
-            style={[styles.editBarButton, { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }]}
-            onPress={handleStartEdit}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('contacts.edit')}
-          >
-            <Icon name="pencil" size={22} color={themeColors.textPrimary} />
-            <Text style={[styles.editBarButtonText, { color: themeColors.textPrimary }]}>{t('contacts.edit')}</Text>
-          </HapticTouchable>
-        )}
-
         {/* Verify/Reverify button */}
         {!contact.verified && (
           <HapticTouchable hapticDisabled
@@ -1152,6 +1278,17 @@ export function ContactDetailScreen() {
           <Text style={[styles.dangerButtonText, { color: themeColors.error }]}>{t('contacts.delete')}</Text>
         </HapticTouchable>
       </View>
+
+      {/* Country picker modal */}
+      <PickerModal
+        visible={showCountryPicker}
+        title={t('contacts.address.country')}
+        options={countryOptions}
+        selectedValue={editCountry}
+        onSelect={(code) => { setEditCountry(code); scrollToField('country', { isModalReturn: true }); }}
+        onClose={() => setShowCountryPicker(false)}
+        moduleId="contacts"
+      />
 
       {/* Extra bottom padding to ensure last fields scroll above keyboard */}
       <View style={{ height: spacing.xxl }} />
@@ -1286,13 +1423,15 @@ const styles = StyleSheet.create({
     color: colors.textOnPrimary,
     fontSize: 16,
   },
-  // Edit bar
-  editBar: {
+  // Fixed edit bar — above ScrollView, always visible
+  fixedEditBar: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  editBarButton: {
+  fixedEditBarButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1302,7 +1441,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     paddingVertical: spacing.sm,
   },
-  editBarButtonText: {
+  fixedEditBarButtonText: {
     ...typography.button,
     fontSize: 16,
   },
@@ -1379,6 +1518,12 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   // Address styles
+  autoFillHint: {
+    ...typography.small,
+    fontStyle: 'italic',
+    paddingHorizontal: spacing.xs,
+    marginBottom: spacing.sm,
+  },
   addressLine: {
     ...typography.body,
     color: colors.textPrimary,
