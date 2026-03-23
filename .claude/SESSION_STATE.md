@@ -6,24 +6,24 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-23
-- **Sessie:** Trust & Attestation Plan — Nearby Contact Wizard + Universal Links + PNA beslissingen
-- **Commit:** (wordt bijgewerkt na push)
+- **Sessie:** Green Ring + Skill Coordination Upgrade (Ruflo-geïnspireerd)
+- **Commit:** `03c6c4f`
 
 ## Voltooide Taken Deze Sessie
 
-1. **TRUST_AND_ATTESTATION_PLAN.md volledig bijgewerkt met PNA beslissingen**
-   - **Sectie 2.1:** Volledig herschreven — "In de buurt" is nu een 6-stappen Nearby Contact Wizard
-   - **Sectie 2.2:** Invitation code format geüpdated naar CE-XXXX-XXXX-XXXX (12 chars, 30^12 entropie)
-   - **Sectie 2.5:** NIEUW — Universal Links / commeazy.com configuratie (iOS + Android)
-   - **Sectie 4.2:** Contact Toevoegen UI bijgewerkt met wizard referenties en trust level resultaten
-   - **Sectie 5.2:** Trust Levels herschreven — Level 2 volledig functioneel (incl video calls), Level 3 via video call verificatie
-   - **Sectie 6.1:** Bestandsstructuur uitgebreid met NearbyContactWizard, deepLinking service, web/ folder
-   - **Sectie 6.4:** Code generator geüpdated naar 12-char format + URL helpers (generateInvitationUrl, extractCodeFromUrl)
-   - **Sectie 7:** i18n keys volledig herschreven — 30+ wizard-specifieke keys toegevoegd
-   - **Sectie 8:** Implementatiefasen uitgebreid van 5 naar 6 fasen (nieuwe Fase 3: Universal Links)
-   - **Sectie 9:** Pre-Productie Checklist gereorganiseerd in 4 categorieën (Server/commeazy.com/App/Quality)
-   - **Sectie 10:** NIEUW — PNA Beslissingen Log (11 beslissingen met datums en rationale)
-   - **Sectie 11:** Referenties uitgebreid met Universal Links, App Links, Argon2id docs
+1. **Green ring voor CommEazy contacten (trustLevel ≥ 2)**
+   - `ContactAvatar.tsx`: 3pt groene ring (`colors.presenceAvailable`) bij trustLevel ≥ 2
+   - `trustLevel` prop doorgegeven in 5 consumer screens (ContactList, ContactDetail, Calls, CreateGroup, EditGroup)
+
+2. **DevModePanel test contacten**
+   - 4 test contacten met variërende trust levels (0, 1, 2, 3)
+   - `database.ts`: `saveContact` slaat nu `mobileNumber` en `addressProvince` op
+
+3. **Skill Coordination Upgrade — Model C (Ruflo-geïnspireerd)**
+   - **DECISION_PATTERNS.md** (NIEUW): Bewezen ontwerppatronen met context, beslissing, rationale, senior-toets, sessies, contra-indicatie. 11 patronen vastgelegd.
+   - **SKILL_DOMAINS.md** (NIEUW): 5 domeinen (UX, Platform, Security, Content, Protocol) als escalatielaag. Model C: Matrix primary → Domein escalatie → Gebruiker beslist.
+   - **CHANGE_VALIDATION_MATRIX.md**: File-Pattern Hooks sectie toegevoegd (8 categorieën, 16 patterns incl. 3 BLOKKEERDER combinaties)
+   - **COORDINATION_PROTOCOL.md**: Tier 2 en Tier 3 workflows bijgewerkt met DECISION_PATTERNS.md check en domein-escalatie stap. Referenties uitgebreid.
 
 ## Openstaande Taken
 
@@ -31,29 +31,29 @@
 2. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geïmplementeerd.
 3. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
 4. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geïmplementeerd.
+5. **ChatListScreen green ring** — Zou DB query nodig hebben voor trustLevel, uitgesteld.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
-Geen — alle PNA beslissingen zijn vastgelegd in TRUST_AND_ATTESTATION_PLAN.md sectie 10.
+Geen — alle beslissingen zijn geïmplementeerd.
 
 ## Relevante Beslissingen Deze Sessie
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Camera app scant QR (geen in-app scanner) | Senioren kennen Camera QR van COVID-era, minder code, minder permissions |
-| commeazy.com domein bevestigd | Universal Links (iOS) + App Links (Android) voor QR-code scanning |
-| Twee QR-codes in wizard (download + invite) | Elk doel apart: app installatie vs key exchange |
-| Echo bij video call test is OK | 5-10 sec test, senioren verwachten echo naast elkaar |
-| Eenzijdige verificatie voldoende | Elk device beheert eigen trust levels onafhankelijk |
-| Level 2 = volledig functioneel | Berichten, foto's, video calls — geen blokkade bij relay-verbonden contacten |
-| Level 3 via video call (niet alleen QR) | Praktischer voor senioren — video call is al een bewezen interactie |
-| Invitation code CE-XXXX-XXXX-XXXX (12 chars) | 30^12 entropie, voldoende veilig met rate limiting |
+| Model C voor skill coördinatie | Matrix primary → Domeinen escaleren unknowns → Gebruiker beslist. Geen kennisrisco. |
+| DECISION_PATTERNS.md als leergeheugen | Voorkomt dat bewezen beslissingen elke sessie opnieuw worden gemaakt |
+| 5 Skill Domeinen (niet lossy hiërarchie) | Domeinen vervangen matrix NIET, ze zijn alleen een vangnet voor edge cases |
+| File-Pattern Hooks naast beschrijving-triggers | Automatische skill-activatie op basis van bestandspad, complement op bestaande matrix |
+| Consensus algoritmes NIET geadopteerd | Bestaande Conflict Resolutie Hiërarchie is voldoende |
+| Impact Score Matrix uitgesteld | Geen directe meerwaarde, te complex voor huidige schaal |
+| Green ring bij trustLevel ≥ 2 | Visuele differentiatie CommEazy contacten vs externe contacten |
 
 ## Context voor Volgende Sessie
 
-- **TRUST_AND_ATTESTATION_PLAN.md** is nu het complete referentiedocument voor alle contact/trust/invitation functionaliteit
-- **Volgende implementatiestap:** Fase 1 (API Gateway + Attestation) of Fase 2 (Invitation Relay + Crypto) — afhankelijk van gebruikersprioriteit
-- **commeazy.com domein:** Moet nog geconfigureerd worden (DNS, HTTPS, well-known files)
+- **Skill coördinatie documenten:** `DECISION_PATTERNS.md`, `SKILL_DOMAINS.md`, `CHANGE_VALIDATION_MATRIX.md` (File-Pattern Hooks), `COORDINATION_PROTOCOL.md` (bijgewerkte workflows)
+- **Model C routing:** CHANGE_VALIDATION_MATRIX → (onvolledig?) → SKILL_DOMAINS → (vraag) → gebruiker beslist
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Audio Orchestrator:** `src/contexts/AudioOrchestratorContext.tsx` — centraal punt
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`
+- **TRUST_AND_ATTESTATION_PLAN.md:** Compleet referentiedocument voor contact/trust/invitation functionaliteit
