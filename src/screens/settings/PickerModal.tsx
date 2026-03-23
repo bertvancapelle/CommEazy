@@ -19,7 +19,6 @@ import {
 } from 'react-native';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { ScrollViewWithIndicator, PanelAwareModal } from '@/components';
-import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, touchTargets } from '@/theme';
@@ -59,7 +58,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
       onRequestClose={onClose}
       moduleId={moduleId ?? 'settings'}
     >
-      <LiquidGlassView moduleId={moduleId ?? 'settings'} style={styles.container} cornerRadius={0}>
+      <View style={[styles.container, { backgroundColor: themeColors.surface }]}>
         <ModalLayout
           headerBlock={
             <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
@@ -109,7 +108,7 @@ export function PickerModal({ visible, title, options, selectedValue, onSelect, 
             </ScrollViewWithIndicator>
           }
         />
-      </LiquidGlassView>
+      </View>
     </PanelAwareModal>
   );
 }

@@ -2396,6 +2396,7 @@
       "years": "jaar",
       "moreItems": "En nog {{count}} meer...",
       "categories": {
+        "general": "Algemeen",
         "doctor": "Dokter",
         "dentist": "Tandarts",
         "hairdresser": "Kapper",

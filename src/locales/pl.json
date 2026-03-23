@@ -2251,6 +2251,7 @@
       "years": "lat",
       "moreItems": "I jeszcze {{count}} więcej...",
       "categories": {
+        "general": "Ogólne",
         "doctor": "Lekarz",
         "dentist": "Dentysta",
         "hairdresser": "Fryzjer",

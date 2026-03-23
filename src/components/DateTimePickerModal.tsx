@@ -2,14 +2,14 @@
  * DateTimePickerModal — App-wide standard date & time picker
  *
  * Wraps @react-native-community/datetimepicker in a PanelAwareModal
- * with LiquidGlassView background and module-specific tint color.
+ * with theme-aware background and module-specific tint color.
  *
  * This is the ONLY date/time picker component allowed in CommEazy.
  * All screens MUST use this component for date and time selection.
  *
  * Features:
  * - PanelAwareModal (stays within panel on iPad Split View)
- * - LiquidGlassView with configurable moduleId tint (iOS 26+)
+ * - Theme-aware surface background with module accent color
  * - Native iOS spinner / Android default picker
  * - "Gereed" (Done) button with module accent color
  * - Locale-aware via i18n
@@ -35,7 +35,6 @@ import { useTranslation } from 'react-i18next';
 
 import { HapticTouchable } from './HapticTouchable';
 import { PanelAwareModal } from './PanelAwareModal';
-import { LiquidGlassView } from './LiquidGlassView';
 import { ModalLayout } from './ModalLayout';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
@@ -103,7 +102,7 @@ export function DateTimePickerModal({
       moduleId={moduleId}
     >
       <View style={styles.overlay}>
-        <LiquidGlassView moduleId={moduleId} style={styles.container} cornerRadius={borderRadius.lg}>
+        <View style={[styles.container, { backgroundColor: themeColors.surface }]}>
           <ModalLayout
             headerBlock={
               <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
@@ -137,7 +136,7 @@ export function DateTimePickerModal({
               </View>
             }
           />
-        </LiquidGlassView>
+        </View>
       </View>
     </PanelAwareModal>
   );

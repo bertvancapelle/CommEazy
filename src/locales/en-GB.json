@@ -2390,6 +2390,7 @@
       "years": "years",
       "moreItems": "And {{count}} more...",
       "categories": {
+        "general": "General",
         "doctor": "Doctor",
         "dentist": "Dentist",
         "hairdresser": "Hairdresser",

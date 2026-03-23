@@ -2334,6 +2334,7 @@
       "years": "anni",
       "moreItems": "E altri {{count}}...",
       "categories": {
+        "general": "Generale",
         "doctor": "Medico",
         "dentist": "Dentista",
         "hairdresser": "Parrucchiere",

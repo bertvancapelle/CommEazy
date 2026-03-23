@@ -973,7 +973,7 @@ export function ContactDetailScreen() {
                 <Text style={[styles.datePickerValue, editCountry ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
                   {editCountry ? getCountryDisplayLabel(editCountry) : '-'}
                 </Text>
-                <Text style={styles.datePickerEditIcon}>✏️</Text>
+
               </HapticTouchable>
             </View>
             {/* 2. Postcode */}
@@ -1106,7 +1106,7 @@ export function ContactDetailScreen() {
                 <Text style={[styles.datePickerValue, editBirthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
                   {formatDateForPicker(editBirthDate)}
                 </Text>
-                <Text style={styles.datePickerEditIcon}>✏️</Text>
+
               </HapticTouchable>
             </View>
 
@@ -1122,7 +1122,7 @@ export function ContactDetailScreen() {
                 <Text style={[styles.datePickerValue, editWeddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
                   {formatDateForPicker(editWeddingDate)}
                 </Text>
-                <Text style={styles.datePickerEditIcon}>✏️</Text>
+
               </HapticTouchable>
             </View>
 
@@ -1138,7 +1138,7 @@ export function ContactDetailScreen() {
                 <Text style={[styles.datePickerValue, editDeathDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
                   {formatDateForPicker(editDeathDate)}
                 </Text>
-                <Text style={styles.datePickerEditIcon}>✏️</Text>
+
               </HapticTouchable>
             </View>
 
@@ -1492,10 +1492,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     flex: 1,
-  },
-  datePickerEditIcon: {
-    fontSize: 18,
-    marginLeft: spacing.sm,
   },
   editFieldLabel: {
     ...typography.body,

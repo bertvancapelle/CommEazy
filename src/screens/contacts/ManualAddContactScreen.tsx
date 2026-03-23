@@ -609,7 +609,7 @@ export function ManualAddContactScreen() {
             <Text style={[styles.datePickerValue, country ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
               {country ? getCountryDisplayLabel(country) : '-'}
             </Text>
-            <Text style={styles.datePickerEditIcon}>✏️</Text>
+
           </HapticTouchable>
         </View>
 
@@ -712,7 +712,7 @@ export function ManualAddContactScreen() {
             <Text style={[styles.datePickerValue, birthDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
               {formatDateDisplay(birthDate)}
             </Text>
-            <Text style={styles.datePickerEditIcon}>✏️</Text>
+
           </HapticTouchable>
         </View>
 
@@ -727,7 +727,7 @@ export function ManualAddContactScreen() {
             <Text style={[styles.datePickerValue, weddingDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
               {formatDateDisplay(weddingDate)}
             </Text>
-            <Text style={styles.datePickerEditIcon}>✏️</Text>
+
           </HapticTouchable>
         </View>
 
@@ -742,7 +742,7 @@ export function ManualAddContactScreen() {
             <Text style={[styles.datePickerValue, deathDate ? { color: accentColor.primary } : { color: themeColors.textTertiary }]}>
               {formatDateDisplay(deathDate)}
             </Text>
-            <Text style={styles.datePickerEditIcon}>✏️</Text>
+
           </HapticTouchable>
         </View>
 
@@ -964,10 +964,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     flex: 1,
-  },
-  datePickerEditIcon: {
-    fontSize: 18,
-    marginLeft: spacing.sm,
   },
   textInput: {
     ...typography.input,

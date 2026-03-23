@@ -2230,6 +2230,7 @@
       "years": "år",
       "moreItems": "Og {{count}} mere...",
       "categories": {
+        "general": "Generelt",
         "doctor": "Læge",
         "dentist": "Tandlæge",
         "hairdresser": "Frisør",
