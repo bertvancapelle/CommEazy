@@ -6,32 +6,40 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-24
-- **Sessie:** PanelAwareModal fix + compact DateTimePickerModal
-- **Commit:** `46dec4c`
+- **Sessie:** PanelAwareModal panelId root cause fix
+- **Commit:** `815b605`
 
 ## Voltooide Taken Deze Sessie
 
-1. **PanelAwareModal transparent/pageSheet fix** (commit `46dec4c`)
-   - Root cause: `transparent={true}` default in PanelAwareModal veroorzaakte dat iOS `presentationStyle="pageSheet"` negeerde
-   - Fix: `const effectiveTransparent = presentationStyle ? false : transparent;`
-   - Alle 19 consumers met `presentationStyle="pageSheet"` profiteren automatisch
+1. **PanelAwareModal: panelId 'main' root cause fix** (commit `815b605`)
+   - Root cause: `PanelIdProvider` wrapte iPhone met `value="main"`, waardoor `panelId !== null` altijd `true` was
+   - Gevolg: ALLE modals op iPhone werden als View overlay gerenderd i.p.v. native `<Modal>`
+   - De `effectiveTransparent` fix uit vorige sessie was correct maar werd nooit bereikt
+   - Fix: `if (panelId !== null)` → `if (panelId !== null && panelId !== 'main')` op regel 62
+   - Nu: iPhone (`panelId='main'`) → native Modal, iPad Split View (`panelId='left'/'right'`) → View overlay
 
-2. **DateTimePickerModal compact bottom-sheet** (commit `46dec4c`)
-   - Van: `presentationStyle="pageSheet"` + `LiquidGlassView` (schermvullend, overlapped Dynamic Island)
-   - Naar: transparante overlay met semi-transparante module kleur (`moduleColor + '66'`) + compacte bottom-sheet met solid `themeColors.surface` achtergrond
-   - Geen LiquidGlassView meer (vermijdt Yoga flex-end conflict op iOS 26)
-   - Props interface ongewijzigd — 0 consumer code wijzigingen nodig (13 consumers)
+2. **UnifiedFullPlayer.tsx: zelfde panelId fix** (commit `815b605`)
+   - Had `const isInPanel = panelId !== null;` — zelfde bug
+   - Fix: `const isInPanel = panelId !== null && panelId !== 'main';` op regel 193-194
+   - Zonder fix zou FullPlayer op iPhone als View overlay renderen i.p.v. PanelAwareModal
 
-3. **ColorPickerModal werkt nu correct** (geen code change)
-   - Bestaande `presentationStyle="pageSheet"` + `LiquidGlassView` code was al correct
-   - Werkt nu dankzij PanelAwareModal fix (effectiveTransparent=false)
+3. **Validatie van alle usePanelId consumers** (commit `815b605`)
+   - ModuleHeader.tsx: Veilig — gebruikt panelId voor setPaneModule()
+   - MediaIndicator.tsx: Veilig — zelfde pattern als ModuleHeader
+   - PanelNavigator.tsx: Veilig — checkt expliciet `panelId === 'main'`
+   - RadioScreen.tsx: Veilig — declareert maar gebruikt panelId niet
+   - PhotoAlbumScreen.tsx: Veilig — gebruikt voor consumePendingNavigation()
+   - CameraScreen.tsx: Veilig — gebruikt voor setPaneModule()
 
 4. **Vorige sessies (behouden context):**
+   - PanelAwareModal effectiveTransparent fix (commit `46dec4c`)
+   - DateTimePickerModal compact bottom-sheet (commit `46dec4c`)
    - Shared ColorPickerModal component (commit `9377ec6`)
    - Required field validation op ProfileSettingsScreen (commit `ffb2789`)
    - Date picker timezone off-by-one fix
    - ProfileSettings cursor jumping fix (getIsDirty useCallback)
    - View/Edit mode op ProfileSettingsScreen
+   - ContactAvatar uniform — presence + badge on ALL 12 consumer screens
 
 ## Openstaande Taken
 
@@ -49,15 +57,15 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| `effectiveTransparent` in PanelAwareModal | iOS negeert presentationStyle bij transparent=true. Door automatisch false te forceren wanneer presentationStyle opgegeven is, werken alle 19 pageSheet consumers correct zonder code wijziging. |
-| DateTimePickerModal: compact bottom-sheet (GEEN LiquidGlassView) | LiquidGlassView + Yoga `justifyContent: 'flex-end'` breekt op iOS 26. Solid surface achtergrond vermijdt dit. Bovendien is een date picker compact genoeg voor een bottom-sheet overlay. |
-| DateTimePickerModal: module kleur overlay (40% opacity) | Gebruiker koos expliciet "semi transparante overlay in de kleur van de module". Hex suffix `66` = ~40% opacity. |
-| ColorPickerModal: geen code change | Al correct geïmplementeerd, profiteert van PanelAwareModal fix. |
-| Twee modal patterns | pageSheet voor content-heavy modals (ColorPickerModal, ModuleColorsScreen). Transparent bottom-sheet voor compacte utility modals (DateTimePickerModal). |
+| `panelId !== 'main'` check in PanelAwareModal | iPhone krijgt `panelId='main'` via PanelIdProvider. Zonder deze check werden ALLE modals als View overlay gerenderd. Nu: 'main' → native Modal, 'left'/'right' → View overlay. |
+| Zelfde fix in UnifiedFullPlayer | Had identiek pattern `panelId !== null` dat dezelfde bug veroorzaakte. |
+| `effectiveTransparent` behouden (vorige sessie) | Nog steeds nodig: iOS negeert presentationStyle bij transparent=true. Nu bereikbaar dankzij de panelId fix. |
+| Twee modal patterns (vorige sessie) | pageSheet + LiquidGlassView voor content-heavy modals. Transparent bottom-sheet voor compacte utility modals. |
 
 ## Context voor Volgende Sessie
 
-- **PanelAwareModal:** `effectiveTransparent` logica op regel 70 — forceert `transparent=false` bij `presentationStyle`
+- **PanelAwareModal:** Twee fixes actief: (1) `panelId !== 'main'` check op regel 62, (2) `effectiveTransparent` logica op regel 71
+- **UnifiedFullPlayer:** `isInPanel` check op regel 193 — `panelId !== null && panelId !== 'main'`
 - **DateTimePickerModal:** `src/components/DateTimePickerModal.tsx` — compact bottom-sheet, module color overlay, solid surface. 13 consumers ongewijzigd.
 - **ColorPickerModal:** `src/components/ColorPickerModal.tsx` — pageSheet + LiquidGlassView. 7 consumers.
 - **ModuleColorsScreen:** `src/screens/settings/ModuleColorsScreen.tsx` — eigen pageSheet + nested ColorPickerModal
