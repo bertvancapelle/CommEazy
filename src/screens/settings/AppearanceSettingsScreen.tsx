@@ -35,10 +35,9 @@ import { useTranslation } from 'react-i18next';
 import Slider from '@react-native-community/slider';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, DEFAULT_ACCENT_COLOR, type AccentColorKey } from '@/theme';
-import { Icon, LiquidGlassView, type IconName, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { Icon, type IconName, ScrollViewWithIndicator, ColorPickerModal } from '@/components';
 import { useTheme, useColors, type ThemeMode } from '@/contexts/ThemeContext';
 import { useAccentColorContext } from '@/contexts/AccentColorContext';
-import { useAccentColor } from '@/hooks/useAccentColor';
 import {
   useModuleColorsContext,
 } from '@/contexts/ModuleColorsContext';
@@ -146,91 +145,6 @@ function ThemeOptionButton({ option, isSelected, onSelect, accentColor, themeCol
         {t(option.labelKey)}
       </Text>
     </HapticTouchable>
-  );
-}
-
-// ============================================================
-// Color Picker Modal Component (pageSheet pattern)
-// ============================================================
-
-interface ColorPickerModalProps<T extends string> {
-  visible: boolean;
-  onClose: () => void;
-  onSelect: (value: T) => void;
-  colors: Array<{ value: T; hex: string; label: string }>;
-  selectedValue: T;
-  title: string;
-}
-
-function ColorPickerModal<T extends string>({
-  visible,
-  onClose,
-  onSelect,
-  colors: colorOptions,
-  selectedValue,
-  title,
-}: ColorPickerModalProps<T>) {
-  const { t } = useTranslation();
-  const themeColors = useColors();
-  const { accentColor } = useAccentColor();
-
-  const handleSelect = (value: T) => {
-    onSelect(value);
-    onClose();
-  };
-
-  return (
-    <PanelAwareModal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <LiquidGlassView moduleId="settings" style={modalStyles.container} cornerRadius={0}>
-        {/* Header */}
-        <View style={[modalStyles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[modalStyles.title, { color: themeColors.textPrimary }]}>{title}</Text>
-        </View>
-
-        {/* Color Grid */}
-        <View style={modalStyles.content}>
-          <View style={modalStyles.colorGrid}>
-            {colorOptions.map((option) => (
-              <HapticTouchable hapticDisabled
-                key={option.value}
-                style={[
-                  modalStyles.colorSwatch,
-                  { backgroundColor: option.hex },
-                  selectedValue === option.value && modalStyles.colorSwatchSelected,
-                ]}
-                onPress={() => handleSelect(option.value)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: selectedValue === option.value }}
-                accessibilityLabel={option.label}
-              >
-                {selectedValue === option.value && (
-                  <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
-                )}
-              </HapticTouchable>
-            ))}
-          </View>
-        </View>
-
-        {/* Close button at bottom */}
-        <View style={[modalStyles.footer, { borderTopColor: themeColors.border }]}>
-          <HapticTouchable hapticDisabled
-            style={[modalStyles.closeButton, { backgroundColor: accentColor.primary }]}
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Text style={[modalStyles.closeButtonText, { color: colors.textOnPrimary }]}>
-              {t('common.close')}
-            </Text>
-          </HapticTouchable>
-        </View>
-      </LiquidGlassView>
-    </PanelAwareModal>
   );
 }
 
@@ -650,11 +564,12 @@ export function AppearanceSettingsScreen() {
         {/* Accent Color Picker Modal */}
         <ColorPickerModal
           visible={showAccentColorPicker}
-          onClose={() => setShowAccentColorPicker(false)}
-          onSelect={(key) => void handleColorSelect(key)}
+          title={t('appearance.accentColor.selectTitle')}
           colors={colorOptions}
           selectedValue={accentColorKey}
-          title={t('appearance.accentColor.selectTitle')}
+          moduleId="settings"
+          onSelect={(key) => void handleColorSelect(key)}
+          onClose={() => setShowAccentColorPicker(false)}
         />
       </View>
 
@@ -689,11 +604,12 @@ export function AppearanceSettingsScreen() {
         {/* Global Color Picker Modal */}
         <ColorPickerModal
           visible={showGlobalColorPicker}
-          onClose={() => setShowGlobalColorPicker(false)}
-          onSelect={(key) => void handleGlobalDefaultColorSelect(key)}
+          title={t('appearance.globalDefaultColor')}
           colors={colorOptions}
           selectedValue={globalDefaultColor ? getColorKeyFromHex(globalDefaultColor) : 'blue'}
-          title={t('appearance.globalDefaultColor')}
+          moduleId="settings"
+          onSelect={(key) => void handleGlobalDefaultColorSelect(key)}
+          onClose={() => setShowGlobalColorPicker(false)}
         />
       </View>
 
@@ -756,11 +672,12 @@ export function AppearanceSettingsScreen() {
         {/* Button Border Color Picker Modal */}
         <ColorPickerModal
           visible={showButtonBorderColorPicker}
-          onClose={() => setShowButtonBorderColorPicker(false)}
-          onSelect={(color) => void handleButtonBorderColorSelect(color)}
+          title={t('appearance.buttonBorder.selectTitle')}
           colors={buttonBorderColorOptions}
           selectedValue={buttonStyleSettings.borderColor}
-          title={t('appearance.buttonBorder.selectTitle')}
+          moduleId="settings"
+          onSelect={(color) => void handleButtonBorderColorSelect(color)}
+          onClose={() => setShowButtonBorderColorPicker(false)}
         />
       </View>
 
@@ -806,11 +723,12 @@ export function AppearanceSettingsScreen() {
         {/* Label Color Picker Modal */}
         <ColorPickerModal
           visible={showLabelColorPicker}
-          onClose={() => setShowLabelColorPicker(false)}
-          onSelect={(color) => void handleLabelColorSelect(color)}
+          title={t('appearance.fieldTextStyle.labelStyle.selectTitle')}
           colors={textStyleColorOptions}
           selectedValue={textStyleSettings.label.color}
-          title={t('appearance.fieldTextStyle.labelStyle.selectTitle')}
+          moduleId="settings"
+          onSelect={(color) => void handleLabelColorSelect(color)}
+          onClose={() => setShowLabelColorPicker(false)}
         />
 
         {/* Field Text Style subsection */}
@@ -839,11 +757,12 @@ export function AppearanceSettingsScreen() {
         {/* Field Text Color Picker Modal */}
         <ColorPickerModal
           visible={showFieldTextColorPicker}
-          onClose={() => setShowFieldTextColorPicker(false)}
-          onSelect={(color) => void handleFieldTextColorSelect(color)}
+          title={t('appearance.fieldTextStyle.fieldTextStyle.selectTitle')}
           colors={textStyleColorOptions}
           selectedValue={textStyleSettings.fieldText.color}
-          title={t('appearance.fieldTextStyle.fieldTextStyle.selectTitle')}
+          moduleId="settings"
+          onSelect={(color) => void handleFieldTextColorSelect(color)}
+          onClose={() => setShowFieldTextColorPicker(false)}
         />
 
         {/* Modal Text Style subsection */}
@@ -872,11 +791,12 @@ export function AppearanceSettingsScreen() {
         {/* Modal Text Color Picker Modal */}
         <ColorPickerModal
           visible={showModalTextColorPicker}
-          onClose={() => setShowModalTextColorPicker(false)}
-          onSelect={(color) => void handleModalTextColorSelect(color)}
+          title={t('appearance.fieldTextStyle.modalTextStyle.selectTitle')}
           colors={textStyleColorOptions}
           selectedValue={textStyleSettings.modalText.color}
-          title={t('appearance.fieldTextStyle.modalTextStyle.selectTitle')}
+          moduleId="settings"
+          onSelect={(color) => void handleModalTextColorSelect(color)}
+          onClose={() => setShowModalTextColorPicker(false)}
         />
 
         {/* Reset text styles button */}
@@ -1055,70 +975,6 @@ export function AppearanceSettingsScreen() {
     </ScrollViewWithIndicator>
   );
 }
-
-// ============================================================
-// Modal Styles (shared across all pageSheet modals)
-// ============================================================
-
-const modalStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    alignItems: 'center',
-  },
-  title: {
-    ...typography.h3,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: spacing.md,
-  },
-  colorSwatch: {
-    width: 60,
-    height: 60,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  colorSwatchSelected: {
-    borderWidth: 3,
-    borderColor: colors.textOnPrimary,
-  },
-  footer: {
-    padding: spacing.lg,
-    borderTopWidth: 1,
-  },
-  closeButton: {
-    minHeight: touchTargets.comfortable,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    ...typography.bodyBold,
-  },
-});
 
 // ============================================================
 // Screen Styles

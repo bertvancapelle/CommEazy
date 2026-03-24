@@ -176,6 +176,10 @@ export { QueueView } from './QueueView';
 export type { QueueViewProps } from './QueueView';
 export { FloatingImportIndicator } from './FloatingImportIndicator';
 
+// ColorPickerModal (app-wide standard color picker — bottom-sheet with color grid)
+export { ColorPickerModal } from './ColorPickerModal';
+export type { ColorPickerModalProps, ColorOption } from './ColorPickerModal';
+
 // DateTimePickerModal (app-wide standard date & time picker — native spinner in bottom-sheet)
 export { DateTimePickerModal } from './DateTimePickerModal';
 export type { DateTimePickerModalProps, DateTimePickerEvent } from './DateTimePickerModal';

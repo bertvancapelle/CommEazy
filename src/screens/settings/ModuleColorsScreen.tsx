@@ -22,7 +22,7 @@ import { HapticTouchable } from '@/components/HapticTouchable';
 import { useTranslation } from 'react-i18next';
 
 import { colors, typography, spacing, touchTargets, borderRadius, ACCENT_COLORS, ACCENT_COLOR_KEYS, type AccentColorKey } from '@/theme';
-import { Icon, LiquidGlassView, ScrollViewWithIndicator, type IconName, PanelAwareModal } from '@/components';
+import { Icon, LiquidGlassView, ScrollViewWithIndicator, type IconName, PanelAwareModal, ColorPickerModal } from '@/components';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import {
@@ -69,149 +69,6 @@ export interface ModuleColorsScreenProps {
 }
 
 // ============================================================
-// Color Picker Modal (pageSheet, consistent with app pattern)
-// ============================================================
-
-interface ColorPickerModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSelect: (colorKey: AccentColorKey) => void;
-  selectedValue: AccentColorKey;
-  title: string;
-}
-
-function ColorPickerModal({ visible, onClose, onSelect, selectedValue, title }: ColorPickerModalProps) {
-  const { t } = useTranslation();
-  const themeColors = useColors();
-  const { accentColor } = useAccentColor();
-
-  const colorOptions = ACCENT_COLOR_KEYS.map((key) => ({
-    value: key,
-    hex: ACCENT_COLORS[key].primary,
-    label: t(ACCENT_COLORS[key].label),
-  }));
-
-  const handleSelect = (value: AccentColorKey) => {
-    onSelect(value);
-    onClose();
-  };
-
-  return (
-    <PanelAwareModal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <LiquidGlassView moduleId="settings" style={pickerStyles.container} cornerRadius={0}>
-        {/* Header */}
-        <View style={[pickerStyles.header, { borderBottomColor: themeColors.border }]}>
-          <Text style={[pickerStyles.title, { color: themeColors.textPrimary }]}>{title}</Text>
-        </View>
-
-        {/* Color Grid */}
-        <View style={pickerStyles.content}>
-          <View style={pickerStyles.colorGrid}>
-            {colorOptions.map((option) => (
-              <HapticTouchable hapticDisabled
-                key={option.value}
-                style={[
-                  pickerStyles.colorSwatch,
-                  { backgroundColor: option.hex },
-                  selectedValue === option.value && pickerStyles.colorSwatchSelected,
-                ]}
-                onPress={() => handleSelect(option.value)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: selectedValue === option.value }}
-                accessibilityLabel={option.label}
-              >
-                {selectedValue === option.value && (
-                  <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
-                )}
-              </HapticTouchable>
-            ))}
-          </View>
-        </View>
-
-        {/* Close button at bottom */}
-        <View style={[pickerStyles.footer, { borderTopColor: themeColors.border }]}>
-          <HapticTouchable hapticDisabled
-            style={[pickerStyles.closeButton, { backgroundColor: accentColor.primary }]}
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          >
-            <Text style={[pickerStyles.closeButtonText, { color: colors.textOnPrimary }]}>
-              {t('common.close')}
-            </Text>
-          </HapticTouchable>
-        </View>
-      </LiquidGlassView>
-    </PanelAwareModal>
-  );
-}
-
-const pickerStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    alignItems: 'center',
-  },
-  title: {
-    ...typography.h3,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: spacing.md,
-  },
-  colorSwatch: {
-    width: 60,
-    height: 60,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  colorSwatchSelected: {
-    borderWidth: 3,
-    borderColor: colors.textOnPrimary,
-  },
-  footer: {
-    padding: spacing.lg,
-    borderTopWidth: 1,
-  },
-  closeButton: {
-    minHeight: touchTargets.comfortable,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    ...typography.bodyBold,
-  },
-});
-
-// ============================================================
 // Main Component
 // ============================================================
 
@@ -224,6 +81,13 @@ export function ModuleColorsScreen({ visible, onClose }: ModuleColorsScreenProps
 
   // State for which module's color picker is open
   const [editingModuleId, setEditingModuleId] = useState<ModuleColorId | null>(null);
+
+  // Color options for the shared ColorPickerModal
+  const colorOptions = ACCENT_COLOR_KEYS.map((key) => ({
+    value: key,
+    hex: ACCENT_COLORS[key].primary,
+    label: t(ACCENT_COLORS[key].label),
+  }));
 
   // Helper: find AccentColorKey from hex
   const getColorKeyFromHex = useCallback((hex: string): AccentColorKey => {
@@ -357,10 +221,12 @@ export function ModuleColorsScreen({ visible, onClose }: ModuleColorsScreenProps
       {/* Color Picker for selected module */}
       <ColorPickerModal
         visible={editingModuleId !== null}
-        onClose={() => setEditingModuleId(null)}
-        onSelect={(colorKey) => void handleModuleColorSelect(colorKey)}
-        selectedValue={editingModuleId ? getColorKeyFromHex(getModuleHex(editingModuleId)) : 'blue'}
         title={editingModuleId ? t('appearance.moduleColors.selectTitle', { module: t(MODULE_LABELS[editingModuleId]) }) : ''}
+        colors={colorOptions}
+        selectedValue={editingModuleId ? getColorKeyFromHex(getModuleHex(editingModuleId)) : 'blue'}
+        moduleId="settings"
+        onSelect={(colorKey) => void handleModuleColorSelect(colorKey)}
+        onClose={() => setEditingModuleId(null)}
       />
     </PanelAwareModal>
   );
