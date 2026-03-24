@@ -50,7 +50,7 @@ describe('ContactListScreen', () => {
     {
       jid: 'alice@example.com',
       name: 'Alice',
-      phoneNumber: '+31612345678',
+      landlineNumber: '+31612345678',
       publicKey: 'abc123',
       verified: true,
       lastSeen: Date.now(),
@@ -58,7 +58,7 @@ describe('ContactListScreen', () => {
     {
       jid: 'bob@example.com',
       name: 'Bob',
-      phoneNumber: '+31687654321',
+      landlineNumber: '+31687654321',
       publicKey: 'def456',
       verified: false,
       lastSeen: Date.now() - 3600000,

@@ -264,7 +264,7 @@ export function ContactDetailScreen() {
   // Initialize edit fields when contact loads
   useEffect(() => {
     if (contact) {
-      setEditPhone(contact.phoneNumber ?? '');
+      setEditPhone(contact.landlineNumber ?? '');
       setEditEmail(contact.email ?? '');
       setEditStreet(contact.address?.street ?? '');
       setEditPostalCode(contact.address?.postalCode ?? '');
@@ -359,7 +359,7 @@ export function ContactDetailScreen() {
     // Build updated contact
     const updatedContact: Contact = {
       ...contact,
-      phoneNumber: editPhone.trim() || undefined,
+      landlineNumber: editPhone.trim() || undefined,
       email: editEmail.trim() || undefined,
       address: (editStreet || editHouseNumber || editPostalCode || editCity || editCountry || editProvince)
         ? {
@@ -392,7 +392,7 @@ export function ContactDetailScreen() {
     if (!contact) return false;
     const origCats = (() => { try { const c = contact.categories ? JSON.parse(contact.categories as string) : []; return Array.isArray(c) ? c : []; } catch { return []; } })();
     return (
-      editPhone !== (contact.phoneNumber ?? '') ||
+      editPhone !== (contact.landlineNumber ?? '') ||
       editEmail !== (contact.email ?? '') ||
       editStreet !== (contact.address?.street ?? '') ||
       editPostalCode !== (contact.address?.postalCode ?? '') ||
@@ -409,7 +409,7 @@ export function ContactDetailScreen() {
 
   const resetEditFields = useCallback(() => {
     if (contact) {
-      setEditPhone(contact.phoneNumber ?? '');
+      setEditPhone(contact.landlineNumber ?? '');
       setEditEmail(contact.email ?? '');
       setEditStreet(contact.address?.street ?? '');
       setEditPostalCode(contact.address?.postalCode ?? '');
@@ -921,10 +921,10 @@ export function ContactDetailScreen() {
             />
           </View>
         ) : (
-          contact.phoneNumber ? (
+          contact.landlineNumber ? (
             <View style={styles.detailRow}>
               <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
-              <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.phoneNumber}</Text>
+              <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.landlineNumber}</Text>
             </View>
           ) : null
         )}

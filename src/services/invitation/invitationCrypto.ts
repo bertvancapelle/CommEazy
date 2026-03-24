@@ -94,7 +94,8 @@ export interface InvitationPayloadV2 {
   jid: string;
   firstName: string;
   lastName: string;
-  phoneNumber?: string;
+  landlineNumber?: string;
+  mobileNumber?: string;
   email?: string;
   address?: {
     street?: string;

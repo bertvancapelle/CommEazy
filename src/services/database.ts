@@ -312,7 +312,7 @@ export class WatermelonDBService implements DatabaseService {
           record.jid = contact.jid;
           record.firstName = contact.firstName;
           record.lastName = contact.lastName;
-          record.phoneNumber = contact.phoneNumber;
+          record.landlineNumber = contact.landlineNumber;
           record.mobileNumber = contact.mobileNumber;
           record.email = contact.email;
           record.publicKey = contact.publicKey;
@@ -343,7 +343,7 @@ export class WatermelonDBService implements DatabaseService {
           record.jid = contact.jid;
           record.firstName = contact.firstName;
           record.lastName = contact.lastName;
-          record.phoneNumber = contact.phoneNumber;
+          record.landlineNumber = contact.landlineNumber;
           record.mobileNumber = contact.mobileNumber;
           record.email = contact.email;
           record.publicKey = contact.publicKey;
@@ -508,7 +508,6 @@ export class WatermelonDBService implements DatabaseService {
           record.jid = profile.jid;
           record.firstName = profile.firstName;
           record.lastName = profile.lastName;
-          record.phoneNumber = profile.phoneNumber;
           record.publicKey = profile.publicKey;
 
           // Preferences
@@ -573,7 +572,6 @@ export class WatermelonDBService implements DatabaseService {
           record.jid = profile.jid;
           record.firstName = profile.firstName;
           record.lastName = profile.lastName;
-          record.phoneNumber = profile.phoneNumber;
           record.publicKey = profile.publicKey;
 
           // Preferences
@@ -696,7 +694,7 @@ export class WatermelonDBService implements DatabaseService {
       jid: c.jid,
       firstName: c.firstName,
       lastName: c.lastName,
-      phoneNumber: c.phoneNumber,
+      landlineNumber: c.landlineNumber,
       email: c.email,
       publicKey: c.publicKey,
       verified: c.verified,
@@ -739,7 +737,6 @@ export class WatermelonDBService implements DatabaseService {
       jid: p.jid,
       firstName: p.firstName,
       lastName: p.lastName,
-      phoneNumber: p.phoneNumber,
       publicKey: p.publicKey,
 
       // Preferences
@@ -900,7 +897,7 @@ export class WatermelonDBService implements DatabaseService {
         if (data.lastName !== undefined) record.lastName = data.lastName;
 
         // Update contact details
-        if (data.phoneNumber !== undefined) record.phoneNumber = data.phoneNumber;
+        if (data.landlineNumber !== undefined) record.landlineNumber = data.landlineNumber;
         if (data.mobileNumber !== undefined) record.mobileNumber = data.mobileNumber;
         if (data.email !== undefined) record.email = data.email;
 

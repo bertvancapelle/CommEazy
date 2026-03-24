@@ -485,5 +485,19 @@ export const migrations = schemaMigrations({
         }),
       ],
     },
+    // Migration from v28 to v29: Add landline_number to contacts (replaces phone_number)
+    // Note: phone_number column kept for backward compat (WatermelonDB cannot drop columns)
+    // UserProfile.phoneNumber removed from TypeScript model (column remains unused)
+    {
+      toVersion: 29,
+      steps: [
+        addColumns({
+          table: 'contacts',
+          columns: [
+            { name: 'landline_number', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

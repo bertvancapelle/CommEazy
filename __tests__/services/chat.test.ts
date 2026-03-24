@@ -145,7 +145,7 @@ describe('ChatService', () => {
     const mockContact: Contact = {
       jid: 'bob@commeazy.nl',
       name: 'Bob',
-      phoneNumber: '+31612345678',
+      landlineNumber: '+31612345678',
       publicKey: 'YmFzZTY0a2V5',
       verified: true,
       lastSeen: Date.now(),

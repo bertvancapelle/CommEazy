@@ -107,8 +107,8 @@ export function InviteContactScreen() {
         const profile = await ServiceContainer.database.getUserProfile();
         if (profile) {
           if (profile.email) payload.email = profile.email;
-          if (profile.mobileNumber || profile.phoneNumber) {
-            payload.phoneNumber = profile.mobileNumber || profile.phoneNumber;
+          if (profile.mobileNumber || profile.landlineNumber) {
+            payload.landlineNumber = profile.mobileNumber || profile.landlineNumber;
           }
           if (profile.addressStreet || profile.addressCity) {
             payload.address = {
@@ -185,7 +185,7 @@ export function InviteContactScreen() {
             verified: false,
             lastSeen: Date.now(),
             trustLevel: 2, // Connected via relay
-            phoneNumber: payload.phoneNumber,
+            landlineNumber: payload.landlineNumber,
             email: payload.email,
             address: payload.address,
             birthDate: payload.birthDate,

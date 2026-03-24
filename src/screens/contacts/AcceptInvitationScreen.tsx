@@ -163,8 +163,8 @@ export function AcceptInvitationScreen() {
         const profile = await ServiceContainer.database.getUserProfile();
         if (profile) {
           if (profile.email) responsePayload.email = profile.email;
-          if (profile.mobileNumber || profile.phoneNumber) {
-            responsePayload.phoneNumber = profile.mobileNumber || profile.phoneNumber;
+          if (profile.mobileNumber || profile.landlineNumber) {
+            responsePayload.landlineNumber = profile.mobileNumber || profile.landlineNumber;
           }
           if (profile.addressStreet || profile.addressCity) {
             responsePayload.address = {
@@ -200,7 +200,7 @@ export function AcceptInvitationScreen() {
           verified: false,
           lastSeen: Date.now(),
           trustLevel: 2, // Connected via relay
-          phoneNumber: senderData.phoneNumber,
+          landlineNumber: senderData.landlineNumber,
           email: senderData.email,
           address: senderData.address,
           birthDate: senderData.birthDate,

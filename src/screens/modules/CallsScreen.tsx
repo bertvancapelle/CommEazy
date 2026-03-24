@@ -180,7 +180,7 @@ export function CallsScreen() {
       const filtered = contacts.filter(
         (c) =>
           c.name.toLowerCase().includes(query) ||
-          c.phoneNumber.includes(query)
+          c.landlineNumber?.includes(query)
       );
       setFilteredContacts(filtered);
     }

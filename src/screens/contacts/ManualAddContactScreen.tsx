@@ -81,7 +81,7 @@ export function ManualAddContactScreen() {
   interface FormState {
     firstName: string;
     lastName: string;
-    phoneNumber: string;
+    landlineNumber: string;
     countryCode: string;
     mobileNumber: string;
     mobileCountryCode: string;
@@ -115,7 +115,7 @@ export function ManualAddContactScreen() {
   const [form, dispatch] = useReducer(formReducer, {
     firstName: '',
     lastName: '',
-    phoneNumber: '',
+    landlineNumber: '',
     countryCode: '+31',
     mobileNumber: '',
     mobileCountryCode: '+31',
@@ -136,7 +136,7 @@ export function ManualAddContactScreen() {
   }, []);
 
   // Convenience accessors for backward compatibility
-  const { firstName, lastName, phoneNumber, countryCode, mobileNumber, mobileCountryCode, email, street, postalCode, city, country, province, houseNumber, birthDate, weddingDate, deathDate } = form;
+  const { firstName, lastName, landlineNumber, countryCode, mobileNumber, mobileCountryCode, email, street, postalCode, city, country, province, houseNumber, birthDate, weddingDate, deathDate } = form;
 
   const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
   const [showWeddingDatePicker, setShowWeddingDatePicker] = useState(false);
@@ -248,7 +248,7 @@ export function ManualAddContactScreen() {
     return n.trim().length >= 1;
   }, []);
 
-  const hasValidPhone = isValidPhone(phoneNumber) || isValidPhone(mobileNumber);
+  const hasValidPhone = isValidPhone(landlineNumber) || isValidPhone(mobileNumber);
   const canSave = isValidFirstName(firstName) && hasValidPhone;
 
   // ── Dirty state — determines Cancel behavior ──
@@ -256,7 +256,7 @@ export function ManualAddContactScreen() {
     return (
       firstName.trim().length > 0 ||
       lastName.trim().length > 0 ||
-      phoneNumber.trim().length > 0 ||
+      landlineNumber.trim().length > 0 ||
       mobileNumber.trim().length > 0 ||
       email.trim().length > 0 ||
       street.trim().length > 0 ||
@@ -270,7 +270,7 @@ export function ManualAddContactScreen() {
       deathDate !== undefined ||
       selectedCategories.length > 0
     );
-  }, [firstName, lastName, phoneNumber, mobileNumber, email, street, postalCode, city, country, province, houseNumber, birthDate, weddingDate, deathDate, selectedCategories]);
+  }, [firstName, lastName, landlineNumber, mobileNumber, email, street, postalCode, city, country, province, houseNumber, birthDate, weddingDate, deathDate, selectedCategories]);
 
   // Cancel with unsaved changes guard
   const handleCancel = useCallback(() => {
@@ -293,11 +293,11 @@ export function ManualAddContactScreen() {
     setSaving(true);
 
     try {
-      const fullPhoneNumber = phoneNumber.trim() ? `${countryCode}${phoneNumber.replace(/\D/g, '')}` : undefined;
+      const fullLandlineNumber = landlineNumber.trim() ? `${countryCode}${landlineNumber.replace(/\D/g, '')}` : undefined;
       const fullMobileNumber = mobileNumber.trim() ? `${mobileCountryCode}${mobileNumber.replace(/\D/g, '')}` : undefined;
 
       // Generate a JID from phone number (simplified - in production use server)
-      const primaryNumber = fullPhoneNumber || fullMobileNumber || '';
+      const primaryNumber = fullLandlineNumber || fullMobileNumber || '';
       const jid = `${primaryNumber.replace(/\+/g, '')}@commeazy.app`;
 
       // Build address if any field is filled
@@ -319,7 +319,7 @@ export function ManualAddContactScreen() {
         jid,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phoneNumber: fullPhoneNumber,
+        landlineNumber: fullLandlineNumber,
         mobileNumber: fullMobileNumber,
         email: finalEmail,
         address,
@@ -341,7 +341,7 @@ export function ManualAddContactScreen() {
     } finally {
       setSaving(false);
     }
-  }, [countryCode, phoneNumber, mobileCountryCode, mobileNumber, firstName, lastName, email, street, houseNumber, postalCode, city, country, province, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
+  }, [countryCode, landlineNumber, mobileCountryCode, mobileNumber, firstName, lastName, email, street, houseNumber, postalCode, city, country, province, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
 
   // Save handler: shows reminder modal if email is missing
   const handleSave = useCallback(async () => {
@@ -474,7 +474,7 @@ export function ManualAddContactScreen() {
         </View>
 
         {/* Landline phone number input */}
-        <View ref={registerField('phoneNumber')} style={styles.inputGroup}>
+        <View ref={registerField('landlineNumber')} style={styles.inputGroup}>
           <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.landlineLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
@@ -494,9 +494,9 @@ export function ManualAddContactScreen() {
               style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
               placeholder={t('contacts.landlinePlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
-              value={phoneNumber}
-              onChangeText={(v) => setField('phoneNumber', v)}
-              onFocus={getFieldFocusHandler('phoneNumber')}
+              value={landlineNumber}
+              onChangeText={(v) => setField('landlineNumber', v)}
+              onFocus={getFieldFocusHandler('landlineNumber')}
               keyboardType="phone-pad"
               returnKeyType="done"
               accessibilityLabel={t('contacts.landlineLabel')}

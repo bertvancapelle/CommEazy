@@ -36,6 +36,7 @@
  * - v26: Added profile_version to contacts and user_profile for profile sync
  * - v27: Split name into first_name + last_name on user_profile
  * - v28: Added address_province to contacts and user_profile (personal address province/state)
+ * - v29: Added landline_number to contacts (replaces phone_number), removed phoneNumber from UserProfile model (column remains for compat)
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -62,10 +63,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 28;
+export const SCHEMA_VERSION = 29;
 
 export const schema = appSchema({
-  version: 28,
+  version: 29,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -141,7 +142,8 @@ export const schema = appSchema({
         { name: 'jid', type: 'string', isIndexed: true },        // = {user_uuid}@commeazy.local
         { name: 'first_name', type: 'string' },                   // Voornaam (v14, replaces name)
         { name: 'last_name', type: 'string' },                    // Achternaam (v14)
-        { name: 'phone_number', type: 'string', isOptional: true }, // Landline, now optional (v4)
+        { name: 'phone_number', type: 'string', isOptional: true }, // DEPRECATED (v29): kept for migration compat, use landline_number
+        { name: 'landline_number', type: 'string', isOptional: true }, // Landline (v29, replaces phone_number)
         { name: 'mobile_number', type: 'string', isOptional: true }, // Mobile phone (v23)
         { name: 'email', type: 'string', isOptional: true },      // Email address (v22)
         { name: 'public_key', type: 'string' }, // Base64

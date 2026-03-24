@@ -88,7 +88,7 @@ describe('VerifyContactScreen', () => {
   const mockContact = {
     jid: 'alice@example.com',
     name: 'Alice',
-    phoneNumber: '+31612345678',
+    landlineNumber: '+31612345678',
     publicKey: 'base64publickey',
     verified: false,
     lastSeen: Date.now(),

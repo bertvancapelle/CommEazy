@@ -107,7 +107,7 @@ export interface Contact {
   jid: string;               // = {userUuid}@commeazy.local
   firstName: string;         // Voornaam
   lastName: string;          // Achternaam
-  phoneNumber?: string;      // Optional landline (privacy: can be hidden after QR verify)
+  landlineNumber?: string;   // Optional landline (privacy: can be hidden after QR verify)
   mobileNumber?: string;     // Optional mobile phone number
   email?: string;            // Optional e-mailadres
   publicKey: string;         // Base64
@@ -152,12 +152,11 @@ export interface Group {
 }
 
 export interface UserProfile {
-  // Identity (UUID is stable, phone/name can change)
+  // Identity (UUID is stable, name can change)
   userUuid: string;                      // Stable identifier, generated once at onboarding
   jid: string;                           // = {userUuid}@commeazy.local
   firstName: string;                     // Voornaam
   lastName: string;                      // Achternaam
-  phoneNumber: string;                   // Can change (verified via Firebase)
   publicKey: string;
 
   // Preferences
@@ -166,7 +165,7 @@ export interface UserProfile {
 
   // Personal contact details (shareable with contacts via consent)
   email?: string;                        // E-mailadres
-  mobileNumber?: string;                 // Mobiel nummer (apart van verificatie phoneNumber)
+  mobileNumber?: string;                 // Mobiel nummer
   landlineNumber?: string;               // Vast telefoonnummer
   addressStreet?: string;                // Straat + huisnummer
   addressPostalCode?: string;            // Postcode

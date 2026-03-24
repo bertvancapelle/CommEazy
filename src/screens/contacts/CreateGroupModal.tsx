@@ -257,7 +257,7 @@ export function CreateGroupModal({
                   <ContactReachabilityIcons
                     hasApp={(contact.trustLevel ?? 0) >= 2}
                     hasEmail={!!contact.email}
-                    hasLandline={!!contact.phoneNumber}
+                    hasLandline={!!contact.landlineNumber}
                     hasMobile={!!contact.mobileNumber}
                   />
                 </View>

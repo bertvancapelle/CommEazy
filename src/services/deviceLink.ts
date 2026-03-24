@@ -70,7 +70,6 @@ export interface DeviceLinkBundle {
     jid: string;
     firstName: string;
     lastName: string;
-    phoneNumber: string;
     language: string;
   };
 }
@@ -201,7 +200,6 @@ export class DeviceLinkService {
         jid: profile.jid,
         firstName: profile.firstName,
         lastName: profile.lastName,
-        phoneNumber: profile.phoneNumber,
         language: profile.language,
       },
     };

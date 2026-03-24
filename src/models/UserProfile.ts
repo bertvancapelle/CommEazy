@@ -11,12 +11,11 @@ import type { SupportedLanguage, SubscriptionTier, AgeBracket, Gender } from '@/
 export class UserProfileModel extends Model {
   static table = 'user_profile';
 
-  // Identity (UUID is stable, phone/name can change)
+  // Identity (UUID is stable, name can change)
   @field('user_uuid') userUuid!: string;               // Stable identifier, never changes
   @field('jid') jid!: string;                          // = {userUuid}@commeazy.local
   @field('first_name') firstName!: string;              // Voornaam
   @field('last_name') lastName!: string;                // Achternaam
-  @field('phone_number') phoneNumber!: string;         // Can change
   @field('public_key') publicKey!: string;
 
   // Preferences
@@ -27,7 +26,7 @@ export class UserProfileModel extends Model {
 
   // Personal contact details (shareable with contacts via consent, v24)
   @field('email') email?: string;                        // E-mailadres
-  @field('mobile_number') mobileNumber?: string;         // Mobiel nummer (apart van verificatie phoneNumber)
+  @field('mobile_number') mobileNumber?: string;         // Mobiel nummer
   @field('landline_number') landlineNumber?: string;     // Vast telefoonnummer
   @field('address_street') addressStreet?: string;       // Straat + huisnummer
   @field('address_postal_code') addressPostalCode?: string; // Postcode
@@ -113,15 +112,6 @@ export class UserProfileModel extends Model {
     await this.update(record => {
       record.firstName = newFirstName;
       record.lastName = newLastName;
-    });
-  }
-
-  /**
-   * Update phone number
-   */
-  @writer async updatePhoneNumber(newPhoneNumber: string): Promise<void> {
-    await this.update(record => {
-      record.phoneNumber = newPhoneNumber;
     });
   }
 

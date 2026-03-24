@@ -168,7 +168,7 @@ describe('AddContactScreen', () => {
       expect(ServiceContainer.database.saveContact).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'John Doe',
-          phoneNumber: '+31612345678',
+          landlineNumber: '+31612345678',
           verified: false,
         })
       );
@@ -229,7 +229,7 @@ describe('AddContactScreen', () => {
     await waitFor(() => {
       expect(ServiceContainer.database.saveContact).toHaveBeenCalledWith(
         expect.objectContaining({
-          phoneNumber: '+31612345678',
+          landlineNumber: '+31612345678',
         })
       );
     });

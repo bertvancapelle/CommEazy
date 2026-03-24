@@ -73,7 +73,7 @@ export interface ProfileSyncPayload {
   version: number;
   firstName: string;
   lastName: string;
-  phoneNumber?: string;
+  landlineNumber?: string;
   mobileNumber?: string;
   email?: string;
   address?: {
@@ -180,7 +180,7 @@ export class ProfileSyncService {
         version: profile.profileVersion ?? 1,
         firstName: profile.firstName,
         lastName: profile.lastName,
-        phoneNumber: profile.phoneNumber,
+        landlineNumber: profile.landlineNumber,
         mobileNumber: profile.mobileNumber,
         email: profile.email,
         address: (profile.addressStreet || profile.addressPostalCode || profile.addressCity || profile.addressCountry)
@@ -438,7 +438,7 @@ export class ProfileSyncService {
       version: myVersion,
       firstName: profile.firstName,
       lastName: profile.lastName,
-      phoneNumber: profile.phoneNumber,
+      landlineNumber: profile.landlineNumber,
       mobileNumber: profile.mobileNumber,
       email: profile.email,
       address: (profile.addressStreet || profile.addressPostalCode || profile.addressCity || profile.addressCountry)

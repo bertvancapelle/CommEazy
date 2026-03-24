@@ -104,7 +104,7 @@ function ContactListItem({
           <ContactReachabilityIcons
             hasApp={(contact.trustLevel ?? 0) >= 2}
             hasEmail={!!contact.email}
-            hasLandline={!!contact.phoneNumber}
+            hasLandline={!!contact.landlineNumber}
             hasMobile={!!contact.mobileNumber}
           />
         </View>
@@ -263,7 +263,7 @@ export function ContactListScreen() {
           getContactDisplayName(c).toLowerCase().includes(query) ||
           c.firstName.toLowerCase().includes(query) ||
           c.lastName.toLowerCase().includes(query) ||
-          (c.phoneNumber?.includes(query) ?? false)
+          (c.landlineNumber?.includes(query) ?? false)
       );
     }
 

@@ -546,7 +546,6 @@ class ServiceContainerClass {
           jid: myJid,
           firstName: myAccount?.firstName ?? 'Test',
           lastName: myAccount?.lastName ?? 'User',
-          phoneNumber: '+31600000000',
           publicKey: myKeypair.publicKey,
           language: 'nl',
           subscriptionTier: 'free',

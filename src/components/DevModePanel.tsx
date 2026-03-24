@@ -43,7 +43,7 @@ const TEST_CONTACTS: Contact[] = [
     jid: 'test-0001-aaaa-bbbb-cccc-111111111111@commeazy.local',
     firstName: 'Henk',
     lastName: 'de Vries',
-    phoneNumber: '+31207156789',        // Amsterdam landline
+    landlineNumber: '+31207156789',      // Amsterdam landline
     mobileNumber: '+31612345678',       // Dutch mobile
     email: 'henk.devries@gmail.com',
     publicKey: '',                       // No E2E key (address book contact)
@@ -66,7 +66,7 @@ const TEST_CONTACTS: Contact[] = [
     jid: 'test-0002-aaaa-bbbb-cccc-222222222222@commeazy.local',
     firstName: 'Maria',
     lastName: 'Jansen',
-    phoneNumber: '+31302345678',         // Utrecht landline
+    landlineNumber: '+31302345678',       // Utrecht landline
     mobileNumber: '+31687654321',        // Dutch mobile
     email: 'maria.jansen@outlook.nl',
     publicKey: '',
@@ -89,7 +89,7 @@ const TEST_CONTACTS: Contact[] = [
     jid: 'test-0003-aaaa-bbbb-cccc-333333333333@commeazy.local',
     firstName: 'Willem',
     lastName: 'Bakker',
-    phoneNumber: '+31107891234',         // Rotterdam landline
+    landlineNumber: '+31107891234',       // Rotterdam landline
     mobileNumber: '+31623456789',        // Dutch mobile
     email: 'w.bakker@ziggo.nl',
     publicKey: '',
@@ -111,7 +111,7 @@ const TEST_CONTACTS: Contact[] = [
     jid: 'test-0004-aaaa-bbbb-cccc-444444444444@commeazy.local',
     firstName: 'Johanna',
     lastName: 'van den Berg',
-    phoneNumber: '+31534567890',         // Enschede landline
+    landlineNumber: '+31534567890',       // Enschede landline
     mobileNumber: '+31634567890',        // Dutch mobile
     email: 'johanna.vdberg@kpnmail.nl',
     publicKey: '',
