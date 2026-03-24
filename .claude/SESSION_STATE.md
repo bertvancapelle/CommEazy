@@ -6,24 +6,28 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-24
-- **Sessie:** Picker modals pageSheet + LiquidGlassView conversion
-- **Commit:** `68649e1`
+- **Sessie:** PanelAwareModal fix + compact DateTimePickerModal
+- **Commit:** `46dec4c`
 
 ## Voltooide Taken Deze Sessie
 
-1. **Picker modals naar pageSheet + LiquidGlassView** (commit `68649e1`)
-   - Beide `ColorPickerModal` en `DateTimePickerModal` geconverteerd van transparent bottom-sheet overlay naar `presentationStyle="pageSheet"` + `LiquidGlassView`
-   - Root cause eerder: LiquidGlassView in transparent modal brak Yoga flex layout (`justifyContent: 'flex-end'`) op iOS 26
-   - Oplossing: pageSheet laat iOS sheet-positionering native afhandelen, LiquidGlassView hoeft alleen `flex: 1` te vullen
-   - Verwijderd: self-managed overlay + `rgba(0, 0, 0, 0.4)` + `borderTopLeftRadius`/`borderTopRightRadius`
-   - Geen consumer code wijzigingen nodig (props interface ongewijzigd)
+1. **PanelAwareModal transparent/pageSheet fix** (commit `46dec4c`)
+   - Root cause: `transparent={true}` default in PanelAwareModal veroorzaakte dat iOS `presentationStyle="pageSheet"` negeerde
+   - Fix: `const effectiveTransparent = presentationStyle ? false : transparent;`
+   - Alle 19 consumers met `presentationStyle="pageSheet"` profiteren automatisch
 
-2. **Shared ColorPickerModal component** (commit `9377ec6`, vorige sessie)
-   - Generic `<T extends string>` supports AccentColorKey, ButtonBorderColor, TextStyleColor
-   - 7 consumers: 6 in AppearanceSettingsScreen, 1 in ModuleColorsScreen
-   - `moduleId` prop for Liquid Glass tint
+2. **DateTimePickerModal compact bottom-sheet** (commit `46dec4c`)
+   - Van: `presentationStyle="pageSheet"` + `LiquidGlassView` (schermvullend, overlapped Dynamic Island)
+   - Naar: transparante overlay met semi-transparante module kleur (`moduleColor + '66'`) + compacte bottom-sheet met solid `themeColors.surface` achtergrond
+   - Geen LiquidGlassView meer (vermijdt Yoga flex-end conflict op iOS 26)
+   - Props interface ongewijzigd — 0 consumer code wijzigingen nodig (13 consumers)
 
-3. **Vorige sessies (behouden context):**
+3. **ColorPickerModal werkt nu correct** (geen code change)
+   - Bestaande `presentationStyle="pageSheet"` + `LiquidGlassView` code was al correct
+   - Werkt nu dankzij PanelAwareModal fix (effectiveTransparent=false)
+
+4. **Vorige sessies (behouden context):**
+   - Shared ColorPickerModal component (commit `9377ec6`)
    - Required field validation op ProfileSettingsScreen (commit `ffb2789`)
    - Date picker timezone off-by-one fix
    - ProfileSettings cursor jumping fix (getIsDirty useCallback)
@@ -45,16 +49,18 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| pageSheet + LiquidGlassView pattern voor pickers | iOS beheert sheet-positionering native. LiquidGlassView werkt correct omdat het alleen `flex: 1` nodig heeft in de sheet, geen Yoga flex-end positioning. Voorkomt UIGlassEffect vs Yoga flex layout conflict op iOS 26. |
-| Beide modals tegelijk converteren | Consistentie: beide pickers moeten hetzelfde pattern volgen. Voorkomt verwarring bij senioren (de ene modal anders dan de andere). |
-| Generic `<T extends string>` type behouden | Eén component voor 3 verschillende color value types. Voorkomt type casting. |
-| Auto-close na selectie behouden | `handleSelect` roept zowel `onSelect` als `onClose` aan. Consistent met bestaand gedrag. |
+| `effectiveTransparent` in PanelAwareModal | iOS negeert presentationStyle bij transparent=true. Door automatisch false te forceren wanneer presentationStyle opgegeven is, werken alle 19 pageSheet consumers correct zonder code wijziging. |
+| DateTimePickerModal: compact bottom-sheet (GEEN LiquidGlassView) | LiquidGlassView + Yoga `justifyContent: 'flex-end'` breekt op iOS 26. Solid surface achtergrond vermijdt dit. Bovendien is een date picker compact genoeg voor een bottom-sheet overlay. |
+| DateTimePickerModal: module kleur overlay (40% opacity) | Gebruiker koos expliciet "semi transparante overlay in de kleur van de module". Hex suffix `66` = ~40% opacity. |
+| ColorPickerModal: geen code change | Al correct geïmplementeerd, profiteert van PanelAwareModal fix. |
+| Twee modal patterns | pageSheet voor content-heavy modals (ColorPickerModal, ModuleColorsScreen). Transparent bottom-sheet voor compacte utility modals (DateTimePickerModal). |
 
 ## Context voor Volgende Sessie
 
-- **Picker modals pattern:** `presentationStyle="pageSheet"` + `LiquidGlassView moduleId={moduleId} cornerRadius={0}` + `flex: 1` container
-- **ColorPickerModal:** `src/components/ColorPickerModal.tsx` — 7 consumers (6 AppearanceSettingsScreen, 1 ModuleColorsScreen)
-- **DateTimePickerModal:** `src/components/DateTimePickerModal.tsx` — 13 consumers (2 ProfileSettings, 5 AgendaItemForm, 3 ContactDetail, 3 ManualAddContact)
+- **PanelAwareModal:** `effectiveTransparent` logica op regel 70 — forceert `transparent=false` bij `presentationStyle`
+- **DateTimePickerModal:** `src/components/DateTimePickerModal.tsx` — compact bottom-sheet, module color overlay, solid surface. 13 consumers ongewijzigd.
+- **ColorPickerModal:** `src/components/ColorPickerModal.tsx` — pageSheet + LiquidGlassView. 7 consumers.
+- **ModuleColorsScreen:** `src/screens/settings/ModuleColorsScreen.tsx` — eigen pageSheet + nested ColorPickerModal
 - **ProfileSettingsScreen.tsx:** View/edit mode + validation + date/cursor bugs gefixt. Issue 2 (field styling/borders) nog open.
 - **ContactAvatar is uniform** — presence + badge on ALL 12 consumer screens
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
