@@ -382,7 +382,10 @@ export function ProfileSettingsScreen() {
     addressCountryCode, addressPostalCode, addressHouseNumber, addressStreet,
     addressCity, addressProvince, personalEmail, personalMobile, personalLandline]);
 
-  const isDirty = useMemo(() => {
+  // On-demand dirty check — avoids re-renders on every keystroke that useMemo would cause
+  // (useMemo with 14 field dependencies triggers re-render when isDirty flips true/false,
+  // which can cause TextInput cursor jumping on the first keystroke)
+  const getIsDirty = useCallback(() => {
     const snap = snapshotRef.current;
     if (!snap) return false;
     return (
@@ -432,7 +435,7 @@ export function ProfileSettingsScreen() {
 
   const handleCancelEdit = useCallback(() => {
     void triggerFeedback('tap');
-    if (isDirty) {
+    if (getIsDirty()) {
       Alert.alert(
         t('common.formActions.discardTitle'),
         t('common.formActions.discardMessage'),
@@ -449,7 +452,7 @@ export function ProfileSettingsScreen() {
       restoreSnapshot();
       setIsEditing(false);
     }
-  }, [isDirty, restoreSnapshot, t, triggerFeedback]);
+  }, [getIsDirty, restoreSnapshot, t, triggerFeedback]);
 
   const handleSave = useCallback(async () => {
     void triggerFeedback('tap');
@@ -509,8 +512,12 @@ export function ProfileSettingsScreen() {
 
   const handleBirthDatePickerClose = useCallback(() => {
     // Commit temp date to string state when picker closes
-    const iso = tempBirthDate.toISOString().split('T')[0];
-    setBirthDate(iso);
+    // Use local date components to avoid UTC timezone shift (toISOString converts to UTC,
+    // which in CET/CEST causes the date to shift back by 1 day)
+    const y = tempBirthDate.getFullYear();
+    const m = String(tempBirthDate.getMonth() + 1).padStart(2, '0');
+    const d = String(tempBirthDate.getDate()).padStart(2, '0');
+    setBirthDate(`${y}-${m}-${d}`);
     setShowBirthDatePicker(false);
     scrollToField('birthDate', { isModalReturn: true });
   }, [tempBirthDate, scrollToField]);
@@ -522,8 +529,11 @@ export function ProfileSettingsScreen() {
 
   const handleWeddingDatePickerClose = useCallback(() => {
     // Commit temp date to string state when picker closes
-    const iso = tempWeddingDate.toISOString().split('T')[0];
-    setWeddingDate(iso);
+    // Use local date components to avoid UTC timezone shift
+    const y = tempWeddingDate.getFullYear();
+    const m = String(tempWeddingDate.getMonth() + 1).padStart(2, '0');
+    const d = String(tempWeddingDate.getDate()).padStart(2, '0');
+    setWeddingDate(`${y}-${m}-${d}`);
     setShowWeddingDatePicker(false);
     scrollToField('weddingDate', { isModalReturn: true });
   }, [tempWeddingDate, scrollToField]);

@@ -809,7 +809,13 @@ export function ManualAddContactScreen() {
               mode="date"
               moduleId="contacts"
               onChange={(_event, selectedDate) => {
-                if (selectedDate) setField('birthDate', selectedDate.toISOString().split('T')[0]);
+                if (selectedDate) {
+                  // Use local date components to avoid UTC timezone shift
+                  const y = selectedDate.getFullYear();
+                  const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                  const d = String(selectedDate.getDate()).padStart(2, '0');
+                  setField('birthDate', `${y}-${m}-${d}`);
+                }
               }}
               onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
               maximumDate={new Date()}
@@ -824,7 +830,12 @@ export function ManualAddContactScreen() {
               mode="date"
               moduleId="contacts"
               onChange={(_event, selectedDate) => {
-                if (selectedDate) setField('weddingDate', selectedDate.toISOString().split('T')[0]);
+                if (selectedDate) {
+                  const y = selectedDate.getFullYear();
+                  const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                  const d = String(selectedDate.getDate()).padStart(2, '0');
+                  setField('weddingDate', `${y}-${m}-${d}`);
+                }
               }}
               onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
               maximumDate={new Date()}
@@ -839,7 +850,12 @@ export function ManualAddContactScreen() {
               mode="date"
               moduleId="contacts"
               onChange={(_event, selectedDate) => {
-                if (selectedDate) setField('deathDate', selectedDate.toISOString().split('T')[0]);
+                if (selectedDate) {
+                  const y = selectedDate.getFullYear();
+                  const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                  const d = String(selectedDate.getDate()).padStart(2, '0');
+                  setField('deathDate', `${y}-${m}-${d}`);
+                }
               }}
               onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
               maximumDate={new Date()}

@@ -1260,7 +1260,13 @@ export function ContactDetailScreen() {
       mode="date"
       moduleId="contacts"
       onChange={(_event, selectedDate) => {
-        if (selectedDate) setEditBirthDate(selectedDate.toISOString().split('T')[0]);
+        if (selectedDate) {
+          // Use local date components to avoid UTC timezone shift
+          const y = selectedDate.getFullYear();
+          const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+          const d = String(selectedDate.getDate()).padStart(2, '0');
+          setEditBirthDate(`${y}-${m}-${d}`);
+        }
       }}
       onClose={() => { setShowBirthDatePicker(false); scrollToField('birthDate', { isModalReturn: true }); }}
       maximumDate={new Date()}
@@ -1275,7 +1281,12 @@ export function ContactDetailScreen() {
       mode="date"
       moduleId="contacts"
       onChange={(_event, selectedDate) => {
-        if (selectedDate) setEditWeddingDate(selectedDate.toISOString().split('T')[0]);
+        if (selectedDate) {
+          const y = selectedDate.getFullYear();
+          const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+          const d = String(selectedDate.getDate()).padStart(2, '0');
+          setEditWeddingDate(`${y}-${m}-${d}`);
+        }
       }}
       onClose={() => { setShowWeddingDatePicker(false); scrollToField('weddingDate', { isModalReturn: true }); }}
       maximumDate={new Date()}
@@ -1290,7 +1301,12 @@ export function ContactDetailScreen() {
       mode="date"
       moduleId="contacts"
       onChange={(_event, selectedDate) => {
-        if (selectedDate) setEditDeathDate(selectedDate.toISOString().split('T')[0]);
+        if (selectedDate) {
+          const y = selectedDate.getFullYear();
+          const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+          const d = String(selectedDate.getDate()).padStart(2, '0');
+          setEditDeathDate(`${y}-${m}-${d}`);
+        }
       }}
       onClose={() => { setShowDeathDatePicker(false); scrollToField('deathDate', { isModalReturn: true }); }}
       maximumDate={new Date()}

@@ -293,7 +293,11 @@ export function ProfileStep1Screen({ navigation }: Props) {
           moduleId="settings"
           onChange={(_event, selectedDate) => {
             if (selectedDate) {
-              setBirthDate(selectedDate.toISOString().split('T')[0]);
+              // Use local date components to avoid UTC timezone shift
+              const y = selectedDate.getFullYear();
+              const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+              const d = String(selectedDate.getDate()).padStart(2, '0');
+              setBirthDate(`${y}-${m}-${d}`);
             }
           }}
           onClose={() => {
@@ -313,7 +317,11 @@ export function ProfileStep1Screen({ navigation }: Props) {
           moduleId="settings"
           onChange={(_event, selectedDate) => {
             if (selectedDate) {
-              setWeddingDate(selectedDate.toISOString().split('T')[0]);
+              // Use local date components to avoid UTC timezone shift
+              const y = selectedDate.getFullYear();
+              const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+              const d = String(selectedDate.getDate()).padStart(2, '0');
+              setWeddingDate(`${y}-${m}-${d}`);
             }
           }}
           onClose={() => {
