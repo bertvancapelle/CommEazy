@@ -6,37 +6,31 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-24
-- **Sessie:** Date picker timezone off-by-one fix + ProfileSettings cursor jumping fix
-- **Commit:** `47004ff`
+- **Sessie:** ProfileSettingsScreen required field validation
+- **Commit:** `ffb2789`
 
 ## Voltooide Taken Deze Sessie
 
-1. **Date picker timezone off-by-one fix** (Bug 1)
-   - Root cause: `toISOString().split('T')[0]` converteert naar UTC, in CET/CEST (UTC+1/+2) verschuift middernacht naar vorige dag
-   - Fix: Vervangen door lokale date components (`getFullYear()`/`getMonth()+1`/`getDate()` met `padStart`)
-   - Scope: 4 bestanden, 10 date picker handlers totaal:
-     - `ProfileSettingsScreen.tsx` (2 pickers: birth, wedding)
-     - `ProfileStep1Screen.tsx` (2 pickers: birth, wedding)
-     - `ContactDetailScreen.tsx` (3 pickers: birth, wedding, death)
-     - `ManualAddContactScreen.tsx` (3 pickers: birth, wedding, death)
-   - Niet gefixt (intentioneel): `AgendaContext.tsx`, `AgendaItemDetailScreen.tsx`, `ComplianceReportScreen.tsx` — gebruiken UTC voor database/compliance doeleinden
+1. **Required field validation op ProfileSettingsScreen** (Bug: save zonder verplichte velden)
+   - 8 verplichte velden: firstName, lastName, gender, birthDate, country, postalCode, houseNumber, city
+   - Save knop blijft actief (niet disabled) — validatie bij tap
+   - Bij leeg veld: scroll naar eerste lege veld + light-red background highlight + ErrorView warning + haptic feedback
+   - Reactive clear: highlight verdwijnt zodra gebruiker het veld invult (`useEffect` watcher)
+   - i18n: `profile.validation.requiredTitle` + `requiredMessage` in alle 13 locales
+   - Style: `invalidFieldHighlight` met `rgba(255, 0, 0, 0.08)` achtergrond
 
-2. **ProfileSettings cursor jumping fix** (Bug 2)
-   - Root cause: `isDirty` useMemo met 14 velden als dependencies → re-render bij dirty status flip (false→true) op eerste keystroke → TextInput cursor reset
-   - Fix: `isDirty` useMemo vervangen door `getIsDirty()` useCallback (on-demand evaluatie)
-   - `handleCancelEdit` roept nu `getIsDirty()` aan i.p.v. `isDirty` te lezen
-
-3. **View/Edit mode op ProfileSettingsScreen** (vorige sessie, behouden context)
-   - View mode (standaard): alle velden read-only `<Text>`, "Bewerken" knop
-   - Edit mode: alle velden editeerbaar, "Annuleer" + "✓ Opslaan" bar
-   - Batch save in één `saveProfile()` call
+2. **Vorige sessie (behouden context):**
+   - Date picker timezone off-by-one fix (4 bestanden, 10 handlers)
+   - ProfileSettings cursor jumping fix (getIsDirty useCallback)
+   - View/Edit mode op ProfileSettingsScreen
 
 ## Openstaande Taken
 
-1. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor) — niet gerelateerd, apart committen.
-2. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geïmplementeerd.
-3. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
-4. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geïmplementeerd.
+1. **ProfileSettingsScreen field styling** (Issue 2, apart van validatie): Geen omranding om velden in view mode, labels volgen niet de setting voor labels in de instellingen (FieldTextStyleContext). Bewust als apart issue behandeld.
+2. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor) — niet gerelateerd, apart committen.
+3. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geïmplementeerd.
+4. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
+5. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geïmplementeerd.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
@@ -46,15 +40,17 @@ Geen — alle beslissingen zijn geïmplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Lokale date components i.p.v. toISOString() | `toISOString()` converteert naar UTC → CET/CEST timezone veroorzaakt off-by-one. Lokale getFullYear/getMonth/getDate geeft correcte lokale datum. |
-| getIsDirty() useCallback i.p.v. isDirty useMemo | useMemo triggert re-render bij boolean flip → cursor reset. useCallback wordt alleen on-demand aangeroepen (bij Cancel). |
-| AgendaContext/ComplianceReport NIET gefixed | Deze gebruiken toISOString() op dates die al in UTC in de database staan of intentioneel UTC moeten zijn. |
+| Save knop actief houden (niet disablen) | Senior-inclusive: disabled buttons zijn verwarrend. Actieve validatie met duidelijke feedback is beter. |
+| Alleen eerste lege veld highlighten | Meerdere highlights tegelijk is overweldigend voor senioren. Eén probleem tegelijk oplossen. |
+| Reactive clear via useEffect | Voorkomt stale visuele staat. Highlight verdwijnt automatisch zodra veld wordt ingevuld. |
+| Validatie en field styling als aparte issues | Validation (punt 1) is functioneel kritiek, styling (punt 2) is cosmetisch. Aparte commits houden scope beheersbaar. |
 
 ## Context voor Volgende Sessie
 
-- **ProfileSettingsScreen.tsx:** View/edit mode + beide bugs gefixt. Pattern matcht ContactDetailScreen.
+- **ProfileSettingsScreen.tsx:** View/edit mode + validation + date/cursor bugs gefixt. Issue 2 (field styling/borders) nog open.
+- **invalidField state:** `useState<string | null>(null)` op regel ~190, cleared in useEffect ~504-520
+- **8 required fields:** displayFirstName, displayLastName, gender, birthDate, country, addressPostalCode, addressHouseNumber, addressCity
 - **Date picker pattern:** Alle 4 screens met date pickers gebruiken nu lokale date components.
-- **Modals buiten ScrollView:** ALLE screens zijn geaudit. Correct pattern is gevestigd.
 - **ContactAvatar is uniform** — presence + badge on ALL 12 consumer screens
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Audio Orchestrator:** `src/contexts/AudioOrchestratorContext.tsx` — centraal punt
