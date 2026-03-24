@@ -6,25 +6,30 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-24
-- **Sessie:** ProfileSettings view/edit mode + DateTimePickerModal date jumping fix
-- **Commit:** `d671ef7`
+- **Sessie:** Date picker timezone off-by-one fix + ProfileSettings cursor jumping fix
+- **Commit:** `47004ff`
 
 ## Voltooide Taken Deze Sessie
 
-1. **View/Edit mode op ProfileSettingsScreen** (gecombineerde fix)
-   - View mode (standaard): alle velden read-only `<Text>`, "Bewerken" knop in fixed edit bar
-   - Edit mode: alle velden editeerbaar `<TextInput>` / picker triggers, "Annuleer" + "✓ Opslaan" bar
-   - `isEditing` state + `EditSnapshot` interface voor cancel/restore
-   - `isDirty` useMemo vergelijkt huidige waarden met snapshot
-   - Cancel bij dirty → `Alert.alert` bevestigingsdialoog ("Wijzigingen weggooien?")
-   - Batch save: alle velden in één `saveProfile()` call (geen auto-save meer per veld)
-   - Foto wijzigen + consent toggles blijven instant-save (buiten edit mode)
+1. **Date picker timezone off-by-one fix** (Bug 1)
+   - Root cause: `toISOString().split('T')[0]` converteert naar UTC, in CET/CEST (UTC+1/+2) verschuift middernacht naar vorige dag
+   - Fix: Vervangen door lokale date components (`getFullYear()`/`getMonth()+1`/`getDate()` met `padStart`)
+   - Scope: 4 bestanden, 10 date picker handlers totaal:
+     - `ProfileSettingsScreen.tsx` (2 pickers: birth, wedding)
+     - `ProfileStep1Screen.tsx` (2 pickers: birth, wedding)
+     - `ContactDetailScreen.tsx` (3 pickers: birth, wedding, death)
+     - `ManualAddContactScreen.tsx` (3 pickers: birth, wedding, death)
+   - Niet gefixt (intentioneel): `AgendaContext.tsx`, `AgendaItemDetailScreen.tsx`, `ComplianceReportScreen.tsx` — gebruiken UTC voor database/compliance doeleinden
 
-2. **DateTimePickerModal date jumping fix**
-   - Root cause: `parseDateValue()` creëerde elke render een nieuw `Date` object → native iOS spinner reset
-   - Fix: `tempBirthDate` / `tempWeddingDate` als lokale `Date` state objecten
-   - Picker ontvangt stabiele Date referentie, pas bij sluiten geconverteerd naar ISO string
-   - `handleBirthDatePickerClose` / `handleWeddingDatePickerClose` committen temp date → string state
+2. **ProfileSettings cursor jumping fix** (Bug 2)
+   - Root cause: `isDirty` useMemo met 14 velden als dependencies → re-render bij dirty status flip (false→true) op eerste keystroke → TextInput cursor reset
+   - Fix: `isDirty` useMemo vervangen door `getIsDirty()` useCallback (on-demand evaluatie)
+   - `handleCancelEdit` roept nu `getIsDirty()` aan i.p.v. `isDirty` te lezen
+
+3. **View/Edit mode op ProfileSettingsScreen** (vorige sessie, behouden context)
+   - View mode (standaard): alle velden read-only `<Text>`, "Bewerken" knop
+   - Edit mode: alle velden editeerbaar, "Annuleer" + "✓ Opslaan" bar
+   - Batch save in één `saveProfile()` call
 
 ## Openstaande Taken
 
@@ -41,15 +46,14 @@ Geen — alle beslissingen zijn geïmplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| View/edit mode pattern op ProfileSettings | Matcht ContactDetailScreen pattern. Voorkomt per-ongeluk wijzigingen. Fixed bar altijd zichtbaar boven ScrollView. |
-| Batch save i.p.v. auto-save per veld | Auto-save vuurde saveProfile bij elke blur/change. Batch save is efficiënter en voorspelbaarder. |
-| Lokale Date state voor pickers | `parseDateValue()` string→Date roundtrip veroorzaakte nieuwe Date objecten elke render → native iOS spinner reset. Lokale Date state is stabiel. |
-| Foto + consent blijven instant-save | Foto is een aparte actie (camera/gallery). Consent toggles zijn directe database writes, niet profiel-velden. |
+| Lokale date components i.p.v. toISOString() | `toISOString()` converteert naar UTC → CET/CEST timezone veroorzaakt off-by-one. Lokale getFullYear/getMonth/getDate geeft correcte lokale datum. |
+| getIsDirty() useCallback i.p.v. isDirty useMemo | useMemo triggert re-render bij boolean flip → cursor reset. useCallback wordt alleen on-demand aangeroepen (bij Cancel). |
+| AgendaContext/ComplianceReport NIET gefixed | Deze gebruiken toISOString() op dates die al in UTC in de database staan of intentioneel UTC moeten zijn. |
 
 ## Context voor Volgende Sessie
 
-- **ProfileSettingsScreen.tsx:** Nu met view/edit mode. Pattern matcht ContactDetailScreen.
-- **DateTimePickerModal:** Bug was alleen op ProfileSettingsScreen (niet AgendaItemFormScreen) omdat AgendaItemFormScreen al lokale Date state gebruikte.
+- **ProfileSettingsScreen.tsx:** View/edit mode + beide bugs gefixt. Pattern matcht ContactDetailScreen.
+- **Date picker pattern:** Alle 4 screens met date pickers gebruiken nu lokale date components.
 - **Modals buiten ScrollView:** ALLE screens zijn geaudit. Correct pattern is gevestigd.
 - **ContactAvatar is uniform** — presence + badge on ALL 12 consumer screens
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
