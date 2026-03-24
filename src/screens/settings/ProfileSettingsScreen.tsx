@@ -46,7 +46,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
-import { ContactAvatar, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
+import { ContactAvatar, LoadingView, ScrollViewWithIndicator, ErrorView, Icon } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
 import { useVisualPresence } from '@/contexts/PresenceContext';
 import { ServiceContainer } from '@/services/container';
@@ -624,7 +624,7 @@ export function ProfileSettingsScreen() {
         {/* First name */}
         <View style={styles.fieldContainer} ref={registerField('displayFirstName')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
-            {t('onboarding.firstNameLabel')}{requiredMark}
+            {t('onboarding.firstName')}{requiredMark}
           </Text>
           <TextInput
             style={[styles.textInput, { borderColor: themeColors.border, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, backgroundColor: themeColors.surface }]}
@@ -637,14 +637,14 @@ export function ProfileSettingsScreen() {
             maxLength={50}
             returnKeyType="next"
             onSubmitEditing={() => lastNameInputRef.current?.focus()}
-            accessibilityLabel={t('onboarding.firstNameLabel')}
+            accessibilityLabel={t('onboarding.firstName')}
           />
         </View>
 
         {/* Last name */}
         <View style={styles.fieldContainer} ref={registerField('displayLastName')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
-            {t('onboarding.lastNameLabel')}{requiredMark}
+            {t('onboarding.lastName')}{requiredMark}
           </Text>
           <TextInput
             ref={lastNameInputRef}
@@ -657,7 +657,7 @@ export function ProfileSettingsScreen() {
             placeholderTextColor={themeColors.textTertiary}
             maxLength={50}
             returnKeyType="done"
-            accessibilityLabel={t('onboarding.lastNameLabel')}
+            accessibilityLabel={t('onboarding.lastName')}
           />
         </View>
 
@@ -677,7 +677,7 @@ export function ProfileSettingsScreen() {
                 ? t(`demographics.gender.${gender}`)
                 : t('demographics.selectGender')}
             </Text>
-            <Text style={styles.editIcon}>✏️</Text>
+            <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
           </HapticTouchable>
         </View>
 
@@ -695,7 +695,7 @@ export function ProfileSettingsScreen() {
             <Text style={[styles.pickerValue, birthDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
               {formatDateDisplay(birthDate)}
             </Text>
-            <Text style={styles.editIcon}>✏️</Text>
+            <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
           </HapticTouchable>
         </View>
 
@@ -713,7 +713,7 @@ export function ProfileSettingsScreen() {
             <Text style={[styles.pickerValue, weddingDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
               {formatDateDisplay(weddingDate)}
             </Text>
-            <Text style={styles.editIcon}>✏️</Text>
+            <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
           </HapticTouchable>
         </View>
       </View>
@@ -738,7 +738,7 @@ export function ProfileSettingsScreen() {
                 ? `${COUNTRY_FLAGS[addressCountryCode] || ''} ${t(`demographics.countries.${addressCountryCode}`, addressCountryCode)}`
                 : t('demographics.selectCountry')}
             </Text>
-            <Text style={styles.editIcon}>✏️</Text>
+            <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
           </HapticTouchable>
         </View>
 
@@ -957,7 +957,9 @@ export function ProfileSettingsScreen() {
         </View>
       )}
 
-      {/* Picker modals */}
+      </ScrollViewWithIndicator>
+
+      {/* Picker modals — MUST be outside ScrollView for correct rendering */}
       <PickerModal
         visible={activePicker === 'country'}
         title={t('demographics.selectCountry')}
@@ -1003,7 +1005,6 @@ export function ProfileSettingsScreen() {
         locale={pickerLocale}
       />
 
-      </ScrollViewWithIndicator>
     </KeyboardAvoidingView>
   );
 }
@@ -1077,10 +1078,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     flex: 1,
-  },
-  editIcon: {
-    fontSize: 18,
-    marginLeft: spacing.sm,
   },
   rowFields: {
     flexDirection: 'row',

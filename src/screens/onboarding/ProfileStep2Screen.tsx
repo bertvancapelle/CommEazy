@@ -28,7 +28,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useLabelStyle, useFieldTextStyle, useModalTextStyle } from '@/contexts/FieldTextStyleContext';
-import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, PanelAwareModal } from '@/components';
+import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, PanelAwareModal, Icon } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -309,7 +309,7 @@ export function ProfileStep2Screen({ navigation }: Props) {
                   ? `${COUNTRY_FLAGS[countryCode]} ${t(`demographics.countries.${countryCode}`, countryCode)}`
                   : t('demographics.selectCountry')}
               </Text>
-              <Text style={[styles.editIcon, { color: themeColors.textSecondary }]}>✏️</Text>
+              <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </HapticTouchable>
           </View>
 
@@ -512,10 +512,6 @@ const styles = StyleSheet.create({
   pickerValue: {
     ...typography.body,
     flex: 1,
-  },
-  editIcon: {
-    fontSize: 18,
-    marginLeft: spacing.sm,
   },
   addressRow: {
     flexDirection: 'row',

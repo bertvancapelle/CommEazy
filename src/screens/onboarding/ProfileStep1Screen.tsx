@@ -26,7 +26,7 @@ import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
-import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, DateTimePickerModal } from '@/components';
+import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, ScrollViewWithIndicator, DateTimePickerModal, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useScrollToField } from '@/hooks/useScrollToField';
 import { ServiceContainer } from '@/services/container';
@@ -255,7 +255,7 @@ export function ProfileStep1Screen({ navigation }: Props) {
               <Text style={[styles.pickerValue, birthDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
                 {formatDateDisplay(birthDate)}
               </Text>
-              <Text style={styles.editIcon}>✏️</Text>
+              <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </HapticTouchable>
           </View>
 
@@ -273,57 +273,57 @@ export function ProfileStep1Screen({ navigation }: Props) {
               <Text style={[styles.pickerValue, weddingDate ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle } : { color: themeColors.textTertiary }]}>
                 {formatDateDisplay(weddingDate)}
               </Text>
-              <Text style={styles.editIcon}>✏️</Text>
+              <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </HapticTouchable>
             <Text style={[styles.optionalHint, { color: themeColors.textTertiary }]}>
               {t('common.optional')}
             </Text>
           </View>
 
-          {/* Date picker modals */}
-          <DateTimePickerModal
-            visible={showBirthDatePicker}
-            title={t('onboarding.personalDetails.birthDate')}
-            value={parseDateValue(birthDate)}
-            mode="date"
-            moduleId="settings"
-            onChange={(_event, selectedDate) => {
-              if (selectedDate) {
-                setBirthDate(selectedDate.toISOString().split('T')[0]);
-              }
-            }}
-            onClose={() => {
-              setShowBirthDatePicker(false);
-              scrollToField('birthDate', { isModalReturn: true });
-            }}
-            maximumDate={new Date()}
-            minimumDate={new Date(1900, 0, 1)}
-            locale={pickerLocale}
-          />
-
-          <DateTimePickerModal
-            visible={showWeddingDatePicker}
-            title={t('onboarding.personalDetails.weddingDate')}
-            value={parseDateValue(weddingDate)}
-            mode="date"
-            moduleId="settings"
-            onChange={(_event, selectedDate) => {
-              if (selectedDate) {
-                setWeddingDate(selectedDate.toISOString().split('T')[0]);
-              }
-            }}
-            onClose={() => {
-              setShowWeddingDatePicker(false);
-              scrollToField('weddingDate', { isModalReturn: true });
-            }}
-            maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
-            minimumDate={new Date(1940, 0, 1)}
-            locale={pickerLocale}
-          />
-
           {/* Extra bottom padding */}
           <View style={{ height: spacing.xxl }} />
         </ScrollViewWithIndicator>
+
+        {/* Date picker modals — MUST be outside ScrollView for correct rendering */}
+        <DateTimePickerModal
+          visible={showBirthDatePicker}
+          title={t('onboarding.personalDetails.birthDate')}
+          value={parseDateValue(birthDate)}
+          mode="date"
+          moduleId="settings"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) {
+              setBirthDate(selectedDate.toISOString().split('T')[0]);
+            }
+          }}
+          onClose={() => {
+            setShowBirthDatePicker(false);
+            scrollToField('birthDate', { isModalReturn: true });
+          }}
+          maximumDate={new Date()}
+          minimumDate={new Date(1900, 0, 1)}
+          locale={pickerLocale}
+        />
+
+        <DateTimePickerModal
+          visible={showWeddingDatePicker}
+          title={t('onboarding.personalDetails.weddingDate')}
+          value={parseDateValue(weddingDate)}
+          mode="date"
+          moduleId="settings"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) {
+              setWeddingDate(selectedDate.toISOString().split('T')[0]);
+            }
+          }}
+          onClose={() => {
+            setShowWeddingDatePicker(false);
+            scrollToField('weddingDate', { isModalReturn: true });
+          }}
+          maximumDate={new Date(new Date().getFullYear() + 5, 11, 31)}
+          minimumDate={new Date(1940, 0, 1)}
+          locale={pickerLocale}
+        />
 
         <View style={styles.footer}>
           <Button
@@ -396,10 +396,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     flex: 1,
-  },
-  editIcon: {
-    fontSize: 18,
-    marginLeft: spacing.sm,
   },
   optionalHint: {
     ...typography.small,
