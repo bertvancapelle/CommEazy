@@ -7,7 +7,7 @@
 
 - **Datum:** 2026-03-24
 - **Sessie:** ProfileSettings view/edit mode + DateTimePickerModal date jumping fix
-- **Commit:** (pending)
+- **Commit:** `d671ef7`
 
 ## Voltooide Taken Deze Sessie
 
