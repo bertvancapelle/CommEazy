@@ -203,6 +203,7 @@ function FormPickerModal({
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
+  const formPickerInsets = useSafeAreaInsets();
 
   return (
     <PanelAwareModal
@@ -212,6 +213,8 @@ function FormPickerModal({
       onRequestClose={onClose}
     >
       <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
+        {/* Safe area spacer for Dynamic Island */}
+        <View style={{ height: formPickerInsets.top }} />
         {/* Header */}
         <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
@@ -361,6 +364,7 @@ function CategoryPickerModal({
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
+  const categoryPickerInsets = useSafeAreaInsets();
 
   const handleLongPressCustom = useCallback((cat: CustomCategory) => {
     Alert.alert(
@@ -432,6 +436,8 @@ function CategoryPickerModal({
       onRequestClose={onClose}
     >
       <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
+        {/* Safe area spacer for Dynamic Island */}
+        <View style={{ height: categoryPickerInsets.top }} />
         {/* Header */}
         <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
@@ -586,6 +592,7 @@ function CreateCategoryModal({
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
+  const createCategoryInsets = useSafeAreaInsets();
 
   const [selectedEmoji, setSelectedEmoji] = useState('📋');
   const [categoryName, setCategoryName] = useState('');
@@ -623,6 +630,8 @@ function CreateCategoryModal({
       onRequestClose={onClose}
     >
       <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
+        {/* Safe area spacer for Dynamic Island */}
+        <View style={{ height: createCategoryInsets.top }} />
         {/* Header */}
         <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>
@@ -2011,6 +2020,8 @@ export function AgendaItemFormScreen({
         onRequestClose={() => { setShowContactPicker(false); setContactSearchQuery(''); }}
       >
         <LiquidGlassView moduleId="agenda" style={[formPickerStyles.container]} cornerRadius={0}>
+          {/* Safe area spacer for Dynamic Island */}
+          <View style={{ height: insets.top }} />
           {/* Header */}
           <View style={[formPickerStyles.header, { borderBottomColor: themeColors.border }]}>
             <Text style={[formPickerStyles.title, { color: themeColors.textPrimary }]}>

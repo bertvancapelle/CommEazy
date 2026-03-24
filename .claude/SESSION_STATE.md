@@ -6,8 +6,8 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-24
-- **Sessie:** ContactAvatar Indicator Uniformization (presence + trustLevel across ALL screens)
-- **Commit:** `b20bd83`
+- **Sessie:** AgendaItemFormScreen ContactAvatar + blue background fix
+- **Commit:** `6c38d58`
 
 ## Voltooide Taken Deze Sessie
 
@@ -37,6 +37,15 @@
      - `ProfileSettingsScreen.tsx`: Added ConsentContactAvatar wrapper + DB lookup for trustLevel
    - Also fixed incorrect prop names: `photoUri={contact.avatarUrl}` → `photoUrl={contact.photoUrl}` in PhotoRecipientModal and ContactSelectionModal
 
+4. **AgendaItemFormScreen ContactAvatar + blue background fix** (commit `6c38d58`)
+   - Added `AgendaContactAvatar` wrapper component with presence + trustLevel
+   - Replaced custom avatars in 3 locations:
+     - Contact chips on form (size 28pt)
+     - Contact picker modal — suggested section (size 36pt)
+     - Contact picker modal — other section (size 36pt)
+   - Fixed blue background: added `backgroundColor: themeColors.surface` to picker option rows
+   - Cleaned up 4 unused styles + removed unused `Image` import
+
 ## Openstaande Taken
 
 1. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor) — niet gerelateerd, apart committen.
@@ -57,11 +66,13 @@ Geen — alle beslissingen zijn geïmplementeerd.
 | DB lookup for trustLevel in call screens | CallParticipant interface lacks trustLevel — requires ServiceContainer.database.getContact() |
 | User's own trustLevel hardcoded to 3 | User is always a CommEazy user, effectively trustLevel 3 |
 | photoUrl prop fix in modals | photoUri/avatarUrl were incorrect prop names — fixed to match ContactAvatar's actual photoUrl prop |
+| AgendaItemFormScreen: ContactModel has jid + trustLevel directly | No DB lookup needed — ContactModel already has these fields available |
+| Blue picker background fix | Option rows had no backgroundColor, floating on LiquidGlassView tint — added themeColors.surface |
 
 ## Context voor Volgende Sessie
 
-- **ContactAvatar is now uniform** — presence + badge on ALL 11 consumer screens
-- **Wrapper component naming convention:** ChatContactAvatar, GroupContactAvatar, RecipientContactAvatar, SelectionContactAvatar, ShareContactAvatar, CallContactAvatar, ConsentContactAvatar
+- **ContactAvatar is now uniform** — presence + badge on ALL 12 consumer screens (including AgendaItemFormScreen)
+- **Wrapper component naming convention:** ChatContactAvatar, GroupContactAvatar, RecipientContactAvatar, SelectionContactAvatar, ShareContactAvatar, CallContactAvatar, ConsentContactAvatar, AgendaContactAvatar
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Audio Orchestrator:** `src/contexts/AudioOrchestratorContext.tsx` — centraal punt
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`
