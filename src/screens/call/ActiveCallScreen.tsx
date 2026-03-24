@@ -39,7 +39,15 @@ import { ContactAvatar, Icon, IconButton } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
+import { ServiceContainer } from '@/services/container';
 import type { CallStackParams } from './types';
+
+/** Wrapper to show presence + trustLevel on call avatar */
+function CallContactAvatar({ name, jid, size, trustLevel }: { name: string; jid: string; size: number; trustLevel: number }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} size={size} trustLevel={trustLevel} presence={presence} />;
+}
 
 // ============================================================
 // Types
@@ -83,6 +91,16 @@ export function ActiveCallScreen({ navigation, route }: Props) {
       navigation.goBack();
     }
   }, [navigation]);
+
+  // Look up contact trustLevel from database
+  const participantJid = activeCall?.participants[0]?.jid || '';
+  const [participantTrustLevel, setParticipantTrustLevel] = useState(0);
+  useEffect(() => {
+    if (!participantJid) return;
+    ServiceContainer.database.getContact(participantJid).then(contact => {
+      if (contact) setParticipantTrustLevel(contact.trustLevel ?? 0);
+    }).catch(() => {});
+  }, [participantJid]);
 
   // Format call duration
   const formatDuration = useCallback((seconds: number): string => {
@@ -172,9 +190,11 @@ export function ActiveCallScreen({ navigation, route }: Props) {
     const participant = activeCall?.participants[0];
     return (
       <View style={styles.avatarView}>
-        <ContactAvatar
+        <CallContactAvatar
           name={participant?.name || t('call.unknownCaller')}
+          jid={participantJid}
           size={200}
+          trustLevel={participantTrustLevel}
         />
       </View>
     );

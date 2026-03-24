@@ -17,7 +17,7 @@
  * @see CLAUDE.md UI Specifications
  */
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,15 @@ import { ContactAvatar, Icon } from '@/components';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useCall } from '@/contexts/CallContext';
 import { useColors } from '@/contexts/ThemeContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
+import { ServiceContainer } from '@/services/container';
 import type { CallStackParams } from './types';
+
+/** Wrapper to show presence + trustLevel on call avatar */
+function CallContactAvatar({ name, jid, size, trustLevel }: { name: string; jid: string; size: number; trustLevel: number }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} size={size} trustLevel={trustLevel} presence={presence} />;
+}
 
 // ============================================================
 // Types
@@ -70,6 +78,15 @@ export function IncomingCallScreen({ navigation, route }: Props) {
   const callerName = caller?.name || t('call.unknownCaller');
   const callerJid = caller?.jid || '';
   const isVideoCall = activeCall?.type === 'video';
+
+  // Look up contact trustLevel from database
+  const [callerTrustLevel, setCallerTrustLevel] = useState(0);
+  useEffect(() => {
+    if (!callerJid) return;
+    ServiceContainer.database.getContact(callerJid).then(contact => {
+      if (contact) setCallerTrustLevel(contact.trustLevel ?? 0);
+    }).catch(() => {});
+  }, [callerJid]);
 
   // Start pulsing animation
   useEffect(() => {
@@ -130,9 +147,11 @@ export function IncomingCallScreen({ navigation, route }: Props) {
       <View style={styles.content}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          <ContactAvatar
+          <CallContactAvatar
             name={callerName}
+            jid={callerJid}
             size={200}
+            trustLevel={callerTrustLevel}
           />
         </View>
 

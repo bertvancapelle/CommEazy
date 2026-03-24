@@ -50,14 +50,15 @@ interface ChatListItem {
   unreadCount: number;
   lastMessageIsFromMe: boolean;  // true = I sent last message, false = they sent it
   lastMessageStatus?: DeliveryStatus;  // Only relevant when lastMessageIsFromMe = true
+  trustLevel: number;  // Trust level for CommEazy badge dot
 }
 
 type NavigationProp = NativeStackNavigationProp<ChatStackParams, 'ChatList'>;
 
 /** Small wrapper to use useVisualPresence hook in list items */
-function ChatContactAvatar({ name, jid }: { name: string; jid: string }) {
+function ChatContactAvatar({ name, jid, trustLevel }: { name: string; jid: string; trustLevel: number }) {
   const presence = useVisualPresence(jid);
-  return <ContactAvatar name={name} size={56} presence={presence} />;
+  return <ContactAvatar name={name} size={56} presence={presence} trustLevel={trustLevel} />;
 }
 
 export function ChatListScreen() {
@@ -116,9 +117,9 @@ export function ChatListScreen() {
                   lastMessage: lastMsg?.content ?? '',
                   lastMessageTime: lastMsg?.timestamp ?? 0,
                   unreadCount: chat.unreadCount,
-
                   lastMessageIsFromMe: isFromMe,
                   lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+                  trustLevel: chat.contact.trustLevel ?? 0,
                 };
               });
               setChats(items);
@@ -170,9 +171,9 @@ export function ChatListScreen() {
             lastMessage: lastMsg?.content ?? '',
             lastMessageTime: lastMsg?.timestamp ?? 0,
             unreadCount: chat.unreadCount,
-            presenceShow: chatService.getContactPresence(chat.contact.jid),
             lastMessageIsFromMe: isFromMe,
             lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+            trustLevel: chat.contact.trustLevel ?? 0,
           };
         });
         setChats(items);
@@ -198,9 +199,9 @@ export function ChatListScreen() {
             lastMessage: lastMsg?.content ?? '',
             lastMessageTime: lastMsg?.timestamp ?? 0,
             unreadCount: chat.unreadCount,
-            presenceShow: chatService.getContactPresence(chat.contact.jid),
             lastMessageIsFromMe: isFromMe,
             lastMessageStatus: isFromMe ? lastMsg?.status : undefined,
+            trustLevel: chat.contact.trustLevel ?? 0,
           };
         });
         setChats(items);
@@ -312,7 +313,7 @@ export function ChatListScreen() {
           >
             {/* Avatar with presence dot */}
             <View style={styles.presenceWrapper}>
-              <ChatContactAvatar name={item.contactName} jid={item.contactJid} />
+              <ChatContactAvatar name={item.contactName} jid={item.contactJid} trustLevel={item.trustLevel} />
             </View>
 
             {/* Content */}

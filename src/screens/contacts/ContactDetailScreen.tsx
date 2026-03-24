@@ -39,6 +39,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useScrollToField } from '@/hooks/useScrollToField';
 import { useCall } from '@/contexts/CallContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useNavigateToModule } from '@/hooks/useNavigateToModule';
 import { useContactGroups } from '@/hooks/useContactGroups';
 import { removeContactFromAllGroups } from '@/services/contacts';
@@ -140,6 +141,7 @@ export function ContactDetailScreen() {
   const themeColors = useColors();
   const { navigateToModuleInOtherPane } = useNavigateToModule();
 
+  const presence = useVisualPresence(jid);
   const { groups, addContacts, removeContacts } = useContactGroups();
   const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
@@ -644,6 +646,7 @@ export function ContactDetailScreen() {
           photoUrl={contact.photoUrl}
           size={120}
           trustLevel={contact.trustLevel ?? 0}
+          presence={presence}
         />
         <Text style={[styles.contactName, { color: themeColors.textPrimary }]}>{displayName}</Text>
 

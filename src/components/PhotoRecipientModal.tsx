@@ -34,8 +34,15 @@ import { ContactAvatar } from './ContactAvatar';
 import { Icon } from './Icon';
 import { ModalLayout } from './ModalLayout';
 import { LiquidGlassView } from './LiquidGlassView';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
+
+/** Wrapper to call useVisualPresence per contact in the list */
+function RecipientContactAvatar({ name, photoUrl, trustLevel, jid }: { name: string; photoUrl?: string; trustLevel: number; jid: string }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} photoUrl={photoUrl} size={48} trustLevel={trustLevel} presence={presence} />;
+}
 
 // ============================================================
 // Constants
@@ -192,10 +199,11 @@ export function PhotoRecipientModal({
                         accessibilityLabel={getContactDisplayName(contact)}
                         accessibilityState={{ checked: isSelected }}
                       >
-                        <ContactAvatar
+                        <RecipientContactAvatar
                           name={getContactDisplayName(contact)}
-                          photoUri={contact.avatarUrl}
-                          size={48}
+                          photoUrl={contact.photoUrl}
+                          trustLevel={contact.trustLevel ?? 0}
+                          jid={contact.jid}
                         />
                         <Text
                           style={[

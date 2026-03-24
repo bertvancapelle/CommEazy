@@ -36,9 +36,16 @@ import {
   REPEAT_OPTIONS,
   REMINDER_OPTIONS,
 } from '@/constants/agendaCategories';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
 import { ServiceContainer } from '@/services/container';
+
+/** Wrapper to call useVisualPresence per contact in the share list */
+function ShareContactAvatar({ name, jid, trustLevel }: { name: string; jid: string; trustLevel: number }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} size={44} trustLevel={trustLevel} presence={presence} />;
+}
 
 // ============================================================
 // Props
@@ -742,9 +749,10 @@ export function AgendaItemDetailScreen({
                     accessibilityState={{ checked: isSelected }}
                     accessibilityLabel={displayName}
                   >
-                    <ContactAvatar
+                    <ShareContactAvatar
                       name={displayName}
-                      size={44}
+                      jid={contact.jid}
+                      trustLevel={contact.trustLevel ?? 0}
                     />
                     <Text
                       style={[shareStyles.contactName, { color: themeColors.textPrimary }]}

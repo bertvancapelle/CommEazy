@@ -48,6 +48,8 @@ import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ContactAvatar, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useVoiceFocusList, useVoiceFocusContext } from '@/contexts/VoiceFocusContext';
+import { useVisualPresence } from '@/contexts/PresenceContext';
+import { ServiceContainer } from '@/services/container';
 import {
   pickImageFromCamera,
   pickImageFromGallery,
@@ -87,6 +89,19 @@ function calculateAgeBracket(birthDateString: string): AgeBracket | undefined {
     if (age >= brackets[i][0]) return brackets[i][1];
   }
   return undefined;
+}
+
+/** Wrapper to show presence + trustLevel on consent contact avatar */
+function ConsentContactAvatar({ name, jid }: { name: string; jid: string }) {
+  const presence = useVisualPresence(jid);
+  const [trustLevel, setTrustLevel] = useState(0);
+  useEffect(() => {
+    if (!jid) return;
+    ServiceContainer.database.getContact(jid).then(contact => {
+      if (contact) setTrustLevel(contact.trustLevel ?? 0);
+    }).catch(() => {});
+  }, [jid]);
+  return <ContactAvatar name={name} size={40} trustLevel={trustLevel} presence={presence} />;
 }
 
 const GENDER_OPTIONS: { value: Gender; labelKey: string }[] = [
@@ -908,9 +923,9 @@ export function ProfileSettingsScreen() {
               style={[styles.consentRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             >
               <View style={styles.consentInfo}>
-                <ContactAvatar
+                <ConsentContactAvatar
                   name={item.contactName}
-                  size={40}
+                  jid={item.contactJid}
                 />
                 <Text style={[styles.consentName, { color: themeColors.textPrimary }]}>
                   {item.contactName}

@@ -39,6 +39,7 @@ import { useColors } from '@/contexts/ThemeContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { getAvatarPath } from '@/services/imageService';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useLabelStyle } from '@/contexts/FieldTextStyleContext';
 import type { SettingsStackParams } from '@/navigation';
@@ -112,6 +113,8 @@ export function SettingsMainScreen() {
   const labelStyle = useLabelStyle();
   const [displayName, setDisplayName] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [userJid, setUserJid] = useState<string | undefined>(undefined);
+  const ownPresence = useVisualPresence(userJid);
   const [notification, setNotification] = useState<{
     type: 'error' | 'warning' | 'info' | 'success';
     title: string;
@@ -164,6 +167,7 @@ export function SettingsMainScreen() {
 
           if (profile) {
             setDisplayName(`${profile.firstName} ${profile.lastName}`.trim());
+            setUserJid(profile.jid);
             if (profile.photoPath) {
               setPhotoUrl(`file://${profile.photoPath}?t=${Date.now()}`);
             } else {
@@ -249,6 +253,8 @@ export function SettingsMainScreen() {
                       name={displayName}
                       photoUrl={photoUrl ?? undefined}
                       size={80}
+                      trustLevel={3}
+                      presence={ownPresence}
                     />
                     {/* Small camera icon */}
                     <View style={[styles.cameraIconContainer, { backgroundColor: accentColor.primary, borderColor: themeColors.surface }]}>

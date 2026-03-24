@@ -33,8 +33,15 @@ import { PanelAwareModal, HapticTouchable, ContactAvatar, Icon , ScrollViewWithI
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { VoiceTextInput } from '@/components/VoiceTextInput';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { type Contact, getContactDisplayName } from '@/services/interfaces';
 import type { ContactGroup } from '@/services/contacts';
+
+/** Wrapper to call useVisualPresence per contact in the list */
+function GroupContactAvatar({ name, photoUrl, trustLevel, jid }: { name: string; photoUrl?: string; trustLevel: number; jid: string }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} photoUrl={photoUrl} size={48} trustLevel={trustLevel} presence={presence} />;
+}
 
 // ============================================================
 // Constants
@@ -309,11 +316,11 @@ export function EditGroupModal({
                       accessibilityState={{ checked: isMember }}
                       accessibilityLabel={displayName}
                     >
-                      <ContactAvatar
+                      <GroupContactAvatar
                         name={displayName}
                         photoUrl={contact.photoUrl}
-                        size={48}
                         trustLevel={contact.trustLevel ?? 0}
+                        jid={contact.jid}
                       />
                       <Text
                         style={[styles.contactName, { color: themeColors.textPrimary }]}

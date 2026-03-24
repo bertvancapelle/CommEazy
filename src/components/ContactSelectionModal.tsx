@@ -32,9 +32,16 @@ import { LiquidGlassView } from './LiquidGlassView';
 import { Button } from './Button';
 import { ContactAvatar } from './ContactAvatar';
 import { FloatingMicIndicator } from './FloatingMicIndicator';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
 import type { MicIndicatorPosition } from '@/hooks/useVoiceCommands';
+
+/** Wrapper to call useVisualPresence per contact in the list */
+function SelectionContactAvatar({ name, photoUrl, trustLevel, jid }: { name: string; photoUrl?: string; trustLevel: number; jid: string }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} photoUrl={photoUrl} size={48} trustLevel={trustLevel} presence={presence} />;
+}
 
 // ============================================================
 // Types
@@ -313,10 +320,11 @@ export function ContactSelectionModal({
                       accessibilityHint={t('accessibility.startChatHint', { name: getContactDisplayName(match.contact) })}
                       accessibilityState={{ selected: index === focusedIndex }}
                     >
-                      <ContactAvatar
+                      <SelectionContactAvatar
                         name={getContactDisplayName(match.contact)}
-                        photoUri={match.contact.avatarUrl}
-                        size={48}
+                        photoUrl={match.contact.photoUrl}
+                        trustLevel={match.contact.trustLevel ?? 0}
+                        jid={match.contact.jid}
                       />
                       <Text style={styles.contactName}>{getContactDisplayName(match.contact)}</Text>
                       {/* Show score badge for debugging in dev mode */}
