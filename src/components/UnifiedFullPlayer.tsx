@@ -190,7 +190,8 @@ export function UnifiedFullPlayer(props: UnifiedFullPlayerProps) {
   const moduleColor = useModuleColor(moduleId);
   const buttonStyle = useButtonStyleSafe();
   const panelId = usePanelId();
-  const isInPanel = panelId !== null;
+  // iPhone panelId is 'main' — must use PanelAwareModal, not View overlay
+  const isInPanel = panelId !== null && panelId !== 'main';
 
   // ── Derived state ──
 

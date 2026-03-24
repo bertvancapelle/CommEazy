@@ -58,7 +58,8 @@ export function PanelAwareModal({
   if (!visible) return null;
 
   // iPad Split View: render as panel-scoped absolute overlay
-  if (panelId !== null) {
+  // On iPhone panelId is 'main' — must use native Modal for proper pageSheet/transparent support
+  if (panelId !== null && panelId !== 'main') {
     return (
       <View style={styles.panelOverlay} pointerEvents="box-none">
         {children}
