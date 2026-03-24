@@ -6,23 +6,25 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-24
-- **Sessie:** DateTimePickerModal fix + Dynamic Island overlap fix
-- **Commit:** `ce2806e`
+- **Sessie:** ProfileSettings view/edit mode + DateTimePickerModal date jumping fix
+- **Commit:** (pending)
 
 ## Voltooide Taken Deze Sessie
 
-1. **DateTimePickerModal invisible fix** (commit `ce2806e`)
-   - Root cause: `ModalLayout` root View had `flex: 1` maar zat in een content-sized container zonder hoogte → collapste naar 0px
-   - Fix: ModalLayout verwijderd uit DateTimePickerModal, header en pickerContainer direct als siblings gerenderd
-   - Impact: Alle 15 DateTimePickerModal instances over 5 schermen (AgendaItemFormScreen, ProfileSettingsScreen, ContactDetailScreen, ManualAddContactScreen, ProfileStep1Screen)
+1. **View/Edit mode op ProfileSettingsScreen** (gecombineerde fix)
+   - View mode (standaard): alle velden read-only `<Text>`, "Bewerken" knop in fixed edit bar
+   - Edit mode: alle velden editeerbaar `<TextInput>` / picker triggers, "Annuleer" + "✓ Opslaan" bar
+   - `isEditing` state + `EditSnapshot` interface voor cancel/restore
+   - `isDirty` useMemo vergelijkt huidige waarden met snapshot
+   - Cancel bij dirty → `Alert.alert` bevestigingsdialoog ("Wijzigingen weggooien?")
+   - Batch save: alle velden in één `saveProfile()` call (geen auto-save meer per veld)
+   - Foto wijzigen + consent toggles blijven instant-save (buiten edit mode)
 
-2. **Dynamic Island overlap fix op picker modals** (commit `ce2806e`)
-   - Root cause: `formPickerStyles.container` (flex: 1) had geen safe area padding → header renderde achter Dynamic Island
-   - Fix: Safe area spacer (`<View style={{ height: insets.top }} />`) toegevoegd aan 4 modals in AgendaItemFormScreen:
-     - FormPickerModal (repeat/reminder pickers)
-     - CategoryPickerModal
-     - CreateCategoryModal
-     - Contact picker modal (inline)
+2. **DateTimePickerModal date jumping fix**
+   - Root cause: `parseDateValue()` creëerde elke render een nieuw `Date` object → native iOS spinner reset
+   - Fix: `tempBirthDate` / `tempWeddingDate` als lokale `Date` state objecten
+   - Picker ontvangt stabiele Date referentie, pas bij sluiten geconverteerd naar ISO string
+   - `handleBirthDatePickerClose` / `handleWeddingDatePickerClose` committen temp date → string state
 
 ## Openstaande Taken
 
@@ -39,14 +41,16 @@ Geen — alle beslissingen zijn geïmplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| ModalLayout verwijderd uit DateTimePickerModal | DateTimePickerModal is een bottom-sheet (content-sized), niet een full-screen layout. ModalLayout's flex:1 root collapste in container zonder hoogte. Toolbar positie omdraaien is n.v.t. voor single horizontal row (titel + done knop). |
-| Safe area spacer per sub-component | Elke sub-component (FormPickerModal, CategoryPickerModal, CreateCategoryModal) heeft eigen `useSafeAreaInsets()` call nodig — hooks kunnen niet gedeeld worden via StyleSheet.create |
-| Contact picker uses parent `insets` | Contact picker is inline in hoofd-component waar `insets` al beschikbaar is (regel 771) |
+| View/edit mode pattern op ProfileSettings | Matcht ContactDetailScreen pattern. Voorkomt per-ongeluk wijzigingen. Fixed bar altijd zichtbaar boven ScrollView. |
+| Batch save i.p.v. auto-save per veld | Auto-save vuurde saveProfile bij elke blur/change. Batch save is efficiënter en voorspelbaarder. |
+| Lokale Date state voor pickers | `parseDateValue()` string→Date roundtrip veroorzaakte nieuwe Date objecten elke render → native iOS spinner reset. Lokale Date state is stabiel. |
+| Foto + consent blijven instant-save | Foto is een aparte actie (camera/gallery). Consent toggles zijn directe database writes, niet profiel-velden. |
 
 ## Context voor Volgende Sessie
 
-- **DateTimePickerModal:** Gebruikt GEEN ModalLayout meer — directe rendering van header + pickerContainer. CLAUDE.md adoptie tabel was al correct ("DateTimePickerModal: ❌ n.v.t.")
-- **ModalLayout flex:1 issue:** Kan potentieel ook andere ModalLayout consumers treffen die in content-sized containers zitten. Alle huidige consumers (PickerModal, CreateGroupModal, etc.) hebben `flex: 1` op hun container → geen probleem.
+- **ProfileSettingsScreen.tsx:** Nu met view/edit mode. Pattern matcht ContactDetailScreen.
+- **DateTimePickerModal:** Bug was alleen op ProfileSettingsScreen (niet AgendaItemFormScreen) omdat AgendaItemFormScreen al lokale Date state gebruikte.
+- **Modals buiten ScrollView:** ALLE screens zijn geaudit. Correct pattern is gevestigd.
 - **ContactAvatar is uniform** — presence + badge on ALL 12 consumer screens
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Audio Orchestrator:** `src/contexts/AudioOrchestratorContext.tsx` — centraal punt
