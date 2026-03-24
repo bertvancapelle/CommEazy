@@ -51,6 +51,7 @@ import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useScrollToField } from '@/hooks/useScrollToField';
 import {
   FORM_TYPES,
@@ -593,6 +594,8 @@ function CreateCategoryModal({
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
   const createCategoryInsets = useSafeAreaInsets();
+  const createLabelStyle = useLabelStyle();
+  const createFieldTextStyle = useFieldTextStyle();
 
   const [selectedEmoji, setSelectedEmoji] = useState('📋');
   const [categoryName, setCategoryName] = useState('');
@@ -660,14 +663,16 @@ function CreateCategoryModal({
 
           {/* Name input */}
           <View style={styles.fieldContainer}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: createLabelStyle.color, fontWeight: createLabelStyle.fontWeight, fontStyle: createLabelStyle.fontStyle }]}>
               {t('modules.agenda.form.categoryNameLabel')}
             </Text>
             <RNTextInput
               style={[
                 styles.textInput,
                 {
-                  color: themeColors.textPrimary,
+                  color: createFieldTextStyle.color,
+                  fontWeight: createFieldTextStyle.fontWeight,
+                  fontStyle: createFieldTextStyle.fontStyle,
                   borderColor: themeColors.border,
                   backgroundColor: themeColors.surface,
                 },
@@ -780,6 +785,8 @@ export function AgendaItemFormScreen({
   const insets = useSafeAreaInsets();
   const { accentColor } = useAccentColor();
   const moduleColor = useModuleColor('agenda');
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField, getFieldHighlightStyle, setFieldFocus } = useScrollToField();
 
   const isEditing = !!initialData;
@@ -1345,7 +1352,7 @@ export function AgendaItemFormScreen({
       >
         {/* ====== Form Type — 3 inline buttons ====== */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.agenda.form.typeLabel')}
           </Text>
           <View style={styles.formTypeRow}>
@@ -1387,7 +1394,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Category ====== */}
         <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.agenda.form.categoryLabel')}
           </Text>
           <HapticTouchable
@@ -1397,7 +1404,7 @@ export function AgendaItemFormScreen({
             accessibilityLabel={`${t('modules.agenda.form.categoryLabel')}: ${selectedCategoryIcon} ${selectedCategoryName}`}
           >
             <Text style={styles.pickerIcon}>{selectedCategoryIcon}</Text>
-            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
               {selectedCategoryName}
             </Text>
             <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
@@ -1406,7 +1413,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Title ====== */}
         <View ref={registerField('title')} style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.agenda.form.titleLabel')}
           </Text>
           <RNTextInput
@@ -1414,7 +1421,9 @@ export function AgendaItemFormScreen({
             style={[
               styles.textInput,
               {
-                color: themeColors.textPrimary,
+                color: fieldTextStyle.color,
+                fontWeight: fieldTextStyle.fontWeight,
+                fontStyle: fieldTextStyle.fontStyle,
                 borderColor: themeColors.border,
                 backgroundColor: themeColors.surface,
               },
@@ -1435,7 +1444,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Date ====== */}
         <View ref={registerField('date')} style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.agenda.form.dateLabel')}
           </Text>
           <HapticTouchable
@@ -1444,7 +1453,7 @@ export function AgendaItemFormScreen({
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.dateLabel')}: ${formatDate(selectedDate, locale)}`}
           >
-            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
               {formatDate(selectedDate, locale)}
             </Text>
             <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
@@ -1464,7 +1473,7 @@ export function AgendaItemFormScreen({
         {/* ====== Time (single) ====== */}
         {formTypeDef.showTimeField && !formTypeDef.showMultipleTimes && (
           <View ref={registerField('time')} style={styles.fieldContainer}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('modules.agenda.form.timeLabel')}
             </Text>
             <HapticTouchable
@@ -1473,7 +1482,7 @@ export function AgendaItemFormScreen({
               accessibilityRole="button"
               accessibilityLabel={`${t('modules.agenda.form.timeLabel')}: ${formatTime(selectedTime)}`}
             >
-              <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
                 {formatTime(selectedTime)}
               </Text>
               <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
@@ -1484,7 +1493,7 @@ export function AgendaItemFormScreen({
         {/* ====== Multiple Times (medication) ====== */}
         {formTypeDef.showMultipleTimes && (
           <View ref={registerField('medicationTime')} style={styles.fieldContainer}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('modules.agenda.form.timesLabel')}
             </Text>
             {medicationTimes.map((medTime, index) => (
@@ -1499,7 +1508,7 @@ export function AgendaItemFormScreen({
                   accessibilityRole="button"
                   accessibilityLabel={`${t('modules.agenda.form.timeLabel')} ${index + 1}: ${formatTime(medTime)}`}
                 >
-                  <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+                  <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
                     {formatTime(medTime)}
                   </Text>
                   <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
@@ -1534,7 +1543,7 @@ export function AgendaItemFormScreen({
         {/* ====== End Time (optional — shown for appointment when start time is set) ====== */}
         {formTypeDef.showTimeField && !formTypeDef.showMultipleTimes && (
           <View ref={registerField('endTime')} style={styles.fieldContainer}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('modules.agenda.form.endTimeLabel')}
             </Text>
             {endTime ? (
@@ -1545,7 +1554,7 @@ export function AgendaItemFormScreen({
                   accessibilityRole="button"
                   accessibilityLabel={`${t('modules.agenda.form.endTimeLabel')}: ${formatTime(endTime)}`}
                 >
-                  <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+                  <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
                     {formatTime(endTime)}
                   </Text>
                   <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
@@ -1587,7 +1596,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Notes (optional) ====== */}
         <View ref={registerField('notes')} style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.agenda.form.notesLabel')}
           </Text>
           <RNTextInput
@@ -1595,7 +1604,9 @@ export function AgendaItemFormScreen({
               styles.textInput,
               styles.notesInput,
               {
-                color: themeColors.textPrimary,
+                color: fieldTextStyle.color,
+                fontWeight: fieldTextStyle.fontWeight,
+                fontStyle: fieldTextStyle.fontStyle,
                 borderColor: themeColors.border,
                 backgroundColor: themeColors.surface,
               },
@@ -1618,7 +1629,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Repeat ====== */}
         <View ref={registerField('repeat')} style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.agenda.form.repeatLabel')}
           </Text>
           <HapticTouchable
@@ -1627,7 +1638,7 @@ export function AgendaItemFormScreen({
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.repeatLabel')}: ${t(REPEAT_OPTIONS.find(o => o.value === repeatType)?.labelKey ?? 'modules.agenda.repeat.none')}`}
           >
-            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
               {t(REPEAT_OPTIONS.find(o => o.value === repeatType)?.labelKey ?? 'modules.agenda.repeat.none')}
             </Text>
             <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
@@ -1637,7 +1648,7 @@ export function AgendaItemFormScreen({
         {/* ====== End Date (when repeating) ====== */}
         {repeatType != null && (
           <View ref={registerField('endDate')} style={styles.fieldContainer}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('modules.agenda.form.endDateLabel')}
             </Text>
             <View style={styles.endTimeRow}>
@@ -1650,7 +1661,9 @@ export function AgendaItemFormScreen({
                 <Text
                   style={[
                     styles.pickerValue,
-                    { color: endDate ? themeColors.textPrimary : themeColors.textTertiary },
+                    endDate
+                      ? { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }
+                      : { color: themeColors.textTertiary },
                   ]}
                 >
                   {endDate ? formatDate(endDate, locale) : t('modules.agenda.form.noEndDate')}
@@ -1673,7 +1686,7 @@ export function AgendaItemFormScreen({
 
         {/* ====== Reminder ====== */}
         <View ref={registerField('reminder')} style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.agenda.form.reminderLabel')}
           </Text>
           <HapticTouchable
@@ -1682,7 +1695,7 @@ export function AgendaItemFormScreen({
             accessibilityRole="button"
             accessibilityLabel={`${t('modules.agenda.form.reminderLabel')}: ${t(REMINDER_OPTIONS.find(o => o.value === reminderOffset)?.labelKey ?? '')}`}
           >
-            <Text style={[styles.pickerValue, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
               {t(REMINDER_OPTIONS.find(o => o.value === reminderOffset)?.labelKey ?? '')}
             </Text>
             <Icon name="chevron-right" size={20} color={themeColors.textSecondary} />
@@ -1692,7 +1705,7 @@ export function AgendaItemFormScreen({
         {/* ====== Contacts (when form type supports it) ====== */}
         {formTypeDef.showContactsField && (
           <View style={styles.fieldContainer}>
-            <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+            <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('modules.agenda.form.contactsLabel')}
             </Text>
 
@@ -1757,7 +1770,12 @@ export function AgendaItemFormScreen({
             ]}>
               <Text style={[
                 styles.fieldLabel,
-                { color: firstContactAddress ? themeColors.textPrimary : themeColors.disabled, marginBottom: 0 },
+                {
+                  color: firstContactAddress ? labelStyle.color : themeColors.disabled,
+                  fontWeight: firstContactAddress ? labelStyle.fontWeight : undefined,
+                  fontStyle: firstContactAddress ? labelStyle.fontStyle : undefined,
+                  marginBottom: 0,
+                },
               ]}>
                 {t('modules.agenda.form.customAddressLabel')}
               </Text>
@@ -1774,7 +1792,8 @@ export function AgendaItemFormScreen({
             {/* Address fields — read-only when showing contact address */}
             {(() => {
               const isReadOnly = !useCustomAddress && !!firstContactAddress;
-              const fieldTextColor = isReadOnly ? themeColors.disabled : themeColors.textPrimary;
+              const addrLabelColor = isReadOnly ? themeColors.disabled : labelStyle.color;
+              const addrFieldColor = isReadOnly ? themeColors.disabled : fieldTextStyle.color;
               const fieldBgColor = isReadOnly ? themeColors.background : themeColors.surface;
 
               return (
@@ -1782,14 +1801,16 @@ export function AgendaItemFormScreen({
                   {/* Location name — only shown when custom address is active */}
                   {useCustomAddress && (
                     <>
-                      <Text style={[styles.fieldLabel, { color: themeColors.textPrimary }]}>
+                      <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                         {t('modules.agenda.form.locationNameLabel')}
                       </Text>
                       <RNTextInput
                         style={[
                           styles.textInput,
                           {
-                            color: themeColors.textPrimary,
+                            color: fieldTextStyle.color,
+                            fontWeight: fieldTextStyle.fontWeight,
+                            fontStyle: fieldTextStyle.fontStyle,
                             borderColor: themeColors.border,
                             backgroundColor: themeColors.surface,
                           },
@@ -1809,14 +1830,16 @@ export function AgendaItemFormScreen({
 
                   {/* Street */}
                   <View ref={registerField('street')} style={styles.addressFieldGap}>
-                    <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
+                    <Text style={[styles.fieldLabel, { color: addrLabelColor, fontWeight: isReadOnly ? undefined : labelStyle.fontWeight, fontStyle: isReadOnly ? undefined : labelStyle.fontStyle }]}>
                       {t('modules.agenda.form.streetLabel')}
                     </Text>
                     <RNTextInput
                       style={[
                         styles.textInput,
                         {
-                          color: fieldTextColor,
+                          color: addrFieldColor,
+                          fontWeight: isReadOnly ? undefined : fieldTextStyle.fontWeight,
+                          fontStyle: isReadOnly ? undefined : fieldTextStyle.fontStyle,
                           borderColor: themeColors.border,
                           backgroundColor: fieldBgColor,
                         },
@@ -1840,14 +1863,16 @@ export function AgendaItemFormScreen({
                   <View ref={registerField('postalCode')} style={styles.addressFieldGap}>
                     <View style={styles.addressRow}>
                       <View style={styles.postalCodeField}>
-                        <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
+                        <Text style={[styles.fieldLabel, { color: addrLabelColor, fontWeight: isReadOnly ? undefined : labelStyle.fontWeight, fontStyle: isReadOnly ? undefined : labelStyle.fontStyle }]}>
                           {t('modules.agenda.form.postalCodeLabel')}
                         </Text>
                         <RNTextInput
                           style={[
                             styles.textInput,
                             {
-                              color: fieldTextColor,
+                              color: addrFieldColor,
+                              fontWeight: isReadOnly ? undefined : fieldTextStyle.fontWeight,
+                              fontStyle: isReadOnly ? undefined : fieldTextStyle.fontStyle,
                               borderColor: themeColors.border,
                               backgroundColor: fieldBgColor,
                             },
@@ -1867,14 +1892,16 @@ export function AgendaItemFormScreen({
                         />
                       </View>
                       <View style={styles.cityField}>
-                        <Text style={[styles.fieldLabel, { color: fieldTextColor }]}>
+                        <Text style={[styles.fieldLabel, { color: addrLabelColor, fontWeight: isReadOnly ? undefined : labelStyle.fontWeight, fontStyle: isReadOnly ? undefined : labelStyle.fontStyle }]}>
                           {t('modules.agenda.form.cityLabel')}
                         </Text>
                         <RNTextInput
                           style={[
                             styles.textInput,
                             {
-                              color: fieldTextColor,
+                              color: addrFieldColor,
+                              fontWeight: isReadOnly ? undefined : fieldTextStyle.fontWeight,
+                              fontStyle: isReadOnly ? undefined : fieldTextStyle.fontStyle,
                               borderColor: themeColors.border,
                               backgroundColor: fieldBgColor,
                             },

@@ -39,6 +39,7 @@ import { useTranslation } from 'react-i18next';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useLabelStyle, useFieldTextStyle, type ResolvedTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Icon, ScrollViewWithIndicator, ErrorView } from '@/components';
 import { useScrollToField } from '@/hooks/useScrollToField';
@@ -437,6 +438,8 @@ function RecipientField({
   contacts,
   accentColor,
   themeColors,
+  labelStyle,
+  fieldTextStyle,
   placeholder,
   accountEmail,
   accountDisplayName,
@@ -449,6 +452,8 @@ function RecipientField({
   contacts: Contact[];
   accentColor: { primary: string; light: string };
   themeColors: ReturnType<typeof useColors>;
+  labelStyle: ResolvedTextStyle;
+  fieldTextStyle: ResolvedTextStyle;
   placeholder: string;
   /** Account email for "To myself" suggestion */
   accountEmail?: string;
@@ -541,7 +546,7 @@ function RecipientField({
   return (
     <View>
       <View style={[styles.recipientFieldRow, { borderBottomColor: themeColors.border }]}>
-        <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
+        <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
           {label}
         </Text>
 
@@ -560,7 +565,7 @@ function RecipientField({
           {/* Text input for adding new recipients */}
           <TextInput
             ref={inputRef}
-            style={[styles.recipientInput, { color: themeColors.textPrimary }]}
+            style={[styles.recipientInput, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}
             value={inputValue}
             onChangeText={handleChangeText}
             placeholder={recipients.length === 0 ? placeholder : ''}
@@ -627,6 +632,8 @@ export function MailComposeScreen({
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { triggerHaptic } = useFeedback();
   const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
@@ -1099,6 +1106,8 @@ export function MailComposeScreen({
             contacts={contacts}
             accentColor={accentColor}
             themeColors={themeColors}
+            labelStyle={labelStyle}
+            fieldTextStyle={fieldTextStyle}
             placeholder={t('modules.mail.compose.toPlaceholder')}
             accountEmail={account.email}
             accountDisplayName={account.displayName}
@@ -1135,6 +1144,8 @@ export function MailComposeScreen({
               contacts={contacts}
               accentColor={accentColor}
               themeColors={themeColors}
+              labelStyle={labelStyle}
+              fieldTextStyle={fieldTextStyle}
               placeholder={t('modules.mail.compose.ccPlaceholder')}
               onInputFocus={getFieldFocusHandler('cc')}
             />
@@ -1152,6 +1163,8 @@ export function MailComposeScreen({
               contacts={contacts}
               accentColor={accentColor}
               themeColors={themeColors}
+              labelStyle={labelStyle}
+              fieldTextStyle={fieldTextStyle}
               placeholder={t('modules.mail.compose.bccPlaceholder')}
               onInputFocus={getFieldFocusHandler('bcc')}
             />
@@ -1160,11 +1173,11 @@ export function MailComposeScreen({
 
         {/* Subject */}
         <View ref={registerField('subject')} style={[styles.fieldRow, { borderBottomColor: themeColors.border }]}>
-          <Text style={[styles.fieldLabel, { color: themeColors.textSecondary }]}>
+          <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('modules.mail.compose.subject')}
           </Text>
           <TextInput
-            style={[styles.fieldInput, { color: themeColors.textPrimary }]}
+            style={[styles.fieldInput, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}
             value={subject}
             onChangeText={setSubject}
             placeholder={t('modules.mail.compose.subjectPlaceholder')}
@@ -1190,7 +1203,7 @@ export function MailComposeScreen({
         <View ref={registerField('body')}>
           <TextInput
             ref={bodyInputRef}
-            style={[styles.bodyInput, { color: themeColors.textPrimary }]}
+            style={[styles.bodyInput, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}
             value={body}
             onChangeText={setBody}
             placeholder={t('modules.mail.compose.bodyPlaceholder')}

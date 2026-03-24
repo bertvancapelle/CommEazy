@@ -37,6 +37,7 @@ import type { ContactStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { ModuleHeader, ModuleScreenLayout, HapticTouchable, ScrollViewWithIndicator, ErrorView, PanelAwareModal, Icon, DateTimePickerModal } from '@/components';
 import { useAccentColor } from '@/hooks/useAccentColor';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useScrollToField } from '@/hooks/useScrollToField';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -70,6 +71,8 @@ export function ManualAddContactScreen() {
   const { triggerFeedback } = useFeedback();
   const { accentColor } = useAccentColor();
   const themeColors = useColors();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const insets = useSafeAreaInsets();
   const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
@@ -439,9 +442,9 @@ export function ManualAddContactScreen() {
       >
         {/* First name input */}
         <View ref={registerField('firstName')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.firstNameLabel')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.firstNameLabel')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.firstNamePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             value={firstName}
@@ -457,9 +460,9 @@ export function ManualAddContactScreen() {
 
         {/* Last name input */}
         <View ref={registerField('lastName')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.lastNameLabel')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.lastNameLabel')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.lastNamePlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             value={lastName}
@@ -475,7 +478,7 @@ export function ManualAddContactScreen() {
 
         {/* Landline phone number input */}
         <View ref={registerField('landlineNumber')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.landlineLabel')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.landlineLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
             <HapticTouchable hapticDisabled
@@ -491,7 +494,7 @@ export function ManualAddContactScreen() {
 
             {/* Landline number */}
             <TextInput
-              style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+              style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
               placeholder={t('contacts.landlinePlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               value={landlineNumber}
@@ -526,7 +529,7 @@ export function ManualAddContactScreen() {
 
         {/* Mobile phone number input */}
         <View ref={registerField('mobileNumber')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.mobileLabel')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.mobileLabel')}</Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
             <HapticTouchable hapticDisabled
@@ -542,7 +545,7 @@ export function ManualAddContactScreen() {
 
             {/* Mobile number */}
             <TextInput
-              style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+              style={[styles.phoneInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
               placeholder={t('contacts.mobilePlaceholder')}
               placeholderTextColor={themeColors.textTertiary}
               value={mobileNumber}
@@ -577,9 +580,9 @@ export function ManualAddContactScreen() {
 
         {/* Email input */}
         <View ref={registerField('email')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.emailLabel')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.emailLabel')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.emailPlaceholder')}
             placeholderTextColor={themeColors.textTertiary}
             value={email}
@@ -598,7 +601,7 @@ export function ManualAddContactScreen() {
 
         {/* 1. Land (PickerModal) */}
         <View ref={registerField('country')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.country')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.address.country')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => { Keyboard.dismiss(); setShowCountryPicker(true); }}
@@ -614,9 +617,9 @@ export function ManualAddContactScreen() {
 
         {/* 2. Postcode */}
         <View ref={registerField('postalCode')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.postalCode')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.address.postalCode')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.address.postalCode')}
             placeholderTextColor={themeColors.textTertiary}
             value={postalCode}
@@ -630,9 +633,9 @@ export function ManualAddContactScreen() {
 
         {/* 3. Huisnummer */}
         <View ref={registerField('houseNumber')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.houseNumber')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.address.houseNumber')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.address.houseNumber')}
             placeholderTextColor={themeColors.textTertiary}
             value={houseNumber}
@@ -651,9 +654,9 @@ export function ManualAddContactScreen() {
 
         {/* 4. Straat (auto-filled, editable) */}
         <View ref={registerField('street')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.street')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.address.street')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.address.street')}
             placeholderTextColor={themeColors.textTertiary}
             value={street}
@@ -667,9 +670,9 @@ export function ManualAddContactScreen() {
 
         {/* 5. Plaats (auto-filled, editable) */}
         <View ref={registerField('city')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.city')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.address.city')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.address.city')}
             placeholderTextColor={themeColors.textTertiary}
             value={city}
@@ -683,9 +686,9 @@ export function ManualAddContactScreen() {
 
         {/* 6. Provincie (auto-filled, editable) */}
         <View ref={registerField('province')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.address.province')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.address.province')}</Text>
           <TextInput
-            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+            style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.address.province')}
             placeholderTextColor={themeColors.textTertiary}
             value={province}
@@ -701,7 +704,7 @@ export function ManualAddContactScreen() {
         <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>{t('contacts.dates.title')}</Text>
 
         <View ref={registerField('birthDate')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.birthDate')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.dates.birthDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => { Keyboard.dismiss(); setShowBirthDatePicker(true); }}
@@ -716,7 +719,7 @@ export function ManualAddContactScreen() {
         </View>
 
         <View ref={registerField('weddingDate')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.weddingDate')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.dates.weddingDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => { Keyboard.dismiss(); setShowWeddingDatePicker(true); }}
@@ -731,7 +734,7 @@ export function ManualAddContactScreen() {
         </View>
 
         <View ref={registerField('deathDate')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: themeColors.textPrimary }]}>{t('contacts.dates.deathDate')}</Text>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.dates.deathDate')}</Text>
           <HapticTouchable hapticDisabled
             style={[styles.datePickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => { Keyboard.dismiss(); setShowDeathDatePicker(true); }}
@@ -896,7 +899,7 @@ export function ManualAddContactScreen() {
                     {t('contacts.emailLabel')}
                   </Text>
                   <TextInput
-                    style={[styles.reminderInput, { backgroundColor: themeColors.backgroundSecondary, color: themeColors.textPrimary, borderColor: themeColors.border }]}
+                    style={[styles.reminderInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
                     placeholder={t('contacts.emailPlaceholder')}
                     placeholderTextColor={themeColors.textTertiary}
                     value={pendingReminderEmail}

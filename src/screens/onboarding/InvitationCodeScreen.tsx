@@ -39,6 +39,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
 import { useFeedback } from '@/hooks/useFeedback';
 import { HapticTouchable, Icon, LoadingView, ProgressIndicator , ScrollViewWithIndicator } from '@/components';
 import type { OnboardingStackParams } from '@/navigation';
@@ -61,6 +62,8 @@ type ScreenState = 'input' | 'loading' | 'confirm' | 'setting-up' | 'success' | 
 export function InvitationCodeScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
 
   const [state, setState] = useState<ScreenState>('input');
@@ -210,7 +213,7 @@ export function InvitationCodeScreen({ navigation }: Props) {
 
             {/* Code input */}
             <View style={styles.codeInputContainer}>
-              <Text style={[styles.inputLabel, { color: themeColors.textPrimary }]}>
+              <Text style={[styles.inputLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
                 {t('onboarding.invitationCode.codeLabel', 'Uitnodigingscode')}
               </Text>
               <TextInput
@@ -218,7 +221,9 @@ export function InvitationCodeScreen({ navigation }: Props) {
                   styles.codeInput,
                   {
                     backgroundColor: themeColors.surface,
-                    color: themeColors.textPrimary,
+                    color: fieldTextStyle.color,
+                    fontWeight: fieldTextStyle.fontWeight,
+                    fontStyle: fieldTextStyle.fontStyle,
                     borderColor: errorMessage ? themeColors.error : themeColors.border,
                   },
                 ]}
