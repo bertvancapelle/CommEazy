@@ -5,25 +5,37 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-23
-- **Sessie:** Green Ring + Skill Coordination Upgrade (Ruflo-geïnspireerd)
-- **Commit:** `03c6c4f`
+- **Datum:** 2026-03-24
+- **Sessie:** ContactAvatar Indicator Uniformization (presence + trustLevel across ALL screens)
+- **Commit:** `b20bd83`
 
 ## Voltooide Taken Deze Sessie
 
-1. **Green ring voor CommEazy contacten (trustLevel ≥ 2)**
-   - `ContactAvatar.tsx`: 3pt groene ring (`colors.presenceAvailable`) bij trustLevel ≥ 2
-   - `trustLevel` prop doorgegeven in 5 consumer screens (ContactList, ContactDetail, Calls, CreateGroup, EditGroup)
+1. **Phone number field cleanup** (commit `b8c01e8`)
+   - Removed dead `phoneNumber` from UserProfile interface
+   - Renamed Contact's `phoneNumber` → `landlineNumber`
+   - Schema v28→v29 with migration
 
-2. **DevModePanel test contacten**
-   - 4 test contacten met variërende trust levels (0, 1, 2, 3)
-   - `database.ts`: `saveContact` slaat nu `mobileNumber` en `addressProvince` op
+2. **Replace green ring with CommEazy badge dot** (commit `94c27bb`)
+   - Top-left filled green circle (30% of avatar diameter) replaces ring overlay
+   - Shows for trustLevel ≥ 2
 
-3. **Skill Coordination Upgrade — Model C (Ruflo-geïnspireerd)**
-   - **DECISION_PATTERNS.md** (NIEUW): Bewezen ontwerppatronen met context, beslissing, rationale, senior-toets, sessies, contra-indicatie. 11 patronen vastgelegd.
-   - **SKILL_DOMAINS.md** (NIEUW): 5 domeinen (UX, Platform, Security, Content, Protocol) als escalatielaag. Model C: Matrix primary → Domein escalatie → Gebruiker beslist.
-   - **CHANGE_VALIDATION_MATRIX.md**: File-Pattern Hooks sectie toegevoegd (8 categorieën, 16 patterns incl. 3 BLOKKEERDER combinaties)
-   - **COORDINATION_PROTOCOL.md**: Tier 2 en Tier 3 workflows bijgewerkt met DECISION_PATTERNS.md check en domein-escalatie stap. Referenties uitgebreid.
+3. **Uniformize ContactAvatar indicators across ALL 11 screens** (commit `b20bd83`)
+   - **Zero exceptions** — every ContactAvatar now shows both presence dots AND CommEazy badge
+   - Pattern: wrapper components per screen that call `useVisualPresence(jid)` + pass trustLevel
+   - Files modified:
+     - `ChatListScreen.tsx`: Added trustLevel to ChatListItem, ChatContactAvatar wrapper
+     - `ContactDetailScreen.tsx`: Added presence via useVisualPresence hook
+     - `CreateGroupModal.tsx`: Added GroupContactAvatar wrapper
+     - `EditGroupModal.tsx`: Added GroupContactAvatar wrapper
+     - `PhotoRecipientModal.tsx`: Added RecipientContactAvatar wrapper + fixed photoUrl prop
+     - `ContactSelectionModal.tsx`: Added SelectionContactAvatar wrapper + fixed photoUrl prop
+     - `AgendaItemDetailScreen.tsx`: Added ShareContactAvatar wrapper
+     - `IncomingCallScreen.tsx`: Added CallContactAvatar wrapper + DB lookup for trustLevel
+     - `ActiveCallScreen.tsx`: Added CallContactAvatar wrapper + DB lookup for trustLevel
+     - `SettingsMainScreen.tsx`: Added own presence + trustLevel=3 (always CommEazy user)
+     - `ProfileSettingsScreen.tsx`: Added ConsentContactAvatar wrapper + DB lookup for trustLevel
+   - Also fixed incorrect prop names: `photoUri={contact.avatarUrl}` → `photoUrl={contact.photoUrl}` in PhotoRecipientModal and ContactSelectionModal
 
 ## Openstaande Taken
 
@@ -31,7 +43,6 @@
 2. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geïmplementeerd.
 3. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
 4. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geïmplementeerd.
-5. **ChatListScreen green ring** — Zou DB query nodig hebben voor trustLevel, uitgesteld.
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
@@ -41,18 +52,16 @@ Geen — alle beslissingen zijn geïmplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Model C voor skill coördinatie | Matrix primary → Domeinen escaleren unknowns → Gebruiker beslist. Geen kennisrisco. |
-| DECISION_PATTERNS.md als leergeheugen | Voorkomt dat bewezen beslissingen elke sessie opnieuw worden gemaakt |
-| 5 Skill Domeinen (niet lossy hiërarchie) | Domeinen vervangen matrix NIET, ze zijn alleen een vangnet voor edge cases |
-| File-Pattern Hooks naast beschrijving-triggers | Automatische skill-activatie op basis van bestandspad, complement op bestaande matrix |
-| Consensus algoritmes NIET geadopteerd | Bestaande Conflict Resolutie Hiërarchie is voldoende |
-| Impact Score Matrix uitgesteld | Geen directe meerwaarde, te complex voor huidige schaal |
-| Green ring bij trustLevel ≥ 2 | Visuele differentiatie CommEazy contacten vs externe contacten |
+| Zero exceptions for ContactAvatar indicators | User explicit: "nergens uitsluitingen, ook niet voor eigen profiel of inkomende calls" |
+| Wrapper component pattern for presence | Hooks can't be called in .map() callbacks — each list item needs its own component |
+| DB lookup for trustLevel in call screens | CallParticipant interface lacks trustLevel — requires ServiceContainer.database.getContact() |
+| User's own trustLevel hardcoded to 3 | User is always a CommEazy user, effectively trustLevel 3 |
+| photoUrl prop fix in modals | photoUri/avatarUrl were incorrect prop names — fixed to match ContactAvatar's actual photoUrl prop |
 
 ## Context voor Volgende Sessie
 
-- **Skill coördinatie documenten:** `DECISION_PATTERNS.md`, `SKILL_DOMAINS.md`, `CHANGE_VALIDATION_MATRIX.md` (File-Pattern Hooks), `COORDINATION_PROTOCOL.md` (bijgewerkte workflows)
-- **Model C routing:** CHANGE_VALIDATION_MATRIX → (onvolledig?) → SKILL_DOMAINS → (vraag) → gebruiker beslist
+- **ContactAvatar is now uniform** — presence + badge on ALL 11 consumer screens
+- **Wrapper component naming convention:** ChatContactAvatar, GroupContactAvatar, RecipientContactAvatar, SelectionContactAvatar, ShareContactAvatar, CallContactAvatar, ConsentContactAvatar
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Audio Orchestrator:** `src/contexts/AudioOrchestratorContext.tsx` — centraal punt
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`

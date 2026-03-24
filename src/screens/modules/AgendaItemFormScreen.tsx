@@ -32,7 +32,6 @@ import {
   View,
   Text,
   TextInput as RNTextInput,
-  Image,
   StyleSheet,
   Platform,
   Alert,
@@ -47,7 +46,8 @@ import {
 } from '@react-native-community/datetimepicker';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView, DateTimePickerModal, PanelAwareModal } from '@/components';
+import { Icon, HapticTouchable, ModuleHeader, ModuleScreenLayout, SearchBar, ScrollViewWithIndicator, ErrorView, LiquidGlassView, DateTimePickerModal, PanelAwareModal, ContactAvatar } from '@/components';
+import { useVisualPresence } from '@/contexts/PresenceContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -72,6 +72,12 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAgendaContext, type CreateAgendaItemData } from '@/contexts/AgendaContext';
 import type { ContactModel } from '@/models/Contact';
+
+/** Wrapper to show presence + trustLevel on agenda contact avatar */
+function AgendaContactAvatar({ name, jid, trustLevel, size }: { name: string; jid: string; trustLevel: number; size: number }) {
+  const presence = useVisualPresence(jid);
+  return <ContactAvatar name={name} size={size} trustLevel={trustLevel} presence={presence} />;
+}
 
 // ============================================================
 // Category Address Memory
@@ -1698,16 +1704,12 @@ export function AgendaItemFormScreen({
                     accessibilityRole="button"
                     accessibilityLabel={t('modules.agenda.form.removeContact', { name: contact.displayName })}
                   >
-                    {contact.photoPath ? (
-                      <Image
-                        source={{ uri: contact.photoPath }}
-                        style={styles.contactChipAvatar}
-                      />
-                    ) : (
-                      <View style={[styles.contactChipAvatarFallback, { backgroundColor: accentColor.primary }]}>
-                        <Icon name="person" size={16} color={colors.textOnPrimary} />
-                      </View>
-                    )}
+                    <AgendaContactAvatar
+                      name={contact.displayName}
+                      jid={contact.jid}
+                      trustLevel={contact.trustLevel ?? 0}
+                      size={28}
+                    />
                     <Text style={[styles.contactChipText, { color: accentColor.primary }]}>
                       {contact.displayName}
                     </Text>
@@ -2068,7 +2070,7 @@ export function AgendaItemFormScreen({
                           key={contact.id}
                           style={[
                             formPickerStyles.option,
-                            { borderBottomColor: themeColors.border },
+                            { borderBottomColor: themeColors.border, backgroundColor: themeColors.surface },
                             isSelected && { backgroundColor: accentColor.light },
                           ]}
                           onPress={() => handleToggleContact(contact.id)}
@@ -2077,16 +2079,12 @@ export function AgendaItemFormScreen({
                           accessibilityLabel={contact.displayName}
                         >
                           <View style={styles.contactPickerRow}>
-                            {contact.photoPath ? (
-                              <Image
-                                source={{ uri: contact.photoPath }}
-                                style={styles.contactPickerAvatar}
-                              />
-                            ) : (
-                              <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
-                                <Icon name="person" size={20} color={accentColor.primary} />
-                              </View>
-                            )}
+                            <AgendaContactAvatar
+                              name={contact.displayName}
+                              jid={contact.jid}
+                              trustLevel={contact.trustLevel ?? 0}
+                              size={36}
+                            />
                             <View style={styles.contactPickerInfo}>
                               <Text
                                 style={[
@@ -2132,7 +2130,7 @@ export function AgendaItemFormScreen({
                           key={contact.id}
                           style={[
                             formPickerStyles.option,
-                            { borderBottomColor: themeColors.border },
+                            { borderBottomColor: themeColors.border, backgroundColor: themeColors.surface },
                             isSelected && { backgroundColor: accentColor.light },
                           ]}
                           onPress={() => handleToggleContact(contact.id)}
@@ -2141,16 +2139,12 @@ export function AgendaItemFormScreen({
                           accessibilityLabel={contact.displayName}
                         >
                           <View style={styles.contactPickerRow}>
-                            {contact.photoPath ? (
-                              <Image
-                                source={{ uri: contact.photoPath }}
-                                style={styles.contactPickerAvatar}
-                              />
-                            ) : (
-                              <View style={[styles.contactPickerAvatarFallback, { backgroundColor: accentColor.light }]}>
-                                <Icon name="person" size={20} color={accentColor.primary} />
-                              </View>
-                            )}
+                            <AgendaContactAvatar
+                              name={contact.displayName}
+                              jid={contact.jid}
+                              trustLevel={contact.trustLevel ?? 0}
+                              size={36}
+                            />
                             <View style={styles.contactPickerInfo}>
                               <Text
                                 style={[
@@ -2333,18 +2327,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minHeight: touchTargets.minimum,
   },
-  contactChipAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-  },
-  contactChipAvatarFallback: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   contactChipText: {
     ...typography.body,
     fontWeight: '600',
@@ -2366,18 +2348,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     flex: 1,
-  },
-  contactPickerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  contactPickerAvatarFallback: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   contactPickerInfo: {
     flex: 1,
