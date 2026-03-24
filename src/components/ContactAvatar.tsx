@@ -6,6 +6,7 @@
  * - High contrast fallback initials
  * - Rounded for friendly appearance
  * - Optional presence dot (bottom-right, 30% diameter)
+ * - Optional CommEazy badge (top-left, 30% diameter) for trustLevel ≥ 2
  *
  * Presence dot visual states:
  * - Online: green filled dot
@@ -32,7 +33,7 @@ interface ContactAvatarProps {
   accessibilityLabel?: string;
   /** Visual presence data from useVisualPresence() — omit to hide dot */
   presence?: VisualPresence;
-  /** Trust level (0-3). Level ≥2 shows green ring around avatar */
+  /** Trust level (0-3). Level ≥2 shows green CommEazy badge dot (top-left) */
   trustLevel?: number;
 }
 
@@ -65,21 +66,18 @@ export function ContactAvatar({
   // Scale font size based on avatar size — slightly smaller for 2 initials
   const fontSize = initial.length > 1 ? size * 0.32 : size * 0.4;
 
-  // Green ring for CommEazy contacts (trustLevel ≥ 2)
-  const showGreenRing = (trustLevel ?? 0) >= 2;
-  const ringWidth = showGreenRing ? 3 : 0;
-  // Inner avatar size shrinks to keep total size constant when ring is shown
-  const innerSize = showGreenRing ? size - ringWidth * 2 : size;
-  const innerBorderRadius = innerSize / 2;
+  // CommEazy badge: green dot top-left for trustLevel ≥ 2
+  const showCommEazyBadge = (trustLevel ?? 0) >= 2;
 
   // Presence dot sizing: 30% of avatar diameter
   const dotSize = Math.round(size * 0.3);
   const dotBorder = Math.max(2, Math.round(size * 0.04)); // 2-3pt white border
 
   // Build accessibility label
+  const badgeLabel = showCommEazyBadge ? ', CommEazy contact' : '';
   const a11y = presence
-    ? presence.a11yLabel(name)
-    : (accessibilityLabel ?? `${name} profielfoto`);
+    ? presence.a11yLabel(name) + badgeLabel
+    : (accessibilityLabel ?? `${name} profielfoto${badgeLabel}`);
 
   return (
     <View
@@ -90,7 +88,7 @@ export function ContactAvatar({
       accessibilityLabel={a11y}
       accessibilityRole="image"
     >
-      {/* Avatar circle — with optional green ring for CommEazy contacts */}
+      {/* Avatar circle */}
       <View
         style={[
           styles.avatarCircle,
@@ -98,10 +96,6 @@ export function ContactAvatar({
             width: size,
             height: size,
             borderRadius,
-          },
-          showGreenRing && {
-            borderWidth: ringWidth,
-            borderColor: colors.presenceAvailable,
           },
         ]}
       >
@@ -111,9 +105,9 @@ export function ContactAvatar({
             style={[
               styles.image,
               {
-                width: innerSize,
-                height: innerSize,
-                borderRadius: innerBorderRadius,
+                width: size,
+                height: size,
+                borderRadius,
               },
             ]}
             onError={() => setImageError(true)}
@@ -124,9 +118,9 @@ export function ContactAvatar({
             style={[
               styles.fallback,
               {
-                width: innerSize,
-                height: innerSize,
-                borderRadius: innerBorderRadius,
+                width: size,
+                height: size,
+                borderRadius,
                 backgroundColor: getAvatarColor(name),
               },
             ]}
@@ -142,6 +136,23 @@ export function ContactAvatar({
           </View>
         )}
       </View>
+
+      {/* CommEazy badge dot (top-left) — shown for trustLevel ≥ 2 */}
+      {showCommEazyBadge && (
+        <View
+          style={[
+            styles.commEazyBadge,
+            {
+              width: dotSize,
+              height: dotSize,
+              borderRadius: dotSize / 2,
+              borderWidth: dotBorder,
+              borderColor: '#FFFFFF',
+              backgroundColor: colors.presenceAvailable,
+            },
+          ]}
+        />
+      )}
 
       {/* Presence dot overlay (bottom-right) */}
       {presence && (
@@ -223,6 +234,11 @@ const styles = StyleSheet.create({
   initial: {
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  commEazyBadge: {
+    position: 'absolute',
+    top: -1,
+    left: -1,
   },
   presenceDot: {
     position: 'absolute',

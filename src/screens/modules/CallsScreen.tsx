@@ -71,7 +71,7 @@ function CallContactItem({
       onSelect={() => onVoiceCall(contact)}
     >
       <View style={[styles.contactItem, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.divider }]}>
-        {/* Avatar with presence dot + green ring for CommEazy contacts */}
+        {/* Avatar with presence dot + CommEazy badge for connected contacts */}
         <ContactAvatar
           name={getContactDisplayName(contact)}
           photoUrl={contact.photoUrl}

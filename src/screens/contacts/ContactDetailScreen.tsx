@@ -637,7 +637,7 @@ export function ContactDetailScreen() {
         />
       )}
 
-      {/* Profile header with large photo + green ring for CommEazy contacts */}
+      {/* Profile header with large photo + CommEazy badge for connected contacts */}
       <View style={styles.profileHeader}>
         <ContactAvatar
           name={displayName}

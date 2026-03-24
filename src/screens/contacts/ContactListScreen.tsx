@@ -83,7 +83,7 @@ function ContactListItem({
         accessibilityLabel={displayName}
         accessibilityHint={t('accessibility.openContact', { name: displayName })}
       >
-        {/* Profile photo with presence dot + green ring for CommEazy contacts */}
+        {/* Profile photo with presence dot + CommEazy badge for connected contacts */}
         <ContactAvatar
           name={displayName}
           photoUrl={contact.photoUrl}
