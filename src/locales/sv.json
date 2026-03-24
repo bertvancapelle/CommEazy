@@ -905,6 +905,10 @@
       "clearDate": "Rensa datum",
       "saved": "Sparat"
     },
+    "validation": {
+      "requiredTitle": "Obligatoriskt fält",
+      "requiredMessage": "Vänligen fyll i alla obligatoriska fält (markerade med *)"
+    },
     "sharing": {
       "title": "Delat med",
       "subtitle": "Hantera vilka kontakter som kan se dina personuppgifter",

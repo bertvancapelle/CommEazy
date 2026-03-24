@@ -1010,6 +1010,10 @@
       "clearDate": "Datum löschen",
       "saved": "Gespeichert"
     },
+    "validation": {
+      "requiredTitle": "Pflichtfeld",
+      "requiredMessage": "Bitte füllen Sie alle Pflichtfelder aus (gekennzeichnet mit *)"
+    },
     "sharing": {
       "title": "Geteilt mit",
       "subtitle": "Verwalte welche Kontakte deine persönlichen Daten sehen können",

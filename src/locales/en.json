@@ -1024,6 +1024,10 @@
       "clearDate": "Clear date",
       "saved": "Saved"
     },
+    "validation": {
+      "requiredTitle": "Required field",
+      "requiredMessage": "Please fill in all required fields (marked with *)"
+    },
     "sharing": {
       "title": "Shared with",
       "subtitle": "Manage which contacts can see your personal details",

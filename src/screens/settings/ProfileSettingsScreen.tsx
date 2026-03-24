@@ -192,6 +192,10 @@ export function ProfileSettingsScreen() {
     onRetry?: () => void;
   } | null>(null);
 
+  // Validation: tracks which required field is currently invalid (light-red highlight)
+  // Cleared reactively when the user fills the field
+  const [invalidField, setInvalidField] = useState<string | null>(null);
+
   // ScrollView ref for scrolling to fields
   const scrollViewRef = useRef<ScrollView>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -458,6 +462,34 @@ export function ProfileSettingsScreen() {
     void triggerFeedback('tap');
     Keyboard.dismiss();
 
+    // Validate required fields — scroll to first empty field + highlight
+    const requiredFields: { key: string; value: string | undefined }[] = [
+      { key: 'displayFirstName', value: displayFirstName.trim() },
+      { key: 'displayLastName', value: displayLastName.trim() },
+      { key: 'gender', value: gender },
+      { key: 'birthDate', value: birthDate },
+      { key: 'country', value: addressCountryCode },
+      { key: 'addressPostalCode', value: addressPostalCode.trim() },
+      { key: 'addressHouseNumber', value: addressHouseNumber.trim() },
+      { key: 'addressCity', value: addressCity.trim() },
+    ];
+    const firstEmpty = requiredFields.find(f => !f.value);
+    if (firstEmpty) {
+      void triggerFeedback('warning');
+      setInvalidField(firstEmpty.key);
+      setNotification({
+        type: 'error',
+        title: t('profile.validation.requiredTitle'),
+        message: t('profile.validation.requiredMessage'),
+      });
+      // Scroll to the first empty required field
+      scrollToField(firstEmpty.key, { isModalReturn: false });
+      return;
+    }
+
+    // Clear any previous validation error
+    setInvalidField(null);
+
     const updates: Partial<UserProfile> = {
       firstName: displayFirstName.trim(),
       lastName: displayLastName.trim(),
@@ -494,9 +526,28 @@ export function ProfileSettingsScreen() {
       snapshotRef.current = null;
     }
   }, [displayFirstName, displayLastName, gender, birthDate, weddingDate,
-    addressCountryCode, addressPostalCode, addressStreet, addressCity,
+    addressCountryCode, addressPostalCode, addressHouseNumber, addressStreet, addressCity,
     addressProvince, personalEmail, personalMobile, personalLandline,
-    saveProfile, refreshModules, t, triggerFeedback]);
+    saveProfile, refreshModules, scrollToField, t, triggerFeedback]);
+
+  // Clear validation highlight reactively when the invalid field is filled
+  useEffect(() => {
+    if (!invalidField) return;
+    const fieldValues: Record<string, string | undefined> = {
+      displayFirstName: displayFirstName.trim(),
+      displayLastName: displayLastName.trim(),
+      gender,
+      birthDate,
+      country: addressCountryCode,
+      addressPostalCode: addressPostalCode.trim(),
+      addressHouseNumber: addressHouseNumber.trim(),
+      addressCity: addressCity.trim(),
+    };
+    if (fieldValues[invalidField]) {
+      setInvalidField(null);
+    }
+  }, [invalidField, displayFirstName, displayLastName, gender, birthDate,
+    addressCountryCode, addressPostalCode, addressHouseNumber, addressCity]);
 
   // ── Section 1: "Wie ben je?" handlers (edit mode only) ──
 
@@ -769,7 +820,7 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('onboarding.profileStep1.title')}</Text>
 
         {/* First name */}
-        <View style={styles.fieldContainer} ref={registerField('displayFirstName')}>
+        <View style={[styles.fieldContainer, invalidField === 'displayFirstName' && styles.invalidFieldHighlight]} ref={registerField('displayFirstName')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.firstName')}{requiredMark}
           </Text>
@@ -794,7 +845,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Last name */}
-        <View style={styles.fieldContainer} ref={registerField('displayLastName')}>
+        <View style={[styles.fieldContainer, invalidField === 'displayLastName' && styles.invalidFieldHighlight]} ref={registerField('displayLastName')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.lastName')}{requiredMark}
           </Text>
@@ -819,7 +870,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Gender */}
-        <View style={styles.fieldContainer} ref={registerField('gender')}>
+        <View style={[styles.fieldContainer, invalidField === 'gender' && styles.invalidFieldHighlight]} ref={registerField('gender')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('demographics.genderLabel')}{requiredMark}
           </Text>
@@ -845,7 +896,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* Birth date */}
-        <View style={styles.fieldContainer} ref={registerField('birthDate')}>
+        <View style={[styles.fieldContainer, invalidField === 'birthDate' && styles.invalidFieldHighlight]} ref={registerField('birthDate')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('profile.personal.birthDateLabel')}{requiredMark}
           </Text>
@@ -908,7 +959,7 @@ export function ProfileSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('onboarding.profileStep2.title')}</Text>
 
         {/* Country */}
-        <View style={styles.fieldContainer} ref={registerField('country')}>
+        <View style={[styles.fieldContainer, invalidField === 'country' && styles.invalidFieldHighlight]} ref={registerField('country')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('demographics.countryLabel')}{requiredMark}
           </Text>
@@ -937,7 +988,7 @@ export function ProfileSettingsScreen() {
 
         {/* Postcode + Huisnummer row */}
         <View style={styles.rowFields}>
-          <View style={[styles.fieldContainer, { flex: 1, marginRight: spacing.sm }]} ref={registerField('addressPostalCode')}>
+          <View style={[styles.fieldContainer, { flex: 1, marginRight: spacing.sm }, invalidField === 'addressPostalCode' && styles.invalidFieldHighlight]} ref={registerField('addressPostalCode')}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.personalDetails.addressPostalCode')}{requiredMark}
             </Text>
@@ -960,7 +1011,7 @@ export function ProfileSettingsScreen() {
               </Text>
             )}
           </View>
-          <View style={[styles.fieldContainer, { flex: 1 }]} ref={registerField('addressHouseNumber')}>
+          <View style={[styles.fieldContainer, { flex: 1 }, invalidField === 'addressHouseNumber' && styles.invalidFieldHighlight]} ref={registerField('addressHouseNumber')}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
               {t('onboarding.profileStep2.houseNumber')}{requiredMark}
             </Text>
@@ -1019,7 +1070,7 @@ export function ProfileSettingsScreen() {
         </View>
 
         {/* City */}
-        <View style={styles.fieldContainer} ref={registerField('addressCity')}>
+        <View style={[styles.fieldContainer, invalidField === 'addressCity' && styles.invalidFieldHighlight]} ref={registerField('addressCity')}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
             {t('onboarding.personalDetails.addressCity')}{requiredMark}
           </Text>
@@ -1272,6 +1323,12 @@ const styles = StyleSheet.create({
   },
   fieldContainer: {
     marginBottom: spacing.md,
+  },
+  invalidFieldHighlight: {
+    backgroundColor: 'rgba(255, 0, 0, 0.08)',
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    marginHorizontal: -spacing.xs,
   },
   fieldLabel: {
     ...typography.body,

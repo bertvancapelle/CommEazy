@@ -1034,6 +1034,10 @@
       "clearDate": "Limpar data",
       "saved": "Guardado"
     },
+    "validation": {
+      "requiredTitle": "Campo obrigatório",
+      "requiredMessage": "Por favor, preencha todos os campos obrigatórios (marcados com *)"
+    },
     "sharing": {
       "title": "Partilhado com",
       "subtitle": "Gerir quais contactos podem ver os seus dados pessoais",

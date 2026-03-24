@@ -1009,6 +1009,10 @@
       "clearDate": "Cancella data",
       "saved": "Salvato"
     },
+    "validation": {
+      "requiredTitle": "Campo obbligatorio",
+      "requiredMessage": "Compila tutti i campi obbligatori (contrassegnati con *)"
+    },
     "sharing": {
       "title": "Condiviso con",
       "subtitle": "Gestisci quali contatti possono vedere i tuoi dati personali",

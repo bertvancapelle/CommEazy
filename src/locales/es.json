@@ -1010,6 +1010,10 @@
       "clearDate": "Borrar fecha",
       "saved": "Guardado"
     },
+    "validation": {
+      "requiredTitle": "Campo obligatorio",
+      "requiredMessage": "Por favor, rellene todos los campos obligatorios (marcados con *)"
+    },
     "sharing": {
       "title": "Compartido con",
       "subtitle": "Gestiona qué contactos pueden ver tus datos personales",

@@ -935,6 +935,10 @@
       "clearDate": "Fjern dato",
       "saved": "Lagret"
     },
+    "validation": {
+      "requiredTitle": "Obligatorisk felt",
+      "requiredMessage": "Vennligst fyll ut alle obligatoriske felt (merket med *)"
+    },
     "sharing": {
       "title": "Delt med",
       "subtitle": "Administrer hvilke kontakter som kan se dine personlige opplysninger",

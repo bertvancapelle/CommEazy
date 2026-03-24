@@ -847,6 +847,10 @@
       "clearDate": "Datum wissen",
       "saved": "Opgeslagen"
     },
+    "validation": {
+      "requiredTitle": "Verplicht veld",
+      "requiredMessage": "Vul alle verplichte velden in (aangeduid met *)"
+    },
     "sharing": {
       "title": "Gedeeld met",
       "subtitle": "Beheer welke contacten jouw persoonlijke gegevens kunnen zien",

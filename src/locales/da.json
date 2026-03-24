@@ -905,6 +905,10 @@
       "clearDate": "Slet dato",
       "saved": "Gemt"
     },
+    "validation": {
+      "requiredTitle": "Påkrævet felt",
+      "requiredMessage": "Udfyld venligst alle påkrævede felter (markeret med *)"
+    },
     "sharing": {
       "title": "Delt med",
       "subtitle": "Administrer hvilke kontakter der kan se dine personlige oplysninger",

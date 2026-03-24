@@ -926,6 +926,10 @@
       "clearDate": "Wyczyść datę",
       "saved": "Zapisano"
     },
+    "validation": {
+      "requiredTitle": "Pole wymagane",
+      "requiredMessage": "Proszę wypełnić wszystkie wymagane pola (oznaczone *)"
+    },
     "sharing": {
       "title": "Udostępniono",
       "subtitle": "Zarządzaj którzy kontakty mogą widzieć Twoje dane osobowe",
