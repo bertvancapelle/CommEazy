@@ -66,11 +66,14 @@ export function PanelAwareModal({
     );
   }
 
+  // iOS ignores presentationStyle when transparent=true — force false for sheet styles
+  const effectiveTransparent = presentationStyle ? false : transparent;
+
   // iPhone: render as standard full-screen Modal
   return (
     <Modal
       visible={true}
-      transparent={transparent}
+      transparent={effectiveTransparent}
       animationType={animationType}
       onRequestClose={onRequestClose}
       presentationStyle={presentationStyle}

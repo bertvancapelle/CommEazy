@@ -2,18 +2,22 @@
  * DateTimePickerModal — App-wide standard date & time picker
  *
  * Wraps @react-native-community/datetimepicker in a PanelAwareModal
- * with pageSheet presentation and Liquid Glass background (iOS 26+).
+ * as a compact bottom-sheet with semi-transparent module color overlay.
  *
  * This is the ONLY date/time picker component allowed in CommEazy.
  * All screens MUST use this component for date and time selection.
  *
  * Features:
- * - PanelAwareModal with pageSheet (stays within panel on iPad Split View)
- * - LiquidGlassView with module-specific tint color (iOS 26+)
+ * - PanelAwareModal transparent overlay (stays within panel on iPad Split View)
+ * - Semi-transparent module color overlay (~40% opacity)
+ * - Compact bottom-positioned picker with solid surface background
  * - Native iOS spinner / Android default picker
  * - "Gereed" (Done) button with module accent color
  * - Locale-aware via i18n
  * - Senior-inclusive: 60pt+ touch targets
+ *
+ * Design: Does NOT use LiquidGlassView (avoids Yoga flex-end conflict on iOS 26).
+ * Uses solid surface background instead.
  *
  * Replaces: SeniorDatePicker (deprecated — removed)
  * Extracted from: AgendaItemFormScreen (local DateTimePickerModal)
@@ -27,6 +31,7 @@ import {
   Text,
   StyleSheet,
   Platform,
+  Pressable,
 } from 'react-native';
 import DateTimePicker, {
   type DateTimePickerEvent,
@@ -35,7 +40,6 @@ import { useTranslation } from 'react-i18next';
 
 import { HapticTouchable } from './HapticTouchable';
 import { PanelAwareModal } from './PanelAwareModal';
-import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -54,7 +58,7 @@ export interface DateTimePickerModalProps {
   value: Date;
   /** Picker mode: 'date' for date selection, 'time' for time selection */
   mode: 'date' | 'time';
-  /** Module color ID for Liquid Glass tint and Done button color */
+  /** Module color ID for overlay tint and Done button color */
   moduleId: ModuleColorId;
   /** Called when the user changes the date/time */
   onChange: (event: DateTimePickerEvent, date?: Date) => void;
@@ -97,12 +101,21 @@ export function DateTimePickerModal({
   return (
     <PanelAwareModal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
+      animationType="fade"
+      transparent={true}
       onRequestClose={onClose}
       moduleId={moduleId}
     >
-      <LiquidGlassView moduleId={moduleId} style={styles.container} cornerRadius={0}>
+      {/* Overlay — semi-transparent module color, tap to dismiss */}
+      <Pressable
+        style={[styles.overlay, { backgroundColor: moduleColor + '66' }]}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel={t('common.close')}
+      />
+
+      {/* Compact picker sheet at bottom */}
+      <View style={[styles.sheet, { backgroundColor: themeColors.surface }]}>
         <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>
             {title}
@@ -130,7 +143,7 @@ export function DateTimePickerModal({
             locale={locale}
           />
         </View>
-      </LiquidGlassView>
+      </View>
     </PanelAwareModal>
   );
 }
@@ -140,8 +153,23 @@ export function DateTimePickerModal({
 // ============================================================
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     flex: 1,
+  },
+  sheet: {
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   header: {
     flexDirection: 'row',
