@@ -2,14 +2,14 @@
  * DateTimePickerModal — App-wide standard date & time picker
  *
  * Wraps @react-native-community/datetimepicker in a PanelAwareModal
- * with theme-aware background and module-specific tint color.
+ * with pageSheet presentation and Liquid Glass background (iOS 26+).
  *
  * This is the ONLY date/time picker component allowed in CommEazy.
  * All screens MUST use this component for date and time selection.
  *
  * Features:
- * - PanelAwareModal (stays within panel on iPad Split View)
- * - Theme-aware surface background with module accent color
+ * - PanelAwareModal with pageSheet (stays within panel on iPad Split View)
+ * - LiquidGlassView with module-specific tint color (iOS 26+)
  * - Native iOS spinner / Android default picker
  * - "Gereed" (Done) button with module accent color
  * - Locale-aware via i18n
@@ -35,6 +35,7 @@ import { useTranslation } from 'react-i18next';
 
 import { HapticTouchable } from './HapticTouchable';
 import { PanelAwareModal } from './PanelAwareModal';
+import { LiquidGlassView } from './LiquidGlassView';
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
@@ -97,40 +98,39 @@ export function DateTimePickerModal({
     <PanelAwareModal
       visible={visible}
       animationType="slide"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
       moduleId={moduleId}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: themeColors.surface }]}>
-          <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-            <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-              {title}
+      <LiquidGlassView moduleId={moduleId} style={styles.container} cornerRadius={0}>
+        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+            {title}
+          </Text>
+          <HapticTouchable
+            style={[styles.doneButton, { backgroundColor: moduleColor }]}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.done')}
+          >
+            <Text style={styles.doneButtonText}>
+              {t('common.done')}
             </Text>
-            <HapticTouchable
-              style={[styles.doneButton, { backgroundColor: moduleColor }]}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.done')}
-            >
-              <Text style={styles.doneButtonText}>
-                {t('common.done')}
-              </Text>
-            </HapticTouchable>
-          </View>
-          <View style={styles.pickerContainer}>
-            <DateTimePicker
-              value={value}
-              mode={mode}
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onChange}
-              minimumDate={minimumDate}
-              maximumDate={maximumDate}
-              is24Hour={is24Hour}
-              locale={locale}
-            />
-          </View>
+          </HapticTouchable>
         </View>
-      </View>
+        <View style={styles.pickerContainer}>
+          <DateTimePicker
+            value={value}
+            mode={mode}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onChange}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
+            is24Hour={is24Hour}
+            locale={locale}
+          />
+        </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }
@@ -140,15 +140,8 @@ export function DateTimePickerModal({
 // ============================================================
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
   container: {
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    overflow: 'hidden',
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

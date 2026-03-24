@@ -1,23 +1,22 @@
 /**
  * ColorPickerModal — App-wide standard color picker
  *
- * Wraps a color grid in a PanelAwareModal with theme-aware background
- * and consistent bottom-sheet presentation.
+ * Wraps a color grid in a PanelAwareModal with pageSheet presentation
+ * and Liquid Glass background (iOS 26+).
  *
  * This is the ONLY color picker component allowed in CommEazy.
  * All screens MUST use this component for color selection.
  *
  * Features:
- * - PanelAwareModal (stays within panel on iPad Split View)
- * - Bottom-sheet pattern with semi-transparent overlay (consistent with DateTimePickerModal)
- * - LiquidGlassView with module-specific tint color
+ * - PanelAwareModal with pageSheet (stays within panel on iPad Split View)
+ * - LiquidGlassView with module-specific tint color (iOS 26+)
  * - Generic type support for different color value types
  * - Senior-inclusive: 60pt+ touch targets, clear visual feedback
  * - "Gereed" (Done) button always visible at bottom
  *
  * Replaces: Inline ColorPickerModal in AppearanceSettingsScreen + ModuleColorsScreen
  *
- * @see src/components/DateTimePickerModal.tsx (same bottom-sheet pattern)
+ * @see src/components/DateTimePickerModal.tsx (same pageSheet + LiquidGlassView pattern)
  */
 
 import React from 'react';
@@ -94,57 +93,56 @@ export function ColorPickerModal<T extends string>({
     <PanelAwareModal
       visible={visible}
       animationType="slide"
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
       moduleId={moduleId}
     >
-      <View style={styles.overlay}>
-        <LiquidGlassView moduleId={moduleId} style={styles.container} cornerRadius={0}>
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
-            <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-              {title}
+      <LiquidGlassView moduleId={moduleId} style={styles.container} cornerRadius={0}>
+        {/* Header */}
+        <View style={[styles.header, { borderBottomColor: themeColors.border }]}>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>
+            {title}
+          </Text>
+        </View>
+
+        {/* Color Grid */}
+        <View style={styles.content}>
+          <View style={styles.colorGrid}>
+            {colorOptions.map((option) => (
+              <HapticTouchable hapticDisabled
+                key={option.value}
+                style={[
+                  styles.colorSwatch,
+                  { backgroundColor: option.hex },
+                  selectedValue === option.value && styles.colorSwatchSelected,
+                ]}
+                onPress={() => handleSelect(option.value)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedValue === option.value }}
+                accessibilityLabel={option.label}
+              >
+                {selectedValue === option.value && (
+                  <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
+                )}
+              </HapticTouchable>
+            ))}
+          </View>
+        </View>
+
+        {/* Done button at bottom */}
+        <View style={[styles.footer, { borderTopColor: themeColors.border }]}>
+          <HapticTouchable hapticDisabled
+            style={[styles.doneButton, { backgroundColor: accentColor.primary }]}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.done')}
+          >
+            <Text style={styles.doneButtonText}>
+              {t('common.done')}
             </Text>
-          </View>
-
-          {/* Color Grid */}
-          <View style={styles.content}>
-            <View style={styles.colorGrid}>
-              {colorOptions.map((option) => (
-                <HapticTouchable hapticDisabled
-                  key={option.value}
-                  style={[
-                    styles.colorSwatch,
-                    { backgroundColor: option.hex },
-                    selectedValue === option.value && styles.colorSwatchSelected,
-                  ]}
-                  onPress={() => handleSelect(option.value)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selectedValue === option.value }}
-                  accessibilityLabel={option.label}
-                >
-                  {selectedValue === option.value && (
-                    <Icon name="checkmark" size={24} color={colors.textOnPrimary} />
-                  )}
-                </HapticTouchable>
-              ))}
-            </View>
-          </View>
-
-          {/* Done button at bottom */}
-          <View style={[styles.footer, { borderTopColor: themeColors.border }]}>
-            <HapticTouchable hapticDisabled
-              style={[styles.doneButton, { backgroundColor: accentColor.primary }]}
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.done')}
-            >
-              <Text style={styles.doneButtonText}>
-                {t('common.done')}
-              </Text>
-            </HapticTouchable>
-          </View>
-        </LiquidGlassView>
-      </View>
+          </HapticTouchable>
+        </View>
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }
@@ -154,15 +152,8 @@ export function ColorPickerModal<T extends string>({
 // ============================================================
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
   container: {
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    overflow: 'hidden',
+    flex: 1,
   },
   header: {
     padding: spacing.lg,
