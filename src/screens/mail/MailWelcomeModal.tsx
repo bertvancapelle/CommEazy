@@ -3,19 +3,18 @@
  *
  * Shown when the user opens the mail module for the first time.
  * Displays numbered steps explaining the setup process.
- * Uses AsyncStorage key: `mail_welcome_shown`.
+ * State is managed by MailScreen.tsx (AsyncStorage key: `mail_welcome_shown`).
  *
  * @see .claude/plans/MAIL_MODULE_PROMPT.md — Fase 8
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { typography, touchTargets, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
@@ -23,12 +22,6 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { Button, Icon, PanelAwareModal } from '@/components';
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
-
-// ============================================================
-// Constants
-// ============================================================
-
-const WELCOME_SHOWN_KEY = '@commeazy/mail_welcome_shown';
 
 // ============================================================
 // Types
@@ -39,34 +32,6 @@ export interface MailWelcomeModalProps {
   visible: boolean;
   /** Called when modal is dismissed */
   onDismiss: () => void;
-}
-
-// ============================================================
-// Hook: useMailWelcome
-// ============================================================
-
-/**
- * Check if the mail welcome modal should be shown.
- *
- * @returns [shouldShow, markAsShown]
- */
-export function useMailWelcome(): [boolean, () => Promise<void>] {
-  const [shouldShow, setShouldShow] = useState(false);
-
-  useEffect(() => {
-    AsyncStorage.getItem(WELCOME_SHOWN_KEY).then((value) => {
-      if (!value) {
-        setShouldShow(true);
-      }
-    });
-  }, []);
-
-  const markAsShown = useCallback(async () => {
-    await AsyncStorage.setItem(WELCOME_SHOWN_KEY, 'true');
-    setShouldShow(false);
-  }, []);
-
-  return [shouldShow, markAsShown];
 }
 
 // ============================================================
