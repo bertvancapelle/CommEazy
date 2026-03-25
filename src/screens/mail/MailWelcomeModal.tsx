@@ -15,12 +15,11 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { typography, touchTargets, borderRadius, spacing } from '@/theme';
+import { typography, borderRadius, spacing } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Button, Icon, PanelAwareModal } from '@/components';
-import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout, useModalLayoutBottom } from '@/components/ModalLayout';
 
 // ============================================================
@@ -86,15 +85,14 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
       onRequestClose={handleDismiss}
     >
       <View style={styles.overlay}>
-        <LiquidGlassView
-          moduleId="mail"
+        <View
           style={[
             styles.card,
             {
+              backgroundColor: themeColors.surface,
               shadowColor: '#000',
             },
           ]}
-          cornerRadius={borderRadius.lg}
         >
           <ModalLayout
             headerBlock={
@@ -144,7 +142,7 @@ export function MailWelcomeModal({ visible, onDismiss }: MailWelcomeModalProps) 
               />
             }
           />
-        </LiquidGlassView>
+        </View>
       </View>
     </PanelAwareModal>
   );
