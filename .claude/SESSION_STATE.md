@@ -6,39 +6,35 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-25
-- **Sessie:** Form Field Styling documentatie update + hook-based label/field styling
-- **Commit:** `f07469d`
+- **Sessie:** Mail overlay PNA-analyse + dead code cleanup
+- **Commit:** `02e85bd`
 
 ## Voltooide Taken Deze Sessie
 
-1. **useLabelStyle + useFieldTextStyle op 6 formulier-schermen** (commit `bb9e9f9`)
-   - ProfileSettingsScreen, ContactDetailScreen, ManualAddContactScreen, AgendaItemFormScreen, MailComposeScreen, ProfileStep1Screen
-   - Labels volgen nu `FieldTextStyleContext` (kleur, fontWeight, fontStyle)
-   - Veldteksten volgen nu `FieldTextStyleContext`
+1. **PNA-analyse: Mail module transparante overlay na rebuild** (geen code fix nodig)
+   - Gebruiker meldde onzichtbare overlay die touches blokkeerde op mail module na rebuild
+   - Oorzaak: Native `<Modal>` uit-of-sync met JS state na rebuild (development-only edge case)
+   - De `MailWelcomeModal` gebruikt `PanelAwareModal` met `transparent` + `rgba(0,0,0,0.5)` overlay
+   - Na rebuild persisteert de native Modal maar JS bundle heeft AsyncStorage read nog niet getriggerd
+   - Workaround: navigeer weg van mail en terug, of herlaad de app
+   - **Geen productie-impact** — alleen bij development rebuilds
 
-2. **Borders op view-mode velden + labelStyle/fieldTextStyle op ContactDetailScreen** (commit `d3316ed`)
-   - ProfileSettingsScreen: readOnlyValue style met borders in view mode
-   - ContactDetailScreen: useLabelStyle + useFieldTextStyle + borders
-   - Issue 2 (field styling/borders in view mode) OPGELOST
+2. **Dead code cleanup in MailWelcomeModal.tsx** (commit `02e85bd`)
+   - Verwijderd: `WELCOME_SHOWN_KEY` constante (`'@commeazy/mail_welcome_shown'`)
+   - Verwijderd: `useMailWelcome()` hook (nergens geïmporteerd, nooit gebruikt)
+   - Verwijderd: ongebruikte imports (`AsyncStorage`, `useEffect`, `useState`)
+   - Bijgewerkt: docstring verwijst nu naar MailScreen.tsx als state manager
+   - Achtergrond: AsyncStorage key mismatch — MailScreen.tsx gebruikt `'mail_welcome_shown'`, MailWelcomeModal.tsx had `'@commeazy/mail_welcome_shown'` (dead code)
 
-3. **CLAUDE.md Form Field Styling sectie bijgewerkt** (commit `f07469d`)
-   - Regel 3: "Labels always bold" → "Labels volgen instellingen" (useLabelStyle())
-   - Regel 5: "Bordered interactive elements" → "Bordered elements (edit EN view mode)"
-   - NIEUW Regel 7: veldteksten volgen instellingen (useFieldTextStyle())
-   - NIEUW Regel 8: hooks VERPLICHT op alle formulier-schermen
-   - Alle code voorbeelden bijgewerkt met volledige hook patterns + JSX usage
-   - Nieuw read-only/view-mode voorbeeld met borders
-   - BLOKKEERDER rij toegevoegd in Automatische Triggers tabel
-
-4. **Vorige sessies (behouden context):**
+3. **Vorige sessies (behouden context):**
+   - useLabelStyle + useFieldTextStyle hooks op 6 formulier-schermen (commit `bb9e9f9`)
+   - Borders op view-mode velden + styling op ContactDetailScreen (commit `d3316ed`)
+   - CLAUDE.md Form Field Styling sectie bijgewerkt (commit `f07469d`)
    - PanelAwareModal panelId 'main' fix (commit `815b605`)
    - PanelAwareModal effectiveTransparent fix (commit `46dec4c`)
    - DateTimePickerModal compact bottom-sheet (commit `46dec4c`)
    - Shared ColorPickerModal component (commit `9377ec6`)
    - Required field validation op ProfileSettingsScreen (commit `ffb2789`)
-   - Date picker timezone off-by-one fix
-   - ProfileSettings cursor jumping fix (getIsDirty useCallback)
-   - View/Edit mode op ProfileSettingsScreen
    - ContactAvatar uniform — presence + badge on ALL 12 consumer screens
 
 ## Openstaande Taken
@@ -56,14 +52,13 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Regel 3 vervangen (niet augmenteren) | Hardcoded `fontWeight: '700'` in documentatie contradiceerde het hook-based systeem. StyleSheet behoudt fallback, inline style van hook overschrijft. |
-| Regel 5 uitbreiden naar view mode | Borders in view mode geven visuele consistentie en structuur voor senioren, ongeacht edit/view status. |
-| Volledige hook voorbeelden in CLAUDE.md | Compacte referenties zouden niet duidelijk genoeg zijn — volledige JSX usage voorkomt fouten bij nieuwe sessies. |
-| BLOKKEERDER in Automatische Triggers | Zonder blokkeerder worden hooks vergeten op nieuwe formulier-schermen, waardoor gebruikersinstellingen genegeerd worden. |
+| Mail overlay is development-only edge case | Native Modal persisteert over JS bundle reload heen. Geen productie-impact want app start altijd met `showWelcome=false` en leest AsyncStorage asynchroon. |
+| Dead code verwijderen ipv key aligneren | `useMailWelcome()` hook was nergens geïmporteerd. MailScreen.tsx beheert de state al correct met eigen key. Hook verwijderen is schoner dan keys aligneren voor ongebruikte code. |
 
 ## Context voor Volgende Sessie
 
-- **Form Field Styling:** 8 regels in CLAUDE.md (was 6). Hooks `useLabelStyle()` + `useFieldTextStyle()` uit `FieldTextStyleContext` zijn VERPLICHT op alle formulier-schermen.
+- **Mail module state management:** MailScreen.tsx beheert `showWelcome` state direct (eigen useEffect + AsyncStorage key `'mail_welcome_shown'`). MailWelcomeModal.tsx is nu een pure presentatie-component (visible + onDismiss props).
+- **Form Field Styling:** 8 regels in CLAUDE.md. Hooks `useLabelStyle()` + `useFieldTextStyle()` uit `FieldTextStyleContext` zijn VERPLICHT op alle formulier-schermen.
 - **Geadopteerde schermen:** ProfileSettingsScreen, ContactDetailScreen, ManualAddContactScreen, AgendaItemFormScreen, MailComposeScreen, ProfileStep1Screen — allemaal met hooks + borders
 - **PanelAwareModal:** Twee fixes actief: (1) `panelId !== 'main'` check op regel 62, (2) `effectiveTransparent` logica op regel 71
 - **UnifiedFullPlayer:** `isInPanel` check op regel 193 — `panelId !== null && panelId !== 'main'`
