@@ -1728,9 +1728,14 @@ SESSION_STATE.md is bijgewerkt. Alle openstaande zaken zijn vastgelegd.
 
 1. **Valideer Prosody status:**
    ```bash
-   prosodyctl status
+   /opt/homebrew/bin/prosodyctl status
    ```
-   - Als Prosody NIET draait: Meld dit aan gebruiker met `prosodyctl start` commando
+   - Als Prosody NIET draait: **Claude start deze automatisch:**
+     ```bash
+     export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH" && /opt/homebrew/bin/prosodyctl start
+     ```
+   - Valideer na start met: `sleep 2 && lsof -i :5280 | head -3`
+   - **NOOIT** alleen melden aan gebruiker — ALTIJD zelf starten
 
 2. **Valideer Metro status:**
    ```bash
@@ -1779,7 +1784,7 @@ SESSION_STATE.md is bijgewerkt. Alle openstaande zaken zijn vastgelegd.
 📦 Config backup: ~/Projects/CommEazy-claude-config-YYYYMMDD.zip
 
 🔍 **Service Status:**
-❌ Prosody: NIET actief — run `prosodyctl start`
+⚠️ Prosody: was NIET actief — automatisch gestart
 ❌ Metro: NIET actief — run:
    cd /Users/bertvancapelle/Projects/CommEazy && npx react-native start --reset-cache --host 0.0.0.0
 ⚠️ Push Gateway: NIET actief — wordt automatisch gestart...
@@ -4079,21 +4084,29 @@ Bij het geven van test- of build-instructies, gebruik ALTIJD Xcode-specifieke co
 - Prosody server beheer
 
 ### Prosody XMPP Server
-**BELANGRIJK:** Prosody is NIET geïnstalleerd via Homebrew!
+**BELANGRIJK:** Prosody is geïnstalleerd via Homebrew (`/opt/homebrew/bin/prosodyctl`). Gebruik ALTIJD het absolute pad vanuit Xcode omgeving.
+
+**⚠️ PATH vereist:** Prosody's `prosodyctl` heeft `lua` nodig in PATH. Vanuit Xcode's bash-omgeving is `/opt/homebrew/bin` NIET in PATH. Daarom MOET elk prosodyctl commando worden voorafgegaan door `export PATH=...`.
 
 Prosody locatie en commando's:
 ```bash
-# Start Prosody (handmatige installatie)
-sudo prosodyctl start
+# PATH prefix (VERPLICHT bij ALLE prosodyctl commando's vanuit Xcode)
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+# Start Prosody
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH" && prosodyctl start
 
 # Stop Prosody
-sudo prosodyctl stop
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH" && prosodyctl stop
 
 # Check status
-sudo prosodyctl status
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH" && prosodyctl status
+
+# Herstart Prosody
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH" && prosodyctl restart
 
 # Configuratie
-/etc/prosody/prosody.cfg.lua
+/opt/homebrew/etc/prosody/prosody.cfg.lua
 ```
 
 ### Test Devices
@@ -4130,15 +4143,15 @@ Claude MOET de volgende stappen uitvoeren:
 
 1. **Valideer dat Prosody draait** (VERPLICHT):
    ```bash
-   prosodyctl status
+   /opt/homebrew/bin/prosodyctl status
    ```
-   - Als Prosody NIET draait: Start eerst Prosody:
+   - Als Prosody NIET draait: **Start automatisch:**
      ```bash
-     prosodyctl start
+     export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH" && /opt/homebrew/bin/prosodyctl start
      ```
    - Wacht 2 seconden en valideer opnieuw:
      ```bash
-     sleep 2 && prosodyctl status
+     sleep 2 && /opt/homebrew/bin/prosodyctl status
      ```
 
 2. **Valideer dat Prosody WebSocket luistert** (VERPLICHT):
