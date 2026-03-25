@@ -838,7 +838,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('onboarding.firstName')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {displayFirstName || '-'}
             </Text>
           )}
@@ -863,7 +863,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('onboarding.lastName')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {displayLastName || '-'}
             </Text>
           )}
@@ -889,7 +889,7 @@ export function ProfileSettingsScreen() {
               <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </HapticTouchable>
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {gender ? t(`demographics.gender.${gender}`) : '-'}
             </Text>
           )}
@@ -918,7 +918,7 @@ export function ProfileSettingsScreen() {
               <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </HapticTouchable>
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {formatDateDisplay(birthDate)}
             </Text>
           )}
@@ -947,7 +947,7 @@ export function ProfileSettingsScreen() {
               <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </HapticTouchable>
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {formatDateDisplay(weddingDate)}
             </Text>
           )}
@@ -978,7 +978,7 @@ export function ProfileSettingsScreen() {
               <Icon name="chevron-right" size={20} color={themeColors.textTertiary} />
             </HapticTouchable>
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {addressCountryCode
                 ? `${COUNTRY_FLAGS[addressCountryCode] || ''} ${t(`demographics.countries.${addressCountryCode}`, addressCountryCode)}`
                 : '-'}
@@ -1006,7 +1006,7 @@ export function ProfileSettingsScreen() {
                 accessibilityLabel={t('onboarding.personalDetails.addressPostalCode')}
               />
             ) : (
-              <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+              <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
                 {addressPostalCode || '-'}
               </Text>
             )}
@@ -1029,7 +1029,7 @@ export function ProfileSettingsScreen() {
                 accessibilityLabel={t('onboarding.profileStep2.houseNumber')}
               />
             ) : (
-              <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+              <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
                 {addressHouseNumber || '-'}
               </Text>
             )}
@@ -1063,7 +1063,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('onboarding.personalDetails.addressStreet')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {addressStreet || '-'}
             </Text>
           )}
@@ -1086,7 +1086,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('onboarding.personalDetails.addressCity')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {addressCity || '-'}
             </Text>
           )}
@@ -1109,7 +1109,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('onboarding.profileStep2.provinceLabel')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {addressProvince || '-'}
             </Text>
           )}
@@ -1139,7 +1139,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('profile.personal.emailLabel')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {personalEmail || '-'}
             </Text>
           )}
@@ -1161,7 +1161,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('profile.personal.mobileLabel')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {personalMobile || '-'}
             </Text>
           )}
@@ -1183,7 +1183,7 @@ export function ProfileSettingsScreen() {
               accessibilityLabel={t('profile.personal.landlineLabel')}
             />
           ) : (
-            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+            <Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
               {personalLandline || '-'}
             </Text>
           )}
@@ -1452,7 +1452,12 @@ const styles = StyleSheet.create({
   readOnlyValue: {
     ...typography.body,
     paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     minHeight: touchTargets.comfortable,
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
   },
 });

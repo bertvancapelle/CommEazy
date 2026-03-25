@@ -929,8 +929,8 @@ export function ContactDetailScreen() {
         ) : (
           contact.landlineNumber ? (
             <View style={styles.detailRow}>
-              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.phoneLabel')}</Text>
-              <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.landlineNumber}</Text>
+              <Text style={[styles.detailLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.phoneLabel')}</Text>
+              <Text style={[styles.detailValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>{contact.landlineNumber}</Text>
             </View>
           ) : null
         )}
@@ -955,8 +955,8 @@ export function ContactDetailScreen() {
         ) : (
           contact.email ? (
             <View style={styles.detailRow}>
-              <Text style={[styles.detailLabel, { color: themeColors.textSecondary }]}>{t('contacts.emailLabel')}</Text>
-              <Text style={[styles.detailValue, { color: themeColors.textPrimary }]}>{contact.email}</Text>
+              <Text style={[styles.detailLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.emailLabel')}</Text>
+              <Text style={[styles.detailValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>{contact.email}</Text>
             </View>
           ) : null
         )}
@@ -1154,10 +1154,10 @@ export function ContactDetailScreen() {
           <>
             {/* Birth date display */}
             {contact.birthDate ? (
-              <View style={styles.dateRow}>
+              <View style={[styles.dateRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
                 <View style={styles.dateInfo}>
-                  <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.birthDate')}</Text>
-                  <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                  <Text style={[styles.dateLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.dates.birthDate')}</Text>
+                  <Text style={[styles.dateValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
                     {formatDateDisplay(contact.birthDate)}
                   </Text>
                 </View>
@@ -1182,10 +1182,10 @@ export function ContactDetailScreen() {
 
             {/* Wedding date display */}
             {contact.weddingDate && (
-              <View style={styles.dateRow}>
+              <View style={[styles.dateRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
                 <View style={styles.dateInfo}>
-                  <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.weddingDate')}</Text>
-                  <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                  <Text style={[styles.dateLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.dates.weddingDate')}</Text>
+                  <Text style={[styles.dateValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
                     {formatDateDisplay(contact.weddingDate)}
                   </Text>
                 </View>
@@ -1197,10 +1197,10 @@ export function ContactDetailScreen() {
 
             {/* Death date (only if deceased) */}
             {contact.isDeceased && contact.deathDate && (
-              <View style={styles.dateRow}>
+              <View style={[styles.dateRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
                 <View style={styles.dateInfo}>
-                  <Text style={[styles.dateLabel, { color: themeColors.textSecondary }]}>{t('contacts.dates.deathDate')}</Text>
-                  <Text style={[styles.dateValue, { color: themeColors.textPrimary }]}>
+                  <Text style={[styles.dateLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.dates.deathDate')}</Text>
+                  <Text style={[styles.dateValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
                     {formatDateDisplay(contact.deathDate)}
                   </Text>
                 </View>
@@ -1483,19 +1483,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.xs,
+    marginBottom: spacing.md,
   },
   detailLabel: {
     ...typography.body,
     color: colors.textSecondary,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
   },
   detailValue: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '500',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    minHeight: touchTargets.minimum,
+    backgroundColor: colors.surface,
   },
   // Edit field styles
   editFieldContainer: {
@@ -1566,9 +1571,12 @@ const styles = StyleSheet.create({
   },
   // Date styles
   dateRow: {
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
   },
   dateInfo: {
     flexDirection: 'row',
@@ -1577,14 +1585,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   dateLabel: {
-    ...typography.label,
+    ...typography.body,
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   dateValue: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: '500',
   },
   dateCalculation: {
     ...typography.body,
