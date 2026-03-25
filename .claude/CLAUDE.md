@@ -364,6 +364,7 @@ GEBRUIKER VRAAGT → CLASSIFICATIE → SKILL IDENTIFICATIE → VALIDATIE → RAP
 |-------------------|---------------------------|
 | UI componenten, styling | ui-designer, accessibility-specialist |
 | Formuliervelden, inputs | ui-designer, accessibility-specialist |
+| **Formulierveld labels/teksten styling** | **BLOKKEERDER** — `useLabelStyle()` + `useFieldTextStyle()` hooks VERPLICHT op ALLE formulier-schermen. Zonder deze hooks worden gebruikersinstellingen genegeerd. Zie Form Field Styling sectie regels 3, 7, 8 |
 | **Formulier-scherm toevoegen/wijzigen** | **BLOKKEERDER** — `useScrollToField()` hook VERPLICHT op ALLE schermen met invoervelden (keyboard + modal-return). Zie ui-designer SKILL.md sectie 6b en Component Registry sectie "useScrollToField" |
 | Lijsten met >3 items | ui-designer, accessibility-specialist, react-native-expert |
 | Voice control, spraak | accessibility-specialist, react-native-expert |
@@ -2910,20 +2911,22 @@ Bij het gebruik van Unified AudioPlayer componenten:
 ---
 
 ### Form Field Styling (MANDATORY)
-All interactive form elements must follow these rules:
+All form elements (edit mode AND view/read-only mode) must follow these rules:
 
 1. **Labels ABOVE the field** — Labels are positioned ABOVE the interactive element, NEVER inline inside the border
 2. **Labels OUTSIDE the border** — The label text must be outside/above the bordered area, giving seniors more room to tap the field
-3. **Labels always bold** — Every field label uses `fontWeight: '700'`
+3. **Labels volgen instellingen** — Label kleur, fontWeight en fontStyle komen uit `useLabelStyle()` hook (leest `FieldTextStyleContext`). StyleSheet behoudt `fontWeight: '700'` als fallback, maar inline style van de hook overschrijft dit
 4. **No uppercase labels** — Labels use normal capitalization ("Land", "Taal"), NOT uppercase ("LAND", "TAAL")
-5. **Bordered interactive elements** — All fields, dropdowns, and interactive inputs have a thin border (`borderWidth: 1, borderColor: colors.border`)
+5. **Bordered elements (edit EN view mode)** — ALLE velden hebben een border: edit-mode inputs, pickers, EN read-only/view-mode velden. Altijd `borderWidth: 1, borderColor: themeColors.border, borderRadius: borderRadius.md`
 6. **Consistent picker rows** — Use `borderRadius: borderRadius.md` for rounded corners
+7. **Veldteksten volgen instellingen** — Veldwaarden (picker values, text input values, read-only values) gebruiken `useFieldTextStyle()` hook voor kleur, fontWeight en fontStyle
+8. **Hooks VERPLICHT** — `useLabelStyle()` + `useFieldTextStyle()` zijn VERPLICHT op ALLE formulier-schermen. Zonder deze hooks worden gebruikersinstellingen voor labels en veldteksten genegeerd
 
 **CORRECT layout — label ABOVE, OUTSIDE border:**
 ```
-Land                          ← Label (bold, above, outside border)
+Land                          ← Label (styled via useLabelStyle(), above, outside border)
 ┌─────────────────────────┐
-│ 🇳🇱 Nederland         › │   ← Bordered interactive area
+│ 🇳🇱 Nederland         › │   ← Bordered interactive area (styled via useFieldTextStyle())
 └─────────────────────────┘
 ```
 
@@ -2934,6 +2937,18 @@ Land                          ← Label (bold, above, outside border)
 └─────────────────────────┘
 ```
 
+**Hook setup (VERPLICHT bovenaan elk formulier-component):**
+```typescript
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
+
+function MyFormScreen() {
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
+  const themeColors = useColors();
+  // ...
+}
+```
+
 **Standard picker field style:**
 ```typescript
 // Container wraps label + bordered picker
@@ -2941,9 +2956,9 @@ fieldContainer: {
   marginBottom: spacing.md,
 },
 // Label: ABOVE and OUTSIDE the bordered element
+// StyleSheet fallback — inline style van useLabelStyle() overschrijft
 fieldLabel: {
   ...typography.body,
-  color: colors.textPrimary,
   fontWeight: '700',
   marginBottom: spacing.xs,
 },
@@ -2959,11 +2974,21 @@ pickerRow: {
   padding: spacing.md,
   minHeight: touchTargets.comfortable,
 },
+// StyleSheet fallback — inline style van useFieldTextStyle() overschrijft
 pickerValue: {
   ...typography.body,
-  color: colors.textPrimary,
   flex: 1,
 },
+
+// JSX usage:
+<Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+  {t('label.country')}
+</Text>
+<HapticTouchable style={[styles.pickerRow, { borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
+  <Text style={[styles.pickerValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}>
+    {selectedCountry}
+  </Text>
+</HapticTouchable>
 ```
 
 **Standard text input style:**
@@ -2973,10 +2998,10 @@ inputContainer: {
   marginBottom: spacing.md,
 },
 // Label: ABOVE and OUTSIDE the bordered element
+// StyleSheet fallback — inline style van useLabelStyle() overschrijft
 inputLabel: {
   ...typography.body,
   fontWeight: '700',
-  color: colors.textPrimary,
   marginBottom: spacing.xs,
 },
 // Bordered input area
@@ -2987,10 +3012,42 @@ textInput: {
   borderRadius: borderRadius.md,
   paddingHorizontal: spacing.md,
   paddingVertical: spacing.md,
-  color: colors.textPrimary,
   backgroundColor: colors.surface,
   minHeight: touchTargets.comfortable,
 },
+
+// JSX usage:
+<Text style={[styles.inputLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+  {t('label.name')}
+</Text>
+<TextInput
+  style={[styles.textInput, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}
+  value={name}
+  onChangeText={setName}
+/>
+```
+
+**Standard read-only/view-mode field style:**
+```typescript
+// Read-only value — MUST also have border (consistent with edit mode)
+readOnlyValue: {
+  ...typography.body,
+  borderWidth: 1,
+  borderColor: colors.border,
+  borderRadius: borderRadius.md,
+  paddingHorizontal: spacing.md,
+  paddingVertical: spacing.md,
+  backgroundColor: colors.surface,
+  minHeight: touchTargets.comfortable,
+},
+
+// JSX usage:
+<Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+  {t('label.name')}
+</Text>
+<Text style={[styles.readOnlyValue, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border, backgroundColor: themeColors.surface }]}>
+  {user.name}
+</Text>
 ```
 
 **Section title style (for grouping fields):**
