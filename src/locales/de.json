@@ -2167,6 +2167,15 @@
         "hint": "Richte dein E-Mail-Konto ein, um Nachrichten zu lesen und zu versenden.",
         "setupButton": "E-Mail einrichten"
       },
+      "emailRequired": {
+        "title": "E-Mail-Adresse erforderlich",
+        "subtitle": "Keine E-Mail-Adresse in Ihrem Profil gefunden. Bitte geben Sie Ihre E-Mail-Adresse ein, um fortzufahren.",
+        "label": "E-Mail-Adresse",
+        "placeholder": "name@beispiel.de",
+        "continue": "Weiter",
+        "errorEmpty": "Bitte geben Sie eine E-Mail-Adresse ein",
+        "errorInvalid": "Dies ist keine gültige E-Mail-Adresse"
+      },
       "inbox": {
         "yesterday": "Gestern",
         "unknownSender": "Unbekannter Absender",

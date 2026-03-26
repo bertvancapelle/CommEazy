@@ -2011,6 +2011,15 @@
         "hint": "Opsæt din e-mailkonto for at læse og sende beskeder.",
         "setupButton": "Opsæt e-mail"
       },
+      "emailRequired": {
+        "title": "E-mailadresse påkrævet",
+        "subtitle": "Ingen e-mailadresse fundet i din profil. Indtast venligst din e-mailadresse for at fortsætte.",
+        "label": "E-mailadresse",
+        "placeholder": "navn@eksempel.dk",
+        "continue": "Fortsæt",
+        "errorEmpty": "Indtast venligst en e-mailadresse",
+        "errorInvalid": "Dette er ikke en gyldig e-mailadresse"
+      },
       "inbox": {
         "yesterday": "I går",
         "unknownSender": "Ukendt afsender",

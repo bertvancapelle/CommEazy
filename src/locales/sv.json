@@ -2011,6 +2011,15 @@
         "hint": "Konfigurera ditt e-postkonto för att läsa och skicka meddelanden.",
         "setupButton": "Konfigurera e-post"
       },
+      "emailRequired": {
+        "title": "E-postadress krävs",
+        "subtitle": "Ingen e-postadress hittades i din profil. Ange din e-postadress för att fortsätta.",
+        "label": "E-postadress",
+        "placeholder": "namn@exempel.se",
+        "continue": "Fortsätt",
+        "errorEmpty": "Ange en e-postadress",
+        "errorInvalid": "Detta är inte en giltig e-postadress"
+      },
       "inbox": {
         "yesterday": "Igår",
         "unknownSender": "Okänd avsändare",

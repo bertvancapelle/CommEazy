@@ -2041,6 +2041,15 @@
         "hint": "Sett opp e-postkontoen din for å lese og sende meldinger.",
         "setupButton": "Sett opp e-post"
       },
+      "emailRequired": {
+        "title": "E-postadresse påkrevd",
+        "subtitle": "Ingen e-postadresse funnet i profilen din. Vennligst oppgi e-postadressen din for å fortsette.",
+        "label": "E-postadresse",
+        "placeholder": "navn@eksempel.no",
+        "continue": "Fortsett",
+        "errorEmpty": "Vennligst oppgi en e-postadresse",
+        "errorInvalid": "Dette er ikke en gyldig e-postadresse"
+      },
       "inbox": {
         "yesterday": "I går",
         "unknownSender": "Ukjent avsender",

@@ -2171,6 +2171,15 @@
         "hint": "Set up your email account to read and send messages.",
         "setupButton": "Set up email"
       },
+      "emailRequired": {
+        "title": "Email address required",
+        "subtitle": "No email address found in your profile. Please enter your email address to continue.",
+        "label": "Email address",
+        "placeholder": "name@example.co.uk",
+        "continue": "Continue",
+        "errorEmpty": "Please enter an email address",
+        "errorInvalid": "This is not a valid email address"
+      },
       "inbox": {
         "yesterday": "Yesterday",
         "unknownSender": "Unknown sender",

@@ -2167,6 +2167,15 @@
         "hint": "Configurez votre compte e-mail pour lire et envoyer des messages.",
         "setupButton": "Configurer l'e-mail"
       },
+      "emailRequired": {
+        "title": "Adresse e-mail requise",
+        "subtitle": "Aucune adresse e-mail trouvée dans votre profil. Veuillez saisir votre adresse e-mail pour continuer.",
+        "label": "Adresse e-mail",
+        "placeholder": "nom@exemple.fr",
+        "continue": "Continuer",
+        "errorEmpty": "Veuillez saisir une adresse e-mail",
+        "errorInvalid": "Ceci n'est pas une adresse e-mail valide"
+      },
       "inbox": {
         "yesterday": "Hier",
         "unknownSender": "Expéditeur inconnu",

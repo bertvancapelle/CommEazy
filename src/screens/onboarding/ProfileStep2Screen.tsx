@@ -2,7 +2,7 @@
  * ProfileStep2Screen — "Waar woon je?"
  *
  * New field order optimized for GISCO Address API auto-lookup:
- *   Land* → Postcode* → Huisnummer → [auto-lookup] → Straat → Stad* → Provincie
+ *   Land* → Postcode* → Huisnummer* → [auto-lookup] → Straat → Stad → Provincie
  *
  * When country is EU + exactly 1 GISCO result: auto-fills street, city, province.
  * Otherwise: fields stay empty for manual entry (silent fallback).
@@ -17,6 +17,7 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   TextInput as RNTextInput,
@@ -32,6 +33,7 @@ import { Button, TextInput, ProgressIndicator, ErrorView, HapticTouchable, Scrol
 import { LiquidGlassView } from '@/components/LiquidGlassView';
 import { ModalLayout } from '@/components/ModalLayout';
 import { useFeedback } from '@/hooks/useFeedback';
+import { useScrollToField } from '@/hooks/useScrollToField';
 import { ServiceContainer } from '@/services/container';
 import { lookupAddress, isGISCOSupported } from '@/services/addressLookupService';
 import type { OnboardingStackParams } from '@/navigation';
@@ -127,6 +129,10 @@ export function ProfileStep2Screen({ navigation }: Props) {
   const labelStyle = useLabelStyle();
   const fieldTextStyle = useFieldTextStyle();
   const { triggerFeedback } = useFeedback();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
+
+  // Validation: tracks which required field is currently invalid (light-red highlight)
+  const [invalidField, setInvalidField] = useState<string | null>(null);
 
   // Fields in new order: Land → Postcode → Huisnummer → Straat → Stad → Provincie
   const [countryCode, setCountryCode] = useState<string | undefined>();
@@ -204,24 +210,33 @@ export function ProfileStep2Screen({ navigation }: Props) {
     }
   }, [addressPostalCode, performLookup]);
 
-  // Required: country, postcode, city
+  // Required: country, postcode, houseNumber
   const isValid = Boolean(
     countryCode &&
     addressPostalCode.trim() &&
-    addressCity.trim(),
+    houseNumber.trim(),
   );
 
   const handleContinue = useCallback(async () => {
     void triggerFeedback('tap');
+    Keyboard.dismiss();
 
-    if (!isValid) {
-      setNotification({
-        type: 'warning',
-        title: t('onboarding.profileStep2.incompleteTitle'),
-        message: t('onboarding.profileStep2.incompleteMessage'),
-      });
+    // Validate required fields — scroll to first empty field + highlight
+    const requiredFields: { key: string; value: string | undefined }[] = [
+      { key: 'country', value: countryCode },
+      { key: 'postalCode', value: addressPostalCode.trim() || undefined },
+      { key: 'houseNumber', value: houseNumber.trim() || undefined },
+    ];
+    const firstEmpty = requiredFields.find(f => !f.value);
+    if (firstEmpty) {
+      void triggerFeedback('warning');
+      setInvalidField(firstEmpty.key);
+      scrollToField(firstEmpty.key, { isModalReturn: false });
       return;
     }
+
+    // Clear any previous validation error
+    setInvalidField(null);
 
     setIsSaving(true);
     try {
@@ -252,13 +267,29 @@ export function ProfileStep2Screen({ navigation }: Props) {
     } finally {
       setIsSaving(false);
     }
-  }, [countryCode, addressStreet, addressPostalCode, addressCity, addressProvince, isValid, navigation, t, triggerFeedback]);
+  }, [countryCode, addressStreet, addressPostalCode, houseNumber, addressCity, addressProvince, navigation, scrollToField, t, triggerFeedback]);
 
   // Build picker options
   const countryOptions = COUNTRIES.map(code => ({
     value: code,
     label: `${COUNTRY_FLAGS[code]} ${t(`demographics.countries.${code}`, code)}`,
   }));
+
+  // Clear validation highlight reactively when the invalid field is filled
+  useEffect(() => {
+    if (!invalidField) return;
+    const fieldValues: Record<string, string | undefined> = {
+      country: countryCode,
+      postalCode: addressPostalCode.trim() || undefined,
+      houseNumber: houseNumber.trim() || undefined,
+    };
+    if (fieldValues[invalidField]) {
+      setInvalidField(null);
+    }
+  }, [invalidField, countryCode, addressPostalCode, houseNumber]);
+
+  // Red asterisk for required fields
+  const requiredMark = <Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>;
 
   // Show GISCO indicator when country is EU
   const showGISCOHint = countryCode && isGISCOSupported(countryCode);
@@ -273,9 +304,12 @@ export function ProfileStep2Screen({ navigation }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 100}
       >
         <ScrollViewWithIndicator
+          ref={scrollRef}
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          onScroll={handleScrollToField}
+          scrollEventThrottle={16}
         >
           <Text style={[styles.title, { color: themeColors.textPrimary }]}>
             {t('onboarding.profileStep2.title')}
@@ -294,9 +328,9 @@ export function ProfileStep2Screen({ navigation }: Props) {
           )}
 
           {/* 1. Country picker (required) */}
-          <View style={styles.inputGroup}>
+          <View style={[styles.inputGroup, invalidField === 'country' && styles.invalidFieldHighlight]} ref={registerField('country')}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
-              {t('demographics.countryLabel')} <Text style={styles.requiredStar}>*</Text>
+              {t('demographics.countryLabel')}{requiredMark}
             </Text>
             <HapticTouchable
               onPress={() => setCountryPickerVisible(true)}
@@ -315,9 +349,9 @@ export function ProfileStep2Screen({ navigation }: Props) {
 
           {/* 2. Postcode + House number row */}
           <View style={styles.addressRow}>
-            <View style={styles.postalCodeWrapper}>
+            <View style={[styles.postalCodeWrapper, invalidField === 'postalCode' && styles.invalidFieldHighlight]} ref={registerField('postalCode')}>
               <TextInput
-                label={`${t('onboarding.personalDetails.addressPostalCode')} *`}
+                label={<Text>{t('onboarding.personalDetails.addressPostalCode')}{requiredMark}</Text>}
                 value={addressPostalCode}
                 onChangeText={(text) => {
                   setAddressPostalCode(text);
@@ -328,13 +362,14 @@ export function ProfileStep2Screen({ navigation }: Props) {
                 returnKeyType="next"
                 onSubmitEditing={() => houseNumberRef.current?.focus()}
                 onBlur={handlePostalCodeBlur}
+                onFocus={getFieldFocusHandler('postalCode')}
                 accessibilityLabel={t('onboarding.personalDetails.addressPostalCode')}
               />
             </View>
-            <View style={styles.houseNumberWrapper}>
+            <View style={[styles.houseNumberWrapper, invalidField === 'houseNumber' && styles.invalidFieldHighlight]} ref={registerField('houseNumber')}>
               <TextInput
                 ref={houseNumberRef}
-                label={t('onboarding.profileStep2.houseNumber')}
+                label={<Text>{t('onboarding.profileStep2.houseNumber')}{requiredMark}</Text>}
                 value={houseNumber}
                 onChangeText={(text) => {
                   setHouseNumber(text);
@@ -344,6 +379,7 @@ export function ProfileStep2Screen({ navigation }: Props) {
                 returnKeyType="next"
                 onSubmitEditing={() => streetRef.current?.focus()}
                 onBlur={handleHouseNumberBlur}
+                onFocus={getFieldFocusHandler('houseNumber')}
                 accessibilityLabel={t('onboarding.profileStep2.houseNumber')}
               />
             </View>
@@ -372,10 +408,10 @@ export function ProfileStep2Screen({ navigation }: Props) {
             accessibilityLabel={t('onboarding.personalDetails.addressStreet')}
           />
 
-          {/* 4. City (auto-filled or manual, required) */}
+          {/* 4. City (auto-filled or manual) */}
           <TextInput
             ref={cityRef}
-            label={`${t('onboarding.personalDetails.addressCity')} *`}
+            label={t('onboarding.personalDetails.addressCity')}
             value={addressCity}
             onChangeText={setAddressCity}
             placeholder={t('onboarding.personalDetails.cityPlaceholder')}
@@ -418,7 +454,10 @@ export function ProfileStep2Screen({ navigation }: Props) {
         options={countryOptions}
         selectedValue={countryCode}
         onSelect={handleCountrySelect}
-        onClose={() => setCountryPickerVisible(false)}
+        onClose={() => {
+          setCountryPickerVisible(false);
+          scrollToField('country', { isModalReturn: true });
+        }}
       />
     </SafeAreaView>
   );
@@ -493,10 +532,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: spacing.xs,
   },
-  requiredStar: {
-    color: '#D32F2F',
-    fontWeight: '700',
-  },
   inputGroup: {
     marginBottom: spacing.md,
   },
@@ -536,5 +571,11 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  invalidFieldHighlight: {
+    backgroundColor: 'rgba(255, 0, 0, 0.08)',
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    marginHorizontal: -spacing.xs,
   },
 });

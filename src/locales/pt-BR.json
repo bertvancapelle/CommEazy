@@ -2186,6 +2186,15 @@
         "hint": "Configure sua conta de e-mail para ler e enviar mensagens.",
         "setupButton": "Configurar e-mail"
       },
+      "emailRequired": {
+        "title": "Endereço de e-mail necessário",
+        "subtitle": "Nenhum endereço de e-mail encontrado no seu perfil. Insira seu endereço de e-mail para continuar.",
+        "label": "Endereço de e-mail",
+        "placeholder": "nome@exemplo.com.br",
+        "continue": "Continuar",
+        "errorEmpty": "Insira um endereço de e-mail",
+        "errorInvalid": "Este não é um endereço de e-mail válido"
+      },
       "inbox": {
         "yesterday": "Ontem",
         "unknownSender": "Remetente desconhecido",

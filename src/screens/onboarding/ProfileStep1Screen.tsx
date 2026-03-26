@@ -8,7 +8,7 @@
  *   PinSetup → ProfileStep1 → ProfileStep2 → ProfileStep3 → NavigationTutorial
  */
 
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -89,6 +89,9 @@ export function ProfileStep1Screen({ navigation }: Props) {
     message: string;
   } | null>(null);
 
+  // Validation: tracks which required field is currently invalid (light-red highlight)
+  const [invalidField, setInvalidField] = useState<string | null>(null);
+
   const lastNameRef = useRef<RNTextInput>(null);
 
   const isValid = Boolean(
@@ -100,15 +103,25 @@ export function ProfileStep1Screen({ navigation }: Props) {
 
   const handleContinue = useCallback(async () => {
     void triggerFeedback('tap');
+    Keyboard.dismiss();
 
-    if (!isValid) {
-      setNotification({
-        type: 'warning',
-        title: t('onboarding.profileStep1.incompleteTitle'),
-        message: t('onboarding.profileStep1.incompleteMessage'),
-      });
+    // Validate required fields — scroll to first empty field + highlight
+    const requiredFields: { key: string; value: string | undefined }[] = [
+      { key: 'firstName', value: firstName.trim().length >= 2 ? firstName.trim() : undefined },
+      { key: 'lastName', value: lastName.trim().length >= 1 ? lastName.trim() : undefined },
+      { key: 'gender', value: gender },
+      { key: 'birthDate', value: birthDate },
+    ];
+    const firstEmpty = requiredFields.find(f => !f.value);
+    if (firstEmpty) {
+      void triggerFeedback('warning');
+      setInvalidField(firstEmpty.key);
+      scrollToField(firstEmpty.key, { isModalReturn: false });
       return;
     }
+
+    // Clear any previous validation error
+    setInvalidField(null);
 
     setIsSaving(true);
     try {
@@ -136,7 +149,24 @@ export function ProfileStep1Screen({ navigation }: Props) {
     } finally {
       setIsSaving(false);
     }
-  }, [firstName, lastName, gender, birthDate, weddingDate, isValid, navigation, t, triggerFeedback]);
+  }, [firstName, lastName, gender, birthDate, weddingDate, isValid, navigation, scrollToField, t, triggerFeedback]);
+
+  // Clear validation highlight reactively when the invalid field is filled
+  useEffect(() => {
+    if (!invalidField) return;
+    const fieldValues: Record<string, string | undefined> = {
+      firstName: firstName.trim().length >= 2 ? firstName.trim() : undefined,
+      lastName: lastName.trim().length >= 1 ? lastName.trim() : undefined,
+      gender,
+      birthDate,
+    };
+    if (fieldValues[invalidField]) {
+      setInvalidField(null);
+    }
+  }, [invalidField, firstName, lastName, gender, birthDate]);
+
+  // Red asterisk for required fields
+  const requiredMark = <Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -172,9 +202,9 @@ export function ProfileStep1Screen({ navigation }: Props) {
           )}
 
           {/* First name */}
-          <View ref={registerField('firstName')}>
+          <View style={[invalidField === 'firstName' && styles.invalidFieldHighlight]} ref={registerField('firstName')}>
             <TextInput
-              label={t('onboarding.firstName')}
+              label={<Text>{t('onboarding.firstName')}{requiredMark}</Text>}
               value={firstName}
               onChangeText={setFirstName}
               placeholder={t('onboarding.firstNamePlaceholder')}
@@ -189,10 +219,10 @@ export function ProfileStep1Screen({ navigation }: Props) {
           </View>
 
           {/* Last name */}
-          <View ref={registerField('lastName')}>
+          <View style={[invalidField === 'lastName' && styles.invalidFieldHighlight]} ref={registerField('lastName')}>
             <TextInput
               ref={lastNameRef}
-              label={t('onboarding.lastName')}
+              label={<Text>{t('onboarding.lastName')}{requiredMark}</Text>}
               value={lastName}
               onChangeText={setLastName}
               placeholder={t('onboarding.lastNamePlaceholder')}
@@ -205,9 +235,9 @@ export function ProfileStep1Screen({ navigation }: Props) {
           </View>
 
           {/* Gender */}
-          <View style={styles.inputGroup}>
+          <View style={[styles.inputGroup, invalidField === 'gender' && styles.invalidFieldHighlight]} ref={registerField('gender')}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
-              {t('demographics.genderLabel')}
+              {t('demographics.genderLabel')}{requiredMark}
             </Text>
             <View style={styles.genderRow}>
               {GENDER_OPTIONS.map((option) => {
@@ -242,9 +272,9 @@ export function ProfileStep1Screen({ navigation }: Props) {
           </View>
 
           {/* Birth date */}
-          <View ref={registerField('birthDate')} style={styles.inputGroup}>
+          <View ref={registerField('birthDate')} style={[styles.inputGroup, invalidField === 'birthDate' && styles.invalidFieldHighlight]}>
             <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
-              {t('onboarding.personalDetails.birthDate')}
+              {t('onboarding.personalDetails.birthDate')}{requiredMark}
             </Text>
             <HapticTouchable hapticDisabled
               style={[styles.pickerRow, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
@@ -412,5 +442,11 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  invalidFieldHighlight: {
+    backgroundColor: 'rgba(255, 0, 0, 0.08)',
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    marginHorizontal: -spacing.xs,
   },
 });

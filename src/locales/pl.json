@@ -1973,6 +1973,15 @@
         "hint": "Skonfiguruj swoje konto e-mail, aby czytać i wysyłać wiadomości.",
         "setupButton": "Skonfiguruj e-mail"
       },
+      "emailRequired": {
+        "title": "Wymagany adres e-mail",
+        "subtitle": "Nie znaleziono adresu e-mail w Twoim profilu. Wprowadź swój adres e-mail, aby kontynuować.",
+        "label": "Adres e-mail",
+        "placeholder": "nazwa@przyklad.pl",
+        "continue": "Kontynuuj",
+        "errorEmpty": "Wprowadź adres e-mail",
+        "errorInvalid": "To nie jest prawidłowy adres e-mail"
+      },
       "inbox": {
         "yesterday": "Wczoraj",
         "unknownSender": "Nieznany nadawca",

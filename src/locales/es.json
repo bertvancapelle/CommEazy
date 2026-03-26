@@ -2167,6 +2167,15 @@
         "hint": "Configura tu cuenta de correo para leer y enviar mensajes.",
         "setupButton": "Configurar correo"
       },
+      "emailRequired": {
+        "title": "Dirección de correo requerida",
+        "subtitle": "No se encontró una dirección de correo en su perfil. Introduzca su dirección de correo para continuar.",
+        "label": "Dirección de correo",
+        "placeholder": "nombre@ejemplo.es",
+        "continue": "Continuar",
+        "errorEmpty": "Introduzca una dirección de correo",
+        "errorInvalid": "Esta no es una dirección de correo válida"
+      },
       "inbox": {
         "yesterday": "Ayer",
         "unknownSender": "Remitente desconocido",

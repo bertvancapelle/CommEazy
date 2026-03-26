@@ -2115,6 +2115,15 @@
         "hint": "Configura il tuo account e-mail per leggere e inviare messaggi.",
         "setupButton": "Configura e-mail"
       },
+      "emailRequired": {
+        "title": "Indirizzo e-mail richiesto",
+        "subtitle": "Nessun indirizzo e-mail trovato nel tuo profilo. Inserisci il tuo indirizzo e-mail per continuare.",
+        "label": "Indirizzo e-mail",
+        "placeholder": "nome@esempio.it",
+        "continue": "Continua",
+        "errorEmpty": "Inserisci un indirizzo e-mail",
+        "errorInvalid": "Questo non è un indirizzo e-mail valido"
+      },
       "inbox": {
         "yesterday": "Ieri",
         "unknownSender": "Mittente sconosciuto",

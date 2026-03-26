@@ -2177,6 +2177,15 @@
         "hint": "Stel je e-mailaccount in om berichten te lezen en te versturen.",
         "setupButton": "E-mail instellen"
       },
+      "emailRequired": {
+        "title": "E-mailadres vereist",
+        "subtitle": "Geen e-mailadres in uw profiel. Geef uw e-mailadres op om door te kunnen gaan.",
+        "label": "E-mailadres",
+        "placeholder": "naam@voorbeeld.nl",
+        "continue": "Doorgaan",
+        "errorEmpty": "Vul een e-mailadres in",
+        "errorInvalid": "Dit is geen geldig e-mailadres"
+      },
       "inbox": {
         "yesterday": "Gisteren",
         "unknownSender": "Onbekende afzender",
