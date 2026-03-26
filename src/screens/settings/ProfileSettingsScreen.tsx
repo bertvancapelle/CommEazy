@@ -477,12 +477,7 @@ export function ProfileSettingsScreen() {
     if (firstEmpty) {
       void triggerFeedback('warning');
       setInvalidField(firstEmpty.key);
-      setNotification({
-        type: 'error',
-        title: t('profile.validation.requiredTitle'),
-        message: t('profile.validation.requiredMessage'),
-      });
-      // Scroll to the first empty required field
+      // Scroll to the first empty required field (red highlight + auto-scroll is sufficient)
       scrollToField(firstEmpty.key, { isModalReturn: false });
       return;
     }
