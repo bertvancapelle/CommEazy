@@ -6,40 +6,28 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-26
-- **Sessie:** Required field validation op ManualAddContact, MailCompose, CreateGroup
-- **Commit:** `2cb0d4f`
+- **Sessie:** react-native-permissions Podfile fix + AlbumPickerModal empty state
+- **Commit:** `3ff7140`
 
 ## Voltooide Taken Deze Sessie
 
-1. **FEAT: ManualAddContactScreen — required field validation** (commit `2cb0d4f`)
-   - firstName required (≥1 char) + conditional phone (≥1 of landline/mobile)
-   - `invalidField` state + `scrollToField()` + reactive clearing via `useEffect`
-   - Red asterisks on firstName, phoneLandline, phoneMobile
-   - `invalidFieldHighlight` on empty required fields
-   - `phoneValidationError` for "at least one phone number" conditional validation
-   - Added `useLabelStyle()`, `useFieldTextStyle()`, `useFeedback()` hooks
+1. **FIX: react-native-permissions setup_permissions in Podfile** (commit `3ff7140`)
+   - Added `node_require` helper pattern (per RNPermissions v4.1.5 README)
+   - Added `setup_permissions()` with 7 handlers: Camera, Contacts, LocationWhenInUse, Microphone, Notifications, PhotoLibrary, PhotoLibraryAddOnly
+   - `pod install` succesvol — RNPermissions 4.1.5 native handlers gecompileerd
+   - **Root cause:** `check()`/`request()` calls in AlbumPickerModal faalden omdat geen native permission handler was gecompileerd
 
-2. **FEAT: MailComposeScreen — required field validation** (commit `2cb0d4f`)
-   - To (≥1 recipient) and Subject (≥1 char) are required
-   - `invalidField` state + `scrollToField()` + reactive clearing via `useEffect`
-   - Red asterisks on To and Subject fields
-   - `invalidFieldHighlight` on empty required fields
-   - Validate-on-tap pattern (Send button always enabled, validates on press)
+2. **FEAT: AlbumPickerModal empty state voor 0 foto's** (commit `3ff7140`)
+   - Nieuwe branch `photos.length === 0` met Icon + title + hint tekst
+   - Hergebruikt bestaande styles (`loadingContainer`, `errorText`, `errorHint`)
+   - Consistent met `loadError` state UI
 
-3. **FEAT: CreateGroupScreen — required field validation + ErrorView** (commit `2cb0d4f`)
-   - groupName (≥2 chars) required with `invalidField` highlight
-   - Red asterisk on group name field
-   - Validate-on-tap pattern on Step 1 Next button (removed `disabled` prop)
-   - `useLabelStyle()`, `useFieldTextStyle()`, `useFeedback()`, `useScrollToField()` hooks added
-   - `ErrorView` for group creation failure in Step 3 (with retry)
-   - `createError` state with `triggerFeedback('error')` on failure
+3. **i18n: 2 new keys in all 13 locales** (commit `3ff7140`)
+   - `modules.mail.compose.noPhotosTitle` — "Geen foto's gevonden" / "No photos found" / etc.
+   - `modules.mail.compose.noPhotosHint` — "Er staan nog geen foto's op dit apparaat..." / etc.
 
-4. **i18n: 3 new keys in all 13 locales** (commit `2cb0d4f`)
-   - `validation.atLeastOnePhone` — "Vul minimaal één telefoonnummer in"
-   - `group.createErrorTitle` — "Groep aanmaken mislukt"
-   - `group.createErrorMessage` — "Er ging iets mis bij het aanmaken van de groep. Probeer het opnieuw."
-
-5. **Vorige sessies (behouden context):**
+4. **Vorige sessies (behouden context):**
+   - Required field validation op 6 schermen (commit `2cb0d4f`)
    - ProfileStep1Screen + ProfileStep2Screen validation (commit `ca1933b`)
    - MailScreen email-check modal (commit `ca1933b`)
    - MailWelcomeModal LiquidGlassView → View fix (commit `d54a0a2`)
@@ -69,18 +57,14 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Validate-on-tap i.p.v. disabled buttons | Disabled buttons geven senioren geen feedback WAAROM ze niet verder kunnen. Validate-on-tap toont highlight + scrollt naar het veld. |
-| ManualAddContact: conditional phone validation | "Minimaal 1 telefoonnummer" — beide velden krijgen asterisk + highlight, foutmelding in eerste veld. Consistent met PNA-beslissing. |
-| CreateGroupScreen: ErrorView voor create failure | ErrorView met retry is senior-friendlier dan Alert.alert (consistent met CLAUDE.md sectie 5). |
-| AgendaItemFormScreen overgeslagen | Module bestaat nog niet — validatie wordt toegevoegd wanneer het scherm wordt gebouwd. |
+| `setup_permissions` met 7 handlers | Alleen de permissions die CommEazy daadwerkelijk gebruikt — minimale set voor privacy compliance |
+| `node_require` helper pattern | Aanbevolen door react-native-permissions v4.1.5 README, lost hoisting issues op |
+| Empty state i.p.v. blank ScrollView | Senior-inclusive: duidelijk bericht waarom er geen foto's zijn + instructie wat te doen |
 
 ## Context voor Volgende Sessie
 
-- **Validation pattern nu consistent op 6 schermen:** ProfileSettingsScreen, ProfileStep1Screen, ProfileStep2Screen, ManualAddContactScreen, MailComposeScreen, CreateGroupScreen
-- **Pattern:** `invalidField` state → validate-on-tap → `setInvalidField(key)` + `scrollToField(key)` + `triggerFeedback('warning')` → reactive clearing via `useEffect`
-- **`invalidFieldHighlight` style:** `backgroundColor: 'rgba(255, 0, 0, 0.08)'`, borderRadius, padding, marginHorizontal — identiek op alle schermen
-- **`requiredMark`:** Inline `<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>` — NIET als style in StyleSheet
-- **Conditional validation:** ManualAddContactScreen heeft `phoneValidationError` voor "minimaal 1 telefoon" — aparte state naast `invalidField`
-- **Form Field Styling:** 8 regels in CLAUDE.md. Hooks `useLabelStyle()` + `useFieldTextStyle()` uit `FieldTextStyleContext` zijn VERPLICHT op alle formulier-schermen.
+- **Podfile nu correct geconfigureerd** voor react-native-permissions v4.1.5 met `setup_permissions`
+- **AlbumPickerModal** heeft 4 states: loadError, isLoading, photos.length === 0 (empty), photo grid
+- **Validation pattern consistent op 6 schermen** (zie vorige sessie context)
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`
