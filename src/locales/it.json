@@ -424,7 +424,9 @@
     "step1": "Nome",
     "step2": "Membri",
     "step3": "Controlla",
-    "stepOf": "Passo {{current}} di {{total}}"
+    "stepOf": "Passo {{current}} di {{total}}",
+    "createErrorTitle": "Creazione del gruppo non riuscita",
+    "createErrorMessage": "Si è verificato un errore durante la creazione del gruppo. Riprova."
   },
   "call": {
     "calling": "Chiamata in corso...",
@@ -1157,7 +1159,8 @@
     "missingAge": "L'età è obbligatoria",
     "missingGender": "Il genere è obbligatorio",
     "stayOnPage": "Compila",
-    "discardChanges": "Ignora modifiche"
+    "discardChanges": "Ignora modifiche",
+    "atLeastOnePhone": "Inserisci almeno un numero di telefono"
   },
   "subscription": {
     "free": "Gratuito",

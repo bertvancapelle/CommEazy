@@ -321,7 +321,9 @@
     "step1": "Namn",
     "step2": "Medlemmar",
     "step3": "Kontrollera",
-    "stepOf": "Steg {{current}} av {{total}}"
+    "stepOf": "Steg {{current}} av {{total}}",
+    "createErrorTitle": "Kunde inte skapa grupp",
+    "createErrorMessage": "Något gick fel när gruppen skapades. Försök igen."
   },
   "call": {
     "calling": "Ringer...",
@@ -1053,7 +1055,8 @@
     "missingAge": "Ålder krävs",
     "missingGender": "Kön krävs",
     "stayOnPage": "Fyll i",
-    "discardChanges": "Ignorera ändringar"
+    "discardChanges": "Ignorera ändringar",
+    "atLeastOnePhone": "Ange minst ett telefonnummer"
   },
   "subscription": {
     "free": "Gratis",

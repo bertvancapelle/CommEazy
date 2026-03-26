@@ -351,7 +351,9 @@
     "step1": "Navn",
     "step2": "Medlemmer",
     "step3": "Kontroller",
-    "stepOf": "Steg {{current}} av {{total}}"
+    "stepOf": "Steg {{current}} av {{total}}",
+    "createErrorTitle": "Kunne ikke opprette gruppe",
+    "createErrorMessage": "Noe gikk galt under opprettelse av gruppen. Prøv igjen."
   },
   "call": {
     "calling": "Ringer...",
@@ -1083,7 +1085,8 @@
     "missingAge": "Alder er påkrevd",
     "missingGender": "Kjønn er påkrevd",
     "stayOnPage": "Fyll ut",
-    "discardChanges": "Forkast endringer"
+    "discardChanges": "Forkast endringer",
+    "atLeastOnePhone": "Vennligst oppgi minst ett telefonnummer"
   },
   "subscription": {
     "free": "Gratis",

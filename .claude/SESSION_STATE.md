@@ -5,36 +5,45 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-25
-- **Sessie:** MailWelcomeModal Liquid Glass fix (blocking overlay bug)
-- **Commit:** `d54a0a2`
+- **Datum:** 2026-03-26
+- **Sessie:** Onboarding validation consistency + Mail email-check modal
+- **Commit:** `ca1933b`
 
 ## Voltooide Taken Deze Sessie
 
-1. **FIX: MailWelcomeModal onzichtbare overlay** (commit `d54a0a2`)
-   - **Bug:** Mail module volledig geblokkeerd voor first-time users — donkere overlay zichtbaar, maar de welkomstkaart met "Begrepen" knop was onzichtbaar
-   - **Root cause:** `LiquidGlassView` (UIGlassEffect) is onzichtbaar in een `transparent=true` Modal. UIGlassEffect vereist opaque achtergrondcontent om het glaseffect te renderen. In een transparent Modal is er een apart UIWindow zonder achtergrond → glaseffect rendert volledig transparant
-   - **Fix:** `LiquidGlassView` vervangen door gewone `View` met `backgroundColor: themeColors.surface`
-   - **Opgeruimd:** Ongebruikte imports (`LiquidGlassView`, `touchTargets`)
+1. **FEAT: ProfileStep1Screen — consistent required field validation** (commit `ca1933b`)
+   - Added red asterisks (`*`) on required fields (firstName, lastName, gender, birthDate)
+   - Added `invalidField` highlight (light-red background `rgba(255,0,0,0.08)`) with auto-scroll to first empty field
+   - Added reactive clearing of highlight when field is filled
+   - Now matches ProfileSettingsScreen validation pattern (commit `ffb2789`)
 
-2. **PNA-analyse (vorige sessie, nu bevestigd als echte bug):**
-   - Eerdere sessie concludeerde overlay was "development-only edge case" — dit was FOUT
-   - Gebruiker bewees: overlay persisteert na verse ⌘R rebuild, niet alleen bij hot reload
-   - PNA audit: 22+ modals met LiquidGlassView, 4 gebruiken `transparent=true` pattern
-   - Pattern A (pageSheet, 16 modals) = werkt correct
-   - Pattern B (transparent=true, 4 modals) = LiquidGlassView onzichtbaar
+2. **FEAT: ProfileStep2Screen — changed required fields + consistent validation** (commit `ca1933b`)
+   - Changed required fields from (country, postcode, **city**) to (country, postcode, **houseNumber**)
+   - Rationale: city is auto-filled by GISCO Address API when country + postcode + housenumber are provided
+   - Applied same validation pattern: red asterisks, invalidField highlight, scrollToField, reactive clearing
+   - Added `useScrollToField` hook for keyboard + modal-return focus
 
-3. **Vorige sessies (behouden context):**
+3. **FEAT: MailScreen — email-check modal before MailWelcomeModal** (commit `ca1933b`)
+   - Before showing MailWelcomeModal, checks if user profile has email address
+   - If NO email → shows `EmailRequiredModal` with email input + format validation
+   - [Annuleren] = close modal, stay on "not configured" placeholder
+   - [Doorgaan] = validate email format → save to profile → proceed to MailWelcomeModal
+   - Same check when tapping "E-mail instellen" button on not-configured screen
+   - Email format validation: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+
+4. **i18n: emailRequired keys in all 13 locales** (commit `ca1933b`)
+   - Added `modules.mail.emailRequired` section with 7 keys to all locale files
+
+5. **FIX: ProfileSettingsScreen redundant ErrorView banner** (commit `9d33063`, previous session)
+   - Removed redundant required-field ErrorView banner from profile validation
+
+6. **Vorige sessies (behouden context):**
+   - MailWelcomeModal LiquidGlassView → View fix (commit `d54a0a2`)
    - Dead code cleanup in MailWelcomeModal.tsx (commit `02e85bd`)
    - useLabelStyle + useFieldTextStyle hooks op 6 formulier-schermen (commit `bb9e9f9`)
-   - Borders op view-mode velden + styling op ContactDetailScreen (commit `d3316ed`)
-   - CLAUDE.md Form Field Styling sectie bijgewerkt (commit `f07469d`)
    - PanelAwareModal panelId 'main' fix (commit `815b605`)
-   - PanelAwareModal effectiveTransparent fix (commit `46dec4c`)
    - DateTimePickerModal compact bottom-sheet (commit `46dec4c`)
-   - Shared ColorPickerModal component (commit `9377ec6`)
    - Required field validation op ProfileSettingsScreen (commit `ffb2789`)
-   - ContactAvatar uniform — presence + badge on ALL 12 consumer screens
 
 ## Openstaande Taken
 
@@ -56,21 +65,18 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| LiquidGlassView → View met themeColors.surface | UIGlassEffect kan niet renderen in transparent Modal (apart UIWindow zonder achtergrond). Solide surface kleur is altijd zichtbaar. |
-| Alleen MailWelcomeModal nu fixen | Blocking bug — Mail module onbruikbaar voor first-time users. Andere 3 transparent modals lagere prioriteit. |
-| Eerdere "development-only" conclusie was fout | Gebruiker bewees dat bug na verse ⌘R rebuild persisteert, niet alleen bij hot reload. |
+| ProfileStep2Screen: houseNumber verplicht i.p.v. city | GISCO API auto-fills city vanuit country + postcode + housenumber. NL wordt ondersteund. City verplicht maken dwingt senioren onnodig tot dubbel werk. |
+| Mail email-check modal vóór MailWelcomeModal | Email is noodzakelijk voor IMAP/SMTP setup. Zonder email-check strandt de wizard later. Modal met inline validatie is senior-friendly (één stap, duidelijke foutmelding). |
+| Validation pattern: invalidField highlight + scrollToField | Consistent met ProfileSettingsScreen (commit `ffb2789`). Geen banner die automatisch verdwijnt — highlight blijft tot veld is ingevuld. Senior-friendly: veld wordt in beeld gescrolld. |
 
 ## Context voor Volgende Sessie
 
-- **MailWelcomeModal is nu een gewone View** — geen LiquidGlassView meer, gebruikt `themeColors.surface` als achtergrond
-- **Transparent Modal + LiquidGlassView = probleem pattern** — UIGlassEffect vereist opaque achtergrond. Bij `presentationStyle="pageSheet"` werkt het WEL (opaque modal background). Bij `transparent=true` werkt het NIET.
-- **4 getroffen modals:** MailWelcomeModal (✅ GEFIXT), ContactSelectionModal, ModulePickerModal, VoiceCommandOverlay (⏳ te valideren)
-- **Mail module state management:** MailScreen.tsx beheert `showWelcome` state direct (eigen useEffect + AsyncStorage key `'mail_welcome_shown'`). MailWelcomeModal.tsx is pure presentatie-component.
+- **Validation pattern nu consistent** op ProfileSettingsScreen, ProfileStep1Screen en ProfileStep2Screen: `invalidField` state → `requiredFields.find()` → `scrollToField()` → reactive clearing via `useEffect`
+- **`invalidFieldHighlight` style:** `backgroundColor: 'rgba(255, 0, 0, 0.08)'`, borderRadius, padding, marginHorizontal — identiek op alle drie schermen
+- **`requiredMark`:** Inline `<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>` — NIET als style in StyleSheet
+- **MailScreen email check flow:** `checkState()` leest profiel → geen email → `setShowEmailRequired(true)`. Ook `handleStartSetup()` (knop "E-mail instellen") checkt profiel.
+- **EmailRequiredModal:** Saves email via `ServiceContainer.database.saveUserProfile()`, then sets `showWelcome(true)`
+- **GISCO Address API:** `addressLookupService.ts` — EU Commission geocoding. `GISCO_SUPPORTED_COUNTRIES` includes 'NL'. Auto-fills street, city, province from country + postcode + housenumber.
 - **Form Field Styling:** 8 regels in CLAUDE.md. Hooks `useLabelStyle()` + `useFieldTextStyle()` uit `FieldTextStyleContext` zijn VERPLICHT op alle formulier-schermen.
-- **PanelAwareModal:** Twee fixes actief: (1) `panelId !== 'main'` check op regel 62, (2) `effectiveTransparent` logica op regel 71
-- **UnifiedFullPlayer:** `isInPanel` check op regel 193 — `panelId !== null && panelId !== 'main'`
-- **DateTimePickerModal:** `src/components/DateTimePickerModal.tsx` — compact bottom-sheet, module color overlay, solid surface. 13 consumers ongewijzigd.
-- **ColorPickerModal:** `src/components/ColorPickerModal.tsx` — pageSheet + LiquidGlassView. 7 consumers.
-- **ContactAvatar is uniform** — presence + badge on ALL 12 consumer screens
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`

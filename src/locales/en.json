@@ -424,7 +424,9 @@
     "step1": "Name",
     "step2": "Members",
     "step3": "Review",
-    "stepOf": "Step {{current}} of {{total}}"
+    "stepOf": "Step {{current}} of {{total}}",
+    "createErrorTitle": "Failed to create group",
+    "createErrorMessage": "Something went wrong while creating the group. Please try again."
   },
   "call": {
     "calling": "Calling...",
@@ -1174,7 +1176,8 @@
     "missingAge": "Age is required",
     "missingGender": "Gender is required",
     "stayOnPage": "Fill in",
-    "discardChanges": "Discard changes"
+    "discardChanges": "Discard changes",
+    "atLeastOnePhone": "Please enter at least one phone number"
   },
   "subscription": {
     "free": "Free",

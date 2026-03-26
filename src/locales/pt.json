@@ -451,7 +451,9 @@
     "step1": "Nome",
     "step2": "Membros",
     "step3": "Rever",
-    "stepOf": "Passo {{current}} de {{total}}"
+    "stepOf": "Passo {{current}} de {{total}}",
+    "createErrorTitle": "Falha ao criar grupo",
+    "createErrorMessage": "Ocorreu um erro ao criar o grupo. Tente novamente."
   },
   "call": {
     "calling": "A ligar...",
@@ -1185,7 +1187,8 @@
     "missingAge": "Idade é obrigatoria",
     "missingGender": "Género é obrigatorio",
     "stayOnPage": "Preencher",
-    "discardChanges": "Descartar alterações"
+    "discardChanges": "Descartar alterações",
+    "atLeastOnePhone": "Introduza pelo menos um número de telefone"
   },
   "subscription": {
     "free": "Gratuito",

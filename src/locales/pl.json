@@ -341,7 +341,9 @@
     "step1": "Nazwa",
     "step2": "Członkowie",
     "step3": "Sprawdź",
-    "stepOf": "Krok {{current}} z {{total}}"
+    "stepOf": "Krok {{current}} z {{total}}",
+    "createErrorTitle": "Nie udało się utworzyć grupy",
+    "createErrorMessage": "Wystąpił błąd podczas tworzenia grupy. Spróbuj ponownie."
   },
   "call": {
     "calling": "Dzwonienie...",
@@ -1074,7 +1076,8 @@
     "missingAge": "Wiek jest wymagany",
     "missingGender": "Płeć jest wymagana",
     "stayOnPage": "Wypełnij",
-    "discardChanges": "Odrzuć zmiany"
+    "discardChanges": "Odrzuć zmiany",
+    "atLeastOnePhone": "Wprowadź co najmniej jeden numer telefonu"
   },
   "subscription": {
     "free": "Darmowy",

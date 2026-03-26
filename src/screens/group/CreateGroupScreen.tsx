@@ -29,7 +29,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, typography, spacing, touchTargets, borderRadius } from '@/theme';
 import { useColors } from '@/contexts/ThemeContext';
-import { Button, TextInput, LoadingView, ScrollViewWithIndicator } from '@/components';
+import { Button, TextInput, LoadingView, ScrollViewWithIndicator, ErrorView } from '@/components';
 import type { GroupStackParams } from '@/navigation';
 import { ServiceContainer } from '@/services/container';
 import { groupChatService } from '@/services/groupChat';
@@ -37,6 +37,8 @@ import type { Contact } from '@/services/interfaces';
 import { getContactDisplayName } from '@/services/interfaces';
 import { triggerHaptic } from '@/hooks/useHoldToNavigate';
 import { useScrollToField } from '@/hooks/useScrollToField';
+import { useLabelStyle, useFieldTextStyle } from '@/contexts/FieldTextStyleContext';
+import { useFeedback } from '@/hooks/useFeedback';
 
 type NavigationProp = NativeStackNavigationProp<GroupStackParams, 'CreateGroup'>;
 
@@ -46,7 +48,10 @@ export function CreateGroupScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const themeColors = useColors();
-  const { scrollRef, registerField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
+  const labelStyle = useLabelStyle();
+  const fieldTextStyle = useFieldTextStyle();
+  const { triggerFeedback } = useFeedback();
+  const { scrollRef, registerField, scrollToField, getFieldFocusHandler, handleScroll: handleScrollToField } = useScrollToField();
 
   // Step state
   const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -57,6 +62,17 @@ export function CreateGroupScreen() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingContacts, setLoadingContacts] = useState(true);
+
+  // Required field validation
+  const [invalidField, setInvalidField] = useState<string | null>(null);
+  const [createError, setCreateError] = useState(false);
+
+  // Reactive clearing of invalidField
+  useEffect(() => {
+    if (invalidField === 'groupName' && groupName.trim().length >= 2) {
+      setInvalidField(null);
+    }
+  }, [invalidField, groupName]);
 
   // Load contacts
   useEffect(() => {
@@ -83,14 +99,21 @@ export function CreateGroupScreen() {
 
   const handleNext = useCallback(() => {
     triggerHaptic('light');
-    if (currentStep === 1 && isStep1Valid) {
+    if (currentStep === 1) {
+      if (!isStep1Valid) {
+        void triggerFeedback('warning');
+        setInvalidField('groupName');
+        scrollToField('groupName', { isModalReturn: false });
+        return;
+      }
+      setInvalidField(null);
       setCurrentStep(2);
       AccessibilityInfo.announceForAccessibility(t('group.step2'));
     } else if (currentStep === 2 && isStep2Valid) {
       setCurrentStep(3);
       AccessibilityInfo.announceForAccessibility(t('group.step3'));
     }
-  }, [currentStep, isStep1Valid, isStep2Valid, t]);
+  }, [currentStep, isStep1Valid, isStep2Valid, t, triggerFeedback, scrollToField]);
 
   const handleBack = useCallback(() => {
     triggerHaptic('light');
@@ -119,6 +142,7 @@ export function CreateGroupScreen() {
     if (!isStep2Valid) return;
 
     setLoading(true);
+    setCreateError(false);
     triggerHaptic('medium');
 
     try {
@@ -134,12 +158,12 @@ export function CreateGroupScreen() {
       });
     } catch (error) {
       console.error('Failed to create group:', error);
-      triggerHaptic('error');
-      // Show error (in real app, use toast or error view)
+      void triggerFeedback('error');
+      setCreateError(true);
     } finally {
       setLoading(false);
     }
-  }, [groupName, selectedMembers, isStep2Valid, navigation, t]);
+  }, [groupName, selectedMembers, isStep2Valid, navigation, t, triggerFeedback]);
 
   // Step 1: Group name
   const renderStep1 = () => (
@@ -155,8 +179,10 @@ export function CreateGroupScreen() {
         <Text style={[styles.stepTitle, { color: themeColors.textPrimary }]}>{t('group.nameTitle')}</Text>
         <Text style={[styles.stepDescription, { color: themeColors.textSecondary }]}>{t('group.nameHint')}</Text>
 
-        <View style={styles.inputContainer} ref={registerField('groupName')}>
-          <Text style={[styles.inputLabel, { color: themeColors.textPrimary }]}>{t('group.name')}</Text>
+        <View style={[styles.inputContainer, invalidField === 'groupName' ? styles.invalidFieldHighlight : undefined]} ref={registerField('groupName')}>
+          <Text style={[styles.inputLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+            {t('group.name')}<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>
+          </Text>
           <TextInput
             value={groupName}
             onChangeText={setGroupName}
@@ -172,7 +198,6 @@ export function CreateGroupScreen() {
       <Button
         title={t('common.next')}
         onPress={handleNext}
-        disabled={!isStep1Valid}
         style={styles.primaryButton}
       />
     </View>
@@ -276,6 +301,15 @@ export function CreateGroupScreen() {
           })}
         </Text>
       </View>
+
+      {createError && (
+        <ErrorView
+          type="error"
+          title={t('group.createErrorTitle')}
+          message={t('group.createErrorMessage')}
+          onRetry={() => void handleCreate()}
+        />
+      )}
 
       <View style={styles.buttonRow}>
         <Button
@@ -474,5 +508,11 @@ const styles = StyleSheet.create({
   encryptionText: {
     ...typography.body,
     flex: 1,
+  },
+  invalidFieldHighlight: {
+    backgroundColor: 'rgba(255, 0, 0, 0.08)',
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    marginHorizontal: -spacing.xs,
   },
 });

@@ -669,6 +669,9 @@ export function MailComposeScreen({
     message: string;
   } | null>(null);
 
+  // Required field validation — invalidField highlight pattern
+  const [invalidField, setInvalidField] = useState<string | null>(null);
+
   // Original message HTML for forward/reply preview
   const originalHtml = useMemo(
     () => (mode !== 'new' ? getOriginalHtml(originalBody) : null),
@@ -704,6 +707,16 @@ export function MailComposeScreen({
       cancelled = true;
     };
   }, []);
+
+  // Clear validation highlight reactively when the invalid field is filled
+  useEffect(() => {
+    if (!invalidField) return;
+    if (invalidField === 'to' && toRecipients.length > 0) {
+      setInvalidField(null);
+    } else if (invalidField === 'subject' && subject.trim().length > 0) {
+      setInvalidField(null);
+    }
+  }, [invalidField, toRecipients, subject]);
 
   // ============================================================
   // Auto-Save Draft (30s timer + AppState background)
@@ -810,9 +823,27 @@ export function MailComposeScreen({
   // ============================================================
 
   const handleSend = useCallback(async () => {
-    if (!isValid || isSending) return;
+    if (isSending) return;
 
     triggerHaptic('tap');
+
+    // Validate required fields — scroll to first invalid field + highlight
+    if (toRecipients.length === 0) {
+      triggerHaptic('warning');
+      setInvalidField('to');
+      scrollToField('to', { isModalReturn: false });
+      return;
+    }
+
+    if (subject.trim().length === 0) {
+      triggerHaptic('warning');
+      setInvalidField('subject');
+      scrollToField('subject', { isModalReturn: false });
+      return;
+    }
+
+    // Clear any previous validation error
+    setInvalidField(null);
     setIsSending(true);
 
     try {
@@ -908,7 +939,6 @@ export function MailComposeScreen({
       setIsSending(false);
     }
   }, [
-    isValid,
     isSending,
     toRecipients,
     ccRecipients,
@@ -922,6 +952,7 @@ export function MailComposeScreen({
     attachments,
     onClose,
     onSent,
+    scrollToField,
     t,
   ]);
 
@@ -1096,10 +1127,10 @@ export function MailComposeScreen({
         onScroll={handleScrollToField}
         scrollEventThrottle={16}
       >
-        {/* To — Recipient chips with inline search */}
-        <View ref={registerField('to')}>
+        {/* To — Recipient chips with inline search (required) */}
+        <View ref={registerField('to')} style={invalidField === 'to' ? styles.invalidFieldHighlight : undefined}>
           <RecipientField
-            label={t('modules.mail.compose.to')}
+            label={`${t('modules.mail.compose.to')} *`}
             recipients={toRecipients}
             onAddRecipient={handleAddToRecipient}
             onRemoveRecipient={handleRemoveToRecipient}
@@ -1171,10 +1202,10 @@ export function MailComposeScreen({
           </View>
         )}
 
-        {/* Subject */}
-        <View ref={registerField('subject')} style={[styles.fieldRow, { borderBottomColor: themeColors.border }]}>
+        {/* Subject (required) */}
+        <View ref={registerField('subject')} style={[styles.fieldRow, { borderBottomColor: themeColors.border }, invalidField === 'subject' ? styles.invalidFieldHighlight : undefined]}>
           <Text style={[styles.fieldLabel, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
-            {t('modules.mail.compose.subject')}
+            {t('modules.mail.compose.subject')}<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>
           </Text>
           <TextInput
             style={[styles.fieldInput, { color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle }]}
@@ -1272,13 +1303,13 @@ export function MailComposeScreen({
           style={[
             styles.bottomAction,
             {
-              backgroundColor: isValid ? accentColor.primary : themeColors.border,
-              borderColor: isValid ? accentColor.primary : themeColors.border,
+              backgroundColor: accentColor.primary,
+              borderColor: accentColor.primary,
             },
           ]}
           onPress={handleSend}
           activeOpacity={0.7}
-          disabled={!isValid || isSending}
+          disabled={isSending}
           accessibilityRole="button"
           accessibilityLabel={t('modules.mail.compose.send')}
         >
@@ -1543,5 +1574,11 @@ const styles = StyleSheet.create({
   bottomActionText: {
     ...typography.body,
     fontWeight: '700',
+  },
+  invalidFieldHighlight: {
+    backgroundColor: 'rgba(255, 0, 0, 0.08)',
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    marginHorizontal: -spacing.xs,
   },
 });

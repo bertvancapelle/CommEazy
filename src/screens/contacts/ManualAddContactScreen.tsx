@@ -80,6 +80,9 @@ export function ManualAddContactScreen() {
   const [showEmailReminder, setShowEmailReminder] = useState(false);
   const [pendingReminderEmail, setPendingReminderEmail] = useState('');
 
+  // Required field validation — invalidField highlight pattern
+  const [invalidField, setInvalidField] = useState<string | null>(null);
+
   // Form state consolidated into a single reducer
   interface FormState {
     firstName: string;
@@ -241,6 +244,19 @@ export function ManualAddContactScreen() {
     return () => clearTimeout(timer);
   }, [country, postalCode, houseNumber, setField]);
 
+  // Clear validation highlight reactively when the invalid field is filled
+  useEffect(() => {
+    if (!invalidField) return;
+    if (invalidField === 'firstName') {
+      if (firstName.trim().length >= 1) setInvalidField(null);
+    } else if (invalidField === 'phone') {
+      // Conditional: at least one valid phone clears both
+      const landlineValid = landlineNumber.replace(/\D/g, '').length >= 6;
+      const mobileValid = mobileNumber.replace(/\D/g, '').length >= 6;
+      if (landlineValid || mobileValid) setInvalidField(null);
+    }
+  }, [invalidField, firstName, landlineNumber, mobileNumber]);
+
   const isValidPhone = useCallback((phone: string): boolean => {
     // Basic validation: at least 6 digits
     const digitsOnly = phone.replace(/\D/g, '');
@@ -346,11 +362,29 @@ export function ManualAddContactScreen() {
     }
   }, [countryCode, landlineNumber, mobileCountryCode, mobileNumber, firstName, lastName, email, street, houseNumber, postalCode, city, country, province, birthDate, weddingDate, deathDate, selectedCategories, navigation, t]);
 
-  // Save handler: shows reminder modal if email is missing
+  // Save handler: validates required fields, then shows reminder modal if email is missing
   const handleSave = useCallback(async () => {
-    if (!canSave || saving) return;
+    if (saving) return;
 
     void triggerFeedback('tap');
+
+    // Validate required fields — scroll to first invalid field + highlight
+    if (!isValidFirstName(firstName)) {
+      void triggerFeedback('warning');
+      setInvalidField('firstName');
+      scrollToField('firstName', { isModalReturn: false });
+      return;
+    }
+
+    if (!hasValidPhone) {
+      void triggerFeedback('warning');
+      setInvalidField('phone');
+      scrollToField('landlineNumber', { isModalReturn: false });
+      return;
+    }
+
+    // Clear any previous validation error
+    setInvalidField(null);
 
     // If email is missing, show reminder modal
     if (!email.trim()) {
@@ -361,7 +395,7 @@ export function ManualAddContactScreen() {
 
     // Email present — save directly
     await performSave();
-  }, [canSave, saving, email, triggerFeedback, performSave]);
+  }, [saving, firstName, hasValidPhone, email, triggerFeedback, isValidFirstName, scrollToField, performSave]);
 
   // Reminder modal: save with email added from modal
   const handleReminderSave = useCallback(async () => {
@@ -415,7 +449,7 @@ export function ManualAddContactScreen() {
             formMode={true}
             onCancel={handleCancel}
             onSave={() => void handleSave()}
-            saveDisabled={!canSave || saving}
+            saveDisabled={saving}
             skipSafeArea
           />
         }
@@ -440,9 +474,11 @@ export function ManualAddContactScreen() {
         onScroll={handleScrollToField}
         scrollEventThrottle={16}
       >
-        {/* First name input */}
-        <View ref={registerField('firstName')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.firstNameLabel')}</Text>
+        {/* First name input (required) */}
+        <View ref={registerField('firstName')} style={[styles.inputGroup, invalidField === 'firstName' && styles.invalidFieldHighlight]}>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+            {t('contacts.firstNameLabel')}<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>
+          </Text>
           <TextInput
             style={[styles.textInput, { backgroundColor: themeColors.backgroundSecondary, color: fieldTextStyle.color, fontWeight: fieldTextStyle.fontWeight, fontStyle: fieldTextStyle.fontStyle, borderColor: themeColors.border }]}
             placeholder={t('contacts.firstNamePlaceholder')}
@@ -476,9 +512,14 @@ export function ManualAddContactScreen() {
           />
         </View>
 
-        {/* Landline phone number input */}
-        <View ref={registerField('landlineNumber')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.landlineLabel')}</Text>
+        {/* Landline phone number input (required: ≥1 of landline/mobile) */}
+        <View ref={registerField('landlineNumber')} style={[styles.inputGroup, invalidField === 'phone' && styles.invalidFieldHighlight]}>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+            {t('contacts.landlineLabel')}<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>
+          </Text>
+          {invalidField === 'phone' && (
+            <Text style={styles.phoneValidationError}>{t('validation.atLeastOnePhone')}</Text>
+          )}
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
             <HapticTouchable hapticDisabled
@@ -527,9 +568,11 @@ export function ManualAddContactScreen() {
           )}
         </View>
 
-        {/* Mobile phone number input */}
-        <View ref={registerField('mobileNumber')} style={styles.inputGroup}>
-          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>{t('contacts.mobileLabel')}</Text>
+        {/* Mobile phone number input (required: ≥1 of landline/mobile) */}
+        <View ref={registerField('mobileNumber')} style={[styles.inputGroup, invalidField === 'phone' && styles.invalidFieldHighlight]}>
+          <Text style={[styles.label, { color: labelStyle.color, fontWeight: labelStyle.fontWeight, fontStyle: labelStyle.fontStyle }]}>
+            {t('contacts.mobileLabel')}<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>
+          </Text>
           <View style={styles.phoneInputContainer}>
             {/* Country code selector */}
             <HapticTouchable hapticDisabled
@@ -1049,6 +1092,17 @@ const styles = StyleSheet.create({
   countryCodeOptionText: {
     ...typography.body,
     color: colors.textPrimary,
+  },
+  invalidFieldHighlight: {
+    backgroundColor: 'rgba(255, 0, 0, 0.08)',
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    marginHorizontal: -spacing.xs,
+  },
+  phoneValidationError: {
+    ...typography.label,
+    color: '#D32F2F',
+    marginBottom: spacing.xs,
   },
   sectionTitle: {
     ...typography.label,

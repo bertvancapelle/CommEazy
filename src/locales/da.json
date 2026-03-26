@@ -321,7 +321,9 @@
     "step1": "Navn",
     "step2": "Medlemmer",
     "step3": "Kontroller",
-    "stepOf": "Trin {{current}} af {{total}}"
+    "stepOf": "Trin {{current}} af {{total}}",
+    "createErrorTitle": "Kunne ikke oprette gruppe",
+    "createErrorMessage": "Noget gik galt under oprettelse af gruppen. Prøv igen."
   },
   "call": {
     "calling": "Ringer...",
@@ -1053,7 +1055,8 @@
     "missingAge": "Alder er påkrævet",
     "missingGender": "Køn er påkrævet",
     "stayOnPage": "Udfyld",
-    "discardChanges": "Ignorer ændringer"
+    "discardChanges": "Ignorer ændringer",
+    "atLeastOnePhone": "Indtast mindst ét telefonnummer"
   },
   "subscription": {
     "free": "Gratis",

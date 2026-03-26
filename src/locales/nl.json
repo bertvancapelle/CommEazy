@@ -250,7 +250,9 @@
     "step1": "Naam",
     "step2": "Leden",
     "step3": "Controleren",
-    "stepOf": "Stap {{current}} van {{total}}"
+    "stepOf": "Stap {{current}} van {{total}}",
+    "createErrorTitle": "Groep aanmaken mislukt",
+    "createErrorMessage": "Er ging iets mis bij het aanmaken van de groep. Probeer het opnieuw."
   },
   "call": {
     "calling": "Bellen...",
@@ -997,7 +999,8 @@
     "missingAge": "Leeftijd is verplicht",
     "missingGender": "Geslacht is verplicht",
     "stayOnPage": "Invullen",
-    "discardChanges": "Wijzigingen negeren"
+    "discardChanges": "Wijzigingen negeren",
+    "atLeastOnePhone": "Vul minimaal één telefoonnummer in"
   },
   "demographics": {
     "language": {

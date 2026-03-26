@@ -424,7 +424,9 @@
     "step1": "Name",
     "step2": "Mitglieder",
     "step3": "Überprüfen",
-    "stepOf": "Schritt {{current}} von {{total}}"
+    "stepOf": "Schritt {{current}} von {{total}}",
+    "createErrorTitle": "Gruppe erstellen fehlgeschlagen",
+    "createErrorMessage": "Beim Erstellen der Gruppe ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
   },
   "call": {
     "calling": "Anrufen...",
@@ -1160,7 +1162,8 @@
     "missingAge": "Alter ist erforderlich",
     "missingGender": "Geschlecht ist erforderlich",
     "stayOnPage": "Ausfüllen",
-    "discardChanges": "Änderungen verwerfen"
+    "discardChanges": "Änderungen verwerfen",
+    "atLeastOnePhone": "Bitte geben Sie mindestens eine Telefonnummer ein"
   },
   "subscription": {
     "free": "Kostenlos",
