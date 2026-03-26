@@ -6,38 +6,42 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-26
-- **Sessie:** Onboarding validation consistency + Mail email-check modal
-- **Commit:** `ca1933b`
+- **Sessie:** Required field validation op ManualAddContact, MailCompose, CreateGroup
+- **Commit:** `2cb0d4f`
 
 ## Voltooide Taken Deze Sessie
 
-1. **FEAT: ProfileStep1Screen — consistent required field validation** (commit `ca1933b`)
-   - Added red asterisks (`*`) on required fields (firstName, lastName, gender, birthDate)
-   - Added `invalidField` highlight (light-red background `rgba(255,0,0,0.08)`) with auto-scroll to first empty field
-   - Added reactive clearing of highlight when field is filled
-   - Now matches ProfileSettingsScreen validation pattern (commit `ffb2789`)
+1. **FEAT: ManualAddContactScreen — required field validation** (commit `2cb0d4f`)
+   - firstName required (≥1 char) + conditional phone (≥1 of landline/mobile)
+   - `invalidField` state + `scrollToField()` + reactive clearing via `useEffect`
+   - Red asterisks on firstName, phoneLandline, phoneMobile
+   - `invalidFieldHighlight` on empty required fields
+   - `phoneValidationError` for "at least one phone number" conditional validation
+   - Added `useLabelStyle()`, `useFieldTextStyle()`, `useFeedback()` hooks
 
-2. **FEAT: ProfileStep2Screen — changed required fields + consistent validation** (commit `ca1933b`)
-   - Changed required fields from (country, postcode, **city**) to (country, postcode, **houseNumber**)
-   - Rationale: city is auto-filled by GISCO Address API when country + postcode + housenumber are provided
-   - Applied same validation pattern: red asterisks, invalidField highlight, scrollToField, reactive clearing
-   - Added `useScrollToField` hook for keyboard + modal-return focus
+2. **FEAT: MailComposeScreen — required field validation** (commit `2cb0d4f`)
+   - To (≥1 recipient) and Subject (≥1 char) are required
+   - `invalidField` state + `scrollToField()` + reactive clearing via `useEffect`
+   - Red asterisks on To and Subject fields
+   - `invalidFieldHighlight` on empty required fields
+   - Validate-on-tap pattern (Send button always enabled, validates on press)
 
-3. **FEAT: MailScreen — email-check modal before MailWelcomeModal** (commit `ca1933b`)
-   - Before showing MailWelcomeModal, checks if user profile has email address
-   - If NO email → shows `EmailRequiredModal` with email input + format validation
-   - [Annuleren] = close modal, stay on "not configured" placeholder
-   - [Doorgaan] = validate email format → save to profile → proceed to MailWelcomeModal
-   - Same check when tapping "E-mail instellen" button on not-configured screen
-   - Email format validation: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+3. **FEAT: CreateGroupScreen — required field validation + ErrorView** (commit `2cb0d4f`)
+   - groupName (≥2 chars) required with `invalidField` highlight
+   - Red asterisk on group name field
+   - Validate-on-tap pattern on Step 1 Next button (removed `disabled` prop)
+   - `useLabelStyle()`, `useFieldTextStyle()`, `useFeedback()`, `useScrollToField()` hooks added
+   - `ErrorView` for group creation failure in Step 3 (with retry)
+   - `createError` state with `triggerFeedback('error')` on failure
 
-4. **i18n: emailRequired keys in all 13 locales** (commit `ca1933b`)
-   - Added `modules.mail.emailRequired` section with 7 keys to all locale files
+4. **i18n: 3 new keys in all 13 locales** (commit `2cb0d4f`)
+   - `validation.atLeastOnePhone` — "Vul minimaal één telefoonnummer in"
+   - `group.createErrorTitle` — "Groep aanmaken mislukt"
+   - `group.createErrorMessage` — "Er ging iets mis bij het aanmaken van de groep. Probeer het opnieuw."
 
-5. **FIX: ProfileSettingsScreen redundant ErrorView banner** (commit `9d33063`, previous session)
-   - Removed redundant required-field ErrorView banner from profile validation
-
-6. **Vorige sessies (behouden context):**
+5. **Vorige sessies (behouden context):**
+   - ProfileStep1Screen + ProfileStep2Screen validation (commit `ca1933b`)
+   - MailScreen email-check modal (commit `ca1933b`)
    - MailWelcomeModal LiquidGlassView → View fix (commit `d54a0a2`)
    - Dead code cleanup in MailWelcomeModal.tsx (commit `02e85bd`)
    - useLabelStyle + useFieldTextStyle hooks op 6 formulier-schermen (commit `bb9e9f9`)
@@ -65,18 +69,18 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| ProfileStep2Screen: houseNumber verplicht i.p.v. city | GISCO API auto-fills city vanuit country + postcode + housenumber. NL wordt ondersteund. City verplicht maken dwingt senioren onnodig tot dubbel werk. |
-| Mail email-check modal vóór MailWelcomeModal | Email is noodzakelijk voor IMAP/SMTP setup. Zonder email-check strandt de wizard later. Modal met inline validatie is senior-friendly (één stap, duidelijke foutmelding). |
-| Validation pattern: invalidField highlight + scrollToField | Consistent met ProfileSettingsScreen (commit `ffb2789`). Geen banner die automatisch verdwijnt — highlight blijft tot veld is ingevuld. Senior-friendly: veld wordt in beeld gescrolld. |
+| Validate-on-tap i.p.v. disabled buttons | Disabled buttons geven senioren geen feedback WAAROM ze niet verder kunnen. Validate-on-tap toont highlight + scrollt naar het veld. |
+| ManualAddContact: conditional phone validation | "Minimaal 1 telefoonnummer" — beide velden krijgen asterisk + highlight, foutmelding in eerste veld. Consistent met PNA-beslissing. |
+| CreateGroupScreen: ErrorView voor create failure | ErrorView met retry is senior-friendlier dan Alert.alert (consistent met CLAUDE.md sectie 5). |
+| AgendaItemFormScreen overgeslagen | Module bestaat nog niet — validatie wordt toegevoegd wanneer het scherm wordt gebouwd. |
 
 ## Context voor Volgende Sessie
 
-- **Validation pattern nu consistent** op ProfileSettingsScreen, ProfileStep1Screen en ProfileStep2Screen: `invalidField` state → `requiredFields.find()` → `scrollToField()` → reactive clearing via `useEffect`
-- **`invalidFieldHighlight` style:** `backgroundColor: 'rgba(255, 0, 0, 0.08)'`, borderRadius, padding, marginHorizontal — identiek op alle drie schermen
+- **Validation pattern nu consistent op 6 schermen:** ProfileSettingsScreen, ProfileStep1Screen, ProfileStep2Screen, ManualAddContactScreen, MailComposeScreen, CreateGroupScreen
+- **Pattern:** `invalidField` state → validate-on-tap → `setInvalidField(key)` + `scrollToField(key)` + `triggerFeedback('warning')` → reactive clearing via `useEffect`
+- **`invalidFieldHighlight` style:** `backgroundColor: 'rgba(255, 0, 0, 0.08)'`, borderRadius, padding, marginHorizontal — identiek op alle schermen
 - **`requiredMark`:** Inline `<Text style={{ color: '#D32F2F', fontWeight: '700' }}> *</Text>` — NIET als style in StyleSheet
-- **MailScreen email check flow:** `checkState()` leest profiel → geen email → `setShowEmailRequired(true)`. Ook `handleStartSetup()` (knop "E-mail instellen") checkt profiel.
-- **EmailRequiredModal:** Saves email via `ServiceContainer.database.saveUserProfile()`, then sets `showWelcome(true)`
-- **GISCO Address API:** `addressLookupService.ts` — EU Commission geocoding. `GISCO_SUPPORTED_COUNTRIES` includes 'NL'. Auto-fills street, city, province from country + postcode + housenumber.
+- **Conditional validation:** ManualAddContactScreen heeft `phoneValidationError` voor "minimaal 1 telefoon" — aparte state naast `invalidField`
 - **Form Field Styling:** 8 regels in CLAUDE.md. Hooks `useLabelStyle()` + `useFieldTextStyle()` uit `FieldTextStyleContext` zijn VERPLICHT op alle formulier-schermen.
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`

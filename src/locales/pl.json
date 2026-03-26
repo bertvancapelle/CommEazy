@@ -2134,6 +2134,8 @@
         "photoAccessUnavailable": "Zdjęcia niedostępne",
         "photoAccessHint": "Biblioteka zdjęć jest obecnie niedostępna.",
         "openSettings": "Otwórz Ustawienia",
+        "noPhotosTitle": "Nie znaleziono zdjęć",
+        "noPhotosHint": "Na tym urządzeniu nie ma jeszcze zdjęć. Zrób zdjęcie aparatem lub zapisz zdjęcia.",
         "replyAllTitle": "Odpowiedz wszystkim",
         "sentSuccess": "Wiadomość wysłana",
         "sentSuccessHint": "Dotknij, aby zamknąć",

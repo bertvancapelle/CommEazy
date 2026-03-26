@@ -2172,6 +2172,8 @@
         "photoAccessUnavailable": "Foton inte tillgängliga",
         "photoAccessHint": "Fotobiblioteket är för närvarande inte tillgängligt.",
         "openSettings": "Öppna Inställningar",
+        "noPhotosTitle": "Inga foton hittades",
+        "noPhotosHint": "Det finns inga foton på den här enheten ännu. Ta ett foto med Kameran eller spara foton.",
         "replyAllTitle": "Svara alla",
         "sentSuccess": "Meddelande skickat",
         "sentSuccessHint": "Tryck för att stänga",

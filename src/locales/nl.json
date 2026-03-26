@@ -2353,6 +2353,8 @@
         "photoAccessUnavailable": "Foto's niet beschikbaar",
         "photoAccessHint": "De fotobibliotheek is momenteel niet beschikbaar.",
         "openSettings": "Open Instellingen",
+        "noPhotosTitle": "Geen foto's gevonden",
+        "noPhotosHint": "Er staan nog geen foto's op dit apparaat. Maak een foto met de Camera of sla foto's op.",
         "replyAllTitle": "Allen beantwoorden",
         "sentSuccess": "Bericht verzonden",
         "sentSuccessHint": "Tik om te sluiten",

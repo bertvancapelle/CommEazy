@@ -2172,6 +2172,8 @@
         "photoAccessUnavailable": "Fotos ikke tilgængelige",
         "photoAccessHint": "Fotobiblioteket er i øjeblikket ikke tilgængeligt.",
         "openSettings": "Åbn Indstillinger",
+        "noPhotosTitle": "Ingen fotos fundet",
+        "noPhotosHint": "Der er ingen fotos på denne enhed endnu. Tag et foto med Kameraet eller gem fotos.",
         "replyAllTitle": "Svar alle",
         "sentSuccess": "Besked sendt",
         "sentSuccessHint": "Tryk for at lukke",

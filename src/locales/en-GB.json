@@ -2332,6 +2332,8 @@
         "photoAccessUnavailable": "Photos unavailable",
         "photoAccessHint": "The photo library is currently not available.",
         "openSettings": "Open Settings",
+        "noPhotosTitle": "No photos found",
+        "noPhotosHint": "There are no photos on this device yet. Take a photo with the Camera or save photos.",
         "replyAllTitle": "Reply all",
         "sentSuccess": "Message sent",
         "sentSuccessHint": "Tap to close",

@@ -2345,6 +2345,8 @@
         "photoAccessUnavailable": "Fotos indisponíveis",
         "photoAccessHint": "A biblioteca de fotos não está disponível de momento.",
         "openSettings": "Abrir Definições",
+        "noPhotosTitle": "Nenhuma foto encontrada",
+        "noPhotosHint": "Ainda não existem fotos neste dispositivo. Tire uma foto com a Câmara ou guarde fotos.",
         "replyAllTitle": "Responder a todos",
         "sentSuccess": "Mensagem enviada",
         "sentSuccessHint": "Toque para fechar",

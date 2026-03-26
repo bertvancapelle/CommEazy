@@ -2328,6 +2328,8 @@
         "photoAccessUnavailable": "Photos non disponibles",
         "photoAccessHint": "La photothèque n'est actuellement pas disponible.",
         "openSettings": "Ouvrir les réglages",
+        "noPhotosTitle": "Aucune photo trouvée",
+        "noPhotosHint": "Il n'y a pas encore de photos sur cet appareil. Prenez une photo avec l'appareil photo ou enregistrez des photos.",
         "replyAllTitle": "Répondre à tous",
         "sentSuccess": "Message envoyé",
         "sentSuccessHint": "Appuyez pour fermer",

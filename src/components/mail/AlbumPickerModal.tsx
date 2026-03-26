@@ -282,6 +282,16 @@ export function AlbumPickerModal({
                 </View>
               ) : isLoading ? (
                 <LoadingView message={t('common.loading')} />
+              ) : photos.length === 0 ? (
+                <View style={styles.loadingContainer}>
+                  <Icon name="image" size={48} color={themeColors.textSecondary} />
+                  <Text style={[styles.errorText, { color: themeColors.textPrimary }]}>
+                    {t('modules.mail.compose.noPhotosTitle')}
+                  </Text>
+                  <Text style={[styles.errorHint, { color: themeColors.textSecondary }]}>
+                    {t('modules.mail.compose.noPhotosHint')}
+                  </Text>
+                </View>
               ) : (
                 <ScrollView contentContainerStyle={styles.gridContent}>
                   <View style={styles.grid}>

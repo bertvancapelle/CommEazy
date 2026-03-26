@@ -2202,6 +2202,8 @@
         "photoAccessUnavailable": "Bilder ikke tilgjengelig",
         "photoAccessHint": "Fotobiblioteket er for øyeblikket ikke tilgjengelig.",
         "openSettings": "Åpne Innstillinger",
+        "noPhotosTitle": "Ingen bilder funnet",
+        "noPhotosHint": "Det er ingen bilder på denne enheten ennå. Ta et bilde med Kameraet eller lagre bilder.",
         "replyAllTitle": "Svar alle",
         "sentSuccess": "Melding sendt",
         "sentSuccessHint": "Trykk for å lukke",
