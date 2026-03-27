@@ -47,6 +47,8 @@ export interface MailOnboardingStep2Props {
   currentStep?: number;
   /** Total steps for ProgressIndicator */
   totalSteps?: number;
+  /** Pre-fill email from user profile (if available) */
+  initialEmail?: string;
 }
 
 export interface AuthFormData {
@@ -80,14 +82,15 @@ export function MailOnboardingStep2({
   error = null,
   currentStep = 2,
   totalSteps = 3,
+  initialEmail,
 }: MailOnboardingStep2Props) {
   const { t } = useTranslation();
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
   const { triggerHaptic } = useFeedback();
 
-  // Form state
-  const [email, setEmail] = useState('');
+  // Form state — pre-fill email from user profile if available
+  const [email, setEmail] = useState(initialEmail || '');
   const [password, setPassword] = useState('');
 
   // Custom server config

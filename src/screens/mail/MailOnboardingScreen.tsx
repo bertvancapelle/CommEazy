@@ -38,6 +38,8 @@ export interface MailOnboardingScreenProps {
   onAddAnother: () => void;
   /** Called when user cancels / closes the wizard */
   onClose?: () => void;
+  /** Pre-fill email from user profile (if available) */
+  initialEmail?: string;
 }
 
 type WizardStep = 1 | 2 | 3;
@@ -79,6 +81,7 @@ export function MailOnboardingScreen({
   onComplete,
   onAddAnother,
   onClose,
+  initialEmail,
 }: MailOnboardingScreenProps) {
   const { t } = useTranslation();
 
@@ -466,6 +469,7 @@ export function MailOnboardingScreen({
           error={authError}
           currentStep={2}
           totalSteps={3}
+          initialEmail={initialEmail}
         />
       );
 

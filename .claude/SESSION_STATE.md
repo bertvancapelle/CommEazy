@@ -5,49 +5,49 @@
 
 ## Laatste Update
 
-- **Datum:** 2026-03-26
-- **Sessie:** react-native-permissions Podfile fix + AlbumPickerModal empty state
-- **Commit:** `3ff7140`
+- **Datum:** 2026-03-27
+- **Sessie:** Dead code cleanup — categorie 1 (veilig verwijderbaar)
+- **Commit:** `9d36645`
 
 ## Voltooide Taken Deze Sessie
 
-1. **FIX: react-native-permissions setup_permissions in Podfile** (commit `3ff7140`)
-   - Added `node_require` helper pattern (per RNPermissions v4.1.5 README)
-   - Added `setup_permissions()` with 7 handlers: Camera, Contacts, LocationWhenInUse, Microphone, Notifications, PhotoLibrary, PhotoLibraryAddOnly
-   - `pod install` succesvol — RNPermissions 4.1.5 native handlers gecompileerd
-   - **Root cause:** `check()`/`request()` calls in AlbumPickerModal faalden omdat geen native permission handler was gecompileerd
+1. **CHORE: Dead code cleanup** (commit `9d36645`)
+   - **Verwijderde bestanden:**
+     - `src/components/AirPlayButton.tsx` — nooit gebruikt
+     - `src/components/AirPlayPresetHint.tsx` — nooit gebruikt
+     - `src/components/NavigationMenu.tsx` — vervangen door WheelNavigationMenu
+     - `src/hooks/useSiriCall.ts` — ongebruikte hook (228 regels)
+   - **Opgeschoonde barrel exports:**
+     - `components/index.ts` — verwijderd: NavigationMenu, AirPlayButton, AirPlayPresetHint, SearchButton (dead), StatusIndicator (dead). Behouden: SearchTabButton (actief in 8 files), MessageStatus (actief in 9 files), SeekSlider (actief in UnifiedFullPlayer)
+     - `hooks/index.ts` — verwijderd: useSiriCall export block (6 regels)
+   - **Verwijderde npm dependencies:**
+     - `@react-native-community/blur` — 0 imports
+     - `react-native-maps` — vervangen door WebView + Leaflet
+     - `detox` (devDep) — geen e2e tests
+   - **Config cleanup:** `react-native.config.js` — verwijderd orphaned react-native-maps autolink disable entry
+   - **False positives geïdentificeerd en behouden:**
+     - `base-64` — vereiste polyfill voor XMPP SASL auth in `index.js`
+     - `libsodium-wrappers` + `@types/libsodium-wrappers` — gebruikt in test mocks en `jest.setup.js`
+     - `useMailUnreadCount` — actief in `useModuleBadges.ts`
+     - `SeekSlider` — actief in `UnifiedFullPlayer.tsx`
 
-2. **FEAT: AlbumPickerModal empty state voor 0 foto's** (commit `3ff7140`)
-   - Nieuwe branch `photos.length === 0` met Icon + title + hint tekst
-   - Hergebruikt bestaande styles (`loadingContainer`, `errorText`, `errorHint`)
-   - Consistent met `loadError` state UI
-
-3. **i18n: 2 new keys in all 13 locales** (commit `3ff7140`)
-   - `modules.mail.compose.noPhotosTitle` — "Geen foto's gevonden" / "No photos found" / etc.
-   - `modules.mail.compose.noPhotosHint` — "Er staan nog geen foto's op dit apparaat..." / etc.
-
-4. **Vorige sessies (behouden context):**
-   - Required field validation op 6 schermen (commit `2cb0d4f`)
-   - ProfileStep1Screen + ProfileStep2Screen validation (commit `ca1933b`)
-   - MailScreen email-check modal (commit `ca1933b`)
-   - MailWelcomeModal LiquidGlassView → View fix (commit `d54a0a2`)
-   - Dead code cleanup in MailWelcomeModal.tsx (commit `02e85bd`)
-   - useLabelStyle + useFieldTextStyle hooks op 6 formulier-schermen (commit `bb9e9f9`)
-   - PanelAwareModal panelId 'main' fix (commit `815b605`)
-   - DateTimePickerModal compact bottom-sheet (commit `46dec4c`)
-   - Required field validation op ProfileSettingsScreen (commit `ffb2789`)
+2. **Dead code analyse voltooid (PNA)**
+   - Categorie 1 (veilig verwijderbaar): UITGEVOERD
+   - Categorie 2 (geplande features, beslissing nodig): NOG OPEN — zie Openstaande Taken
 
 ## Openstaande Taken
 
-1. **Andere transparent modals met LiquidGlassView:** 3 modals hebben potentieel hetzelfde probleem:
-   - `ContactSelectionModal` — transparent=true + LiquidGlassView
-   - `ModulePickerModal` — transparent=true + LiquidGlassView (iPad only)
-   - `VoiceCommandOverlay` — transparent=true + LiquidGlassView
-   - **Prioriteit:** Lager dan MailWelcomeModal (minder kritiek pad), maar moet gevalideerd worden
-2. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor) — niet gerelateerd, apart committen.
-3. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geimplementeerd.
-4. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
-5. **SongCollectionModal uitbreiding** — Bulk album toevoegen was in PNA ontwerp maar nog niet geimplementeerd.
+1. **Dead code categorie 2 — Geplande features (beslissing nodig):**
+   - 8 componenten voor ongebouwde features (AdMobBanner, EBookReader, AudioBookPlayer, GamePlaceholder, etc.)
+   - 3 iPad Split View componenten (DraggableDivider, SplitViewLayout, ModulePanel)
+   - ~9.767 ongebruikte StyleSheet entries across 165 bestanden
+   - Beslissing: behouden voor toekomstig gebruik of verwijderen?
+2. **Andere transparent modals met LiquidGlassView:** 3 modals te valideren:
+   - `ContactSelectionModal`, `ModulePickerModal`, `VoiceCommandOverlay`
+3. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor)
+4. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geimplementeerd.
+5. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
+6. **SongCollectionModal uitbreiding** — Bulk album toevoegen (PNA ontwerp, niet geimplementeerd).
 
 ## Lopende PNA-Conclusies (Nog Niet Geimplementeerd)
 
@@ -57,14 +57,15 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| `setup_permissions` met 7 handlers | Alleen de permissions die CommEazy daadwerkelijk gebruikt — minimale set voor privacy compliance |
-| `node_require` helper pattern | Aanbevolen door react-native-permissions v4.1.5 README, lost hoisting issues op |
-| Empty state i.p.v. blank ScrollView | Senior-inclusive: duidelijk bericht waarom er geen foto's zijn + instructie wat te doen |
+| `base-64` behouden | Vereiste polyfill voor `@xmpp/client` SASL auth — import in `index.js` was gemist door initiële analyse |
+| `libsodium-wrappers` behouden | Gebruikt in `jest.setup.js` + test bestanden — runtime replaced door `react-native-libsodium` native module |
+| `SearchButton.tsx` file behouden | Exporteert ook `SearchTabButton` die actief is in 8+ bestanden |
+| `StatusIndicator.tsx` file behouden | Exporteert ook `MessageStatus` enum die actief is in 9+ bestanden |
+| `react-native-maps` verwijderd | Vervangen door WebView + Leaflet (gedocumenteerd in `RadarMap.tsx`) |
 
 ## Context voor Volgende Sessie
 
-- **Podfile nu correct geconfigureerd** voor react-native-permissions v4.1.5 met `setup_permissions`
-- **AlbumPickerModal** heeft 4 states: loadError, isLoading, photos.length === 0 (empty), photo grid
-- **Validation pattern consistent op 6 schermen** (zie vorige sessie context)
+- **Dead code categorie 2** nog open — geplande features, iPad Split View, ~9.767 unused styles
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`
+- **SiriCallModule.swift** native module is behouden — alleen de RN hook `useSiriCall.ts` is verwijderd

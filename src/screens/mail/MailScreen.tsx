@@ -11,21 +11,17 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Text, Alert, NativeModules, Keyboard } from 'react-native';
+import { View, StyleSheet, Text, Alert, NativeModules } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { typography, spacing, touchTargets, borderRadius } from '@/theme';
-import { ModuleHeader, Icon, HapticTouchable, LoadingView, Button, TextInput, PanelAwareModal, ErrorView } from '@/components';
-import { ModalLayout } from '@/components/ModalLayout';
-import { LiquidGlassView } from '@/components/LiquidGlassView';
-import { useFeedback } from '@/hooks/useFeedback';
+import { ModuleHeader, Icon, HapticTouchable, LoadingView } from '@/components';
 import { ServiceContainer } from '@/services/container';
 import { useModuleColor } from '@/contexts/ModuleColorsContext';
 import { useColors } from '@/contexts/ThemeContext';
 import { useAccentColor } from '@/hooks/useAccentColor';
 import type { MailAccount, CachedMailHeader, MailBody } from '@/types/mail';
-import { MailWelcomeModal } from './MailWelcomeModal';
 import { MailOnboardingScreen } from './MailOnboardingScreen';
 import { MailInboxScreen } from './MailInboxScreen';
 import { MailDetailScreen } from './MailDetailScreen';
@@ -38,7 +34,6 @@ import type { MailRecipient } from '@/types/mail';
 // ============================================================
 
 const MAIL_ONBOARDING_COMPLETE_KEY = 'mail_onboarding_complete';
-const MAIL_WELCOME_SHOWN_KEY = 'mail_welcome_shown';
 
 // ============================================================
 // Internal Navigation Types
@@ -59,22 +54,16 @@ export function MailScreen() {
   const themeColors = useColors();
   const { accentColor } = useAccentColor();
 
-  const { triggerFeedback } = useFeedback();
-
   // Onboarding state
-  const [showWelcome, setShowWelcome] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Email required modal state
-  const [showEmailRequired, setShowEmailRequired] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [isSavingEmail, setIsSavingEmail] = useState(false);
-
   // Account state
   const [account, setAccount] = useState<MailAccount | null>(null);
+
+  // Profile email for pre-filling onboarding wizard
+  const [profileEmail, setProfileEmail] = useState<string | undefined>(undefined);
 
   // Internal navigation
   const [currentView, setCurrentView] = useState<MailView>({ type: 'inbox' });
@@ -102,10 +91,7 @@ export function MailScreen() {
   useEffect(() => {
     const checkState = async () => {
       try {
-        const [welcomeShown, onboardingDone] = await Promise.all([
-          AsyncStorage.getItem(MAIL_WELCOME_SHOWN_KEY),
-          AsyncStorage.getItem(MAIL_ONBOARDING_COMPLETE_KEY),
-        ]);
+        const onboardingDone = await AsyncStorage.getItem(MAIL_ONBOARDING_COMPLETE_KEY);
 
         if (onboardingDone === 'true') {
           setOnboardingComplete(true);
@@ -121,19 +107,10 @@ export function MailScreen() {
             setAccount(existingAccount);
             setOnboardingComplete(true);
             AsyncStorage.setItem(MAIL_ONBOARDING_COMPLETE_KEY, 'true').catch(console.error);
-            AsyncStorage.setItem(MAIL_WELCOME_SHOWN_KEY, 'true').catch(console.error);
             // Sync i18n strings to native for background notifications
             syncNotificationStrings();
-          } else if (welcomeShown !== 'true') {
-            // Check if user has an email in their profile
-            const profile = await ServiceContainer.database.getUserProfile();
-            if (profile?.email?.trim()) {
-              setShowWelcome(true);
-            } else {
-              setShowEmailRequired(true);
-            }
           } else {
-            setShowOnboarding(true);
+            // Not configured yet — placeholder screen will show "Email instellen" button
           }
         }
       } catch (error) {
@@ -169,12 +146,6 @@ export function MailScreen() {
   // Onboarding Handlers
   // ============================================================
 
-  const handleWelcomeDismiss = useCallback(() => {
-    setShowWelcome(false);
-    setShowOnboarding(true);
-    AsyncStorage.setItem(MAIL_WELCOME_SHOWN_KEY, 'true').catch(console.error);
-  }, []);
-
   const handleOnboardingComplete = useCallback(async () => {
     // Load the account FIRST, then update UI state
     // This prevents briefly showing the "not configured" placeholder
@@ -189,63 +160,17 @@ export function MailScreen() {
   }, []);
 
   const handleStartSetup = useCallback(async () => {
-    // Check if user has an email before starting setup
-    const profile = await ServiceContainer.database.getUserProfile();
-    if (profile?.email?.trim()) {
-      setShowOnboarding(true);
-      AsyncStorage.setItem(MAIL_WELCOME_SHOWN_KEY, 'true').catch(console.error);
-    } else {
-      setShowEmailRequired(true);
-    }
-  }, []);
-
-  // ============================================================
-  // Email Required Modal Handlers
-  // ============================================================
-
-  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  const handleEmailCancel = useCallback(() => {
-    setShowEmailRequired(false);
-    setEmailInput('');
-    setEmailError(null);
-  }, []);
-
-  const handleEmailContinue = useCallback(async () => {
-    Keyboard.dismiss();
-    const trimmed = emailInput.trim();
-    if (!trimmed) {
-      setEmailError(t('modules.mail.emailRequired.errorEmpty'));
-      void triggerFeedback('warning');
-      return;
-    }
-    if (!EMAIL_REGEX.test(trimmed)) {
-      setEmailError(t('modules.mail.emailRequired.errorInvalid'));
-      void triggerFeedback('warning');
-      return;
-    }
-
-    setIsSavingEmail(true);
+    // Fetch profile email to pre-fill in the onboarding wizard
     try {
       const profile = await ServiceContainer.database.getUserProfile();
-      if (profile) {
-        await ServiceContainer.database.saveUserProfile({
-          ...profile,
-          email: trimmed,
-        });
+      if (profile?.email?.trim()) {
+        setProfileEmail(profile.email.trim());
       }
-      setShowEmailRequired(false);
-      setEmailInput('');
-      setEmailError(null);
-      // Now proceed to welcome modal
-      setShowWelcome(true);
-    } catch (error) {
-      console.error('[MailScreen] Failed to save email:', (error as Error).message);
-      setEmailError(t('errors.genericError'));
-    } finally {
-      setIsSavingEmail(false);
+    } catch {
+      // Non-critical — wizard will just start with empty email
     }
-  }, [emailInput, t, triggerFeedback]);
+    setShowOnboarding(true);
+  }, []);
 
   // ============================================================
   // Mail Navigation Handlers
@@ -355,6 +280,7 @@ export function MailScreen() {
         onComplete={handleOnboardingComplete}
         onAddAnother={() => {}}
         onClose={handleOnboardingClose}
+        initialEmail={profileEmail}
       />
     );
   }
@@ -371,80 +297,6 @@ export function MailScreen() {
           icon="mail"
           title={t('navigation.mail')}
         />
-
-        <MailWelcomeModal
-          visible={showWelcome}
-          onDismiss={handleWelcomeDismiss}
-        />
-
-        {/* Email Required Modal — shown before welcome when no email in profile */}
-        <PanelAwareModal
-          visible={showEmailRequired}
-          transparent
-          animationType="fade"
-          onRequestClose={handleEmailCancel}
-        >
-          <View style={styles.overlay}>
-            <View style={[styles.emailCard, { backgroundColor: themeColors.surface, shadowColor: '#000' }]}>
-              <ModalLayout
-                headerBlock={
-                  <View style={styles.emailHeader}>
-                    <Icon name="mail" size={40} color={accentColor.primary} />
-                    <Text style={[styles.emailTitle, { color: themeColors.textPrimary }]}>
-                      {t('modules.mail.emailRequired.title')}
-                    </Text>
-                    <Text style={[styles.emailSubtitle, { color: themeColors.textSecondary }]}>
-                      {t('modules.mail.emailRequired.subtitle')}
-                    </Text>
-                  </View>
-                }
-                contentBlock={
-                  <View style={styles.emailContent}>
-                    {emailError && (
-                      <ErrorView
-                        type="error"
-                        title={emailError}
-                        message=""
-                        onDismiss={() => setEmailError(null)}
-                      />
-                    )}
-                    <TextInput
-                      label={t('modules.mail.emailRequired.label')}
-                      value={emailInput}
-                      onChangeText={(text) => {
-                        setEmailInput(text);
-                        if (emailError) setEmailError(null);
-                      }}
-                      placeholder={t('modules.mail.emailRequired.placeholder')}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      autoFocus
-                      returnKeyType="done"
-                      onSubmitEditing={handleEmailContinue}
-                      accessibilityLabel={t('modules.mail.emailRequired.label')}
-                    />
-                  </View>
-                }
-                footerBlock={
-                  <View style={styles.emailButtons}>
-                    <Button
-                      title={t('common.cancel')}
-                      onPress={handleEmailCancel}
-                      variant="secondary"
-                    />
-                    <Button
-                      title={t('modules.mail.emailRequired.continue')}
-                      onPress={handleEmailContinue}
-                      disabled={!emailInput.trim() || isSavingEmail}
-                      loading={isSavingEmail}
-                    />
-                  </View>
-                }
-              />
-            </View>
-          </View>
-        </PanelAwareModal>
 
         <View style={styles.placeholderContent}>
           <Icon name="mail" size={48} color={themeColors.textSecondary} />
@@ -542,11 +394,6 @@ const styles = StyleSheet.create({
   hidden: {
     display: 'none',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   placeholderContent: {
     flex: 1,
     justifyContent: 'center',
@@ -575,44 +422,5 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: 'white',
     fontWeight: '700',
-  },
-  // Email Required Modal
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  emailCard: {
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  emailHeader: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    gap: spacing.sm,
-  },
-  emailTitle: {
-    ...typography.h3,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-  },
-  emailSubtitle: {
-    ...typography.body,
-    textAlign: 'center',
-  },
-  emailContent: {
-    marginBottom: spacing.lg,
-  },
-  emailButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
   },
 });
