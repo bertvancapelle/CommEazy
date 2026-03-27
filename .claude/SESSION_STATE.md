@@ -6,34 +6,32 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-27
-- **Sessie:** Dead code cleanup — categorie 1 (veilig verwijderbaar)
-- **Commit:** `9d36645`
+- **Sessie:** Mail module first-time UX simplification
+- **Commit:** `d7a98bd`
 
 ## Voltooide Taken Deze Sessie
 
-1. **CHORE: Dead code cleanup** (commit `9d36645`)
+1. **FIX: Mail module first-time UX simplificatie** (commit `d7a98bd`)
+   - **Probleem:** Bij eerste keer openen van Mail module zonder geconfigureerde provider verscheen een broken EmailRequired modal (witte balk + knoppen op grijze overlay) die verwarrend was. Na annuleren toonde de placeholder dezelfde "Email instellen" knop — dubbele/overbodige flows.
+   - **Oplossing:** Vereenvoudigd naar één enkel pad: placeholder → "Email instellen" knop → onboarding wizard
+   - **Gewijzigde bestanden:**
+     - `src/screens/mail/MailScreen.tsx` — EmailRequired modal verwijderd (state, handlers, JSX, styles), MailWelcomeModal usage verwijderd, handleStartSetup vereenvoudigd, profileEmail pre-fill toegevoegd. 619→427 regels.
+     - `src/screens/mail/MailOnboardingScreen.tsx` — `initialEmail` prop toegevoegd en doorgegeven aan Step2
+     - `src/screens/mail/MailOnboardingStep2.tsx` — `initialEmail` prop toegevoegd, email state pre-filled
    - **Verwijderde bestanden:**
-     - `src/components/AirPlayButton.tsx` — nooit gebruikt
-     - `src/components/AirPlayPresetHint.tsx` — nooit gebruikt
-     - `src/components/NavigationMenu.tsx` — vervangen door WheelNavigationMenu
-     - `src/hooks/useSiriCall.ts` — ongebruikte hook (228 regels)
-   - **Opgeschoonde barrel exports:**
-     - `components/index.ts` — verwijderd: NavigationMenu, AirPlayButton, AirPlayPresetHint, SearchButton (dead), StatusIndicator (dead). Behouden: SearchTabButton (actief in 8 files), MessageStatus (actief in 9 files), SeekSlider (actief in UnifiedFullPlayer)
-     - `hooks/index.ts` — verwijderd: useSiriCall export block (6 regels)
-   - **Verwijderde npm dependencies:**
-     - `@react-native-community/blur` — 0 imports
-     - `react-native-maps` — vervangen door WebView + Leaflet
-     - `detox` (devDep) — geen e2e tests
-   - **Config cleanup:** `react-native.config.js` — verwijderd orphaned react-native-maps autolink disable entry
-   - **False positives geïdentificeerd en behouden:**
-     - `base-64` — vereiste polyfill voor XMPP SASL auth in `index.js`
-     - `libsodium-wrappers` + `@types/libsodium-wrappers` — gebruikt in test mocks en `jest.setup.js`
-     - `useMailUnreadCount` — actief in `useModuleBadges.ts`
-     - `SeekSlider` — actief in `UnifiedFullPlayer.tsx`
+     - `src/screens/mail/MailWelcomeModal.tsx` — dead code (niet meer geïmporteerd)
+   - **Verwijderde code:**
+     - `MAIL_WELCOME_SHOWN_KEY` constant en alle AsyncStorage reads/writes
+     - `showWelcome`, `showEmailRequired`, `emailInput`, `emailError`, `isSavingEmail` state
+     - `handleWelcomeDismiss`, `handleEmailCancel`, `handleEmailContinue` handlers
+     - `EMAIL_REGEX` validatie
+     - Alle gerelateerde styles (overlay, emailCard, emailHeader, emailTitle, emailSubtitle, emailContent, emailButtons, loadingContainer)
+     - Imports: `Keyboard`, `Button`, `TextInput`, `PanelAwareModal`, `ErrorView`, `ModalLayout`, `LiquidGlassView`, `useFeedback`, `MailWelcomeModal`
 
-2. **Dead code analyse voltooid (PNA)**
-   - Categorie 1 (veilig verwijderbaar): UITGEVOERD
-   - Categorie 2 (geplande features, beslissing nodig): NOG OPEN — zie Openstaande Taken
+2. **Eerdere sessie: Dead code cleanup categorie 1** (commit `9d36645`)
+   - Verwijderd: AirPlayButton, AirPlayPresetHint, NavigationMenu, useSiriCall
+   - Verwijderd: react-native-maps, @react-native-community/blur, detox
+   - Opgeschoonde barrel exports
 
 ## Openstaande Taken
 
@@ -48,6 +46,7 @@
 4. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geimplementeerd.
 5. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
 6. **SongCollectionModal uitbreiding** — Bulk album toevoegen (PNA ontwerp, niet geimplementeerd).
+7. **i18n cleanup** — Mail welcome/emailRequired locale keys zijn nu ongebruikt (in alle 13 talen). Niet schadelijk maar wel dead translations.
 
 ## Lopende PNA-Conclusies (Nog Niet Geimplementeerd)
 
@@ -57,14 +56,14 @@ Geen — alle beslissingen zijn geimplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| `base-64` behouden | Vereiste polyfill voor `@xmpp/client` SASL auth — import in `index.js` was gemist door initiële analyse |
-| `libsodium-wrappers` behouden | Gebruikt in `jest.setup.js` + test bestanden — runtime replaced door `react-native-libsodium` native module |
-| `SearchButton.tsx` file behouden | Exporteert ook `SearchTabButton` die actief is in 8+ bestanden |
-| `StatusIndicator.tsx` file behouden | Exporteert ook `MessageStatus` enum die actief is in 9+ bestanden |
-| `react-native-maps` verwijderd | Vervangen door WebView + Leaflet (gedocumenteerd in `RadarMap.tsx`) |
+| EmailRequired modal verwijderd | Broken UX (witte balk op grijze overlay), dubbel met "Email instellen" knop |
+| MailWelcomeModal verwijderd | Onnodig — de onboarding wizard IS de introductie |
+| Email pre-fill via prop chain | MailScreen haalt profiel-email op → via props naar Step2 → email veld pre-filled |
+| Locale keys behouden | Dead translations in 13 locale bestanden zijn onschadelijk, verwijderen = veel werk voor weinig winst |
 
 ## Context voor Volgende Sessie
 
+- **Mail module flow is nu:** placeholder → "Email instellen" → onboarding wizard (3 stappen)
 - **Dead code categorie 2** nog open — geplande features, iPad Split View, ~9.767 unused styles
 - **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx` — apart committen
 - **Glass Player flicker:** `GlassPlayerWindow/MiniPlayerNativeView.swift` + `FullPlayerNativeView.swift`
