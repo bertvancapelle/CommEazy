@@ -56,15 +56,6 @@ export { useMusicCollections, type UseMusicCollectionsReturn } from './useMusicC
 export { useAlbumFavorites, type UseAlbumFavoritesReturn } from './useAlbumFavorites';
 export { useArtistFavorites, type UseArtistFavoritesReturn } from './useArtistFavorites';
 
-// Siri integration
-export {
-  useSiriCall,
-  type SiriCallIntent,
-  type SiriAuthorizationStatus,
-  type UseSiriCallOptions,
-  type UseSiriCallReturn,
-} from './useSiriCall';
-
 // Music Play Stats
 export { useMusicPlayStats, type UseMusicPlayStatsReturn } from './useMusicPlayStats';
 

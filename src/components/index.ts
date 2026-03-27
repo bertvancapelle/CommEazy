@@ -10,7 +10,7 @@
  * USE THESE COMPONENTS to enforce UI principles:
  * - LoadingView: spinner + text (never use ActivityIndicator alone)
  * - ErrorView: human error + recovery action (never use Alert.alert for errors)
- * - StatusIndicator: color + icon + text (never use color alone)
+ * - MessageStatus: delivery status enum (sent/delivered/read/failed)
  * - Button: haptic feedback built-in
  */
 
@@ -34,12 +34,11 @@ export type { IconButtonProps, IconButtonVariant } from './IconButton';
 // Senior-inclusive pattern components (MANDATORY)
 export { LoadingView } from './LoadingView';
 export { ErrorView } from './ErrorView';
-export { StatusIndicator, MessageStatus } from './StatusIndicator';
+export { MessageStatus } from './StatusIndicator';
 export type { StatusType } from './StatusIndicator';
 
 // Hold-to-Navigate components
 export { HoldIndicator } from './HoldIndicator';
-export { NavigationMenu } from './NavigationMenu';
 export { HoldToNavigateWrapper } from './HoldToNavigateWrapper';
 
 // HomeScreen Grid
@@ -99,9 +98,9 @@ export type { AdMobBannerProps } from './AdMobBanner';
 export { FavoriteButton, FavoriteTabButton } from './FavoriteButton';
 export type { FavoriteButtonProps, FavoriteTabButtonProps } from './FavoriteButton';
 
-// Search Button Components (icon-only and tab variants)
-export { SearchButton, SearchTabButton } from './SearchButton';
-export type { SearchButtonProps, SearchTabButtonProps } from './SearchButton';
+// Search Tab Button Component (tab variant for search toggle)
+export { SearchTabButton } from './SearchButton';
+export type { SearchTabButtonProps } from './SearchButton';
 
 // Recent Tab Button Component (for RadioScreen recent stations)
 export { RecentTabButton } from './RecentTabButton';
@@ -165,10 +164,6 @@ export type { PhotoRecipientModalProps } from './PhotoRecipientModal';
 // Liquid Glass View (Apple iOS 26+ glass effects with fallback)
 export { LiquidGlassView } from './LiquidGlassView';
 export type { LiquidGlassViewProps } from './LiquidGlassView';
-
-// AirPlay Components (iOS only — speaker routing via AVRoutePickerView)
-export { AirPlayButton } from './AirPlayButton';
-export { AirPlayPresetHint } from './AirPlayPresetHint';
 
 // Apple Music Components
 export { AppleMusicDetailModal } from './appleMusic';
