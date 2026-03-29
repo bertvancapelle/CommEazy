@@ -5,29 +5,30 @@
  * Displays the collection's modules in a 3-column grid with Liquid Glass
  * background on iOS 26+ (solid color fallback elsewhere).
  *
+ * Uses the standard modal pattern (PanelAwareModal + LiquidGlassView + ModalLayout)
+ * consistent with QueueView, ContactSelectionModal, and other app modals.
+ *
  * Senior-inclusive design:
  * - Touch targets ≥60pt for all module items
  * - Title text 24pt bold
- * - Spring animation (respects reduced motion)
- * - Close by tapping outside or pressing close button
+ * - Close by tapping close button or Android back
+ * - animationType="slide" for consistent UX across all modals
  *
  * @see src/hooks/useModuleCollections.ts
  * @see src/components/LiquidGlassView.tsx
  * @see .claude/plans/MODULE_COLLECTIONS_AND_GAMES.md — Fase 4
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
-  // Modal removed — using PanelAwareModal
-  Animated,
   StyleSheet,
   Dimensions,
-  Pressable,
 } from 'react-native';
 import { PanelAwareModal } from './PanelAwareModal';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTouchable } from '@/components/HapticTouchable';
 import { Icon } from '@/components/Icon';
 import type { IconName } from '@/components/Icon';
@@ -45,8 +46,7 @@ import type {
 import { isDynamicDestination } from '@/types/navigation';
 import { useModuleColorsContextSafe } from '@/contexts/ModuleColorsContext';
 import { MODULE_TINT_COLORS, type ModuleColorId } from '@/types/liquidGlass';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { spacing, touchTargets } from '@/theme';
+import { spacing, touchTargets, borderRadius } from '@/theme';
 
 // ============================================================
 // Types
@@ -70,7 +70,6 @@ export interface CollectionOverlayProps {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const OVERLAY_HORIZONTAL_MARGIN = 24;
 const OVERLAY_WIDTH = SCREEN_WIDTH - OVERLAY_HORIZONTAL_MARGIN * 2;
-const OVERLAY_CORNER_RADIUS = 24;
 
 const GRID_COLUMNS = 3;
 const GRID_GAP = 12;
@@ -91,13 +90,8 @@ export function CollectionOverlay({
   onModulePress,
 }: CollectionOverlayProps) {
   const { t } = useTranslation();
-  const reduceMotion = useReducedMotion();
+  const insets = useSafeAreaInsets();
   const moduleColors = useModuleColorsContextSafe();
-
-  // Animation values
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const dimAnim = useRef(new Animated.Value(0)).current;
 
   // Get module color — mirrors HomeScreen logic
   const getModuleColor = useCallback(
@@ -134,55 +128,6 @@ export function CollectionOverlay({
     [t],
   );
 
-  // Animate open/close
-  useEffect(() => {
-    if (visible) {
-      // Open animation
-      const springConfig = reduceMotion
-        ? { toValue: 1, duration: 150, useNativeDriver: true }
-        : { toValue: 1, speed: 18, bounciness: 4, useNativeDriver: true };
-
-      Animated.parallel([
-        Animated.timing(dimAnim, {
-          toValue: 1,
-          duration: reduceMotion ? 100 : 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: reduceMotion ? 100 : 200,
-          useNativeDriver: true,
-        }),
-        reduceMotion
-          ? Animated.timing(scaleAnim, {
-              toValue: 1,
-              duration: 150,
-              useNativeDriver: true,
-            })
-          : Animated.spring(scaleAnim, springConfig),
-      ]).start();
-    } else {
-      // Close animation
-      Animated.parallel([
-        Animated.timing(dimAnim, {
-          toValue: 0,
-          duration: reduceMotion ? 100 : 180,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 0,
-          duration: reduceMotion ? 100 : 180,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 0.8,
-          duration: reduceMotion ? 100 : 180,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, reduceMotion, scaleAnim, opacityAnim, dimAnim]);
-
   // Handle module press inside overlay
   const handleModulePress = useCallback(
     (moduleId: NavigationDestination) => {
@@ -216,62 +161,44 @@ export function CollectionOverlay({
     <PanelAwareModal
       visible={visible}
       transparent
-      animationType="none"
+      animationType="slide"
       onRequestClose={onClose}
-      statusBarTranslucent
     >
-      {/* Dim background — tap to close */}
-      <Pressable style={styles.dimBackground} onPress={onClose}>
-        <Animated.View
-          style={[styles.dimLayer, { opacity: dimAnim }]}
-        />
-      </Pressable>
-
-      {/* Centered glass container */}
-      <View style={styles.centeredContainer} pointerEvents="box-none">
-        <Animated.View
-          style={[
-            styles.overlayContainer,
-            {
-              opacity: opacityAnim,
-              transform: [{ scale: reduceMotion ? 1 : scaleAnim }],
-            },
-          ]}
-        >
-          <LiquidGlassView
-            moduleId={collectionModuleId as ModuleColorId}
-            glassStyle="regular"
-            cornerRadius={OVERLAY_CORNER_RADIUS}
-            style={styles.glassContainer}
-          >
-            <ModalLayout
-              headerBlock={
-                <>
-                  {/* Close button */}
-                  <View style={styles.closeButtonRow}>
-                    <HapticTouchable
-                      onPress={onClose}
-                      hapticType="tap"
-                      style={styles.closeButton}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.close')}
-                    >
-                      <Icon name="x" size={24} color="#FFFFFF" />
-                    </HapticTouchable>
-                  </View>
-
-                  {/* Title */}
-                  <Text
-                    style={styles.title}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}
-                  >
-                    {collectionTitle}
-                  </Text>
-                </>
-              }
-              contentBlock={
+      <LiquidGlassView
+        moduleId={collectionModuleId as ModuleColorId}
+        glassStyle="regular"
+        cornerRadius={0}
+        style={styles.overlay}
+      >
+        <ModalLayout
+          headerBlock={
+            <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+              {/* Header row: title + close button */}
+              <View style={styles.headerRow}>
+                <Text
+                  style={styles.title}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                >
+                  {collectionTitle}
+                </Text>
+                <HapticTouchable
+                  onPress={onClose}
+                  hapticType="tap"
+                  style={styles.closeButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                >
+                  <Text style={styles.closeButtonText}>{t('common.close')}</Text>
+                </HapticTouchable>
+              </View>
+            </View>
+          }
+          contentBlock={
+            <View style={styles.contentContainer}>
+              {/* Module grid — centered */}
+              <View style={styles.gridWrapper}>
                 <View style={styles.grid}>
                   {rows.map((row, rowIndex) => (
                     <View key={rowIndex} style={styles.gridRow}>
@@ -316,11 +243,11 @@ export function CollectionOverlay({
                     </View>
                   ))}
                 </View>
-              }
-            />
-          </LiquidGlassView>
-        </Animated.View>
-      </View>
+              </View>
+            </View>
+          }
+        />
+      </LiquidGlassView>
     </PanelAwareModal>
   );
 }
@@ -334,47 +261,51 @@ const ITEM_CELL_WIDTH =
   GRID_COLUMNS;
 
 const styles = StyleSheet.create({
-  dimBackground: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  dimLayer: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  centeredContainer: {
+  overlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  overlayContainer: {
-    width: OVERLAY_WIDTH,
-    maxHeight: 540,
-  },
-  glassContainer: {
+  headerContainer: {
     paddingHorizontal: GRID_PADDING,
-    paddingBottom: GRID_PADDING + spacing.sm,
-    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
   },
-  closeButtonRow: {
+  headerRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: spacing.xs,
-  },
-  closeButton: {
-    width: touchTargets.minimum,
-    height: 44,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    minHeight: touchTargets.minimum,
   },
   title: {
     fontSize: TITLE_FONT_SIZE,
     fontWeight: '700',
     color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: spacing.md,
+    flex: 1,
+    marginRight: spacing.md,
+  },
+  closeButton: {
+    minWidth: touchTargets.minimum,
+    height: touchTargets.minimum,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+  },
+  closeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: GRID_PADDING,
+  },
+  gridWrapper: {
+    alignItems: 'center',
   },
   grid: {
     gap: GRID_GAP,
+    width: OVERLAY_WIDTH - GRID_PADDING * 2,
   },
   gridRow: {
     flexDirection: 'row',

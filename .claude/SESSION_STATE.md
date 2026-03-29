@@ -6,52 +6,52 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-29
-- **Sessie:** Prompt_0_Games_Architecture implementeren (shared game infrastructure)
-- **Commit:** `3a952de` — feat: implement shared game architecture (Prompt_0)
+- **Sessie:** Games Session 1 — Woordraad + Sudoku bouwen
+- **Commit:** (wordt bijgewerkt na push)
 
 ## Voltooide Taken Deze Sessie
 
-1. **Prompt_0_Games_Architecture volledig geïmplementeerd** — Alle shared game infrastructure in code:
+1. **Woordraad game gebouwd** — Compleet Wordle-style woordspel:
+   - `src/engines/woordraad/engine.ts` (277 lines) — Engine met Dutch 5-letter word list, two-pass duplicate letter handling, scoring, serialization
+   - `src/screens/modules/WoordraadScreen.tsx` (677 lines) — 3-fase screen (menu/playing/gameover), Dutch QWERTY keyboard, letter feedback colors, legend
+   - i18n: Alle 13 locales bijgewerkt (10 keys per locale)
 
-   | Bestand | Wat |
-   |---------|-----|
-   | `src/types/games.ts` | GameType, GameMode, GameSessionStatus, GameDifficulty, XMPP protocol types, stat types |
-   | `src/models/GameSession.ts` | WatermelonDB model met saveState/complete/abandon writers |
-   | `src/models/GameStat.ts` | WatermelonDB model met setValue/increment/setIfHigher/setIfLower writers |
-   | `src/models/schema.ts` | v29→v30: game_sessions (14 cols) + game_stats (5 cols) |
-   | `src/models/migrations.ts` | v30 migration met createTable voor beide tabellen |
-   | `src/models/index.ts` | Models geregistreerd in exports + modelClasses array |
-   | `src/contexts/GameContext.tsx` | GameProvider met session CRUD + statistics tracking |
-   | `src/hooks/games/useGameSession.ts` | Session lifecycle hook met timer tracking |
-   | `src/hooks/games/useGameStats.ts` | Stats aggregation hook |
-   | `src/hooks/games/index.ts` | Barrel export |
-   | `src/contexts/index.ts` | GameProvider/useGameContext exports toegevoegd |
-   | `src/hooks/index.ts` | Game hooks exports toegevoegd |
-   | `src/types/liquidGlass.ts` | Game-specifieke tint colors (was default blue) |
-   | 13 locale bestanden | `games` namespace: lobby (14), common (22), multiplayer (16), stats (6) keys |
+2. **Sudoku game gebouwd** — Compleet Sudoku puzzelspel:
+   - `src/engines/sudoku/engine.ts` (450 lines) — Randomized backtracking generator, 4 difficulty levels, notes/hints, conflict detection, scoring
+   - `src/screens/modules/SudokuScreen.tsx` (660 lines) — 3-fase screen, 9×9 grid met selectie/highlight/errors/notes, number pad, erase/hint buttons
+   - i18n: Alle 13 locales bijgewerkt (10 keys per locale)
 
-   **Schema parity geverifieerd:** schema.ts v30 == migrations.ts toVersion 30
+3. **Navigation wiring** — GameLobbyScreen nu routeert naar Woordraad en Sudoku:
+   - `src/screens/modules/GameLobbyScreen.tsx` — activeGame useState, conditional rendering
+   - `src/screens/modules/index.ts` — WoordraadScreen + SudokuScreen exports
+
+4. **Session 2+3 context document** — `.claude/plans/GAMES_SESSION_2_3_CONTEXT.md`:
+   - Compleet bouwplan voor Solitaire, Memory, Trivia
+   - Engine ontwerp per game
+   - UI ontwerp per game
+   - i18n key planning
+   - Checklist per game
+   - Alle shared component API referenties
 
 ## Openstaande Taken
 
-1. **Prompt_1 t/m Prompt_6 bouwen** — De volgende prompts implementeren in volgorde:
-   - Prompt_1: GameLobbyScreen, navigation, matchmaking, GameSessionManager
-   - Prompt_2: Woordraad (15×15 woordspel)
-   - Prompt_3: Sudoku (solo puzzel)
-   - Prompt_4: Solitaire (Klondike + Spider)
-   - Prompt_5: Memory (emoji memory)
-   - Prompt_6: Trivia (lokale vragenbank)
-2. **Dead code categorie 2 — Geplande features (beslissing nodig):**
-   - 8 componenten voor ongebouwde features (AdMobBanner, EBookReader, AudioBookPlayer, GamePlaceholder, etc.)
-   - 3 iPad Split View componenten (DraggableDivider, SplitViewLayout, ModulePanel)
-   - ~9.767 ongebruikte StyleSheet entries across 165 bestanden
-3. **Andere transparent modals met LiquidGlassView:** 3 modals te valideren:
-   - `ContactSelectionModal`, `ModulePickerModal`, `VoiceCommandOverlay`
-4. **Uncommitted changes:** `MediaIndicator.tsx` (1 regel) + `AppleMusicScreen.tsx` (grote refactor)
-5. **Bluetooth media controls** — Hardware play/pause/next/prev knoppen. Nooit geïmplementeerd.
-6. **Glass Player flickering** — Bottom + right side flicker. Separate issue.
-7. **SongCollectionModal uitbreiding** — Bulk album toevoegen (PNA ontwerp, niet geïmplementeerd).
-8. **i18n cleanup** — Mail welcome/emailRequired locale keys zijn nu ongebruikt (in alle 13 talen).
+1. **Session 2: Solitaire + Memory** — Zie `GAMES_SESSION_2_3_CONTEXT.md`
+   - Solitaire: Klondike engine + screen + i18n (13 locales)
+   - Memory: Emoji memory engine + screen + i18n (13 locales)
+
+2. **Session 3: Trivia + Final Polish** — Zie `GAMES_SESSION_2_3_CONTEXT.md`
+   - Trivia: Vragenbank engine + screen + i18n (13 locales)
+   - Final wiring: Alle 5 games uncommented in GameLobbyScreen
+   - Polish: Consistentie check over alle games
+
+3. **Eerder openstaand (ongewijzigd):**
+   - Dead code categorie 2 — 8 componenten voor ongebouwde features
+   - 3 transparent modals met LiquidGlassView te valideren
+   - Uncommitted changes in `MediaIndicator.tsx` + `AppleMusicScreen.tsx`
+   - Bluetooth media controls — niet geïmplementeerd
+   - Glass Player flickering — open issue
+   - SongCollectionModal uitbreiding — PNA ontwerp, niet geïmplementeerd
+   - i18n cleanup — Mail welcome/emailRequired keys ongebruikt
 
 ## Lopende PNA-Conclusies (Nog Niet Geïmplementeerd)
 
@@ -61,18 +61,19 @@ Geen — alle beslissingen zijn geïmplementeerd.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Hybrid sync (WatermelonDB + XMPP) | Bestaand patroon in CommEazy, zero server storage, offline-first |
-| GameContext volgt AgendaContext pattern | Consistent met bestaande codebase patterns |
-| Game tint colors per game | Woordraad=#2E7D32, Sudoku=#1565C0, Solitaire=#B71C1C, Memory=#E65100, Trivia=#FF8F00 |
-| prepareUpdate in completeSession | Batch stat updates binnen één db.write() transactie |
+| 3-sessie plan voor 5 games | Context window beperking — max 2 games per sessie |
+| Solo-modus only voor sessie 1-3 | Multiplayer infrastructure bestaat, maar solo eerst voor alle 5 games |
+| Session 2+3 context document | Voorkomt context loss bij sessiewisseling |
+| Tap-to-select pattern voor Solitaire | Drag-and-drop te complex voor senioren |
+| Emoji's voor Memory kaarten | Universeel herkenbaar, geen afbeeldingen nodig |
+| Statische vragenbank voor Trivia | Zoals DUTCH_WORDS in Woordraad — geen externe API dependency |
 
 ## Context voor Volgende Sessie
 
-- **Prompt_0 is DONE** — Shared infrastructure staat klaar, volgende stap is Prompt_1 (GameLobbyScreen + navigation)
-- **WatermelonDB schema:** Nu op versie 30 (game_sessions + game_stats tabellen)
-- **GamePlaceholderScreen** moet vervangen worden door `GameLobbyScreen` (Prompt_1)
-- **XMPP game namespace:** `urn:commeazy:game:1` gedefinieerd in types, protocol nog te implementeren (Prompt_1)
-- **OrientationModule:** Native module bestaat al — nodig voor Solitaire landscape (Prompt_4)
-- **Uncommitted werk:** `MediaIndicator.tsx` + `AppleMusicScreen.tsx`
-- **Glass Player flicker:** nog open
+- **Session 2 starten:** Lees `GAMES_SESSION_2_3_CONTEXT.md` EERST
+- **Pattern referentie:** WoordraadScreen.tsx en SudokuScreen.tsx zijn de templates
+- **GameLobbyScreen.tsx:** Heeft commented-out routes voor solitaire/memory/trivia (uncomment bij toevoegen)
+- **i18n:** games.solitaire en games.memory hebben nu alleen `description` key — moeten worden uitgebreid
+- **WatermelonDB schema:** Versie 30 (game_sessions + game_stats tabellen, geen wijzigingen nodig)
+- **XMPP game protocol:** Types gedefinieerd, hooks gebouwd, sendGameStanza is stub
 - **Prompts locatie:** `/Users/bertvancapelle/Projects/CommEazy Prompts/CommEazy Games/`

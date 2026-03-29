@@ -1205,6 +1205,7 @@
     "askAI": "Frag die KI",
     "mail": "E-Mail",
     "agenda": "Kalender",
+    "games": "Spiele",
     "woordraad": "Wortspiel",
     "sudoku": "Sudoku",
     "solitaire": "Solitaire",
@@ -3016,10 +3017,35 @@
       "minutes": "{{count}} Min."
     },
     "woordraad": {
-      "description": "Bilde Wörter und sammle Punkte"
+      "description": "Bilde Wörter und verdiene Punkte",
+      "title": "Worträtsel",
+      "howToPlay": "Errate das 5-Buchstaben-Wort in maximal 6 Versuchen. Nach jedem Versuch siehst du, welche Buchstaben richtig sind.",
+      "legendCorrect": "Buchstabe an der richtigen Stelle",
+      "legendPresent": "Buchstabe im Wort, aber an der falschen Stelle",
+      "legendAbsent": "Buchstabe nicht im Wort",
+      "errorTooShort": "Tippe zuerst alle 5 Buchstaben ein",
+      "errorNotInList": "Dieses Wort steht nicht in der Liste",
+      "guessesUsed": "Versuche gebraucht",
+      "stars": "Sterne",
+      "answer": "Die Antwort war",
+      "delete": "Buchstabe löschen",
+      "submit": "Wort bestätigen",
+      "status_correct": "richtige Stelle",
+      "status_present": "falsche Stelle",
+      "status_absent": "nicht im Wort",
+      "status_empty": "leer"
     },
     "sudoku": {
-      "description": "Fülle das 9×9-Raster mit Zahlen"
+      "description": "Fülle das 9×9-Raster mit Zahlen",
+      "title": "Sudoku",
+      "howToPlay": "Fülle jedes Feld mit einer Zahl von 1 bis 9. Jede Zahl darf in jeder Zeile, Spalte und jedem 3×3-Block nur einmal vorkommen.",
+      "remaining": "Noch {{count}} Felder",
+      "errors": "Fehler",
+      "notes": "Notizen",
+      "notesMode": "Notizmodus",
+      "erase": "Löschen",
+      "hint": "Hinweis",
+      "cell": "Feld Zeile {{row}} Spalte {{col}}"
     },
     "solitaire": {
       "description": "Klassisches Kartenspiel"

@@ -1205,6 +1205,7 @@
     "askAI": "Pregunta a la IA",
     "mail": "Correo",
     "agenda": "Agenda",
+    "games": "Juegos",
     "woordraad": "Juego de palabras",
     "sudoku": "Sudoku",
     "solitaire": "Solitario",
@@ -3016,10 +3017,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Crea palabras y gana puntos"
+      "description": "Forma palabras y gana puntos",
+      "title": "Adivina Palabra",
+      "howToPlay": "Adivina la palabra de 5 letras en un máximo de 6 intentos. Después de cada intento verás qué letras son correctas.",
+      "legendCorrect": "Letra en el lugar correcto",
+      "legendPresent": "Letra en la palabra, pero en otro lugar",
+      "legendAbsent": "Letra que no está en la palabra",
+      "errorTooShort": "Escribe primero las 5 letras",
+      "errorNotInList": "Esta palabra no está en la lista",
+      "guessesUsed": "Intentos usados",
+      "stars": "Estrellas",
+      "answer": "La respuesta era",
+      "delete": "Borrar letra",
+      "submit": "Confirmar palabra",
+      "status_correct": "lugar correcto",
+      "status_present": "otro lugar",
+      "status_absent": "no está en la palabra",
+      "status_empty": "vacío"
     },
     "sudoku": {
-      "description": "Rellena la cuadrícula 9×9 con números"
+      "description": "Rellena la cuadrícula 9×9 con números",
+      "title": "Sudoku",
+      "howToPlay": "Rellena cada celda con un número del 1 al 9. Cada número solo puede aparecer una vez en cada fila, columna y bloque 3×3.",
+      "remaining": "Quedan {{count}} celdas",
+      "errors": "Errores",
+      "notes": "Notas",
+      "notesMode": "Modo notas",
+      "erase": "Borrar",
+      "hint": "Pista",
+      "cell": "Celda fila {{row}} columna {{col}}"
     },
     "solitaire": {
       "description": "Juego de cartas clásico"

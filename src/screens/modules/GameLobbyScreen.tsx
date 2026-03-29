@@ -8,7 +8,7 @@
  * @see components/games/SpelTegel.tsx
  */
 
-import React, { useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,8 @@ import {
 } from '@/types/navigation';
 import { ALL_GAME_TYPES, type GameType } from '@/types/games';
 import type { ModuleColorId } from '@/types/liquidGlass';
+import { WoordraadScreen } from './WoordraadScreen';
+import { SudokuScreen } from './SudokuScreen';
 
 // ============================================================
 // Types
@@ -51,22 +53,37 @@ const GAME_DESCRIPTION_KEYS: Record<GameType, string> = {
 export function GameLobbyScreen({ moduleId: _moduleId }: GameLobbyScreenProps) {
   const { t } = useTranslation();
   const themeColors = useColors();
+  const [activeGame, setActiveGame] = useState<GameType | null>(null);
 
-  const handleGamePress = useCallback((_gameType: GameType) => {
-    // TODO: Navigate to individual game screen (Prompt_2 through Prompt_6)
-    // For now, tiles are tappable but navigation is not yet wired
+  const handleGamePress = useCallback((gameType: GameType) => {
+    setActiveGame(gameType);
   }, []);
+
+  const handleBackToLobby = useCallback(() => {
+    setActiveGame(null);
+  }, []);
+
+  // Render individual game screen when selected
+  if (activeGame === 'woordraad') {
+    return <WoordraadScreen onBack={handleBackToLobby} />;
+  }
+  if (activeGame === 'sudoku') {
+    return <SudokuScreen onBack={handleBackToLobby} />;
+  }
+  // Future sessions: solitaire, memory, trivia
+  // if (activeGame === 'solitaire') return <SolitaireScreen onBack={handleBackToLobby} />;
+  // if (activeGame === 'memory') return <MemoryScreen onBack={handleBackToLobby} />;
+  // if (activeGame === 'trivia') return <TriviaScreen onBack={handleBackToLobby} />;
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <ModuleScreenLayout
-        moduleId={'help' as ModuleColorId}
+        moduleId={'games' as ModuleColorId}
         moduleBlock={
           <ModuleHeader
-            moduleId={'help' as ModuleColorId}
-            icon="grid"
+            moduleId={'games' as ModuleColorId}
+            icon="gamepad"
             title={t('games.lobby.title')}
-            showBackButton
             skipSafeArea
           />
         }

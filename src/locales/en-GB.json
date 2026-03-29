@@ -1208,6 +1208,7 @@
     "askAI": "Ask AI",
     "mail": "Email",
     "agenda": "Diary",
+    "games": "Games",
     "woordraad": "Word Game",
     "sudoku": "Sudoku",
     "solitaire": "Solitaire",
@@ -3020,10 +3021,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Create words and earn points"
+      "description": "Make words and earn points",
+      "title": "Word Guess",
+      "howToPlay": "Guess the 5-letter word in up to 6 attempts. After each guess you'll see which letters are correct.",
+      "legendCorrect": "Letter in the right spot",
+      "legendPresent": "Letter in the word, but wrong spot",
+      "legendAbsent": "Letter not in the word",
+      "errorTooShort": "Type all 5 letters first",
+      "errorNotInList": "Word not in the list",
+      "guessesUsed": "Guesses used",
+      "stars": "Stars",
+      "answer": "The answer was",
+      "delete": "Delete letter",
+      "submit": "Submit word",
+      "status_correct": "correct spot",
+      "status_present": "wrong spot",
+      "status_absent": "not in word",
+      "status_empty": "empty"
     },
     "sudoku": {
-      "description": "Fill the 9×9 grid with numbers"
+      "description": "Fill the 9×9 grid with numbers",
+      "title": "Sudoku",
+      "howToPlay": "Fill each cell with a number from 1 to 9. Each number may only appear once in each row, column and 3×3 box.",
+      "remaining": "{{count}} cells left",
+      "errors": "Errors",
+      "notes": "Notes",
+      "notesMode": "Notes mode",
+      "erase": "Erase",
+      "hint": "Hint",
+      "cell": "Cell row {{row}} column {{col}}"
     },
     "solitaire": {
       "description": "Classic card game"

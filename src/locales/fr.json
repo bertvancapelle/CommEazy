@@ -1205,6 +1205,7 @@
     "askAI": "Demandez à l'IA",
     "mail": "E-mail",
     "agenda": "Agenda",
+    "games": "Jeux",
     "woordraad": "Jeu de mots",
     "sudoku": "Sudoku",
     "solitaire": "Solitaire",
@@ -3017,10 +3018,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Créez des mots et gagnez des points"
+      "description": "Formez des mots et gagnez des points",
+      "title": "Mot Mystère",
+      "howToPlay": "Devinez le mot de 5 lettres en 6 tentatives maximum. Après chaque essai, vous verrez quelles lettres sont correctes.",
+      "legendCorrect": "Lettre à la bonne place",
+      "legendPresent": "Lettre dans le mot, mais à la mauvaise place",
+      "legendAbsent": "Lettre absente du mot",
+      "errorTooShort": "Tapez d'abord les 5 lettres",
+      "errorNotInList": "Ce mot n'est pas dans la liste",
+      "guessesUsed": "Tentatives utilisées",
+      "stars": "Étoiles",
+      "answer": "La réponse était",
+      "delete": "Supprimer la lettre",
+      "submit": "Valider le mot",
+      "status_correct": "bonne place",
+      "status_present": "mauvaise place",
+      "status_absent": "pas dans le mot",
+      "status_empty": "vide"
     },
     "sudoku": {
-      "description": "Remplissez la grille 9×9 avec des chiffres"
+      "description": "Remplissez la grille 9×9 avec des chiffres",
+      "title": "Sudoku",
+      "howToPlay": "Remplissez chaque case avec un chiffre de 1 à 9. Chaque chiffre ne peut apparaître qu'une seule fois dans chaque ligne, colonne et bloc 3×3.",
+      "remaining": "Encore {{count}} cases",
+      "errors": "Erreurs",
+      "notes": "Notes",
+      "notesMode": "Mode notes",
+      "erase": "Effacer",
+      "hint": "Indice",
+      "cell": "Case ligne {{row}} colonne {{col}}"
     },
     "solitaire": {
       "description": "Jeu de cartes classique"

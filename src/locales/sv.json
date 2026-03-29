@@ -1098,6 +1098,7 @@
     "askAI": "Fråga AI",
     "mail": "E-post",
     "agenda": "Kalender",
+    "games": "Spel",
     "woordraad": "Ordspel",
     "sudoku": "Sudoku",
     "solitaire": "Patiens",
@@ -2851,10 +2852,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Skapa ord och tjäna poäng"
+      "description": "Bilda ord och tjäna poäng",
+      "title": "Ordgissning",
+      "howToPlay": "Gissa ordet med 5 bokstäver på högst 6 försök. Efter varje försök ser du vilka bokstäver som är rätt.",
+      "legendCorrect": "Bokstav på rätt plats",
+      "legendPresent": "Bokstav i ordet, men på fel plats",
+      "legendAbsent": "Bokstav finns inte i ordet",
+      "errorTooShort": "Skriv alla 5 bokstäverna först",
+      "errorNotInList": "Detta ord finns inte i listan",
+      "guessesUsed": "Försök använda",
+      "stars": "Stjärnor",
+      "answer": "Svaret var",
+      "delete": "Radera bokstav",
+      "submit": "Bekräfta ord",
+      "status_correct": "rätt plats",
+      "status_present": "fel plats",
+      "status_absent": "inte i ordet",
+      "status_empty": "tom"
     },
     "sudoku": {
-      "description": "Fyll 9×9-rutnätet med siffror"
+      "description": "Fyll 9×9-rutnätet med siffror",
+      "title": "Sudoku",
+      "howToPlay": "Fyll varje ruta med en siffra från 1 till 9. Varje siffra får bara förekomma en gång i varje rad, kolumn och 3×3-block.",
+      "remaining": "{{count}} rutor kvar",
+      "errors": "Fel",
+      "notes": "Anteckningar",
+      "notesMode": "Anteckningsläge",
+      "erase": "Radera",
+      "hint": "Ledtråd",
+      "cell": "Ruta rad {{row}} kolumn {{col}}"
     },
     "solitaire": {
       "description": "Klassiskt kortspel"

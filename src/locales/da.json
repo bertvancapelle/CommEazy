@@ -1098,6 +1098,7 @@
     "askAI": "Spørg AI",
     "mail": "E-mail",
     "agenda": "Kalender",
+    "games": "Spil",
     "woordraad": "Ordspil",
     "sudoku": "Sudoku",
     "solitaire": "Kabale",
@@ -2851,10 +2852,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Lav ord og optjen point"
+      "description": "Dan ord og optjen point",
+      "title": "Ordgætning",
+      "howToPlay": "Gæt ordet med 5 bogstaver på højst 6 forsøg. Efter hvert forsøg ser du, hvilke bogstaver der er rigtige.",
+      "legendCorrect": "Bogstav på den rigtige plads",
+      "legendPresent": "Bogstav i ordet, men på den forkerte plads",
+      "legendAbsent": "Bogstav er ikke i ordet",
+      "errorTooShort": "Skriv alle 5 bogstaver først",
+      "errorNotInList": "Dette ord er ikke på listen",
+      "guessesUsed": "Forsøg brugt",
+      "stars": "Stjerner",
+      "answer": "Svaret var",
+      "delete": "Slet bogstav",
+      "submit": "Bekræft ord",
+      "status_correct": "rigtig plads",
+      "status_present": "forkert plads",
+      "status_absent": "ikke i ordet",
+      "status_empty": "tom"
     },
     "sudoku": {
-      "description": "Udfyld 9×9-gitteret med tal"
+      "description": "Udfyld 9×9-gitteret med tal",
+      "title": "Sudoku",
+      "howToPlay": "Udfyld hver celle med et tal fra 1 til 9. Hvert tal må kun forekomme én gang i hver række, kolonne og 3×3-boks.",
+      "remaining": "{{count}} celler tilbage",
+      "errors": "Fejl",
+      "notes": "Noter",
+      "notesMode": "Notetilstand",
+      "erase": "Slet",
+      "hint": "Tip",
+      "cell": "Celle række {{row}} kolonne {{col}}"
     },
     "solitaire": {
       "description": "Klassisk kortspil"

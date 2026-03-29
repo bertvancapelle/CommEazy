@@ -126,7 +126,8 @@ export type IconName =
   | 'qr-code'
   | 'person-add'
   | 'phone-landline'
-  | 'cellphone';
+  | 'cellphone'
+  | 'gamepad';
 
 interface IconProps {
   name: IconName;
@@ -2216,6 +2217,27 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw + 0.5}
             strokeLinecap="round"
+          />
+        </Svg>
+      );
+
+    case 'gamepad':
+      // Game controller outline
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M6 11H10M8 9V13"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <Circle cx="15" cy="10" r="1" fill={color} />
+          <Circle cx="17" cy="12" r="1" fill={color} />
+          <Path
+            d="M4 13C4 9.68629 6.68629 7 10 7H14C17.3137 7 20 9.68629 20 13C20 15.4 18.6 17 16.5 17C15.2 17 14.3 16.3 13.5 15.5L12.5 14.5C12.2 14.2 11.8 14.2 11.5 14.5L10.5 15.5C9.7 16.3 8.8 17 7.5 17C5.4 17 4 15.4 4 13Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinejoin="round"
           />
         </Svg>
       );

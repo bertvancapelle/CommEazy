@@ -73,6 +73,7 @@ export const CUSTOMIZABLE_MODULES: ModuleColorId[] = [
   'agenda',
   'settings',
   // Game modules
+  'games',
   'woordraad',
   'sudoku',
   'solitaire',
@@ -106,6 +107,7 @@ export const MODULE_LABELS: Record<ModuleColorId, string> = {
   help: 'navigation.help',
   menu: 'navigation.menu',
   // Game modules
+  games: 'navigation.games',
   woordraad: 'navigation.woordraad',
   sudoku: 'navigation.sudoku',
   solitaire: 'navigation.solitaire',

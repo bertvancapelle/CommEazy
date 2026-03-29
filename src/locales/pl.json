@@ -1119,6 +1119,7 @@
     "askAI": "Zapytaj AI",
     "mail": "E-mail",
     "agenda": "Kalendarz",
+    "games": "Gry",
     "woordraad": "Gra słowna",
     "sudoku": "Sudoku",
     "solitaire": "Pasjans",
@@ -2875,10 +2876,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Twórz słowa i zdobywaj punkty"
+      "description": "Twórz słowa i zdobywaj punkty",
+      "title": "Zgadnij Słowo",
+      "howToPlay": "Zgadnij 5-literowe słowo w maksymalnie 6 próbach. Po każdej próbie zobaczysz, które litery są poprawne.",
+      "legendCorrect": "Litera na właściwym miejscu",
+      "legendPresent": "Litera w słowie, ale na złym miejscu",
+      "legendAbsent": "Litery nie ma w słowie",
+      "errorTooShort": "Najpierw wpisz wszystkie 5 liter",
+      "errorNotInList": "Tego słowa nie ma na liście",
+      "guessesUsed": "Wykorzystane próby",
+      "stars": "Gwiazdki",
+      "answer": "Odpowiedź to",
+      "delete": "Usuń literę",
+      "submit": "Zatwierdź słowo",
+      "status_correct": "właściwe miejsce",
+      "status_present": "złe miejsce",
+      "status_absent": "nie ma w słowie",
+      "status_empty": "puste"
     },
     "sudoku": {
-      "description": "Wypełnij siatkę 9×9 liczbami"
+      "description": "Wypełnij siatkę 9×9 liczbami",
+      "title": "Sudoku",
+      "howToPlay": "Wypełnij każde pole liczbą od 1 do 9. Każda liczba może wystąpić tylko raz w każdym wierszu, kolumnie i bloku 3×3.",
+      "remaining": "Pozostało {{count}} pól",
+      "errors": "Błędy",
+      "notes": "Notatki",
+      "notesMode": "Tryb notatek",
+      "erase": "Wymaż",
+      "hint": "Podpowiedź",
+      "cell": "Pole wiersz {{row}} kolumna {{col}}"
     },
     "solitaire": {
       "description": "Klasyczna gra karciana"

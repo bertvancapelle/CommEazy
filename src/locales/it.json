@@ -1202,6 +1202,7 @@
     "askAI": "Chiedi all'IA",
     "mail": "E-mail",
     "agenda": "Agenda",
+    "games": "Giochi",
     "woordraad": "Gioco di parole",
     "sudoku": "Sudoku",
     "solitaire": "Solitario",
@@ -2958,10 +2959,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Crea parole e guadagna punti"
+      "description": "Forma parole e guadagna punti",
+      "title": "Indovina Parola",
+      "howToPlay": "Indovina la parola di 5 lettere in massimo 6 tentativi. Dopo ogni tentativo vedrai quali lettere sono corrette.",
+      "legendCorrect": "Lettera al posto giusto",
+      "legendPresent": "Lettera nella parola, ma nel posto sbagliato",
+      "legendAbsent": "Lettera non presente nella parola",
+      "errorTooShort": "Scrivi prima tutte e 5 le lettere",
+      "errorNotInList": "Questa parola non è nella lista",
+      "guessesUsed": "Tentativi usati",
+      "stars": "Stelle",
+      "answer": "La risposta era",
+      "delete": "Cancella lettera",
+      "submit": "Conferma parola",
+      "status_correct": "posto giusto",
+      "status_present": "posto sbagliato",
+      "status_absent": "non nella parola",
+      "status_empty": "vuoto"
     },
     "sudoku": {
-      "description": "Riempi la griglia 9×9 con i numeri"
+      "description": "Riempi la griglia 9×9 con i numeri",
+      "title": "Sudoku",
+      "howToPlay": "Riempi ogni cella con un numero da 1 a 9. Ogni numero può apparire solo una volta in ogni riga, colonna e blocco 3×3.",
+      "remaining": "Ancora {{count}} celle",
+      "errors": "Errori",
+      "notes": "Note",
+      "notesMode": "Modalità note",
+      "erase": "Cancella",
+      "hint": "Suggerimento",
+      "cell": "Cella riga {{row}} colonna {{col}}"
     },
     "solitaire": {
       "description": "Gioco di carte classico"

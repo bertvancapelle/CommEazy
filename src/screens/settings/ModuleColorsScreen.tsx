@@ -57,6 +57,15 @@ const MODULE_ICONS: Record<ModuleColorId, IconName> = {
   mail: 'mail',
   agenda: 'calendar',
   settings: 'settings',
+  help: 'help',
+  menu: 'grid',
+  // Game modules
+  games: 'gamepad',
+  woordraad: 'chatbubble',
+  sudoku: 'grid',
+  solitaire: 'list',
+  memory: 'eye',
+  trivia: 'star',
 };
 
 // ============================================================
@@ -89,10 +98,14 @@ export function ModuleColorsScreen({ visible, onClose }: ModuleColorsScreenProps
     label: t(ACCENT_COLORS[key].label),
   }));
 
-  // Helper: find AccentColorKey from hex
-  const getColorKeyFromHex = useCallback((hex: string): AccentColorKey => {
-    const found = ACCENT_COLOR_KEYS.find((key) => ACCENT_COLORS[key].primary === hex);
-    return found || 'blue';
+  // Helper: find AccentColorKey from hex (checks primary and primaryLight)
+  const getColorKeyFromHex = useCallback((hex: string): AccentColorKey | null => {
+    // First check primary (exact match = user selected this color)
+    const foundPrimary = ACCENT_COLOR_KEYS.find((key) => ACCENT_COLORS[key].primary === hex);
+    if (foundPrimary) return foundPrimary;
+    // Also check primaryLight (some module defaults use these)
+    const foundLight = ACCENT_COLOR_KEYS.find((key) => ACCENT_COLORS[key].primaryLight === hex);
+    return foundLight || null;
   }, []);
 
   // Handle module color selection
@@ -223,7 +236,7 @@ export function ModuleColorsScreen({ visible, onClose }: ModuleColorsScreenProps
         visible={editingModuleId !== null}
         title={editingModuleId ? t('appearance.moduleColors.selectTitle', { module: t(MODULE_LABELS[editingModuleId]) }) : ''}
         colors={colorOptions}
-        selectedValue={editingModuleId ? getColorKeyFromHex(getModuleHex(editingModuleId)) : 'blue'}
+        selectedValue={editingModuleId ? (getColorKeyFromHex(getModuleHex(editingModuleId)) ?? '') : ''}
         moduleId="settings"
         onSelect={(colorKey) => void handleModuleColorSelect(colorKey)}
         onClose={() => setEditingModuleId(null)}

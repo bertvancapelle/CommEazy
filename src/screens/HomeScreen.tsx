@@ -778,13 +778,18 @@ export function HomeScreen({
                 ? t(collection.name)
                 : collection.name;
 
-              // Build 2×2 mini-icon preview from collection modules
-              const miniIcons: CollectionMiniIcon[] = collection.moduleIds
-                .slice(0, 4)
-                .map((mid) => ({
-                  icon: getIconName(mid as NavigationDestination),
-                  color: getModuleColor(mid),
-                }));
+              // Games collection: render as normal module icon (gamepad)
+              // Other collections: render as folder with 2×2 mini-icon preview
+              const isGamesCollection = collection.id === 'default_games';
+
+              const miniIcons: CollectionMiniIcon[] = isGamesCollection
+                ? []
+                : collection.moduleIds
+                    .slice(0, 4)
+                    .map((mid) => ({
+                      icon: getIconName(mid as NavigationDestination),
+                      color: getModuleColor(mid),
+                    }));
 
               return (
                 <View
@@ -799,18 +804,23 @@ export function HomeScreen({
                 >
                   <HomeGridItem
                     moduleId={gridItem}
-                    icon="grid"
+                    icon={isGamesCollection ? 'gamepad' : 'grid'}
                     label={colLabel}
-                    color={getModuleColor(collection.moduleIds[0] || 'woordraad')}
+                    color={isGamesCollection ? getModuleColor('games') : getModuleColor(collection.moduleIds[0] || 'woordraad')}
                     badgeCount={0}
                     isAudioActive={false}
                     isWiggling={isWiggleMode}
                     isSelected={false}
                     isDragging={isDraggedItem}
                     isDropTarget={isDropTargetItem}
-                    isCollection={true}
-                    collectionMiniIcons={miniIcons}
+                    isCollection={!isGamesCollection}
+                    collectionMiniIcons={isGamesCollection ? undefined : miniIcons}
                     onPress={() => {
+                      // Games collection: skip overlay, navigate directly to GameLobbyScreen
+                      if (isGamesCollection) {
+                        onModulePress(collection.moduleIds[0] as NavigationDestination);
+                        return;
+                      }
                       setOpenCollection(collection);
                     }}
                     onLongPress={isWiggleMode ? undefined : handleEnterWiggleMode}

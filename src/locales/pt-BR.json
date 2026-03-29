@@ -1232,6 +1232,7 @@
     "askAI": "Pergunte à IA",
     "mail": "E-mail",
     "agenda": "Agenda",
+    "games": "Jogos",
     "woordraad": "Jogo de palavras",
     "sudoku": "Sudoku",
     "solitaire": "Paciência",
@@ -3026,10 +3027,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Crie palavras e ganhe pontos"
+      "description": "Forme palavras e ganhe pontos",
+      "title": "Adivinhar Palavra",
+      "howToPlay": "Adivinhe a palavra de 5 letras em no máximo 6 tentativas. Após cada tentativa, você verá quais letras estão corretas.",
+      "legendCorrect": "Letra no lugar certo",
+      "legendPresent": "Letra na palavra, mas no lugar errado",
+      "legendAbsent": "Letra não está na palavra",
+      "errorTooShort": "Digite primeiro as 5 letras",
+      "errorNotInList": "Esta palavra não está na lista",
+      "guessesUsed": "Tentativas usadas",
+      "stars": "Estrelas",
+      "answer": "A resposta era",
+      "delete": "Apagar letra",
+      "submit": "Confirmar palavra",
+      "status_correct": "lugar certo",
+      "status_present": "lugar errado",
+      "status_absent": "não está na palavra",
+      "status_empty": "vazio"
     },
     "sudoku": {
-      "description": "Preencha a grade 9×9 com números"
+      "description": "Preencha a grade 9×9 com números",
+      "title": "Sudoku",
+      "howToPlay": "Preencha cada célula com um número de 1 a 9. Cada número só pode aparecer uma vez em cada linha, coluna e bloco 3×3.",
+      "remaining": "Faltam {{count}} células",
+      "errors": "Erros",
+      "notes": "Notas",
+      "notesMode": "Modo notas",
+      "erase": "Apagar",
+      "hint": "Dica",
+      "cell": "Célula linha {{row}} coluna {{col}}"
     },
     "solitaire": {
       "description": "Jogo de cartas clássico"

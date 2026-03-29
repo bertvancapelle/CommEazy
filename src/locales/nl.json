@@ -1229,6 +1229,7 @@
     "askAI": "Vraag het AI",
     "mail": "E-mail",
     "agenda": "Agenda",
+    "games": "Spellen",
     "woordraad": "Woordraad",
     "sudoku": "Sudoku",
     "solitaire": "Solitaire",
@@ -3020,10 +3021,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Maak woorden en verdien punten"
+      "description": "Maak woorden en verdien punten",
+      "title": "Woordraad",
+      "howToPlay": "Raad het woord van 5 letters in maximaal 6 pogingen. Na elke poging zie je welke letters goed staan.",
+      "legendCorrect": "Letter op de juiste plek",
+      "legendPresent": "Letter zit in het woord, maar op een andere plek",
+      "legendAbsent": "Letter zit niet in het woord",
+      "errorTooShort": "Typ eerst 5 letters",
+      "errorNotInList": "Dit woord staat niet in de lijst",
+      "guessesUsed": "Pogingen gebruikt",
+      "stars": "Sterren",
+      "answer": "Het antwoord was",
+      "delete": "Verwijder letter",
+      "submit": "Bevestig woord",
+      "status_correct": "juiste plek",
+      "status_present": "andere plek",
+      "status_absent": "niet in woord",
+      "status_empty": "leeg"
     },
     "sudoku": {
-      "description": "Vul het 9×9 raster met cijfers"
+      "description": "Vul het 9×9 raster met cijfers",
+      "title": "Sudoku",
+      "howToPlay": "Vul elk vakje met een cijfer van 1 tot 9. Elk cijfer mag maar één keer voorkomen in elke rij, kolom en 3×3 blok.",
+      "remaining": "Nog {{count}} vakjes",
+      "errors": "Fouten",
+      "notes": "Notities",
+      "notesMode": "Notitiemodus",
+      "erase": "Wissen",
+      "hint": "Hint",
+      "cell": "Vakje rij {{row}} kolom {{col}}"
     },
     "solitaire": {
       "description": "Klassiek kaartspel"

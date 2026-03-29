@@ -35,6 +35,8 @@ export { AgendaScreen } from './AgendaScreen';
 // Game modules
 export { GameLobbyScreen } from './GameLobbyScreen';
 export { GamePlaceholderScreen } from './GamePlaceholderScreen';
+export { WoordraadScreen } from './WoordraadScreen';
+export { SudokuScreen } from './SudokuScreen';
 
 // Help module placeholder
 export { HelpPlaceholderScreen } from './HelpPlaceholderScreen';

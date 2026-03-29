@@ -1128,6 +1128,7 @@
     "askAI": "Spør KI",
     "mail": "E-post",
     "agenda": "Kalender",
+    "games": "Spill",
     "woordraad": "Ordspill",
     "sudoku": "Sudoku",
     "solitaire": "Kabal",
@@ -2881,10 +2882,35 @@
       "minutes": "{{count}} min"
     },
     "woordraad": {
-      "description": "Lag ord og tjen poeng"
+      "description": "Lag ord og tjen poeng",
+      "title": "Ordgjetting",
+      "howToPlay": "Gjett ordet med 5 bokstaver på opptil 6 forsøk. Etter hvert forsøk ser du hvilke bokstaver som er riktige.",
+      "legendCorrect": "Bokstav på riktig plass",
+      "legendPresent": "Bokstav i ordet, men på feil plass",
+      "legendAbsent": "Bokstav ikke i ordet",
+      "errorTooShort": "Skriv alle 5 bokstavene først",
+      "errorNotInList": "Dette ordet er ikke i listen",
+      "guessesUsed": "Forsøk brukt",
+      "stars": "Stjerner",
+      "answer": "Svaret var",
+      "delete": "Slett bokstav",
+      "submit": "Bekreft ord",
+      "status_correct": "riktig plass",
+      "status_present": "feil plass",
+      "status_absent": "ikke i ordet",
+      "status_empty": "tom"
     },
     "sudoku": {
-      "description": "Fyll 9×9-rutenettet med tall"
+      "description": "Fyll 9×9-rutenettet med tall",
+      "title": "Sudoku",
+      "howToPlay": "Fyll hver rute med et tall fra 1 til 9. Hvert tall kan bare forekomme én gang i hver rad, kolonne og 3×3-boks.",
+      "remaining": "{{count}} ruter igjen",
+      "errors": "Feil",
+      "notes": "Notater",
+      "notesMode": "Notatmodus",
+      "erase": "Slett",
+      "hint": "Hint",
+      "cell": "Rute rad {{row}} kolonne {{col}}"
     },
     "solitaire": {
       "description": "Klassisk kortspill"

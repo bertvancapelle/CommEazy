@@ -106,6 +106,7 @@ export type ModuleColorId =
   | 'help'
   | 'menu'
   // Game modules
+  | 'games'       // Spellen lobby (collection module)
   | 'woordraad'
   | 'sudoku'
   | 'solitaire'
@@ -268,6 +269,12 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
     lightColor: '#FFFFFF',
   },
   // Game modules — each with distinct color for easy recognition
+  games: {
+    moduleId: 'games',
+    tintColor: '#00695C',        // Teal primaryLight — Spellen lobby
+    fallbackColor: '#00695C',
+    lightColor: '#FFFFFF',
+  },
   woordraad: {
     moduleId: 'woordraad',
     tintColor: '#2E7D32',      // Emerald green
@@ -288,8 +295,8 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
   },
   memory: {
     moduleId: 'memory',
-    tintColor: '#E65100',      // Warm orange
-    fallbackColor: '#E65100',
+    tintColor: '#D84315',      // Deep Orange 700 (orange.primaryLight)
+    fallbackColor: '#D84315',
     lightColor: '#FFFFFF',
   },
   trivia: {
