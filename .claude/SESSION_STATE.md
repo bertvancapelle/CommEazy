@@ -7,7 +7,7 @@
 
 - **Datum:** 2026-03-29
 - **Sessie:** Games Session 1 — Woordraad + Sudoku bouwen
-- **Commit:** (wordt bijgewerkt na push)
+- **Commit:** `4f1f11d` — feat: implement Woordraad and Sudoku games (Session 1)
 
 ## Voltooide Taken Deze Sessie
 
