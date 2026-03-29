@@ -7,7 +7,7 @@
 
 - **Datum:** 2026-03-29
 - **Sessie:** Games Session 2 — Solitaire + Memory bouwen
-- **Commit:** (pending — wordt bijgewerkt na push)
+- **Commit:** `faf7330` — feat: implement Solitaire and Memory games (Session 2)
 
 ## Voltooide Taken Deze Sessie
 
