@@ -267,35 +267,35 @@ export const MODULE_TINT_COLORS: Record<ModuleColorId, ModuleTintColor> = {
     fallbackColor: DEFAULT_MODULE_BLUE,
     lightColor: '#FFFFFF',
   },
-  // Game modules
+  // Game modules — each with distinct color for easy recognition
   woordraad: {
     moduleId: 'woordraad',
-    tintColor: DEFAULT_MODULE_BLUE,
-    fallbackColor: DEFAULT_MODULE_BLUE,
+    tintColor: '#2E7D32',      // Emerald green
+    fallbackColor: '#2E7D32',
     lightColor: '#FFFFFF',
   },
   sudoku: {
     moduleId: 'sudoku',
-    tintColor: DEFAULT_MODULE_BLUE,
-    fallbackColor: DEFAULT_MODULE_BLUE,
+    tintColor: '#1565C0',      // Deep blue
+    fallbackColor: '#1565C0',
     lightColor: '#FFFFFF',
   },
   solitaire: {
     moduleId: 'solitaire',
-    tintColor: DEFAULT_MODULE_BLUE,
-    fallbackColor: DEFAULT_MODULE_BLUE,
+    tintColor: '#B71C1C',      // Bordeaux red
+    fallbackColor: '#B71C1C',
     lightColor: '#FFFFFF',
   },
   memory: {
     moduleId: 'memory',
-    tintColor: DEFAULT_MODULE_BLUE,
-    fallbackColor: DEFAULT_MODULE_BLUE,
+    tintColor: '#E65100',      // Warm orange
+    fallbackColor: '#E65100',
     lightColor: '#FFFFFF',
   },
   trivia: {
     moduleId: 'trivia',
-    tintColor: DEFAULT_MODULE_BLUE,
-    fallbackColor: DEFAULT_MODULE_BLUE,
+    tintColor: '#FF8F00',      // Gold/amber
+    fallbackColor: '#FF8F00',
     lightColor: '#FFFFFF',
   },
 };

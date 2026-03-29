@@ -2934,5 +2934,71 @@
     "cannotDelete": "Verwijder eerst alle modules",
     "maxModules": "Maximaal 9 modules per verzameling",
     "dragHint": "Sleep een module op een andere om een verzameling te maken"
+  },
+  "games": {
+    "lobby": {
+      "title": "Spellen",
+      "playAlone": "Alleen spelen",
+      "playTogether": "Samen spelen",
+      "inviteFriends": "Nodig vrienden uit",
+      "waitingForPlayers": "Wachten op spelers...",
+      "startGame": "Start spel",
+      "resumeGame": "Verder spelen",
+      "newGame": "Nieuw spel",
+      "difficulty": "Moeilijkheid",
+      "easy": "Makkelijk",
+      "medium": "Gemiddeld",
+      "hard": "Moeilijk",
+      "expert": "Expert"
+    },
+    "common": {
+      "score": "Score",
+      "time": "Tijd",
+      "bestScore": "Beste score",
+      "bestTime": "Beste tijd",
+      "gamesPlayed": "Gespeeld",
+      "gamesWon": "Gewonnen",
+      "winRate": "Winstpercentage",
+      "currentStreak": "Huidige reeks",
+      "bestStreak": "Beste reeks",
+      "paused": "Gepauzeerd",
+      "gameOver": "Spel afgelopen",
+      "youWin": "Je hebt gewonnen!",
+      "youLose": "Helaas, verloren",
+      "draw": "Gelijkspel",
+      "completed": "Voltooid!",
+      "newBest": "Nieuw record!",
+      "playAgain": "Opnieuw spelen",
+      "backToLobby": "Terug naar lobby",
+      "quit": "Stoppen",
+      "quitConfirm": "Wil je het spel verlaten?",
+      "quitMessage": "Je voortgang wordt opgeslagen.",
+      "stars": "{{count}} ster(ren)"
+    },
+    "multiplayer": {
+      "inviteSent": "Uitnodiging verstuurd",
+      "inviteReceived": "{{name}} nodigt je uit voor {{game}}",
+      "accept": "Accepteren",
+      "decline": "Weigeren",
+      "waiting": "Wachten op {{name}}...",
+      "declined": "{{name}} heeft geweigerd",
+      "timeout": "Uitnodiging verlopen",
+      "playerJoined": "{{name}} is toegetreden",
+      "playerLeft": "{{name}} heeft het spel verlaten",
+      "playerDisconnected": "{{name}} is verbinding verloren",
+      "playerReconnected": "{{name}} is weer verbonden",
+      "yourTurn": "Jouw beurt",
+      "theirTurn": "Beurt van {{name}}",
+      "hostLeft": "De gastheer heeft het spel verlaten",
+      "gameEnded": "Het spel is beëindigd"
+    },
+    "stats": {
+      "title": "Statistieken",
+      "noStats": "Nog geen statistieken. Speel een spel!",
+      "totalTimePlayed": "Totale speeltijd",
+      "averageScore": "Gemiddelde score",
+      "hours": "{{count}} uur",
+      "minutes": "{{count}} min"
+    }
   }
 }

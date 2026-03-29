@@ -30,6 +30,8 @@
  * - v26: Added profile_version to contacts and user_profile for profile sync
  * - v27: Split name into first_name + last_name on user_profile
  * - v28: Added address_province to contacts and user_profile (personal address province/state)
+ * - v29: Added landline_number to contacts (replaces phone_number)
+ * - v30: Added game_sessions and game_stats tables for CommEazy Games
  */
 
 import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
@@ -495,6 +497,41 @@ export const migrations = schemaMigrations({
           table: 'contacts',
           columns: [
             { name: 'landline_number', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // Migration from v29 to v30: Add game_sessions and game_stats tables (CommEazy Games)
+    {
+      toVersion: 30,
+      steps: [
+        createTable({
+          name: 'game_sessions',
+          columns: [
+            { name: 'game_id', type: 'string', isIndexed: true },
+            { name: 'game_type', type: 'string', isIndexed: true },
+            { name: 'mode', type: 'string' },
+            { name: 'status', type: 'string' },
+            { name: 'host_jid', type: 'string', isOptional: true },
+            { name: 'players', type: 'string' },
+            { name: 'state_snapshot', type: 'string', isOptional: true },
+            { name: 'score', type: 'number' },
+            { name: 'difficulty', type: 'string', isOptional: true },
+            { name: 'started_at', type: 'number' },
+            { name: 'completed_at', type: 'number', isOptional: true },
+            { name: 'duration_seconds', type: 'number' },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+        createTable({
+          name: 'game_stats',
+          columns: [
+            { name: 'game_type', type: 'string', isIndexed: true },
+            { name: 'stat_key', type: 'string' },
+            { name: 'stat_value', type: 'number' },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
           ],
         }),
       ],

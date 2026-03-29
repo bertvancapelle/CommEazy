@@ -2948,5 +2948,71 @@
     "cannotDelete": "Remove all modules first",
     "maxModules": "Maximum 9 modules per collection",
     "dragHint": "Drag a module onto another to create a collection"
+  },
+  "games": {
+    "lobby": {
+      "title": "Games",
+      "playAlone": "Play alone",
+      "playTogether": "Play together",
+      "inviteFriends": "Invite friends",
+      "waitingForPlayers": "Waiting for players...",
+      "startGame": "Start game",
+      "resumeGame": "Continue playing",
+      "newGame": "New game",
+      "difficulty": "Difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "expert": "Expert"
+    },
+    "common": {
+      "score": "Score",
+      "time": "Time",
+      "bestScore": "Best score",
+      "bestTime": "Best time",
+      "gamesPlayed": "Played",
+      "gamesWon": "Won",
+      "winRate": "Win rate",
+      "currentStreak": "Current streak",
+      "bestStreak": "Best streak",
+      "paused": "Paused",
+      "gameOver": "Game over",
+      "youWin": "You win!",
+      "youLose": "You lose",
+      "draw": "Draw",
+      "completed": "Completed!",
+      "newBest": "New record!",
+      "playAgain": "Play again",
+      "backToLobby": "Back to lobby",
+      "quit": "Quit",
+      "quitConfirm": "Do you want to leave the game?",
+      "quitMessage": "Your progress will be saved.",
+      "stars": "{{count}} star(s)"
+    },
+    "multiplayer": {
+      "inviteSent": "Invitation sent",
+      "inviteReceived": "{{name}} invites you to play {{game}}",
+      "accept": "Accept",
+      "decline": "Decline",
+      "waiting": "Waiting for {{name}}...",
+      "declined": "{{name}} declined",
+      "timeout": "Invitation expired",
+      "playerJoined": "{{name}} joined",
+      "playerLeft": "{{name}} left the game",
+      "playerDisconnected": "{{name}} lost connection",
+      "playerReconnected": "{{name}} reconnected",
+      "yourTurn": "Your turn",
+      "theirTurn": "{{name}}'s turn",
+      "hostLeft": "The host left the game",
+      "gameEnded": "The game has ended"
+    },
+    "stats": {
+      "title": "Statistics",
+      "noStats": "No statistics yet. Play a game!",
+      "totalTimePlayed": "Total play time",
+      "averageScore": "Average score",
+      "hours": "{{count}} hr",
+      "minutes": "{{count}} min"
+    }
   }
 }

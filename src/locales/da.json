@@ -2765,5 +2765,71 @@
     "cannotDelete": "Fjern alle moduler først",
     "maxModules": "Maksimalt 9 moduler per samling",
     "dragHint": "Træk et modul over et andet for at oprette en samling"
+  },
+  "games": {
+    "lobby": {
+      "title": "Spil",
+      "playAlone": "Spil alene",
+      "playTogether": "Spil sammen",
+      "inviteFriends": "Inviter venner",
+      "waitingForPlayers": "Venter på spillere...",
+      "startGame": "Start spil",
+      "resumeGame": "Fortsæt med at spille",
+      "newGame": "Nyt spil",
+      "difficulty": "Sværhedsgrad",
+      "easy": "Let",
+      "medium": "Middel",
+      "hard": "Svær",
+      "expert": "Ekspert"
+    },
+    "common": {
+      "score": "Point",
+      "time": "Tid",
+      "bestScore": "Bedste point",
+      "bestTime": "Bedste tid",
+      "gamesPlayed": "Spillet",
+      "gamesWon": "Vundet",
+      "winRate": "Vinderprocent",
+      "currentStreak": "Nuværende række",
+      "bestStreak": "Bedste række",
+      "paused": "Sat på pause",
+      "gameOver": "Spil slut",
+      "youWin": "Du vandt!",
+      "youLose": "Du tabte",
+      "draw": "Uafgjort",
+      "completed": "Fuldført!",
+      "newBest": "Ny rekord!",
+      "playAgain": "Spil igen",
+      "backToLobby": "Tilbage til lobby",
+      "quit": "Afslut",
+      "quitConfirm": "Vil du forlade spillet?",
+      "quitMessage": "Din fremgang bliver gemt.",
+      "stars": "{{count}} stjerne(r)"
+    },
+    "multiplayer": {
+      "inviteSent": "Invitation sendt",
+      "inviteReceived": "{{name}} inviterer dig til {{game}}",
+      "accept": "Accepter",
+      "decline": "Afvis",
+      "waiting": "Venter på {{name}}...",
+      "declined": "{{name}} afviste",
+      "timeout": "Invitationen udløb",
+      "playerJoined": "{{name}} deltager nu",
+      "playerLeft": "{{name}} forlod spillet",
+      "playerDisconnected": "{{name}} mistede forbindelsen",
+      "playerReconnected": "{{name}} er forbundet igen",
+      "yourTurn": "Din tur",
+      "theirTurn": "{{name}}s tur",
+      "hostLeft": "Værten forlod spillet",
+      "gameEnded": "Spillet er afsluttet"
+    },
+    "stats": {
+      "title": "Statistik",
+      "noStats": "Ingen statistik endnu. Spil et spil!",
+      "totalTimePlayed": "Samlet spilletid",
+      "averageScore": "Gennemsnitlig point",
+      "hours": "{{count}} t",
+      "minutes": "{{count}} min"
+    }
   }
 }

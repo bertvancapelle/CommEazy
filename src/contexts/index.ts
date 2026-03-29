@@ -237,3 +237,11 @@ export {
   type TextStyleSetting,
   type ResolvedTextStyle,
 } from './FieldTextStyleContext';
+
+export {
+  GameProvider,
+  useGameContext,
+  useGameContextSafe,
+  type GameContextValue,
+  type CreateGameSessionData,
+} from './GameContext';

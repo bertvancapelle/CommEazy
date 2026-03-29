@@ -37,6 +37,7 @@
  * - v27: Split name into first_name + last_name on user_profile
  * - v28: Added address_province to contacts and user_profile (personal address province/state)
  * - v29: Added landline_number to contacts (replaces phone_number), removed phoneNumber from UserProfile model (column remains for compat)
+ * - v30: Added game_sessions and game_stats tables for CommEazy Games
  *
  * @see services/interfaces.ts for domain models
  * @see types/media.ts for media types
@@ -63,10 +64,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
  * - Add migration steps for each version increment
  * - Test on fresh install AND on upgrade from previous version
  */
-export const SCHEMA_VERSION = 29;
+export const SCHEMA_VERSION = 30;
 
 export const schema = appSchema({
-  version: 29,
+  version: 30,
   tables: [
     // Messages table — stored locally after decryption
     tableSchema({
@@ -316,6 +317,39 @@ export const schema = appSchema({
         { name: 'is_sharing_enabled', type: 'boolean' },                // Consent toggle
         { name: 'consent_changed_at', type: 'number' },                 // Last consent change
         { name: 'last_synced_at', type: 'number', isOptional: true },   // Last sync timestamp
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+
+    // Game sessions table (v30) — active and completed game sessions
+    tableSchema({
+      name: 'game_sessions',
+      columns: [
+        { name: 'game_id', type: 'string', isIndexed: true },           // UUID of the game
+        { name: 'game_type', type: 'string', isIndexed: true },         // 'woordraad'|'sudoku'|'solitaire'|'memory'|'trivia'
+        { name: 'mode', type: 'string' },                               // 'solo'|'multiplayer'
+        { name: 'status', type: 'string' },                             // 'in_progress'|'completed'|'abandoned'
+        { name: 'host_jid', type: 'string', isOptional: true },         // Host JID (multiplayer only)
+        { name: 'players', type: 'string' },                            // JSON array of player JIDs
+        { name: 'state_snapshot', type: 'string', isOptional: true },   // JSON game state (for resume)
+        { name: 'score', type: 'number' },                              // Final or current score
+        { name: 'difficulty', type: 'string', isOptional: true },       // 'easy'|'medium'|'hard'|'expert'
+        { name: 'started_at', type: 'number' },                         // Unix timestamp start
+        { name: 'completed_at', type: 'number', isOptional: true },     // Unix timestamp end
+        { name: 'duration_seconds', type: 'number' },                   // Play time in seconds
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+
+    // Game statistics table (v30) — aggregated stats per game type
+    tableSchema({
+      name: 'game_stats',
+      columns: [
+        { name: 'game_type', type: 'string', isIndexed: true },         // 'woordraad'|'sudoku'|etc.
+        { name: 'stat_key', type: 'string' },                           // 'games_played'|'best_score'|etc.
+        { name: 'stat_value', type: 'number' },                         // Numeric value
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

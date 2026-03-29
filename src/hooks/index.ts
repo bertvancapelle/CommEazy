@@ -80,3 +80,7 @@ export {
 
 // Search Cache (module-level search persistence)
 export { useSearchCache, type SearchCacheEntry } from './useSearchCache';
+
+// Game hooks
+export { useGameSession } from './games/useGameSession';
+export { useGameStats } from './games/useGameStats';

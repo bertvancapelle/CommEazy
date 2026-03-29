@@ -2765,5 +2765,71 @@
     "cannotDelete": "Ta bort alla moduler först",
     "maxModules": "Maximalt 9 moduler per samling",
     "dragHint": "Dra en modul över en annan för att skapa en samling"
+  },
+  "games": {
+    "lobby": {
+      "title": "Spel",
+      "playAlone": "Spela ensam",
+      "playTogether": "Spela tillsammans",
+      "inviteFriends": "Bjud in vänner",
+      "waitingForPlayers": "Väntar på spelare...",
+      "startGame": "Starta spel",
+      "resumeGame": "Fortsätt spela",
+      "newGame": "Nytt spel",
+      "difficulty": "Svårighetsgrad",
+      "easy": "Lätt",
+      "medium": "Medel",
+      "hard": "Svår",
+      "expert": "Expert"
+    },
+    "common": {
+      "score": "Poäng",
+      "time": "Tid",
+      "bestScore": "Bästa poäng",
+      "bestTime": "Bästa tid",
+      "gamesPlayed": "Spelade",
+      "gamesWon": "Vunna",
+      "winRate": "Vinstfrekvens",
+      "currentStreak": "Nuvarande svit",
+      "bestStreak": "Bästa svit",
+      "paused": "Pausad",
+      "gameOver": "Spelet slut",
+      "youWin": "Du vann!",
+      "youLose": "Du förlorade",
+      "draw": "Oavgjort",
+      "completed": "Klart!",
+      "newBest": "Nytt rekord!",
+      "playAgain": "Spela igen",
+      "backToLobby": "Tillbaka till lobby",
+      "quit": "Avsluta",
+      "quitConfirm": "Vill du lämna spelet?",
+      "quitMessage": "Dina framsteg sparas.",
+      "stars": "{{count}} stjärna/or"
+    },
+    "multiplayer": {
+      "inviteSent": "Inbjudan skickad",
+      "inviteReceived": "{{name}} bjuder in dig till {{game}}",
+      "accept": "Acceptera",
+      "decline": "Avböj",
+      "waiting": "Väntar på {{name}}...",
+      "declined": "{{name}} avböjde",
+      "timeout": "Inbjudan utgick",
+      "playerJoined": "{{name}} gick med",
+      "playerLeft": "{{name}} lämnade spelet",
+      "playerDisconnected": "{{name}} tappade anslutningen",
+      "playerReconnected": "{{name}} anslöt igen",
+      "yourTurn": "Din tur",
+      "theirTurn": "{{name}}s tur",
+      "hostLeft": "Värden lämnade spelet",
+      "gameEnded": "Spelet har avslutats"
+    },
+    "stats": {
+      "title": "Statistik",
+      "noStats": "Ingen statistik ännu. Spela ett spel!",
+      "totalTimePlayed": "Total speltid",
+      "averageScore": "Genomsnittlig poäng",
+      "hours": "{{count}} tim",
+      "minutes": "{{count}} min"
+    }
   }
 }

@@ -2872,5 +2872,71 @@
     "cannotDelete": "Rimuovi prima tutti i moduli",
     "maxModules": "Massimo 9 moduli per raccolta",
     "dragHint": "Trascina un modulo su un altro per creare una raccolta"
+  },
+  "games": {
+    "lobby": {
+      "title": "Giochi",
+      "playAlone": "Gioca da solo",
+      "playTogether": "Gioca insieme",
+      "inviteFriends": "Invita amici",
+      "waitingForPlayers": "In attesa dei giocatori...",
+      "startGame": "Inizia gioco",
+      "resumeGame": "Continua a giocare",
+      "newGame": "Nuova partita",
+      "difficulty": "Difficoltà",
+      "easy": "Facile",
+      "medium": "Medio",
+      "hard": "Difficile",
+      "expert": "Esperto"
+    },
+    "common": {
+      "score": "Punteggio",
+      "time": "Tempo",
+      "bestScore": "Miglior punteggio",
+      "bestTime": "Miglior tempo",
+      "gamesPlayed": "Giocate",
+      "gamesWon": "Vinte",
+      "winRate": "Percentuale vittorie",
+      "currentStreak": "Serie attuale",
+      "bestStreak": "Miglior serie",
+      "paused": "In pausa",
+      "gameOver": "Partita finita",
+      "youWin": "Hai vinto!",
+      "youLose": "Hai perso",
+      "draw": "Pareggio",
+      "completed": "Completato!",
+      "newBest": "Nuovo record!",
+      "playAgain": "Gioca ancora",
+      "backToLobby": "Torna alla lobby",
+      "quit": "Esci",
+      "quitConfirm": "Vuoi abbandonare la partita?",
+      "quitMessage": "I tuoi progressi saranno salvati.",
+      "stars": "{{count}} stella/e"
+    },
+    "multiplayer": {
+      "inviteSent": "Invito inviato",
+      "inviteReceived": "{{name}} ti invita a giocare a {{game}}",
+      "accept": "Accetta",
+      "decline": "Rifiuta",
+      "waiting": "In attesa di {{name}}...",
+      "declined": "{{name}} ha rifiutato",
+      "timeout": "Invito scaduto",
+      "playerJoined": "{{name}} si è unito",
+      "playerLeft": "{{name}} ha abbandonato la partita",
+      "playerDisconnected": "{{name}} ha perso la connessione",
+      "playerReconnected": "{{name}} si è riconnesso",
+      "yourTurn": "Il tuo turno",
+      "theirTurn": "Turno di {{name}}",
+      "hostLeft": "L'host ha abbandonato la partita",
+      "gameEnded": "La partita è terminata"
+    },
+    "stats": {
+      "title": "Statistiche",
+      "noStats": "Nessuna statistica. Gioca una partita!",
+      "totalTimePlayed": "Tempo di gioco totale",
+      "averageScore": "Punteggio medio",
+      "hours": "{{count}} ore",
+      "minutes": "{{count}} min"
+    }
   }
 }

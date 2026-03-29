@@ -2789,5 +2789,71 @@
     "cannotDelete": "Najpierw usuń wszystkie moduły",
     "maxModules": "Maksymalnie 9 modułów na kolekcję",
     "dragHint": "Przeciągnij moduł na inny, aby utworzyć kolekcję"
+  },
+  "games": {
+    "lobby": {
+      "title": "Gry",
+      "playAlone": "Graj sam",
+      "playTogether": "Graj razem",
+      "inviteFriends": "Zaproś znajomych",
+      "waitingForPlayers": "Czekanie na graczy...",
+      "startGame": "Rozpocznij grę",
+      "resumeGame": "Kontynuuj grę",
+      "newGame": "Nowa gra",
+      "difficulty": "Poziom trudności",
+      "easy": "Łatwy",
+      "medium": "Średni",
+      "hard": "Trudny",
+      "expert": "Ekspert"
+    },
+    "common": {
+      "score": "Wynik",
+      "time": "Czas",
+      "bestScore": "Najlepszy wynik",
+      "bestTime": "Najlepszy czas",
+      "gamesPlayed": "Rozegrane",
+      "gamesWon": "Wygrane",
+      "winRate": "Procent wygranych",
+      "currentStreak": "Aktualna seria",
+      "bestStreak": "Najlepsza seria",
+      "paused": "Wstrzymano",
+      "gameOver": "Koniec gry",
+      "youWin": "Wygrałeś!",
+      "youLose": "Przegrałeś",
+      "draw": "Remis",
+      "completed": "Ukończono!",
+      "newBest": "Nowy rekord!",
+      "playAgain": "Zagraj ponownie",
+      "backToLobby": "Wróć do lobby",
+      "quit": "Zakończ",
+      "quitConfirm": "Czy chcesz opuścić grę?",
+      "quitMessage": "Twój postęp zostanie zapisany.",
+      "stars": "{{count}} gwiazdka/i"
+    },
+    "multiplayer": {
+      "inviteSent": "Zaproszenie wysłane",
+      "inviteReceived": "{{name}} zaprasza cię do gry {{game}}",
+      "accept": "Akceptuj",
+      "decline": "Odrzuć",
+      "waiting": "Czekanie na {{name}}...",
+      "declined": "{{name}} odrzucił",
+      "timeout": "Zaproszenie wygasło",
+      "playerJoined": "{{name}} dołączył",
+      "playerLeft": "{{name}} opuścił grę",
+      "playerDisconnected": "{{name}} stracił połączenie",
+      "playerReconnected": "{{name}} połączył się ponownie",
+      "yourTurn": "Twoja kolej",
+      "theirTurn": "Kolej {{name}}",
+      "hostLeft": "Gospodarz opuścił grę",
+      "gameEnded": "Gra się zakończyła"
+    },
+    "stats": {
+      "title": "Statystyki",
+      "noStats": "Brak statystyk. Zagraj w grę!",
+      "totalTimePlayed": "Całkowity czas gry",
+      "averageScore": "Średni wynik",
+      "hours": "{{count}} godz.",
+      "minutes": "{{count}} min"
+    }
   }
 }
