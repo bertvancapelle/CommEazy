@@ -233,3 +233,32 @@ export type {
   SplitViewLayoutProps,
   AdaptiveNavigationWrapperProps,
 } from './navigation';
+
+// Game Components
+export {
+  SpelTegel,
+  GameHeader,
+  DifficultyPicker,
+  GameStatsView,
+  GameOverModal,
+  GameInviteModal,
+  GameWaitingModal,
+  InGameChat,
+} from './games';
+export type {
+  SpelTegelProps,
+  GameHeaderProps,
+  GameHeaderAction,
+  DifficultyPickerProps,
+  DifficultyOption,
+  GameStatsViewProps,
+  GameOverModalProps,
+  GameOverStat,
+  GameInviteModalProps,
+  GameContact,
+  GameWaitingModalProps,
+  WaitingInvitee,
+  InGameChatProps,
+  GameChatMessage,
+  PlayerInfo,
+} from './games';

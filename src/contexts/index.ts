@@ -244,4 +244,5 @@ export {
   useGameContextSafe,
   type GameContextValue,
   type CreateGameSessionData,
+  type GameStanzaHandler,
 } from './GameContext';

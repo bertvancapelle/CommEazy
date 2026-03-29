@@ -2938,6 +2938,7 @@
   "games": {
     "lobby": {
       "title": "Spellen",
+      "subtitle": "Kies een spel",
       "playAlone": "Alleen spelen",
       "playTogether": "Samen spelen",
       "inviteFriends": "Nodig vrienden uit",
@@ -2973,7 +2974,13 @@
       "quit": "Stoppen",
       "quitConfirm": "Wil je het spel verlaten?",
       "quitMessage": "Je voortgang wordt opgeslagen.",
-      "stars": "{{count}} ster(ren)"
+      "stars": "{{count}} ster(ren)",
+      "congratulations": "Gefeliciteerd!",
+      "pause": "Pauze",
+      "resume": "Hervat",
+      "undo": "Ongedaan maken",
+      "hint": "Hint",
+      "resign": "Opgeven"
     },
     "multiplayer": {
       "inviteSent": "Uitnodiging verstuurd",
@@ -2990,7 +2997,19 @@
       "yourTurn": "Jouw beurt",
       "theirTurn": "Beurt van {{name}}",
       "hostLeft": "De gastheer heeft het spel verlaten",
-      "gameEnded": "Het spel is beëindigd"
+      "gameEnded": "Het spel is beëindigd",
+      "invite": "Uitnodigen",
+      "inviteTitle": "Spelers uitnodigen",
+      "opponentTurn": "Beurt van {{name}}",
+      "resigned": "{{name}} heeft opgegeven",
+      "disconnected": "{{name}} is losgekoppeld",
+      "reconnecting": "Opnieuw verbinden...",
+      "noOnlineContacts": "Geen contacten online",
+      "startGame": "Start spel",
+      "cancelInvite": "Annuleer",
+      "openChat": "Chat openen",
+      "chatHint": "Stuur een bericht",
+      "chatPlaceholder": "Typ een bericht..."
     },
     "stats": {
       "title": "Statistieken",
@@ -2999,6 +3018,21 @@
       "averageScore": "Gemiddelde score",
       "hours": "{{count}} uur",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Maak woorden en verdien punten"
+    },
+    "sudoku": {
+      "description": "Vul het 9×9 raster met cijfers"
+    },
+    "solitaire": {
+      "description": "Klassiek kaartspel"
+    },
+    "memory": {
+      "description": "Vind alle paren"
+    },
+    "trivia": {
+      "description": "Test je kennis"
     }
   }
 }

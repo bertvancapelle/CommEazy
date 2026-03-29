@@ -2876,6 +2876,7 @@
   "games": {
     "lobby": {
       "title": "Giochi",
+      "subtitle": "Scegli un gioco",
       "playAlone": "Gioca da solo",
       "playTogether": "Gioca insieme",
       "inviteFriends": "Invita amici",
@@ -2911,7 +2912,13 @@
       "quit": "Esci",
       "quitConfirm": "Vuoi abbandonare la partita?",
       "quitMessage": "I tuoi progressi saranno salvati.",
-      "stars": "{{count}} stella/e"
+      "stars": "{{count}} stella/e",
+      "congratulations": "Congratulazioni!",
+      "pause": "Pausa",
+      "resume": "Riprendi",
+      "undo": "Annulla",
+      "hint": "Suggerimento",
+      "resign": "Arrenditi"
     },
     "multiplayer": {
       "inviteSent": "Invito inviato",
@@ -2928,7 +2935,19 @@
       "yourTurn": "Il tuo turno",
       "theirTurn": "Turno di {{name}}",
       "hostLeft": "L'host ha abbandonato la partita",
-      "gameEnded": "La partita è terminata"
+      "gameEnded": "La partita è terminata",
+      "invite": "Invita",
+      "inviteTitle": "Invita giocatori",
+      "opponentTurn": "Turno di {{name}}",
+      "resigned": "{{name}} si è arreso",
+      "disconnected": "{{name}} si è disconnesso",
+      "reconnecting": "Riconnessione...",
+      "noOnlineContacts": "Nessun contatto online",
+      "startGame": "Inizia partita",
+      "cancelInvite": "Annulla",
+      "openChat": "Apri chat",
+      "chatHint": "Invia un messaggio",
+      "chatPlaceholder": "Scrivi un messaggio..."
     },
     "stats": {
       "title": "Statistiche",
@@ -2937,6 +2956,21 @@
       "averageScore": "Punteggio medio",
       "hours": "{{count}} ore",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Crea parole e guadagna punti"
+    },
+    "sudoku": {
+      "description": "Riempi la griglia 9×9 con i numeri"
+    },
+    "solitaire": {
+      "description": "Gioco di carte classico"
+    },
+    "memory": {
+      "description": "Trova tutte le coppie"
+    },
+    "trivia": {
+      "description": "Metti alla prova le tue conoscenze"
     }
   }
 }

@@ -2793,6 +2793,7 @@
   "games": {
     "lobby": {
       "title": "Gry",
+      "subtitle": "Wybierz grę",
       "playAlone": "Graj sam",
       "playTogether": "Graj razem",
       "inviteFriends": "Zaproś znajomych",
@@ -2828,7 +2829,13 @@
       "quit": "Zakończ",
       "quitConfirm": "Czy chcesz opuścić grę?",
       "quitMessage": "Twój postęp zostanie zapisany.",
-      "stars": "{{count}} gwiazdka/i"
+      "stars": "{{count}} gwiazdka/i",
+      "congratulations": "Gratulacje!",
+      "pause": "Pauza",
+      "resume": "Wznów",
+      "undo": "Cofnij",
+      "hint": "Podpowiedź",
+      "resign": "Poddaj się"
     },
     "multiplayer": {
       "inviteSent": "Zaproszenie wysłane",
@@ -2845,7 +2852,19 @@
       "yourTurn": "Twoja kolej",
       "theirTurn": "Kolej {{name}}",
       "hostLeft": "Gospodarz opuścił grę",
-      "gameEnded": "Gra się zakończyła"
+      "gameEnded": "Gra się zakończyła",
+      "invite": "Zaproś",
+      "inviteTitle": "Zaproś graczy",
+      "opponentTurn": "Tura {{name}}",
+      "resigned": "{{name}} poddał się",
+      "disconnected": "{{name}} rozłączył się",
+      "reconnecting": "Ponowne łączenie...",
+      "noOnlineContacts": "Brak kontaktów online",
+      "startGame": "Rozpocznij grę",
+      "cancelInvite": "Anuluj",
+      "openChat": "Otwórz czat",
+      "chatHint": "Wyślij wiadomość",
+      "chatPlaceholder": "Wpisz wiadomość..."
     },
     "stats": {
       "title": "Statystyki",
@@ -2854,6 +2873,21 @@
       "averageScore": "Średni wynik",
       "hours": "{{count}} godz.",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Twórz słowa i zdobywaj punkty"
+    },
+    "sudoku": {
+      "description": "Wypełnij siatkę 9×9 liczbami"
+    },
+    "solitaire": {
+      "description": "Klasyczna gra karciana"
+    },
+    "memory": {
+      "description": "Znajdź wszystkie pary"
+    },
+    "trivia": {
+      "description": "Sprawdź swoją wiedzę"
     }
   }
 }

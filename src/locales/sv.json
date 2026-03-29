@@ -2769,6 +2769,7 @@
   "games": {
     "lobby": {
       "title": "Spel",
+      "subtitle": "Välj ett spel",
       "playAlone": "Spela ensam",
       "playTogether": "Spela tillsammans",
       "inviteFriends": "Bjud in vänner",
@@ -2804,7 +2805,13 @@
       "quit": "Avsluta",
       "quitConfirm": "Vill du lämna spelet?",
       "quitMessage": "Dina framsteg sparas.",
-      "stars": "{{count}} stjärna/or"
+      "stars": "{{count}} stjärna/or",
+      "congratulations": "Grattis!",
+      "pause": "Paus",
+      "resume": "Fortsätt",
+      "undo": "Ångra",
+      "hint": "Ledtråd",
+      "resign": "Ge upp"
     },
     "multiplayer": {
       "inviteSent": "Inbjudan skickad",
@@ -2821,7 +2828,19 @@
       "yourTurn": "Din tur",
       "theirTurn": "{{name}}s tur",
       "hostLeft": "Värden lämnade spelet",
-      "gameEnded": "Spelet har avslutats"
+      "gameEnded": "Spelet har avslutats",
+      "invite": "Bjud in",
+      "inviteTitle": "Bjud in spelare",
+      "opponentTurn": "{{name}}s tur",
+      "resigned": "{{name}} har gett upp",
+      "disconnected": "{{name}} är frånkopplad",
+      "reconnecting": "Återansluter...",
+      "noOnlineContacts": "Inga kontakter online",
+      "startGame": "Starta spel",
+      "cancelInvite": "Avbryt",
+      "openChat": "Öppna chatt",
+      "chatHint": "Skicka ett meddelande",
+      "chatPlaceholder": "Skriv ett meddelande..."
     },
     "stats": {
       "title": "Statistik",
@@ -2830,6 +2849,21 @@
       "averageScore": "Genomsnittlig poäng",
       "hours": "{{count}} tim",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Skapa ord och tjäna poäng"
+    },
+    "sudoku": {
+      "description": "Fyll 9×9-rutnätet med siffror"
+    },
+    "solitaire": {
+      "description": "Klassiskt kortspel"
+    },
+    "memory": {
+      "description": "Hitta alla par"
+    },
+    "trivia": {
+      "description": "Testa dina kunskaper"
     }
   }
 }

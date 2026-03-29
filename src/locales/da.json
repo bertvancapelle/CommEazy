@@ -2769,6 +2769,7 @@
   "games": {
     "lobby": {
       "title": "Spil",
+      "subtitle": "Vælg et spil",
       "playAlone": "Spil alene",
       "playTogether": "Spil sammen",
       "inviteFriends": "Inviter venner",
@@ -2804,7 +2805,13 @@
       "quit": "Afslut",
       "quitConfirm": "Vil du forlade spillet?",
       "quitMessage": "Din fremgang bliver gemt.",
-      "stars": "{{count}} stjerne(r)"
+      "stars": "{{count}} stjerne(r)",
+      "congratulations": "Tillykke!",
+      "pause": "Pause",
+      "resume": "Genoptag",
+      "undo": "Fortryd",
+      "hint": "Tip",
+      "resign": "Giv op"
     },
     "multiplayer": {
       "inviteSent": "Invitation sendt",
@@ -2821,7 +2828,19 @@
       "yourTurn": "Din tur",
       "theirTurn": "{{name}}s tur",
       "hostLeft": "Værten forlod spillet",
-      "gameEnded": "Spillet er afsluttet"
+      "gameEnded": "Spillet er afsluttet",
+      "invite": "Inviter",
+      "inviteTitle": "Inviter spillere",
+      "opponentTurn": "{{name}}s tur",
+      "resigned": "{{name}} har givet op",
+      "disconnected": "{{name}} er afbrudt",
+      "reconnecting": "Forbinder igen...",
+      "noOnlineContacts": "Ingen kontakter online",
+      "startGame": "Start spil",
+      "cancelInvite": "Annuller",
+      "openChat": "Åbn chat",
+      "chatHint": "Send en besked",
+      "chatPlaceholder": "Skriv en besked..."
     },
     "stats": {
       "title": "Statistik",
@@ -2830,6 +2849,21 @@
       "averageScore": "Gennemsnitlig point",
       "hours": "{{count}} t",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Lav ord og optjen point"
+    },
+    "sudoku": {
+      "description": "Udfyld 9×9-gitteret med tal"
+    },
+    "solitaire": {
+      "description": "Klassisk kortspil"
+    },
+    "memory": {
+      "description": "Find alle parrene"
+    },
+    "trivia": {
+      "description": "Test din viden"
     }
   }
 }

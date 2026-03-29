@@ -2935,6 +2935,7 @@
   "games": {
     "lobby": {
       "title": "Jeux",
+      "subtitle": "Choisissez un jeu",
       "playAlone": "Jouer seul",
       "playTogether": "Jouer ensemble",
       "inviteFriends": "Inviter des amis",
@@ -2970,7 +2971,13 @@
       "quit": "Quitter",
       "quitConfirm": "Voulez-vous quitter la partie ?",
       "quitMessage": "Votre progression sera sauvegardée.",
-      "stars": "{{count}} étoile(s)"
+      "stars": "{{count}} étoile(s)",
+      "congratulations": "Félicitations !",
+      "pause": "Pause",
+      "resume": "Reprendre",
+      "undo": "Annuler",
+      "hint": "Indice",
+      "resign": "Abandonner"
     },
     "multiplayer": {
       "inviteSent": "Invitation envoyée",
@@ -2987,7 +2994,19 @@
       "yourTurn": "Votre tour",
       "theirTurn": "Tour de {{name}}",
       "hostLeft": "L'hôte a quitté la partie",
-      "gameEnded": "La partie est terminée"
+      "gameEnded": "La partie est terminée",
+      "invite": "Inviter",
+      "inviteTitle": "Inviter des joueurs",
+      "opponentTurn": "Au tour de {{name}}",
+      "resigned": "{{name}} a abandonné",
+      "disconnected": "{{name}} s'est déconnecté",
+      "reconnecting": "Reconnexion...",
+      "noOnlineContacts": "Aucun contact en ligne",
+      "startGame": "Lancer la partie",
+      "cancelInvite": "Annuler",
+      "openChat": "Ouvrir le chat",
+      "chatHint": "Envoyer un message",
+      "chatPlaceholder": "Tapez un message..."
     },
     "stats": {
       "title": "Statistiques",
@@ -2996,6 +3015,21 @@
       "averageScore": "Score moyen",
       "hours": "{{count}} h",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Créez des mots et gagnez des points"
+    },
+    "sudoku": {
+      "description": "Remplissez la grille 9×9 avec des chiffres"
+    },
+    "solitaire": {
+      "description": "Jeu de cartes classique"
+    },
+    "memory": {
+      "description": "Trouvez toutes les paires"
+    },
+    "trivia": {
+      "description": "Testez vos connaissances"
     }
   }
 }

@@ -2934,6 +2934,7 @@
   "games": {
     "lobby": {
       "title": "Spiele",
+      "subtitle": "Wähle ein Spiel",
       "playAlone": "Alleine spielen",
       "playTogether": "Zusammen spielen",
       "inviteFriends": "Freunde einladen",
@@ -2969,7 +2970,13 @@
       "quit": "Beenden",
       "quitConfirm": "Möchtest du das Spiel verlassen?",
       "quitMessage": "Dein Fortschritt wird gespeichert.",
-      "stars": "{{count}} Stern(e)"
+      "stars": "{{count}} Stern(e)",
+      "congratulations": "Herzlichen Glückwunsch!",
+      "pause": "Pause",
+      "resume": "Fortsetzen",
+      "undo": "Rückgängig",
+      "hint": "Hinweis",
+      "resign": "Aufgeben"
     },
     "multiplayer": {
       "inviteSent": "Einladung gesendet",
@@ -2986,7 +2993,19 @@
       "yourTurn": "Dein Zug",
       "theirTurn": "{{name}} ist dran",
       "hostLeft": "Der Gastgeber hat das Spiel verlassen",
-      "gameEnded": "Das Spiel ist beendet"
+      "gameEnded": "Das Spiel ist beendet",
+      "invite": "Einladen",
+      "inviteTitle": "Spieler einladen",
+      "opponentTurn": "{{name}} ist dran",
+      "resigned": "{{name}} hat aufgegeben",
+      "disconnected": "{{name}} ist getrennt",
+      "reconnecting": "Verbindung wird hergestellt...",
+      "noOnlineContacts": "Keine Kontakte online",
+      "startGame": "Spiel starten",
+      "cancelInvite": "Abbrechen",
+      "openChat": "Chat öffnen",
+      "chatHint": "Nachricht senden",
+      "chatPlaceholder": "Nachricht eingeben..."
     },
     "stats": {
       "title": "Statistiken",
@@ -2995,6 +3014,21 @@
       "averageScore": "Durchschnittliche Punkte",
       "hours": "{{count}} Std.",
       "minutes": "{{count}} Min."
+    },
+    "woordraad": {
+      "description": "Bilde Wörter und sammle Punkte"
+    },
+    "sudoku": {
+      "description": "Fülle das 9×9-Raster mit Zahlen"
+    },
+    "solitaire": {
+      "description": "Klassisches Kartenspiel"
+    },
+    "memory": {
+      "description": "Finde alle Paare"
+    },
+    "trivia": {
+      "description": "Teste dein Wissen"
     }
   }
 }

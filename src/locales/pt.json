@@ -2942,6 +2942,7 @@
   "games": {
     "lobby": {
       "title": "Jogos",
+      "subtitle": "Escolha um jogo",
       "playAlone": "Jogar sozinho",
       "playTogether": "Jogar em conjunto",
       "inviteFriends": "Convidar amigos",
@@ -2977,7 +2978,13 @@
       "quit": "Sair",
       "quitConfirm": "Quer abandonar o jogo?",
       "quitMessage": "O seu progresso será guardado.",
-      "stars": "{{count}} estrela(s)"
+      "stars": "{{count}} estrela(s)",
+      "congratulations": "Parabéns!",
+      "pause": "Pausa",
+      "resume": "Retomar",
+      "undo": "Desfazer",
+      "hint": "Dica",
+      "resign": "Desistir"
     },
     "multiplayer": {
       "inviteSent": "Convite enviado",
@@ -2994,7 +3001,19 @@
       "yourTurn": "A sua vez",
       "theirTurn": "Vez de {{name}}",
       "hostLeft": "O anfitrião saiu do jogo",
-      "gameEnded": "O jogo terminou"
+      "gameEnded": "O jogo terminou",
+      "invite": "Convidar",
+      "inviteTitle": "Convidar jogadores",
+      "opponentTurn": "Vez de {{name}}",
+      "resigned": "{{name}} desistiu",
+      "disconnected": "{{name}} desligou-se",
+      "reconnecting": "A reconectar...",
+      "noOnlineContacts": "Nenhum contacto online",
+      "startGame": "Iniciar jogo",
+      "cancelInvite": "Cancelar",
+      "openChat": "Abrir chat",
+      "chatHint": "Enviar uma mensagem",
+      "chatPlaceholder": "Escreva uma mensagem..."
     },
     "stats": {
       "title": "Estatísticas",
@@ -3003,6 +3022,21 @@
       "averageScore": "Pontuação média",
       "hours": "{{count}} h",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Crie palavras e ganhe pontos"
+    },
+    "sudoku": {
+      "description": "Preencha a grelha 9×9 com números"
+    },
+    "solitaire": {
+      "description": "Jogo de cartas clássico"
+    },
+    "memory": {
+      "description": "Encontre todos os pares"
+    },
+    "trivia": {
+      "description": "Teste os seus conhecimentos"
     }
   }
 }

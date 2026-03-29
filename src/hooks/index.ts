@@ -84,3 +84,6 @@ export { useSearchCache, type SearchCacheEntry } from './useSearchCache';
 // Game hooks
 export { useGameSession } from './games/useGameSession';
 export { useGameStats } from './games/useGameStats';
+export { useGameMultiplayer } from './games/useGameMultiplayer';
+export { useGameInvite } from './games/useGameInvite';
+export type { OutgoingInviteStatus, IncomingInvite } from './games/useGameInvite';

@@ -18,6 +18,7 @@ import React, {
   useCallback,
   useMemo,
   useEffect,
+  useRef,
   type ReactNode,
 } from 'react';
 
@@ -32,6 +33,7 @@ import type {
   GameSessionStatus,
   GameStatKey,
   GameStatsDisplay,
+  GameStanza,
 } from '@/types/games';
 
 // ============================================================
@@ -48,6 +50,9 @@ export interface CreateGameSessionData {
   /** Player JIDs including self */
   players: string[];
 }
+
+/** Handler function for incoming game stanzas */
+export type GameStanzaHandler = (stanza: GameStanza) => void;
 
 /** Context value provided to consumers */
 export interface GameContextValue {
@@ -88,6 +93,17 @@ export interface GameContextValue {
 
   /** Reload all data from database */
   reload: () => Promise<void>;
+
+  // ── XMPP Multiplayer ──────────────────────────────────
+
+  /** Send a game stanza to specified JIDs via XMPP */
+  sendGameStanza: (targetJids: string[], stanza: GameStanza) => void;
+
+  /** Register a handler for incoming game stanzas */
+  registerGameHandler: (handler: GameStanzaHandler) => void;
+
+  /** Unregister a previously registered game stanza handler */
+  unregisterGameHandler: (handler: GameStanzaHandler) => void;
 }
 
 // ============================================================
@@ -373,6 +389,45 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [allStats],
   );
 
+  // ── XMPP Multiplayer ───────────────────────────────────
+
+  const gameHandlersRef = useRef<Set<GameStanzaHandler>>(new Set());
+
+  const sendGameStanza = useCallback(
+    (targetJids: string[], stanza: GameStanza) => {
+      // TODO: Wire to actual XMPP service when game protocol is connected
+      // For now, log the intent for development/testing
+      console.debug('[GameContext] sendGameStanza', {
+        type: stanza.type,
+        gameId: stanza.gameId,
+        targets: targetJids.length,
+      });
+    },
+    [],
+  );
+
+  const registerGameHandler = useCallback((handler: GameStanzaHandler) => {
+    gameHandlersRef.current.add(handler);
+  }, []);
+
+  const unregisterGameHandler = useCallback((handler: GameStanzaHandler) => {
+    gameHandlersRef.current.delete(handler);
+  }, []);
+
+  /**
+   * Dispatch an incoming game stanza to all registered handlers.
+   * Called by the XMPP service when a game message is received.
+   */
+  const dispatchGameStanza = useCallback((stanza: GameStanza) => {
+    gameHandlersRef.current.forEach(handler => {
+      try {
+        handler(stanza);
+      } catch (error) {
+        console.error('[GameContext] Handler error:', (error as Error).message);
+      }
+    });
+  }, []);
+
   // ── Context Value ───────────────────────────────────────
 
   const value = useMemo<GameContextValue>(
@@ -385,6 +440,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       abandonSession,
       getStats,
       reload: loadData,
+      sendGameStanza,
+      registerGameHandler,
+      unregisterGameHandler,
     }),
     [
       isLoading,
@@ -395,6 +453,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       abandonSession,
       getStats,
       loadData,
+      sendGameStanza,
+      registerGameHandler,
+      unregisterGameHandler,
     ],
   );
 

@@ -2938,6 +2938,7 @@
   "games": {
     "lobby": {
       "title": "Games",
+      "subtitle": "Choose a game",
       "playAlone": "Play alone",
       "playTogether": "Play together",
       "inviteFriends": "Invite friends",
@@ -2973,7 +2974,13 @@
       "quit": "Quit",
       "quitConfirm": "Do you want to leave the game?",
       "quitMessage": "Your progress will be saved.",
-      "stars": "{{count}} star(s)"
+      "stars": "{{count}} star(s)",
+      "congratulations": "Congratulations!",
+      "pause": "Pause",
+      "resume": "Resume",
+      "undo": "Undo",
+      "hint": "Hint",
+      "resign": "Resign"
     },
     "multiplayer": {
       "inviteSent": "Invitation sent",
@@ -2990,7 +2997,19 @@
       "yourTurn": "Your turn",
       "theirTurn": "{{name}}'s turn",
       "hostLeft": "The host left the game",
-      "gameEnded": "The game has ended"
+      "gameEnded": "The game has ended",
+      "invite": "Invite",
+      "inviteTitle": "Invite players",
+      "opponentTurn": "{{name}}'s turn",
+      "resigned": "{{name}} has resigned",
+      "disconnected": "{{name}} disconnected",
+      "reconnecting": "Reconnecting...",
+      "noOnlineContacts": "No contacts online",
+      "startGame": "Start game",
+      "cancelInvite": "Cancel",
+      "openChat": "Open chat",
+      "chatHint": "Send a message",
+      "chatPlaceholder": "Type a message..."
     },
     "stats": {
       "title": "Statistics",
@@ -2999,6 +3018,21 @@
       "averageScore": "Average score",
       "hours": "{{count}} hr",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Create words and earn points"
+    },
+    "sudoku": {
+      "description": "Fill the 9×9 grid with numbers"
+    },
+    "solitaire": {
+      "description": "Classic card game"
+    },
+    "memory": {
+      "description": "Find all pairs"
+    },
+    "trivia": {
+      "description": "Test your knowledge"
     }
   }
 }

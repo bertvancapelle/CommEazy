@@ -2934,6 +2934,7 @@
   "games": {
     "lobby": {
       "title": "Juegos",
+      "subtitle": "Elige un juego",
       "playAlone": "Jugar solo",
       "playTogether": "Jugar juntos",
       "inviteFriends": "Invitar amigos",
@@ -2969,7 +2970,13 @@
       "quit": "Salir",
       "quitConfirm": "¿Quieres abandonar el juego?",
       "quitMessage": "Tu progreso se guardará.",
-      "stars": "{{count}} estrella(s)"
+      "stars": "{{count}} estrella(s)",
+      "congratulations": "¡Felicidades!",
+      "pause": "Pausa",
+      "resume": "Reanudar",
+      "undo": "Deshacer",
+      "hint": "Pista",
+      "resign": "Rendirse"
     },
     "multiplayer": {
       "inviteSent": "Invitación enviada",
@@ -2986,7 +2993,19 @@
       "yourTurn": "Tu turno",
       "theirTurn": "Turno de {{name}}",
       "hostLeft": "El anfitrión ha abandonado el juego",
-      "gameEnded": "El juego ha terminado"
+      "gameEnded": "El juego ha terminado",
+      "invite": "Invitar",
+      "inviteTitle": "Invitar jugadores",
+      "opponentTurn": "Turno de {{name}}",
+      "resigned": "{{name}} se ha rendido",
+      "disconnected": "{{name}} se ha desconectado",
+      "reconnecting": "Reconectando...",
+      "noOnlineContacts": "Sin contactos en línea",
+      "startGame": "Iniciar juego",
+      "cancelInvite": "Cancelar",
+      "openChat": "Abrir chat",
+      "chatHint": "Enviar un mensaje",
+      "chatPlaceholder": "Escribe un mensaje..."
     },
     "stats": {
       "title": "Estadísticas",
@@ -2995,6 +3014,21 @@
       "averageScore": "Puntuación media",
       "hours": "{{count}} h",
       "minutes": "{{count}} min"
+    },
+    "woordraad": {
+      "description": "Crea palabras y gana puntos"
+    },
+    "sudoku": {
+      "description": "Rellena la cuadrícula 9×9 con números"
+    },
+    "solitaire": {
+      "description": "Juego de cartas clásico"
+    },
+    "memory": {
+      "description": "Encuentra todos los pares"
+    },
+    "trivia": {
+      "description": "Pon a prueba tus conocimientos"
     }
   }
 }
