@@ -2990,10 +2990,30 @@
       "cell": "Cella riga {{row}} colonna {{col}}"
     },
     "solitaire": {
-      "description": "Gioco di carte classico"
+      "description": "Gioco di carte classico",
+      "title": "Solitario",
+      "howToPlay": "Impila tutte le carte ordinate per seme sulle quattro pile di base. Sposta le carte tra le colonne in ordine decrescente e colori alternati.",
+      "movesCount": "Mosse",
+      "foundation": "Base",
+      "stock": "Mazzo",
+      "waste": "Scarti",
+      "tableau": "Colonna",
+      "hint": "Suggerimento",
+      "autoComplete": "Auto completamento",
+      "faceDown": "Carta coperta",
+      "draw": "Pesca carta"
     },
     "memory": {
-      "description": "Trova tutte le coppie"
+      "description": "Trova tutte le coppie",
+      "title": "Memory",
+      "howToPlay": "Gira due carte alla volta e prova a trovare le coppie. Ricorda dove si trova ogni immagine!",
+      "pairs": "Coppie",
+      "pairsFound": "Coppie trovate",
+      "moves": "Mosse",
+      "matchFound": "Coppia trovata!",
+      "noMatch": "Nessuna coppia",
+      "perfectGame": "Partita perfetta!",
+      "card": "Gira carta"
     },
     "trivia": {
       "description": "Metti alla prova le tue conoscenze"

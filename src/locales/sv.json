@@ -2883,10 +2883,30 @@
       "cell": "Ruta rad {{row}} kolumn {{col}}"
     },
     "solitaire": {
-      "description": "Klassiskt kortspel"
+      "description": "Klassiskt kortspel",
+      "title": "Patiens",
+      "howToPlay": "Stapla alla kort sorterade efter färg på de fyra högarna. Flytta kort mellan kolumnerna i fallande ordning och växlande färg.",
+      "movesCount": "Drag",
+      "foundation": "Hög",
+      "stock": "Draghög",
+      "waste": "Kasthög",
+      "tableau": "Kolumn",
+      "hint": "Ledtråd",
+      "autoComplete": "Auto slutför",
+      "faceDown": "Kort med baksidan upp",
+      "draw": "Dra kort"
     },
     "memory": {
-      "description": "Hitta alla par"
+      "description": "Hitta alla par",
+      "title": "Memory",
+      "howToPlay": "Vänd två kort i taget och försök hitta par. Kom ihåg var varje bild ligger!",
+      "pairs": "Par",
+      "pairsFound": "Par hittade",
+      "moves": "Drag",
+      "matchFound": "Par hittat!",
+      "noMatch": "Inget par",
+      "perfectGame": "Perfekt spel!",
+      "card": "Vänd kort"
     },
     "trivia": {
       "description": "Testa dina kunskaper"

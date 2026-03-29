@@ -2913,10 +2913,30 @@
       "cell": "Rute rad {{row}} kolonne {{col}}"
     },
     "solitaire": {
-      "description": "Klassisk kortspill"
+      "description": "Klassisk kortspill",
+      "title": "Kabal",
+      "howToPlay": "Stable alle kort sortert etter farge på de fire bunkene. Flytt kort mellom kolonnene i synkende rekkefølge og vekslende farge.",
+      "movesCount": "Trekk",
+      "foundation": "Bunke",
+      "stock": "Trekkbunke",
+      "waste": "Avkastbunke",
+      "tableau": "Kolonne",
+      "hint": "Hint",
+      "autoComplete": "Auto fullfør",
+      "faceDown": "Kort med baksiden opp",
+      "draw": "Trekk kort"
     },
     "memory": {
-      "description": "Finn alle parene"
+      "description": "Finn alle parene",
+      "title": "Memory",
+      "howToPlay": "Snu to kort om gangen og prøv å finne par. Husk hvor hvert bilde ligger!",
+      "pairs": "Par",
+      "pairsFound": "Par funnet",
+      "moves": "Trekk",
+      "matchFound": "Par funnet!",
+      "noMatch": "Ikke par",
+      "perfectGame": "Perfekt spill!",
+      "card": "Snu kort"
     },
     "trivia": {
       "description": "Test kunnskapen din"

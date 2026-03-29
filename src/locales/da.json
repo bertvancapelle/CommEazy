@@ -2883,10 +2883,30 @@
       "cell": "Celle række {{row}} kolonne {{col}}"
     },
     "solitaire": {
-      "description": "Klassisk kortspil"
+      "description": "Klassisk kortspil",
+      "title": "Kabale",
+      "howToPlay": "Stabel alle kort sorteret efter farve på de fire bunker. Flyt kort mellem kolonnerne i faldende rækkefølge og skiftende farve.",
+      "movesCount": "Træk",
+      "foundation": "Bunke",
+      "stock": "Trækbunke",
+      "waste": "Affaldsbunke",
+      "tableau": "Kolonne",
+      "hint": "Tip",
+      "autoComplete": "Auto fuldfør",
+      "faceDown": "Kort med bagsiden opad",
+      "draw": "Træk kort"
     },
     "memory": {
-      "description": "Find alle parrene"
+      "description": "Find alle parrene",
+      "title": "Memory",
+      "howToPlay": "Vend to kort ad gangen og prøv at finde par. Husk hvor hvert billede ligger!",
+      "pairs": "Par",
+      "pairsFound": "Par fundet",
+      "moves": "Træk",
+      "matchFound": "Par fundet!",
+      "noMatch": "Intet par",
+      "perfectGame": "Perfekt spil!",
+      "card": "Vend kort"
     },
     "trivia": {
       "description": "Test din viden"

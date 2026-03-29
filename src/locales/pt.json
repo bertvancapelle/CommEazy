@@ -3056,10 +3056,30 @@
       "cell": "Célula linha {{row}} coluna {{col}}"
     },
     "solitaire": {
-      "description": "Jogo de cartas clássico"
+      "description": "Jogo de cartas clássico",
+      "title": "Solitário",
+      "howToPlay": "Empilhe todas as cartas ordenadas por naipe nas quatro pilhas de base. Mova cartas entre colunas em ordem decrescente e cores alternadas.",
+      "movesCount": "Jogadas",
+      "foundation": "Base",
+      "stock": "Baralho",
+      "waste": "Descarte",
+      "tableau": "Coluna",
+      "hint": "Dica",
+      "autoComplete": "Auto completar",
+      "faceDown": "Carta virada para baixo",
+      "draw": "Tirar carta"
     },
     "memory": {
-      "description": "Encontre todos os pares"
+      "description": "Encontre todos os pares",
+      "title": "Memory",
+      "howToPlay": "Vire duas cartas de cada vez e tente encontrar pares. Lembre-se onde está cada imagem!",
+      "pairs": "Pares",
+      "pairsFound": "Pares encontrados",
+      "moves": "Jogadas",
+      "matchFound": "Par encontrado!",
+      "noMatch": "Sem par",
+      "perfectGame": "Jogo perfeito!",
+      "card": "Virar carta"
     },
     "trivia": {
       "description": "Teste os seus conhecimentos"

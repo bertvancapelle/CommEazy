@@ -3052,10 +3052,30 @@
       "cell": "Vakje rij {{row}} kolom {{col}}"
     },
     "solitaire": {
-      "description": "Klassiek kaartspel"
+      "description": "Klassiek kaartspel",
+      "title": "Solitaire",
+      "howToPlay": "Stapel alle kaarten gesorteerd op kleur op de vier stapels. Sleep kaarten tussen kolommen in aflopende volgorde en afwisselende kleur.",
+      "movesCount": "Zetten",
+      "foundation": "Stapel",
+      "stock": "Trekstapel",
+      "waste": "Aflegstapel",
+      "tableau": "Kolom",
+      "hint": "Hint",
+      "autoComplete": "Auto voltooien",
+      "faceDown": "Kaart gedekt",
+      "draw": "Trek kaart"
     },
     "memory": {
-      "description": "Vind alle paren"
+      "description": "Vind alle paren",
+      "title": "Memory",
+      "howToPlay": "Draai steeds twee kaarten om en probeer paren te vinden. Onthoud waar elke afbeelding ligt!",
+      "pairs": "Paren",
+      "pairsFound": "Paren gevonden",
+      "moves": "Zetten",
+      "matchFound": "Paar gevonden!",
+      "noMatch": "Geen paar",
+      "perfectGame": "Perfect spel!",
+      "card": "Kaart omdraaien"
     },
     "trivia": {
       "description": "Test je kennis"

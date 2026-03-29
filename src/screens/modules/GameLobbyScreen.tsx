@@ -24,6 +24,8 @@ import { ALL_GAME_TYPES, type GameType } from '@/types/games';
 import type { ModuleColorId } from '@/types/liquidGlass';
 import { WoordraadScreen } from './WoordraadScreen';
 import { SudokuScreen } from './SudokuScreen';
+import { SolitaireScreen } from './SolitaireScreen';
+import { MemoryScreen } from './MemoryScreen';
 
 // ============================================================
 // Types
@@ -70,9 +72,13 @@ export function GameLobbyScreen({ moduleId: _moduleId }: GameLobbyScreenProps) {
   if (activeGame === 'sudoku') {
     return <SudokuScreen onBack={handleBackToLobby} />;
   }
-  // Future sessions: solitaire, memory, trivia
-  // if (activeGame === 'solitaire') return <SolitaireScreen onBack={handleBackToLobby} />;
-  // if (activeGame === 'memory') return <MemoryScreen onBack={handleBackToLobby} />;
+  if (activeGame === 'solitaire') {
+    return <SolitaireScreen onBack={handleBackToLobby} />;
+  }
+  if (activeGame === 'memory') {
+    return <MemoryScreen onBack={handleBackToLobby} />;
+  }
+  // Future session: trivia
   // if (activeGame === 'trivia') return <TriviaScreen onBack={handleBackToLobby} />;
 
   return (

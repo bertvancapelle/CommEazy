@@ -2907,10 +2907,30 @@
       "cell": "Pole wiersz {{row}} kolumna {{col}}"
     },
     "solitaire": {
-      "description": "Klasyczna gra karciana"
+      "description": "Klasyczna gra karciana",
+      "title": "Pasjans",
+      "howToPlay": "Ułóż wszystkie karty posortowane według koloru na czterech stosach. Przenoś karty między kolumnami w kolejności malejącej i naprzemiennych kolorach.",
+      "movesCount": "Ruchy",
+      "foundation": "Stos",
+      "stock": "Stos do ciągnięcia",
+      "waste": "Stos odrzuconych",
+      "tableau": "Kolumna",
+      "hint": "Podpowiedź",
+      "autoComplete": "Auto uzupełnianie",
+      "faceDown": "Karta zakryta",
+      "draw": "Ciągnij kartę"
     },
     "memory": {
-      "description": "Znajdź wszystkie pary"
+      "description": "Znajdź wszystkie pary",
+      "title": "Memory",
+      "howToPlay": "Odwracaj po dwie karty naraz i próbuj znaleźć pary. Zapamiętaj, gdzie leży każdy obrazek!",
+      "pairs": "Pary",
+      "pairsFound": "Znalezione pary",
+      "moves": "Ruchy",
+      "matchFound": "Para znaleziona!",
+      "noMatch": "Brak pary",
+      "perfectGame": "Perfekcyjna gra!",
+      "card": "Odwróć kartę"
     },
     "trivia": {
       "description": "Sprawdź swoją wiedzę"

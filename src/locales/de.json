@@ -3048,10 +3048,30 @@
       "cell": "Feld Zeile {{row}} Spalte {{col}}"
     },
     "solitaire": {
-      "description": "Klassisches Kartenspiel"
+      "description": "Klassisches Kartenspiel",
+      "title": "Solitaire",
+      "howToPlay": "Stapeln Sie alle Karten nach Farbe sortiert auf die vier Ablagestapel. Verschieben Sie Karten zwischen Spalten in absteigender Reihenfolge und abwechselnder Farbe.",
+      "movesCount": "Züge",
+      "foundation": "Ablage",
+      "stock": "Ziehstapel",
+      "waste": "Ablagestapel",
+      "tableau": "Spalte",
+      "hint": "Hinweis",
+      "autoComplete": "Auto vervollständigen",
+      "faceDown": "Karte verdeckt",
+      "draw": "Karte ziehen"
     },
     "memory": {
-      "description": "Finde alle Paare"
+      "description": "Finde alle Paare",
+      "title": "Memory",
+      "howToPlay": "Drehen Sie jeweils zwei Karten um und versuchen Sie, Paare zu finden. Merken Sie sich, wo jedes Bild liegt!",
+      "pairs": "Paare",
+      "pairsFound": "Paare gefunden",
+      "moves": "Züge",
+      "matchFound": "Paar gefunden!",
+      "noMatch": "Kein Paar",
+      "perfectGame": "Perfektes Spiel!",
+      "card": "Karte umdrehen"
     },
     "trivia": {
       "description": "Teste dein Wissen"

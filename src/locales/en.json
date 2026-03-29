@@ -3066,10 +3066,30 @@
       "cell": "Cell row {{row}} column {{col}}"
     },
     "solitaire": {
-      "description": "Classic card game"
+      "description": "Classic card game",
+      "title": "Solitaire",
+      "howToPlay": "Stack all cards sorted by suit on the four foundation piles. Move cards between columns in descending order and alternating colours.",
+      "movesCount": "Moves",
+      "foundation": "Foundation",
+      "stock": "Stock",
+      "waste": "Waste",
+      "tableau": "Column",
+      "hint": "Hint",
+      "autoComplete": "Auto complete",
+      "faceDown": "Card face down",
+      "draw": "Draw card"
     },
     "memory": {
-      "description": "Find all pairs"
+      "description": "Find all pairs",
+      "title": "Memory",
+      "howToPlay": "Flip two cards at a time and try to find matching pairs. Remember where each image is!",
+      "pairs": "Pairs",
+      "pairsFound": "Pairs found",
+      "moves": "Moves",
+      "matchFound": "Match found!",
+      "noMatch": "No match",
+      "perfectGame": "Perfect game!",
+      "card": "Flip card"
     },
     "trivia": {
       "description": "Test your knowledge"

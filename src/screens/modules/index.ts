@@ -37,6 +37,8 @@ export { GameLobbyScreen } from './GameLobbyScreen';
 export { GamePlaceholderScreen } from './GamePlaceholderScreen';
 export { WoordraadScreen } from './WoordraadScreen';
 export { SudokuScreen } from './SudokuScreen';
+export { SolitaireScreen } from './SolitaireScreen';
+export { MemoryScreen } from './MemoryScreen';
 
 // Help module placeholder
 export { HelpPlaceholderScreen } from './HelpPlaceholderScreen';

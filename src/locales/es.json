@@ -3048,10 +3048,30 @@
       "cell": "Celda fila {{row}} columna {{col}}"
     },
     "solitaire": {
-      "description": "Juego de cartas clásico"
+      "description": "Juego de cartas clásico",
+      "title": "Solitario",
+      "howToPlay": "Apila todas las cartas ordenadas por palo en las cuatro pilas de base. Mueve las cartas entre columnas en orden descendente y alternando colores.",
+      "movesCount": "Movimientos",
+      "foundation": "Base",
+      "stock": "Mazo",
+      "waste": "Descarte",
+      "tableau": "Columna",
+      "hint": "Pista",
+      "autoComplete": "Auto completar",
+      "faceDown": "Carta boca abajo",
+      "draw": "Robar carta"
     },
     "memory": {
-      "description": "Encuentra todos los pares"
+      "description": "Encuentra todos los pares",
+      "title": "Memory",
+      "howToPlay": "Voltea dos cartas a la vez e intenta encontrar pares. ¡Recuerda dónde está cada imagen!",
+      "pairs": "Pares",
+      "pairsFound": "Pares encontrados",
+      "moves": "Movimientos",
+      "matchFound": "¡Par encontrado!",
+      "noMatch": "No hay par",
+      "perfectGame": "¡Partida perfecta!",
+      "card": "Voltear carta"
     },
     "trivia": {
       "description": "Pon a prueba tus conocimientos"

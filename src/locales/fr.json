@@ -3049,10 +3049,30 @@
       "cell": "Case ligne {{row}} colonne {{col}}"
     },
     "solitaire": {
-      "description": "Jeu de cartes classique"
+      "description": "Jeu de cartes classique",
+      "title": "Solitaire",
+      "howToPlay": "Empilez toutes les cartes triées par couleur sur les quatre piles de fondation. Déplacez les cartes entre les colonnes en ordre décroissant et en alternant les couleurs.",
+      "movesCount": "Coups",
+      "foundation": "Fondation",
+      "stock": "Pioche",
+      "waste": "Défausse",
+      "tableau": "Colonne",
+      "hint": "Indice",
+      "autoComplete": "Auto compléter",
+      "faceDown": "Carte face cachée",
+      "draw": "Piocher"
     },
     "memory": {
-      "description": "Trouvez toutes les paires"
+      "description": "Trouvez toutes les paires",
+      "title": "Memory",
+      "howToPlay": "Retournez deux cartes à la fois et essayez de trouver des paires. Mémorisez où se trouve chaque image !",
+      "pairs": "Paires",
+      "pairsFound": "Paires trouvées",
+      "moves": "Coups",
+      "matchFound": "Paire trouvée !",
+      "noMatch": "Pas de paire",
+      "perfectGame": "Partie parfaite !",
+      "card": "Retourner la carte"
     },
     "trivia": {
       "description": "Testez vos connaissances"
