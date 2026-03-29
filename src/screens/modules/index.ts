@@ -35,5 +35,8 @@ export { AgendaScreen } from './AgendaScreen';
 // Game placeholder (used for all 5 game modules)
 export { GamePlaceholderScreen } from './GamePlaceholderScreen';
 
+// Help module placeholder
+export { HelpPlaceholderScreen } from './HelpPlaceholderScreen';
+
 // Communication modules
 export { MailScreen } from '../mail/MailScreen';

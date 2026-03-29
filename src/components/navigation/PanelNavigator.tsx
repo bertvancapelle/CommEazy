@@ -82,6 +82,7 @@ import {
   AskAIScreen,
   AgendaScreen,
   GamePlaceholderScreen,
+  HelpPlaceholderScreen,
 } from '@/screens/modules';
 
 // Mail screens
@@ -558,6 +559,23 @@ function HomePanelNavigator() {
 }
 
 // ============================================================
+// Help Screen Navigator (back to home)
+// ============================================================
+
+function HelpPanelNavigator() {
+  const panelId = usePanelId();
+  const paneCtx = usePaneContextSafe();
+
+  const handleBack = useCallback(() => {
+    if (paneCtx && panelId) {
+      paneCtx.setPaneModule(panelId, 'home');
+    }
+  }, [paneCtx, panelId]);
+
+  return <HelpPlaceholderScreen onBack={handleBack} />;
+}
+
+// ============================================================
 // Props
 // ============================================================
 
@@ -619,7 +637,7 @@ export function PanelNavigator({ panelId, moduleId }: PanelNavigatorProps) {
     case 'agenda':
       return <AgendaScreen />;
     case 'help':
-      return <PlaceholderScreen />;
+      return <HelpPanelNavigator />;
 
     // Game modules — placeholder screens
     case 'woordraad':
