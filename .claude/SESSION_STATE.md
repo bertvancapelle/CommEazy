@@ -6,28 +6,21 @@
 ## Laatste Update
 
 - **Datum:** 2026-03-30
-- **Sessie:** Games Session 9 — Icon consistency + backspace icon + grid button removal
-- **Commit:** `6b06dbe` fix: game screen icon consistency + backspace icon + grid button removal
+- **Sessie:** Games Session 10 — LiquidGlassModule debounce fix (Sudoku GameOverModal bug)
+- **Commit:** `a30c38e` fix: debounce LiquidGlassModule prop updates to prevent GameOverModal touch bug
 
 ## Voltooide Taken Deze Sessie
 
-1. **Game screen icon consistentie:**
-   - MemoryScreen: `icon="grid"` → `icon="eye"` (2 instances) — matcht navigation icon
-   - SolitaireScreen: `icon="layers"` → `icon="list"` (2 instances) — matcht navigation icon
-   - Overige 4 spellen (Trivia, Woordraad, Sudoku, Woordy) waren al consistent
-
-2. **Backspace icoon toegevoegd aan Icon.tsx:**
-   - Nieuw `'backspace'` type in `IconName` union
-   - SVG: rechthoek met pijlvormige linkerkant + X erin (standaard ⌫ symbool)
-   - WoordraadScreen DEL-toets: `icon="close"` → `icon="backspace"` (was fallback cirkel)
-
-3. **ModuleHeader rightAccessory render volgorde:**
-   - rightAccessory rendert nu NA MediaIndicator en Grid button (was ervoor)
-   - ASCII diagram in ModuleHeader.tsx bijgewerkt
-
-4. **Grid button verwijderd uit alle game screens:**
-   - `showGridButton={false}` op alle 19 ModuleHeader instances in 6 game screens
-   - Gamepad knop als `rightAccessory` (navigeert terug naar GameLobby)
+1. **LiquidGlassModule.swift debounce fix:**
+   - **Bug:** Sudoku game-over toonde wit transparant onresponsief overlay, navigeerde na paar seconden automatisch naar HomeScreen
+   - **Root cause:** 5 prop `didSet` handlers riepen elk `updateGlassEffect()` aan — elke call verwijdert glass container (`removeFromSuperview`) en maakt nieuwe aan (`insertSubview at: 0`), wat React Native children's subview ordering verstoort → touches bereiken modal content niet
+   - **Fix:** 50ms debounce timer (`scheduleDebouncedUpdate()`) batcht rapid prop changes in één `updateGlassEffect()` call
+   - **Wijzigingen in `ios/LiquidGlassModule.swift`:**
+     - `propUpdateTimer: Timer?` property toegevoegd
+     - Alle 5 `didSet` handlers: `updateGlassEffect()` → `scheduleDebouncedUpdate()`
+     - `cornerRadius` behoudt immediate visuele updates (layer.cornerRadius, clipsToBounds) naast debounced full update
+     - `deinit` invalideert timer
+     - `scheduleDebouncedUpdate()` methode met 50ms Timer
 
 ## Openstaande Taken
 
@@ -57,14 +50,14 @@ Geen.
 
 | Beslissing | Rationale |
 |------------|-----------|
-| Header icons matchen navigation icons | Consistentie voor senioren — zelfde icoon in homescreen EN module header |
-| `showGridButton={false}` voor alle games | Games hebben gamepad-knop als rightAccessory, grid-knop is overbodig |
-| rightAccessory NA grid button | Visuele volgorde: MediaIndicator → Grid → extra knoppen (rechts-naar-links prioriteit) |
-| Backspace icoon i.p.v. close/X | DEL-toets had fallback cirkel (close niet in IconName), backspace ⌫ is herkenbaar |
+| 50ms debounce i.p.v. direct `updateGlassEffect()` | React Native set props one-by-one; 5 calls = 5 remove+recreate cycles = subview ordering bug |
+| Timer-based i.p.v. `DispatchQueue.main.async` | Timer met 50ms interval batcht betrouwbaarder dan single runloop cycle — meerdere props kunnen over meerdere frames komen |
+| `cornerRadius` behoudt immediate visual updates | Layer cornerRadius en clipsToBounds veroorzaken geen subview churn, alleen de full `updateGlassEffect()` doet dat |
 
 ## Context voor Volgende Sessie
 
-- **Icon.tsx:** 131 icon namen, nieuwste = `'backspace'` (lijn 2246)
+- **LiquidGlassModule.swift:** Debounce pattern via `propUpdateTimer` (50ms) — alle prop `didSet` handlers gebruiken `scheduleDebouncedUpdate()`
+- **Eerdere fix (sessie 7, commit `59766d9`):** `layoutSubviews` guard (`glassEffectView == nil`) voorkomt recreatie tijdens layout — maar `didSet` handlers omzeilden deze guard → opgelost met debounce
 - **Game screen ModuleHeader pattern:** `showGridButton={false}` + `rightAccessory={renderGamepadButton(onBack)}`
 - **Alle 6 games actief:** Woordraad, Sudoku, Solitaire, Memory, Trivia, Woordy
 - **Engines locatie:** `src/engines/{woordraad,sudoku,solitaire,memory,trivia,woordy}/`
