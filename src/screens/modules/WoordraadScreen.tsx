@@ -371,6 +371,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               icon="chatbubble"
               title={t('navigation.woordraad')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -403,6 +404,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               icon="chatbubble"
               title={t('navigation.woordraad')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -466,6 +468,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               icon="chatbubble"
               title={t('navigation.woordraad')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -519,6 +522,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
               icon="chatbubble"
               title={t('navigation.woordraad')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -598,6 +602,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
             icon="chatbubble"
             title={t('navigation.woordraad')}
             skipSafeArea
+            showGridButton={false}
             rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
           />
         }
@@ -736,7 +741,7 @@ export function WoordraadScreen({ onBack }: WoordraadScreenProps) {
                         }
                       >
                         {key === 'DEL' ? (
-                          <Icon name="close" size={20} color={themeColors.textPrimary} />
+                          <Icon name="backspace" size={20} color={themeColors.textPrimary} />
                         ) : (
                           <Text
                             style={[

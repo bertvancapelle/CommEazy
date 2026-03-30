@@ -237,6 +237,7 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
               icon="grid"
               title={t('navigation.sudoku')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -311,6 +312,7 @@ export function SudokuScreen({ onBack }: SudokuScreenProps) {
             icon="grid"
             title={t('navigation.sudoku')}
             skipSafeArea
+            showGridButton={false}
             rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
           />
         }

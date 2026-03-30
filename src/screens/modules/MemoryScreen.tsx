@@ -230,9 +230,10 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
           moduleBlock={
             <ModuleHeader
               moduleId={MODULE_ID}
-              icon="grid"
+              icon="eye"
               title={t('navigation.memory')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -304,9 +305,10 @@ export function MemoryScreen({ onBack }: MemoryScreenProps) {
         moduleBlock={
           <ModuleHeader
             moduleId={MODULE_ID}
-            icon="grid"
+            icon="eye"
             title={t('navigation.memory')}
             skipSafeArea
+            showGridButton={false}
             rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
           />
         }

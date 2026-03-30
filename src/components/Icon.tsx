@@ -127,7 +127,8 @@ export type IconName =
   | 'person-add'
   | 'phone-landline'
   | 'cellphone'
-  | 'gamepad';
+  | 'gamepad'
+  | 'backspace';
 
 interface IconProps {
   name: IconName;
@@ -2238,6 +2239,26 @@ export function Icon({ name, size = 24, color = colors.textSecondary, strokeWidt
             stroke={color}
             strokeWidth={sw}
             strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'backspace':
+      // Backspace key: rectangle with arrow-shaped left side + X inside
+      return (
+        <Svg {...iconProps}>
+          <Path
+            d="M9.41 7L4 12L9.41 17H20C20.55 17 21 16.55 21 16V8C21 7.45 20.55 7 20 7H9.41Z"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinejoin="round"
+            fill="none"
+          />
+          <Path
+            d="M13 10L17 14M17 10L13 14"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
           />
         </Svg>
       );

@@ -577,6 +577,7 @@ export function WoordyScreen({ onBack }: WoordyScreenProps) {
             icon="document-text"
             title={t('games.woordy.title')}
             skipSafeArea
+            showGridButton={false}
             rightAccessory={renderGamepadButton(
               phase === 'menu' ? onBack : handleQuit,
               phase === 'menu' ? undefined : t('games.common.quit'),

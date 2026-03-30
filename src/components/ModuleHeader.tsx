@@ -5,8 +5,8 @@
  * ┌──────────────────────────────────────────────────────────────┐
  * │  Safe Area (notch/Dynamic Island)                             │
  * ├──────────────────────────────────────────────────────────────┤
- * │  📻 Radio                    🔊 [MediaIndicator] [🏠 Grid]    │
- * │  ↑ Icon (decoratief) + Title          ↑ Rechts (spacing.md)  │
+ * │  📻 Radio              🔊 [MediaIndicator] [🏠 Grid] [extra]  │
+ * │  ↑ Icon + Title     ↑ Rechts: MediaIndicator → Grid → rightAccessory │
  * ├──────────────────────────────────────────────────────────────┤
  * │  ─ ─ ─ ─ ─ ─ ─  Separator line (1pt) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │
  * └──────────────────────────────────────────────────────────────┘
@@ -103,7 +103,7 @@ export interface ModuleHeaderProps {
   onSave?: () => void;
   /** Disable the Save button (e.g. form not valid) */
   saveDisabled?: boolean;
-  /** Optional accessory rendered in the right side of the header (before MediaIndicator) */
+  /** Optional accessory rendered at the far right of the header (after MediaIndicator and Grid button) */
   rightAccessory?: React.ReactNode;
 }
 
@@ -254,9 +254,8 @@ export function ModuleHeader({
             <Text style={styles.title}>{title}</Text>
           </View>
 
-          {/* Right: rightAccessory + MediaIndicator + Grid button */}
+          {/* Right: MediaIndicator + Grid button + rightAccessory */}
           <View style={styles.rightControls}>
-            {rightAccessory}
             <View style={styles.mediaIndicatorWrapper}>
               <MediaIndicator
                 moduleColor={moduleColor}
@@ -280,6 +279,7 @@ export function ModuleHeader({
                 <Icon name="grid" size={24} color={colors.textOnPrimary} />
               </HapticTouchable>
             )}
+            {rightAccessory}
           </View>
         </View>
       )}

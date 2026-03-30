@@ -431,6 +431,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               icon="star"
               title={t('navigation.trivia')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -463,6 +464,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               icon="star"
               title={t('navigation.trivia')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -524,6 +526,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               icon="star"
               title={t('navigation.trivia')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -577,6 +580,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               icon="star"
               title={t('navigation.trivia')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -730,6 +734,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               showBackButton
               onBackPress={() => setPhase('menu')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -780,6 +785,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
               icon="star"
               title={t('navigation.trivia')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
             />
           }
@@ -943,6 +949,7 @@ export function TriviaScreen({ onBack }: TriviaScreenProps) {
             icon="star"
             title={t('navigation.trivia')}
             skipSafeArea
+            showGridButton={false}
             rightAccessory={renderGamepadButton(onBack)}
           />
         }

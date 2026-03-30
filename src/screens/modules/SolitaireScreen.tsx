@@ -253,9 +253,10 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
           moduleBlock={
             <ModuleHeader
               moduleId={MODULE_ID}
-              icon="layers"
+              icon="list"
               title={t('navigation.solitaire')}
               skipSafeArea
+              showGridButton={false}
               rightAccessory={renderGamepadButton(onBack)}
             />
           }
@@ -327,9 +328,10 @@ export function SolitaireScreen({ onBack }: SolitaireScreenProps) {
         moduleBlock={
           <ModuleHeader
             moduleId={MODULE_ID}
-            icon="layers"
+            icon="list"
             title={t('navigation.solitaire')}
             skipSafeArea
+            showGridButton={false}
             rightAccessory={renderGamepadButton(handleQuit, t('games.common.quit'))}
           />
         }
