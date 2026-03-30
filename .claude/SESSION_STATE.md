@@ -7,7 +7,7 @@
 
 - **Datum:** 2026-03-30
 - **Sessie:** Games Session 3b — Trivia design document (PNA)
-- **Commit:** (pending) — docs: add Trivia game design document
+- **Commit:** 40e31f7 — docs: add Trivia game design document
 
 ## Voltooide Taken Deze Sessie
 
